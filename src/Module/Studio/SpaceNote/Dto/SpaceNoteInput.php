@@ -12,8 +12,8 @@ class SpaceNoteInput implements SpaceNoteInputInterface
 {
     /** @param list<array<string, mixed>> $body */
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.space_notes.errors.title_required')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.space_notes.errors.title_too_long')]
+        #[Assert\NotBlank(message: 'suite.studio.space_notes.errors.title_required')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.space_notes.errors.title_too_long')]
         public readonly string $title = '',
         public readonly array $body = [],
         // La meme palette que partout : une note suit le theme au lieu de

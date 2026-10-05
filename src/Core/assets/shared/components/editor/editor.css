@@ -204,7 +204,7 @@
  * retombe sur son attribut `cols`, soit une vingtaine de caracteres. Pour du
  * HTML ecrit a la main, c'est inutilisable.
  *
- * Elle code aussi ses couleurs en dur, en sombre : sur un backend en theme
+ * Elle code aussi ses couleurs en dur, en sombre : sur une suite en theme
  * clair, la zone de saisie restait noire au milieu d'une page blanche. Les
  * jetons du projet reglent les deux cas d'un coup. */
 .codex-editor .ce-rawtool__textarea {

@@ -140,7 +140,7 @@ class ContractManager implements ContractManagerInterface
             : $this->customerRepository->find($input->getCustomerId());
 
         if (!$customer instanceof CustomerInterface) {
-            throw new FieldException('customerId', $this->translator->trans('backend.studio.contracts.errors.customer_required'));
+            throw new FieldException('customerId', $this->translator->trans('suite.studio.contracts.errors.customer_required'));
         }
 
         $contract
@@ -159,7 +159,7 @@ class ContractManager implements ContractManagerInterface
         // then its preview and its export failed and its seal was refused.
         foreach ([$contract->getBodyVersion(), $contract->getAnnexVersion()] as $version) {
             if ($version instanceof ContractTemplateVersionInterface && !$version->getTranslation($contract->getLocale()) instanceof ContractTemplateVersionTranslationInterface) {
-                throw new FieldException('locale', $this->translator->trans('backend.studio.contracts.errors.locale_missing', ['{locale}' => $contract->getLocale(), '{template}' => $version->getTemplate()->getName()]));
+                throw new FieldException('locale', $this->translator->trans('suite.studio.contracts.errors.locale_missing', ['{locale}' => $contract->getLocale(), '{template}' => $version->getTemplate()->getName()]));
             }
         }
     }
@@ -193,26 +193,26 @@ class ContractManager implements ContractManagerInterface
         $parent = $this->contractRepository->find($amendsId);
 
         if (!$parent instanceof ContractInterface) {
-            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_not_found'));
+            throw new FieldException('amendsId', $this->translator->trans('suite.studio.contracts.errors.amends_not_found'));
         }
 
         if (!$parent->getStatus()->isConcluded()) {
-            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_not_concluded'));
+            throw new FieldException('amendsId', $this->translator->trans('suite.studio.contracts.errors.amends_not_concluded'));
         }
 
         if ($parent->isAmendment()) {
-            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_is_amendment'));
+            throw new FieldException('amendsId', $this->translator->trans('suite.studio.contracts.errors.amends_is_amendment'));
         }
 
         // Refused once the termination has taken effect, not from the day
         // notice was given: during the notice the contract still binds, and an
         // amendment is how its last months get changed.
         if ($parent->isTerminationEffective()) {
-            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_terminated'));
+            throw new FieldException('amendsId', $this->translator->trans('suite.studio.contracts.errors.amends_terminated'));
         }
 
         if ($parent->getCustomer()->getId() !== $customer->getId()) {
-            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_other_customer'));
+            throw new FieldException('amendsId', $this->translator->trans('suite.studio.contracts.errors.amends_other_customer'));
         }
 
         return $parent;
@@ -233,13 +233,13 @@ class ContractManager implements ContractManagerInterface
         $template = $this->templateRepository->find($templateId);
 
         if (!$template instanceof ContractTemplateInterface || $template->getKind() !== $kind) {
-            throw new FieldException($field, $this->translator->trans('backend.studio.contracts.errors.template_not_found'));
+            throw new FieldException($field, $this->translator->trans('suite.studio.contracts.errors.template_not_found'));
         }
 
         $version = $template->getLatestPublishedVersion();
 
         if (!$version instanceof ContractTemplateVersionInterface) {
-            throw new FieldException($field, $this->translator->trans('backend.studio.contracts.errors.template_never_published', ['{template}' => $template->getName()]));
+            throw new FieldException($field, $this->translator->trans('suite.studio.contracts.errors.template_never_published', ['{template}' => $template->getName()]));
         }
 
         return $version;
@@ -258,7 +258,7 @@ class ContractManager implements ContractManagerInterface
         // Compared back, because PHP rolls an impossible date over rather
         // than refusing it: 2026-13-45 became the 14th of February 2027.
         if (false === $date || $date->format('Y-m-d') !== $raw) {
-            throw new FieldException('effectiveDate', $this->translator->trans('backend.studio.contracts.errors.effective_date_invalid'));
+            throw new FieldException('effectiveDate', $this->translator->trans('suite.studio.contracts.errors.effective_date_invalid'));
         }
 
         return $date;
@@ -306,7 +306,7 @@ class ContractManager implements ContractManagerInterface
     public function cancel(ContractInterface $contract): void
     {
         if (!$contract->getStatus()->canBeCancelled()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.cannot_cancel'));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.cannot_cancel'));
         }
 
         $now = new DateTimeImmutable();
@@ -364,17 +364,17 @@ class ContractManager implements ContractManagerInterface
             // by revoking its link, or refused by the customer, and calling
             // either of those a termination would put three different events
             // under one word.
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.terminate_not_concluded'));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.terminate_not_concluded'));
         }
 
         if ($contract->isTerminated()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_terminated'));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.already_terminated'));
         }
 
         $origin = ContractTerminationOriginEnum::tryFrom($input->getOrigin());
 
         if (!$origin instanceof ContractTerminationOriginEnum) {
-            throw new FieldException('origin', $this->translator->trans('backend.studio.contracts.errors.termination_origin_invalid'));
+            throw new FieldException('origin', $this->translator->trans('suite.studio.contracts.errors.termination_origin_invalid'));
         }
 
         $noticedAt = $this->dateOrFail($input->getNoticedAt(), 'noticedAt');
@@ -384,7 +384,7 @@ class ContractManager implements ContractManagerInterface
             // A notice period runs forward. The other order is not a shorter
             // notice, it is a typo, and storing it would make every report
             // that subtracts the two dates produce a negative period.
-            throw new FieldException('effectiveAt', $this->translator->trans('backend.studio.contracts.errors.termination_before_notice'));
+            throw new FieldException('effectiveAt', $this->translator->trans('suite.studio.contracts.errors.termination_before_notice'));
         }
 
         $contract->terminate($noticedAt, $effectiveAt, $origin, $input->getReason());
@@ -406,7 +406,7 @@ class ContractManager implements ContractManagerInterface
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $raw);
 
         if (false === $date) {
-            throw new FieldException($field, $this->translator->trans('backend.studio.contracts.errors.termination_date_invalid'));
+            throw new FieldException($field, $this->translator->trans('suite.studio.contracts.errors.termination_date_invalid'));
         }
 
         return $date;
@@ -431,7 +431,7 @@ class ContractManager implements ContractManagerInterface
         if (!$this->retention->hasElapsed($contract)) {
             $until = $this->retention->until($contract);
 
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.retention_not_elapsed', ['{date}' => $until?->format('d/m/Y') ?? '-']));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.retention_not_elapsed', ['{date}' => $until?->format('d/m/Y') ?? '-']));
         }
     }
 
@@ -528,7 +528,7 @@ class ContractManager implements ContractManagerInterface
         $body = $contract->getBodyVersion();
 
         if (!$body instanceof ContractTemplateVersionInterface) {
-            throw new FieldException('bodyVersion', $this->translator->trans('backend.studio.contracts.errors.body_required'));
+            throw new FieldException('bodyVersion', $this->translator->trans('suite.studio.contracts.errors.body_required'));
         }
 
         // Only published wording can be sent. A draft version is work in
@@ -546,7 +546,7 @@ class ContractManager implements ContractManagerInterface
         // was picked: a contract can end between the day its amendment is
         // drafted and the day it is sealed.
         if ($contract->getAmends()?->isTerminationEffective() ?? false) {
-            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_terminated'));
+            throw new FieldException('amendsId', $this->translator->trans('suite.studio.contracts.errors.amends_terminated'));
         }
 
         // Checked before a reference is minted: a contract refused here has
@@ -554,7 +554,7 @@ class ContractManager implements ContractManagerInterface
         $missing = $this->missingCustomFields($contract);
 
         if ([] !== $missing) {
-            throw new FieldException('customFields', $this->translator->trans('backend.studio.contracts.errors.custom_fields_missing', ['{fields}' => implode(', ', $missing)]));
+            throw new FieldException('customFields', $this->translator->trans('suite.studio.contracts.errors.custom_fields_missing', ['{fields}' => implode(', ', $missing)]));
         }
 
         // The provider's own identity comes from the settings, so a blank
@@ -564,7 +564,7 @@ class ContractManager implements ContractManagerInterface
         $unsetProvider = $this->unsetProviderSettings($contract, $this->variables->providerValues());
 
         if ([] !== $unsetProvider) {
-            throw new FieldException('bodyVersion', $this->translator->trans('backend.studio.contracts.errors.provider_settings_missing', ['{fields}' => implode(', ', $unsetProvider)]));
+            throw new FieldException('bodyVersion', $this->translator->trans('suite.studio.contracts.errors.provider_settings_missing', ['{fields}' => implode(', ', $unsetProvider)]));
         }
 
         // Refused before a reference is minted, like every other guard here: a
@@ -573,7 +573,7 @@ class ContractManager implements ContractManagerInterface
         $unsetAmendment = $this->unsetAmendmentTokens($contract);
 
         if ([] !== $unsetAmendment) {
-            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amendment_tokens_without_parent', ['{fields}' => implode(', ', $unsetAmendment)]));
+            throw new FieldException('amendsId', $this->translator->trans('suite.studio.contracts.errors.amendment_tokens_without_parent', ['{fields}' => implode(', ', $unsetAmendment)]));
         }
 
         // Rendered once with a stand-in reference, so every refusal below
@@ -665,7 +665,7 @@ class ContractManager implements ContractManagerInterface
             // Named, and refused. A token nobody will ever fill would reach the
             // signer as literal braces in the middle of a clause, and by then
             // the document is sealed.
-            throw new FieldException('bodyVersion', $this->translator->trans('backend.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', $unknown)]));
+            throw new FieldException('bodyVersion', $this->translator->trans('suite.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', $unknown)]));
         }
 
         return ['values' => $values, 'deferred' => $deferred, 'parts' => $parts, 'html' => $html, 'governingLocale' => $governingLocale];
@@ -759,7 +759,7 @@ class ContractManager implements ContractManagerInterface
         }
 
         if (1 < count($declared)) {
-            throw new FieldException('annexVersion', $this->translator->trans('backend.studio.contracts.errors.governing_locale_conflict', ['{locales}' => implode(', ', array_keys($declared))]));
+            throw new FieldException('annexVersion', $this->translator->trans('suite.studio.contracts.errors.governing_locale_conflict', ['{locales}' => implode(', ', array_keys($declared))]));
         }
 
         return array_key_first($declared);
@@ -884,7 +884,7 @@ class ContractManager implements ContractManagerInterface
         $translation = $version->getTranslation($locale);
 
         if (!$translation instanceof ContractTemplateVersionTranslationInterface) {
-            throw new FieldException('locale', $this->translator->trans('backend.studio.contracts.errors.locale_missing', ['{locale}' => $locale, '{template}' => $version->getTemplate()->getName()]));
+            throw new FieldException('locale', $this->translator->trans('suite.studio.contracts.errors.locale_missing', ['{locale}' => $locale, '{template}' => $version->getTemplate()->getName()]));
         }
 
         $content = $translation->getContent();
@@ -928,23 +928,23 @@ class ContractManager implements ContractManagerInterface
         $version = $this->partsOf($contract)[$part->value] ?? null;
 
         if (!$version instanceof ContractTemplateVersionInterface) {
-            throw new FieldException('part', $this->translator->trans('backend.studio.contracts.wording.errors.no_part'));
+            throw new FieldException('part', $this->translator->trans('suite.studio.contracts.wording.errors.no_part'));
         }
 
         $title = mb_trim($title);
 
         if ('' === $title) {
-            throw new FieldException('title', $this->translator->trans('backend.studio.contracts.wording.errors.title_required'));
+            throw new FieldException('title', $this->translator->trans('suite.studio.contracts.wording.errors.title_required'));
         }
 
         if (mb_strlen($title) > self::WORDING_TITLE_MAX) {
-            throw new FieldException('title', $this->translator->trans('backend.studio.contracts.wording.errors.title_too_long', ['{max}' => (string) self::WORDING_TITLE_MAX]));
+            throw new FieldException('title', $this->translator->trans('suite.studio.contracts.wording.errors.title_too_long', ['{max}' => (string) self::WORDING_TITLE_MAX]));
         }
 
         $blocks = is_array($content['blocks'] ?? null) ? array_values($content['blocks']) : [];
 
         if ([] === $blocks) {
-            throw new FieldException('content', $this->translator->trans('backend.studio.contracts.wording.errors.empty'));
+            throw new FieldException('content', $this->translator->trans('suite.studio.contracts.wording.errors.empty'));
         }
 
         $this->assertWordingPrintable($contract, $title, $blocks);
@@ -1005,7 +1005,7 @@ class ContractManager implements ContractManagerInterface
         $unknown = $this->renderer->unknownTokens($html, $values, $this->variables->deferredTokens());
 
         if ([] !== $unknown) {
-            throw new FieldException('content', $this->translator->trans('backend.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown))]));
+            throw new FieldException('content', $this->translator->trans('suite.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown))]));
         }
     }
 
@@ -1015,7 +1015,7 @@ class ContractManager implements ContractManagerInterface
             return;
         }
 
-        throw new FieldException($field, $this->translator->trans('backend.studio.contracts.errors.version_not_published', ['{template}' => $version->getTemplate()->getName(), '{number}' => (string) $version->getNumber()]));
+        throw new FieldException($field, $this->translator->trans('suite.studio.contracts.errors.version_not_published', ['{template}' => $version->getTemplate()->getName(), '{number}' => (string) $version->getNumber()]));
     }
 
     /**

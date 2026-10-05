@@ -400,7 +400,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // `file` (when non-null) is a path under test_files/ that gets
         // copied into var/uploads/ged/Y/m/ - one copy per doc so each
         // carries a unique filePath, mirroring real uploads through
-        // /backend/ged/documents/upload. Docs with `file => null` stay
+        // /suite/ged/documents/upload. Docs with `file => null` stay
         // file-less so users have something to test the editor's upload
         // flow with.
         $samplePdf = 'files/pdfs/pdfform_sample.pdf';

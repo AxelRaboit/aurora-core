@@ -25,7 +25,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  * Ensuite, et surtout, **qu'aucune des deux pages d'acceptation n'accepte le
  * jeton de l'autre population**. `findValidInvitation` ne filtre pas le type -
  * la mécanique du jeton est commune - donc le filtrage appartient aux routes.
- * Sans lui, un invité frontend suivant l'adresse du backend serait connecté sur
+ * Sans lui, un invité frontend suivant l'adresse de la suite serait connecté sur
  * le firewall d'administration : `admin_user_provider` ne résoudrait pas son
  * compte au rafraîchissement suivant, mais il aurait vu le tableau de bord
  * entre-temps.
@@ -103,21 +103,21 @@ final class FrontendInvitationTest extends IntegrationTestCase
     /**
      * Le garde qui compte : un jeton frontend ne passe pas par l'administration.
      */
-    public function testTheBackendPageRefusesAFrontendInvite(): void
+    public function testTheSuitePageRefusesAFrontendInvite(): void
     {
         $user = $this->invite('pas-admin@exemple.com', UserTypeEnum::Frontend);
 
-        $this->client->request('GET', $this->backendUrl($user));
+        $this->client->request('GET', $this->suiteUrl($user));
 
         // Renvoyé vers la connexion de l'administration, comme un jeton expiré.
         self::assertResponseRedirects();
-        self::assertStringContainsString('/backend/platform/login', (string) $this->client->getResponse()->headers->get('Location'));
+        self::assertStringContainsString('/suite/platform/login', (string) $this->client->getResponse()->headers->get('Location'));
     }
 
-    /** Et la réciproque : un jeton backend ne passe pas par le site public. */
-    public function testTheFrontendPageRefusesABackendInvite(): void
+    /** Et la réciproque : un jeton suite ne passe pas par le site public. */
+    public function testTheFrontendPageRefusesASuiteInvite(): void
     {
-        $user = $this->invite('admin@exemple.com', UserTypeEnum::Backend);
+        $user = $this->invite('admin@exemple.com', UserTypeEnum::Suite);
 
         $this->client->request('GET', $this->frontendUrl($user));
 
@@ -197,10 +197,10 @@ final class FrontendInvitationTest extends IntegrationTestCase
         );
     }
 
-    private function backendUrl(User $user): string
+    private function suiteUrl(User $user): string
     {
         return sprintf(
-            '/backend/platform/invitation/%s/%s',
+            '/suite/platform/invitation/%s/%s',
             (string) $user->getInvitationSelector(),
             $this->freshToken($user),
         );

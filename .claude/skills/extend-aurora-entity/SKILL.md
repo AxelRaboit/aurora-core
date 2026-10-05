@@ -284,18 +284,18 @@ class DocumentCategorySerializer extends AuroraDocumentCategorySerializer
 ### Layer 5 - Vue wrapper
 
 ```
-src/Module/Ged/DocumentCategory/assets/backend/AppDocumentCategoriesApp.vue
+src/Module/Ged/DocumentCategory/assets/suite/AppDocumentCategoriesApp.vue
 ```
 
 > Convention 0.5+ : assets are **co-located** under
-> `src/Module/<Module>/assets/backend/` next to the PHP classes of the
+> `src/Module/<Module>/assets/suite/` next to the PHP classes of the
 > module. The old root `assets/client/Module/<...>` layout was dropped
 > in aurora-client commit `9d77f67`. Vite picks the new path up via
 > the alias chain configured in `aliases.js` + `jsconfig.json`.
 
 ```vue
 <script setup>
-import DocumentCategoriesApp from "@platform/backend/document-categories/DocumentCategoriesApp.vue";
+import DocumentCategoriesApp from "@platform/suite/document-categories/DocumentCategoriesApp.vue";
 
 const extraFields = {
     code: {
@@ -308,13 +308,13 @@ const extraFields = {
 <template>
     <DocumentCategoriesApp :extra-fields="extraFields">
         <template #extra-headers>
-            <th>{{ $t("backend.document-categories.code") }}</th>
+            <th>{{ $t("suite.document-categories.code") }}</th>
         </template>
         <template #extra-cells="{ category }">
             <td>{{ category.code }}</td>
         </template>
         <template #extra-form-fields="{ editForm, errors }">
-            <label>{{ $t("backend.document-categories.code") }}</label>
+            <label>{{ $t("suite.document-categories.code") }}</label>
             <input v-model="editForm.code" type="text" />
             <span v-if="errors.code" class="error">{{ errors.code }}</span>
         </template>
@@ -341,11 +341,11 @@ client's source tree. Aurora's per-module Twig namespaces
 so the override is picked up automatically.
 
 Example - DocumentCategory lives under the Platform module in aurora-core
-(`src/Module/Ged/templates/backend/categories/index.html.twig`).
+(`src/Module/Ged/templates/suite/categories/index.html.twig`).
 The client mirror:
 
 ```
-src/Module/Ged/templates/backend/categories/index.html.twig
+src/Module/Ged/templates/suite/categories/index.html.twig
 ```
 
 Point the Vue mount to `AppDocumentCategoriesApp` instead of `DocumentCategoriesApp`.
@@ -371,7 +371,7 @@ Point the Vue mount to `AppDocumentCategoriesApp` instead of `DocumentCategories
    - `php bin/console cache:clear`.
    - `php bin/console debug:container Aurora.<Name>ManagerInterface` -
      verify the alias resolves to the client class.
-   - Add translation keys (`backend.<plural>.<field>`).
+   - Add translation keys (`suite.<plural>.<field>`).
    - Test create + edit in the admin and confirm the new field persists.
 
 ## Boundaries

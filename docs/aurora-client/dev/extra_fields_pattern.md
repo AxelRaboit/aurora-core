@@ -64,9 +64,9 @@ n'est pas déclaré via `extraFields` - il ne survivrait pas au reset/edit.
 ## 3. Référence de code dans aurora-core
 
 Le composant exemplaire est
-`src/Module/Ecommerce/assets/backend/listing_categories/ListingCategoriesApp.vue`
+`src/Module/Ecommerce/assets/suite/listing_categories/ListingCategoriesApp.vue`
 et son composable
-`src/Module/Ecommerce/assets/backend/listing_categories/composables/useListingCategoriesForm.js`.
+`src/Module/Ecommerce/assets/suite/listing_categories/composables/useListingCategoriesForm.js`.
 
 ### Côté composant (extrait fidèle)
 
@@ -171,7 +171,7 @@ invoque le composant Aurora.
 
 ```vue
 <script setup>
-import DocumentCategoriesApp from "@core/backend/document-categories/DocumentCategoriesApp.vue";
+import DocumentCategoriesApp from "@core/suite/document-categories/DocumentCategoriesApp.vue";
 import AppInput from "@shared/components/form/AppInput.vue";
 
 defineProps({
@@ -228,16 +228,16 @@ const extraFields = {
    place du composant Aurora :
 
 ```twig
-{# templates/Core/backend/document-categories/index.html.twig (override client) #}
-{% extends '@CoreBackend/layout.html.twig' %}
+{# templates/Core/suite/document-categories/index.html.twig (override client) #}
+{% extends '@CoreSuite/layout.html.twig' %}
 
 {% block body %}
     {{ vue_component('crm/admin/DocumentCategoriesAppExtended', {
         document-categories: document-categories,
-        listPath: path('core_backend_category_list_json'),
-        createPath: path('core_backend_category_create'),
-        updatePath: path('core_backend_category_update', {id: '__id__'}),
-        deletePath: path('core_backend_category_delete', {id: '__id__'}),
+        listPath: path('core_suite_category_list_json'),
+        createPath: path('core_suite_category_create'),
+        updatePath: path('core_suite_category_update', {id: '__id__'}),
+        deletePath: path('core_suite_category_delete', {id: '__id__'}),
     }) }}
 {% endblock %}
 ```

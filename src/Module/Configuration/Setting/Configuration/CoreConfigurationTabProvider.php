@@ -147,7 +147,7 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
             if (ApplicationParameterEnum::EmailLocale === $parameter) {
                 array_unshift($options, [
                     'value' => '',
-                    'label' => $this->translator->trans('backend.parameters.email_locale_auto'),
+                    'label' => $this->translator->trans('suite.parameters.email_locale_auto'),
                 ]);
             }
 
@@ -164,7 +164,7 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
                     'value' => $style,
                     'label' => sprintf(
                         '%s · %s',
-                        $this->translator->trans('backend.parameters.date_format_'.$style),
+                        $this->translator->trans('suite.parameters.date_format_'.$style),
                         $this->dateFormatter->date($today, $this->translator->getLocale(), $style),
                     ),
                 ],

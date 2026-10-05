@@ -1,4 +1,4 @@
-backend:
+suite:
     stats:
         ged:
             documents: "Documents"
@@ -30,8 +30,8 @@ backend:
                     manage: Gérer les dossiers
     modules:
         ged: GED
-        ged_backend: GED
-        ged_backend_description: "Active la section GED dans l'administration."
+        ged_suite: GED
+        ged_suite_description: "Active la section GED dans l'administration."
         ged_tags: Étiquettes GED
         ged_tags_description: "Active la gestion des étiquettes de documents."
         ged_folders: Dossiers GED
@@ -94,7 +94,7 @@ backend:
             show_guide:
                 title: "Ce que vous pouvez faire ici"
                 step_1: "Le bouton d'actions en haut permet de télécharger le fichier, de modifier le document ou de l'envoyer à la corbeille."
-                step_2: "Seul un document au statut « Publié » est servi aux visiteurs du site ; un brouillon ou une archive reste réservé au back-office."
+                step_2: "Seul un document au statut « Publié » est servi aux visiteurs du site ; un brouillon ou une archive reste réservé à la suite."
                 step_3: "Sur une image, « Recadrer » enregistre une nouvelle version du fichier, régénère ses tailles et garde la précédente dans l'historique."
                 step_4: "Si le document a des variantes, sa famille s'affiche en bas avec l'endroit où chacune est utilisée, et un clic ouvre la page d'une variante."
             guide:

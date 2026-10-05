@@ -6,7 +6,7 @@ import { Save, X } from "lucide-vue-next";
 import Cropper from "cropperjs";
 import "cropperjs/dist/cropper.css";
 import { toast } from "vue-sonner";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";

@@ -52,7 +52,7 @@ final class SpaceWorkloadTest extends IntegrationTestCase
         parent::setUp();
         $this->client = static::createClient();
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -137,7 +137,7 @@ final class SpaceWorkloadTest extends IntegrationTestCase
     public function testTheTeamIsToldOnceAboutOverdueReviews(): void
     {
         $space = $this->givenSpace('Relances');
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $member = new CustomerSpaceMember();
         $member->setUser($admin)->setRole(CustomerSpaceMemberRoleEnum::Lead);
         $space->addMember($member);
@@ -189,7 +189,7 @@ final class SpaceWorkloadTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', ['name' => $name, 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', ['name' => $name, 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         return $this->reload($this->entityManager->getReference(CustomerSpace::class, json_decode((string) $this->client->getResponse()->getContent(), true)['space']['id']));

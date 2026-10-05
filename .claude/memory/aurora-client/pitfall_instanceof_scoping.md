@@ -83,7 +83,7 @@ Au 2026-09-16, les plus souvent utiles côté client :
   l'area comme orphelins)
 - `Aurora\Core\Sequence\SequencePrefixProviderInterface` → `aurora.sequence_prefix`
 - `Aurora\Core\Trash\TrashSourceInterface` → `aurora.trash_source`
-- `Aurora\Core\Search\SearchProviderInterface` / `BackendSearchProviderInterface`
+- `Aurora\Core\Search\SearchProviderInterface` / `SuiteSearchProviderInterface`
 - `Aurora\Core\Dashboard\DashboardStatsProviderInterface` → `aurora.dashboard_stats_provider`
 - `Aurora\Module\Configuration\Setting\Provider\ApplicationParameterProviderInterface`
   et ses voisins `ConfigurationTabProviderInterface` / `OwnedSettingProviderInterface`

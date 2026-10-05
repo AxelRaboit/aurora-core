@@ -40,8 +40,8 @@ disabled?, loading? }`.
    composant rend facile.
 
    Le **toolbar d'une liste** est l'exception, et elle est **validée en
-   regardant l'écran** (Axel, 14/09/2026, sur `/backend/studio/decks` puis
-   `/backend/studio/customers`) : Créer part dans la feuille avec les autres,
+   regardant l'écran** (Axel, 14/09/2026, sur `/suite/studio/decks` puis
+   `/suite/studio/customers`) : Créer part dans la feuille avec les autres,
    et il ne reste qu'un bouton « Actions » à droite de la recherche. La
    différence tient à ce qui occupe la rangée : un en-tête d'éditeur n'a que
    ses boutons, un toolbar de liste a une recherche et souvent un filtre qui

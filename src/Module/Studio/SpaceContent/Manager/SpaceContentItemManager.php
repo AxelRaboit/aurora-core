@@ -185,7 +185,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         SpaceContentApprovalEnum $approval,
     ): void {
         if ($item->getSpace()->getId() !== $link->getSpace()->getId()) {
-            throw new FieldException('item', $this->translator->trans('backend.studio.space_content.errors.not_in_space'));
+            throw new FieldException('item', $this->translator->trans('suite.studio.space_content.errors.not_in_space'));
         }
 
         $item->answer($approval, $link, new DateTimeImmutable());
@@ -304,7 +304,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             sourceId: $id,
             label: $item->getTitle(),
             startAt: $scheduledAt,
-            calendarName: $this->translator->trans('backend.studio.space_content.calendar_name'),
+            calendarName: $this->translator->trans('suite.studio.space_content.calendar_name'),
             // The space, not the module: a reader looking at a busy week needs
             // to know which client a date belongs to, and "Espaces clients"
             // told them the same thing eight times.
@@ -353,7 +353,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $column = null === $columnId ? null : $this->columnRepository->find($columnId);
 
         if (!$column instanceof SpaceContentColumnInterface || $column->getSpace()->getId() !== $space->getId()) {
-            throw new FieldException('columnId', $this->translator->trans('backend.studio.space_content.errors.column_required'));
+            throw new FieldException('columnId', $this->translator->trans('suite.studio.space_content.errors.column_required'));
         }
 
         return $column;

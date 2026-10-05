@@ -23,14 +23,14 @@ enum PostStatusEnum: string
      * one.
      *
      * Here rather than built by whoever needs it, which is how the global search
-     * came to draw `backend.posts.status_options.draft` on screen: `AppSidemenu`
+     * came to draw `suite.posts.status_options.draft` on screen: `AppSidemenu`
      * lives in Core, concatenated a prefix it had guessed at, and no test noticed
      * because a key assembled at runtime is invisible to the one that checks Vue
      * keys resolve. A key belongs next to the value it names.
      */
     public function getLabelKey(): string
     {
-        return 'backend.posts.status.'.$this->value;
+        return 'suite.posts.status.'.$this->value;
     }
 
     /** Statuses a reader may reach. Everything else is editor-only. */

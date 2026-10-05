@@ -9,9 +9,9 @@ use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 
 /**
- * Platform's figures on the backend dashboard: who has an account.
+ * Platform's figures on the suite dashboard: who has an account.
  *
- * Scoped to backend users, which is what the module's own list manages - a
+ * Scoped to suite users, which is what the module's own list manages - a
  * dashboard that counted the public site's readers here would answer a question
  * nobody asked from this page.
  */

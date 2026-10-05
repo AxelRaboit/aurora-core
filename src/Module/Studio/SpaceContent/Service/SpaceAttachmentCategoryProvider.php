@@ -25,9 +25,9 @@ final readonly class SpaceAttachmentCategoryProvider
 {
     public const string SLUG = 'espaces-clients';
 
-    public const string NAME_KEY = 'backend.studio.space_content.attachments.category';
+    public const string NAME_KEY = 'suite.studio.space_content.attachments.category';
 
-    public const string DESCRIPTION_KEY = 'backend.studio.space_content.attachments.category_description';
+    public const string DESCRIPTION_KEY = 'suite.studio.space_content.attachments.category_description';
 
     public function __construct(private DocumentCategoryResolver $documentCategoryResolver) {}
 

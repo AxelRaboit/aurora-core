@@ -136,7 +136,7 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Platform\User\Entity\User;
 
 $userRepository = static::getContainer()->get(UserRepository::class);
-$admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+$admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
 self::assertInstanceOf(User::class, $admin);
 $this->client->loginUser($admin, 'admin');
 ```

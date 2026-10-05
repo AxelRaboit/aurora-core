@@ -63,7 +63,7 @@ final readonly class SpaceNoteDocumentUsageProvider implements BatchDocumentUsag
                 // « Compte rendu » se répètent d'un espace à l'autre, et ce
                 // qu'il faut savoir avant de supprimer, c'est chez quel client.
                 'detail' => $this->translator->trans(
-                    'backend.studio.spaces.usage_detail',
+                    'suite.studio.spaces.usage_detail',
                     ['{space}' => $note->getSpace()->getName()],
                 ),
                 'href' => $this->urlGenerator->generate(
@@ -85,7 +85,7 @@ final readonly class SpaceNoteDocumentUsageProvider implements BatchDocumentUsag
             return $note->getTitle();
         }
 
-        return $this->translator->trans('backend.studio.space_notes.someone_elses');
+        return $this->translator->trans('suite.studio.space_notes.someone_elses');
     }
 
     /**

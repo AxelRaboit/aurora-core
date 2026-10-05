@@ -20,7 +20,7 @@ use function str_replace;
  * La clé de libellé est dérivée du jeton, ce qui évite une table de
  * correspondance mais ne prévient de rien : les douze jetons `provider.*` et
  * les trois `contract.amends_*` n'avaient aucune traduction, et le panneau
- * affichait leur clé brute, `backend.studio.contract_templates.variables
+ * affichait leur clé brute, `suite.studio.contract_templates.variables
  * .provider_name`, à côté de sa valeur d'exemple. Personne ne l'avait vu
  * parce que le panneau se lit en diagonale.
  *
@@ -70,7 +70,7 @@ final class ContractVariableLabelsTest extends TestCase
     {
         $file = dirname(__DIR__, 6).'/src/Module/Studio/translations/messages.'.$locale.'.yaml';
         $parsed = Yaml::parseFile($file);
-        $labels = $parsed['backend']['studio']['contract_templates']['variables'] ?? null;
+        $labels = $parsed['suite']['studio']['contract_templates']['variables'] ?? null;
 
         self::assertTrue(is_array($labels), sprintf('le bloc des variables est absent en %s', $locale));
 

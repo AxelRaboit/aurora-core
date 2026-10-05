@@ -11,7 +11,7 @@ namespace Aurora\Core\Support;
  * Entries without a usable id are dropped rather than rejected: a stale row
  * in the browser should not lose the rest of the reorder.
  *
- * Shared by every nested list in the backend - taxonomy terms, menu entries -
+ * Shared by every nested list in the suite - taxonomy terms, menu entries -
  * because the payload is the same shape wherever a tree is dragged, and one
  * copy per screen would be one place per screen for it to drift.
  */

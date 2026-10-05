@@ -37,18 +37,18 @@ final readonly class ContractTemplatesViewBuilder
             'templates' => $this->templates(),
             'kinds' => $this->kinds(),
             'categories' => $this->categories(),
-            'createPath' => $this->urlGenerator->generate('backend_studio_contract_templates_create'),
-            'updatePath' => $this->pathTemplates->generate('backend_studio_contract_templates_update', ['id' => '__id__']),
-            'archivePath' => $this->pathTemplates->generate('backend_studio_contract_templates_archive', ['id' => '__id__']),
-            'restorePath' => $this->pathTemplates->generate('backend_studio_contract_templates_restore', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('backend_studio_contract_templates_delete', ['id' => '__id__']),
-            'openDraftPath' => $this->pathTemplates->generate('backend_studio_contract_templates_open_draft', ['id' => '__id__']),
-            'duplicatePath' => $this->pathTemplates->generate('backend_studio_contract_templates_duplicate', ['id' => '__id__']),
+            'createPath' => $this->urlGenerator->generate('suite_studio_contract_templates_create'),
+            'updatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_update', ['id' => '__id__']),
+            'archivePath' => $this->pathTemplates->generate('suite_studio_contract_templates_archive', ['id' => '__id__']),
+            'restorePath' => $this->pathTemplates->generate('suite_studio_contract_templates_restore', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplates->generate('suite_studio_contract_templates_delete', ['id' => '__id__']),
+            'openDraftPath' => $this->pathTemplates->generate('suite_studio_contract_templates_open_draft', ['id' => '__id__']),
+            'duplicatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_duplicate', ['id' => '__id__']),
             // Abandoning a draft is offered from the list too, not only from
             // inside the editor: somebody who opened one by mistake should not
             // have to walk into it to walk back out.
-            'discardDraftPath' => $this->pathTemplates->generate('backend_studio_contract_templates_discard', ['id' => '__id__', 'versionId' => '__versionId__']),
-            'editorPath' => $this->pathTemplates->generate('backend_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'discardDraftPath' => $this->pathTemplates->generate('suite_studio_contract_templates_discard', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'editorPath' => $this->pathTemplates->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
         ];
     }
 
@@ -81,27 +81,27 @@ final readonly class ContractTemplatesViewBuilder
             // deployment turned on.
             'locales' => $this->localeOptions->getActiveOptions(),
             'variableGroups' => $this->variables->groups(),
-            'savePath' => $this->urlGenerator->generate('backend_studio_contract_templates_save_draft', [
+            'savePath' => $this->urlGenerator->generate('suite_studio_contract_templates_save_draft', [
                 'id' => $template->getId(),
                 'versionId' => $version->getId(),
             ]),
-            'publishPath' => $this->urlGenerator->generate('backend_studio_contract_templates_publish', [
+            'publishPath' => $this->urlGenerator->generate('suite_studio_contract_templates_publish', [
                 'id' => $template->getId(),
                 'versionId' => $version->getId(),
             ]),
-            'discardPath' => $this->urlGenerator->generate('backend_studio_contract_templates_discard', [
+            'discardPath' => $this->urlGenerator->generate('suite_studio_contract_templates_discard', [
                 'id' => $template->getId(),
                 'versionId' => $version->getId(),
             ]),
-            'previewPath' => $this->urlGenerator->generate('backend_studio_contract_templates_preview', [
+            'previewPath' => $this->urlGenerator->generate('suite_studio_contract_templates_preview', [
                 'id' => $template->getId(),
                 'versionId' => $version->getId(),
             ]),
-            'indexPath' => $this->urlGenerator->generate('backend_studio_contract_templates'),
+            'indexPath' => $this->urlGenerator->generate('suite_studio_contract_templates'),
             // « Modifier le texte » from the version in force opens the next
             // draft without a trip back to the list.
-            'openDraftPath' => $this->urlGenerator->generate('backend_studio_contract_templates_open_draft', ['id' => $template->getId()]),
-            'editorPath' => $this->urlGenerator->generate('backend_studio_contract_templates_editor', [
+            'openDraftPath' => $this->urlGenerator->generate('suite_studio_contract_templates_open_draft', ['id' => $template->getId()]),
+            'editorPath' => $this->urlGenerator->generate('suite_studio_contract_templates_editor', [
                 'id' => $template->getId(),
                 'versionId' => '__versionId__',
             ]),

@@ -33,22 +33,22 @@ publication.
 ## La coquille `/workspace`, et le piège qu'elle contient
 
 Un espace s'ouvre dans son propre gabarit, sans menu latéral, à une adresse hors
-`/backend` - une coquille autonome à une adresse d'administration reste une page
+`/suite` - une coquille autonome à une adresse d'administration reste une page
 d'administration pour qui lit la barre du navigateur.
 
-**Ce qu'il ne faut pas perdre en sortant de `/backend` :**
+**Ce qu'il ne faut pas perdre en sortant de `/suite` :**
 
 - le **pare-feu** `admin` est un motif de chemin. `security.yaml` porte donc
   `^/(backend|dev|workspace)`, sinon aucune identité backend n'est restaurée et
   un membre de l'équipe arrive en visiteur anonyme, sans erreur ;
-- la règle **`access_control`**. `/backend` a `ROLE_USER` ; `/workspace` est
+- la règle **`access_control`**. `/suite` a `ROLE_USER` ; `/workspace` est
   sorti sans, et le fourre-tout `^/` l'aurait rendu public le jour où une action
   y arrive sans `#[IsGranted]` ;
 - les **globales JS**. Le layout backend pose `window.__isAdmin__`,
   `__isDev__`, `__privileges__`. La coquille ne les posait pas, donc
   `usePrivileges()` répondait « non » à tout et un administrateur voyait un
   tableau sans aucun bouton, en silence. Elles sont dans
-  `@Shared/components/backend_globals.html.twig`, incluses par les deux.
+  `@Shared/components/suite_globals.html.twig`, incluses par les deux.
 
 `AdminFirewallCoversStaffRoutesTest` vérifie les deux premiers points pour les
 trois préfixes réservés à l'équipe. C'est le genre d'erreur qu'une suite verte
@@ -101,7 +101,7 @@ Un message du client ne se supprime pas.
 - **L'espagnol porte tout ce qu'un client lit.**
   `CustomerFacingLocaleTest` échoue sinon. Vaut pour `studio.public.*` **et**
   pour toute clé de Core rendue sur une page publique.
-- **Une clé sous `backend.` sur une page client** est un namespace qui ne veut
+- **Une clé sous `suite.` sur une page client** est un namespace qui ne veut
   plus rien dire : les mots d'un composant partagé vont dans `shared.*`.
 - **`AuditActionLabelTest`** échoue dès qu'un Manager émet une action sans
   libellé, dans les deux langues.

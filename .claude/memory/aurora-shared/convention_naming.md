@@ -20,47 +20,47 @@ metadata:
 | Vue component | `PascalCase.vue` | `MarkdownNotesApp.vue` |
 | JS composable / util | `camelCase.js` | `useNoteImageUpload.js` |
 | CSS class | `kebab-case` | `.note-image-wrap` |
-| Folder dans `assets/` ou `templates/` | `kebab-case` | `Module/Ecommerce/backend/listing-categories/` |
-| URL path | `kebab-case` | `/backend/platform/access-request`, `/uploads/media/...` |
-| Symfony route name | `snake_case` | `backend_media_media_upload`, `uploads_serve` |
+| Folder dans `assets/` ou `templates/` | `kebab-case` | `Module/Ecommerce/suite/listing-categories/` |
+| URL path | `kebab-case` | `/suite/platform/access-request`, `/uploads/media/...` |
+| Symfony route name | `snake_case` | `suite_media_media_upload`, `uploads_serve` |
 | Setting / i18n / DB key | `snake_case` | `notes_markdown_image_max_edge` |
 | Doctrine table / sequence | `snake_case` (`seq_core_<entity>_id`) | `seq_core_markdown_note_id` |
 | Doc folder | `kebab-case` | `getting-started/`, `entity-extensibility/` |
 
-## Cas particulier : `vue_component('<module>/backend/...')` Twig
+## Cas particulier : `vue_component('<module>/suite/...')` Twig
 
 Le helper Twig `vue_component()` prend le **nom du module folder en lowercase
 compact** (sans tiret) comme premier segment, **pas** kebab-case :
 
 | Module folder | `vue_component()` prefix | URL backend (kebab-case) |
 |---|---|---|
-| `Notes` | `notes/backend/...` | `/backend/notes/...` |
-| `PdfForm` | `pdfform/backend/...` | `/backend/pdf-form/...` |
-| `PasswordGenerator` | `passwordgenerator/backend/...` | `/backend/password-generator/...` |
-| `PersonalFinance` | `personalfinance/backend/...` | `/backend/personal-finance/...` |
-| `Vault` | `vault/backend/...` | `/backend/vault/...` |
+| `Notes` | `notes/suite/...` | `/suite/notes/...` |
+| `PdfForm` | `pdfform/suite/...` | `/suite/pdf-form/...` |
+| `PasswordGenerator` | `passwordgenerator/suite/...` | `/suite/password-generator/...` |
+| `PersonalFinance` | `personalfinance/suite/...` | `/suite/personal-finance/...` |
+| `Vault` | `vault/suite/...` | `/suite/vault/...` |
 
 Pourquoi : le résolveur Vue (`@symfony_ux-vue`) construit ses clés à partir
 du glob `import.meta.glob('./Module/**/*.vue')` et applique `strtolower()`
 sur le nom du folder Module - sans transformation kebab. Conséquence : le
 nom Vue côté Twig **ne suit pas** la convention URL.
 
-Les segments **après** `<module>/backend/` reflètent le chemin réel sous
-`assets/backend/` (kebab-case ou single-word lowercase selon le folder).
+Les segments **après** `<module>/suite/` reflètent le chemin réel sous
+`assets/suite/` (kebab-case ou single-word lowercase selon le folder).
 
 ### Anti-pattern fréquent
 
-❌ `vue_component('personal-finance/backend/wallet/PersonalFinanceWalletsApp')`
+❌ `vue_component('personal-finance/suite/wallet/PersonalFinanceWalletsApp')`
     → erreur runtime "Vue controller does not exist"
-✅ `vue_component('personalfinance/backend/wallet/PersonalFinanceWalletsApp')`
+✅ `vue_component('personalfinance/suite/wallet/PersonalFinanceWalletsApp')`
 
-Le piège vient du fait que l'URL est `/backend/personal-finance/...` (kebab)
+Le piège vient du fait que l'URL est `/suite/personal-finance/...` (kebab)
 mais que la référence Vue est `personalfinance/...` (compact). Les deux
 cohabitent pour le même module - c'est inhabituel mais c'est la règle.
 
 ## Anti-patterns
 
-❌ `src/Module/Crm/assets/backend/contact_tags/` → ✅ `contact-tags/`
+❌ `src/Module/Crm/assets/suite/contact_tags/` → ✅ `contact-tags/`
 ❌ `docs/aurora-client/getting_started/` → ✅ `getting-started/`
 ❌ Mixer kebab et snake dans un même type sur des modules différents
 ❌ URL avec underscore (`/forgot_password`) au lieu de dash (`/forgot-password`)

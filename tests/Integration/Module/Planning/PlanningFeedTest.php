@@ -55,7 +55,7 @@ final class PlanningFeedTest extends IntegrationTestCase
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
 
@@ -282,7 +282,7 @@ final class PlanningFeedTest extends IntegrationTestCase
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_planning_links_revoke', ['id' => $link->getId()]),
+            $this->urlGenerator->generate('suite_planning_links_revoke', ['id' => $link->getId()]),
         );
         self::assertResponseIsSuccessful();
 

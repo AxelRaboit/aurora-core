@@ -42,19 +42,19 @@ final class ModuleRegistryFilteringTest extends TestCase
 
     public function testHiddenItemIsExcluded(): void
     {
-        $user = $this->makeUser(hiddenItems: ['backend_crm_contacts']);
+        $user = $this->makeUser(hiddenItems: ['suite_crm_contacts']);
         $registry = $this->makeRegistry($user);
 
         $sections = $registry->getNavSections();
         $crmItems = array_column($sections[0]['items'], 'key');
 
-        self::assertNotContains('backend_crm_contacts', $crmItems);
-        self::assertContains('backend_crm_companies', $crmItems);
+        self::assertNotContains('suite_crm_contacts', $crmItems);
+        self::assertContains('suite_crm_companies', $crmItems);
     }
 
     public function testSectionWhereAllItemsAreHiddenDisappears(): void
     {
-        $user = $this->makeUser(hiddenItems: ['backend_crm_contacts', 'backend_crm_companies']);
+        $user = $this->makeUser(hiddenItems: ['suite_crm_contacts', 'suite_crm_companies']);
         $registry = $this->makeRegistry($user);
 
         $sections = $registry->getNavSections();
@@ -69,14 +69,14 @@ final class ModuleRegistryFilteringTest extends TestCase
         $sections = $registry->getNavSections();
         $contact = $sections[0]['items'][0];
 
-        self::assertSame('backend_crm_contacts', $contact['key']);
+        self::assertSame('suite_crm_contacts', $contact['key']);
         // route is exposed for active-route matching (uses prefix when set)
-        self::assertSame('backend_crm_contacts', $contact['route']);
+        self::assertSame('suite_crm_contacts', $contact['route']);
     }
 
     public function testGetNavPreferencesReturnsEverythingWithHiddenFlags(): void
     {
-        $user = $this->makeUser(hiddenSections: ['billing'], hiddenItems: ['backend_crm_contacts']);
+        $user = $this->makeUser(hiddenSections: ['billing'], hiddenItems: ['suite_crm_contacts']);
         $registry = $this->makeRegistry($user);
 
         $sections = $registry->getNavPreferences();
@@ -86,8 +86,8 @@ final class ModuleRegistryFilteringTest extends TestCase
         self::assertFalse($this->findSection($sections, 'crm')['hidden']);
 
         $crmItems = $this->findSection($sections, 'crm')['items'];
-        self::assertTrue($this->findItem($crmItems, 'backend_crm_contacts')['hidden']);
-        self::assertFalse($this->findItem($crmItems, 'backend_crm_companies')['hidden']);
+        self::assertTrue($this->findItem($crmItems, 'suite_crm_contacts')['hidden']);
+        self::assertFalse($this->findItem($crmItems, 'suite_crm_companies')['hidden']);
     }
 
     private function makeRegistry(?CoreUserInterface $user): ModuleRegistry
@@ -180,11 +180,11 @@ final class StubNavModule implements ModuleInterface
     {
         return [
             new NavSection('crm', [
-                new NavItem('backend_crm_contacts', 'nav.contacts', 'users'),
-                new NavItem('backend_crm_companies', 'nav.companies', 'building'),
+                new NavItem('suite_crm_contacts', 'nav.contacts', 'users'),
+                new NavItem('suite_crm_companies', 'nav.companies', 'building'),
             ], priority: 40),
             new NavSection('billing', [
-                new NavItem('backend_billing_invoices', 'nav.invoices', 'receipt'),
+                new NavItem('suite_billing_invoices', 'nav.invoices', 'receipt'),
             ], priority: 50),
         ];
     }

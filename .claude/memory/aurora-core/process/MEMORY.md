@@ -1,6 +1,6 @@
 # Process & Méthode
 
-- [convention_documentation_a_jour.md](convention_documentation_a_jour.md) - une fonctionnalité n'est pas finie tant que `/backend/documentation` ne la décrit pas : la page, **les pages voisines devenues fausses**, et les captures
+- [convention_documentation_a_jour.md](convention_documentation_a_jour.md) - une fonctionnalité n'est pas finie tant que `/suite/documentation` ne la décrit pas : la page, **les pages voisines devenues fausses**, et les captures
 - [process_make_ft_before_commit.md](process_make_ft_before_commit.md) - **toujours** `make ft` avant chaque commit
 - [process_doc_audit_before_commit.md](process_doc_audit_before_commit.md) - **toujours** auditer les docs/mémoires qui parlent du sujet touché, dans le même commit (vaut code↔doc)
 - [process_audit_ged_lessons.md](process_audit_ged_lessons.md) - checklist d'audit post-module : hooks manager, interfaces serializer, TimestampableTrait, fetch bruts

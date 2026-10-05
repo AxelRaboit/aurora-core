@@ -13,6 +13,6 @@ enum UserStatusEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.users.status.'.$this->value;
+        return 'suite.users.status.'.$this->value;
     }
 }

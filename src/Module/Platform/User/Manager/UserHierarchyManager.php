@@ -49,16 +49,16 @@ class UserHierarchyManager implements UserHierarchyManagerInterface
         }
 
         if ($managerId === $user->getId()) {
-            throw new InvalidArgumentException('backend.users.errors.manager_self');
+            throw new InvalidArgumentException('suite.users.errors.manager_self');
         }
 
         $manager = $this->userRepository->find($managerId);
         if (!$manager instanceof User) {
-            throw new InvalidArgumentException('backend.users.errors.manager_not_found');
+            throw new InvalidArgumentException('suite.users.errors.manager_not_found');
         }
 
         if ($this->wouldCreateCycle($user, $manager)) {
-            throw new InvalidArgumentException('backend.users.errors.manager_cycle');
+            throw new InvalidArgumentException('suite.users.errors.manager_cycle');
         }
 
         $user->setManager($manager);

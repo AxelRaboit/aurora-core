@@ -19,7 +19,7 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Moving a document's bytes, against two real local backends.
+ * Moving a document's bytes, against two real local suites.
  *
  * Local to local rather than local to R2 on purpose: the interesting rules
  * here are about ordering, locking and which rows are updated, and none of
@@ -49,7 +49,7 @@ final class DocumentRelocatorTest extends IntegrationTestCase
         $this->primary = new LocalStorageAdapter($this->filesystem, $this->primaryRoot);
         // A second adapter answering for R2, pointed at another directory. It
         // is not R2, and does not need to be: what is under test is the move,
-        // not the backend.
+        // not the suite.
         $this->secondary = new SecondDiskAdapter(
             new LocalStorageAdapter($this->filesystem, $this->secondaryRoot),
         );

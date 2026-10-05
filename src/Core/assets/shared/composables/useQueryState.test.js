@@ -55,11 +55,11 @@ describe("useQueryState", () => {
     });
 
     it("keeps the path and the fragment intact", () => {
-        setUrl("/backend/ged/documents#top");
+        setUrl("/suite/ged/documents#top");
 
         useQueryState("view", { defaultValue: "grid" }).set("list");
 
-        expect(window.location.pathname).toBe("/backend/ged/documents");
+        expect(window.location.pathname).toBe("/suite/ged/documents");
         expect(window.location.hash).toBe("#top");
     });
 

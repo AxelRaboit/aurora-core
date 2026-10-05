@@ -11,8 +11,8 @@ final class DocumentStatusEnumTest extends TestCase
 {
     public function testGetLabelKeyPrefixesValue(): void
     {
-        self::assertSame('backend.ged.documents.status_draft', DocumentStatusEnum::Draft->getLabelKey());
-        self::assertSame('backend.ged.documents.status_published', DocumentStatusEnum::Published->getLabelKey());
-        self::assertSame('backend.ged.documents.status_archived', DocumentStatusEnum::Archived->getLabelKey());
+        self::assertSame('suite.ged.documents.status_draft', DocumentStatusEnum::Draft->getLabelKey());
+        self::assertSame('suite.ged.documents.status_published', DocumentStatusEnum::Published->getLabelKey());
+        self::assertSame('suite.ged.documents.status_archived', DocumentStatusEnum::Archived->getLabelKey());
     }
 }

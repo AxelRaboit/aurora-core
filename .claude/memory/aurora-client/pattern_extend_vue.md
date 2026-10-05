@@ -34,9 +34,9 @@ shadow direct, pas de Twig override à écrire. Voir
 [[convention_overrides_vs_modules]] pour la règle des deux mirrors.
 
 ```vue
-<!-- src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue -->
+<!-- src/Module/Platform/Agency/assets/suite/agencies/AgenciesApp.vue -->
 <script setup>
-import AuroraAgenciesApp from '@platform/backend/agencies/AgenciesApp.vue';
+import AuroraAgenciesApp from '@platform/suite/agencies/AgenciesApp.vue';
 import AppInput from '@/shared/components/form/AppInput.vue';
 
 const extraFields = {
@@ -76,11 +76,11 @@ const extraFields = {
 
 Le glob `@client/src/Module/**/assets/**/*.vue` expose ton wrapper sous
 la **même clé** que le composant Aurora original
-(`platform/backend/agencies/AgenciesApp`). Comme `clientModules` est spread
+(`platform/suite/agencies/AgenciesApp`). Comme `clientModules` est spread
 APRÈS `auroraModules` dans `vueContext` (cf. `src/Core/assets/app.js`),
 ton fichier wins. Le template Aurora
-`@Platform/backend/agencies/index.html.twig` qui appelle
-`vue_component('platform/backend/agencies/AgenciesApp', ...)` résout
+`@Platform/suite/agencies/index.html.twig` qui appelle
+`vue_component('platform/suite/agencies/AgenciesApp', ...)` résout
 directement ton wrapper - zéro override Twig à écrire.
 
 ### 3. Hydratation côté backend

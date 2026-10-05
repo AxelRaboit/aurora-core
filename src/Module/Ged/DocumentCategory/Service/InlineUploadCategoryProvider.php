@@ -20,9 +20,9 @@ final readonly class InlineUploadCategoryProvider
 {
     public const string SLUG = 'medias-editoriaux';
 
-    public const string NAME_KEY = 'backend.ged.bootstrap.categories.inline_uploads';
+    public const string NAME_KEY = 'suite.ged.bootstrap.categories.inline_uploads';
 
-    public const string DESCRIPTION_KEY = 'backend.ged.bootstrap.categories.inline_uploads_description';
+    public const string DESCRIPTION_KEY = 'suite.ged.bootstrap.categories.inline_uploads_description';
 
     public function __construct(private DocumentCategoryResolver $documentCategoryResolver) {}
 

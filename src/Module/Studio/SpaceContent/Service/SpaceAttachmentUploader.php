@@ -30,7 +30,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  * document is served by the public catch-all to anybody holding its address,
  * with no session - so a photo a client sent for their February carousel would
  * have stayed readable at a fixed URL after their link was revoked. Filed as a
- * draft it is addressed through `backend_ged_files` for staff and through the
+ * draft it is addressed through `suite_ged_files` for staff and through the
  * space's own link route for the client, and revoking the link actually
  * revokes the files.
  *

@@ -53,7 +53,7 @@ final class FamilyUsageTest extends IntegrationTestCase
         $this->settings = static::getContainer()->get(SettingRepository::class);
         $this->faviconBefore = $this->settings->get(ApplicationParameterEnum::FaviconMediaId->value);
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -82,7 +82,7 @@ final class FamilyUsageTest extends IntegrationTestCase
 
         self::assertSame(1, $usage['total']);
         self::assertSame('configuration.setting', $usage['groups'][0]['type']);
-        self::assertStringContainsString('/backend/configuration/settings/branding', (string) $usage['groups'][0]['items'][0]['href']);
+        self::assertStringContainsString('/suite/configuration/settings/branding', (string) $usage['groups'][0]['items'][0]['href']);
     }
 
     public function testTheListingSaysWhatKindOfSourceUsesEachMember(): void
@@ -106,7 +106,7 @@ final class FamilyUsageTest extends IntegrationTestCase
         $red = $this->givenDocument('Visuel rouge', $green, 'rouge');
         $this->settings->set(ApplicationParameterEnum::FaviconMediaId->value, (string) $red->getId());
 
-        $this->client->request('GET', sprintf('/backend/ged/documents/%d/alternates', $green->getId()));
+        $this->client->request('GET', sprintf('/suite/ged/documents/%d/alternates', $green->getId()));
         self::assertResponseIsSuccessful();
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
 

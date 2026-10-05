@@ -63,7 +63,7 @@ final readonly class ContractVariableCatalogue
         return [
             [
                 'group' => 'customer',
-                'labelKey' => 'backend.studio.contract_templates.variables.customer',
+                'labelKey' => 'suite.studio.contract_templates.variables.customer',
                 'variables' => [
                     $this->variable('customer.legal_name', 'Boulangerie Durand'),
                     $this->variable('customer.legal_form', 'SARL'),
@@ -82,7 +82,7 @@ final readonly class ContractVariableCatalogue
             ],
             [
                 'group' => 'provider',
-                'labelKey' => 'backend.studio.contract_templates.variables.provider',
+                'labelKey' => 'suite.studio.contract_templates.variables.provider',
                 'variables' => [
                     $this->variable('provider.name', 'Léa Marchand - Entrepreneure individuelle'),
                     $this->variable('provider.representative', 'Léa MARCHAND'),
@@ -100,7 +100,7 @@ final readonly class ContractVariableCatalogue
             ],
             [
                 'group' => 'contract',
-                'labelKey' => 'backend.studio.contract_templates.variables.contract',
+                'labelKey' => 'suite.studio.contract_templates.variables.contract',
                 'variables' => [
                     $this->variable('contract.reference', 'CM-2026-0001'),
                     $this->variable('contract.amount', '850 €'),
@@ -190,7 +190,7 @@ final readonly class ContractVariableCatalogue
             // The label key mirrors the token, so adding a variable is one
             // entry here and one line in each catalogue rather than a mapping
             // table to keep in agreement.
-            'labelKey' => 'backend.studio.contract_templates.variables.'.str_replace('.', '_', $token),
+            'labelKey' => 'suite.studio.contract_templates.variables.'.str_replace('.', '_', $token),
             'example' => $example,
         ];
     }

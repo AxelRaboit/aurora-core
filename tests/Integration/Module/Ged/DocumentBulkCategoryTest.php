@@ -43,7 +43,7 @@ final class DocumentBulkCategoryTest extends IntegrationTestCase
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -104,7 +104,7 @@ final class DocumentBulkCategoryTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         foreach ([999_999_999, $trashed->getId()] as $categoryId) {
-            $this->client->jsonRequest('POST', '/backend/ged/documents/bulk-category', ['ids' => [$document->getId()], 'categoryId' => $categoryId]);
+            $this->client->jsonRequest('POST', '/suite/ged/documents/bulk-category', ['ids' => [$document->getId()], 'categoryId' => $categoryId]);
 
             self::assertResponseStatusCodeSame(422);
             self::assertSame($kept->getId(), $this->categoryOf($document));
@@ -118,7 +118,7 @@ final class DocumentBulkCategoryTest extends IntegrationTestCase
      */
     private function send(array $payload): array
     {
-        $this->client->jsonRequest('POST', '/backend/ged/documents/bulk-category', $payload);
+        $this->client->jsonRequest('POST', '/suite/ged/documents/bulk-category', $payload);
         self::assertResponseIsSuccessful();
 
         return json_decode((string) $this->client->getResponse()->getContent(), true);

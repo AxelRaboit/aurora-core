@@ -48,7 +48,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
         $this->reminders = static::getContainer()->get(PlanningReminderRepository::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
         $this->admin = $admin;
@@ -72,7 +72,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar();
 
-        $body = $this->post('backend_planning_reminders_create', [
+        $body = $this->post('suite_planning_reminders_create', [
             'planningId' => $planning->getId(),
             'title' => 'Appeler le client',
             'dueAt' => '2026-09-01T10:00:00+02:00',
@@ -98,7 +98,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar();
 
-        $body = $this->post('backend_planning_reminders_create', ['planningId' => $planning->getId()]);
+        $body = $this->post('suite_planning_reminders_create', ['planningId' => $planning->getId()]);
 
         self::assertResponseStatusCodeSame(422);
         self::assertArrayHasKey('title', $body['errors'] ?? []);
@@ -109,12 +109,12 @@ final class PlanningReminderApiTest extends IntegrationTestCase
     {
         $reminder = $this->reminder('2026-09-01T10:00:00+02:00');
 
-        $body = $this->post('backend_planning_reminders_toggle', [], ['id' => $reminder->getId()]);
+        $body = $this->post('suite_planning_reminders_toggle', [], ['id' => $reminder->getId()]);
         self::assertResponseIsSuccessful();
         self::assertTrue($body['reminder']['completed']);
         self::assertNotNull($body['reminder']['completedAt']);
 
-        $body = $this->post('backend_planning_reminders_toggle', [], ['id' => $reminder->getId()]);
+        $body = $this->post('suite_planning_reminders_toggle', [], ['id' => $reminder->getId()]);
         self::assertResponseIsSuccessful();
         self::assertFalse($body['reminder']['completed']);
         self::assertNull($body['reminder']['completedAt']);
@@ -160,7 +160,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
     {
         $late = $this->reminder('2026-08-10T09:00:00+02:00');
 
-        $body = $this->post('backend_planning_reminders_toggle', [], ['id' => $late->getId()]);
+        $body = $this->post('suite_planning_reminders_toggle', [], ['id' => $late->getId()]);
 
         self::assertResponseIsSuccessful();
         self::assertTrue($body['reminder']['completed']);
@@ -205,7 +205,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
         $this->created[] = [PlanningReminder::class, (int) $reminder->getId()];
         $this->created[] = [Planning::class, (int) $hidden->getId()];
 
-        $this->post('backend_planning_reminders_toggle', [], ['id' => $reminder->getId()]);
+        $this->post('suite_planning_reminders_toggle', [], ['id' => $reminder->getId()]);
 
         self::assertResponseStatusCodeSame(422);
         $this->entityManager->refresh($reminder);
@@ -215,7 +215,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function window(?DateTimeImmutable $from = null, ?DateTimeImmutable $to = null): array
     {
-        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_events', [
+        $this->client->request('GET', $this->urlGenerator->generate('suite_planning_events', [
             'from' => $from?->format(DateTimeInterface::ATOM) ?? '2026-08-01T00:00:00+00:00',
             'to' => $to?->format(DateTimeInterface::ATOM) ?? '2026-10-05T00:00:00+00:00',
         ]));
@@ -239,7 +239,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
 
     private function reminder(string $dueAt): PlanningReminder
     {
-        $body = $this->post('backend_planning_reminders_create', [
+        $body = $this->post('suite_planning_reminders_create', [
             'planningId' => $this->calendar('Rappel '.$dueAt)->getId(),
             'title' => 'Appeler le client',
             'dueAt' => $dueAt,

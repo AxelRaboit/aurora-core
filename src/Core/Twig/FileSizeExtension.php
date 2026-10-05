@@ -10,7 +10,7 @@ use Twig\Attribute\AsTwigFilter;
 /**
  * A number of bytes, spelled the way the reader's language spells it.
  *
- * The **mirror of `useFileSize.js`**, which does the same job for the backend's
+ * The **mirror of `useFileSize.js`**, which does the same job for the suite's
  * Vue lists: the same thresholds, the same number of decimals at each step, and
  * the same unit table. They are two implementations of one convention, and a
  * reader who sees "1.0 Mo" in the library and "1.05 MB" on the page they

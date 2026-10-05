@@ -12,7 +12,7 @@ use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
 use Aurora\Module\Ged\DocumentTag\Repository\DocumentTagRepository;
 
 /**
- * The GED's figures on the backend dashboard.
+ * The GED's figures on the suite dashboard.
  *
  * The library held four counting methods nobody called: the dashboard has
  * shown Editorial and nothing else since it was built, because Editorial was

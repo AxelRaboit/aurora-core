@@ -47,7 +47,7 @@ final class ContractWordingTest extends IntegrationTestCase
 
         $this->client = static::createClient();
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
@@ -70,15 +70,15 @@ final class ContractWordingTest extends IntegrationTestCase
         $adapted = $this->createContract($customer, $template);
         $other = $this->createContract($customer, $template);
 
-        $saved = $this->post(sprintf('/backend/studio/contracts/%d/wording/body/save', $adapted), $this->wording([
+        $saved = $this->post(sprintf('/suite/studio/contracts/%d/wording/body/save', $adapted), $this->wording([
             ['type' => 'paragraph', 'data' => ['text' => 'Le forfait est de {{contract.amount}} pour {{customer.legal_name}}.']],
             ['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]],
         ]));
         self::assertSame(200, $saved['status']);
         self::assertTrue($saved['body']['contract']['body']['isAdapted']);
 
-        self::assertSame(200, $this->post(sprintf('/backend/studio/contracts/%d/freeze', $adapted))['status']);
-        self::assertSame(200, $this->post(sprintf('/backend/studio/contracts/%d/freeze', $other))['status']);
+        self::assertSame(200, $this->post(sprintf('/suite/studio/contracts/%d/freeze', $adapted))['status']);
+        self::assertSame(200, $this->post(sprintf('/suite/studio/contracts/%d/freeze', $other))['status']);
 
         $this->entityManager->clear();
         $sealed = $this->entityManager->find(Contract::class, $adapted);
@@ -100,7 +100,7 @@ final class ContractWordingTest extends IntegrationTestCase
     public function testTheAdaptedTextIsHeldToTheTramesRule(): void
     {
         $id = $this->createContract($this->customer('Boulangerie Durand', '73282932000074'), $this->publishedTemplate('Contrat mensuel'));
-        $path = sprintf('/backend/studio/contracts/%d/wording/body/save', $id);
+        $path = sprintf('/suite/studio/contracts/%d/wording/body/save', $id);
 
         $unknown = $this->post($path, $this->wording([['type' => 'paragraph', 'data' => ['text' => 'Pour {{client.siret}}.']]]));
         self::assertSame(422, $unknown['status']);
@@ -123,13 +123,13 @@ final class ContractWordingTest extends IntegrationTestCase
         $template = $this->publishedTemplate('Contrat mensuel');
         $id = $this->createContract($customer, $template);
 
-        self::assertSame(200, $this->post(sprintf('/backend/studio/contracts/%d/wording/body/save', $id), $this->wording([
+        self::assertSame(200, $this->post(sprintf('/suite/studio/contracts/%d/wording/body/save', $id), $this->wording([
             ['type' => 'paragraph', 'data' => ['text' => 'Une remise de {{contract.custom.remise}} est consentie.']],
         ]))['status']);
 
-        self::assertSame(422, $this->post(sprintf('/backend/studio/contracts/%d/freeze', $id))['status']);
+        self::assertSame(422, $this->post(sprintf('/suite/studio/contracts/%d/freeze', $id))['status']);
 
-        $updated = $this->post(sprintf('/backend/studio/contracts/%d/update', $id), [
+        $updated = $this->post(sprintf('/suite/studio/contracts/%d/update', $id), [
             ...$this->contractPayload($customer, $template),
             'customFields' => ['remise' => '10 %'],
         ]);
@@ -137,7 +137,7 @@ final class ContractWordingTest extends IntegrationTestCase
         // Same trame, same language: the adaptation survives an edit.
         self::assertTrue($updated['body']['contract']['body']['isAdapted']);
 
-        self::assertSame(200, $this->post(sprintf('/backend/studio/contracts/%d/freeze', $id))['status']);
+        self::assertSame(200, $this->post(sprintf('/suite/studio/contracts/%d/freeze', $id))['status']);
         $this->entityManager->clear();
         self::assertStringContainsString('Une remise de 10 % est consentie.', (string) $this->entityManager->find(Contract::class, $id)->getRenderedHtml());
     }
@@ -147,10 +147,10 @@ final class ContractWordingTest extends IntegrationTestCase
         $customer = $this->customer('Boulangerie Durand', '73282932000074');
         $template = $this->publishedTemplate('Contrat mensuel');
         $id = $this->createContract($customer, $template);
-        $this->post(sprintf('/backend/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
+        $this->post(sprintf('/suite/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
 
         $other = $this->publishedTemplate('Contrat ponctuel');
-        $moved = $this->post(sprintf('/backend/studio/contracts/%d/update', $id), $this->contractPayload($customer, $other));
+        $moved = $this->post(sprintf('/suite/studio/contracts/%d/update', $id), $this->contractPayload($customer, $other));
 
         self::assertSame(200, $moved['status']);
         self::assertFalse($moved['body']['contract']['body']['isAdapted']);
@@ -165,9 +165,9 @@ final class ContractWordingTest extends IntegrationTestCase
     public function testResetGoesBackToTheTramesText(): void
     {
         $id = $this->createContract($this->customer('Boulangerie Durand', '73282932000074'), $this->publishedTemplate('Contrat mensuel'));
-        $this->post(sprintf('/backend/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
+        $this->post(sprintf('/suite/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
 
-        $reset = $this->post(sprintf('/backend/studio/contracts/%d/wording/body/reset', $id));
+        $reset = $this->post(sprintf('/suite/studio/contracts/%d/wording/body/reset', $id));
 
         self::assertSame(200, $reset['status']);
         self::assertFalse($reset['body']['contract']['body']['isAdapted']);
@@ -177,17 +177,17 @@ final class ContractWordingTest extends IntegrationTestCase
     public function testASealedContractRefusesAnAdaptation(): void
     {
         $id = $this->createContract($this->customer('Boulangerie Durand', '73282932000074'), $this->publishedTemplate('Contrat mensuel'));
-        $this->post(sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->post(sprintf('/suite/studio/contracts/%d/freeze', $id));
 
-        $refused = $this->post(sprintf('/backend/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
+        $refused = $this->post(sprintf('/suite/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
         self::assertSame(422, $refused['status']);
-        self::assertSame(422, $this->post(sprintf('/backend/studio/contracts/%d/wording/body/reset', $id))['status']);
+        self::assertSame(422, $this->post(sprintf('/suite/studio/contracts/%d/wording/body/reset', $id))['status']);
 
         // Still readable: the page shows what was sealed.
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/wording/body', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/wording/body', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         // A part the contract does not have is not a page.
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/wording/annex', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/wording/annex', $id));
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
 
@@ -195,9 +195,9 @@ final class ContractWordingTest extends IntegrationTestCase
     public function testADuplicateKeepsTheAdaptedText(): void
     {
         $id = $this->createContract($this->customer('Boulangerie Durand', '73282932000074'), $this->publishedTemplate('Contrat mensuel'));
-        $this->post(sprintf('/backend/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
+        $this->post(sprintf('/suite/studio/contracts/%d/wording/body/save', $id), $this->wording([['type' => 'paragraph', 'data' => ['text' => self::CLAUSE]]]));
 
-        $copy = $this->post(sprintf('/backend/studio/contracts/%d/duplicate', $id));
+        $copy = $this->post(sprintf('/suite/studio/contracts/%d/duplicate', $id));
         self::assertSame(200, $copy['status']);
 
         $this->entityManager->clear();
@@ -225,7 +225,7 @@ final class ContractWordingTest extends IntegrationTestCase
 
     private function createContract(Customer $customer, ContractTemplateInterface $template): int
     {
-        $created = $this->post('/backend/studio/contracts/create', $this->contractPayload($customer, $template));
+        $created = $this->post('/suite/studio/contracts/create', $this->contractPayload($customer, $template));
         self::assertSame(200, $created['status']);
 
         return (int) $created['body']['contract']['id'];

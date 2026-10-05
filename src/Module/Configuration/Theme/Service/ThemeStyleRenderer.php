@@ -309,14 +309,14 @@ final readonly class ThemeStyleRenderer
      * instead of `html[data-theme]`.
      *
      * Written for the banner preview in the post editor: that preview is a
-     * Twig fragment injected into the backend's own DOM, which never carries
+     * Twig fragment injected into the suite's own DOM, which never carries
      * `html[data-theme]` - so a title with no colour of its own rendered in
-     * whatever the backend's light or dark mode happened to be, not the one
+     * whatever the suite's light or dark mode happened to be, not the one
      * the public page actually shows. Scoped to a class the preview's own
      * wrapper carries, so it never leaks onto the rest of the admin screen.
      *
      * Empty when the theme sets no page background - the preview then falls
-     * back to the backend's own colours, which is what an unconfigured public
+     * back to the suite's own colours, which is what an unconfigured public
      * page does too.
      */
     public function previewSurfaceCss(string $selector): string

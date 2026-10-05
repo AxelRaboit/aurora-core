@@ -20,7 +20,7 @@ use function preg_match_all;
  * The names the installer gives the built-in post types and taxonomies.
  *
  * They are translation keys resolved at install. The block that held them
- * slipped under `backend.parameters` in the YAML, every key stopped
+ * slipped under `suite.parameters` in the YAML, every key stopped
  * resolving, and a fresh installation stored the keys themselves - shown as
  * the name of its categories, its tags, its pages and articles.
  */
@@ -32,7 +32,7 @@ final class EditorialBootstrapLabelsTest extends IntegrationTestCase
         $translator = static::getContainer()->get(TranslatorInterface::class);
         $source = (string) file_get_contents(dirname(__DIR__, 4).'/src/Module/Editorial/EditorialBootstrapProvider.php');
 
-        self::assertGreaterThan(0, preg_match_all("/'(backend\\.editorial\\.bootstrap\\.[a-z_.]+)'/", $source, $keys));
+        self::assertGreaterThan(0, preg_match_all("/'(suite\\.editorial\\.bootstrap\\.[a-z_.]+)'/", $source, $keys));
 
         foreach ($keys[1] as $key) {
             foreach (['fr', 'en', 'es'] as $locale) {
@@ -50,7 +50,7 @@ final class EditorialBootstrapLabelsTest extends IntegrationTestCase
         self::assertInstanceOf(PostTypeInterface::class, $page);
         $original = $page->getLabel();
 
-        $page->setLabel('backend.editorial.bootstrap.post_types.page');
+        $page->setLabel('suite.editorial.bootstrap.post_types.page');
         $entityManager->flush();
 
         iterator_to_array(static::getContainer()->get(EditorialBootstrapProvider::class)->bootstrap(), false);

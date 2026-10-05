@@ -309,7 +309,7 @@ final readonly class BlocksRenderer
     /**
      * The tool saves `{type, title, message}` and the stylesheet keys its
      * colours on `.callout--info`. An earlier version of this read `text`
-     * and emitted `.callout-info`, so a callout written in the backend came
+     * and emitted `.callout-info`, so a callout written in the suite came
      * out as an uncoloured empty box - and only once published, since the
      * editor's own preview had both right.
      *

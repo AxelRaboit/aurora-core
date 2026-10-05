@@ -12,7 +12,7 @@ use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
- * Platform section - the organization layer of the backend (Users). Media
+ * Platform section - the organization layer of the suite (Users). Media
  * moved to {@see MediaModule} in Jalon 4.5 (cross-cutting infra),
  * Configuration (Settings, Themes) lives in {@see ConfigurationModule}
  * (admin params), and global search moved to {@see GeneralModule} in
@@ -38,14 +38,14 @@ final readonly class PlatformModule implements ModuleInterface, ModuleToggleProv
 
     public function getNavSections(): array
     {
-        if (!$this->platformContext->isBackendEnabled()) {
+        if (!$this->platformContext->isSuiteEnabled()) {
             return [];
         }
 
         $items = [];
 
         if ($this->platformContext->isUsersEnabled()) {
-            $items[] = new NavItem('backend_platform_users', 'backend.nav.users', 'users', requiredPrivilege: 'platform.users.manage', descriptionKey: 'backend.nav.users_description');
+            $items[] = new NavItem('suite_platform_users', 'suite.nav.users', 'users', requiredPrivilege: 'platform.users.manage', descriptionKey: 'suite.nav.users_description');
         }
 
         if ([] === $items) {
@@ -59,7 +59,7 @@ final readonly class PlatformModule implements ModuleInterface, ModuleToggleProv
     {
         return [
             new NavSection('platform', [
-                new NavItem('backend_platform_users', 'backend.nav.users', 'users', requiredPrivilege: 'platform.users.manage', descriptionKey: 'backend.nav.users_description'),
+                new NavItem('suite_platform_users', 'suite.nav.users', 'users', requiredPrivilege: 'platform.users.manage', descriptionKey: 'suite.nav.users_description'),
             ], priority: 20),
         ];
     }
@@ -67,7 +67,7 @@ final readonly class PlatformModule implements ModuleInterface, ModuleToggleProv
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::PlatformBackend->toToggle(),
+            ModuleParameterEnum::PlatformSuite->toToggle(),
             ModuleParameterEnum::PlatformUsers->toToggle(),
         ];
     }

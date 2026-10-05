@@ -122,9 +122,9 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         $this->client->loginUser($this->outsider, 'admin');
         self::assertNotContains($private->getId(), $this->listedIds());
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $private->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $private->getId()]));
         self::assertResponseStatusCodeSame(404);
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_show', ['id' => $private->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $private->getId()]));
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -140,16 +140,16 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         $this->client->loginUser($this->outsider, 'admin');
         self::assertContains($note->getId(), $this->listedIds());
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseIsSuccessful();
 
-        $this->post('backend_notes_markdown_update', ['title' => 'Détournée', 'content' => 'x', 'force' => true], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Détournée', 'content' => 'x', 'force' => true], ['id' => $note->getId()]);
         self::assertResponseStatusCodeSame(404);
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_show', ['id' => $note->getId()]));
-        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $note->getId()]));
+        self::assertResponseRedirects($this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
 
         $this->client->loginUser($this->editor, 'admin');
-        $this->post('backend_notes_markdown_update', ['title' => 'Procédure', 'content' => 'Relue', 'force' => true], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Procédure', 'content' => 'Relue', 'force' => true], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -165,14 +165,14 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         $this->client->loginUser($this->outsider, 'admin');
         self::assertNotContains($note->getId(), $this->listedIds());
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseStatusCodeSame(404);
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_folder', ['id' => $folder->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_folder', ['id' => $folder->getId()]));
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->reader, 'admin');
         self::assertContains($note->getId(), $this->listedIds());
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseIsSuccessful();
     }
 
@@ -187,11 +187,11 @@ final class NoteSpacesTest extends IntegrationTestCase
         $note = $this->note($this->reader, 'Écrite par le lecteur', $space);
 
         $this->client->loginUser($this->reader, 'admin');
-        $this->post('backend_notes_markdown_update', ['title' => 'Mienne', 'content' => 'pourtant', 'force' => true], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Mienne', 'content' => 'pourtant', 'force' => true], ['id' => $note->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->editor, 'admin');
-        $this->post('backend_notes_markdown_update', ['title' => 'Relue', 'content' => 'par le rédacteur', 'force' => true], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Relue', 'content' => 'par le rédacteur', 'force' => true], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
     }
 
@@ -201,18 +201,18 @@ final class NoteSpacesTest extends IntegrationTestCase
         $space = $this->space(NoteSpaceAccessEnum::Backoffice);
 
         $this->client->loginUser($this->reader, 'admin');
-        $this->post('backend_notes_markdown_create', ['title' => 'Intruse', 'spaceId' => $space->getId()]);
+        $this->post('suite_notes_markdown_create', ['title' => 'Intruse', 'spaceId' => $space->getId()]);
         self::assertResponseStatusCodeSame(404);
-        $this->post('backend_notes_markdown_folders_create', ['name' => 'Intrus', 'spaceId' => $space->getId()]);
+        $this->post('suite_notes_markdown_folders_create', ['name' => 'Intrus', 'spaceId' => $space->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->editor, 'admin');
-        $body = $this->post('backend_notes_markdown_create', ['title' => 'Bienvenue', 'spaceId' => $space->getId()]);
+        $body = $this->post('suite_notes_markdown_create', ['title' => 'Bienvenue', 'spaceId' => $space->getId()]);
         self::assertResponseIsSuccessful();
         self::assertSame($space->getId(), $body['note']['spaceId']);
 
         // Sans espace dit, une note naît dans son espace personnel.
-        $mine = $this->post('backend_notes_markdown_create', ['title' => 'Pour moi']);
+        $mine = $this->post('suite_notes_markdown_create', ['title' => 'Pour moi']);
         self::assertResponseIsSuccessful();
         self::assertSame($this->personalSpaceOf($this->editor)->getId(), $mine['note']['spaceId']);
     }
@@ -230,7 +230,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         $note = $this->note($this->editor, 'Accueil', $personal, $sub);
 
         $this->client->loginUser($this->editor, 'admin');
-        $this->post('backend_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $team->getId()], ['id' => $folder->getId()]);
+        $this->post('suite_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $team->getId()], ['id' => $folder->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -239,15 +239,15 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         // Le lecteur ne l'emporte pas dans son carnet...
         $this->client->loginUser($this->reader, 'admin');
-        $this->post('backend_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $this->personalSpaceOf($this->reader)->getId()], ['id' => $folder->getId()]);
+        $this->post('suite_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $this->personalSpaceOf($this->reader)->getId()], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         // ... et personne ne range rien dans le carnet d'un autre.
         $this->client->loginUser($this->editor, 'admin');
-        $this->post('backend_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $this->personalSpaceOf($this->reader)->getId()], ['id' => $folder->getId()]);
+        $this->post('suite_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $this->personalSpaceOf($this->reader)->getId()], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
 
-        $this->post('backend_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $personal->getId()], ['id' => $folder->getId()]);
+        $this->post('suite_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $personal->getId()], ['id' => $folder->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -268,7 +268,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         $mine = $this->note($this->reader, 'Budget', $this->personalSpaceOf($this->reader), content: 'Le mien');
 
         $this->client->loginUser($this->reader, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $guide->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $guide->getId()]));
         self::assertResponseIsSuccessful();
 
         $props = $this->readProps((string) $this->client->getResponse()->getContent());
@@ -297,14 +297,14 @@ final class NoteSpacesTest extends IntegrationTestCase
         $filename = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['filename'];
 
         $note = $this->note($this->editor, 'Illustrée', $space, content: sprintf('![pixel](/x/%s)', $filename));
-        $url = $this->urlGenerator->generate('backend_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => $filename]);
+        $url = $this->urlGenerator->generate('suite_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => $filename]);
 
         $this->client->loginUser($this->reader, 'admin');
         $this->client->request('GET', $url);
         self::assertResponseIsSuccessful();
 
         // Une image que la note ne cite pas reste fermée, même par elle.
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => 'autre-'.$filename]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => 'autre-'.$filename]));
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->outsider, 'admin');
@@ -348,11 +348,11 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->note($this->owner, 'Journal', $this->personalSpaceOf($this->owner));
 
         $this->client->loginUser($this->outsider, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_export', ['spaceId' => $space->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_export', ['spaceId' => $space->getId()]));
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_export', ['spaceId' => $space->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_export', ['spaceId' => $space->getId()]));
         self::assertResponseIsSuccessful();
 
         $path = static::getContainer()->get(MarkdownNoteArchive::class)->zipFor($this->managed($this->owner), $this->managed($space));
@@ -371,11 +371,11 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         // Un lecteur ne verse rien dans l'espace.
         $this->client->loginUser($this->reader, 'admin');
-        $this->client->request('POST', $this->urlGenerator->generate('backend_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'espace.zip', 'application/zip', null, true)]]);
+        $this->client->request('POST', $this->urlGenerator->generate('suite_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'espace.zip', 'application/zip', null, true)]]);
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->editor, 'admin');
-        $this->client->request('POST', $this->urlGenerator->generate('backend_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'espace.zip', 'application/zip', null, true)]]);
+        $this->client->request('POST', $this->urlGenerator->generate('suite_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'espace.zip', 'application/zip', null, true)]]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -397,9 +397,9 @@ final class NoteSpacesTest extends IntegrationTestCase
         $trashed = $this->note($this->editor, 'Brouillon jeté', $personal, $folder);
 
         $this->client->loginUser($this->editor, 'admin');
-        $this->post('backend_notes_markdown_delete', [], ['id' => $trashed->getId()]);
+        $this->post('suite_notes_markdown_delete', [], ['id' => $trashed->getId()]);
         self::assertResponseIsSuccessful();
-        $this->post('backend_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $team->getId()], ['id' => $folder->getId()]);
+        $this->post('suite_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $team->getId()], ['id' => $folder->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -421,15 +421,15 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($this->managed($this->editor), 'admin');
-        $this->post('backend_notes_spaces_update', ['name' => 'Repris', 'access' => 'members'], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_update', ['name' => 'Repris', 'access' => 'members'], ['id' => $space->getId()]);
         self::assertResponseStatusCodeSame(404, 'un rédacteur ne gère pas');
 
         $this->client->loginUser($this->managed($admin), 'admin');
-        $this->post('backend_notes_spaces_update', ['name' => 'Repris', 'access' => 'members'], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_update', ['name' => 'Repris', 'access' => 'members'], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
-        $this->post('backend_notes_spaces_delete', [], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_delete', [], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
-        $this->post('backend_notes_spaces_restore', [], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_restore', [], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
     }
 
@@ -443,12 +443,12 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($manager, 'admin');
-        $body = $this->post('backend_notes_spaces_update', ['name' => 'Fermé', 'access' => 'private'], ['id' => $space->getId()]);
+        $body = $this->post('suite_notes_spaces_update', ['name' => 'Fermé', 'access' => 'private'], ['id' => $space->getId()]);
         self::assertResponseStatusCodeSame(422);
         self::assertSame('notes.markdown.spaces.errors.private_owner_only', $body['errors']['access'] ?? null);
 
         $this->client->loginUser($this->managed($this->owner), 'admin');
-        $this->post('backend_notes_spaces_update', ['name' => 'Fermé', 'access' => 'private'], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_update', ['name' => 'Fermé', 'access' => 'private'], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
     }
 
@@ -456,12 +456,12 @@ final class NoteSpacesTest extends IntegrationTestCase
     public function testThePeopleListIsForThoseWhoCanAddSomeone(): void
     {
         $this->client->loginUser($this->reader, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_people'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_people'));
         self::assertSame([], json_decode((string) $this->client->getResponse()->getContent(), true)['people']);
 
         $this->space(NoteSpaceAccessEnum::Members);
         $this->client->loginUser($this->managed($this->owner), 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_people'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_people'));
         self::assertNotSame([], json_decode((string) $this->client->getResponse()->getContent(), true)['people']);
     }
 
@@ -505,21 +505,21 @@ final class NoteSpacesTest extends IntegrationTestCase
     public function testCreatingASpaceNeedsTheRight(): void
     {
         $this->client->loginUser($this->reader, 'admin');
-        $this->post('backend_notes_spaces_create', ['name' => 'Refusé', 'access' => 'backoffice']);
+        $this->post('suite_notes_spaces_create', ['name' => 'Refusé', 'access' => 'backoffice']);
         self::assertResponseStatusCodeSame(403);
 
         $creator = $this->user('createur', ['notes.markdown.use', 'notes.spaces.create']);
         $this->client->loginUser($creator, 'admin');
-        $this->post('backend_notes_spaces_create', ['name' => '', 'access' => 'backoffice']);
+        $this->post('suite_notes_spaces_create', ['name' => '', 'access' => 'backoffice']);
         self::assertResponseStatusCodeSame(422);
 
-        $body = $this->post('backend_notes_spaces_create', ['name' => 'Documentation', 'access' => 'members', 'defaultRole' => 'reader']);
+        $body = $this->post('suite_notes_spaces_create', ['name' => 'Documentation', 'access' => 'members', 'defaultRole' => 'reader']);
         self::assertResponseIsSuccessful();
         self::assertSame('manager', $body['space']['role']);
         self::assertTrue($body['space']['isOwner']);
         self::assertSame('members', $body['space']['access']);
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_list'));
         $list = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
         self::assertTrue($list['canCreate']);
         self::assertTrue($list['spaces'][0]['personal'], 'le sien en tête');
@@ -532,7 +532,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         $space = $this->space(NoteSpaceAccessEnum::Members);
 
         $this->client->loginUser($this->reader, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_list'));
         $list = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
         $byId = array_column($list['spaces'], null, 'id');
 
@@ -541,7 +541,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertFalse($list['canCreate']);
 
         $this->client->loginUser($this->outsider, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_list'));
         $list = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
         self::assertNotContains($space->getId(), array_column($list['spaces'], 'id'));
     }
@@ -556,31 +556,31 @@ final class NoteSpacesTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Devis', $space);
 
         $this->client->loginUser($this->editor, 'admin');
-        $this->post('backend_notes_spaces_update', ['name' => 'Détourné', 'access' => 'backoffice'], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_update', ['name' => 'Détourné', 'access' => 'backoffice'], ['id' => $space->getId()]);
         self::assertResponseStatusCodeSame(404);
-        $this->post('backend_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'editor'], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'editor'], ['id' => $space->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'reader'], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'reader'], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
-        $this->post('backend_notes_spaces_members_set', ['userId' => $this->owner->getId(), 'role' => 'reader'], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_members_set', ['userId' => $this->owner->getId(), 'role' => 'reader'], ['id' => $space->getId()]);
         self::assertResponseStatusCodeSame(422, 'le propriétaire ne se rétrograde pas');
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_show', ['id' => $space->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_show', ['id' => $space->getId()]));
         $shown = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
         self::assertContains($this->outsider->getId(), array_column($shown['members'], 'userId'));
 
         $this->client->loginUser($this->outsider, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseIsSuccessful();
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_spaces_members_remove', [], ['id' => $space->getId(), 'userId' => $this->outsider->getId()]);
+        $this->post('suite_notes_spaces_members_remove', [], ['id' => $space->getId(), 'userId' => $this->outsider->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->client->loginUser($this->outsider, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -590,15 +590,15 @@ final class NoteSpacesTest extends IntegrationTestCase
         $personal = $this->personalSpaceOf($this->owner);
 
         $this->client->loginUser($this->owner, 'admin');
-        $body = $this->post('backend_notes_spaces_update', ['name' => 'Ouvert', 'access' => 'backoffice', 'color' => '#aa3300'], ['id' => $personal->getId()]);
+        $body = $this->post('suite_notes_spaces_update', ['name' => 'Ouvert', 'access' => 'backoffice', 'color' => '#aa3300'], ['id' => $personal->getId()]);
         self::assertResponseIsSuccessful();
         self::assertSame('private', $body['space']['access']);
         self::assertNull($body['space']['name']);
         self::assertSame('#aa3300', $body['space']['color']);
 
-        $this->post('backend_notes_spaces_delete', [], ['id' => $personal->getId()]);
+        $this->post('suite_notes_spaces_delete', [], ['id' => $personal->getId()]);
         self::assertResponseStatusCodeSame(404);
-        $this->post('backend_notes_spaces_members_set', ['userId' => $this->reader->getId(), 'role' => 'reader'], ['id' => $personal->getId()]);
+        $this->post('suite_notes_spaces_members_set', ['userId' => $this->reader->getId(), 'role' => 'reader'], ['id' => $personal->getId()]);
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -609,21 +609,21 @@ final class NoteSpacesTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Procédure', $space);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_spaces_delete', [], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_delete', [], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->client->loginUser($this->reader, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseStatusCodeSame(404);
-        $this->post('backend_notes_spaces_restore', [], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_restore', [], ['id' => $space->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_spaces_restore', [], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_restore', [], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->client->loginUser($this->reader, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseIsSuccessful();
     }
 
@@ -633,21 +633,21 @@ final class NoteSpacesTest extends IntegrationTestCase
         $space = $this->space(NoteSpaceAccessEnum::Members);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_spaces_publish', ['published' => true], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_publish', ['published' => true], ['id' => $space->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $this->grantPublishing();
-        $body = $this->post('backend_notes_spaces_publish', ['published' => true, 'slug' => 'Guide Équipe'], ['id' => $space->getId()]);
+        $body = $this->post('suite_notes_spaces_publish', ['published' => true, 'slug' => 'Guide Équipe'], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
         self::assertSame('guide-equipe', $body['space']['slug']);
         self::assertTrue($body['space']['published']);
         self::assertStringEndsWith('/p/guide-equipe', (string) $body['space']['publicUrl']);
 
-        $this->post('backend_notes_spaces_publish', ['published' => true], ['id' => $this->personalSpaceOf($this->owner)->getId()]);
+        $this->post('suite_notes_spaces_publish', ['published' => true], ['id' => $this->personalSpaceOf($this->owner)->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $other = $this->space(NoteSpaceAccessEnum::Members);
-        $this->post('backend_notes_spaces_publish', ['published' => true, 'slug' => 'guide-equipe'], ['id' => $other->getId()]);
+        $this->post('suite_notes_spaces_publish', ['published' => true, 'slug' => 'guide-equipe'], ['id' => $other->getId()]);
         self::assertResponseStatusCodeSame(422, 'une adresse déjà prise');
     }
 
@@ -712,7 +712,7 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         // Dépublié, il disparaît comme s'il n'avait jamais existé.
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_spaces_publish', ['published' => false], ['id' => $space->getId()]);
+        $this->post('suite_notes_spaces_publish', ['published' => false], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
         $this->client->restart();
         $this->client->request('GET', '/p/'.$slug);
@@ -740,7 +740,7 @@ final class NoteSpacesTest extends IntegrationTestCase
     private function publish(NoteSpaceInterface $space, bool $indexable = false): string
     {
         $this->grantPublishing();
-        $body = $this->post('backend_notes_spaces_publish', ['published' => true, 'slug' => 'espace-'.$space->getId(), 'indexable' => $indexable], ['id' => $space->getId()]);
+        $body = $this->post('suite_notes_spaces_publish', ['published' => true, 'slug' => 'espace-'.$space->getId(), 'indexable' => $indexable], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
 
         return (string) $body['space']['slug'];
@@ -825,7 +825,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         $user = new User();
         $user->setEmail(sprintf('espaces-%s-%s@aurora.test', $name, bin2hex(random_bytes(4))))
             ->setName($name)
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPrivileges($privileges)
             ->setPassword('x');
@@ -843,7 +843,7 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            $this->urlGenerator->generate('suite_notes_markdown_images_upload'),
             ['spaceId' => (string) $space->getId()],
             ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
         );
@@ -852,7 +852,7 @@ final class NoteSpacesTest extends IntegrationTestCase
     /** @return list<int> */
     private function listedIds(): array
     {
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
         self::assertResponseIsSuccessful();
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);

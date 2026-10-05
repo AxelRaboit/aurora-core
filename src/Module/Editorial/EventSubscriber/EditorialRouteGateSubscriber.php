@@ -10,7 +10,7 @@ use Aurora\Module\Editorial\EditorialContext;
 use Aurora\Module\Editorial\EditorialFrontendDescriptor;
 
 /**
- * Closes Editorial's backend routes when the toggles behind them are off.
+ * Closes Editorial's suite routes when the toggles behind them are off.
  *
  * One gate per toggle rather than one for the whole module: an admin who
  * turns off Taxonomies alone expects the taxonomy screens to go and the
@@ -30,19 +30,19 @@ final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGat
 
     protected function routeNamespaces(): array
     {
-        return ['backend_editorial_', 'editorial_sitemap', 'editorial_robots', 'editorial_rss', 'editorial_post_comment', 'editorial_comment_', 'editorial_form'];
+        return ['suite_editorial_', 'editorial_sitemap', 'editorial_robots', 'editorial_rss', 'editorial_post_comment', 'editorial_comment_', 'editorial_form'];
     }
 
     protected function gates(): array
     {
         return [
-            'backend_editorial_' => $this->editorialContext->isBackendEnabled(),
-            'backend_editorial_posts' => $this->editorialContext->isPostsEnabled(),
-            'backend_editorial_post_types' => $this->editorialContext->isPostTypesEnabled(),
-            'backend_editorial_taxonomies' => $this->editorialContext->isTaxonomiesEnabled(),
-            'backend_editorial_menus' => $this->editorialContext->isMenusEnabled(),
-            'backend_editorial_comments' => $this->editorialContext->isCommentsEnabled(),
-            'backend_editorial_forms' => $this->editorialContext->isFormsEnabled(),
+            'suite_editorial_' => $this->editorialContext->isSuiteEnabled(),
+            'suite_editorial_posts' => $this->editorialContext->isPostsEnabled(),
+            'suite_editorial_post_types' => $this->editorialContext->isPostTypesEnabled(),
+            'suite_editorial_taxonomies' => $this->editorialContext->isTaxonomiesEnabled(),
+            'suite_editorial_menus' => $this->editorialContext->isMenusEnabled(),
+            'suite_editorial_comments' => $this->editorialContext->isCommentsEnabled(),
+            'suite_editorial_forms' => $this->editorialContext->isFormsEnabled(),
             'editorial_form' => $this->editorialContext->isFormsEnabled(),
             // The public endpoints go with the screen that moderates them:
             // accepting comments nobody can approve is worse than not

@@ -35,8 +35,8 @@ enum CustomerStatusEnum: string
     public function getLabelKey(): string
     {
         return match ($this) {
-            self::Prospect => 'backend.studio.customers.statuses.prospect',
-            self::Client => 'backend.studio.customers.statuses.client',
+            self::Prospect => 'suite.studio.customers.statuses.prospect',
+            self::Client => 'suite.studio.customers.statuses.client',
         };
     }
 

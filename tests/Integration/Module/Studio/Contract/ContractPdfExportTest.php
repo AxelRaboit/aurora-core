@@ -52,7 +52,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
@@ -85,7 +85,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
     {
         $id = $this->createContract()['contract']['id'];
 
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/export', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/export', $id));
         $response = $this->client->getResponse();
 
         self::assertSame(200, $response->getStatusCode());
@@ -114,12 +114,12 @@ final class ContractPdfExportTest extends IntegrationTestCase
         $created = $this->createContract();
         $id = $created['contract']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $reference = json_decode((string) $this->client->getResponse()->getContent(), true)['contract']['reference'];
 
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/export', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/export', $id));
         $response = $this->client->getResponse();
 
         self::assertSame(200, $response->getStatusCode());
@@ -142,10 +142,10 @@ final class ContractPdfExportTest extends IntegrationTestCase
     {
         $id = $this->createContract()['contract']['id'];
 
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/pdf', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/pdf', $id));
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
 
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/export', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/export', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
@@ -153,7 +153,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
      * A guest cannot export one either.
      *
      * The export carries the same permission as everything else under
-     * `/backend/studio/contracts`: a draft is not public just because it is not
+     * `/suite/studio/contracts`: a draft is not public just because it is not
      * signed.
      */
     public function testAGuestCannotExport(): void
@@ -161,7 +161,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
         $id = $this->createContract()['contract']['id'];
 
         $this->client->getCookieJar()->clear();
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/export', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/export', $id));
 
         self::assertNotSame(200, $this->client->getResponse()->getStatusCode());
     }
@@ -169,7 +169,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function createContract(): array
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'customerId' => $this->customer()->getId(),
             'bodyTemplateId' => $this->publishedTemplate()->getId(),
             'locale' => 'fr',

@@ -14,8 +14,8 @@ namespace Aurora\Module\Editorial\GitHub\Setting;
  */
 enum GitHubSettingEnum: string
 {
-    case Enabled = 'backend_editorial_github_enabled';
+    case Enabled = 'suite_editorial_github_enabled';
 
     /** Les identifiants, un par ligne, dans l'ordre d'affichage. */
-    case Logins = 'backend_editorial_github_logins';
+    case Logins = 'suite_editorial_github_logins';
 }

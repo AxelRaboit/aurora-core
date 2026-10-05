@@ -28,12 +28,12 @@ final class RootDispatchController extends AbstractController
         $enabled = $this->firstEnabledFront();
 
         // No front is enabled (all of their module settings are OFF, or none
-        // is registered). Send the visitor to /backend, which itself cascades
-        // to /backend/profile when the Dashboard is also masked. Anonymous
-        // visitors will hit the backend login firewall - the expected
+        // is registered). Send the visitor to /suite, which itself cascades
+        // to /suite/profile when the Dashboard is also masked. Anonymous
+        // visitors will hit the suite login firewall - the expected
         // entrypoint when there is no public site left to serve.
         if (!$enabled instanceof FrontendInterface) {
-            return $this->redirectToRoute('backend_dashboard');
+            return $this->redirectToRoute('suite_dashboard');
         }
 
         return $this->redirectToRoute($enabled->getHomeRoute(), ['locale' => $this->context->defaultLocale()]);

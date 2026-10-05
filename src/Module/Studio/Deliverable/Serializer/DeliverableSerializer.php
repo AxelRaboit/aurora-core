@@ -83,7 +83,7 @@ final readonly class DeliverableSerializer
 
         return $space instanceof CustomerSpaceInterface
             ? $this->urlGenerator->generate('workspace_space_deliverables_'.$action, ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()])
-            : $this->urlGenerator->generate('backend_studio_deliverables_'.$action, ['id' => $deliverable->getId()]);
+            : $this->urlGenerator->generate('suite_studio_deliverables_'.$action, ['id' => $deliverable->getId()]);
     }
 
     /** @return array<string, mixed> */

@@ -21,10 +21,10 @@ final class ModuleAccessCheckerTest extends TestCase
 {
     public function testGloballyDisabledReturnsFalseRegardlessOfUser(): void
     {
-        $checker = $this->makeChecker(global: [ModuleParameterEnum::GedBackend->value => false]);
+        $checker = $this->makeChecker(global: [ModuleParameterEnum::GedSuite->value => false]);
         $user = $this->makeUser([]);
 
-        self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedBackend, $user));
+        self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedSuite, $user));
     }
 
     public function testGloballyEnabledAndNoUserOverrideReturnsTrue(): void
@@ -32,33 +32,33 @@ final class ModuleAccessCheckerTest extends TestCase
         $checker = $this->makeChecker(global: []); // missing = default true
         $user = $this->makeUser([]);
 
-        self::assertTrue($checker->isEnabled(ModuleParameterEnum::GedBackend, $user));
+        self::assertTrue($checker->isEnabled(ModuleParameterEnum::GedSuite, $user));
     }
 
     public function testUserOverrideMasksGloballyEnabledModule(): void
     {
         $checker = $this->makeChecker(global: []);
-        $user = $this->makeUser([ModuleParameterEnum::GedBackend->value]);
+        $user = $this->makeUser([ModuleParameterEnum::GedSuite->value]);
 
-        self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedBackend, $user));
-        self::assertTrue($checker->isEnabled(ModuleParameterEnum::PlatformBackend, $user));
+        self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedSuite, $user));
+        self::assertTrue($checker->isEnabled(ModuleParameterEnum::PlatformSuite, $user));
     }
 
     public function testUserOverrideOnParentCascadesToChildren(): void
     {
         $checker = $this->makeChecker(global: []);
-        $user = $this->makeUser([ModuleParameterEnum::GedBackend->value]);
+        $user = $this->makeUser([ModuleParameterEnum::GedSuite->value]);
 
-        // GedDocuments cascadeRequires GedBackend
+        // GedDocuments cascadeRequires GedSuite
         self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedDocuments, $user));
-        // GedFrontend cascadeRequires GedBackend
+        // GedFrontend cascadeRequires GedSuite
         self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedFrontend, $user));
     }
 
     public function testGlobalParentDisabledCascadesToChildren(): void
     {
         $checker = $this->makeChecker(global: [
-            ModuleParameterEnum::GedBackend->value => false,
+            ModuleParameterEnum::GedSuite->value => false,
         ]);
         $user = $this->makeUser([]);
 
@@ -70,31 +70,31 @@ final class ModuleAccessCheckerTest extends TestCase
     {
         $checker = $this->makeChecker(global: [], currentUser: null);
 
-        self::assertTrue($checker->isEnabled(ModuleParameterEnum::GedBackend));
+        self::assertTrue($checker->isEnabled(ModuleParameterEnum::GedSuite));
     }
 
     public function testCurrentUserIsUsedWhenUserArgIsNull(): void
     {
-        $user = $this->makeUser([ModuleParameterEnum::GedBackend->value]);
+        $user = $this->makeUser([ModuleParameterEnum::GedSuite->value]);
         $checker = $this->makeChecker(global: [], currentUser: $user);
 
-        self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedBackend));
+        self::assertFalse($checker->isEnabled(ModuleParameterEnum::GedSuite));
     }
 
     public function testIsGloballyEnabledIgnoresUserOverride(): void
     {
-        $user = $this->makeUser([ModuleParameterEnum::GedBackend->value]);
+        $user = $this->makeUser([ModuleParameterEnum::GedSuite->value]);
         $checker = $this->makeChecker(global: [], currentUser: $user);
 
-        self::assertTrue($checker->isGloballyEnabled(ModuleParameterEnum::GedBackend));
+        self::assertTrue($checker->isGloballyEnabled(ModuleParameterEnum::GedSuite));
     }
 
     public function testIsMaskedForUserReturnsTrueOnlyWhenExplicitlyListed(): void
     {
         $checker = $this->makeChecker(global: []);
-        $user = $this->makeUser([ModuleParameterEnum::GedBackend->value]);
+        $user = $this->makeUser([ModuleParameterEnum::GedSuite->value]);
 
-        self::assertTrue($checker->isMaskedForUser(ModuleParameterEnum::GedBackend, $user));
+        self::assertTrue($checker->isMaskedForUser(ModuleParameterEnum::GedSuite, $user));
         self::assertFalse($checker->isMaskedForUser(ModuleParameterEnum::GedDocuments, $user));
     }
 

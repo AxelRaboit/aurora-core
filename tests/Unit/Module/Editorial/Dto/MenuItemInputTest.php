@@ -25,7 +25,7 @@ final class MenuItemInputTest extends TestCase
     public function testAPostEntryWithNoTargetFailsOnTheTargetField(): void
     {
         self::assertSame(
-            ['targetId' => 'backend.menus.errors.target_required'],
+            ['targetId' => 'suite.menus.errors.target_required'],
             $this->errors(new MenuItemInput([], MenuItemTargetTypeEnum::Post)),
         );
     }
@@ -33,7 +33,7 @@ final class MenuItemInputTest extends TestCase
     public function testACustomUrlEntryWithNoUrlFailsOnTheUrlField(): void
     {
         self::assertSame(
-            ['customUrl' => 'backend.menus.errors.custom_url_required'],
+            ['customUrl' => 'suite.menus.errors.custom_url_required'],
             $this->errors(new MenuItemInput([], MenuItemTargetTypeEnum::CustomUrl)),
         );
     }
@@ -41,7 +41,7 @@ final class MenuItemInputTest extends TestCase
     public function testAnUnreadableUrlFailsOnTheUrlField(): void
     {
         self::assertSame(
-            ['customUrl' => 'backend.menus.errors.custom_url_invalid'],
+            ['customUrl' => 'suite.menus.errors.custom_url_invalid'],
             $this->errors(new MenuItemInput([], MenuItemTargetTypeEnum::CustomUrl, customUrl: 'pas-une-url')),
         );
     }

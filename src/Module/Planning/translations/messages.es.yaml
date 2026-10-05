@@ -1,4 +1,4 @@
-backend:
+suite:
     audit:
         actions:
             planning:
@@ -29,8 +29,8 @@ backend:
                     delete: 'Eliminar eventos y recordatorios'
     modules:
         planning: Calendario
-        planning_backend: Calendario
-        planning_backend_description: 'Activa el calendario en la administración.'
+        planning_suite: Calendario
+        planning_suite_description: 'Activa el calendario en la administración.'
     nav:
         sections:
             planning: Calendario

@@ -69,7 +69,7 @@ class PostReviewManager implements PostReviewManagerInterface
                 $reviewer,
                 'editorial.post.review_requested',
                 $title,
-                $this->translator->trans('backend.posts.review.notification_submitted', [
+                $this->translator->trans('suite.posts.review.notification_submitted', [
                     '%author%' => $author?->getName() ?? '',
                 ]),
                 $this->editUrl($post),
@@ -107,7 +107,7 @@ class PostReviewManager implements PostReviewManagerInterface
             }
         }
 
-        $this->tellAuthor($post, $reviewer, 'editorial.post.review_approved', 'backend.posts.review.notification_approved');
+        $this->tellAuthor($post, $reviewer, 'editorial.post.review_approved', 'suite.posts.review.notification_approved');
 
         $this->auditLogger->log('editorial', 'post.review_approved', 'Post', $post->getId(), [
             'title' => $this->titleOf($post),
@@ -135,7 +135,7 @@ class PostReviewManager implements PostReviewManagerInterface
         $post->setReviewNote($note);
         $this->stamp($post, $reviewer, $now);
 
-        $this->tellAuthor($post, $reviewer, 'editorial.post.review_rejected', 'backend.posts.review.notification_rejected');
+        $this->tellAuthor($post, $reviewer, 'editorial.post.review_rejected', 'suite.posts.review.notification_rejected');
 
         $this->auditLogger->log('editorial', 'post.review_rejected', 'Post', $post->getId(), [
             'title' => $this->titleOf($post),
@@ -148,7 +148,7 @@ class PostReviewManager implements PostReviewManagerInterface
      * Everybody who may approve.
      *
      * Filtered in PHP rather than queried, because privileges live in a JSON column
-     * and a backend has tens of accounts, not thousands. If that stops being true
+     * and a suite has tens of accounts, not thousands. If that stops being true
      * this becomes a JSONB containment query - but writing one now would be a
      * clever answer to a question nobody is asking.
      *
@@ -158,7 +158,7 @@ class PostReviewManager implements PostReviewManagerInterface
     {
         $found = [];
 
-        foreach ($this->users->findBy(['type' => UserTypeEnum::Backend->value]) as $user) {
+        foreach ($this->users->findBy(['type' => UserTypeEnum::Suite->value]) as $user) {
             if ($user->hasPrivilege('editorial.posts.publish')) {
                 $found[] = $user;
             }
@@ -226,7 +226,7 @@ class PostReviewManager implements PostReviewManagerInterface
     {
         // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
         return $this->urlGenerator->generate(
-            'backend_editorial_posts_edit',
+            'suite_editorial_posts_edit',
             ['id' => $post->getId()]
         );
     }

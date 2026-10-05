@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Router;
 
 /**
- * A URL with a hole in it: `/backend/editorial/posts/__id__/edit`.
+ * A URL with a hole in it: `/suite/editorial/posts/__id__/edit`.
  *
  * A Vue app is handed a path it will complete at click time, so the server has
  * to generate one from a route whose `id` is declared `\d+`. The generator

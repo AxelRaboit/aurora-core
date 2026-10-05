@@ -20,15 +20,15 @@ class ContractTerminationInput implements ContractTerminationInputInterface
     public const int MAX_REASON_LENGTH = 2000;
 
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.contracts.errors.termination_noticed_required')]
-        #[Assert\Regex(pattern: '/^\d{4}-\d{2}-\d{2}$/', message: 'backend.studio.contracts.errors.termination_date_invalid')]
+        #[Assert\NotBlank(message: 'suite.studio.contracts.errors.termination_noticed_required')]
+        #[Assert\Regex(pattern: '/^\d{4}-\d{2}-\d{2}$/', message: 'suite.studio.contracts.errors.termination_date_invalid')]
         public readonly string $noticedAt = '',
-        #[Assert\NotBlank(message: 'backend.studio.contracts.errors.termination_effective_required')]
-        #[Assert\Regex(pattern: '/^\d{4}-\d{2}-\d{2}$/', message: 'backend.studio.contracts.errors.termination_date_invalid')]
+        #[Assert\NotBlank(message: 'suite.studio.contracts.errors.termination_effective_required')]
+        #[Assert\Regex(pattern: '/^\d{4}-\d{2}-\d{2}$/', message: 'suite.studio.contracts.errors.termination_date_invalid')]
         public readonly string $effectiveAt = '',
-        #[Assert\NotBlank(message: 'backend.studio.contracts.errors.termination_origin_required')]
+        #[Assert\NotBlank(message: 'suite.studio.contracts.errors.termination_origin_required')]
         public readonly string $origin = '',
-        #[Assert\Length(max: self::MAX_REASON_LENGTH, maxMessage: 'backend.studio.contracts.errors.termination_reason_too_long')]
+        #[Assert\Length(max: self::MAX_REASON_LENGTH, maxMessage: 'suite.studio.contracts.errors.termination_reason_too_long')]
         public readonly string $reason = '',
     ) {}
 

@@ -44,7 +44,7 @@ final class ModulesController extends AbstractController
             return $this->json($payload);
         }
 
-        return $this->render('@Dev/backend/index.html.twig', $this->viewBuilder->indexView($payload));
+        return $this->render('@Dev/suite/index.html.twig', $this->viewBuilder->indexView($payload));
     }
 
     #[Route('/verify-password', name: '_verify_password', methods: [HttpMethodEnum::Post->value])]

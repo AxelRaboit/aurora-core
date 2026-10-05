@@ -45,7 +45,7 @@ final readonly class FormTemplateApplier
         }
 
         return array_map(
-            fn (string $key): array => ['title' => $this->translator->trans(sprintf('backend.forms.template_steps.%s', $key))],
+            fn (string $key): array => ['title' => $this->translator->trans(sprintf('suite.forms.template_steps.%s', $key))],
             $steps,
         );
     }
@@ -54,7 +54,7 @@ final readonly class FormTemplateApplier
     public function apply(FormInterface $form, FormTemplateEnum $template, array $locales): void
     {
         foreach ($template->fields() as $spec) {
-            $prefix = sprintf('backend.forms.template_fields.%s', $spec['key']);
+            $prefix = sprintf('suite.forms.template_fields.%s', $spec['key']);
 
             $translations = [];
             foreach ($locales as $locale) {

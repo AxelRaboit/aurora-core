@@ -77,7 +77,7 @@ final class SettingsTabAccessTest extends TestCase
     public function testATabWhoseModuleIsOffIsHidden(): void
     {
         $access = $this->makeAccess(
-            [$this->tab('notes', 45, moduleToggle: 'modules_notes_backend')],
+            [$this->tab('notes', 45, moduleToggle: 'modules_notes_suite')],
             moduleEnabled: false,
         );
 

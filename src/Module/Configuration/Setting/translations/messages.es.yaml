@@ -1,4 +1,4 @@
-backend:
+suite:
     settings:
         studio_guide:
             title: 'Su identidad en los contratos'
@@ -23,8 +23,8 @@ backend:
             step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         system_guide:
             title: 'Quién puede entrar, y cuándo'
-            step_1: 'El modo mantenimiento cierra el sitio público a todos sus visitantes, mientras que el back-office y su página de inicio de sesión siguen abiertos.'
-            step_2: 'Los registros de administración abren un formulario de creación de cuenta para el back-office, que conviene cerrar una vez creada la primera cuenta.'
+            step_1: 'El modo mantenimiento cierra el sitio público a todos sus visitantes, mientras que la suite y su página de inicio de sesión siguen abiertos.'
+            step_2: 'Los registros de administración abren un formulario de creación de cuenta para la suite, que conviene cerrar una vez creada la primera cuenta.'
             step_3: 'Las solicitudes de acceso permiten a alguien pedir una cuenta, que usted aprueba después desde el espacio de desarrollo.'
             step_4: 'Desactivar el inicio de sesión del frontend quita del sitio público el inicio de sesión, el registro y la página de cuenta, y deja sin efecto los registros del frontend.'
             step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
@@ -37,7 +37,7 @@ backend:
             step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         branding_guide:
             title: 'El logotipo y el icono del sitio'
-            step_1: 'El logotipo aparece en el menú lateral del back-office y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra.'
+            step_1: 'El logotipo aparece en el menú lateral dla suite y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra.'
             step_2: 'Sin favicon elegido, la pestaña del navegador muestra la inicial del nombre del sitio sobre el color principal del tema.'
             step_3: 'Una imagen tomada de la mediateca debe tener el estado «Publicado» para mostrarse a los visitantes.'
             step_4: 'En el teléfono, el nombre del sitio junto al logotipo de la barra superior puede ocultarse para dejar solo el logotipo.'
@@ -47,7 +47,7 @@ backend:
             step_1: 'El idioma por defecto sirve de respaldo al sitio público, y a los correos cuando la pestaña Emails sigue ese idioma.'
             step_2: 'El modo de un solo idioma solo muestra y guarda el idioma por defecto, y redirige hacia él las direcciones de los demás idiomas.'
             step_3: 'Desactivarlo más tarde devuelve su lugar a los contenidos escritos en los demás idiomas, que siguen en la base.'
-            step_4: 'El idioma del back-office no se ajusta aquí: cada uno lo elige en su perfil.'
+            step_4: 'El idioma dla suite no se ajusta aquí: cada uno lo elige en su perfil.'
             step_5: 'La zona horaria da la hora del sitio: las 9:00 en una publicación programada son las 9:00 aquí, y los emails y los PDF se fechan a esa hora, en el estilo de fechas elegido.'
             step_6: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         reading_guide:
@@ -305,7 +305,7 @@ backend:
         modules_intro: 'Active o desactive los módulos de la aplicación. Los cambios se guardan de inmediato.'
         modules_empty: 'No se ha encontrado ningún módulo.'
         module_type:
-            backend: Backend
+            suite: Suite
             frontend: Frontend
         save: Guardar
         saved: 'Ajustes guardados.'
@@ -387,7 +387,7 @@ backend:
             description: 'La hora del sitio: la de una publicación programada, la de las fechas en los emails y los PDF, la de los envíos de la mañana (recordatorios, revisiones atrasadas), y la zona propuesta para un nuevo calendario o espacio. Las fechas ya guardadas no cambian.'
         date_format:
             label: 'Estilo de las fechas'
-            description: 'Cómo se escriben las fechas de los emails, los PDF y las páginas de contrato, en el idioma de cada uno. El back-office mantiene sus formatos compactos.'
+            description: 'Cómo se escriben las fechas de los emails, los PDF y las páginas de contrato, en el idioma de cada uno. La suite mantiene sus formatos compactos.'
         comments_enabled:
             label: 'Comentarios activados'
             description: 'Si se activa, los visitantes pueden dejar comentarios en los artículos del sitio público.'
@@ -399,10 +399,10 @@ backend:
             description: 'Si se activa, el sitio público se cierra a los visitantes y muestra una página de mantenimiento.'
         admin_registration_enabled:
             label: 'Registros de administración abiertos'
-            description: 'Permitir los registros a través de /backend/platform/register. Desactívelo después de crear la primera cuenta de administrador.'
+            description: 'Permitir los registros a través de /suite/platform/register. Desactívelo después de crear la primera cuenta de administrador.'
         admin_access_request_enabled:
             label: 'Solicitudes de acceso de administración abiertas'
-            description: 'Permitir las solicitudes de acceso a través de /backend/platform/access-request (formulario de solicitud de acceso a la administración)'
+            description: 'Permitir las solicitudes de acceso a través de /suite/platform/access-request (formulario de solicitud de acceso a la administración)'
         front_login_enabled:
             label: 'Inicio de sesión en el frontend activado'
             description: 'Si se desactiva, el sitio público deja de tener cuentas: el inicio de sesión, el registro, el espacio de cliente y la contraseña olvidada devuelven un 404, y los enlaces correspondientes desaparecen de los menús. Desactívelo para una aplicación puramente de escaparate.'
@@ -433,9 +433,9 @@ backend:
         favicon_media_id:
             label: Favicon
             description: 'ID del medio utilizado como favicon'
-        backend_bar_site_name_on_phone:
-          label: "Nombre del sitio en la barra del back-office en el móvil"
-          description: "Muestra el nombre del sitio junto al logotipo en la barra superior del back-office, por debajo de 640 px de ancho. Desactivado, solo queda el logotipo; los lectores de pantalla siguen leyendo el nombre. Para el sitio público, el ajuste equivalente está en el tema."
+        suite_bar_site_name_on_phone:
+          label: "Nombre del sitio en la barra dla suite en el móvil"
+          description: "Muestra el nombre del sitio junto al logotipo en la barra superior dla suite, por debajo de 640 px de ancho. Desactivado, solo queda el logotipo; los lectores de pantalla siguen leyendo el nombre. Para el sitio público, el ajuste equivalente está en el tema."
         seo_title_template:
             label: 'Plantilla de título SEO'
             description: 'Plantilla para el título de las páginas. Use {title} y {siteName}. Ej.: {title} · {siteName}'
@@ -554,7 +554,7 @@ backend:
         email_text_color:
             label: "Texto de los correos"
             description: "El texto corriente del mensaje."
-        backend_palette:
+        suite_palette:
             label: "Grises del modo claro y oscuro"
             description: "Familia de grises y ajustes de cada modo, en JSON (gestionado desde la interfaz)."
         intro: 'Consulte y edite los ajustes técnicos de la aplicación.'

@@ -36,7 +36,7 @@ final class DeckImportTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function import(array $blocks, string $title = 'Depuis un document'): array
     {
-        $this->client->jsonRequest('POST', '/backend/studio/decks/import', [
+        $this->client->jsonRequest('POST', '/suite/studio/decks/import', [
             'title' => $title,
             'blocks' => $blocks,
         ]);
@@ -165,7 +165,7 @@ final class DeckImportTest extends IntegrationTestCase
 
     public function testImportingNeedsThePrivilegeToCreate(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/decks/import', ['title' => 'Sans compte', 'blocks' => []]);
+        $this->client->jsonRequest('POST', '/suite/studio/decks/import', ['title' => 'Sans compte', 'blocks' => []]);
 
         self::assertResponseRedirects();
     }
@@ -173,7 +173,7 @@ final class DeckImportTest extends IntegrationTestCase
     private function signIn(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
 
         $this->client->loginUser($admin, 'admin');
     }

@@ -32,7 +32,7 @@ L'audit du module GED a identifié 7 violations qui auraient pu passer inaperçu
 - [ ] **Aucun `<button>`, `<input>`, `<select>` brut** : toujours `AppButton`, `AppIconButton`, `AppInput`, etc. - y compris les toggles d'arbre collapsible et les boutons reset.
 
 ### Traductions
-- [ ] Les clés `backend.modules.xxx` sont bien sous le nœud YAML `backend > modules`, pas sous un nœud top-level homonyme (ex: `ged > modules` au lieu de `backend > modules`).
+- [ ] Les clés `suite.modules.xxx` sont bien sous le nœud YAML `suite > modules`, pas sous un nœud top-level homonyme (ex: `ged > modules` au lieu de `suite > modules`).
 
 ## Comment l'appliquer
 
@@ -41,4 +41,4 @@ Avant de commiter un module complet :
 2. `grep -rn "fetch(" src/Module/<M>/assets/` - vérifier l'absence de fetch bruts
 3. `grep -rn "<button\|<input\|<select" src/Module/<M>/assets/` - vérifier l'absence d'HTML brut
 4. Vérifier que tous les serializers du module ont une interface
-5. Vérifier la structure YAML des traductions (chemin `backend.modules.*` vs nœud top-level accidentel)
+5. Vérifier la structure YAML des traductions (chemin `suite.modules.*` vs nœud top-level accidentel)

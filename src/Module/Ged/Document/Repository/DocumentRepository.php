@@ -143,13 +143,13 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
 
     /**
      * Cheap LIKE-based search over `title` + `original_name`, capped at
-     * `$limit` rows. Powers the global backend search controller's
+     * `$limit` rows. Powers the global suite search controller's
      * "Documents" pane (formerly served by the Media library).
      *
      * @return list<Document>
      */
     /**
-     * How many documents currently live on a given backend.
+     * How many documents currently live on a given suite.
      *
      * Asked before letting an administrator disconnect a remote storage: the
      * credentials are the only way back to those bytes, and forgetting them
@@ -220,7 +220,7 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
     }
 
     /**
-     * Same question, asked of one backend only.
+     * Same question, asked of one suite only.
      *
      * Relocation needs it because the paths do not change when a document
      * moves: only the disk does. Asking the plain question after a move would

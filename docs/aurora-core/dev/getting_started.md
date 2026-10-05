@@ -90,7 +90,7 @@ make watch              # Vite, au premier plan
 make start-dev-worker   # le worker Messenger, au premier plan
 ```
 
-- Le site et le back-office : `https://127.0.0.1:8000` (`/backend`).
+- Le site et le back-office : `https://127.0.0.1:8000` (`/suite`).
 - Les emails envoyés : Mailpit sur `http://localhost:8025`.
 - Le worker est nécessaire pour les publications programmées et toutes les
   tâches planifiées, les emails des formulaires, les déplacements de fichiers

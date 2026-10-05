@@ -303,7 +303,7 @@ final readonly class MarkdownNoteArchive
             }
 
             $content = str_replace(
-                '/backend/notes/markdown/images/'.$filename,
+                '/suite/notes/markdown/images/'.$filename,
                 $remontee.self::IMAGE_DIR.'/'.$filename,
                 $content,
             );

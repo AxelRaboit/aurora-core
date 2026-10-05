@@ -1,0 +1,21 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.forms'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.editorial'|trans},
+            {label: 'suite.nav.forms'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/suite/forms/FormsApp', {
+    forms: forms,
+    templates: templates,
+    createPath: path('suite_editorial_forms_create'),
+    deletePathTemplate: path_template('suite_editorial_forms_delete', {id: '__id__'}),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

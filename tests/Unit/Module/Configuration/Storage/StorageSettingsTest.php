@@ -52,7 +52,7 @@ final class StorageSettingsTest extends TestCase
         self::assertSame(StorageDiskEnum::Local, $settings->activeDisk());
     }
 
-    public function testItSwitchesOnceTheBackendHasAnswered(): void
+    public function testItSwitchesOnceTheSuiteHasAnswered(): void
     {
         $settings = $this->settings(environment: $this->completeEnvironment());
         $settings->save(

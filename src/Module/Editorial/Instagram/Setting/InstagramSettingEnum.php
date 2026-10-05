@@ -15,15 +15,15 @@ use Aurora\Module\Ged\Pexels\Setting\PexelsSettingEnum;
  */
 enum InstagramSettingEnum: string
 {
-    case Enabled = 'backend_editorial_instagram_enabled';
+    case Enabled = 'suite_editorial_instagram_enabled';
 
     /** A long-lived Instagram Graph API token, for the client's own account. Stored encrypted. */
-    case AccessToken = 'backend_editorial_instagram_access_token';
+    case AccessToken = 'suite_editorial_instagram_access_token';
 
     /** The Instagram Business Account id the token reads. */
-    case BusinessAccountId = 'backend_editorial_instagram_business_account_id';
+    case BusinessAccountId = 'suite_editorial_instagram_business_account_id';
 
-    case TermsAcceptedAt = 'backend_editorial_instagram_terms_accepted_at';
+    case TermsAcceptedAt = 'suite_editorial_instagram_terms_accepted_at';
 
-    case TermsAcceptedBy = 'backend_editorial_instagram_terms_accepted_by';
+    case TermsAcceptedBy = 'suite_editorial_instagram_terms_accepted_by';
 }

@@ -89,7 +89,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
 
     public function getNavSections(): array
     {
-        if (!$this->studioContext->isBackendEnabled()) {
+        if (!$this->studioContext->isSuiteEnabled()) {
             return [];
         }
 
@@ -146,7 +146,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::StudioBackend->toToggle(),
+            ModuleParameterEnum::StudioSuite->toToggle(),
             ModuleParameterEnum::StudioCustomers->toToggle(),
             ModuleParameterEnum::StudioContracts->toToggle(),
             ModuleParameterEnum::StudioDecks->toToggle(),
@@ -158,59 +158,59 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
     private function contractsNavItem(): NavItem
     {
         return new NavItem(
-            'backend_studio_contracts',
-            'backend.nav.studio_contracts',
+            'suite_studio_contracts',
+            'suite.nav.studio_contracts',
             'file-signature',
             requiredPrivilege: 'studio.contracts.view',
-            descriptionKey: 'backend.nav.studio_contracts_description',
+            descriptionKey: 'suite.nav.studio_contracts_description',
         );
     }
 
     private function contractTemplatesNavItem(): NavItem
     {
         return new NavItem(
-            'backend_studio_contract_templates',
-            'backend.nav.studio_contract_templates',
+            'suite_studio_contract_templates',
+            'suite.nav.studio_contract_templates',
             'scroll-text',
             requiredPrivilege: 'studio.contract_templates.view',
-            descriptionKey: 'backend.nav.studio_contract_templates_description',
+            descriptionKey: 'suite.nav.studio_contract_templates_description',
         );
     }
 
     private function decksNavItem(): NavItem
     {
         return new NavItem(
-            'backend_studio_decks',
-            'backend.nav.studio_decks',
+            'suite_studio_decks',
+            'suite.nav.studio_decks',
             'presentation',
             requiredPrivilege: 'studio.decks.view',
-            // Les pages d'une présentation s'appellent `backend_studio_deck`,
+            // Les pages d'une présentation s'appellent `suite_studio_deck`,
             // au singulier : l'éditeur, le mode présentateur, l'impression.
             // Sans ce préfixe, ouvrir une présentation éteignait le menu.
-            activeRoutePrefix: 'backend_studio_deck',
-            descriptionKey: 'backend.nav.studio_decks_description',
+            activeRoutePrefix: 'suite_studio_deck',
+            descriptionKey: 'suite.nav.studio_decks_description',
         );
     }
 
     private function deliverablesNavItem(): NavItem
     {
         return new NavItem(
-            'backend_studio_deliverables',
-            'backend.nav.studio_deliverables',
+            'suite_studio_deliverables',
+            'suite.nav.studio_deliverables',
             'file-check',
             requiredPrivilege: 'studio.deliverables.view',
-            descriptionKey: 'backend.nav.studio_deliverables_description',
+            descriptionKey: 'suite.nav.studio_deliverables_description',
         );
     }
 
     private function spacesNavItem(): NavItem
     {
         return new NavItem(
-            'backend_studio_spaces',
-            'backend.nav.studio_spaces',
+            'suite_studio_spaces',
+            'suite.nav.studio_spaces',
             'panels-top-left',
             requiredPrivilege: 'studio.spaces.view',
-            descriptionKey: 'backend.nav.studio_spaces_description',
+            descriptionKey: 'suite.nav.studio_spaces_description',
         );
     }
 
@@ -218,22 +218,22 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
     private function calendarNavItem(): NavItem
     {
         return new NavItem(
-            'backend_studio_calendar',
-            'backend.nav.studio_calendar',
+            'suite_studio_calendar',
+            'suite.nav.studio_calendar',
             'calendar-range',
             requiredPrivilege: 'studio.spaces.view',
-            descriptionKey: 'backend.nav.studio_calendar_description',
+            descriptionKey: 'suite.nav.studio_calendar_description',
         );
     }
 
     private function customersNavItem(): NavItem
     {
         return new NavItem(
-            'backend_studio_customers',
-            'backend.nav.studio_customers',
+            'suite_studio_customers',
+            'suite.nav.studio_customers',
             'building-2',
             requiredPrivilege: 'studio.customers.view',
-            descriptionKey: 'backend.nav.studio_customers_description',
+            descriptionKey: 'suite.nav.studio_customers_description',
         );
     }
 }

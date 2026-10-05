@@ -1,4 +1,4 @@
-backend:
+suite:
     permissions:
         intro: 'Gestione los permisos de acceso de los usuarios por módulo. Cada permiso puede concederse de forma individual.'
         search_placeholder: 'Filtrar módulos…'
@@ -35,10 +35,10 @@ backend:
         project: Proyecto
         core: Núcleo
         general: General
-        general_backend: General
-        general_backend_description: 'Panel y página de inicio tras iniciar sesión.'
+        general_suite: General
+        general_suite_description: 'Panel y página de inicio tras iniciar sesión.'
         platform: Plataforma
-        platform_backend: Plataforma
-        platform_backend_description: 'Sección técnica del back-office.'
+        platform_suite: Plataforma
+        platform_suite_description: 'Sección técnica dla suite.'
         configuration: Configuración
         configuration_description: 'Configuración global de la aplicación y personalización visual.'

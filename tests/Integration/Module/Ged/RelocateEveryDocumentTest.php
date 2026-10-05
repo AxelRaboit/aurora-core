@@ -14,7 +14,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Which documents "move everything to that backend" actually picks up.
+ * Which documents "move everything to that suite" actually picks up.
  *
  * The move itself is somebody else's suite - {@see DocumentRelocatorTest}
  * owns the ordering, the locking and the bytes. What matters here is the

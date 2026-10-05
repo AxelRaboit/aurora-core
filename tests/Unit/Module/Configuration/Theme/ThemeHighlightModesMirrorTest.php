@@ -26,7 +26,7 @@ final class ThemeHighlightModesMirrorTest extends TestCase
 {
     public function testTheScreensOfferExactlyTheModesTheServerKeeps(): void
     {
-        $source = file_get_contents(dirname(__DIR__, 5).'/src/Module/Configuration/assets/backend/themes/highlightModes.js');
+        $source = file_get_contents(dirname(__DIR__, 5).'/src/Module/Configuration/assets/suite/themes/highlightModes.js');
         self::assertTrue(is_string($source));
         self::assertSame(1, preg_match('/export const HIGHLIGHT_MODES = \[(.*?)\];/s', $source, $matches));
         preg_match_all('/"([^"]+)"/', $matches[1], $modes);

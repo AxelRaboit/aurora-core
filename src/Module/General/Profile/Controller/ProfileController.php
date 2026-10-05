@@ -33,7 +33,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function in_array;
 
-#[Route('/backend/general/profile', name: 'backend_general_profile')]
+#[Route('/suite/general/profile', name: 'suite_general_profile')]
 #[IsGranted(UserRoleEnum::User->value)]
 final class ProfileController extends AbstractController
 {
@@ -57,7 +57,7 @@ final class ProfileController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        return $this->render('@General/backend/profile/index.html.twig', $this->viewBuilder->indexView($user));
+        return $this->render('@General/suite/profile/index.html.twig', $this->viewBuilder->indexView($user));
     }
 
     #[Route('/update', name: '_update', methods: [HttpMethodEnum::Post->value])]
@@ -93,7 +93,7 @@ final class ProfileController extends AbstractController
 
         if (!$this->userManager->isPasswordValid($user, $input->currentPassword)) {
             return $this->jsonInvalidInput([
-                'current_password' => $this->translator->trans('backend.profile.errors.current_password_invalid'),
+                'current_password' => $this->translator->trans('suite.profile.errors.current_password_invalid'),
             ]);
         }
 
@@ -110,11 +110,11 @@ final class ProfileController extends AbstractController
         $data = json_decode($request->getContent(), true) ?? [];
 
         if (!$this->isCsrfTokenValid('profile_delete', $data['_token'] ?? '')) {
-            return $this->jsonFailure($this->translator->trans('backend.profile.errors.invalid_csrf'), HttpStatusEnum::Forbidden->value);
+            return $this->jsonFailure($this->translator->trans('suite.profile.errors.invalid_csrf'), HttpStatusEnum::Forbidden->value);
         }
 
         if ($this->isLastDevOfType($user)) {
-            return $this->jsonFailure($this->translator->trans('backend.profile.errors.last_dev_protected'), HttpStatusEnum::Forbidden->value);
+            return $this->jsonFailure($this->translator->trans('suite.profile.errors.last_dev_protected'), HttpStatusEnum::Forbidden->value);
         }
 
         $tokenStorage->setToken(null);
@@ -126,7 +126,7 @@ final class ProfileController extends AbstractController
 
     /**
      * Protects the seed/last developer account: an instance must always retain
-     * at least one ROLE_DEV user of the same scope (Backend or Frontend).
+     * at least one ROLE_DEV user of the same scope (Suite or Frontend).
      * Without this guard, deleting the only dev would lock the app out of any
      * dev-only operation (impersonation, advanced settings, etc.).
      */
@@ -164,7 +164,7 @@ final class ProfileController extends AbstractController
 
         $file = $request->files->get('photo');
         if (null === $file) {
-            return $this->jsonInvalidInput(['photo' => 'backend.users.photo.errors.missing']);
+            return $this->jsonInvalidInput(['photo' => 'suite.users.photo.errors.missing']);
         }
 
         try {
@@ -192,7 +192,7 @@ final class ProfileController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        return $this->render('@General/backend/profile/sidemenu.html.twig', [
+        return $this->render('@General/suite/profile/sidemenu.html.twig', [
             'navPreferences' => $this->moduleRegistry->getNavPreferences(),
             'hiddenNavSections' => $user->getHiddenNavSections(),
             'hiddenNavItems' => $user->getHiddenNavItems(),
@@ -293,7 +293,7 @@ final class ProfileController extends AbstractController
         $locale = LocaleEnum::tryFrom($data['locale'] ?? '');
 
         if (null === $locale) {
-            return $this->jsonFailure($this->translator->trans('backend.profile.errors.invalid_locale'));
+            return $this->jsonFailure($this->translator->trans('suite.profile.errors.invalid_locale'));
         }
 
         $request->getSession()->set('_locale', $locale->value);

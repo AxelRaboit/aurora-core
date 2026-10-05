@@ -112,8 +112,8 @@ Les overrides de composants Aurora sont **co-localisés** avec l'extension
 PHP sous `src/Module/<AuroraModule>/<Feature>/assets/` :
 
 ```
-src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue
-→ remplace le composant Aurora 'platform/backend/document-categories/DocumentCategoriesApp'
+src/Module/Ged/DocumentCategory/assets/suite/document-categories/DocumentCategoriesApp.vue
+→ remplace le composant Aurora 'platform/suite/document-categories/DocumentCategoriesApp'
   (le glob clientModules wins sur auroraModules → shadow direct)
 ```
 
@@ -131,13 +131,13 @@ propres paths pour chaque namespace Twig (`@Core`, `@Shared`, `@Editorial`,
 `@Crm`, etc.). Deux paths d'override sont reconnus :
 
 - **Nouveau** (recommandé, aligné sur la convention core) :
-  `src/Core/templates/Core/backend/document-categories/index.html.twig`,
+  `src/Core/templates/Core/suite/document-categories/index.html.twig`,
   `src/Module/<X>/templates/...`, etc.
-- **Legacy** (backward compat) : `templates/Core/backend/document-categories/index.html.twig`,
+- **Legacy** (backward compat) : `templates/Core/suite/document-categories/index.html.twig`,
   `templates/Module/<X>/...`, etc.
 
 L'un ou l'autre surcharge automatiquement
-`vendor/axelraboit/aurora/src/Core/templates/Core/backend/document-categories/index.html.twig`
+`vendor/axelraboit/aurora/src/Core/templates/Core/suite/document-categories/index.html.twig`
 sans configuration Twig supplémentaire.
 
 ---

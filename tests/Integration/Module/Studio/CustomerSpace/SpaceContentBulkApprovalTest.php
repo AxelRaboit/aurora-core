@@ -113,7 +113,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         // Somebody to tell: an administrator who creates a space is not made
         // a member of it, since they see every space anyway.
         $member = new CustomerSpaceMember();
-        $member->setUser($this->entityManager->getRepository(User::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']))->setRole(CustomerSpaceMemberRoleEnum::Lead);
+        $member->setUser($this->entityManager->getRepository(User::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']))->setRole(CustomerSpaceMemberRoleEnum::Lead);
         $managed = $this->entityManager->find(CustomerSpace::class, $space->getId());
         $managed->addMember($member);
         $this->entityManager->persist($member);
@@ -282,7 +282,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
     private function loginAdmin(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -328,7 +328,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace de '.$customerName,
             'customerId' => $customer->getId(),
         ]);

@@ -199,6 +199,6 @@ enum SlideLayoutEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.layouts.'.$this->value;
+        return 'suite.studio.decks.layouts.'.$this->value;
     }
 }

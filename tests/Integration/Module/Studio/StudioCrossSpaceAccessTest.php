@@ -53,7 +53,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -87,7 +87,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         self::assertSame(['Publication du mien'], $this->calendarTitles('mine'));
         self::assertSame(['Publication du mien'], $this->calendarTitles('all'), '« all » is not a way round membership');
 
-        $this->client->request('GET', '/backend/studio/calendar');
+        $this->client->request('GET', '/suite/studio/calendar');
         self::assertResponseIsSuccessful();
     }
 
@@ -136,7 +136,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         $this->client->loginUser($member, 'admin');
 
         $window = sprintf('from=%s&to=%s', urlencode(new DateTimeImmutable('-1 day')->format(DATE_ATOM)), urlencode(new DateTimeImmutable('+30 days')->format(DATE_ATOM)));
-        $this->client->request('GET', '/backend/planning/events?'.$window);
+        $this->client->request('GET', '/suite/planning/events?'.$window);
         self::assertResponseIsSuccessful();
 
         $titles = array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['events'], 'title');
@@ -158,18 +158,18 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
             'status' => $status,
         ];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Après', 'active'));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/update', $space->getId()), $update('Après', 'active'));
         self::assertResponseIsSuccessful();
         $this->entityManager->clear();
         self::assertSame('Après', $events->findBySource(SpaceContentItemManager::SCHEDULE_SOURCE, $itemId)?->getSourceLabel());
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Après', 'archived'));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/update', $space->getId()), $update('Après', 'archived'));
         self::assertResponseIsSuccessful();
         $this->entityManager->clear();
         self::assertNull($events->findBySource(SpaceContentItemManager::SCHEDULE_SOURCE, $itemId), 'an archived space leaves the calendar');
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Après', 'active'));
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/delete', $space->getId()));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/update', $space->getId()), $update('Après', 'active'));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/delete', $space->getId()));
         self::assertResponseIsSuccessful();
         $this->entityManager->clear();
         self::assertNull($events->findBySource(SpaceContentItemManager::SCHEDULE_SOURCE, $itemId), 'a deleted space leaves the calendar');
@@ -185,7 +185,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         $this->givenScheduledItem($space, 'Manquée il y a deux mois', '-60 days');
         $this->givenScheduledItem($space, 'À venir', '+3 days');
 
-        $this->client->request('GET', '/backend/studio/calendar/items?scope=all&state=missed');
+        $this->client->request('GET', '/suite/studio/calendar/items?scope=all&state=missed');
         self::assertResponseIsSuccessful();
 
         self::assertSame(['Manquée il y a deux mois'], array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['items'], 'title'));
@@ -236,7 +236,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
     private function calendarTitles(string $scope): array
     {
         $query = sprintf('scope=%s&from=%s&to=%s', $scope, urlencode(new DateTimeImmutable('-1 day')->format(DATE_ATOM)), urlencode(new DateTimeImmutable('+30 days')->format(DATE_ATOM)));
-        $this->client->request('GET', '/backend/studio/calendar/items?'.$query);
+        $this->client->request('GET', '/suite/studio/calendar/items?'.$query);
         self::assertResponseIsSuccessful();
 
         $titles = array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['items'], 'title');
@@ -248,10 +248,10 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function dashboardProps(): array
     {
-        $this->client->request('GET', '/backend');
+        $this->client->request('GET', '/suite');
         self::assertResponseIsSuccessful();
 
-        $node = $this->client->getCrawler()->filter('[data-symfony--ux-vue--vue-component-value="general/backend/dashboard/DashboardApp"]');
+        $node = $this->client->getCrawler()->filter('[data-symfony--ux-vue--vue-component-value="general/suite/dashboard/DashboardApp"]');
 
         return json_decode((string) $node->attr('data-symfony--ux-vue--vue-props-value'), true, flags: JSON_THROW_ON_ERROR);
     }
@@ -263,7 +263,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', ['name' => $name, 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', ['name' => $name, 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
         self::assertResponseIsSuccessful();
 
         $space = $this->entityManager->find(CustomerSpace::class, json_decode((string) $this->client->getResponse()->getContent(), true)['space']['id']);
@@ -298,7 +298,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
     {
         $user = new User();
         $user->setEmail(sprintf('transverse-%s@example.test', bin2hex(random_bytes(3))))->setName('Équipier')
-            ->setType(UserTypeEnum::Backend)->setRoles([UserRoleEnum::User->value])->setPassword('x')
+            ->setType(UserTypeEnum::Suite)->setRoles([UserRoleEnum::User->value])->setPassword('x')
             ->setPrivileges($privileges);
         $this->entityManager->persist($user);
         $this->entityManager->flush();

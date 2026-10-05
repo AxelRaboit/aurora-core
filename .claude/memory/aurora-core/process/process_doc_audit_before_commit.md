@@ -9,7 +9,7 @@ metadata:
 
 > **Portée** : cette convention vise la documentation **technique**, celle
 > que lit un développeur (`docs/`, `.claude/memory/`). Le manuel affiché dans
-> `/backend/documentation`, qui s'adresse à la personne qui se sert du
+> `/suite/documentation`, qui s'adresse à la personne qui se sert du
 > logiciel, a sa propre règle et ses captures :
 > [[convention_documentation_a_jour]]. Les deux s'appliquent, sur des cibles
 > différentes.
@@ -36,7 +36,7 @@ et `extend_entity.md` étaient **massivement obsolètes** :
 - Namespaces réorganisés (`Aurora\Core\Module\NavItem` → `Aurora\Core\Module\Nav\NavItem`)
 - 5 patterns ajoutés au code (toggles, Context, FrontendDescriptor,
   ConfigurationTabProvider, ModuleAccessChecker) **jamais documentés**
-- Convention dossier `admin/` → `backend/` non répercutée
+- Convention dossier `admin/` → `suite/` non répercutée
 
 Conséquence : un dev qui aurait suivi la doc aurait écrit du code qui ne
 compile pas. Réécritures réactives = **3 commits dédiés** pour rattraper

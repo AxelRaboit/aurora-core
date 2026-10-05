@@ -17,10 +17,10 @@ const props = defineProps({
 const { t } = useI18n();
 
 const BADGES = [
-    { field: "missed", labelKey: "backend.studio.workload.badges.missed", urgent: true },
-    { field: "lateReview", labelKey: "backend.studio.workload.badges.late_review", urgent: true },
-    { field: "changesRequested", labelKey: "backend.studio.workload.badges.changes_requested", urgent: true },
-    { field: "withClient", labelKey: "backend.studio.workload.badges.with_client", urgent: false },
+    { field: "missed", labelKey: "suite.studio.workload.badges.missed", urgent: true },
+    { field: "lateReview", labelKey: "suite.studio.workload.badges.late_review", urgent: true },
+    { field: "changesRequested", labelKey: "suite.studio.workload.badges.changes_requested", urgent: true },
+    { field: "withClient", labelKey: "suite.studio.workload.badges.with_client", urgent: false },
 ];
 
 const badges = computed(() =>

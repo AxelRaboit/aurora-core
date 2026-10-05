@@ -13,13 +13,13 @@ class FormInput implements FormInputInterface
      * @param list<array{title: string}>|null                                          $steps
      */
     public function __construct(
-        #[Assert\Count(min: 1, minMessage: 'backend.forms.errors.translations_required')]
+        #[Assert\Count(min: 1, minMessage: 'suite.forms.errors.translations_required')]
         public readonly array $translations,
-        #[Assert\Email(message: 'backend.forms.errors.notify_email_invalid')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.forms.errors.notify_email_invalid')]
+        #[Assert\Email(message: 'suite.forms.errors.notify_email_invalid')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.forms.errors.notify_email_invalid')]
         public readonly ?string $notifyEmail = null,
-        #[Assert\Url(message: 'backend.forms.errors.webhook_url_invalid', requireTld: false)]
-        #[Assert\Length(max: 500, maxMessage: 'backend.forms.errors.webhook_url_invalid')]
+        #[Assert\Url(message: 'suite.forms.errors.webhook_url_invalid', requireTld: false)]
+        #[Assert\Length(max: 500, maxMessage: 'suite.forms.errors.webhook_url_invalid')]
         public readonly ?string $webhookUrl = null,
         public readonly bool $crmSync = false,
         public readonly bool $active = true,

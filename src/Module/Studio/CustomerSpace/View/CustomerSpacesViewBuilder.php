@@ -59,10 +59,10 @@ final readonly class CustomerSpacesViewBuilder
             // shortlist would be right until the first client abroad.
             'timezones' => DateTimeZone::listIdentifiers(),
             'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
-            'createPath' => $this->urlGenerator->generate('backend_studio_spaces_create'),
-            'updatePath' => $this->pathTemplates->generate('backend_studio_spaces_update', ['id' => '__id__']),
-            'convertPath' => $this->pathTemplates->generate('backend_studio_customers_convert', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('backend_studio_spaces_delete', ['id' => '__id__']),
+            'createPath' => $this->urlGenerator->generate('suite_studio_spaces_create'),
+            'updatePath' => $this->pathTemplates->generate('suite_studio_spaces_update', ['id' => '__id__']),
+            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplates->generate('suite_studio_spaces_delete', ['id' => '__id__']),
         ];
     }
 
@@ -117,7 +117,7 @@ final readonly class CustomerSpacesViewBuilder
     /**
      * The accounts that can be put on a space.
      *
-     * Backend accounts, not front ones: a space's members are the studio's own
+     * Suite accounts, not front ones: a space's members are the studio's own
      * people. The client's own login, when they have one, is attached to the
      * customer record and answers a different question.
      *

@@ -19,7 +19,7 @@ enum MenuItemVisibilityEnum: string
 
     public function labelKey(): string
     {
-        return sprintf('backend.menus.visibilities.%s', $this->value);
+        return sprintf('suite.menus.visibilities.%s', $this->value);
     }
 
     /** @param bool $authenticated whether someone is signed in on the front */

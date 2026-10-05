@@ -38,9 +38,9 @@ final class SidemenuLockoutTest extends TestCase
 
     private const string HEADER = '/src/Core/templates/Shared/components/page_header.html.twig';
 
-    private const string ASIDE = '/src/Core/assets/backend/sidemenu/AppSidemenu.vue';
+    private const string ASIDE = '/src/Core/assets/suite/sidemenu/AppSidemenu.vue';
 
-    private const string STYLESHEET = '/src/Core/assets/backend/sidemenu/sidemenu.css';
+    private const string STYLESHEET = '/src/Core/assets/suite/sidemenu/sidemenu.css';
 
     public function testTheToggleIsMountedOutsideTheMenu(): void
     {

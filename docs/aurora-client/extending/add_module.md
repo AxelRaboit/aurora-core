@@ -130,7 +130,7 @@ php bin/console aurora:make:module Loyalty
 # Avec frontend public
 php bin/console aurora:make:module Loyalty --with-frontend
 
-# Avec onglet Settings dans /backend/configuration/settings
+# Avec onglet Settings dans /suite/configuration/settings
 php bin/console aurora:make:module Loyalty --with-settings
 
 # Tout combiné
@@ -142,7 +142,7 @@ php bin/console aurora:make:module DevTools --no-toggle
 
 | Flag | Effet |
 |---|---|
-| _(aucun)_ | Cas 1 + Cas 2 : `<X>Module.php` + `<X>Context.php` avec `BACKEND_KEY = 'app_<x>_backend'`, togglable via le panel admin "Modules access" |
+| _(aucun)_ | Cas 1 + Cas 2 : `<X>Module.php` + `<X>Context.php` avec `SUITE_KEY = 'app_<x>_suite'`, togglable via le panel admin "Modules access" |
 | `--no-toggle` | Opt-out du toggle backend (réservé infra type Dev) |
 | `--with-frontend` | Cas 4 : ajoute `<X>FrontendDescriptor.php` |
 | `--with-settings` | Cas 5 : ajoute `Setting/<X>SettingEnum.php` + `<X>ConfigurationTabProvider.php` |
@@ -151,11 +151,11 @@ php bin/console aurora:make:module DevTools --no-toggle
 
 ```
 src/Module/<Module>/<Module>Module.php           # ModuleInterface + ModuleToggleProviderInterface
-src/Module/<Module>/<Module>Context.php           # BACKEND_KEY + isBackendEnabled()
-src/Module/<Module>/Controller/Backend/<Module>Controller.php
-src/Module/<Module>/templates/backend/index.html.twig
+src/Module/<Module>/<Module>Context.php           # SUITE_KEY + isSuiteEnabled()
+src/Module/<Module>/Controller/Suite/<Module>Controller.php
+src/Module/<Module>/templates/suite/index.html.twig
 src/Module/<Module>/translations/messages.{fr,en}.yaml
-src/Module/<Module>/assets/backend/<Module>App.vue
+src/Module/<Module>/assets/suite/<Module>App.vue
 ```
 
 ### 3.3 Auto-patches de config (client only)
@@ -167,7 +167,7 @@ auto-découvrir les modules client (son glob ne voit que
 | Fichier | Ce que le maker ajoute | À quoi ça sert |
 |---|---|---|
 | `config/packages/twig.yaml` | `'%kernel.project_dir%/src/Module/<X>/templates': '<X>'` sous `twig.paths` | namespace Twig `@<X>` (sans ça : `LoaderError: No registered paths for namespace "<X>"`) |
-| `config/packages/framework.yaml` | `- '%kernel.project_dir%/src/Module/<X>/translations'` sous `framework.translator.paths` | Symfony Translator (utilisé par Twig `\|trans`) - sans ça : `backend.nav.<x>` rendu en clé brute |
+| `config/packages/framework.yaml` | `- '%kernel.project_dir%/src/Module/<X>/translations'` sous `framework.translator.paths` | Symfony Translator (utilisé par Twig `\|trans`) - sans ça : `suite.nav.<x>` rendu en clé brute |
 | `config/services.yaml` | même chemin sous `DumpJsTranslationsCommand.$extraSourceDirs` | vue-i18n côté JS (cf. section 2.3) |
 
 > ✓ Ces 3 entrées sont les sections 2.2, 2.3 + un nouveau patch pour Symfony
@@ -179,14 +179,14 @@ auto-découvrir les modules client (son glob ne voit que
 
 Sans `--no-interaction`, deux confirms + deux inputs textuels :
 - **Public-facing pages?** → équivalent à `--with-frontend`
-- **Own tab in /backend/configuration/settings?** → équivalent à `--with-settings`
+- **Own tab in /suite/configuration/settings?** → équivalent à `--with-settings`
 - **Display label** (défaut = nom du module en PascalCase) - texte libre nav
 - **NavSection priority** (défaut = 60) - plus bas = plus haut dans le sidemenu
 
 L'icône du NavItem est **hardcodée à `flame`** (Lucide). Change la string
 dans `<X>Module.php` après scaffold si tu veux autre chose, en piochant
 dans
-`vendor/.../src/Core/assets/backend/sidemenu/composables/useSidemenuNav.js`
+`vendor/.../src/Core/assets/suite/sidemenu/composables/useSidemenuNav.js`
 ICON_MAP (~33 icônes pré-importées - toute icône hors map → fallback FileText).
 
 ### 3.5 Next steps après scaffold
@@ -245,7 +245,7 @@ final readonly class MyModuleModule implements ModuleInterface
     {
         return [
             new NavSection('my_module', [
-                new NavItem('backend_my_module', 'backend.nav.my_module', 'flame',
+                new NavItem('suite_my_module', 'suite.nav.my_module', 'flame',
                     requiredPrivilege: 'my_module.use'),
             ], priority: 60),
         ];
@@ -289,8 +289,8 @@ make sf CMD="aurora:privileges:sync"
 ### 4.3 Controller
 
 ```php
-// src/Module/MyModule/Controller/Backend/MyModuleController.php
-namespace App\Module\MyModule\Controller\Backend;
+// src/Module/MyModule/Controller/Suite/MyModuleController.php
+namespace App\Module\MyModule\Controller\Suite;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -298,37 +298,37 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/backend/my-module', name: 'backend_my_module')]
+#[Route('/suite/my-module', name: 'suite_my_module')]
 #[IsGranted('my_module.use')]
 final class MyModuleController extends AbstractController
 {
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
-        return $this->render('@MyModule/backend/index.html.twig');
+        return $this->render('@MyModule/suite/index.html.twig');
     }
 }
 ```
 
 - `final class` (pas `final readonly` - `setContainer()` est appelé après
   `__construct`).
-- Route prefix `/backend/<kebab-case>`, name `backend_<snake_case>` (pattern
+- Route prefix `/suite/<kebab-case>`, name `suite_<snake_case>` (pattern
   identique au core).
 
 ### 4.4 Template Twig
 
 ```twig
-{# src/Module/MyModule/templates/backend/index.html.twig #}
-{% extends '@Core/backend/layout.html.twig' %}
+{# src/Module/MyModule/templates/suite/index.html.twig #}
+{% extends '@Core/suite/layout.html.twig' %}
 
-{% block title %}{{ 'backend.nav.my_module'|trans }} - {{ parent() }}{% endblock %}
+{% block title %}{{ 'suite.nav.my_module'|trans }} - {{ parent() }}{% endblock %}
 
 {% block body %}
-    <div {{ vue_component('mymodule/backend/MyModuleApp', {}) }} class="flex-1 min-w-0"></div>
+    <div {{ vue_component('mymodule/suite/MyModuleApp', {}) }} class="flex-1 min-w-0"></div>
 {% endblock %}
 ```
 
-**Convention `backend/` (PAS `admin/`)** : harmonisation avec aurora-core
+**Convention `suite/` (PAS `admin/`)** : harmonisation avec aurora-core
 (voir templates `Vault`, `Editorial`, `Notes` côté vendor). Tout le reste de
 la convention de nommage (`vue_component(<lowercase_module>/<path>)`) est
 identique au core.
@@ -336,7 +336,7 @@ identique au core.
 ### 4.5 Composant Vue
 
 ```
-src/Module/MyModule/assets/backend/MyModuleApp.vue
+src/Module/MyModule/assets/suite/MyModuleApp.vue
 ```
 
 Le Vue est **co-localisé** avec le code PHP du module sous `src/Module/<X>/assets/`,
@@ -396,15 +396,15 @@ use Aurora\Core\Module\Service\ModuleAccessChecker;
  */
 final readonly class TrackingContext
 {
-    public const string BACKEND_KEY  = 'app_tracking_backend';
+    public const string SUITE_KEY  = 'app_tracking_suite';
     public const string PROJECTS_KEY = 'app_tracking_projects';
     public const string FRONTEND_KEY = 'app_tracking_frontend';
 
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(self::BACKEND_KEY);
+        return $this->moduleAccessChecker->isEnabled(self::SUITE_KEY);
     }
 
     public function isProjectsEnabled(): bool
@@ -457,13 +457,13 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
 
     public function getNavSections(): array
     {
-        if (!$this->trackingContext->isBackendEnabled()) {
+        if (!$this->trackingContext->isSuiteEnabled()) {
             return [];
         }
 
         $items = [];
         if ($this->trackingContext->isProjectsEnabled()) {
-            $items[] = new NavItem('tracking_projects', 'backend.nav.projects', 'flame',
+            $items[] = new NavItem('tracking_projects', 'suite.nav.projects', 'flame',
                 requiredPrivilege: 'tracking.projects.view');
         }
 
@@ -475,7 +475,7 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
     {
         return [
             new NavSection('tracking', [
-                new NavItem('tracking_projects', 'backend.nav.projects', 'flame',
+                new NavItem('tracking_projects', 'suite.nav.projects', 'flame',
                     requiredPrivilege: 'tracking.projects.view'),
             ], priority: 60),
         ];
@@ -485,22 +485,22 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
     {
         return [
             new ModuleToggle(
-                key: TrackingContext::BACKEND_KEY,
-                labelKey: 'backend.modules.tracking',
-                descriptionKey: 'backend.modules.tracking_description',
+                key: TrackingContext::SUITE_KEY,
+                labelKey: 'suite.modules.tracking',
+                descriptionKey: 'suite.modules.tracking_description',
                 moduleId: 'tracking',
             ),
             new ModuleToggle(
                 key: TrackingContext::PROJECTS_KEY,
-                labelKey: 'backend.nav.projects',
-                descriptionKey: 'backend.nav.projects_description',
-                parentKey: TrackingContext::BACKEND_KEY,
+                labelKey: 'suite.nav.projects',
+                descriptionKey: 'suite.nav.projects_description',
+                parentKey: TrackingContext::SUITE_KEY,
             ),
             new ModuleToggle(
                 key: TrackingContext::FRONTEND_KEY,
-                labelKey: 'backend.modules.tracking_frontend',
-                descriptionKey: 'backend.modules.tracking_frontend_description',
-                parentKey: TrackingContext::BACKEND_KEY,
+                labelKey: 'suite.modules.tracking_frontend',
+                descriptionKey: 'suite.modules.tracking_frontend_description',
+                parentKey: TrackingContext::SUITE_KEY,
             ),
         ];
     }
@@ -512,7 +512,7 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
   exposer ton module dans la page admin Settings + permettre le disable
   per-user via `core_users.disabled_modules`
 - `ModuleToggle.parentKey` matérialise la cascade : `PROJECTS_KEY` est OFF
-  si `BACKEND_KEY` est OFF (globalement ou per-user)
+  si `SUITE_KEY` est OFF (globalement ou per-user)
 - `moduleId` (sur le toggle root du module) lie le toggle à l'identifiant du
   module pour le picker UI
 
@@ -825,8 +825,8 @@ class ProjectSerializer implements ProjectSerializerInterface
 ### 6.6 Controller
 
 ```php
-// src/Module/Tracking/Project/Controller/Backend/ProjectsController.php
-namespace App\Module\Tracking\Project\Controller\Backend;
+// src/Module/Tracking/Project/Controller/Suite/ProjectsController.php
+namespace App\Module\Tracking\Project\Controller\Suite;
 
 use App\Module\Tracking\Project\Dto\ProjectInputFactoryInterface;
 use App\Module\Tracking\Project\Manager\ProjectManagerInterface;
@@ -842,7 +842,7 @@ use Symfony\Component\HttpFoundation\{JsonResponse, Request, Response};
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/backend/tracking/projects', name: 'tracking_projects')]
+#[Route('/suite/tracking/projects', name: 'tracking_projects')]
 #[IsGranted('tracking.projects.view')]
 final class ProjectsController extends AbstractController
 {
@@ -861,7 +861,7 @@ final class ProjectsController extends AbstractController
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(PaginationRequest $pagination): Response
     {
-        return $this->render('@Tracking/backend/projects/index.html.twig',
+        return $this->render('@Tracking/suite/projects/index.html.twig',
             $this->viewBuilder->indexView($pagination));
     }
 
@@ -1030,10 +1030,10 @@ le plus complet, comme le module d'exemple `Tracking`) :
 6. [ ] Manager : Interface + class non-final + `#[AsAlias]` + hooks `protected`
 7. [ ] Repository extends `ResolveTargetEntityRepository` (avec Interface)
 8. [ ] Serializer : Interface + class + `#[AsAlias]`
-9. [ ] Controller `Backend/` : `final`, type-hint **interfaces**
+9. [ ] Controller `Suite/` : `final`, type-hint **interfaces**
 10. [ ] `View/<Name>ViewBuilder.php` (helper templates + payloads list)
-11. [ ] Template `src/Module/<Module>/templates/backend/<entity>/index.html.twig`
-12. [ ] Vue : `src/Module/<Module>/assets/backend/<Name>App.vue` (co-localisé)
+11. [ ] Template `src/Module/<Module>/templates/suite/<entity>/index.html.twig`
+12. [ ] Vue : `src/Module/<Module>/assets/suite/<Name>App.vue` (co-localisé)
 13. [ ] Traductions `src/Module/<Module>/translations/messages.{fr,en}.yaml`
 14. [ ] `<Module>FrontendDescriptor.php` (si front public)
 15. [ ] `Setting/<Module>ConfigurationTabProvider.php` (si settings)

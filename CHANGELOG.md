@@ -5,6 +5,40 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Modifié (rupture)
+- **Le back-office s'appelle désormais « la suite »**, partout où le mot désignait l'endroit :
+  - **adresses** : `/backend/...` devient `/suite/...` ;
+  - **noms de route** : `backend_*` devient `suite_*` (372 routes) ;
+  - **clés de traduction** : `backend.*` devient `suite.*` ;
+  - **dossiers et namespaces** : `assets/backend/` devient `assets/suite/`, `templates/backend/` devient `templates/suite/`, `Controller\Backend` devient `Controller\Suite`, `Security\Backend` devient `Security\Suite` ;
+  - **classes et services** : `BackendPalette`, `*BackendSearchProvider`, `isBackendEnabled()`, le tag `aurora.backend_search_provider`, etc. prennent `Suite` ;
+  - **réglages et type d'utilisateur** : `backend_*`, `modules_*_backend` et le type `backend` deviennent `suite_*`, `modules_*_suite` et `suite`.
+
+  Dans les textes affichés, « back-office » devient aussi « la suite » (fr, en, es).
+
+  Le mot garde son autre sens là où il en a un : le moteur de stockage (« storage backend »), `make test-backend` (les tests PHP) et la CI.
+- **Les anciennes adresses continuent de marcher** : toute requête vers `/backend/...` est redirigée en 308 vers la même page sous `/suite/...`, paramètres compris, méthode et corps conservés. Les invitations, liens de mot de passe et favoris déjà envoyés arrivent donc au bon endroit.
+
+### Modifié
+- **« Oublier une instance » suit le geste maison** : l'action passe derrière « … » en rose, et la confirmation est une fenêtre de l'application avec un bouton rouge, au lieu de la boîte native du navigateur.
+
+### Ajouté
+- **L'adresse IP de chaque instance** dans l'écran « Déploiements » : elle était déjà relevée à chaque signalement mais n'apparaissait nulle part. Nouvelle colonne « Adresse IP », sélectionnable d'un clic.
+- **Migration `Version20261005230000`** : renomme en base les clés de réglages et leurs descriptions, les noms de route rangés dans les préférences de menu (entrées masquées, renommées, ordonnées), les modules coupés par utilisateur, et le type d'utilisateur, avec sa valeur par défaut. Les secrets chiffrés restent lisibles, car le chiffrement ne dépend pas du nom de la clé. La migration a été rejouée à blanc sur une copie de la production.
+
+### Dans aurora-client
+- **`config/packages/security.yaml`** :
+  - firewall `^/(suite|dev|workspace)` ;
+  - routes `suite_platform_login`, `suite_platform_logout` et `suite_dashboard` ;
+  - règles `access_control` en `^/suite/...` ;
+  - `UserProvider` et `UserChecker` sous `Aurora\Module\Platform\Auth\Security\Suite\`.
+- **Code du projet** : tout appel à une route `backend_*`, à une clé `backend.*`, à un chemin `@xxx/backend/...` ou `assets/backend/`, à un gabarit `@X/backend/...`, ou à une classe `*Backend*` du cœur, est à renommer. Une clé de module client (`app_x_backend`) est à renommer en `app_x_suite`, avec sa propre migration de données.
+- Nouvelles clés `suite.beacon.col_ip`, `forget_warning`, `forget_action`, `forgotten` (fr, en, es) ; `forget_confirm` prend désormais `{name}`.
+
+---
+
 ## [1.17.1] - 2026-10-05
 
 ### Corrigé

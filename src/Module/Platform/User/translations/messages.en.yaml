@@ -1,4 +1,4 @@
-backend:
+suite:
     stats:
         platform:
             users: "Users"
@@ -6,7 +6,7 @@ backend:
     users:
         guide:
             title: "How accounts work"
-            step_1: "A Backend account reaches the administration; a Frontend account is only an account on the public site."
+            step_1: "A Suite account reaches the administration; a Frontend account is only an account on the public site."
             step_2: "An Administrator can do everything; a User only has the privileges you tick, screen by screen."
             step_3: "Inviting sends an email so the person chooses their password."
             step_4: "Deactivating blocks sign-in without losing anything, whereas deleting is permanent; you cannot change your own role."
@@ -42,7 +42,7 @@ backend:
             dev: Developer
         type_label: Type
         type:
-            backend: Backend
+            suite: Suite
             frontend: Frontend
         status_label: Status
         status:
@@ -110,7 +110,7 @@ backend:
             grant_dev_description: Grants the Dev role, and the technical tools with it.
             dev_delete_description: Removes the account for good. There is no undo.
             resend_description: Sends a fresh invitation to the same address.
-            impersonate_description: Opens the backend with their rights, to see what they see.
+            impersonate_description: Opens the suite with their rights, to see what they see.
             impersonate_front_description: Opens the public site as their account.
             edit_description: Name, address, language and role.
             privileges_description: Choose what this account may reach, screen by screen.

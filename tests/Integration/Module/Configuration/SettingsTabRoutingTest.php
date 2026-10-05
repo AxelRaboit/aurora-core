@@ -27,7 +27,7 @@ final class SettingsTabRoutingTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         $this->client->loginUser($user, 'admin');
@@ -39,18 +39,18 @@ final class SettingsTabRoutingTest extends IntegrationTestCase
      */
     public function testTheBareSettingsUrlRedirectsToTheFirstTab(): void
     {
-        $this->client->request('GET', '/backend/configuration/settings');
+        $this->client->request('GET', '/suite/configuration/settings');
 
         self::assertTrue($this->client->getResponse()->isRedirect());
         self::assertStringContainsString(
-            '/backend/configuration/settings/',
+            '/suite/configuration/settings/',
             (string) $this->client->getResponse()->headers->get('Location'),
         );
     }
 
     public function testATabRendersAndNamesItselfToTheComponent(): void
     {
-        $this->client->request('GET', '/backend/configuration/settings/seo');
+        $this->client->request('GET', '/suite/configuration/settings/seo');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
@@ -65,7 +65,7 @@ final class SettingsTabRoutingTest extends IntegrationTestCase
      */
     public function testTheBreadcrumbNamesTheTab(): void
     {
-        $crawler = $this->client->request('GET', '/backend/configuration/settings/seo');
+        $crawler = $this->client->request('GET', '/suite/configuration/settings/seo');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertStringContainsString('SEO', $crawler->filter('header')->text());
@@ -73,7 +73,7 @@ final class SettingsTabRoutingTest extends IntegrationTestCase
 
     public function testAnUnknownTabIsNotFound(): void
     {
-        $this->client->request('GET', '/backend/configuration/settings/definitely_not_a_tab');
+        $this->client->request('GET', '/suite/configuration/settings/definitely_not_a_tab');
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
@@ -85,7 +85,7 @@ final class SettingsTabRoutingTest extends IntegrationTestCase
      */
     public function testTheUpdateEndpointIsNotMistakenForATab(): void
     {
-        $this->client->request('GET', '/backend/configuration/settings/update');
+        $this->client->request('GET', '/suite/configuration/settings/update');
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
@@ -97,7 +97,7 @@ final class SettingsTabRoutingTest extends IntegrationTestCase
      */
     public function testTheSideMenuIsHandedConfigurationsOwnView(): void
     {
-        $this->client->request('GET', '/backend/configuration/settings/seo');
+        $this->client->request('GET', '/suite/configuration/settings/seo');
 
         $content = (string) $this->client->getResponse()->getContent();
         self::assertStringContainsString('moduleNavView', $content);

@@ -28,7 +28,7 @@
 /**
  * @param {string} html   rendered markdown, already sanitised by the renderer
  * @param {object} paths
- * @param {string} paths.imagePrefix       backend image URL prefix to replace
+ * @param {string} paths.imagePrefix       suite image URL prefix to replace
  * @param {string} paths.shareImagePath    share image URL, with `__filename__`
  * @param {string} paths.shareNotePath     share note URL, with `__id__`
  * @param {Record<string, number>} paths.titleIndex  lower-cased title -> note id

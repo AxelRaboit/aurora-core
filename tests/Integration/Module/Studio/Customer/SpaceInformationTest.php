@@ -62,7 +62,7 @@ final class SpaceInformationTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -325,7 +325,7 @@ final class SpaceInformationTest extends IntegrationTestCase
         $user
             ->setEmail('espace-'.bin2hex(random_bytes(4)).'@aurora.test')
             ->setName('Production')
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setPassword('x')
             ->setRoles(['ROLE_USER'])
             ->setPrivileges($privileges);
@@ -359,7 +359,7 @@ final class SpaceInformationTest extends IntegrationTestCase
 
     private function givenSpace(Customer $customer, string $name): CustomerSpace
     {
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => $name,
             'customerId' => $customer->getId(),
             'timezone' => 'Europe/Paris',

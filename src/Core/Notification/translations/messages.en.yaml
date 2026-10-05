@@ -1,4 +1,4 @@
-backend:
+suite:
     notifications:
         title: Notifications
         empty: No notifications.

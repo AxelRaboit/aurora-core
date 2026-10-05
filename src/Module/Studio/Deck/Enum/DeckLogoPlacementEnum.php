@@ -23,6 +23,6 @@ enum DeckLogoPlacementEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.logo_placements.'.$this->value;
+        return 'suite.studio.decks.logo_placements.'.$this->value;
     }
 }

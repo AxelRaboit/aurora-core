@@ -41,10 +41,10 @@ Et brancher `VueDraggable` sur `children` (`v-model="children"`).
 
 ### Précédents
 
-- ✅ Corrigé : `src/Module/Ecommerce/assets/backend/listing-categories/ListingCategoryNode.vue`
+- ✅ Corrigé : `src/Module/Ecommerce/assets/suite/listing-categories/ListingCategoryNode.vue`
   (commit `93d626cf` "fix: nested drag-and-drop on ListingCategory tree now persists").
 - ⚠️ **À surveiller - encore présent** :
-  `src/Module/Editorial/assets/backend/taxonomies/TermNode.vue` - même pattern
+  `src/Module/Editorial/assets/suite/taxonomies/TermNode.vue` - même pattern
   `localChildren = ref([...])`, bug latent identique. À fixer dès qu'une
   session touche au tree des terms.
 

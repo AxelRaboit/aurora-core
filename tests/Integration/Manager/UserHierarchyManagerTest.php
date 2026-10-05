@@ -53,7 +53,7 @@ final class UserHierarchyManagerTest extends IntegrationTestCase
         $alice = $this->createTestUser('alice');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('backend.users.errors.manager_self');
+        $this->expectExceptionMessage('suite.users.errors.manager_self');
         $this->hierarchyManager->setManager($alice, $alice->getId());
     }
 
@@ -62,7 +62,7 @@ final class UserHierarchyManagerTest extends IntegrationTestCase
         $alice = $this->createTestUser('alice');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('backend.users.errors.manager_not_found');
+        $this->expectExceptionMessage('suite.users.errors.manager_not_found');
         $this->hierarchyManager->setManager($alice, 999_999);
     }
 
@@ -73,7 +73,7 @@ final class UserHierarchyManagerTest extends IntegrationTestCase
         $this->hierarchyManager->setManager($alice, $bob->getId());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('backend.users.errors.manager_cycle');
+        $this->expectExceptionMessage('suite.users.errors.manager_cycle');
         $this->hierarchyManager->setManager($bob, $alice->getId());
     }
 
@@ -87,7 +87,7 @@ final class UserHierarchyManagerTest extends IntegrationTestCase
         $this->hierarchyManager->setManager($bob, $carol->getId());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('backend.users.errors.manager_cycle');
+        $this->expectExceptionMessage('suite.users.errors.manager_cycle');
         $this->hierarchyManager->setManager($carol, $alice->getId());
     }
 

@@ -23,7 +23,7 @@ enum MenuItemTargetTypeEnum: string
 
     public function labelKey(): string
     {
-        return sprintf('backend.menus.target_types.%s', $this->value);
+        return sprintf('suite.menus.target_types.%s', $this->value);
     }
 
     public function requiresTargetId(): bool

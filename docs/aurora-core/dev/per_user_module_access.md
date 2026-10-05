@@ -15,7 +15,7 @@ Les deux couches sont consultées via un **service central**
 applique aussi le **cascade graph** existant (`getCascadeRequires()`).
 
 > **Important** : un user-level override ne peut **rien activer** qui ne soit
-> pas déjà ON globalement. Si Dev désactive `CrmBackend`, aucun admin ne peut
+> pas déjà ON globalement. Si Dev désactive `CrmSuite`, aucun admin ne peut
 > le ré-activer pour un user spécifique.
 
 ---
@@ -57,7 +57,7 @@ applique aussi le **cascade graph** existant (`getCascadeRequires()`).
 
 ### Conséquence pour `RouteGateSubscriber`
 
-Les `XxxRouteGateSubscriber` consomment déjà `XxxContext::isBackendEnabled()`.
+Les `XxxRouteGateSubscriber` consomment déjà `XxxContext::isSuiteEnabled()`.
 Ils deviennent automatiquement user-aware sans changement - un user dont
 le module est masqué reçoit un 404 sur les routes du module concerné.
 
@@ -74,8 +74,8 @@ protected array $disabledModules = [];
 ```
 
 Chaque entrée est une clé de toggle déclarée dans le `ModuleToggleRegistry`
-(soit un `ModuleParameterEnum::value` ex. `modules_crm_backend`, soit une
-clé client ex. `app_tracking_backend`). Les valeurs non déclarées sont
+(soit un `ModuleParameterEnum::value` ex. `modules_crm_suite`, soit une
+clé client ex. `app_tracking_suite`). Les valeurs non déclarées sont
 silencieusement filtrées par `UserManager::sanitizeDisabledModules()`,
 qui interroge le registry comme source de vérité.
 
@@ -166,14 +166,14 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
         return [
             new ModuleToggle(
                 key: 'app_tracking_admin',
-                labelKey: 'backend.modules.tracking',
-                descriptionKey: 'backend.modules.tracking_description',
+                labelKey: 'suite.modules.tracking',
+                descriptionKey: 'suite.modules.tracking_description',
                 moduleId: 'tracking',          // top-level → apparaît dans le picker admin
             ),
             new ModuleToggle(
                 key: 'app_tracking_pixels',
-                labelKey: 'backend.nav.tracking_pixels',
-                descriptionKey: 'backend.nav.tracking_pixels_description',
+                labelKey: 'suite.nav.tracking_pixels',
+                descriptionKey: 'suite.nav.tracking_pixels_description',
                 parentKey: 'app_tracking_admin', // cascade : OFF si parent OFF
             ),
         ];

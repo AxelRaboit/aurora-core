@@ -17,7 +17,7 @@ use Twig\Environment;
  * The mirror of the automatic list, and it is answered from the database on
  * every render for the same reason: a term added next month has to appear
  * without anybody editing the page. So the two things worth holding are that
- * the order is the backend's, and that a term nobody has translated stays out
+ * the order is the suite's, and that a term nobody has translated stays out
  * rather than turning up labelled with its slug.
  */
 final class GridTermsZoneTest extends IntegrationTestCase
@@ -42,7 +42,7 @@ final class GridTermsZoneTest extends IntegrationTestCase
         $this->twig = $twig;
     }
 
-    public function testItDrawsEveryTermInTheBackendsOrder(): void
+    public function testItDrawsEveryTermInTheSuitesOrder(): void
     {
         $id = $this->taxonomyWith([
             ['position' => 2, 'fr' => ['Portraits', 'portraits']],

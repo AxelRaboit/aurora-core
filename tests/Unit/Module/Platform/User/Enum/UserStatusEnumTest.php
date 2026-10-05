@@ -19,9 +19,9 @@ final class UserStatusEnumTest extends TestCase
 
     public function testGetLabelKeyPrefixesCaseValue(): void
     {
-        self::assertSame('backend.users.status.active', UserStatusEnum::Active->getLabelKey());
-        self::assertSame('backend.users.status.invited', UserStatusEnum::Invited->getLabelKey());
-        self::assertSame('backend.users.status.disabled', UserStatusEnum::Disabled->getLabelKey());
-        self::assertSame('backend.users.status.pending_verification', UserStatusEnum::PendingVerification->getLabelKey());
+        self::assertSame('suite.users.status.active', UserStatusEnum::Active->getLabelKey());
+        self::assertSame('suite.users.status.invited', UserStatusEnum::Invited->getLabelKey());
+        self::assertSame('suite.users.status.disabled', UserStatusEnum::Disabled->getLabelKey());
+        self::assertSame('suite.users.status.pending_verification', UserStatusEnum::PendingVerification->getLabelKey());
     }
 }

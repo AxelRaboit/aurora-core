@@ -43,7 +43,7 @@ final readonly class DeckDuplicator
     public function duplicate(DeckInterface $source): DeckInterface
     {
         $copy = $this->deckManager->create(
-            $this->translator->trans('backend.studio.decks.copy_of', ['%title%' => $source->getTitle()]),
+            $this->translator->trans('suite.studio.decks.copy_of', ['%title%' => $source->getTitle()]),
         );
 
         $copy->setDescription($source->getDescription());

@@ -23,7 +23,7 @@ enum ContractSignatureRoleEnum: string
 
     public function getLabel(): string
     {
-        return 'backend.studio.signatures.role.'.$this->value;
+        return 'suite.studio.signatures.role.'.$this->value;
     }
 
     /**

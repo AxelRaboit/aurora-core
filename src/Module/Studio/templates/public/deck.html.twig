@@ -23,7 +23,7 @@
         {{ vite_entry_script_tags('theme') }}
     </head>
     <body class="min-h-screen bg-body transition-colors duration-200">
-        <div {{ vue_component('studio/backend/decks/PublicDeckApp', {
+        <div {{ vue_component('studio/suite/decks/PublicDeckApp', {
             deck: deck,
             expiresAt: expiresAt ? expiresAt|date('c') : null,
         }) }} class="min-h-screen"></div>

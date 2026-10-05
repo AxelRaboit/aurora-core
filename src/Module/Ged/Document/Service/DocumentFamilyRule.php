@@ -38,7 +38,7 @@ final readonly class DocumentFamilyRule
         }
 
         if (null !== $document?->getId() && $originalId === $document->getId()) {
-            return ['originalId' => 'backend.ged.documents.errors.original_self'];
+            return ['originalId' => 'suite.ged.documents.errors.original_self'];
         }
 
         // Saving an alternate without touching its link is always allowed,
@@ -52,11 +52,11 @@ final readonly class DocumentFamilyRule
         $original = $this->documentRepository->find($originalId);
 
         if (!$original instanceof DocumentInterface || $original->isTrashed()) {
-            return ['originalId' => 'backend.ged.documents.errors.original_not_found'];
+            return ['originalId' => 'suite.ged.documents.errors.original_not_found'];
         }
 
         if ($original->getOriginal() instanceof DocumentInterface) {
-            return ['originalId' => 'backend.ged.documents.errors.original_is_alternate'];
+            return ['originalId' => 'suite.ged.documents.errors.original_is_alternate'];
         }
 
         // Trashed alternates count: restoring one later would otherwise hang
@@ -64,7 +64,7 @@ final readonly class DocumentFamilyRule
         // while it was away.
         if ($document instanceof DocumentInterface && null !== $document->getId()
             && [] !== $this->documentRepository->countAlternatesFor([$document->getId()], includeTrashed: true)) {
-            return ['originalId' => 'backend.ged.documents.errors.original_has_alternates'];
+            return ['originalId' => 'suite.ged.documents.errors.original_has_alternates'];
         }
 
         return [];

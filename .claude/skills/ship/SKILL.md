@@ -114,7 +114,7 @@ left behind, a follow-up owed.
 ```
 
 **Types in use:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`.
-**Scopes in use:** module or area - `frontend`, `backend`, `editorial`,
+**Scopes in use:** module or area - `frontend`, `suite`, `editorial`,
 `users`, `posts`, `routing`, `i18n`, `seo`, `errors`, `editor`, `deps`.
 Omit the scope when the change is genuinely repo-wide (`docs: …`).
 

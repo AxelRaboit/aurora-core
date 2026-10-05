@@ -38,7 +38,7 @@ final class DecksScreenTest extends IntegrationTestCase
     public function testTheListOpens(): void
     {
         $this->signIn();
-        $this->client->request('GET', '/backend/studio/decks');
+        $this->client->request('GET', '/suite/studio/decks');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('DecksApp', (string) $this->client->getResponse()->getContent());
@@ -48,7 +48,7 @@ final class DecksScreenTest extends IntegrationTestCase
     {
         $this->signIn();
 
-        $this->client->jsonRequest('POST', '/backend/studio/decks/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/decks/create', [
             'title' => 'Audit de septembre',
             'description' => 'Ce que le site fait mal.',
         ]);
@@ -66,7 +66,7 @@ final class DecksScreenTest extends IntegrationTestCase
     {
         $this->signIn();
 
-        $this->client->jsonRequest('POST', '/backend/studio/decks/create', ['title' => '']);
+        $this->client->jsonRequest('POST', '/suite/studio/decks/create', ['title' => '']);
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -93,7 +93,7 @@ final class DecksScreenTest extends IntegrationTestCase
 
         $entityManager->flush();
 
-        $this->client->request('POST', '/backend/studio/decks/'.$deck->getId().'/duplicate');
+        $this->client->request('POST', '/suite/studio/decks/'.$deck->getId().'/duplicate');
 
         self::assertResponseIsSuccessful();
 
@@ -122,7 +122,7 @@ final class DecksScreenTest extends IntegrationTestCase
         $deck = $deckManager->create('Proposition commerciale');
         $container->get(EntityManagerInterface::class)->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/decks/'.$deck->getId().'/appearance', [
+        $this->client->jsonRequest('POST', '/suite/studio/decks/'.$deck->getId().'/appearance', [
             'theme' => 'paper',
             'style' => [
                 'accent' => '#C2371F',
@@ -176,7 +176,7 @@ final class DecksScreenTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            '/backend/studio/decks/'.$deck->getId().'/slides/'.$first->getId().'/duplicate',
+            '/suite/studio/decks/'.$deck->getId().'/slides/'.$first->getId().'/duplicate',
         );
 
         self::assertResponseIsSuccessful();
@@ -204,7 +204,7 @@ final class DecksScreenTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            '/backend/studio/decks/'.$mine->getId().'/slides/'.$slide->getId().'/duplicate',
+            '/suite/studio/decks/'.$mine->getId().'/slides/'.$slide->getId().'/duplicate',
         );
 
         self::assertResponseStatusCodeSame(404);
@@ -218,7 +218,7 @@ final class DecksScreenTest extends IntegrationTestCase
         $deck = $container->get(DeckManager::class)->create('Sans thème');
         $container->get(EntityManagerInterface::class)->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/decks/'.$deck->getId().'/appearance', [
+        $this->client->jsonRequest('POST', '/suite/studio/decks/'.$deck->getId().'/appearance', [
             'theme' => 'neon',
         ]);
 
@@ -243,11 +243,11 @@ final class DecksScreenTest extends IntegrationTestCase
         $slide->setSpeakerNotes('Marquer un temps avant la troisième puce.');
         $container->get(EntityManagerInterface::class)->flush();
 
-        $this->client->request('GET', '/backend/studio/decks/'.$deck->getId().'/presenter');
+        $this->client->request('GET', '/suite/studio/decks/'.$deck->getId().'/presenter');
         self::assertResponseRedirects();
 
         $this->signIn();
-        $this->client->request('GET', '/backend/studio/decks/'.$deck->getId().'/presenter');
+        $this->client->request('GET', '/suite/studio/decks/'.$deck->getId().'/presenter');
 
         self::assertResponseIsSuccessful();
 
@@ -282,7 +282,7 @@ final class DecksScreenTest extends IntegrationTestCase
 
         $container->get(EntityManagerInterface::class)->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/decks/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/decks/create', [
             'title' => 'Audit Dupont',
             'fromTemplateId' => $model->getId(),
         ]);
@@ -306,7 +306,7 @@ final class DecksScreenTest extends IntegrationTestCase
     {
         $this->signIn();
 
-        $this->client->jsonRequest('POST', '/backend/studio/decks/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/decks/create', [
             'title' => 'Sans modèle',
             'fromTemplateId' => 999999,
         ]);
@@ -321,7 +321,7 @@ final class DecksScreenTest extends IntegrationTestCase
     private function signIn(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
 
         $this->client->loginUser($admin, 'admin');
     }

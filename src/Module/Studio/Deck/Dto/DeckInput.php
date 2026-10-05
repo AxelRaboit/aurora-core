@@ -16,8 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class DeckInput
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.decks.errors.title_required')]
-        #[Assert\Length(max: 200, maxMessage: 'backend.studio.decks.errors.title_too_long')]
+        #[Assert\NotBlank(message: 'suite.studio.decks.errors.title_required')]
+        #[Assert\Length(max: 200, maxMessage: 'suite.studio.decks.errors.title_too_long')]
         public readonly string $title = '',
         #[Assert\Length(max: 500)]
         public readonly ?string $description = null,

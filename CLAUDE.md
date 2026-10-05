@@ -314,16 +314,16 @@ reste anonyme - le défaut qui évite de casser un client qui stocke sous son
 propre préfixe.
 
 Auth granulaire : pour gater une catégorie (PDF signés, notes per-user),
-définir une route plus spécifique sous `/backend/<module>/…` qui prend
+définir une route plus spécifique sous `/suite/<module>/…` qui prend
 précédence sur le catch-all. Les contrats font ainsi, la GED aussi depuis
-`backend_ged_files`, et toutes restent servies par l'application quel que
+`suite_ged_files`, et toutes restent servies par l'application quel que
 soit le mode de livraison.
 
 **Une route backend n'est pas un choix de style ici.** Le firewall `admin`
 est `^/(backend|dev)` : sur `/uploads/…`, aucune identité backend n'est
 restaurée, donc un contrôle de privilège posé sur le catch-all refuserait le
 personnel exactement comme un inconnu. C'est la seule raison pour laquelle
-`backend_ged_files` existe.
+`suite_ged_files` existe.
 
 Prod : `mod_xsendfile` offload les octets une fois l'auth PHP passée, sur le
 support local. Voir `docs/aurora-client/deployment/apache_xsendfile.md`.
@@ -382,7 +382,7 @@ patterns, location registries, etc.).
    InputFactoryInterface, InputFactory) + Manager (Interface + class non-final
    + AsAlias + hooks) + Serializer (Interface + class non-final + AsAlias) +
    Controller (type-hint les interfaces) + Vue (extraFields + slots) sous
-   `src/Module/<Module>/assets/backend/` (co-localisé avec les classes PHP du
+   `src/Module/<Module>/assets/suite/` (co-localisé avec les classes PHP du
    module - plus de root `assets/` depuis 0.5).
 5. Ajouter à la table 2.1 de `entity_extensibility_convention.md` si la
    liste change.

@@ -76,7 +76,7 @@ final class SingleLocaleRedirectSubscriberTest extends TestCase
     public function testNoOpForNonLocalePaths(): void
     {
         $subscriber = new SingleLocaleRedirectSubscriber($this->makeContext(true));
-        $event = $this->makeEvent('/backend/configuration/settings');
+        $event = $this->makeEvent('/suite/configuration/settings');
 
         $subscriber->onKernelRequest($event);
 

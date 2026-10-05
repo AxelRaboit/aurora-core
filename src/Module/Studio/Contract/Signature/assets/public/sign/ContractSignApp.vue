@@ -27,7 +27,7 @@ import { localIsoDate } from "@/shared/utils/format/localDate.js";
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
 import AppSignaturePad from "@/shared/components/form/input/AppSignaturePad.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -321,7 +321,7 @@ async function sign() {
             <!-- The one date field left native, and it is a decision: this
                  page is opened by a stranger, often on a phone, and the OS
                  wheel beats any picker we ship for somebody who has never
-                 seen this interface. Every backend date uses AppDatePicker. -->
+                 seen this interface. Every suite date uses AppDatePicker. -->
             <AppInput
                 v-model="form.date"
                 :label="t('studio.public.sign.date')"

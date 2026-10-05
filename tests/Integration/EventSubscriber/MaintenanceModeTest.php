@@ -58,11 +58,11 @@ final class MaintenanceModeTest extends IntegrationTestCase
      * The one that matters: closing the public site must never close the
      * screen that reopens it.
      */
-    public function testBackendStaysReachableWhenMaintenanceIsOn(): void
+    public function testSuiteStaysReachableWhenMaintenanceIsOn(): void
     {
         $this->setMaintenance(true);
 
-        $this->client->request('GET', '/backend/platform/login');
+        $this->client->request('GET', '/suite/platform/login');
 
         self::assertNotSame(503, $this->client->getResponse()->getStatusCode());
     }

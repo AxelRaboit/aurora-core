@@ -12,7 +12,7 @@ class TaxonomyTermInput implements TaxonomyTermInputInterface
      * @param array<string, array{name: string, slug: ?string, description: ?string}> $translations
      */
     public function __construct(
-        #[Assert\Count(min: 1, minMessage: 'backend.taxonomies.errors.translations_required')]
+        #[Assert\Count(min: 1, minMessage: 'suite.taxonomies.errors.translations_required')]
         public readonly array $translations,
         public readonly ?int $parentId = null,
     ) {}

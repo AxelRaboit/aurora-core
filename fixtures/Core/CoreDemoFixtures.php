@@ -96,7 +96,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
         // s'ouvre vide pour qui prend la capture, ce qui est exactement ce
         // qui s'est passé la première fois.
         $recipient = $em->getRepository(User::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
 
         if (!$recipient instanceof User) {
             return;
@@ -110,7 +110,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                 'type' => 'editorial.review',
                 'title' => 'Une publication attend votre relecture',
                 'body' => '« Relire avant de publier » a été envoyée en relecture par Marie Dupont.',
-                'url' => '/backend/editorial/posts',
+                'url' => '/suite/editorial/posts',
                 'at' => $now->modify('-2 hours'),
                 'read' => false,
             ],
@@ -118,7 +118,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                 'type' => 'editorial.comment',
                 'title' => 'Un commentaire attend la modération',
                 'body' => 'Sofia Marchetti a commenté « Écrire son premier article ».',
-                'url' => '/backend/editorial/comments',
+                'url' => '/suite/editorial/comments',
                 'at' => $now->modify('-1 day'),
                 'read' => false,
             ],
@@ -126,7 +126,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                 'type' => 'planning.reminder',
                 'title' => 'Point hebdomadaire dans une heure',
                 'body' => 'Pro, aujourd\'hui à 11:00.',
-                'url' => '/backend/planning/calendar',
+                'url' => '/suite/planning/calendar',
                 'at' => $now->modify('-3 days'),
                 'read' => true,
             ],

@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * dashboard is gated: when the current user cannot access it - either
  * because the toggle is masked (globally or per-user) OR because they
  * lack the `general.dashboard.view` privilege - they are redirected to
- * `backend_general_profile` instead of seeing a 404 or an Access Denied page.
+ * `suite_general_profile` instead of seeing a 404 or an Access Denied page.
  *
  * Why redirect (vs the standard Access-Denied page like every other
  * gated controller): the Dashboard is the post-login landing route.
@@ -47,7 +47,7 @@ final readonly class GeneralRouteGateSubscriber implements EventSubscriberInterf
         }
 
         $route = (string) $event->getRequest()->attributes->get('_route', '');
-        if ('backend_dashboard' !== $route) {
+        if ('suite_dashboard' !== $route) {
             return;
         }
 
@@ -60,6 +60,6 @@ final readonly class GeneralRouteGateSubscriber implements EventSubscriberInterf
             return;
         }
 
-        $event->setResponse(new RedirectResponse($this->urlGenerator->generate('backend_general_profile')));
+        $event->setResponse(new RedirectResponse($this->urlGenerator->generate('suite_general_profile')));
     }
 }

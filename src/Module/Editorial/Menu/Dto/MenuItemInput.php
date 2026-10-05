@@ -24,7 +24,7 @@ class MenuItemInput implements MenuItemInputInterface
         public readonly array $translations,
         public readonly MenuItemTargetTypeEnum $targetType,
         public readonly ?int $targetId = null,
-        #[Assert\Url(message: 'backend.menus.errors.custom_url_invalid', requireTld: false)]
+        #[Assert\Url(message: 'suite.menus.errors.custom_url_invalid', requireTld: false)]
         #[Assert\Length(max: 1000)]
         public readonly ?string $customUrl = null,
         public readonly bool $openInNewTab = false,
@@ -45,13 +45,13 @@ class MenuItemInput implements MenuItemInputInterface
     public function validateTarget(ExecutionContextInterface $context): void
     {
         if ($this->targetType->requiresTargetId() && null === $this->targetId) {
-            $context->buildViolation('backend.menus.errors.target_required')
+            $context->buildViolation('suite.menus.errors.target_required')
                 ->atPath('targetId')
                 ->addViolation();
         }
 
         if ($this->targetType->requiresCustomUrl() && (null === $this->customUrl || '' === $this->customUrl)) {
-            $context->buildViolation('backend.menus.errors.custom_url_required')
+            $context->buildViolation('suite.menus.errors.custom_url_required')
                 ->atPath('customUrl')
                 ->addViolation();
         }

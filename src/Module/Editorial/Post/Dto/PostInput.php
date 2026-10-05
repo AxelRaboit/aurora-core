@@ -20,10 +20,10 @@ class PostInput implements PostInputInterface
      * @param array<string, mixed>                $bannerLayout   raw; normalised at the write boundary by BannerNormalizer
      */
     public function __construct(
-        #[Assert\Positive(message: 'backend.posts.errors.post_type_required')]
+        #[Assert\Positive(message: 'suite.posts.errors.post_type_required')]
         public readonly int $postTypeId,
-        #[Assert\NotBlank(message: 'backend.posts.errors.status_required')]
-        #[Assert\Choice(callback: [PostStatusEnum::class, 'values'], message: 'backend.posts.errors.status_invalid')]
+        #[Assert\NotBlank(message: 'suite.posts.errors.status_required')]
+        #[Assert\Choice(callback: [PostStatusEnum::class, 'values'], message: 'suite.posts.errors.status_invalid')]
         public readonly string $status,
         public readonly ?int $thumbnailId,
         public readonly array $termIds,
@@ -42,7 +42,7 @@ class PostInput implements PostInputInterface
         /** @var list<array{label: string, url: string, color: ?string}>|null */
         public readonly ?array $usefulLinks = null,
         public readonly bool $titleVisible = true,
-        #[Assert\Choice(callback: [PostVisibilityEnum::class, 'values'], message: 'backend.posts.errors.visibility_invalid')]
+        #[Assert\Choice(callback: [PostVisibilityEnum::class, 'values'], message: 'suite.posts.errors.visibility_invalid')]
         public readonly string $visibility = 'site',
         /** @var array<string, mixed> raw; normalised by the entity on the way in */
         public readonly array $readingPage = [],
@@ -63,7 +63,7 @@ class PostInput implements PostInputInterface
         public readonly bool $chromeFollowsPage = false,
         // Where this publication sits in a deliberate reading order. Null is
         // the answer for almost everything, and means the date decides.
-        #[Assert\Positive(message: 'backend.posts.errors.position_invalid')]
+        #[Assert\Positive(message: 'suite.posts.errors.position_invalid')]
         public readonly ?int $position = null,
     ) {}
 
@@ -285,7 +285,7 @@ class PostInput implements PostInputInterface
         }
 
         if (null === $this->scheduledAt) {
-            $context->buildViolation('backend.posts.errors.scheduled_at_required')
+            $context->buildViolation('suite.posts.errors.scheduled_at_required')
                 ->atPath('scheduledAt')
                 ->addViolation();
 
@@ -295,7 +295,7 @@ class PostInput implements PostInputInterface
         try {
             $date = new DateTimeImmutable($this->scheduledAt);
         } catch (Exception) {
-            $context->buildViolation('backend.posts.errors.scheduled_at_invalid')
+            $context->buildViolation('suite.posts.errors.scheduled_at_invalid')
                 ->atPath('scheduledAt')
                 ->addViolation();
 
@@ -303,7 +303,7 @@ class PostInput implements PostInputInterface
         }
 
         if ($date <= new DateTimeImmutable()) {
-            $context->buildViolation('backend.posts.errors.scheduled_at_in_past')
+            $context->buildViolation('suite.posts.errors.scheduled_at_in_past')
                 ->atPath('scheduledAt')
                 ->addViolation();
         }
@@ -327,7 +327,7 @@ class PostInput implements PostInputInterface
         try {
             $date = new DateTimeImmutable($this->unpublishAt);
         } catch (Exception) {
-            $context->buildViolation('backend.posts.errors.unpublish_at_invalid')
+            $context->buildViolation('suite.posts.errors.unpublish_at_invalid')
                 ->atPath('unpublishAt')
                 ->addViolation();
 
@@ -335,7 +335,7 @@ class PostInput implements PostInputInterface
         }
 
         if ($date <= new DateTimeImmutable()) {
-            $context->buildViolation('backend.posts.errors.unpublish_at_in_past')
+            $context->buildViolation('suite.posts.errors.unpublish_at_in_past')
                 ->atPath('unpublishAt')
                 ->addViolation();
         }

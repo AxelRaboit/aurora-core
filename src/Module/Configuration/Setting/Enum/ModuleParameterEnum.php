@@ -10,15 +10,15 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
 {
     public const MODULE = 'modules';
 
-    // Top-level modules - backend (admin UI)
-    case GeneralBackend = 'modules_general_backend';
-    case PlatformBackend = 'modules_platform_backend';
-    case ConfigurationBackend = 'modules_configuration_backend';
-    case EditorialBackend = 'modules_editorial_backend';
-    case GedBackend = 'modules_ged_backend';
-    case PlanningBackend = 'modules_planning_backend';
-    case NotesBackend = 'modules_notes_backend';
-    case StudioBackend = 'modules_studio_backend';
+    // Top-level modules - suite (admin UI)
+    case GeneralSuite = 'modules_general_suite';
+    case PlatformSuite = 'modules_platform_suite';
+    case ConfigurationSuite = 'modules_configuration_suite';
+    case EditorialSuite = 'modules_editorial_suite';
+    case GedSuite = 'modules_ged_suite';
+    case PlanningSuite = 'modules_planning_suite';
+    case NotesSuite = 'modules_notes_suite';
+    case StudioSuite = 'modules_studio_suite';
 
     // Top-level modules - frontend (public site)
 
@@ -65,76 +65,76 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     public function getLabel(): string
     {
         return match ($this) {
-            self::GeneralBackend => 'backend.modules.general_backend',
-            self::GeneralDashboard => 'backend.nav.dashboard',
-            self::PlatformBackend => 'backend.modules.platform_backend',
-            self::PlatformUsers => 'backend.nav.users',
-            self::ConfigurationBackend => 'backend.modules.configuration',
-            self::ConfigurationSettings => 'backend.nav.settings',
-            self::ConfigurationThemes => 'backend.nav.themes',
-            self::EditorialBackend => 'backend.modules.editorial_backend',
-            self::EditorialFrontend => 'backend.modules.editorial_frontend',
-            self::EditorialPosts => 'backend.nav.posts',
-            self::EditorialPostTypes => 'backend.nav.post_types',
-            self::EditorialTaxonomies => 'backend.nav.taxonomies',
-            self::EditorialMenus => 'backend.nav.menus',
-            self::EditorialSeo => 'backend.nav.seo',
-            self::EditorialComments => 'backend.nav.comments',
-            self::EditorialForms => 'backend.nav.forms',
-            self::GedBackend => 'backend.modules.ged_backend',
-            self::PlanningBackend => 'backend.modules.planning_backend',
+            self::GeneralSuite => 'suite.modules.general_suite',
+            self::GeneralDashboard => 'suite.nav.dashboard',
+            self::PlatformSuite => 'suite.modules.platform_suite',
+            self::PlatformUsers => 'suite.nav.users',
+            self::ConfigurationSuite => 'suite.modules.configuration',
+            self::ConfigurationSettings => 'suite.nav.settings',
+            self::ConfigurationThemes => 'suite.nav.themes',
+            self::EditorialSuite => 'suite.modules.editorial_suite',
+            self::EditorialFrontend => 'suite.modules.editorial_frontend',
+            self::EditorialPosts => 'suite.nav.posts',
+            self::EditorialPostTypes => 'suite.nav.post_types',
+            self::EditorialTaxonomies => 'suite.nav.taxonomies',
+            self::EditorialMenus => 'suite.nav.menus',
+            self::EditorialSeo => 'suite.nav.seo',
+            self::EditorialComments => 'suite.nav.comments',
+            self::EditorialForms => 'suite.nav.forms',
+            self::GedSuite => 'suite.modules.ged_suite',
+            self::PlanningSuite => 'suite.modules.planning_suite',
 
-            self::GedDocuments => 'backend.nav.documents',
-            self::GedCategories => 'backend.nav.ged_categories',
-            self::GedTags => 'backend.nav.ged_tags',
-            self::GedFolders => 'backend.nav.ged_folders',
-            self::GedFrontend => 'backend.modules.ged_frontend',
-            self::NotesBackend => 'backend.modules.notes_backend',
-            self::NotesMarkdown => 'backend.nav.notes_markdown',
-            self::StudioBackend => 'backend.modules.studio_backend',
-            self::StudioCustomers => 'backend.nav.studio_customers',
-            self::StudioSpaces => 'backend.nav.studio_spaces',
-            self::StudioContracts => 'backend.nav.studio_contract_templates',
-            self::StudioDecks => 'backend.nav.studio_decks',
-            self::StudioDeliverables => 'backend.nav.studio_deliverables',
+            self::GedDocuments => 'suite.nav.documents',
+            self::GedCategories => 'suite.nav.ged_categories',
+            self::GedTags => 'suite.nav.ged_tags',
+            self::GedFolders => 'suite.nav.ged_folders',
+            self::GedFrontend => 'suite.modules.ged_frontend',
+            self::NotesSuite => 'suite.modules.notes_suite',
+            self::NotesMarkdown => 'suite.nav.notes_markdown',
+            self::StudioSuite => 'suite.modules.studio_suite',
+            self::StudioCustomers => 'suite.nav.studio_customers',
+            self::StudioSpaces => 'suite.nav.studio_spaces',
+            self::StudioContracts => 'suite.nav.studio_contract_templates',
+            self::StudioDecks => 'suite.nav.studio_decks',
+            self::StudioDeliverables => 'suite.nav.studio_deliverables',
         };
     }
 
     public function getDescription(): string
     {
         return match ($this) {
-            self::GeneralBackend => 'backend.modules.general_backend_description',
-            self::GeneralDashboard => 'backend.nav.dashboard_description',
-            self::PlatformBackend => 'backend.modules.platform_backend_description',
-            self::PlatformUsers => 'backend.nav.users_description',
-            self::ConfigurationBackend => 'backend.modules.configuration_description',
-            self::ConfigurationSettings => 'backend.nav.settings_description',
-            self::ConfigurationThemes => 'backend.nav.themes_description',
-            self::EditorialBackend => 'backend.modules.editorial_backend_description',
-            self::EditorialFrontend => 'backend.modules.editorial_frontend_description',
-            self::EditorialPosts => 'backend.nav.posts_description',
-            self::EditorialPostTypes => 'backend.nav.post_types_description',
-            self::EditorialTaxonomies => 'backend.nav.taxonomies_description',
-            self::EditorialMenus => 'backend.nav.menus_description',
-            self::EditorialSeo => 'backend.nav.seo_description',
-            self::EditorialComments => 'backend.nav.comments_description',
-            self::EditorialForms => 'backend.nav.forms_description',
-            self::GedBackend => 'backend.modules.ged_backend_description',
-            self::PlanningBackend => 'backend.modules.planning_backend_description',
+            self::GeneralSuite => 'suite.modules.general_suite_description',
+            self::GeneralDashboard => 'suite.nav.dashboard_description',
+            self::PlatformSuite => 'suite.modules.platform_suite_description',
+            self::PlatformUsers => 'suite.nav.users_description',
+            self::ConfigurationSuite => 'suite.modules.configuration_description',
+            self::ConfigurationSettings => 'suite.nav.settings_description',
+            self::ConfigurationThemes => 'suite.nav.themes_description',
+            self::EditorialSuite => 'suite.modules.editorial_suite_description',
+            self::EditorialFrontend => 'suite.modules.editorial_frontend_description',
+            self::EditorialPosts => 'suite.nav.posts_description',
+            self::EditorialPostTypes => 'suite.nav.post_types_description',
+            self::EditorialTaxonomies => 'suite.nav.taxonomies_description',
+            self::EditorialMenus => 'suite.nav.menus_description',
+            self::EditorialSeo => 'suite.nav.seo_description',
+            self::EditorialComments => 'suite.nav.comments_description',
+            self::EditorialForms => 'suite.nav.forms_description',
+            self::GedSuite => 'suite.modules.ged_suite_description',
+            self::PlanningSuite => 'suite.modules.planning_suite_description',
 
-            self::GedDocuments => 'backend.nav.documents_description',
-            self::GedCategories => 'backend.nav.ged_categories_description',
-            self::GedTags => 'backend.nav.ged_tags_description',
-            self::GedFolders => 'backend.nav.ged_folders_description',
-            self::GedFrontend => 'backend.modules.ged_frontend_description',
-            self::NotesBackend => 'backend.modules.notes_backend_description',
-            self::NotesMarkdown => 'backend.nav.notes_markdown_description',
-            self::StudioBackend => 'backend.modules.studio_backend_description',
-            self::StudioCustomers => 'backend.nav.studio_customers_description',
-            self::StudioSpaces => 'backend.nav.studio_spaces_description',
-            self::StudioContracts => 'backend.nav.studio_contract_templates_description',
-            self::StudioDecks => 'backend.nav.studio_decks_description',
-            self::StudioDeliverables => 'backend.nav.studio_deliverables_description',
+            self::GedDocuments => 'suite.nav.documents_description',
+            self::GedCategories => 'suite.nav.ged_categories_description',
+            self::GedTags => 'suite.nav.ged_tags_description',
+            self::GedFolders => 'suite.nav.ged_folders_description',
+            self::GedFrontend => 'suite.modules.ged_frontend_description',
+            self::NotesSuite => 'suite.modules.notes_suite_description',
+            self::NotesMarkdown => 'suite.nav.notes_markdown_description',
+            self::StudioSuite => 'suite.modules.studio_suite_description',
+            self::StudioCustomers => 'suite.nav.studio_customers_description',
+            self::StudioSpaces => 'suite.nav.studio_spaces_description',
+            self::StudioContracts => 'suite.nav.studio_contract_templates_description',
+            self::StudioDecks => 'suite.nav.studio_decks_description',
+            self::StudioDeliverables => 'suite.nav.studio_deliverables_description',
         };
     }
 
@@ -159,13 +159,13 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     public function getParentCase(): ?self
     {
         return match ($this) {
-            self::GeneralDashboard => self::GeneralBackend,
-            self::PlatformUsers => self::PlatformBackend,
-            self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
-            self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialBackend,
-            self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
-            self::NotesMarkdown => self::NotesBackend,
-            self::StudioCustomers, self::StudioContracts, self::StudioDecks, self::StudioDeliverables, self::StudioSpaces => self::StudioBackend,
+            self::GeneralDashboard => self::GeneralSuite,
+            self::PlatformUsers => self::PlatformSuite,
+            self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationSuite,
+            self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialSuite,
+            self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedSuite,
+            self::NotesMarkdown => self::NotesSuite,
+            self::StudioCustomers, self::StudioContracts, self::StudioDecks, self::StudioDeliverables, self::StudioSpaces => self::StudioSuite,
             default => null,
         };
     }
@@ -179,18 +179,18 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
         return match ($this) {
             // Top-level inter-module dependencies
             // Core sub-modules
-            self::GeneralDashboard => self::GeneralBackend->value,
+            self::GeneralDashboard => self::GeneralSuite->value,
             // Platform sub-modules
-            self::PlatformUsers => self::PlatformBackend->value,
+            self::PlatformUsers => self::PlatformSuite->value,
             // Configuration sub-modules
             self::ConfigurationSettings,
-            self::ConfigurationThemes => self::ConfigurationBackend->value,
+            self::ConfigurationThemes => self::ConfigurationSuite->value,
             // Editorial sub-modules
             // A post needs a type to be, so posts follow post types.
             self::EditorialPosts => self::EditorialPostTypes->value,
             // Nothing to publish without posts.
             self::EditorialFrontend => self::EditorialPosts->value,
-            self::EditorialPostTypes => self::EditorialBackend->value,
+            self::EditorialPostTypes => self::EditorialSuite->value,
             // Terms only make sense once a post type can carry them.
             self::EditorialTaxonomies => self::EditorialPostTypes->value,
             // Navigation points at published pages, so it follows the front.
@@ -204,14 +204,14 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // A form is published at its own public URL, so it needs the front.
             self::EditorialForms => self::EditorialFrontend->value,
             // GED sub-modules
-            self::GedDocuments => self::GedBackend->value,
-            self::GedCategories => self::GedBackend->value,
-            self::GedTags => self::GedBackend->value,
-            self::GedFolders => self::GedBackend->value,
-            self::GedFrontend => self::GedBackend->value,
-            self::NotesMarkdown => self::NotesBackend->value,
+            self::GedDocuments => self::GedSuite->value,
+            self::GedCategories => self::GedSuite->value,
+            self::GedTags => self::GedSuite->value,
+            self::GedFolders => self::GedSuite->value,
+            self::GedFrontend => self::GedSuite->value,
+            self::NotesMarkdown => self::NotesSuite->value,
             // Studio sub-modules
-            self::StudioCustomers => self::StudioBackend->value,
+            self::StudioCustomers => self::StudioSuite->value,
             // A contract is signed with somebody, and that somebody is a
             // customer. Templates without the customer screen would build
             // documents with nobody to address them to.
@@ -220,10 +220,10 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // customer it was written for, but the field is nullable on
             // purpose: a strategy deck written for oneself has no client, and
             // requiring the customer screen would make that case impossible.
-            self::StudioDecks => self::StudioBackend->value,
+            self::StudioDecks => self::StudioSuite->value,
             // Un livrable de Studio n'a ni client ni espace : comme une
             // présentation, il ne dépend que du module.
-            self::StudioDeliverables => self::StudioBackend->value,
+            self::StudioDeliverables => self::StudioSuite->value,
             // A space is the space of a customer: it is created from the
             // customer list and its every screen names the company it belongs
             // to. Without that screen a space would have nobody to be for,
@@ -277,14 +277,14 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     public function getModuleId(): ?string
     {
         return match ($this) {
-            self::GeneralBackend => 'general',
-            self::PlatformBackend => 'platform',
-            self::ConfigurationBackend => 'configuration',
-            self::EditorialBackend => 'editorial',
-            self::GedBackend => 'ged',
-            self::PlanningBackend => 'planning',
-            self::NotesBackend => 'notes',
-            self::StudioBackend => 'studio',
+            self::GeneralSuite => 'general',
+            self::PlatformSuite => 'platform',
+            self::ConfigurationSuite => 'configuration',
+            self::EditorialSuite => 'editorial',
+            self::GedSuite => 'ged',
+            self::PlanningSuite => 'planning',
+            self::NotesSuite => 'notes',
+            self::StudioSuite => 'studio',
             default => null,
         };
     }

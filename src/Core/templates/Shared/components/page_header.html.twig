@@ -51,11 +51,11 @@
            demande une seconde copie ailleurs pour le faire revenir, ce qu'Aurora
            avait. Suivent les flèches du navigateur, amenées dans la page. #}
         <div class="flex shrink-0 items-center gap-1">
-            <div {{ vue_component('core/backend/sidemenu/AppSidemenuToggle', {
-                collapsedPath: path('backend_general_profile_sidemenu_collapsed'),
+            <div {{ vue_component('core/suite/sidemenu/AppSidemenuToggle', {
+                collapsedPath: path('suite_general_profile_sidemenu_collapsed'),
             }) }}></div>
             <div class="border-l border-line pl-1">
-                <div {{ vue_component('core/backend/sidemenu/AppTopbarNav') }}></div>
+                <div {{ vue_component('core/suite/sidemenu/AppTopbarNav') }}></div>
             </div>
         </div>
 
@@ -69,19 +69,19 @@
            le menu de navigation, au-dessus du filtre, ce qui mettait des
            commandes sans rapport avec la navigation dans ce qui navigue. #}
         <div class="flex shrink-0 items-center gap-1">
-            <div {{ vue_component('core/backend/sidemenu/AppTopbarActions', {
-                notificationsListPath: path('backend_notifications_list'),
-                notificationsMarkReadPath: path_template('backend_notifications_mark_read', {id: '__id__'}),
-                notificationsMarkAllReadPath: path('backend_notifications_mark_all_read'),
-                notificationsDeletePath: path_template('backend_notifications_delete', {id: '__id__'}),
-                notificationsDeleteAllPath: path('backend_notifications_delete_all'),
+            <div {{ vue_component('core/suite/sidemenu/AppTopbarActions', {
+                notificationsListPath: path('suite_notifications_list'),
+                notificationsMarkReadPath: path_template('suite_notifications_mark_read', {id: '__id__'}),
+                notificationsMarkAllReadPath: path('suite_notifications_mark_all_read'),
+                notificationsDeletePath: path_template('suite_notifications_delete', {id: '__id__'}),
+                notificationsDeleteAllPath: path('suite_notifications_delete_all'),
                 userName: app.user.name,
                 userEmail: app.user.email,
                 userPhotoUrl: aurora_profile_photo_url(app.user) ?? '',
                 mailpitUrl: aurora_is_dev() ? 'http://127.0.0.1:8025' : '',
-                profilePath: path('backend_general_profile'),
-                preferencesPath: path('backend_general_profile_sidemenu'),
-                logoutPath: path('backend_platform_logout'),
+                profilePath: path('suite_general_profile'),
+                preferencesPath: path('suite_general_profile_sidemenu'),
+                logoutPath: path('suite_platform_logout'),
                 logoutCsrf: csrf_token('logout'),
             }) }}></div>
         </div>
@@ -92,7 +92,7 @@
        bande où se replier, et un chemin profond pousserait hors de l'écran la
        page qu'il nomme. #}
     {% if trail %}
-        <nav class="aurora-page-x flex h-8 items-center gap-1.5 border-b border-line bg-surface text-xs" aria-label="{{ 'backend.nav.breadcrumb'|trans }}">
+        <nav class="aurora-page-x flex h-8 items-center gap-1.5 border-b border-line bg-surface text-xs" aria-label="{{ 'suite.nav.breadcrumb'|trans }}">
             {% for crumb in trail %}
                 {% set isNarrowVisible = loop.index >= (trail|length - 1) %}
                 {% if not loop.first %}

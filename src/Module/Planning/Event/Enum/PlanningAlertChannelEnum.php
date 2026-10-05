@@ -17,14 +17,14 @@ namespace Aurora\Module\Planning\Event\Enum;
  */
 enum PlanningAlertChannelEnum: string
 {
-    /** The backend's own notification list. */
+    /** The suite's own notification list. */
     case Notification = 'notification';
 
     case Email = 'email';
 
     public function getLabelKey(): string
     {
-        return 'backend.plannings.alerts.channel_'.$this->value;
+        return 'suite.plannings.alerts.channel_'.$this->value;
     }
 
     /** @return list<string> */

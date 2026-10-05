@@ -29,12 +29,12 @@ final class UserManagerDisabledModulesTest extends IntegrationTestCase
         $user = $this->createTestUser('alice', role: UserRoleEnum::User);
 
         $this->userManager->updateDisabledModules($user, [
-            ModuleParameterEnum::GedBackend->value,
-            ModuleParameterEnum::PlatformBackend->value,
+            ModuleParameterEnum::GedSuite->value,
+            ModuleParameterEnum::PlatformSuite->value,
         ]);
 
         self::assertEqualsCanonicalizing(
-            [ModuleParameterEnum::GedBackend->value, ModuleParameterEnum::PlatformBackend->value],
+            [ModuleParameterEnum::GedSuite->value, ModuleParameterEnum::PlatformSuite->value],
             $user->getDisabledModules(),
         );
     }
@@ -44,11 +44,11 @@ final class UserManagerDisabledModulesTest extends IntegrationTestCase
         $user = $this->createTestUser('bob', role: UserRoleEnum::User);
 
         $this->userManager->updateDisabledModules($user, [
-            ModuleParameterEnum::GedBackend->value,
+            ModuleParameterEnum::GedSuite->value,
             'not_a_real_module',
         ]);
 
-        self::assertSame([ModuleParameterEnum::GedBackend->value], $user->getDisabledModules());
+        self::assertSame([ModuleParameterEnum::GedSuite->value], $user->getDisabledModules());
     }
 
     public function testDuplicatesAreDeduplicated(): void
@@ -56,11 +56,11 @@ final class UserManagerDisabledModulesTest extends IntegrationTestCase
         $user = $this->createTestUser('carol', role: UserRoleEnum::User);
 
         $this->userManager->updateDisabledModules($user, [
-            ModuleParameterEnum::GedBackend->value,
-            ModuleParameterEnum::GedBackend->value,
+            ModuleParameterEnum::GedSuite->value,
+            ModuleParameterEnum::GedSuite->value,
         ]);
 
-        self::assertSame([ModuleParameterEnum::GedBackend->value], $user->getDisabledModules());
+        self::assertSame([ModuleParameterEnum::GedSuite->value], $user->getDisabledModules());
     }
 
     public function testAdminCannotMaskModulesForDev(): void
@@ -69,11 +69,11 @@ final class UserManagerDisabledModulesTest extends IntegrationTestCase
         $dev = $this->createTestUser('dev', role: UserRoleEnum::Dev);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('backend.users.errors.cannot_manage_target');
+        $this->expectExceptionMessage('suite.users.errors.cannot_manage_target');
 
         $this->userManager->updateDisabledModules(
             $dev,
-            [ModuleParameterEnum::GedBackend->value],
+            [ModuleParameterEnum::GedSuite->value],
             $admin,
         );
     }
@@ -85,11 +85,11 @@ final class UserManagerDisabledModulesTest extends IntegrationTestCase
 
         $this->userManager->updateDisabledModules(
             $admin,
-            [ModuleParameterEnum::GedBackend->value],
+            [ModuleParameterEnum::GedSuite->value],
             $dev,
         );
 
-        self::assertSame([ModuleParameterEnum::GedBackend->value], $admin->getDisabledModules());
+        self::assertSame([ModuleParameterEnum::GedSuite->value], $admin->getDisabledModules());
     }
 
     public function testAdminCanMaskModulesForUserOfEqualOrLowerRank(): void
@@ -99,17 +99,17 @@ final class UserManagerDisabledModulesTest extends IntegrationTestCase
 
         $this->userManager->updateDisabledModules(
             $regular,
-            [ModuleParameterEnum::GedBackend->value],
+            [ModuleParameterEnum::GedSuite->value],
             $admin,
         );
 
-        self::assertSame([ModuleParameterEnum::GedBackend->value], $regular->getDisabledModules());
+        self::assertSame([ModuleParameterEnum::GedSuite->value], $regular->getDisabledModules());
     }
 
     public function testEmptyListClearsAllOverrides(): void
     {
         $user = $this->createTestUser('dave', role: UserRoleEnum::User);
-        $this->userManager->updateDisabledModules($user, [ModuleParameterEnum::GedBackend->value]);
+        $this->userManager->updateDisabledModules($user, [ModuleParameterEnum::GedSuite->value]);
 
         $this->userManager->updateDisabledModules($user, []);
 

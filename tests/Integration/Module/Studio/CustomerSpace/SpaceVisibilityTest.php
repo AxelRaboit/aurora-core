@@ -67,7 +67,7 @@ final class SpaceVisibilityTest extends IntegrationTestCase
 
         $this->client->loginUser($teammate, 'admin');
 
-        $this->client->request('GET', '/backend/studio/spaces');
+        $this->client->request('GET', '/suite/studio/spaces');
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->client->request('GET', sprintf('/workspace/%d', $mine->getId()));
@@ -136,11 +136,11 @@ final class SpaceVisibilityTest extends IntegrationTestCase
             'members' => [['userId' => $teammate->getId(), 'role' => $role]],
         ];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Mon espace', CustomerSpaceMemberRoleEnum::Lead->value));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/update', $space->getId()), $update('Mon espace', CustomerSpaceMemberRoleEnum::Lead->value));
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         self::assertArrayHasKey('members', $this->payload()['errors'] ?? []);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Renommé', CustomerSpaceMemberRoleEnum::Member->value));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/update', $space->getId()), $update('Renommé', CustomerSpaceMemberRoleEnum::Member->value));
         self::assertSame(200, $this->client->getResponse()->getStatusCode(), 'the same team, a new name');
 
         $this->entityManager->clear();
@@ -168,7 +168,7 @@ final class SpaceVisibilityTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($creator, 'admin');
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Donné à un autre',
             'customerId' => $customer->getId(),
             'timezone' => 'Europe/Paris',
@@ -201,7 +201,7 @@ final class SpaceVisibilityTest extends IntegrationTestCase
         $user
             ->setEmail($email)
             ->setName('Équipier')
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([$role->value])
             ->setPassword('x');
 

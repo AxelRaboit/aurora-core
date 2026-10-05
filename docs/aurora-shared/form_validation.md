@@ -42,8 +42,8 @@ interface FooInputInterface
 class FooInput implements FooInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.foo.errors.name_required')]
-        #[Assert\Length(max: 255, maxMessage: 'backend.foo.errors.name_too_long')]
+        #[Assert\NotBlank(message: 'suite.foo.errors.name_required')]
+        #[Assert\Length(max: 255, maxMessage: 'suite.foo.errors.name_too_long')]
         public readonly string $name,            // public readonly per-prop (pas readonly class)
 
         #[Assert\Choice(callback: [FooStatusEnum::class, 'values'])]
@@ -97,7 +97,7 @@ final readonly class FooLineInput  // sub-DTO inclus dans FooInput.lines[]
 
 **Règles communes (A et B)** :
 - Propriétés publiques, pas de getters (sauf si Interface contrainte de Manager les exige - cf. variante A)
-- Messages de contrainte = clé de traduction (ex: `'backend.foo.errors.name_required'`)
+- Messages de contrainte = clé de traduction (ex: `'suite.foo.errors.name_required'`)
 - **Pas** de méthode statique `fromArray()` dans le DTO en cas A - c'est la factory qui le fait (elle peut être décorée par un client)
 - Normalisation (`trim()`, cast, nullification) toujours dans la factory ou le constructeur
 
@@ -106,7 +106,7 @@ final readonly class FooLineInput  // sub-DTO inclus dans FooInput.lines[]
 ### 2. Validation dans le controller
 
 ```php
-// src/Module/Foo/Controller/Backend/FooController.php
+// src/Module/Foo/Controller/Suite/FooController.php
 
 #[Route('', name: '_create', methods: [HttpMethodEnum::Post->value])]
 public function create(Request $request): JsonResponse
@@ -124,7 +124,7 @@ public function create(Request $request): JsonResponse
     try {
         $foo = $this->fooManager->create($input);
     } catch (SlugConflictException) {
-        return $this->jsonInvalidInput(['name' => 'backend.foo.errors.slug_taken']);
+        return $this->jsonInvalidInput(['name' => 'suite.foo.errors.slug_taken']);
     }
 
     return $this->jsonSuccess(['foo' => $this->fooSerializer->serialize($foo)]);
@@ -158,7 +158,7 @@ public function create(Request $request): JsonResponse
 { "success": true, "foo": { "id": 1, "name": "…" } }
 
 // Erreurs de validation (422)
-{ "success": false, "errors": { "name": "backend.foo.errors.name_required", "status": "backend.foo.errors.status_invalid" } }
+{ "success": false, "errors": { "name": "suite.foo.errors.name_required", "status": "suite.foo.errors.status_invalid" } }
 
 // Erreur métier (400 ou 409)
 { "success": false, "error": "conflict" }
@@ -233,10 +233,10 @@ import { required, email, compose } from "@/shared/utils/validation/validators.j
 async function submitCreate() {
     // Validation minimale côté client
     if (!validate({
-        name:  () => required(t("backend.foo.errors.name_required"))(form.value.name),
+        name:  () => required(t("suite.foo.errors.name_required"))(form.value.name),
         email: () => compose(
-            required(t("backend.foo.errors.email_required")),
-            email(t("backend.foo.errors.email_invalid")),
+            required(t("suite.foo.errors.email_required")),
+            email(t("suite.foo.errors.email_invalid")),
         )(form.value.email),
     })) return;
 
@@ -299,13 +299,13 @@ Tous les composants de formulaire (`AppInput`, `AppTextarea`, `AppSelect`, `AppM
 ```vue
 <AppInput
     v-model="form.name"
-    :label="t('backend.foo.nameLabel')"
+    :label="t('suite.foo.nameLabel')"
     :error="errors.name"
 />
 
 <AppTextarea
     v-model="form.description"
-    :label="t('backend.foo.descriptionLabel')"
+    :label="t('suite.foo.descriptionLabel')"
     :error="errors.description"
 />
 ```
@@ -317,7 +317,7 @@ La prop `:error` attend une **chaîne déjà traduite** (pas une clé).
 ### 6. Pattern complet - composable de création
 
 ```js
-// src/Module/Foo/assets/backend/composables/useFooCreate.js
+// src/Module/Foo/assets/suite/composables/useFooCreate.js
 
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -343,7 +343,7 @@ export function useFooCreate(createPath, onCreated) {
 
     async function submit() {
         if (!validate({
-            name: () => required(t("backend.foo.errors.name_required"))(form.value.name),
+            name: () => required(t("suite.foo.errors.name_required"))(form.value.name),
         })) return;
 
         const data = await request(createPath, form.value);
@@ -354,7 +354,7 @@ export function useFooCreate(createPath, onCreated) {
             return;
         }
 
-        toast.success(t("backend.foo.toast.created"));
+        toast.success(t("suite.foo.toast.created"));
         show.value = false;
         onCreated?.(data.foo);
     }
@@ -368,7 +368,7 @@ export function useFooCreate(createPath, onCreated) {
 ### 7. Pattern complet - composable d'édition
 
 ```js
-// src/Module/Foo/assets/backend/composables/useFooEdit.js
+// src/Module/Foo/assets/suite/composables/useFooEdit.js
 
 export function useFooEdit(updatePath, onUpdated) {
     const { t } = useI18n();
@@ -388,7 +388,7 @@ export function useFooEdit(updatePath, onUpdated) {
 
     async function submit() {
         if (!validate({
-            name: () => required(t("backend.foo.errors.name_required"))(form.value.name),
+            name: () => required(t("suite.foo.errors.name_required"))(form.value.name),
         })) return;
 
         const data = await request(updatePath.replace("{id}", editing.value.id), form.value);

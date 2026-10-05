@@ -263,7 +263,7 @@ pas une bonne pratique universelle.
 Aurora n'expose pas d'endpoint `/_health` dédié. Patterns acceptables :
 
 - Hit `GET /` qui doit retourner 200 + HTML (route Frontend par défaut).
-- Hit `GET /backend` qui doit retourner 302 (redirect login) sans 500.
+- Hit `GET /suite` qui doit retourner 302 (redirect login) sans 500.
 - En cas de scheduler / worker : monitorer la latence des messages dans
   `messenger_messages` (rows non-consommées depuis > N minutes = alerte).
 

@@ -4,7 +4,7 @@ import { markRaw } from "vue";
  * The global search sections modules contribute.
  *
  * The PHP side already keeps the search controller free of business modules -
- * results arrive through `BackendSearchProviderInterface` - and this is the same
+ * results arrive through `SuiteSearchProviderInterface` - and this is the same
  * arrangement for the Vue side, which did not have one.
  *
  * Before this, the section keys were written out twice in core: once in the

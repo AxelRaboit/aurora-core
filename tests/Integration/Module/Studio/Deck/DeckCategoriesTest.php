@@ -40,7 +40,7 @@ final class DeckCategoriesTest extends IntegrationTestCase
         $this->client->disableReboot();
 
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -58,10 +58,10 @@ final class DeckCategoriesTest extends IntegrationTestCase
         $audit = $this->create('Audits', '#bd4a55');
         $strategy = $this->create('Stratégies', null);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/decks/categories/%d/update', $strategy), ['name' => 'Stratégies éditoriales', 'color' => '#8b6cff']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/decks/categories/%d/update', $strategy), ['name' => 'Stratégies éditoriales', 'color' => '#8b6cff']);
         self::assertResponseIsSuccessful();
 
-        $categories = $this->post('/backend/studio/decks/categories/reorder', ['ids' => [$strategy, $audit]])['categories'];
+        $categories = $this->post('/suite/studio/decks/categories/reorder', ['ids' => [$strategy, $audit]])['categories'];
         self::assertSame([$strategy, $audit], array_column($categories, 'id'));
         self::assertSame('Stratégies éditoriales', $categories[0]['name']);
         self::assertSame('#8b6cff', $categories[0]['color']);
@@ -70,11 +70,11 @@ final class DeckCategoriesTest extends IntegrationTestCase
     public function testDeletingACategoryKeepsItsDecks(): void
     {
         $audit = $this->create('Audits', null);
-        $this->client->jsonRequest('POST', '/backend/studio/decks/create', ['title' => 'Audit de mars', 'categoryId' => $audit]);
+        $this->client->jsonRequest('POST', '/suite/studio/decks/create', ['title' => 'Audit de mars', 'categoryId' => $audit]);
         self::assertResponseIsSuccessful();
         $deckId = (int) json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR)['deck']['id'];
 
-        $payload = $this->post(sprintf('/backend/studio/decks/categories/%d/delete', $audit), []);
+        $payload = $this->post(sprintf('/suite/studio/decks/categories/%d/delete', $audit), []);
         self::assertSame([], $payload['categories'], 'the answer carries the list the window redraws');
 
         $this->entityManager->clear();
@@ -88,7 +88,7 @@ final class DeckCategoriesTest extends IntegrationTestCase
         $audit = $this->create('Audits', null);
 
         $user = new User();
-        $user->setEmail('decks-'.bin2hex(random_bytes(4)).'@aurora.app')->setName('Équipier')->setType(UserTypeEnum::Backend)
+        $user->setEmail('decks-'.bin2hex(random_bytes(4)).'@aurora.app')->setName('Équipier')->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])->setPassword('irrelevant')
             ->setPrivileges(['studio.decks.view', 'studio.decks.create', 'studio.decks.edit']);
         $this->entityManager->persist($user);
@@ -97,10 +97,10 @@ final class DeckCategoriesTest extends IntegrationTestCase
         $this->client->loginUser($user, 'admin');
 
         foreach ([
-            ['/backend/studio/decks/categories/create', ['name' => 'Bilans']],
-            [sprintf('/backend/studio/decks/categories/%d/update', $audit), ['name' => 'Repris']],
-            ['/backend/studio/decks/categories/reorder', ['ids' => [$audit]]],
-            [sprintf('/backend/studio/decks/categories/%d/delete', $audit), []],
+            ['/suite/studio/decks/categories/create', ['name' => 'Bilans']],
+            [sprintf('/suite/studio/decks/categories/%d/update', $audit), ['name' => 'Repris']],
+            ['/suite/studio/decks/categories/reorder', ['ids' => [$audit]]],
+            [sprintf('/suite/studio/decks/categories/%d/delete', $audit), []],
         ] as [$path, $body]) {
             $this->client->jsonRequest('POST', $path, $body);
             self::assertResponseStatusCodeSame(403, $path);
@@ -112,7 +112,7 @@ final class DeckCategoriesTest extends IntegrationTestCase
 
     private function create(string $name, ?string $color): int
     {
-        return (int) $this->post('/backend/studio/decks/categories/create', ['name' => $name, 'color' => $color])['categoryId'];
+        return (int) $this->post('/suite/studio/decks/categories/create', ['name' => $name, 'color' => $color])['categoryId'];
     }
 
     /**

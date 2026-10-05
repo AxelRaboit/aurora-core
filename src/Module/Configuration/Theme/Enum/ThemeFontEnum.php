@@ -120,7 +120,7 @@ enum ThemeFontEnum: string
 
     public function descriptionKey(): string
     {
-        return 'backend.themes.fonts.'.$this->value;
+        return 'suite.themes.fonts.'.$this->value;
     }
 
     /**

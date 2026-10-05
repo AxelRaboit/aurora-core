@@ -21,7 +21,7 @@ enum PlanningVisibilityEnum: string
 
     public function getLabelKey(): string
     {
-        return sprintf('backend.plannings.visibility.%s', $this->value);
+        return sprintf('suite.plannings.visibility.%s', $this->value);
     }
 
     /**

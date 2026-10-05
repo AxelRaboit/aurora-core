@@ -49,7 +49,7 @@ Workflow pour ajouter une locale (ex: espagnol) :
    rien à modifier en cascade.
 
 Tout le reste suit automatiquement : nouvelle option dans le select
-`Default Locale` de `/backend/configuration/settings`, ajout dans `/{locale}/...`,
+`Default Locale` de `/suite/configuration/settings`, ajout dans `/{locale}/...`,
 émission dans le sitemap, etc.
 
 Lié : [[pattern_single_locale_mode]], [[convention_locale_context]].

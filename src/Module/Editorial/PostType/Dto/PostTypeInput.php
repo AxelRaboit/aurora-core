@@ -16,11 +16,11 @@ class PostTypeInput implements PostTypeInputInterface
      * @param list<string> $supports
      */
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.post_types.errors.slug_required')]
-        #[Assert\Regex(pattern: '/^[a-z0-9_]+$/', message: 'backend.post_types.errors.slug_format')]
+        #[Assert\NotBlank(message: 'suite.post_types.errors.slug_required')]
+        #[Assert\Regex(pattern: '/^[a-z0-9_]+$/', message: 'suite.post_types.errors.slug_format')]
         #[Assert\Length(max: 100)]
         public readonly string $slug,
-        #[Assert\NotBlank(message: 'backend.post_types.errors.label_required')]
+        #[Assert\NotBlank(message: 'suite.post_types.errors.label_required')]
         #[Assert\Length(max: 100)]
         public readonly string $label,
         public readonly ?string $description = null,

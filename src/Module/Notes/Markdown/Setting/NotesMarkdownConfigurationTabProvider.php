@@ -11,7 +11,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
  * Surfaces the Markdown-notes module's settings as a dedicated tab on
- * the `/backend/configuration/settings` page. The registry merges tabs with the same
+ * the `/suite/configuration/settings` page. The registry merges tabs with the same
  * id from every provider, so adding another `case` to
  * {@see MarkdownNoteSettingEnum} immediately shows up in the same tab.
  *
@@ -39,7 +39,7 @@ final readonly class NotesMarkdownConfigurationTabProvider implements Configurat
                 id: 'notes',
                 priority: 110,
                 fields: $fields,
-                moduleToggle: ModuleParameterEnum::NotesBackend->value,
+                moduleToggle: ModuleParameterEnum::NotesSuite->value,
             ),
         ];
     }

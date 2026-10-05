@@ -12,7 +12,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * Catches the exact class of bug that bit us during the Jalon 5 privilege
  * rename: a `NavPermission('foo.bar.action')` is declared by a module
- * but no translation key `backend.permissions.names.foo.bar.action`
+ * but no translation key `suite.permissions.names.foo.bar.action`
  * exists in the YAML (or got out of sync after a rename). At runtime
  * the privileges modal then displays the raw privilege key instead of
  * its label.
@@ -41,7 +41,7 @@ final class PermissionTranslationCoverageTest extends KernelTestCase
     public function testEveryPrivilegeHasATranslation(string $privilegeName, string $locale): void
     {
         $translator = self::getContainer()->get(TranslatorInterface::class);
-        $key = 'backend.permissions.names.'.$privilegeName;
+        $key = 'suite.permissions.names.'.$privilegeName;
         $translated = $translator->trans($key, [], null, $locale);
 
         self::assertNotSame(

@@ -22,7 +22,7 @@ final readonly class SendDuePlanningNotificationsHandler
         // Checked here and not only in the schedule: the toggle can go off while
         // the worker is running, and a module switched off should stop acting
         // rather than keep sending until the next deploy.
-        if (!$this->planningContext->isBackendEnabled()) {
+        if (!$this->planningContext->isSuiteEnabled()) {
             return;
         }
 

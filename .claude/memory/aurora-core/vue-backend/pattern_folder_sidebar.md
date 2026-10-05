@@ -9,10 +9,10 @@ Quand une entité d'aurora-core a (a) une liste paginée d'items et (b) une noti
 de dossier (Ged/Document, etc.), la convention est d'offrir **deux points
 d'accès** :
 
-1. **Page d'admin dédiée** `/backend/<module>/folders` - gestion lourde
+1. **Page d'admin dédiée** `/suite/<module>/folders` - gestion lourde
    (drag&drop reorder, modals create/edit/delete avec arborescence complète).
    Inchangée par cette convention.
-2. **Sidebar sur la page liste** `/backend/<module>/<entities>` - accès rapide
+2. **Sidebar sur la page liste** `/suite/<module>/<entities>` - accès rapide
    pour naviguer/filtrer + raccourcis CRUD légers.
 
 **Why** : utilisateur peut naviguer par dossier sans quitter la liste (filtrage
@@ -38,9 +38,9 @@ explicite de l'utilisateur en 2026-05-30 sur GED documents, option « complète 
 - Sur le `ViewBuilder` : passer counts dans `indexView()` ET dans `buildListPayload()`
   (la sidebar refresh les badges via la réponse `/list`). Plus `movePath`,
   `bulkMovePath`, `folderCreatePath`/`folderEditPath`/`folderDeletePath`/`folderMovePath`
-  (ces 4 derniers réutilisent les routes du `/backend/<module>/folders` existant).
+  (ces 4 derniers réutilisent les routes du `/suite/<module>/folders` existant).
 
-**Côté Vue** : 5 composables co-localisés sous `assets/backend/<entities>/composables/` :
+**Côté Vue** : 5 composables co-localisés sous `assets/suite/<entities>/composables/` :
 - `use<Entity>Navigation.js` - refs `currentFolderId`, `allDocumentsView`, `rootOnly`,
   history.pushState, `navigateTo/Root/All`, `onListResponse` callback pour
   `useListPage({ onData })`, et `extraParams()` qui s'intègre via
@@ -51,7 +51,7 @@ explicite de l'utilisateur en 2026-05-30 sur GED documents, option « complète 
   `aurora-<module>-collapsed-folders`. Réutilise `@/shared/utils/tree/folderTree.js`
   (`buildFolderTree` + `flattenFolders`).
 - `use<Entity>SidebarFolders.js` - modal create/edit/delete des dossiers, branché
-  sur les endpoints `/backend/<module>/folders/{create,update,delete}` existants.
+  sur les endpoints `/suite/<module>/folders/{create,update,delete}` existants.
   **Doit appeler `reload?.()`** après chaque save pour refresh les counts via le
   prochain payload `/list`.
 - `use<Entity>DragDrop.js` - drag d'un item sur un dossier (MIME `application/x-aurora-<entity>`)
@@ -86,7 +86,7 @@ container `flex flex-col sm:flex-row sm:flex-wrap`. Empile verticalement
 en pleine largeur en dessous de `sm:`, retrouve le layout horizontal
 à partir de `sm:`.
 
-**Translations** (`backend.<module>.<entities>.*`) : `moved`, `bulk_moved`,
+**Translations** (`suite.<module>.<entities>.*`) : `moved`, `bulk_moved`,
 `bulk_move`, `all_documents`/`all_<entities>`, `root_folder`, `subfolders`,
 `folders_section`, `favourites`, `favourite`, `unfavourite`, `new_folder`,
 `edit_folder`, `delete_folder_confirm`, `folder_name`, `folder_name_placeholder`,
@@ -94,7 +94,7 @@ en pleine largeur en dessous de `sm:`, retrouve le layout horizontal
 `src/Module/Ged/translations/messages.{fr,en,es}.yaml` pour la liste canonique.
 
 **Implémentation de référence** : `src/Module/Ged/Document/` +
-`src/Module/Ged/assets/backend/documents/` (2026-05-30, `/backend/ged/folders`
+`src/Module/Ged/assets/suite/documents/` (2026-05-30, `/suite/ged/folders`
 gardé intact). C'est la seule qui reste : le pattern vient du module `Media`,
 supprimé lors de la fusion Media → GED, donc il n'y a plus rien à comparer -
 lire la GED.

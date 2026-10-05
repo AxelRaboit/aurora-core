@@ -1,0 +1,21 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.post_galleries'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.editorial'|trans},
+            {label: 'suite.nav.post_galleries'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/suite/post-galleries/PostGalleriesApp', {
+    posts: posts,
+    search: search,
+    listPath: path('suite_editorial_post_galleries'),
+    editPathTemplate: path_template('suite_editorial_post_galleries_edit', {id: '__id__'}),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

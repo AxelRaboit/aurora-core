@@ -1,4 +1,4 @@
-backend:
+suite:
     mount_points:
         intro: 'Gestione las conexiones con recursos externos (bases de datos, API, SFTP).'
         search_placeholder: 'Buscar un punto de montaje…'

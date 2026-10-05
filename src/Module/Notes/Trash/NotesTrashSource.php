@@ -46,7 +46,7 @@ final readonly class NotesTrashSource implements TrashSourceInterface
 
         return new TrashSummary(
             key: 'notes_markdown',
-            labelKey: 'backend.nav.notes_markdown',
+            labelKey: 'suite.nav.notes_markdown',
             sectionId: 'notes',
             icon: 'notebook-pen',
             count: count($roots),
@@ -54,11 +54,11 @@ final readonly class NotesTrashSource implements TrashSourceInterface
             oldestDeletedAt: $user instanceof CoreUserInterface
                 ? $this->noteRepository->oldestTrashedAtForUser($user)
                 : null,
-            restoreRoute: 'backend_notes_markdown_restore',
-            forceDeleteRoute: 'backend_notes_markdown_force_delete',
-            emptyTrashRoute: 'backend_notes_markdown_empty_trash',
+            restoreRoute: 'suite_notes_markdown_restore',
+            forceDeleteRoute: 'suite_notes_markdown_force_delete',
+            emptyTrashRoute: 'suite_notes_markdown_empty_trash',
             actionPrivilege: 'notes.markdown.use',
-            listRoute: 'backend_notes_markdown',
+            listRoute: 'suite_notes_markdown',
         );
     }
 

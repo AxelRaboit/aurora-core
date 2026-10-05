@@ -1,14 +1,14 @@
 {% set features = features ?? [
-    {icon: 'file-text', label: 'backend.auth.hero.feature_1'},
-    {icon: 'sliders', label: 'backend.auth.hero.feature_2'},
-    {icon: 'image', label: 'backend.auth.hero.feature_3'},
-    {icon: 'zap', label: 'backend.auth.hero.feature_4'},
+    {icon: 'file-text', label: 'suite.auth.hero.feature_1'},
+    {icon: 'sliders', label: 'suite.auth.hero.feature_2'},
+    {icon: 'image', label: 'suite.auth.hero.feature_3'},
+    {icon: 'zap', label: 'suite.auth.hero.feature_4'},
 ] %}
 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-primary leading-tight mb-4">
-    {{ 'backend.auth.hero.heading'|trans }}<br>
-    <span class="text-accent-500">{{ 'backend.auth.hero.heading_accent'|trans({'{siteName}': siteName}) }}</span>
+    {{ 'suite.auth.hero.heading'|trans }}<br>
+    <span class="text-accent-500">{{ 'suite.auth.hero.heading_accent'|trans({'{siteName}': siteName}) }}</span>
 </h1>
-<p class="text-secondary text-base leading-relaxed lg:mb-8">{{ 'backend.auth.hero.description'|trans }}</p>
+<p class="text-secondary text-base leading-relaxed lg:mb-8">{{ 'suite.auth.hero.description'|trans }}</p>
 {# Sur téléphone, le titre et la phrase seuls : ils disent où l'on est sans
    repousser le formulaire, que les quatre atouts faisaient passer sous le
    pli. Ils reviennent à côté du formulaire à partir de `lg`. #}

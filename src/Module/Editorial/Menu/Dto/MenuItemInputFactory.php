@@ -67,11 +67,11 @@ class MenuItemInputFactory implements MenuItemInputFactoryInterface
     private function targetType(mixed $raw): MenuItemTargetTypeEnum
     {
         if (!is_string($raw) || '' === $raw) {
-            throw new InvalidArgumentException($this->translator->trans('backend.menus.errors.target_type_required'));
+            throw new InvalidArgumentException($this->translator->trans('suite.menus.errors.target_type_required'));
         }
 
         return MenuItemTargetTypeEnum::tryFrom($raw)
-            ?? throw new InvalidArgumentException($this->translator->trans('backend.menus.errors.target_type_invalid'));
+            ?? throw new InvalidArgumentException($this->translator->trans('suite.menus.errors.target_type_invalid'));
     }
 
     private function visibility(mixed $raw): MenuItemVisibilityEnum
@@ -81,6 +81,6 @@ class MenuItemInputFactory implements MenuItemInputFactoryInterface
         }
 
         return MenuItemVisibilityEnum::tryFrom($raw)
-            ?? throw new InvalidArgumentException($this->translator->trans('backend.menus.errors.visibility_invalid'));
+            ?? throw new InvalidArgumentException($this->translator->trans('suite.menus.errors.visibility_invalid'));
     }
 }

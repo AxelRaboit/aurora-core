@@ -21,7 +21,7 @@ use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Service\DeckDocumentUsageProvider;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Trash\DecksTrashSource;
-use Aurora\Module\Studio\Search\StudioBackendSearchProvider;
+use Aurora\Module\Studio\Search\StudioSuiteSearchProvider;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,7 +65,7 @@ final class DeckTrashTest extends IntegrationTestCase
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -88,7 +88,7 @@ final class DeckTrashTest extends IntegrationTestCase
     {
         $id = $this->createDeck('Réunion de lancement');
 
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
         self::assertResponseIsSuccessful();
 
         $stored = $this->find($id);
@@ -99,15 +99,15 @@ final class DeckTrashTest extends IntegrationTestCase
     public function testEveryRouteThatTakesTheDeckAnswers404WhileItIsTrashed(): void
     {
         $id = $this->createDeck('Hors de vue');
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
 
         foreach (['', '/print', '/presenter'] as $suffix) {
-            $this->client->request('GET', sprintf('/backend/studio/decks/%d%s', $id, $suffix));
+            $this->client->request('GET', sprintf('/suite/studio/decks/%d%s', $id, $suffix));
             self::assertResponseStatusCodeSame(404, 'GET '.$suffix);
         }
 
         foreach (['/update', '/duplicate', '/appearance', '/slides/create', '/share/create'] as $suffix) {
-            $this->post(sprintf('/backend/studio/decks/%d%s', $id, $suffix));
+            $this->post(sprintf('/suite/studio/decks/%d%s', $id, $suffix));
             self::assertResponseStatusCodeSame(404, 'POST '.$suffix);
         }
 
@@ -120,12 +120,12 @@ final class DeckTrashTest extends IntegrationTestCase
         $needle = 'Cannelle'.bin2hex(random_bytes(3));
         $id = $this->createDeck('Trouvable '.$needle);
         $repository = self::getContainer()->get(DeckRepository::class);
-        $search = self::getContainer()->get(StudioBackendSearchProvider::class);
+        $search = self::getContainer()->get(StudioSuiteSearchProvider::class);
 
         self::assertCount(1, $search->search($needle)['decks']);
         $before = $repository->countLive();
 
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
 
         self::assertSame([], $search->search($needle)['decks']);
         self::assertSame($before - 1, $repository->countLive());
@@ -140,7 +140,7 @@ final class DeckTrashTest extends IntegrationTestCase
         $this->client->request('GET', '/decks/'.$token);
         self::assertResponseIsSuccessful();
 
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
         $this->client->request('GET', '/decks/'.$token);
         self::assertResponseStatusCodeSame(404);
 
@@ -148,7 +148,7 @@ final class DeckTrashTest extends IntegrationTestCase
         $this->entityManager->clear();
         self::assertSame(1, $this->entityManager->getRepository(DeckShareLink::class)->count([]));
 
-        $this->post(sprintf('/backend/studio/decks/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/restore', $id));
         self::assertResponseIsSuccessful();
         self::assertFalse($this->find($id)->isTrashed());
 
@@ -159,11 +159,11 @@ final class DeckTrashTest extends IntegrationTestCase
     public function testATrashedDeckCannotBeUnlocked(): void
     {
         $id = $this->createDeck('Verrouillé et jeté');
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $id), ['password' => 'verysecure123']);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $id), ['password' => 'verysecure123']);
         $this->entityManager->clear();
         $link = $this->entityManager->getRepository(DeckShareLink::class)->findOneBy([]);
         $token = $link->getToken();
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
 
         $this->client->request('POST', sprintf('/decks/%s/unlock', $token), ['password' => 'verysecure123']);
 
@@ -175,21 +175,21 @@ final class DeckTrashTest extends IntegrationTestCase
     public function testRestoreAndDestroyNeedTheRightToDelete(): void
     {
         $id = $this->createDeck('Droits');
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
 
         $editor = $this->accountWith(['studio.decks.view', 'studio.decks.edit', 'studio.decks.create']);
         $this->client->loginUser($editor, 'admin');
 
         foreach (['/restore', '/force-delete'] as $suffix) {
-            $this->post(sprintf('/backend/studio/decks/%d%s', $id, $suffix));
+            $this->post(sprintf('/suite/studio/decks/%d%s', $id, $suffix));
             self::assertResponseStatusCodeSame(403, $suffix);
         }
-        $this->post('/backend/studio/decks/empty-trash');
+        $this->post('/suite/studio/decks/empty-trash');
         self::assertResponseStatusCodeSame(403);
         self::assertTrue($this->find($id)->isTrashed());
 
         $this->client->loginUser($this->accountWith(['studio.decks.view', 'studio.decks.delete']), 'admin');
-        $this->post(sprintf('/backend/studio/decks/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/restore', $id));
         self::assertResponseIsSuccessful();
         self::assertFalse($this->find($id)->isTrashed());
     }
@@ -198,9 +198,9 @@ final class DeckTrashTest extends IntegrationTestCase
     {
         $id = $this->createDeck('À détruire');
         $this->shareLink($id);
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
 
-        $this->post(sprintf('/backend/studio/decks/%d/force-delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/force-delete', $id));
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -208,7 +208,7 @@ final class DeckTrashTest extends IntegrationTestCase
         self::assertSame(0, $this->entityManager->getRepository(DeckShareLink::class)->count([]));
         self::assertSame(0, $this->entityManager->getRepository(Slide::class)->count([]));
 
-        $this->post(sprintf('/backend/studio/decks/%d/force-delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/force-delete', $id));
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -216,9 +216,9 @@ final class DeckTrashTest extends IntegrationTestCase
     {
         $id = $this->createDeck('Bien vivant');
 
-        $this->post(sprintf('/backend/studio/decks/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/restore', $id));
         self::assertResponseStatusCodeSame(404);
-        $this->post(sprintf('/backend/studio/decks/%d/force-delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/force-delete', $id));
         self::assertResponseStatusCodeSame(404);
         self::assertFalse($this->find($id)->isTrashed());
     }
@@ -228,10 +228,10 @@ final class DeckTrashTest extends IntegrationTestCase
         $alive = $this->createDeck('Vivant');
         $first = $this->createDeck('Premier jeté');
         $second = $this->createDeck('Second jeté');
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $first));
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $second));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $first));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $second));
 
-        $this->post('/backend/studio/decks/empty-trash');
+        $this->post('/suite/studio/decks/empty-trash');
 
         self::assertResponseIsSuccessful();
         self::assertSame(2, $this->json()['deleted']);
@@ -244,7 +244,7 @@ final class DeckTrashTest extends IntegrationTestCase
     public function testTheTrashScreenListsThemForWhoMayViewDecks(): void
     {
         $id = $this->createDeck('Dans la corbeille');
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
         $source = self::getContainer()->get(DecksTrashSource::class);
 
         $summary = $source->getSummary(10);
@@ -252,11 +252,11 @@ final class DeckTrashTest extends IntegrationTestCase
         self::assertSame('studio_decks', $summary->key);
         self::assertSame(1, $summary->count);
         self::assertSame(['Dans la corbeille'], array_column($summary->items, 'label'));
-        self::assertSame('backend_studio_decks_restore', $summary->restoreRoute);
+        self::assertSame('suite_studio_decks_restore', $summary->restoreRoute);
         self::assertSame('studio.decks.delete', $summary->actionPrivilege);
         self::assertSame('studio.decks.view', $source->getRequiredPrivilege());
 
-        $this->client->request('GET', '/backend/trash/list');
+        $this->client->request('GET', '/suite/trash/list');
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('studio_decks', (string) $this->client->getResponse()->getContent());
     }
@@ -264,7 +264,7 @@ final class DeckTrashTest extends IntegrationTestCase
     public function testATrashedPictureIsStillCountedByTheLibraryUntilThePurge(): void
     {
         $id = $this->createDeck('Avec image', self::PICTURE);
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
 
         $provider = self::getContainer()->get(DeckDocumentUsageProvider::class);
 
@@ -316,10 +316,10 @@ final class DeckTrashTest extends IntegrationTestCase
 
         self::assertNotNull($views->deckView($id), 'The control: a live deck with an open link is shown.');
 
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $id));
         self::assertNull($views->deckView($id));
 
-        $this->post(sprintf('/backend/studio/decks/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/decks/%d/restore', $id));
         self::assertNotNull($views->deckView($id));
     }
 
@@ -327,15 +327,15 @@ final class DeckTrashTest extends IntegrationTestCase
     {
         $live = $this->createDeck('Modèle vivant');
         $trashed = $this->createDeck('Modèle jeté');
-        $this->post(sprintf('/backend/studio/decks/%d/delete', $trashed));
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $trashed));
 
         // The control: a live model's slides are copied into the new deck.
-        $this->post('/backend/studio/decks/create', ['title' => 'Copie du vivant', 'fromTemplateId' => $live]);
+        $this->post('/suite/studio/decks/create', ['title' => 'Copie du vivant', 'fromTemplateId' => $live]);
         self::assertResponseIsSuccessful();
         self::assertCount(1, $this->json()['deck']['slides']);
 
         // An unknown id opens an empty deck rather than failing, and a trashed one is unknown.
-        $this->post('/backend/studio/decks/create', ['title' => 'Copie du jeté', 'fromTemplateId' => $trashed]);
+        $this->post('/suite/studio/decks/create', ['title' => 'Copie du jeté', 'fromTemplateId' => $trashed]);
         self::assertResponseIsSuccessful();
         self::assertCount(0, $this->json()['deck']['slides']);
     }
@@ -368,7 +368,7 @@ final class DeckTrashTest extends IntegrationTestCase
 
     private function shareLink(int $deck): string
     {
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck));
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck));
         self::assertResponseIsSuccessful();
         $this->entityManager->clear();
         $link = $this->entityManager->getRepository(DeckShareLink::class)->findOneBy([]);
@@ -400,7 +400,7 @@ final class DeckTrashTest extends IntegrationTestCase
         $user
             ->setEmail('corbeille-decks-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Équipier '.bin2hex(random_bytes(2)))
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPassword('irrelevant')
             ->setPrivileges($privileges);

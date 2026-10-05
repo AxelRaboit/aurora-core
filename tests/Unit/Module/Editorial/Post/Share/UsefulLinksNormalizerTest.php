@@ -58,7 +58,7 @@ final class UsefulLinksNormalizerTest extends TestCase
     /** The editor greys its add button at the same count the server keeps. */
     public function testTheEditorCapsTheListWhereTheServerDoes(): void
     {
-        $source = file_get_contents(dirname(__DIR__, 6).'/src/Module/Editorial/assets/backend/posts/components/UsefulLinksField.vue');
+        $source = file_get_contents(dirname(__DIR__, 6).'/src/Module/Editorial/assets/suite/posts/components/UsefulLinksField.vue');
         self::assertIsString($source);
         self::assertSame(1, preg_match('/const MAX_USEFUL_LINKS = (\d+);/', $source, $matches), 'MAX_USEFUL_LINKS is not in UsefulLinksField.vue any more');
 

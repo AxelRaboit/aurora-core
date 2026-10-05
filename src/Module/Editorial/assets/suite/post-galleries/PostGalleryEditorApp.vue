@@ -1,0 +1,133 @@
+<script setup>
+/**
+ * One publication's gallery, and nothing else about it.
+ *
+ * No heading of its own: the publication's name is already in the topbar and in
+ * the breadcrumb, and a third copy beside the back button said nothing the two
+ * above it had not.
+ *
+ * Composes `PostGalleryPanel` - the very panel the full editor draws in its
+ * gallery tab - so there is one gallery editor in the application and not two
+ * that drift. What is missing here is the point: no title, no status, no
+ * taxonomy, no SEO. A contributor holding `editorial.posts.gallery` can arrange
+ * pictures and write what they show.
+ *
+ * The screen not offering those fields is the courtesy. The guarantee is
+ * `PostGalleryInput`, which cannot express them, and `PostGalleryManager`, which
+ * writes two columns - so this file being wrong could only ever be a worse
+ * screen, never a wider permission.
+ */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { Save } from "lucide-vue-next";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import AppTab from "@/shared/components/nav/AppTab.vue";
+import PostGalleryPanel from "../posts/components/PostGalleryPanel.vue";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
+
+const props = defineProps({
+    /** `{ id, galleryLayout, gallery }` - the arrangement and the words per locale. */
+    post: { type: Object, required: true },
+    locales: { type: Array, default: () => [] },
+    updatePath: { type: String, required: true },
+    listPath: { type: String, required: true },
+});
+
+const { t } = useI18n();
+const { request } = useRequest();
+
+/**
+ * The editable copy.
+ *
+ * A copy and not the prop: `PostGalleryPanel` writes into what it is handed - the
+ * composable owns the write - and mutating a prop is what `vue/no-mutating-props`
+ * refuses. Every locale is seeded even when the server sent nothing for it, so
+ * switching to an untranslated language gives the panel an object to write into
+ * rather than `undefined`.
+ */
+const form = ref({
+    galleryLayout: { ...(props.post.galleryLayout ?? {}) },
+    gallery: Object.fromEntries(
+        props.locales.map((code) => [code, { ...(props.post.gallery?.[code] ?? {}) }]),
+    ),
+});
+
+const locale = ref(props.locales[0] ?? "en");
+
+const saving = ref(false);
+const saved = ref(false);
+
+async function save() {
+    saving.value = true;
+    saved.value = false;
+
+    try {
+        const data = await request(props.updatePath, {
+            galleryLayout: form.value.galleryLayout,
+            gallery: form.value.gallery,
+        });
+
+        // `useRequest` has already reported a failure. There are no field errors
+        // to show: the normaliser accepts what it can use and drops the rest, so
+        // there is no version of this form the server rejects field by field.
+        if (!data) {
+            return;
+        }
+
+        saved.value = true;
+    } finally {
+        saving.value = false;
+    }
+}
+</script>
+
+<template>
+    <div class="aurora-stack">
+        <AppPageBar :back-href="listPath" :back-label="t('suite.post_galleries.back')">
+            <!-- Says so once it has, and stops saying it the moment anything is
+                 saved again. A permanent tick would still be there tomorrow. -->
+            <span v-if="saved" class="text-xs text-emerald-500">
+                {{ t("suite.post_galleries.saved") }}
+            </span>
+
+            <AppButton
+                :loading="saving"
+                :label="t('shared.common.save')"
+                icon-only-on-phone
+                v-on:click="save"
+            >
+                <Save class="h-4 w-4" :stroke-width="2" />
+            </AppButton>
+        </AppPageBar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('suite.post_galleries.editor_guide.title')" storage-key="post-gallery-editor">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`suite.post_galleries.editor_guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
+
+        <!-- Only when there is more than one language. A single-locale site would
+             get a row of one tab, which is a control that cannot do anything. -->
+        <nav v-if="locales.length > 1" class="flex items-center gap-1" :aria-label="t('suite.post_galleries.locales')">
+            <AppTab
+                v-for="code in locales"
+                :key="code"
+                size="sm"
+                :active="locale === code"
+                v-on:click="locale = code"
+            >
+                {{ code }}
+            </AppTab>
+        </nav>
+
+        <PostGalleryPanel
+            :layout="form.galleryLayout"
+            :words-by-locale="form.gallery"
+            :locales="locales"
+            :locale="locale"
+        />
+    </div>
+</template>

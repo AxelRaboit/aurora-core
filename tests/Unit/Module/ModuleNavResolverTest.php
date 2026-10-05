@@ -26,7 +26,7 @@ final class ModuleNavResolverTest extends TestCase
     {
         $resolver = $this->makeResolver([new GedStubModule()]);
 
-        self::assertNull($resolver->resolveForRoute('backend_dashboard'));
+        self::assertNull($resolver->resolveForRoute('suite_dashboard'));
     }
 
     public function testNullRouteKeepsTheProjectView(): void
@@ -40,21 +40,21 @@ final class ModuleNavResolverTest extends TestCase
     {
         $resolver = $this->makeResolver([new GedStubModule()]);
 
-        $view = $resolver->resolveForRoute('backend_ged_documents');
+        $view = $resolver->resolveForRoute('suite_ged_documents');
 
         self::assertNotNull($view);
         self::assertSame('ged', $view['moduleId']);
         self::assertSame(['library'], array_column($view['groups'], 'id'));
-        self::assertSame('ged/backend/documents/FolderTreePanel', $view['panelComponent']);
+        self::assertSame('ged/suite/documents/FolderTreePanel', $view['panelComponent']);
     }
 
     public function testARouteOnlyTheModuleViewDeclaresStillResolves(): void
     {
-        // `backend_ged_trash` is in no NavSection - it exists only at module
+        // `suite_ged_trash` is in no NavSection - it exists only at module
         // level, which is the whole point of the second view.
         $resolver = $this->makeResolver([new GedStubModule()]);
 
-        $view = $resolver->resolveForRoute('backend_ged_trash');
+        $view = $resolver->resolveForRoute('suite_ged_trash');
 
         self::assertNotNull($view);
         self::assertSame('ged', $view['moduleId']);
@@ -64,7 +64,7 @@ final class ModuleNavResolverTest extends TestCase
     {
         $resolver = $this->makeResolver([new PlainStubModule()]);
 
-        self::assertNull($resolver->resolveForRoute('backend_plain_index'));
+        self::assertNull($resolver->resolveForRoute('suite_plain_index'));
     }
 
     public function testModuleAbsentFromTheMainMenuDoesNotTakeTheColumnOver(): void
@@ -73,7 +73,7 @@ final class ModuleNavResolverTest extends TestCase
         // or a switched-off module would still own the side menu.
         $resolver = $this->makeResolver([new DisabledStubModule()]);
 
-        self::assertNull($resolver->resolveForRoute('backend_off_index'));
+        self::assertNull($resolver->resolveForRoute('suite_off_index'));
     }
 
     public function testLongestPrefixWinsOverRegistrationOrder(): void
@@ -98,34 +98,34 @@ final class ModuleNavResolverTest extends TestCase
     {
         $resolver = $this->makeResolver([new GedStubModule()], granted: false);
 
-        $view = $resolver->resolveForRoute('backend_ged_documents');
+        $view = $resolver->resolveForRoute('suite_ged_documents');
 
         // Every link needed a privilege the user lacks, but the panel remains -
         // so the view still stands rather than dropping to the project menu.
         self::assertNotNull($view);
         self::assertSame([], $view['groups']);
-        self::assertSame('ged/backend/documents/FolderTreePanel', $view['panelComponent']);
+        self::assertSame('ged/suite/documents/FolderTreePanel', $view['panelComponent']);
     }
 
     public function testALinksOnlyViewEmptiedByPrivilegeFallsBackToTheProjectView(): void
     {
         $resolver = $this->makeResolver([new LinksOnlyStubModule()], granted: false);
 
-        self::assertNull($resolver->resolveForRoute('backend_links_index'));
+        self::assertNull($resolver->resolveForRoute('suite_links_index'));
     }
 
     public function testUserHiddenItemsAreExcluded(): void
     {
         $user = $this->createMock(CoreUserInterface::class);
-        $user->method('getHiddenNavItems')->willReturn(['backend_ged_trash']);
+        $user->method('getHiddenNavItems')->willReturn(['suite_ged_trash']);
 
         $resolver = $this->makeResolver([new GedStubModule()], user: $user);
 
-        $view = $resolver->resolveForRoute('backend_ged_documents');
+        $view = $resolver->resolveForRoute('suite_ged_documents');
 
         $keys = array_column($view['groups'][0]['items'], 'key');
-        self::assertNotContains('backend_ged_trash', $keys);
-        self::assertContains('backend_ged_documents', $keys);
+        self::assertNotContains('suite_ged_trash', $keys);
+        self::assertContains('suite_ged_documents', $keys);
     }
 
     public function testGroupLabelKeyIsCarriedThroughUntranslated(): void
@@ -134,12 +134,12 @@ final class ModuleNavResolverTest extends TestCase
         // the payload stays locale-independent and cacheable.
         $resolver = $this->makeResolver([new GedStubModule()]);
 
-        $view = $resolver->resolveForRoute('backend_ged_documents');
+        $view = $resolver->resolveForRoute('suite_ged_documents');
 
-        self::assertSame('backend.nav.ged_groups.library', $view['groups'][0]['labelKey']);
+        self::assertSame('suite.nav.ged_groups.library', $view['groups'][0]['labelKey']);
     }
 
-    // The resolver is asked on every backend page render, and a view is not
+    // The resolver is asked on every suite page render, and a view is not
     // always cheap to declare - Configuration's has to read the contributed
     // settings tabs. A module whose routes are nowhere near the current one
     // must not pay that cost, nor make the page pay it.
@@ -148,7 +148,7 @@ final class ModuleNavResolverTest extends TestCase
         $counted = new CountingStubModule();
         $resolver = $this->makeResolver([new GedStubModule(), $counted]);
 
-        $resolver->resolveForRoute('backend_ged_documents');
+        $resolver->resolveForRoute('suite_ged_documents');
 
         self::assertSame(0, $counted->calls);
     }
@@ -158,7 +158,7 @@ final class ModuleNavResolverTest extends TestCase
         $counted = new CountingStubModule();
         $resolver = $this->makeResolver([$counted]);
 
-        $resolver->resolveForRoute('backend_counted_index');
+        $resolver->resolveForRoute('suite_counted_index');
 
         self::assertSame(1, $counted->calls);
     }
@@ -172,7 +172,7 @@ final class ModuleNavResolverTest extends TestCase
         $counted = new CountingStubModule();
         $resolver = $this->makeResolver([$counted], granted: false);
 
-        $resolver->resolveForRoute('backend_counted_index');
+        $resolver->resolveForRoute('suite_counted_index');
 
         self::assertSame(1, $counted->calls);
     }
@@ -216,7 +216,7 @@ final class GedStubModule implements ModuleInterface, ModuleNavViewProviderInter
     public function getNavSections(): array
     {
         return [new NavSection('ged', [
-            new NavItem('backend_ged_documents', 'nav.documents', 'folder-open', requiredPrivilege: 'ged.documents.view'),
+            new NavItem('suite_ged_documents', 'nav.documents', 'folder-open', requiredPrivilege: 'ged.documents.view'),
         ], priority: 35)];
     }
 
@@ -231,11 +231,11 @@ final class GedStubModule implements ModuleInterface, ModuleNavViewProviderInter
             moduleId: 'ged',
             groups: [
                 new ModuleNavGroup('library', [
-                    new NavItem('backend_ged_documents', 'nav.documents', 'folder-open', requiredPrivilege: 'ged.documents.view'),
-                    new NavItem('backend_ged_trash', 'nav.trash', 'trash', requiredPrivilege: 'ged.documents.view'),
-                ], labelKey: 'backend.nav.ged_groups.library'),
+                    new NavItem('suite_ged_documents', 'nav.documents', 'folder-open', requiredPrivilege: 'ged.documents.view'),
+                    new NavItem('suite_ged_trash', 'nav.trash', 'trash', requiredPrivilege: 'ged.documents.view'),
+                ], labelKey: 'suite.nav.ged_groups.library'),
             ],
-            panelComponent: 'ged/backend/documents/FolderTreePanel',
+            panelComponent: 'ged/suite/documents/FolderTreePanel',
         );
     }
 }
@@ -255,7 +255,7 @@ final class PlainStubModule implements ModuleInterface
 
     public function getNavSections(): array
     {
-        return [new NavSection('plain', [new NavItem('backend_plain_index', 'nav.plain', 'file-text')])];
+        return [new NavSection('plain', [new NavItem('suite_plain_index', 'nav.plain', 'file-text')])];
     }
 
     public function getCatalogNavSections(): array
@@ -284,13 +284,13 @@ final class DisabledStubModule implements ModuleInterface, ModuleNavViewProvider
 
     public function getCatalogNavSections(): array
     {
-        return [new NavSection('off', [new NavItem('backend_off_index', 'nav.off', 'file-text')])];
+        return [new NavSection('off', [new NavItem('suite_off_index', 'nav.off', 'file-text')])];
     }
 
     public function getModuleNavView(): ?ModuleNavView
     {
         return new ModuleNavView('off', [
-            new ModuleNavGroup('main', [new NavItem('backend_off_index', 'nav.off', 'file-text')]),
+            new ModuleNavGroup('main', [new NavItem('suite_off_index', 'nav.off', 'file-text')]),
         ]);
     }
 }
@@ -376,7 +376,7 @@ final class LinksOnlyStubModule implements ModuleInterface, ModuleNavViewProvide
 
     public function getNavSections(): array
     {
-        return [new NavSection('links', [new NavItem('backend_links_index', 'nav.links', 'file-text')])];
+        return [new NavSection('links', [new NavItem('suite_links_index', 'nav.links', 'file-text')])];
     }
 
     public function getCatalogNavSections(): array
@@ -388,7 +388,7 @@ final class LinksOnlyStubModule implements ModuleInterface, ModuleNavViewProvide
     {
         return new ModuleNavView('links', [
             new ModuleNavGroup('main', [
-                new NavItem('backend_links_index', 'nav.links', 'file-text', requiredPrivilege: 'links.view'),
+                new NavItem('suite_links_index', 'nav.links', 'file-text', requiredPrivilege: 'links.view'),
             ]),
         ]);
     }
@@ -411,7 +411,7 @@ final class CountingStubModule implements ModuleInterface, ModuleNavViewProvider
 
     public function getNavSections(): array
     {
-        return [new NavSection('counted', [new NavItem('backend_counted_index', 'nav.counted', 'file-text')])];
+        return [new NavSection('counted', [new NavItem('suite_counted_index', 'nav.counted', 'file-text')])];
     }
 
     public function getCatalogNavSections(): array
@@ -425,7 +425,7 @@ final class CountingStubModule implements ModuleInterface, ModuleNavViewProvider
 
         return new ModuleNavView('counted', [
             new ModuleNavGroup('main', [
-                new NavItem('backend_counted_index', 'nav.counted', 'file-text', requiredPrivilege: 'counted.view'),
+                new NavItem('suite_counted_index', 'nav.counted', 'file-text', requiredPrivilege: 'counted.view'),
             ]),
         ]);
     }

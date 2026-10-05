@@ -11,7 +11,7 @@ metadata:
 
 Pour exposer un `ApplicationParameter` (ou tout paramètre serveur) aux
 composants Vue - admin OU frontend - on l'injecte dans
-`window.__auroraConfig.<key>` depuis la layout Twig (`src/Core/templates/Core/backend/layout.html.twig`,
+`window.__auroraConfig.<key>` depuis la layout Twig (`src/Core/templates/Core/suite/layout.html.twig`,
 section `<script>` après les déclarations `__flash__`/`__privileges__`).
 
 La valeur est produite par une **extension Twig dédiée par domaine** (ex:
@@ -55,7 +55,7 @@ là (tests Vitest, SSR shell, frontend sans bootstrap admin).
    }
    ```
 
-2. **Ligne dans la layout** (`src/Core/templates/Core/backend/layout.html.twig`) :
+2. **Ligne dans la layout** (`src/Core/templates/Core/suite/layout.html.twig`) :
 
    ```twig
    <script>
@@ -95,4 +95,4 @@ là (tests Vitest, SSR shell, frontend sans bootstrap admin).
 ## Source
 
 Créé le 2026-05-14, suite à la feature "Appearance tab" sur
-`/backend/configuration/settings` (palette du AppColorPicker éditable).
+`/suite/configuration/settings` (palette du AppColorPicker éditable).

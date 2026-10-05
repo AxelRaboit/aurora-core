@@ -82,52 +82,52 @@ final readonly class DocumentsViewBuilder
             'tags' => $tags,
             'folders' => $folders,
             'search' => $pagination->search ?? '',
-            'createPath' => $this->urlGenerator->generate('backend_ged_documents_create'),
-            'showPath' => $this->urlGenerator->generate('backend_ged_documents_show', ['id' => '__id__']),
-            'versionsPath' => $this->urlGenerator->generate('backend_ged_documents_versions', ['id' => '__id__']),
-            'usagePath' => $this->urlGenerator->generate('backend_ged_documents_usage', ['id' => '__id__']),
-            'alternatesPath' => $this->urlGenerator->generate('backend_ged_documents_alternates', ['id' => '__id__']),
+            'createPath' => $this->urlGenerator->generate('suite_ged_documents_create'),
+            'showPath' => $this->urlGenerator->generate('suite_ged_documents_show', ['id' => '__id__']),
+            'versionsPath' => $this->urlGenerator->generate('suite_ged_documents_versions', ['id' => '__id__']),
+            'usagePath' => $this->urlGenerator->generate('suite_ged_documents_usage', ['id' => '__id__']),
+            'alternatesPath' => $this->urlGenerator->generate('suite_ged_documents_alternates', ['id' => '__id__']),
             'alternateLabels' => $this->documentRepository->findAlternateLabels(),
-            'updatePath' => $this->urlGenerator->generate('backend_ged_documents_update', ['id' => '__id__']),
-            'deletePath' => $this->urlGenerator->generate('backend_ged_documents_delete', ['id' => '__id__']),
-            'cropPath' => $this->urlGenerator->generate('backend_ged_documents_crop', ['id' => '__id__']),
-            'recolorPath' => $this->urlGenerator->generate('backend_ged_documents_recolor', ['id' => '__id__']),
+            'updatePath' => $this->urlGenerator->generate('suite_ged_documents_update', ['id' => '__id__']),
+            'deletePath' => $this->urlGenerator->generate('suite_ged_documents_delete', ['id' => '__id__']),
+            'cropPath' => $this->urlGenerator->generate('suite_ged_documents_crop', ['id' => '__id__']),
+            'recolorPath' => $this->urlGenerator->generate('suite_ged_documents_recolor', ['id' => '__id__']),
             // Offered first when declining a visual in another colour.
             'themeColor' => $this->themeContext->primaryColor(),
-            'bulkDeletePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_delete'),
-            'restorePath' => $this->urlGenerator->generate('backend_ged_documents_restore', ['id' => '__id__']),
-            'forceDeletePath' => $this->urlGenerator->generate('backend_ged_documents_force_delete', ['id' => '__id__']),
-            'bulkRestorePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_restore'),
-            'emptyTrashPath' => $this->urlGenerator->generate('backend_ged_documents_empty_trash'),
-            'listPath' => $this->urlGenerator->generate('backend_ged_documents_list'),
+            'bulkDeletePath' => $this->urlGenerator->generate('suite_ged_documents_bulk_delete'),
+            'restorePath' => $this->urlGenerator->generate('suite_ged_documents_restore', ['id' => '__id__']),
+            'forceDeletePath' => $this->urlGenerator->generate('suite_ged_documents_force_delete', ['id' => '__id__']),
+            'bulkRestorePath' => $this->urlGenerator->generate('suite_ged_documents_bulk_restore'),
+            'emptyTrashPath' => $this->urlGenerator->generate('suite_ged_documents_empty_trash'),
+            'listPath' => $this->urlGenerator->generate('suite_ged_documents_list'),
             // Media-style move endpoints (single + bulk) - power the sidebar
-            // drag&drop and the bulk-move modal. The dedicated /backend/ged/folders
+            // drag&drop and the bulk-move modal. The dedicated /suite/ged/folders
             // page remains untouched and continues to handle folder-tree management.
-            'movePath' => $this->urlGenerator->generate('backend_ged_documents_move', ['id' => '__id__']),
-            'storagePath' => $this->urlGenerator->generate('backend_ged_documents_storage', ['id' => '__id__']),
-            'bulkStoragePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_storage'),
-            // "Everything onto that backend", without a selection. Its own
+            'movePath' => $this->urlGenerator->generate('suite_ged_documents_move', ['id' => '__id__']),
+            'storagePath' => $this->urlGenerator->generate('suite_ged_documents_storage', ['id' => '__id__']),
+            'bulkStoragePath' => $this->urlGenerator->generate('suite_ged_documents_bulk_storage'),
+            // "Everything onto that suite", without a selection. Its own
             // endpoint rather than the bulk one with every id in the payload:
             // the list of ids belongs on the server, where it cannot go stale
             // between the page being drawn and the button being pressed.
-            'relocateAllPath' => $this->urlGenerator->generate('backend_ged_documents_relocate_all'),
+            'relocateAllPath' => $this->urlGenerator->generate('suite_ged_documents_relocate_all'),
             // Whether the screen may offer to move a document at all. There is
             // nowhere to move it to until an administrator has configured a
             // second backend, and an action that can only fail is worse than
             // no action.
             'storageRelocationAvailable' => $this->storageSettings->isRelocationAvailable(),
-            'bulkMovePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_move'),
-            'bulkCategoryPath' => $this->urlGenerator->generate('backend_ged_documents_bulk_category'),
-            // Sidebar folder CRUD reuses the existing /backend/ged/folders endpoints,
+            'bulkMovePath' => $this->urlGenerator->generate('suite_ged_documents_bulk_move'),
+            'bulkCategoryPath' => $this->urlGenerator->generate('suite_ged_documents_bulk_category'),
+            // Sidebar folder CRUD reuses the existing /suite/ged/folders endpoints,
             // so create/edit/delete behave identically across both pages.
-            'folderCreatePath' => $this->urlGenerator->generate('backend_ged_folders_create'),
-            'folderEditPath' => $this->urlGenerator->generate('backend_ged_folders_update', ['id' => '__id__']),
-            'folderDeletePath' => $this->urlGenerator->generate('backend_ged_folders_delete', ['id' => '__id__']),
-            'folderMovePath' => $this->urlGenerator->generate('backend_ged_folders_move', ['id' => '__id__']),
+            'folderCreatePath' => $this->urlGenerator->generate('suite_ged_folders_create'),
+            'folderEditPath' => $this->urlGenerator->generate('suite_ged_folders_update', ['id' => '__id__']),
+            'folderDeletePath' => $this->urlGenerator->generate('suite_ged_folders_delete', ['id' => '__id__']),
+            'folderMovePath' => $this->urlGenerator->generate('suite_ged_folders_move', ['id' => '__id__']),
             // GED-owned upload endpoint - no coupling to the Media library.
             // The form POSTs the file here, gets back the metadata, then
             // submits the regular JSON create/update with that metadata.
-            'uploadPath' => $this->urlGenerator->generate('backend_ged_documents_upload'),
+            'uploadPath' => $this->urlGenerator->generate('suite_ged_documents_upload'),
         ];
     }
 

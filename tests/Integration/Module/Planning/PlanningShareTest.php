@@ -49,17 +49,17 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $users = static::getContainer()->get(UserRepository::class);
 
-        $owner = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $owner = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $owner);
         $this->owner = $owner;
 
-        // A second backend account, because everything here is about two people.
-        $guest = $users->findOneBy(['type' => UserTypeEnum::Backend->value, 'email' => 'partage@aurora.test']);
+        // A second suite account, because everything here is about two people.
+        $guest = $users->findOneBy(['type' => UserTypeEnum::Suite->value, 'email' => 'partage@aurora.test']);
         if (!$guest instanceof User) {
             $guest = new User();
             $guest->setEmail('partage@aurora.test');
             $guest->setName('Invité');
-            $guest->setType(UserTypeEnum::Backend);
+            $guest->setType(UserTypeEnum::Suite);
             $guest->setPassword('x');
             $guest->setRoles($owner->getRoles());
             $this->entityManager->persist($guest);
@@ -118,7 +118,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->guest, 'admin');
 
-        $body = $this->post('backend_planning_events_create', [
+        $body = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Pas permis',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -136,7 +136,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->guest, 'admin');
 
-        $this->post('backend_planning_events_create', [
+        $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Permis',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -161,7 +161,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->guest, 'admin');
 
-        $this->post('backend_planning_events_create', [
+        $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Permis aussi',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -186,7 +186,7 @@ final class PlanningShareTest extends IntegrationTestCase
         $this->client->loginUser($this->guest, 'admin');
 
         $this->post(
-            'backend_planning_calendars_shares',
+            'suite_planning_calendars_shares',
             ['shares' => [['userId' => $this->guest->getId(), 'canWrite' => true]]],
             ['id' => $planning->getId()],
         );
@@ -200,7 +200,7 @@ final class PlanningShareTest extends IntegrationTestCase
         $this->client->loginUser($this->owner, 'admin');
 
         $body = $this->post(
-            'backend_planning_calendars_shares',
+            'suite_planning_calendars_shares',
             ['shares' => [['userId' => $this->guest->getId(), 'canWrite' => true]]],
             ['id' => $planning->getId()],
         );
@@ -210,7 +210,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         // Sent again without them: the list is the whole truth, so they are out.
         $emptied = $this->post(
-            'backend_planning_calendars_shares',
+            'suite_planning_calendars_shares',
             ['shares' => []],
             ['id' => $planning->getId()],
         );
@@ -229,13 +229,13 @@ final class PlanningShareTest extends IntegrationTestCase
         $this->client->loginUser($this->owner, 'admin');
 
         $this->post(
-            'backend_planning_calendars_shares',
+            'suite_planning_calendars_shares',
             ['shares' => [['userId' => $this->guest->getId(), 'canWrite' => false]]],
             ['id' => $planning->getId()],
         );
 
         $body = $this->post(
-            'backend_planning_calendars_shares',
+            'suite_planning_calendars_shares',
             ['shares' => [['userId' => $this->guest->getId(), 'canWrite' => true]]],
             ['id' => $planning->getId()],
         );
@@ -257,7 +257,7 @@ final class PlanningShareTest extends IntegrationTestCase
         $this->client->loginUser($this->owner, 'admin');
 
         $body = $this->post(
-            'backend_planning_calendars_shares',
+            'suite_planning_calendars_shares',
             ['shares' => [['userId' => $this->owner->getId(), 'canWrite' => true]]],
             ['id' => $planning->getId()],
         );
@@ -279,7 +279,7 @@ final class PlanningShareTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->owner, 'admin');
 
-        $body = $this->post('backend_planning_calendars_create', [
+        $body = $this->post('suite_planning_calendars_create', [
             'name' => 'Partagé à tous',
             'colourSlot' => 1,
             'timezone' => 'Europe/Paris',
@@ -309,7 +309,7 @@ final class PlanningShareTest extends IntegrationTestCase
         $this->client->loginUser($this->owner, 'admin');
 
         $body = $this->post(
-            'backend_planning_calendars_update',
+            'suite_planning_calendars_update',
             $this->payload($planning, 'shared'),
             ['id' => $planning->getId()],
         );
@@ -318,7 +318,7 @@ final class PlanningShareTest extends IntegrationTestCase
         self::assertSame('shared', $body['calendar']['visibility']);
 
         $body = $this->post(
-            'backend_planning_calendars_update',
+            'suite_planning_calendars_update',
             $this->payload($planning, 'private'),
             ['id' => $planning->getId()],
         );
@@ -396,11 +396,11 @@ final class PlanningShareTest extends IntegrationTestCase
      */
     private function sharesOf(?int $id): array
     {
-        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_calendar'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_planning_calendar'));
         self::assertResponseIsSuccessful();
 
         $crawler = $this->client->getCrawler()->filter(
-            '[data-symfony--ux-vue--vue-component-value="planning/backend/planning/PlanningApp"]',
+            '[data-symfony--ux-vue--vue-component-value="planning/suite/planning/PlanningApp"]',
         );
         $props = json_decode((string) $crawler->attr('data-symfony--ux-vue--vue-props-value'), true, flags: JSON_THROW_ON_ERROR);
 
@@ -428,7 +428,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->guest, 'admin');
 
-        $body = $this->post('backend_planning_links_create', [
+        $body = $this->post('suite_planning_links_create', [
             'calendarIds' => [$planning->getId()],
             'label' => 'Tentative',
             'mode' => 'web',
@@ -447,7 +447,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
 
-        $body = $this->post('backend_planning_links_create', [
+        $body = $this->post('suite_planning_links_create', [
             'calendarIds' => [$planning->getId()],
             'label' => 'Marie, studio',
             'mode' => 'web',
@@ -477,7 +477,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
 
-        $this->post('backend_planning_links_create', [
+        $this->post('suite_planning_links_create', [
             'calendarIds' => [$mine->getId(), $theirs->getId()],
             'label' => 'Les deux',
             'mode' => 'web',
@@ -493,7 +493,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
 
-        $this->post('backend_planning_links_create', [
+        $this->post('suite_planning_links_create', [
             'calendarIds' => [$planning->getId()],
             'label' => '   ',
             'mode' => 'web',
@@ -514,10 +514,10 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->guest, 'admin');
 
-        $this->post('backend_planning_calendars_update', [...$this->payload($planning, 'shared'), 'name' => 'Pris'], ['id' => $planning->getId()]);
+        $this->post('suite_planning_calendars_update', [...$this->payload($planning, 'shared'), 'name' => 'Pris'], ['id' => $planning->getId()]);
         self::assertResponseStatusCodeSame(404);
 
-        $this->post('backend_planning_calendars_delete', [], ['id' => $planning->getId()]);
+        $this->post('suite_planning_calendars_delete', [], ['id' => $planning->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $this->entityManager->clear();
@@ -538,10 +538,10 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
 
-        $this->post('backend_planning_calendars_update', $this->payload($planning, 'shared'), ['id' => $planning->getId()]);
+        $this->post('suite_planning_calendars_update', $this->payload($planning, 'shared'), ['id' => $planning->getId()]);
         self::assertResponseStatusCodeSame(404);
 
-        $this->post('backend_planning_calendars_delete', [], ['id' => $planning->getId()]);
+        $this->post('suite_planning_calendars_delete', [], ['id' => $planning->getId()]);
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -567,7 +567,7 @@ final class PlanningShareTest extends IntegrationTestCase
 
         $this->client->loginUser($this->guest, 'admin');
 
-        $this->post('backend_planning_events_update', [
+        $this->post('suite_planning_events_update', [
             'planningId' => $mine->getId(),
             'title' => 'Volé',
             'startAt' => '2026-09-01T10:00:00Z',
@@ -575,7 +575,7 @@ final class PlanningShareTest extends IntegrationTestCase
         ], ['id' => $event->getId()]);
         self::assertResponseStatusCodeSame(404);
 
-        $this->post('backend_planning_events_delete', [], ['id' => $event->getId()]);
+        $this->post('suite_planning_events_delete', [], ['id' => $event->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         $this->entityManager->clear();
@@ -588,11 +588,11 @@ final class PlanningShareTest extends IntegrationTestCase
     /** @return list<int> */
     private function visibleIds(): array
     {
-        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_calendar'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_planning_calendar'));
         self::assertResponseIsSuccessful();
 
         $crawler = $this->client->getCrawler()->filter(
-            '[data-symfony--ux-vue--vue-component-value="planning/backend/planning/PlanningApp"]',
+            '[data-symfony--ux-vue--vue-component-value="planning/suite/planning/PlanningApp"]',
         );
         $props = json_decode((string) $crawler->attr('data-symfony--ux-vue--vue-props-value'), true, flags: JSON_THROW_ON_ERROR);
 

@@ -7,10 +7,10 @@ Vocabulaire de référence pour nommer les éléments de l'architecture modulair
 
 | Terme | Définition | Ancrage code / nav |
 |---|---|---|
-| **Module** | Unité fonctionnelle top-level | `src/Module/<X>/` + `<X>Module.php` (`getId()`) + toggle racine `<X>Backend` (ModuleParameterEnum) |
+| **Module** | Unité fonctionnelle top-level | `src/Module/<X>/` + `<X>Module.php` (`getId()`) + toggle racine `<X>Suite` (ModuleParameterEnum) |
 | **Section** | Le regroupement *nav* (en-tête du sidemenu) | `new NavSection('<id>', …)` |
 | **Sous-module** | Sous-feature **toggleable** d'un module | case enum enfant (parent via `getParentCase`) + 1 permission |
-| **NavItem** | Une entrée cliquable du menu | `new NavItem('backend_<…>', 'backend.nav.<…>', …)` |
+| **NavItem** | Une entrée cliquable du menu | `new NavItem('suite_<…>', 'suite.nav.<…>', …)` |
 | **Sous-domaine** | Dossier de code d'une entité (5 couches Sylius) | `src/Module/<X>/<Feature>/` (Entity/Dto/Manager/…) |
 | **Entité** | L'objet métier | classe `Entity/<Name>` |
 
@@ -26,7 +26,7 @@ Vocabulaire de référence pour nommer les éléments de l'architecture modulair
   entités. Inversement certains modules ont 1 sous-module = 1 NavItem (Notes,
   Tools).
 - Le **toggle** d'un sous-module vit dans `ModuleParameterEnum` (enfant du
-  `<X>Backend`) ; la **permission** gate l'accès ; le **NavItem** est l'entrée
+  `<X>Suite`) ; la **permission** gate l'accès ; le **NavItem** est l'entrée
   visible ; le **sous-domaine** est le code ; l'**entité** est la donnée.
 
 ## Exemple canonique - Ecommerce

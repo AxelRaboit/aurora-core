@@ -4,7 +4,7 @@
 
 Pour **chaque** `NavPermission('<key>')` déclarée dans un module, il faut
 une traduction **française et anglaise** sous la clé i18n
-`backend.permissions.names.<key>`.
+`suite.permissions.names.<key>`.
 
 **Format obligatoire : structure NESTED** (pas de clé plate quotée). Vue-i18n
 traverse les niveaux dot-par-dot et ne sait pas chercher une clé littérale
@@ -54,12 +54,12 @@ Symptôme : la modale d'admin affiche la **clé brute**
 
 ## Pourquoi
 
-L'UI d'attribution des privilèges (`/backend/platform/users/{id}/privileges`)
+L'UI d'attribution des privilèges (`/suite/platform/users/{id}/privileges`)
 affiche chaque privilège via :
 
 ```vue
 <span class="text-xs">
-    {{ t('backend.permissions.names.' + priv, priv) }}
+    {{ t('suite.permissions.names.' + priv, priv) }}
 </span>
 ```
 
@@ -73,7 +73,7 @@ pour un utilisateur non technique.
 
 1. Lister tes `NavPermission(...)` dans `<Module>Module.php`.
 2. Ajouter dans `src/Module/<Module>/translations/messages.fr.yaml` ET
-   `messages.en.yaml` les entrées `backend.permissions.names.*`.
+   `messages.en.yaml` les entrées `suite.permissions.names.*`.
 3. Lancer `make translation` pour régénérer les JSON consommés par vue-i18n + clear cache.
 
 ### Audit

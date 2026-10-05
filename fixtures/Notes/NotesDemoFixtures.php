@@ -94,11 +94,11 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         // passé.
         $owner = $this->userRepository->findOneBy([
             'email' => 'dev@aurora.app',
-            'type' => UserTypeEnum::Backend->value,
+            'type' => UserTypeEnum::Suite->value,
         ]);
 
         if (!$owner instanceof User) {
-            throw new RuntimeException('The demo backend account is missing - run the core fixtures first.');
+            throw new RuntimeException('The demo suite account is missing - run the core fixtures first.');
         }
 
         // Tout le carnet de démo vit dans l'espace personnel du compte.
@@ -242,7 +242,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $manager->persist($space);
 
         foreach (['marie.dupont@aurora.app' => NoteSpaceRoleEnum::Editor, 'jean.martin@aurora.app' => NoteSpaceRoleEnum::Reader] as $email => $role) {
-            $user = $this->userRepository->findOneBy(['email' => $email, 'type' => UserTypeEnum::Backend->value]);
+            $user = $this->userRepository->findOneBy(['email' => $email, 'type' => UserTypeEnum::Suite->value]);
             if (!$user instanceof User) {
                 continue;
             }
@@ -682,7 +682,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
             $content = str_replace(
                 sprintf('{{image:%d}}', $index),
-                '/backend/notes/markdown/images/'.$filename,
+                '/suite/notes/markdown/images/'.$filename,
                 $content,
             );
         }

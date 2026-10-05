@@ -63,7 +63,7 @@ final class PasswordResetManagerTest extends IntegrationTestCase
         $user = $this->createUser(UserTypeEnum::Frontend);
         $request = $this->manager->createRequestForUser($user);
 
-        self::assertNull($this->manager->validateToken($request['selector'], $request['plainToken'], UserTypeEnum::Backend));
+        self::assertNull($this->manager->validateToken($request['selector'], $request['plainToken'], UserTypeEnum::Suite));
     }
 
     public function testResetPasswordUpdatesHashAndConsumesRequest(): void

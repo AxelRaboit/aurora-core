@@ -47,7 +47,7 @@ final class FormsScreensTest extends IntegrationTestCase
         parent::setUp();
 
         $this->client = static::createClient();
-        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
         $this->client->loginUser($user, 'admin');
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
@@ -111,7 +111,7 @@ final class FormsScreensTest extends IntegrationTestCase
 
     public function testATitleIsStillRequired(): void
     {
-        $this->client->jsonRequest('POST', '/backend/editorial/forms', ['title' => '   ', 'template' => 'contact']);
+        $this->client->jsonRequest('POST', '/suite/editorial/forms', ['title' => '   ', 'template' => 'contact']);
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
     }
@@ -121,20 +121,20 @@ final class FormsScreensTest extends IntegrationTestCase
     {
         $this->create('contact');
 
-        $this->client->request('GET', '/backend/editorial/forms');
+        $this->client->request('GET', '/suite/editorial/forms');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertStringContainsString('editorial/backend/forms/FormsApp', (string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('editorial/suite/forms/FormsApp', (string) $this->client->getResponse()->getContent());
     }
 
     public function testAFormHasItsOwnPage(): void
     {
         $form = $this->create('contact');
 
-        $this->client->request('GET', sprintf('/backend/editorial/forms/%d', $form->getId()));
+        $this->client->request('GET', sprintf('/suite/editorial/forms/%d', $form->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertStringContainsString('editorial/backend/forms/FormEditorApp', (string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('editorial/suite/forms/FormEditorApp', (string) $this->client->getResponse()->getContent());
     }
 
     /** One menu entry for every form, and no group listing them one by one. */
@@ -142,10 +142,10 @@ final class FormsScreensTest extends IntegrationTestCase
     {
         $this->create('contact');
 
-        $this->client->request('GET', '/backend/editorial/forms');
+        $this->client->request('GET', '/suite/editorial/forms');
 
         $matched = preg_match(
-            '/vue-component-value="core\/backend\/sidemenu\/AppSidemenu" data-symfony--ux-vue--vue-props-value="([^"]*)"/',
+            '/vue-component-value="core\/suite\/sidemenu\/AppSidemenu" data-symfony--ux-vue--vue-props-value="([^"]*)"/',
             (string) $this->client->getResponse()->getContent(),
             $matches,
         );
@@ -163,12 +163,12 @@ final class FormsScreensTest extends IntegrationTestCase
         }
 
         self::assertNotContains('forms', $groups);
-        self::assertContains('/backend/editorial/forms', $paths);
+        self::assertContains('/suite/editorial/forms', $paths);
     }
 
     private function create(string $template): FormInterface
     {
-        $this->client->jsonRequest('POST', '/backend/editorial/forms', [
+        $this->client->jsonRequest('POST', '/suite/editorial/forms', [
             'title' => 'Essai '.bin2hex(random_bytes(4)),
             'template' => $template,
         ]);
@@ -176,7 +176,7 @@ final class FormsScreensTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode(), (string) $this->client->getResponse()->getContent());
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
-        self::assertStringEndsWith('/backend/editorial/forms/'.$payload['form']['id'], $payload['editPath']);
+        self::assertStringEndsWith('/suite/editorial/forms/'.$payload['form']['id'], $payload['editPath']);
 
         $this->created[] = (int) $payload['form']['id'];
         $this->entityManager->clear();

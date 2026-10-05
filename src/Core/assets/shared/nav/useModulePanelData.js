@@ -1,6 +1,6 @@
 import { onMounted, ref } from "vue";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
  * What a side-menu panel needs to get its own data.

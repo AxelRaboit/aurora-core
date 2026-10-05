@@ -18,6 +18,6 @@ enum ConditionLogicEnum: string
 
     public function labelKey(): string
     {
-        return sprintf('backend.forms.condition_logic.%s', $this->value);
+        return sprintf('suite.forms.condition_logic.%s', $this->value);
     }
 }

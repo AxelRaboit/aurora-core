@@ -40,7 +40,7 @@ use function mb_trim;
 class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
 {
     /** What the room a space is born with is called, before anybody renames it. */
-    private const string MAIN_NAME_KEY = 'backend.studio.space_chat.channels.main_name';
+    private const string MAIN_NAME_KEY = 'suite.studio.space_chat.channels.main_name';
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
@@ -102,11 +102,11 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
     public function setOpenToClient(SpaceChatChannelInterface $channel, bool $openToClient): void
     {
         if (SpaceChatChannelKindEnum::Main === $channel->getKind() && !$openToClient) {
-            throw new FieldException('openToClient', $this->translator->trans('backend.studio.space_chat.errors.main_stays_open'));
+            throw new FieldException('openToClient', $this->translator->trans('suite.studio.space_chat.errors.main_stays_open'));
         }
 
         if (SpaceChatChannelKindEnum::Direct === $channel->getKind()) {
-            throw new FieldException('openToClient', $this->translator->trans('backend.studio.space_chat.errors.direct_has_no_audience'));
+            throw new FieldException('openToClient', $this->translator->trans('suite.studio.space_chat.errors.direct_has_no_audience'));
         }
 
         $channel->setOpenToClient($openToClient);
@@ -118,7 +118,7 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
     public function delete(SpaceChatChannelInterface $channel): void
     {
         if (SpaceChatChannelKindEnum::Topic !== $channel->getKind()) {
-            throw new FieldException('channel', $this->translator->trans('backend.studio.space_chat.errors.channel_not_deletable'));
+            throw new FieldException('channel', $this->translator->trans('suite.studio.space_chat.errors.channel_not_deletable'));
         }
 
         $this->auditDeleted($channel);
@@ -161,7 +161,7 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
     public function hideDirect(SpaceChatChannelInterface $channel, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): void
     {
         if (SpaceChatChannelKindEnum::Direct !== $channel->getKind()) {
-            throw new FieldException('channel', $this->translator->trans('backend.studio.space_chat.errors.only_a_direct_hides'));
+            throw new FieldException('channel', $this->translator->trans('suite.studio.space_chat.errors.only_a_direct_hides'));
         }
 
         $now = new DateTimeImmutable();
@@ -185,7 +185,7 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         $channel = $member->getChannel();
 
         if (SpaceChatChannelKindEnum::Direct === $channel->getKind()) {
-            throw new FieldException('member', $this->translator->trans('backend.studio.space_chat.errors.direct_keeps_both'));
+            throw new FieldException('member', $this->translator->trans('suite.studio.space_chat.errors.direct_keeps_both'));
         }
 
         $this->auditUninvited($channel, $member);
@@ -206,17 +206,17 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         $with = ['user' => $withUser, 'link' => $withLink];
 
         if (!$this->isSomebody($from) || !$this->isSomebody($with)) {
-            throw new FieldException('participant', $this->translator->trans('backend.studio.space_chat.errors.direct_needs_two'));
+            throw new FieldException('participant', $this->translator->trans('suite.studio.space_chat.errors.direct_needs_two'));
         }
 
         // Talking to oneself is not a conversation, and the room it would open
         // could never be closed.
         if ($fromUser instanceof CoreUserInterface && $fromUser->getId() === $withUser?->getId()) {
-            throw new FieldException('participant', $this->translator->trans('backend.studio.space_chat.errors.direct_needs_two'));
+            throw new FieldException('participant', $this->translator->trans('suite.studio.space_chat.errors.direct_needs_two'));
         }
 
         if ($fromLink instanceof SpaceAccessLinkInterface && $fromLink->getId() === $withLink?->getId()) {
-            throw new FieldException('participant', $this->translator->trans('backend.studio.space_chat.errors.direct_needs_two'));
+            throw new FieldException('participant', $this->translator->trans('suite.studio.space_chat.errors.direct_needs_two'));
         }
 
         $existing = $this->channelRepository->findDirectBetween($space, $from, $with);
@@ -368,7 +368,7 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         $clean = mb_trim($name);
 
         if ('' === $clean) {
-            throw new FieldException('name', $this->translator->trans('backend.studio.space_chat.errors.channel_name_required'));
+            throw new FieldException('name', $this->translator->trans('suite.studio.space_chat.errors.channel_name_required'));
         }
 
         return mb_substr($clean, 0, 120);

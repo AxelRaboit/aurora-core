@@ -79,21 +79,21 @@ final class NewsletterComplianceTest extends IntegrationTestCase
     {
         $response = $this->saveSettings(['enabled' => true, 'termsAccepted' => true, 'provider' => 'mailchimp', 'apiKey' => 'abcd-us21', 'listId' => 'l1', 'privacyUrl' => '']);
 
-        self::assertSame('backend.editorial.newsletter.errors.privacy_required', $response['error'] ?? null);
+        self::assertSame('suite.editorial.newsletter.errors.privacy_required', $response['error'] ?? null);
     }
 
     public function testBrevoConfirmationNeedsItsTemplate(): void
     {
         $response = $this->saveSettings(['enabled' => true, 'termsAccepted' => true, 'provider' => 'brevo', 'apiKey' => 'xkeysib', 'listId' => '3', 'privacyUrl' => '/fr/page/confidentialite', 'doubleOptIn' => true, 'brevoTemplateId' => '']);
 
-        self::assertSame('backend.editorial.newsletter.errors.template_required', $response['error'] ?? null);
+        self::assertSame('suite.editorial.newsletter.errors.template_required', $response['error'] ?? null);
     }
 
     public function testAPolicyAddressThatIsNotALinkIsRefused(): void
     {
         $response = $this->saveSettings(['enabled' => false, 'termsAccepted' => true, 'provider' => 'mailchimp', 'privacyUrl' => 'javascript:alert(1)']);
 
-        self::assertSame('backend.editorial.newsletter.errors.privacy_url_invalid', $response['error'] ?? null);
+        self::assertSame('suite.editorial.newsletter.errors.privacy_url_invalid', $response['error'] ?? null);
     }
 
     public function testConfirmationIsOnUnlessSwitchedOff(): void
@@ -133,11 +133,11 @@ final class NewsletterComplianceTest extends IntegrationTestCase
      */
     private function saveSettings(array $payload): array
     {
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
-        $this->client->request('POST', '/backend/editorial/newsletter/settings', server: [
+        $this->client->request('POST', '/suite/editorial/newsletter/settings', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_ACCEPT' => 'application/json',
         ], content: json_encode($payload, JSON_THROW_ON_ERROR));

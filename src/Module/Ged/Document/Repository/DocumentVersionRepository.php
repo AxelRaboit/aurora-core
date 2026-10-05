@@ -87,7 +87,7 @@ class DocumentVersionRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Same question, asked of one backend only. See
+     * Same question, asked of one suite only. See
      * {@see DocumentRepository::filterPathsInUseOnDisk()} for why relocation
      * cannot use the plain form.
      *

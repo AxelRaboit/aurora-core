@@ -47,7 +47,7 @@ final class SpaceBoardTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -284,7 +284,7 @@ final class SpaceBoardTest extends IntegrationTestCase
         $column = $this->columns->findForSpace($space)[0];
         $this->givenItem($space, $column, 'Emportée');
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/delete', $space->getId()));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/delete', $space->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertSame([], $this->columns->findForSpace($space));
@@ -313,7 +313,7 @@ final class SpaceBoardTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace de '.$customerName,
             'customerId' => $customer->getId(),
             'timezone' => $timezone,

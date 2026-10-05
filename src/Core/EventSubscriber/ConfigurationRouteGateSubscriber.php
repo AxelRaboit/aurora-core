@@ -24,8 +24,8 @@ final readonly class ConfigurationRouteGateSubscriber implements EventSubscriber
     public function __construct(private ConfigurationContext $configurationContext)
     {
         $this->gates = [
-            'backend_configuration_settings' => $this->configurationContext->isSettingsEnabled(...),
-            'backend_configuration_themes' => $this->configurationContext->isThemesEnabled(...),
+            'suite_configuration_settings' => $this->configurationContext->isSettingsEnabled(...),
+            'suite_configuration_themes' => $this->configurationContext->isThemesEnabled(...),
         ];
     }
 

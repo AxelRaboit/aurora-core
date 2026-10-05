@@ -16,11 +16,11 @@ use PHPUnit\Framework\TestCase;
  */
 final class PlanningModuleNavViewTest extends TestCase
 {
-    private function makeModule(bool $backend = true): PlanningModule
+    private function makeModule(bool $suite = true): PlanningModule
     {
         $checker = $this->createStub(ModuleAccessChecker::class);
         $checker->method('isEnabled')->willReturnCallback(
-            static fn (ModuleParameterEnum $param): bool => ModuleParameterEnum::PlanningBackend === $param && $backend,
+            static fn (ModuleParameterEnum $param): bool => ModuleParameterEnum::PlanningSuite === $param && $suite,
         );
 
         return new PlanningModule(new PlanningContext($checker));
@@ -33,7 +33,7 @@ final class PlanningModuleNavViewTest extends TestCase
         self::assertNotNull($view);
         self::assertSame('planning', $view->moduleId);
         self::assertSame(
-            'planning/backend/planning/CalendarListPanel',
+            'planning/suite/planning/CalendarListPanel',
             $view->panelComponent,
         );
     }
@@ -54,6 +54,6 @@ final class PlanningModuleNavViewTest extends TestCase
 
     public function testItDeclaresNothingWhenTheModuleIsOff(): void
     {
-        self::assertNull($this->makeModule(backend: false)->getModuleNavView());
+        self::assertNull($this->makeModule(suite: false)->getModuleNavView());
     }
 }

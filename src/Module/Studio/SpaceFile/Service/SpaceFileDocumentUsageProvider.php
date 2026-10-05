@@ -46,7 +46,7 @@ final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsag
                 // suppression dit déjà quel fichier part, et ce qu'il faut
                 // savoir avant de valider, c'est chez qui il sert.
                 'label' => $space->getName(),
-                'detail' => $this->translator->trans('backend.studio.space_files.usage_detail'),
+                'detail' => $this->translator->trans('suite.studio.space_files.usage_detail'),
                 'href' => $this->urlGenerator->generate(
                     'workspace_space_content',
                     ['id' => $space->getId()],

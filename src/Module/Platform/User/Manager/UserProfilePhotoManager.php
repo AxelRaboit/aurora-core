@@ -51,12 +51,12 @@ class UserProfilePhotoManager implements UserProfilePhotoManagerInterface
     {
         $size = $file->getSize();
         if (false !== $size && $size > self::MAX_SIZE_BYTES) {
-            throw new InvalidArgumentException('backend.users.photo.errors.too_large');
+            throw new InvalidArgumentException('suite.users.photo.errors.too_large');
         }
 
         $mimeType = $file->getMimeType();
         if (null === $mimeType || !in_array($mimeType, self::ALLOWED_MIME_TYPES, true)) {
-            throw new InvalidArgumentException('backend.users.photo.errors.invalid_type');
+            throw new InvalidArgumentException('suite.users.photo.errors.invalid_type');
         }
 
         $this->removeFile($user->getProfilePhotoPath());
@@ -100,7 +100,7 @@ class UserProfilePhotoManager implements UserProfilePhotoManagerInterface
      * Removed from wherever it is rather than from wherever new files go.
      *
      * A photo taken before the storage was switched still sits on the old
-     * backend, and asking the active one to delete it would quietly do
+     * suite, and asking the active one to delete it would quietly do
      * nothing. Both are asked, which costs a call and cannot leave a file
      * behind.
      */

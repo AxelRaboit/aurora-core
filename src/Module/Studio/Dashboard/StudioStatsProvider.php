@@ -106,8 +106,8 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'deliverables' => $this->countDeliverables(),
                 'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),
-                'calendarPath' => $this->urlGenerator->generate('backend_studio_calendar'),
-                'contractsPath' => $this->authorizationChecker->isGranted('studio.contracts.view') ? $this->urlGenerator->generate('backend_studio_contracts') : null,
+                'calendarPath' => $this->urlGenerator->generate('suite_studio_calendar'),
+                'contractsPath' => $this->authorizationChecker->isGranted('studio.contracts.view') ? $this->urlGenerator->generate('suite_studio_contracts') : null,
                 // Chaque compteur ouvre la liste sur son étape, et non la
                 // liste entière.
                 'contractsWithCustomerPath' => $this->contractsPathFor('with_customer'),
@@ -151,14 +151,14 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
     private function deliverablesPath(): ?string
     {
         return $this->studioContext->areDeliverablesEnabled() && $this->authorizationChecker->isGranted(DeliverableAccess::VIEW)
-            ? $this->urlGenerator->generate('backend_studio_deliverables')
+            ? $this->urlGenerator->generate('suite_studio_deliverables')
             : null;
     }
 
     private function contractsPathFor(string $step): ?string
     {
         return $this->authorizationChecker->isGranted('studio.contracts.view')
-            ? $this->urlGenerator->generate('backend_studio_contracts', ['step' => $step])
+            ? $this->urlGenerator->generate('suite_studio_contracts', ['step' => $step])
             : null;
     }
 

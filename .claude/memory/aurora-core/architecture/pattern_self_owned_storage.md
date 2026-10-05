@@ -126,7 +126,7 @@ fichier **est** l'entité.
 
 **Chaque consommateur doit fournir son `DocumentUsageProviderInterface`**
 (tag `aurora.document_usage_provider`, agrégé par `DocumentUsageService`,
-`GET /backend/ged/documents/{id}/usage`, affiché au moment de supprimer).
+`GET /suite/ged/documents/{id}/usage`, affiché au moment de supprimer).
 Sinon la bibliothèque annonce « aucun usage » sur un document utilisé, et
 la suppression casse en silence - en `CASCADE` la pièce jointe disparaît
 de l'espace du client, en `SET NULL` le billet perd sa couverture.

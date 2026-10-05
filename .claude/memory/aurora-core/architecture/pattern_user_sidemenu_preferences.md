@@ -64,13 +64,13 @@ Sert exclusivement à la page de préférences (pour pouvoir un-hide).
 - Filtrage : `Aurora\Core\Module\Service\ModuleRegistry`
 - Manager hooks : `UserManager::updateSidemenuPreferences()` + `resetSidemenuPreferences()`
 - Audit : `AuditUserManagerDecorator` (event `user.sidemenu_preferences_updated`)
-- Endpoints : `GET/POST /backend/general/profile/sidemenu`, `POST /backend/general/profile/sidemenu/reset`
+- Endpoints : `GET/POST /suite/general/profile/sidemenu`, `POST /suite/general/profile/sidemenu/reset`
 - Vue : `preferences/PreferencesApp.vue` (shell à onglets) +
   `preferences/tabs/SidemenuTab.vue` (1er onglet) +
   `composables/useSidemenuPreferences.js`
-- Twig : `src/Module/General/templates/backend/profile/sidemenu.html.twig`
+- Twig : `src/Module/General/templates/suite/profile/sidemenu.html.twig`
   (le profile vit dans `Module/General` depuis le rollout 0.4 ; le namespace
-  Twig est `@General/backend/profile/sidemenu.html.twig`)
+  Twig est `@General/suite/profile/sidemenu.html.twig`)
 
 Voir aussi [[pattern_user_scoped_module_access]] pour la couche admin
 (distincte).

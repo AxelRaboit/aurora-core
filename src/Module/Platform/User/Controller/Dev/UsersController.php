@@ -50,7 +50,7 @@ final class UsersController extends AbstractController
             return $this->jsonSuccess($payload);
         }
 
-        return $this->render('@Dev/backend/index.html.twig', $this->viewBuilder->indexView($payload, $pagination->search));
+        return $this->render('@Dev/suite/index.html.twig', $this->viewBuilder->indexView($payload, $pagination->search));
     }
 
     #[Route('', name: '_create', methods: [HttpMethodEnum::Post->value])]
@@ -66,7 +66,7 @@ final class UsersController extends AbstractController
 
         $user = $this->userManager->create($input->name, $input->email, $input->password);
         $this->userManager->changeLocaleEnum($user, $input->locale);
-        $this->addFlash('success', $this->translator->trans('backend.users.toast.created'));
+        $this->addFlash('success', $this->translator->trans('suite.users.toast.created'));
 
         return $this->jsonSuccess(['id' => $user->getId()]);
     }
@@ -94,7 +94,7 @@ final class UsersController extends AbstractController
             $this->userManager->changePassword($user, $input->password);
         }
 
-        $this->addFlash('success', $this->translator->trans('backend.users.toast.updated'));
+        $this->addFlash('success', $this->translator->trans('suite.users.toast.updated'));
 
         return $this->jsonSuccess(['id' => $user->getId()]);
     }
@@ -106,7 +106,7 @@ final class UsersController extends AbstractController
         $currentUser = $this->getUser();
 
         if ($user->getId() === $currentUser->getId()) {
-            $this->addFlash('error', $this->translator->trans('backend.users.cannot_modify_self'));
+            $this->addFlash('error', $this->translator->trans('suite.users.cannot_modify_self'));
 
             return $this->redirectToRoute('dev_users');
         }
@@ -114,7 +114,7 @@ final class UsersController extends AbstractController
         $isDev = $this->userManager->toggleDevRole($user);
         $this->addFlash(
             'success',
-            $this->translator->trans($isDev ? 'backend.users.dev_granted' : 'backend.users.dev_revoked'),
+            $this->translator->trans($isDev ? 'suite.users.dev_granted' : 'suite.users.dev_revoked'),
         );
 
         return $this->redirectToRoute('dev_users');
@@ -127,13 +127,13 @@ final class UsersController extends AbstractController
         $currentUser = $this->getUser();
 
         if ($user->getId() === $currentUser->getId()) {
-            $this->addFlash('error', $this->translator->trans('backend.users.cannot_delete_self'));
+            $this->addFlash('error', $this->translator->trans('suite.users.cannot_delete_self'));
 
             return $this->redirectToRoute('dev_users');
         }
 
         $this->userManager->delete($user);
-        $this->addFlash('success', $this->translator->trans('backend.users.toast.deleted'));
+        $this->addFlash('success', $this->translator->trans('suite.users.toast.deleted'));
 
         return $this->redirectToRoute('dev_users');
     }

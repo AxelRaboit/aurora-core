@@ -1,0 +1,32 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ document.title }} - {{ 'suite.nav.documents'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.ged'|trans},
+            {label: 'suite.nav.documents'|trans, href: path('suite_ged_documents')},
+            {label: document.title},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('ged/suite/documents/DocumentShowApp', {
+    document: document,
+    backPath: backPath,
+    updatePath: updatePath,
+    deletePath: deletePath,
+    restorePath: restorePath,
+    cropPath: cropPath,
+    listPath: listPath,
+    storagePath: storagePath,
+    storageRelocationAvailable: storageRelocationAvailable,
+    alternatesPath: alternatesPath,
+    showPath: showPath,
+    categories: categories,
+    tags: tags,
+    folders: folders,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

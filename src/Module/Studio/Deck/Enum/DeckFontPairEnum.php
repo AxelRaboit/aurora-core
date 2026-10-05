@@ -85,6 +85,6 @@ enum DeckFontPairEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.fonts.'.$this->value;
+        return 'suite.studio.decks.fonts.'.$this->value;
     }
 }

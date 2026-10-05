@@ -1,0 +1,576 @@
+<script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { Palette, Check, Pencil, Trash2, Plus, Save, X } from "lucide-vue-next";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
+import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import { bestContrastRatio, meetsAaa, needsLightText } from "@/shared/utils/format/surfaceContrast.js";
+import { useThemesList } from "@configuration/suite/themes/composables/useThemesList.js";
+import { useThemesActivate } from "@configuration/suite/themes/composables/useThemesActivate.js";
+import { useThemesCreate } from "@configuration/suite/themes/composables/useThemesCreate.js";
+import { CALLOUT_DEFAULTS, useThemesEdit } from "@configuration/suite/themes/composables/useThemesEdit.js";
+import { useThemesDelete } from "@configuration/suite/themes/composables/useThemesDelete.js";
+import { highlightModeOptions } from "@configuration/suite/themes/highlightModes.js";
+import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+
+const { t } = useI18n();
+const highlightOptions = computed(() => highlightModeOptions(t));
+const iconOptions = computed(() => [
+    { value: "original", label: t("suite.themes.icon_original") },
+    { value: "accent", label: t("suite.themes.icon_accent") },
+    { value: "custom", label: t("suite.themes.icon_custom") },
+]);
+const { can } = usePrivileges();
+
+const props = defineProps({
+    themes: { type: Array, default: () => [] },
+    /**
+     * Les familles qu'un thème peut choisir, telles que ThemeFontEnum::choices()
+     * les décrit : valeur stockée, nom affiché, clé de description et pile CSS.
+     * La pile vient du serveur pour que l'aperçu se compose exactement dans ce
+     * que la page servira, sans seconde liste tenue ici.
+     */
+    fonts: { type: Array, default: () => [] },
+    activatePath: { type: String, default: "" },
+    updatePath: { type: String, default: "" },
+    createPath: { type: String, default: "" },
+    deletePath: { type: String, default: "" },
+    /**
+     * Extra fields to register on the create + edit forms. Theme uses two
+     * separate composables (create form is light, edit form is the CSS-config
+     * panel) so the corresponding slots are also distinct:
+     * extra-create-form-fields and extra-form-fields.
+     */
+    extraFields: { type: Object, default: () => ({}) },
+});
+
+const { themeList, accentColor } = useThemesList(props.themes);
+const { activateTheme } = useThemesActivate(themeList, props.activatePath);
+const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, readingProgress, watermarkVisible, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogo, headerCustomText, headerTextHiddenOnPhone, headerMode, primaryColor, surfaceColors, calloutColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+
+const fontOptions = computed(() => props.fonts.map((font) => ({ value: font.value, label: font.label })));
+const selectedFont = computed(() => props.fonts.find((font) => font.value === fontFamily.value) ?? null);
+const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.deletePath);
+
+/**
+ * Les trois surfaces colorables du site public.
+ *
+ * Le calcul de contraste affiché ici est un miroir client du service PHP qui
+ * décide réellement du rendu. Il n'existe que pour le retour immédiat pendant
+ * qu'on déplace le curseur de couleur.
+ */
+const SURFACES = computed(() => [
+    { key: "background_color", label: t("suite.themes.surface_background") },
+    { key: "header_color", label: t("suite.themes.surface_header") },
+    { key: "footer_color", label: t("suite.themes.surface_footer") },
+]);
+
+/**
+ * Le texte et les traits du site public, posés par-dessus ce que chaque
+ * surface en déduit. Sans couleur de surface, aucune règle n'est émise : ils
+ * n'agissent donc qu'avec un fond défini.
+ */
+const INKS = computed(() => [
+    { key: "text_color", label: t("suite.themes.ink_text"), unset: t("suite.themes.ink_unset") },
+    { key: "line_color", label: t("suite.themes.ink_line"), unset: t("suite.themes.ink_unset") },
+    { key: "card_line_color", label: t("suite.themes.ink_card_line"), unset: t("suite.themes.ink_card_unset") },
+    { key: "card_color", label: t("suite.themes.ink_card"), unset: t("suite.themes.ink_card_bg_unset") },
+    { key: "heading_color", label: t("suite.themes.ink_heading"), unset: t("suite.themes.ink_heading_unset") },
+    { key: "success_color", label: t("suite.themes.ink_success"), unset: t("suite.themes.ink_success_unset") },
+    { key: "figure_color", label: t("suite.themes.ink_figure"), unset: t("suite.themes.ink_figure_unset") },
+]);
+
+function contrastNote(hex) {
+    if (!hex) return t("suite.themes.surface_unset");
+
+    const text = needsLightText(hex)
+        ? t("suite.themes.surface_light_text")
+        : t("suite.themes.surface_dark_text");
+    const ratio = t("suite.themes.surface_ratio", {
+        ratio: bestContrastRatio(hex).toFixed(1),
+    });
+
+    return meetsAaa(hex)
+        ? `${text} · ${ratio}`
+        : `${text} · ${ratio} · ${t("suite.themes.surface_below_aaa")}`;
+}
+
+/**
+ * What one theme card offers, minus the button that is the card's point.
+ *
+ * Activating stays a full-width button: it is what somebody scanning the grid
+ * came to press, and its disabled state is how a card says it is the live one.
+ * The default theme cannot be deleted and neither can the active one, so the
+ * entry is offered but disabled rather than hidden - a card that silently had
+ * one fewer entry than its neighbour read as a bug.
+ */
+function themeActions(theme) {
+    if (!can("configuration.themes.manage")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("suite.themes.edit"),
+            onSelect: () => openEdit(theme),
+        },
+        {
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            disabled: theme.slug === "default" || theme.active,
+            onSelect: () => (deletingTheme.value = theme),
+        },
+    ];
+}
+
+// One entry and still a sheet: every list in the suite opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("configuration.themes.manage")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("suite.themes.new"),
+            onSelect: openCreate,
+        },
+    ];
+});
+</script>
+
+<template>
+    <div class="aurora-stack">
+        <!-- No heading: `suite.themes.title` and `suite.nav.themes` are the
+             same word, and the second is already in the topbar. What is left is
+             the one control this row exists for, so it sits on its own at the
+             end. -->
+        <div v-if="pageActions.length" class="flex items-center justify-end *:w-full sm:*:w-auto">
+            <AppPageActions :actions="pageActions" />
+        </div>
+
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('suite.themes.guide.title')" storage-key="themes">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`suite.themes.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div
+                v-for="theme in themeList"
+                :key="theme.id"
+                class="aurora-card p-3 sm:p-5 flex flex-col gap-4"
+                :class="theme.active ? 'border-accent-500/50 ring-1 ring-accent-500/30' : ''"
+            >
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex flex-col gap-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-base font-semibold text-primary truncate">{{ theme.name }}</span>
+                            <span class="text-xs font-mono bg-surface-2 text-muted px-1.5 py-0.5 rounded">{{ theme.slug }}</span>
+                        </div>
+                        <p v-if="theme.description" class="text-sm text-muted line-clamp-2">{{ theme.description }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-8 h-8 rounded-lg border border-line shrink-0"
+                        :style="{ backgroundColor: accentColor(theme) }"
+                        :title="accentColor(theme)"
+                    />
+                    <div class="flex items-center gap-1 text-xs text-muted">
+                        <Palette class="w-3.5 h-3.5" :stroke-width="2" />
+                        <span>{{ t("suite.themes.template_count", { count: theme.templateCount }) }}</span>
+                    </div>
+                </div>
+
+                <!-- Le thème actif dit qu'il l'est, il ne propose pas de
+                     l'activer.
+                     Le badge était posé en face du titre, `shrink-0`, donc il
+                     mangeait sa largeur pour de bon : dans une colonne de
+                     grille étroite, la carte active était la seule dont le nom
+                     était coupé, dont l'identifiant passait à la ligne et dont
+                     le résumé se lisait sur une mesure plus courte que celle
+                     de ses voisines. Descendu au pied, il occupe la place d'un
+                     bouton « Activer » désactivé qui, à côté d'un badge
+                     « Actif », ne disait rien de plus. -->
+                <div class="flex items-center gap-2 mt-auto pt-2 border-t border-line">
+                    <AppBadge v-if="theme.active" color="emerald" class="flex-1 justify-center">
+                        <Check class="w-3 h-3" :stroke-width="2.5" />
+                        {{ t("suite.themes.active") }}
+                    </AppBadge>
+                    <AppButton
+                        v-else-if="can('configuration.themes.manage')"
+                        size="sm"
+                        variant="secondary"
+                        class="flex-1"
+                        v-on:click="activateTheme(theme)"
+                    >
+                        <Check class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("suite.themes.activate") }}
+                    </AppButton>
+                    <AppRowActions
+                        v-if="themeActions(theme).length"
+                        :actions="themeActions(theme)"
+                        :label="theme.name"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <AppModal
+            :show="createModal.open"
+            max-width="md"
+            :title="t('suite.themes.new')"
+            :icon="Palette"
+            :closeable="false"
+            v-on:close="createModal.open = false"
+        >
+            <form class="space-y-4" v-on:submit.prevent="submitCreate">
+                <AppInput
+                    v-model="createForm.name"
+                    :label="t('shared.common.name')"
+                    :placeholder="t('shared.placeholders.name')"
+                    :error="createModal.errors.name ?? ''"
+                    :required="true"
+                />
+                <AppInput
+                    v-model="createForm.slug"
+                    :label="t('suite.themes.slug_label')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :error="createModal.errors.slug ?? ''"
+                    :required="true"
+                />
+                <AppTextarea
+                    v-model="createForm.description"
+                    :label="t('shared.common.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+                <slot name="extra-create-form-fields" :form="createForm" :errors="createModal.errors" />
+            </form>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="createModal.open = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton type="submit" variant="primary" size="md" :loading="createModal.saving"><Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.create") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <AppModal
+            :show="editModal.open"
+            max-width="lg"
+            :title="t('suite.themes.edit')"
+            :icon="Palette"
+            :closeable="false"
+            v-on:close="editModal.open = false"
+        >
+            <form class="space-y-5" v-on:submit.prevent="submitEdit">
+                <AppInput
+                    v-model="editForm.name"
+                    :label="t('shared.common.name')"
+                    :placeholder="t('shared.placeholders.name')"
+                    :error="editModal.errors.name ?? ''"
+                    :required="true"
+                />
+                <AppTextarea
+                    v-model="editForm.description"
+                    :label="t('shared.common.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+                <slot name="extra-form-fields" :form="editForm" :errors="editModal.errors" :theme="editModal.editing" />
+
+                <div class="space-y-1.5 pt-6 border-t border-line">
+                    <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ t('suite.themes.primary_color') }}</span>
+                    <div class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                        <AppColorSwatch
+                            :model-value="primaryColor"
+                            size="sm"
+                            v-on:update:model-value="primaryColor = $event"
+                        />
+                        <div class="flex flex-col min-w-0 flex-1">
+                            <span class="text-xs font-medium text-primary">{{ t('suite.themes.primary_color_label') }}</span>
+                            <span class="text-xs text-muted">{{ t('suite.themes.primary_color_hint') }}</span>
+                        </div>
+                        <span class="text-xs font-mono text-muted">{{ primaryColor }}</span>
+                        <AppTextLinkButton color="muted" size="xs" :title="t('suite.themes.reset_color')" v-on:click="resetPrimaryColor">↺</AppTextLinkButton>
+                    </div>
+                    <div class="space-y-1 pt-2">
+                        <AppSelect
+                            v-model="highlight"
+                            :label="t('suite.themes.highlight')"
+                            :options="highlightOptions"
+                        />
+                        <div v-if="highlight === 'custom'" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="highlightColor"
+                                size="sm"
+                                v-on:update:model-value="highlightColor = $event"
+                            />
+                            <span class="text-xs font-medium text-primary flex-1">{{ t('suite.themes.highlight_color') }}</span>
+                            <span class="text-xs font-mono text-muted">{{ highlightColor }}</span>
+                        </div>
+                        <p class="text-xs text-muted">{{ t('suite.themes.highlight_hint') }}</p>
+                    </div>
+                    <div class="space-y-1 pt-2">
+                        <AppSelect
+                            v-model="menuActive"
+                            :label="t('suite.themes.menu_active')"
+                            :options="highlightOptions"
+                        />
+                        <div v-if="menuActive === 'custom'" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="menuActiveColor"
+                                size="sm"
+                                v-on:update:model-value="menuActiveColor = $event"
+                            />
+                            <span class="text-xs font-medium text-primary flex-1">{{ t('suite.themes.menu_active_color') }}</span>
+                            <span class="text-xs font-mono text-muted">{{ menuActiveColor }}</span>
+                        </div>
+                        <p class="text-xs text-muted">{{ t('suite.themes.menu_active_hint') }}</p>
+                    </div>
+                    <div class="space-y-1 pt-2">
+                        <AppSelect
+                            v-model="iconMode"
+                            :label="t('suite.themes.icon')"
+                            :options="iconOptions"
+                        />
+                        <div v-if="iconMode === 'custom'" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="iconColor"
+                                size="sm"
+                                v-on:update:model-value="iconColor = $event"
+                            />
+                            <span class="text-xs font-medium text-primary flex-1">{{ t('suite.themes.icon_color') }}</span>
+                            <span class="text-xs font-mono text-muted">{{ iconColor }}</span>
+                        </div>
+                        <p class="text-xs text-muted">{{ t('suite.themes.icon_hint') }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-6 border-t border-line">
+                    <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ t('suite.themes.surfaces') }}</span>
+                    <p class="text-xs text-muted">{{ t('suite.themes.surfaces_hint') }}</p>
+                    <div class="grid grid-cols-1 gap-2 pt-1">
+                        <div v-for="surface in SURFACES" :key="surface.key" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="surfaceColors[surface.key] || '#ffffff'"
+                                size="sm"
+                                v-on:update:model-value="surfaceColors[surface.key] = $event"
+                            />
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-xs font-medium text-primary">{{ surface.label }}</span>
+                                <span class="text-xs text-muted truncate">{{ contrastNote(surfaceColors[surface.key]) }}</span>
+                            </div>
+                            <span v-if="surfaceColors[surface.key]" class="text-xs font-mono text-muted">{{ surfaceColors[surface.key] }}</span>
+                            <AppTextLinkButton
+                                v-if="surfaceColors[surface.key]"
+                                color="muted"
+                                size="xs"
+                                :title="t('suite.themes.reset_color')"
+                                v-on:click="surfaceColors[surface.key] = ''"
+                            >
+                                ↺
+                            </AppTextLinkButton>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 pt-1">
+                        <div v-for="ink in INKS" :key="ink.key" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="surfaceColors[ink.key] || '#ffffff'"
+                                size="sm"
+                                v-on:update:model-value="surfaceColors[ink.key] = $event"
+                            />
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-xs font-medium text-primary">{{ ink.label }}</span>
+                                <span class="text-xs text-muted truncate">{{ surfaceColors[ink.key] ? t('suite.themes.ink_set') : ink.unset }}</span>
+                            </div>
+                            <span v-if="surfaceColors[ink.key]" class="text-xs font-mono text-muted">{{ surfaceColors[ink.key] }}</span>
+                            <AppTextLinkButton
+                                v-if="surfaceColors[ink.key]"
+                                color="muted"
+                                size="xs"
+                                :title="t('suite.themes.reset_color')"
+                                v-on:click="surfaceColors[ink.key] = ''"
+                            >
+                                ↺
+                            </AppTextLinkButton>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-6 border-t border-line">
+                    <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ t('suite.themes.callouts.title') }}</span>
+                    <p class="text-xs text-muted">{{ t('suite.themes.callouts.hint') }}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <div v-for="(original, type) in CALLOUT_DEFAULTS" :key="type" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="calloutColors[type] || original"
+                                size="sm"
+                                v-on:update:model-value="calloutColors[type] = $event === original ? '' : $event"
+                            />
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-xs font-medium text-primary">{{ t(`suite.themes.callouts.types.${type}`) }}</span>
+                                <span class="text-xs text-muted truncate">{{ calloutColors[type] ? t('suite.themes.callouts.set') : t('suite.themes.callouts.unset') }}</span>
+                            </div>
+                            <span class="text-xs font-mono text-muted">{{ calloutColors[type] || original }}</span>
+                            <AppTextLinkButton
+                                v-if="calloutColors[type]"
+                                color="muted"
+                                size="xs"
+                                :title="t('suite.themes.reset_color')"
+                                v-on:click="calloutColors[type] = ''"
+                            >
+                                ↺
+                            </AppTextLinkButton>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-for="section in CSS_SECTIONS" :key="section.key" class="space-y-1.5 pt-6 border-t border-line">
+                    <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ section.label }}</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div v-for="cssVar in section.vars" :key="cssVar.key" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="colorFields[cssVar.key]"
+                                size="sm"
+                                v-on:update:model-value="colorFields[cssVar.key] = $event"
+                            />
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-xs font-medium text-primary">{{ cssVar.label }}</span>
+                                <span class="text-xs font-mono text-muted truncate">{{ cssVar.key }}</span>
+                            </div>
+                            <AppTextLinkButton color="muted" size="xs" :title="t('suite.themes.reset_color')" v-on:click="colorFields[cssVar.key] = DEFAULTS[cssVar.key]">↺</AppTextLinkButton>
+                        </div>
+                    </div>
+                    <template v-if="section.key === 'header'">
+                        <div class="space-y-2">
+                            <span class="text-xs text-secondary uppercase tracking-wide">{{ t('suite.themes.header_content') }}</span>
+                            <div class="flex gap-2">
+                                <button
+                                    v-for="mode in [{k:'default',l:t('suite.themes.header_mode_default')},{k:'text',l:t('suite.themes.header_mode_text')},{k:'image',l:t('suite.themes.header_mode_image')}]"
+                                    :key="mode.k"
+                                    type="button"
+                                    class="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                                    :class="headerMode === mode.k ? 'bg-accent-600 text-white border-accent-600' : 'bg-surface-2 text-secondary border-line hover:text-primary'"
+                                    v-on:click="headerMode = mode.k"
+                                >
+                                    {{ mode.l }}
+                                </button>
+                            </div>
+                            <AppInput v-if="headerMode === 'text'" v-model="headerCustomText" :label="t('suite.themes.header_custom_text')" :placeholder="t('suite.themes.header_text_placeholder')" />
+                            <!-- Chosen in the library, as in Branding: a number to
+                                 look up and type was the only field of the
+                                 back-office that picked an image that way. -->
+                            <AppImagePickerField
+                                v-if="headerMode === 'image'"
+                                v-model="headerLogo"
+                                :label="t('suite.themes.header_logo')"
+                                :hint="t('suite.themes.header_media_hint')"
+                                :size="96"
+                            />
+                            <AppToggle
+                                v-if="headerMode === 'image'"
+                                v-model="headerTextHiddenOnPhone"
+                                :label="t('suite.themes.header_text_hidden_on_phone')"
+                                :hint="t('suite.themes.header_text_hidden_on_phone_hint')"
+                            />
+                        </div>
+                    </template>
+                    <AppInput
+                        v-if="section.key === 'footer'"
+                        v-model="footerText"
+                        :label="t('suite.themes.footer_text')"
+                        placeholder="© {year} {siteName}"
+                    />
+                    <!-- Reading width, the way Notion offers "full width".
+                         Themes read it through ThemeContext::contentWidthClass()
+                         rather than each mapping the value themselves. -->
+                    <AppSelect
+                        v-if="section.key === 'general'"
+                        v-model="contentWidth"
+                        :label="t('suite.themes.content_width')"
+                        :options="[
+                            { value: 'narrow', label: t('suite.themes.content_width_narrow') },
+                            { value: 'wide', label: t('suite.themes.content_width_wide') },
+                            { value: 'full', label: t('suite.themes.content_width_full') },
+                        ]"
+                    />
+                    <AppToggle
+                        v-if="section.key === 'general'"
+                        v-model="readingProgress"
+                        :label="t('suite.themes.reading_progress')"
+                        :hint="t('suite.themes.reading_progress_hint')"
+                    />
+                    <AppToggle
+                        v-if="section.key === 'general'"
+                        v-model="watermarkVisible"
+                        :label="t('suite.themes.watermark_visible')"
+                        :hint="t('suite.themes.watermark_visible_hint')"
+                    />
+                    <!-- La police de toute l'application. ThemeContext::fontFamilyCss()
+                         la pose sur --th-font-sans dans le <head>, donc le
+                         back-office et le site public suivent le même choix.
+                         L'aperçu se compose dans la pile renvoyée par le
+                         serveur : les cinq familles sont déjà chargées ici. -->
+                    <div v-if="section.key === 'general' && fontOptions.length" class="space-y-2">
+                        <AppSelect
+                            v-model="fontFamily"
+                            :label="t('suite.themes.font_family')"
+                            :options="fontOptions"
+                        />
+                        <p v-if="selectedFont" class="text-xs text-muted">{{ t(selectedFont.descriptionKey) }}</p>
+                        <p v-if="selectedFont" class="text-base text-primary" :style="{ fontFamily: selectedFont.stack }">
+                            {{ t('suite.themes.font_preview') }}
+                        </p>
+                    </div>
+                </div>
+            </form>
+            <template #footer>
+                <AppModalFooter bordered>
+                    <AppButton variant="ghost" size="md" v-on:click="editModal.open = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton type="submit" variant="primary" size="md" :loading="editModal.saving"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <AppModal
+            :show="!!deletingTheme"
+            max-width="sm"
+            :title="t('suite.themes.delete_confirm', { name: deletingTheme?.name ?? '' })"
+            :icon="Trash2"
+            :closeable="false"
+            v-on:close="deletingTheme = null"
+        >
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="deletingTheme = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="danger" size="md" v-on:click="confirmDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+    </div>
+</template>

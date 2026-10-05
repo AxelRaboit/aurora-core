@@ -39,7 +39,7 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
         $this->client->disableReboot();
 
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -57,13 +57,13 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
         $deck = $this->deck('Règles');
 
         foreach ([['expiresInDays' => 400], ['expiresInDays' => 0], ['expiresInDays' => 7.5], ['password' => str_repeat('a', 73)]] as $payload) {
-            $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), $payload);
+            $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck), $payload);
             self::assertResponseStatusCodeSame(422, json_encode($payload));
         }
 
         self::assertSame(0, $this->entityManager->getRepository(DeckShareLink::class)->count([]));
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), ['expiresInDays' => 365, 'password' => str_repeat('a', 72)]);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck), ['expiresInDays' => 365, 'password' => str_repeat('a', 72)]);
         self::assertResponseIsSuccessful();
         self::assertSame(1, $this->entityManager->getRepository(DeckShareLink::class)->count([]));
     }
@@ -71,8 +71,8 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
     public function testALinkNobodyOpenedIsDeletedAndAnOpenedOneIsOnlyRevoked(): void
     {
         $deck = $this->deck('Suppression');
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), ['label' => 'Jamais ouvert']);
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), ['label' => 'Déjà ouvert']);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck), ['label' => 'Jamais ouvert']);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck), ['label' => 'Déjà ouvert']);
 
         $this->entityManager->clear();
         $links = $this->entityManager->getRepository(DeckShareLink::class)->findBy([], ['id' => 'ASC']);
@@ -82,13 +82,13 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
         $unopenedId = $unopened->getId();
         $openedId = $opened->getId();
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/%d/delete', $deck, $openedId));
+        $this->post(sprintf('/suite/studio/decks/%d/share/%d/delete', $deck, $openedId));
         self::assertResponseStatusCodeSame(409);
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/%d/revoke', $deck, $openedId));
+        $this->post(sprintf('/suite/studio/decks/%d/share/%d/revoke', $deck, $openedId));
         self::assertResponseIsSuccessful();
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/%d/delete', $deck, $unopenedId));
+        $this->post(sprintf('/suite/studio/decks/%d/share/%d/delete', $deck, $unopenedId));
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -100,11 +100,11 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
     {
         $mine = $this->deck('Le mien');
         $other = $this->deck('Un autre');
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $other), []);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $other), []);
         $this->entityManager->clear();
         $link = $this->entityManager->getRepository(DeckShareLink::class)->findOneBy([]);
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/%d/delete', $mine, $link->getId()));
+        $this->post(sprintf('/suite/studio/decks/%d/share/%d/delete', $mine, $link->getId()));
 
         self::assertResponseStatusCodeSame(404);
         self::assertSame(1, $this->entityManager->getRepository(DeckShareLink::class)->count([]));
@@ -124,7 +124,7 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
 
     private function deck(string $title): int
     {
-        $this->post('/backend/studio/decks/create', ['title' => $title]);
+        $this->post('/suite/studio/decks/create', ['title' => $title]);
         self::assertResponseIsSuccessful();
 
         return (int) json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR)['deck']['id'];
@@ -133,8 +133,8 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
     public function testARetiredLinkCanBeHiddenButALiveOneCannot(): void
     {
         $deck = $this->deck('Masquage');
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), ['label' => 'Retiré']);
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), ['label' => 'Vivant']);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck), ['label' => 'Retiré']);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck), ['label' => 'Vivant']);
 
         $this->entityManager->clear();
         $links = [];
@@ -147,10 +147,10 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
         $retired = $links['Retiré']->getId();
         $live = $links['Vivant']->getId();
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/%d/hide', $deck, $live));
+        $this->post(sprintf('/suite/studio/decks/%d/share/%d/hide', $deck, $live));
         self::assertResponseStatusCodeSame(409);
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/%d/hide', $deck, $retired));
+        $this->post(sprintf('/suite/studio/decks/%d/share/%d/hide', $deck, $retired));
         self::assertResponseIsSuccessful();
         $rows = array_column($this->json()['shareLinks'], 'hidden', 'label');
         self::assertEqualsCanonicalizing(['Retiré' => true, 'Vivant' => false], $rows);
@@ -163,13 +163,13 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
     {
         $mine = $this->deck('Le mien');
         $other = $this->deck('Un autre');
-        $this->post(sprintf('/backend/studio/decks/%d/share/create', $other), []);
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $other), []);
         $this->entityManager->clear();
         $link = $this->entityManager->getRepository(DeckShareLink::class)->findOneBy([]);
         $link->revoke(new DateTimeImmutable());
         $this->entityManager->flush();
 
-        $this->post(sprintf('/backend/studio/decks/%d/share/%d/hide', $mine, $link->getId()));
+        $this->post(sprintf('/suite/studio/decks/%d/share/%d/hide', $mine, $link->getId()));
 
         self::assertResponseStatusCodeSame(404);
     }

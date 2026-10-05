@@ -55,7 +55,7 @@ final class DocumentRecolorTest extends IntegrationTestCase
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -120,7 +120,7 @@ final class DocumentRecolorTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            sprintf('/backend/ged/documents/%d/recolor', $green->getId()),
+            sprintf('/suite/ged/documents/%d/recolor', $green->getId()),
             server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
             content: json_encode(['color' => 'red; background: url(x)', 'label' => 'rouge']) ?: '{}',
         );
@@ -136,7 +136,7 @@ final class DocumentRecolorTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            sprintf('/backend/ged/documents/%d/recolor', $green->getId()),
+            sprintf('/suite/ged/documents/%d/recolor', $green->getId()),
             server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
             content: json_encode(['color' => '#bd4a55', 'label' => '  ']) ?: '{}',
         );
@@ -157,7 +157,7 @@ final class DocumentRecolorTest extends IntegrationTestCase
 
         $data = $this->recolor($pdf, ['color' => '#bd4a55', 'label' => 'rouge'], 422);
 
-        self::assertSame('backend.ged.documents.recolor.errors.not_an_image', $data['errors']['color']);
+        self::assertSame('suite.ged.documents.recolor.errors.not_an_image', $data['errors']['color']);
     }
 
     /**
@@ -169,7 +169,7 @@ final class DocumentRecolorTest extends IntegrationTestCase
     {
         $this->client->request(
             'POST',
-            sprintf('/backend/ged/documents/%d/recolor', $document->getId()),
+            sprintf('/suite/ged/documents/%d/recolor', $document->getId()),
             server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
             content: json_encode($payload) ?: '{}',
         );

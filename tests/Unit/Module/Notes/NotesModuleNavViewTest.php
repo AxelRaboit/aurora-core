@@ -18,12 +18,12 @@ use PHPUnit\Framework\TestCase;
  */
 final class NotesModuleNavViewTest extends TestCase
 {
-    private function makeModule(bool $backend = true, bool $markdown = true): NotesModule
+    private function makeModule(bool $suite = true, bool $markdown = true): NotesModule
     {
         $checker = $this->createStub(ModuleAccessChecker::class);
         $checker->method('isEnabled')->willReturnCallback(
             static fn (ModuleParameterEnum $param): bool => match ($param) {
-                ModuleParameterEnum::NotesBackend => $backend,
+                ModuleParameterEnum::NotesSuite => $suite,
                 ModuleParameterEnum::NotesMarkdown => $markdown,
                 default => false,
             },
@@ -38,7 +38,7 @@ final class NotesModuleNavViewTest extends TestCase
 
         self::assertNotNull($view);
         self::assertSame('notes', $view->moduleId);
-        self::assertSame('notes/backend/markdown/NoteTreePanel', $view->panelComponent);
+        self::assertSame('notes/suite/markdown/NoteTreePanel', $view->panelComponent);
     }
 
     /**
@@ -51,12 +51,12 @@ final class NotesModuleNavViewTest extends TestCase
 
         self::assertCount(1, $view->groups);
         self::assertCount(1, $view->groups[0]->items);
-        self::assertSame('backend_notes_markdown', $view->groups[0]->items[0]->route);
+        self::assertSame('suite_notes_markdown', $view->groups[0]->items[0]->route);
     }
 
     public function testItDeclaresNothingWhenTheModuleIsOff(): void
     {
-        self::assertNull($this->makeModule(backend: false)->getModuleNavView());
+        self::assertNull($this->makeModule(suite: false)->getModuleNavView());
         self::assertNull($this->makeModule(markdown: false)->getModuleNavView());
     }
 }

@@ -75,7 +75,7 @@ const VIEWPORT = { width: 1600, height: 1000 };
  */
 async function openNoteByTitle(page, title) {
     const id = await page.evaluate(async (wanted) => {
-        const r = await fetch("/backend/notes/markdown/list", { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" } });
+        const r = await fetch("/suite/notes/markdown/list", { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" } });
         const j = await r.json();
 
         return j.notes.find((n) => wanted === n.title)?.id ?? null;
@@ -83,7 +83,7 @@ async function openNoteByTitle(page, title) {
 
     if (null === id) throw new Error(`la note « ${title} » manque à la démonstration`);
 
-    await page.goto(`${BASE_URL}/backend/notes/markdown/${id}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/suite/notes/markdown/${id}`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2_500);
 
     return id;
@@ -149,7 +149,7 @@ async function placeAt(page, element, top) {
 function postTabShot(name, tab, extra) {
     return {
         name,
-        path: "/backend/editorial/posts/1/edit",
+        path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
             await page.getByRole("button", { name: tab, exact: true }).first().click();
@@ -171,7 +171,7 @@ const DEMO_POST_ID = process.env.TOUR_POST_ID ?? "1";
 async function openPost(page) {
     // `domcontentloaded` et non `load` : l'éditeur garde une connexion ouverte
     // en dev, donc l'événement `load` n'arrive jamais.
-    await page.goto(`${BASE_URL}/backend/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/suite/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(4_000);
 }
 
@@ -237,7 +237,7 @@ const AUDIT_PRESENTATION = "Audit en présentation";
  * le dit, sous la session déjà ouverte.
  */
 async function deliverableId(page, title) {
-    const response = await page.request.get(`${BASE_URL}/backend/studio/deliverables/lists`);
+    const response = await page.request.get(`${BASE_URL}/suite/studio/deliverables/lists`);
     const lists = await response.json();
     const found = [...(lists.shared ?? []), ...(lists.personal ?? [])].find((row) => row.title === title);
 
@@ -305,7 +305,7 @@ const openCard = (title) => async (page) => {
 };
 
 /** Les espaces, d'où toutes les prises d'un espace partent. */
-const SPACES = "/backend/studio/spaces";
+const SPACES = "/suite/studio/spaces";
 
 /**
  * La page que le client ouvre, par une vraie adresse : un lien émis comme le
@@ -371,7 +371,7 @@ function openDeck(title) {
  * écrans ne disent ce qu'ils font qu'une fois quelque chose dessus.
  */
 const SHOTS = [
-    { name: "tour-dashboard", path: "/backend" },
+    { name: "tour-dashboard", path: "/suite" },
     {
         // Le même écran en thème clair, pour la moitié droite du bandeau du
         // sommaire.
@@ -382,7 +382,7 @@ const SHOTS = [
         // chargement : le poser après, sur le document, se ferait écraser par
         // le composable une fraction de seconde plus tard.
         name: "tour-dashboard-clair",
-        path: "/backend",
+        path: "/suite",
         async prepare(page) {
             await page.waitForTimeout(2_500);
         },
@@ -402,7 +402,7 @@ const SHOTS = [
     },
     {
         name: "tour-recherche",
-        path: "/backend",
+        path: "/suite",
         async prepare(page) {
             // Aucun raccourci clavier ne l'ouvre : le bouton est la seule
             // porte, et il s'annonce, ce qui le rend trouvable ici.
@@ -415,14 +415,14 @@ const SHOTS = [
         },
     },
 
-    { name: "tour-publications", path: "/backend/editorial/posts" },
-    { name: "tour-grille", path: "/backend", prepare: postTab(/^Contenu$/) },
-    { name: "tour-entete", path: "/backend", prepare: postTab(/En-tête/) },
-    { name: "tour-seo", path: "/backend", prepare: postTab(/Moteurs/) },
-    { name: "tour-galerie", path: "/backend", prepare: postTab(/Galerie/) },
+    { name: "tour-publications", path: "/suite/editorial/posts" },
+    { name: "tour-grille", path: "/suite", prepare: postTab(/^Contenu$/) },
+    { name: "tour-entete", path: "/suite", prepare: postTab(/En-tête/) },
+    { name: "tour-seo", path: "/suite", prepare: postTab(/Moteurs/) },
+    { name: "tour-galerie", path: "/suite", prepare: postTab(/Galerie/) },
     {
         name: "tour-traductions",
-        path: "/backend",
+        path: "/suite",
         // L'espagnol plutôt que le français : la carte parle d'une seule mise
         // en page pour plusieurs langues, et c'est la langue traduite qui le
         // montre. Le sélecteur de langue est au-dessus des onglets.
@@ -435,16 +435,16 @@ const SHOTS = [
         },
     },
 
-    { name: "tour-types", path: "/backend/editorial/post-types" },
-    { name: "tour-taxonomies", path: "/backend/editorial/taxonomies" },
-    { name: "tour-menus", path: "/backend/editorial/menus" },
-    { name: "tour-commentaires", path: "/backend/editorial/comments" },
+    { name: "tour-types", path: "/suite/editorial/post-types" },
+    { name: "tour-taxonomies", path: "/suite/editorial/taxonomies" },
+    { name: "tour-menus", path: "/suite/editorial/menus" },
+    { name: "tour-commentaires", path: "/suite/editorial/comments" },
     {
         // La liste des formulaires, depuis la 0.9.320 : une entrée de menu,
         // et derrière elle un tableau qui dit pour chacun s'il est en ligne,
         // combien il pose de questions et s'il reçoit des réponses.
         name: "tour-formulaires-liste",
-        path: "/backend/editorial/forms",
+        path: "/suite/editorial/forms",
         async prepare(page) {
             await page.locator("main").getByRole("table").first().waitFor();
             await page.waitForTimeout(1_200);
@@ -454,7 +454,7 @@ const SHOTS = [
         // La création : un titre et un point de départ. Le modèle « Demande
         // de devis » choisi, pour montrer qu'un modèle peut porter des étapes.
         name: "tour-formulaire-modeles",
-        path: "/backend/editorial/forms",
+        path: "/suite/editorial/forms",
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.getByRole("button", { name: /Nouveau formulaire/ }).first().click();
@@ -472,7 +472,7 @@ const SHOTS = [
         // parle. Depuis la 0.9.320 chaque formulaire a sa page ; plus de
         // détour par la liste, ni de repli qui photographierait l'écran
         // d'avant si le clic ratait.
-        path: "/backend/editorial/forms/1",
+        path: "/suite/editorial/forms/1",
         async prepare(page) {
             await page.waitForTimeout(2_500);
             await page.locator("main").getByRole("button", { name: /Type de projet/ }).first().click();
@@ -485,7 +485,7 @@ const SHOTS = [
         // médiathèque en liste sur un écran large, et la carte montre les
         // vignettes.
         name: "tour-mediatheque-grille",
-        path: "/backend/ged/documents",
+        path: "/suite/ged/documents",
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: "Vue cartes" }).click();
             await page.waitForTimeout(2_000);
@@ -500,7 +500,7 @@ const SHOTS = [
      */
     {
         name: "tour-mediatheque-document",
-        path: "/backend/ged/documents",
+        path: "/suite/ged/documents",
         async prepare(page) {
             // Cherché plutôt que cliqué dans la liste : la médiathèque de
             // démonstration tient sur deux pages, et celui-ci n'est pas
@@ -523,7 +523,7 @@ const SHOTS = [
         // posées, et en bas tout ce qu'on peut poser. La carte énumère dix
         // sortes de zones et n'en montrait aucune.
         name: "tour-grille-palette",
-        path: "/backend/editorial/posts/1/edit",
+        path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
             // `exact`, sinon le menu latéral gagne : « Types de contenu » contient
@@ -557,7 +557,7 @@ const SHOTS = [
         // programmation, publication, archivage - et ne montrait que la liste
         // où le statut se lit, jamais l'endroit où il se décide.
         name: "tour-publications-parametrage",
-        path: "/backend/editorial/posts/1/edit",
+        path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             // `domcontentloaded` ne suffit pas ici : l'onglet n'existe qu'une
             // fois le composant monté, et l'éditeur garde une connexion
@@ -578,7 +578,7 @@ const SHOTS = [
         // enregistrée pour le moment », soit l'image qui réussit sans rien
         // montrer.
         name: "tour-publications-historique",
-        path: "/backend/editorial/posts/1/edit",
+        path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
             await page.getByRole("button", { name: "Actions" }).first().click();
@@ -591,7 +591,7 @@ const SHOTS = [
         // La corbeille, qui traverse les modules : supprimer n'efface pas
         // tout de suite, et l'écran dit combien de temps il reste.
         name: "tour-publications-corbeille",
-        path: "/backend/trash",
+        path: "/suite/trash",
     },
     // La carte promet les réglages de l'en-tête et la prise n'en montrait
     // aucun : l'aperçu occupe toute la fenêtre et les contrôles - placement,
@@ -609,7 +609,7 @@ const SHOTS = [
         // second accès ne touche qu'à la galerie, ce qui permet de confier
         // les photos à quelqu'un sans lui ouvrir le reste de la publication.
         name: "tour-galeries-module",
-        path: `/backend/editorial/post-galleries/${DEMO_POST_ID}/edit`,
+        path: `/suite/editorial/post-galleries/${DEMO_POST_ID}/edit`,
         async prepare(page) {
             await page.waitForTimeout(3_500);
         },
@@ -619,7 +619,7 @@ const SHOTS = [
         // mots différents. La carte dit « un onglet par langue » et montrait
         // une page en français.
         name: "tour-multilingue-en",
-        path: "/backend/editorial/posts/1/edit",
+        path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
             await page.getByRole("button", { name: "en", exact: true }).first().click();
@@ -630,7 +630,7 @@ const SHOTS = [
         // Le tableau de bord sur un autre module que l'éditorial : la carte
         // promet « un panneau par module actif, chacun avec ses chiffres ».
         name: "tour-dashboard-modules",
-        path: "/backend",
+        path: "/suite",
         async prepare(page) {
             await page.waitForTimeout(3_000);
 
@@ -649,7 +649,7 @@ const SHOTS = [
     {
         // La recherche ouverte, avec ses résultats groupés par nature.
         name: "tour-recherche-resultats",
-        path: "/backend",
+        path: "/suite",
         async prepare(page) {
             await page.waitForTimeout(3_000);
             await page.keyboard.press("Control+K");
@@ -665,7 +665,7 @@ const SHOTS = [
     {
         // La modération des commentaires et ses trois états.
         name: "tour-commentaires-moderation",
-        path: "/backend/editorial/comments",
+        path: "/suite/editorial/comments",
     },
     {
         // Les demandes reçues par un formulaire : la carte parle de ce qu'un
@@ -681,7 +681,7 @@ const SHOTS = [
         name: "tour-formulaire-reponses",
         // L'onglet Réponses, par son adresse : depuis la 0.9.320 les réponses
         // ont leur onglet, et il est dans le fragment de l'URL.
-        path: "/backend/editorial/forms/1#submissions",
+        path: "/suite/editorial/forms/1#submissions",
         async prepare(page) {
             await page.waitForTimeout(3_000);
         },
@@ -690,7 +690,7 @@ const SHOTS = [
         // Un menu ouvert, avec ses entrées imbriquées : la carte décrit ce
         // qu'une entrée peut viser et montrait la liste des menus.
         name: "tour-menus-entrees",
-        path: "/backend/editorial/menus",
+        path: "/suite/editorial/menus",
         async prepare(page) {
             await page.waitForTimeout(2_500);
             await page.getByRole("link", { name: /Navigation principale/ }).first().click();
@@ -701,7 +701,7 @@ const SHOTS = [
         // Les termes d'une taxonomie : la carte oppose l'arbre des catégories
         // et les étiquettes à plat, sans montrer ni l'un ni l'autre.
         name: "tour-taxonomies-termes",
-        path: "/backend/editorial/taxonomies",
+        path: "/suite/editorial/taxonomies",
         async prepare(page) {
             await page.waitForTimeout(2_500);
             // La page ouvre d'office la première taxonomie, les catégories :
@@ -715,10 +715,10 @@ const SHOTS = [
         // Les champs d'un type de contenu : c'est ce que la carte détaille,
         // et la liste des types n'en dit rien.
         name: "tour-types-champs",
-        path: "/backend/editorial/post-types",
+        path: "/suite/editorial/post-types",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            await page.locator('#sidemenu a[href*="/backend/editorial/post-types/"]', { hasText: "Article" }).first().click();
+            await page.locator('#sidemenu a[href*="/suite/editorial/post-types/"]', { hasText: "Article" }).first().click();
             await page.waitForTimeout(2_500);
         },
     },
@@ -726,7 +726,7 @@ const SHOTS = [
         // La palette d'un thème : la carte parle de couleurs déduites et de
         // contrastes, donc c'est là qu'il faut regarder.
         name: "tour-themes-palette",
-        path: "/backend/configuration/themes",
+        path: "/suite/configuration/themes",
         async prepare(page) {
             await page.waitForTimeout(2_500);
             // Le thème livré avec Aurora, toujours là. Pas de repli : un clic
@@ -741,7 +741,7 @@ const SHOTS = [
         // Les gris du clair et du sombre (1.4.0) : les deux colonnes, leur
         // famille, l'aperçu et les nuances.
         name: "tour-reglages-apparence",
-        path: "/backend/configuration/settings/appearance",
+        path: "/suite/configuration/settings/appearance",
         async prepare(page) {
             await page.waitForTimeout(2_500);
         },
@@ -749,7 +749,7 @@ const SHOTS = [
     {
         // Les couleurs des e-mails (1.4.0), sous la langue, dans leur onglet.
         name: "tour-reglages-emails",
-        path: "/backend/configuration/settings/email",
+        path: "/suite/configuration/settings/email",
         async prepare(page) {
             await page.waitForTimeout(2_000);
         },
@@ -758,7 +758,7 @@ const SHOTS = [
         // Les privilèges d'un compte, écran par écran : c'est la promesse
         // centrale de la carte, et elle ne montrait que la liste des comptes.
         name: "tour-privileges",
-        path: "/backend/platform/users",
+        path: "/suite/platform/users",
         async prepare(page) {
             await page.waitForTimeout(2_500);
             await page.getByTitle(/^Actions pour Jean Martin/).first().click();
@@ -771,7 +771,7 @@ const SHOTS = [
         // Les réglages et leurs onglets : la carte parle de ce qui se règle
         // sans montrer où.
         name: "tour-reglages-onglets",
-        path: "/backend/configuration/settings",
+        path: "/suite/configuration/settings",
         async prepare(page) {
             await page.waitForTimeout(2_500);
         },
@@ -780,7 +780,7 @@ const SHOTS = [
         // Une intégration sur le gabarit commun (0.9.328) : ce qu'elle fait,
         // son état, la carte de connexion, et le mode d'emploi à côté.
         name: "tour-integrations",
-        path: "/backend/configuration/settings/pexels",
+        path: "/suite/configuration/settings/pexels",
         async prepare(page) {
             await page.waitForTimeout(2_000);
             await openGuides(page);
@@ -790,7 +790,7 @@ const SHOTS = [
         // Un encart « Comment ça marche » ouvert, sur un écran simple : chaque
         // écran a le sien, à côté de ce qu'il explique.
         name: "tour-encarts",
-        path: "/backend/ged/categories",
+        path: "/suite/ged/categories",
         async prepare(page) {
             await page.waitForTimeout(1_500);
             await openGuides(page);
@@ -800,13 +800,13 @@ const SHOTS = [
         // Les catégories : une par nature de document, celle qui décide où un
         // fichier est rangé. La carte en parle et ne la montrait pas.
         name: "tour-mediatheque-categories",
-        path: "/backend/ged/categories",
+        path: "/suite/ged/categories",
     },
     {
         // Les étiquettes, qui traversent les catégories : un même document
         // peut en porter autant qu'il veut, là où il n'a qu'une catégorie.
         name: "tour-mediatheque-etiquettes",
-        path: "/backend/ged/tags",
+        path: "/suite/ged/tags",
     },
     {
         // La carte promet « le rendu à côté de la source », et son texte de
@@ -822,7 +822,7 @@ const SHOTS = [
         // pointe vers elle : le panneau s'ouvrait sur « Aucun lien entrant »,
         // au milieu d'une image qui sert à montrer que les notes se relient.
         name: "tour-notes",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await openNoteWithPanel(page, "Cabinet Verrier");
             await page.locator('[data-side-tab="backlinks"]').first().click();
@@ -835,7 +835,7 @@ const SHOTS = [
         // temps de lecture. La fiche du cabinet a des titres sur trois
         // niveaux, donc un plan qui se déplie.
         name: "tour-notes-plan",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await openNoteWithPanel(page, "Cabinet Verrier");
             await page.locator('[data-side-tab="outline"]').first().click();
@@ -848,7 +848,7 @@ const SHOTS = [
         // que la démonstration pose : c'est elle dont l'écart avec le texte
         // courant montre le plus, des lignes retirées comme ajoutées.
         name: "tour-notes-historique",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await openNoteByTitle(page, "Cabinet Verrier");
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
@@ -863,7 +863,7 @@ const SHOTS = [
         // Partir d'un modèle (0.9.331) : « Ajouter » propose les notes
         // marquées comme modèles, et la consigne sur la date du jour.
         name: "tour-notes-modele",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await page.getByTitle("Ajouter", { exact: true }).first().click();
             await page.waitForTimeout(800);
@@ -881,7 +881,7 @@ const SHOTS = [
         // première chose qu'on voit en ouvrant le module, et la carte n'en
         // montrait rien.
         name: "tour-notes-bibliotheque",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await flatten(page);
         },
@@ -891,7 +891,7 @@ const SHOTS = [
         // Trois façons de regarder le même carnet, et une seule était
         // photographiée.
         name: "tour-notes-vue-cartes",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await flatten(page);
             await page.getByTitle("Cartes").first().click();
@@ -902,7 +902,7 @@ const SHOTS = [
         // Et en liste : titre, étiquettes, dossier, date. C'est la vue de
         // celui qui cherche une note précise plutôt que de parcourir.
         name: "tour-notes-vue-liste",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await flatten(page);
             await page.getByTitle("Liste").first().click();
@@ -915,7 +915,7 @@ const SHOTS = [
         // molette, et les six apparences. Une seule fenêtre pour les deux,
         // donc une seule image.
         name: "tour-notes-entete",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
@@ -935,7 +935,7 @@ const SHOTS = [
         // l'avoir jamais montré. Il s'ouvre depuis le menu d'une note, donc
         // il faut en ouvrir une d'abord.
         name: "tour-notes-graphe",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
@@ -962,7 +962,7 @@ const SHOTS = [
         // lignes sans image ni notes liées pendant que le vrai sommaire, sa
         // couverture et son lien « avec les notes liées » restaient à côté.
         name: "tour-notes-partage",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
@@ -972,7 +972,7 @@ const SHOTS = [
             if (undefined === id) throw new Error("la note ne s'est pas ouverte");
 
             const url = await page.evaluate(async (noteId) => {
-                const r = await fetch(`/backend/notes/markdown/shares/${noteId}`, { headers: { Accept: "application/json" } });
+                const r = await fetch(`/suite/notes/markdown/shares/${noteId}`, { headers: { Accept: "application/json" } });
                 const j = await r.json();
 
                 return j?.links?.[0]?.url ?? null;
@@ -999,7 +999,7 @@ const SHOTS = [
         // dans le menu de la note, et ouvrir un menu pour photographier ce
         // qu'il y a derrière allonge le scénario sans rien prouver de plus.
         name: "tour-notes-apparence",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
@@ -1008,7 +1008,7 @@ const SHOTS = [
 
             if (undefined === id) throw new Error("la note ne s'est pas ouverte");
 
-            await page.goto(`${BASE_URL}/backend/notes/markdown/${id}/read`, { waitUntil: "networkidle" });
+            await page.goto(`${BASE_URL}/suite/notes/markdown/${id}/read`, { waitUntil: "networkidle" });
             await page.waitForTimeout(2_000);
         },
     },
@@ -1017,7 +1017,7 @@ const SHOTS = [
         // l'agence », que la démonstration partage avec tout le back-office.
         // Le dossier de l'espace est déplié pour qu'on voie ce qu'il range.
         name: "tour-notes-espaces",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             const header = page.locator("[data-space-header]").filter({ hasText: /Guide de l.agence/i }).first();
             await header.waitFor();
@@ -1040,7 +1040,7 @@ const SHOTS = [
         // Créer un espace : la même fenêtre que pour une note ou un dossier,
         // avec qui y entre et ce qu'on y fait.
         name: "tour-notes-nouvel-espace",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             await page.getByTitle("Ajouter", { exact: true }).first().click();
             await page.waitForTimeout(800);
@@ -1054,7 +1054,7 @@ const SHOTS = [
         // la publication sur le web avec son adresse. Le bouton n'apparaît
         // qu'au survol de l'en-tête, comme pour une vraie souris.
         name: "tour-notes-reglages-espace",
-        path: "/backend/notes/markdown",
+        path: "/suite/notes/markdown",
         async prepare(page) {
             const header = page.locator("[data-space-header]").filter({ hasText: /Guide de l.agence/i }).first();
             await header.hover();
@@ -1074,16 +1074,16 @@ const SHOTS = [
             await page.waitForTimeout(1_500);
         },
     },
-    { name: "tour-calendrier", path: "/backend/planning/calendar" },
+    { name: "tour-calendrier", path: "/suite/planning/calendar" },
 
-    { name: "tour-contrats", path: "/backend/studio/contracts" },
-    { name: "tour-trames", path: "/backend/studio/contract-templates" },
+    { name: "tour-contrats", path: "/suite/studio/contracts" },
+    { name: "tour-trames", path: "/suite/studio/contract-templates" },
     {
         // L'aperçu d'une trame, depuis la 0.9.318 : chaque valeur venue d'une
         // variable est colorée selon sa source (exemple inventé, vraie
         // information, champ à remplir), avec la légende sous l'encadré.
         name: "tour-trame-apercu",
-        path: "/backend/studio/contract-templates",
+        path: "/suite/studio/contract-templates",
         async prepare(page) {
             // Le titre d'une trame n'est pas un lien : c'est sa version qui
             // ouvre l'éditeur.
@@ -1097,7 +1097,7 @@ const SHOTS = [
             await page.waitForTimeout(2_000);
         },
     },
-    { name: "tour-clients", path: "/backend/studio/customers" },
+    { name: "tour-clients", path: "/suite/studio/customers" },
 
     /**
      * Le carrousel de l'en-tête : l'accueil de la démo en a trois diapositives.
@@ -1106,7 +1106,7 @@ const SHOTS = [
      */
     {
         name: "tour-entete-carrousel",
-        path: "/backend/editorial/posts/1/edit",
+        path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
             await page.getByRole("button", { name: "En-tête", exact: true }).first().click();
@@ -1129,11 +1129,11 @@ const SHOTS = [
      * réglages d'un livrable partagé où son auteur le change. Le rayon ouvert
      * se lit dans l'adresse, `?scope=`.
      */
-    { name: "tour-livrables", path: "/backend/studio/deliverables?scope=personal" },
-    { name: "tour-livrables-partages", path: "/backend/studio/deliverables?scope=shared" },
+    { name: "tour-livrables", path: "/suite/studio/deliverables?scope=personal" },
+    { name: "tour-livrables-partages", path: "/suite/studio/deliverables?scope=shared" },
     {
         name: "tour-livrables-nouveau",
-        path: "/backend/studio/deliverables?scope=shared",
+        path: "/suite/studio/deliverables?scope=shared",
         async prepare(page) {
             // L'action seule de la page est rangée dans son menu « Actions ».
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
@@ -1147,7 +1147,7 @@ const SHOTS = [
     },
     {
         name: "tour-livrables-reglages",
-        path: "/backend/studio/deliverables?scope=shared",
+        path: "/suite/studio/deliverables?scope=shared",
         async prepare(page) {
             await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
             await page.waitForLoadState("domcontentloaded");
@@ -1168,7 +1168,7 @@ const SHOTS = [
      */
     {
         name: "tour-livrables-liens",
-        path: "/backend/studio/deliverables?scope=shared",
+        path: "/suite/studio/deliverables?scope=shared",
         async prepare(page) {
             await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
             await page.waitForLoadState("domcontentloaded");
@@ -1183,7 +1183,7 @@ const SHOTS = [
     {
         // Le PDF au lecteur : un réglage de l'apparence, éteint par défaut.
         name: "tour-livrables-pdf",
-        path: "/backend/studio/deliverables?scope=shared",
+        path: "/suite/studio/deliverables?scope=shared",
         async prepare(page) {
             await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
             await page.waitForLoadState("domcontentloaded");
@@ -1205,9 +1205,9 @@ const SHOTS = [
      */
     {
         name: "tour-livrables-audit",
-        path: "/backend/studio/deliverables?scope=personal",
+        path: "/suite/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}/preview`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/suite/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}/preview`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(2_500);
             await page.getByRole("heading", { name: /Présentation de l'entreprise/i }).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 40, behavior: "instant" }));
             await page.waitForTimeout(1_500);
@@ -1215,17 +1215,17 @@ const SHOTS = [
     },
     {
         name: "tour-livrables-presentation",
-        path: "/backend/studio/deliverables?scope=personal",
+        path: "/suite/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_PRESENTATION)}/preview#diapo-11`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/suite/studio/deliverables/${await deliverableId(page, AUDIT_PRESENTATION)}/preview#diapo-11`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
         },
     },
     {
         name: "tour-livrables-ambiances",
-        path: "/backend/studio/deliverables?scope=personal",
+        path: "/suite/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/suite/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main").getByRole("tab", { name: "Apparence", exact: true }).first().click();
             await page.waitForTimeout(1_500);
@@ -1235,9 +1235,9 @@ const SHOTS = [
     },
     {
         name: "tour-grille-sections",
-        path: "/backend/studio/deliverables?scope=personal",
+        path: "/suite/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/suite/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main").getByRole("button", { name: "Insérer une section" }).first().click();
             await page.getByRole("dialog").first().waitFor();
@@ -1246,10 +1246,10 @@ const SHOTS = [
     },
     {
         name: "tour-grille-apercu",
-        path: "/backend/studio/deliverables?scope=personal",
+        path: "/suite/studio/deliverables?scope=personal",
         async prepare(page) {
             await page.addInitScript(() => window.localStorage.setItem("aurora.grid.split", "1"));
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/suite/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main aside").getByTitle("Téléphone").click();
             await page.waitForTimeout(4_000);
@@ -1264,10 +1264,10 @@ const SHOTS = [
     },
     {
         name: "tour-grille-plan",
-        path: "/backend/studio/deliverables?scope=personal",
+        path: "/suite/studio/deliverables?scope=personal",
         async prepare(page) {
             await page.addInitScript(() => window.localStorage.setItem("aurora.grid.split", "0"));
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/suite/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main").getByText(/Plan du document/).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: "instant" }));
             await page.waitForTimeout(1_000);
@@ -1282,7 +1282,7 @@ const SHOTS = [
      */
     {
         name: "tour-mediatheque-variante",
-        path: "/backend/ged/documents",
+        path: "/suite/ged/documents",
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: "Vue liste" }).click();
             await page.waitForTimeout(1_500);
@@ -1299,11 +1299,11 @@ const SHOTS = [
      * douze diapositives passent par tous les gabarits, là où la trame n'en a
      * que quatre.
      */
-    { name: "tour-presentations", path: "/backend/studio/decks" },
-    { name: "tour-presentations-editeur", path: "/backend/studio/decks", prepare: openDeck("Réunion de lancement") },
+    { name: "tour-presentations", path: "/suite/studio/decks" },
+    { name: "tour-presentations-editeur", path: "/suite/studio/decks", prepare: openDeck("Réunion de lancement") },
     {
         name: "tour-presentations-diaporama",
-        path: "/backend/studio/decks",
+        path: "/suite/studio/decks",
         async prepare(page) {
             await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: "Présenter" }).click();
@@ -1322,7 +1322,7 @@ const SHOTS = [
      */
     {
         name: "tour-presentations-libre",
-        path: "/backend/studio/decks",
+        path: "/suite/studio/decks",
         async prepare(page) {
             await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
@@ -1336,7 +1336,7 @@ const SHOTS = [
     },
     {
         name: "tour-presentations-libre-diaporama",
-        path: "/backend/studio/decks",
+        path: "/suite/studio/decks",
         async prepare(page) {
             await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
@@ -1359,7 +1359,7 @@ const SHOTS = [
         // par sa référence dans la liste plutôt que par un identifiant en dur,
         // qui dépend de ce que la base contenait quand les fixtures ont tourné.
         // La référence sans suffixe : celle en « -A1 » est l'avenant lui-même.
-        path: "/backend/studio/contracts",
+        path: "/suite/studio/contracts",
         async prepare(page) {
             const row = page
                 .locator("main table tbody tr")
@@ -1367,7 +1367,7 @@ const SHOTS = [
                 .filter({ hasText: "Roux Photographie" })
                 .filter({ hasNotText: "-A1" })
                 .first();
-            await row.locator("a[href*='/backend/studio/contracts/']").first().click();
+            await row.locator("a[href*='/suite/studio/contracts/']").first().click();
             await page.waitForLoadState("networkidle");
             await page.waitForTimeout(1_500);
         },
@@ -1381,14 +1381,14 @@ const SHOTS = [
      */
     {
         name: "tour-contrat-adapte",
-        path: "/backend/studio/contracts",
+        path: "/suite/studio/contracts",
         async prepare(page) {
             const row = page
                 .locator("main table tbody tr")
                 .filter({ hasText: "Brouillon" })
                 .filter({ hasText: "Atelier Dupont" })
                 .first();
-            await row.locator("a[href*='/backend/studio/contracts/']").first().click();
+            await row.locator("a[href*='/suite/studio/contracts/']").first().click();
             await page.waitForLoadState("networkidle");
             await page.locator("main").getByRole("link", { name: "Voir le texte" }).first().click();
             await page.waitForLoadState("networkidle");
@@ -1583,7 +1583,7 @@ const SHOTS = [
      */
     {
         name: "tour-corbeille",
-        path: "/backend/trash",
+        path: "/suite/trash",
         async prepare(page) {
             await page.waitForTimeout(1_500);
         },
@@ -1592,7 +1592,7 @@ const SHOTS = [
         // Un autre module dans le même écran : la publication supprimée,
         // avec le lien vers la liste d'où elle vient.
         name: "tour-corbeille-publications",
-        path: "/backend/trash",
+        path: "/suite/trash",
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: /Publications/ }).first().click();
             await page.waitForTimeout(1_200);
@@ -1601,7 +1601,7 @@ const SHOTS = [
     {
         // Vider demande confirmation, et dit que c'est sans retour.
         name: "tour-corbeille-vider",
-        path: "/backend/trash",
+        path: "/suite/trash",
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: "Vider", exact: true }).click();
             await page.waitForTimeout(1_000);
@@ -1615,7 +1615,7 @@ const SHOTS = [
      */
     {
         name: "tour-corbeille-livrables",
-        path: "/backend/trash",
+        path: "/suite/trash",
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: /Livrables/ }).first().click();
             await page.waitForTimeout(1_200);
@@ -1623,7 +1623,7 @@ const SHOTS = [
     },
     {
         name: "tour-corbeille-presentations",
-        path: "/backend/trash",
+        path: "/suite/trash",
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: /Présentations/ }).first().click();
             await page.waitForTimeout(1_200);
@@ -1640,7 +1640,7 @@ const SHOTS = [
      */
     {
         name: "tour-publications-selection",
-        path: "/backend/editorial/posts",
+        path: "/suite/editorial/posts",
         async prepare(page) {
             const cases = page.locator("main tbody input[type=checkbox]");
 
@@ -1655,7 +1655,7 @@ const SHOTS = [
     },
     {
         name: "tour-publications-dupliquer",
-        path: "/backend/editorial/posts",
+        path: "/suite/editorial/posts",
         async prepare(page) {
             // La première ligne, quelle qu'elle soit : l'ordre de la liste
             // suit la date de modification, et un titre nommé ici passait en
@@ -1673,7 +1673,7 @@ const SHOTS = [
      */
     {
         name: "tour-profil",
-        path: "/backend/general/profile",
+        path: "/suite/general/profile",
         async prepare(page) {
             await page.locator("main textarea").first().fill("En séance photo jusqu'à 18 h, je réponds le soir.");
             await page.locator("main textarea").first().blur();
@@ -1684,7 +1684,7 @@ const SHOTS = [
         // Le menu latéral à sa main : une couleur pour une section, un module
         // masqué. Rien n'est enregistré, pour la même raison.
         name: "tour-profil-menu",
-        path: "/backend/general/profile/sidemenu",
+        path: "/suite/general/profile/sidemenu",
         async prepare(page) {
             await page.locator("main [title='amber']").first().click();
             const ligne = page.locator("main .divide-y > div", { has: page.getByText("Corbeille", { exact: true }) }).first();
@@ -1739,14 +1739,14 @@ const SHOTS = [
         },
     },
 
-    { name: "tour-utilisateurs", path: "/backend/platform/users" },
+    { name: "tour-utilisateurs", path: "/suite/platform/users" },
     { name: "tour-audit", path: "/dev/dashboard/audit" },
-    { name: "tour-themes", path: "/backend/configuration/themes" },
-    { name: "tour-reglages", path: "/backend/configuration/settings/general" },
+    { name: "tour-themes", path: "/suite/configuration/themes" },
+    { name: "tour-reglages", path: "/suite/configuration/settings/general" },
 
     {
         name: "tour-calendrier-semaine",
-        path: "/backend/planning/calendar",
+        path: "/suite/planning/calendar",
         async prepare(page) {
             await page.getByRole("button", { name: /^Semaine$/ }).click();
             await page.waitForTimeout(1_000);
@@ -1893,11 +1893,11 @@ const SHOTS = [
 ];
 
 async function login(page) {
-    await page.goto(`${BASE_URL}/backend/platform/login`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/suite/platform/login`, { waitUntil: "domcontentloaded" });
     await page.locator("input[type='email'], input[name*='email']").first().fill(EMAIL);
     await page.locator("input[type='password']").first().fill(PASSWORD);
     await page.locator("button[type='submit']").first().click();
-    await page.waitForURL(/\/backend/, { timeout: 15_000 });
+    await page.waitForURL(/\/suite/, { timeout: 15_000 });
 }
 
 /**

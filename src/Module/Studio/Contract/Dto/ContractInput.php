@@ -18,24 +18,24 @@ use Symfony\Component\Validator\Constraints as Assert;
 class ContractInput implements ContractInputInterface
 {
     public function __construct(
-        #[Assert\NotNull(message: 'backend.studio.contracts.errors.customer_required')]
-        #[Assert\Positive(message: 'backend.studio.contracts.errors.customer_required')]
+        #[Assert\NotNull(message: 'suite.studio.contracts.errors.customer_required')]
+        #[Assert\Positive(message: 'suite.studio.contracts.errors.customer_required')]
         public readonly ?int $customerId = null,
-        #[Assert\NotNull(message: 'backend.studio.contracts.errors.body_required')]
-        #[Assert\Positive(message: 'backend.studio.contracts.errors.body_required')]
+        #[Assert\NotNull(message: 'suite.studio.contracts.errors.body_required')]
+        #[Assert\Positive(message: 'suite.studio.contracts.errors.body_required')]
         public readonly ?int $bodyTemplateId = null,
         public readonly ?int $annexTemplateId = null,
-        #[Assert\NotBlank(message: 'backend.studio.contracts.errors.locale_required')]
+        #[Assert\NotBlank(message: 'suite.studio.contracts.errors.locale_required')]
         #[Assert\Length(max: 10)]
         public readonly string $locale = 'fr',
-        #[Assert\PositiveOrZero(message: 'backend.studio.contracts.errors.amount_invalid')]
+        #[Assert\PositiveOrZero(message: 'suite.studio.contracts.errors.amount_invalid')]
         public readonly ?int $amountCents = null,
         #[Assert\Length(max: 3)]
         public readonly ?string $amountCurrency = null,
         // A date the browser sends as Y-m-d. Kept as a string here and parsed
         // by the manager, so an unparseable one is a field error rather than a
         // type error thrown out of a constructor.
-        #[Assert\Regex(pattern: '/^\d{4}-\d{2}-\d{2}$/', message: 'backend.studio.contracts.errors.effective_date_invalid')]
+        #[Assert\Regex(pattern: '/^\d{4}-\d{2}-\d{2}$/', message: 'suite.studio.contracts.errors.effective_date_invalid')]
         public readonly ?string $effectiveDate = null,
         // The blanks the chosen trames ask for, keyed without the
         // `contract.custom.` prefix. Which ones are required is the wording's
@@ -44,13 +44,13 @@ class ContractInput implements ContractInputInterface
         // can only be a mistake.
         #[Assert\All([
             new Assert\Type('string'),
-            new Assert\Length(max: 500, maxMessage: 'backend.studio.contracts.errors.custom_field_too_long'),
+            new Assert\Length(max: 500, maxMessage: 'suite.studio.contracts.errors.custom_field_too_long'),
         ])]
         public readonly array $customFields = [],
         // The contract this one amends, when it is an amendment. Optional, and
         // the discriminator: a contract with a parent is an amendment, so
         // there is no second field saying so that could disagree with it.
-        #[Assert\Positive(message: 'backend.studio.contracts.errors.amends_invalid')]
+        #[Assert\Positive(message: 'suite.studio.contracts.errors.amends_invalid')]
         public readonly ?int $amendsId = null,
     ) {}
 

@@ -37,6 +37,6 @@ enum DeckPatternEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.patterns.'.$this->value;
+        return 'suite.studio.decks.patterns.'.$this->value;
     }
 }

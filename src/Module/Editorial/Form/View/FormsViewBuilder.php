@@ -62,7 +62,7 @@ final readonly class FormsViewBuilder
                 'submissionCount' => $counts[$id] ?? 0,
                 'lastSubmittedAt' => $lastAt[$id] ?? null,
                 'updatedAt' => $form->getUpdatedAt()->format(DATE_ATOM),
-                'editPath' => $this->urlGenerator->generate('backend_editorial_forms_show', ['id' => $id]),
+                'editPath' => $this->urlGenerator->generate('suite_editorial_forms_show', ['id' => $id]),
             ];
         }
 

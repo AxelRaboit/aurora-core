@@ -28,8 +28,8 @@ enum CustomerSpaceStatusEnum: string
     public function getLabelKey(): string
     {
         return match ($this) {
-            self::Active => 'backend.studio.spaces.statuses.active',
-            self::Archived => 'backend.studio.spaces.statuses.archived',
+            self::Active => 'suite.studio.spaces.statuses.active',
+            self::Archived => 'suite.studio.spaces.statuses.archived',
         };
     }
 }

@@ -15,7 +15,7 @@ sous `var/uploads` à n'importe qui. Conséquences mesurées le 13/09/2026 :
   via `/document/{id}` dont la séquence s'énumère ;
 - les PDF de contrats signés aussi, et leur chemin est
   `contracts/<année>/<référence>.pdf` - une référence séquentielle. La route
-  `/backend/studio/contracts/{id}/pdf` et son `IsGranted` se contournaient
+  `/suite/studio/contracts/{id}/pdf` et son `IsGranted` se contournaient
   donc en passant par `/uploads/`. Le docblock de `storedPdf()` affirmait que
   le catch-all exigeait une session : il n'en exigeait aucune.
 
@@ -30,7 +30,7 @@ sous `var/uploads` à n'importe qui. Conséquences mesurées le 13/09/2026 :
 3. **Ne jamais poser un contrôle de privilège dans un guard.** Le firewall
    `admin` est `^/(backend|dev)` ; sur `/uploads/…` aucune identité backend
    n'existe, la question a toujours la même réponse. Le personnel lit par une
-   route sous `/backend` - `backend_ged_files` pour la GED.
+   route sous `/suite` - `suite_ged_files` pour la GED.
 4. **Couvrir les fichiers dérivés.** Une taille générée
    (`<dir>/variants/<taille>/<stem>.webp`) et une vignette
    (`ged/thumbnails/Y/m/…`) ont leurs propres clés. `filterPathsInUse()` ne

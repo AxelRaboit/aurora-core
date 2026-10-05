@@ -3,24 +3,24 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 describe("buildPath", () => {
     it("replaces a single placeholder", () => {
-        expect(
-            buildPath("/backend/platform/users/__id__/edit", { id: 42 }),
-        ).toBe("/backend/platform/users/42/edit");
+        expect(buildPath("/suite/platform/users/__id__/edit", { id: 42 })).toBe(
+            "/suite/platform/users/42/edit",
+        );
     });
 
     it("replaces multiple placeholders", () => {
         expect(
-            buildPath("/backend/ged/documents/__id__/versions/__versionId__", {
+            buildPath("/suite/ged/documents/__id__/versions/__versionId__", {
                 id: 1,
                 versionId: 7,
             }),
-        ).toBe("/backend/ged/documents/1/versions/7");
+        ).toBe("/suite/ged/documents/1/versions/7");
     });
 
     it("URI-encodes values with special characters", () => {
         expect(
-            buildPath("/backend/parameters/__key__", { key: "site/name" }),
-        ).toBe("/backend/parameters/site%2Fname");
+            buildPath("/suite/parameters/__key__", { key: "site/name" }),
+        ).toBe("/suite/parameters/site%2Fname");
     });
 
     it("URI-encodes emails", () => {
@@ -30,18 +30,18 @@ describe("buildPath", () => {
     });
 
     it("returns the template untouched when params is empty", () => {
-        expect(buildPath("/backend/platform/users", {})).toBe(
-            "/backend/platform/users",
+        expect(buildPath("/suite/platform/users", {})).toBe(
+            "/suite/platform/users",
         );
-        expect(buildPath("/backend/platform/users")).toBe(
-            "/backend/platform/users",
+        expect(buildPath("/suite/platform/users")).toBe(
+            "/suite/platform/users",
         );
     });
 
     it("leaves unknown placeholders intact", () => {
         // Caller should know what to fill - silent tolerance keeps it composable.
-        expect(buildPath("/backend/__a__/__b__", { a: 1 })).toBe(
-            "/backend/1/__b__",
+        expect(buildPath("/suite/__a__/__b__", { a: 1 })).toBe(
+            "/suite/1/__b__",
         );
     });
 

@@ -46,7 +46,7 @@ final readonly class ZoneMediaViews
         }
 
         // A media zone renders an `<img>`, so what it holds has to be an
-        // image. The backend picker only ever offers those, but three paths
+        // image. The suite picker only ever offers those, but three paths
         // reach past it - a fixture, an API write, and a document whose file
         // is replaced after the zone was configured - and an `<img>` pointed
         // at an mp4 is a broken image with nothing said anywhere.
@@ -510,7 +510,7 @@ final readonly class ZoneMediaViews
         // Published only, for the reason {@see documentCard} gives, and it
         // bites harder here. Since `/uploads` began withholding anything not
         // published, {@see DocumentUrlGenerator::publicUrl} hands back the
-        // backend address for a draft - so a zone naming one would draw a
+        // suite address for a draft - so a zone naming one would draw a
         // player that answers 403 to every visitor, silently. A picture in
         // that state at least shows a broken image; a dead player shows
         // nothing at all and reads as a site that does not work.

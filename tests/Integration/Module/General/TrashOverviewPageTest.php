@@ -30,14 +30,14 @@ final class TrashOverviewPageTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
 
     public function testThePageListsTheTrashesOfTheEnabledModules(): void
     {
-        $this->client->request('GET', '/backend/trash');
+        $this->client->request('GET', '/suite/trash');
 
         self::assertResponseIsSuccessful();
 
@@ -69,8 +69,8 @@ final class TrashOverviewPageTest extends IntegrationTestCase
             $rows[$key] = [$row['sectionLabel'], $row['listPath']];
         }
 
-        self::assertSame(['GED', '/backend/ged/documents'], $rows['ged_folders']);
-        self::assertSame(['Éditorial', '/backend/editorial/posts'], $rows['editorial_posts']);
+        self::assertSame(['GED', '/suite/ged/documents'], $rows['ged_folders']);
+        self::assertSame(['Éditorial', '/suite/editorial/posts'], $rows['editorial_posts']);
         self::assertSame('Notes', $rows['notes_markdown'][0]);
     }
 
@@ -79,7 +79,7 @@ final class TrashOverviewPageTest extends IntegrationTestCase
      */
     private function rowsByKey(): array
     {
-        $this->client->request('GET', '/backend/trash');
+        $this->client->request('GET', '/suite/trash');
         self::assertResponseIsSuccessful();
 
         $rows = [];
@@ -123,7 +123,7 @@ final class TrashOverviewPageTest extends IntegrationTestCase
      */
     private function rowFor(string $key): array
     {
-        $this->client->request('GET', '/backend/trash');
+        $this->client->request('GET', '/suite/trash');
         self::assertResponseIsSuccessful();
 
         foreach ($this->trashPayload() as $row) {
@@ -141,7 +141,7 @@ final class TrashOverviewPageTest extends IntegrationTestCase
     private function trashPayload(): array
     {
         $node = $this->client->getCrawler()
-            ->filter('[data-symfony--ux-vue--vue-component-value="general/backend/trash/TrashApp"]')
+            ->filter('[data-symfony--ux-vue--vue-component-value="general/suite/trash/TrashApp"]')
             ->first();
         self::assertGreaterThan(0, $node->count(), 'the page mounts no Vue component');
 

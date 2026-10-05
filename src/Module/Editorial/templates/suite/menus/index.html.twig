@@ -1,0 +1,28 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.menus'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.editorial'|trans},
+            {label: 'suite.nav.menus'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/suite/menus/MenusApp', {
+    menus: menus,
+    activeId: activeId,
+    locales: locales,
+    targetTypes: targetTypes,
+    visibilities: visibilities,
+    targetsPath: path('suite_editorial_menus_targets'),
+    updatePathTemplate: path_template('suite_editorial_menus_update', {id: '__id__'}),
+    itemCreatePathTemplate: path_template('suite_editorial_menus_item_create', {id: '__id__'}),
+    itemEditPathTemplate: path_template('suite_editorial_menus_item_edit', {id: '__id__', itemId: '__itemId__'}),
+    itemDeletePathTemplate: path_template('suite_editorial_menus_item_delete', {id: '__id__', itemId: '__itemId__'}),
+    itemReorderPathTemplate: path_template('suite_editorial_menus_item_reorder', {id: '__id__'}),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

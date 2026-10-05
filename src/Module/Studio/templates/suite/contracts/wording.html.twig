@@ -1,0 +1,31 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.studio.contracts.wording.title'|trans }} - {{ contract.reference ?? 'suite.studio.contracts.draft_title'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_contracts'|trans, href: path('suite_studio_contracts')},
+            {label: contract.reference ?? contract.customerName, href: showPath},
+            {label: 'suite.studio.contracts.wording.title'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/contracts/ContractWordingApp', {
+    contract: contract,
+    part: part,
+    parts: parts,
+    template: template,
+    original: original,
+    adapted: adapted,
+    locale: locale,
+    variableGroups: variableGroups,
+    savePath: savePath,
+    resetPath: resetPath,
+    showPath: showPath,
+    templateVersionPath: templateVersionPath,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

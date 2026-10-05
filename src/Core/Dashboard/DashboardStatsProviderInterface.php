@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Core\Dashboard;
 
 /**
- * A module-contributed slice of the backend dashboard statistics.
+ * A module-contributed slice of the suite dashboard statistics.
  *
  * Lives in core so the General dashboard aggregator never imports a business
  * module's repositories: each module ships its own provider (e.g.

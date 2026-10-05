@@ -112,7 +112,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         $customerSignature = $this->signatures->findOneForRole($contract, ContractSignatureRoleEnum::Customer);
 
         if (!$customerSignature instanceof ContractSignatureInterface) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.customer_has_not_signed'));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.customer_has_not_signed'));
         }
 
         $signature = $this->build($contract, $input, ContractSignatureRoleEnum::Provider, $request);
@@ -172,11 +172,11 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         $locale = ContractSignatureRoleEnum::Customer === $role ? $contract->getLocale() : null;
 
         if (!$contract->isFrozen()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing', [], null, $locale));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.seal_before_signing', [], null, $locale));
         }
 
         if (ContractStatusEnum::Countersigned === $contract->getStatus()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_concluded', [], null, $locale));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.already_concluded', [], null, $locale));
         }
 
         // Checked at the moment it matters: a signature binds whoever gives it
@@ -184,24 +184,24 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         // It was checked nowhere, and an altered document would have been
         // signed, then printed.
         if (!$this->seal->verify($contract)) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_broken', [], null, $locale));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.seal_broken', [], null, $locale));
         }
 
         foreach ([ContractStatusEnum::Refused, ContractStatusEnum::Expired, ContractStatusEnum::Revoked, ContractStatusEnum::Cancelled] as $closed) {
             if ($closed === $contract->getStatus()) {
-                throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed', [], null, $locale));
+                throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.contract_closed', [], null, $locale));
             }
         }
 
         // An amendment binds nothing once the contract it modifies has ended.
         if ($contract->getAmends()?->isTerminationEffective() ?? false) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.amends_terminated', [], null, $locale));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.amends_terminated', [], null, $locale));
         }
 
         if ($this->signatures->findOneForRole($contract, $role) instanceof ContractSignatureInterface) {
             // The unique index says the same thing, as a driver exception. This
             // says it as a sentence.
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.role_already_signed', [], null, $locale));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.role_already_signed', [], null, $locale));
         }
     }
 
@@ -294,7 +294,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         //
         // Sent from inside a borrowed local path rather than from a path held
         // afterwards: the mail service attaches by filename, and on a remote
-        // backend the file only exists for the length of the callback. On the
+        // suite the file only exists for the length of the callback. On the
         // server's own disk nothing is copied and this costs nothing.
         if ($contract->hasPdf()) {
             $this->pdf->withLocalCopy($contract, function (string $path) use ($contract): void {

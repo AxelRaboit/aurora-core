@@ -242,7 +242,7 @@ shared:
 # Editor.js - keys shared by all consumers of AppBlockEditor. Labels for
 # module-specific tools injected via `extraTools` stay in that module's
 # own messages.en.yaml.
-backend:
+suite:
     help:
         storage:
             delivery_mode:

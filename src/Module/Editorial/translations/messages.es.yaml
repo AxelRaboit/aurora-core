@@ -1,4 +1,4 @@
-backend:
+suite:
     permissions:
         names:
             editorial:
@@ -34,8 +34,8 @@ backend:
                     delete: 'Eliminar los formularios'
     modules:
         editorial: Editorial
-        editorial_backend: Editorial
-        editorial_backend_description: 'Activa la sección Editorial en la administración.'
+        editorial_suite: Editorial
+        editorial_suite_description: 'Activa la sección Editorial en la administración.'
         editorial_frontend: 'Sitio público editorial'
         editorial_frontend_description: 'Sirve a los lectores las publicaciones, las páginas de lista y las páginas de taxonomía.'
     editorial:
@@ -982,7 +982,7 @@ backend:
             zone_document_label: 'Texto del enlace'
             zone_document_label_placeholder: 'Nuestro folleto 2026'
             terms_taxonomy: Taxonomía
-            terms_taxonomy_hint: 'Se muestran todos sus términos, en el orden del back-office, cada uno hacia su página. Un término añadido después aparece solo.'
+            terms_taxonomy_hint: 'Se muestran todos sus términos, en el orden dla suite, cada uno hacia su página. Un término añadido después aparece solo.'
             terms_taxonomy_none: 'Elegir una taxonomía…'
             terms_caption: 'Título encima'
             terms_caption_placeholder: 'Nuestros ámbitos'
@@ -2245,6 +2245,6 @@ editorial:
             admin_heading: 'Nuevo envío'
             admin_intro: 'El formulario «{form}» acaba de rellenarse.'
             admin_language: Idioma
-            cta_open: 'Abrir en el back-office'
+            cta_open: 'Abrir en la suite'
             confirmation_heading: 'Mensaje recibido'
             confirmation_intro: 'Gracias, hemos recibido su mensaje enviado a través de «{form}».'

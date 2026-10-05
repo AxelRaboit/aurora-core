@@ -12,9 +12,9 @@
  * the studio was asked to act on, and a provider able to delete a complaint has
  * a record of the engagement that proves nothing.
  *
- * It sits in `assets/shared/` rather than under `backend/` because both
+ * It sits in `assets/shared/` rather than under `suite/` because both
  * surfaces mount it, and its own words are `shared.thread.*` for the same
- * reason: a key under `backend.` rendered on a page a customer reads is a
+ * reason: a key under `suite.` rendered on a page a customer reads is a
  * namespace that has stopped meaning anything. The one sentence that differs
  * between the two - who reads what is typed here - arrives as `notice`.
  */

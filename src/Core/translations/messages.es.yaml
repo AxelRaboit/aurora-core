@@ -238,7 +238,7 @@ shared:
         title: 'Recortar la imagen'
         apply: 'Aplicar el recorte'
         cropped: 'Imagen recortada'
-backend:
+suite:
     help:
         storage:
             delivery_mode:

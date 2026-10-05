@@ -53,16 +53,16 @@ final class NoteShareTest extends IntegrationTestCase
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
 
         $users = static::getContainer()->get(UserRepository::class);
-        $owner = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $owner = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $owner);
         $this->owner = $owner;
 
-        $other = $users->findOneBy(['type' => UserTypeEnum::Backend->value, 'email' => 'partage-notes@aurora.test']);
+        $other = $users->findOneBy(['type' => UserTypeEnum::Suite->value, 'email' => 'partage-notes@aurora.test']);
         if (!$other instanceof User) {
             $other = new User();
             $other->setEmail('partage-notes@aurora.test');
             $other->setName('Autre');
-            $other->setType(UserTypeEnum::Backend);
+            $other->setType(UserTypeEnum::Suite);
             $other->setPassword('x');
             $other->setRoles($owner->getRoles());
             $this->entityManager->persist($other);
@@ -195,7 +195,7 @@ final class NoteShareTest extends IntegrationTestCase
         $this->client->loginUser($this->other, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_shares_create'),
+            $this->urlGenerator->generate('suite_notes_markdown_shares_create'),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['noteId' => $note->getId()], JSON_THROW_ON_ERROR),
         );
@@ -211,7 +211,7 @@ final class NoteShareTest extends IntegrationTestCase
         $this->client->loginUser($this->other, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_shares_revoke', ['id' => $link->getId()]),
+            $this->urlGenerator->generate('suite_notes_markdown_shares_revoke', ['id' => $link->getId()]),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: '{}',
         );
@@ -370,13 +370,13 @@ final class NoteShareTest extends IntegrationTestCase
         // encrypted column before any request has been made throws, and only
         // the first such test in a run does. Ordering luck is not a thing to
         // rely on.
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown'));
 
         $note = $this->note('À partager', 'Voir [[Autre]].');
 
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_shares_create'),
+            $this->urlGenerator->generate('suite_notes_markdown_shares_create'),
             server: ['CONTENT_TYPE' => 'application/json'],
             // Exactly what the modal posts, empty strings included.
             content: json_encode([

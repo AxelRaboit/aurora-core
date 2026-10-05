@@ -15,13 +15,13 @@ use function sprintf;
  * Every staff-only path is inside the admin firewall's pattern.
  *
  * The check exists because getting this wrong fails silently in the worst
- * possible direction. Outside `^/(backend|dev|workspace)` no backend session is
+ * possible direction. Outside `^/(suite|dev|workspace)` no suite session is
  * restored, so a member of the team opening a client space would arrive as an
  * anonymous visitor: not an error, not a 500, just a redirect to the front
  * login of a site they administer.
  *
  * It matters more than usual for `/workspace`, which is deliberately not under
- * `/backend`: a space is opened in its own shell, without the admin chrome, and
+ * `/suite`: a space is opened in its own shell, without the admin chrome, and
  * the address says so. Leaving the prefix is a presentation decision; losing
  * the identity that comes with it would be an accident.
  */
@@ -39,9 +39,9 @@ final class AdminFirewallCoversStaffRoutesTest extends TestCase
     public static function staffPrefixProvider(): array
     {
         return [
-            ['/backend/studio/spaces', 'the back-office itself'],
+            ['/suite/studio/spaces', 'the back-office itself'],
             ['/dev/dashboard', 'the developer screens'],
-            ['/workspace/1', 'a client space, outside /backend on purpose'],
+            ['/workspace/1', 'a client space, outside /suite on purpose'],
         ];
     }
 
@@ -55,7 +55,7 @@ final class AdminFirewallCoversStaffRoutesTest extends TestCase
             1,
             preg_match('#'.$pattern.'#', $path),
             sprintf(
-                'the admin firewall pattern "%s" does not cover "%s" (%s), so no backend identity would be restored there',
+                'the admin firewall pattern "%s" does not cover "%s" (%s), so no suite identity would be restored there',
                 $pattern,
                 $path,
                 $what,

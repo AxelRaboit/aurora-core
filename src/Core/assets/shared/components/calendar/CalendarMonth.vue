@@ -254,7 +254,7 @@ function addOn(date) {
                                 ? { backgroundColor: `var(--chart-cat-${reminder.colourSlot})` }
                                 : {}"
                             :aria-pressed="reminder.completed"
-                            :title="t('backend.plannings.reminders.completed')"
+                            :title="t('suite.plannings.reminders.completed')"
                             v-on:click.stop="emit('toggle-reminder', reminder)"
                         >
                             <Check v-if="reminder.completed" class="w-2.5 h-2.5 text-white" :stroke-width="3" />
@@ -275,7 +275,7 @@ function addOn(date) {
                         v-if="!compact && week.hiddenPerDay[week.cells.indexOf(cell)] > 0"
                         class="text-2xs text-muted"
                     >
-                        {{ t("backend.plannings.more", { count: week.hiddenPerDay[week.cells.indexOf(cell)] }) }}
+                        {{ t("suite.plannings.more", { count: week.hiddenPerDay[week.cells.indexOf(cell)] }) }}
                     </span>
                 </div>
             </div>

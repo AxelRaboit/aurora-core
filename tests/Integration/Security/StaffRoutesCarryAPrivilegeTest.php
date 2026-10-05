@@ -23,7 +23,7 @@ use function str_starts_with;
 /**
  * Every staff route names what it takes to open it.
  *
- * `/backend` and `/workspace` only ask to be signed in to the back office
+ * `/suite` and `/workspace` only ask to be signed in to the back office
  * (security.yaml); what a person may do there is the `#[IsGranted]` on the
  * controller or its action. A route without one is open to any staff account,
  * a fresh one with no privilege ticked included - and nothing says so. The
@@ -37,16 +37,16 @@ final class StaffRoutesCarryAPrivilegeTest extends KernelTestCase
 {
     /** Reached before signing in: login, password, registration, invitation, access request. */
     private const array BEFORE_SIGNING_IN = [
-        'backend_platform_login',
-        'backend_platform_logout',
-        'backend_platform_forgot_password',
-        'backend_platform_reset_password',
-        'backend_platform_register',
-        'backend_platform_register_confirm',
-        'backend_platform_resend_verification',
-        'backend_platform_verify_email',
-        'backend_platform_invitation_accept',
-        'backend_platform_access_request',
+        'suite_platform_login',
+        'suite_platform_logout',
+        'suite_platform_forgot_password',
+        'suite_platform_reset_password',
+        'suite_platform_register',
+        'suite_platform_register_confirm',
+        'suite_platform_resend_verification',
+        'suite_platform_verify_email',
+        'suite_platform_invitation_accept',
+        'suite_platform_access_request',
     ];
 
     public function testEveryStaffRouteCarriesAnIsGranted(): void
@@ -57,7 +57,7 @@ final class StaffRoutesCarryAPrivilegeTest extends KernelTestCase
         $open = [];
         $checked = 0;
         foreach ($router->getRouteCollection()->all() as $name => $route) {
-            if (!str_starts_with($route->getPath(), '/backend') && !str_starts_with($route->getPath(), '/workspace')) {
+            if (!str_starts_with($route->getPath(), '/suite') && !str_starts_with($route->getPath(), '/workspace')) {
                 continue;
             }
 

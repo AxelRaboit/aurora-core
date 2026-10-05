@@ -47,7 +47,7 @@ class PasswordResetManager implements PasswordResetManagerInterface
      */
     public function sendResetLink(string $email): void
     {
-        $user = $this->userRepository->findOneBy(['email' => $email, 'type' => UserTypeEnum::Backend]);
+        $user = $this->userRepository->findOneBy(['email' => $email, 'type' => UserTypeEnum::Suite]);
 
         if (!$user instanceof User) {
             return;
@@ -55,7 +55,7 @@ class PasswordResetManager implements PasswordResetManagerInterface
 
         ['selector' => $selector, 'plainToken' => $plainToken, 'expiresAt' => $expiresAt] = $this->createRequestForUser($user);
 
-        $resetUrl = $this->urlGenerator->generate('backend_platform_reset_password', [
+        $resetUrl = $this->urlGenerator->generate('suite_platform_reset_password', [
             'selector' => $selector,
             'token' => $plainToken,
         ], UrlGeneratorInterface::ABSOLUTE_URL);
@@ -106,7 +106,7 @@ class PasswordResetManager implements PasswordResetManagerInterface
             ->html($body));
     }
 
-    public function validateToken(string $selector, string $token, ?UserTypeEnum $expectedType = UserTypeEnum::Backend): ?ResetPasswordRequest
+    public function validateToken(string $selector, string $token, ?UserTypeEnum $expectedType = UserTypeEnum::Suite): ?ResetPasswordRequest
     {
         $resetRequest = $this->resetRepo->findBySelector($selector);
 

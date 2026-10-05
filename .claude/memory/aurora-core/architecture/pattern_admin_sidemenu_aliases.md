@@ -8,7 +8,7 @@ metadata:
 ## Pattern
 
 Deux settings JSON dans `core_settings`, gérés via l'onglet *Navigation* de
-`/backend/configuration/settings` :
+`/suite/configuration/settings` :
 
 | Setting | Clé d'index | Affecte |
 |---|---|---|
@@ -16,7 +16,7 @@ Deux settings JSON dans `core_settings`, gérés via l'onglet *Navigation* de
 | `nav_item_aliases` | `NavItem::$route` (nom de route Symfony) | Idem |
 
 Format : `{key: "Custom Label"}`. Valeur vide / absente ⇒ fallback au
-`t(labelKey)` (sections : `backend.nav.sections.<id>`).
+`t(labelKey)` (sections : `suite.nav.sections.<id>`).
 
 **Distinct de [[pattern_user_sidemenu_preferences]]** qui est per-user et
 gère la *visibilité* (hide). Ici : admin-wide + renommage uniquement.
@@ -51,8 +51,8 @@ des utilisateurs non-techniques.
   `ApplicationParameterEnum::NavItemAliases` (group `'navigation'`)
 - Twig functions : `SidemenuExtension::getNavSectionAliases()`,
   `getNavItemAliases()`
-- Twig consumers : `src/Core/templates/Core/backend/layout.html.twig` (sidemenu admin),
-  `src/Module/General/templates/backend/profile/sidemenu.html.twig` (preferences page)
+- Twig consumers : `src/Core/templates/Core/suite/layout.html.twig` (sidemenu admin),
+  `src/Module/General/templates/suite/profile/sidemenu.html.twig` (preferences page)
 - Vue composables : `useSidemenuNav.js` (4e param `itemAliases`),
   `useSidemenuPreferences.js` (param `itemAliases` + `resolveItemLabel()`)
 - Settings UI logic : `useNavAliases.js` (composable dédié - la logique
@@ -62,6 +62,6 @@ des utilisateurs non-techniques.
 
 Toute logique métier (fetch, parse, save, mutation d'état) liée à un
 formulaire Settings doit aller dans un composable dans
-`src/Core/assets/backend/settings/composables/`. Le SFC `SettingsApp.vue` reste
+`src/Core/assets/suite/settings/composables/`. Le SFC `SettingsApp.vue` reste
 un orchestrateur de template (cf. `useSettingsForm`, `useSettingsPostPicker`,
 `useSettingsSequenceFilter`, `useNavAliases`).

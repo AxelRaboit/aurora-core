@@ -25,8 +25,8 @@ enum CustomerSpaceMemberRoleEnum: string
     public function getLabelKey(): string
     {
         return match ($this) {
-            self::Lead => 'backend.studio.spaces.roles.lead',
-            self::Member => 'backend.studio.spaces.roles.member',
+            self::Lead => 'suite.studio.spaces.roles.lead',
+            self::Member => 'suite.studio.spaces.roles.member',
         };
     }
 }

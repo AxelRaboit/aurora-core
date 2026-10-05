@@ -11,7 +11,7 @@ use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * The audit log renders `backend.audit.actions.<module>.<action>`, built at
+ * The audit log renders `suite.audit.actions.<module>.<action>`, built at
  * runtime from whatever the AuditLogger was handed. Nothing tied the two ends
  * together, so the label tree drifted from the call sites until 29 Core/Ged
  * actions rendered as their raw key and 24 labels described actions nothing
@@ -139,7 +139,7 @@ final class AuditActionLabelTest extends TestCase
     }
 
     /**
-     * Every leaf under `backend.audit.actions` across all of this package's
+     * Every leaf under `suite.audit.actions` across all of this package's
      * translation files, flattened to dot notation.
      *
      * @return list<string>
@@ -161,7 +161,7 @@ final class AuditActionLabelTest extends TestCase
 
         foreach (self::translationFiles($locale) as $path) {
             $parsed = Yaml::parseFile($path) ?? [];
-            $flatten($parsed['backend']['audit']['actions'] ?? [], '');
+            $flatten($parsed['suite']['audit']['actions'] ?? [], '');
         }
 
         $labels = array_keys($labels);

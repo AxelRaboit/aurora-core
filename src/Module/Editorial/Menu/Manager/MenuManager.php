@@ -216,7 +216,7 @@ class MenuManager implements MenuManagerInterface
         };
 
         if (!$exists) {
-            throw new FieldException('targetId', $this->translator->trans('backend.menus.errors.target_not_found', ['{id}' => $targetId]));
+            throw new FieldException('targetId', $this->translator->trans('suite.menus.errors.target_not_found', ['{id}' => $targetId]));
         }
 
         return $targetId;
@@ -234,11 +234,11 @@ class MenuManager implements MenuManagerInterface
         }
 
         if ($parent->getMenu()->getId() !== $item->getMenu()->getId()) {
-            throw new FieldException('parentId', $this->translator->trans('backend.menus.errors.parent_wrong_menu'));
+            throw new FieldException('parentId', $this->translator->trans('suite.menus.errors.parent_wrong_menu'));
         }
 
         if ($parent === $item || $parent->isDescendantOf($item)) {
-            throw new FieldException('parentId', $this->translator->trans('backend.menus.errors.self_nested'));
+            throw new FieldException('parentId', $this->translator->trans('suite.menus.errors.self_nested'));
         }
 
         return $parent;
@@ -271,7 +271,7 @@ class MenuManager implements MenuManagerInterface
             $current = $parentMap[$id];
             while (null !== $current) {
                 if (isset($seen[$current])) {
-                    throw new InvalidArgumentException($this->translator->trans('backend.menus.errors.reorder_cycle', ['{id}' => $id]));
+                    throw new InvalidArgumentException($this->translator->trans('suite.menus.errors.reorder_cycle', ['{id}' => $id]));
                 }
 
                 $seen[$current] = true;

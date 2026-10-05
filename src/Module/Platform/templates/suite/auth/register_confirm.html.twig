@@ -1,0 +1,19 @@
+{% extends '@Core/suite/base_guest.html.twig' %}
+
+{% block title %}{{ 'suite.auth.register_confirm.title'|trans }} - {{ parent() }}{% endblock %}
+
+{% block hero %}
+    {{ include('@Shared/components/auth_hero.html.twig') }}
+{% endblock %}
+
+{% block form_icon %}mail-check{% endblock %}
+{% block form_title %}{{ 'suite.auth.register_confirm.title'|trans }}{% endblock %}
+
+{% block content %}
+    <div {{ vue_component('platform/suite/auth/RegisterConfirmApp', {
+        loginPath: path('suite_platform_login'),
+        resendPath: path('suite_platform_resend_verification'),
+        pendingEmail: pendingEmail ?? '',
+        resent: resent,
+    }) }}></div>
+{% endblock %}

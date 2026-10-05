@@ -45,7 +45,7 @@ final readonly class SpaceOrphanedDocumentOffer
 
         foreach ($this->finder->among($space, $documents) as $document) {
             $offered[] = $document + [
-                'trashPath' => $this->urlGenerator->generate('backend_ged_documents_delete', ['id' => $document['id']]),
+                'trashPath' => $this->urlGenerator->generate('suite_ged_documents_delete', ['id' => $document['id']]),
             ];
         }
 

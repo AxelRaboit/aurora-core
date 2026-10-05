@@ -28,7 +28,7 @@ Piliers :
 
 L'utilisateur voulait pouvoir gérer du contenu mono-langue **sans
 perdre** la capacité multi-langue. La contrainte forte : **réversibilité
-à chaud** (toggle ON/OFF dans `/backend/configuration/settings`, pas de migration, pas
+à chaud** (toggle ON/OFF dans `/suite/configuration/settings`, pas de migration, pas
 de perte des contenus EN si on bascule à FR puis re-bascule). Solution :
 filtrer l'UI et les écritures, mais jamais altérer les lectures ni le
 schéma.

@@ -63,12 +63,12 @@ final class OwnedSettingsSurviveTheSyncTest extends IntegrationTestCase
     /** And the debris still goes: a key nobody claims is still obsolete. */
     public function testTheSyncStillClearsARowNobodyClaims(): void
     {
-        $this->store('backend_retired_setting_nobody_owns', 'à jeter');
+        $this->store('suite_retired_setting_nobody_owns', 'à jeter');
 
         self::assertSame(0, $this->command->execute([]));
         $this->entityManager->clear();
 
-        self::assertNull($this->find('backend_retired_setting_nobody_owns'));
+        self::assertNull($this->find('suite_retired_setting_nobody_owns'));
     }
 
     private function store(string $key, string $value): void

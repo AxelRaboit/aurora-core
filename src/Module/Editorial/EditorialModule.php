@@ -74,7 +74,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
 
     public function getNavSections(): array
     {
-        if (!$this->editorialContext->isBackendEnabled()) {
+        if (!$this->editorialContext->isSuiteEnabled()) {
             return [];
         }
 
@@ -132,7 +132,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::EditorialBackend->toToggle(),
+            ModuleParameterEnum::EditorialSuite->toToggle(),
             ModuleParameterEnum::EditorialPosts->toToggle(),
             ModuleParameterEnum::EditorialPostTypes->toToggle(),
             ModuleParameterEnum::EditorialTaxonomies->toToggle(),
@@ -169,7 +169,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
      */
     public function getModuleNavView(): ?ModuleNavView
     {
-        if (!$this->editorialContext->isBackendEnabled()) {
+        if (!$this->editorialContext->isSuiteEnabled()) {
             return null;
         }
 
@@ -185,8 +185,8 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
 
             foreach ($this->taxonomyRepository->findAllForIndex() as $taxonomy) {
                 $items[] = new NavItem(
-                    route: 'backend_editorial_taxonomies_show',
-                    labelKey: 'backend.nav.taxonomies',
+                    route: 'suite_editorial_taxonomies_show',
+                    labelKey: 'suite.nav.taxonomies',
                     icon: 'tags',
                     requiredPrivilege: 'editorial.taxonomies.view',
                     routeParams: ['id' => $taxonomy->getId()],
@@ -197,7 +197,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             }
 
             if ([] !== $items) {
-                $groups[] = new ModuleNavGroup('taxonomies', $items, labelKey: 'backend.nav.taxonomies');
+                $groups[] = new ModuleNavGroup('taxonomies', $items, labelKey: 'suite.nav.taxonomies');
             }
         }
 
@@ -206,8 +206,8 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
 
             foreach ($this->menuRepository->findAllWithItems() as $menu) {
                 $items[] = new NavItem(
-                    route: 'backend_editorial_menus_show',
-                    labelKey: 'backend.nav.menus',
+                    route: 'suite_editorial_menus_show',
+                    labelKey: 'suite.nav.menus',
                     icon: 'menu',
                     requiredPrivilege: 'editorial.menus.view',
                     routeParams: ['id' => $menu->getId()],
@@ -218,7 +218,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             }
 
             if ([] !== $items) {
-                $groups[] = new ModuleNavGroup('menus', $items, labelKey: 'backend.nav.menus');
+                $groups[] = new ModuleNavGroup('menus', $items, labelKey: 'suite.nav.menus');
             }
         }
 
@@ -229,8 +229,8 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
 
             foreach ($this->postTypeRepository->findAllWithRelations() as $postType) {
                 $items[] = new NavItem(
-                    route: 'backend_editorial_post_types_show',
-                    labelKey: 'backend.nav.post_types',
+                    route: 'suite_editorial_post_types_show',
+                    labelKey: 'suite.nav.post_types',
                     icon: 'layout-template',
                     requiredPrivilege: 'editorial.post_types.view',
                     routeParams: ['id' => $postType->getId()],
@@ -245,7 +245,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             }
 
             if ([] !== $items) {
-                $groups[] = new ModuleNavGroup('post_types', $items, labelKey: 'backend.nav.post_types');
+                $groups[] = new ModuleNavGroup('post_types', $items, labelKey: 'suite.nav.post_types');
             }
         }
 
@@ -301,14 +301,14 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             ?? ($taxonomy->getTranslations()->first() ?: null);
 
         return $translation?->getDescription()
-            ?? $this->translator->trans('backend.nav.counts.terms', ['%count%' => $taxonomy->getTerms()->count()]);
+            ?? $this->translator->trans('suite.nav.counts.terms', ['%count%' => $taxonomy->getTerms()->count()]);
     }
 
     /** @param array<int, int> $postCounts type id → posts, from countPostsByType() */
     private function postTypeDescription(PostTypeInterface $postType, array $postCounts): string
     {
         return $postType->getDescription()
-            ?? $this->translator->trans('backend.nav.counts.posts', ['%count%' => $postCounts[(int) $postType->getId()] ?? 0]);
+            ?? $this->translator->trans('suite.nav.counts.posts', ['%count%' => $postCounts[(int) $postType->getId()] ?? 0]);
     }
 
     /**
@@ -330,11 +330,11 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
     private function postsNavItem(): NavItem
     {
         return new NavItem(
-            'backend_editorial_posts',
-            'backend.nav.posts',
+            'suite_editorial_posts',
+            'suite.nav.posts',
             'file-text',
             requiredPrivilege: 'editorial.posts.view',
-            descriptionKey: 'backend.nav.posts_description',
+            descriptionKey: 'suite.nav.posts_description',
         );
     }
 
@@ -354,66 +354,66 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
     private function postGalleriesNavItem(): NavItem
     {
         return new NavItem(
-            'backend_editorial_post_galleries',
-            'backend.nav.post_galleries',
+            'suite_editorial_post_galleries',
+            'suite.nav.post_galleries',
             'images',
             requiredPrivilege: 'editorial.posts.gallery',
-            descriptionKey: 'backend.nav.post_galleries_description',
+            descriptionKey: 'suite.nav.post_galleries_description',
         );
     }
 
     private function taxonomiesNavItem(): NavItem
     {
         return new NavItem(
-            'backend_editorial_taxonomies',
-            'backend.nav.taxonomies',
+            'suite_editorial_taxonomies',
+            'suite.nav.taxonomies',
             'tags',
             requiredPrivilege: 'editorial.taxonomies.view',
-            descriptionKey: 'backend.nav.taxonomies_description',
+            descriptionKey: 'suite.nav.taxonomies_description',
         );
     }
 
     private function formsNavItem(): NavItem
     {
         return new NavItem(
-            'backend_editorial_forms',
-            'backend.nav.forms',
+            'suite_editorial_forms',
+            'suite.nav.forms',
             'clipboard-list',
             requiredPrivilege: 'editorial.forms.view',
-            descriptionKey: 'backend.nav.forms_description',
+            descriptionKey: 'suite.nav.forms_description',
         );
     }
 
     private function commentsNavItem(): NavItem
     {
         return new NavItem(
-            'backend_editorial_comments',
-            'backend.nav.comments',
+            'suite_editorial_comments',
+            'suite.nav.comments',
             'message-square',
             requiredPrivilege: 'editorial.comments.view',
-            descriptionKey: 'backend.nav.comments_description',
+            descriptionKey: 'suite.nav.comments_description',
         );
     }
 
     private function menusNavItem(): NavItem
     {
         return new NavItem(
-            'backend_editorial_menus',
-            'backend.nav.menus',
+            'suite_editorial_menus',
+            'suite.nav.menus',
             'menu',
             requiredPrivilege: 'editorial.menus.view',
-            descriptionKey: 'backend.nav.menus_description',
+            descriptionKey: 'suite.nav.menus_description',
         );
     }
 
     private function postTypesNavItem(): NavItem
     {
         return new NavItem(
-            'backend_editorial_post_types',
-            'backend.nav.post_types',
+            'suite_editorial_post_types',
+            'suite.nav.post_types',
             'layout-template',
             requiredPrivilege: 'editorial.post_types.view',
-            descriptionKey: 'backend.nav.post_types_description',
+            descriptionKey: 'suite.nav.post_types_description',
         );
     }
 }

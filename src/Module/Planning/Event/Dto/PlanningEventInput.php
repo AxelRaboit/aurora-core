@@ -14,9 +14,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PlanningEventInput implements PlanningEventInputInterface
 {
     public function __construct(
-        #[Assert\Positive(message: 'backend.plannings.events.errors.calendar_required')]
+        #[Assert\Positive(message: 'suite.plannings.events.errors.calendar_required')]
         public readonly int $planningId = 0,
-        #[Assert\NotBlank(message: 'backend.plannings.events.errors.title_required')]
+        #[Assert\NotBlank(message: 'suite.plannings.events.errors.title_required')]
         #[Assert\Length(max: 255)]
         public readonly string $title = '',
         public readonly ?string $description = null,
@@ -27,7 +27,7 @@ class PlanningEventInput implements PlanningEventInputInterface
         public readonly bool $allDay = false,
         public readonly PlanningEventStatusEnum $status = PlanningEventStatusEnum::Confirmed,
         /** A slot of the event's own, or null to follow the calendar. */
-        #[Assert\Range(notInRangeMessage: 'backend.plannings.errors.colour_out_of_range', min: 1, max: AbstractPlanning::MAX_COLOUR_SLOT)]
+        #[Assert\Range(notInRangeMessage: 'suite.plannings.errors.colour_out_of_range', min: 1, max: AbstractPlanning::MAX_COLOUR_SLOT)]
         public readonly ?int $colourSlot = null,
         /**
          * The recurrence rule, or null for a single event.
@@ -90,7 +90,7 @@ class PlanningEventInput implements PlanningEventInputInterface
     public function validateSpan(ExecutionContextInterface $context): void
     {
         if (!$this->startAt instanceof DateTimeImmutable) {
-            $context->buildViolation('backend.plannings.events.errors.start_required')
+            $context->buildViolation('suite.plannings.events.errors.start_required')
                 ->atPath('startAt')
                 ->addViolation();
 
@@ -98,7 +98,7 @@ class PlanningEventInput implements PlanningEventInputInterface
         }
 
         if (!$this->endAt instanceof DateTimeImmutable) {
-            $context->buildViolation('backend.plannings.events.errors.end_required')
+            $context->buildViolation('suite.plannings.events.errors.end_required')
                 ->atPath('endAt')
                 ->addViolation();
 
@@ -109,7 +109,7 @@ class PlanningEventInput implements PlanningEventInputInterface
         // entity refuses it so a fixture cannot write it, and this names the
         // field so a form can point at it.
         if ($this->endAt < $this->startAt) {
-            $context->buildViolation('backend.plannings.events.errors.end_before_start')
+            $context->buildViolation('suite.plannings.events.errors.end_before_start')
                 ->atPath('endAt')
                 ->addViolation();
         }

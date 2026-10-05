@@ -26,9 +26,9 @@ use PHPUnit\Framework\TestCase;
  */
 final class ThemeDefaultColourMirrorTest extends TestCase
 {
-    private const string EDIT_JS = __DIR__.'/../../src/Module/Configuration/assets/backend/themes/composables/useThemesEdit.js';
+    private const string EDIT_JS = __DIR__.'/../../src/Module/Configuration/assets/suite/themes/composables/useThemesEdit.js';
 
-    private const string LIST_JS = __DIR__.'/../../src/Module/Configuration/assets/backend/themes/composables/useThemesList.js';
+    private const string LIST_JS = __DIR__.'/../../src/Module/Configuration/assets/suite/themes/composables/useThemesList.js';
 
     /**
      * @return iterable<string, array{string, string}>

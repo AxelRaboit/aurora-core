@@ -8,7 +8,7 @@ use Aurora\Core\Dashboard\DashboardStatsProviderInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 /**
- * Aggregates the backend dashboard statistics from every module-contributed
+ * Aggregates the suite dashboard statistics from every module-contributed
  * {@see DashboardStatsProviderInterface}. The General shell owns no domain
  * knowledge here - each module ships its own provider, so this service (and
  * the whole General module) never imports a business module's repositories.

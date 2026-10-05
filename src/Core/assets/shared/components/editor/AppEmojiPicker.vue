@@ -44,20 +44,20 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", closeOutside));
             type="button"
             class="inline-flex h-8 items-center gap-1.5 rounded-md border border-line px-2 text-xs text-secondary hover:text-primary"
             :aria-expanded="open"
-            :title="t('backend.editor.emoji.open')"
+            :title="t('suite.editor.emoji.open')"
             v-on:mousedown.prevent
             v-on:click="open = !open"
         >
-            <Smile class="h-4 w-4" :stroke-width="2" /> {{ t("backend.editor.emoji.label") }}
+            <Smile class="h-4 w-4" :stroke-width="2" /> {{ t("suite.editor.emoji.label") }}
         </button>
         <div
             v-if="open"
             class="absolute right-0 z-30 mt-1 w-72 rounded-lg border border-line bg-surface p-2 shadow-lg"
             role="dialog"
-            :aria-label="t('backend.editor.emoji.label')"
+            :aria-label="t('suite.editor.emoji.label')"
         >
             <div v-for="group in GROUPS" :key="group.key" class="mb-1 last:mb-0">
-                <p class="m-0 px-1 text-[10px] font-medium uppercase tracking-wide text-muted">{{ t(`backend.editor.emoji.groups.${group.key}`) }}</p>
+                <p class="m-0 px-1 text-[10px] font-medium uppercase tracking-wide text-muted">{{ t(`suite.editor.emoji.groups.${group.key}`) }}</p>
                 <div class="grid grid-cols-6 gap-0.5">
                     <button
                         v-for="emoji in group.emojis"

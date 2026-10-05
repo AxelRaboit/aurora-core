@@ -1,4 +1,4 @@
-backend:
+suite:
     settings:
         studio_guide:
             title: "Your identity in contracts"
@@ -23,8 +23,8 @@ backend:
             step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
         system_guide:
             title: "Who can get in, and when"
-            step_1: "Maintenance mode closes the public site to all its visitors, while the back office and its sign-in page stay open."
-            step_2: "Admin sign-ups open an account creation form for the back office, to be closed again once the first account exists."
+            step_1: "Maintenance mode closes the public site to all its visitors, while the suite and its sign-in page stay open."
+            step_2: "Admin sign-ups open an account creation form for the suite, to be closed again once the first account exists."
             step_3: "Access requests let someone ask for an account, which you then approve from the developer area."
             step_4: "Turning off front-end sign-in removes sign-in, sign-up and the account page from the public site, and makes front-end sign-ups ineffective."
             step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
@@ -37,7 +37,7 @@ backend:
             step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
         branding_guide:
             title: "The site's logo and icon"
-            step_1: "The logo appears in the back office side menu and on the sign-in pages, and is the sharing image when no other is set."
+            step_1: "The logo appears in the suite side menu and on the sign-in pages, and is the sharing image when no other is set."
             step_2: "With no favicon chosen, the browser tab shows the site name's initial on the theme's main colour."
             step_3: "An image taken from the media library must have the “Published” status to be shown to visitors."
             step_4: "On a phone, the site name next to the logo in the top bar can be hidden, keeping only the logo."
@@ -234,7 +234,7 @@ backend:
                 invalid_hex: 'Invalid hex code. Expected format: #rrggbb.'
             palette:
                 title: "Light and dark grays"
-                help: "Backgrounds, lines, text and status colors of the back office and the client space, for each mode. The public site keeps its theme."
+                help: "Backgrounds, lines, text and status colors of the suite and the client space, for each mode. The public site keeps its theme."
                 family: "Gray family"
                 modes:
                     light: "Light mode"
@@ -305,7 +305,7 @@ backend:
         modules_intro: Enable or disable application modules. Changes are saved immediately.
         modules_empty: No module found.
         module_type:
-            backend: Backend
+            suite: Suite
             frontend: Frontend
         save: Save
         saved: Settings saved.
@@ -387,7 +387,7 @@ backend:
             description: "The site's time: that of a scheduled post, of the dates in emails and PDFs, of the morning sends (reminders, late reviews), and the zone offered for a new calendar or space. Dates already stored do not move."
         date_format:
             label: Date style
-            description: "How the dates of emails, PDFs and contract pages are written, in each one's language. The back office keeps its compact formats."
+            description: "How the dates of emails, PDFs and contract pages are written, in each one's language. The suite keeps its compact formats."
         comments_enabled:
             label: Comments enabled
             description: 'If enabled, visitors can leave comments on public articles.'
@@ -399,10 +399,10 @@ backend:
             description: 'If enabled, the public site is closed to visitors and displays a maintenance page.'
         admin_registration_enabled:
             label: Admin registrations open
-            description: Allow registrations via /backend/platform/register. Disable after creating the first admin account.
+            description: Allow registrations via /suite/platform/register. Disable after creating the first admin account.
         admin_access_request_enabled:
             label: Admin access requests open
-            description: Allow access requests via /backend/platform/access-request (access request form for the administration)
+            description: Allow access requests via /suite/platform/access-request (access request form for the administration)
         front_login_enabled:
             label: Front-end login enabled
             description: "If disabled, the public site has no accounts at all: login, registration, the account area and password reset return 404, and the matching menu links disappear. Turn it off for a brochure-only application."
@@ -433,9 +433,9 @@ backend:
         favicon_media_id:
             label: Favicon
             description: ID of the media used as the favicon
-        backend_bar_site_name_on_phone:
-            label: "Site name in the back-office bar on phones"
-            description: "Shows the site name beside the logo in the back-office top bar, below 640 px wide. Turned off, only the logo stays; screen readers still read the name. For the public site, the matching setting lives in the theme."
+        suite_bar_site_name_on_phone:
+            label: "Site name in the suite bar on phones"
+            description: "Shows the site name beside the logo in the suite top bar, below 640 px wide. Turned off, only the logo stays; screen readers still read the name. For the public site, the matching setting lives in the theme."
         seo_title_template:
             label: SEO title template
             description: 'Template for page titles. Use {title} and {siteName}. E.g. {title} · {siteName}'
@@ -554,7 +554,7 @@ backend:
         email_text_color:
             label: "Email text"
             description: "The running text of the message."
-        backend_palette:
+        suite_palette:
             label: "Light and dark grays"
             description: "Gray family and adjustments for each mode, as JSON (managed through the interface)."
         intro: View and edit the application technical parameters.

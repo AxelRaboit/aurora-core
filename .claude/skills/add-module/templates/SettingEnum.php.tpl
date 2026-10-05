@@ -40,14 +40,14 @@ enum {{MODULE}}SettingEnum: string implements ApplicationParameterEnumInterface
     public function getLabel(): string
     {
         return match ($this) {
-            self::ExampleFlag => 'backend.{{MODULE_ID}}.settings.example_flag',
+            self::ExampleFlag => 'suite.{{MODULE_ID}}.settings.example_flag',
         };
     }
 
     public function getDescription(): string
     {
         return match ($this) {
-            self::ExampleFlag => 'backend.{{MODULE_ID}}.settings.example_flag_description',
+            self::ExampleFlag => 'suite.{{MODULE_ID}}.settings.example_flag_description',
         };
     }
 

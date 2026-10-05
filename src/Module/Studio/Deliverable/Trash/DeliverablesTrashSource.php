@@ -66,17 +66,17 @@ final readonly class DeliverablesTrashSource implements TrashSourceInterface
 
         return new TrashSummary(
             key: 'studio_deliverables',
-            labelKey: 'backend.nav.studio_deliverables',
+            labelKey: 'suite.nav.studio_deliverables',
             sectionId: 'studio',
             icon: 'notebook-text',
             count: count($rows),
             items: array_map($this->present(...), array_slice($rows, 0, $limit)),
             oldestDeletedAt: $oldest,
-            restoreRoute: 'backend_studio_deliverables_restore',
-            forceDeleteRoute: 'backend_studio_deliverables_force_delete',
-            emptyTrashRoute: 'backend_studio_deliverables_empty_trash',
+            restoreRoute: 'suite_studio_deliverables_restore',
+            forceDeleteRoute: 'suite_studio_deliverables_force_delete',
+            emptyTrashRoute: 'suite_studio_deliverables_empty_trash',
             actionPrivilege: null,
-            listRoute: 'backend_studio_deliverables',
+            listRoute: 'suite_studio_deliverables',
         );
     }
 
@@ -97,7 +97,7 @@ final readonly class DeliverablesTrashSource implements TrashSourceInterface
             deletedAt: $deliverable->getDeletedAt(),
             context: $space instanceof CustomerSpaceInterface
                 ? $space->getName()
-                : $this->translator->trans('backend.studio.deliverables.scope.'.$deliverable->getScope()->value),
+                : $this->translator->trans('suite.studio.deliverables.scope.'.$deliverable->getScope()->value),
         );
     }
 }

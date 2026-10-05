@@ -12,7 +12,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\NotesContext;
-use Aurora\Module\Notes\Search\NotesBackendSearchProvider;
+use Aurora\Module\Notes\Search\NotesSuiteSearchProvider;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Platform\User\Entity\User;
@@ -47,7 +47,7 @@ final class NotesSearchTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private NotesBackendSearchProvider $provider;
+    private NotesSuiteSearchProvider $provider;
 
     private SettingRepository $settings;
 
@@ -63,7 +63,7 @@ final class NotesSearchTest extends IntegrationTestCase
         $this->client = self::createClient();
         $container = self::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->provider = $container->get(NotesBackendSearchProvider::class);
+        $this->provider = $container->get(NotesSuiteSearchProvider::class);
         $this->settings = $container->get(SettingRepository::class);
 
         $this->needle = 'licorne'.bin2hex(random_bytes(4));
@@ -85,7 +85,7 @@ final class NotesSearchTest extends IntegrationTestCase
         $this->entityManager->flush();
         $this->created = [];
 
-        $this->settings->set(ModuleParameterEnum::NotesBackend->value, '1');
+        $this->settings->set(ModuleParameterEnum::NotesSuite->value, '1');
         $this->settings->set(ModuleParameterEnum::NotesMarkdown->value, '1');
         $this->forgetSwitches();
 
@@ -103,8 +103,8 @@ final class NotesSearchTest extends IntegrationTestCase
         $rows = $this->provider->search($this->needle)['notes'];
 
         self::assertSame(['Projet '.$this->needle, 'Liste de courses'], array_column($rows, 'title'));
-        self::assertSame('/backend/notes/markdown/'.$inTitle->getId(), $rows[0]['path']);
-        self::assertSame('/backend/notes/markdown/'.$inBody->getId(), $rows[1]['path']);
+        self::assertSame('/suite/notes/markdown/'.$inTitle->getId(), $rows[0]['path']);
+        self::assertSame('/suite/notes/markdown/'.$inBody->getId(), $rows[1]['path']);
 
         // A title match says where the note is filed; a body match says why
         // it came up, on one line.
@@ -183,7 +183,7 @@ final class NotesSearchTest extends IntegrationTestCase
         self::assertSame([], $this->provider->search($this->needle));
 
         $this->settings->set(ModuleParameterEnum::NotesMarkdown->value, '1');
-        $this->settings->set(ModuleParameterEnum::NotesBackend->value, '0');
+        $this->settings->set(ModuleParameterEnum::NotesSuite->value, '0');
         $this->forgetSwitches();
         self::assertSame([], $this->provider->search($this->needle));
     }
@@ -203,7 +203,7 @@ final class NotesSearchTest extends IntegrationTestCase
         $notes->method('findAllWithContentForUser')->willThrowException(new RuntimeException('Déchiffrement impossible'));
 
         $container = self::getContainer();
-        $provider = new NotesBackendSearchProvider(
+        $provider = new NotesSuiteSearchProvider(
             $notes,
             $container->get(NotesContext::class),
             $container->get(Security::class),
@@ -228,7 +228,7 @@ final class NotesSearchTest extends IntegrationTestCase
         $user
             ->setEmail('recherche-notes-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Compte de test')
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPassword('irrelevant')
             ->setPrivileges($privileges);

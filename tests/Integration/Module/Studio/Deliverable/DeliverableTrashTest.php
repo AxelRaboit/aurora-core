@@ -25,7 +25,7 @@ use Aurora\Module\Studio\Deliverable\MessageHandler\PurgeTrashedDeliverablesHand
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableDocumentUsageProvider;
 use Aurora\Module\Studio\Deliverable\Trash\DeliverablesTrashSource;
-use Aurora\Module\Studio\Search\StudioBackendSearchProvider;
+use Aurora\Module\Studio\Search\StudioSuiteSearchProvider;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -80,7 +80,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -111,7 +111,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
     {
         $id = $this->createStudio('Audit à jeter', DeliverableScopeEnum::Shared);
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id));
         self::assertResponseIsSuccessful();
 
         $stored = $this->find($id);
@@ -122,26 +122,26 @@ final class DeliverableTrashTest extends IntegrationTestCase
         self::assertNotContains($id, array_column($this->json()['shared'], 'id'));
         foreach (['GET' => ['', ''], 'POST' => ['/update', '/duplicate']] as $method => $suffixes) {
             foreach ($suffixes as $suffix) {
-                $this->client->request($method, sprintf('/backend/studio/deliverables/%d%s', $id, $suffix));
+                $this->client->request($method, sprintf('/suite/studio/deliverables/%d%s', $id, $suffix));
                 self::assertResponseStatusCodeSame(404, sprintf('%s %s', $method, $suffix));
             }
         }
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/preview', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/preview', $id));
         self::assertResponseStatusCodeSame(404);
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/links', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/links', $id));
         self::assertResponseStatusCodeSame(404);
     }
 
     public function testItsReadingLinksStopAnsweringAndResumeOnRestore(): void
     {
         $id = $this->createStudio('Avec un lien', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Léa']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Léa']);
         $token = basename((string) parse_url($this->json()['links'][0]['url'], PHP_URL_PATH));
 
         $this->client->request('GET', sprintf('/deliverables/%s', $token));
         self::assertResponseIsSuccessful();
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id));
         $this->client->request('GET', sprintf('/deliverables/%s', $token));
         self::assertResponseStatusCodeSame(404);
 
@@ -149,7 +149,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
         $this->entityManager->clear();
         self::assertCount(1, $this->entityManager->getRepository(DeliverableLink::class)->findAll());
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $id));
         self::assertResponseIsSuccessful();
         self::assertFalse($this->find($id)->isTrashed());
 
@@ -160,9 +160,9 @@ final class DeliverableTrashTest extends IntegrationTestCase
     public function testATrashedDeliverableCannotBeUnlockedEither(): void
     {
         $id = $this->createStudio('Verrouillé et jeté', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), ['password' => 'secret']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), ['password' => 'secret']);
         $token = basename((string) parse_url($this->json()['links'][0]['url'], PHP_URL_PATH));
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id));
 
         $this->client->request('POST', sprintf('/deliverables/%s/unlock', $token), ['password' => 'secret']);
 
@@ -178,12 +178,12 @@ final class DeliverableTrashTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $inSpace = $this->createInSpace($space, 'Dans l\'espace '.$needle);
 
-        $search = self::getContainer()->get(StudioBackendSearchProvider::class);
+        $search = self::getContainer()->get(StudioSuiteSearchProvider::class);
         self::assertCount(2, $search->search($needle)['deliverables']);
         $repository = self::getContainer()->get(DeliverableRepository::class);
         $before = $repository->countStandaloneFor($this->admin);
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id));
         $this->post(sprintf('/workspace/%d/deliverables/%d/delete', $space->getId(), $inSpace));
         self::assertResponseIsSuccessful();
         self::assertSame([], $this->json()['deliverables']);
@@ -212,7 +212,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
 
         $this->post(sprintf('/workspace/%d/deliverables/%d/restore', $space->getId(), $id));
         // Restoring goes through Studio's route: it answers for a space's deliverable too.
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $id));
         self::assertResponseIsSuccessful();
         $this->client->request('GET', $url);
         self::assertResponseIsSuccessful();
@@ -222,28 +222,28 @@ final class DeliverableTrashTest extends IntegrationTestCase
     {
         $personal = $this->createStudio('Perso', DeliverableScopeEnum::Personal);
         $shared = $this->createStudio('Partagé', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $personal));
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $shared));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $personal));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $shared));
 
         // A colleague does not even see another's personal one: 404, not 403.
         $reader = $this->accountWith(['studio.deliverables.view']);
         $this->client->loginUser($reader, 'admin');
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $personal));
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $personal));
         self::assertResponseStatusCodeSame(404);
 
         // A reader sees the shared one in the trash, and may neither restore nor destroy it.
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $shared));
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $shared));
         self::assertResponseStatusCodeSame(403);
-        $this->post(sprintf('/backend/studio/deliverables/%d/force-delete', $shared));
+        $this->post(sprintf('/suite/studio/deliverables/%d/force-delete', $shared));
         self::assertResponseStatusCodeSame(403);
         self::assertTrue($this->find($shared)->isTrashed());
 
         // The team can restore it, but destroying wants the right to delete.
         $editor = $this->accountWith(['studio.deliverables.view', 'studio.deliverables.edit']);
         $this->client->loginUser($editor, 'admin');
-        $this->post(sprintf('/backend/studio/deliverables/%d/force-delete', $shared));
+        $this->post(sprintf('/suite/studio/deliverables/%d/force-delete', $shared));
         self::assertResponseStatusCodeSame(403);
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $shared));
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $shared));
         self::assertResponseIsSuccessful();
         self::assertFalse($this->find($shared)->isTrashed());
     }
@@ -251,10 +251,10 @@ final class DeliverableTrashTest extends IntegrationTestCase
     public function testDestroyingForGoodRemovesItAndItsLinks(): void
     {
         $id = $this->createStudio('À détruire', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), []);
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id));
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/force-delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/force-delete', $id));
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -262,7 +262,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
         self::assertSame([], $this->entityManager->getRepository(DeliverableLink::class)->findAll());
 
         // Nothing left to destroy: the same answer as an identifier that never existed.
-        $this->post(sprintf('/backend/studio/deliverables/%d/force-delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/force-delete', $id));
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -270,9 +270,9 @@ final class DeliverableTrashTest extends IntegrationTestCase
     {
         $id = $this->createStudio('Bien vivant', DeliverableScopeEnum::Shared);
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $id));
         self::assertResponseStatusCodeSame(404);
-        $this->post(sprintf('/backend/studio/deliverables/%d/force-delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/force-delete', $id));
         self::assertResponseStatusCodeSame(404);
         self::assertFalse($this->find($id)->isTrashed());
     }
@@ -281,20 +281,20 @@ final class DeliverableTrashTest extends IntegrationTestCase
     {
         $mine = $this->createStudio('À moi', DeliverableScopeEnum::Personal);
         $shared = $this->createStudio('À tous', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $mine));
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $shared));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $mine));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $shared));
 
         // An editor without the delete right empties nothing, and above all not another's personal one.
         $editor = $this->accountWith(['studio.deliverables.view', 'studio.deliverables.edit']);
         $this->client->loginUser($editor, 'admin');
-        $this->post('/backend/studio/deliverables/empty-trash');
+        $this->post('/suite/studio/deliverables/empty-trash');
         self::assertResponseIsSuccessful();
         self::assertSame(0, $this->json()['deleted']);
 
         // A member with the right destroys the shared one, never the author's personal one.
         $deleter = $this->accountWith(self::TEAM);
         $this->client->loginUser($deleter, 'admin');
-        $this->post('/backend/studio/deliverables/empty-trash');
+        $this->post('/suite/studio/deliverables/empty-trash');
         self::assertSame(1, $this->json()['deleted']);
 
         $this->entityManager->clear();
@@ -306,8 +306,8 @@ final class DeliverableTrashTest extends IntegrationTestCase
     {
         $mine = $this->createStudio('Mon brouillon', DeliverableScopeEnum::Personal);
         $shared = $this->createStudio('Pour l\'équipe', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $mine));
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $shared));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $mine));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $shared));
 
         $source = self::getContainer()->get(DeliverablesTrashSource::class);
 
@@ -316,7 +316,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
         self::assertInstanceOf(TrashSummary::class, $summary);
         self::assertSame(2, $summary->count);
         self::assertEqualsCanonicalizing(['Mon brouillon', 'Pour l\'équipe'], array_column($summary->items, 'label'));
-        self::assertSame('backend_studio_deliverables_restore', $summary->restoreRoute);
+        self::assertSame('suite_studio_deliverables_restore', $summary->restoreRoute);
 
         // A teammate sees the shared one and nothing of the personal one, not even its count.
         $this->client->loginUser($this->accountWith(self::TEAM), 'admin');
@@ -326,7 +326,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
 
         // And the common trash screen carries it.
         $this->client->loginUser($this->admin, 'admin');
-        $this->client->request('GET', '/backend/trash/list');
+        $this->client->request('GET', '/suite/trash/list');
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('studio_deliverables', (string) $this->client->getResponse()->getContent());
     }
@@ -340,7 +340,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
         $stored->setGridLayout([...$stored->getGridLayout(), 'enabled' => true, 'zones' => [['id' => 'p', 'type' => 'items', 'items' => [['mediaId' => $picture]]]]]);
         $this->entityManager->flush();
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id));
 
         $provider = self::getContainer()->get(DeliverableDocumentUsageProvider::class);
         // Not released until the purge: a restore must find the picture where it was.
@@ -386,8 +386,8 @@ final class DeliverableTrashTest extends IntegrationTestCase
     public function testTrashingAndRestoringAreInTheAuditLog(): void
     {
         $id = $this->createStudio('Tracé', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id));
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id));
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $id));
 
         $this->entityManager->clear();
         $actions = array_map(
@@ -413,7 +413,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
 
     private function createStudio(string $title, DeliverableScopeEnum $scope): int
     {
-        $this->post('/backend/studio/deliverables/create', ['title' => $title, 'scope' => $scope->value]);
+        $this->post('/suite/studio/deliverables/create', ['title' => $title, 'scope' => $scope->value]);
         self::assertResponseIsSuccessful();
 
         foreach ($this->json()[$scope->value] as $row) {
@@ -442,7 +442,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
     /** @return array{personal: list<array<string, mixed>>, shared: list<array<string, mixed>>} */
     private function lists(): array
     {
-        $this->client->request('GET', '/backend/studio/deliverables/lists');
+        $this->client->request('GET', '/suite/studio/deliverables/lists');
         self::assertResponseIsSuccessful();
 
         return $this->json();
@@ -484,7 +484,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
         $user
             ->setEmail('corbeille-livrables-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Équipier '.bin2hex(random_bytes(2)))
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPassword('irrelevant')
             ->setPrivileges($privileges);
@@ -503,7 +503,7 @@ final class DeliverableTrashTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($this->admin, 'admin');
-        $this->post('/backend/studio/spaces/create', ['name' => 'Espace corbeille', 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
+        $this->post('/suite/studio/spaces/create', ['name' => 'Espace corbeille', 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
         self::assertResponseIsSuccessful();
 
         $space = $this->entityManager->getRepository(CustomerSpace::class)->find($this->json()['space']['id']);

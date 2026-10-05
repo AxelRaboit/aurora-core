@@ -153,7 +153,7 @@ final class UploadsServeControllerTest extends IntegrationTestCase
         self::assertSame('attachment', $headers->get('Content-Disposition'));
     }
 
-    /** A photograph from the same backend keeps its own type, and no wall. */
+    /** A photograph from the same suite keeps its own type, and no wall. */
     public function testARemotePhotographIsNotTurnedIntoADownload(): void
     {
         $this->serveFromRemote('tests-fixtures/photo.jpg', 'not really a jpeg');

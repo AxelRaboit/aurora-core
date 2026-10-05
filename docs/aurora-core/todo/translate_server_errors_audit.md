@@ -4,7 +4,7 @@
 
 Par convention Aurora, `Aurora\Core\Validation\Service\PayloadValidator`
 retourne des **clés i18n** dans le payload d'erreur JSON (ex.
-`backend.editorial.posts.errors.title_required`), pas du texte traduit.
+`suite.editorial.posts.errors.title_required`), pas du texte traduit.
 
 Les composants form (`AppInput`, `AppTextarea`, `AppMultiselect`, …)
 affichent leur prop `:error` **littéralement** : sans transformation,

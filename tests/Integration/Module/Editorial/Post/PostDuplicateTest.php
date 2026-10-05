@@ -56,7 +56,7 @@ final class PostDuplicateTest extends IntegrationTestCase
         $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = self::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
     }
@@ -191,7 +191,7 @@ final class PostDuplicateTest extends IntegrationTestCase
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_editorial_posts_duplicate', ['id' => $source->getId()]),
+            $this->urlGenerator->generate('suite_editorial_posts_duplicate', ['id' => $source->getId()]),
         );
 
         self::assertResponseIsSuccessful();
@@ -212,7 +212,7 @@ final class PostDuplicateTest extends IntegrationTestCase
         $this->client->loginUser($reader, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_editorial_posts_duplicate', ['id' => $source->getId()]),
+            $this->urlGenerator->generate('suite_editorial_posts_duplicate', ['id' => $source->getId()]),
         );
 
         self::assertResponseStatusCodeSame(403);
@@ -224,7 +224,7 @@ final class PostDuplicateTest extends IntegrationTestCase
         $user = new User();
         $user->setEmail('dup-'.bin2hex(random_bytes(4)).'@aurora.test');
         $user->setName('Lecteur');
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
         $user->setPassword('x');
         $user->setRoles(['ROLE_USER']);
         $user->setPrivileges($privileges);

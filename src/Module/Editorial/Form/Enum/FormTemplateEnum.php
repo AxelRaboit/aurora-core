@@ -14,7 +14,7 @@ namespace Aurora\Module\Editorial\Form\Enum;
  * point, not a type.
  *
  * The questions are named by key and worded in the translations
- * (`backend.forms.template_fields.{key}`), so a template reads right in each
+ * (`suite.forms.template_fields.{key}`), so a template reads right in each
  * language without a second copy of this list.
  */
 enum FormTemplateEnum: string
@@ -26,12 +26,12 @@ enum FormTemplateEnum: string
 
     public function labelKey(): string
     {
-        return sprintf('backend.forms.templates.%s.label', $this->value);
+        return sprintf('suite.forms.templates.%s.label', $this->value);
     }
 
     public function descriptionKey(): string
     {
-        return sprintf('backend.forms.templates.%s.description', $this->value);
+        return sprintf('suite.forms.templates.%s.description', $this->value);
     }
 
     /**

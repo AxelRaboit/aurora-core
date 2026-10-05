@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace {{NAMESPACE}}\Controller\Backend;
+namespace {{NAMESPACE}}\Controller\Suite;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/backend/{{PLURAL_KEBAB}}', name: 'backend_{{PLURAL_SNAKE}}')]
+#[Route('/suite/{{PLURAL_KEBAB}}', name: 'suite_{{PLURAL_SNAKE}}')]
 #[IsGranted('{{PERMISSION}}')]
 class {{PLURAL_NAME}}Controller extends AbstractController
 {
@@ -39,7 +39,7 @@ class {{PLURAL_NAME}}Controller extends AbstractController
     public function index(): Response
     {
         // TODO: implement a {{PLURAL_NAME}}ViewBuilder for the index payload.
-        return $this->render('@{{TWIG_NAMESPACE}}/backend/{{PLURAL_SNAKE}}/index.html.twig', [
+        return $this->render('@{{TWIG_NAMESPACE}}/suite/{{PLURAL_SNAKE}}/index.html.twig', [
             '{{PLURAL_SNAKE}}' => array_map(
                 fn ({{NAME}}Interface ${{NAME_CAMEL}}): array => $this->{{NAME_CAMEL}}Serializer->serialize(${{NAME_CAMEL}}),
                 $this->{{NAME_CAMEL}}Repository->findAll(),

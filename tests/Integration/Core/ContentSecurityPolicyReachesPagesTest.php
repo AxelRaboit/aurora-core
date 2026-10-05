@@ -41,11 +41,11 @@ final class ContentSecurityPolicyReachesPagesTest extends IntegrationTestCase
     public function testABackOfficePageCarriesANonceBecauseItHasInlineScripts(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
-        $this->client->request('GET', '/backend');
+        $this->client->request('GET', '/suite');
 
         $header = (string) $this->client->getResponse()->headers->get('Content-Security-Policy');
         $body = (string) $this->client->getResponse()->getContent();
@@ -75,11 +75,11 @@ final class ContentSecurityPolicyReachesPagesTest extends IntegrationTestCase
     public function testAResponseThatIsNotAPageCarriesNoPolicy(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', ['name' => '']);
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', ['name' => '']);
 
         $response = $this->client->getResponse();
 

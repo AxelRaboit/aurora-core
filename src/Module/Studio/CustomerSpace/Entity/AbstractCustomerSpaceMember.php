@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Somebody from the studio, on one space.
  *
  * Deliberately not a privilege. Who *may* open a space is answered by
- * `studio.spaces.view` on the account, like every other screen in the backend;
+ * `studio.spaces.view` on the account, like every other screen in the suite;
  * this row answers who is *on* it, which is what a client is told and what a
  * list of ten spaces is grouped by. Two sources of truth for access would
  * disagree on the first edge case, and the privilege system is the one that

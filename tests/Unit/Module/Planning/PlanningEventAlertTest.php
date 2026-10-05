@@ -114,7 +114,7 @@ final class PlanningEventAlertTest extends TestCase
      */
     public function testTheFormOffersExactlyTheOffsetsTheEntityAccepts(): void
     {
-        $js = file_get_contents(__DIR__.'/../../../../src/Module/Planning/assets/backend/planning/composables/alertOffsets.js');
+        $js = file_get_contents(__DIR__.'/../../../../src/Module/Planning/assets/suite/planning/composables/alertOffsets.js');
         self::assertIsString($js);
 
         self::assertSame(1, preg_match('/ALERT_OFFSETS = \[([^\]]+)\]/', $js, $matches));
@@ -214,7 +214,7 @@ final class PlanningEventAlertTest extends TestCase
      */
     public function testTheFormOffersExactlyTheChannelsTheServerAccepts(): void
     {
-        $js = file_get_contents(__DIR__.'/../../../../src/Module/Planning/assets/backend/planning/composables/alertOffsets.js');
+        $js = file_get_contents(__DIR__.'/../../../../src/Module/Planning/assets/suite/planning/composables/alertOffsets.js');
         self::assertIsString($js);
 
         self::assertSame(1, preg_match('/CHANNELS = \[([^\]]+)\]/', $js, $matches));

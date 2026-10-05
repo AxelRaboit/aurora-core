@@ -17,8 +17,8 @@ l'UI. Le `camelCase` dans une clé i18n est **interdit** (CLAUDE.md §4).
 ## Pourquoi
 
 - Clés construites par le code = à partir de valeurs d'enum (lowercase/snake) →
-  `'backend.pdfform.templates.status_'.$value` = `status_draft`. Naturellement snake.
-- Préfixe dynamique (`sprintf('backend.menus.target_types.%s', $value)`) ou
+  `'suite.pdfform.templates.status_'.$value` = `status_draft`. Naturellement snake.
+- Préfixe dynamique (`sprintf('suite.menus.target_types.%s', $value)`) ou
   concaténation : le **segment fixe doit aussi être snake_case** (`target_types`,
   pas `targetTypes` ; `field_type`, pas `fieldType`).
 - **Piège (cassé en silence)** : `src/Core/assets/i18n.js` = vue-i18n vanilla
@@ -32,7 +32,7 @@ l'UI. Le `camelCase` dans une clé i18n est **interdit** (CLAUDE.md §4).
 - Builders dynamiques d'enum (`getLabelKey()`, `labelKey()`) : préfixe littéral snake.
 - **Audit** :
   - YAML : grep segments matchant `[a-z0-9][A-Z]`.
-  - Code (`src/`, `templates/`, `tests/`) : grep littéraux `'backend…'`/`'frontend…'`
+  - Code (`src/`, `templates/`, `tests/`) : grep littéraux `'suite…'`/`'frontend…'`
     (clés complètes + préfixes sprintf/concat) avec `[a-z0-9][A-Z]`. Exclure les
     faux positifs non-i18n commençant par `nav`/`mail`/`email` mais qui sont des
     vars JS / champs d'entité (`navFilter`, `mailpitUrl`, `navSectionColors`).

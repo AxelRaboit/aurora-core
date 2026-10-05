@@ -33,7 +33,7 @@ final class SequencePrefixSettingTest extends IntegrationTestCase
 
         $this->client = static::createClient();
         $dev = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($dev, 'admin');
 
         $this->settings = static::getContainer()->get(SettingRepository::class);
@@ -50,7 +50,7 @@ final class SequencePrefixSettingTest extends IntegrationTestCase
     public function testAPrefixWithASpaceOrASlashIsRefused(): void
     {
         foreach (['CM 26', 'CM/', '', 'TROPLONGPREFIXE'] as $value) {
-            $this->client->jsonRequest('POST', '/backend/configuration/settings/update', ['key' => self::KEY, 'value' => $value]);
+            $this->client->jsonRequest('POST', '/suite/configuration/settings/update', ['key' => self::KEY, 'value' => $value]);
 
             self::assertSame(400, $this->client->getResponse()->getStatusCode(), $value);
             self::assertSame('invalid_prefix', json_decode((string) $this->client->getResponse()->getContent(), true)['error']);
@@ -61,7 +61,7 @@ final class SequencePrefixSettingTest extends IntegrationTestCase
 
     public function testAPrefixIsKeptInCapitals(): void
     {
-        $this->client->jsonRequest('POST', '/backend/configuration/settings/update', ['key' => self::KEY, 'value' => ' cm ']);
+        $this->client->jsonRequest('POST', '/suite/configuration/settings/update', ['key' => self::KEY, 'value' => ' cm ']);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertSame('CM', json_decode((string) $this->client->getResponse()->getContent(), true)['value']);

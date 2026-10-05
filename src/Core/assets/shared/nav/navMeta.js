@@ -226,9 +226,9 @@ export function moduleHeaderClass(moduleId) {
     );
 }
 
-/** Derive the module id from a toggle key: 'modules_ecommerce_backend' → 'ecommerce'. */
+/** Derive the module id from a toggle key: 'modules_ecommerce_suite' → 'ecommerce'. */
 export function moduleIdFromToggleKey(key) {
     return String(key)
         .replace(/^modules_/, "")
-        .replace(/_(backend|frontend)$/, "");
+        .replace(/_(suite|frontend)$/, "");
 }
