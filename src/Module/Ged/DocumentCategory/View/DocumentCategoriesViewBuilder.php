@@ -22,13 +22,13 @@ final readonly class DocumentCategoriesViewBuilder
         return [
             'categories' => $this->buildListPayload($pagination),
             'search' => $pagination->search ?? '',
-            'createPath' => $this->urlGenerator->generate('backend_ged_categories_create'),
-            'updatePath' => $this->urlGenerator->generate('backend_ged_categories_update', ['id' => '__id__']),
-            'deletePath' => $this->urlGenerator->generate('backend_ged_categories_delete', ['id' => '__id__']),
-            'restorePath' => $this->urlGenerator->generate('backend_ged_categories_restore', ['id' => '__id__']),
-            'forceDeletePath' => $this->urlGenerator->generate('backend_ged_categories_force_delete', ['id' => '__id__']),
-            'emptyTrashPath' => $this->urlGenerator->generate('backend_ged_categories_empty_trash'),
-            'listPath' => $this->urlGenerator->generate('backend_ged_categories_list'),
+            'createPath' => $this->urlGenerator->generate('suite_ged_categories_create'),
+            'updatePath' => $this->urlGenerator->generate('suite_ged_categories_update', ['id' => '__id__']),
+            'deletePath' => $this->urlGenerator->generate('suite_ged_categories_delete', ['id' => '__id__']),
+            'restorePath' => $this->urlGenerator->generate('suite_ged_categories_restore', ['id' => '__id__']),
+            'forceDeletePath' => $this->urlGenerator->generate('suite_ged_categories_force_delete', ['id' => '__id__']),
+            'emptyTrashPath' => $this->urlGenerator->generate('suite_ged_categories_empty_trash'),
+            'listPath' => $this->urlGenerator->generate('suite_ged_categories_list'),
         ];
     }
 

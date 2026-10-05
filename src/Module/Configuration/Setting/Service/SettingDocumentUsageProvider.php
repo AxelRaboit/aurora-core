@@ -54,8 +54,8 @@ final readonly class SettingDocumentUsageProvider implements BatchDocumentUsageP
             $usages[] = [
                 'type' => $this->usageType(),
                 'label' => $this->translator->trans($setting->getLabel()),
-                'detail' => $this->translator->trans('backend.settings.usage_detail'),
-                'href' => $this->urlGenerator->generate('backend_configuration_settings_tab', ['tab' => $setting->getGroup()]),
+                'detail' => $this->translator->trans('suite.settings.usage_detail'),
+                'href' => $this->urlGenerator->generate('suite_configuration_settings_tab', ['tab' => $setting->getGroup()]),
             ];
         }
 

@@ -30,7 +30,7 @@ use function password_verify;
  * widens the set. There is one deck behind one token, and no route here takes
  * a deck id at all.
  *
- * Outside the `/backend` firewall on purpose - the reader has no account, and
+ * Outside the `/suite` firewall on purpose - the reader has no account, and
  * that is the point of the address existing.
  */
 #[Route('/decks', name: 'public_deck')]
@@ -77,7 +77,7 @@ final class PublicDeckController extends AbstractController
         // A module switched off takes its public pages with it, like every
         // other front in Aurora: leaving them up would publish decks from a
         // module the owner believes is closed.
-        if (!$this->studioContext->isBackendEnabled() || !$this->studioContext->areDecksEnabled()) {
+        if (!$this->studioContext->isSuiteEnabled() || !$this->studioContext->areDecksEnabled()) {
             throw $this->createNotFoundException();
         }
 

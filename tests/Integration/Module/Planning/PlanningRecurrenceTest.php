@@ -45,7 +45,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -95,7 +95,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_update', [
+        $this->post('suite_planning_events_update', [
             'planningId' => $this->planning->getId(),
             'title' => 'Point hebdo, déplacé',
             'startAt' => '2026-09-14T14:00:00+02:00',
@@ -127,7 +127,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_update', [
+        $this->post('suite_planning_events_update', [
             'planningId' => $this->planning->getId(),
             'title' => 'Déplacé',
             'startAt' => '2026-09-14T14:00:00+02:00',
@@ -149,7 +149,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_update', [
+        $this->post('suite_planning_events_update', [
             'planningId' => $this->planning->getId(),
             'title' => 'Point hebdo',
             'startAt' => '2026-09-21T14:00:00+02:00',
@@ -169,7 +169,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_update', [
+        $this->post('suite_planning_events_update', [
             'planningId' => $this->planning->getId(),
             'title' => 'Point hebdo',
             'startAt' => '2026-09-07T14:00:00+02:00',
@@ -190,7 +190,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_delete', [
+        $this->post('suite_planning_events_delete', [
             'scope' => 'this',
             'occurrenceAt' => '2026-09-14T09:00:00+02:00',
         ], ['id' => $id]);
@@ -212,7 +212,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_delete', [
+        $this->post('suite_planning_events_delete', [
             'scope' => 'following',
             'occurrenceAt' => '2026-09-21T09:00:00+02:00',
         ], ['id' => $id]);
@@ -225,7 +225,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_delete', ['scope' => 'all'], ['id' => $id]);
+        $this->post('suite_planning_events_delete', ['scope' => 'all'], ['id' => $id]);
         self::assertResponseIsSuccessful();
 
         self::assertSame([], $this->windowStarts());
@@ -246,7 +246,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $body = $this->post('backend_planning_events_update', [
+        $body = $this->post('suite_planning_events_update', [
             'planningId' => $this->planning->getId(),
             'title' => 'Point hebdo',
             'startAt' => '2026-09-14T14:00:00+02:00',
@@ -267,7 +267,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $id = $this->series();
 
-        $this->post('backend_planning_events_move', [
+        $this->post('suite_planning_events_move', [
             'startAt' => '2026-09-14T16:00:00+02:00',
             'endAt' => '2026-09-14T17:00:00+02:00',
             'scope' => 'this',
@@ -284,7 +284,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     /** A weekly series of four Mondays in September 2026. */
     private function series(): int
     {
-        $body = $this->post('backend_planning_events_create', [
+        $body = $this->post('suite_planning_events_create', [
             'planningId' => $this->planning->getId(),
             'title' => 'Point hebdo',
             'startAt' => '2026-09-07T09:00:00+02:00',
@@ -322,7 +322,7 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
     {
         $this->entityManager->clear();
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_events', [
+        $this->client->request('GET', $this->urlGenerator->generate('suite_planning_events', [
             'from' => '2026-09-01T00:00:00+00:00',
             'to' => '2026-10-01T00:00:00+00:00',
         ]));

@@ -16,7 +16,7 @@ import {
  * languages and a paragraph written inside a component would only ever exist
  * in one. A topic declares its shape - which kind it is, which sections it has
  * and in what order - and the strings are looked up under
- * `backend.help.<topic>.`.
+ * `suite.help.<topic>.`.
  */
 
 /**

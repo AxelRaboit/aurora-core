@@ -52,7 +52,7 @@ final class PlanningSharePageTest extends IntegrationTestCase
         $this->links = static::getContainer()->get(PlanningShareLinkManagerInterface::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
     }
@@ -154,7 +154,7 @@ final class PlanningSharePageTest extends IntegrationTestCase
             'token' => $link->getToken(),
             'from' => '2026-08-01T00:00:00Z',
             'to' => '2026-10-01T00:00:00Z',
-            // Asking for the other calendar outright, which the backend endpoint
+            // Asking for the other calendar outright, which the suite endpoint
             // would have no reason to refuse and this one never reads.
             'calendarIds' => [$private->getId()],
         ]));

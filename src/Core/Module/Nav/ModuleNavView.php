@@ -51,7 +51,7 @@ final readonly class ModuleNavView
      *                                         each other.
      * @param ?string          $panelComponent Vue component path (the `vue_component`
      *                                         convention, e.g.
-     *                                         `'ged/backend/documents/FolderTreePanel'`),
+     *                                         `'ged/suite/documents/FolderTreePanel'`),
      *                                         mounted under the links. Null for a
      *                                         links-only view.
      */

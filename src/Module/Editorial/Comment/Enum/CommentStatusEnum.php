@@ -12,7 +12,7 @@ enum CommentStatusEnum: string
 
     public function labelKey(): string
     {
-        return sprintf('backend.comments.status.%s', $this->value);
+        return sprintf('suite.comments.status.%s', $this->value);
     }
 
     /** The only status a reader ever sees. */

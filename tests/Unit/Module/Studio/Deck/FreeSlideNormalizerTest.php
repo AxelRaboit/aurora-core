@@ -197,7 +197,7 @@ final class FreeSlideNormalizerTest extends TestCase
     {
         $links = array_map(
             fn (string $link): ?string => $this->normalizer()->elements([['type' => 'shape', 'link' => $link]])[0]['link'] ?? null,
-            ['https://example.com', 'mailto:contact@example.com', 'javascript:alert(1)', '/backend'],
+            ['https://example.com', 'mailto:contact@example.com', 'javascript:alert(1)', '/suite'],
         );
 
         self::assertSame(['https://example.com', 'mailto:contact@example.com', null, null], $links);

@@ -40,7 +40,7 @@ use function sprintf;
  * **Deleting at the source asks first.** Two documents can point at the same
  * path, and a version deliberately shares the live document's file, so the
  * source copy is only removed once no row left on that side still names it.
- * Note the question has to be asked per backend: the paths do not change when
+ * Note the question has to be asked per suite: the paths do not change when
  * a document moves, so the plain "is this in use" would answer yes about the
  * rows that have just arrived on the other side.
  */
@@ -194,7 +194,7 @@ final readonly class DocumentRelocator
      * Copies one object across and checks it arrived whole.
      *
      * Through a local working copy rather than streaming one adapter into the
-     * other: it is the one path that works for every pair of backends,
+     * other: it is the one path that works for every pair of suites,
      * including local to local, and {@see LocalWorkspace} already owns the
      * temporary file and its removal.
      */

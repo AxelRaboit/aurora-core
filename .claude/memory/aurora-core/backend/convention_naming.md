@@ -27,11 +27,11 @@ camelCase**. Si le service s'appelle `MySuperCoolFoo`, la variable est
 
 ### Fichiers / classes
 - **Pas de préfixe `Admin` dans les noms de fichiers/classes**. Le contexte
-  (backend vs frontend) se déduit du dossier (`Controller/Backend/`,
-  `Controller/Frontend/`, `Security/Backend/`…). Un préfixe `Admin` est
+  (backend vs frontend) se déduit du dossier (`Controller/Suite/`,
+  `Controller/Frontend/`, `Security/Suite/`…). Un préfixe `Admin` est
   l'ancienne convention - toujours renommer si rencontré.
-  ✅ `UserChecker.php` dans `Security/Backend/`
-  ❌ `BackendUserChecker.php` ou `AdminUserChecker.php` à la racine de `Security/`
+  ✅ `UserChecker.php` dans `Security/Suite/`
+  ❌ `SuiteUserChecker.php` ou `AdminUserChecker.php` à la racine de `Security/`
 - `<Name>Interface` (jamais `<Name>InterfaceInterface` - celui-là on l'a vu)
 - `<Name>InputInterface` + `<Name>InputFactory` + `<Name>InputFactoryInterface`
   + `<Name>Input` (concrete)

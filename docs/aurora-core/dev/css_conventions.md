@@ -31,7 +31,7 @@ src/Core/assets/css/
 SFC lui-même :
 
 ```
-src/Core/assets/backend/sidemenu/
+src/Core/assets/suite/sidemenu/
 ├── AppSidemenu.vue            # import "./sidemenu.css"
 └── sidemenu.css
 
@@ -70,7 +70,7 @@ import EditorJS from "@editorjs/editorjs";
 </script>
 ```
 
-Si tu visites `/backend/dashboard`, `editor.css` n'est jamais téléchargé.
+Si tu visites `/suite/dashboard`, `editor.css` n'est jamais téléchargé.
 Tu ouvres un écran qui monte l'éditeur, il arrive avec le chunk de ce
 composant.
 

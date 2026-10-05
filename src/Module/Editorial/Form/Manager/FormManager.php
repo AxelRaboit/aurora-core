@@ -372,19 +372,19 @@ class FormManager implements FormManagerInterface
         }
 
         if ($step < 1) {
-            throw new FieldException('step', $this->translator->trans('backend.forms.errors.step_below_one'));
+            throw new FieldException('step', $this->translator->trans('suite.forms.errors.step_below_one'));
         }
 
         $count = count($form->getSteps() ?? []);
         if ($count > 0 && $step > $count) {
-            throw new FieldException('step', $this->translator->trans('backend.forms.errors.step_out_of_range', ['{count}' => $count]));
+            throw new FieldException('step', $this->translator->trans('suite.forms.errors.step_out_of_range', ['{count}' => $count]));
         }
     }
 
     private function assertSlugIsFree(string $locale, string $slug, ?int $formId): void
     {
         if ($this->translationRepository->isSlugTaken($locale, $slug, $formId)) {
-            throw new FieldException(sprintf('translations[%s].slug', $locale), $this->translator->trans('backend.forms.errors.slug_taken', ['{slug}' => $slug]));
+            throw new FieldException(sprintf('translations[%s].slug', $locale), $this->translator->trans('suite.forms.errors.slug_taken', ['{slug}' => $slug]));
         }
     }
 }

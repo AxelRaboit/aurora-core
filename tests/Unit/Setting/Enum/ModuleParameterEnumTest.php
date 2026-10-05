@@ -11,24 +11,24 @@ final class ModuleParameterEnumTest extends TestCase
 {
     public function testGetKeyReturnsStringValue(): void
     {
-        self::assertSame('modules_ged_backend', ModuleParameterEnum::GedBackend->getKey());
-        self::assertSame('modules_platform_backend', ModuleParameterEnum::PlatformBackend->getKey());
+        self::assertSame('modules_ged_suite', ModuleParameterEnum::GedSuite->getKey());
+        self::assertSame('modules_platform_suite', ModuleParameterEnum::PlatformSuite->getKey());
         self::assertSame('modules_ged_documents', ModuleParameterEnum::GedDocuments->getKey());
     }
 
     public function testGetLabelReturnsTranslationKey(): void
     {
-        self::assertSame('backend.modules.ged_backend', ModuleParameterEnum::GedBackend->getLabel());
-        self::assertSame('backend.modules.platform_backend', ModuleParameterEnum::PlatformBackend->getLabel());
-        self::assertSame('backend.nav.documents', ModuleParameterEnum::GedDocuments->getLabel());
-        self::assertSame('backend.nav.users', ModuleParameterEnum::PlatformUsers->getLabel());
+        self::assertSame('suite.modules.ged_suite', ModuleParameterEnum::GedSuite->getLabel());
+        self::assertSame('suite.modules.platform_suite', ModuleParameterEnum::PlatformSuite->getLabel());
+        self::assertSame('suite.nav.documents', ModuleParameterEnum::GedDocuments->getLabel());
+        self::assertSame('suite.nav.users', ModuleParameterEnum::PlatformUsers->getLabel());
     }
 
     public function testGetDescriptionReturnsTranslationKey(): void
     {
-        self::assertSame('backend.modules.ged_backend_description', ModuleParameterEnum::GedBackend->getDescription());
-        self::assertSame('backend.modules.platform_backend_description', ModuleParameterEnum::PlatformBackend->getDescription());
-        self::assertSame('backend.nav.documents_description', ModuleParameterEnum::GedDocuments->getDescription());
+        self::assertSame('suite.modules.ged_suite_description', ModuleParameterEnum::GedSuite->getDescription());
+        self::assertSame('suite.modules.platform_suite_description', ModuleParameterEnum::PlatformSuite->getDescription());
+        self::assertSame('suite.nav.documents_description', ModuleParameterEnum::GedDocuments->getDescription());
     }
 
     public function testGetDefaultValueIsOneForAllCases(): void
@@ -54,23 +54,23 @@ final class ModuleParameterEnumTest extends TestCase
 
     public function testGetCascadeRequiresSubModuleDependencies(): void
     {
-        self::assertSame(ModuleParameterEnum::GedBackend->value, ModuleParameterEnum::GedDocuments->getCascadeRequires());
-        self::assertSame(ModuleParameterEnum::GedBackend->value, ModuleParameterEnum::GedFrontend->getCascadeRequires());
-        self::assertSame(ModuleParameterEnum::PlatformBackend->value, ModuleParameterEnum::PlatformUsers->getCascadeRequires());
-        self::assertSame(ModuleParameterEnum::ConfigurationBackend->value, ModuleParameterEnum::ConfigurationThemes->getCascadeRequires());
+        self::assertSame(ModuleParameterEnum::GedSuite->value, ModuleParameterEnum::GedDocuments->getCascadeRequires());
+        self::assertSame(ModuleParameterEnum::GedSuite->value, ModuleParameterEnum::GedFrontend->getCascadeRequires());
+        self::assertSame(ModuleParameterEnum::PlatformSuite->value, ModuleParameterEnum::PlatformUsers->getCascadeRequires());
+        self::assertSame(ModuleParameterEnum::ConfigurationSuite->value, ModuleParameterEnum::ConfigurationThemes->getCascadeRequires());
     }
 
     public function testGetCascadeRequiresNullForTopLevelWithoutDependency(): void
     {
-        self::assertNull(ModuleParameterEnum::GeneralBackend->getCascadeRequires());
-        self::assertNull(ModuleParameterEnum::PlatformBackend->getCascadeRequires());
-        self::assertNull(ModuleParameterEnum::ConfigurationBackend->getCascadeRequires());
-        self::assertNull(ModuleParameterEnum::GedBackend->getCascadeRequires());
+        self::assertNull(ModuleParameterEnum::GeneralSuite->getCascadeRequires());
+        self::assertNull(ModuleParameterEnum::PlatformSuite->getCascadeRequires());
+        self::assertNull(ModuleParameterEnum::ConfigurationSuite->getCascadeRequires());
+        self::assertNull(ModuleParameterEnum::GedSuite->getCascadeRequires());
     }
 
     public function testGetCascadeDisableTargetsGedEnabled(): void
     {
-        $targets = ModuleParameterEnum::GedBackend->getCascadeDisableTargets();
+        $targets = ModuleParameterEnum::GedSuite->getCascadeDisableTargets();
 
         self::assertContains(ModuleParameterEnum::GedDocuments->value, $targets);
         self::assertContains(ModuleParameterEnum::GedCategories->value, $targets);
@@ -81,33 +81,33 @@ final class ModuleParameterEnumTest extends TestCase
 
     public function testGetCascadeDisableTargetsPlatformEnabled(): void
     {
-        $targets = ModuleParameterEnum::PlatformBackend->getCascadeDisableTargets();
+        $targets = ModuleParameterEnum::PlatformSuite->getCascadeDisableTargets();
 
         self::assertContains(ModuleParameterEnum::PlatformUsers->value, $targets);
     }
 
     public function testGetParentCaseForTopLevelReturnsNull(): void
     {
-        self::assertNull(ModuleParameterEnum::GeneralBackend->getParentCase());
-        self::assertNull(ModuleParameterEnum::PlatformBackend->getParentCase());
-        self::assertNull(ModuleParameterEnum::ConfigurationBackend->getParentCase());
-        self::assertNull(ModuleParameterEnum::GedBackend->getParentCase());
+        self::assertNull(ModuleParameterEnum::GeneralSuite->getParentCase());
+        self::assertNull(ModuleParameterEnum::PlatformSuite->getParentCase());
+        self::assertNull(ModuleParameterEnum::ConfigurationSuite->getParentCase());
+        self::assertNull(ModuleParameterEnum::GedSuite->getParentCase());
     }
 
     public function testGetParentCaseForSubModules(): void
     {
-        self::assertSame(ModuleParameterEnum::GedBackend, ModuleParameterEnum::GedDocuments->getParentCase());
-        self::assertSame(ModuleParameterEnum::GedBackend, ModuleParameterEnum::GedFrontend->getParentCase());
-        self::assertSame(ModuleParameterEnum::PlatformBackend, ModuleParameterEnum::PlatformUsers->getParentCase());
-        self::assertSame(ModuleParameterEnum::ConfigurationBackend, ModuleParameterEnum::ConfigurationThemes->getParentCase());
+        self::assertSame(ModuleParameterEnum::GedSuite, ModuleParameterEnum::GedDocuments->getParentCase());
+        self::assertSame(ModuleParameterEnum::GedSuite, ModuleParameterEnum::GedFrontend->getParentCase());
+        self::assertSame(ModuleParameterEnum::PlatformSuite, ModuleParameterEnum::PlatformUsers->getParentCase());
+        self::assertSame(ModuleParameterEnum::ConfigurationSuite, ModuleParameterEnum::ConfigurationThemes->getParentCase());
     }
 
     public function testGetModuleIdForTopLevelEnabledCases(): void
     {
-        self::assertSame('general', ModuleParameterEnum::GeneralBackend->getModuleId());
-        self::assertSame('platform', ModuleParameterEnum::PlatformBackend->getModuleId());
-        self::assertSame('configuration', ModuleParameterEnum::ConfigurationBackend->getModuleId());
-        self::assertSame('ged', ModuleParameterEnum::GedBackend->getModuleId());
+        self::assertSame('general', ModuleParameterEnum::GeneralSuite->getModuleId());
+        self::assertSame('platform', ModuleParameterEnum::PlatformSuite->getModuleId());
+        self::assertSame('configuration', ModuleParameterEnum::ConfigurationSuite->getModuleId());
+        self::assertSame('ged', ModuleParameterEnum::GedSuite->getModuleId());
     }
 
     public function testGetModuleIdReturnsNullForSubModules(): void

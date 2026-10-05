@@ -11,7 +11,7 @@ final class UserTypeEnumTest extends TestCase
 {
     public function testGetLabelKeyPrefixesValue(): void
     {
-        self::assertSame('backend.users.type.backend', UserTypeEnum::Backend->getLabelKey());
-        self::assertSame('backend.users.type.frontend', UserTypeEnum::Frontend->getLabelKey());
+        self::assertSame('suite.users.type.suite', UserTypeEnum::Suite->getLabelKey());
+        self::assertSame('suite.users.type.frontend', UserTypeEnum::Frontend->getLabelKey());
     }
 }

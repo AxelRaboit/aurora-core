@@ -21,16 +21,16 @@
 
 ## Permissions & Navigation backend
 - [convention_privilege_naming.md](convention_privilege_naming.md) - règle uniforme `<module_id>.<entity>.<action>` partout (post-Jalon 5) ; le `getId()` du module owner == préfixe du privilege
-- [convention_privilege_translations.md](convention_privilege_translations.md) - pour chaque `NavPermission('x.y.z')` ajouter `backend.permissions.names.x.y.z` en FR + EN
+- [convention_privilege_translations.md](convention_privilege_translations.md) - pour chaque `NavPermission('x.y.z')` ajouter `suite.permissions.names.x.y.z` en FR + EN
 - [convention_privilege_gating.md](convention_privilege_gating.md) - gate à 2 endroits : `#[IsGranted]` serveur **et** `v-if="can(...)"` Vue
 - [convention_privilege_granularity.md](convention_privilege_granularity.md) - `view/create/edit/delete`, jamais un `manage` fourre-tout
 - [convention_navpermission_group.md](convention_navpermission_group.md) - `NavPermission(..., group: '…')` override : quasi obsolète post-Jalon 5
-- [convention_breadcrumb_section.md](convention_breadcrumb_section.md) - premier fil = `backend.nav.sections.<moduleId>|trans`
+- [convention_breadcrumb_section.md](convention_breadcrumb_section.md) - premier fil = `suite.nav.sections.<moduleId>|trans`
 
 ## Structure PHP
 - [structure_module_layout.md](structure_module_layout.md) - arborescence `src/Core/<Feature>/` ou `src/Module/<Module>/<Feature>/`
 - [structure_entity.md](structure_entity.md) - Interface + Abstract + concrete, table naming, sequences `seq_core_*`
-- [structure_controller.md](structure_controller.md) - Controllers Backend/Frontend, routes, type-hints, traits, conventions frontend controller
+- [structure_controller.md](structure_controller.md) - Controllers Suite/Frontend, routes, type-hints, traits, conventions frontend controller
 - [structure_manager_vs_service.md](structure_manager_vs_service.md) - quand `Manager/` vs `Service/`
 - [structure_repository.md](structure_repository.md) - `ResolveTargetEntityRepository` pattern, finders
 - [structure_view_builder.md](structure_view_builder.md) - `<Plural>ViewBuilder` admin + variante Frontend (`View/Frontend/`, `baseView()`, `pageData()`)

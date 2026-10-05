@@ -61,9 +61,9 @@ not short. The value has no `_enabled` suffix.
 
 Then four `match` arms:
 
-- `getLabel()` → `'backend.nav.<parent_id>_<sub_id>'` (reuse the NavItem's key)
+- `getLabel()` → `'suite.nav.<parent_id>_<sub_id>'` (reuse the NavItem's key)
 - `getDescription()` → the same key plus `_description`
-- `getParentCase()` → the module's root case, e.g. `self::<Parent>Backend`
+- `getParentCase()` → the module's root case, e.g. `self::<Parent>Suite`
 - `getCascadeRequires()` → the key that must be active first, `->value`
 
 `getLabel()` and `getDescription()` are **exhaustive matches with no
@@ -102,11 +102,11 @@ existing context passes the case.
 
 ```
 src/Module/<Parent>/<Sub>/
-├── Controller/Backend/<Sub>Controller.php
+├── Controller/Suite/<Sub>Controller.php
 └── (Entity/ Dto/ Manager/ Repository/ Serializer/ View/ - defer to /add-entity)
 
-src/Module/<Parent>/templates/backend/<sub-kebab>/index.html.twig
-src/Module/<Parent>/<Sub>/assets/backend/<sub-kebab>/<Sub>App.vue
+src/Module/<Parent>/templates/suite/<sub-kebab>/index.html.twig
+src/Module/<Parent>/<Sub>/assets/suite/<sub-kebab>/<Sub>App.vue
 ```
 
 **Both asset layouts work.** The glob in `src/Core/assets/app.js` is
@@ -115,7 +115,7 @@ between the module and `assets/`, and `MODULE_PATH_RE` flattens them away: the
 component key is the module name plus everything after `assets/`, whichever
 layout you picked.
 
-- **Module root** (`src/Module/<Parent>/assets/backend/<sub-kebab>/`) is what
+- **Module root** (`src/Module/<Parent>/assets/suite/<sub-kebab>/`) is what
   nine of the ten modules do, and it is the default. It also gets a working
   `@<parent>` alias, since `moduleAlias()` in `aliases.js` resolves exactly
   `src/Module/<Name>/assets`.
@@ -130,14 +130,14 @@ earns the missing alias, and match whatever the parent already does.
 Controller skeleton:
 
 ```php
-#[Route('/backend/<parent-kebab>/<sub-kebab>', name: 'backend_<parent_id>_<sub_id>')]
+#[Route('/suite/<parent-kebab>/<sub-kebab>', name: 'suite_<parent_id>_<sub_id>')]
 #[IsGranted('<parent_id>.<sub_id>.view')]
 class <Sub>Controller extends AbstractController
 {
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
-        return $this->render('@<Parent>/backend/<sub-kebab>/index.html.twig');
+        return $this->render('@<Parent>/suite/<sub-kebab>/index.html.twig');
     }
 }
 ```

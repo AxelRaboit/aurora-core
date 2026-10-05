@@ -63,7 +63,7 @@ final class LoginAuthenticator extends AbstractLoginFormAuthenticator
 
         // Block admin users from using front login
         if (!method_exists($user, 'isFrontUser') || !$user->isFrontUser()) {
-            return new RedirectResponse($this->urlGenerator->generate('backend_dashboard'));
+            return new RedirectResponse($this->urlGenerator->generate('suite_dashboard'));
         }
 
         // Block unverified users

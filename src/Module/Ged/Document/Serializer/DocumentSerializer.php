@@ -38,7 +38,7 @@ class DocumentSerializer implements DocumentSerializerInterface
             'categoryName' => $category?->getName(),
             // Self-owned file fields - no Media coupling. The URL is built
             // by DocumentUrlGenerator, which picks the public route for a
-            // published document and the gated backend one otherwise. No
+            // published document and the gated suite one otherwise. No
             // hardcoded `/uploads/` prefix either way.
             'filePath' => $document->getFilePath(),
             'fileName' => $document->getFileName(),
@@ -125,7 +125,7 @@ class DocumentSerializer implements DocumentSerializerInterface
      * build the public address - which is the wrong one for a document that
      * is not published, and used to be the address that served it anyway.
      * The document-aware one knows the status and picks the route that will
-     * answer. Same URL as before for a published document; a backend URL,
+     * answer. Same URL as before for a published document; a suite URL,
      * which the grid and the picker can open, for everything else.
      */
     private function resolveThumbnailUrl(DocumentInterface $document): ?string

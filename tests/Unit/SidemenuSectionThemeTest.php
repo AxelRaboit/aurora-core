@@ -23,7 +23,7 @@ use SplFileInfo;
  */
 final class SidemenuSectionThemeTest extends TestCase
 {
-    private const string THEME_PATH = __DIR__.'/../../src/Core/assets/backend/sidemenu/composables/useSidemenuSectionTheme.js';
+    private const string THEME_PATH = __DIR__.'/../../src/Core/assets/suite/sidemenu/composables/useSidemenuSectionTheme.js';
 
     private const string MODULES_DIR = __DIR__.'/../../src/Module';
 

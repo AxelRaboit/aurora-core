@@ -6,7 +6,7 @@ const TOKEN = "a".repeat(64);
 // The server hands these down, generated from the routes. Spelled out here the
 // way it spells them, so the test breaks if the shape of the contract changes.
 const PATHS = {
-    imagePrefix: "/backend/notes/markdown/images/",
+    imagePrefix: "/suite/notes/markdown/images/",
     shareImagePath: `/notes/share/${TOKEN}/images/__filename__`,
     shareNotePath: `/notes/share/${TOKEN}/__id__`,
 };
@@ -14,7 +14,7 @@ const PATHS = {
 describe("shareHtml", () => {
     it("moves images onto the token route so they are not broken icons", () => {
         const html =
-            '<p><img src="/backend/notes/markdown/images/photo.webp" alt=""></p>';
+            '<p><img src="/suite/notes/markdown/images/photo.webp" alt=""></p>';
 
         expect(shareHtml(html, { ...PATHS, titleIndex: {} })).toContain(
             `/notes/share/${TOKEN}/images/photo.webp`,

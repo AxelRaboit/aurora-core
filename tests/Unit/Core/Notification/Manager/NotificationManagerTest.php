@@ -53,7 +53,7 @@ final class NotificationManagerTest extends TestCase
             'order.paid',
             'Order paid',
             body: 'Order #42 is paid',
-            url: '/backend/orders/42',
+            url: '/suite/orders/42',
             data: ['orderId' => 42],
         );
 
@@ -61,7 +61,7 @@ final class NotificationManagerTest extends TestCase
         self::assertSame('order.paid', $notification->getType());
         self::assertSame('Order paid', $notification->getTitle());
         self::assertSame('Order #42 is paid', $notification->getBody());
-        self::assertSame('/backend/orders/42', $notification->getUrl());
+        self::assertSame('/suite/orders/42', $notification->getUrl());
         self::assertSame(['orderId' => 42], $notification->getData());
         // Fresh notification - not read yet.
         self::assertNull($notification->getReadAt());

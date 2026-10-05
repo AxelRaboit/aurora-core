@@ -127,11 +127,11 @@ final class PostUsefulLinksTest extends IntegrationTestCase
     /** The Configuration tab keeps what it may and says what it kept. */
     public function testTheConfigurationTabKeepsOnlyUsableLinks(): void
     {
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
-        $this->client->request('POST', '/backend/editorial/useful-links/settings', server: [
+        $this->client->request('POST', '/suite/editorial/useful-links/settings', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_ACCEPT' => 'application/json',
         ], content: json_encode(['links' => [

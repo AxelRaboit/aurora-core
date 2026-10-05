@@ -130,7 +130,7 @@ final class ModulesViewBuilderTest extends TestCase
 
         $gedParam = null;
         foreach ($payload['parameters'] as $parameter) {
-            if ($parameter['key'] === ModuleParameterEnum::GedBackend->value) {
+            if ($parameter['key'] === ModuleParameterEnum::GedSuite->value) {
                 $gedParam = $parameter;
                 break;
             }
@@ -170,7 +170,7 @@ final class ModulesViewBuilderTest extends TestCase
 
         $gedParam = null;
         foreach ($payload['parameters'] as $parameter) {
-            if ($parameter['key'] === ModuleParameterEnum::GedBackend->value) {
+            if ($parameter['key'] === ModuleParameterEnum::GedSuite->value) {
                 $gedParam = $parameter;
                 break;
             }
@@ -187,7 +187,7 @@ final class ModulesViewBuilderTest extends TestCase
         }
 
         self::assertNotNull($documentsSub);
-        self::assertSame(ModuleParameterEnum::GedBackend->value, $documentsSub['requires']);
+        self::assertSame(ModuleParameterEnum::GedSuite->value, $documentsSub['requires']);
     }
 
     public function testIndexViewReturnsTabbedStructure(): void

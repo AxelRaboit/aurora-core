@@ -62,7 +62,7 @@ enum ContractStatusEnum: string
 
     public function getLabel(): string
     {
-        return 'backend.studio.contracts.status.'.$this->value;
+        return 'suite.studio.contracts.status.'.$this->value;
     }
 
     /**

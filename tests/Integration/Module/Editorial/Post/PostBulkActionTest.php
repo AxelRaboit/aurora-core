@@ -52,7 +52,7 @@ final class PostBulkActionTest extends IntegrationTestCase
         $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = self::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
 
@@ -190,7 +190,7 @@ final class PostBulkActionTest extends IntegrationTestCase
     {
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_editorial_posts_bulk'),
+            $this->urlGenerator->generate('suite_editorial_posts_bulk'),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['action' => $action, 'ids' => $ids], JSON_THROW_ON_ERROR),
         );
@@ -204,7 +204,7 @@ final class PostBulkActionTest extends IntegrationTestCase
         $user = new User();
         $user->setEmail('bulk-'.bin2hex(random_bytes(4)).'@aurora.test');
         $user->setName('Rédacteur');
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
         $user->setPassword('x');
         $user->setRoles(['ROLE_USER']);
         $user->setPrivileges($privileges);

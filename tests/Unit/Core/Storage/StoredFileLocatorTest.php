@@ -94,7 +94,7 @@ final class StoredFileLocatorTest extends TestCase
      * because catching would hide the failures of a backend that *is*
      * configured.
      */
-    public function testAnUnconfiguredBackendIsNotAsked(): void
+    public function testAnUnconfiguredSuiteIsNotAsked(): void
     {
         $remote = $this->remote();
         $remote->ready = false;
@@ -111,7 +111,7 @@ final class StoredFileLocatorTest extends TestCase
      * the remote existence check, a network round trip on every request.
      * Measured on 2026-09-25 as most of 0.3 seconds per picture.
      */
-    public function testAHintedRemoteFileIsServedWithoutAskingTheBackend(): void
+    public function testAHintedRemoteFileIsServedWithoutAskingTheSuite(): void
     {
         $remote = $this->remote();
         $remote->objects['ged/photo.webp'] = 'bytes';

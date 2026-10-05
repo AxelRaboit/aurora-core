@@ -1,6 +1,6 @@
 import { createApp, h, ref } from "vue";
 import { createAppI18n } from "@/i18n.js";
-import DocumentPickerModal from "@ged/backend/documents/components/DocumentPickerModal.vue";
+import DocumentPickerModal from "@ged/suite/documents/components/DocumentPickerModal.vue";
 
 /**
  * Imperative wrapper around <DocumentPickerModal> - mirror of
@@ -9,7 +9,7 @@ import DocumentPickerModal from "@ged/backend/documents/components/DocumentPicke
  * from `core_media` to `core_ged_documents`.
  *
  * Resolves with the selected document (full serialized payload from
- * `/backend/ged/documents/list`) or `null` if the user cancels.
+ * `/suite/ged/documents/list`) or `null` if the user cancels.
  *
  * `imagesOnly` filters the visible documents to `image/*` MIME types, and
  * `mimePrefix` does the same for any other family - `video/` for a film.
@@ -25,7 +25,7 @@ export function openDocumentPicker({
     mimePrefix = null,
     multiple = false,
     query = {},
-    listPath = "/backend/ged/documents/list",
+    listPath = "/suite/ged/documents/list",
 } = {}) {
     return new Promise((resolve) => {
         const host = document.createElement("div");

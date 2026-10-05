@@ -44,7 +44,7 @@ final class ConfigurationModuleNavViewTest extends TestCase
         );
     }
 
-    // The trap: eleven entries on `backend_configuration_settings_tab`. If the
+    // The trap: eleven entries on `suite_configuration_settings_tab`. If the
     // route name stayed the stable key, hiding one tab would hide all eleven and
     // every one of them would read as the active row.
     public function testTabsShareARouteNameButNotAStableKey(): void
@@ -53,7 +53,7 @@ final class ConfigurationModuleNavViewTest extends TestCase
 
         $routes = array_map(static fn (NavItem $item): string => $item->route, $settings->items);
         self::assertSame(
-            ['backend_configuration_settings_tab', 'backend_configuration_settings_tab'],
+            ['suite_configuration_settings_tab', 'suite_configuration_settings_tab'],
             $routes,
         );
 
@@ -69,8 +69,8 @@ final class ConfigurationModuleNavViewTest extends TestCase
     {
         $settings = $this->group($this->makeModule(['seo'])->getModuleNavView()->groups, 'settings');
 
-        self::assertSame('backend.settings.tabs.seo', $settings->items[0]->labelKey);
-        self::assertSame('backend.settings.tabs.seo_description', $settings->items[0]->descriptionKey);
+        self::assertSame('suite.settings.tabs.seo', $settings->items[0]->labelKey);
+        self::assertSame('suite.settings.tabs.seo_description', $settings->items[0]->descriptionKey);
     }
 
     public function testTabsStayBehindTheSettingsPrivilege(): void
@@ -98,14 +98,14 @@ final class ConfigurationModuleNavViewTest extends TestCase
             $view->groups,
         ));
         self::assertSame(
-            'backend_configuration_themes',
+            'suite_configuration_themes',
             $this->group($view->groups, 'appearance')->items[0]->route,
         );
     }
 
-    public function testNoViewWhenTheModuleBackendIsOff(): void
+    public function testNoViewWhenTheModuleSuiteIsOff(): void
     {
-        self::assertNull($this->makeModule(['general'], backend: false)->getModuleNavView());
+        self::assertNull($this->makeModule(['general'], suite: false)->getModuleNavView());
     }
 
     public function testNoViewWhenNeitherSettingsNorThemesIsOn(): void
@@ -147,12 +147,12 @@ final class ConfigurationModuleNavViewTest extends TestCase
      */
     private function makeModule(
         array $tabIds,
-        bool $backend = true,
+        bool $suite = true,
         bool $settings = true,
         bool $themes = true,
     ): ConfigurationModule {
         $verdicts = [
-            ModuleParameterEnum::ConfigurationBackend->value => $backend,
+            ModuleParameterEnum::ConfigurationSuite->value => $suite,
             ModuleParameterEnum::ConfigurationSettings->value => $settings,
             ModuleParameterEnum::ConfigurationThemes->value => $themes,
         ];

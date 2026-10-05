@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class MenuInput implements MenuInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.menus.errors.name_required')]
+        #[Assert\NotBlank(message: 'suite.menus.errors.name_required')]
         #[Assert\Length(max: 100)]
         public readonly string $name,
         #[Assert\Length(max: 500)]

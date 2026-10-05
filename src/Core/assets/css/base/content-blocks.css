@@ -3,7 +3,7 @@
  * in the editor's preview.
  *
  * Split out of the editor's own blocks.css, which only AppBlockEditor imports:
- * everything here was therefore backend-only, so a callout published on the
+ * everything here was therefore suite-only, so a callout published on the
  * site came out as an uncoloured box with no border, and a standfirst as an
  * ordinary paragraph. app.css is loaded by both, which is where they belong.
  *
@@ -16,7 +16,7 @@
  * One colour per type, carried by `--callout-color`, and everything else drawn
  * from it: the border and the icon in the colour, the background a light wash
  * of it, the words in the page's own text colour. The first version painted a
- * light box with dark text and kept a `.dark` variant for the backend - on the
+ * light box with dark text and kept a `.dark` variant for the suite - on the
  * public site, dark without that class, a callout came out as a near-white
  * slab. A wash over whatever is underneath reads on a light page and a dark one
  * alike, so the editor and the site need no separate rules.

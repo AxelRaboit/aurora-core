@@ -1,4 +1,4 @@
-backend:
+suite:
     audit:
         intro: History of actions performed by administration users.
         module: Module

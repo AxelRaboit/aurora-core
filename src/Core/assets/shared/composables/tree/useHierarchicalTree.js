@@ -1,5 +1,5 @@
 /**
- * Shared hierarchical-tree helpers for backend admin trees
+ * Shared hierarchical-tree helpers for suite admin trees
  * (taxonomies, listing categories, …).
  *
  * Pure functions - no Vue reactivity, no persistence. Each consumer

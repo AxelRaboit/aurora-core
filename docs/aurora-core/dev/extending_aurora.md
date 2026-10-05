@@ -160,13 +160,13 @@ Aurora template, mirror its logical path in your client project:
 
 ```
 # Aurora template (bundle side)
-vendor/aurora/src/Core/templates/Core/backend/layout.html.twig
+vendor/aurora/src/Core/templates/Core/suite/layout.html.twig
 
 # Client override - two paths are recognized (either works)
 #   1. New (recommended, matches the bundle layout):
-src/Core/templates/Core/backend/layout.html.twig
+src/Core/templates/Core/suite/layout.html.twig
 #   2. Legacy (kept for backward compat with pre-move client projects):
-templates/Core/backend/layout.html.twig
+templates/Core/suite/layout.html.twig
 ```
 
 To add new templates (not overrides), place them under
@@ -176,7 +176,7 @@ with the module's PHP code, like `assets/` and `translations/`) or under
 
 ```twig
 {# src/Module/Contracts/templates/invoice.html.twig #}
-{% extends '@Core/backend/layout.html.twig' %}
+{% extends '@Core/suite/layout.html.twig' %}
 ```
 
 > Client backward compat: existing client projects that store overrides under

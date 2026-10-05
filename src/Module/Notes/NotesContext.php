@@ -11,9 +11,9 @@ final readonly class NotesContext
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::NotesBackend);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::NotesSuite);
     }
 
     public function isMarkdownEnabled(): bool

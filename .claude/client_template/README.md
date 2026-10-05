@@ -9,7 +9,7 @@
 
 A client application built on [Aurora](https://github.com/AxelRaboit/aurora-core).
 Aurora is installed as a Composer dependency at `vendor/axelraboit/aurora/`
-and provides the full backend (CRUD, auth, modules, Vue admin SPA, etc.).
+and provides the full suite (CRUD, auth, modules, Vue admin SPA, etc.).
 
 <!-- aurora-canonical:start - managed by `make sync-readme`. Don't edit between markers; changes will be overwritten. -->
 

@@ -46,10 +46,10 @@ final class NotificationTest extends TestCase
     {
         $notification = (new Notification())
             ->setBody('Someone commented on your post')
-            ->setUrl('/backend/editorial/posts/42');
+            ->setUrl('/suite/editorial/posts/42');
 
         self::assertSame('Someone commented on your post', $notification->getBody());
-        self::assertSame('/backend/editorial/posts/42', $notification->getUrl());
+        self::assertSame('/suite/editorial/posts/42', $notification->getUrl());
     }
 
     public function testDataGetterAndSetter(): void

@@ -1,4 +1,4 @@
-backend:
+suite:
     profile:
         guide:
             title: 'Su perfil de un vistazo'

@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>{{ title }}</h1>
-<p>{{ 'backend.plannings.mail.reminder_intro'|trans({'%calendar%': calendarName}) }}</p>
+<p>{{ 'suite.plannings.mail.reminder_intro'|trans({'%calendar%': calendarName}) }}</p>
 
 {% if notes %}
     <table class="panel" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -13,6 +13,6 @@
 {% endif %}
 
 {% if url %}
-    <p><a href="{{ url }}">{{ 'backend.plannings.mail.open'|trans }}</a></p>
+    <p><a href="{{ url }}">{{ 'suite.plannings.mail.open'|trans }}</a></p>
 {% endif %}
 {% endblock %}

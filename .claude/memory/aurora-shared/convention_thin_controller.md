@@ -33,7 +33,7 @@ metadata:
 ## Squelette d'un controller conforme
 
 ```php
-#[Route('/backend/widget/{id}/duplicate', name: '_duplicate', methods: ['POST'])]
+#[Route('/suite/widget/{id}/duplicate', name: '_duplicate', methods: ['POST'])]
 public function duplicate(int $id, Request $request): JsonResponse
 {
     /** @var CoreUserInterface $user */
@@ -81,15 +81,15 @@ Un controller backend complet (CRUD + 2-3 actions métier) ne devrait **pas dép
 
 Au-delà de **~10 endpoints** ou **~250 lignes**, splitter par **sous-domaine cohérent** plutôt que de tout entasser. Critère du split : un groupe d'endpoints qui forme une **feature cross-cutting** vs le CRUD de l'entité racine.
 
-Exemple : `Module/Notes/Markdown/Controller/Backend/`
+Exemple : `Module/Notes/Markdown/Controller/Suite/`
 - `MarkdownNotesController` - CRUD note + actions liées à une note (move, backlinks, mentions, graph, reorder)
 - `MarkdownTagsController` - opérations cross-cutting sur les tags (list/rename/merge/delete) qui touchent N notes simultanément
 
-**Préserver les noms de routes** lors d'un split : si l'ancien controller avait `backend_notes_markdown_tags_list`, le nouveau controller doit conserver ce nom exact via `#[Route('/backend/notes/markdown/tags', name: 'backend_notes_markdown_tags')]` au niveau classe + `name: '_list'` au niveau méthode. Sinon le ViewBuilder + les `urlGenerator->generate(...)` callers cassent silencieusement.
+**Préserver les noms de routes** lors d'un split : si l'ancien controller avait `suite_notes_markdown_tags_list`, le nouveau controller doit conserver ce nom exact via `#[Route('/suite/notes/markdown/tags', name: 'suite_notes_markdown_tags')]` au niveau classe + `name: '_list'` au niveau méthode. Sinon le ViewBuilder + les `urlGenerator->generate(...)` callers cassent silencieusement.
 
 ### Piège du `/{id}` après split
 
-Quand on splite et qu'un controller garde `/{id}` (route show générique) et qu'un autre nouveau controller introduit `/tags` (ou tout segment littéral), **l'ordre de chargement des controllers par Symfony** peut faire matcher `/{id}` AVANT `/tags`. Résultat : `GET /backend/notes/markdown/tags` est routé vers `show($id='tags')`.
+Quand on splite et qu'un controller garde `/{id}` (route show générique) et qu'un autre nouveau controller introduit `/tags` (ou tout segment littéral), **l'ordre de chargement des controllers par Symfony** peut faire matcher `/{id}` AVANT `/tags`. Résultat : `GET /suite/notes/markdown/tags` est routé vers `show($id='tags')`.
 
 **Correctif obligatoire** : ajouter `requirements: ['id' => '\d+']` sur la route `/{id}`. Si le ViewBuilder génère encore l'URL avec un placeholder template comme `__id__`, étendre la requirement : `'\d+|__id__'`.
 
@@ -150,7 +150,7 @@ Convention rappelée par l'utilisateur le **2026-05-16** :
 doivent etre dans des services quand non mutable, et managers quand
 mutable (set / flush etc)"*.
 
-Voir aussi (mémoires `aurora-core/backend/`, applicables uniquement quand on écrit du code dans le bundle core) :
+Voir aussi (mémoires `aurora-core/suite/`, applicables uniquement quand on écrit du code dans le bundle core) :
 - `convention_dto_factory.md` - pattern Input + InputFactory + AsAlias (extensibilité Sylius-style)
 - `convention_extensibility.md` - résumé exécutif des 5 couches
 - `structure_manager_vs_service.md` - distinction détaillée Manager / Service

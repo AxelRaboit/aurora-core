@@ -67,7 +67,7 @@ final readonly class MarkdownNoteImageService
      * Capture group 1 is the bare filename (uuid.ext). Used by the
      * manager's orphan-cleanup hook to diff old vs new note content.
      */
-    public const string FILENAME_PATTERN = '#/backend/notes/markdown/images/([A-Za-z0-9._-]+)#';
+    public const string FILENAME_PATTERN = '#/suite/notes/markdown/images/([A-Za-z0-9._-]+)#';
 
     /**
      * Un nom de fichier tel que ce service en fabrique : un uuid, un point,

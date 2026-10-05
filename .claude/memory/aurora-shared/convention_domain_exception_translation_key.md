@@ -23,7 +23,7 @@ message**. Le reste suit deux formes selon qui refuse.
 
 ```php
 // Manager
-throw new FieldException('parent', $this->translator->trans('backend.x.errors.cycle'));
+throw new FieldException('parent', $this->translator->trans('suite.x.errors.cycle'));
 
 // Controller
 catch (FieldException $e) {
@@ -56,7 +56,7 @@ catch (FrozenContractIsImmutableException) {
 private function frozenRefusal(): JsonResponse
 {
     return $this->jsonInvalidInput([
-        'status' => $this->translator->trans('backend.studio.contracts.errors.already_frozen'),
+        'status' => $this->translator->trans('suite.studio.contracts.errors.already_frozen'),
     ]);
 }
 ```

@@ -47,15 +47,15 @@ restent à reprendre.
 
 ## Forme de l'enum
 
-- Case **explicite et préfixée** : `StudioBackend`, `StudioCustomers`,
-  `GedDocuments`… et non `Backend` court. La **valeur** est la clé BDD
+- Case **explicite et préfixée** : `StudioSuite`, `StudioCustomers`,
+  `GedDocuments`… et non `Suite` court. La **valeur** est la clé BDD
   `modules_<module>_<feature>`, sans suffixe `_enabled`.
 - `getType()` → `'bool'`, `getGroup()` → `'modules'`, `getDefaultValue()` → `'1'`.
-- `getModuleId(): ?string` → `'<module>'` pour les cases `*Backend`, null sinon.
+- `getModuleId(): ?string` → `'<module>'` pour les cases `*Suite`, null sinon.
 - `getParentCase(): ?self` → la case racine du module (hiérarchie d'affichage).
   Il n'y a **pas** de `getDisplayParent()`.
 - `getCascadeRequires(): ?string` → la clé qui doit être active avant celle-ci.
-  Ce n'est pas forcément le `*Backend` du module : `StudioContracts` et
+  Ce n'est pas forcément le `*Suite` du module : `StudioContracts` et
   `StudioSpaces` dépendent de `StudioCustomers`, parce qu'un contrat et un
   espace s'adressent tous deux à un client.
 - `getCascadeDisableTargets()` est dérivé des deux précédents, rien à écrire.

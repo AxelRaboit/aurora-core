@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         sections:
             notes: Notes
@@ -24,10 +24,10 @@ backend:
                     create: 'Créer des espaces de notes partagés'
                     publish: 'Publier des espaces de notes sur le web'
     modules:
-        notes_backend: Notes
+        notes_suite: Notes
         # The module string an audit row carries, which is not the toggle key.
         notes_markdown: Notes Markdown
-        notes_backend_description: Active la prise de notes en Markdown, avec liens entre notes et graphe.
+        notes_suite_description: Active la prise de notes en Markdown, avec liens entre notes et graphe.
     nav:
         sections:
             notes: Notes
@@ -66,7 +66,7 @@ notes:
         guide:
             title: "Comment s'organisent les notes"
             step_1: "Chaque note appartient à un espace : le vôtre, toujours privé, ou un espace partagé."
-            step_2: "Un espace partagé s'ouvre à vous seul, à certaines personnes ou à tout le back-office, chacun en lecture, écriture ou gestion."
+            step_2: "Un espace partagé s'ouvre à vous seul, à certaines personnes ou à toute la suite, chacun en lecture, écriture ou gestion."
             step_3: "Reliez les notes avec [[Titre]] : le graphe montre ces liens entre toutes les notes que vous pouvez lire."
             step_4: "Les étiquettes filtrent la bibliothèque, et « Gérer les tags » les renomme ou les fusionne sur toutes vos notes."
             step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
@@ -152,7 +152,7 @@ notes:
             settings: 'Réglages de l''espace'
             members: 'Membres'
             members_hint: 'Seules les personnes inscrites entrent, chacune avec son rôle.'
-            members_hint_backoffice: 'Tout le back-office entre avec le rôle par défaut ; une inscription peut donner plus.'
+            members_hint_backoffice: 'Toute la suite entre avec le rôle par défaut ; une inscription peut donner plus.'
             no_members: 'Personne n''est inscrit pour l''instant.'
             pick_person: 'Choisir une personne'
             add_member: 'Inscrire'
@@ -171,7 +171,7 @@ notes:
                 label: 'Qui y a accès'
                 private: 'Moi seul'
                 members: 'Certaines personnes'
-                backoffice: 'Tout le back-office'
+                backoffice: 'Toute la suite'
                 private_hint: 'Personne d''autre ne le voit.'
                 members_hint: 'Seules les personnes que vous inscrivez.'
                 backoffice_hint: 'Toute personne qui utilise les notes.'

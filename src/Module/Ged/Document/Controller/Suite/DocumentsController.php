@@ -1,0 +1,734 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aurora\Module\Ged\Document\Controller\Suite;
+
+use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Http\JsonRequestTrait;
+use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
+use Aurora\Core\Storage\Access\UploadRefusalEnum;
+use Aurora\Core\Storage\Enum\MimeGroupEnum;
+use Aurora\Core\Storage\Enum\StorageDiskEnum;
+use Aurora\Core\Storage\Service\VideoCapture;
+use Aurora\Core\Validation\Dto\PaginationRequest;
+use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
+use Aurora\Module\Ged\Document\Dto\ColorAlternateInput;
+use Aurora\Module\Ged\Document\Dto\DocumentInputFactoryInterface;
+use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
+use Aurora\Module\Ged\Document\Message\RelocateDocumentMessage;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
+use Aurora\Module\Ged\Document\Search\DocumentSearchFilters;
+use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
+use Aurora\Module\Ged\Document\Serializer\DocumentVersionSerializerInterface;
+use Aurora\Module\Ged\Document\Service\DocumentColorAlternateCreator;
+use Aurora\Module\Ged\Document\Service\DocumentFamilyRule;
+use Aurora\Module\Ged\Document\Service\DocumentRelocator;
+use Aurora\Module\Ged\Document\Service\DocumentUsageService;
+use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
+use Aurora\Module\Ged\Document\Service\InlineImageUploader;
+use Aurora\Module\Ged\Document\View\DocumentsViewBuilder;
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
+use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
+use Aurora\Module\Ged\Enum\DocumentTransferStateEnum;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/suite/ged/documents', name: 'suite_ged_documents')]
+#[IsGranted('ged.documents.view')]
+final class DocumentsController extends AbstractController
+{
+    use JsonRequestTrait;
+    use JsonResponseTrait;
+
+    /**
+     * Above this, a move goes to a worker rather than holding the request.
+     *
+     * Chosen so the common case stays instant: an image and its renditions sit
+     * far below, a scanned contract usually too. It is a video, or a document
+     * with a long history of versions, that crosses it.
+     */
+    private const int INLINE_RELOCATION_LIMIT_BYTES = 8 * 1024 * 1024;
+
+    public function __construct(
+        private readonly DocumentSerializerInterface $serializer,
+        private readonly DocumentManagerInterface $manager,
+        private readonly PayloadValidator $payloadValidator,
+        private readonly DocumentsViewBuilder $viewBuilder,
+        private readonly DocumentInputFactoryInterface $inputFactory,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly DocumentVersionRepository $versionRepository,
+        private readonly DocumentVersionSerializerInterface $versionSerializer,
+        private readonly GedDocumentUploader $uploader,
+        private readonly DocumentUsageService $usageService,
+        private readonly DocumentColorAlternateCreator $colorAlternateCreator,
+        private readonly DocumentFolderRepository $folderRepository,
+        private readonly DocumentCategoryRepository $categoryRepository,
+        private readonly InlineImageUploader $inlineImageUploader,
+        private readonly DocumentRelocator $relocator,
+        private readonly MessageBusInterface $messageBus,
+        private readonly StorageSettings $storageSettings,
+        private readonly DocumentRepository $documentRepository,
+        private readonly UploadPolicyProvider $uploadPolicies,
+        private readonly DocumentFamilyRule $familyRule,
+    ) {}
+
+    #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
+    public function index(Request $request, PaginationRequest $pagination): Response
+    {
+        [$sort, $direction] = $this->sortOf($request);
+
+        // Families are folded unless the address says otherwise (`familles=0`),
+        // the way the screen reads it.
+        return $this->render('@Ged/suite/documents/index.html.twig', $this->viewBuilder->indexView(
+            $pagination,
+            originalsOnly: '0' !== $request->query->getString('familles'),
+            sort: $sort,
+            direction: $direction,
+        ));
+    }
+
+    private function positiveId(string $value): ?int
+    {
+        return ctype_digit($value) && (int) $value > 0 ? (int) $value : null;
+    }
+
+    /** @return array{string, string} */
+    private function sortOf(Request $request): array
+    {
+        $sort = $request->query->getString('sort', 'date');
+
+        return [
+            in_array($sort, DocumentRepository::SORTS, true) ? $sort : 'date',
+            'asc' === ($request->query->getString('direction') ?: $request->query->getString('dir')) ? 'asc' : 'desc',
+        ];
+    }
+
+    #[Route('/list', name: '_list', methods: [HttpMethodEnum::Get->value])]
+    public function list(Request $request, PaginationRequest $pagination): JsonResponse
+    {
+        // `none` is a value here too (« Sans catégorie », « Sans étiquette »),
+        // read by DocumentSearchFilters: `getInt` would refuse it with a 400.
+        $categoryId = $this->positiveId($request->query->getString('categoryId'));
+        $tagId = $this->positiveId($request->query->getString('tagId'));
+        $folderId = $request->query->getInt('folderId') ?: null;
+        $statusValue = $request->query->getString('status');
+        $status = '' !== $statusValue ? DocumentStatusEnum::tryFrom($statusValue) : null;
+        $mimeGroupValue = $request->query->getString('mimeGroup');
+        $mimeGroup = '' !== $mimeGroupValue ? MimeGroupEnum::tryFrom($mimeGroupValue) : null;
+        // Media-style sidebar navigation: rootOnly=1 → docs with no folder.
+        // Without rootOnly and without folderId, the listing stays cross-folder
+        // (backwards-compatible with the filter-only callers).
+        $rootOnly = $request->query->getBoolean('rootOnly');
+
+        $diskValue = $request->query->getString('storageDisk');
+        $storageDisk = '' !== $diskValue ? StorageDiskEnum::tryFrom($diskValue) : null;
+
+        // The trash is a view of this same listing, so it travels as a filter
+        // rather than as a screen of its own: every other filter keeps working
+        // inside it, and there is one payload shape to keep in sync.
+        $trashed = $request->query->getBoolean('trashed');
+
+        // Families folded to their original, for a listing that wants each
+        // visual once and for the picker that chooses an original.
+        $originalsOnly = $request->query->getBoolean('originalsOnly');
+
+        // Sorted by the server, on the whole listing: sorting the page in the
+        // browser only ever reordered twenty rows out of three hundred.
+        [$sort, $direction] = $this->sortOf($request);
+
+        // Where the box looks, and the filters beyond category and tag:
+        // added between two dates, shape, weight, none at all.
+        $filters = DocumentSearchFilters::fromQuery($request->query);
+
+        return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly, $storageDisk, $trashed, $originalsOnly, sort: $sort, direction: $direction, filters: $filters));
+    }
+
+    /**
+     * The folder tree, for the side menu's GED panel.
+     *
+     * Declared above `/{id}` because that one would happily match `folders` -
+     * the same reason `/list` sits where it does.
+     *
+     * Its own endpoint rather than a slice of `/list`: the panel wants the tree
+     * and nothing else, on pages that have no document listing at all (tags,
+     * categories, folders), and asking for a paginated document page to throw
+     * it away would be a query per navigation for nothing.
+     *
+     * Behind `ged.documents.view` like the rest of this controller, which is
+     * the right gate: every row in the tree is a link into the document
+     * listing, so somebody who cannot see documents has nothing to click.
+     */
+    #[Route('/folders', name: '_folders', methods: [HttpMethodEnum::Get->value])]
+    public function folders(): JsonResponse
+    {
+        return $this->json($this->viewBuilder->folderTreePayload());
+    }
+
+    #[Route('/{id}', name: '_show', methods: [HttpMethodEnum::Get->value])]
+    public function show(Document $document): Response
+    {
+        return $this->render('@Ged/suite/documents/show.html.twig', [
+            'document' => $this->serializer->serialize($document),
+            'backPath' => $this->urlGenerator->generate('suite_ged_documents'),
+            'updatePath' => $this->urlGenerator->generate('suite_ged_documents_update', ['id' => $document->getId()]),
+            'deletePath' => $this->urlGenerator->generate('suite_ged_documents_delete', ['id' => $document->getId()]),
+            'restorePath' => $this->urlGenerator->generate('suite_ged_documents_restore', ['id' => $document->getId()]),
+            'cropPath' => $this->urlGenerator->generate('suite_ged_documents_crop', ['id' => $document->getId()]),
+            'listPath' => $this->urlGenerator->generate('suite_ged_documents'),
+            'storagePath' => $this->urlGenerator->generate('suite_ged_documents_storage', ['id' => $document->getId()]),
+            'storageRelocationAvailable' => $this->storageSettings->isRelocationAvailable(),
+            'alternatesPath' => $this->urlGenerator->generate('suite_ged_documents_alternates', ['id' => '__id__']),
+            'showPath' => $this->urlGenerator->generate('suite_ged_documents_show', ['id' => '__id__']),
+            // Its edit window files it like the library's does: category,
+            // tags and folder, not only its title and status.
+            ...$this->viewBuilder->classificationOptions(),
+        ]);
+    }
+
+    #[Route('/{id}/versions', name: '_versions', methods: [HttpMethodEnum::Get->value])]
+    public function versions(Document $document): JsonResponse
+    {
+        $versions = $this->versionRepository->findByDocument($document);
+
+        return $this->json([
+            'success' => true,
+            'versions' => array_map($this->versionSerializer->serialize(...), $versions),
+        ]);
+    }
+
+    /** The alternates declined from this document, for its edit screen. */
+    #[Route('/{id}/alternates', name: '_alternates', methods: [HttpMethodEnum::Get->value])]
+    public function alternates(Document $document): JsonResponse
+    {
+        $alternates = $this->documentRepository->findAlternatesOf($document);
+        $ids = [(int) $document->getId()];
+        foreach ($alternates as $alternate) {
+            $ids[] = (int) $alternate->getId();
+        }
+
+        // Where each member is used, by kind of source, so the family strip
+        // can say it without a request per member.
+        $usage = $this->usageService->countUsagesByTypeFor($ids);
+        $withUsage = fn (DocumentInterface $member): array => [
+            ...$this->serializer->serialize($member),
+            'usageCount' => array_sum($usage[$member->getId()] ?? []),
+            'usageByType' => $usage[$member->getId()] ?? [],
+        ];
+
+        return $this->jsonSuccess([
+            // The original too, so a screen showing a family from any of its
+            // members draws it whole with one request.
+            'original' => $withUsage($document),
+            'alternates' => array_map($withUsage, $alternates),
+        ]);
+    }
+
+    #[Route('/{id}/usage', name: '_usage', methods: [HttpMethodEnum::Get->value])]
+    public function usage(Document $document): JsonResponse
+    {
+        return $this->jsonSuccess($this->usageService->findUsages((int) $document->getId()));
+    }
+
+    /**
+     * Declines the document - or its original - in another colour, as a new
+     * alternate of the family.
+     */
+    #[Route('/{id}/recolor', name: '_recolor', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.create')]
+    public function recolor(Document $document, Request $request): JsonResponse
+    {
+        $input = ColorAlternateInput::fromArray($this->decodeJson($request));
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $result = $this->colorAlternateCreator->create($document, $input);
+        if (is_array($result)) {
+            return $this->jsonInvalidInput($result);
+        }
+
+        return $this->jsonSuccess(['document' => $this->serializer->serialize($result)]);
+    }
+
+    #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.create')]
+    public function create(Request $request): JsonResponse
+    {
+        $input = $this->inputFactory->fromArray($this->decodeJson($request));
+        $errors = $this->payloadValidator->errors($input) + $this->familyRule->errors(null, $input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $document = $this->manager->create($input);
+
+        return $this->jsonSuccess(['document' => $this->serializer->serialize($document)]);
+    }
+
+    #[Route('/{id}/update', name: '_update', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.edit')]
+    public function update(Document $document, Request $request): JsonResponse
+    {
+        $input = $this->inputFactory->fromArray($this->decodeJson($request));
+        $errors = $this->payloadValidator->errors($input) + $this->familyRule->errors($document, $input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $this->manager->update($document, $input);
+
+        return $this->jsonSuccess(['document' => $this->serializer->serialize($document)]);
+    }
+
+    private function withAlternates(Request $request): bool
+    {
+        if ('' === $request->getContent()) {
+            return false;
+        }
+
+        return true === ($this->decodeJson($request)['withAlternates'] ?? false);
+    }
+
+    #[Route('/{id}/delete', name: '_delete', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.delete')]
+    public function delete(Document $document, Request $request): JsonResponse
+    {
+        // "With its alternates": an original thrown away alone leaves its
+        // copies behind as orphans of a trashed visual. Asked on the screen,
+        // answered here in one go.
+        if ($this->withAlternates($request)) {
+            $this->manager->bulkDelete([(int) $document->getId(), ...$this->documentRepository->findAlternateIdsOf([(int) $document->getId()])]);
+
+            return $this->jsonSuccess();
+        }
+
+        $this->manager->delete($document);
+
+        return $this->jsonSuccess();
+    }
+
+    /**
+     * Brings a document back from the trash.
+     *
+     * Under `delete` rather than `edit`: restoring undoes a deletion, and the
+     * person trusted with the trash is the one trusted to have emptied it.
+     */
+    #[Route('/{id}/restore', name: '_restore', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.delete')]
+    public function restore(Document $document): JsonResponse
+    {
+        $this->manager->restore($document);
+
+        return $this->jsonSuccess();
+    }
+
+    /**
+     * Deletes a document for good, file included.
+     *
+     * Separate from `/delete` because it is a different promise: that one is
+     * reversible, this one takes the bytes with it.
+     */
+    #[Route('/{id}/force-delete', name: '_force_delete', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.delete')]
+    public function forceDelete(Document $document): JsonResponse
+    {
+        $this->manager->forceDelete($document);
+
+        return $this->jsonSuccess();
+    }
+
+    #[Route('/bulk-restore', name: '_bulk_restore', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.delete')]
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $ids = array_values(array_filter(array_map(intval(...), (array) ($payload['ids'] ?? []))));
+
+        return $this->jsonSuccess(['restored' => $this->manager->bulkRestore($ids)]);
+    }
+
+    #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.delete')]
+    public function emptyTrash(): JsonResponse
+    {
+        return $this->jsonSuccess(['deleted' => $this->manager->emptyTrash()]);
+    }
+
+    #[Route('/{id}/crop', name: '_crop', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.edit')]
+    public function crop(Document $document, Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+        $this->manager->cropImage(
+            $document,
+            (int) ($data['x'] ?? 0),
+            (int) ($data['y'] ?? 0),
+            (int) ($data['width'] ?? 1),
+            (int) ($data['height'] ?? 1),
+        );
+
+        return $this->jsonSuccess(['document' => $this->serializer->serialize($document)]);
+    }
+
+    #[Route('/bulk-delete', name: '_bulk_delete', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.delete')]
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $ids = array_values(array_filter(array_map(intval(...), (array) ($payload['ids'] ?? []))));
+        if (true === ($payload['withAlternates'] ?? false)) {
+            $ids = array_values(array_unique([...$ids, ...$this->documentRepository->findAlternateIdsOf($ids)]));
+        }
+
+        $count = $this->manager->bulkDelete($ids);
+
+        return $this->jsonSuccess(['deleted' => $count]);
+    }
+
+    #[Route('/{id}/move', name: '_move', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.edit')]
+    public function move(Document $document, Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+        $folderId = isset($data['folderId']) && (int) $data['folderId'] > 0 ? (int) $data['folderId'] : null;
+        $folder = null !== $folderId ? $this->folderRepository->find($folderId) : null;
+
+        // A family moves together when asked: a variant filed away from its
+        // original is a variant nobody finds.
+        if (true === ($data['withAlternates'] ?? false)) {
+            $this->manager->bulkMove([(int) $document->getId(), ...$this->documentRepository->findAlternateIdsOf([(int) $document->getId()])], $folder);
+        } else {
+            $this->manager->move($document, $folder);
+        }
+
+        return $this->jsonSuccess(['document' => $this->serializer->serialize($document)]);
+    }
+
+    /**
+     * Files a selection under one category, or under none (`categoryId`
+     * null). The alternates of the originals chosen follow when asked: a
+     * family split across two categories is found in neither.
+     *
+     * A category that does not exist, or sits in the trash, is refused
+     * rather than read as "none": that would empty the category of every
+     * document selected, on a typo.
+     */
+    #[Route('/bulk-category', name: '_bulk_category', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.edit')]
+    public function bulkCategory(Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+        $ids = array_values(array_filter(array_map(intval(...), (array) ($data['ids'] ?? []))));
+        if (true === ($data['withAlternates'] ?? false)) {
+            $ids = array_values(array_unique([...$ids, ...$this->documentRepository->findAlternateIdsOf($ids)]));
+        }
+
+        $category = null;
+        if (null !== ($data['categoryId'] ?? null)) {
+            $category = $this->categoryRepository->find((int) $data['categoryId']);
+
+            if (null === $category || $category->isTrashed()) {
+                return $this->jsonInvalidInput(['categoryId' => 'suite.ged.documents.errors.category_unknown']);
+            }
+        }
+
+        return $this->jsonSuccess(['categorized' => $this->manager->bulkCategorize($ids, $category)]);
+    }
+
+    #[Route('/bulk-move', name: '_bulk_move', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.edit')]
+    public function bulkMove(Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+        $ids = array_values(array_filter(array_map(intval(...), (array) ($data['ids'] ?? []))));
+        if (true === ($data['withAlternates'] ?? false)) {
+            $ids = array_values(array_unique([...$ids, ...$this->documentRepository->findAlternateIdsOf($ids)]));
+        }
+
+        $folderId = isset($data['folderId']) && (int) $data['folderId'] > 0 ? (int) $data['folderId'] : null;
+        $folder = null !== $folderId ? $this->folderRepository->find($folderId) : null;
+
+        $this->manager->bulkMove($ids, $folder);
+
+        return $this->jsonSuccess();
+    }
+
+    /**
+     * Moves one document's bytes to the other storage backend.
+     *
+     * Small ones are done inline, so the row updates while the reader is still
+     * looking at it. Above the threshold the work is handed to a worker: a
+     * browser should not be held open on a bucket, and a request that times out
+     * half way through a copy is the one case the ordering in
+     * {@see DocumentRelocator} cannot make pretty.
+     *
+     * Its own privilege rather than `edit`: moving bytes between backends
+     * spends transfer and request budget on somebody's account, which is not
+     * the same permission as fixing a typo in a title.
+     */
+    #[Route('/{id}/storage', name: '_storage', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.relocate')]
+    public function relocate(Document $document, Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $target = StorageDiskEnum::tryFrom((string) ($payload['disk'] ?? ''));
+
+        if (!$target instanceof StorageDiskEnum) {
+            return $this->jsonFailure('suite.ged.documents.errors.unknown_disk');
+        }
+
+        if (DocumentTransferStateEnum::Pending === $document->getStorageTransferState()) {
+            return $this->jsonFailure('suite.ged.documents.errors.relocation_busy');
+        }
+
+        if ($this->relocator->weigh($document) > self::INLINE_RELOCATION_LIMIT_BYTES) {
+            $this->messageBus->dispatch(new RelocateDocumentMessage((int) $document->getId(), $target));
+
+            return $this->jsonSuccess(['queued' => true, 'state' => DocumentTransferStateEnum::Pending->value]);
+        }
+
+        $relocation = $this->relocator->relocate($document, $target);
+
+        if ($relocation->busy) {
+            return $this->jsonFailure('suite.ged.documents.errors.relocation_busy');
+        }
+
+        if (!$relocation->ok) {
+            return $this->jsonFailure('suite.ged.documents.errors.relocation_failed', extra: [
+                'reason' => $relocation->error,
+            ]);
+        }
+
+        return $this->jsonSuccess([
+            'queued' => false,
+            'disk' => $document->getStorageDisk()->value,
+            'state' => $document->getStorageTransferState()->value,
+            'filesMoved' => $relocation->filesMoved,
+            'alreadyThere' => $relocation->alreadyThere,
+        ]);
+    }
+
+    /**
+     * The same move, over a selection.
+     *
+     * Reports counts rather than a single success, because a selection can
+     * legitimately be a mix: some documents already where they were asked to
+     * go, one held by a move still running, one whose backend refused. Telling
+     * the reader "done" over that would be a lie, and telling them "failed"
+     * would be another.
+     */
+    #[Route('/bulk-storage', name: '_bulk_storage', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.relocate')]
+    public function bulkRelocate(Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $target = StorageDiskEnum::tryFrom((string) ($payload['disk'] ?? ''));
+
+        if (!$target instanceof StorageDiskEnum) {
+            return $this->jsonFailure('suite.ged.documents.errors.unknown_disk');
+        }
+
+        /** @var list<int> $ids */
+        $ids = array_values(array_filter(array_map(intval(...), (array) ($payload['ids'] ?? []))));
+
+        $counts = ['moved' => 0, 'queued' => 0, 'alreadyThere' => 0, 'busy' => 0, 'failed' => 0];
+
+        // The whole selection in one query rather than a find() per id.
+        foreach ([] === $ids ? [] : $this->documentRepository->findBy(['id' => $ids]) as $document) {
+            $id = (int) $document->getId();
+
+            if ($this->relocator->weigh($document) > self::INLINE_RELOCATION_LIMIT_BYTES) {
+                $this->messageBus->dispatch(new RelocateDocumentMessage($id, $target));
+                ++$counts['queued'];
+
+                continue;
+            }
+
+            $relocation = $this->relocator->relocate($document, $target);
+
+            ++$counts[match (true) {
+                $relocation->alreadyThere => 'alreadyThere',
+                $relocation->busy => 'busy',
+                $relocation->ok => 'moved',
+                default => 'failed',
+            }];
+        }
+
+        return $this->jsonSuccess($counts);
+    }
+
+    /**
+     * The same move again, over the whole médiathèque.
+     *
+     * The gesture an administrator actually has in mind when they change where
+     * this installation stores things: not "these forty", but "from now on
+     * everything lives there". Ticking eight hundred rows a page at a time to
+     * express that is not a selection, it is a chore, and one that fails
+     * silently when the reader loses count.
+     *
+     * **Everything is queued, nothing is done inline.** The other two endpoints
+     * move a small document inside the request so the row updates while the
+     * reader is still looking at it; that trade only works because they know
+     * how many documents they were handed. Here the answer is however many the
+     * médiathèque holds, and a request that copies eight hundred files to a
+     * bucket is a request that dies half way - which is the one case the
+     * ordering in {@see DocumentRelocator} cannot make pretty. A uniform rule
+     * also means the button behaves the same on the first press and on the
+     * hundredth.
+     *
+     * Documents already on the target are not dispatched at all: the relocator
+     * would answer `alreadyThere` and cost a message and a round trip to do it.
+     * They are counted, because "nothing happened" and "there was nothing left
+     * to do" read identically otherwise.
+     */
+    #[Route('/relocate-all', name: '_relocate_all', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.relocate')]
+    public function relocateAll(Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $target = StorageDiskEnum::tryFrom((string) ($payload['disk'] ?? ''));
+
+        if (!$target instanceof StorageDiskEnum) {
+            return $this->jsonFailure('suite.ged.documents.errors.unknown_disk');
+        }
+
+        $ids = $this->documentRepository->idsNotOnDisk($target);
+
+        foreach ($ids as $id) {
+            $this->messageBus->dispatch(new RelocateDocumentMessage($id, $target));
+        }
+
+        return $this->jsonSuccess([
+            'queued' => count($ids),
+            'alreadyThere' => $this->documentRepository->countLivingOnDisk($target),
+            'disk' => $target->value,
+        ]);
+    }
+
+    /**
+     * Uploads a file to GED storage (`var/uploads/ged/Y/m/<slug>-<uniq>.<ext>`)
+     * without persisting any DB row yet. Returns the file metadata the form
+     * carries into the `create` / `update` submit. Two-step pattern keeps
+     * the form submit a regular JSON post.
+     */
+    #[Route('/upload', name: '_upload', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.create')]
+    public function upload(Request $request): JsonResponse
+    {
+        /** @var UploadedFile|null $file */
+        $file = $request->files->get('file');
+        if (null === $file) {
+            return $this->jsonFailure('suite.ged.documents.errors.upload_required');
+        }
+
+        // Until 2026-09-16 this endpoint checked nothing at all - not a type,
+        // not a size - and the only wall was the privilege above. The staff
+        // profile still accepts any type, deliberately: a document library
+        // that refuses formats is one people work around by renaming things,
+        // and what made the formats dangerous is closed where the file is
+        // served rather than where it arrives. What it does now is cap the
+        // disk, which nobody was doing.
+        if (($refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+            return $this->jsonFailure($this->uploadRefusalKey($refusal));
+        }
+
+        return $this->jsonSuccess($this->uploader->upload($file, $this->videoCapture($request)));
+    }
+
+    /**
+     * This surface's words for a refusal.
+     *
+     * The rule lives in {@see UploadPolicy} and says nothing in any language;
+     * the same rule answers a customer on a client space, in that page's own
+     * namespace. Three keys and not one, because "the upload failed" covering
+     * all three is what makes somebody retry the identical file.
+     */
+    private function uploadRefusalKey(UploadRefusalEnum $refusal): string
+    {
+        return match ($refusal) {
+            UploadRefusalEnum::TooLarge => 'suite.ged.documents.errors.upload_too_large',
+            UploadRefusalEnum::TypeRefused => 'suite.ged.documents.errors.upload_type_refused',
+            UploadRefusalEnum::Broken => 'suite.ged.documents.errors.upload_failed',
+        };
+    }
+
+    /**
+     * The frame the browser drew from a film before sending it, when it sent
+     * one.
+     *
+     * Nothing here decides that the upload is a video: the uploader does, from
+     * the file's own mime type. A capture posted alongside a PDF is read and
+     * then ignored, which is the only sane reading of a field that does not
+     * apply.
+     */
+    private function videoCapture(Request $request): ?VideoCapture
+    {
+        /** @var UploadedFile|null $poster */
+        $poster = $request->files->get('poster');
+
+        if (null === $poster) {
+            return null;
+        }
+
+        return new VideoCapture(
+            $poster,
+            $request->request->getInt('videoWidth') ?: null,
+            $request->request->getInt('videoHeight') ?: null,
+        );
+    }
+
+    /**
+     * One call for the pickers embedded in other forms - a banner image, a
+     * featured image, a custom field.
+     *
+     * Separate from `/upload` because that one deliberately stops at the bytes
+     * and leaves the Document row to GED's own create form, which asks for a
+     * category, a folder and tags. An author picking a picture mid-edit has no
+     * such form, and chaining the two calls from the browser left them filing
+     * the result themselves - which meant nobody did.
+     *
+     * The destination is decided server-side by {@see InlineImageUploader}: a
+     * request cannot name the category it lands in, or leave it a draft.
+     */
+    #[Route('/upload-image', name: '_upload_image', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.create')]
+    public function uploadImage(Request $request): JsonResponse
+    {
+        /** @var UploadedFile|null $file */
+        $file = $request->files->get('file');
+        if (null === $file) {
+            return $this->jsonFailure('suite.ged.documents.errors.upload_required');
+        }
+
+        // Images only. The endpoint is reachable by anyone who may create a
+        // document, and the pickers that call it show what they get back as an
+        // <img> - a PDF would file silently and render as a broken picture.
+        if (!str_starts_with((string) $file->getMimeType(), 'image/')) {
+            return $this->jsonFailure('suite.ged.documents.errors.image_required');
+        }
+
+        if (($refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+            return $this->jsonFailure($this->uploadRefusalKey($refusal));
+        }
+
+        return $this->jsonSuccess([
+            'document' => $this->serializer->serialize($this->inlineImageUploader->upload($file)),
+        ]);
+    }
+}

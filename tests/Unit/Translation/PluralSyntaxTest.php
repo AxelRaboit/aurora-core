@@ -33,7 +33,7 @@ use function sprintf;
  * bundle - a stack trace with no key name and no file in it. That is a poor way to
  * find a typo, and `convention_i18n_plurals` had already been written after it
  * happened once. It happened again anyway, on
- * `backend.post_galleries.photo_count`, which is what prompted this.
+ * `suite.post_galleries.photo_count`, which is what prompted this.
  *
  * Deliberately a syntax check and not a semantic one: whether an arm reads well is
  * a translator's business, but whether the compiler can parse it at all is not a

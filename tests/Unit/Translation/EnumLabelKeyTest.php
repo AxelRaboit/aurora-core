@@ -36,10 +36,10 @@ use function sprintf;
  * visibly in review - but a key returned from PHP is a string in a method, and it
  * renders as itself on screen without anything failing anywhere.
  *
- * That is not hypothetical. The backend global search drew
- * `backend.posts.status_options.draft` on every result badge: `AppSidemenu` lives
+ * That is not hypothetical. The suite global search drew
+ * `suite.posts.status_options.draft` on every result badge: `AppSidemenu` lives
  * in Core, built the key by concatenating a prefix it had guessed at, and the real
- * one was `backend.posts.status.draft`. Concatenated keys are invisible to the Vue
+ * one was `suite.posts.status.draft`. Concatenated keys are invisible to the Vue
  * test too, so it shipped. The fix moved the key onto `PostStatusEnum`, next to
  * the value it names - and this is the test that keeps it honest, for that enum
  * and the nine others doing the same thing.

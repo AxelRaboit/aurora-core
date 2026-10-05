@@ -27,7 +27,7 @@ enum DocumentTransferStateEnum: string
     /**
      * A move gave up. The document is untouched and still readable where it
      * was; what is lost is only the attempt. Kept rather than reset to `Idle`
-     * so somebody is told, and so a backend that fails every time does not
+     * so somebody is told, and so a suite that fails every time does not
      * look like a button that does nothing.
      */
     case Failed = 'failed';

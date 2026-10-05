@@ -14,7 +14,7 @@ Symfony obligatoire des bundles tiers (`templates/bundles/TwigBundle/`).
 ```
 src/Module/<Module>/
 ├── templates/
-│   ├── backend/       ← admin pages du module
+│   ├── suite/       ← admin pages du module
 │   │   └── <plural>/index.html.twig
 │   ├── frontend/      ← public pages du module (gallery viewer, etc.)
 │   └── email/         ← email templates du module
@@ -24,7 +24,7 @@ src/Module/<Module>/
 
 src/Core/templates/                 ← templates cross-cutting (infra)
 ├── Core/
-│   ├── backend/       ← layout admin partagé + base_guest
+│   ├── suite/       ← layout admin partagé + base_guest
 │   │   ├── layout.html.twig
 │   │   └── base_guest.html.twig
 │   └── email/         ← templates email Core (user_role_changed, …)
@@ -74,10 +74,10 @@ fichier au chemin miroir → résolu en priorité.
 2. **Legacy backward compat** : `<client>/templates/Module/<Module>/...`
    - toujours supporté pour ne pas casser les projets existants.
 
-Ex: `vendor/axelraboit/aurora/src/Module/Platform/templates/backend/agencies/index.html.twig`
+Ex: `vendor/axelraboit/aurora/src/Module/Platform/templates/suite/agencies/index.html.twig`
 peut être overridé soit par
-`src/Module/Platform/templates/backend/agencies/index.html.twig`
-soit par `templates/Module/Platform/backend/agencies/index.html.twig`
+`src/Module/Platform/templates/suite/agencies/index.html.twig`
+soit par `templates/Module/Platform/suite/agencies/index.html.twig`
 côté client.
 
 Cf [`client/pattern_override_twig.md`](client/pattern_override_twig.md)
@@ -117,7 +117,7 @@ php bin/console dbal:run-sql "UPDATE core_themes SET active = false"
 php bin/console dbal:run-sql "UPDATE core_themes SET active = true WHERE slug = 'mon-theme'"
 ```
 
-Aussi gérables depuis `/backend/configuration/themes`.
+Aussi gérables depuis `/suite/configuration/themes`.
 
 ### `resolveAll()`
 
@@ -132,12 +132,12 @@ fichiers - il ne contient que les pages-passerelles et le layout.
 ## Conventions de naming
 
 ### Pages admin
-- `<Module>/backend/<plural>/index.html.twig` : page liste + form admin
-  d'une entité (ex: `Core/backend/agencies/index.html.twig`).
-- `<Module>/backend/<plural>/show.html.twig` : page détail (rare -
+- `<Module>/suite/<plural>/index.html.twig` : page liste + form admin
+  d'une entité (ex: `Core/suite/agencies/index.html.twig`).
+- `<Module>/suite/<plural>/show.html.twig` : page détail (rare -
   souvent un overlay Vue suffit).
-- `<Module>/backend/<plural>/edit.html.twig` : page edit dédiée si trop
-  complexe pour un modal (ex: `Editorial/backend/posts/edit.html.twig`
+- `<Module>/suite/<plural>/edit.html.twig` : page edit dédiée si trop
+  complexe pour un modal (ex: `Editorial/suite/posts/edit.html.twig`
   pour PostEditor full-page).
 
 ### Pages frontend
@@ -164,13 +164,13 @@ via le helper Twig `vue_component(...)` - **même pattern que le frontend**
 (cf [[convention_frontend_rendering]]). Pattern type :
 
 ```twig
-{# src/Module/Platform/templates/backend/agencies/index.html.twig #}
-{% extends '@Core/backend/layout.html.twig' %}
+{# src/Module/Platform/templates/suite/agencies/index.html.twig #}
+{% extends '@Core/suite/layout.html.twig' %}
 
-{% block title %}{{ 'backend.agencies.title' | trans }}{% endblock %}
+{% block title %}{{ 'suite.agencies.title' | trans }}{% endblock %}
 
 {% block body %}
-<div {{ vue_component('core/backend/agencies/AgenciesApp', {
+<div {{ vue_component('core/suite/agencies/AgenciesApp', {
     agencies: agencies,
     createPath: createPath,
     updatePath: updatePath,
@@ -195,8 +195,8 @@ admin SPA - toutes les données viennent du `*ViewBuilder`.
 - ❌ Mélanger admin (Stimulus + Vue) et frontend (pure Twig) dans le même
   dossier.
 - ❌ Snake_case puis camelCase incohérent dans les paths
-  (`Crm/Backend/Deals/` vs `Crm/backend/deals/`). On utilise **lowercase**
-  pour les sous-dossiers fonctionnels (`backend/`, `frontend/`, `email/`,
+  (`Crm/Suite/Deals/` vs `Crm/suite/deals/`). On utilise **lowercase**
+  pour les sous-dossiers fonctionnels (`suite/`, `frontend/`, `email/`,
   `<plural>/`).
 
 ## Twig CS Fixer

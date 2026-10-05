@@ -15,7 +15,7 @@ use Aurora\Module\Configuration\Setting\Configuration\SettingFieldDescriptor;
  *
  * The `{{MODULE_ID}}` tab is gated on the module's top-level toggle
  * (see `TAB_MODULE_TOGGLE` below): disabling the module in
- * `/dev/dashboard/modules` hides the whole tab from `/backend/settings`
+ * `/dev/dashboard/modules` hides the whole tab from `/suite/settings`
  * automatically. Shared tabs (e.g. `sequences`) keep `moduleToggle: null`.
  */
 final readonly class {{MODULE}}ConfigurationTabProvider implements ConfigurationTabProviderInterface

@@ -124,11 +124,11 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
 
         $owner = $this->userRepository->findOneBy([
             'email' => 'dev@aurora.app',
-            'type' => UserTypeEnum::Backend->value,
+            'type' => UserTypeEnum::Suite->value,
         ]);
 
         if (!$owner instanceof User) {
-            throw new RuntimeException('The demo backend account is missing - run the core fixtures first.');
+            throw new RuntimeException('The demo suite account is missing - run the core fixtures first.');
         }
 
         $this->people = $this->guests($owner);
@@ -182,7 +182,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
     }
 
     /**
-     * The other backend accounts, for invitations and shares.
+     * The other suite accounts, for invitations and shares.
      *
      * Empty is tolerated rather than fatal: somebody running only this module's
      * fixtures has no colleagues, and a demo calendar is still worth having
@@ -197,7 +197,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         foreach (['marie.dupont@aurora.app', 'jean.martin@aurora.app'] as $email) {
             $user = $this->userRepository->findOneBy([
                 'email' => $email,
-                'type' => UserTypeEnum::Backend->value,
+                'type' => UserTypeEnum::Suite->value,
             ]);
 
             if ($user instanceof User && $user->getId() !== $owner->getId()) {

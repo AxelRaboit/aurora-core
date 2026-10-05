@@ -92,11 +92,11 @@ final class ImpersonationTokenServiceTest extends TestCase
         self::assertNull($service->validate($token));
     }
 
-    public function testValidateReturnsNullForBackendUser(): void
+    public function testValidateReturnsNullForSuiteUser(): void
     {
         $user = new User();
         (new ReflectionProperty(User::class, 'id'))->setValue($user, 42);
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
 
         $repo = $this->createStub(UserRepository::class);
         $repo->method('find')->willReturn($user);

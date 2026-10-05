@@ -52,7 +52,7 @@ final class PlanningApiTest extends IntegrationTestCase
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
 
         $users = static::getContainer()->get(UserRepository::class);
-        $admin = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
         $this->admin = $admin;
@@ -105,7 +105,7 @@ final class PlanningApiTest extends IntegrationTestCase
 
     public function testACalendarIsCreatedWithAColourFromThePalette(): void
     {
-        $body = $this->post('backend_planning_calendars_create', [
+        $body = $this->post('suite_planning_calendars_create', [
             'name' => 'Photo',
             'colourSlot' => 2,
             'visibility' => 'shared',
@@ -125,7 +125,7 @@ final class PlanningApiTest extends IntegrationTestCase
      */
     public function testAColourOutsideThePaletteIsRefused(): void
     {
-        $body = $this->post('backend_planning_calendars_create', ['name' => 'Trop', 'colourSlot' => 99]);
+        $body = $this->post('suite_planning_calendars_create', ['name' => 'Trop', 'colourSlot' => 99]);
 
         self::assertResponseStatusCodeSame(422);
         self::assertArrayHasKey('colourSlot', $body['errors'] ?? []);
@@ -135,7 +135,7 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar('Rappels');
 
-        $created = $this->post('backend_planning_events_create', [
+        $created = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Point hebdo',
             'startAt' => '2026-09-01T10:00',
@@ -167,7 +167,7 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar('Alertes fixes');
 
-        $created = $this->post('backend_planning_events_create', [
+        $created = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Recette',
             'startAt' => '2026-09-01T14:00:00+02:00',
@@ -184,7 +184,7 @@ final class PlanningApiTest extends IntegrationTestCase
         $this->created[] = [PlanningEvent::class, $eventId];
 
         $moved = $this->post(
-            'backend_planning_events_update',
+            'suite_planning_events_update',
             [
                 'planningId' => $planning->getId(),
                 'title' => 'Recette',
@@ -242,7 +242,7 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar('Offsets');
 
-        $created = $this->post('backend_planning_events_create', [
+        $created = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Sept minutes',
             'startAt' => '2026-09-01T10:00',
@@ -267,7 +267,7 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar('Édition');
 
-        $created = $this->post('backend_planning_events_create', [
+        $created = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Avant',
             'startAt' => '2026-09-01T10:00',
@@ -293,7 +293,7 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertNotNull($kept);
 
         $updated = $this->post(
-            'backend_planning_events_update',
+            'suite_planning_events_update',
             [
                 'planningId' => $planning->getId(),
                 'title' => 'Après',
@@ -331,7 +331,7 @@ final class PlanningApiTest extends IntegrationTestCase
         $planning->setColourSlot(4);
         $this->entityManager->flush();
 
-        $created = $this->post('backend_planning_events_create', [
+        $created = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Sans couleur propre',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -346,7 +346,7 @@ final class PlanningApiTest extends IntegrationTestCase
         $this->created[] = [PlanningEvent::class, $eventId];
 
         $updated = $this->post(
-            'backend_planning_events_update',
+            'suite_planning_events_update',
             [
                 'planningId' => $planning->getId(),
                 'title' => 'Sans couleur propre',
@@ -362,7 +362,7 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertSame(7, $updated['event']['ownColourSlot']);
 
         $cleared = $this->post(
-            'backend_planning_events_update',
+            'suite_planning_events_update',
             [
                 'planningId' => $planning->getId(),
                 'title' => 'Sans couleur propre',
@@ -389,7 +389,7 @@ final class PlanningApiTest extends IntegrationTestCase
         $planning->setColourSlot(2);
         $this->entityManager->flush();
 
-        $created = $this->post('backend_planning_events_create', [
+        $created = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Suiveur',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -400,13 +400,13 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertSame(2, $created['event']['colourSlot']);
 
         $this->post(
-            'backend_planning_calendars_update',
+            'suite_planning_calendars_update',
             ['name' => 'Suivi', 'colourSlot' => 6],
             ['id' => $planning->getId()],
         );
         self::assertResponseIsSuccessful();
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_events', [
+        $this->client->request('GET', $this->urlGenerator->generate('suite_planning_events', [
             'from' => '2026-08-01T00:00:00+00:00',
             'to' => '2026-10-05T00:00:00+00:00',
         ]));
@@ -429,14 +429,14 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar();
 
-        $missing = $this->post('backend_planning_events_create', [
+        $missing = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Sans date',
         ]);
         self::assertResponseStatusCodeSame(422);
         self::assertArrayHasKey('startAt', $missing['errors'] ?? []);
 
-        $backwards = $this->post('backend_planning_events_create', [
+        $backwards = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'À reculons',
             'startAt' => '2026-08-23T15:00:00',
@@ -462,7 +462,7 @@ final class PlanningApiTest extends IntegrationTestCase
         $planning = $this->calendar();
         self::assertSame('Europe/Paris', $planning->getTimezone());
 
-        $body = $this->post('backend_planning_events_create', [
+        $body = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Congé',
             'startAt' => '2026-08-23T14:32:00+00:00',
@@ -495,7 +495,7 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar('Instants');
 
-        $body = $this->post('backend_planning_events_create', [
+        $body = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Dix heures à Paris',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -529,7 +529,7 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar('Rappel instant');
 
-        $body = $this->post('backend_planning_events_create', [
+        $body = $this->post('suite_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Dix heures moins le quart',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -561,7 +561,7 @@ final class PlanningApiTest extends IntegrationTestCase
      */
     public function testAnEventCannotBeDroppedIntoACalendarNobodyCanSee(): void
     {
-        $body = $this->post('backend_planning_events_create', [
+        $body = $this->post('suite_planning_events_create', [
             'planningId' => 999_999,
             'title' => 'Ailleurs',
             'startAt' => '2026-08-23T14:00:00',
@@ -590,7 +590,7 @@ final class PlanningApiTest extends IntegrationTestCase
         $this->entityManager->flush();
         $this->created[] = [PlanningEvent::class, (int) $event->getId()];
 
-        $updated = $this->post('backend_planning_events_update', [
+        $updated = $this->post('suite_planning_events_update', [
             'planningId' => $planning->getId(),
             'title' => 'Renommée',
             'startAt' => '2026-08-23T09:00:00',
@@ -599,7 +599,7 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(422);
         self::assertArrayHasKey('event', $updated['errors'] ?? []);
 
-        $this->post('backend_planning_events_delete', [], ['id' => $event->getId()]);
+        $this->post('suite_planning_events_delete', [], ['id' => $event->getId()]);
         self::assertResponseStatusCodeSame(422);
 
         // Still there, and still saying where it came from. Looked up again
@@ -611,7 +611,7 @@ final class PlanningApiTest extends IntegrationTestCase
 
     public function testTheWindowRefusesARangeThatIsNotOne(): void
     {
-        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_events', [
+        $this->client->request('GET', $this->urlGenerator->generate('suite_planning_events', [
             'from' => '2026-09-01T00:00:00',
             'to' => '2026-08-01T00:00:00',
         ]));
@@ -631,7 +631,7 @@ final class PlanningApiTest extends IntegrationTestCase
     {
         $planning = $this->calendar('Travail');
 
-        $crawler = $this->client->request('GET', $this->urlGenerator->generate('backend_planning_calendar'));
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('suite_planning_calendar'));
 
         self::assertResponseIsSuccessful();
 

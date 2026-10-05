@@ -15,9 +15,9 @@ use function in_array;
 use function sprintf;
 
 /**
- * Backend paths written as literals in the frontend code must match a route.
+ * Suite paths written as literals in the frontend code must match a route.
  *
- * The block editor posted its image uploads to `/backend/media/media/upload`
+ * The block editor posted its image uploads to `/suite/media/media/upload`
  * for months after that route left with the Media module. Nothing failed
  * loudly - the request 404'd, the upload silently did nothing, and no test
  * looked. A literal path in a `.js` or `.vue` file is a contract with the
@@ -29,21 +29,21 @@ use function sprintf;
  */
 final class FrontendRouteReferencesTest extends IntegrationTestCase
 {
-    /** Quoted literals: `"/backend/ged/documents/list"`. */
-    private const string QUOTED_PATH = '#["\'](/backend/[a-z0-9/-]+)["\']#i';
+    /** Quoted literals: `"/suite/ged/documents/list"`. */
+    private const string QUOTED_PATH = '#["\'](/suite/[a-z0-9/-]+)["\']#i';
 
     /**
-     * Backtick templates: `` `/backend/ged/documents/${id}/usage` ``. Only the
+     * Backtick templates: `` `/suite/ged/documents/${id}/usage` ``. Only the
      * static head is checked, against the *start* of a route - the rest is a
      * runtime value.
      *
      * Added because the first version of this test missed exactly this shape,
      * and the shape held a second dead route: the media-text block looked up
-     * `/backend/media/media/${id}/info`, gone with the Media module. A guard
+     * `/suite/media/media/${id}/info`, gone with the Media module. A guard
      * that covers one quoting style and not the others reports green for the
      * wrong reason.
      */
-    private const string TEMPLATE_PATH = '#`(/backend/[a-z0-9/-]*)\$\{#i';
+    private const string TEMPLATE_PATH = '#`(/suite/[a-z0-9/-]*)\$\{#i';
 
     /**
      * @return iterable<string, array{string, list<string>}>
@@ -103,7 +103,7 @@ final class FrontendRouteReferencesTest extends IntegrationTestCase
      * @param list<string> $paths
      */
     #[DataProvider('frontendFiles')]
-    public function testEveryLiteralBackendPathMatchesARoute(string $file, array $paths): void
+    public function testEveryLiteralSuitePathMatchesARoute(string $file, array $paths): void
     {
         $routes = static::getContainer()->get(RouterInterface::class)->getRouteCollection();
 

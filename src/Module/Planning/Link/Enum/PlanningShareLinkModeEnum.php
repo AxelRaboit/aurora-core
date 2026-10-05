@@ -38,7 +38,7 @@ enum PlanningShareLinkModeEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.plannings.links.mode_'.$this->value;
+        return 'suite.plannings.links.mode_'.$this->value;
     }
 
     /** @return list<string> */

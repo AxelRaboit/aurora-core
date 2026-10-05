@@ -1,4 +1,4 @@
-backend:
+suite:
     access_requests:
         approved: Request from {name} approved.
         purged: Processed requests deleted.

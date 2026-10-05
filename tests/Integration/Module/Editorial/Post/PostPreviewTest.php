@@ -51,7 +51,7 @@ final class PostPreviewTest extends IntegrationTestCase
         $this->previews = self::getContainer()->get(PostPreviewTokenManagerInterface::class);
 
         $admin = self::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
     }
@@ -94,7 +94,7 @@ final class PostPreviewTest extends IntegrationTestCase
     }
 
     /**
-     * No account, which is the reason this exists rather than a backend screen.
+     * No account, which is the reason this exists rather than a suite screen.
      *
      * A reviewer or a client is exactly the person who cannot sign in, and a preview
      * behind the firewall would leave them where they were.
@@ -181,20 +181,20 @@ final class PostPreviewTest extends IntegrationTestCase
     }
 
     /**
-     * The backend route mints it, and needs the right to edit rather than to
+     * The suite route mints it, and needs the right to edit rather than to
      * publish.
      *
      * Requiring the right to publish would leave exactly the person who needs the
      * link - somebody asking for a review - unable to make one.
      */
-    public function testTheBackendRouteHandsBackAnAddress(): void
+    public function testTheSuiteRouteHandsBackAnAddress(): void
     {
         $post = $this->draft();
 
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_editorial_posts_preview', ['id' => $post->getId()]),
+            $this->urlGenerator->generate('suite_editorial_posts_preview', ['id' => $post->getId()]),
         );
 
         self::assertResponseIsSuccessful();

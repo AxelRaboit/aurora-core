@@ -92,7 +92,7 @@ final class PageBlocksFollowThePageMarginTest extends TestCase
 
         foreach ($this->files(self::ROOT.'/src', '.html.twig') as $twig) {
             $source = (string) file_get_contents($twig);
-            if (1 !== preg_match("/extends '@(?:Core\\/backend|Studio\\/backend\\/space-content)\\/layout\\.html\\.twig'/", $source)) {
+            if (1 !== preg_match("/extends '@(?:Core\\/suite|Studio\\/suite\\/space-content)\\/layout\\.html\\.twig'/", $source)) {
                 continue;
             }
 
@@ -105,18 +105,18 @@ final class PageBlocksFollowThePageMarginTest extends TestCase
             }
         }
 
-        foreach ($this->files(self::ROOT.'/src/Module/Configuration/assets/backend/settings/tabs', '.vue') as $tab) {
+        foreach ($this->files(self::ROOT.'/src/Module/Configuration/assets/suite/settings/tabs', '.vue') as $tab) {
             $screens[$tab] = true;
         }
 
         // The dashboard's panels, one per module, stacked under its root.
         foreach ($this->files(self::ROOT.'/src', '.vue') as $panel) {
-            if (str_contains(str_replace('\\', '/', $panel), '/assets/backend/dashboard/') && !str_contains($panel, '.test.')) {
+            if (str_contains(str_replace('\\', '/', $panel), '/assets/suite/dashboard/') && !str_contains($panel, '.test.')) {
                 $screens[$panel] = true;
             }
         }
 
-        $spaceApp = self::ROOT.'/src/Module/Studio/SpaceContent/assets/backend/content/SpaceContentApp.vue';
+        $spaceApp = self::ROOT.'/src/Module/Studio/SpaceContent/assets/suite/content/SpaceContentApp.vue';
         preg_match_all('/from "([^"]+View\.vue)"/', (string) file_get_contents($spaceApp), $views);
         foreach ($views[1] as $view) {
             $screens[dirname($spaceApp).'/'.$view] = true;
@@ -125,7 +125,7 @@ final class PageBlocksFollowThePageMarginTest extends TestCase
         return array_keys($screens);
     }
 
-    /** `studio/backend/access/SpaceAccessApp` → the `.vue` file under the Studio module. */
+    /** `studio/suite/access/SpaceAccessApp` → the `.vue` file under the Studio module. */
     private function resolve(string $component): ?string
     {
         [$module, $rest] = explode('/', $component, 2);

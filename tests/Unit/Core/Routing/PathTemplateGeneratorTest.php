@@ -21,7 +21,7 @@ use Throwable;
  * relaxation was applied to the injected service, which passes for a bare
  * {@see UrlGenerator} - it is configurable - and silently does nothing for a
  * {@see Router}, which is what the container actually injects and which keeps
- * its generator one level down. The unit test looked right; every backend
+ * its generator one level down. The unit test looked right; every suite
  * screen answered 500.
  *
  * So the fixture is a real `Router` over a real route with a real `\d+`

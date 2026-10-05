@@ -21,11 +21,11 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum DriveSettingEnum: string
 {
-    case Enabled = 'backend_studio_drive_enabled';
+    case Enabled = 'suite_studio_drive_enabled';
 
     /** La clé JSON telle que Google la livre. Stockée chiffrée. */
-    case ServiceAccount = 'backend_studio_drive_service_account';
+    case ServiceAccount = 'suite_studio_drive_service_account';
 
     /** Le dossier de l'agence, commun à tous les espaces. Facultatif. */
-    case AgencyFolder = 'backend_studio_drive_agency_folder';
+    case AgencyFolder = 'suite_studio_drive_agency_folder';
 }

@@ -310,7 +310,7 @@ avec l'extension PHP** sous `src/Module/<AuroraModule>/<Feature>/assets/`.
 
 > **Comment ça shadow ?** Le glob `src/Module/**/assets/**/*.vue` flatten
 > les feature folders (e.g. `Platform/DocumentCategory/assets/...`) → la clé exposée
-> est identique à celle d'Aurora (`platform/backend/document-categories/DocumentCategoriesApp`).
+> est identique à celle d'Aurora (`platform/suite/document-categories/DocumentCategoriesApp`).
 > Comme le bloc `clientModules` est spread APRÈS `auroraModules`, ton
 > fichier wins automatiquement - pas de Twig override à écrire. Détail
 > et règle des deux mirrors (PHP vs URL) :
@@ -321,11 +321,11 @@ Exemple détaillé (slots, composables, gotchas `editForm`) :
 [`pattern_extend_vue.md`](../../../.claude/memory/aurora-client/pattern_extend_vue.md).
 
 Squelette d'override Vue -
-`src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue` :
+`src/Module/Ged/DocumentCategory/assets/suite/document-categories/DocumentCategoriesApp.vue` :
 
 ```vue
 <script setup>
-import AuroraDocumentCategoriesApp from '@platform/backend/document-categories/DocumentCategoriesApp.vue';
+import AuroraDocumentCategoriesApp from '@platform/suite/document-categories/DocumentCategoriesApp.vue';
 </script>
 
 <template>
@@ -346,7 +346,7 @@ import AuroraDocumentCategoriesApp from '@platform/backend/document-categories/D
 > **Piège `editForm`** : `editForm` doit contenir **uniquement** les champs
 > envoyés au backend (string/number/boolean). Pas d'état UI, pas de computed,
 > pas de refs imbriqués. Le submit fait `request(url, { ...editForm })` -
-> tout ce qui est dedans part au backend. Détail dans [`../dev/assets_vue.md`](../dev/assets_vue.md).
+> tout ce qui est dedans part à la suite. Détail dans [`../dev/assets_vue.md`](../dev/assets_vue.md).
 
 ---
 
@@ -361,8 +361,8 @@ l'original côté client. Deux conventions de chemin sont reconnues :
 
 | Namespace Twig | Override client (nouveau, recommandé) | Override client (legacy backward compat) |
 |---|---|---|
-| `@Core/backend/document-categories/index.html.twig` | `src/Core/templates/Core/backend/document-categories/index.html.twig` | `templates/Core/backend/document-categories/index.html.twig` |
-| `@Ecommerce/backend/listings/edit.html.twig` | `src/Module/Ecommerce/templates/backend/listings/edit.html.twig` | `templates/Module/Ecommerce/backend/listings/edit.html.twig` |
+| `@Core/suite/document-categories/index.html.twig` | `src/Core/templates/Core/suite/document-categories/index.html.twig` | `templates/Core/suite/document-categories/index.html.twig` |
+| `@Ecommerce/suite/listings/edit.html.twig` | `src/Module/Ecommerce/templates/suite/listings/edit.html.twig` | `templates/Module/Ecommerce/suite/listings/edit.html.twig` |
 | `Frontend/themes/default/editorial/home.html.twig` (null namespace, thèmes) | - | `templates/Frontend/themes/default/editorial/home.html.twig` |
 
 > Les thèmes frontend custom restent à la racine client
@@ -577,7 +577,7 @@ const canManage = computed(() =>
 | `ROLE_USER`  | Accès accordé seulement si la permission est dans `$user->getPrivileges()` |
 
 Les privilèges d'un `ROLE_USER` se gèrent depuis
-`/backend/platform/users → Modifier → Privilèges`.
+`/suite/platform/users → Modifier → Privilèges`.
 
 ### 9.4 Plusieurs modules de permissions
 
@@ -622,7 +622,7 @@ suivant (cf. memory
    `applyInput()` (`parent::` !) + `auditPayload()` (spread `parent::` !).
 5. Serializer + `#[AsAlias]` + spread `parent::serialize()`.
 6. Vue : composant override **co-localisé** avec l'extension PHP sous
-   `src/Module/<AuroraModule>/<Feature>/assets/backend/<plural>/<Name>App.vue`
+   `src/Module/<AuroraModule>/<Feature>/assets/suite/<plural>/<Name>App.vue`
    (cf. [`convention_overrides_vs_modules.md`](../../../.claude/memory/aurora-client/convention_overrides_vs_modules.md))
    avec `extraFields` + 3 slots.
 7. Twig : override sous `src/Core/templates/Core/...` (nouveau) ou

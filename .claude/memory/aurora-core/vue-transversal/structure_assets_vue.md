@@ -4,7 +4,7 @@
 
 ```
 src/Core/assets/                          ← cross-cutting JS/Vue (depuis 0.5)
-├── backend/
+├── suite/
 │   ├── <plural>/                           ← un dossier par entité Core (au pluriel)
 │   │   ├── <Plural>App.vue                  ← composant principal monté par Stimulus
 │   │   ├── <Detail>App.vue                  ← optional, page détail
@@ -37,11 +37,11 @@ src/Core/assets/                          ← cross-cutting JS/Vue (depuis 0.5)
 └── {app,flash,theme,guest,i18n,stimulus_bootstrap}.js  ← entry points
 
 src/Module/<Module>/assets/                ← JS/Vue spécifique au module
-├── backend/                                ← exclusif contexte admin
+├── suite/                                ← exclusif contexte admin
 │   ├── <Plural>App.vue                     ← composant top-level
-│   ├── components/                         ← sous-composants backend-only
+│   ├── components/                         ← sous-composants suite-only
 │   ├── composables/                        ← logique métier backend
-│   └── utils/                              ← helpers backend-only
+│   └── utils/                              ← helpers suite-only
 ├── frontend/                               ← exclusif contexte public (si applicable)
 │   ├── composables/
 │   └── …
@@ -52,10 +52,10 @@ src/Module/<Module>/assets/                ← JS/Vue spécifique au module
 
 ### Compartimentage en sous-dossiers feature
 
-Dès qu'un dossier `backend/` (ou `Core/backend/<section>/`) contient plusieurs features distinctes (≥ 2 `*App.vue` ou ≥ 8 fichiers), chaque feature obtient son propre sous-dossier :
+Dès qu'un dossier `suite/` (ou `Core/suite/<section>/`) contient plusieurs features distinctes (≥ 2 `*App.vue` ou ≥ 8 fichiers), chaque feature obtient son propre sous-dossier :
 
 ```
-<module>/backend/<feature>/
+<module>/suite/<feature>/
   <Feature>App.vue
   composables/
     useXxx.js
@@ -65,31 +65,31 @@ Dès qu'un dossier `backend/` (ou `Core/backend/<section>/`) contient plusieurs 
 Règles :
 - Nom en `kebab-case` (ex: `document-categories/`, `mount-points/`)
 - Même sous-dossier pour la liste ET le détail (ex: `invoices/InvoicesApp.vue` + `InvoiceShowApp.vue`)
-- Le `vue_component('module/backend/<feature>/<Name>App', ...)` dans le Twig reflète le chemin
+- Le `vue_component('module/suite/<feature>/<Name>App', ...)` dans le Twig reflète le chemin
 - Imports cross-feature : chemins relatifs remontants (`../events/composables/useEventForm.js`)
 - `shared/`, `components/`, `utils/`, `constants/` à la **racine** du module (cross-cutting)
-- Modules single-feature ≤ 6 fichiers : pas de sous-dossier (ex: `PasswordGenerator/backend/`)
+- Modules single-feature ≤ 6 fichiers : pas de sous-dossier (ex: `PasswordGenerator/suite/`)
 
 Voir [`convention_assets_subfolder_layout.md`](convention_assets_subfolder_layout.md) pour la table complète des modules.
 
 ### Règle de placement dans un module
 
-Un fichier va dans `backend/`, `frontend/` ou `shared/` selon **qui l'importe** :
+Un fichier va dans `suite/`, `frontend/` ou `shared/` selon **qui l'importe** :
 
-| Importé uniquement par `backend/` | Importé uniquement par `frontend/` | Importé des deux côtés |
+| Importé uniquement par `suite/` | Importé uniquement par `frontend/` | Importé des deux côtés |
 |---|---|---|
-| → `backend/` | → `frontend/` | → `shared/` |
+| → `suite/` | → `frontend/` | → `shared/` |
 
-**Modules sans frontend** (pas de contexte public) : tout va dans `backend/`, jamais à la racine du module.
+**Modules sans frontend** (pas de contexte public) : tout va dans `suite/`, jamais à la racine du module.
 
 Exemples concrets :
-- `Billing/` (pas de frontend) → `backend/components/`, `backend/utils/`
-- `Crm/` (pas de frontend) → `backend/utils/`
+- `Billing/` (pas de frontend) → `suite/components/`, `suite/utils/`
+- `Crm/` (pas de frontend) → `suite/utils/`
 - `Editorial/` (backend + frontend) → `utils/editorjs/` utilisé des deux côtés → `shared/utils/editorjs/`
 - `Ecommerce/` (backend + frontend) → `utils/enums/`, `utils/formatMoney.js` utilisés des deux côtés → `shared/utils/`
-- `Vault/` (backend-only) → tout sous `backend/` ✅
+- `Vault/` (suite-only) → tout sous `suite/` ✅
 
-**Anti-pattern** : dossier `components/` ou `utils/` directement à la racine d'un module (même niveau que `backend/`). C'est un signe que le placement n'a pas été réfléchi.
+**Anti-pattern** : dossier `components/` ou `utils/` directement à la racine d'un module (même niveau que `suite/`). C'est un signe que le placement n'a pas été réfléchi.
 
 ## Composants Vue
 
@@ -104,7 +104,7 @@ Exemples concrets :
 - **Tab suffixe** : onglet dans un AppTabs (`PermissionsTab.vue`).
 
 ### Convention extension (rappel)
-Chaque `<Plural>App.vue` (composant top-level d'backend CRUD) expose :
+Chaque `<Plural>App.vue` (composant top-level d'suite CRUD) expose :
 - **Prop `extraFields`** (`{ type: Object, default: () => ({}) }`)
 - **3 slots scoped** : `extra-headers`, `extra-cells`, `extra-form-fields`
 
@@ -192,8 +192,8 @@ pour mount un composant Vue depuis Twig.
 
 ### Imports avec alias
 - `@/shared/...` pour les helpers shared.
-- `@core/backend/...` pour les composants Core admin.
-- `@<module>/backend/...` pour les composants module admin.
+- `@core/suite/...` pour les composants Core admin.
+- `@<module>/suite/...` pour les composants module admin.
 
 Les alias sont configurés dans `vite.config.js` côté Core.
 

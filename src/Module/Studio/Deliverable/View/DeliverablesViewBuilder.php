@@ -43,13 +43,13 @@ final readonly class DeliverablesViewBuilder
      */
     public function index(): array
     {
-        $template = fn (string $action): string => $this->pathTemplates->generate('backend_studio_deliverables_'.$action, ['id' => '__id__']);
+        $template = fn (string $action): string => $this->pathTemplates->generate('suite_studio_deliverables_'.$action, ['id' => '__id__']);
 
         return [
             ...$this->lists(),
             'canCreate' => $this->access->canCreate(),
-            'listsPath' => $this->urlGenerator->generate('backend_studio_deliverables_lists'),
-            'createPath' => $this->urlGenerator->generate('backend_studio_deliverables_create'),
+            'listsPath' => $this->urlGenerator->generate('suite_studio_deliverables_lists'),
+            'createPath' => $this->urlGenerator->generate('suite_studio_deliverables_create'),
             'scopePathTemplate' => $template('scope'),
             'duplicatePathTemplate' => $template('duplicate'),
             'deletePathTemplate' => $template('delete'),
@@ -58,10 +58,10 @@ final readonly class DeliverablesViewBuilder
             'copyTargets' => $this->copyTargets(),
             ...$this->categoriesPayload(),
             'canManageCategories' => $this->access->canManageCategories(),
-            'categoryCreatePath' => $this->urlGenerator->generate('backend_studio_deliverables_category_create'),
+            'categoryCreatePath' => $this->urlGenerator->generate('suite_studio_deliverables_category_create'),
             'categoryUpdatePathTemplate' => $template('category_update'),
             'categoryDeletePathTemplate' => $template('category_delete'),
-            'categoryReorderPath' => $this->urlGenerator->generate('backend_studio_deliverables_category_reorder'),
+            'categoryReorderPath' => $this->urlGenerator->generate('suite_studio_deliverables_category_reorder'),
         ];
     }
 
@@ -117,7 +117,7 @@ final readonly class DeliverablesViewBuilder
     public function editorView(DeliverableInterface $deliverable): array
     {
         $params = ['id' => $deliverable->getId()];
-        $route = fn (string $action): string => $this->urlGenerator->generate('backend_studio_deliverables_'.$action, $params);
+        $route = fn (string $action): string => $this->urlGenerator->generate('suite_studio_deliverables_'.$action, $params);
 
         return [
             'deliverable' => $this->serializer->editor($deliverable),
@@ -125,11 +125,11 @@ final readonly class DeliverablesViewBuilder
             'ownerName' => $deliverable->getOwner()?->getName(),
             'locales' => $this->localeContext->getActiveLocales(),
             'hiddenZoneTypes' => DeliverablePageRenderer::HIDDEN_ZONE_TYPES,
-            'deliverablesPath' => $this->urlGenerator->generate('backend_studio_deliverables').'?scope='.$deliverable->getScope()->value,
+            'deliverablesPath' => $this->urlGenerator->generate('suite_studio_deliverables').'?scope='.$deliverable->getScope()->value,
             'updatePath' => $route('update'),
             'previewPath' => $route('preview'),
-            'gridPreviewPath' => $this->urlGenerator->generate('backend_studio_deliverables_grid_preview'),
-            'bannerPreviewPath' => $this->urlGenerator->generate('backend_studio_deliverables_banner_preview'),
+            'gridPreviewPath' => $this->urlGenerator->generate('suite_studio_deliverables_grid_preview'),
+            'bannerPreviewPath' => $this->urlGenerator->generate('suite_studio_deliverables_banner_preview'),
             'linksPath' => $route('links'),
             'duplicatePath' => $route('duplicate'),
             'deletePath' => $route('delete'),

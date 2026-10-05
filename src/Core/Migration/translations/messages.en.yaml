@@ -1,4 +1,4 @@
-backend:
+suite:
     migrations:
         pending:
             banner: "{count} pending migration(s) on the dev database. Run the command to sync:"

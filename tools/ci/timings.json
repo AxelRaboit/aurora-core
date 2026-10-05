@@ -1,7 +1,7 @@
 {
-    "tests/Integration/Controller/Backend/PostEditorBannerTest.php": 0.4,
-    "tests/Integration/Controller/Backend/PostEditorGridPreviewTest.php": 0.4,
-    "tests/Integration/Controller/Backend/UnknownBackendPathTest.php": 0.5,
+    "tests/Integration/Controller/Suite/PostEditorBannerTest.php": 0.4,
+    "tests/Integration/Controller/Suite/PostEditorGridPreviewTest.php": 0.4,
+    "tests/Integration/Controller/Suite/UnknownSuitePathTest.php": 0.5,
     "tests/Integration/Controller/Frontend/AuthControllerTest.php": 0.9,
     "tests/Integration/Controller/PageHeaderTest.php": 0.4,
     "tests/Integration/Controller/ProfileMoodTest.php": 0.3,

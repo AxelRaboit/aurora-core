@@ -83,8 +83,8 @@ recevoir un `:placeholder` traduit. C'est :
 ```vue
 <AppInput
     v-model="form.title"
-    :label="t('backend.events.fields.title')"
-    :placeholder="t('backend.events.fields.titlePlaceholder')"
+    :label="t('suite.events.fields.title')"
+    :placeholder="t('suite.events.fields.titlePlaceholder')"
     :required="true"
 />
 ```
@@ -121,16 +121,16 @@ ou `<input type="date">` natif. Le natif :
 <!-- date seule -->
 <AppDatePicker
     v-model="form.startDate"
-    :label="t('backend.events.fields.start')"
-    :placeholder="t('backend.events.fields.startPlaceholder')"
+    :label="t('suite.events.fields.start')"
+    :placeholder="t('suite.events.fields.startPlaceholder')"
     :error="errors.startDate ?? ''"
 />
 
 <!-- date + heure -->
 <AppDatePicker
     v-model="form.startAt"
-    :label="t('backend.events.fields.startAt')"
-    :placeholder="t('backend.events.fields.startAtPlaceholder')"
+    :label="t('suite.events.fields.startAt')"
+    :placeholder="t('suite.events.fields.startAtPlaceholder')"
     :enable-time="true"
 />
 ```

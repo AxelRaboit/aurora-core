@@ -1,0 +1,25 @@
+{% extends '@Core/suite/base_guest.html.twig' %}
+
+{% block title %}{{ 'suite.auth.login.title'|trans }} - {{ parent() }}{% endblock %}
+
+{% block hero %}
+    {{ include('@Shared/components/auth_hero.html.twig') }}
+{% endblock %}
+
+{% block form_icon %}log-in{% endblock %}
+{% block form_title %}{{ 'suite.auth.login.title'|trans }}{% endblock %}
+{% block form_subtitle %}{{ 'suite.auth.login.subtitle'|trans }}{% endblock %}
+
+{% block content %}
+    <div {{ vue_component('platform/suite/auth/LoginApp', {
+        checkPath: path('suite_platform_login'),
+        csrfToken: csrf_token('authenticate'),
+        forgotPath: path('suite_platform_forgot_password'),
+        registerPath: path('suite_platform_register'),
+        accessRequestPath: path('suite_platform_access_request'),
+        registrationEnabled: registrationEnabled,
+        accessRequestEnabled: accessRequestEnabled,
+        lastUsername: last_username,
+        errorMessage: error ? error.messageKey|trans(error.messageData, 'security') : '',
+    }) }}></div>
+{% endblock %}

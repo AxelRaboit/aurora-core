@@ -1,4 +1,4 @@
-backend:
+suite:
     auth:
         access_request:
             already_account: Déjà un compte ?

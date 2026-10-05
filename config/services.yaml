@@ -71,8 +71,8 @@ services:
             tags: [aurora.dashboard_stats_provider]
         Aurora\Core\Trash\TrashSourceInterface:
             tags: [aurora.trash_source]
-        Aurora\Core\Search\BackendSearchProviderInterface:
-            tags: [aurora.backend_search_provider]
+        Aurora\Core\Search\SuiteSearchProviderInterface:
+            tags: [aurora.suite_search_provider]
         Aurora\Core\Content\BlockRendererInterface:
             tags: [aurora.content_block_renderer]
         Aurora\Core\Reference\EntityReferenceProviderInterface:

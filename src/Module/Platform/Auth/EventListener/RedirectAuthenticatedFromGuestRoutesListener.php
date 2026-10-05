@@ -20,13 +20,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 final readonly class RedirectAuthenticatedFromGuestRoutesListener
 {
     private const array GUEST_ONLY_ROUTES = [
-        'backend_platform_login',
-        'backend_platform_register',
-        'backend_platform_forgot_password',
-        'backend_platform_access_request',
+        'suite_platform_login',
+        'suite_platform_register',
+        'suite_platform_forgot_password',
+        'suite_platform_access_request',
     ];
 
-    private const string AUTHENTICATED_TARGET_ROUTE = 'backend_dashboard';
+    private const string AUTHENTICATED_TARGET_ROUTE = 'suite_dashboard';
 
     public function __construct(
         private TokenStorageInterface $tokenStorage,

@@ -6,5 +6,5 @@
 <p>{{ 'studio.email.concluded.hash'|trans({'{hash}': contract.contentHash|slice(0, 16)}) }}</p>
 
 {% if forProvider ?? false %}
-    <p><a href="{{ url('backend_studio_contracts_show', {id: contract.id}) }}">{{ 'studio.email.open_contract'|trans }}</a></p>
+    <p><a href="{{ url('suite_studio_contracts_show', {id: contract.id}) }}">{{ 'studio.email.open_contract'|trans }}</a></p>
 {% endif %}

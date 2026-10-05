@@ -1,7 +1,7 @@
-backend:
+suite:
     search:
         button: Rechercher…
-        placeholder: 'Rechercher dans le back-office…'
+        placeholder: 'Rechercher dans la suite…'
         hint: 'Tapez pour rechercher dans les contenus, les médias, les calendriers, les notes, les espaces clients et les contrats.'
         empty: Aucun résultat.
         keys:

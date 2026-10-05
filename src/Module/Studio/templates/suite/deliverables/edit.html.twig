@@ -1,0 +1,40 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{# Un livrable de Studio se compose dans la coquille du back-office : il n'a
+   pas d'espace dont il emprunterait l'en-tête. #}
+{% block title %}{{ deliverable.title }} - {{ 'suite.nav.studio_deliverables'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_deliverables'|trans, href: deliverablesPath},
+            {label: deliverable.title},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/deliverables/DeliverableEditorApp', {
+    deliverable: deliverable,
+    ownerName: ownerName,
+    locales: locales,
+    hiddenZoneTypes: hiddenZoneTypes,
+    canEdit: canEdit,
+    canShare: canShare,
+    canDelete: canDelete,
+    canDuplicate: canDuplicate,
+    canChangeScope: canChangeScope,
+    deliverablesPath: deliverablesPath,
+    updatePath: updatePath,
+    previewPath: previewPath,
+    gridPreviewPath: gridPreviewPath,
+    bannerPreviewPath: bannerPreviewPath,
+    linksPath: linksPath,
+    duplicatePath: duplicatePath,
+    deletePath: deletePath,
+    copyToSpacePath: copyToSpacePath|default(''),
+    copyTargets: copyTargets|default([]),
+    categories: categories|default([]),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

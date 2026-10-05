@@ -11,7 +11,7 @@ interface PostSerializerInterface
     /** Just enough to name a post in a picker. @return array<string, mixed> */
     public function serializeReference(PostInterface $post): array;
 
-    /** A row in the backend list. @return array<string, mixed> */
+    /** A row in the suite list. @return array<string, mixed> */
     public function serialize(PostInterface $post): array;
 
     /** Everything the editor edits, every locale. @return array<string, mixed> */

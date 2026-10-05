@@ -40,7 +40,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
         $user = $this->security->getUser();
 
         if (!$user instanceof CoreUserInterface) {
-            throw new FieldException('document', $this->translator->trans('backend.studio.space_content.errors.attachment_needs_account'));
+            throw new FieldException('document', $this->translator->trans('suite.studio.space_content.errors.attachment_needs_account'));
         }
 
         return $this->attachAs($item, $document, $user, $this->labelOf($user));
@@ -77,7 +77,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
         UploadedFile $file,
     ): SpaceContentAttachmentInterface {
         if ($item->getSpace()->getId() !== $link->getSpace()->getId()) {
-            throw new FieldException('item', $this->translator->trans('backend.studio.space_content.errors.not_in_space'));
+            throw new FieldException('item', $this->translator->trans('suite.studio.space_content.errors.not_in_space'));
         }
 
         $attachment = $this->createAttachment();
@@ -151,7 +151,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
     {
         foreach ($this->attachments->findForItem($item) as $existing) {
             if ($existing->getDocument()->getId() === $document->getId()) {
-                throw new FieldException('document', $this->translator->trans('backend.studio.space_content.errors.attachment_duplicate'));
+                throw new FieldException('document', $this->translator->trans('suite.studio.space_content.errors.attachment_duplicate'));
             }
         }
     }

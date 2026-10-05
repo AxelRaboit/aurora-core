@@ -221,7 +221,7 @@ final readonly class ContractVariableResolver
         }
 
         return mb_trim($this->translator->trans(
-            'backend.studio.contract_templates.legal_status',
+            'suite.studio.contract_templates.legal_status',
             ['{form}' => $form, '{capital}' => $capital],
             'messages',
             $locale,

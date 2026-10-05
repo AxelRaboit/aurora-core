@@ -1,0 +1,21 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.beacon'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.beacon'|trans},
+            {label: 'suite.nav.beacon'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('beacon/suite/instances/InstancesApp', {
+    instances: instances,
+    knownDomains: knownDomains,
+    saveKnownDomainsPath: path('beacon_known_domains'),
+    forgetPath: path_template('beacon_forget', {id: '__id__'}),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

@@ -36,9 +36,9 @@ enum ContractTemplateCategoryEnum: string
     public function getLabel(): string
     {
         return match ($this) {
-            self::CommunityManagement => 'backend.studio.contract_templates.category.community_management',
-            self::Photography => 'backend.studio.contract_templates.category.photography',
-            self::Development => 'backend.studio.contract_templates.category.development',
+            self::CommunityManagement => 'suite.studio.contract_templates.category.community_management',
+            self::Photography => 'suite.studio.contract_templates.category.photography',
+            self::Development => 'suite.studio.contract_templates.category.development',
         };
     }
 

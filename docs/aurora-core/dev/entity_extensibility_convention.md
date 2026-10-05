@@ -392,7 +392,7 @@ propres champs au tableau retourné par `parent::serialize($entity)`.
 
 #### 5.1 Composant Vue principal
 
-`src/Module/<Module>/assets/backend/<plural>/<Plural>App.vue` doit exposer :
+`src/Module/<Module>/assets/suite/<plural>/<Plural>App.vue` doit exposer :
 
 - **Slots scoped** :
   - `extra-headers` (sans scope) - `<th>` additionnels pour la table
@@ -818,10 +818,10 @@ Pour copier-coller un exemple en bon état, partir de **`DocumentCategory`** :
 | Manager | `src/Module/Ged/DocumentCategory/Manager/{DocumentCategoryManagerInterface,DocumentCategoryManager}.php` |
 | Serializer | `src/Module/Ged/DocumentCategory/Serializer/{DocumentCategorySerializerInterface,DocumentCategorySerializer}.php` |
 | Repository | `src/Module/Ged/DocumentCategory/Repository/DocumentCategoryRepository.php` |
-| Controller | `src/Module/Ged/DocumentCategory/Controller/Backend/DocumentCategoriesController.php` |
-| Vue main | `src/Module/Ged/assets/backend/document-categories/DocumentCategoriesApp.vue` |
-| Vue composables | `src/Module/Ged/assets/backend/document-categories/composables/useDocumentCategoriesForm.js` |
-| Twig | `src/Module/Ged/templates/backend/categories/index.html.twig` (namespace `@Ged`) |
+| Controller | `src/Module/Ged/DocumentCategory/Controller/Suite/DocumentCategoriesController.php` |
+| Vue main | `src/Module/Ged/assets/suite/document-categories/DocumentCategoriesApp.vue` |
+| Vue composables | `src/Module/Ged/assets/suite/document-categories/composables/useDocumentCategoriesForm.js` |
+| Twig | `src/Module/Ged/templates/suite/categories/index.html.twig` (namespace `@Ged`) |
 
 Toute déviation de ce pattern doit être justifiée (cas spécifique au domaine
 de l'entité) et documentée dans cette même convention.

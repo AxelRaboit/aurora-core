@@ -285,7 +285,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
 
         $this->client->loginUser($this->admin(), 'admin');
 
-        $this->client->jsonRequest('POST', '/backend/editorial/posts/'.$post->getId().'/reading-links/create', [
+        $this->client->jsonRequest('POST', '/suite/editorial/posts/'.$post->getId().'/reading-links/create', [
             'label' => 'Envoyé à Marie',
             'expiresInDays' => 30,
             'password' => 'phrase-'.$this->suffix,
@@ -305,12 +305,12 @@ final class PostReadingLinkTest extends IntegrationTestCase
         // Hashed, never kept as typed.
         self::assertNotSame('phrase-'.$this->suffix, $created->getPasswordHash());
 
-        $this->client->jsonRequest('POST', '/backend/editorial/posts/'.$post->getId().'/reading-links/'.$data['links'][0]['id'].'/revoke');
+        $this->client->jsonRequest('POST', '/suite/editorial/posts/'.$post->getId().'/reading-links/'.$data['links'][0]['id'].'/revoke');
         self::assertResponseIsSuccessful();
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertNotNull($data['links'][0]['revokedAt']);
 
-        $this->client->jsonRequest('POST', '/backend/editorial/posts/'.$post->getId().'/reading-links/'.$foreign->getId().'/revoke');
+        $this->client->jsonRequest('POST', '/suite/editorial/posts/'.$post->getId().'/reading-links/'.$foreign->getId().'/revoke');
         self::assertResponseStatusCodeSame(404);
         self::assertNull($this->reload($foreign->getToken())->getRevokedAt());
     }
@@ -370,7 +370,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
 
     private function admin(): User
     {
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
 
         return $admin;

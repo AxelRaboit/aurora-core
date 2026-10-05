@@ -10,7 +10,7 @@ Aurora supporte deux modes de fonctionnement linguistique :
   Taxonomies, Forms, ListingTags, ListingCategories, MenuItems), le front
   public expose un `LocaleSwitcher`, et les routes frontend portent
   `/{locale}/...`.
-- **Mono-langue** : un toggle dans `/backend/configuration/settings` (groupe
+- **Mono-langue** : un toggle dans `/suite/configuration/settings` (groupe
   Localization, paramètre `single_locale_mode`) force l'application à
   n'utiliser que la **locale par défaut** (`default_locale`).
 
@@ -169,7 +169,7 @@ au bundle). Règles :
   (`AbstractOrder`) et DTO `readonly` (`UserInput`) - pas de DI possible.
 - Méthodes statiques d'enums (`CountryEnum::label/options`).
 
-## Selects de locale dans `/backend/configuration/settings`
+## Selects de locale dans `/suite/configuration/settings`
 
 Les paramètres `DefaultLocale`, `EmailLocale` et `Timezone` sont rendus
 en **select** (type `select` dans `ApplicationParameterEnum::getType()`)
@@ -214,7 +214,7 @@ Workflow pour ajouter une locale :
 
 C'est tout. Le reste suit automatiquement :
 - nouvelle option dans le select `DefaultLocale` / `EmailLocale` de
-  `/backend/configuration/settings` (résolu via `LocaleEnum::cases()`)
+  `/suite/configuration/settings` (résolu via `LocaleEnum::cases()`)
 - routes `/{locale}/...` acceptent `es`
 - `LocaleSubscriber` valide la locale
 - `SitemapBuilder` / `RssFeedService` émettent les URLs `es`

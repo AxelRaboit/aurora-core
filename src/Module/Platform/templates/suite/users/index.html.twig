@@ -1,0 +1,41 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.users'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.platform'|trans},
+            {label: 'suite.nav.users'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('platform/suite/users/UsersApp', {
+    roles: roles,
+    activeId: activeId,
+    userTypes: userTypes,
+    isDev: isDev,
+    currentUserPriority: currentUserPriority,
+    privilegesByModule: privilegesByModule,
+    privilegesPath: path_template('suite_platform_users_privileges', {id: '__id__'}),
+    modulesForAccess: modulesForAccess,
+    canManageDisabledModules: canManageDisabledModules,
+    disabledModulesPath: path_template('suite_platform_users_disabled_modules', {id: '__id__'}),
+    listPath: path('suite_platform_users_list'),
+    invitePath: path('suite_platform_users_invite'),
+    updatePath: path_template('suite_platform_users_update', {id: '__id__'}),
+    resendInvitationPath: path_template('suite_platform_users_resend_invitation', {id: '__id__'}),
+    toggleDisabledPath: path_template('suite_platform_users_toggle_disabled', {id: '__id__'}),
+    impersonatePath: path_template('suite_dashboard', {_switch_user: '__email__'}),
+    impersonateFrontPath: path_template('suite_platform_users_impersonate_frontend', {id: '__id__'}),
+    deletePath: path_template('suite_platform_users_delete', {id: '__id__'}),
+    photoUploadPath: path_template('suite_platform_users_photo_upload', {id: '__id__'}),
+    photoDeletePath: path_template('suite_platform_users_photo_delete', {id: '__id__'}),
+    selectablePath: path('suite_platform_users_selectable'),
+    showPath: path_template('suite_platform_users_show', {id: '__id__'}),
+    currentUserId: app.user.id,
+    currentUserEmail: app.user.email,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

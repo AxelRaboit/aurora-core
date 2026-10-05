@@ -85,7 +85,7 @@ final readonly class R2Configuration
     /**
      * What is wrong with this configuration before anything is sent.
      *
-     * Returns translation keys under `backend.settings.storage.errors.`, empty
+     * Returns translation keys under `suite.settings.storage.errors.`, empty
      * when nothing is obviously wrong. These are the mistakes R2 would reject
      * anyway, and its answer is opaque: a 24-character key comes back as
      * `InvalidArgument` inside a URL, naming neither the field nor the screen.

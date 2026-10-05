@@ -9,8 +9,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class {{NAME}}Input implements {{NAME}}InputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.{{PLURAL_SNAKE}}.errors.name_required')]
-        #[Assert\Length(max: 150, maxMessage: 'backend.{{PLURAL_SNAKE}}.errors.name_too_long')]
+        #[Assert\NotBlank(message: 'suite.{{PLURAL_SNAKE}}.errors.name_required')]
+        #[Assert\Length(max: 150, maxMessage: 'suite.{{PLURAL_SNAKE}}.errors.name_too_long')]
         public readonly string $name,
     ) {}
 

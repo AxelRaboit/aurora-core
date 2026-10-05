@@ -349,8 +349,8 @@ final class PostVisibilityTest extends IntegrationTestCase
         self::assertGreaterThan(0, $violations->count());
     }
 
-    /** The backend list can be narrowed to what is shared by link. */
-    public function testTheBackendListFiltersOnIt(): void
+    /** The suite list can be narrowed to what is shared by link. */
+    public function testTheSuiteListFiltersOnIt(): void
     {
         $this->publish('Rapport '.$this->suffix);
         $link = $this->publish('Audit '.$this->suffix, PostVisibilityEnum::Link);

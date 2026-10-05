@@ -10,7 +10,7 @@ metadata:
 Aurora monte plusieurs apps Vue indépendantes sur une même page :
 - Le layout (`layout.html.twig`) monte `AppSidemenu` avec des props seedées
   depuis `app.user.<x>`
-- Une page interne (ex: `/backend/general/profile/sidemenu`) monte `PreferencesApp`
+- Une page interne (ex: `/suite/general/profile/sidemenu`) monte `PreferencesApp`
   avec ses propres props
 
 Quand la page interne sauvegarde un état partagé (ex: couleurs de
@@ -52,7 +52,7 @@ faisait juste un toast).
 3. **Composable du producteur** : importe la constante, dispatch après
    réponse serveur OK :
    ```js
-   import { SIDEMENU_PREFS_EVENT } from "@core/backend/sidemenu/composables/useSidemenuLiveColors.js";
+   import { SIDEMENU_PREFS_EVENT } from "@core/suite/sidemenu/composables/useSidemenuLiveColors.js";
 
    function broadcastPrefs(navSectionColors) {
        window.dispatchEvent(new CustomEvent(SIDEMENU_PREFS_EVENT, {
@@ -76,7 +76,7 @@ restée où elle était.
 |---|---|---|
 | `aurora:sidemenu-prefs-updated` | `useSidemenuLiveColors` | recolorer la sidemenu après un save de préférences |
 | `aurora:sidemenu-collapsed` | `useSidemenuCollapse` | tenir le menu et le bouton de pliage de la topbar au même état |
-| `aurora:open-search` | `useBackendSearch` | ouvrir la palette depuis la topbar, la palette restant dans la sidemenu |
+| `aurora:open-search` | `useSuiteSearch` | ouvrir la palette depuis la topbar, la palette restant dans la sidemenu |
 
 **Règle qui vaut pour les trois** : l'événement est déclaré et **écouté dans le
 composable qui possède la fonctionnalité**, jamais dans le SFC. Un
@@ -85,7 +85,7 @@ composable qui possède la fonctionnalité**, jamais dans le SFC. Un
 l'événement de l'endroit qui sait quoi en faire.
 
 **Le nom de l'événement est un contrat entre deux fichiers qui ne s'importent
-jamais** - donc il s'épingle dans un test. Voir `useBackendSearch.test.js` :
+jamais** - donc il s'épingle dans un test. Voir `useSuiteSearch.test.js` :
 il assère la chaîne, l'ouverture, et le fait que l'écouteur disparaisse au
 démontage (il y en a un par page ; sans nettoyage, un composant mort continue
 de réagir).

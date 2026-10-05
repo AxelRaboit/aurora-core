@@ -20,7 +20,7 @@ interface ApplicationParameterEnumInterface
 
     /**
      * Translation key for an optional placeholder example shown inside the
-     * settings input (e.g. `'backend.parameters.site_name.placeholder'` →
+     * settings input (e.g. `'suite.parameters.site_name.placeholder'` →
      * "Mon site"). Return `null` when no useful example exists and the
      * description below the field is enough.
      */

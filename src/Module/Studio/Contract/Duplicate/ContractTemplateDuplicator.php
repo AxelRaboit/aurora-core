@@ -118,7 +118,7 @@ final readonly class ContractTemplateDuplicator
      */
     private function copyName(ContractTemplateInterface $source): string
     {
-        $suffix = ' '.$this->translator->trans('backend.studio.contract_templates.duplicate_suffix');
+        $suffix = ' '.$this->translator->trans('suite.studio.contract_templates.duplicate_suffix');
 
         // Cut to fit the column with its suffix: a name of 172 characters or
         // more plus « (copie) » passed 180 and came back as a 500.

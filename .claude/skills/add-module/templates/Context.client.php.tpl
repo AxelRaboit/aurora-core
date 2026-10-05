@@ -13,12 +13,12 @@ use Aurora\Core\Module\Service\ModuleAccessChecker;
  */
 final readonly class {{MODULE}}Context
 {
-    public const string BACKEND_KEY = 'app_{{MODULE_ID}}_backend';
+    public const string SUITE_KEY = 'app_{{MODULE_ID}}_suite';
 
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(self::BACKEND_KEY);
+        return $this->moduleAccessChecker->isEnabled(self::SUITE_KEY);
     }
 }

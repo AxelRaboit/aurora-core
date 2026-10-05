@@ -45,7 +45,7 @@ final class AccessRequestsController extends AbstractController
             return $this->json($payload);
         }
 
-        return $this->render('@Dev/backend/index.html.twig', $this->viewBuilder->indexView($payload, $pagination->search));
+        return $this->render('@Dev/suite/index.html.twig', $this->viewBuilder->indexView($payload, $pagination->search));
     }
 
     #[Route('/{id}/approve', name: '_approve', methods: [HttpMethodEnum::Post->value])]
@@ -67,7 +67,7 @@ final class AccessRequestsController extends AbstractController
 
         $this->accessRequestManager->approve($accessRequest, $generatedPassword);
 
-        return $this->jsonSuccess(['message' => $this->translator->trans('backend.access_requests.approved', [
+        return $this->jsonSuccess(['message' => $this->translator->trans('suite.access_requests.approved', [
             '{name}' => $accessRequest->getRequesterName() ?? $accessRequest->getRequesterEmail(),
         ])]);
     }
@@ -81,7 +81,7 @@ final class AccessRequestsController extends AbstractController
 
         $this->accessRequestManager->reject($accessRequest);
 
-        return $this->jsonSuccess(['message' => $this->translator->trans('backend.access_requests.rejected', [
+        return $this->jsonSuccess(['message' => $this->translator->trans('suite.access_requests.rejected', [
             '{name}' => $accessRequest->getRequesterName() ?? $accessRequest->getRequesterEmail(),
         ])]);
     }
@@ -91,6 +91,6 @@ final class AccessRequestsController extends AbstractController
     {
         $this->accessRequestRepository->deleteProcessed();
 
-        return $this->jsonSuccess(['message' => $this->translator->trans('backend.access_requests.purged')]);
+        return $this->jsonSuccess(['message' => $this->translator->trans('suite.access_requests.purged')]);
     }
 }

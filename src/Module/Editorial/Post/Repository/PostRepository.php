@@ -45,7 +45,7 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * The backend list. Filters combine with AND; within a filter the values
+     * The suite list. Filters combine with AND; within a filter the values
      * combine with OR, so "type: page or article, tagged travel or food"
      * reads the way the checkboxes look.
      *

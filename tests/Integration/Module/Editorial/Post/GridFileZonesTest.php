@@ -80,7 +80,7 @@ final class GridFileZonesTest extends IntegrationTestCase
     /**
      * The same withholding as a document, and it matters more here. Since
      * `/uploads` began serving only what is published, a draft resolves to the
-     * backend address - so without this the zone would draw a player that
+     * suite address - so without this the zone would draw a player that
      * answers 403 to every visitor, with nothing on the screen to say so.
      */
     public function testAnAudioZoneDoesNotDrawAPlayerForADraft(): void

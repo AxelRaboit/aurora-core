@@ -7,7 +7,7 @@ puis par topic.
 
 ### Architecture / refactos
 
-- [Fusion Media → GED](media-ged-merge.md) - supprimer `/backend/media/media` et
+- [Fusion Media → GED](media-ged-merge.md) - supprimer `/suite/media/media` et
   faire de `Document` (GED) l'unique entité fichier. Plan en 5 phases
   (parité de rendu sur Document → migration des consommateurs FK → contenu
   embarqué → picker unifié → suppression de Media). **Décision prise, à

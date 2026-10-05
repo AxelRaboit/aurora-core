@@ -36,7 +36,7 @@ final readonly class NotesModule implements ModuleInterface, ModuleNavViewProvid
 
     public function getNavSections(): array
     {
-        if (!$this->notesContext->isBackendEnabled()) {
+        if (!$this->notesContext->isSuiteEnabled()) {
             return [];
         }
 
@@ -73,21 +73,21 @@ final readonly class NotesModule implements ModuleInterface, ModuleNavViewProvid
      */
     public function getModuleNavView(): ?ModuleNavView
     {
-        if (!$this->notesContext->isBackendEnabled() || !$this->notesContext->isMarkdownEnabled()) {
+        if (!$this->notesContext->isSuiteEnabled() || !$this->notesContext->isMarkdownEnabled()) {
             return null;
         }
 
         return new ModuleNavView(
             'notes',
             [new ModuleNavGroup('destinations', [$this->markdownNavItem()])],
-            panelComponent: 'notes/backend/markdown/NoteTreePanel',
+            panelComponent: 'notes/suite/markdown/NoteTreePanel',
         );
     }
 
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::NotesBackend->toToggle(),
+            ModuleParameterEnum::NotesSuite->toToggle(),
             ModuleParameterEnum::NotesMarkdown->toToggle(),
         ];
     }
@@ -95,11 +95,11 @@ final readonly class NotesModule implements ModuleInterface, ModuleNavViewProvid
     private function markdownNavItem(): NavItem
     {
         return new NavItem(
-            'backend_notes_markdown',
-            'backend.nav.notes_markdown',
+            'suite_notes_markdown',
+            'suite.nav.notes_markdown',
             'notebook-pen',
             requiredPrivilege: 'notes.markdown.use',
-            descriptionKey: 'backend.nav.notes_markdown_description',
+            descriptionKey: 'suite.nav.notes_markdown_description',
         );
     }
 }

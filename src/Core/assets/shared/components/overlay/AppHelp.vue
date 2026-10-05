@@ -50,7 +50,7 @@ const kind = computed(() => props.kind || registered.value?.kind || HelpKind.Fie
 const icon = computed(() => HELP_KIND_ICONS[kind.value] ?? HELP_KIND_ICONS[HelpKind.Field]);
 const accent = computed(() => HELP_KIND_CLASSES[kind.value] ?? HELP_KIND_CLASSES[HelpKind.Field]);
 
-const prefix = computed(() => `backend.help.${props.topic}`);
+const prefix = computed(() => `suite.help.${props.topic}`);
 const heading = computed(() => (registered.value ? t(`${prefix.value}.title`) : props.title));
 
 /**

@@ -3,14 +3,14 @@
  * URI-encoding each one so callers don't have to think about special chars.
  *
  * Examples:
- *   buildPath("/backend/platform/users/__id__/edit", { id: 42 })
- *     → "/backend/platform/users/42/edit"
+ *   buildPath("/suite/platform/users/__id__/edit", { id: 42 })
+ *     → "/suite/platform/users/42/edit"
  *
- *   buildPath("/backend/ged/documents/__id__/versions/__versionId__", { id: 1, versionId: 7 })
- *     → "/backend/ged/documents/1/versions/7"
+ *   buildPath("/suite/ged/documents/__id__/versions/__versionId__", { id: 1, versionId: 7 })
+ *     → "/suite/ged/documents/1/versions/7"
  *
- *   buildPath("/backend/parameters/__key__", { key: "site/name" })
- *     → "/backend/parameters/site%2Fname"
+ *   buildPath("/suite/parameters/__key__", { key: "site/name" })
+ *     → "/suite/parameters/site%2Fname"
  *
  * @param {string} template
  * @param {Record<string, string|number>} params

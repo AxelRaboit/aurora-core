@@ -128,7 +128,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         // Deux livrables de Studio, hors de tout espace : une proposition que
         // le compte de démo garde pour lui, et un modèle d'audit que l'équipe
         // partage et reprend pour chaque prospect.
-        $author = $this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+        $author = $this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $proposalLook, $proposalZones, $proposalContent] = $this->proposal();
         $this->deliverable(
             $manager,
@@ -161,7 +161,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         // Un partagé écrit par une collègue, et un second brouillon perso :
         // chaque rayon a de quoi se lire, et la liste des partagés dit qui a
         // écrit quoi.
-        $colleague = $this->users->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+        $colleague = $this->users->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $strategyLook, $strategyZones, $strategyContent] = $this->strategy();
         $this->deliverable(
             $manager,

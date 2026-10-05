@@ -1,4 +1,4 @@
-backend:
+suite:
     audit:
         actions:
             planning:
@@ -29,8 +29,8 @@ backend:
                     delete: Supprimer des événements et des rappels
     modules:
         planning: Calendrier
-        planning_backend: Calendrier
-        planning_backend_description: "Active le calendrier dans l'administration."
+        planning_suite: Calendrier
+        planning_suite_description: "Active le calendrier dans l'administration."
     nav:
         sections:
             planning: Calendrier

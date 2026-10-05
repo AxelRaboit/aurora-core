@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         sections:
             spaces: Espaces clients
@@ -28,8 +28,8 @@ backend:
             attention_empty: Rien n'attend chez vos clients.
     modules:
         studio: Studio
-        studio_backend: Studio
-        studio_backend_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les contrats, et les présentations."
+        studio_suite: Studio
+        studio_suite_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les contrats, et les présentations."
         studio_decks: Présentations
         studio_decks_description: Construire des jeux de slides, les classer et les dupliquer.
         studio_deliverables: "Livrables"
@@ -2719,7 +2719,7 @@ studio:
             hash: 'Empreinte du document'
             observed: 'Signé le {at}, depuis {ip}'
             code_verified: 'Code de confirmation vérifié le {at}, envoyé à {email}'
-            authenticated: 'Signé depuis un compte authentifié du back-office'
+            authenticated: 'Signé depuis un compte authentifié de la suite'
             notice: 'Cette empreinte identifie le texte signé. Toute modification du document produirait une empreinte différente.'
     email:
         space_review:
@@ -2739,7 +2739,7 @@ studio:
             observed: 'Refus enregistré le {at}, depuis l''adresse IP {ip}.'
             reason: 'Motif indiqué :'
             no_reason: 'Aucun motif n''a été indiqué.'
-            action: 'Vous pouvez renvoyer le contrat depuis le back-office : un nouvel envoi efface ce refus et crée une nouvelle adresse.'
+            action: 'Vous pouvez renvoyer le contrat depuis la suite : un nouvel envoi efface ce refus et crée une nouvelle adresse.'
         contract_reminder:
             subject: 'Rappel : le contrat {reference} attend votre signature'
             body: 'Le contrat {reference} vous a été adressé et n''est pas encore signé.'
@@ -2759,7 +2759,7 @@ studio:
             declared: 'Déclaré : fait à {place}, le {date}'
             observed: 'Observé : {at}, depuis {ip}'
             hash: 'Empreinte du document signé : {hash}'
-            action: 'Contresignez-le depuis le back-office pour le conclure.'
+            action: 'Contresignez-le depuis la suite pour le conclure.'
         concluded:
             subject: 'Contrat {reference} conclu'
             body: 'Le contrat {reference} est signé par les deux parties.'

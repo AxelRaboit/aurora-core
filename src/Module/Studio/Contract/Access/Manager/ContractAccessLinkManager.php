@@ -137,18 +137,18 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         string $template,
     ): ContractAccessLinkInterface {
         if (!$contract->isFrozen()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_sending'));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.seal_before_sending'));
         }
 
         if ($contract->getStatus()->isEngaged()) {
             // Somebody has signed. Re-sending would hand out a fresh address to
             // a document that is already committed, which is not a resend but a
             // second chance to sign the same thing.
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_engaged'));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.already_engaged'));
         }
 
         if (ContractStatusEnum::Cancelled === $contract->getStatus()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed'));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.contract_closed'));
         }
 
         $recipient = $contract->getCustomer()->getContractualEmail();
@@ -158,7 +158,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             // n'envoie pas un contrat a personne : c'est ici, au moment de
             // l'envoi, que l'adresse devient indispensable - pas a la creation
             // de la fiche.
-            throw new FieldException('customer', $this->translator->trans('backend.studio.contracts.errors.customer_has_no_address'));
+            throw new FieldException('customer', $this->translator->trans('suite.studio.contracts.errors.customer_has_no_address'));
         }
 
         $link = $this->createLink();

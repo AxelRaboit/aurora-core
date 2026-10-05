@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         sections:
             notes: Notes
@@ -24,10 +24,10 @@ backend:
                     create: 'Create shared note spaces'
                     publish: 'Publish note spaces on the web'
     modules:
-        notes_backend: Notes
+        notes_suite: Notes
         # The module string an audit row carries, which is not the toggle key.
         notes_markdown: Markdown notes
-        notes_backend_description: Enables markdown note-taking, with links between notes and a graph.
+        notes_suite_description: Enables markdown note-taking, with links between notes and a graph.
     nav:
         sections:
             notes: Notes
@@ -66,7 +66,7 @@ notes:
         guide:
             title: "How notes are organised"
             step_1: "Each note belongs to a space: yours, always private, or a shared space."
-            step_2: "A shared space opens to you alone, to some people or to the whole back office, each with read, write or manage rights."
+            step_2: "A shared space opens to you alone, to some people or to the whole suite, each with read, write or manage rights."
             step_3: "Link notes with [[Title]]: the graph shows these links between all the notes you can read."
             step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
             step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
@@ -152,7 +152,7 @@ notes:
             settings: 'Space settings'
             members: 'Members'
             members_hint: 'Only the people you add get in, each with their role.'
-            members_hint_backoffice: 'The whole back office gets in with the default role; adding someone can give them more.'
+            members_hint_backoffice: 'The whole suite gets in with the default role; adding someone can give them more.'
             no_members: 'Nobody has been added yet.'
             pick_person: 'Pick someone'
             add_member: 'Add'
@@ -171,7 +171,7 @@ notes:
                 label: 'Who gets in'
                 private: 'Only me'
                 members: 'Some people'
-                backoffice: 'The whole back office'
+                backoffice: 'The whole suite'
                 private_hint: 'Nobody else sees it.'
                 members_hint: 'Only the people you add.'
                 backoffice_hint: 'Anyone who uses the notes.'

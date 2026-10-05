@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class DocumentTagInput implements DocumentTagInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.ged.tags.errors.name_required')]
+        #[Assert\NotBlank(message: 'suite.ged.tags.errors.name_required')]
         #[Assert\Length(max: 100)]
         public readonly string $name = '',
         #[Assert\Length(max: 7)]

@@ -31,7 +31,7 @@ output: a thin SFC + two composables (`use<Plural>Create.js`,
 ## File layout (mandatory)
 
 ```
-assets/backend/<folder>/
+assets/suite/<folder>/
 ├── <Plural>App.vue                   # template + thin glue
 └── composables/
     ├── use<Plural>Create.js          # showCreate + createForm + createErrors + createLoading + openCreate + submitCreate
@@ -45,7 +45,7 @@ forms with no validation. Otherwise extract from the start.
 
 1. **Entity name** in PascalCase singular (`Wallet`, `Contact`) - used as
    `<Singular>`. Plural auto-derived; ask if irregular.
-2. **Module path under `assets/backend/`** - e.g. `wallet/`, `companies/`,
+2. **Module path under `assets/suite/`** - e.g. `wallet/`, `companies/`,
    `category/`. Determines the Vue path used by `vue_component(…)`.
 3. **Backend route names already wired in the Twig view-builder** - names
    of the props the Twig passes (e.g. `createWalletPath`, `updateWalletPath`,
@@ -60,7 +60,7 @@ forms with no validation. Otherwise extract from the start.
 
 ## What gets generated
 
-Single file `assets/backend/<folder>/<Plural>App.vue` containing :
+Single file `assets/suite/<folder>/<Plural>App.vue` containing :
 
 ### Imports (mandatory)
 
@@ -315,7 +315,7 @@ Don't add `actions.delete` / `actions.create` under `<base>` - use
 ## Post-generation
 
 1. Run `pnpm dev` (or check Vite is up) - Vite hot-reloads the new Vue.
-2. Verify the Twig template uses the correct `vue_component('<module-lowercase>/backend/<folder>/<Plural>App')` reference.
+2. Verify the Twig template uses the correct `vue_component('<module-lowercase>/suite/<folder>/<Plural>App')` reference.
 3. Test the golden path : create → list updates → edit → list updates → delete (with modal) → list updates.
 4. Translations should auto-dump via `predev` hook ; otherwise `php bin/console app:translations:dump-js`.
 5. Final check : `make ft` should still be green.

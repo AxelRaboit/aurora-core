@@ -51,17 +51,17 @@ final readonly class PostsTrashSource implements TrashSourceInterface
 
         return new TrashSummary(
             key: 'editorial_posts',
-            labelKey: 'backend.nav.posts',
+            labelKey: 'suite.nav.posts',
             sectionId: 'editorial',
             icon: 'file-text',
             count: $page['total'],
             items: array_map(fn (PostInterface $post): TrashItem => $this->present($post, $locale), $page['items']),
             oldestDeletedAt: $this->postRepository->oldestTrashedAt(),
-            restoreRoute: 'backend_editorial_posts_restore',
-            forceDeleteRoute: 'backend_editorial_posts_force_delete',
-            emptyTrashRoute: 'backend_editorial_posts_empty_trash',
+            restoreRoute: 'suite_editorial_posts_restore',
+            forceDeleteRoute: 'suite_editorial_posts_force_delete',
+            emptyTrashRoute: 'suite_editorial_posts_empty_trash',
             actionPrivilege: 'editorial.posts.delete',
-            listRoute: 'backend_editorial_posts',
+            listRoute: 'suite_editorial_posts',
         );
     }
 

@@ -46,7 +46,7 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
 
         $this->client->loginUser($admin, 'admin');
@@ -506,7 +506,7 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         $user = new User();
         $user->setEmail(bin2hex(random_bytes(4)).'-'.$email);
         $user->setName($name);
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
         $user->setPassword('x');
         $user->setRoles(['ROLE_USER']);
 
@@ -578,7 +578,7 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace de '.$customerName,
             'customerId' => $customer->getId(),
             'timezone' => 'Europe/Paris',

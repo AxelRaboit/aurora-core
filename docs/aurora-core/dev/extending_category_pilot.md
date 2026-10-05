@@ -32,7 +32,7 @@ Aurora\Module\Ged\DocumentCategory\…  →  src/Module/Ged/DocumentCategory/…
 | DTO d'entrée | `src/Module/Ged/DocumentCategory/Dto/DocumentCategoryInput.php` + `DocumentCategoryInputFactory.php` | `extends`, `#[AsAlias]` |
 | Manager | `src/Module/Ged/DocumentCategory/Manager/DocumentCategoryManager.php` | `extends`, `#[AsAlias]` |
 | Serializer | `src/Module/Ged/DocumentCategory/Serializer/DocumentCategorySerializer.php` | `extends`, `#[AsAlias]` |
-| Vue | `src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue` (co-localisé avec l'extension PHP - shadow auto via clientModules glob) | slots scoped, pas de Twig override |
+| Vue | `src/Module/Ged/DocumentCategory/assets/suite/document-categories/DocumentCategoriesApp.vue` (co-localisé avec l'extension PHP - shadow auto via clientModules glob) | slots scoped, pas de Twig override |
 
 ---
 
@@ -328,7 +328,7 @@ class DocumentCategorySerializer extends AuroraDocumentCategorySerializer
 }
 ```
 
-À ce stade, le payload JSON renvoyé par `/backend/platform/document-categories` contient `code`.
+À ce stade, le payload JSON renvoyé par `/suite/platform/document-categories` contient `code`.
 
 ---
 
@@ -342,8 +342,8 @@ Aurora expose **deux** globs côté Vue (cf. `vendor/aurora/src/Core/assets/app.
   (vraies features comme Tracking, OU overrides co-localisés avec une
   extension PHP comme Platform/DocumentCategory). Les feature folders entre
   `Module/<Name>/` et `assets/` sont flatten dans la clé exposée. Exposés
-  comme `<name>/<rest>` (ex: `tracking/backend/dashboard/...` ou
-  `platform/backend/document-categories/DocumentCategoriesApp` quand on shadow Aurora)
+  comme `<name>/<rest>` (ex: `tracking/suite/dashboard/...` ou
+  `platform/suite/document-categories/DocumentCategoriesApp` quand on shadow Aurora)
 - `@client/src/Overrides/**/*.vue` - escape hatch pour shadow des
   composants non-module (e.g. `src/Core/assets/...` d'aurora-core).
   Rare ; préférer la co-localisation sous `Module/<X>/<Feature>/assets/`
@@ -353,9 +353,9 @@ Le wrapper DocumentCategory vit avec l'extension PHP - co-localisation sous
 `src/Module/Ged/DocumentCategory/assets/`.
 
 ```vue
-<!-- aurora-client : src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue -->
+<!-- aurora-client : src/Module/Ged/DocumentCategory/assets/suite/document-categories/DocumentCategoriesApp.vue -->
 <script setup>
-import AuroraDocumentCategoriesApp from "@core/backend/document-categories/DocumentCategoriesApp.vue";
+import AuroraDocumentCategoriesApp from "@core/suite/document-categories/DocumentCategoriesApp.vue";
 import AppInput from "@/shared/components/form/AppInput.vue";
 
 defineProps({
@@ -417,17 +417,17 @@ Le composable Aurora `useDocumentCategoriesForm(extraFields)` :
 ### 5.2 Aucun override Twig nécessaire
 
 Depuis la co-localisation, **pas besoin d'override Twig**. Le wrapper
-client à `src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue`
+client à `src/Module/Ged/DocumentCategory/assets/suite/document-categories/DocumentCategoriesApp.vue`
 est exposé par le glob `clientModules` sous **la même clé** que le composant
-Aurora (`platform/backend/document-categories/DocumentCategoriesApp`). Comme `clientModules` est
+Aurora (`platform/suite/document-categories/DocumentCategoriesApp`). Comme `clientModules` est
 spread après `auroraModules` dans `vueContext`, ton fichier wins
-automatiquement - Aurora rend `vue_component('platform/backend/document-categories/DocumentCategoriesApp', ...)`
+automatiquement - Aurora rend `vue_component('platform/suite/document-categories/DocumentCategoriesApp', ...)`
 et c'est ton wrapper qui prend.
 
 Vérifier que l'override est bien pris :
 
 ```bash
-# Build + recharger la page admin /backend/platform/document-categories. Inspecter le DOM :
+# Build + recharger la page admin /suite/platform/document-categories. Inspecter le DOM :
 # le composant Vue monté devrait avoir tes slots `extra-headers` /
 # `extra-cells` / `extra-form-fields`.
 npm run build
@@ -440,7 +440,7 @@ npm run build
 ```bash
 make demo                  # recharge fixtures + sync menus/privileges
 make start                 # PHP server + Vite dev server
-# → ouvrir /backend/ged/categories, créer une catégorie avec un code, recharger, éditer
+# → ouvrir /suite/ged/categories, créer une catégorie avec un code, recharger, éditer
 ```
 
 ---

@@ -469,7 +469,7 @@ Ce qu'elle demande vraiment :
   instances vivantes (le registre de `usePostEditor` est fait pour ça).
 - **Réordonner** : le glissé dans une grille qui reflue est difficile à viser.
   Garder monter/descendre sur la zone sélectionnée est plus sûr, et cohérent
-  avec le reste du backend.
+  avec le reste de la suite.
 
 **Le piège à ne pas reproduire.** Ce chantier est né d'une remarque
 d'accessibilité : viser un curseur est difficile pour certaines personnes. Une

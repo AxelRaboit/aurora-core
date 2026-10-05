@@ -49,10 +49,10 @@ final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProv
                 // A draft in a language that has no title yet still has to be
                 // nameable, or the list shows a blank row and says nothing.
                 'label' => $post->getTranslation($locale)?->getTitle()
-                    ?? $this->translator->trans('backend.posts.usage_untitled'),
-                'detail' => $this->translator->trans('backend.posts.usage_detail'),
+                    ?? $this->translator->trans('suite.posts.usage_untitled'),
+                'detail' => $this->translator->trans('suite.posts.usage_detail'),
                 'href' => $this->urlGenerator->generate(
-                    'backend_editorial_posts_edit',
+                    'suite_editorial_posts_edit',
                     ['id' => $post->getId()],
                 ),
             ];

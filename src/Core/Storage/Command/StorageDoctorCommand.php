@@ -109,6 +109,6 @@ final class StorageDoctorCommand extends Command
 
     private function label(StorageProbeStep $step): string
     {
-        return $this->translator->trans(sprintf('backend.settings.storage.probe.%s', $step->key));
+        return $this->translator->trans(sprintf('suite.settings.storage.probe.%s', $step->key));
     }
 }

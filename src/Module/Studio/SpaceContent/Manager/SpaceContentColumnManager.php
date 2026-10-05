@@ -39,11 +39,11 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * has to tell apart at a glance.
      */
     protected const array DEFAULT_COLUMNS = [
-        ['backend.studio.space_content.default_columns.idea', null, SpaceContentColumnRoleEnum::Idea],
-        ['backend.studio.space_content.default_columns.writing', 1, SpaceContentColumnRoleEnum::Production],
-        ['backend.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review],
-        ['backend.studio.space_content.default_columns.scheduled', 3, SpaceContentColumnRoleEnum::Scheduled],
-        ['backend.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published],
+        ['suite.studio.space_content.default_columns.idea', null, SpaceContentColumnRoleEnum::Idea],
+        ['suite.studio.space_content.default_columns.writing', 1, SpaceContentColumnRoleEnum::Production],
+        ['suite.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review],
+        ['suite.studio.space_content.default_columns.scheduled', 3, SpaceContentColumnRoleEnum::Scheduled],
+        ['suite.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published],
     ];
 
     public function __construct(
@@ -97,11 +97,11 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     {
         $items = $this->columnRepository->countItems($column);
         if ($items > 0) {
-            throw new FieldException('column', $this->translator->trans('backend.studio.space_content.errors.column_not_empty', ['{count}' => (string) $items]));
+            throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_not_empty', ['{count}' => (string) $items]));
         }
 
         if (1 === count($this->columnRepository->findForSpace($column->getSpace()))) {
-            throw new FieldException('column', $this->translator->trans('backend.studio.space_content.errors.column_last'));
+            throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_last'));
         }
 
         $this->auditDeleted($column);

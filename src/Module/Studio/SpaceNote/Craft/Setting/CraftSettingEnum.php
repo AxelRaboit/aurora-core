@@ -17,11 +17,11 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum CraftSettingEnum: string
 {
-    case Enabled = 'backend_studio_craft_enabled';
+    case Enabled = 'suite_studio_craft_enabled';
 
     /** L'adresse que Craft donne à la création d'une connexion. */
-    case Endpoint = 'backend_studio_craft_endpoint';
+    case Endpoint = 'suite_studio_craft_endpoint';
 
     /** Stocké chiffré ; voir {@see CraftSettings}. */
-    case Token = 'backend_studio_craft_token';
+    case Token = 'suite_studio_craft_token';
 }

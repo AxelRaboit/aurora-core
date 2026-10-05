@@ -120,7 +120,7 @@ describe("the nav icon map", () => {
     /**
      * The failure this pins is silent by construction: an unmapped name falls
      * back to FileText, so a module ships a document icon where it asked for a
-     * tag and nothing anywhere says so. `backend_ged_tags` did exactly that.
+     * tag and nothing anywhere says so. `suite_ged_tags` did exactly that.
      */
     it("has an entry for every icon name the PHP modules declare", () => {
         const declared = declaredIconNames();

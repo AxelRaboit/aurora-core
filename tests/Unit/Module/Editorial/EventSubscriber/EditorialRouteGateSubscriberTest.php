@@ -28,34 +28,34 @@ final class EditorialRouteGateSubscriberTest extends TestCase
 {
     public function testLetsThroughRoutesOfAnotherModuleEntirely(): void
     {
-        $this->assertPasses('backend_ged_documents', []);
+        $this->assertPasses('suite_ged_documents', []);
         $this->assertPasses('frontend_login', []);
     }
 
-    public function testClosesEverythingWhenTheBackendIsOff(): void
+    public function testClosesEverythingWhenTheSuiteIsOff(): void
     {
-        $off = [ModuleParameterEnum::EditorialBackend->value];
+        $off = [ModuleParameterEnum::EditorialSuite->value];
 
-        $this->assertBlocked('backend_editorial_posts', $off);
-        $this->assertBlocked('backend_editorial_taxonomies', $off);
-        $this->assertBlocked('backend_editorial_menus', $off);
-        $this->assertBlocked('backend_editorial_post_types', $off);
+        $this->assertBlocked('suite_editorial_posts', $off);
+        $this->assertBlocked('suite_editorial_taxonomies', $off);
+        $this->assertBlocked('suite_editorial_menus', $off);
+        $this->assertBlocked('suite_editorial_post_types', $off);
     }
 
     public function testClosesOnlyTheSubModuleThatIsOff(): void
     {
         $off = [ModuleParameterEnum::EditorialTaxonomies->value];
 
-        $this->assertBlocked('backend_editorial_taxonomies', $off);
-        $this->assertBlocked('backend_editorial_taxonomies_term_create', $off);
+        $this->assertBlocked('suite_editorial_taxonomies', $off);
+        $this->assertBlocked('suite_editorial_taxonomies_term_create', $off);
 
-        $this->assertPasses('backend_editorial_posts', $off);
-        $this->assertPasses('backend_editorial_menus', $off);
-        $this->assertPasses('backend_editorial_post_types', $off);
+        $this->assertPasses('suite_editorial_posts', $off);
+        $this->assertPasses('suite_editorial_menus', $off);
+        $this->assertPasses('suite_editorial_post_types', $off);
     }
 
     /**
-     * `backend_editorial_posts` must not swallow `backend_editorial_post_types`
+     * `suite_editorial_posts` must not swallow `suite_editorial_post_types`
      * - they share a prefix up to the `s`, and getting this wrong closes the
      * post-types screen whenever posts are off.
      */
@@ -63,15 +63,15 @@ final class EditorialRouteGateSubscriberTest extends TestCase
     {
         $off = [ModuleParameterEnum::EditorialPosts->value];
 
-        $this->assertBlocked('backend_editorial_posts', $off);
-        $this->assertPasses('backend_editorial_post_types', $off);
+        $this->assertBlocked('suite_editorial_posts', $off);
+        $this->assertPasses('suite_editorial_post_types', $off);
     }
 
     /** The public routes are Core's to gate; this subscriber must not touch them. */
     public function testIgnoresThePublicRoutes(): void
     {
-        $this->assertPasses('editorial_post', [ModuleParameterEnum::EditorialBackend->value]);
-        $this->assertPasses('editorial_home', [ModuleParameterEnum::EditorialBackend->value]);
+        $this->assertPasses('editorial_post', [ModuleParameterEnum::EditorialSuite->value]);
+        $this->assertPasses('editorial_home', [ModuleParameterEnum::EditorialSuite->value]);
     }
 
     /** @param list<string> $disabled */
@@ -115,7 +115,7 @@ final class EditorialRouteGateSubscriberTest extends TestCase
 
     /**
      * Stands in for the real checker, cascade included: a sub-module whose
-     * ancestor is off is off too, which is what makes the "backend off closes
+     * ancestor is off is off too, which is what makes the "suite off closes
      * everything" case meaningful.
      *
      * @param list<string> $disabled

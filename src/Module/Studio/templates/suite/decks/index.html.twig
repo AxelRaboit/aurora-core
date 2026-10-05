@@ -1,0 +1,31 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.studio_decks'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_decks'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/decks/DecksApp', {
+    decks: decks,
+    categories: categories,
+    customers: customers,
+    layouts: layouts,
+    showPath: showPath,
+    createPath: createPath,
+    importPath: importPath,
+    updatePath: updatePath,
+    deletePath: deletePath,
+    duplicatePath: duplicatePath,
+    categoryCreatePath: categoryCreatePath,
+    categoryUpdatePath: categoryUpdatePath,
+    categoryDeletePath: categoryDeletePath,
+    categoryReorderPath: categoryReorderPath|default(''),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

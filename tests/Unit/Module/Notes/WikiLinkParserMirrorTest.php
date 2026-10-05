@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class WikiLinkParserMirrorTest extends TestCase
 {
-    private const string JS_PATH = __DIR__.'/../../../../src/Module/Notes/assets/backend/markdown/composables/markedExtensions/markedWikiLinks.js';
+    private const string JS_PATH = __DIR__.'/../../../../src/Module/Notes/assets/suite/markdown/composables/markedExtensions/markedWikiLinks.js';
 
     public function testThePhpPatternMatchesTheOneInTheEditor(): void
     {

@@ -4,7 +4,7 @@
  *
  * It sits in `assets/shared/` next to the thread and for the same reason: the
  * studio's board and the client's page both mount it, and its words are
- * `shared.attachments.*` because a key under `backend.` rendered on a page a
+ * `shared.attachments.*` because a key under `suite.` rendered on a page a
  * customer reads is a namespace that has stopped meaning anything.
  *
  * **A preview only for what previews.** The payload sends `preview: null` for

@@ -9,7 +9,7 @@ import { defineAsyncComponent, markRaw } from "vue";
  * component instead, via `ModuleNavView::$panelComponent`, and register it here.
  *
  * The name in the payload is the key: PHP says
- * `'ged/backend/documents/FolderTreePanel'`, the module's `*.register.js` claims
+ * `'ged/suite/documents/FolderTreePanel'`, the module's `*.register.js` claims
  * the same string. Same arrangement as `panelRegistry.js` for the dashboard, and
  * for the same reason - without it `AppSidemenu` would have to import from
  * `@ged/...`, which is the cross-module dependency the whole module system

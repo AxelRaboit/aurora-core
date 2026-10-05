@@ -13,7 +13,7 @@ use function array_values;
 /**
  * What a guest's page needs, and deliberately no more.
  *
- * The backend's payload carries the timezone list, the invitable accounts, the
+ * The suite's payload carries the timezone list, the invitable accounts, the
  * reader's own id and the routes for eight writes. None of that belongs on a page
  * reached by a secret in a URL: a guest cannot change a timezone, has nobody to
  * invite, and is not an account. Sending it would be handing over a description of

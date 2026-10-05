@@ -33,19 +33,19 @@ Aurora connaît déjà. Le bundle gère le prepend dans
 ### Override d'un template admin Platform
 
 Le template Aurora vit dans
-`vendor/axelraboit/aurora/src/Module/Platform/templates/backend/agencies/index.html.twig`
-(résolu via `@Platform/backend/agencies/index.html.twig`).
+`vendor/axelraboit/aurora/src/Module/Platform/templates/suite/agencies/index.html.twig`
+(résolu via `@Platform/suite/agencies/index.html.twig`).
 
 Pour l'override côté client (deux options équivalentes) :
 
 ```bash
 # Option recommandée - co-localisé
-mkdir -p src/Module/Platform/templates/backend/agencies
-# Créer src/Module/Platform/templates/backend/agencies/index.html.twig
+mkdir -p src/Module/Platform/templates/suite/agencies
+# Créer src/Module/Platform/templates/suite/agencies/index.html.twig
 
 # Option legacy - supportée pour backward compat
-mkdir -p templates/Module/Platform/backend/agencies
-# Créer templates/Module/Platform/backend/agencies/index.html.twig
+mkdir -p templates/Module/Platform/suite/agencies
+# Créer templates/Module/Platform/suite/agencies/index.html.twig
 ```
 
 Le template client est résolu en priorité dès qu'il existe. Le namespace
@@ -74,8 +74,8 @@ Souvent on veut **enrichir** le template Aurora avec un block, pas le
 remplacer entièrement :
 
 ```twig
-{# src/Module/Platform/templates/backend/agencies/index.html.twig (override client) #}
-{% extends '@Platform/backend/agencies/index.html.twig' %}
+{# src/Module/Platform/templates/suite/agencies/index.html.twig (override client) #}
+{% extends '@Platform/suite/agencies/index.html.twig' %}
 
 {# Pas du tout possible - on étendrait soi-même, infinite loop. #}
 ```
@@ -95,14 +95,14 @@ ajoute un block `{% block client_extra %}{% endblock %}`** dans son
 template, qu'on peut overrider proprement :
 
 ```twig
-{# src/Module/Platform/templates/backend/agencies/_extra_client.html.twig (côté client) #}
+{# src/Module/Platform/templates/suite/agencies/_extra_client.html.twig (côté client) #}
 <div class="custom-stuff">…</div>
 ```
 
 Et côté Aurora :
 ```twig
 {# Aurora's index.html.twig #}
-{% include '@Platform/backend/agencies/_extra_client.html.twig' ignore missing %}
+{% include '@Platform/suite/agencies/_extra_client.html.twig' ignore missing %}
 ```
 
 Le `ignore missing` permet à Aurora de tolérer l'absence d'override.

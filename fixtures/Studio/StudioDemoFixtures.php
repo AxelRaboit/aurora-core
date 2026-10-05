@@ -461,9 +461,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
-        $admin = $this->backendUser('dev@aurora.app');
-        $marieAccount = $this->backendUser('marie.dupont@aurora.app');
-        $jeanAccount = $this->backendUser('jean.martin@aurora.app');
+        $admin = $this->suiteUser('dev@aurora.app');
+        $marieAccount = $this->suiteUser('marie.dupont@aurora.app');
+        $jeanAccount = $this->suiteUser('jean.martin@aurora.app');
 
         $social = $this->space(
             name: 'Atelier Dupont - Réseaux sociaux',
@@ -775,7 +775,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         string $label = 'Camille, gérante',
         ?array $exchange = null,
     ): ?SpaceAccessLinkInterface {
-        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+        $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
 
         if (!$marie instanceof User) {
             return null;
@@ -873,8 +873,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // dedans est un canal que le studio ne retrouve jamais - y compris
         // celui qui vient de le créer.
         $accounts = array_filter([
-            $this->userRepository->find($this->backendUser('dev@aurora.app')),
-            $this->userRepository->find($this->backendUser('marie.dupont@aurora.app')),
+            $this->userRepository->find($this->suiteUser('dev@aurora.app')),
+            $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app')),
         ], static fn (?User $user): bool => $user instanceof User);
 
         $internal = $this->chatChannels->create($space, 'Entre nous');
@@ -909,7 +909,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function seedCardComments(CustomerSpaceInterface $space, ?SpaceAccessLinkInterface $link): void
     {
-        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+        $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
 
         if (!$marie instanceof User || !$link instanceof SpaceAccessLinkInterface) {
             return;
@@ -982,7 +982,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             }
         }
 
-        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+        $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
         $link = $space instanceof CustomerSpaceInterface ? $this->existingLinkFor($space, 'camille@atelier-dupont.fr') : null;
 
         if (!$link instanceof SpaceAccessLinkInterface || !$marie instanceof User) {
@@ -1148,12 +1148,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function seedNotes(CustomerSpaceInterface $space): void
     {
-        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+        $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
         // Les notes personnelles sont prises par le compte de développement,
         // et c'est le seul choix qui montre quelque chose : une note
         // personnelle ne remonte qu'à son auteur, donc signée par quelqu'un
         // d'autre elle laisserait l'onglet vide pour celui qui regarde.
-        $admin = $this->userRepository->find($this->backendUser('dev@aurora.app'));
+        $admin = $this->userRepository->find($this->suiteUser('dev@aurora.app'));
 
         if (!$marie instanceof User || !$admin instanceof User) {
             return;
@@ -1255,11 +1255,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /** The demo account behind an address, which the core fixtures put there. */
-    private function backendUser(string $email): int
+    private function suiteUser(string $email): int
     {
         $user = $this->userRepository->findOneBy([
             'email' => $email,
-            'type' => UserTypeEnum::Backend->value,
+            'type' => UserTypeEnum::Suite->value,
         ]);
 
         if (!$user instanceof User) {
@@ -1509,7 +1509,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function fileOnSpace(CustomerSpaceInterface $space, array $titles): void
     {
-        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
 
         if (!$author instanceof User) {
             return;
@@ -1554,7 +1554,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
-        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
 
         if (!$author instanceof User) {
             return;

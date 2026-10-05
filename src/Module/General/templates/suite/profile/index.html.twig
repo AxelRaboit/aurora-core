@@ -1,0 +1,35 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.profile'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.account'|trans},
+            {label: 'suite.nav.profile'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('general/suite/profile/ProfileApp', {
+    userName: app.user.name,
+    userEmail: app.user.email,
+    userPhotoUrl: aurora_profile_photo_url(app.user) ?? '',
+    userMoodMessage: app.user.moodMessage ?? '',
+    moodMessageMaxLength: moodMessageMaxLength,
+    locale: app.request.locale,
+    updatePath: path('suite_general_profile_update'),
+    passwordPath: path('suite_general_profile_password'),
+    localePath: path('suite_general_profile_locale'),
+    moodPath: path('suite_general_profile_mood'),
+    photoUploadPath: path('suite_general_profile_photo_upload'),
+    photoDeletePath: path('suite_general_profile_photo_delete'),
+    deletePath: path('suite_general_profile_delete'),
+    loginPath: path('suite_platform_login'),
+    deleteCsrf: csrf_token('suite_general_profile_delete'),
+    canDeleteAccount: canDeleteAccount,
+    sidemenuPreferencesPath: path('suite_general_profile_sidemenu'),
+    accountInfo: accountInfo,
+}) }} class="flex-1"></div>
+{% endblock %}

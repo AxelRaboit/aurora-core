@@ -70,7 +70,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -399,7 +399,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $offered = $this->payload()['orphanedDocuments'];
         self::assertCount(1, $offered);
         self::assertSame('photo.jpg', $offered[0]['title']);
-        self::assertStringContainsString('/backend/ged/documents/', $offered[0]['trashPath']);
+        self::assertStringContainsString('/suite/ged/documents/', $offered[0]['trashPath']);
     }
 
     /**
@@ -468,7 +468,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $document = $this->givenDocument('Contrat confidentiel', 'application/pdf');
 
         $teammate = new User();
-        $teammate->setEmail('sans-ged@example.test')->setName('Équipier')->setType(UserTypeEnum::Backend)
+        $teammate->setEmail('sans-ged@example.test')->setName('Équipier')->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])->setPassword('x')
             ->setPrivileges(['studio.spaces.view', 'studio.spaces.edit']);
         $this->entityManager->persist($teammate);
@@ -482,11 +482,11 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
 
             $this->attach($space, $item['id'], (int) $document->getId());
             self::assertSame(422, $this->client->getResponse()->getStatusCode());
-            self::assertSame('backend.studio.space_content.errors.attachment_unknown', $this->payload()['errors']['documentId'] ?? null);
+            self::assertSame('suite.studio.space_content.errors.attachment_unknown', $this->payload()['errors']['documentId'] ?? null);
 
             $this->client->jsonRequest('POST', sprintf('/workspace/%d/files/attach', $space->getId()), ['documentId' => $document->getId()]);
             self::assertSame(422, $this->client->getResponse()->getStatusCode());
-            self::assertSame('backend.studio.space_files.errors.unknown', $this->payload()['errors']['documentId'] ?? null);
+            self::assertSame('suite.studio.space_files.errors.unknown', $this->payload()['errors']['documentId'] ?? null);
 
             self::assertSame([], $this->attachments->findBy(['document' => $document]));
         } finally {
@@ -562,7 +562,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace de '.$customerName,
             'customerId' => $customer->getId(),
             'timezone' => 'Europe/Paris',

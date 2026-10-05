@@ -1,0 +1,20 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.trash.title'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.general'|trans},
+            {label: 'suite.trash.title'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('general/suite/trash/TrashApp', {
+    trashes: trashes,
+    retentionDays: retentionDays,
+    listPath: path('suite_general_trash_list'),
+}) }}></div>
+{% endblock %}

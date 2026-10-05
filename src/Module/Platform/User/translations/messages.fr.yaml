@@ -1,4 +1,4 @@
-backend:
+suite:
     stats:
         platform:
             users: "Utilisateurs"
@@ -6,7 +6,7 @@ backend:
     users:
         guide:
             title: "Comment fonctionnent les comptes"
-            step_1: "Un compte Backend accède à l'administration ; un compte Frontend n'est qu'un compte du site public."
+            step_1: "Un compte Suite accède à l'administration ; un compte Frontend n'est qu'un compte du site public."
             step_2: "Un Administrateur a accès à tout ; un Utilisateur n'a que les privilèges que vous lui cochez, écran par écran."
             step_3: "Inviter envoie un courriel pour que la personne choisisse son mot de passe."
             step_4: "Désactiver bloque la connexion sans rien perdre, alors que supprimer est définitif ; vous ne pouvez pas changer votre propre rôle."
@@ -42,7 +42,7 @@ backend:
             dev: Développeur
         type_label: Type
         type:
-            backend: Backend
+            suite: Suite
             frontend: Frontend
         status_label: Statut
         status:
@@ -110,7 +110,7 @@ backend:
             grant_dev_description: Donne le rôle Dev, et l'accès aux outils techniques.
             dev_delete_description: Supprime le compte définitivement. Sans retour possible.
             resend_description: Envoie une nouvelle invitation à la même adresse.
-            impersonate_description: Ouvre le backend avec ses droits, pour reproduire ce qu'il voit.
+            impersonate_description: Ouvre la suite avec ses droits, pour reproduire ce qu'il voit.
             impersonate_front_description: Ouvre le site public avec son compte.
             edit_description: Nom, adresse, langue et rôle.
             privileges_description: Choisir ce à quoi ce compte a accès, écran par écran.

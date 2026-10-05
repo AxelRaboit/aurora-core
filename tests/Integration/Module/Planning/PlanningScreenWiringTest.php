@@ -31,7 +31,7 @@ final class PlanningScreenWiringTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -41,22 +41,22 @@ final class PlanningScreenWiringTest extends IntegrationTestCase
         $props = $this->screenProps();
 
         foreach ([
-            'eventsPath' => '/backend/planning/events',
-            'createEventPath' => '/backend/planning/events/create',
-            'updateEventPathTemplate' => '/backend/planning/events/__id__/update',
-            'deleteEventPathTemplate' => '/backend/planning/events/__id__/delete',
-            'moveEventPathTemplate' => '/backend/planning/events/__id__/move',
-            'respondEventPathTemplate' => '/backend/planning/events/__id__/respond',
-            'createCalendarPath' => '/backend/planning/calendars/create',
-            'updateCalendarPathTemplate' => '/backend/planning/calendars/__id__/update',
-            'deleteCalendarPathTemplate' => '/backend/planning/calendars/__id__/delete',
-            'createLinkPath' => '/backend/planning/links/create',
-            'revokeLinkPathTemplate' => '/backend/planning/links/__id__/revoke',
-            'sharesCalendarPathTemplate' => '/backend/planning/calendars/__id__/shares',
-            'createReminderPath' => '/backend/planning/reminders/create',
-            'updateReminderPathTemplate' => '/backend/planning/reminders/__id__/update',
-            'deleteReminderPathTemplate' => '/backend/planning/reminders/__id__/delete',
-            'toggleReminderPathTemplate' => '/backend/planning/reminders/__id__/toggle',
+            'eventsPath' => '/suite/planning/events',
+            'createEventPath' => '/suite/planning/events/create',
+            'updateEventPathTemplate' => '/suite/planning/events/__id__/update',
+            'deleteEventPathTemplate' => '/suite/planning/events/__id__/delete',
+            'moveEventPathTemplate' => '/suite/planning/events/__id__/move',
+            'respondEventPathTemplate' => '/suite/planning/events/__id__/respond',
+            'createCalendarPath' => '/suite/planning/calendars/create',
+            'updateCalendarPathTemplate' => '/suite/planning/calendars/__id__/update',
+            'deleteCalendarPathTemplate' => '/suite/planning/calendars/__id__/delete',
+            'createLinkPath' => '/suite/planning/links/create',
+            'revokeLinkPathTemplate' => '/suite/planning/links/__id__/revoke',
+            'sharesCalendarPathTemplate' => '/suite/planning/calendars/__id__/shares',
+            'createReminderPath' => '/suite/planning/reminders/create',
+            'updateReminderPathTemplate' => '/suite/planning/reminders/__id__/update',
+            'deleteReminderPathTemplate' => '/suite/planning/reminders/__id__/delete',
+            'toggleReminderPathTemplate' => '/suite/planning/reminders/__id__/toggle',
         ] as $prop => $path) {
             self::assertArrayHasKey($prop, $props, sprintf('The screen is never given %s.', $prop));
             self::assertSame($path, $props[$prop]);
@@ -81,24 +81,24 @@ final class PlanningScreenWiringTest extends IntegrationTestCase
      * The props the Twig template hands the Vue component, decoded.
      *
      * Decoded rather than matched as a substring of the page, because the
-     * attribute is HTML-escaped JSON: `/backend/...` appears there as
-     * `\/backend\/...`, so a plain assertStringContainsString fails on a route
+     * attribute is HTML-escaped JSON: `/suite/...` appears there as
+     * `\/suite\/...`, so a plain assertStringContainsString fails on a route
      * that is perfectly well wired - which is what it did first.
      *
      * @return array<string, mixed>
      */
     private function screenProps(): array
     {
-        $this->client->request('GET', '/backend/planning/calendar');
+        $this->client->request('GET', '/suite/planning/calendar');
         self::assertResponseIsSuccessful();
 
-        // Named, not "the first component on the page": the backend layout mounts
+        // Named, not "the first component on the page": the suite layout mounts
         // the sidemenu and the notification bell too, and `attr()` returns the
         // first match - so an unnamed filter silently asserted against the
         // sidemenu's props, which is how this test first failed on a screen that
         // was correctly wired.
         $crawler = $this->client->getCrawler()->filter(
-            '[data-symfony--ux-vue--vue-component-value="planning/backend/planning/PlanningApp"]',
+            '[data-symfony--ux-vue--vue-component-value="planning/suite/planning/PlanningApp"]',
         );
         self::assertSame(1, $crawler->count(), 'The calendar screen does not mount PlanningApp.');
 
@@ -122,7 +122,7 @@ final class PlanningScreenWiringTest extends IntegrationTestCase
     public function testTheSwatchRowOffersExactlyThePaletteTheEntityAccepts(): void
     {
         $js = file_get_contents(
-            __DIR__.'/../../../../src/Module/Planning/assets/backend/planning/composables/calendarColours.js',
+            __DIR__.'/../../../../src/Module/Planning/assets/suite/planning/composables/calendarColours.js',
         );
         self::assertIsString($js);
 

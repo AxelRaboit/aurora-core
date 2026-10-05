@@ -12,9 +12,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PlanningReminderInput implements PlanningReminderInputInterface
 {
     public function __construct(
-        #[Assert\Positive(message: 'backend.plannings.events.errors.calendar_required')]
+        #[Assert\Positive(message: 'suite.plannings.events.errors.calendar_required')]
         public readonly int $planningId = 0,
-        #[Assert\NotBlank(message: 'backend.plannings.reminders.errors.title_required')]
+        #[Assert\NotBlank(message: 'suite.plannings.reminders.errors.title_required')]
         #[Assert\Length(max: 255)]
         public readonly string $title = '',
         public readonly ?string $notes = null,
@@ -59,7 +59,7 @@ class PlanningReminderInput implements PlanningReminderInputInterface
     public function validateDueAt(ExecutionContextInterface $context): void
     {
         if (!$this->dueAt instanceof DateTimeImmutable) {
-            $context->buildViolation('backend.plannings.reminders.errors.due_required')
+            $context->buildViolation('suite.plannings.reminders.errors.due_required')
                 ->atPath('dueAt')
                 ->addViolation();
         }

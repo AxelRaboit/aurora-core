@@ -103,7 +103,7 @@ Le composable vit dans `composables/` à côté du SFC, **pas** dans
 modules). Exemple :
 
 ```
-src/Module/Notes/assets/backend/markdown/
+src/Module/Notes/assets/suite/markdown/
   MarkdownNotesApp.vue
   components/
     NoteTagManagerModal.vue

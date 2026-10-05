@@ -28,7 +28,7 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         $this->client->loginUser($user, 'admin');
@@ -48,7 +48,7 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode(), $path);
 
         $matched = preg_match(
-            '/vue-component-value="core\/backend\/sidemenu\/AppSidemenu" data-symfony--ux-vue--vue-props-value="([^"]*)"/',
+            '/vue-component-value="core\/suite\/sidemenu\/AppSidemenu" data-symfony--ux-vue--vue-props-value="([^"]*)"/',
             (string) $this->client->getResponse()->getContent(),
             $matches,
         );
@@ -66,11 +66,11 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
     public function testABareListingSendsTheReaderToItsFirstRecord(): void
     {
         foreach (['post-types', 'taxonomies', 'menus'] as $listing) {
-            $this->client->request('GET', '/backend/editorial/'.$listing);
+            $this->client->request('GET', '/suite/editorial/'.$listing);
 
             self::assertSame(302, $this->client->getResponse()->getStatusCode(), $listing);
             self::assertMatchesRegularExpression(
-                '#/backend/editorial/'.$listing.'/\d+$#',
+                '#/suite/editorial/'.$listing.'/\d+$#',
                 (string) $this->client->getResponse()->headers->get('Location'),
                 $listing,
             );
@@ -83,14 +83,14 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
      */
     public function testTheFormsListRendersInsteadOfRedirecting(): void
     {
-        $this->client->request('GET', '/backend/editorial/forms');
+        $this->client->request('GET', '/suite/editorial/forms');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
     public function testTheMenuListsEveryRecordAsItsOwnEntry(): void
     {
-        $view = $this->moduleNavViewOn('/backend/editorial/post-types');
+        $view = $this->moduleNavViewOn('/suite/editorial/post-types');
 
         self::assertSame('editorial', $view['moduleId'] ?? null);
 
@@ -115,7 +115,7 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
      */
     public function testRecordEntriesCarryTheirOwnName(): void
     {
-        $view = $this->moduleNavViewOn('/backend/editorial/post-types');
+        $view = $this->moduleNavViewOn('/suite/editorial/post-types');
 
         $postTypes = [];
         foreach ($view['groups'] ?? [] as $group) {
@@ -139,7 +139,7 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
      */
     public function testEveryRecordEntryKeepsTheLineThatTellsThemApart(): void
     {
-        $view = $this->moduleNavViewOn('/backend/editorial/post-types');
+        $view = $this->moduleNavViewOn('/suite/editorial/post-types');
 
         foreach ($view['groups'] ?? [] as $group) {
             if ('destinations' === $group['id']) {
@@ -163,7 +163,7 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
      */
     public function testEachRecordEntryHasItsOwnStableKey(): void
     {
-        $view = $this->moduleNavViewOn('/backend/editorial/menus');
+        $view = $this->moduleNavViewOn('/suite/editorial/menus');
 
         $keys = [];
         foreach ($view['groups'] ?? [] as $group) {

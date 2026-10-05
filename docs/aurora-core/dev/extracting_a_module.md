@@ -141,17 +141,17 @@ Tout ce qui référence le module doit partir. Liste exhaustive
 | Fichier | À nettoyer |
 |---|---|
 | `src/AuroraBundle.php` | `use` statements + entries `resolve_target_entities` du module |
-| `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php` | Cases du module (`<X>Backend`, `<X>SubFeature`, …) + labels + descriptions + `getCascadeRequires()` + `getParentCase()` |
+| `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php` | Cases du module (`<X>Suite`, `<X>SubFeature`, …) + labels + descriptions + `getCascadeRequires()` + `getParentCase()` |
 | `src/Core/Scheduler/MessageHandler/<X>Handler.php` | Supprimer si dédié, ou retirer les bits du module |
 | `src/Core/Sequence/SequencePrefixEnum.php` | Case `<X>...` |
 | `aliases.js` | Alias `@<x>` |
 | `package.json` | JS deps welding-specific (`pdf-lib` si Welding-only) - **ATTENTION** vérifier qu'elles ne sont pas utilisées par d'autres modules core (ex: `pdfjs-dist` reste pour Media's PdfThumbnail) |
 | `fixtures/Core/CoreDemoFixtures.php` | Méthodes `create<X>()` + call sites |
-| `src/Core/assets/backend/sidemenu/composables/useSidemenuSectionTheme.js` | Theme key du module |
+| `src/Core/assets/suite/sidemenu/composables/useSidemenuSectionTheme.js` | Theme key du module |
 | `docs/aurora-core/todo/<x>/` | Déplacé vers le client |
 | `docs/aurora-core/todo/README.md` + `module_roadmap.md` | Marquer le module comme "extrait vers `<new-client>`" |
 | `.claude/memory/aurora-core/**/pitfall_<x>_*.md` | Déplacé vers le client |
-| `.claude/memory/aurora-core/backend/MEMORY.md` | Retirer les liens vers les pitfalls déplacés |
+| `.claude/memory/aurora-core/suite/MEMORY.md` | Retirer les liens vers les pitfalls déplacés |
 | `migrations/Version<YYYYMMDD>_<x>_*.php` | Migrations historiques du module (création + alterations) |
 
 Et :

@@ -158,7 +158,7 @@ final class NoteShareController extends AbstractController
             'imagePrefix' => str_replace(
                 '__filename__',
                 '',
-                $this->generateUrl('backend_notes_markdown_images_serve', ['filename' => '__filename__']),
+                $this->generateUrl('suite_notes_markdown_images_serve', ['filename' => '__filename__']),
             ),
             'shareImagePath' => $this->generateUrl('notes_share_image', [
                 'token' => $token,

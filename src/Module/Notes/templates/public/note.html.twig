@@ -31,7 +31,7 @@
         {{ vite_entry_script_tags('theme') }}
     </head>
     <body class="min-h-screen bg-body transition-colors duration-200">
-        <div {{ vue_component('notes/backend/markdown/NoteReadApp', {
+        <div {{ vue_component('notes/suite/markdown/NoteReadApp', {
             noteId: note.id,
             noteTitle: note.title,
             content: note.content,

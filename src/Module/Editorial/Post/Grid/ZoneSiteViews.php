@@ -216,7 +216,7 @@ final readonly class ZoneSiteViews
     }
 
     /**
-     * The terms of one taxonomy, in the order the backend arranges them.
+     * The terms of one taxonomy, in the order the suite arranges them.
      *
      * One query per zone, like the list beside it, and for the same reason: a
      * page that answers the question on every render is a page nobody has to

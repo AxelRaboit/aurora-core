@@ -99,7 +99,7 @@ sa contribution ; le consommateur injecte `iterable<…>` via `#[AutowireIterato
 | Arête(s) | Avant | Après |
 |---|---|---|
 | **C1** General→{Billing,Crm,Ecommerce,Editorial,Erp,Photo} | `Dashboard/StatsService` importait 6 repos modules | `Core\Dashboard\DashboardStatsProviderInterface` ; 6 providers (un par module, EditorialStatsProvider couvre posts/media/users) ; StatsService = agrégateur |
-| **C2** General→{Editorial,Project} (+ →General de Editorial/Project/Assistant via le LLM `SearchProviderInterface`) | backend `SearchController` importait Editorial+Project ; `SearchProviderInterface` vivait dans General | `SearchProviderInterface` + `SearchSnippetBuilder` + `RelevanceSorter` → **core** ; nouveau `Core\Search\BackendSearchProviderInterface` ; providers Editorial/Project/Ged ; `RebuildSearchIndexCommand` → Editorial |
+| **C2** General→{Editorial,Project} (+ →General de Editorial/Project/Assistant via le LLM `SearchProviderInterface`) | backend `SearchController` importait Editorial+Project ; `SearchProviderInterface` vivait dans General | `SearchProviderInterface` + `SearchSnippetBuilder` + `RelevanceSorter` → **core** ; nouveau `Core\Search\SuiteSearchProviderInterface` ; providers Editorial/Project/Ged ; `RebuildSearchIndexCommand` → Editorial |
 | **C3** Editorial→Ecommerce (3) | `BlocksRenderer` embed un `ListingInterface` | `Core\Content\BlockRendererInterface` + `BlockHtmlSanitizer` ; Ecommerce ship `ProductGridBlockRenderer` ('productGrid') ; BlocksRenderer délègue le `default` au registry |
 
 → **Résultat : General, Editorial, Assistant deviennent des leaves purs.**
@@ -191,7 +191,7 @@ suivent la convention Aurora (interface + `#[AsAlias]`/tagged services) :
    écouté par Crm - cat. B. ✅
 3. **`Core\Content\BlockRendererInterface`** + `BlockHtmlSanitizer` - cat. C3. ✅
 4. **`Core\Dashboard\DashboardStatsProviderInterface`** - cat. C1. ✅
-5. **`Core\Search\{SearchProviderInterface, BackendSearchProviderInterface,
+5. **`Core\Search\{SearchProviderInterface, SuiteSearchProviderInterface,
    SearchSnippetBuilder, RelevanceSorter}`** - cat. C2. ✅
 6. **`Core\Reference\EntityReference` + `ReferenceResolverInterface`** -
    cat. D. ⏳ à faire

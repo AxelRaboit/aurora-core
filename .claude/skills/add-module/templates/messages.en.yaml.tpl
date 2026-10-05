@@ -1,8 +1,8 @@
-backend:
+suite:
   modules:
     {{MODULE_ID}}: {{MODULE_LABEL}}
-    {{MODULE_ID}}_backend: {{MODULE_LABEL}}
-    {{MODULE_ID}}_backend_description: "TODO - what the module enables, in one sentence."
+    {{MODULE_ID}}_suite: {{MODULE_LABEL}}
+    {{MODULE_ID}}_suite_description: "TODO - what the module enables, in one sentence."
   nav:
     sections:
       {{MODULE_ID}}: {{MODULE_LABEL}}

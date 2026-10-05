@@ -1,0 +1,332 @@
+<script setup>
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import AppColorField from "@/shared/components/form/picker/AppColorField.vue";
+import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
+import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import AppPagination from "@/shared/components/nav/AppPagination.vue";
+import AppListItemButton from "@/shared/components/action/AppListItemButton.vue";
+import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import { Search, FileText, Lock, Save, TriangleAlert, X } from "lucide-vue-next";
+import { ParameterType } from "@core/utils/enums/settings/parameterType.js";
+import { useSettingsForm } from "@configuration/suite/settings/composables/useSettingsForm.js";
+import { useSettingsPostPicker } from "@configuration/suite/settings/composables/useSettingsPostPicker.js";
+import { useSettingsSequenceFilter } from "@configuration/suite/settings/composables/useSettingsSequenceFilter.js";
+import { getSettingsTabComponent } from "@configuration/suite/settings/tabRegistry.js";
+
+const props = defineProps({
+    /** One entry now - the tab being looked at. The shape is unchanged. */
+    groups: { type: Object, default: () => ({}) },
+    /** Every visible tab, for the legacy fragment redirect below. */
+    tabs: { type: Array, default: () => [] },
+    /** The tab this URL is. Decided by the controller, not by the browser. */
+    activeTab: { type: String, default: "" },
+    updatePath: { type: String, default: "" },
+    postSearchPath: { type: String, default: "" },
+    navSections: { type: Array, default: () => [] },
+});
+
+const { t } = useI18n();
+
+/**
+ * The page draws one tab, the one its URL names.
+ *
+ * It used to draw all eleven and switch between them with a fragment, which is
+ * why the tab could not be linked to, breadcrumbed, or found by the palette.
+ * The column of tab buttons is gone too: the side menu's module view lists them
+ * now, where they sit beside Themes rather than inside the page.
+ */
+const activeTab = computed(() => props.activeTab);
+
+const activeTabMeta = computed(
+    () => props.tabs.find((tab) => tab.id === props.activeTab) ?? null,
+);
+
+// A registered component owns the tab's body, or the generic field renderer
+// does. Never both, and no longer a map of eleven.
+const customComponent = computed(() =>
+    getSettingsTabComponent(activeTabMeta.value?.componentName),
+);
+
+const genericGroups = computed(() =>
+    customComponent.value ? [] : [props.activeTab],
+);
+
+/**
+ * The "how it works" box of a tab drawn by the generic renderer, keyed by tab
+ * id. A tab missing here simply has none; a registered component writes its
+ * own, next to the controls it explains.
+ */
+const TAB_GUIDES = {
+    general: { namespace: "suite.settings.general_guide", steps: 5 },
+    sequences: { namespace: "suite.settings.sequences_guide", steps: 5 },
+    reading: { namespace: "suite.settings.reading_guide", steps: 5 },
+    localization: { namespace: "suite.settings.localization_guide", steps: 6 },
+    branding: { namespace: "suite.settings.branding_guide", steps: 5 },
+    seo: { namespace: "suite.settings.seo_guide", steps: 5 },
+    system: { namespace: "suite.settings.system_guide", steps: 5 },
+    email: { namespace: "suite.settings.email_guide", steps: 5 },
+    media: { namespace: "suite.settings.media_guide", steps: 5 },
+    studio: { namespace: "suite.settings.studio_guide", steps: 5 },
+    notes: { namespace: "suite.settings.notes_guide", steps: 5 },
+};
+
+const tabGuide = computed(() =>
+    customComponent.value ? null : TAB_GUIDES[props.activeTab] ?? null,
+);
+
+const { fieldValues, mediaState, isLocked, lockReason, onBoolChange, pendingOff, confirmOff, cancelOff, onMediaChange, savingGroups, saveGroup } =
+    useSettingsForm(props.groups, genericGroups.value, props.updatePath);
+
+const { postPickerLabels, postPickerSearch, postPickerResults, postPickerOpen, resolvePostLabel, searchPosts, selectPost, clearPost, onPostPickerBlur, onPostPickerFocus } =
+    useSettingsPostPicker(props.groups, genericGroups.value, fieldValues, props.postSearchPath);
+
+const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, goToSequencePage } =
+    useSettingsSequenceFilter(props.groups);
+
+</script>
+
+<template>
+    <!-- No tab column, and no mobile tab row: the side menu's module view lists
+         the tabs now. The page is the tab. -->
+    <div class="flex flex-col">
+        <div class="flex-1 min-w-0 aurora-stack">
+            <!-- Le mode d'emploi de l'onglet, au-dessus de ses champs ;
+                 seuls les onglets génériques listés dans TAB_GUIDES en ont un. -->
+            <AppGuide v-if="tabGuide" :title="t(`${tabGuide.namespace}.title`)" :storage-key="`settings-${activeTab}`">
+                <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                    <li v-for="step in tabGuide.steps" :key="step">{{ t(`${tabGuide.namespace}.step_${step}`) }}</li>
+                </ol>
+            </AppGuide>
+
+            <!-- This tab's body, when a registered component owns it -->
+            <component
+                :is="customComponent"
+                v-if="customComponent"
+                :groups="groups"
+                :update-path="updatePath"
+                :nav-sections="navSections"
+                :post-search-path="postSearchPath"
+            />
+
+            <!-- Generic field renderer for parameter-driven tabs -->
+            <div v-for="groupName in genericGroups" :key="groupName">
+                <div class="aurora-card p-4 space-y-5">
+                    <AppSearchInput
+                        v-if="groupName === 'sequences'"
+                        v-model="sequenceSearch"
+                        :placeholder="t('suite.settings.sequence_search')"
+                    />
+
+                    <div
+                        v-for="parameter in (groupName === 'sequences' ? paginatedSequences : groups[groupName])"
+                        :key="parameter.key"
+                    >
+                        <template v-if="parameter.type === ParameterType.Bool">
+                            <div class="flex items-center justify-between gap-4" :class="{ 'opacity-60': isLocked(parameter) }">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-primary flex items-center gap-1.5">
+                                        {{ parameter.label }}
+                                        <Lock v-if="isLocked(parameter)" class="w-3.5 h-3.5 text-muted" :stroke-width="2" />
+                                    </p>
+                                    <p v-if="parameter.description" class="text-xs text-muted mt-0.5">{{ parameter.description }}</p>
+                                    <p v-if="isLocked(parameter)" class="text-xs text-warning mt-0.5">{{ lockReason(parameter) }}</p>
+                                </div>
+                                <AppToggle
+                                    :model-value="!isLocked(parameter) && fieldValues[parameter.key] === '1'"
+                                    :disabled="isLocked(parameter)"
+                                    v-on:update:model-value="onBoolChange(parameter, $event)"
+                                />
+                            </div>
+                        </template>
+
+                        <template v-else-if="parameter.type === ParameterType.Post">
+                            <p class="text-sm font-medium text-primary mb-1">{{ parameter.label }}</p>
+                            <p v-if="parameter.description" class="text-xs text-muted mb-2">{{ parameter.description }}</p>
+                            <div v-if="postPickerLabels[parameter.key]" class="flex items-center gap-3 p-3 border border-line rounded-lg bg-surface-2 mb-2">
+                                <FileText class="w-4 h-4 shrink-0 text-accent" :stroke-width="2" />
+                                <span class="flex-1 text-sm font-medium text-primary truncate">{{ postPickerLabels[parameter.key].title }}</span>
+                                <span class="text-xs text-muted shrink-0">#{{ postPickerLabels[parameter.key].id }}</span>
+                                <AppTextLinkButton color="danger" size="xs" class="shrink-0" v-on:click="clearPost(parameter.key)">
+                                    {{ t("shared.common.remove") }}
+                                </AppTextLinkButton>
+                            </div>
+                            <div v-else class="flex items-center gap-1.5 text-sm text-muted italic mb-2">
+                                <FileText class="w-3.5 h-3.5 opacity-60" :stroke-width="1.5" />
+                                {{ t("suite.settings.no_page_selected") }}
+                            </div>
+                            <div class="relative">
+                                <AppInput
+                                    type="text"
+                                    :placeholder="t('suite.settings.search_post')"
+                                    :model-value="postPickerSearch[parameter.key] ?? ''"
+                                    v-on:update:model-value="postPickerSearch[parameter.key] = $event; searchPosts(parameter.key, $event)"
+                                    v-on:blur="onPostPickerBlur(parameter.key)"
+                                    v-on:focus="onPostPickerFocus(parameter.key)"
+                                >
+                                    <template #prefix>
+                                        <Search class="w-3.5 h-3.5" :stroke-width="2" />
+                                    </template>
+                                </AppInput>
+                                <div v-if="postPickerOpen[parameter.key] && postPickerResults[parameter.key]?.length" class="aurora-card absolute z-20 left-0 right-0 mt-1 shadow-lg overflow-hidden">
+                                    <AppListItemButton
+                                        v-for="post in postPickerResults[parameter.key]"
+                                        :key="post.id"
+                                        class="justify-between border-b border-line last:border-0"
+                                        v-on:click="selectPost(parameter.key, post)"
+                                    >
+                                        <span class="font-medium text-primary truncate">{{ post.title ?? "-" }}</span>
+                                        <span class="text-xs text-muted shrink-0">{{ post.postType }}</span>
+                                    </AppListItemButton>
+                                </div>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2">
+                                <span class="text-xs text-muted shrink-0">{{ t("suite.settings.or_id") }}</span>
+                                <div class="w-28">
+                                    <AppInput
+                                        type="number"
+                                        :placeholder="'ID'"
+                                        :model-value="fieldValues[parameter.key]"
+                                        v-on:update:model-value="fieldValues[parameter.key] = $event; resolvePostLabel(parameter.key)"
+                                    />
+                                </div>
+                            </div>
+                        </template>
+
+                        <template v-else-if="parameter.type === ParameterType.Media">
+                            <AppImagePickerField
+                                :label="parameter.label"
+                                :hint="parameter.description ? parameter.description + ' - ' + t('suite.settings.media_square_hint') : t('suite.settings.media_square_hint')"
+                                :model-value="mediaState[parameter.key]"
+                                :size="96"
+                                v-on:update:model-value="onMediaChange(parameter, $event)"
+                            />
+                        </template>
+
+                        <template v-else-if="parameter.type === ParameterType.Int">
+                            <AppInput
+                                type="number"
+                                :label="parameter.label"
+                                :placeholder="parameter.placeholder ?? ''"
+                                :model-value="fieldValues[parameter.key]"
+                                v-on:update:model-value="fieldValues[parameter.key] = $event"
+                            />
+                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                        </template>
+
+                        <template v-else-if="parameter.type === ParameterType.Select">
+                            <AppMultiselect
+                                v-if="(parameter.options ?? []).length > 10"
+                                :label="parameter.label"
+                                :options="parameter.options ?? []"
+                                :model-value="fieldValues[parameter.key]"
+                                v-on:update:model-value="fieldValues[parameter.key] = $event"
+                            />
+                            <AppSelect
+                                v-else
+                                :label="parameter.label"
+                                :options="parameter.options ?? []"
+                                :model-value="fieldValues[parameter.key]"
+                                v-on:update:model-value="fieldValues[parameter.key] = $event"
+                            />
+                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                        </template>
+
+                        <template v-else-if="parameter.type === ParameterType.Color">
+                            <div class="flex items-end justify-between gap-3">
+                                <AppColorField
+                                    :label="parameter.label"
+                                    :hint="parameter.description ?? ''"
+                                    :model-value="fieldValues[parameter.key]"
+                                    v-on:update:model-value="fieldValues[parameter.key] = $event"
+                                />
+                                <AppTextLinkButton
+                                    v-if="parameter.defaultValue && fieldValues[parameter.key] !== parameter.defaultValue"
+                                    color="muted"
+                                    size="xs"
+                                    v-on:click="fieldValues[parameter.key] = parameter.defaultValue"
+                                >
+                                    {{ t('suite.settings.color_reset') }}
+                                </AppTextLinkButton>
+                            </div>
+                        </template>
+
+                        <template v-else-if="parameter.type === ParameterType.Textarea">
+                            <label class="block text-sm font-medium text-secondary mb-1">{{ parameter.label }}</label>
+                            <textarea
+                                :placeholder="parameter.placeholder ?? ''"
+                                :value="fieldValues[parameter.key]"
+                                rows="6"
+                                class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary resize-y focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition"
+                                v-on:input="fieldValues[parameter.key] = $event.target.value"
+                            />
+                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                        </template>
+
+                        <template v-else>
+                            <AppInput
+                                type="text"
+                                :label="parameter.label"
+                                :placeholder="parameter.placeholder ?? ''"
+                                :model-value="fieldValues[parameter.key]"
+                                v-on:update:model-value="fieldValues[parameter.key] = $event"
+                            />
+                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                        </template>
+                    </div>
+
+                    <AppPagination
+                        v-if="groupName === 'sequences' && sequenceTotalPages > 1"
+                        :page="sequencePage"
+                        :total-pages="sequenceTotalPages"
+                        v-on:change="goToSequencePage"
+                    />
+
+                    <div class="pt-2 border-t border-line flex justify-end *:w-full sm:*:w-auto">
+                        <AppButton
+                            type="button"
+                            variant="primary"
+                            size="md"
+                            :loading="savingGroups[groupName]"
+                            v-on:click="saveGroup(groupName)"
+                        >
+                            <Save class="w-3.5 h-3.5" :stroke-width="2" />
+                            {{ t("suite.settings.save") }}
+                        </AppButton>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shown on the way down only, and only for the settings that
+             declare something to say. The toggle stays where it was until
+             this is answered, so closing the modal is not a silent yes. -->
+        <AppModal
+            :show="null !== pendingOff"
+            :title="pendingOff?.label ?? ''"
+            :icon="TriangleAlert"
+            v-on:close="cancelOff"
+        >
+            <p class="text-sm text-secondary">{{ pendingOff?.offWarning }}</p>
+
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="cancelOff">
+                        <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="danger" size="md" v-on:click="confirmOff">
+                        {{ t("suite.settings.disable_anyway") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+    </div>
+</template>

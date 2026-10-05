@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Aurora\Module\Platform\User\Service;
 
 use Aurora\Module\Platform\User\Access\ProfilePhotoUploadAccessGuard;
-use Aurora\Module\Platform\User\Controller\Backend\ProfilePhotoFilesController;
+use Aurora\Module\Platform\User\Controller\Suite\ProfilePhotoFilesController;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * The entity holds the filename; this turns it into an address.
  *
- * **Under `/backend`, not `/uploads`.** `profile-photos/` is refused to the
+ * **Under `/suite`, not `/uploads`.** `profile-photos/` is refused to the
  * public by {@see ProfilePhotoUploadAccessGuard},
  * so the catch-all no longer answers for it - a photo is read through
  * {@see ProfilePhotoFilesController},
@@ -43,6 +43,6 @@ final readonly class UserProfilePhotoUrlGenerator
             return null;
         }
 
-        return $this->urlGenerator->generate('backend_platform_profile_photos_serve', ['filename' => $path]);
+        return $this->urlGenerator->generate('suite_platform_profile_photos_serve', ['filename' => $path]);
     }
 }

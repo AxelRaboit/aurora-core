@@ -67,8 +67,8 @@ ex: rewriting d'URL, locale resolution - mais c'est très rare).
 ## Source
 
 Bug remonté le 2026-05-11 sur le Dashboard : "je désactive le dashboard
-pour un user, je devrais être redirigé vers /backend/general/profile, mais
-j'atterris quand même sur /backend comme si c'était activé". Cause :
+pour un user, je devrais être redirigé vers /suite/general/profile, mais
+j'atterris quand même sur /suite comme si c'était activé". Cause :
 GeneralRouteGateSubscriber priorité 16 → firewall n'avait pas encore
 authentifié → ModuleAccessChecker ne voyait pas l'user → seul le global
 setting comptait → pas de redirect.

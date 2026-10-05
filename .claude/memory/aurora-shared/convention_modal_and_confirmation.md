@@ -106,7 +106,7 @@ export function use<Plural>Delete(items, deletePath) {
 <!-- Modale de confirmation -->
 <AppModal :show="!!deletingItem" max-width="sm" v-on:close="deletingItem = null">
     <p class="text-sm text-primary">
-        {{ t("backend.<plural>.delete_confirm", { name: deletingItem?.name ?? "" }) }}
+        {{ t("suite.<plural>.delete_confirm", { name: deletingItem?.name ?? "" }) }}
     </p>
     <template #footer>
         <AppModalFooter>
@@ -121,7 +121,7 @@ export function use<Plural>Delete(items, deletePath) {
 </AppModal>
 ```
 
-Clé i18n : `backend.<plural>.delete_confirm` avec placeholder `{name}` ou `{title}`.
+Clé i18n : `suite.<plural>.delete_confirm` avec placeholder `{name}` ou `{title}`.
 
 ## Pourquoi
 
@@ -134,7 +134,7 @@ Pour un nouveau module avec CRUD :
 2. Monter `deleting<Singular>` + `confirmDelete` dans `<Plural>App.vue`.
 3. Bouton trash → `v-on:click="deleting<Singular> = entity"`.
 4. Modale de confirmation à la fin du template.
-5. Clé i18n `backend.<plural>.delete_confirm` avec `{name}`.
+5. Clé i18n `suite.<plural>.delete_confirm` avec `{name}`.
 
 ```bash
 # Audit (core : src/, client : assets/)

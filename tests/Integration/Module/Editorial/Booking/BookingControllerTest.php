@@ -102,7 +102,7 @@ final class BookingControllerTest extends IntegrationTestCase
         self::assertTrue($this->book($this->page(), $this->tomorrowAt('13:00'), 'Alix', 'alix@example.com')['success'] ?? false);
 
         $reader = new User();
-        $reader->setEmail('agenda-seul@example.test')->setName('Agenda')->setType(UserTypeEnum::Backend)
+        $reader->setEmail('agenda-seul@example.test')->setName('Agenda')->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])->setPassword('x')->setPrivileges(['planning.calendars.view']);
         $this->entityManager->persist($reader);
         $this->entityManager->flush();
@@ -110,7 +110,7 @@ final class BookingControllerTest extends IntegrationTestCase
         try {
             $this->client->loginUser($reader, 'admin');
             $window = sprintf('from=%s&to=%s', urlencode(new DateTimeImmutable('now')->format(DATE_ATOM)), urlencode(new DateTimeImmutable('+3 days')->format(DATE_ATOM)));
-            $this->client->request('GET', '/backend/planning/events?'.$window);
+            $this->client->request('GET', '/suite/planning/events?'.$window);
             self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
             self::assertNotContains('Alix', array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['events'], 'title'));

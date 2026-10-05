@@ -56,7 +56,7 @@ final class PostReviewTest extends IntegrationTestCase
 
         $users = self::getContainer()->get(UserRepository::class);
 
-        $admin = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
 
         // An author who may write and not publish, which is the whole reason this
@@ -92,7 +92,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->draft();
 
         $this->client->loginUser($this->author, 'admin');
-        $this->post('backend_editorial_posts_update', $post, [
+        $this->post('suite_editorial_posts_update', $post, [
             'postTypeId' => $post->getPostType()->getId(),
             'status' => 'published',
             'translations' => ['fr' => ['title' => 'Article à relire']],
@@ -114,7 +114,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->pending();
 
         $this->client->loginUser($this->reviewer, 'admin');
-        $this->post('backend_editorial_posts_review_approve', $post);
+        $this->post('suite_editorial_posts_review_approve', $post);
 
         self::assertResponseIsSuccessful();
 
@@ -141,7 +141,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->pending();
 
         $this->client->loginUser($this->reviewer, 'admin');
-        $this->post('backend_editorial_posts_review_reject', $post, ['note' => 'Il manque la source du chiffre.']);
+        $this->post('suite_editorial_posts_review_reject', $post, ['note' => 'Il manque la source du chiffre.']);
 
         self::assertResponseIsSuccessful();
 
@@ -165,7 +165,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->pending();
 
         $this->client->loginUser($this->reviewer, 'admin');
-        $this->post('backend_editorial_posts_review_reject', $post, ['note' => '   ']);
+        $this->post('suite_editorial_posts_review_reject', $post, ['note' => '   ']);
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -176,7 +176,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->pending();
 
         $this->client->loginUser($this->author, 'admin');
-        $this->post('backend_editorial_posts_review_approve', $post);
+        $this->post('suite_editorial_posts_review_approve', $post);
 
         self::assertResponseStatusCodeSame(403);
     }
@@ -192,10 +192,10 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->pending();
 
         $this->client->loginUser($this->reviewer, 'admin');
-        $this->post('backend_editorial_posts_review_reject', $post, ['note' => 'À revoir.']);
+        $this->post('suite_editorial_posts_review_reject', $post, ['note' => 'À revoir.']);
 
         $this->client->loginUser($this->author, 'admin');
-        $this->post('backend_editorial_posts_update', $post, [
+        $this->post('suite_editorial_posts_update', $post, [
             'postTypeId' => $post->getPostType()->getId(),
             'status' => 'published',
             'translations' => ['fr' => ['title' => 'Corrigé']],
@@ -220,7 +220,7 @@ final class PostReviewTest extends IntegrationTestCase
         $when = new DateTimeImmutable('+3 days')->setTime(9, 0);
 
         $this->client->loginUser($this->author, 'admin');
-        $this->post('backend_editorial_posts_update', $post, [
+        $this->post('suite_editorial_posts_update', $post, [
             'postTypeId' => $post->getPostType()->getId(),
             'status' => 'scheduled',
             'scheduledAt' => $when->format(DATE_ATOM),
@@ -239,11 +239,11 @@ final class PostReviewTest extends IntegrationTestCase
     public function testAPublisherSchedulesDirectly(): void
     {
         $post = $this->draft();
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
 
         $this->client->loginUser($admin, 'admin');
-        $this->post('backend_editorial_posts_update', $post, [
+        $this->post('suite_editorial_posts_update', $post, [
             'postTypeId' => $post->getPostType()->getId(),
             'status' => 'scheduled',
             'scheduledAt' => new DateTimeImmutable('+3 days')->format(DATE_ATOM),
@@ -261,7 +261,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->pending($when);
 
         $this->client->loginUser($this->reviewer, 'admin');
-        $this->post('backend_editorial_posts_review_approve', $post);
+        $this->post('suite_editorial_posts_review_approve', $post);
 
         self::assertResponseIsSuccessful();
         $stored = $this->reload($post);
@@ -277,7 +277,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->pending($when);
 
         $this->client->loginUser($this->reviewer, 'admin');
-        $this->post('backend_editorial_posts_review_approve', $post);
+        $this->post('suite_editorial_posts_review_approve', $post);
 
         self::assertResponseIsSuccessful();
         $stored = $this->reload($post);
@@ -331,7 +331,7 @@ final class PostReviewTest extends IntegrationTestCase
         $user = new User();
         $user->setEmail(sprintf('%s-%s@aurora.test', $name, bin2hex(random_bytes(3))));
         $user->setName($name);
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
         $user->setPassword('x');
         // The demo admin's roles, minus the privileges - so the difference under
         // test is the grant and not the role.

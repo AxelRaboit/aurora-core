@@ -121,7 +121,7 @@ export function usePlanningDelete(plannings, deletePath) {
 <!-- Modale de confirmation -->
 <AppModal :show="!!deletingPlanning" max-width="sm" v-on:close="deletingPlanning = null">
     <p class="text-sm text-primary">
-        {{ t("backend.plannings.delete_confirm", { name: deletingPlanning?.name ?? "" }) }}
+        {{ t("suite.plannings.delete_confirm", { name: deletingPlanning?.name ?? "" }) }}
     </p>
 
     <template #footer>
@@ -141,7 +141,7 @@ export function usePlanningDelete(plannings, deletePath) {
 
 #### Clés de traduction
 
-`backend.<plural>.delete_confirm` doit prendre un placeholder
+`suite.<plural>.delete_confirm` doit prendre un placeholder
 `{name}` ou `{title}` pour rappeler quelle entité va être supprimée.
 
 ```yaml
@@ -170,7 +170,7 @@ plannings:
 2. Dans le `<Plural>App.vue`, monter `deleting<Singular>` + `confirmDelete`.
 3. Bouton trash → `v-on:click="deleting<Singular> = entity"`.
 4. Modale de confirmation à la fin du template.
-5. Clé i18n `backend.<plural>.delete_confirm` avec `{name}` ou `{title}`.
+5. Clé i18n `suite.<plural>.delete_confirm` avec `{name}` ou `{title}`.
 
 ### Pour un module existant qui utilise `confirm()`
 

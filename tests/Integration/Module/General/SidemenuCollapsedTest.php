@@ -31,7 +31,7 @@ final class SidemenuCollapsedTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         $this->user = $user;
@@ -57,7 +57,7 @@ final class SidemenuCollapsedTest extends IntegrationTestCase
     {
         $this->post(true);
 
-        $this->client->request('GET', '/backend/general/profile');
+        $this->client->request('GET', '/suite/general/profile');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertStringContainsString(
@@ -70,7 +70,7 @@ final class SidemenuCollapsedTest extends IntegrationTestCase
     {
         $this->post(false);
 
-        $this->client->request('GET', '/backend/general/profile');
+        $this->client->request('GET', '/suite/general/profile');
 
         self::assertStringNotContainsString(
             'sidemenu-collapsed',
@@ -85,7 +85,7 @@ final class SidemenuCollapsedTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            '/backend/general/profile/sidemenu/collapsed',
+            '/suite/general/profile/sidemenu/collapsed',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: '{}',
         );
@@ -98,7 +98,7 @@ final class SidemenuCollapsedTest extends IntegrationTestCase
     {
         $this->client->request(
             'POST',
-            '/backend/general/profile/sidemenu/collapsed',
+            '/suite/general/profile/sidemenu/collapsed',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['collapsed' => $collapsed], JSON_THROW_ON_ERROR),
         );

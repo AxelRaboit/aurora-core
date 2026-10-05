@@ -45,7 +45,7 @@ final class PlanningAttendeeTest extends IntegrationTestCase
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -89,7 +89,7 @@ final class PlanningAttendeeTest extends IntegrationTestCase
         $body = $this->createEvent([(int) $this->admin->getId()]);
         $id = (int) $body['event']['id'];
 
-        $answered = $this->post('backend_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
+        $answered = $this->post('suite_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
 
         self::assertResponseIsSuccessful();
         self::assertSame('accepted', $answered['event']['attendees'][0]['status']);
@@ -107,8 +107,8 @@ final class PlanningAttendeeTest extends IntegrationTestCase
         $body = $this->createEvent([(int) $this->admin->getId()]);
         $id = (int) $body['event']['id'];
 
-        $this->post('backend_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
-        $back = $this->post('backend_planning_events_respond', ['status' => 'needs_action'], ['id' => $id]);
+        $this->post('suite_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
+        $back = $this->post('suite_planning_events_respond', ['status' => 'needs_action'], ['id' => $id]);
 
         self::assertResponseIsSuccessful();
         self::assertNull($back['event']['attendees'][0]['respondedAt']);
@@ -124,7 +124,7 @@ final class PlanningAttendeeTest extends IntegrationTestCase
         $body = $this->createEvent([]);
         $id = (int) $body['event']['id'];
 
-        $refused = $this->post('backend_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
+        $refused = $this->post('suite_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
 
         self::assertResponseStatusCodeSame(422);
         self::assertArrayHasKey('status', $refused['errors'] ?? []);
@@ -135,7 +135,7 @@ final class PlanningAttendeeTest extends IntegrationTestCase
         $body = $this->createEvent([(int) $this->admin->getId()]);
         $id = (int) $body['event']['id'];
 
-        $this->post('backend_planning_events_respond', ['status' => 'peut-être bien'], ['id' => $id]);
+        $this->post('suite_planning_events_respond', ['status' => 'peut-être bien'], ['id' => $id]);
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -151,9 +151,9 @@ final class PlanningAttendeeTest extends IntegrationTestCase
         $body = $this->createEvent([(int) $this->admin->getId()]);
         $id = (int) $body['event']['id'];
 
-        $this->post('backend_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
+        $this->post('suite_planning_events_respond', ['status' => 'accepted'], ['id' => $id]);
 
-        $updated = $this->post('backend_planning_events_update', [
+        $updated = $this->post('suite_planning_events_update', [
             'planningId' => $this->planning->getId(),
             'title' => 'Renommée',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -170,7 +170,7 @@ final class PlanningAttendeeTest extends IntegrationTestCase
         $body = $this->createEvent([(int) $this->admin->getId()]);
         $id = (int) $body['event']['id'];
 
-        $updated = $this->post('backend_planning_events_update', [
+        $updated = $this->post('suite_planning_events_update', [
             'planningId' => $this->planning->getId(),
             'title' => 'Sans personne',
             'startAt' => '2026-09-01T10:00:00+02:00',
@@ -199,7 +199,7 @@ final class PlanningAttendeeTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function createEvent(array $attendees): array
     {
-        $body = $this->post('backend_planning_events_create', [
+        $body = $this->post('suite_planning_events_create', [
             'planningId' => $this->planning->getId(),
             'title' => 'Réunion',
             'startAt' => '2026-09-01T10:00:00+02:00',

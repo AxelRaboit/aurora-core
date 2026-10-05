@@ -51,7 +51,7 @@ toggles that never reached the dashboard.
    has to be on before each sub-module can be.
 
 A module with no sub-modules is a perfectly normal case - `Planning` has only
-`PlanningBackend`. Wire the top-level toggle and stop.
+`PlanningSuite`. Wire the top-level toggle and stop.
 
 ## 1. The enum cases
 
@@ -60,7 +60,7 @@ In the central `ModuleParameterEnum`, under the comment block for the module
 
 ```php
 // Top-level modules - backend (admin UI)
-case <Module>Backend = 'modules_<module_id>_backend';
+case <Module>Backend = 'modules_<module_id>_suite';
 
 // Sub-modules - <Module>
 case <Module><Sub1> = 'modules_<module_id>_<sub1_id>';
@@ -70,16 +70,16 @@ Two naming rules, both load-bearing:
 
 - **Case names are prefixed by their module** (`NotesMarkdown`, `GedDocuments`),
   never short. They share one namespace with every other module's cases.
-- **The top-level key keeps its `_backend` suffix.** `modules_notes` would
+- **The top-level key keeps its `_suite` suffix.** `modules_notes` would
   collide with the prefix of `modules_notes_markdown` in any key-prefix check.
 
 Then the `match` arms:
 
 | Method | Top-level | Sub-module |
 | --- | --- | --- |
-| `getLabel()` | `'backend.modules.<module_id>_backend'` | `'backend.nav.<sub_route_id>'` |
+| `getLabel()` | `'suite.modules.<module_id>_suite'` | `'suite.nav.<sub_route_id>'` |
 | `getDescription()` | the label key plus `_description` | the label key plus `_description` |
-| `getParentCase()` | omit (falls to `default => null`) | `self::<Module>Backend` |
+| `getParentCase()` | omit (falls to `default => null`) | `self::<Module>Suite` |
 | `getCascadeRequires()` | omit | the key that must be on first, `->value` |
 | `getModuleId()` | `'<module_id>'` | omit |
 
@@ -100,7 +100,7 @@ final readonly class <Module>Context
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::<Module>Backend);
     }
@@ -133,7 +133,7 @@ Symfony autowires it; both classes are `final readonly` services.
 ```php
 public function getNavSections(): array
 {
-    if (!$this-><module>Context->isBackendEnabled()) {
+    if (!$this-><module>Context->isSuiteEnabled()) {
         return [];
     }
 
@@ -171,18 +171,18 @@ removing the module gets a self-contained removal:
 ```yaml
 backend:
   modules:
-    <module_id>_backend: <Display name>
-    <module_id>_backend_description: <One line on what the module enables>
+    <module_id>_suite: <Display name>
+    <module_id>_suite_description: <One line on what the module enables>
   nav:
     <module_id>_<sub1_id>: <Label>
     <module_id>_<sub1_id>_description: <Tooltip>
 ```
 
-Sub-module keys under `backend.nav.` are usually **already there** - they were
+Sub-module keys under `suite.nav.` are usually **already there** - they were
 written when the NavItem was. Check before adding; a duplicate key silently
 wins or loses depending on load order.
 
-Only the handful of core labels (`general_backend`, `platform_backend`, and
+Only the handful of core labels (`general_suite`, `platform_suite`, and
 friends) live in `src/Core/Module/translations/`. A business module's labels do
 not go there.
 

@@ -91,11 +91,11 @@ enum DeckLookEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.looks.'.$this->value;
+        return 'suite.studio.decks.looks.'.$this->value;
     }
 
     public function descriptionKey(): string
     {
-        return 'backend.studio.decks.look_descriptions.'.$this->value;
+        return 'suite.studio.decks.look_descriptions.'.$this->value;
     }
 }

@@ -1,4 +1,4 @@
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { useServerErrors } from "@/shared/composables/form/useServerErrors.js";
 
 /**

@@ -93,10 +93,10 @@ final class SettingsServiceTest extends TestCase
             }));
 
         $service = $this->makeService($repository, $auditLogger);
-        $service->set(ModuleParameterEnum::GedBackend->value, '0');
+        $service->set(ModuleParameterEnum::GedSuite->value, '0');
 
         $keys = array_column($capturedWrites, 0);
-        self::assertContains(ModuleParameterEnum::GedBackend->value, $keys);
+        self::assertContains(ModuleParameterEnum::GedSuite->value, $keys);
         self::assertContains(ModuleParameterEnum::GedDocuments->value, $keys);
         self::assertContains(ModuleParameterEnum::GedCategories->value, $keys);
         self::assertContains(ModuleParameterEnum::GedTags->value, $keys);
@@ -135,11 +135,11 @@ final class SettingsServiceTest extends TestCase
                 'settings.updated',
                 null,
                 null,
-                ['key' => ModuleParameterEnum::GedBackend->value, 'value' => '1'],
+                ['key' => ModuleParameterEnum::GedSuite->value, 'value' => '1'],
             );
 
         $service = $this->makeService($repository, $auditLogger);
-        $service->set(ModuleParameterEnum::GedBackend->value, '1');
+        $service->set(ModuleParameterEnum::GedSuite->value, '1');
     }
 
     public function testSetUnknownKeyPersistsWithoutCascade(): void

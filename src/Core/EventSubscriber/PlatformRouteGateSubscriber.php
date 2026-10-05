@@ -16,7 +16,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * {@see MediaRouteGateSubscriber} (Jalon 4.5), Configuration routes by
  * {@see ConfigurationRouteGateSubscriber} (Jalon 4).
  *
- * The Dashboard (`backend_dashboard`) is intentionally not gated here:
+ * The Dashboard (`suite_dashboard`) is intentionally not gated here:
  * it is the post-login landing page and is always accessible.
  */
 final readonly class PlatformRouteGateSubscriber implements EventSubscriberInterface
@@ -27,7 +27,7 @@ final readonly class PlatformRouteGateSubscriber implements EventSubscriberInter
     public function __construct(private PlatformContext $platformContext)
     {
         $this->gates = [
-            'backend_platform_users' => $this->platformContext->isUsersEnabled(...),
+            'suite_platform_users' => $this->platformContext->isUsersEnabled(...),
         ];
     }
 

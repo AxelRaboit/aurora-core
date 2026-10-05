@@ -1,4 +1,4 @@
-backend:
+suite:
     nav:
         beacon: Déploiements
         beacon_description: "Les instances du site qui se signalent, et le repérage des copies non autorisées."
@@ -11,6 +11,7 @@ backend:
         col_status: Statut
         col_domain: Domaine
         col_host: Serveur
+        col_ip: Adresse IP
         col_version: Version
         col_signed: Signé
         col_pings: Signalements
@@ -20,7 +21,10 @@ backend:
         signed_yes: oui
         signed_no: non
         forget: Oublier cette instance
-        forget_confirm: Oublier cette instance ? Elle réapparaîtra si elle se signale à nouveau.
+        forget_confirm: "Oublier l'instance {name} ?"
+        forget_warning: Elle réapparaîtra si elle se signale à nouveau.
+        forget_action: Oublier
+        forgotten: Instance oubliée.
         allowlist_title: Domaines connus
         allowlist_hint: "Un domaine par ligne. Les instances sur ces domaines sont les vôtres ; les autres sont signalées à vérifier."
         allowlist_placeholder: "app.axelraboit.fr"

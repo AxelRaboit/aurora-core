@@ -182,10 +182,10 @@ export default class MediaTextBlock {
         urlInput.addEventListener("blur", submitUrl);
 
         // Uploading from the machine, the same way the image block and every
-        // picker in the backend do - one endpoint, one category, one place
+        // picker in the suite do - one endpoint, one category, one place
         // that knows the response shape.
         //
-        // Replaces a "Media ID…" field that fetched /backend/media/media/{id}/info,
+        // Replaces a "Media ID…" field that fetched /suite/media/media/{id}/info,
         // a route removed with the Media module. It had been broken for as long
         // as that route had been gone, and browsing makes it redundant anyway.
         const error = document.createElement("p");

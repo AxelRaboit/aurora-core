@@ -20,9 +20,9 @@ i18n → `snake_case` ; cf. [[convention_naming]]).
 ## Pourquoi
 
 - Les clés construites par le code le sont à partir de valeurs d'enum
-  (toujours lowercase/snake) → `'backend.pdfform.templates.status_'.$value`
+  (toujours lowercase/snake) → `'suite.pdfform.templates.status_'.$value`
   donne `status_draft`. Naturellement snake.
-- Un préfixe dynamique (`sprintf('backend.menus.target_types.%s', $value)`) ou
+- Un préfixe dynamique (`sprintf('suite.menus.target_types.%s', $value)`) ou
   une concaténation doit avoir son **segment fixe en snake_case** lui aussi
   (`target_types`, pas `targetTypes` ; `field_type`, pas `fieldType`).
 - **Piège (cassé en silence)** : `src/Core/assets/i18n.js` utilise vue-i18n
@@ -39,7 +39,7 @@ i18n → `snake_case` ; cf. [[convention_naming]]).
   littéral en snake_case.
 - **Audit des dérives** :
   - YAML : grep des segments de clé matchant `[a-z0-9][A-Z]`.
-  - Code (`src/`, `templates/`, `tests/`) : grep des littéraux `'backend…'` /
+  - Code (`src/`, `templates/`, `tests/`) : grep des littéraux `'suite…'` /
     `'frontend…'` (clés complètes **et** préfixes sprintf/concat) contenant
     `[a-z0-9][A-Z]`. Exclure les faux positifs non-i18n qui commencent par
     `nav`/`mail`/`email` mais sont des vars JS / champs d'entité (`navFilter`,

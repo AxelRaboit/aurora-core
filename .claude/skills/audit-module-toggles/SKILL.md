@@ -1,6 +1,6 @@
 ---
 name: audit-module-toggles
-description: Audit every Aurora module against the module-toggle convention - does each one declare its cases in the central ModuleParameterEnum, implement ModuleToggleProviderInterface, gate getNavSections() on <Module>Context::isBackendEnabled(), expose getCatalogNavSections() unfiltered, register every NavItem as a sub-toggle, translate its labels in both locales, and gate its ConfigurationTab via moduleToggle? Also flags enum cases whose module no longer exists. Use when the user asks to "check", "audit", "vérifier", "valider" the toggle wiring, or "quels modules sont mal câblés ?". Read-only - reports gaps and points at /register-module-toggle.
+description: Audit every Aurora module against the module-toggle convention - does each one declare its cases in the central ModuleParameterEnum, implement ModuleToggleProviderInterface, gate getNavSections() on <Module>Context::isSuiteEnabled(), expose getCatalogNavSections() unfiltered, register every NavItem as a sub-toggle, translate its labels in both locales, and gate its ConfigurationTab via moduleToggle? Also flags enum cases whose module no longer exists. Use when the user asks to "check", "audit", "vérifier", "valider" the toggle wiring, or "quels modules sont mal câblés ?". Read-only - reports gaps and points at /register-module-toggle.
 scope: shared
 ---
 
@@ -76,8 +76,8 @@ module any more.
 
 ### 2. Enum cases
 
-4. A top-level case `<Module>Backend = 'modules_<module_id>_backend'` exists in
-   the central enum. The `_backend` suffix is mandatory: `modules_notes` is a
+4. A top-level case `<Module>Backend = 'modules_<module_id>_suite'` exists in
+   the central enum. The `_suite` suffix is mandatory: `modules_notes` is a
    prefix of `modules_notes_markdown` and collides in any key-prefix check.
 5. Case **names are prefixed by their module** (`NotesMarkdown`, not
    `Markdown`). They share one namespace with every other module's cases.
@@ -86,20 +86,20 @@ module any more.
    exhaustive match is what stops a raw translation key reaching a screen.
 7. `getModuleId()` returns `'<module_id>'` for the top-level case and nothing
    for the sub-cases.
-8. Each sub-case has `getParentCase() => self::<Module>Backend` and a
+8. Each sub-case has `getParentCase() => self::<Module>Suite` and a
    `getCascadeRequires()` naming what must be on first. The two are usually the
-   same key but need not be: `StudioContracts` displays under `StudioBackend`
+   same key but need not be: `StudioContracts` displays under `StudioSuite`
    and requires `StudioCustomers`.
 9. `getCascadeDisableTargets()` is derived from the two above. If a module
    hand-writes cascade targets anywhere, that is a finding.
 
 ### 3. Context and nav gating
 
-10. `src/Module/<Module>/<Module>Context.php` exists with `isBackendEnabled()`.
+10. `src/Module/<Module>/<Module>Context.php` exists with `isSuiteEnabled()`.
 11. Each method passes **the enum case**, not `->value` and not a hardcoded
     `true`. The string form still type-checks, so grep for it rather than
     trusting the signature.
-12. `getNavSections()` short-circuits on `!isBackendEnabled()`.
+12. `getNavSections()` short-circuits on `!isSuiteEnabled()`.
 13. Each `NavItem` in `getNavSections()` sits behind its own sub-toggle check.
 14. `getCatalogNavSections()` returns the **full** list, ungated. The catalog
     feeds the per-user module picker, which must show every item whatever the
@@ -116,11 +116,11 @@ module any more.
 
 ### 5. Translations
 
-17. `backend.modules.<module_id>_backend` and its `_description` exist in the
+17. `suite.modules.<module_id>_suite` and its `_description` exist in the
     module's own `translations/messages.fr.yaml` **and** `messages.en.yaml`.
-    Only core labels (`general_backend`, `platform_backend`) live in
+    Only core labels (`general_suite`, `platform_suite`) live in
     `src/Core/Module/translations/`.
-18. Every sub-case has `backend.nav.<sub_route_id>` and its `_description` in
+18. Every sub-case has `suite.nav.<sub_route_id>` and its `_description` in
     both locales. These usually predate the toggle - they were written for the
     NavItem.
 19. Not in Spanish. The back-office falls back to French by design, and
@@ -142,7 +142,7 @@ still exists.** A module removed from `src/Module/` leaves its cases behind,
 install, and clients carry rows for a feature they will never see.
 
 This check is why the skill exists at all, and it is the one that was missing:
-`MediaBackend` and `MediaLibrary` outlived their module by four months without
+`MediaSuite` and `MediaLibrary` outlived their module by four months without
 anything noticing.
 
 ```bash

@@ -43,7 +43,7 @@ final class SpaceFilesQueriesTest extends IntegrationTestCase
         parent::setUp();
         $this->client = static::createClient();
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -66,7 +66,7 @@ final class SpaceFilesQueriesTest extends IntegrationTestCase
     public function testThreeFilesAndTheirDocumentsLoadInOneQuery(): void
     {
         $space = $this->givenSpace();
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
 
         foreach (['devis', 'logo', 'brief'] as $name) {
             $document = new Document();
@@ -98,7 +98,7 @@ final class SpaceFilesQueriesTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', ['name' => 'Fichiers', 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', ['name' => 'Fichiers', 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $space = $this->entityManager->find(CustomerSpace::class, json_decode((string) $this->client->getResponse()->getContent(), true)['space']['id']);

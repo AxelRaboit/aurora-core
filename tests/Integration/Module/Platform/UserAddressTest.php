@@ -29,7 +29,7 @@ final class UserAddressTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         $this->client->loginUser($user, 'admin');
@@ -38,12 +38,12 @@ final class UserAddressTest extends IntegrationTestCase
 
     public function testTheAddressServesThePageToABrowser(): void
     {
-        $this->client->request('GET', '/backend/platform/users/'.$this->target->getId());
+        $this->client->request('GET', '/suite/platform/users/'.$this->target->getId());
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $content = (string) $this->client->getResponse()->getContent();
 
-        self::assertStringContainsString('platform/backend/users/UsersApp', $content);
+        self::assertStringContainsString('platform/suite/users/UsersApp', $content);
         self::assertStringContainsString(
             '&quot;activeId&quot;:'.$this->target->getId(),
             $content,
@@ -56,7 +56,7 @@ final class UserAddressTest extends IntegrationTestCase
     {
         $this->client->request(
             'GET',
-            '/backend/platform/users/'.$this->target->getId(),
+            '/suite/platform/users/'.$this->target->getId(),
             server: ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'],
         );
 
@@ -74,7 +74,7 @@ final class UserAddressTest extends IntegrationTestCase
      */
     public function testTheListingStaysADestinationOfItsOwn(): void
     {
-        $this->client->request('GET', '/backend/platform/users');
+        $this->client->request('GET', '/suite/platform/users');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }

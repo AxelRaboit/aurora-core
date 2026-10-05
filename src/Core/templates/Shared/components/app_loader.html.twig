@@ -5,7 +5,7 @@
    Two modes:
    - admin (default): waits for vue:mount inside #main-content main AND for
      the sidemenu (and other useLayoutMount() shell components) to dispatch
-     LayoutMounted. Used by templates/Core/backend/layout.html.twig.
+     LayoutMounted. Used by templates/Core/suite/layout.html.twig.
    - guest: waits only for the first vue:mount anywhere on the page (no
      sidemenu, no shell layout). Pass {mode: 'guest'} when including. #}
 {% set mode = mode|default('admin') %}

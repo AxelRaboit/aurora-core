@@ -437,7 +437,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'publishedAt' => null,
                 'terms' => ['release'],
                 'fr' => ['Ce qui arrive ensuite', 'ce-qui-arrive-ensuite', 'Un brouillon, visible seulement en administration.'],
-                'en' => ['What comes next', 'what-comes-next', 'A draft, visible in the backend only.'],
+                'en' => ['What comes next', 'what-comes-next', 'A draft, visible in the suite only.'],
                 'es' => ['Lo que viene después', 'lo-que-viene-despues', 'Un borrador, visible solo en la administración.'],
             ],
             // Les deux statuts que la démo n'avait pas. La page de documentation
@@ -805,7 +805,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     EditorBlocks::paragraph('Every block below is a zone on a 48-column grid. Widths are set independently, and what fills them is translated - the arrangement is written once.')],
                 'beside' => [EditorBlocks::header('One tall zone, two beside it', 3),
                     EditorBlocks::paragraph('A portrait picture on the left; on the right a stack, which takes the height of the row and splits it between this text and the picture under it. No height is set anywhere.')],
-                'outro' => [EditorBlocks::paragraph('A full-width zone to close. Change any of this from the backend, under Content.')],
+                'outro' => [EditorBlocks::paragraph('A full-width zone to close. Change any of this from the suite, under Content.')],
             ],
             'es' => [
                 'intro' => [EditorBlocks::header('Una página compuesta por zonas'),
@@ -1751,7 +1751,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // exists to show you avoiding.
         $copy = [
             'fr' => ['Ce contenu est une démonstration. Remplacez-le par le vôtre depuis l\'administration.', ['Un premier point', 'Un deuxième point']],
-            'en' => ['This content is a demonstration. Replace it with your own from the backend.', ['A first point', 'A second point']],
+            'en' => ['This content is a demonstration. Replace it with your own from the suite.', ['A first point', 'A second point']],
             'es' => ['Este contenido es una demostración. Sustitúyalo por el suyo desde la administración.', ['Un primer punto', 'Un segundo punto']],
         ];
 
@@ -2170,7 +2170,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // historique, qui a enregistré fait partie de ce qu'on vient y lire.
         $auteur = $this->userRepository->findOneBy([
             'email' => 'dev@aurora.app',
-            'type' => UserTypeEnum::Backend->value,
+            'type' => UserTypeEnum::Suite->value,
         ]);
 
         $revisions = [];

@@ -1,6 +1,6 @@
 ---
 name: Per-front enable/disable via FrontendInterface + Registry
-description: Chaque front declare par un FrontendDescriptor peut etre desactive independamment ; cascade vers /backend si tous off. Deux implementations dans le core au 2026-09-16 : Editorial et Ged.
+description: Chaque front declare par un FrontendDescriptor peut etre desactive independamment ; cascade vers /suite si tous off. Deux implementations dans le core au 2026-09-16 : Editorial et Ged.
 type: project
 ---
 
@@ -17,10 +17,10 @@ Chaque "front" (site public servi par Aurora) implémente
   appartiennent (utilisée par le route gate)
 
 **Le toggle d'un front est SÉPARÉ du toggle de son admin module.**
-Ex : `EditorialBackend` = backend admin Editorial activé ; `EditorialFrontend` =
+Ex : `EditorialSuite` = backend admin Editorial activé ; `EditorialFrontend` =
 site public Editorial servi. C'est `EditorialFrontend` qui est
 retourné par `EditorialFrontend::getModuleSettingKey()`. Le sub-toggle
-front a son parent en cascade (`requires = EditorialBackend`), donc
+front a son parent en cascade (`requires = EditorialSuite`), donc
 désactiver l'admin désactive aussi le front.
 
 ## Pourquoi
@@ -65,17 +65,17 @@ final class TrackingFrontend implements FrontendInterface
    `XxxEnabled` (cascade) et `getModuleId()` qui retourne `null`
    (sous-toggle, pas top-level).
 2. Le `XxxFrontend::getModuleSettingKey()` retourne cette nouvelle clé.
-3. Translations FR + EN sous `backend.modules.xxx_front` + `xxx_front_description`.
+3. Translations FR + EN sous `suite.modules.xxx_front` + `xxx_front_description`.
 
 ### Cascade de redirection quand tous les fronts sont off
 
 `RootDispatchController::root()` (route `frontend_root`, URL `/`) :
 - Cherche le premier front activé via `Registry::all()` (triés par priorité)
-- Aucun → `redirectToRoute('backend_dashboard')`
-- Et `GeneralRouteGateSubscriber` redirige `/backend` → `/backend/general/profile`
+- Aucun → `redirectToRoute('suite_dashboard')`
+- Et `GeneralRouteGateSubscriber` redirige `/suite` → `/suite/general/profile`
   si Dashboard masqué pour l'user
 
-Donc la chaîne `/ → /backend → /backend/general/profile` fonctionne
+Donc la chaîne `/ → /suite → /suite/general/profile` fonctionne
 automatiquement.
 
 ### Sidemenu "Voir le site"

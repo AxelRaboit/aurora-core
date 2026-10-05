@@ -133,7 +133,7 @@ final class PlanningContractMirrorTest extends TestCase
     private function source(string $component): string
     {
         $path = dirname(__DIR__, 4)
-            .'/src/Module/Planning/assets/backend/planning/components/'.$component;
+            .'/src/Module/Planning/assets/suite/planning/components/'.$component;
 
         $source = file_get_contents($path);
 

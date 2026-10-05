@@ -7,7 +7,7 @@ namespace Aurora\Module\Notes\Markdown\Setting;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 
 /**
- * Module-level settings surfaced on the `/backend/configuration/settings` page under
+ * Module-level settings surfaced on the `/suite/configuration/settings` page under
  * the "notes" tab. Today only image-upload tunables; future cases (e.g.
  * a per-user upload quota, default tag color) plug in here too.
  *
@@ -45,20 +45,20 @@ enum MarkdownNoteSettingEnum: string implements ApplicationParameterEnumInterfac
     public function getLabel(): string
     {
         return match ($this) {
-            self::ImageMaxEdge => 'backend.parameters.notes_markdown_image_max_edge.label',
-            self::ImageQualityPct => 'backend.parameters.notes_markdown_image_quality_pct.label',
-            self::RevisionsLimit => 'backend.parameters.notes_markdown_revisions_limit.label',
-            self::RevisionIntervalMinutes => 'backend.parameters.notes_markdown_revision_interval_minutes.label',
+            self::ImageMaxEdge => 'suite.parameters.notes_markdown_image_max_edge.label',
+            self::ImageQualityPct => 'suite.parameters.notes_markdown_image_quality_pct.label',
+            self::RevisionsLimit => 'suite.parameters.notes_markdown_revisions_limit.label',
+            self::RevisionIntervalMinutes => 'suite.parameters.notes_markdown_revision_interval_minutes.label',
         };
     }
 
     public function getDescription(): string
     {
         return match ($this) {
-            self::ImageMaxEdge => 'backend.parameters.notes_markdown_image_max_edge.description',
-            self::ImageQualityPct => 'backend.parameters.notes_markdown_image_quality_pct.description',
-            self::RevisionsLimit => 'backend.parameters.notes_markdown_revisions_limit.description',
-            self::RevisionIntervalMinutes => 'backend.parameters.notes_markdown_revision_interval_minutes.description',
+            self::ImageMaxEdge => 'suite.parameters.notes_markdown_image_max_edge.description',
+            self::ImageQualityPct => 'suite.parameters.notes_markdown_image_quality_pct.description',
+            self::RevisionsLimit => 'suite.parameters.notes_markdown_revisions_limit.description',
+            self::RevisionIntervalMinutes => 'suite.parameters.notes_markdown_revision_interval_minutes.description',
         };
     }
 

@@ -19,7 +19,7 @@ enum PlanningEventStatusEnum: string
 
     public function getLabelKey(): string
     {
-        return sprintf('backend.plannings.events.status.%s', $this->value);
+        return sprintf('suite.plannings.events.status.%s', $this->value);
     }
 
     /**

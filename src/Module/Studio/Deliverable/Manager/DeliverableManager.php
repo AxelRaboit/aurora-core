@@ -419,17 +419,17 @@ readonly class DeliverableManager
         $title = is_string($data['title'] ?? null) ? mb_trim($data['title']) : '';
 
         if ('' === $title) {
-            $errors['title'] = 'backend.studio.deliverables.errors.title_required';
+            $errors['title'] = 'suite.studio.deliverables.errors.title_required';
         } elseif (mb_strlen($title) > self::TITLE_MAX) {
-            $errors['title'] = 'backend.studio.deliverables.errors.title_too_long';
+            $errors['title'] = 'suite.studio.deliverables.errors.title_too_long';
         }
 
         if (!in_array($data['locale'] ?? null, $this->localeContext->getActiveLocales(), true)) {
-            $errors['locale'] = 'backend.studio.deliverables.errors.locale_invalid';
+            $errors['locale'] = 'suite.studio.deliverables.errors.locale_invalid';
         }
 
         if (isset($data['gridLayout']) && !is_array($data['gridLayout'])) {
-            $errors['gridLayout'] = 'backend.studio.deliverables.errors.grid_invalid';
+            $errors['gridLayout'] = 'suite.studio.deliverables.errors.grid_invalid';
         }
 
         return $errors;

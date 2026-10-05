@@ -34,7 +34,7 @@ src/Module/<Module>/translations/
 
 Exemple - Billing :
 ```
-src/Module/Billing/translations/messages.fr.yaml   → billing.*, backend.billing.*, backend.nav.invoices, ...
+src/Module/Billing/translations/messages.fr.yaml   → billing.*, suite.billing.*, suite.nav.invoices, ...
 ```
 
 ### Core - pure infrastructure (depuis 0.4.0)
@@ -46,7 +46,7 @@ qui a éventuellement quelques YAML :
 ```
 src/Core/
 ├── Mail/translations/messages.{fr,en}.yaml         → frontend.mail, shared.mail
-├── Notification/translations/messages.{fr,en}.yaml → backend.notifications
+├── Notification/translations/messages.{fr,en}.yaml → suite.notifications
 └── translations/                                   → clés transversales + security + validators
     ├── messages.{fr,en}.yaml                       → shared.common, shared.locales, shared.pagination, shared.form, shared.comment
     ├── security.{fr,en,es,de}.yaml
@@ -60,19 +60,19 @@ ont leur dossier `translations/`. Sous-modules pareil (depth 2).
 
 ```
 src/Module/
-├── Platform/User/translations/messages.{fr,en}.yaml         → backend.users, backend.roles, backend.invitations, backend.access_requests
-├── Platform/Auth/translations/messages.{fr,en}.yaml         → backend.auth, frontend.login/register/…, shared.password
-├── Configuration/Setting/translations/messages.{fr,en}.yaml → backend.settings, backend.parameters, …
-├── Configuration/Theme/translations/messages.{fr,en}.yaml   → backend.themes, frontend.theme
-├── Media/Library/translations/messages.{fr,en}.yaml         → backend.media, shared.media, shared.dropZone
-├── General/Dashboard/translations/messages.{fr,en}.yaml     → backend.dashboard
-├── General/Profile/translations/messages.{fr,en}.yaml       → backend.profile, backend.impersonation
-├── General/Search/translations/messages.{fr,en}.yaml        → backend.search
-├── Dev/Audit/translations/messages.{fr,en}.yaml             → backend.audit
-├── Dev/MountPoint/translations/messages.{fr,en}.yaml        → backend.mountPoints
-├── Editorial/Menu/translations/messages.{fr,en}.yaml        → backend.menus, backend.nav, frontend.menu
-├── Editorial/translations/messages.{fr,en}.yaml             → backend.posts, ...
-├── Vault/translations/messages.{fr,en}.yaml                 → backend.vault, ...
+├── Platform/User/translations/messages.{fr,en}.yaml         → suite.users, suite.roles, suite.invitations, suite.access_requests
+├── Platform/Auth/translations/messages.{fr,en}.yaml         → suite.auth, frontend.login/register/…, shared.password
+├── Configuration/Setting/translations/messages.{fr,en}.yaml → suite.settings, suite.parameters, …
+├── Configuration/Theme/translations/messages.{fr,en}.yaml   → suite.themes, frontend.theme
+├── Media/Library/translations/messages.{fr,en}.yaml         → suite.media, shared.media, shared.dropZone
+├── General/Dashboard/translations/messages.{fr,en}.yaml     → suite.dashboard
+├── General/Profile/translations/messages.{fr,en}.yaml       → suite.profile, suite.impersonation
+├── General/Search/translations/messages.{fr,en}.yaml        → suite.search
+├── Dev/Audit/translations/messages.{fr,en}.yaml             → suite.audit
+├── Dev/MountPoint/translations/messages.{fr,en}.yaml        → suite.mountPoints
+├── Editorial/Menu/translations/messages.{fr,en}.yaml        → suite.menus, suite.nav, frontend.menu
+├── Editorial/translations/messages.{fr,en}.yaml             → suite.posts, ...
+├── Vault/translations/messages.{fr,en}.yaml                 → suite.vault, ...
 └── ... (tous les autres modules métier)
 ```
 
@@ -94,8 +94,8 @@ suffit - aucune configuration manuelle requise.
 
 ```bash
 # 1. Identifier le bon fichier YAML
-#    - Clé backend.billing.* → src/Module/Billing/translations/messages.fr.yaml
-#    - Clé backend.media.*   → src/Module/Media/translations/messages.fr.yaml
+#    - Clé suite.billing.* → src/Module/Billing/translations/messages.fr.yaml
+#    - Clé suite.media.*   → src/Module/Media/translations/messages.fr.yaml
 #    - Clé shared.common.*   → src/Core/translations/messages.fr.yaml
 
 # 2. Éditer FR ET EN
@@ -164,12 +164,12 @@ backend:
 
 | Préfixe | Usage |
 |---------|-------|
-| `backend.nav.*` | Labels et descriptions des items de navigation (sidemenu) |
-| `backend.nav.sections.*` | Titres de sections de la sidemenu |
-| `backend.modules.*` | Labels des modules dans la page `/dev/dashboard/modules` |
-| `backend.permissions.names.*` | Labels des privilèges dans la page Permissions |
-| `backend.audit.actions.*` | Labels des actions dans l'onglet Audit |
-| `backend.<module>.*` | Traductions UI spécifiques au module (formulaires, messages, etc.) |
+| `suite.nav.*` | Labels et descriptions des items de navigation (sidemenu) |
+| `suite.nav.sections.*` | Titres de sections de la sidemenu |
+| `suite.modules.*` | Labels des modules dans la page `/dev/dashboard/modules` |
+| `suite.permissions.names.*` | Labels des privilèges dans la page Permissions |
+| `suite.audit.actions.*` | Labels des actions dans l'onglet Audit |
+| `suite.<module>.*` | Traductions UI spécifiques au module (formulaires, messages, etc.) |
 | `shared.common.*` | Actions génériques universelles (save, cancel, delete…) |
 | `shared.locales.*` | Noms de langues (fr → Français) |
 
@@ -190,7 +190,7 @@ La casse découle naturellement de la valeur d'enum (toujours lowercase/snake) :
 // PdfTemplateStatusEnum::Draft->value === 'draft'
 public function getLabelKey(): string
 {
-    return 'backend.pdfform.templates.status_'.$this->value; // → status_draft
+    return 'suite.pdfform.templates.status_'.$this->value; // → status_draft
 }
 ```
 
@@ -201,7 +201,7 @@ pdfform:
     status_active: Actif
 ```
 
-Idem pour un préfixe construit dynamiquement (`sprintf('backend.menus.target_types.%s', …)`)
+Idem pour un préfixe construit dynamiquement (`sprintf('suite.menus.target_types.%s', …)`)
 ou par concaténation : le **segment fixe doit aussi être `snake_case`**
 (`target_types`, jamais `targetTypes` ; `field_type`, jamais `fieldType`).
 
@@ -228,7 +228,7 @@ pdfform:
 Le résolveur Vue (`src/Core/assets/i18n.js` → vue-i18n **vanilla, sans
 `messageResolver`**) et le translator Symfony font tous deux un lookup **exact**.
 Une référence `camelCase` qui ne matche pas la clé YAML `snake_case` ne lève
-**aucune erreur** : elle affiche la clé brute (`backend.mountPoints.search_placeholder`)
+**aucune erreur** : elle affiche la clé brute (`suite.mountPoints.search_placeholder`)
 dans l'UI. Une dérive `camelCase` passe donc inaperçue jusqu'à ce qu'on regarde
 l'écran concerné - d'où l'importance de l'audit ci-dessous.
 
@@ -238,7 +238,7 @@ Pour repérer toute clé `camelCase` résiduelle - côté YAML **et** côté ré
 code (y compris les builders dynamiques d'enum `getLabelKey()` / `labelKey()`) :
 
 - **YAML** : grep des segments de clé matchant `[a-z0-9][A-Z]`.
-- **Code** (`src/`, `templates/`, `tests/`) : grep des littéraux `'backend…'` /
+- **Code** (`src/`, `templates/`, `tests/`) : grep des littéraux `'suite…'` /
   `'frontend…'` (clés complètes **et** préfixes `sprintf`/concaténation)
   contenant `[a-z0-9][A-Z]`. Exclure les faux positifs non-i18n qui commencent
   par `nav`/`mail`/`email` mais sont des vars JS / champs d'entité (`navFilter`,

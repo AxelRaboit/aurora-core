@@ -47,7 +47,7 @@ class UserManager implements UserManagerInterface
         $user = $this->createUser();
         $user->setName($name);
         $user->setEmail($email);
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
         $user->setPassword($this->passwordHasher->hashPassword($user, $password));
         $user->setRoles($isAdmin ? [UserRoleEnum::Admin->value] : []);
 
@@ -65,7 +65,7 @@ class UserManager implements UserManagerInterface
         $user = $this->createUser();
         $user->setName($name);
         $user->setEmail($email);
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
         $user->setPassword($this->passwordHasher->hashPassword($user, $password));
         $user->setRoles([UserRoleEnum::Admin->value]);
         $user->setStatus(UserStatusEnum::PendingVerification);
@@ -85,7 +85,7 @@ class UserManager implements UserManagerInterface
     {
         $token = $this->emailVerificationManager->generateToken($user);
 
-        $verifyUrl = $this->urlGenerator->generate('backend_platform_verify_email', [
+        $verifyUrl = $this->urlGenerator->generate('suite_platform_verify_email', [
             'token' => $token,
         ], UrlGeneratorInterface::ABSOLUTE_URL);
 
@@ -94,7 +94,7 @@ class UserManager implements UserManagerInterface
 
     public function verifyEmail(string $token): ?CoreUserInterface
     {
-        $user = $this->userRepository->findOneBy(['emailVerificationToken' => $token, 'type' => UserTypeEnum::Backend]);
+        $user = $this->userRepository->findOneBy(['emailVerificationToken' => $token, 'type' => UserTypeEnum::Suite]);
         if (null === $user) {
             return null;
         }
@@ -117,7 +117,7 @@ class UserManager implements UserManagerInterface
     {
         $user = $this->userRepository->findOneBy([
             'email' => $email,
-            'type' => UserTypeEnum::Backend,
+            'type' => UserTypeEnum::Suite,
         ]);
 
         if (!$user instanceof User || UserStatusEnum::PendingVerification !== $user->getStatus()) {
@@ -130,7 +130,7 @@ class UserManager implements UserManagerInterface
     public function update(User $user, string $name, string $email): void
     {
         if ($this->isEmailTaken($email, $user)) {
-            throw new InvalidArgumentException('backend.users.errors.email_taken');
+            throw new InvalidArgumentException('suite.users.errors.email_taken');
         }
 
         $user->setName($name);
@@ -142,11 +142,11 @@ class UserManager implements UserManagerInterface
     public function updateWithRole(User $user, string $name, string $email, string $role, ?string $password = null): void
     {
         if (!in_array($role, UserRoleEnum::allAssignableValues(), true)) {
-            throw new InvalidArgumentException('backend.users.errors.role_invalid');
+            throw new InvalidArgumentException('suite.users.errors.role_invalid');
         }
 
         if ($this->isEmailTaken($email, $user)) {
-            throw new InvalidArgumentException('backend.users.errors.email_taken');
+            throw new InvalidArgumentException('suite.users.errors.email_taken');
         }
 
         $user->setName($name);
@@ -237,7 +237,7 @@ class UserManager implements UserManagerInterface
     public function updateDisabledModules(User $user, array $disabledModules, ?User $actor = null): void
     {
         if ($actor instanceof User && !$this->canActOn($actor, $user)) {
-            throw new InvalidArgumentException('backend.users.errors.cannot_manage_target');
+            throw new InvalidArgumentException('suite.users.errors.cannot_manage_target');
         }
 
         $sanitized = $this->sanitizeDisabledModules($disabledModules);
@@ -388,12 +388,12 @@ class UserManager implements UserManagerInterface
 
     /**
      * @param bool         $disabled créer le compte sans contacter personne - voir plus bas
-     * @param UserTypeEnum $type     backend (l'administration) ou frontend (le site public)
+     * @param UserTypeEnum $type     suite (l'administration) ou frontend (le site public)
      */
-    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Backend): User
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Suite): User
     {
         if (!in_array($role, UserRoleEnum::allAssignableValues(), true)) {
-            throw new InvalidArgumentException('backend.users.errors.role_invalid');
+            throw new InvalidArgumentException('suite.users.errors.role_invalid');
         }
 
         $user = $this->createUser();

@@ -18,7 +18,7 @@ use function sprintf;
  * deleted account left behind, which nothing counted until this existed.
  *
  * The column stores a bare filename, not a key, so the area prefix is put back
- * here - the sweep compares against what the backend lists, which is prefixed.
+ * here - the sweep compares against what the suite lists, which is prefixed.
  */
 final readonly class ProfilePhotoReferencedKeysProvider implements ReferencedKeysProviderInterface
 {

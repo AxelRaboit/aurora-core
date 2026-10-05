@@ -29,7 +29,7 @@ describe("uploadImageFile", () => {
     });
 
     /**
-     * The block editor posted to /backend/media/media/upload for months after
+     * The block editor posted to /suite/media/media/upload for months after
      * that route was removed with the Media module. Nothing failed loudly -
      * the request 404'd and the image simply never appeared.
      */
@@ -42,9 +42,7 @@ describe("uploadImageFile", () => {
             IMAGE_UPLOAD_ENDPOINT,
             expect.objectContaining({ method: "POST" }),
         );
-        expect(IMAGE_UPLOAD_ENDPOINT).toBe(
-            "/backend/ged/documents/upload-image",
-        );
+        expect(IMAGE_UPLOAD_ENDPOINT).toBe("/suite/ged/documents/upload-image");
     });
 
     /** The endpoint reads `file`. This was `image` here, against an endpoint that never called it that. */

@@ -13,14 +13,14 @@ class PostTypeFieldInput implements PostTypeFieldInputInterface
      * @param array<string, mixed> $options
      */
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.post_types.errors.field_name_required')]
-        #[Assert\Regex(pattern: '/^[a-z0-9_]+$/', message: 'backend.post_types.errors.field_name_format')]
+        #[Assert\NotBlank(message: 'suite.post_types.errors.field_name_required')]
+        #[Assert\Regex(pattern: '/^[a-z0-9_]+$/', message: 'suite.post_types.errors.field_name_format')]
         #[Assert\Length(max: 100)]
         public readonly string $name,
-        #[Assert\NotBlank(message: 'backend.post_types.errors.field_label_required')]
+        #[Assert\NotBlank(message: 'suite.post_types.errors.field_label_required')]
         #[Assert\Length(max: 100)]
         public readonly string $label,
-        #[Assert\Choice(choices: AbstractPostTypeField::TYPES, message: 'backend.post_types.errors.field_type_invalid')]
+        #[Assert\Choice(choices: AbstractPostTypeField::TYPES, message: 'suite.post_types.errors.field_type_invalid')]
         public readonly string $type,
         public readonly bool $required = false,
         public readonly bool $translatable = false,

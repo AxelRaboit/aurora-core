@@ -31,10 +31,10 @@ final readonly class TrashViewBuilder
      * @var array<string, string>
      */
     private const array MODULE_TOGGLES = [
-        'ged' => 'modules_ged_backend',
-        'editorial' => 'modules_editorial_backend',
-        'notes' => 'modules_notes_backend',
-        'studio' => 'modules_studio_backend',
+        'ged' => 'modules_ged_suite',
+        'editorial' => 'modules_editorial_suite',
+        'notes' => 'modules_notes_suite',
+        'studio' => 'modules_studio_suite',
     ];
 
     public function __construct(
@@ -134,7 +134,7 @@ final readonly class TrashViewBuilder
             return $aliases[$sectionId];
         }
 
-        return $this->translator->trans('backend.nav.sections.'.$sectionId);
+        return $this->translator->trans('suite.nav.sections.'.$sectionId);
     }
 
     private function pathFor(?string $route, bool $withId = true): ?string

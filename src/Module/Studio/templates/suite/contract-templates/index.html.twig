@@ -1,0 +1,29 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.studio_contract_templates'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_contract_templates'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/contract-templates/ContractTemplatesApp', {
+    templates: templates,
+    kinds: kinds,
+    categories: categories,
+    createPath: createPath,
+    updatePath: updatePath,
+    archivePath: archivePath,
+    restorePath: restorePath,
+    deletePath: deletePath,
+    openDraftPath: openDraftPath,
+    duplicatePath: duplicatePath,
+    discardDraftPath: discardDraftPath,
+    editorPath: editorPath,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

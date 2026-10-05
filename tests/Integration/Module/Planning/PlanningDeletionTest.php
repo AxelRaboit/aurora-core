@@ -34,7 +34,7 @@ final class PlanningDeletionTest extends IntegrationTestCase
     {
         static::bootKernel();
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         $planning = new Planning();

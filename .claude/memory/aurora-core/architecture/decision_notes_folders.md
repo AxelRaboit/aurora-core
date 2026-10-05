@@ -24,7 +24,7 @@ Avant le 22/09/2026, une note qui avait des enfants tenait lieu de dossier.
 Chaque écran devait deviner lequel des deux il regardait, l'export inventait
 une convention (un `.md` et un répertoire du même nom) pour dire qu'un objet
 était les deux à la fois, et le carnet n'avait aucune page pour se regarder :
-`/backend/notes/markdown` renvoyait vers la première note.
+`/suite/notes/markdown` renvoyait vers la première note.
 
 Le nom chiffré n'était pas le choix de départ. Il s'est imposé à la migration :
 le chiffré d'Aurora est autonome (nonce + message, en base64, une seule clé),

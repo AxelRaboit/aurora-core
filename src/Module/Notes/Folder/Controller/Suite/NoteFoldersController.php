@@ -1,0 +1,319 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aurora\Module\Notes\Folder\Controller\Suite;
+
+use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Http\JsonRequestTrait;
+use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
+use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
+use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
+use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+use function is_array;
+use function is_numeric;
+
+/**
+ * The folders of the person asking, and nobody else's.
+ *
+ * Declared under `/folders` rather than under `/{id}`, which the note
+ * controller owns with a numeric requirement: the two never collide, and a
+ * folder route reads as what it is.
+ */
+#[Route('/suite/notes/markdown/folders', name: 'suite_notes_markdown_folders')]
+#[IsGranted('notes.markdown.use')]
+final class NoteFoldersController extends AbstractController
+{
+    use JsonRequestTrait;
+    use JsonResponseTrait;
+
+    public function __construct(
+        private readonly NoteFolderRepository $repository,
+        private readonly NoteFolderManagerInterface $manager,
+        private readonly NoteFolderInputFactoryInterface $inputFactory,
+        private readonly NoteFolderSerializerInterface $serializer,
+        private readonly PayloadValidator $payloadValidator,
+        private readonly NoteSpaceAccess $spaceAccess,
+        private readonly NoteFavoriteManagerInterface $favorites,
+    ) {}
+
+    /**
+     * The whole tree, flat, with what each folder holds.
+     *
+     * Flat rather than nested for the same reason the notes are: the browser
+     * rebuilds the tree from `parentId`, and a flat list is what a panel, a
+     * breadcrumb and a move dialog each need a different shape of.
+     */
+    #[Route('', name: '_list', methods: [HttpMethodEnum::Get->value])]
+    public function list(): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        return $this->jsonSuccess(['folders' => $this->serializeAllFor($user)]);
+    }
+
+    #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
+    public function create(Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $input = $this->inputFactory->fromArray($this->decodeJson($request));
+
+        // Là où l'on crée, on doit pouvoir écrire : le parent demandé, la
+        // racine de l'espace demandé, ou son espace personnel.
+        $parentId = $input->getParentId();
+        $spaceId = $input->getSpaceId();
+        $allowed = match (true) {
+            null !== $parentId => $this->spaceAccess->writableFolder($user, $parentId) instanceof NoteFolderInterface,
+            null !== $spaceId => $this->spaceAccess->writableSpace($user, $spaceId) instanceof NoteSpaceInterface,
+            default => true,
+        };
+        if (!$allowed) {
+            return $this->jsonNotFound();
+        }
+
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $folder = $this->manager->create($user, $input);
+
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
+    }
+
+    #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->spaceAccess->writableFolder($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $input = $this->inputFactory->fromArray($this->decodeJson($request));
+
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $this->manager->update($folder, $input);
+
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
+    }
+
+    /**
+     * Refiles a folder, or refuses to.
+     *
+     * The two refusals are the manager's, not this method's: a cycle takes
+     * both branches off every screen, and a branch past the depth limit
+     * cannot be shown in a breadcrumb. Either way nothing is written and the
+     * answer says which.
+     */
+    #[Route('/{id}/move', name: '_move', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function move(int $id, Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->spaceAccess->writableFolder($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $data = $this->decodeJson($request);
+        $raw = $data['parentId'] ?? null;
+
+        // Sous un dossier où l'on peut écrire, ou à la racine d'un espace où
+        // l'on peut écrire - celle où le dossier est déjà, sauf avis contraire.
+        $parent = null;
+        $space = $folder->getSpace();
+        if (null !== $raw && '' !== $raw) {
+            $parent = $this->spaceAccess->writableFolder($user, (int) $raw);
+            if (!$parent instanceof NoteFolderInterface || $parent->isTrashed()) {
+                return $this->jsonNotFound();
+            }
+        } elseif (isset($data['spaceId']) && is_numeric($data['spaceId'])) {
+            $space = $this->spaceAccess->writableSpace($user, (int) $data['spaceId']);
+            if (!$space instanceof NoteSpaceInterface) {
+                return $this->jsonNotFound();
+            }
+        }
+
+        if (!$this->manager->move($folder, $parent, $space)) {
+            return $this->jsonFailure('refused', extra: ['message' => 'notes.markdown.folders.errors.move_refused']);
+        }
+
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
+    }
+
+    /**
+     * Ajouter un dossier à ses favoris, ou l'en retirer.
+     *
+     * Lire suffit : les favoris sont à la personne, pas au dossier.
+     */
+    #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function favorite(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->spaceAccess->readableFolder($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess(['favorite' => $this->favorites->toggle($user, $folder)]);
+    }
+
+    /** Sends a folder to the trash, with everything inside it. */
+    #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function delete(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->spaceAccess->writableFolder($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $this->manager->delete($folder);
+
+        return $this->jsonSuccess();
+    }
+
+    #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function restore(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->spaceAccess->writableFolder($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $this->manager->restore($folder);
+
+        return $this->jsonSuccess();
+    }
+
+    #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function forceDelete(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->spaceAccess->writableFolder($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $this->manager->forceDelete($folder);
+
+        return $this->jsonSuccess();
+    }
+
+    /**
+     * Destroys every folder this person has in the trash.
+     *
+     * Their own only: a folder belongs to its author, and there is no view
+     * in which emptying one person's trash should reach another's.
+     */
+    #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
+    public function emptyTrash(): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $deleted = 0;
+        // Définitif : seulement dans les espaces qu'on gère.
+        foreach ($this->repository->findTrashedRootsForUser($user) as $folder) {
+            if (!$this->spaceAccess->canManage($user, $folder->getSpace())) {
+                continue;
+            }
+
+            $this->manager->forceDelete($folder);
+            ++$deleted;
+        }
+
+        return $this->jsonSuccess(['deleted' => $deleted]);
+    }
+
+    #[Route('/reorder', name: '_reorder', methods: [HttpMethodEnum::Post->value])]
+    public function reorder(Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $raw = $this->decodeJson($request)['entries'] ?? null;
+
+        if (!is_array($raw)) {
+            return $this->jsonInvalidInput(['entries' => 'notes.markdown.folders.errors.bad_payload']);
+        }
+
+        $entries = [];
+        foreach ($raw as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            if (!isset($entry['id'])) {
+                continue;
+            }
+
+            $parentId = $entry['parentId'] ?? null;
+
+            $entries[] = [
+                'id' => (int) $entry['id'],
+                'parentId' => null === $parentId || '' === $parentId ? null : (int) $parentId,
+                'position' => (int) ($entry['position'] ?? 0),
+            ];
+        }
+
+        $this->manager->reorder($user, $entries);
+
+        return $this->jsonSuccess(['folders' => $this->serializeAllFor($user)]);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function serializeAllFor(CoreUserInterface $user): array
+    {
+        $serializer = $this->serializer->withFavorites($this->favorites->mapFor($user)['folders'])->withCounts(
+            $this->repository->countNotesPerFolderForUser($user),
+            $this->repository->countChildrenPerFolderForUser($user),
+        );
+
+        return array_map(
+            $serializer->serialize(...),
+            $this->repository->findAllForUser($user),
+        );
+    }
+
+    /** Le sérialiseur, avec l'épinglage de ce dossier par cette personne. */
+    private function serializerFor(CoreUserInterface $user, NoteFolderInterface $folder): NoteFolderSerializerInterface
+    {
+        $at = $this->favorites->favoritedAt($user, $folder);
+
+        return $this->serializer->withFavorites(null === $at ? [] : [(int) $folder->getId() => $at]);
+    }
+}

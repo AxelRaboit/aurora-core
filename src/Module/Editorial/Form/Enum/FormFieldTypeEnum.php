@@ -18,7 +18,7 @@ enum FormFieldTypeEnum: string
 
     public function labelKey(): string
     {
-        return sprintf('backend.forms.field_types.%s', $this->value);
+        return sprintf('suite.forms.field_types.%s', $this->value);
     }
 
     /** Types whose meaning comes from a list the builder supplies. */

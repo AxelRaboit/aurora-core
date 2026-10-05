@@ -51,7 +51,7 @@ final class SiretValidatorTest extends ConstraintValidatorTestCase
     {
         $this->validator->validate($siret, new Siret());
 
-        $this->buildViolation('backend.studio.customers.errors.siret_invalid')
+        $this->buildViolation('suite.studio.customers.errors.siret_invalid')
             ->assertRaised();
     }
 

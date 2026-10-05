@@ -9,8 +9,8 @@ ou `src/Module/<Module>/<Feature>/`, avec une structure standard :
 src/Core/<Feature>/                            ← ex: src/Core/Notification/
 src/Module/<Module>/<Feature>/                  ← ex: src/Module/Editorial/Post/
 ├── Controller/
-│   ├── Backend/                                ← endpoints admin (/backend/...)
-│   └── Frontend/                               ← endpoints frontend public (sans /backend)
+│   ├── Suite/                                ← endpoints admin (/suite/...)
+│   └── Frontend/                               ← endpoints frontend public (sans /suite)
 ├── Dto/                                        ← Input + InputInterface + InputFactory + InputFactoryInterface
 ├── Entity/                                     ← Interface + Abstract + concrete
 ├── Enum/                                       ← enums backed (StatusEnum, etc.)
@@ -61,7 +61,7 @@ un module qui a un NavItem vit sous `src/Module/`, cf
 
 **Si backend CRUD** (entité instrumentée, cf
 [`convention_extensibility.md`](convention_extensibility.md)) : `Dto/`,
-`Manager/`, `Serializer/`, `Controller/Backend/`, `View/`.
+`Manager/`, `Serializer/`, `Controller/Suite/`, `View/`.
 
 **Selon besoin** : `Service/` (helpers stateless), `Message/`+
 `MessageHandler/` (async), `EventSubscriber/`, `Twig/`, `Security/`,
@@ -74,7 +74,7 @@ un module qui a un NavItem vit sous `src/Module/`, cf
   `<Name>Serializer.php`, `<Name>Input.php`.
 - Pluriel pour les Controllers + ViewBuilders :
   `DocumentCategoriesController.php`, `DocumentCategoriesViewBuilder.php`
-  (cohérent avec le pluriel des routes `/backend/ged/categories`).
+  (cohérent avec le pluriel des routes `/suite/ged/categories`).
 
 ## Exemples
 
@@ -85,7 +85,7 @@ C'est le pilote des 5 couches, déroulé en entier dans
 
 ```
 src/Module/Ged/DocumentCategory/
-├── Controller/Backend/DocumentCategoriesController.php
+├── Controller/Suite/DocumentCategoriesController.php
 ├── Dto/{DocumentCategoryInput,DocumentCategoryInputFactory}{,Interface}.php
 ├── Entity/{DocumentCategory,AbstractDocumentCategory,DocumentCategoryInterface}.php
 ├── Manager/{DocumentCategoryManager,DocumentCategoryManagerInterface}.php
@@ -100,7 +100,7 @@ src/Module/Ged/DocumentCategory/
 
 ```
 src/Module/Editorial/Post/
-├── Controller/Backend/{PostsController,PostTypesController}.php
+├── Controller/Suite/{PostsController,PostTypesController}.php
 ├── Controller/Frontend/PageController.php
 ├── Dto/...
 ├── Entity/...
@@ -125,7 +125,7 @@ convention `Entity/Manager/...` mais une organisation par **rôle technique** :
 src/Core/Module/
 ├── Contract/         ← Interfaces (ModuleInterface, ModuleToggleProviderInterface)
 ├── Controller/Dev/   ← PermissionsController (admin UI)
-├── Enum/             ← ModuleToggleTypeEnum (Backend/Frontend)
+├── Enum/             ← ModuleToggleTypeEnum (Suite/Frontend)
 ├── Nav/              ← NavItem, NavSection, NavPermission (value objects nav)
 ├── Security/         ← ModulePermissionVoter
 ├── Service/          ← ModuleAccessChecker, ModuleRegistry, PermissionRegistry

@@ -1,7 +1,7 @@
-backend:
+suite:
     search:
         button: Search…
-        placeholder: 'Search the back-office…'
+        placeholder: 'Search the suite…'
         hint: 'Type to search content, media, calendars, notes, client spaces and contracts.'
         empty: No results.
         keys:

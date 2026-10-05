@@ -12,6 +12,6 @@ enum AccessRequestStatusEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.access_requests.status_'.$this->value;
+        return 'suite.access_requests.status_'.$this->value;
     }
 }

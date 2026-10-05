@@ -82,17 +82,17 @@ final class GridSectionsTest extends IntegrationTestCase
         $id = $this->save('À moi', [['id' => 'z', 'type' => 'text']], [])[0]['id'];
 
         $this->client->loginUser($this->account(), 'admin');
-        $this->client->request('GET', '/backend/grid-sections');
+        $this->client->request('GET', '/suite/grid-sections');
         self::assertSame([], $this->json()['sections']);
 
-        $this->client->request('POST', sprintf('/backend/grid-sections/%d/delete', $id));
+        $this->client->request('POST', sprintf('/suite/grid-sections/%d/delete', $id));
         self::assertResponseStatusCodeSame(404);
     }
 
     public function testANamelessSectionIsRefused(): void
     {
         $this->client->loginUser($this->account(), 'admin');
-        $this->post('/backend/grid-sections/create', ['name' => '  ', 'zones' => [['id' => 'z', 'type' => 'text']]]);
+        $this->post('/suite/grid-sections/create', ['name' => '  ', 'zones' => [['id' => 'z', 'type' => 'text']]]);
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -105,7 +105,7 @@ final class GridSectionsTest extends IntegrationTestCase
      */
     private function save(string $name, array $zones, array $content): array
     {
-        $this->post('/backend/grid-sections/create', ['name' => $name, 'zones' => $zones, 'content' => $content]);
+        $this->post('/suite/grid-sections/create', ['name' => $name, 'zones' => $zones, 'content' => $content]);
         self::assertResponseIsSuccessful();
 
         return $this->json()['sections'];
@@ -129,7 +129,7 @@ final class GridSectionsTest extends IntegrationTestCase
         $user
             ->setEmail('sections-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Auteur '.bin2hex(random_bytes(2)))
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPassword('irrelevant');
         $this->entityManager->persist($user);

@@ -28,7 +28,7 @@ use Twig\Environment;
 final readonly class MailService
 {
     /**
-     * What `backend_email` used to ship with, before it was seeded empty. Kept
+     * What `suite_email` used to ship with, before it was seeded empty. Kept
      * so the installations that already carry it stop mailing a domain that
      * does not resolve - see adminEmail().
      */

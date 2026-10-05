@@ -63,7 +63,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $this->suffix = bin2hex(random_bytes(4));
 
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -450,7 +450,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => $name,
             'customerId' => $customer->getId(),
             'timezone' => 'Europe/Paris',

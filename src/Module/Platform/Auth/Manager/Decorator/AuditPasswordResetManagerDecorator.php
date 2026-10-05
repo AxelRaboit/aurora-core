@@ -41,7 +41,7 @@ final readonly class AuditPasswordResetManagerDecorator implements PasswordReset
         $this->inner->sendResetEmail($user, $resetUrl, $expiresAt);
     }
 
-    public function validateToken(string $selector, string $token, ?UserTypeEnum $expectedType = UserTypeEnum::Backend): ?ResetPasswordRequest
+    public function validateToken(string $selector, string $token, ?UserTypeEnum $expectedType = UserTypeEnum::Suite): ?ResetPasswordRequest
     {
         return $this->inner->validateToken($selector, $token, $expectedType);
     }

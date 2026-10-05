@@ -19,7 +19,7 @@ vi.mock("@/shared/composables/usePrivileges.js", () => ({
 // Captures the callbacks the component hands the uploader, so a success and a
 // failure can both be played back without a network.
 let uploadHandlers = {};
-vi.mock("@/shared/composables/http/backend/useImageUpload.js", () => ({
+vi.mock("@/shared/composables/http/suite/useImageUpload.js", () => ({
     useImageUpload: (handlers) => {
         uploadHandlers = handlers;
 

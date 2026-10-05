@@ -89,7 +89,7 @@ l'abandon du split (voir [[project_monorepo_split_chantier]]) : le balayage ne
 trouve plus rien et ne coûte rien, mais ne pas le prendre pour une organisation
 encore en place. Gating : `basename(dirname($auroraDir)) === 'axelraboit'`
 (actif uniquement en install vendored, laisse le standalone intact). Sans ça,
-les libellés nav des modules s'affichent en clés brutes (`backend.nav.posts`).
+les libellés nav des modules s'affichent en clés brutes (`suite.nav.posts`).
 
 ## Scaffolding
 

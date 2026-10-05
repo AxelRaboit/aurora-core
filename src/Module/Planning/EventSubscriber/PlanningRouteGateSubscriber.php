@@ -20,15 +20,15 @@ final readonly class PlanningRouteGateSubscriber extends AbstractModuleRouteGate
 
     protected function routeNamespaces(): array
     {
-        return ['backend_planning_', 'planning_feed', 'planning_share'];
+        return ['suite_planning_', 'planning_feed', 'planning_share'];
     }
 
     protected function gates(): array
     {
-        $enabled = $this->planningContext->isBackendEnabled();
+        $enabled = $this->planningContext->isSuiteEnabled();
 
         return [
-            'backend_planning_' => $enabled,
+            'suite_planning_' => $enabled,
             'planning_feed' => $enabled,
             'planning_share' => $enabled,
         ];

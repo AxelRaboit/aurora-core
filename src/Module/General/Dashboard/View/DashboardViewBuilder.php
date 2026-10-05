@@ -9,7 +9,7 @@ use Aurora\Module\General\Dashboard\Service\StatsService;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
- * Builds the Twig payload for the backend dashboard.
+ * Builds the Twig payload for the suite dashboard.
  *
  * A module joins by adding a line to MODULES below and a
  * `*-panel.register.js` on the Vue side, which fills the panel registry before
@@ -45,11 +45,11 @@ final readonly class DashboardViewBuilder
      * @var array<string, array{toggle: string, privilege: string}>
      */
     private const array MODULES = [
-        'editorial' => ['toggle' => 'modules_editorial_backend', 'privilege' => 'editorial.posts.view'],
-        'ged' => ['toggle' => 'modules_ged_backend', 'privilege' => 'ged.documents.view'],
-        'platform' => ['toggle' => 'modules_platform_backend', 'privilege' => 'platform.users.manage'],
-        'planning' => ['toggle' => 'modules_planning_backend', 'privilege' => 'planning.calendars.view'],
-        'studio' => ['toggle' => 'modules_studio_backend', 'privilege' => 'studio.spaces.view'],
+        'editorial' => ['toggle' => 'modules_editorial_suite', 'privilege' => 'editorial.posts.view'],
+        'ged' => ['toggle' => 'modules_ged_suite', 'privilege' => 'ged.documents.view'],
+        'platform' => ['toggle' => 'modules_platform_suite', 'privilege' => 'platform.users.manage'],
+        'planning' => ['toggle' => 'modules_planning_suite', 'privilege' => 'planning.calendars.view'],
+        'studio' => ['toggle' => 'modules_studio_suite', 'privilege' => 'studio.spaces.view'],
     ];
 
     public function __construct(

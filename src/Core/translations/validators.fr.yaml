@@ -1,4 +1,4 @@
-backend:
+suite:
     access_requests:
         approved: Demande de {name} approuvée.
         purged: Demandes traitées supprimées.

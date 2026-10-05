@@ -18,7 +18,7 @@ use Aurora\Core\Module\Nav\NavSection;
  * has no end-user-facing surface, only super-admin tooling.
  *
  * Does NOT implement {@see ModuleToggleProviderInterface} - there is no
- * `DevBackend` setting to turn off because the role gate is enough and
+ * `DevSuite` setting to turn off because the role gate is enough and
  * no client should be able to disable Aurora's dev panel.
  */
 final readonly class DevModule implements ModuleInterface, ModuleNavViewProviderInterface
@@ -37,7 +37,7 @@ final readonly class DevModule implements ModuleInterface, ModuleNavViewProvider
     {
         return [
             new NavSection('dev', [
-                new NavItem('dev_dashboard', 'backend.nav.administration', 'shield', 'ROLE_DEV', 'rose', 'dev_', descriptionKey: 'backend.nav.administration_description'),
+                new NavItem('dev_dashboard', 'suite.nav.administration', 'shield', 'ROLE_DEV', 'rose', 'dev_', descriptionKey: 'suite.nav.administration_description'),
             ], priority: 1000),
         ];
     }
@@ -76,13 +76,13 @@ final readonly class DevModule implements ModuleInterface, ModuleNavViewProvider
     {
         return new ModuleNavView('dev', [
             new ModuleNavGroup('administration', [
-                new NavItem('dev_dashboard', 'backend.tabs.overview', 'layout-dashboard', 'ROLE_DEV', descriptionKey: 'backend.tabs.overview_description'),
-                new NavItem('dev_users', 'backend.tabs.users', 'users', 'ROLE_DEV', descriptionKey: 'backend.tabs.users_description'),
-                new NavItem('dev_access_requests', 'backend.tabs.access_requests', 'key-round', 'ROLE_DEV', descriptionKey: 'backend.tabs.access_requests_description'),
-                new NavItem('dev_audit', 'backend.tabs.audit', 'scroll-text', 'ROLE_DEV', descriptionKey: 'backend.tabs.audit_description'),
-                new NavItem('dev_permissions', 'backend.tabs.permissions', 'shield-check', 'ROLE_DEV', descriptionKey: 'backend.tabs.permissions_description'),
-                new NavItem('dev_modules', 'backend.tabs.modules', 'puzzle', 'ROLE_DEV', descriptionKey: 'backend.tabs.modules_description'),
-                new NavItem('dev_mount_points', 'backend.tabs.mount_points', 'network', 'ROLE_DEV', descriptionKey: 'backend.tabs.mount_points_description'),
+                new NavItem('dev_dashboard', 'suite.tabs.overview', 'layout-dashboard', 'ROLE_DEV', descriptionKey: 'suite.tabs.overview_description'),
+                new NavItem('dev_users', 'suite.tabs.users', 'users', 'ROLE_DEV', descriptionKey: 'suite.tabs.users_description'),
+                new NavItem('dev_access_requests', 'suite.tabs.access_requests', 'key-round', 'ROLE_DEV', descriptionKey: 'suite.tabs.access_requests_description'),
+                new NavItem('dev_audit', 'suite.tabs.audit', 'scroll-text', 'ROLE_DEV', descriptionKey: 'suite.tabs.audit_description'),
+                new NavItem('dev_permissions', 'suite.tabs.permissions', 'shield-check', 'ROLE_DEV', descriptionKey: 'suite.tabs.permissions_description'),
+                new NavItem('dev_modules', 'suite.tabs.modules', 'puzzle', 'ROLE_DEV', descriptionKey: 'suite.tabs.modules_description'),
+                new NavItem('dev_mount_points', 'suite.tabs.mount_points', 'network', 'ROLE_DEV', descriptionKey: 'suite.tabs.mount_points_description'),
             ]),
         ]);
     }

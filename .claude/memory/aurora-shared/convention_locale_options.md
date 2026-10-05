@@ -16,7 +16,7 @@ import { LOCALE_OPTIONS } from "@core/utils/locales.js";
 // <AppSelect v-model="form.locale" :options="LOCALE_OPTIONS" />
 ```
 
-Les locales supportées sont **uniquement `fr` et `en`**, alignées avec `LocaleEnum` PHP côté backend.
+Les locales supportées sont **uniquement `fr` et `en`**, alignées avec `LocaleEnum` PHP côté suite.
 
 ## Pourquoi
 

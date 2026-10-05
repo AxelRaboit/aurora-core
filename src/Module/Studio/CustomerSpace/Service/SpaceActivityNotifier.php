@@ -66,14 +66,14 @@ final readonly class SpaceActivityNotifier
 
     public function clientWroteInChat(CustomerSpaceInterface $space, string $author): void
     {
-        $this->announce($space, 'studio.space.chat', 'backend.studio.space_notifications.chat', [
+        $this->announce($space, 'studio.space.chat', 'suite.studio.space_notifications.chat', [
             '%who%' => $author,
         ]);
     }
 
     public function clientCommented(SpaceContentItemInterface $item, string $author): void
     {
-        $this->announce($item->getSpace(), 'studio.space.comment', 'backend.studio.space_notifications.comment', [
+        $this->announce($item->getSpace(), 'studio.space.comment', 'suite.studio.space_notifications.comment', [
             '%who%' => $author,
             '%item%' => $item->getTitle(),
         ], item: $item);
@@ -81,7 +81,7 @@ final readonly class SpaceActivityNotifier
 
     public function clientUploaded(SpaceContentItemInterface $item, string $author): void
     {
-        $this->announce($item->getSpace(), 'studio.space.upload', 'backend.studio.space_notifications.upload', [
+        $this->announce($item->getSpace(), 'studio.space.upload', 'suite.studio.space_notifications.upload', [
             '%who%' => $author,
             '%item%' => $item->getTitle(),
         ], item: $item);
@@ -101,8 +101,8 @@ final readonly class SpaceActivityNotifier
             $item->getSpace(),
             'studio.space.answer',
             $approved
-                ? 'backend.studio.space_notifications.approved'
-                : 'backend.studio.space_notifications.changes_requested',
+                ? 'suite.studio.space_notifications.approved'
+                : 'suite.studio.space_notifications.changes_requested',
             ['%who%' => $author, '%item%' => $item->getTitle()],
             coalesce: false,
             item: $item,
@@ -120,7 +120,7 @@ final readonly class SpaceActivityNotifier
         $this->announce(
             $space,
             'studio.space.answer',
-            'backend.studio.space_notifications.approved_many',
+            'suite.studio.space_notifications.approved_many',
             ['%who%' => $author, '%count%' => (string) $count],
             coalesce: false,
         );
@@ -139,7 +139,7 @@ final readonly class SpaceActivityNotifier
         $this->announce(
             $space,
             'studio.space.late_review',
-            'backend.studio.space_notifications.late_review',
+            'suite.studio.space_notifications.late_review',
             ['%count%' => (string) $count],
             query: ['state' => 'late_review'],
         );

@@ -11,7 +11,7 @@
 - [convention_i18n_plurals.md](convention_i18n_plurals.md) - **vue-i18n syntaxe pipe** (`'1 X | {count} Xs'`) jamais ICU `{count, plural, …}`. 3e arg de `t()` = count pour la sélection d'arm
 - [convention_no_raw_fetch.md](convention_no_raw_fetch.md) - jamais `await fetch()` brut → `useRequest` (admin) ou `useFrontendRequest` (public)
 - [structure_assets_vue.md](structure_assets_vue.md) - composants Vue, composables, naming, `frontend/components/` + `frontend/composables/`, anti-patterns
-- [convention_assets_subfolder_layout.md](convention_assets_subfolder_layout.md) - compartimentage feature-subfolder dans `src/Module/<M>/assets/backend/`
+- [convention_assets_subfolder_layout.md](convention_assets_subfolder_layout.md) - compartimentage feature-subfolder dans `src/Module/<M>/assets/suite/`
 - [convention_css_organization.md](convention_css_organization.md) - `src/Core/assets/css/{base,shared,core,modules/<Name>/}` ; importer le CSS dans le SFC (code-splitting) sauf si vraiment global → `app.css` ; ordre `<script setup>` : CSS d'abord, ligne vide, JS
 - [composable_hierarchical_tree.md](composable_hierarchical_tree.md) - `@/shared/composables/tree/useHierarchicalTree.js` (`buildTree`, `flattenTreeForReorder`, …) - ne pas dupliquer
 - [composable_client_filtered_list.md](composable_client_filtered_list.md) - `useClientFilteredList` pour les listes admin courtes (items + searchInput + filteredItems + reload), pendant client-side de `useListPage`

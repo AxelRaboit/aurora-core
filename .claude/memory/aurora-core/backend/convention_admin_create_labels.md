@@ -58,9 +58,9 @@ applique ça uniformément.
      edit: Edit <entity>
    ```
 3. Côté Vue :
-   - Bouton toolbar de la liste → `t("backend.<entity>.add")`
+   - Bouton toolbar de la liste → `t("suite.<entity>.add")`
    - `:title` de la `<AppModal>` ou en-tête de l'éditeur full-page →
-     `entity ? t('backend.<entity>.edit', {...}) : t('backend.<entity>.create')`
+     `entity ? t('suite.<entity>.edit', {...}) : t('suite.<entity>.create')`
    - Submit du form → `t("shared.common.save")` ou `t("shared.common.create")`.
 
 ### Variantes structurelles autorisées

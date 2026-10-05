@@ -54,7 +54,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = self::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
 
@@ -95,7 +95,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $id = $post->getId();
 
         $this->client->loginUser($this->admin, 'admin');
-        $this->post('backend_editorial_posts_force_delete', $id);
+        $this->post('suite_editorial_posts_force_delete', $id);
 
         self::assertResponseIsSuccessful();
 
@@ -118,7 +118,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         self::assertNotSame(0, $this->translationCount($id));
 
         $this->client->loginUser($this->admin, 'admin');
-        $this->post('backend_editorial_posts_force_delete', $id);
+        $this->post('suite_editorial_posts_force_delete', $id);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -139,7 +139,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $writer = $this->account(['editorial.posts.view', 'editorial.posts.edit']);
 
         $this->client->loginUser($writer, 'admin');
-        $this->post('backend_editorial_posts_force_delete', $id);
+        $this->post('suite_editorial_posts_force_delete', $id);
 
         self::assertResponseStatusCodeSame(403);
 
@@ -166,7 +166,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $liveId = (int) $live->getId();
 
         $this->client->loginUser($this->admin, 'admin');
-        $this->client->request('POST', $this->urlGenerator->generate('backend_editorial_posts_empty_trash'));
+        $this->client->request('POST', $this->urlGenerator->generate('suite_editorial_posts_empty_trash'));
 
         self::assertResponseIsSuccessful();
 
@@ -192,7 +192,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_editorial_posts_bulk'),
+            $this->urlGenerator->generate('suite_editorial_posts_bulk'),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode([
                 'action' => 'force_delete',
@@ -255,7 +255,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $user = new User();
         $user->setEmail('force-'.bin2hex(random_bytes(4)).'@aurora.test');
         $user->setName('Rédacteur');
-        $user->setType(UserTypeEnum::Backend);
+        $user->setType(UserTypeEnum::Suite);
         $user->setPassword('x');
         $user->setRoles(['ROLE_USER']);
         $user->setPrivileges($privileges);

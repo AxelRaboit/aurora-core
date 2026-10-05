@@ -24,15 +24,15 @@ final readonly class PlanningShareLinkInput
          * At least one, or the link reaches nothing and the person who made it
          * finds out when their guest says the page is empty.
          */
-        #[Assert\Count(min: 1, minMessage: 'backend.plannings.links.errors.calendars_required')]
+        #[Assert\Count(min: 1, minMessage: 'suite.plannings.links.errors.calendars_required')]
         public array $calendarIds,
         /**
          * Required, because the question asked later is "which one did I give to
          * the studio" and a list of unnamed tokens cannot be revoked with any
          * confidence.
          */
-        #[Assert\NotBlank(message: 'backend.plannings.links.errors.label_required')]
-        #[Assert\Length(max: 120, maxMessage: 'backend.plannings.links.errors.label_too_long')]
+        #[Assert\NotBlank(message: 'suite.plannings.links.errors.label_required')]
+        #[Assert\Length(max: 120, maxMessage: 'suite.plannings.links.errors.label_too_long')]
         public string $label,
         public PlanningShareLinkModeEnum $mode = PlanningShareLinkModeEnum::Web,
         /**

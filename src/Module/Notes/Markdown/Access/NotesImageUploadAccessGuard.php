@@ -25,9 +25,9 @@ use function str_starts_with;
  * no session.
  *
  * **`Denied` and never `Restricted`**, for the reason the other guards give:
- * `/uploads/…` is handled by the front firewall, where no backend identity
+ * `/uploads/…` is handled by the front firewall, where no suite identity
  * exists to test, so `Restricted` would be a question whose answer is always
- * no. The owner reads their image through `backend_notes_markdown_images_serve`,
+ * no. The owner reads their image through `suite_notes_markdown_images_serve`,
  * which is under the prefix the admin firewall covers and is where the
  * per-user check actually happens.
  */

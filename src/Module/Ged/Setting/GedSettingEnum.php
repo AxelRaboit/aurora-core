@@ -9,7 +9,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 
 enum GedSettingEnum: string implements ApplicationParameterEnumInterface
 {
-    case DocumentPrefix = 'backend_ged_document_prefix';
+    case DocumentPrefix = 'suite_ged_document_prefix';
 
     public function getKey(): string
     {
@@ -19,14 +19,14 @@ enum GedSettingEnum: string implements ApplicationParameterEnumInterface
     public function getLabel(): string
     {
         return match ($this) {
-            self::DocumentPrefix => 'backend.parameters.ged_document_prefix.label',
+            self::DocumentPrefix => 'suite.parameters.ged_document_prefix.label',
         };
     }
 
     public function getDescription(): string
     {
         return match ($this) {
-            self::DocumentPrefix => 'backend.parameters.ged_document_prefix.description',
+            self::DocumentPrefix => 'suite.parameters.ged_document_prefix.description',
         };
     }
 

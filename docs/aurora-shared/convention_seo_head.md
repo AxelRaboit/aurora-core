@@ -157,7 +157,7 @@ résolution de thème.
 
 ## 6. Paramètres globaux d'admin
 
-Dans `/backend/dev/parameters`, groupe **SEO** :
+Dans `/suite/dev/parameters`, groupe **SEO** :
 
 | Paramètre                  | Clé enum                                        | Usage                                      |
 |----------------------------|-------------------------------------------------|--------------------------------------------|

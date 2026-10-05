@@ -37,7 +37,7 @@ class InvitationManager implements InvitationManagerInterface
          *
          * Les deux firewalls sont distincts et chacun n'accepte que son type
          * (cf. les deux UserProvider) : envoyer un invité frontend sur la page
-         * d'acceptation du backend l'y connecterait le temps d'une requête, et
+         * d'acceptation de la suite l'y connecterait le temps d'une requête, et
          * la session serait invalidée au rafraîchissement suivant, sans que rien
          * ne lui explique pourquoi. Les deux routes refusent d'ailleurs
          * explicitement le mauvais type.
@@ -49,7 +49,7 @@ class InvitationManager implements InvitationManagerInterface
         $isFrontend = UserTypeEnum::Frontend === $user->getType();
 
         $invitationUrl = $this->urlGenerator->generate(
-            $isFrontend ? 'frontend_invitation_accept' : 'backend_platform_invitation_accept',
+            $isFrontend ? 'frontend_invitation_accept' : 'suite_platform_invitation_accept',
             $isFrontend
                 ? ['locale' => $user->getLocale()->value, 'selector' => $selector, 'token' => $plainToken]
                 : ['selector' => $selector, 'token' => $plainToken],
@@ -58,7 +58,7 @@ class InvitationManager implements InvitationManagerInterface
 
         $loginUrl = $isFrontend
             ? $this->urlGenerator->generate('frontend_login', ['locale' => $user->getLocale()->value], UrlGeneratorInterface::ABSOLUTE_URL)
-            : $this->urlGenerator->generate('backend_platform_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+            : $this->urlGenerator->generate('suite_platform_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         $siteName = $this->settingRepository->getOrDefault(ApplicationParameterEnum::SiteName);
 

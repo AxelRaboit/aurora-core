@@ -8,7 +8,7 @@ metadata:
 ## Règle
 
 La page admin Settings dispatche le rendu d'un onglet via le registre Vue
-`src/Core/assets/backend/settings/tabRegistry.js` :
+`src/Core/assets/suite/settings/tabRegistry.js` :
 
 - **Côté PHP** : un `ConfigurationTab` peut déclarer `componentName: 'foo'`.
 - **Côté Vue** : `tabRegistry.js` mappe `'foo'` → un composant Vue.
@@ -19,7 +19,7 @@ La page admin Settings dispatche le rendu d'un onglet via le registre Vue
 API publique exposée par `tabRegistry.js` :
 
 ```js
-import { registerSettingsTabComponent } from "@core/backend/settings/tabRegistry.js";
+import { registerSettingsTabComponent } from "@core/suite/settings/tabRegistry.js";
 import MyCustomTab from "./MyCustomTab.vue";
 
 registerSettingsTabComponent("my-tab-name", MyCustomTab);
@@ -58,7 +58,7 @@ l'extension.
 équivalent, avant le mount du SettingsApp) :
 
 ```js
-import { registerSettingsTabComponent } from "@core/backend/settings/tabRegistry.js";
+import { registerSettingsTabComponent } from "@core/suite/settings/tabRegistry.js";
 import MyCustomTab from "@/MyCustomTab.vue";
 
 registerSettingsTabComponent("my-tab", MyCustomTab);
@@ -80,7 +80,7 @@ return [
 
 **Anatomie d'un composant tab** : prendre comme template
 `NavigationTab.vue` ou `AppearanceTab.vue` dans
-`src/Core/assets/backend/settings/tabs/`. Définir les props attendues, encapsuler
+`src/Core/assets/suite/settings/tabs/`. Définir les props attendues, encapsuler
 toute la logique de save via un composable local consommant `updatePath`,
 ne pas leak d'état dans `SettingsApp.vue`.
 

@@ -51,7 +51,7 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocume
                 // repeat across spaces ("Devis", "Photos"), and what the
                 // person deleting needs to know is whose space it is.
                 'detail' => $this->translator->trans(
-                    'backend.studio.spaces.usage_detail',
+                    'suite.studio.spaces.usage_detail',
                     ['{space}' => $item->getSpace()->getName()],
                 ),
                 'href' => $this->urlGenerator->generate(

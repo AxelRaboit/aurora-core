@@ -14,7 +14,7 @@ import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { ArrowDown, ArrowUp, Check, Plus, Tags, Trash2, X } from "lucide-vue-next";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";

@@ -1,0 +1,35 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.studio_deliverables'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_deliverables'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/deliverables/DeliverablesApp', {
+    personal: view.personal,
+    shared: view.shared,
+    initialScope: scope,
+    canCreate: view.canCreate,
+    createPath: view.createPath,
+    listsPath: view.listsPath,
+    scopePathTemplate: view.scopePathTemplate,
+    duplicatePathTemplate: view.duplicatePathTemplate,
+    deletePathTemplate: view.deletePathTemplate,
+    linksPathTemplate: view.linksPathTemplate,
+    copyToSpacePathTemplate: view.copyToSpacePathTemplate|default(''),
+    copyTargets: view.copyTargets|default([]),
+    categories: view.categories|default([]),
+    canManageCategories: view.canManageCategories|default(false),
+    categoryCreatePath: view.categoryCreatePath|default(''),
+    categoryUpdatePathTemplate: view.categoryUpdatePathTemplate|default(''),
+    categoryDeletePathTemplate: view.categoryDeletePathTemplate|default(''),
+    categoryReorderPath: view.categoryReorderPath|default(''),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

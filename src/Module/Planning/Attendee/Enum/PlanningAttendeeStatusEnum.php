@@ -25,11 +25,11 @@ enum PlanningAttendeeStatusEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.plannings.attendees.status_'.$this->value;
+        return 'suite.plannings.attendees.status_'.$this->value;
     }
 
     /**
-     * The badge colour, from the same vocabulary the rest of the backend uses.
+     * The badge colour, from the same vocabulary the rest of the suite uses.
      *
      * Grey for an answer that has not come: an unanswered invitation is not a
      * problem, it is a wait, and colouring it amber would ask the organiser to act

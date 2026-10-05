@@ -62,13 +62,13 @@ final class MyControllerTest extends IntegrationTestCase
         parent::setUp();
         $this->client = static::createClient();
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
     }
 
     public function testCreate(): void
     {
-        $this->client->jsonRequest('POST', '/backend/my-route', ['field' => 'value']);
+        $this->client->jsonRequest('POST', '/suite/my-route', ['field' => 'value']);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertTrue($data['success']);

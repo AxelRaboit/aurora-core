@@ -22,7 +22,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  *
  * The root dispatcher route (`frontend_root`) is intentionally NOT
  * matched here - when no front is available, its controller redirects
- * to the backend instead of throwing. Per-controller IsGranted /
+ * to the suite instead of throwing. Per-controller IsGranted /
  * route-level guards still apply on top of this gate.
  */
 final readonly class FrontendRouteGateSubscriber implements EventSubscriberInterface

@@ -241,7 +241,7 @@ final readonly class MarkdownNoteImporter
                     new UploadedFile($temporaire, $base, null, null, true),
                     $bucket,
                 );
-                $imported[$base] = '/backend/notes/markdown/images/'.$filename;
+                $imported[$base] = '/suite/notes/markdown/images/'.$filename;
             } catch (FileException) {
                 // Sautée, pour la raison dite plus haut.
             } finally {

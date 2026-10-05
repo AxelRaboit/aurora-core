@@ -164,7 +164,7 @@ sont **pas** sérialisés dans l'URL. Pratique pour de la recherche optionnelle.
 
 ### Backend - `useImageUpload({ onSuccess, onError, endpoint? })`
 
-Upload image multipart (par défaut `/backend/media/media/upload`).
+Upload image multipart (par défaut `/suite/media/media/upload`).
 
 ```js
 const { uploading, inputRef, uploadFromEvent } = useImageUpload({
@@ -549,11 +549,11 @@ const { items, search, filters, reset } = useClientFilteredList(props.allItems, 
 Remplace les placeholders `__name__` (URI-encoded).
 
 ```js
-buildPath('/backend/platform/users/__id__/edit', { id: 42 });
-// → '/backend/platform/users/42/edit'
+buildPath('/suite/platform/users/__id__/edit', { id: 42 });
+// → '/suite/platform/users/42/edit'
 
-buildPath('/backend/parameters/__key__', { key: 'site/name' });
-// → '/backend/parameters/site%2Fname'
+buildPath('/suite/parameters/__key__', { key: 'site/name' });
+// → '/suite/parameters/site%2Fname'
 ```
 
 C'est le pattern standard d'Aurora pour les URLs avec ID dynamique (les

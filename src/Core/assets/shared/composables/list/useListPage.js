@@ -1,5 +1,5 @@
 import { ref, onMounted } from "vue";
-import { usePaginatedFetch } from "@/shared/composables/http/backend/usePaginatedFetch.js";
+import { usePaginatedFetch } from "@/shared/composables/http/suite/usePaginatedFetch.js";
 import { useUrlSearchSync } from "@/shared/composables/list/useUrlSearchSync.js";
 
 /**

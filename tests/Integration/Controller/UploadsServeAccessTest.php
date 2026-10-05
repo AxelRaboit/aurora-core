@@ -173,7 +173,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
 
     /**
      * The half that is easy to get wrong. `/uploads/…` is not matched by the
-     * admin firewall (`^/(backend|dev)`), so a backend session is never
+     * admin firewall (`^/(suite|dev)`), so a suite session is never
      * restored there: staff are refused by the public endpoint exactly as
      * strangers are, and the gated route is not a convenience but the only
      * address that can work.
@@ -428,7 +428,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
         ob_start();
         $this->client->request(
             HttpMethodEnum::Get->value,
-            $this->urlGenerator->generate('backend_ged_files', ['path' => $relativePath]),
+            $this->urlGenerator->generate('suite_ged_files', ['path' => $relativePath]),
         );
         ob_end_clean();
 
@@ -448,7 +448,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
     private function login(): void
     {
         $user = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
 
         self::assertInstanceOf(CoreUserInterface::class, $user);
 

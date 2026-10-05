@@ -22,11 +22,11 @@ use function sprintf;
  */
 final class NotesRouteGateSubscriberTest extends TestCase
 {
-    private const array ROUTES = ['backend_notes_markdown', 'backend_notes_markdown_update', 'backend_notes_spaces_create', 'notes_share', 'notes_share_note', 'notes_public_space', 'notes_public_image'];
+    private const array ROUTES = ['suite_notes_markdown', 'suite_notes_markdown_update', 'suite_notes_spaces_create', 'notes_share', 'notes_share_note', 'notes_public_space', 'notes_public_image'];
 
     public function testNotesOffCloseTheirScreensAndWhatTheyPublish(): void
     {
-        foreach ([ModuleParameterEnum::NotesBackend, ModuleParameterEnum::NotesMarkdown] as $off) {
+        foreach ([ModuleParameterEnum::NotesSuite, ModuleParameterEnum::NotesMarkdown] as $off) {
             foreach (self::ROUTES as $route) {
                 self::assertTrue($this->blocks($route, $off), sprintf('route %s with %s off', $route, $off->value));
             }
@@ -39,8 +39,8 @@ final class NotesRouteGateSubscriberTest extends TestCase
 
     public function testRoutesOfAnotherModuleAreNotItsBusiness(): void
     {
-        self::assertFalse($this->blocks('backend_studio_spaces', ModuleParameterEnum::NotesBackend));
-        self::assertFalse($this->blocks('workspace_space_notes', ModuleParameterEnum::NotesBackend));
+        self::assertFalse($this->blocks('suite_studio_spaces', ModuleParameterEnum::NotesSuite));
+        self::assertFalse($this->blocks('workspace_space_notes', ModuleParameterEnum::NotesSuite));
     }
 
     private function blocks(string $route, ?ModuleParameterEnum $off): bool

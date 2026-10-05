@@ -25,7 +25,7 @@ final class ThemesControllerTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -57,14 +57,14 @@ final class ThemesControllerTest extends IntegrationTestCase
 
     public function testIndexReturnsOk(): void
     {
-        $this->client->request(HttpMethodEnum::Get->value, $this->urlGenerator->generate('backend_configuration_themes'));
+        $this->client->request(HttpMethodEnum::Get->value, $this->urlGenerator->generate('suite_configuration_themes'));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
     public function testCreateTheme(): void
     {
-        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'backend_configuration_themes_create', [], [
+        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'suite_configuration_themes_create', [], [
             'name' => 'Test Theme',
             'slug' => 'test-theme-create',
             'description' => '',
@@ -87,13 +87,13 @@ final class ThemesControllerTest extends IntegrationTestCase
     {
         $slug = 'test-duplicate-slug-'.uniqid();
 
-        $this->jsonRequest(HttpMethodEnum::Post->value, 'backend_configuration_themes_create', [], [
+        $this->jsonRequest(HttpMethodEnum::Post->value, 'suite_configuration_themes_create', [], [
             'name' => 'First Theme',
             'slug' => $slug,
             'description' => '',
         ]);
 
-        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'backend_configuration_themes_create', [], [
+        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'suite_configuration_themes_create', [], [
             'name' => 'Second Theme',
             'slug' => $slug,
             'description' => '',
@@ -115,7 +115,7 @@ final class ThemesControllerTest extends IntegrationTestCase
     {
         $defaultThemeId = $this->defaultThemeId();
 
-        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'backend_configuration_themes_activate', ['id' => $defaultThemeId]);
+        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'suite_configuration_themes_activate', ['id' => $defaultThemeId]);
 
         self::assertSame(200, $status);
         self::assertTrue($body['success']);
@@ -125,7 +125,7 @@ final class ThemesControllerTest extends IntegrationTestCase
     {
         $slug = 'test-update-'.uniqid();
 
-        [, $createBody] = $this->jsonRequest(HttpMethodEnum::Post->value, 'backend_configuration_themes_create', [], [
+        [, $createBody] = $this->jsonRequest(HttpMethodEnum::Post->value, 'suite_configuration_themes_create', [], [
             'name' => 'Update Me',
             'slug' => $slug,
             'description' => '',
@@ -134,7 +134,7 @@ final class ThemesControllerTest extends IntegrationTestCase
         self::assertTrue($createBody['success'], 'Create step failed: '.json_encode($createBody));
         $themeId = $createBody['theme']['id'];
 
-        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'backend_configuration_themes_update', ['id' => $themeId], [
+        [$status, $body] = $this->jsonRequest(HttpMethodEnum::Post->value, 'suite_configuration_themes_update', ['id' => $themeId], [
             'name' => 'Updated Name',
             'description' => 'new desc',
             'config' => [],
@@ -157,7 +157,7 @@ final class ThemesControllerTest extends IntegrationTestCase
     {
         $slug = 'test-delete-'.uniqid();
 
-        [, $createBody] = $this->jsonRequest(HttpMethodEnum::Post->value, 'backend_configuration_themes_create', [], [
+        [, $createBody] = $this->jsonRequest(HttpMethodEnum::Post->value, 'suite_configuration_themes_create', [], [
             'name' => 'Delete Me',
             'slug' => $slug,
             'description' => '',
@@ -166,7 +166,7 @@ final class ThemesControllerTest extends IntegrationTestCase
         self::assertTrue($createBody['success'], 'Create step failed: '.json_encode($createBody));
         $themeId = $createBody['theme']['id'];
 
-        $this->client->request(HttpMethodEnum::Post->value, $this->urlGenerator->generate('backend_configuration_themes_delete', ['id' => $themeId]), [], [], ['CONTENT_TYPE' => 'application/json']);
+        $this->client->request(HttpMethodEnum::Post->value, $this->urlGenerator->generate('suite_configuration_themes_delete', ['id' => $themeId]), [], [], ['CONTENT_TYPE' => 'application/json']);
         $response = $this->client->getResponse();
 
         self::assertSame(200, $response->getStatusCode());
@@ -178,7 +178,7 @@ final class ThemesControllerTest extends IntegrationTestCase
     {
         $defaultThemeId = $this->defaultThemeId();
 
-        $this->client->request(HttpMethodEnum::Post->value, $this->urlGenerator->generate('backend_configuration_themes_delete', ['id' => $defaultThemeId]), [], [], ['CONTENT_TYPE' => 'application/json']);
+        $this->client->request(HttpMethodEnum::Post->value, $this->urlGenerator->generate('suite_configuration_themes_delete', ['id' => $defaultThemeId]), [], [], ['CONTENT_TYPE' => 'application/json']);
         $response = $this->client->getResponse();
 
         self::assertSame(400, $response->getStatusCode());

@@ -17,7 +17,7 @@ Deux emplacements, selon la portée :
    importé par ce SFC.
 
 ```
-src/Core/assets/backend/sidemenu/
+src/Core/assets/suite/sidemenu/
 ├── AppSidemenu.vue          # import "./sidemenu.css"
 └── sidemenu.css
 ```
@@ -77,5 +77,5 @@ d'application navigateur.
 
 | Section | Fichier(s) | Importé par |
 |---|---|---|
-| Sidemenu admin | `src/Core/assets/backend/sidemenu/sidemenu.css` | `AppSidemenu.vue` |
+| Sidemenu admin | `src/Core/assets/suite/sidemenu/sidemenu.css` | `AppSidemenu.vue` |
 | Éditeur de blocs | `src/Core/assets/shared/components/editor/editor.css` + `blocks.css` | `AppBlockEditor.vue` |

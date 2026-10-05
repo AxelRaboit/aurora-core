@@ -33,6 +33,6 @@ enum PostVisibilityEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.posts.visibility.'.$this->value;
+        return 'suite.posts.visibility.'.$this->value;
     }
 }

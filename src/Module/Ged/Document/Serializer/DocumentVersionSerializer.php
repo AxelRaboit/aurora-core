@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * A previous version is backend-only, always.
+ * A previous version is suite-only, always.
  *
  * Its file is a snapshot no living document points at, so the public
  * endpoint refuses it whatever the document's status is today - and rightly:
@@ -47,6 +47,6 @@ class DocumentVersionSerializer implements DocumentVersionSerializerInterface
             return null;
         }
 
-        return $this->urlGenerator->generate('backend_ged_files', ['path' => $filePath]);
+        return $this->urlGenerator->generate('suite_ged_files', ['path' => $filePath]);
     }
 }

@@ -25,17 +25,17 @@ use Symfony\Component\Yaml\Yaml;
  *
  * Two things are deliberately not flagged:
  *
- *  - keys built by concatenation (`t('backend.modules.' + id)`), which end at
+ *  - keys built by concatenation (`t('suite.modules.' + id)`), which end at
  *    a dot and cannot be resolved statically. What they resolve to is the
  *    caller's business;
  *  - occurrences inside comments, which are documentation rather than code -
  *    `useAutoSave.js` has a `t("xxx.save_failed")` in its usage example.
  *
  * A second pass covers the keys that never reach `t()` at the call site: a
- * row-actions menu takes its wording as `editDescription: "backend.…"` and
+ * row-actions menu takes its wording as `editDescription: "suite.…"` and
  * translates it further down. The first pass saw nothing there, and the
  * menu of a form field showed
- * `backend.forms.fields.row_actions.edit_description` to anybody who opened
+ * `suite.forms.fields.row_actions.edit_description` to anybody who opened
  * it. Any literal starting with a catalogue namespace is a key, wherever it
  * sits - and it may resolve to a branch rather than a sentence, since a
  * literal is also how a component holds the prefix it will complete.
@@ -102,7 +102,7 @@ final class VueTranslationKeyTest extends TestCase
     }
 
     /**
-     * Unlike resolves(), a branch counts: `const prefix = "backend.studio.contracts"`
+     * Unlike resolves(), a branch counts: `const prefix = "suite.studio.contracts"`
      * is a real use of the catalogue, completed a line later.
      *
      * @param array<string, mixed> $catalogue
@@ -122,7 +122,7 @@ final class VueTranslationKeyTest extends TestCase
     }
 
     /**
-     * Every `"backend.…"`, `"shared.…"` or `"frontend.…"` string in the file.
+     * Every `"suite.…"`, `"shared.…"` or `"frontend.…"` string in the file.
      * Those three are the catalogue's roots, so a literal starting with one
      * is a key and nothing else.
      *
@@ -138,7 +138,7 @@ final class VueTranslationKeyTest extends TestCase
         $code = preg_replace(['#/\*.*?\*/#s', '#^\s*//.*$#m'], '', $contents) ?? $contents;
 
         $matches = [];
-        preg_match_all('/[\'"](backend|shared|frontend)((?:\.[a-zA-Z0-9_]+)+)[\'"]/', $code, $matches);
+        preg_match_all('/[\'"](suite|shared|frontend)((?:\.[a-zA-Z0-9_]+)+)[\'"]/', $code, $matches);
 
         $keys = [];
         foreach ($matches[1] as $index => $root) {

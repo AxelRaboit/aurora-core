@@ -6,12 +6,12 @@ namespace Aurora\Module\Platform\User\Enum;
 
 enum UserTypeEnum: string
 {
-    case Backend = 'backend';
+    case Suite = 'suite';
     case Frontend = 'frontend';
 
     public function getLabelKey(): string
     {
-        return 'backend.users.type.'.$this->value;
+        return 'suite.users.type.'.$this->value;
     }
 
     /** @return list<string> */

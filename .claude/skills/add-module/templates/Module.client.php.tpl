@@ -27,18 +27,18 @@ final readonly class {{MODULE}}Module implements ModuleInterface, ModuleTogglePr
 
     public function getNavSections(): array
     {
-        if (!$this->{{MODULE_VAR}}Context->isBackendEnabled()) {
+        if (!$this->{{MODULE_VAR}}Context->isSuiteEnabled()) {
             return [];
         }
 
         return [
             new NavSection('{{MODULE_ID}}', [
                 new NavItem(
-                    'backend_{{MODULE_ID}}',
-                    'backend.nav.{{MODULE_ID}}',
+                    'suite_{{MODULE_ID}}',
+                    'suite.nav.{{MODULE_ID}}',
                     '{{ICON}}',
                     requiredPrivilege: '{{MODULE_ID}}.use',
-                    descriptionKey: 'backend.nav.{{MODULE_ID}}_description',
+                    descriptionKey: 'suite.nav.{{MODULE_ID}}_description',
                 ),
             ], priority: {{PRIORITY}}),
         ];
@@ -49,11 +49,11 @@ final readonly class {{MODULE}}Module implements ModuleInterface, ModuleTogglePr
         return [
             new NavSection('{{MODULE_ID}}', [
                 new NavItem(
-                    'backend_{{MODULE_ID}}',
-                    'backend.nav.{{MODULE_ID}}',
+                    'suite_{{MODULE_ID}}',
+                    'suite.nav.{{MODULE_ID}}',
                     '{{ICON}}',
                     requiredPrivilege: '{{MODULE_ID}}.use',
-                    descriptionKey: 'backend.nav.{{MODULE_ID}}_description',
+                    descriptionKey: 'suite.nav.{{MODULE_ID}}_description',
                 ),
             ], priority: {{PRIORITY}}),
         ];
@@ -63,9 +63,9 @@ final readonly class {{MODULE}}Module implements ModuleInterface, ModuleTogglePr
     {
         return [
             new ModuleToggle(
-                key: {{MODULE}}Context::BACKEND_KEY,
-                labelKey: 'backend.modules.{{MODULE_ID}}',
-                descriptionKey: 'backend.modules.{{MODULE_ID}}_description',
+                key: {{MODULE}}Context::SUITE_KEY,
+                labelKey: 'suite.modules.{{MODULE_ID}}',
+                descriptionKey: 'suite.modules.{{MODULE_ID}}_description',
                 moduleId: '{{MODULE_ID}}',
             ),
         ];

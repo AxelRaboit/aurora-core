@@ -15,7 +15,7 @@ et leur méthode HTTP :
 | `_update`    | `POST` | **API** JSON - endpoint que le front fetch pour appliquer la sauvegarde                    | `JsonResponse` |
 
 Exemples canoniques :
-- `Photo\Gallery` : `GET /backend/photo/galleries/{id}/edit` + `POST /backend/photo/galleries/{id}/update`
+- `Photo\Gallery` : `GET /suite/photo/galleries/{id}/edit` + `POST /suite/photo/galleries/{id}/update`
 - `Editorial\Post` : pareil depuis le refacto split page/API
 
 **Why** : Aurora est Symfony + Vue avec un split franc page-Twig / API-JSON.

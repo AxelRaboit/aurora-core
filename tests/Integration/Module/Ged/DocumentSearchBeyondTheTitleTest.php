@@ -93,7 +93,7 @@ final class DocumentSearchBeyondTheTitleTest extends IntegrationTestCase
 
         $this->entityManager->flush();
 
-        $admin = $container->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $container->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -191,7 +191,7 @@ final class DocumentSearchBeyondTheTitleTest extends IntegrationTestCase
      */
     public function testTheListingReadsTheNewFiltersFromItsAddress(): void
     {
-        $this->client->request('GET', '/backend/ged/documents/list', [
+        $this->client->request('GET', '/suite/ged/documents/list', [
             'search' => $this->marker,
             'searchIn' => 'title',
             'categoryId' => 'none',

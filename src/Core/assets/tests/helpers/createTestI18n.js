@@ -54,7 +54,7 @@ const baseMessages = {
             de: "Deutsch",
         },
     },
-    backend: {
+    suite: {
         settings: {
             saved: "Réglages sauvegardés.",
             confirmPasswordInvalid: "Mot de passe incorrect.",

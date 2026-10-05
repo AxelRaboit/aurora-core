@@ -37,9 +37,9 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // One account per side. Same address on purpose - the backend and the
+        // One account per side. Same address on purpose - the suite and the
         // frontend are two logins, and the unique key is the pair.
-        $this->account($manager, UserTypeEnum::Backend);
+        $this->account($manager, UserTypeEnum::Suite);
         $this->account($manager, UserTypeEnum::Frontend);
 
         $manager->flush();

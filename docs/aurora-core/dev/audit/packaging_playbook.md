@@ -154,7 +154,7 @@ aurora_tools:
     type: attribute
 ```
 
-(Validé : sans cette entrée, `debug:router` ne montre aucune route `backend_tools_*` ;
+(Validé : sans cette entrée, `debug:router` ne montre aucune route `suite_tools_*` ;
 avec, toutes résolvent.) C'est une étape de **migration côté client** à documenter.
 
 ## 3. Outillage split
@@ -261,7 +261,7 @@ génère un module virtuel (no-op en monorepo).
 `src/Module`), découverte vendored unit-testée (clés `./tools/...`,
 `./personalfinance/...` tirets aplatis, `aurora-core` exclu, `node_modules`
 sauté), `lint-js` + 860 tests JS verts. Mapping **identique** à celui du
-monorepo → `vue_component('tools/backend/vault/VaultApp')` résout pareil en dev
+monorepo → `vue_component('tools/suite/vault/VaultApp')` résout pareil en dev
 et en vendored. **Reste** : valider l'install réelle (client avec aurora-core +
 aurora-tools vendored séparément).
 

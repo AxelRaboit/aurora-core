@@ -12,7 +12,7 @@ use Aurora\Module\Ged\GedContext;
  * sub-module: switching off "Tags" alone closes the tag screens and leaves
  * the documents open, as Editorial and Studio do for theirs.
  *
- * Two addresses stay with the top-level toggle only. `backend_ged_files`
+ * Two addresses stay with the top-level toggle only. `suite_ged_files`
  * serves draft files to other modules too (a space's attachments, a deck's
  * pictures): switching off the documents screen must not break them. And the
  * permalink `/document/{id}` is left open like `/uploads/{path}`, whose file
@@ -25,19 +25,19 @@ final readonly class GedRouteGateSubscriber extends AbstractModuleRouteGateSubsc
 
     protected function routeNamespaces(): array
     {
-        return ['backend_ged_', 'frontend_ged_'];
+        return ['suite_ged_', 'frontend_ged_'];
     }
 
     protected function gates(): array
     {
         return [
-            'backend_ged_' => $this->gedContext->isBackendEnabled(),
-            'backend_ged_documents' => $this->gedContext->isDocumentsEnabled(),
+            'suite_ged_' => $this->gedContext->isSuiteEnabled(),
+            'suite_ged_documents' => $this->gedContext->isDocumentsEnabled(),
             // Pexels fills the documents library: no documents, no import.
-            'backend_ged_pexels' => $this->gedContext->isDocumentsEnabled(),
-            'backend_ged_categories' => $this->gedContext->isCategoriesEnabled(),
-            'backend_ged_tags' => $this->gedContext->isTagsEnabled(),
-            'backend_ged_folders' => $this->gedContext->isFoldersEnabled(),
+            'suite_ged_pexels' => $this->gedContext->isDocumentsEnabled(),
+            'suite_ged_categories' => $this->gedContext->isCategoriesEnabled(),
+            'suite_ged_tags' => $this->gedContext->isTagsEnabled(),
+            'suite_ged_folders' => $this->gedContext->isFoldersEnabled(),
             'frontend_ged_' => $this->gedContext->isFrontendEnabled(),
         ];
     }

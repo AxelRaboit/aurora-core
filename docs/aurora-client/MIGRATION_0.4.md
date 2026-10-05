@@ -22,15 +22,15 @@ miroir de la structure PHP.
 | Avant | Après |
 |---|---|
 | `assets/Module/<X>/...` | `src/Module/<X>/assets/...` |
-| `assets/Core/backend/...` | `src/Core/assets/backend/...` |
+| `assets/Core/suite/...` | `src/Core/assets/suite/...` |
 | `assets/Core/frontend/...` | `src/Core/assets/frontend/...` |
 | `assets/Core/utils/...` | `src/Core/assets/utils/...` |
 | `assets/shared/...` | `src/Core/assets/shared/...` |
 | `assets/locales/generated/...` | `src/Core/assets/locales/generated/...` |
 | `assets/css/...` (sauf modules) | `src/Core/assets/css/...` |
-| `assets/css/modules/notes/markdown/preview.css` | `src/Module/Notes/assets/backend/markdown/components/preview.css` |
-| `assets/css/modules/editorial/prose.css` | `src/Module/Editorial/assets/backend/posts/prose.css` |
-| `assets/css/core/sidemenu.css` | `src/Core/assets/backend/sidemenu/sidemenu.css` |
+| `assets/css/modules/notes/markdown/preview.css` | `src/Module/Notes/assets/suite/markdown/components/preview.css` |
+| `assets/css/modules/editorial/prose.css` | `src/Module/Editorial/assets/suite/posts/prose.css` |
+| `assets/css/core/sidemenu.css` | `src/Core/assets/suite/sidemenu/sidemenu.css` |
 | `assets/controllers/` | `src/Core/assets/stimulus/` (renommé pour éviter le clash avec `Controller/` PHP) |
 | `assets/controllers.json` | `src/Core/assets/stimulus.json` (override Symfony : `config/packages/stimulus.yaml`) |
 | `assets/tests/` | `src/Core/assets/tests/` |
@@ -96,23 +96,23 @@ pnpm run build
 
 ### Templates + assets (2e vague de la promotion 0.4)
 
-Les dossiers `templates/Core/backend/<X>/` et `assets/Core/backend/<X>/` ont
+Les dossiers `templates/Core/suite/<X>/` et `assets/Core/suite/<X>/` ont
 aussi été déplacés vers les modules promus :
 
 | Avant | Après |
 |---|---|
-| `templates/Core/backend/{document-categories,auth,services,users}/` | `templates/Module/Platform/backend/<X>/` |
-| `templates/Core/backend/{settings,themes}/` | `templates/Module/Configuration/backend/<X>/` |
-| `templates/Core/backend/media/` | `templates/Module/Media/backend/media/` |
-| `templates/Core/backend/{dashboard,profile}/` | `templates/Module/General/backend/<X>/` |
-| `templates/Core/backend/dev/` | `templates/Module/Dev/backend/` (flattened - plus de `dev/` middle dir) |
-| `assets/Core/backend/<X>/` (mêmes 10) | `src/Module/<NewModule>/assets/backend/<X>/` (mêmes 10) |
-| `assets/Core/backend/AdministrationApp.vue` | `src/Module/Dev/assets/backend/AdministrationApp.vue` |
+| `templates/Core/suite/{document-categories,auth,services,users}/` | `templates/Module/Platform/suite/<X>/` |
+| `templates/Core/suite/{settings,themes}/` | `templates/Module/Configuration/suite/<X>/` |
+| `templates/Core/suite/media/` | `templates/Module/Media/suite/media/` |
+| `templates/Core/suite/{dashboard,profile}/` | `templates/Module/General/suite/<X>/` |
+| `templates/Core/suite/dev/` | `templates/Module/Dev/suite/` (flattened - plus de `dev/` middle dir) |
+| `assets/Core/suite/<X>/` (mêmes 10) | `src/Module/<NewModule>/assets/suite/<X>/` (mêmes 10) |
+| `assets/Core/suite/AdministrationApp.vue` | `src/Module/Dev/assets/suite/AdministrationApp.vue` |
 
-**Restent à `Core/backend/`** (templates) : `layout.html.twig`,
+**Restent à `Core/suite/`** (templates) : `layout.html.twig`,
 `base_guest.html.twig`. Côté assets, l'équivalent sidemenu/notifications a
-été déplacé sous `src/Core/assets/backend/sidemenu/` et
-`src/Core/assets/backend/notifications/` lors de la suppression du root
+été déplacé sous `src/Core/assets/suite/sidemenu/` et
+`src/Core/assets/suite/notifications/` lors de la suppression du root
 `assets/` (voir section "Assets co-location" plus bas).
 
 ### Refs côté client à mettre à jour
@@ -121,41 +121,41 @@ Pour les overrides Vue/Twig qui réfèrent ces paths :
 
 | Avant (JS imports) | Après |
 |---|---|
-| `@core/backend/document-categories/<X>` | `@platform/backend/document-categories/<X>` |
-| `@core/backend/auth/<X>` | `@platform/backend/auth/<X>` |
-| `@core/backend/services/<X>` | `@platform/backend/services/<X>` |
-| `@core/backend/users/<X>` | `@platform/backend/users/<X>` |
-| `@core/backend/settings/<X>` | `@configuration/backend/settings/<X>` |
-| `@core/backend/themes/<X>` | `@configuration/backend/themes/<X>` |
-| `@core/backend/media/<X>` | `@media/backend/media/<X>` |
-| `@core/backend/dashboard/<X>` | `@general/backend/dashboard/<X>` |
-| `@core/backend/profile/<X>` | `@general/backend/profile/<X>` |
-| `@core/backend/dev/<X>` | `@dev/backend/<X>` |
-| `@/Core/backend/<X>/<feature>` (variant) | `@/Module/<NewModule>/backend/<X>/<feature>` |
+| `@core/suite/document-categories/<X>` | `@platform/suite/document-categories/<X>` |
+| `@core/suite/auth/<X>` | `@platform/suite/auth/<X>` |
+| `@core/suite/services/<X>` | `@platform/suite/services/<X>` |
+| `@core/suite/users/<X>` | `@platform/suite/users/<X>` |
+| `@core/suite/settings/<X>` | `@configuration/suite/settings/<X>` |
+| `@core/suite/themes/<X>` | `@configuration/suite/themes/<X>` |
+| `@core/suite/media/<X>` | `@media/suite/media/<X>` |
+| `@core/suite/dashboard/<X>` | `@general/suite/dashboard/<X>` |
+| `@core/suite/profile/<X>` | `@general/suite/profile/<X>` |
+| `@core/suite/dev/<X>` | `@dev/suite/<X>` |
+| `@/Core/suite/<X>/<feature>` (variant) | `@/Module/<NewModule>/suite/<X>/<feature>` |
 
 Côté Twig (overrides templates) :
 
 | Avant | Après |
 |---|---|
-| `{% extends '@Core/backend/document-categories/...' %}` | `{% extends '@Platform/backend/document-categories/...' %}` |
-| `{{ vue_component('core/backend/<X>/...') }}` | `{{ vue_component('<lowercase>/backend/<X>/...') }}` |
-| `templates/Core/backend/<X>/` (overrides locaux) | `templates/Module/<NewModule>/backend/<X>/` |
+| `{% extends '@Core/suite/document-categories/...' %}` | `{% extends '@Platform/suite/document-categories/...' %}` |
+| `{{ vue_component('core/suite/<X>/...') }}` | `{{ vue_component('<lowercase>/suite/<X>/...') }}` |
+| `templates/Core/suite/<X>/` (overrides locaux) | `templates/Module/<NewModule>/suite/<X>/` |
 
 Snippet sed bulk côté client :
 
 ```bash
-grep -rl "@core/backend/\(document-categories\|auth\|services\|users\)" assets src 2>/dev/null \
+grep -rl "@core/suite/\(document-categories\|auth\|services\|users\)" assets src 2>/dev/null \
   | xargs sed -i \
-    -e 's|@core/backend/document-categories/|@platform/backend/document-categories/|g' \
-    -e 's|@core/backend/auth/|@platform/backend/auth/|g' \
-    -e 's|@core/backend/services/|@platform/backend/services/|g' \
-    -e 's|@core/backend/users/|@platform/backend/users/|g' \
-    -e 's|@core/backend/settings/|@configuration/backend/settings/|g' \
-    -e 's|@core/backend/themes/|@configuration/backend/themes/|g' \
-    -e 's|@core/backend/media/|@media/backend/media/|g' \
-    -e 's|@core/backend/dashboard/|@general/backend/dashboard/|g' \
-    -e 's|@core/backend/profile/|@general/backend/profile/|g' \
-    -e 's|@core/backend/dev/|@dev/backend/|g'
+    -e 's|@core/suite/document-categories/|@platform/suite/document-categories/|g' \
+    -e 's|@core/suite/auth/|@platform/suite/auth/|g' \
+    -e 's|@core/suite/services/|@platform/suite/services/|g' \
+    -e 's|@core/suite/users/|@platform/suite/users/|g' \
+    -e 's|@core/suite/settings/|@configuration/suite/settings/|g' \
+    -e 's|@core/suite/themes/|@configuration/suite/themes/|g' \
+    -e 's|@core/suite/media/|@media/suite/media/|g' \
+    -e 's|@core/suite/dashboard/|@general/suite/dashboard/|g' \
+    -e 's|@core/suite/profile/|@general/suite/profile/|g' \
+    -e 's|@core/suite/dev/|@dev/suite/|g'
 ```
 
 > **Aliases Vite** : 5 nouveaux aliases ont été ajoutés à `aliases.js`

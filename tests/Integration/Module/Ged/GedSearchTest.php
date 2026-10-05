@@ -8,7 +8,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
-use Aurora\Module\Ged\Search\GedBackendSearchProvider;
+use Aurora\Module\Ged\Search\GedSuiteSearchProvider;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -37,7 +37,7 @@ final class GedSearchTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private GedBackendSearchProvider $provider;
+    private GedSuiteSearchProvider $provider;
 
     private SettingRepository $settings;
 
@@ -53,7 +53,7 @@ final class GedSearchTest extends IntegrationTestCase
         $this->client = static::createClient();
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->provider = $container->get(GedBackendSearchProvider::class);
+        $this->provider = $container->get(GedSuiteSearchProvider::class);
         $this->settings = $container->get(SettingRepository::class);
 
         $this->needle = 'licorne'.bin2hex(random_bytes(4));
@@ -116,7 +116,7 @@ final class GedSearchTest extends IntegrationTestCase
         $user
             ->setEmail('recherche-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Compte de test')
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setPassword('irrelevant')
             ->setPrivileges($privileges);
 

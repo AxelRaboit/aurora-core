@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * A publication as it will look, before it looks that way to anybody else.
  *
  * **Deliberately unauthenticated.** The point is to send the address to somebody
- * who cannot sign in - a reviewer without a backend account, a client waiting on a
+ * who cannot sign in - a reviewer without a suite account, a client waiting on a
  * page - and requiring a session would leave them exactly where they were. The URL
  * is the credential: 32 random bytes, minted on request, and good for a week.
  *

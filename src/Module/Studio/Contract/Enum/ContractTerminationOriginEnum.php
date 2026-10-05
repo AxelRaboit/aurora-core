@@ -24,7 +24,7 @@ enum ContractTerminationOriginEnum: string
 
     public function getLabel(): string
     {
-        return 'backend.studio.contracts.termination.origin.'.$this->value;
+        return 'suite.studio.contracts.termination.origin.'.$this->value;
     }
 
     /** @return list<string> */

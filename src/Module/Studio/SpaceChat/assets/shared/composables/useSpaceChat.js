@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
  * A space's conversation, and the three ways it can stay up to date.

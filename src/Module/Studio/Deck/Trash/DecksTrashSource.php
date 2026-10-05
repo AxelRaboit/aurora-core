@@ -55,17 +55,17 @@ final readonly class DecksTrashSource implements TrashSourceInterface
 
         return new TrashSummary(
             key: 'studio_decks',
-            labelKey: 'backend.nav.studio_decks',
+            labelKey: 'suite.nav.studio_decks',
             sectionId: 'studio',
             icon: 'presentation',
             count: count($rows),
             items: array_map($this->present(...), array_slice($rows, 0, $limit)),
             oldestDeletedAt: $oldest,
-            restoreRoute: 'backend_studio_decks_restore',
-            forceDeleteRoute: 'backend_studio_decks_force_delete',
-            emptyTrashRoute: 'backend_studio_decks_empty_trash',
+            restoreRoute: 'suite_studio_decks_restore',
+            forceDeleteRoute: 'suite_studio_decks_force_delete',
+            emptyTrashRoute: 'suite_studio_decks_empty_trash',
             actionPrivilege: 'studio.decks.delete',
-            listRoute: 'backend_studio_decks',
+            listRoute: 'suite_studio_decks',
         );
     }
 

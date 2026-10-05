@@ -26,7 +26,7 @@ final class ThemeFontEnumTest extends TestCase
 
     private const string THEME_CSS = __DIR__.'/../../../../../../src/Core/assets/css/base/theme.css';
 
-    private const string EDIT_JS = __DIR__.'/../../../../../../src/Module/Configuration/assets/backend/themes/composables/useThemesEdit.js';
+    private const string EDIT_JS = __DIR__.'/../../../../../../src/Module/Configuration/assets/suite/themes/composables/useThemesEdit.js';
 
     private const string TRANSLATIONS = __DIR__.'/../../../../../../src/Module/Configuration/Theme/translations/messages.%s.yaml';
 
@@ -67,7 +67,7 @@ final class ThemeFontEnumTest extends TestCase
     public static function locales(): iterable
     {
         // L'espagnol du back-office est encore en repli français, donc rien à
-        // y vérifier tant qu'il n'a pas sa section `backend`.
+        // y vérifier tant qu'il n'a pas sa section `suite`.
         yield 'fr' => ['fr'];
         yield 'en' => ['en'];
     }
@@ -77,7 +77,7 @@ final class ThemeFontEnumTest extends TestCase
     {
         /** @var array<string, mixed> $catalogue */
         $catalogue = Yaml::parseFile(sprintf(self::TRANSLATIONS, $locale));
-        $descriptions = $catalogue['backend']['themes']['fonts'] ?? null;
+        $descriptions = $catalogue['suite']['themes']['fonts'] ?? null;
 
         self::assertIsArray($descriptions);
 
@@ -89,8 +89,8 @@ final class ThemeFontEnumTest extends TestCase
             );
         }
 
-        self::assertArrayHasKey('font_family', $catalogue['backend']['themes']);
-        self::assertArrayHasKey('font_preview', $catalogue['backend']['themes']);
+        self::assertArrayHasKey('font_family', $catalogue['suite']['themes']);
+        self::assertArrayHasKey('font_preview', $catalogue['suite']['themes']);
     }
 
     /**

@@ -31,7 +31,7 @@ use function array_map;
  *
  * **Deliberately unauthenticated**, on the same terms as the `.ics` feed next
  * door: the URL is the credential, it is opt-in, it is 32 random bytes, and it can
- * be revoked or left to expire. Outside `/backend` so the firewall's public
+ * be revoked or left to expire. Outside `/suite` so the firewall's public
  * fallback applies rather than a hole punched in the admin rules - an exception
  * there is read by everyone who audits that file.
  *
@@ -147,7 +147,7 @@ final class PlanningShareController extends AbstractController
      */
     private function resolve(string $token): ?PlanningShareLinkInterface
     {
-        if (!$this->planningContext->isBackendEnabled()) {
+        if (!$this->planningContext->isSuiteEnabled()) {
             return null;
         }
 

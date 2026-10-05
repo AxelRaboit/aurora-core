@@ -64,7 +64,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
 
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -108,7 +108,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->update($id, ['visibleToClient' => true]);
         self::assertFalse($this->find($id)->isVisibleToClient());
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d', $id));
         self::assertResponseIsSuccessful();
     }
 
@@ -123,10 +123,10 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertNotContains($id, array_column($this->lists()['personal'], 'id'));
         self::assertNotContains($id, array_column($this->lists()['shared'], 'id'));
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d', $id));
         self::assertResponseStatusCodeSame(404);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/update', $id), ['title' => 'Repris']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/update', $id), ['title' => 'Repris']);
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -139,10 +139,10 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->client->loginUser($reader, 'admin');
         self::assertContains($id, array_column($this->lists()['shared'], 'id'));
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d', $id));
         self::assertResponseIsSuccessful();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/update', $id), $this->payload($id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/update', $id), $this->payload($id));
         self::assertResponseStatusCodeSame(403);
 
         $editor = $this->accountWith(['studio.deliverables.view', 'studio.deliverables.edit']);
@@ -158,13 +158,13 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->client->loginUser($author, 'admin');
         $id = $this->create('Stratégie', DeliverableScopeEnum::Personal);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/scope', $id), ['scope' => 'shared']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/scope', $id), ['scope' => 'shared']);
         self::assertResponseIsSuccessful();
         self::assertSame(DeliverableScopeEnum::Shared, $this->find($id)->getScope());
 
         $other = $this->accountWith(self::TEAM);
         $this->client->loginUser($other, 'admin');
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/scope', $id), ['scope' => 'personal']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/scope', $id), ['scope' => 'personal']);
         self::assertResponseStatusCodeSame(403);
 
         // Envoyé avec un enregistrement, le rayon est ignoré pour qui n'est pas l'auteur.
@@ -186,11 +186,11 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->update($shared, ['title' => 'Partagé, repris par son auteur']);
         self::assertSame('Partagé, repris par son auteur', $this->find($shared)->getTitle());
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/delete', $shared));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/delete', $shared));
         self::assertResponseStatusCodeSame(403);
 
         $personal = $this->create('Brouillon à jeter', DeliverableScopeEnum::Personal);
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/delete', $personal));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/delete', $personal));
         self::assertResponseIsSuccessful();
 
         // Put in the trash, not destroyed: the author's own draft is theirs to bin
@@ -203,7 +203,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->accountWith(['studio.deliverables.view']), 'admin');
 
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'Interdit', 'scope' => 'personal']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Interdit', 'scope' => 'personal']);
         self::assertResponseStatusCodeSame(403);
     }
 
@@ -211,7 +211,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->accountWith(['studio.spaces.view']), 'admin');
 
-        $this->client->request('GET', '/backend/studio/deliverables');
+        $this->client->request('GET', '/suite/studio/deliverables');
         self::assertResponseStatusCodeSame(403);
     }
 
@@ -232,7 +232,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertContains($id, array_column($this->lists()['personal'], 'id'));
 
         // Le partager le rattache à qui l'a recueilli.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/scope', $id), ['scope' => 'shared']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/scope', $id), ['scope' => 'shared']);
         self::assertResponseIsSuccessful();
         self::assertSame($this->admin->getId(), $this->find($id)->getOwner()?->getId());
     }
@@ -242,7 +242,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     {
         $id = $this->create('À envoyer', DeliverableScopeEnum::Shared);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Marie']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Marie']);
         self::assertResponseIsSuccessful();
         $links = json_decode((string) $this->client->getResponse()->getContent(), true)['links'];
         self::assertCount(1, $links);
@@ -257,7 +257,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->client->request('GET', $path);
         self::assertResponseStatusCodeSame(404);
 
-        $this->client->request('GET', '/backend/studio/deliverables');
+        $this->client->request('GET', '/suite/studio/deliverables');
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -273,7 +273,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertSame(["Dans l'espace"], array_column($rows, 'title'), 'a Studio deliverable never shows in a space');
         $inSpace = (int) $rows[0]['id'];
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d', $inSpace));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d', $inSpace));
         self::assertResponseStatusCodeSame(404);
 
         $this->client->request('GET', sprintf('/workspace/%d/deliverables/%d', $space->getId(), $standalone));
@@ -287,7 +287,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
 
         $teammate = $this->accountWith(self::TEAM);
         $this->client->loginUser($teammate, 'admin');
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/duplicate', $id), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/duplicate', $id), []);
         self::assertResponseIsSuccessful();
         $copyId = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
 
@@ -304,7 +304,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->update($id, ['summary' => 'À remplir pour chaque client']);
         $space = $this->givenSpace();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId(), 'title' => 'Audit du client']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId(), 'title' => 'Audit du client']);
         self::assertResponseIsSuccessful();
         $editPath = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath'];
         self::assertStringStartsWith(sprintf('/workspace/%d/deliverables/', $space->getId()), (string) parse_url($editPath, PHP_URL_PATH));
@@ -330,16 +330,16 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $id = $this->create('Gabarit partagé', DeliverableScopeEnum::Shared);
         $space = $this->givenSpace();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => 999999]);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => 999999]);
         self::assertResponseStatusCodeSame(404);
 
         $teammate = $this->accountWith([...self::TEAM, 'studio.spaces.view', 'studio.spaces.edit']);
         $this->client->loginUser($teammate, 'admin');
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
         self::assertResponseStatusCodeSame(404, 'a space the teammate is not a member of stays unknown to them');
 
         $this->client->loginUser($this->admin, 'admin');
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => (string) $space->getId()]);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => (string) $space->getId()]);
         self::assertResponseIsSuccessful();
         $copyId = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
         self::assertSame('Gabarit partagé', $this->find($copyId)->getTitle());
@@ -356,7 +356,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/deliverables/%d/copy-to-studio', $space->getId(), $inSpace), []);
         self::assertResponseIsSuccessful();
         $editPath = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath'];
-        self::assertStringStartsWith('/backend/studio/deliverables/', (string) parse_url($editPath, PHP_URL_PATH));
+        self::assertStringStartsWith('/suite/studio/deliverables/', (string) parse_url($editPath, PHP_URL_PATH));
 
         $copy = $this->find((int) basename($editPath));
         self::assertNull($copy->getSpace());
@@ -389,7 +389,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $audit = $this->createCategory('Audit', '#bd4a55');
         $strategy = $this->createCategory('Stratégie', null);
 
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'Modèle d\'audit', 'scope' => 'personal', 'categoryId' => $audit]);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Modèle d\'audit', 'scope' => 'personal', 'categoryId' => $audit]);
         self::assertResponseIsSuccessful();
         $id = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
         self::assertSame($audit, $this->find($id)->getCategory()?->getId());
@@ -400,11 +400,11 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $row = $this->rowOf($id);
         self::assertSame(['id' => $strategy, 'name' => 'Stratégie', 'color' => null, 'position' => 2], $row['category']);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/categories/%d/update', $strategy), ['name' => 'Stratégie éditoriale', 'color' => '#2a2050']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/categories/%d/update', $strategy), ['name' => 'Stratégie éditoriale', 'color' => '#2a2050']);
         self::assertResponseIsSuccessful();
         self::assertSame('Stratégie éditoriale', $this->rowOf($id)['category']['name']);
 
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/reorder', ['ids' => [$strategy, $audit]]);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/categories/reorder', ['ids' => [$strategy, $audit]]);
         self::assertResponseIsSuccessful();
         $categories = json_decode((string) $this->client->getResponse()->getContent(), true)['categories'];
         self::assertSame([$strategy, $audit], array_column($categories, 'id'));
@@ -421,7 +421,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $id = $this->create('Modèle', DeliverableScopeEnum::Shared);
         $this->update($id, ['categoryId' => $audit]);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/categories/%d/delete', $audit), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/categories/%d/delete', $audit), []);
         self::assertResponseIsSuccessful();
 
         self::assertNull($this->find($id)->getCategory());
@@ -431,10 +431,10 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     /** Une catégorie a un nom, et une couleur valide quand elle en a une. */
     public function testACategoryNeedsANameAndAValidColour(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => '  ']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/categories/create', ['name' => '  ']);
         self::assertResponseStatusCodeSame(422);
 
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => 'Audit', 'color' => 'red']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/categories/create', ['name' => 'Audit', 'color' => 'red']);
         self::assertResponseStatusCodeSame(422);
     }
 
@@ -446,9 +446,9 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $author = $this->accountWith(['studio.deliverables.view', 'studio.deliverables.create']);
         $this->client->loginUser($author, 'admin');
 
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => 'Proposition']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/categories/create', ['name' => 'Proposition']);
         self::assertResponseStatusCodeSame(403);
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/categories/%d/delete', $audit), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/categories/%d/delete', $audit), []);
         self::assertResponseStatusCodeSame(403);
 
         $id = $this->create('Mon brouillon', DeliverableScopeEnum::Personal);
@@ -463,12 +463,12 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $id = $this->create('Modèle d\'audit', DeliverableScopeEnum::Shared);
         $this->update($id, ['categoryId' => $audit]);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/duplicate', $id), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/duplicate', $id), []);
         $copy = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
         self::assertSame($audit, $this->find($copy)->getCategory()?->getId());
 
         $space = $this->givenSpace();
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
         $inSpace = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
         self::assertNull($this->find($inSpace)->getCategory());
     }
@@ -484,12 +484,12 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertSame($image, $this->find($id)->getThumbnail()?->getId());
         self::assertNotNull($this->rowOf($id)['thumbnailUrl']);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/duplicate', $id), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/duplicate', $id), []);
         $copy = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
         self::assertSame($image, $this->find($copy)->getThumbnail()?->getId());
 
         $space = $this->givenSpace();
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
         $inSpace = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
         self::assertSame($image, $this->find($inSpace)->getThumbnail()?->getId());
 
@@ -512,7 +512,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
 
     private function createCategory(string $name, ?string $color): int
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => $name, 'color' => $color]);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/categories/create', ['name' => $name, 'color' => $color]);
         self::assertResponseIsSuccessful();
 
         return (int) json_decode((string) $this->client->getResponse()->getContent(), true)['categoryId'];
@@ -533,7 +533,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
 
     private function create(string $title, DeliverableScopeEnum $scope): int
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => $title, 'scope' => $scope->value]);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => $title, 'scope' => $scope->value]);
         self::assertResponseIsSuccessful();
 
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -550,7 +550,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     /** @return array{personal: list<array<string, mixed>>, shared: list<array<string, mixed>>} */
     private function lists(): array
     {
-        $this->client->request('GET', '/backend/studio/deliverables/lists');
+        $this->client->request('GET', '/suite/studio/deliverables/lists');
         self::assertResponseIsSuccessful();
 
         return json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -559,7 +559,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     /** @param array<string, mixed> $changes */
     private function update(int $id, array $changes): void
     {
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/update', $id), [...$this->payload($id), ...$changes]);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/update', $id), [...$this->payload($id), ...$changes]);
         self::assertResponseIsSuccessful();
     }
 
@@ -598,7 +598,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $user
             ->setEmail('livrables-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Équipier '.bin2hex(random_bytes(2)))
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPassword('irrelevant')
             ->setPrivileges($privileges);
@@ -616,7 +616,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace livrables',
             'customerId' => $customer->getId(),
             'timezone' => 'Europe/Paris',

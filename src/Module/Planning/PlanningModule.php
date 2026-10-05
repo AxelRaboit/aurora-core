@@ -44,7 +44,7 @@ final readonly class PlanningModule implements ModuleInterface, ModuleNavViewPro
 
     public function getNavSections(): array
     {
-        if (!$this->planningContext->isBackendEnabled()) {
+        if (!$this->planningContext->isSuiteEnabled()) {
             return [];
         }
 
@@ -55,11 +55,11 @@ final readonly class PlanningModule implements ModuleInterface, ModuleNavViewPro
     private function calendarNavItem(): NavItem
     {
         return new NavItem(
-            'backend_planning_calendar',
-            'backend.nav.planning',
+            'suite_planning_calendar',
+            'suite.nav.planning',
             'calendar-days',
             requiredPrivilege: 'planning.calendars.view',
-            descriptionKey: 'backend.nav.planning_description',
+            descriptionKey: 'suite.nav.planning_description',
         );
     }
 
@@ -85,21 +85,21 @@ final readonly class PlanningModule implements ModuleInterface, ModuleNavViewPro
      */
     public function getModuleNavView(): ?ModuleNavView
     {
-        if (!$this->planningContext->isBackendEnabled()) {
+        if (!$this->planningContext->isSuiteEnabled()) {
             return null;
         }
 
         return new ModuleNavView(
             'planning',
             [new ModuleNavGroup('destinations', [$this->calendarNavItem()])],
-            panelComponent: 'planning/backend/planning/CalendarListPanel',
+            panelComponent: 'planning/suite/planning/CalendarListPanel',
         );
     }
 
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::PlanningBackend->toToggle(),
+            ModuleParameterEnum::PlanningSuite->toToggle(),
         ];
     }
 }

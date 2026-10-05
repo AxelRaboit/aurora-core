@@ -107,7 +107,7 @@ Twig, Validation, Enum, EventSubscriber, DataFixtures.
 
 **Menu** et **MountPoint** ont été déplacés (vague follow-up de 0.4.0) :
 - `src/Core/Menu/` → `src/Module/Editorial/Menu/` (le NavItem
-  `backend_editorial_menus` est déjà déclaré dans `EditorialModule` →
+  `suite_editorial_menus` est déjà déclaré dans `EditorialModule` →
   Menu = sous-module d'Editorial)
 - `src/Core/MountPoint/` → `src/Module/Dev/MountPoint/` (seul controller
   exposé est `Dev/MountPointsController`)

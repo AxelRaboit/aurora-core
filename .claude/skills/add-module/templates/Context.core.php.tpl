@@ -16,8 +16,8 @@ final readonly class {{MODULE}}Context
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::{{MODULE}}Backend);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::{{MODULE}}Suite);
     }
 }

@@ -31,7 +31,7 @@ vi.mock("@/shared/help/helpTopics.js", async () => {
 const messages = {
     en: {
         shared: { common: { close: "Close", help: "Help" } },
-        backend: {
+        suite: {
             help: {
                 // Nested, not a dotted key: vue-i18n reads a dot in a path as
                 // a level, so `demo.topic` written flat would never resolve.
