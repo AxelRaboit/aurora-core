@@ -13,6 +13,7 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Access\Manager\ContractAccessLinkManagerInterface;
+use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Refusal\Dto\ContractRefusalInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Refusal\Manager\ContractRefusalManagerInterface;
@@ -101,6 +102,7 @@ final class PublicContractController extends AbstractController
         return $this->privately($this->render('@Studio/public/contract.html.twig', [
             'contract' => $contract,
             'customer' => $contract->getCustomer(),
+            'documentTitle' => $this->documentTitle($contract),
             'link' => $link,
             // The document is handed over as it was stored, with only the
             // signer's city and date written in. The template prints it raw on
@@ -322,5 +324,28 @@ final class PublicContractController extends AbstractController
             [],
             new Response(status: Response::HTTP_NOT_FOUND),
         ));
+    }
+
+    /**
+     * The title the trame gave this contract, as it was sealed.
+     *
+     * A page that announced « Contrat de prestation de services » above an
+     * annex or an amendment told the reader something the document below it
+     * contradicted. The first sealed part carries the title the provider
+     * chose; the generic heading is only the fallback for a snapshot that has
+     * none.
+     */
+    private function documentTitle(ContractInterface $contract): ?string
+    {
+        $parts = $contract->getContentSnapshot()['parts'] ?? null;
+        $title = is_array($parts) && is_array($parts[0] ?? null) ? ($parts[0]['title'] ?? null) : null;
+
+        if (!is_string($title) || '' === trim($title)) {
+            return null;
+        }
+
+        // Stored escaped, because it was written into the sealed HTML. Twig
+        // escapes it again on the way out.
+        return html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }
