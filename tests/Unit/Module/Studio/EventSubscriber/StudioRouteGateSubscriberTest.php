@@ -63,14 +63,17 @@ final class StudioRouteGateSubscriberTest extends TestCase
     }
 
     /**
-     * The fonts of a presentation follow the deliverables, which hold the
-     * presentations: switching another part off must not leave a reading link
-     * drawn in its fallback face.
+     * The fonts of a presentation follow the two places presentations live,
+     * Studio deliverables and client spaces: switching another part off, or
+     * only one of the two, must not leave a reading link drawn in its
+     * fallback face.
      */
-    public function testTheFontsFollowTheDeliverables(): void
+    public function testTheFontsFollowTheDeliverablesAndTheSpaces(): void
     {
         $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioContracts->value], false);
-        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioDeliverables->value], true);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioDeliverables->value], false);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioSpaces->value], false);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioDeliverables->value, ModuleParameterEnum::StudioSpaces->value], true);
         $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioSuite->value], true);
     }
 
