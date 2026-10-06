@@ -8,6 +8,7 @@ use Aurora\Module\Editorial\Post\Service\PostPictures;
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
 use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
@@ -47,6 +48,7 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
         private DeliverableAccess $access,
         private DeliverableSerializer $serializer,
         private TranslatorInterface $translator,
+        private DeckPictures $deckPictures,
     ) {}
 
     public function usageType(): string
@@ -97,10 +99,17 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
         return $counts;
     }
 
-    /** @return list<int> */
+    /**
+     * La grille d'une page, ou les diapositives et le logo d'un diaporama,
+     * cf. {@see DeckPictures} : la seule liste des cases qui comptent.
+     *
+     * @return list<int>
+     */
     private function idsUsedBy(DeliverableInterface $deliverable): array
     {
-        $ids = $this->pictures->idsInGridLayout($deliverable->getGridLayout());
+        $ids = $deliverable->isSlides()
+            ? $this->deckPictures->idsUsedBy($deliverable)
+            : $this->pictures->idsInGridLayout($deliverable->getGridLayout());
 
         $thumbnail = $deliverable->getThumbnail()?->getId();
         if (null !== $thumbnail) {

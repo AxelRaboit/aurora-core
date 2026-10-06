@@ -10,10 +10,15 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deck\Entity\SlideInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -56,6 +61,13 @@ use Doctrine\ORM\Mapping as ORM;
  * qui il a été écrit avant qu'un espace existe. Les deux se taisent dans un
  * espace : l'entité les refuse, et une copie déposée chez un client ne les
  * emporte pas.
+ *
+ * **Une page ou des diapositives**, cf. {@see DeliverableFormatEnum}. Un
+ * diaporama n'a pas de grille : il a ses diapositives, ordonnées, et leur
+ * propre apparence (`slideTheme`, `slideStyle`), distincte de celle de la
+ * page, parce qu'une diapositive se dessine avec le thème des présentations
+ * et non avec les couleurs du site. Une page n'en a aucune, et ces deux
+ * colonnes y restent vides.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -140,6 +152,32 @@ abstract class AbstractDeliverable implements DeliverableInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?CustomerInterface $customer = null;
 
+    /**
+     * Les diapositives d'un diaporama, dans l'ordre ; une page n'en a pas.
+     * Elles n'ont pas de vie hors du livrable : supprimé, il les emporte.
+     *
+     * @var Collection<int, SlideInterface>
+     */
+    #[ORM\OneToMany(targetEntity: SlideInterface::class, mappedBy: 'deliverable', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    protected Collection $slides;
+
+    /**
+     * Le thème des diapositives ; nul pour une page, et lu « ardoise »
+     * (le thème par défaut des présentations) tant qu'on n'en a pas choisi.
+     */
+    #[ORM\Column(length: 20, nullable: true, enumType: DeckThemeEnum::class)]
+    protected ?DeckThemeEnum $slideTheme = null;
+
+    /**
+     * Ce que les diapositives retouchent de leur thème, passé au crible de
+     * {@see DeckStyleNormalizer} à l'écriture.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $slideStyle = [];
+
     public function __construct(
         /** L'espace client qui le reçoit ; nul pour un livrable de Studio. */
         #[ORM\ManyToOne(targetEntity: CustomerSpaceInterface::class)]
@@ -153,7 +191,63 @@ abstract class AbstractDeliverable implements DeliverableInterface
         /** Une page ou des diapositives : fixé ici, sans setter, cf. {@see DeliverableFormatEnum}. */
         #[ORM\Column(length: 16, enumType: DeliverableFormatEnum::class, options: ['default' => 'page'])]
         protected DeliverableFormatEnum $format = DeliverableFormatEnum::Page,
-    ) {}
+    ) {
+        $this->slides = new ArrayCollection();
+    }
+
+    /** @return Collection<int, SlideInterface> */
+    public function getSlides(): Collection
+    {
+        return $this->slides;
+    }
+
+    public function addSlide(SlideInterface $slide): static
+    {
+        if (!$this->slides->contains($slide)) {
+            $this->slides->add($slide);
+            $slide->setDeliverable($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSlide(SlideInterface $slide): static
+    {
+        $this->slides->removeElement($slide);
+
+        return $this;
+    }
+
+    public function getSlideTheme(): DeckThemeEnum
+    {
+        return $this->slideTheme ?? DeckThemeEnum::Slate;
+    }
+
+    public function setSlideTheme(DeckThemeEnum $theme): static
+    {
+        $this->slideTheme = $theme;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getSlideStyle(): array
+    {
+        return $this->slideStyle;
+    }
+
+    /** @param array<string, mixed> $style */
+    public function setSlideStyle(array $style): static
+    {
+        $this->slideStyle = $style;
+
+        return $this;
+    }
+
+    public function isSlides(): bool
+    {
+        return DeliverableFormatEnum::Slides === $this->format;
+    }
 
     public function getFormat(): DeliverableFormatEnum
     {

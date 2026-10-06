@@ -22,8 +22,10 @@ use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 use Throwable;
 
 use function array_key_exists;
@@ -56,6 +58,7 @@ readonly class DeliverableManager
         private AuditLogger $auditLogger,
         private DeliverableRepository $deliverables,
         private CustomerRepository $customers,
+        private SlidesManager $slides,
     ) {}
 
     /**
@@ -286,6 +289,13 @@ readonly class DeliverableManager
      */
     public function copyToSpace(DeliverableInterface $source, CustomerSpaceInterface $space, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
+        // Un diaporama reste dans Studio pour l'instant : l'espace du client,
+        // son onglet et sa page de lecture ne savent montrer que des pages.
+        // Le contrôleur le refuse avant ; ceci garde tout autre appelant.
+        if ($source->isSlides()) {
+            throw new LogicException('a slides deliverable cannot be copied into a customer space yet');
+        }
+
         $copy = $this->instantiate($space, $title, $source->getLocale(), $source->getFormat());
         $copy
             ->setOwner($author)
@@ -376,7 +386,10 @@ readonly class DeliverableManager
         return $document instanceof DocumentInterface && str_starts_with((string) $document->getMimeType(), 'image/') ? $document : null;
     }
 
-    /** Le corps de l'original dans la copie, puis enregistrée. */
+    /**
+     * Le corps de l'original dans la copie, puis enregistrée : la grille d'une
+     * page, ou le thème et les diapositives d'un diaporama, notes comprises.
+     */
     private function persistCopy(DeliverableInterface $source, DeliverableInterface $copy): DeliverableInterface
     {
         $copy
@@ -387,6 +400,11 @@ readonly class DeliverableManager
             ->setThumbnail($source->getThumbnail());
 
         $this->entityManager->persist($copy);
+
+        if ($source->isSlides() && $copy->isSlides()) {
+            $this->slides->copySlides($copy, $source);
+        }
+
         $this->entityManager->flush();
 
         return $copy;

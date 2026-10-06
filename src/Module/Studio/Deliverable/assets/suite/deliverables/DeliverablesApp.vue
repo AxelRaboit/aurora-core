@@ -24,13 +24,14 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, FolderInput, Layers, LayoutTemplate, Link2, List, Lock, Pencil, Plus, Tags, Trash2, Users, X } from "lucide-vue-next";
+import { Copy, ExternalLink, FolderInput, Layers, LayoutTemplate, Link2, List, Lock, Pencil, Plus, Presentation, Tags, Trash2, Users, X } from "lucide-vue-next";
 import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { queueFlash } from "@/shared/utils/flash.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
+import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -217,10 +218,41 @@ const title = ref("");
 const newScope = ref("personal");
 const newCategory = ref("");
 const newTemplate = ref("");
+/** Une page ou une présentation : décidé ici, une fois pour toutes. */
+const newFormat = ref("page");
 const errors = ref({});
 
-/** Les modèles des deux rayons : on part d'un modèle partagé comme d'un des siens. */
-const templateSelectOptions = computed(() => templateOptions([...lists.value.personal, ...lists.value.shared]));
+const formatOptions = computed(() =>
+    ["page", "slides"].map((value) => ({ value, label: t(`suite.studio.deliverables.formats.${value}`) })),
+);
+
+/**
+ * Les modèles des deux rayons, du format choisi : on part d'un modèle partagé
+ * comme d'un des siens, mais pas d'une page pour écrire une présentation.
+ */
+const templateSelectOptions = computed(() => templateOptions([...lists.value.personal, ...lists.value.shared], newFormat.value));
+
+/** Ce qu'est le format choisi, et qu'il ne changera plus. */
+const formatHint = computed(() =>
+    [
+        "slides" === newFormat.value
+            ? t("suite.studio.deliverables.format.slides_hint")
+            : t("suite.studio.deliverables.format.page_hint"),
+        t("suite.studio.deliverables.format.fixed_hint"),
+    ].join(" "),
+);
+
+/** Sans modèle, on part de rien : une page blanche ou une présentation vide. */
+const templatePlaceholder = computed(() =>
+    "slides" === newFormat.value
+        ? t("suite.studio.deliverables.template.from_nothing_slides")
+        : t("suite.studio.deliverables.template.from_nothing"),
+);
+
+// Changer de format oublie un modèle de l'autre format.
+watch(newFormat, () => {
+    if (!templateSelectOptions.value.some((option) => String(option.value) === String(newTemplate.value))) newTemplate.value = "";
+});
 
 // Choisir un modèle range le nouveau livrable dans sa catégorie : c'est ce
 // qu'il en reprend, et le sélecteur reste là pour en changer.
@@ -232,6 +264,7 @@ watch(newTemplate, (value) => {
 function openCreate() {
     title.value = "";
     newTemplate.value = "";
+    newFormat.value = "page";
     // Dans le rayon qu'on regarde : on crée là où l'on cherchait.
     newScope.value = scope.value;
     // La catégorie qu'on filtre, si c'en est une : on crée là où l'on regardait.
@@ -248,6 +281,7 @@ async function create() {
         const data = await send(props.createPath, {
             title: title.value,
             scope: newScope.value,
+            format: newFormat.value,
             categoryId: newCategory.value ? Number(newCategory.value) : null,
             fromTemplateId: newTemplate.value ? Number(newTemplate.value) : null,
         });
@@ -392,7 +426,8 @@ function actionsFor(deliverable) {
         });
     }
 
-    if (props.copyTargets.length && props.copyToSpacePathTemplate) {
+    // Une présentation reste dans Studio pour l'instant : pas de copie vers un espace.
+    if (props.copyTargets.length && props.copyToSpacePathTemplate && "slides" !== deliverable.format) {
         actions.push({
             key: "copy-to-space",
             icon: FolderInput,
@@ -562,6 +597,10 @@ function actionsFor(deliverable) {
                             />
                             {{ deliverable.category.name }}
                         </span>
+                        <AppBadge v-if="'slides' === deliverable.format" color="emerald">
+                            <Presentation class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                            {{ t("suite.studio.deliverables.format.badge_slides") }}
+                        </AppBadge>
                         <AppBadge v-if="deliverable.template" color="violet">
                             <LayoutTemplate class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
                             {{ t("suite.studio.deliverables.template.badge") }}
@@ -618,13 +657,21 @@ function actionsFor(deliverable) {
             v-on:close="creating = false"
         >
             <form class="space-y-4" v-on:submit.prevent="create">
-                <!-- Le modèle en premier : c'est la question qui décide de
-                     tout ce qui suit, comme pour une présentation. -->
+                <!-- Le format d'abord, puis le modèle : ce sont les deux
+                     questions qui décident de tout ce qui suit, et les modèles
+                     proposés sont ceux du format choisi. -->
+                <AppChoiceRow
+                    v-model="newFormat"
+                    :label="t('suite.studio.deliverables.format.label')"
+                    :hint="formatHint"
+                    :options="formatOptions"
+                />
+                <p v-if="errors.format" class="m-0 text-xs text-red-500">{{ t(errors.format) }}</p>
                 <AppSelect
                     v-if="templateSelectOptions.length"
                     v-model="newTemplate"
                     :label="t('suite.studio.deliverables.template.from')"
-                    :placeholder="t('suite.studio.deliverables.template.from_nothing')"
+                    :placeholder="templatePlaceholder"
                     :hint="newTemplate ? t('suite.studio.deliverables.template.from_hint') : ''"
                     :options="templateSelectOptions"
                 />

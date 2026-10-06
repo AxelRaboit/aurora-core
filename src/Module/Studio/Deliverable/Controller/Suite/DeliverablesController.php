@@ -27,6 +27,7 @@ use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
 use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
+use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\DeliverablesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -82,6 +83,7 @@ final class DeliverablesController extends AbstractController
         private readonly DeliverableCategoryRepository $categories,
         private readonly DeliverableCategoryManager $categoryManager,
         private readonly PayloadValidator $payloadValidator,
+        private readonly DeliverableSlidesViewBuilder $slidesView,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -108,16 +110,16 @@ final class DeliverablesController extends AbstractController
      * Un titre et un rayon, et on arrive dans l'éditeur.
      *
      * Le format se choisit ici et nulle part ailleurs : absent, c'est une
-     * page. Un diaporama est refusé tant que son éditeur n'est pas branché
-     * sur les livrables, cf. {@see DeliverableFormatEnum::isCreatable()} ;
-     * la fenêtre de création ne le propose pas encore.
+     * page ; `slides`, un diaporama, cf. {@see DeliverableFormatEnum}.
      *
      * Parti d'un modèle (`fromTemplateId`), le livrable en reprend le corps
-     * et le format ; la catégorie aussi, sauf si l'envoi en nomme une. Un
-     * modèle qu'on ne lit pas, ou qui n'en est plus un, donne un livrable
-     * vide plutôt qu'un refus : le sélecteur vient de la liste, et la seule
-     * façon d'envoyer un identifiant périmé est un modèle retiré entre
-     * l'ouverture de la page et la création, qui ferait perdre le titre tapé.
+     * (la grille d'une page, les diapositives d'un diaporama) ; la catégorie
+     * aussi, sauf si l'envoi en nomme une. Un modèle qu'on ne lit pas, qui
+     * n'en est plus un, ou qui n'est pas du format demandé, donne un livrable
+     * vide plutôt qu'un refus : le sélecteur vient de la liste, filtrée par
+     * format, et la seule façon d'envoyer un identifiant périmé est un modèle
+     * retiré entre l'ouverture de la page et la création, qui ferait perdre
+     * le titre tapé.
      */
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     public function create(Request $request): JsonResponse
@@ -147,6 +149,11 @@ final class DeliverablesController extends AbstractController
 
         $scope = DeliverableScopeEnum::fromInput($payload['scope'] ?? null);
         $template = $this->template($payload['fromTemplateId'] ?? null);
+        // Sans format envoyé, c'est le modèle qui le dit ; avec, un modèle de
+        // l'autre format ne compte pas.
+        if ($template instanceof DeliverableInterface && array_key_exists('format', $payload) && $template->getFormat() !== $format) {
+            $template = null;
+        }
 
         $deliverable = $template instanceof DeliverableInterface
             ? $this->manager->createFromTemplate(
@@ -171,10 +178,20 @@ final class DeliverablesController extends AbstractController
         ]);
     }
 
+    /**
+     * L'éditeur du livrable : la grille d'une page, ou les diapositives d'un
+     * diaporama, dans l'éditeur des présentations.
+     */
     #[Route('/{id}', name: '_edit', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function edit(int $id): Response
     {
-        return $this->render('@Studio/suite/deliverables/edit.html.twig', $this->viewBuilder->editorView($this->readable($id)));
+        $deliverable = $this->readable($id);
+
+        if ($deliverable->isSlides()) {
+            return $this->render('@Studio/suite/deliverables/slides.html.twig', $this->slidesView->editorView($deliverable));
+        }
+
+        return $this->render('@Studio/suite/deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
     }
 
     #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
@@ -270,6 +287,13 @@ final class DeliverablesController extends AbstractController
     public function copyToSpace(int $id, Request $request): JsonResponse
     {
         $source = $this->readable($id);
+
+        // Un diaporama reste dans Studio pour l'instant : l'espace du client
+        // ne sait lire que des pages.
+        if ($source->isSlides()) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.slides_not_in_space']);
+        }
+
         $payload = $this->decodeJson($request);
 
         $spaceId = $payload['spaceId'] ?? null;
@@ -373,6 +397,16 @@ final class DeliverablesController extends AbstractController
     public function preview(int $id, Request $request): Response
     {
         $deliverable = $this->readable($id);
+
+        // Un diaporama s'aperçoit comme le lira le destinataire du lien :
+        // ses diapositives, sans les notes de l'orateur.
+        if ($deliverable->isSlides()) {
+            return $this->privately($this->render('@Studio/public/deck.html.twig', [
+                'deck' => $this->slidesView->readerDeck($deliverable),
+                'expiresAt' => null,
+            ]));
+        }
+
         $print = $request->query->getBoolean('print');
 
         return $this->privately($this->renderer->render(

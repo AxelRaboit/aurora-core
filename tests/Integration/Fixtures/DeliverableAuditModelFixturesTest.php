@@ -11,11 +11,14 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionMethod;
@@ -117,14 +120,35 @@ final class DeliverableAuditModelFixturesTest extends IntegrationTestCase
         self::assertSame($otherId, $this->deliverable('Audit en présentation')->getCategory()?->getId());
     }
 
-    private function loadModels(?DeliverableCategory $category): void
+    /** The presentation among the deliverables: slides, notes and their look, and a reload adds nothing. */
+    public function testTheSlidesModelIsBuiltWithItsSlides(): void
     {
-        // Each call clears the unit of work: a category kept from before is
-        // detached, so it is picked up again by its id.
-        $category = $category instanceof DeliverableCategory ? $this->entityManager->getReference(DeliverableCategory::class, $category->getId()) : null;
-
+        $category = $this->category('Propositions');
         $container = self::getContainer();
-        $fixtures = new DeliverableDemoFixtures(
+        $fixtures = $this->fixtures();
+        $kickOff = new ReflectionMethod($fixtures, 'kickOffSlides');
+
+        $kickOff->invoke($fixtures, $this->entityManager, null, $this->entityManager->getReference(DeliverableCategory::class, $category->getId()));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+        $kickOff->invoke($fixtures, $this->entityManager, null, $this->entityManager->getReference(DeliverableCategory::class, $category->getId()));
+        $this->entityManager->flush();
+
+        $this->entityManager->clear();
+        self::assertCount(1, $container->get(DeliverableRepository::class)->findBy(['title' => 'Présentation type, réunion de lancement']));
+        $deliverable = $this->deliverable('Présentation type, réunion de lancement');
+        self::assertSame(DeliverableFormatEnum::Slides, $deliverable->getFormat());
+        self::assertTrue($deliverable->isTemplate());
+        self::assertCount(5, $deliverable->getSlides());
+        self::assertSame(DeckThemeEnum::Paper, $deliverable->getSlideTheme());
+        self::assertNotNull($deliverable->getSlides()->first()->getSpeakerNotes());
+    }
+
+    private function fixtures(): DeliverableDemoFixtures
+    {
+        $container = self::getContainer();
+
+        return new DeliverableDemoFixtures(
             $container->get(CustomerSpaceRepository::class),
             $container->get(DeliverableRepository::class),
             $container->get(GridNormalizer::class),
@@ -132,7 +156,17 @@ final class DeliverableAuditModelFixturesTest extends IntegrationTestCase
             $container->get(DeliverableCategoryRepository::class),
             $container->get(DocumentRepository::class),
             $container->get(DeliverableLinkRepository::class),
+            $container->get(SlidesManager::class),
         );
+    }
+
+    private function loadModels(?DeliverableCategory $category): void
+    {
+        // Each call clears the unit of work: a category kept from before is
+        // detached, so it is picked up again by its id.
+        $category = $category instanceof DeliverableCategory ? $this->entityManager->getReference(DeliverableCategory::class, $category->getId()) : null;
+
+        $fixtures = $this->fixtures();
 
         $model = new ReflectionMethod($fixtures, 'model');
         foreach (['deliverable-audit-model.json', 'deliverable-audit-presentation.json'] as $file) {

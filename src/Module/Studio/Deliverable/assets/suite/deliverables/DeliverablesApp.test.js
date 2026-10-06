@@ -289,6 +289,89 @@ describe("DeliverablesApp", () => {
         vi.doUnmock("./composables/useDeliverableRequest.js");
     });
 
+    it("creates a presentation, offering the presentation templates only", async () => {
+        const send = vi.fn().mockResolvedValue({ success: false, errors: {} });
+        vi.doMock("./composables/useDeliverableRequest.js", () => ({
+            useDeliverableRequest: () => ({ send }),
+        }));
+        vi.resetModules();
+        const { default: App } = await import("./DeliverablesApp.vue");
+
+        const wrapper = mount(App, {
+            props: {
+                personal: [
+                    row(1, "Audit type", { template: true, format: "page" }),
+                    row(2, "Lancement type", {
+                        template: true,
+                        format: "slides",
+                    }),
+                ],
+                shared: [],
+                canCreate: true,
+                ...PATHS,
+            },
+            global: {
+                plugins: [i18n],
+                stubs: {
+                    DeliverableLinksModal: true,
+                    DeliverableCopyToSpaceModal: true,
+                    AppCategoriesModal: true,
+                    AppModal: {
+                        template: "<div><slot /><slot name='footer' /></div>",
+                    },
+                },
+            },
+        });
+
+        const templateOptions = () =>
+            wrapper
+                .findAllComponents({ name: "AppSelect" })
+                .find(
+                    (select) =>
+                        "suite.studio.deliverables.template.from" ===
+                        select.props("label"),
+                )
+                .props("options")
+                .map((option) => option.label);
+        expect(templateOptions()).toEqual(["Audit type"]);
+
+        const format = wrapper.findComponent({ name: "AppChoiceRow" });
+        expect(format.props("options").map((option) => option.value)).toEqual([
+            "page",
+            "slides",
+        ]);
+        format.vm.$emit("update:modelValue", "slides");
+        await nextTick();
+        expect(templateOptions()).toEqual(["Lancement type"]);
+
+        await wrapper.find("form").trigger("submit");
+        await flushPromises();
+
+        expect(send).toHaveBeenCalledWith(
+            PATHS.createPath,
+            expect.objectContaining({ format: "slides", fromTemplateId: null }),
+        );
+        vi.doUnmock("./composables/useDeliverableRequest.js");
+    });
+
+    it("never offers to copy a presentation into a client space, and badges it", () => {
+        const wrapper = mountApp({
+            personal: [row(1, "Lancement", { format: "slides" })],
+            copyToSpacePathTemplate:
+                "/suite/studio/deliverables/__id__/copy-to-space",
+            copyTargets: [
+                {
+                    id: 7,
+                    name: "Atelier Dupont",
+                    customer: "Atelier Dupont SARL",
+                },
+            ],
+        });
+
+        expect(actionKeys(wrapper)).not.toContain("copy-to-space");
+        expect(wrapper.text()).toContain("format.badge_slides");
+    });
+
     it("hides the create button without the right", () => {
         const wrapper = mountApp({ canCreate: false });
 

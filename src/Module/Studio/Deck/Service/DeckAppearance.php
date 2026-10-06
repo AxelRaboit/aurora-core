@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deck\Service;
 
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
+use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 
 use function in_array;
 use function is_int;
@@ -34,10 +34,10 @@ final readonly class DeckAppearance
      *
      * @return array<string, mixed>
      */
-    public function resolve(DeckInterface $deck): array
+    public function resolve(SlideOwnerInterface $deck): array
     {
-        $theme = $deck->getTheme();
-        $style = $deck->getStyle();
+        $theme = $deck->getSlideTheme();
+        $style = $deck->getSlideStyle();
         $palette = $theme->palette();
 
         $fontPair = is_string($style['fontPair'] ?? null)

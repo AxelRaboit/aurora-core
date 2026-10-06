@@ -28,7 +28,7 @@ const props = defineProps({
 const { t } = useI18n();
 
 const slides = props.deck.slides ?? [];
-const { at, linked, announce, onMove } = useDeckStage(props.deck.id);
+const { at, linked, announce, onMove } = useDeckStage(props.deck.channel ?? props.deck.id);
 
 const current = computed(() => slides[at.value] ?? null);
 const next = computed(() => slides[at.value + 1] ?? null);

@@ -62,6 +62,7 @@ import {
     Presentation,
     Printer,
     Redo2,
+    Settings2,
     Undo2,
     WandSparkles,
     Share2,
@@ -97,12 +98,27 @@ const props = defineProps({
     shareLinks: { type: Array, default: () => [] },
     /** Pictures on this deck that a link's holder would not be served. */
     withheldPictures: { type: Array, default: () => [] },
-    shareCreatePath: { type: String, required: true },
-    shareRevokePath: { type: String, required: true },
+    shareCreatePath: { type: String, default: "" },
+    shareRevokePath: { type: String, default: "" },
     /** Deleting an address nobody ever opened; an opened one is only revoked. */
-    shareDeletePath: { type: String, required: true },
+    shareDeletePath: { type: String, default: "" },
     /** Hiding a retired or expired link from the list; its row stays. */
-    shareHidePath: { type: String, required: true },
+    shareHidePath: { type: String, default: "" },
+    /**
+     * Who may write and share, when the page knows better than the deck
+     * privileges: a slides deliverable answers to the deliverables' own rule
+     * (its author, its shelf). Null means "ask the deck privileges".
+     */
+    canEdit: { type: Boolean, default: null },
+    canShare: { type: Boolean, default: null },
+    /**
+     * Sharing handled by the page around the editor: the share entry emits
+     * `share` instead of opening the deck's own links. A deliverable hands out
+     * its reading links, not a deck's share links.
+     */
+    externalShare: { type: Boolean, default: false },
+    /** A "Settings" entry that emits `settings`: the page around owns the form. */
+    withSettings: { type: Boolean, default: false },
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
@@ -137,7 +153,15 @@ const {
     flushCurrent,
 } = useDeckEditor(props);
 
-const editable = can("studio.decks.edit");
+const emit = defineEmits(["share", "settings"]);
+
+const editable = props.canEdit ?? can("studio.decks.edit");
+
+/**
+ * The channel the player and the presenter window talk on. A deliverable
+ * names its own, so it never shares one with a deck of the same id.
+ */
+const channel = computed(() => props.deck.channel ?? props.deck.id);
 
 
 /**
@@ -324,7 +348,7 @@ async function present() {
  */
 async function openPresenter() {
     await flushCurrent();
-    window.open(props.presenterPath, `deck-presenter-${props.deck.id}`, "noopener");
+    window.open(props.presenterPath, `deck-presenter-${channel.value}`, "noopener");
 }
 
 async function print() {
@@ -382,12 +406,21 @@ const deckActions = computed(() => {
         },
     ];
 
-    if (can("studio.decks.share")) {
+    if (props.canShare ?? can("studio.decks.share")) {
         actions.push({
             key: "share",
             icon: Share2,
             title: t("suite.studio.decks.share"),
-            onSelect: () => (sharing.value = true),
+            onSelect: () => (props.externalShare ? emit("share") : (sharing.value = true)),
+        });
+    }
+
+    if (props.withSettings && editable) {
+        actions.push({
+            key: "settings",
+            icon: Settings2,
+            title: t("suite.studio.deliverables.slides.settings"),
+            onSelect: () => emit("settings"),
         });
     }
 
@@ -1387,7 +1420,7 @@ onBeforeUnmount(() => {
             v-if="playing"
             :slides="slides"
             :appearance="appearance"
-            :channel="deck.id"
+            :channel="channel"
             :start-at="playFrom"
             v-on:close="playing = false"
         />

@@ -15,16 +15,20 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -98,6 +102,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         private readonly DeliverableCategoryRepository $categories,
         private readonly DocumentRepository $documents,
         private readonly DeliverableLinkRepository $links,
+        private readonly SlidesManager $slides,
     ) {}
 
     public static function getGroups(): array
@@ -203,6 +208,10 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $this->model($manager, 'deliverable-audit-presentation.json', $author, $audits);
         // La stratégie qui suit l'audit, au même habillage, rangée dans les stratégies.
         $this->model($manager, 'deliverable-strategy-presentation.json', $author, $strategies);
+
+        // Une présentation parmi les livrables : des diapositives plutôt
+        // qu'une page, un modèle que l'équipe reprend pour chaque lancement.
+        $this->kickOffSlides($manager, $author instanceof CoreUserInterface ? $author : null, $proposals);
 
         // Un livrable que l'équipe a mis à la corbeille : de quoi montrer
         // l'onglet des livrables, et qu'on peut le reprendre.
@@ -329,6 +338,53 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $manager->persist($deliverable);
 
         return $deliverable;
+    }
+
+    /**
+     * Un livrable au format diaporama : la trame d'une réunion de lancement,
+     * avec les notes de l'orateur que seule la vue présentateur montre.
+     * Posé une fois : un rechargement le retrouve par son titre.
+     */
+    private function kickOffSlides(ObjectManager $manager, ?CoreUserInterface $owner, DeliverableCategoryInterface $category): void
+    {
+        $title = 'Présentation type, réunion de lancement';
+        $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $title]);
+        if (null !== $existing) {
+            $this->catchUp($existing, $category, template: true);
+
+            return;
+        }
+
+        $deliverable = new Deliverable(null, $title, 'fr', DeliverableFormatEnum::Slides);
+        $deliverable
+            ->setSummary('Le déroulé d\'un premier rendez-vous de projet, à reprendre pour chaque client.')
+            ->setOwner($owner)
+            ->setScope(DeliverableScopeEnum::Shared)
+            ->setCategory($category)
+            ->setTemplate(true)
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => '']))
+            ->setAppearance(DeliverableAppearance::normalize([]));
+        $manager->persist($deliverable);
+
+        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => 'Réunion de lancement']);
+
+        $slides = [
+            [SlideLayoutEnum::Title, ['title' => 'Réunion de lancement', 'subtitle' => '[Nom du client], [date]'], 'Remercier pour le temps pris. Annoncer quarante minutes, questions comprises.'],
+            [SlideLayoutEnum::Section, ['title' => 'Ce que vous nous avez dit'], null],
+            [SlideLayoutEnum::Bullets, ['title' => 'Trois attentes, dans vos mots', 'bullets' => ['[Première attente]', '[Deuxième attente]', '[Troisième attente]']], 'Faire valider chaque ligne : si une seule est fausse, tout le reste se décale.'],
+            [SlideLayoutEnum::Split, [
+                'title' => "Ce qu'on vous demande, ce que vous recevez",
+                'left' => 'Des photos, quelques textes sur votre métier, et une réponse sous deux jours à chaque validation.',
+                'right' => 'Les maquettes, la rédaction finale, la mise en ligne et un point de mesure un mois après.',
+            ], 'Les deux colonnes se lisent en parallèle : laisser le temps.'],
+            [SlideLayoutEnum::Quote, ['quote' => 'Une personne pour valider, un point par semaine : c\'est ce qui tient les délais.', 'attribution' => 'Notre seule règle'], null],
+        ];
+
+        foreach ($slides as [$layout, $content, $notes]) {
+            $slide = $this->slides->addSlide($deliverable, $layout);
+            $this->slides->writeContent($slide, $content);
+            $slide->setSpeakerNotes($notes);
+        }
     }
 
     /**

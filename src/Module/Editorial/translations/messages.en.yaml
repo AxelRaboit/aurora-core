@@ -1992,7 +1992,7 @@ frontend:
         next: "Next slide"
         fullscreen: "Full screen"
         view_page: "Read as a web page"
-        view_slides: "View as a presentation"
+        view_slides: "Read as a slideshow"
     reading:
         download_pdf: "Download as PDF"
         prepared_for: 'Prepared for %name%'

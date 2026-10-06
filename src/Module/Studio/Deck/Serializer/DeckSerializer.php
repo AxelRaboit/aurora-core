@@ -14,6 +14,7 @@ use Aurora\Module\Studio\Deck\Service\DeckFonts;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deck\Service\DeckVideo;
+use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 
 use function array_diff;
 use function array_keys;
@@ -24,6 +25,7 @@ use function count;
 use function is_array;
 use function is_int;
 use function sprintf;
+use function usort;
 
 use const DATE_ATOM;
 
@@ -77,27 +79,53 @@ class DeckSerializer
      */
     public function full(DeckInterface $deck): array
     {
+        $slideshow = $this->slideshow($deck);
+
+        return [
+            ...$this->summary($deck, count($slideshow['slides'])),
+            ...$slideshow,
+        ];
+    }
+
+    /**
+     * What any slide owner needs to be drawn: its overrides, its resolved look
+     * and its slides, in order.
+     *
+     * Split from {@see self::full()} so a slides-format deliverable is drawn by
+     * the very same code as a deck: the editor, the player, the print page and
+     * the public page all read this shape, and a second serialisation of it
+     * would be the first thing to drift.
+     *
+     * @return array{style: array<string, mixed>, appearance: array<string, mixed>, slides: list<array<string, mixed>>}
+     */
+    public function slideshow(SlideOwnerInterface $owner): array
+    {
         // The pictures resolved in one query rather than one per slide: a deck
         // of thirty slides is thirty round trips otherwise, for a handful of
         // ids that are known before the loop starts.
-        $ids = $this->deckPictures->idsUsedBy($deck);
+        $ids = $this->deckPictures->idsUsedBy($owner);
         $pictures = $this->pictures->byIds($ids);
         // The same ids, asked of the films: one id is either a picture or a
         // film, and each resolver refuses what is not its own.
         $videos = $this->videos->byIds($ids);
 
+        // In position order, not collection order: the collection is sorted
+        // when it is loaded, and a reorder written in this same request has
+        // moved the positions without moving the elements.
+        $ordered = $owner->getSlides()->toArray();
+        usort($ordered, static fn (SlideInterface $left, SlideInterface $right): int => $left->getPosition() <=> $right->getPosition());
+
         $slides = [];
-        foreach ($deck->getSlides() as $slide) {
+        foreach ($ordered as $slide) {
             $slides[] = $this->slide($slide, $pictures, $videos);
         }
 
         return [
-            ...$this->summary($deck, count($slides)),
-            'style' => $deck->getStyle(),
+            'style' => $owner->getSlideStyle(),
             // The uploaded fonts its free slides name travel with the look,
             // because every place that draws the deck - a share link
             // included - draws it from the look and nothing else.
-            'appearance' => [...$this->appearance->resolve($deck), 'fonts' => $this->fonts->usedBy($deck)],
+            'appearance' => [...$this->appearance->resolve($owner), 'fonts' => $this->fonts->usedBy($owner)],
             'slides' => $slides,
         ];
     }
@@ -111,7 +139,7 @@ class DeckSerializer
      *
      * @return array<string, mixed>
      */
-    public function appearanceOf(DeckInterface $deck): array
+    public function appearanceOf(SlideOwnerInterface $deck): array
     {
         return $this->appearance->resolve($deck);
     }

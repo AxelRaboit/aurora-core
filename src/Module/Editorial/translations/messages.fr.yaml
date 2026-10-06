@@ -1992,7 +1992,7 @@ frontend:
         next: "Diapositive suivante"
         fullscreen: "Plein écran"
         view_page: "Lire en page web"
-        view_slides: "Voir en présentation"
+        view_slides: "Lire en diaporama"
     reading:
         download_pdf: "Télécharger en PDF"
         prepared_for: 'Préparé pour %name%'

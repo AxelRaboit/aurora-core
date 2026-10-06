@@ -10,9 +10,14 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 use DateTimeImmutable;
 
-interface DeliverableInterface
+/**
+ * Un livrable porte des diapositives quand son format est `slides` ; une page
+ * n'en a aucune, cf. {@see SlideOwnerInterface}.
+ */
+interface DeliverableInterface extends SlideOwnerInterface
 {
     public function getId(): ?int;
 
@@ -23,6 +28,9 @@ interface DeliverableInterface
 
     /** Une page ou des diapositives, fixé à la création. */
     public function getFormat(): DeliverableFormatEnum;
+
+    /** Un diaporama : des diapositives plutôt qu'une grille. */
+    public function isSlides(): bool;
 
     /** Un modèle de Studio, proposé à la création d'un livrable ; jamais dans un espace. */
     public function isTemplate(): bool;

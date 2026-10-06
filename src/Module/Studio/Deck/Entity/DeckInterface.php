@@ -7,10 +7,11 @@ namespace Aurora\Module\Studio\Deck\Entity;
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
 
-interface DeckInterface extends TimestampableInterface
+interface DeckInterface extends TimestampableInterface, SlideOwnerInterface
 {
     public function getId(): ?int;
 

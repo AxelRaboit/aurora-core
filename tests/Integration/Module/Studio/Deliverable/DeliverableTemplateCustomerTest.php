@@ -87,8 +87,8 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** Une page par défaut, dans la liste comme dans l'éditeur ; un diaporama ne se crée pas encore, une valeur inconnue non plus. */
-    public function testADeliverableIsAPageAndSlidesAreNotYetCreatable(): void
+    /** Une page par défaut, dans la liste comme dans l'éditeur ; un diaporama se crée sur demande, une valeur inconnue non. */
+    public function testADeliverableIsAPageByDefaultAndSlidesOnRequest(): void
     {
         $id = $this->create('Proposition', DeliverableScopeEnum::Personal);
         self::assertSame(DeliverableFormatEnum::Page, $this->find($id)->getFormat());
@@ -96,8 +96,8 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertFalse($this->rowOf($id)['template']);
 
         $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Diaporama', 'format' => 'slides']);
-        self::assertResponseStatusCodeSame(422);
-        self::assertSame('suite.studio.deliverables.errors.format_unavailable', $this->json()['errors']['format'] ?? null);
+        self::assertResponseIsSuccessful();
+        self::assertSame(DeliverableFormatEnum::Slides, $this->find((int) basename((string) $this->json()['editPath']))->getFormat());
 
         $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Inconnu', 'format' => 'poster']);
         self::assertResponseStatusCodeSame(422);

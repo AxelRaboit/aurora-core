@@ -2106,7 +2106,15 @@ suite:
             studio_title_hint: "Le titre en tête du document, et dans la liste."
             formats:
                 page: "Page"
-                slides: "Diaporama"
+                slides: "Présentation (diapos)"
+            format:
+                label: "Format"
+                page_hint: "Se compose avec la grille des pages du site, et se lit en faisant défiler."
+                slides_hint: "Se compose diapositive par diapositive, se présente en plein écran avec ses notes, et s'imprime."
+                fixed_hint: "Le format ne change plus ensuite."
+                badge_slides: "Présentation"
+            slides:
+                settings: "Réglages"
             template:
                 badge: "Modèle"
                 filter: "Modèles"
@@ -2115,6 +2123,7 @@ suite:
                 toggle_hint: "Il est proposé dans « Partir d'un modèle » quand on crée un livrable. Ce qu'on en tire, copie ou livrable neuf, n'en est pas un."
                 from: "Partir d'un modèle"
                 from_nothing: "Page blanche"
+                from_nothing_slides: "Présentation vide"
                 from_hint: "Le nouveau livrable en reprend le contenu, l'apparence, l'image et la catégorie, sous le titre ci-dessous."
             customer:
                 label: "Client"
@@ -2192,13 +2201,13 @@ suite:
                 heading_styles:
                     theme: "Comme le thème"
                     display: "Capitales grasses"
-                display: "Affichage"
-                display_hint: "« Page web » se lit en faisant défiler. « Présentation » se fait passer section par section, comme un diaporama : une diapositive par grand titre posé en pleine largeur."
+                display: "Lecture"
+                display_hint: "« Lire en page » se fait défiler. « Lire en diaporama » passe cette même page section par section, une diapositive par grand titre posé en pleine largeur. Pour composer des diapositives une à une, créez plutôt une présentation."
                 reader_pdf: "Autoriser le PDF au lecteur"
                 reader_pdf_hint: "Ajoute « Télécharger en PDF » en haut de la page que reçoit le client, sur un lien comme dans l'espace. Éteint par défaut : un document qu'on ne veut pas voir circuler en fichier ne l'offre pas."
                 displays:
-                    page: "Page web"
-                    slides: "Présentation"
+                    page: "Lire en page"
+                    slides: "Lire en diaporama"
                 presets:
                     title: "Ambiances"
                     hint: "Une allure complète en un clic. Les couleurs ci-dessous restent réglables ensuite."
@@ -2282,8 +2291,9 @@ suite:
                 locale_invalid: "Cette langue n'est pas active sur le site."
                 grid_invalid: "La grille envoyée est illisible."
                 scope_invalid: "Cette visibilité n'existe pas : choisissez perso ou partagé."
-                format_invalid: "Ce format n'existe pas : choisissez une page ou un diaporama."
-                format_unavailable: "Un livrable en diaporama ne se crée pas encore : choisissez une page."
+                format_invalid: "Ce format n'existe pas : choisissez une page ou une présentation."
+                format_unavailable: "Ce format ne se crée pas encore : choisissez une page."
+                slides_not_in_space: "Une présentation reste dans Studio pour l'instant : elle ne se copie pas dans un espace client."
                 conflict: "Un collègue a enregistré ce livrable entre-temps. Rechargez la page pour voir sa version, ou enregistrez quand même pour la remplacer."
         space_resources:
             guide:

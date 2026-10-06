@@ -2018,7 +2018,7 @@ frontend:
         next: "Diapositiva siguiente"
         fullscreen: "Pantalla completa"
         view_page: "Leer como página web"
-        view_slides: "Ver como presentación"
+        view_slides: "Leer como diapositivas"
     reading:
         download_pdf: "Descargar en PDF"
         prepared_for: 'Preparado para %name%'

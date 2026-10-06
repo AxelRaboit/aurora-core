@@ -1,0 +1,57 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{# Un livrable au format diaporama : l'éditeur de diapositives des
+   présentations, avec les droits, les liens de lecture et les réglages d'un
+   livrable autour. #}
+{% block title %}{{ deck.title }} - {{ 'suite.nav.studio_deliverables'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_deliverables'|trans, href: deliverablesPath},
+            {label: deck.title},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/deliverables/DeliverableSlidesEditorApp', {
+    deck: deck,
+    deliverable: deliverable,
+    backPath: backPath,
+    canEdit: canEdit,
+    canShare: canShare,
+    canChangeScope: canChangeScope,
+    locales: locales,
+    updatePath: updatePath,
+    linksPath: linksPath,
+    categories: categories|default([]),
+    customers: customers|default([]),
+    canPickCustomer: canPickCustomer|default(false),
+    layouts: layouts,
+    commonSlots: commonSlots,
+    listSlots: listSlots,
+    freeOptions: freeOptions,
+    uploadedFonts: uploadedFonts,
+    fontUploadPath: fontUploadPath,
+    themes: themes,
+    fontPairs: fontPairs,
+    logoPlacements: logoPlacements,
+    looks: looks,
+    gradients: gradients,
+    patterns: patterns,
+    margins: margins,
+    titleCases: titleCases,
+    bulletShapes: bulletShapes,
+    transitions: transitions,
+    appearancePath: appearancePath,
+    slideCreatePath: slideCreatePath,
+    slideUpdatePath: slideUpdatePath,
+    slideDeletePath: slideDeletePath,
+    slideDuplicatePath: slideDuplicatePath,
+    slideReorderPath: slideReorderPath,
+    printPath: printPath,
+    presenterPath: presenterPath,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

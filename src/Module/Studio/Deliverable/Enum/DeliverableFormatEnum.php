@@ -17,9 +17,9 @@ use function is_string;
  * page section par section, cf. `DeliverableAppearance::DISPLAYS`.
  *
  * `Slides` est la place des présentations de Studio, qui deviennent des
- * livrables : la valeur existe dès maintenant pour que la colonne n'ait plus à
- * changer, mais aucun écran ne crée encore un diaporama, cf.
- * {@see self::isCreatable()}.
+ * livrables : un diaporama se compose avec l'éditeur de diapositives des
+ * présentations, et sa page de lecture montre ses diapositives. Il reste dans
+ * Studio pour l'instant : la copie vers un espace client le refuse.
  */
 enum DeliverableFormatEnum: string
 {
@@ -32,15 +32,13 @@ enum DeliverableFormatEnum: string
     }
 
     /**
-     * Ce qu'un formulaire peut créer aujourd'hui.
-     *
-     * Un diaporama sans son éditeur serait un document qu'on ne peut ni
-     * composer ni lire : la création le refuse tant que l'éditeur de
-     * diapositives n'est pas branché sur les livrables.
+     * Ce qu'un formulaire peut créer aujourd'hui : les deux, depuis que
+     * l'éditeur de diapositives est branché sur les livrables. Gardé comme
+     * point d'arrêt pour un format à venir qui n'aurait pas encore d'éditeur.
      */
     public function isCreatable(): bool
     {
-        return self::Page === $this;
+        return true;
     }
 
     /** Ce qui arrive d'un formulaire : absent, c'est une page ; inconnu, rien. */

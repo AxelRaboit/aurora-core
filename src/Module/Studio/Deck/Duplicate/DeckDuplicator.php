@@ -68,12 +68,6 @@ final readonly class DeckDuplicator
      */
     public function copyInto(DeckInterface $target, DeckInterface $source): void
     {
-        $this->deckManager->writeAppearance($target, $source->getTheme(), $source->getStyle());
-
-        foreach ($source->getSlides() as $slide) {
-            $new = $this->deckManager->addSlide($target, $slide->getLayout());
-            $this->deckManager->writeContent($new, $slide->getContent());
-            $new->setSpeakerNotes($slide->getSpeakerNotes());
-        }
+        $this->deckManager->copySlides($target, $source);
     }
 }

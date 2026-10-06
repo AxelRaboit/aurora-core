@@ -8,12 +8,18 @@
  * l'option, pour que la fenêtre de création la reprenne quand on choisit un
  * modèle.
  *
- * @param {Array<{id: number, title: string, template?: boolean, category?: {id: number}|null}>} rows
+ * Un format donné ne garde que les modèles de ce format : on ne part pas
+ * d'une page pour écrire une présentation. Une ligne sans format est une page,
+ * comme le dit le serveur d'un envoi sans format.
+ *
+ * @param {Array<{id: number, title: string, format?: string, template?: boolean, category?: {id: number}|null}>} rows
+ * @param {string|null} [format] `page` ou `slides` ; absent, tous les modèles
  */
-export function templateOptions(rows) {
+export function templateOptions(rows, format = null) {
     const seen = new Set();
 
     return rows
+        .filter((row) => !format || (row.format ?? "page") === format)
         .filter((row) => row.template && !seen.has(row.id) && seen.add(row.id))
         .map((row) => ({
             value: row.id,

@@ -6,7 +6,7 @@ namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
+use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -118,7 +118,7 @@ final readonly class DeckFonts
      *
      * @return list<array{key: string, name: string, url: string}>
      */
-    public function usedBy(DeckInterface $deck): array
+    public function usedBy(SlideOwnerInterface $deck): array
     {
         $ids = [];
 

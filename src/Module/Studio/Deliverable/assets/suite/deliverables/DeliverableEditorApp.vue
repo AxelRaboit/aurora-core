@@ -430,6 +430,7 @@ const headerActions = computed(() => {
             :inert="inertWhenReadOnly"
             :title="form.title"
             :summary="form.summary"
+            :format="form.format"
         />
 
         <DeliverableSettingsTab

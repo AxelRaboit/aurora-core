@@ -6,7 +6,7 @@ namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
+use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 
 use function array_unique;
 use function array_values;
@@ -38,7 +38,7 @@ final readonly class DeckPictures
      *
      * @return list<int>
      */
-    public function idsUsedBy(DeckInterface $deck): array
+    public function idsUsedBy(SlideOwnerInterface $deck): array
     {
         $ids = [];
 
@@ -81,7 +81,7 @@ final readonly class DeckPictures
             }
         }
 
-        $logo = $deck->getStyle()['logoMediaId'] ?? null;
+        $logo = $deck->getSlideStyle()['logoMediaId'] ?? null;
 
         if (is_int($logo)) {
             $ids[] = $logo;
@@ -107,7 +107,7 @@ final readonly class DeckPictures
      *
      * @return list<array{id: int, name: string}>
      */
-    public function withheldIn(DeckInterface $deck): array
+    public function withheldIn(SlideOwnerInterface $deck): array
     {
         $ids = $this->idsUsedBy($deck);
 

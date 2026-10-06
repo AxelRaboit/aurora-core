@@ -52,6 +52,8 @@ const props = defineProps({
     canPickCustomer: { type: Boolean, default: false },
     /** The [blanks] still in the document: a client should not read one. */
     placeholders: { type: Number, default: 0 },
+    /** Faux pour un diaporama : l'en-tête est celui de la page, et il n'a pas de page. */
+    withReadingHeader: { type: Boolean, default: true },
 });
 
 const { t } = useI18n();
@@ -198,7 +200,7 @@ const showLogo = computed({
             </p>
         </section>
 
-        <section class="aurora-card space-y-4 p-3 sm:p-5">
+        <section v-if="withReadingHeader" class="aurora-card space-y-4 p-3 sm:p-5">
             <div>
                 <h3 class="m-0 flex items-center gap-2 text-sm font-semibold text-primary">
                     <PanelTop class="h-4 w-4 text-muted" :stroke-width="2" /> {{ t("suite.studio.deliverables.settings.header_title") }}

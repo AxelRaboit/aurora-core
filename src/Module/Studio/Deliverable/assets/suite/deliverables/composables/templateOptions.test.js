@@ -30,6 +30,27 @@ describe("templateOptions", () => {
         expect(templateOptions([audit, { ...audit }])).toHaveLength(1);
     });
 
+    it("keeps the templates of the format asked for, a row without one being a page", () => {
+        const rows = [
+            { id: 1, title: "Audit type", template: true },
+            {
+                id: 2,
+                title: "Lancement type",
+                template: true,
+                format: "slides",
+            },
+            { id: 3, title: "Bilan type", template: true, format: "page" },
+        ];
+
+        expect(
+            templateOptions(rows, "slides").map((option) => option.value),
+        ).toEqual([2]);
+        expect(
+            templateOptions(rows, "page").map((option) => option.value),
+        ).toEqual([1, 3]);
+        expect(templateOptions(rows)).toHaveLength(3);
+    });
+
     it("is empty without a template", () => {
         expect(templateOptions([{ id: 1, title: "Brouillon" }])).toEqual([]);
     });

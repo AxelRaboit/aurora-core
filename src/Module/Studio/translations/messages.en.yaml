@@ -2095,7 +2095,15 @@ suite:
             studio_title_hint: "The title at the top of the document, and in the list."
             formats:
                 page: "Page"
-                slides: "Slideshow"
+                slides: "Presentation (slides)"
+            format:
+                label: "Format"
+                page_hint: "Composed with the site's page grid, and read by scrolling."
+                slides_hint: "Composed slide by slide, presented full screen with its notes, and printable."
+                fixed_hint: "The format cannot be changed afterwards."
+                badge_slides: "Presentation"
+            slides:
+                settings: "Settings"
             template:
                 badge: "Template"
                 filter: "Templates"
@@ -2104,6 +2112,7 @@ suite:
                 toggle_hint: "It is offered under “Start from a template” when creating a deliverable. What comes out of it, a copy or a new deliverable, is not one."
                 from: "Start from a template"
                 from_nothing: "Blank page"
+                from_nothing_slides: "Empty presentation"
                 from_hint: "The new deliverable takes its content, appearance, image and category, under the title below."
             customer:
                 label: "Client"
@@ -2181,13 +2190,13 @@ suite:
                 heading_styles:
                     theme: "As the theme"
                     display: "Bold capitals"
-                display: "Display"
-                display_hint: "« Web page » is read by scrolling. « Presentation » is turned section by section, like a slide show: one slide per large heading laid across the whole row."
+                display: "Reading"
+                display_hint: "« Read as a page » scrolls. « Read as a slideshow » turns this same page section by section, one slide per large heading laid across the whole row. To compose slides one by one, create a presentation instead."
                 reader_pdf: "Let the reader download a PDF"
                 reader_pdf_hint: "Adds « Download as PDF » at the top of the page the client receives, on a link as in the space. Off by default: a document you do not want circulating as a file does not offer it."
                 displays:
-                    page: "Web page"
-                    slides: "Presentation"
+                    page: "Read as a page"
+                    slides: "Read as a slideshow"
                 presets:
                     title: "Looks"
                     hint: "A complete look in one click. The colours below can still be adjusted afterwards."
@@ -2271,8 +2280,9 @@ suite:
                 locale_invalid: "This language is not active on the site."
                 grid_invalid: "The grid sent is unreadable."
                 scope_invalid: "That visibility does not exist: choose personal or shared."
-                format_invalid: "That format does not exist: choose a page or a slideshow."
-                format_unavailable: "A slideshow deliverable cannot be created yet: choose a page."
+                format_invalid: "That format does not exist: choose a page or a presentation."
+                format_unavailable: "This format cannot be created yet: choose a page."
+                slides_not_in_space: "A presentation stays in Studio for now: it cannot be copied into a client space."
                 conflict: "A colleague saved this deliverable in the meantime. Reload the page to see their version, or save anyway to replace it."
         space_resources:
             guide:

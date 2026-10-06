@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Deliverable\Service;
 use Aurora\Module\Editorial\Post\Service\PostPictures;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
+use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 
 use function array_unique;
@@ -28,13 +29,20 @@ final readonly class DeliverableReadiness
         private PostPictures $pictures,
         private DocumentRepository $documents,
         private DeliverablePlaceholders $placeholders,
+        private DeckPictures $deckPictures,
     ) {}
 
-    /** @return array{placeholders: int, withheldPictures: list<array{id: int, name: string}>} */
+    /**
+     * Un diaporama n'a pas de grille : ses images sont celles de ses
+     * diapositives et de son logo, cf. `DeckPictures`, et ses
+     * [passages à remplacer] ne sont pas comptés.
+     *
+     * @return array{placeholders: int, withheldPictures: list<array{id: int, name: string}>}
+     */
     public function report(DeliverableInterface $deliverable): array
     {
         return [
-            'placeholders' => $this->placeholders->count($deliverable),
+            'placeholders' => $deliverable->isSlides() ? 0 : $this->placeholders->count($deliverable),
             'withheldPictures' => $this->withheldPictures($deliverable),
         ];
     }
@@ -52,7 +60,7 @@ final readonly class DeliverableReadiness
         // Seules les zones que la page montre : une image dans une zone que le
         // client ne verra pas n'a pas à le retarder.
         $layout = DeliverablePageRenderer::withoutHiddenLayoutZones($deliverable->getGridLayout());
-        $ids = $this->pictures->idsInGridLayout($layout);
+        $ids = $deliverable->isSlides() ? $this->deckPictures->idsUsedBy($deliverable) : $this->pictures->idsInGridLayout($layout);
 
         $thumbnail = $deliverable->getThumbnail()?->getId();
         if (null !== $thumbnail) {

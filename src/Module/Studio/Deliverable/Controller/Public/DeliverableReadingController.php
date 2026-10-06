@@ -10,6 +10,7 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Sharing\ShareToken;
 use Aurora\Module\Studio\StudioContext;
 use DateTimeImmutable;
@@ -50,6 +51,7 @@ final class DeliverableReadingController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly RateLimiterFactoryInterface $deliverablePasswordLimiter,
         private readonly StudioContext $studioContext,
+        private readonly DeliverableSlidesViewBuilder $slidesView,
     ) {}
 
     #[Route('/{token}', name: '', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Get->value])]
@@ -66,6 +68,19 @@ final class DeliverableReadingController extends AbstractController
 
         $deliverable = $link->getDeliverable();
         $request->setLocale($deliverable->getLocale());
+
+        // Un diaporama se lit diapositive par diapositive, comme une
+        // présentation partagée : jamais par le gabarit des pages, et jamais
+        // avec les notes de l'orateur, retirées avant le gabarit.
+        if ($deliverable->isSlides()) {
+            $link->touch(new DateTimeImmutable());
+            $this->entityManager->flush();
+
+            return $this->privately($this->render('@Studio/public/deck.html.twig', [
+                'deck' => $this->slidesView->readerDeck($deliverable),
+                'expiresAt' => $link->getExpiresAt(),
+            ]));
+        }
 
         // Changer de vue (présentation, page) n'est pas ouvrir de nouveau le
         // lien : le compteur de l'auteur dit combien de fois on est venu, pas

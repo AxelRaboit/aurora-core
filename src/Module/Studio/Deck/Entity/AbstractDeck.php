@@ -217,6 +217,33 @@ abstract class AbstractDeck implements DeckInterface
         return $this;
     }
 
+    /** Le thème, sous le nom que lui donne tout ce qui porte des diapositives. */
+    public function getSlideTheme(): DeckThemeEnum
+    {
+        return $this->theme;
+    }
+
+    public function setSlideTheme(DeckThemeEnum $theme): static
+    {
+        $this->theme = $theme;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getSlideStyle(): array
+    {
+        return $this->style;
+    }
+
+    /** @param array<string, mixed> $style */
+    public function setSlideStyle(array $style): static
+    {
+        $this->style = $style;
+
+        return $this;
+    }
+
     /** @return Collection<int, SlideInterface> */
     public function getSlides(): Collection
     {

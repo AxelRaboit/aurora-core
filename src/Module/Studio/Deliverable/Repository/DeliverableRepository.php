@@ -246,6 +246,10 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             ->addSelect('t')
             ->leftJoin('d.space', 's')
             ->addSelect('s')
+            // Les diapositives d'un diaporama portent ses images : chargées
+            // avec lui, plutôt qu'une requête par livrable.
+            ->leftJoin('d.slides', 'sl')
+            ->addSelect('sl')
             ->getQuery()
             ->getResult();
     }

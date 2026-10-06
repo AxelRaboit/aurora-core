@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Aurora\Tests\Unit\Module\Studio\Deck;
 
 use Aurora\Core\Content\VideoEmbedResolver;
-use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
 use Aurora\Module\Studio\Deck\Service\FreeTextSanitizer;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -235,13 +234,12 @@ final class FreeSlideNormalizerTest extends TestCase
         return new FreeSlideNormalizer(new FreeTextSanitizer(), new VideoEmbedResolver());
     }
 
-    private function manager(): DeckManager
+    private function manager(): SlidesManager
     {
-        return new DeckManager(
+        return new SlidesManager(
             $this->createStub(EntityManagerInterface::class),
             new DeckStyleNormalizer(),
             $this->normalizer(),
-            $this->createStub(AuditLogger::class),
         );
     }
 }

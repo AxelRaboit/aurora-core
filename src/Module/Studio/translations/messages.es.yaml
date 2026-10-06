@@ -2075,7 +2075,15 @@ suite:
             studio_title_hint: "El título en la cabecera del documento y en la lista."
             formats:
                 page: "Página"
-                slides: "Diapositivas"
+                slides: "Presentación (diapositivas)"
+            format:
+                label: "Formato"
+                page_hint: "Se compone con la cuadrícula de las páginas del sitio y se lee desplazándose."
+                slides_hint: "Se compone diapositiva por diapositiva, se presenta a pantalla completa con sus notas y se imprime."
+                fixed_hint: "El formato ya no cambia después."
+                badge_slides: "Presentación"
+            slides:
+                settings: "Ajustes"
             template:
                 badge: "Plantilla"
                 filter: "Plantillas"
@@ -2084,6 +2092,7 @@ suite:
                 toggle_hint: "Se ofrece en «Partir de una plantilla» al crear un entregable. Lo que sale de ella, copia o entregable nuevo, no lo es."
                 from: "Partir de una plantilla"
                 from_nothing: "Página en blanco"
+                from_nothing_slides: "Presentación vacía"
                 from_hint: "El nuevo entregable retoma su contenido, su apariencia, su imagen y su categoría, con el título de abajo."
             customer:
                 label: "Cliente"
@@ -2161,13 +2170,13 @@ suite:
                 heading_styles:
                     theme: "Como el tema"
                     display: "Mayúsculas en negrita"
-                display: "Visualización"
-                display_hint: "« Página web » se lee desplazándose. « Presentación » se pasa sección por sección, como una diapositiva: una por cada título grande a todo el ancho."
+                display: "Lectura"
+                display_hint: "« Leer como página » se desplaza. « Leer como diapositivas » pasa esta misma página sección por sección, una diapositiva por cada título grande a todo el ancho. Para componer diapositivas una a una, cree mejor una presentación."
                 reader_pdf: "Permitir al lector descargar un PDF"
                 reader_pdf_hint: "Añade « Descargar en PDF » en la parte superior de la página que recibe el cliente, con un enlace o en el espacio. Desactivado por defecto: un documento que no se quiere ver circular como archivo no lo ofrece."
                 displays:
-                    page: "Página web"
-                    slides: "Presentación"
+                    page: "Leer como página"
+                    slides: "Leer como diapositivas"
                 presets:
                     title: "Ambientes"
                     hint: "Un aspecto completo en un clic. Los colores de abajo siguen siendo ajustables después."
@@ -2251,8 +2260,9 @@ suite:
                 locale_invalid: "Este idioma no está activo en el sitio."
                 grid_invalid: "La cuadrícula enviada es ilegible."
                 scope_invalid: "Esa visibilidad no existe: elija personal o compartido."
-                format_invalid: "Ese formato no existe: elija una página o diapositivas."
-                format_unavailable: "Todavía no se puede crear un entregable en diapositivas: elija una página."
+                format_invalid: "Ese formato no existe: elija una página o una presentación."
+                format_unavailable: "Este formato todavía no se puede crear: elija una página."
+                slides_not_in_space: "Una presentación se queda en Studio por ahora: no se copia en un espacio de cliente."
                 conflict: "Un compañero guardó este entregable mientras tanto. Recargue la página para ver su versión, o guarde igualmente para reemplazarla."
         space_resources:
             guide:
