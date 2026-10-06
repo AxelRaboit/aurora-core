@@ -3,8 +3,22 @@
 ## Règle
 
 ### Variables
-**Mots complets, jamais 1-2 lettres** sauf cas idiomatique ultra-court (`$i`
-en boucle for triviale).
+**Mots complets, jamais d'abréviation ni de nom d'une ou deux lettres**, y
+compris `$i` en boucle (`$index`), `$a`/`$b` en comparateur (`$left`/`$right`)
+et `$e` en catch (`$exception`). Tenu depuis le 07/10/2026 par
+`tests/Unit/NamesAreFullWordsTest.php` (PHP et Twig) et la règle ESLint
+`aurora/full-word-names` (JS/Vue), qui lisent une seule liste :
+`tools/naming/full-word-names.json` (mots interdits, noms courts permis).
+Renommer un argument de constructeur qu'aurora-client lie par son nom dans
+son `config/services.yaml` (`$auroraDirectory`, `$extraSourceDirectories` de
+`DumpJsTranslationsCommand`) est une rupture : à faire dans une majeure, avec
+la ligne du client. Ce jour-là, ~2 700 noms abrégés dans ~560 fichiers ont été
+renommés d'un coup : la règle était écrite depuis longtemps, rien ne la tenait.
+
+Permis : `t` (vue-i18n), `props`, `emit`, `$io` (SymfonyStyle), le suffixe
+`Ref` des refs Vue, les unités `Ms`/`Px`, les sigles (`id`, `url`…), `x`/`y`
+pour de vraies coordonnées, `$at`/`$on`/`$by`. En JS, jamais `document`,
+`window` ou `event` comme nom de variable : ce sont des globales du navigateur.
 
 ✅ `$company`, `$contact`, `$translation`, `$invoice`, `$auditPayload`
 ❌ `$c`, `$ct`, `$tr`, `$inv`, `$payload` (si shadowed)
@@ -57,7 +71,7 @@ endroits avec les mêmes noms. La charge cognitive est minime.
 ## Comment l'appliquer
 
 Avant de nommer une variable / fichier, vérifier que :
-1. Pas d'abréviation 1-2 lettres
+1. Pas d'abréviation ni de nom d'une ou deux lettres (les deux garde-fous le disent)
 2. Le suffixe correspond au rôle (`Manager`/`Service`/`Repository`/`Serializer`)
 3. Le dossier est en PascalCase (`Dto/` pas `DTO/`)
 4. L'interface est nommée `<Name><Suffix>Interface` à côté de la concrete
