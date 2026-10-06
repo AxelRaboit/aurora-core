@@ -1639,7 +1639,7 @@ suite:
                 folder_cleared: Dossier débranché.
                 drive_closes_now: "Enregistrer ferme l'onglet immédiatement, y compris pour vous : il faudra saisir le mot de passe pour l'ouvrir."
                 drive_title: Mot de passe de l'onglet Drive
-                drive_intro: "Ferme l'onglet Drive de cet espace. Il vaut pour tout le monde, vous compris : un mot de passe qu'on contourne ne protège personne."
+                drive_intro: "Ferme l'onglet Drive de cet espace pour toute l'équipe, vous compris : un mot de passe qu'on contourne ne protège personne. Le client garde ce que son lien d'accès lui montre."
                 current_password: Mot de passe actuel
                 new_password: Nouveau mot de passe
                 password: Mot de passe

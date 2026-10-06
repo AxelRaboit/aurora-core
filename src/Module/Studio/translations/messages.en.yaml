@@ -1639,7 +1639,7 @@ suite:
                 folder_cleared: Folder unlinked.
                 drive_closes_now: "Saving closes the tab straight away, you included: you will have to type the password to open it."
                 drive_title: Drive tab password
-                drive_intro: "Closes this space's Drive tab. It applies to everyone, you included: a password that gets walked past protects nobody."
+                drive_intro: "Closes this space's Drive tab for the whole team, you included: a password that gets walked past protects nobody. The client keeps what their access link shows them."
                 current_password: Current password
                 new_password: New password
                 password: Password

@@ -1629,7 +1629,7 @@ suite:
                 folder_cleared: 'Carpeta desconectada.'
                 drive_closes_now: 'Guardar cierra la pestaña de inmediato, también para usted: habrá que introducir la contraseña para abrirla.'
                 drive_title: 'Contraseña de la pestaña Drive'
-                drive_intro: 'Cierra la pestaña Drive de este espacio. Se aplica a todo el mundo, usted incluido: una contraseña que se puede eludir no protege a nadie.'
+                drive_intro: 'Cierra la pestaña Drive de este espacio para todo el equipo, usted incluido: una contraseña que se puede eludir no protege a nadie. El cliente conserva lo que le muestra su enlace de acceso.'
                 current_password: 'Contraseña actual'
                 new_password: 'Nueva contraseña'
                 password: Contraseña
