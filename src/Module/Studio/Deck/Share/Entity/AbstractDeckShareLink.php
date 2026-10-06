@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deck\Share\Entity;
 
+use Aurora\Core\Encryption\Doctrine\EncryptedStringType;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Sharing\ShareToken;
 use DateTimeImmutable;
@@ -12,13 +13,12 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * One address that opens a deck without an account.
  *
- * **The token is stored in clear, like the note share link and unlike the
- * contract one**, and the difference is the stake rather than an oversight.
- * A contract's token is what stands between a database dump and a signature in
- * somebody else's name, so it is split into a selector and a hashed secret. A
- * deck has nothing to forge: a database of decks that leaks has already leaked
- * the decks, and hashing the address would buy nothing while costing the
- * lookup a second step.
+ * **The token is encrypted at rest and found by its fingerprint**, as a
+ * deliverable's reading address is (see {@see ShareToken}). It used to sit in
+ * clear on the grounds that a leaked database of decks had leaked the decks
+ * already; but a backup also holds every address that still opens one, and an
+ * address outlives the copy of the deck it was taken from. The panel still
+ * shows the address, which is why it is encrypted rather than only hashed.
  *
  * **The view is live, not a snapshot.** Fixing a typo changes what the
  * recipient sees when they reopen the link, which is what people expect of a
@@ -37,14 +37,21 @@ use Doctrine\ORM\Mapping as ORM;
 abstract class AbstractDeckShareLink implements DeckShareLinkInterface
 {
     /**
-     * 32 random bytes, hex-encoded.
+     * 32 random bytes, hex-encoded, encrypted at rest.
      *
      * The address *is* the credential, so it has to be long enough that
-     * guessing one is not a strategy. Unique, so a collision fails loudly on
-     * insert rather than handing one person another person's deck.
+     * guessing one is not a strategy.
+     */
+    #[ORM\Column(type: EncryptedStringType::NAME, length: 255)]
+    protected string $token;
+
+    /**
+     * SHA-256 of the token: what a visit is looked up by, never what is shown.
+     * Unique, so a collision fails loudly on insert rather than handing one
+     * person another person's deck.
      */
     #[ORM\Column(length: 64, unique: true)]
-    protected string $token;
+    protected string $tokenHash;
 
     /** Free text, so a list of links is still readable months later. */
     #[ORM\Column(length: 120, options: ['default' => ''])]
@@ -110,6 +117,7 @@ abstract class AbstractDeckShareLink implements DeckShareLinkInterface
         protected DeckInterface $deck)
     {
         $this->token = ShareToken::generate();
+        $this->tokenHash = ShareToken::hash($this->token);
         $this->createdAt = new DateTimeImmutable();
     }
 

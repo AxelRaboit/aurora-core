@@ -8,6 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
+use Aurora\Module\Studio\Sharing\ShareToken;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -22,7 +23,13 @@ class DeckShareLinkRepository extends ResolveTargetEntityRepository
 
     public function findByToken(string $token): ?DeckShareLinkInterface
     {
-        return $this->findOneBy(['token' => $token]);
+        if (!ShareToken::isWellFormed($token)) {
+            return null;
+        }
+
+        // By its fingerprint: the column itself is encrypted, and two
+        // encryptions of one token do not compare equal.
+        return $this->findOneBy(['tokenHash' => ShareToken::hash($token)]);
     }
 
     /**

@@ -9,6 +9,7 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
+use Aurora\Module\Studio\Sharing\ShareToken;
 use Aurora\Module\Studio\StudioContext;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,7 +59,7 @@ final class PublicDeckController extends AbstractController
         private readonly RateLimiterFactoryInterface $deckSharePasswordLimiter,
     ) {}
 
-    #[Route('/{token}', name: '_show', requirements: ['token' => '[a-f0-9]{64}'], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{token}', name: '_show', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Get->value])]
     public function show(string $token, Request $request): Response
     {
         $link = $this->links->findByToken($token);
@@ -121,7 +122,7 @@ final class PublicDeckController extends AbstractController
      * guessing addresses that this one is real, which is the single thing a
      * guessed token must not learn.
      */
-    #[Route('/{token}/unlock', name: '_unlock', requirements: ['token' => '[a-f0-9]{64}'], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{token}/unlock', name: '_unlock', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Post->value])]
     public function unlock(string $token, Request $request): Response
     {
         if (false === $this->deckSharePasswordLimiter->create($request->getClientIp())->consume()->isAccepted()) {

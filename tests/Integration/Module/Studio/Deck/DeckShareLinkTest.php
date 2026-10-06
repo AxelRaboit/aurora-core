@@ -18,6 +18,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 use function bin2hex;
+use function hash;
 use function password_hash;
 use function random_bytes;
 
@@ -88,6 +89,27 @@ final class DeckShareLinkTest extends IntegrationTestCase
     }
 
     /** A guessed address must learn nothing, including that it was close. */
+    /**
+     * A backup no longer hands out working addresses: the column holds the
+     * token encrypted, and the lookup goes through its fingerprint.
+     */
+    public function testTheTokenIsEncryptedAtRestAndFoundByItsHash(): void
+    {
+        $link = $this->link();
+
+        $row = $this->entityManager()->getConnection()->fetchAssociative(
+            'SELECT token, token_hash FROM core_deck_share_links WHERE id = :id',
+            ['id' => $link->getId()],
+        );
+
+        self::assertIsArray($row);
+        self::assertNotSame($link->getToken(), $row['token']);
+        self::assertSame(hash('sha256', $link->getToken()), $row['token_hash']);
+
+        $this->client->request('GET', '/decks/'.$link->getToken());
+        self::assertResponseIsSuccessful();
+    }
+
     public function testAnUnknownTokenIs404(): void
     {
         $this->client->request('GET', '/decks/'.str_repeat('a', 64));
