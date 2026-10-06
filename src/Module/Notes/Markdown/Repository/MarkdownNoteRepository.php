@@ -253,6 +253,39 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         ], $rows);
     }
 
+    /**
+     * Les notes vivantes d'un espace, les plus récemment touchées d'abord,
+     * sans leur texte.
+     *
+     * Pour un écran qui les liste hors du module - l'onglet Notes d'un espace
+     * client - et n'a besoin que de quoi les reconnaître et les ouvrir. Le
+     * texte est chiffré : ne pas le choisir est ce qui garde la liste légère.
+     *
+     * @return list<array{id: int, title: ?string, folderId: ?int, updatedAt: ?string, authorName: ?string}>
+     */
+    public function findListInSpace(NoteSpaceInterface $space): array
+    {
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $this->createQueryBuilder('n')
+            ->select('n.id', 'n.title', 'n.updatedAt', 'IDENTITY(n.folder) AS folderId', 'author.name AS authorName')
+            ->leftJoin('n.user', 'author')
+            ->where('n.space = :space')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('space', $space)
+            ->orderBy('n.updatedAt', Order::Descending->value)
+            ->addOrderBy('n.id', Order::Descending->value)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'title' => $row['title'],
+            'folderId' => null === $row['folderId'] ? null : (int) $row['folderId'],
+            'updatedAt' => self::asAtom($row['updatedAt'] ?? null),
+            'authorName' => $row['authorName'],
+        ], $rows);
+    }
+
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
         // Une note qu'on peut écrire, pas une note dont on est l'auteur : c'est

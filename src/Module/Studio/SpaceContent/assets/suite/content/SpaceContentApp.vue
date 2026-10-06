@@ -57,9 +57,7 @@ import SpaceSectionNav from "./components/SpaceSectionNav.vue";
 // Same module, another sub-domain: a relative path rather than an alias,
 // the way the public page already reaches the shared thread.
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
-import SpaceNotesView from "../../../../SpaceNote/assets/suite/notes/SpaceNotesView.vue";
-import SpaceNoteFormModal from "../../../../SpaceNote/assets/suite/notes/SpaceNoteFormModal.vue";
-import { useSpaceNotes } from "../../../../SpaceNote/assets/suite/notes/composables/useSpaceNotes.js";
+import SpaceNoteSpaceView from "../../../../SpaceNote/assets/suite/notes/SpaceNoteSpaceView.vue";
 import { useSpaceOwnFiles } from "../../../../SpaceFile/assets/suite/files/composables/useSpaceOwnFiles.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
@@ -157,12 +155,11 @@ const props = defineProps({
     chatOlderPath: { type: String, default: null },
     chatHidePath: { type: String, default: null },
     chatPeople: { type: Array, default: () => [] },
-    notes: { type: Array, default: () => [] },
-    noteCreatePath: { type: String, required: true },
-    noteUpdatePath: { type: String, required: true },
-    noteDeletePath: { type: String, required: true },
-    notePinPath: { type: String, required: true },
-    noteImagePath: { type: String, required: true },
+    /**
+     * L'onglet Notes : l'espace de notes de cet espace client, dans le module
+     * Notes. `enabled` faux pour qui n'a pas les notes, et l'onglet disparaît.
+     */
+    spaceNotes: { type: Object, default: () => ({ enabled: false }) },
     spaceFiles: { type: Array, default: () => [] },
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
@@ -253,6 +250,9 @@ const views = computed(() =>
     VIEWS.filter((entry) => {
         if ("drive" === entry.key) return props.driveEnabled;
         if ("settings" === entry.key) return props.canConfigure;
+        // Les notes vivent dans le module Notes : sans lui, ou sans le droit
+        // de s'en servir, l'onglet mènerait à des écrans fermés.
+        if ("notes" === entry.key) return true === props.spaceNotes?.enabled;
 
         return true;
     }),
@@ -421,47 +421,6 @@ async function attachFromDrive(file) {
 }
 
 const editable = computed(() => can("studio.spaces.edit"));
-
-/**
- * Les notes de l'espace, la seule surface que le client ne voit pas.
- *
- * Elles réutilisent l'offre de nettoyage des fiches : supprimer une note ne
- * supprime pas ses images, et ce qui n'est plus utilisé nulle part est proposé
- * plutôt que jeté.
- */
-const {
-    notes: spaceNotes,
-    tab: notesTab,
-    tabs: notesTabs,
-    viewMode: notesViewMode,
-    storedViewMode: notesStoredViewMode,
-    setViewMode: setNotesViewMode,
-    container: notesContainer,
-    showForm: showNoteForm,
-    editing: editingNote,
-    form: noteForm,
-    errors: noteErrors,
-    loading: noteLoading,
-    openCreate: openNoteCreate,
-    openEdit: openNoteEdit,
-    submit: submitNote,
-    togglePin: toggleNotePin,
-    pendingDelete: pendingNoteDelete,
-    confirmDelete: confirmNoteDelete,
-    doDelete: deleteNote,
-    apply: applyNotes,
-} = useSpaceNotes(
-    props.notes,
-    {
-        createPath: props.noteCreatePath,
-        updatePath: props.noteUpdatePath,
-        deletePath: props.noteDeletePath,
-        pinPath: props.notePinPath,
-    },
-    // La même offre que les fichiers d'une fiche : un seul contrat, un seul
-    // composable pour le lire.
-    useOrphanedDocumentOffer().offer,
-);
 
 const {
     confirming: confirmingReview,
@@ -817,24 +776,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 />
             </div>
 
-            <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
-             décide de la forme, pas la fenêtre. -->
-            <div v-else-if="view === 'notes'" ref="notesContainer">
-                <SpaceNotesView
-                    :notes="spaceNotes"
-                    :tab="notesTab"
-                    :tabs="notesTabs"
-                    :view-mode="notesViewMode"
-                    :stored-view-mode="notesStoredViewMode"
-                    :editable="editable"
-                    v-on:create="openNoteCreate"
-                    v-on:open="openNoteEdit"
-                    v-on:pin="toggleNotePin"
-                    v-on:delete="confirmNoteDelete"
-                    v-on:set-view="setNotesViewMode"
-                    v-on:set-tab="notesTab = $event"
-                />
-            </div>
+            <!-- La porte de l'espace de notes : les notes s'écrivent dans
+                 le module Notes. -->
+            <SpaceNoteSpaceView v-else-if="view === 'notes'" :state="spaceNotes" />
 
             <SpaceCalendarView
                 v-else
@@ -1089,46 +1033,6 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                             :loading="columnDeleteLoading"
                             v-on:click="deleteColumn"
                         >
-                            <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.delete") }}
-                        </AppButton>
-                    </AppModalFooter>
-                </template>
-            </AppModal>
-
-            <SpaceNoteFormModal
-                :show="showNoteForm"
-                :model-value="noteForm"
-                :errors="noteErrors"
-                :loading="noteLoading"
-                :editing="!!editingNote"
-                :upload-url="noteImagePath"
-                v-on:update:model-value="noteForm = $event"
-                v-on:close="showNoteForm = false"
-                v-on:submit="submitNote"
-            />
-
-            <AppModal
-                :show="!!pendingNoteDelete"
-                max-width="sm"
-                :closeable="false"
-                :title="t('shared.common.delete')"
-                :icon="Trash2"
-                v-on:close="pendingNoteDelete = null"
-            >
-                <p class="text-sm text-primary">
-                    {{ t("suite.studio.space_notes.delete_confirm", { title: pendingNoteDelete?.title ?? "" }) }}
-                </p>
-                <p class="text-sm text-secondary">
-                    {{ t("suite.studio.space_notes.delete_warning") }}
-                </p>
-                <template #footer>
-                    <AppModalFooter>
-                        <AppButton variant="ghost" size="md" v-on:click="pendingNoteDelete = null">
-                            <X class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.cancel") }}
-                        </AppButton>
-                        <AppButton variant="danger" size="md" :loading="noteLoading" v-on:click="deleteNote">
                             <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
                             {{ t("shared.common.delete") }}
                         </AppButton>

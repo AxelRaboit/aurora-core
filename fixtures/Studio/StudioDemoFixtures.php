@@ -13,6 +13,13 @@ use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
+use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
+use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
+use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -63,8 +70,7 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
-use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
 use Aurora\Module\Studio\SpaceResource\Dto\SpaceResourceInput;
 use Aurora\Module\Studio\SpaceResource\Enum\SpaceResourceKindEnum;
 use Aurora\Module\Studio\SpaceResource\Manager\SpaceResourceManagerInterface;
@@ -77,6 +83,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 
+use function implode;
 use function mb_substr;
 use function sprintf;
 
@@ -157,6 +164,13 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly DriveLock $driveLock,
         private readonly AuditLogger $audit,
         private readonly ContractPdfGenerator $pdf,
+        private readonly SpaceNoteSpaceProvider $noteSpaces,
+        private readonly NoteSpaceAccess $noteSpaceAccess,
+        private readonly MarkdownNoteManagerInterface $markdownNotes,
+        private readonly MarkdownNoteInputFactoryInterface $markdownNoteInputs,
+        private readonly NoteFolderManagerInterface $noteFolders,
+        private readonly NoteFolderInputFactoryInterface $noteFolderInputs,
+        private readonly NoteFavoriteManagerInterface $noteFavorites,
     ) {}
 
     public static function getGroups(): array
@@ -1145,74 +1159,81 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * décider, ce qui a coincé - parce qu'une démonstration où les notes sont
      * des paragraphes de remplissage n'apprend pas à quoi elles servent.
      *
-     * Persistées directement, comme la discussion : le Manager signe avec le
-     * compte connecté, et une fixture n'en a pas.
+     * **Dans le module Notes, par ses gestionnaires** : l'espace de notes de
+     * l'espace client, ouvert comme le ferait l'onglet, reçoit les notes de
+     * l'équipe ; les notes pour soi vont dans l'espace personnel de leur
+     * auteur, rangées dans un dossier au nom de l'espace client - là où la
+     * migration range celles d'avant. Une note épinglée devient un favori de
+     * son auteur.
      */
     private function seedNotes(CustomerSpaceInterface $space): void
     {
         $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
         // Les notes personnelles sont prises par le compte de développement,
         // et c'est le seul choix qui montre quelque chose : une note
-        // personnelle ne remonte qu'à son auteur, donc signée par quelqu'un
-        // d'autre elle laisserait l'onglet vide pour celui qui regarde.
+        // personnelle ne se lit que dans l'espace de son auteur, donc signée
+        // par quelqu'un d'autre elle resterait invisible pour celui qui
+        // regarde.
         $admin = $this->userRepository->find($this->suiteUser('dev@aurora.app'));
 
         if (!$marie instanceof User || !$admin instanceof User) {
             return;
         }
 
-        foreach ($this->noteContents() as [$title, $colour, $pinned, $visibility, $paragraphs]) {
-            $author = $visibility->isPersonal() ? $admin : $marie;
+        $team = $this->noteSpaces->resolve($space);
+        $folder = null;
 
-            $note = new SpaceNote();
-            $note
-                ->setSpace($space)
-                ->setTitle($title)
-                ->setColourSlot($colour)
-                ->setPinned($pinned)
-                ->setVisibility($visibility)
-                ->setBody(array_map(
-                    static fn (string $text): array => ['type' => 'paragraph', 'data' => ['text' => $text]],
-                    $paragraphs,
-                ))
-                ->takenBy($author, $author->getName());
+        foreach ($this->noteContents() as [$title, $pinned, $personal, $paragraphs]) {
+            $author = $personal ? $admin : $marie;
 
-            $this->entityManager->persist($note);
+            if ($personal && !$folder instanceof NoteFolderInterface) {
+                $folder = $this->noteFolders->create($admin, $this->noteFolderInputs->fromArray([
+                    'name' => $space->getName(),
+                    'spaceId' => $this->noteSpaceAccess->personalSpace($admin)->getId(),
+                ]));
+            }
+
+            $note = $this->markdownNotes->create($author, $this->markdownNoteInputs->fromArray([
+                'title' => $title,
+                'content' => implode("\n\n", $paragraphs),
+                'spaceId' => $personal ? null : $team->getId(),
+                'folderId' => $personal ? $folder?->getId() : null,
+            ]));
+
+            if ($pinned) {
+                $this->noteFavorites->toggle($author, $note);
+            }
         }
-
-        $this->entityManager->flush();
     }
 
     /**
-     * Trois notes partagées et une personnelle.
+     * Trois notes de l'équipe et deux pour soi, les épinglées d'abord.
      *
-     * La personnelle n'est pas un quatrième exemple du même objet : c'est la
-     * seule qui montre pourquoi les deux onglets existent, et elle dit ce qu'on
-     * n'écrit pas sur un mur que l'équipe lit.
+     * Les personnelles ne sont pas un exemple de plus du même objet : ce sont
+     * les seules qui montrent qu'une note pour soi a sa place ailleurs que
+     * dans l'espace que l'équipe lit.
      *
-     * @return list<array{0: string, 1: ?int, 2: bool, 3: SpaceNoteVisibilityEnum, 4: list<string>}>
+     * @return list<array{0: string, 1: bool, 2: bool, 3: list<string>}>
      */
     private function noteContents(): array
     {
         return [
-            ['Brief téléphonique', 4, true, SpaceNoteVisibilityEnum::Shared, [
-                'Le client veut <b>éviter le vert</b> : trop proche de son concurrent de la zone.',
+            ['Brief téléphonique', true, false, [
+                'Le client veut **éviter le vert** : trop proche de son concurrent de la zone.',
                 'Livraison souhaitée avant les portes ouvertes. Marge réelle : trois semaines.',
                 'Contact technique : son neveu, qui gère le site. Passer par lui pour les accès.',
             ]],
-            ['À décider', null, false, SpaceNoteVisibilityEnum::Shared, [
-                'Format des visuels : carré pour Instagram, ou 4:5 partout ?',
-                "Est-ce qu'on reprend les photos existantes ou on refait une séance ?",
+            ['À décider', false, false, [
+                "- Format des visuels : carré pour Instagram, ou 4:5 partout ?\n- Est-ce qu'on reprend les photos existantes ou on refait une séance ?",
             ]],
-            ['Ce qui a coincé en mars', 9, false, SpaceNoteVisibilityEnum::Shared, [
+            ['Ce qui a coincé en mars', false, false, [
                 "Les validations partaient par mail et se perdaient. D'où l'espace.",
                 'Deux allers-retours sur un texte déjà validé, faute de trace écrite.',
             ]],
-            ['À relancer', 2, true, SpaceNoteVisibilityEnum::Personal, [
-                "Le devis photo avant la fin du mois : c'est passé deux fois à la trappe.",
-                'Ne pas proposer le mardi pour les points, je suis en formation.',
+            ['À relancer', true, true, [
+                "- [ ] Le devis photo avant la fin du mois : c'est passé deux fois à la trappe.\n- [ ] Ne pas proposer le mardi pour les points, je suis en formation.",
             ]],
-            ['Ce que je ne dirai pas comme ça', 6, false, SpaceNoteVisibilityEnum::Personal, [
+            ['Ce que je ne dirai pas comme ça', false, true, [
                 'La direction « artisanale » ne prend pas. Trouver comment le dire sans dire « ça ne marche pas ».',
                 'Préparer deux planches avant le point, pas une seule à défendre.',
             ]],

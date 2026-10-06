@@ -246,17 +246,32 @@ describe("les espaces du panneau", () => {
         const menuKeys = (wrapper, id) =>
             wrapper
                 .findAllComponents({ name: "AppRowActions" })
-                .find((menu) => String(menu.attributes("data-space-menu")) === String(id))
+                .find(
+                    (menu) =>
+                        String(menu.attributes("data-space-menu")) ===
+                        String(id),
+                )
                 .props("actions");
 
         answerWith({ spaces, folders: SPACED_FOLDERS, notes: SPACED_NOTES });
         const closed = await render();
-        expect(menuKeys(closed, 7).map((action) => action.key)).not.toContain("craft-import");
+        expect(menuKeys(closed, 7).map((action) => action.key)).not.toContain(
+            "craft-import",
+        );
 
-        answerWith({ spaces, folders: SPACED_FOLDERS, notes: SPACED_NOTES, craftEnabled: true });
+        answerWith({
+            spaces,
+            folders: SPACED_FOLDERS,
+            notes: SPACED_NOTES,
+            craftEnabled: true,
+        });
         const open = await render();
-        expect(menuKeys(open, 8).map((action) => action.key)).not.toContain("craft-import");
-        menuKeys(open, 7).find((action) => "craft-import" === action.key).onSelect();
+        expect(menuKeys(open, 8).map((action) => action.key)).not.toContain(
+            "craft-import",
+        );
+        menuKeys(open, 7)
+            .find((action) => "craft-import" === action.key)
+            .onSelect();
 
         expect(handler).toHaveBeenCalledWith({ args: [7] });
     });

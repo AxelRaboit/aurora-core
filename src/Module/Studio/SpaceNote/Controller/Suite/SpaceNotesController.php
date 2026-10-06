@@ -5,249 +5,54 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceNote\Controller\Suite;
 
 use Aurora\Core\Enum\HttpMethodEnum;
-use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Core\Storage\Access\UploadPolicyProvider;
-use Aurora\Core\Storage\Access\UploadRefusalEnum;
-use Aurora\Core\Validation\Exception\FieldException;
-use Aurora\Core\Validation\Service\PayloadValidator;
-use Aurora\Module\Ged\Document\Entity\DocumentInterface;
-use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
+use Aurora\Module\Notes\EventSubscriber\NotesRouteGateSubscriber;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
-use Aurora\Module\Studio\SpaceNote\Dto\SpaceNoteInputFactoryInterface;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
-use Aurora\Module\Studio\SpaceNote\Manager\SpaceNoteManagerInterface;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
 use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
-use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-use function is_array;
-use function is_int;
-use function str_starts_with;
-
 /**
- * Les notes d'un espace.
+ * Les notes d'un espace client, côté Studio : une seule route.
  *
- * **Aucune route publique, et c'est la définition de la fonctionnalité.** Le
- * fil d'une fiche et la discussion sont partagés avec le client ; une note ne
- * l'est pas. Le module n'a pas de contrôleur public à servir, la page du client
- * ne reçoit rien d'elles, et c'est ce qui permet d'y écrire ce qu'on n'écrirait
- * pas ailleurs.
+ * **Les notes s'écrivent dans le module Notes**, dans l'espace de notes de
+ * l'espace client, et chaque note passe par les routes et les règles de ce
+ * module. Ce qui reste ici, c'est d'ouvrir cet espace de notes la première
+ * fois qu'on en a besoin, avec l'équipe de l'espace.
  *
- * Chaque route nomme l'espace et chaque gestionnaire vérifie que ce qu'on lui a
- * donné lui appartient : la note arrive comme sa propre entité par l'URL, donc
- * rien n'empêche une requête fabriquée de désigner la note d'un client sous
- * l'espace d'un autre. `assertOwned` est ce qui l'empêche.
- *
- * **Et `assertVisible` empêche l'autre.** Une note personnelle n'est jamais
- * remontée à quelqu'un d'autre que son auteur, mais rien n'oblige une requête
- * à passer par ce qu'on lui a montré : une route qui reçoit une note par son
- * identifiant doit reposer la question. Elle répond 404 plutôt que 403, comme
- * partout où l'existence est déjà l'information.
+ * **Aucune route publique, toujours** : le client ne voit pas les notes.
+ * L'espace client arrive par l'URL et passe par la règle de visibilité des
+ * espaces, comme toutes les routes `workspace_*` : un espace dont on n'est pas
+ * répond 404. Et la route se ferme avec le module Notes
+ * ({@see NotesRouteGateSubscriber}).
  */
 #[Route('/workspace/{id}/notes', name: 'workspace_space_notes', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
 class SpaceNotesController extends AbstractController
 {
-    use SpaceOwnershipTrait;
-    use JsonRequestTrait;
     use JsonResponseTrait;
 
     public function __construct(
-        protected readonly SpaceNoteManagerInterface $notes,
-        protected readonly SpaceNoteInputFactoryInterface $inputFactory,
+        protected readonly SpaceNoteSpaceProvider $provider,
         protected readonly SpaceNotesViewBuilder $viewBuilder,
-        protected readonly PayloadValidator $payloadValidator,
-        protected readonly SpaceAttachmentUploader $uploader,
-        protected readonly DocumentSerializerInterface $documents,
-        protected readonly UploadPolicyProvider $uploadPolicies,
-        protected readonly DocumentRepository $documentRepository,
-        protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
     ) {}
 
-    #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.spaces.edit')]
-    public function create(CustomerSpace $space, Request $request): JsonResponse
+    /**
+     * L'espace de notes de cet espace client, ouvert s'il ne l'est pas.
+     *
+     * Une écriture, d'où le POST : la première note, ou le premier import,
+     * crée l'espace de notes et y inscrit l'équipe. Rendre l'état de l'onglet
+     * avec la réponse évite un second aller-retour.
+     */
+    #[Route('/open', name: '_open', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('notes.markdown.use')]
+    public function open(CustomerSpace $space): JsonResponse
     {
-        $input = $this->inputFactory->fromArray($this->decodeJson($request));
-
-        $errors = $this->payloadValidator->errors($input);
-
-        if ([] !== $errors) {
-            return $this->jsonInvalidInput($errors);
-        }
-
-        try {
-            $this->notes->create($space, $input);
-        } catch (FieldException $fieldException) {
-            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
-        }
+        $this->provider->resolve($space);
 
         return $this->jsonSuccess($this->viewBuilder->payload($space));
-    }
-
-    #[Route('/{noteId}/update', name: '_update', requirements: ['noteId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.spaces.edit')]
-    public function update(
-        CustomerSpace $space,
-        #[MapEntity(id: 'noteId')]
-        SpaceNote $note,
-        Request $request,
-    ): JsonResponse {
-        $this->assertOwned($space, $note->getSpace()->getId());
-        $this->assertVisible($note);
-
-        $input = $this->inputFactory->fromArray($this->decodeJson($request));
-
-        $errors = $this->payloadValidator->errors($input);
-
-        if ([] !== $errors) {
-            return $this->jsonInvalidInput($errors);
-        }
-
-        $this->notes->update($note, $input);
-
-        return $this->jsonSuccess($this->viewBuilder->payload($space));
-    }
-
-    /**
-     * Épingler, sans rouvrir la note.
-     *
-     * Sa propre route plutôt qu'un `update` : marquer « celle-ci compte
-     * aujourd'hui » ne devrait pas renvoyer un titre, un corps et une couleur.
-     */
-    #[Route('/{noteId}/pin', name: '_pin', requirements: ['noteId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.spaces.edit')]
-    public function pin(
-        CustomerSpace $space,
-        #[MapEntity(id: 'noteId')]
-        SpaceNote $note,
-    ): JsonResponse {
-        $this->assertOwned($space, $note->getSpace()->getId());
-        $this->assertVisible($note);
-
-        $this->notes->togglePinned($note);
-
-        return $this->jsonSuccess($this->viewBuilder->payload($space));
-    }
-
-    /**
-     * Supprime la note, et rien d'autre.
-     *
-     * Les images de son corps restent dans la médiathèque : d'autres notes
-     * peuvent les porter, et la réponse porte la liste de celles que plus
-     * personne n'utilise, pour que l'écran propose de les jeter au lieu de le
-     * décider tout seul - la même règle que les pièces jointes d'une fiche.
-     */
-    #[Route('/{noteId}/delete', name: '_delete', requirements: ['noteId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.spaces.edit')]
-    public function delete(
-        CustomerSpace $space,
-        #[MapEntity(id: 'noteId')]
-        SpaceNote $note,
-    ): JsonResponse {
-        $this->assertOwned($space, $note->getSpace()->getId());
-        $this->assertVisible($note);
-
-        $documents = $this->documentsOf($note);
-
-        $this->notes->delete($note);
-
-        return $this->jsonSuccess([
-            ...$this->viewBuilder->payload($space),
-            ...$this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
-        ]);
-    }
-
-    /**
-     * Une image posée dans une note.
-     *
-     * **Elle va dans le dossier de cet espace, en brouillon**, exactement comme
-     * un fichier déposé sur une fiche - ce n'est pas l'endroit générique des
-     * images d'édition. Une note parle d'un client ; sa capture d'écran est à
-     * ce client, pas au mobilier du site. Le brouillon est ce qui la garde hors
-     * du catch-all public : elle se lit par la route réservée au personnel, que
-     * `DocumentUrlGenerator` renvoie déjà pour un brouillon.
-     *
-     * Images seulement : l'éditeur affiche ce qu'on lui rend dans un `<img>`,
-     * et un PDF se rangerait sans bruit pour s'afficher en image cassée.
-     */
-    #[Route('/images', name: '_image', methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.spaces.edit')]
-    public function uploadImage(CustomerSpace $space, Request $request): JsonResponse
-    {
-        $file = $request->files->get('file');
-
-        if (!$file instanceof UploadedFile) {
-            return $this->jsonFailure('suite.ged.documents.errors.upload_required');
-        }
-
-        if (!str_starts_with((string) $file->getMimeType(), 'image/')) {
-            return $this->jsonFailure('suite.ged.documents.errors.image_required');
-        }
-
-        $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
-
-        if ($refusal instanceof UploadRefusalEnum) {
-            return $this->jsonFailure(match ($refusal) {
-                UploadRefusalEnum::TooLarge => 'suite.ged.documents.errors.upload_too_large',
-                UploadRefusalEnum::TypeRefused => 'suite.ged.documents.errors.upload_type_refused',
-                UploadRefusalEnum::Broken => 'suite.ged.documents.errors.upload_failed',
-            });
-        }
-
-        return $this->jsonSuccess([
-            'document' => $this->documents->serialize($this->uploader->upload($file, $space)),
-        ]);
-    }
-
-    /**
-     * Les documents que le corps d'une note porte.
-     *
-     * Relevés avant la suppression, parce qu'après il n'y a plus de blocs à
-     * lire. Lus sur l'identifiant que l'éditeur range à côté de l'adresse :
-     * sans lui il n'y aurait qu'une URL à reconnaître.
-     *
-     * @return list<DocumentInterface>
-     */
-    private function documentsOf(SpaceNote $note): array
-    {
-        $ids = [];
-
-        foreach ($note->getBody() as $block) {
-            $file = $block['data']['file'] ?? null;
-            $id = is_array($file) ? ($file['documentId'] ?? null) : null;
-            if (is_int($id)) {
-                $ids[$id] = true;
-            }
-        }
-
-        // One query for every picture of the note, not one each.
-        return [] === $ids ? [] : $this->documentRepository->findBy(['id' => array_keys($ids)]);
-    }
-
-    /**
-     * La note personnelle de quelqu'un d'autre n'existe pas.
-     *
-     * Le dépôt ne la remonte jamais ; ceci est la même règle posée à l'entrée
-     * des routes qui reçoivent une note par son identifiant.
-     */
-    private function assertVisible(SpaceNote $note): void
-    {
-        $reader = $this->getUser();
-
-        if (!$note->isVisibleTo($reader instanceof CoreUserInterface ? $reader : null)) {
-            throw $this->createNotFoundException();
-        }
     }
 }

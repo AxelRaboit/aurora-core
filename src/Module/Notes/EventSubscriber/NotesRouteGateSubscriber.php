@@ -15,6 +15,10 @@ use Aurora\Module\Notes\NotesContext;
  * published space are the notes still publishing, and notes switched off
  * should stop. The menu shows the module only when both its toggles are on,
  * so the routes ask the same question.
+ *
+ * Studio's `workspace_space_notes_*` too: the Notes tab of a customer space
+ * opens a note space, and with the notes off the tab is hidden and its route
+ * closed with the rest.
  */
 final readonly class NotesRouteGateSubscriber extends AbstractModuleRouteGateSubscriber
 {
@@ -22,7 +26,7 @@ final readonly class NotesRouteGateSubscriber extends AbstractModuleRouteGateSub
 
     protected function routeNamespaces(): array
     {
-        return ['suite_notes_', 'notes_share', 'notes_public'];
+        return ['suite_notes_', 'notes_share', 'notes_public', 'workspace_space_notes'];
     }
 
     protected function gates(): array
@@ -33,6 +37,7 @@ final readonly class NotesRouteGateSubscriber extends AbstractModuleRouteGateSub
             'suite_notes_' => $enabled,
             'notes_share' => $enabled,
             'notes_public' => $enabled,
+            'workspace_space_notes' => $enabled,
         ];
     }
 }

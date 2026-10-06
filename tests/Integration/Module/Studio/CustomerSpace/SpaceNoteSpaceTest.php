@@ -7,7 +7,6 @@ namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
-use Aurora\Module\Notes\Space\Manager\NoteSpaceManagerInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -16,15 +15,17 @@ use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
-use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceSync;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use function array_column;
 use function bin2hex;
+use function html_entity_decode;
 use function json_decode;
 use function ksort;
+use function preg_match;
 use function random_bytes;
 use function sprintf;
 
@@ -172,15 +173,72 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
     }
 
     /**
-     * Assemblé ici : le conteneur ne garde pas un service que rien
-     * n'injecte encore.
+     * L'onglet ouvre l'espace de notes au premier geste, et liste ensuite ce
+     * que l'équipe y a écrit.
      */
+    public function testTheTabOpensTheNoteSpaceAndListsItsNotes(): void
+    {
+        $space = $this->givenSpace('Boulangerie Martin');
+
+        $before = $this->tabOf($space);
+        self::assertTrue($before['enabled']);
+        self::assertNull($before['noteSpace'], 'pas ouvert tant que personne ne l\'a demandé');
+
+        $opened = $this->post($this->url('workspace_space_notes_open', ['id' => $space->getId()]), []);
+        self::assertResponseIsSuccessful();
+        $noteSpaceId = (int) $opened['noteSpace']['id'];
+        $this->noteSpaces[] = $noteSpaceId;
+
+        $this->client->loginUser($this->reference($this->lead), 'admin');
+        $this->post($this->url('suite_notes_markdown_create'), ['title' => 'Brief téléphonique', 'spaceId' => $noteSpaceId]);
+        self::assertResponseIsSuccessful();
+
+        $tab = $this->tabOf($space);
+        self::assertSame($noteSpaceId, $tab['noteSpace']['id']);
+        self::assertTrue($tab['noteSpace']['canWrite']);
+        self::assertSame(['Brief téléphonique'], array_column($tab['notes'], 'title'));
+        self::assertSame('referent', $tab['notes'][0]['authorName']);
+    }
+
+    /**
+     * Sans le droit d'utiliser les notes, l'onglet n'est pas là, et sa route
+     * ne s'ouvre pas : le droit ne se gagne pas en entrant dans une équipe.
+     */
+    public function testTheTabIsHiddenFromWhoCannotUseTheNotes(): void
+    {
+        $space = $this->givenSpace('Boulangerie Martin');
+
+        $member = $this->reference($this->member);
+        $member->setPrivileges(['studio.spaces.view']);
+        $this->entityManager->flush();
+        $this->client->loginUser($member, 'admin');
+
+        self::assertSame(['enabled' => false], $this->tabOf($space));
+
+        $this->post($this->url('workspace_space_notes_open', ['id' => $space->getId()]), []);
+        self::assertResponseStatusCodeSame(403);
+        self::assertNull($this->reloaded($space)->getNoteSpace());
+    }
+
+    /**
+     * L'état de l'onglet tel que la page le rend.
+     *
+     * @return array<string, mixed>
+     */
+    private function tabOf(CustomerSpace $space): array
+    {
+        $this->client->request('GET', sprintf('/workspace/%d', $space->getId()));
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(1, preg_match('/data-symfony--ux-vue--vue-props-value="([^"]*spaceNotes[^"]*)"/', (string) $this->client->getResponse()->getContent(), $match));
+        $props = json_decode(html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5), true, flags: JSON_THROW_ON_ERROR);
+
+        return $props['spaceNotes'];
+    }
+
     private function provider(): SpaceNoteSpaceProvider
     {
-        $container = static::getContainer();
-        $noteSpaces = $container->get(NoteSpaceManagerInterface::class);
-
-        return new SpaceNoteSpaceProvider($noteSpaces, new SpaceNoteSpaceSync($noteSpaces), $container->get(EntityManagerInterface::class));
+        return static::getContainer()->get(SpaceNoteSpaceProvider::class);
     }
 
     /** Un espace client mené par `lead`, avec `member` dans l'équipe. */

@@ -1163,41 +1163,22 @@ suite:
             guide:
                 title: 'Cómo funcionan las notas'
                 step_1: 'Las notas quedan entre ustedes: el cliente nunca las ve.'
-                step_2: 'Una nota «Compartida con el equipo» la lee todo el equipo del espacio.'
-                step_3: 'Una nota «Personal» solo la lee usted.'
-                step_4: 'Fije una nota para mantenerla arriba, y pase del muro a la lista según prefiera.'
+                step_2: 'Viven en el módulo Notas, en el espacio de notas de este cliente, abierto al equipo del espacio: el responsable lo gestiona, los miembros escriben en él.'
+                step_3: 'Una nota se abre en el editor de notas, con sus carpetas, sus enlaces entre notas, su historial y su búsqueda.'
+                step_4: 'Una nota solo para usted se toma en su espacio personal de notas.'
             add: 'Nueva nota'
-            create: 'Nueva nota'
-            edit: 'Editar la nota'
-            title: Título
-            title_placeholder: 'Brief del 12 de marzo'
-            body_placeholder: 'Lo que se ha dicho, lo que queda por hacer…'
-            colour: Color
-            colour_hint: 'Para localizar una nota en el muro. Si se deja vacío, no lleva ninguno - en un muro donde todo tiene color ya no se distingue nada.'
-            pinned: 'Fijar arriba'
-            pin: Fijar
-            unpin: 'Dejar de fijar'
-            view_label: Vista
-            view_grid: Muro
-            view_list: Lista
-            visibility: 'Quién la lee'
-            visibility_hint_shared: 'Todo el equipo del espacio. El cliente no ve ninguna nota.'
-            visibility_hint_personal: 'Solo usted. No llega a nadie más, ni siquiera al equipo del espacio.'
+            untitled: 'Nota sin título'
+            open_in_notes: 'Abrir en Notas'
+            empty: 'No hay notas en este espacio'
+            empty_hint: 'Lo que el equipo debe saber sobre este cliente y que ninguna ficha recoge. El cliente no ve las notas.'
+            closed: 'Estas notas no le están abiertas'
+            closed_hint: 'El espacio de notas de este cliente está abierto a su equipo. Quien ajusta el espacio puede añadirle.'
             visibilities:
                 shared: 'Compartida con el equipo'
                 personal: Personal
                 shared_plural: Compartidas
                 personal_plural: Personales
             someone_elses: 'La nota personal de otra persona'
-            empty_shared: 'No hay notas compartidas en este espacio'
-            empty_shared_hint: 'Lo que el equipo debe saber sobre este cliente y que ninguna ficha recoge. El cliente no ve las notas.'
-            empty_personal: 'No hay notas personales en este espacio'
-            empty_personal_hint: 'El brief tomado por teléfono, una idea aún no presentable, lo que salió mal el mes pasado. Nadie más las lee.'
-            created: 'Nota creada.'
-            updated: 'Nota guardada.'
-            deleted: 'Nota eliminada.'
-            delete_confirm: '¿Eliminar «{title}»?'
-            delete_warning: 'Las imágenes que contiene permanecen en la mediateca. Se le propondrán las que ya nada utilice.'
             errors:
                 title_required: 'El título es obligatorio.'
                 title_too_long: 'El título no puede superar los 180 caracteres.'
