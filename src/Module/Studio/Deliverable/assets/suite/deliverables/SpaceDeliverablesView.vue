@@ -219,7 +219,7 @@ function actionsFor(deliverable) {
         actions.push({
             key: "links",
             icon: Link2,
-            title: t("suite.studio.deliverables.links.title"),
+            title: t("suite.studio.deliverables.share"),
             description: t("suite.studio.deliverables.links_hint"),
             onSelect: () => (linksFor.value = deliverable),
         });

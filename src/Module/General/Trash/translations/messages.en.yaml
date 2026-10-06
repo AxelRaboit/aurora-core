@@ -2,7 +2,7 @@ suite:
     trash:
         guide:
             title: "How the trash works"
-            step_1: "What is deleted in publications, the media library (documents, folders, categories), notes, deliverables and presentations waits here, one tab per type."
+            step_1: "What is deleted in publications, the media library (documents, folders, categories), notes and deliverables (pages and presentations) waits here, one tab per type."
             step_2: "Restoring puts the item back in its place; if that place is gone, a folder returns to the root."
             step_3: "Each item leaves for good after the set delay (thirty days by default), during the nightly purge."
             step_4: "“Delete permanently” and “Empty” cannot be undone; comments, menus, forms and accounts never come through here."

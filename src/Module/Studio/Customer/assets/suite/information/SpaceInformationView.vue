@@ -291,8 +291,8 @@ async function save() {
                     <AppTextarea
                         v-model="form.postalAddress"
                         class="sm:col-span-2"
-                        :label="t('shared.space_information.postal_address')"
-                        :placeholder="t('suite.studio.space_information.postal_address_placeholder')"
+                        :label="t('shared.space_information.registered_office')"
+                        :placeholder="t('suite.studio.space_information.registered_office_placeholder')"
                         :error="errors.postalAddress ? t(errors.postalAddress) : ''"
                         :rows="3"
                     />

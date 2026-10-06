@@ -101,7 +101,7 @@ suite:
                 title: "How the media library is organised"
                 step_1: "An uploaded file becomes a document, filed in a folder, with one category (its nature) and as many tags as you like."
                 step_2: "A variant (another colour, a text-free version) is attached to its original and forms a family; “Colour variant” creates one from an image."
-                step_3: "The “Unused” badge marks a document no page, presentation or space shows; “Keep” keeps it anyway."
+                step_3: "The “Unused” badge marks a document no page, deliverable or space shows; “Keep” keeps it anyway."
                 step_4: "Deleting sends the document to the trash, where it can be restored until the automatic purge."
                 step_5: "Search also reads the file name, the texts and the tags; “More filters” narrows by date, shape or weight."
             row_actions:

@@ -18,18 +18,18 @@ shared:
         from_client: cliente
         verdict:
             approved: '{who} ha validado'
-            changes_requested: '{who} ha pedido cambios'
+            changes_requested: "{who} ha respondido «Por revisar»"
     space_information:
         siret: SIRET
         siren: SIREN
-        phone: 'Teléfono móvil'
-        landline: 'Teléfono fijo'
-        email: 'Correo electrónico'
-        postal_address: 'Dirección postal'
+        phone: "Móvil"
+        landline: "Fijo"
+        email: "Email contractual"
+        registered_office: "Domicilio social"
         links: Enlaces
         notes: 'Información adicional'
         empty: 'Esta ficha aún está vacía.'
-        empty_hint: 'No hay nada más que leer aquí que el nombre de la empresa.'
+        empty_hint: "No hay nada más que leer aquí que la razón social."
     space_resources:
         kinds:
             link: Enlace
@@ -37,7 +37,7 @@ shared:
             contact: Contacto
     space_chat:
         title: Conversación
-        empty: 'Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida.'
+        empty: "Aún no hay mensajes. Aquí se dice todo lo que no cabe en un contenido: el brief del mes, una campaña que se mueve, una pregunta rápida."
         placeholder: 'Escribir un mensaje…'
         shortcut_hint: 'Intro para enviar, Mayús+Intro para salto de línea'
         send: Enviar
@@ -49,7 +49,7 @@ shared:
             label: Canales
             new: 'Nuevo canal'
             new_hint: 'Un canal tiene un nombre y una audiencia. Ambos se cambian después desde sus ajustes.'
-            new_open_to_client: 'Abrir este canal al cliente'
+            new_open_to_client: "Mostrar este canal al cliente"
             new_open_to_client_hint: 'Cualquier persona con un enlace de acceso a este espacio leerá este canal.'
             new_internal_hint: 'El canal queda entre ustedes. El cliente no lo ve ni sabe que existe.'
             name_placeholder: 'Nombre del canal'
@@ -61,8 +61,8 @@ shared:
             delete_confirm: '¿Eliminar este canal? Sus mensajes se van con él.'
             internal: interno
             client_reads: 'leído por el cliente'
-            open_to_client: 'Abrir al cliente'
-            close_to_client: 'Cerrar al cliente'
+            open_to_client: "Mostrar al cliente"
+            close_to_client: "Ocultar al cliente"
             invite: 'Añadir a alguien'
             notice_internal: 'Canal interno: el cliente no lo lee.'
             notice_direct: 'Conversación privada: nadie más la lee.'
@@ -88,11 +88,11 @@ shared:
         title: Archivos
         empty: 'Ningún archivo por ahora.'
         add: 'Añadir un archivo'
-        pick: 'Elegir en la GED'
+        pick: "Elegir en la mediateca"
         pick_drive: 'Desde el Drive'
         drop: 'Suelta un archivo aquí'
-        remove: 'Quitar de la ficha'
-        remove_confirm: '¿Quitar este archivo de la ficha? Permanece en la GED.'
+        remove: "Quitar del contenido"
+        remove_confirm: "¿Quitar este archivo del contenido? Permanece en la mediateca."
         open: 'Abrir el archivo'
         count: 'Ningún archivo | 1 archivo | {count} archivos'
     palette:

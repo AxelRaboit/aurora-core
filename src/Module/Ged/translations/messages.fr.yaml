@@ -101,7 +101,7 @@ suite:
                 title: "Comment se range la médiathèque"
                 step_1: "Un fichier déposé devient un document, rangé dans un dossier, avec une catégorie (sa nature) et autant d'étiquettes que vous voulez."
                 step_2: "Une variante (autre couleur, version sans texte) se rattache à son original et forme une famille ; « Variante de couleur » en crée une à partir d'une image."
-                step_3: "Le badge « Inutilisé » signale un document qu'aucune page, présentation ou espace n'affiche ; « À conserver » le garde quand même."
+                step_3: "Le badge « Inutilisé » signale un document qu'aucune page, aucun livrable ni aucun espace n'affiche ; « À conserver » le garde quand même."
                 step_4: "Supprimer envoie le document à la corbeille, d'où il se restaure jusqu'à la purge automatique."
                 step_5: "La recherche lit aussi le nom du fichier, les textes et les étiquettes ; « Plus de filtres » précise par date, format ou poids."
             row_actions:
