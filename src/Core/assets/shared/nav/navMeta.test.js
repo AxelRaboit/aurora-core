@@ -23,7 +23,8 @@ function navItemBodies(src) {
             else if ("'\"".includes(c)) {
                 const quote = c;
                 i += 1;
-                while (i < src.length && src[i] !== quote) i += src[i] === "\\" ? 2 : 1;
+                while (i < src.length && src[i] !== quote)
+                    i += src[i] === "\\" ? 2 : 1;
             }
             i += 1;
         }

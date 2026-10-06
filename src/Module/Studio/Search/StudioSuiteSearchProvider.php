@@ -241,14 +241,15 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
     {
         return array_map(
             function (ContractTemplateInterface $template): array {
-                $category = $template->getCategory()?->getLabel();
+                // The studio's own word for it, not a translation key.
+                $category = $template->getCategory()?->getName();
 
                 return [
                     'id' => $template->getId(),
                     'title' => $template->getName(),
                     'subtitle' => $this->join([
                         $this->translator->trans($template->getKind()->getLabel()),
-                        null === $category ? null : $this->translator->trans($category),
+                        $category,
                         $template->isArchived() ? $this->translator->trans('suite.studio.contract_templates.state_archived') : null,
                     ]),
                     'path' => $this->templatePath($template),

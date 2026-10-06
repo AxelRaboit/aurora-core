@@ -628,10 +628,15 @@ suite:
             kind:
                 body: 'Cuerpo de contrato'
                 annex: Anexo
-            category:
-                community_management: CM
-                photography: Fotografía
-                development: 'Desarrollo web'
+            categories:
+                manage: "Gestionar las categorías"
+                manage_hint: "Crear, renombrar, colorear y ordenar las categorías de las plantillas."
+                manage_title: "Categorías de las plantillas"
+                manage_intro: "Ordenan las plantillas, para todo el equipo: una oferta, un oficio, lo que vende. Eliminar una categoría no elimina ninguna plantilla: se quedan, sin categoría."
+                errors:
+                    name_required: "Dé un nombre a la categoría."
+                    name_too_long: "El nombre no puede superar los 100 caracteres."
+                    color_invalid: "El color debe estar en formato hexadecimal, por ejemplo #6366f1."
             errors:
                 name_required: 'El nombre de la plantilla es obligatorio.'
                 name_too_long: 'El nombre de la plantilla no puede superar los 180 caracteres.'
@@ -653,9 +658,9 @@ suite:
             name_placeholder: 'Contrato de prestación de servicios, fórmula mensual'
             kind_label: Tipo
             category_label: Categoría
-            category_hint: 'El oficio al que se refiere esta plantilla. Puede quedar vacío.'
+            category_hint: 'Lo que ordena esta plantilla en la biblioteca. Puede quedar vacío.'
             category_none: 'Sin categoría'
-            category_none_hint: 'Aún no se ha precisado el oficio. La plantilla sigue siendo utilizable.'
+            category_none_hint: 'Aún no se ha elegido la categoría. La plantilla sigue siendo utilizable.'
             category_all: 'Todas las categorías'
             preview: 'Vista previa'
             preview_notice: 'El texto en color viene de las variables.'

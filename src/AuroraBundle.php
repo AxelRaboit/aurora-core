@@ -117,6 +117,8 @@ use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategory;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategoryInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersion;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
@@ -322,6 +324,7 @@ class AuroraBundle extends AbstractBundle
                     GridSectionInterface::class => GridSection::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
+                    ContractTemplateCategoryInterface::class => ContractTemplateCategory::class,
                     SlideInterface::class => Slide::class,
                     DeckShareLinkInterface::class => DeckShareLink::class,
                     ContractInterface::class => Contract::class,

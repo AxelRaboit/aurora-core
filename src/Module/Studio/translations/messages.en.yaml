@@ -628,10 +628,15 @@ suite:
             kind:
                 body: Contract body
                 annex: Annex
-            category:
-                community_management: CM
-                photography: Photography
-                development: Web development
+            categories:
+                manage: "Manage categories"
+                manage_hint: "Create, rename, colour and order the trame categories."
+                manage_title: "Trame categories"
+                manage_intro: "They file the trames, for the whole team: an offer, a trade, what you sell. Deleting a category deletes no trame: they stay, unfiled."
+                errors:
+                    name_required: "Give the category a name."
+                    name_too_long: "The name cannot exceed 100 characters."
+                    color_invalid: "The colour must be hexadecimal, for example #6366f1."
             errors:
                 name_required: The template name is required.
                 name_too_long: The template name cannot exceed 180 characters.
@@ -654,9 +659,9 @@ suite:
             kind_label: Type
             kind_hint: A body is signed on its own. An annex completes a body.
             category_label: Category
-            category_hint: Which trade this trame is for. It can be left unset.
+            category_hint: What files this trame in the library. It can be left unset.
             category_none: No category
-            category_none_hint: The trade has not been set yet. The trame stays usable.
+            category_none_hint: No category has been chosen yet. The trame stays usable.
             category_all: All categories
             preview: Preview
             preview_notice: 'The coloured text comes from variables.'

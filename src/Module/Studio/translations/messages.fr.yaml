@@ -628,10 +628,15 @@ suite:
             kind:
                 body: Corps de contrat
                 annex: Annexe
-            category:
-                community_management: CM
-                photography: Photographie
-                development: Développement web
+            categories:
+                manage: "Gérer les catégories"
+                manage_hint: "Créer, renommer, colorer et ranger les catégories des trames."
+                manage_title: "Catégories des trames"
+                manage_intro: "Elles rangent les trames, pour toute l'équipe : une offre, un métier, ce que vous vendez. Supprimer une catégorie ne supprime aucune trame : elles restent, sans catégorie."
+                errors:
+                    name_required: "Donnez un nom à la catégorie."
+                    name_too_long: "Le nom ne peut pas dépasser 100 caractères."
+                    color_invalid: "La couleur doit être au format hexadécimal, par exemple #6366f1."
             errors:
                 name_required: Le nom de la trame est obligatoire.
                 name_too_long: Le nom de la trame ne peut pas dépasser 180 caractères.
@@ -653,9 +658,9 @@ suite:
             name_placeholder: Contrat de prestation de services, formule mensuelle
             kind_label: Type
             category_label: Catégorie
-            category_hint: Le métier auquel cette trame se rapporte. Peut rester vide.
+            category_hint: Ce qui range cette trame dans la bibliothèque. Peut rester vide.
             category_none: Sans catégorie
-            category_none_hint: Le métier n'a pas encore été précisé. La trame reste utilisable.
+            category_none_hint: La catégorie n'a pas encore été choisie. La trame reste utilisable.
             category_all: Toutes les catégories
             preview: Aperçu
             preview_notice: 'Le texte en couleur vient des variables.'

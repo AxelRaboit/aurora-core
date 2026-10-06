@@ -6,11 +6,13 @@ namespace Aurora\Tests\Integration\Module\Studio\Contract;
 
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategory;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
+use function array_column;
 use function json_decode;
 use function sprintf;
 
@@ -50,6 +52,9 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
     {
         $this->entityManager->createQuery(
             sprintf('DELETE FROM %s', ContractTemplate::class),
+        )->execute();
+        $this->entityManager->createQuery(
+            sprintf('DELETE FROM %s', ContractTemplateCategory::class),
         )->execute();
 
         parent::tearDown();
@@ -259,21 +264,23 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         self::assertNull($created['template']['category']);
 
+        $photography = $this->category('Photographie');
+
         $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
             'name' => 'Reportage photo',
             'kind' => 'body',
-            'category' => 'photography',
+            'category' => $photography,
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $photo = json_decode((string) $this->client->getResponse()->getContent(), true);
-        self::assertSame('photography', $photo['template']['category']);
+        self::assertSame($photography, $photo['template']['category']);
 
-        // A value the enum does not know is not a reason to invent one.
+        // A category that does not exist is not a reason to invent one.
         $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
             'name' => 'Trame bancale',
             'kind' => 'body',
-            'category' => 'plomberie',
+            'category' => '999999',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -285,17 +292,18 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
     {
         $created = $this->create('Contrat mensuel');
         $templateId = $created['template']['id'];
+        $development = $this->category('Développement web');
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/update', $templateId), [
             'name' => 'Contrat mensuel',
             'kind' => 'body',
-            'category' => 'development',
+            'category' => $development,
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->client->request('GET', '/suite/studio/contract-templates');
-        self::assertSame('development', $this->rowFromIndex($templateId)['category']);
+        self::assertSame($development, $this->rowFromIndex($templateId)['category']);
 
         // And back to none, which the form offers as an option rather than as
         // a way of leaving the field alone.
@@ -309,13 +317,42 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         self::assertNull($this->rowFromIndex($templateId)['category']);
     }
 
+    /**
+     * Categories are the studio's own: created, renamed and deleted from the
+     * screen. Deleting one files its trames nowhere, it never takes them along.
+     */
+    public function testDeletingACategoryLeavesItsTramesUnfiled(): void
+    {
+        $category = $this->category('Accompagnement');
+
+        $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
+            'name' => 'Contrat suivi',
+            'kind' => 'body',
+            'category' => $category,
+        ]);
+        $templateId = json_decode((string) $this->client->getResponse()->getContent(), true)['template']['id'];
+
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/categories/%s/update', $category), ['name' => 'Suivi mensuel', 'color' => '#f59e0b']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $renamed = json_decode((string) $this->client->getResponse()->getContent(), true)['categories'];
+        self::assertSame(['Suivi mensuel'], array_column($renamed, 'name'));
+
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/categories/%s/delete', $category));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->client->request('GET', '/suite/studio/contract-templates');
+        self::assertNull($this->rowFromIndex($templateId)['category']);
+    }
+
     /** A copy is a document for the same business, so the trade travels with it. */
     public function testDuplicatingATemplateKeepsItsTrade(): void
     {
+        $photography = $this->category('Photographie');
+
         $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
             'name' => 'Prestation photo',
             'kind' => 'body',
-            'category' => 'photography',
+            'category' => $photography,
         ]);
 
         $source = json_decode((string) $this->client->getResponse()->getContent(), true)['template'];
@@ -337,7 +374,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         self::assertNotNull($copy);
         self::assertNotSame($source['id'], $copy['id']);
-        self::assertSame('photography', $copy['category']);
+        self::assertSame($photography, $copy['category']);
     }
 
     /**
@@ -351,11 +388,12 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $created = $this->create('Corps photo');
         $templateId = $created['template']['id'];
         $versionId = $created['draftId'];
+        $photography = $this->category('Photographie');
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/update', $templateId), [
             'name' => 'Corps photo',
             'kind' => 'body',
-            'category' => 'photography',
+            'category' => $photography,
         ]);
         $this->client->jsonRequest(
             'POST',
@@ -383,7 +421,8 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         }
 
         self::assertNotNull($option, 'A published body has to reach the contract form.');
-        self::assertSame('photography', $option['category']);
+        // By name: the picker reads it beside the trame's own.
+        self::assertSame('Photographie', $option['category']);
     }
 
     /**
@@ -498,5 +537,14 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         return json_decode((string) $this->client->getResponse()->getContent(), true);
+    }
+
+    /** A category made the way the screen makes one, by its id as the list carries it. */
+    private function category(string $name): string
+    {
+        $this->client->jsonRequest('POST', '/suite/studio/contract-templates/categories/create', ['name' => $name, 'color' => '#6366f1']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        return (string) json_decode((string) $this->client->getResponse()->getContent(), true)['categoryId'];
     }
 }

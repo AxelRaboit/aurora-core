@@ -66,7 +66,7 @@ function byCategory(options) {
         .map((option) => ({
             value: option.value,
             label: option.category
-                ? `${option.label} · ${t(`suite.studio.contract_templates.category.${option.category}`)}`
+                ? `${option.label} · ${option.category}`
                 : `${option.label} · ${t("suite.studio.contract_templates.category_none")}`,
         }));
 }

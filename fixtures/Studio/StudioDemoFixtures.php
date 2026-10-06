@@ -21,6 +21,8 @@ use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategory;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategoryInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslationInterface;
@@ -248,6 +250,18 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $annex = $this->template('Annexe - formule Suivi', ContractTemplateKindEnum::Annex, $this->annexFormula());
         $oneShot = $this->template('Contrat de prestation ponctuelle', ContractTemplateKindEnum::Body, $this->oneShotBody());
         $amendmentTrame = $this->template('Avenant', ContractTemplateKindEnum::Body, $this->amendmentBody());
+
+        // Two categories, and one trame left without: the list shows its
+        // coloured pills, its filter, and the "unclassified" state side by side.
+        $recurring = $this->templateCategory('Accompagnement mensuel', '#6366f1', 0);
+        $oneOff = $this->templateCategory('Prestations ponctuelles', '#f59e0b', 1);
+        foreach ([[$monthly, $recurring], [$annex, $recurring], [$oneShot, $oneOff]] as [$filed, $category]) {
+            if (!$filed->getCategory() instanceof ContractTemplateCategoryInterface) {
+                $filed->setCategory($category);
+            }
+        }
+
+        $this->entityManager->flush();
 
         // The draft that stays a draft. Opened after publication, so the trame
         // has both a version in force and a version being written - the pair
@@ -1685,9 +1699,23 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * Returning the existing one rather than skipping matters on a database
      * that has been seeded from elsewhere: the demo has to be able to run on
      * top of whatever is already there without doubling it.
-     *
-     * @param list<array<string, mixed>> $blocks
      */
+    /** A trame category, or the one already there under that name. */
+    private function templateCategory(string $name, string $color, int $position): ContractTemplateCategoryInterface
+    {
+        $existing = $this->entityManager->getRepository(ContractTemplateCategory::class)->findOneBy(['name' => $name]);
+
+        if ($existing instanceof ContractTemplateCategoryInterface) {
+            return $existing;
+        }
+
+        $category = new ContractTemplateCategory();
+        $category->setName($name)->setColor($color)->setPosition($position);
+        $this->entityManager->persist($category);
+
+        return $category;
+    }
+
     private function template(string $name, ContractTemplateKindEnum $kind, array $blocks): ContractTemplateInterface
     {
         $existing = $this->templateRepository->findOneBy(['name' => $name]);

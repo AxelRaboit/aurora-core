@@ -9,6 +9,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInputInterface;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInputInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategoryInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersion;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
@@ -385,7 +386,17 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         $template
             ->setName($input->getName())
             ->setKind($input->getKind())
-            ->setCategory($input->getCategory());
+            ->setCategory($this->resolveCategory($input->getCategoryId()));
+    }
+
+    /**
+     * The category an id names, or none. An id that no longer resolves - a
+     * category deleted while the form was open - files the template nowhere
+     * rather than failing the save.
+     */
+    protected function resolveCategory(?int $id): ?ContractTemplateCategoryInterface
+    {
+        return null === $id ? null : $this->entityManager->find(ContractTemplateCategoryInterface::class, $id);
     }
 
     protected function auditCreated(ContractTemplateInterface $template): void

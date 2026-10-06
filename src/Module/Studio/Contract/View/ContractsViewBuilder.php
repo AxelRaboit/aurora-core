@@ -272,12 +272,12 @@ final readonly class ContractsViewBuilder
             fn (ContractTemplateInterface $template): array => [
                 'value' => (string) $template->getId(),
                 'label' => $template->getName(),
-                // Carried, not filtered on. The form narrows the list by trade
+                // Carried, not filtered on. The form sorts the list by category
                 // to make a library of twenty readable, but every trame stays
                 // reachable: a body written for one activity is sometimes the
                 // right starting point for another, and a picker that hides it
                 // would be helping in a way that costs an hour.
-                'category' => $template->getCategory()?->value,
+                'category' => $template->getCategory()?->getName(),
                 // The blanks this trame will ask for, so the form can put them
                 // on screen the moment it is chosen rather than at the freeze,
                 // where a refusal means going back and starting again.

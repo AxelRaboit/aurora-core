@@ -6,11 +6,12 @@ namespace Aurora\Module\Studio\Contract\View;
 
 use Aurora\Core\Locale\Service\LocaleOptionsProviderInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategoryInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
-use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
+use Aurora\Module\Studio\Contract\Repository\ContractTemplateCategoryRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Serializer\ContractTemplateSerializerInterface;
 use Aurora\Module\Studio\Contract\Service\ContractVariableCatalogue;
@@ -28,6 +29,7 @@ final readonly class ContractTemplatesViewBuilder
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private ContractRepository $contractRepository,
+        private ContractTemplateCategoryRepository $categoryRepository,
     ) {}
 
     /** @return array<string, mixed> */
@@ -37,6 +39,12 @@ final readonly class ContractTemplatesViewBuilder
             'templates' => $this->templates(),
             'kinds' => $this->kinds(),
             'categories' => $this->categories(),
+            // The categories are managed from this screen, in the window the
+            // decks and the deliverables use for theirs.
+            'categoryCreatePath' => $this->urlGenerator->generate('suite_studio_contract_templates_category_create'),
+            'categoryUpdatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_category_update', ['id' => '__id__']),
+            'categoryDeletePath' => $this->pathTemplates->generate('suite_studio_contract_templates_category_delete', ['id' => '__id__']),
+            'categoryReorderPath' => $this->urlGenerator->generate('suite_studio_contract_templates_category_reorder'),
             'createPath' => $this->urlGenerator->generate('suite_studio_contract_templates_create'),
             'updatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_update', ['id' => '__id__']),
             'archivePath' => $this->pathTemplates->generate('suite_studio_contract_templates_archive', ['id' => '__id__']),
@@ -130,15 +138,31 @@ final readonly class ContractTemplatesViewBuilder
         return ['success' => true, 'templates' => $this->templates()];
     }
 
-    /** @return list<array{value: string, labelKey: string}> */
+    /** @return array{categories: list<array{id: int, value: string, name: string, label: string, color: ?string, position: int}>} */
+    public function categoriesPayload(): array
+    {
+        return ['categories' => $this->categories()];
+    }
+
+    /**
+     * The categories as both the list and the window read them: `value` and
+     * `label` for the pickers, `id`, `name` and `color` for the management
+     * window. The value is a string, like the filter in the address.
+     *
+     * @return list<array{id: int, value: string, name: string, label: string, color: ?string, position: int}>
+     */
     private function categories(): array
     {
         return array_map(
-            static fn (ContractTemplateCategoryEnum $category): array => [
-                'value' => $category->value,
-                'labelKey' => $category->getLabel(),
+            static fn (ContractTemplateCategoryInterface $category): array => [
+                'id' => (int) $category->getId(),
+                'value' => (string) $category->getId(),
+                'name' => $category->getName(),
+                'label' => $category->getName(),
+                'color' => $category->getColor(),
+                'position' => $category->getPosition(),
             ],
-            ContractTemplateCategoryEnum::cases(),
+            $this->categoryRepository->findOrdered(),
         );
     }
 
