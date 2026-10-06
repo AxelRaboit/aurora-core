@@ -74,6 +74,8 @@ const props = defineProps({
 
 const {
     search,
+    filteredCustomer,
+    clearCustomerFilter,
     items,
     visibleItems,
     tab,
@@ -217,6 +219,18 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
+        <!-- Arrivé depuis la fiche d'une société : on le dit, et on se défait
+             du filtre d'un geste, plutôt qu'une liste mystérieusement courte. -->
+        <div
+            v-if="filteredCustomer"
+            class="flex flex-wrap items-center gap-2 text-sm text-secondary"
+        >
+            <span>{{ t("suite.studio.spaces.customer_filter", { name: filteredCustomer.name }) }}</span>
+            <AppButton variant="ghost" size="sm" v-on:click="clearCustomerFilter">
+                <X class="w-3.5 h-3.5" :stroke-width="2" />
+                {{ t("suite.studio.spaces.customer_filter_clear") }}
+            </AppButton>
+        </div>
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
              replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('suite.studio.spaces.guide.title')" storage-key="spaces-list">

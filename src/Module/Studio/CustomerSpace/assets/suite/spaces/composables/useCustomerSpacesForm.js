@@ -16,6 +16,16 @@ import { siteZone } from "@/shared/utils/format/zonedTime.js";
  * an empty slot is what tells the server to spread the new space across the
  * palette instead of handing every space the colour of the first one.
  */
+function initialCustomerFilter() {
+    try {
+        const id = Number(new URL(window.location.href).searchParams.get("customer"));
+
+        return Number.isInteger(id) && id > 0 ? id : null;
+    } catch {
+        return null;
+    }
+}
+
 function emptyForm() {
     return {
         name: "",
@@ -111,9 +121,49 @@ export function useCustomerSpacesForm(
         "prospect",
     ]);
 
-    /** Les deux filtres se composent : l'onglet, puis les archives. */
+    /**
+     * Les espaces d'une seule société, quand on arrive de sa fiche.
+     *
+     * Par identifiant et non par la recherche : chercher sa raison sociale
+     * ramenait aussi toutes celles qui la contiennent. Et l'onglet suit la
+     * société, sans quoi un prospect ouvert depuis l'onglet « clients » retenu
+     * tombait sur une liste vide.
+     */
+    const customerFilter = ref(initialCustomerFilter());
+    const filteredCustomer = computed(() =>
+        null === customerFilter.value
+            ? null
+            : (customers.value.find((customer) => customer.id === customerFilter.value) ??
+              (items.value ?? []).map((space) => ({ id: space.customerId, name: space.customerName }))
+                  .find((customer) => customer.id === customerFilter.value) ??
+              null),
+    );
+
+    if (null !== customerFilter.value) {
+        const first = (items.value ?? []).find((space) => space.customerId === customerFilter.value);
+        if (first) tab.value = first.customerStatus ?? "client";
+    }
+
+    function clearCustomerFilter() {
+        customerFilter.value = null;
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("customer");
+            window.history.replaceState(window.history.state, "", url);
+        } catch {
+            // L'adresse reste telle quelle : le filtre est levé dans la page.
+        }
+    }
+
+    const ofCustomer = computed(() =>
+        null === customerFilter.value
+            ? filteredItems.value
+            : filteredItems.value.filter((space) => space.customerId === customerFilter.value),
+    );
+
+    /** Les filtres se composent : la société, l'onglet, puis les archives. */
     const ofTab = computed(() =>
-        filteredItems.value.filter(
+        ofCustomer.value.filter(
             (space) => (space.customerStatus ?? "client") === tab.value,
         ),
     );
@@ -130,7 +180,7 @@ export function useCustomerSpacesForm(
             // Le compte ignore les archives, comme l'etiquette qu'il porte :
             // il dit combien il y a de choses derriere cet onglet, pas combien
             // on en montre.
-            count: filteredItems.value.filter(
+            count: ofCustomer.value.filter(
                 (space) => (space.customerStatus ?? "client") === key,
             ).length,
         })),
@@ -229,6 +279,8 @@ export function useCustomerSpacesForm(
     return {
         items,
         search,
+        filteredCustomer,
+        clearCustomerFilter,
         visibleItems,
         tab,
         tabs,

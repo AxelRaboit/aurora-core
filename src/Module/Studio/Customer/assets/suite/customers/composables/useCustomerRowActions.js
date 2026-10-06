@@ -47,7 +47,9 @@ export function useCustomerRowActions({
                 description: t("suite.studio.customers.spaces_description"),
                 // Un lien et non un geste : c'est une navigation, elle doit
                 // pouvoir s'ouvrir dans un autre onglet.
-                href: `${spacesPath}?search=${encodeURIComponent(record.legalName ?? "")}`,
+                // Par identifiant : la raison sociale en recherche ramenait
+                // aussi les sociétés dont le nom la contient.
+                href: `${spacesPath}?customer=${encodeURIComponent(record.id)}`,
             });
         }
 

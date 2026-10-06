@@ -1538,6 +1538,8 @@ suite:
             empty: 'Ningún espacio por el momento.'
             empty_hint: 'Un espacio agrupa el trabajo realizado para un cliente. Cree uno por proyecto, no uno por empresa.'
             search_placeholder: 'Buscar por nombre de espacio o por empresa…'
+            customer_filter: 'Espacios de {name}'
+            customer_filter_clear: 'Todos los espacios'
             created: 'Espacio creado.'
             updated: 'Espacio actualizado.'
             deleted: 'Espacio eliminado.'

@@ -47,6 +47,28 @@ describe("useCustomerRowActions", () => {
         ).toEqual(["delete"]);
     });
 
+    it("opens the spaces of this company by id, not by a name search", () => {
+        const wrapper = mount({
+            setup() {
+                return {
+                    build: useCustomerRowActions({
+                        spacesPath: "/suite/studio/spaces",
+                        can: () => true,
+                        openEdit: vi.fn(),
+                        convertToClient: vi.fn(),
+                        confirmDelete: vi.fn(),
+                    }),
+                };
+            },
+            template: "<i />",
+        });
+
+        const spaces = wrapper.vm.build({ id: 7, status: "client", legalName: "Atelier Dupont" })
+            .find((action) => "spaces" === action.key);
+
+        expect(spaces.href).toBe("/suite/studio/spaces?customer=7");
+    });
+
     it("keeps the destructive entry last", () => {
         expect(actions({ id: 1, status: "prospect" }).at(-1)).toBe("delete");
     });

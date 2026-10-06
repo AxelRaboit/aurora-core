@@ -1543,6 +1543,8 @@ suite:
             empty: No space yet.
             empty_hint: A space holds the work done for one client. Create one per engagement, not one per company.
             search_placeholder: Search by space name or company…
+            customer_filter: 'Spaces of {name}'
+            customer_filter_clear: 'All spaces'
             created: Space created.
             updated: Space updated.
             deleted: Space deleted.

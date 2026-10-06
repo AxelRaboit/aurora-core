@@ -1543,6 +1543,8 @@ suite:
             empty: Aucun espace pour le moment.
             empty_hint: Un espace regroupe le travail mené pour un client. Créez-en un par chantier, pas un par société.
             search_placeholder: Rechercher par nom d'espace ou par société…
+            customer_filter: 'Espaces de {name}'
+            customer_filter_clear: 'Tous les espaces'
             created: Espace créé.
             updated: Espace mis à jour.
             deleted: Espace supprimé.
