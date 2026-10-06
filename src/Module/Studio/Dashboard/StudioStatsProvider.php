@@ -102,12 +102,13 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'upcomingDays' => SpaceWorkload::HORIZON_DAYS,
                 'awaitingSignature' => $this->countContracts(self::WITH_CUSTOMER),
                 'awaitingCountersignature' => $this->countContracts([ContractStatusEnum::SignedByCustomer]),
-                'decks' => $this->authorizationChecker->isGranted('studio.decks.view') ? $this->deckRepository->countLive() : null,
+                'decks' => $this->canSeeDecks() ? $this->deckRepository->countLive() : null,
+                'decksPath' => $this->canSeeDecks() ? $this->urlGenerator->generate('suite_studio_decks') : null,
                 'deliverables' => $this->countDeliverables(),
                 'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),
                 'calendarPath' => $this->urlGenerator->generate('suite_studio_calendar'),
-                'contractsPath' => $this->authorizationChecker->isGranted('studio.contracts.view') ? $this->urlGenerator->generate('suite_studio_contracts') : null,
+                'contractsPath' => $this->canSeeContracts() ? $this->urlGenerator->generate('suite_studio_contracts') : null,
                 // Chaque compteur ouvre la liste sur son étape, et non la
                 // liste entière.
                 'contractsWithCustomerPath' => $this->contractsPathFor('with_customer'),
@@ -124,7 +125,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
      */
     private function countContracts(array $statuses): ?int
     {
-        if (!$this->authorizationChecker->isGranted('studio.contracts.view')) {
+        if (!$this->canSeeContracts()) {
             return null;
         }
 
@@ -138,6 +139,20 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
      * module sous la main : pas de tuile plutôt qu'un chiffre sans destination.
      * Ceux des espaces se comptent dans leur espace.
      */
+    /**
+     * The same two conditions as the deliverables tile: the module switched on,
+     * and the right to read it. The count used to show with decks turned off.
+     */
+    private function canSeeDecks(): bool
+    {
+        return $this->studioContext->areDecksEnabled() && $this->authorizationChecker->isGranted('studio.decks.view');
+    }
+
+    private function canSeeContracts(): bool
+    {
+        return $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view');
+    }
+
     private function countDeliverables(): ?int
     {
         $user = $this->security->getUser();
@@ -157,7 +172,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
 
     private function contractsPathFor(string $step): ?string
     {
-        return $this->authorizationChecker->isGranted('studio.contracts.view')
+        return $this->canSeeContracts()
             ? $this->urlGenerator->generate('suite_studio_contracts', ['step' => $step])
             : null;
     }

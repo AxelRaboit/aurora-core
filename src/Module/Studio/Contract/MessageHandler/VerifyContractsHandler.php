@@ -33,6 +33,11 @@ final readonly class VerifyContractsHandler
 
     public function __invoke(VerifyContractsMessage $message): void
     {
+        // Not gated by the contracts switch, unlike the reminder and the
+        // expiry, and on purpose: those two write to customers about a module
+        // that is off, this one tells the administrator that sealed records
+        // changed. Switching the screens off does not stop a row from being
+        // altered, and the contracts stay on file for years after.
         $report = $this->checker->check();
 
         if ($report->isClean()) {
