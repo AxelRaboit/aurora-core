@@ -16,8 +16,11 @@ unique) vers **un `NoteSpace` du module Notes**, marqué
   l'espace client.
 - `SpaceNoteSpaceSync::sync()` tient son **nom et ses membres** : référent ->
   `Manager`, membre -> `Editor`, personne d'autre. Appelé par
-  `CustomerSpaceManager::update()` ; `delete()` appelle `release()` : l'espace
-  de notes part à la corbeille, `managedBy` remis à null, et les
+  `CustomerSpaceManager::update()`. `trash()` appelle `SpaceNoteSpaceSync::trash()` :
+  l'espace de notes passe à la corbeille **en restant réglé** (`managedBy`
+  gardé, la restauration depuis Notes répond 409), et `restore()` le fait
+  revenir avec l'espace client s'il y est encore. `forceDelete()` appelle
+  `release()` : `managedBy` remis à null, l'espace reste à la corbeille et les
   administrateurs le restaurent (règle « adopts » des espaces sans
   propriétaire).
 - Côté Notes, un espace `isManaged()` refuse (409

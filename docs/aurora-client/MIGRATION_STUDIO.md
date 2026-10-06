@@ -20,7 +20,8 @@ le module Notes**, avec l'import Craft (sections 7 et 8).
 > `Version20261006180000` (colonnes des notes, clés des réglages Craft, lien
 > de l'espace client vers son espace de notes) et `Version20261006190000`
 > (notes d'espace déplacées dans Notes, irréversible), puis
-> `Version20261006200000` (visibilité par le client, section 9). Ce qui suit concerne
+> `Version20261006200000` (visibilité par le client, section 9), puis
+> `Version20261006210000` (corbeille des espaces et des contenus, section 10). Ce qui suit concerne
 > **le code du projet client** : ce qu'il étend, appelle ou configure.
 >
 > `Version20261006190000` chiffre ce qu'elle écrit : **`AURORA_ENCRYPTION_KEY`
@@ -167,9 +168,11 @@ notes.
 - **Droits** : aucun n'est donné. Un membre d'équipe sans `notes.markdown.use`
   est inscrit à l'espace de notes mais ne voit pas l'onglet Notes ; le module
   Notes éteint, l'onglet disparaît pour tout le monde.
-- **Espace client supprimé** : son espace de notes part à la corbeille des
-  notes, redevenu un espace ordinaire sans propriétaire, que les
-  administrateurs peuvent restaurer. Les administrateurs voient d'ailleurs
+- **Espace client à la corbeille** : son espace de notes l'y suit, toujours
+  réglé par lui (l'écran des notes refuse de le restaurer seul, 409), et
+  revient avec lui (section 10). **Espace client supprimé définitivement** :
+  son espace de notes reste à la corbeille des notes, redevenu un espace
+  ordinaire sans propriétaire, que les administrateurs peuvent restaurer. Les administrateurs voient d'ailleurs
   tous les espaces de notes des espaces clients, comme ils voient tous les
   espaces clients.
 - **Ce que la migration garde** : titre, texte (blocs convertis en Markdown),
@@ -258,3 +261,59 @@ d'accès) **en plus** de `studio.spaces.edit`. La règle a un nom :
 - **Projet client** : un rôle qui modifiait les espaces sans `share` ne montre
   plus rien au client ; donner `studio.spaces.share` à qui doit le faire.
 
+## 10. Espaces clients et contenus vont à la corbeille
+
+Supprimer un espace client, ou un contenu de son tableau, le **met à la
+corbeille** (`deletedAt`) au lieu de le détruire, comme les livrables. Il
+apparaît dans l'écran commun de la corbeille (onglets Studio · Espaces
+clients et Studio · Contenus), d'où il se restaure tel qu'il était ; la
+suppression définitive et la purge planifiée (délai `TrashAutoPurgeDays`
+commun à toutes les corbeilles) font ce que faisait la suppression d'avant.
+Clients, trames, contrats et ressources ne changent pas.
+
+- **Données** : `Version20261006210000` ajoute `deleted_at` (et son index) à
+  `core_studio_customer_spaces` et `core_studio_space_content_items`. Rien
+  d'existant ne passe à la corbeille.
+- **Managers, rupture** : `CustomerSpaceManagerInterface::delete()` et
+  `SpaceContentItemManagerInterface::delete()` sont retirés. Chacun gagne
+  `trash()`, `restore()`, `forceDelete()` (l'ancienne destruction) et
+  `purgeTrashedBefore(DateTimeImmutable): int`. Un projet qui appelait
+  `delete()` choisit entre `trash()` (le geste de l'écran) et `forceDelete()`.
+  Hooks d'audit ajoutés : `auditTrashed()` et `auditRestored()`, actions
+  `customer_space.trashed` / `.restored` et `space_content_item.trashed` /
+  `.restored` ; `.deleted` ne note plus que la destruction définitive.
+- **Entités** : `CustomerSpaceInterface` et `SpaceContentItemInterface`
+  gagnent `getDeletedAt()`, `setDeletedAt()` et `isTrashed()`. Une
+  implémentation maison les ajoute.
+- **Un espace à la corbeille** sort des listes, de la recherche, du tableau de
+  bord, du calendrier éditorial et du Planning. Ses écrans répondent 404
+  (`SpaceVisibility::canSee()` refuse un espace à la corbeille ;
+  `SpaceVisibility::reaches()` est la moitié « appartenance », que la
+  corbeille utilise), sa page client et ses liens d'accès répondent comme un
+  lien inconnu (`SpaceAccessLinkManager::resolveUsable()`), et les liens de
+  lecture de ses livrables aussi. Il **bloque toujours la suppression de son
+  client** (`CustomerSpaceRepository::countForCustomer()` compte la
+  corbeille) jusqu'à sa suppression définitive.
+- **Un contenu à la corbeille** sort du tableau, de la liste, du calendrier,
+  des comptes et de la page du client ; son fil et ses fichiers restent
+  attachés (plus d'offre de jeter les fichiers à la suppression). Toute route
+  qui reçoit le contenu, un de ses messages ou un de ses fichiers en argument
+  répond 404 (`SpaceVisibilitySubscriber`). Supprimer une étape ne compte
+  plus que les contenus vivants, et range dans la première étape restante
+  ceux de la corbeille qui y étaient : c'est là qu'ils reviennent.
+- **Routes** : `suite_studio_spaces_restore`, `_force_delete`,
+  `_empty_trash` (droit `studio.spaces.delete`, sur un espace de son équipe) ;
+  `suite_studio_space_contents_restore`, `_force_delete`, `_empty_trash`
+  (`/suite/studio/space-contents/…`, droit `studio.spaces.edit`, sur un
+  contenu d'un espace vivant qu'on voit). `suite_studio_spaces_delete` et
+  `workspace_space_content_item_delete` mettent à la corbeille.
+- **Repositories** : les finders de liste filtrent `deletedAt IS NULL`
+  (`findAllOrdered`, `findVisibleTo`, `searchByName`, `findForSpace`,
+  `findOnCalendar`, `workloadBySpace`, `searchByTitle`…) ; `findTrashed()`,
+  `findAllTrashed()` et `findTrashedBefore()` lisent la corbeille. Une requête
+  maison sur ces tables ajoute le filtre.
+- **Traductions** : les confirmations de suppression disent « Mettre à la
+  corbeille » (`suite.studio.spaces.delete_warning` réécrit,
+  `suite.studio.spaces.trash_action`, `suite.studio.space_content.trash_action`,
+  `suite.nav.studio_space_contents`). Une surcharge côté client de ces clés
+  est à relire.

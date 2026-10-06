@@ -37,7 +37,8 @@ personne sans le lui dire : d'où le réglage partagé.
 
 ## Comment l'appliquer
 
-Implémenté en GED (documents) et en Editorial (publications). Pour un nouveau
+Implémenté en GED (documents), en Editorial (publications), en Notes et en
+Studio (livrables, espaces clients, contenus : voir plus bas). Pour un nouveau
 module, suivre `Module/Ged/Document` :
 
 - entité : `deletedAt` + `isTrashed()`, colonne indexée (le `IS NULL` est sur
@@ -86,6 +87,32 @@ ressuscite ce que quelqu'un avait supprimé à la main des jours plus tôt, et
 déduire la différence des horodatages est une devinette. La suppression
 définitive du parent libère ce qui était tombé avec lui plutôt que de le
 détruire : les enfants sont la part que personne n'a demandé à perdre.
+
+### Studio : livrables, espaces clients, contenus
+
+Les trois suivent la même forme, plus courte que la GED : pas de filtre
+`?trashed=1` sur la liste, l'écran commun de la corbeille (General) lit une
+`TrashSourceInterface` par type et poste vers les routes `restore`,
+`force-delete`, `empty-trash` du module. Le manager porte `trash()`,
+`restore()`, `forceDelete()`, `purgeTrashedBefore()` (le verbe `delete()` a
+disparu des interfaces des espaces et des contenus, pour qu'aucun appelant
+ne confonde les deux gestes).
+
+- **Un parent à la corbeille cache ses enfants sans les toucher** : un espace
+  à la corbeille n'est vu de personne (`SpaceVisibility::canSee()`), ce qui
+  ferme d'un coup ses écrans (`SpaceVisibilitySubscriber`, sur les arguments des contrôleurs), ses livrables
+  et sa recherche ; sa page client et ses liens tombent dans
+  `resolveUsable()`. Les contenus d'un espace à la corbeille ne sont pas
+  listés dans la corbeille des contenus : ils reviennent avec lui.
+- **Un enfant à la corbeille garde son parent intermédiaire** : un contenu
+  garde son étape ; supprimer l'étape (permis si plus aucun contenu *vivant*)
+  range ceux de la corbeille dans la première étape restante avant la
+  cascade, sinon la cascade de l'étape les détruirait.
+- **Un parent à la corbeille bloque toujours ce qui le nomme** : un client
+  n'est pas supprimable tant qu'un de ses espaces, même à la corbeille,
+  existe (`countForCustomer()` ne filtre pas, c'est un finder « physique »).
+- Tests : `DeliverableTrashTest`, `CustomerSpaceTrashTest`,
+  `SpaceContentTrashTest`.
 
 Piège rencontré : le wording de confirmation. `delete_warning` disait « Cette
 action est irréversible » alors qu'elle ne l'est plus. Le message irréversible
