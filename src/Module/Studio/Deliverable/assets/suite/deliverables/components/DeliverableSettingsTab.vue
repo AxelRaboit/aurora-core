@@ -44,6 +44,11 @@ const props = defineProps({
     customerName: { type: String, default: "" },
     /** Faux pour un livrable de Studio : il n'y a pas de client à qui l'ouvrir. */
     withClient: { type: Boolean, default: true },
+    /**
+     * Montrer ou cacher au client : le droit de partager l'espace. Sans lui,
+     * l'état se lit, la case ne s'offre pas.
+     */
+    canShowToClient: { type: Boolean, default: true },
     canChangeScope: { type: Boolean, default: false },
     /** Les catégories des livrables de Studio : `{ id, name, color }`. */
     categories: { type: Array, default: () => [] },
@@ -188,10 +193,15 @@ const showLogo = computed({
                 <Eye class="h-4 w-4 text-muted" :stroke-width="2" /> {{ t("suite.studio.deliverables.settings.client_title") }}
             </h3>
             <AppToggle
+                v-if="canShowToClient"
                 v-model="visibleToClient"
                 :label="t('suite.studio.deliverables.settings.visible')"
                 :hint="t('suite.studio.deliverables.settings.visible_hint')"
             />
+            <p v-else class="m-0 text-sm text-secondary">
+                {{ t(visibleToClient ? "suite.studio.deliverables.visible_badge" : "suite.studio.deliverables.hidden_badge") }}.
+                <span class="text-muted">{{ t("suite.studio.client_visibility.share_needed") }}</span>
+            </p>
             <p
                 v-if="placeholders"
                 class="rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400"

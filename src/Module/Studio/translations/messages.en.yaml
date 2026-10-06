@@ -88,6 +88,8 @@ suite:
                 space_file:
                     added: File added to a space
                     removed: File removed from a space
+                    shown: "Space file shown to the client"
+                    hidden: "Space file hidden from the client"
                 space_chat_channel:
                     created: Chat channel opened
                     renamed: Chat channel renamed
@@ -1070,13 +1072,16 @@ suite:
             errors:
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
+        client_visibility:
+            share_needed: "Only someone who can share the space shows it to the client or hides it from them."
         space_files:
             guide:
                 title: "How files are organised"
                 step_1: "“On content items” lists files attached to content items, by you or by the client, newest first."
                 step_2: "“Of the space” gathers what serves the space without illustrating a content item: the guidelines, the logos, the brief."
                 step_3: "A space file is added here; a file for a content item is added from that content item."
-                step_4: "The client sees both kinds of files; removing a file from the space keeps it in the media library."
+                step_4: "A space file starts hidden from the client; “Show to the client” opens it to them, with the right to share the space. What the client sends stays visible to them."
+                step_5: "The client also sees the files of the content items shown to them; removing a file from the space keeps it in the media library."
             # A space's own files, on no card.
             usage_detail: A file of the space
             label: Attachment
@@ -1088,15 +1093,22 @@ suite:
             remove: Remove from the space
             added: File added to the space.
             removed: "File removed from the space. It stays in the library."
+            visible: "Visible to the client"
+            hidden: "Hidden from the client"
+            show: "Show to the client"
+            hide: "Hide from the client"
+            now_visible: "The client now sees this file."
+            now_hidden: "This file is hidden from the client."
             empty_linked: "No file on this space's content items"
             empty_linked_hint: "Files dropped on the content, by you or by the client, appear here newest first."
             empty_space: No file on this space
-            empty_space_hint: "The brand guide, the logos, the brief, a signed contract: what belongs to the space without illustrating a content item. The client sees them."
+            empty_space_hint: "The brand guide, the logos, the brief, a signed contract: what belongs to the space without illustrating a content item. Each stays hidden from the client until you show it to them."
             errors:
                 required: Choose a file.
                 unknown: "This file cannot be found."
                 duplicate: This file is already on this space.
                 needs_account: You have to be signed in to add a file.
+                client_file_stays_visible: "This file came from the client: it stays visible to them."
         drive:
             settings:
                 what_title: What this connection does
@@ -1244,7 +1256,7 @@ suite:
                 title: "How to put a deliverable together"
                 step_1: "“Content” is built with the site's page grid: add zones and fill them in."
                 step_2: "“Appearance” sets the page and content colours for this deliverable alone, in the client's colours if you like."
-                step_3: "“Settings” holds the title, the summary, the language and the header; tick “Visible to the client” so they can read it in their space."
+                step_3: "“Settings” holds the title, the summary, the language and the header; tick “Visible to the client” so they can read it in their space, with the right to share the space."
                 step_4: "Save your changes, then “Preview”, in the menu, opens the page as the client will read it."
                 step_5: "“Share” creates a reading link, a secret address that opens this deliverable alone without an account, with an optional password and expiry."
                 step_3_studio: "“Settings” holds the title, the summary, the language and the header, and its visibility: personal or shared."
@@ -1254,7 +1266,7 @@ suite:
             guide:
                 title: "How deliverables work"
                 step_1: "“New deliverable” creates a deliverable (audit, strategy, report) built like a page, in your colours or the client's."
-                step_2: "It stays hidden from the client until you click “Show to the client”."
+                step_2: "It stays hidden from the client until someone who can share the space clicks “Show to the client”."
                 step_3: "“Share”, in a deliverable's ⋯ menu or in its editor, gives someone a reading link, a secret address that opens this deliverable only, without the space."
                 step_4: "A link can have a password and an expiry, and is revoked one by one; hiding the deliverable does not cut its links."
                 step_5: "“Duplicate” creates a copy hidden from the client, handy to start again from last month's report."
@@ -2108,7 +2120,7 @@ suite:
                 title: "How resources work"
                 step_1: "“New resource” pins a link (a mock-up, an access), a text (instructions) or a contact (the person who approves)."
                 step_2: "A new resource is hidden from the client and filed under “For you only”."
-                step_3: "“Show to the client” moves it to “What the client sees”, readable by anyone with an access link."
+                step_3: "“Show to the client” moves it to “What the client sees”, readable by anyone with an access link; it needs the right to share the space."
                 step_4: "Never put a password in a resource visible to the client; the arrows set the display order."
             intro: "What lives elsewhere and gets looked for every time: a mockup, an access, the person who signs off. Each resource is shown to or hidden from the client, one by one."
             add: "New resource"
@@ -2175,7 +2187,7 @@ suite:
                 title: "How the chat works"
                 step_1: "The chat is for what does not concern one content item; what is about a content item goes in its own thread."
                 step_2: "The “General” channel is always visible to the client: they read it and can answer."
-                step_3: "A new channel stays internal; “Show to the client” makes it readable by anyone with an access link."
+                step_3: "A new channel stays internal; “Show to the client”, with the right to share the space, makes it readable by anyone with an access link."
                 step_4: "Private messages are between two team members, and nobody else reads them."
             channels:
                 main_name: General
@@ -2202,6 +2214,7 @@ suite:
                 step_3: "“Send for review” emails every recipient who can approve, with a fresh link to answer “Approved” or “Changes requested”."
                 step_4: "The client's answer does not move the content item: you move it forward after reading it."
                 step_5: "Editing a content item's text or files clears the client's answer: it needs reviewing again."
+                step_6: "A new step is hidden from the client; a new space shows them only “To approve” and “Published”. Showing or hiding a step needs the right to share the space."
             tab: Workspace
             view_label: View
             nav_open: Change section
@@ -2308,6 +2321,8 @@ suite:
             column_colour_hint: Optional. It marks the step on the board, and colours its content on the calendar.
             column_visible: Visible to the client
             column_visible_hint: "Unchecked, this step and its content do not appear in the space the client opens through their link. They stay on your board."
+            column_state_visible: "This step is visible to the client."
+            column_state_hidden: "This step is hidden from the client."
             column_created: Step added.
             column_updated: Step renamed.
             column_deleted: Step deleted.

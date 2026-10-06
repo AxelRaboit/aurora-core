@@ -51,6 +51,10 @@ const props = defineProps({
     /** Null on the client's page: the rooms are the studio's to arrange. */
     channelCreatePath: { type: String, default: null },
     channelRenamePath: { type: String, default: null },
+    /**
+     * Null without the right to share the space: showing a room to the client
+     * or hiding it is that right, the same one that hands out access links.
+     */
     channelAudiencePath: { type: String, default: null },
     channelDeletePath: { type: String, default: null },
     channelInvitePath: { type: String, default: null },
@@ -688,6 +692,7 @@ function onKeydown(event) {
             :show="roomModal"
             :channel="openChannel"
             :can-arrange="!!channelCreatePath"
+            :can-set-audience="!!channelAudiencePath"
             :can-invite="!!channelInvitePath"
             :can-uninvite="!!channelUninvitePath"
             :can-hide="!!hidePath"
@@ -731,6 +736,7 @@ function onKeydown(event) {
 
         <SpaceChatNewChannelModal
             :show="newChannel"
+            :can-show-to-client="!!channelAudiencePath"
             v-on:close="newChannel = false"
             v-on:create="create"
         />

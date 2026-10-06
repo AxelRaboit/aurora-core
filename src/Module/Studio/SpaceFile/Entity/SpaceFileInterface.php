@@ -26,6 +26,13 @@ interface SpaceFileInterface
 
     public function isFromClient(): bool;
 
+    public function isVisibleToClient(): bool;
+
+    public function setVisibleToClient(bool $visibleToClient): static;
+
+    /** Shown to the client, or sent by them: what their page lists and serves. */
+    public function isShownToClient(): bool;
+
     public function getAuthorUser(): ?CoreUserInterface;
 
     public function getAuthorLink(): ?SpaceAccessLinkInterface;

@@ -12,6 +12,7 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\EventSubscriber\SpaceVisibilitySubscriber;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
@@ -66,6 +67,7 @@ final class SpaceDeliverablesController extends AbstractController
         private readonly DeliverableAccess $access,
         private readonly DeliverableSerializer $serializer,
         private readonly DeliverableReadiness $readiness,
+        private readonly ClientVisibility $clientVisibility,
     ) {}
 
     /** Les lignes de l'onglet telles qu'elles sont maintenant, pour rafraîchir une liste périmée. */
@@ -130,6 +132,13 @@ final class SpaceDeliverablesController extends AbstractController
             return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true]);
         }
 
+        // L'éditeur enregistre tout d'un coup, la case « Visible par le
+        // client » comprise : la changer demande le droit de partager
+        // l'espace, celui du bouton de la liste.
+        if (!$this->clientVisibility->allowsChange($deliverable->isVisibleToClient(), true === ($payload['visibleToClient'] ?? false))) {
+            return $this->jsonForbidden();
+        }
+
         $errors = $this->manager->update($deliverable, $payload);
 
         if ([] !== $errors) {
@@ -139,9 +148,10 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess(['deliverable' => $this->viewBuilder->editorView($deliverable)['deliverable']]);
     }
 
-    /** Ouvert ou fermé au client, depuis la liste. */
+    /** Montré ou caché au client, depuis la liste : le droit de partager l'espace. */
     #[Route('/{deliverableId}/visibility', name: '_visibility', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
     public function visibility(
         CustomerSpace $space,
         int $deliverableId,

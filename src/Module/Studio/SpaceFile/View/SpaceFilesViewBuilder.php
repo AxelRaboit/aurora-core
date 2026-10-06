@@ -41,6 +41,7 @@ final readonly class SpaceFilesViewBuilder
             'spaceFileUploadPath' => $this->urlGenerator->generate('workspace_space_files_upload', ['id' => $space->getId()]),
             'spaceFileAttachPath' => $this->urlGenerator->generate('workspace_space_files_attach', ['id' => $space->getId()]),
             'spaceFileRemovePath' => $this->pathTemplates->generate('workspace_space_files_remove', ['id' => $space->getId(), 'fileId' => '__id__']),
+            'spaceFileVisibilityPath' => $this->pathTemplates->generate('workspace_space_files_visibility', ['id' => $space->getId(), 'fileId' => '__id__']),
             // Le dossier Drive de cet espace. `driveEnabled` dit que
             // l'installation a une clé ; `driveFolderId` dit que cet espace-ci
             // a désigné un dossier. Les deux, sinon l'écran propose un champ
@@ -110,10 +111,11 @@ final readonly class SpaceFilesViewBuilder
     /**
      * Les fichiers de l'espace, tels que le client les lit.
      *
-     * **Il les voit, et c'est la définition de l'onglet.** Un espace est
-     * partagé : ses fiches, ses fichiers et sa discussion se lisent des deux
-     * côtés. Ce que le studio garde pour lui, ce sont les notes, qui n'ont
-     * aucune route publique.
+     * **Ceux qu'on lui a montrés, et ceux qu'il a envoyés.** Un fichier
+     * déposé par le studio naît caché au client, comme tout ce qu'un espace
+     * peut lui montrer : le brief dont on travaille n'est pas la charte qu'on
+     * lui remet. La route qui sert un fichier pose la même question, pour
+     * qu'une adresse devinée ne serve pas ce que la liste tait.
      *
      * @return array<string, mixed>
      */
@@ -122,7 +124,7 @@ final readonly class SpaceFilesViewBuilder
         return [
             'spaceFiles' => array_map(
                 fn (SpaceFileInterface $file): array => $this->serializer->serializeForGuest($file, $link, $token),
-                $this->files->findForSpace($link->getSpace()),
+                $this->files->findShownForSpace($link->getSpace()),
             ),
         ];
     }

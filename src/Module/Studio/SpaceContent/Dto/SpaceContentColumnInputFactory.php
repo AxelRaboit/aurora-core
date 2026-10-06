@@ -23,7 +23,9 @@ class SpaceContentColumnInputFactory implements SpaceContentColumnInputFactoryIn
             // An empty string is what a cleared swatch sends, and it means "no
             // colour" rather than "slot zero".
             colourSlot: is_numeric($slot) ? (int) $slot : null,
-            visibleToClient: false !== ($data['visibleToClient'] ?? true),
+            // Seul un vrai `true` montre l'étape : un champ absent ou illisible la
+            // laisse cachée, la règle commune de l'espace.
+            visibleToClient: true === ($data['visibleToClient'] ?? false),
             // An unknown value is no role rather than an error: the field is
             // optional, and a select cleared by hand sends an empty string.
             role: SpaceContentColumnRoleEnum::tryFrom(Str::trimFromArray($data, 'role')),

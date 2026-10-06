@@ -42,7 +42,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppFilePreview from "@/shared/components/display/AppFilePreview.vue";
-import { ExternalLink, FileText, FolderOpen, LayoutGrid, List, Trash2, Upload, UserRound, X } from "lucide-vue-next";
+import { ExternalLink, Eye, EyeOff, FileText, FolderOpen, LayoutGrid, List, Trash2, Upload, UserRound, X } from "lucide-vue-next";
 
 const props = defineProps({
     attachments: { type: Object, default: () => ({}) },
@@ -50,12 +50,17 @@ const props = defineProps({
     /** Les fichiers de l'espace lui-même, sur aucune fiche. */
     spaceFiles: { type: Array, default: () => [] },
     editable: { type: Boolean, default: false },
+    /**
+     * Montrer ou cacher un fichier de l'espace au client : le droit de
+     * partager l'espace, en plus de celui de le modifier.
+     */
+    canShowToClient: { type: Boolean, default: false },
     /** Si le lecteur peut parcourir la médiathèque que le sélecteur liste. */
     canPick: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["open-item", "upload", "pick", "remove"]);
+const emit = defineEmits(["open-item", "upload", "pick", "remove", "toggle-visibility"]);
 
 const { t, d } = useI18n();
 
@@ -132,7 +137,7 @@ function chooseFile(event) {
      replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('suite.studio.space_files.guide.title')" storage-key="space-files" class="mb-[var(--aurora-page-margin)]">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 4" :key="step">{{ t(`suite.studio.space_files.guide.step_${step}`) }}</li>
+                <li v-for="step in 5" :key="step">{{ t(`suite.studio.space_files.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -277,6 +282,24 @@ function chooseFile(event) {
                         <UserRound v-if="file.fromClient" class="h-3 w-3" :stroke-width="2" />
                         <span class="truncate">{{ file.author }}</span>
                     </p>
+
+                    <!-- L'état d'un fichier de l'espace, et le geste qui le
+                         change pour qui peut partager l'espace. Un fichier
+                         que le client a envoyé reste visible : il n'y a rien
+                         à lui cacher de ce qu'il a lui-même déposé. -->
+                    <div v-if="'space' === tab" class="mt-1.5 flex items-center justify-between gap-2">
+                        <span class="inline-flex items-center gap-1 text-[0.68rem]" :class="file.visibleToClient ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted'">
+                            <component :is="file.visibleToClient ? Eye : EyeOff" class="h-3 w-3" :stroke-width="2" />
+                            {{ t(file.visibleToClient ? "suite.studio.space_files.visible" : "suite.studio.space_files.hidden") }}
+                        </span>
+                        <AppIconButton
+                            v-if="canShowToClient && !file.fromClient"
+                            :title="t(file.visibleToClient ? 'suite.studio.space_files.hide' : 'suite.studio.space_files.show')"
+                            v-on:click="emit('toggle-visibility', file)"
+                        >
+                            <component :is="file.visibleToClient ? EyeOff : Eye" class="h-3.5 w-3.5" :stroke-width="2" />
+                        </AppIconButton>
+                    </div>
                 </div>
             </article>
         </div>
@@ -328,6 +351,14 @@ function chooseFile(event) {
                             <span aria-hidden="true">·</span>
                             <span>{{ weightOf(file) }}</span>
                         </template>
+
+                        <template v-if="'space' === tab">
+                            <span aria-hidden="true">·</span>
+                            <span class="inline-flex items-center gap-1" :class="file.visibleToClient ? 'text-emerald-600 dark:text-emerald-400' : ''">
+                                <component :is="file.visibleToClient ? Eye : EyeOff" class="h-3 w-3" :stroke-width="2" />
+                                {{ t(file.visibleToClient ? "suite.studio.space_files.visible" : "suite.studio.space_files.hidden") }}
+                            </span>
+                        </template>
                     </p>
                 </div>
 
@@ -338,6 +369,24 @@ function chooseFile(event) {
                 >
                     {{ t("suite.studio.space_content.files_open") }}
                 </button>
+
+                <!-- Montrer ou cacher au client : pour qui peut partager
+                     l'espace, et jamais sur un fichier que le client a
+                     lui-même envoyé. Écrit en toutes lettres sur téléphone,
+                     où aucun survol n'explique une icône. -->
+                <AppButton
+                    v-if="'space' === tab && canShowToClient && !file.fromClient"
+                    size="sm"
+                    variant="ghost"
+                    class="shrink-0"
+                    :title="t(file.visibleToClient ? 'suite.studio.space_files.hide' : 'suite.studio.space_files.show')"
+                    v-on:click="emit('toggle-visibility', file)"
+                >
+                    <component :is="file.visibleToClient ? EyeOff : Eye" class="h-3.5 w-3.5" :stroke-width="2" />
+                    <span class="sm:sr-only">
+                        {{ t(file.visibleToClient ? "suite.studio.space_files.hide" : "suite.studio.space_files.show") }}
+                    </span>
+                </AppButton>
 
                 <!-- Retirer n'est offert que sur les fichiers de l'espace : sur
                      une fiche, le fichier se retire depuis la fiche, là où on

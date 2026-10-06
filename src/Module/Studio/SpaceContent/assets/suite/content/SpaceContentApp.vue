@@ -164,6 +164,7 @@ const props = defineProps({
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
     spaceFileRemovePath: { type: String, required: true },
+    spaceFileVisibilityPath: { type: String, default: "" },
     driveEnabled: { type: Boolean, default: false },
     driveFolderId: { type: String, default: null },
     driveListPath: { type: String, default: "" },
@@ -421,6 +422,9 @@ async function attachFromDrive(file) {
 }
 
 const editable = computed(() => can("studio.spaces.edit"));
+// Montrer ou cacher au client, une étape, un canal ou un fichier : le droit de
+// partager l'espace, en plus de celui de le modifier.
+const canShowToClient = computed(() => editable.value && can("studio.spaces.share"));
 
 const {
     confirming: confirmingReview,
@@ -440,12 +444,14 @@ const {
     upload: uploadOwnFile,
     pick: pickOwnFile,
     remove: removeOwnFile,
+    toggleVisibility: toggleOwnFileVisibility,
 } = useSpaceOwnFiles(
     props.spaceFiles,
     {
         uploadPath: props.spaceFileUploadPath,
         attachPath: props.spaceFileAttachPath,
         removePath: props.spaceFileRemovePath,
+        visibilityPath: props.spaceFileVisibilityPath,
     },
     useOrphanedDocumentOffer().offer,
 );
@@ -609,7 +615,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                  replié ou déplié, le choix vaut pour tous les encarts. -->
                 <AppGuide :title="t('suite.studio.space_content.guide.title')" storage-key="space-content" class="mb-[var(--aurora-page-margin)]">
                     <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                        <li v-for="step in 5" :key="step">{{ t(`suite.studio.space_content.guide.step_${step}`) }}</li>
+                        <li v-for="step in 6" :key="step">{{ t(`suite.studio.space_content.guide.step_${step}`) }}</li>
                     </ol>
                 </AppGuide>
                 <!-- Filtrées, les colonnes n'ont plus toutes leurs cartes : un
@@ -648,12 +654,14 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :items="liveItems"
                 :space-files="ownFiles"
                 :editable="editable"
+                :can-show-to-client="canShowToClient"
                 :can-pick="can('ged.documents.view')"
                 :loading="ownFilesLoading"
                 v-on:open-item="openItemEdit"
                 v-on:upload="uploadOwnFile"
                 v-on:pick="pickOwnFile"
                 v-on:remove="removeOwnFile"
+                v-on:toggle-visibility="toggleOwnFileVisibility"
             />
 
             <!-- Sa propre vue, à côté de Fichiers. La barre sépare déjà par
@@ -765,7 +773,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                     :team="chatTeam"
                     :channel-create-path="editable ? chatChannelCreatePath : null"
                     :channel-rename-path="editable ? chatChannelRenamePath : null"
-                    :channel-audience-path="editable ? chatChannelAudiencePath : null"
+                    :channel-audience-path="canShowToClient ? chatChannelAudiencePath : null"
                     :channel-delete-path="editable ? chatChannelDeletePath : null"
                     :channel-invite-path="editable ? chatChannelInvitePath : null"
                     :channel-uninvite-path="editable ? chatChannelUninvitePath : null"
@@ -941,11 +949,19 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                      obligerait à y repenser à chaque création, et la première
                      oubliée annulerait la protection. -->
                     <AppCheckbox
-                        :model-value="false !== columnForm.visibleToClient"
+                        v-if="canShowToClient"
+                        :model-value="true === columnForm.visibleToClient"
                         :label="t('suite.studio.space_content.column_visible')"
                         :hint="t('suite.studio.space_content.column_visible_hint')"
                         v-on:update:model-value="columnForm = { ...columnForm, visibleToClient: $event }"
                     />
+                    <!-- Sans le droit de partager, l'état se lit et ne se
+                         change pas : montrer une étape au client est le même
+                         geste que lui donner un lien d'accès. -->
+                    <p v-else class="m-0 text-xs text-muted">
+                        {{ t(true === columnForm.visibleToClient ? "suite.studio.space_content.column_state_visible" : "suite.studio.space_content.column_state_hidden") }}
+                        {{ t("suite.studio.client_visibility.share_needed") }}
+                    </p>
                 </form>
                 <template #footer>
                     <AppModalFooter>

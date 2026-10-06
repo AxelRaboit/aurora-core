@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceFile\Entity;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\AbstractSpaceContentAttachment;
 use DateTimeImmutable;
@@ -33,9 +34,13 @@ use Doctrine\ORM\Mapping as ORM;
  * here is the belonging, never the bytes nor an address - see the attachment's
  * own note for why a copied URL is a second truth.
  *
- * **The client sees them.** A space is shared: its cards, its files and its
- * conversation are read from both sides, and the studio's private surface is
- * the notes, which have no public route at all.
+ * **Hidden from the client until somebody shows it**, like everything a space
+ * can show (the common rule of {@see ClientVisibility}): a file dropped here
+ * may be the brief the studio works from as well as the charter it hands
+ * over, and only the second is the client's to read. Showing or hiding one
+ * takes the right to share the space. A file the client sent is theirs to
+ * read whatever the flag says: it is shown from the start and cannot be
+ * hidden from its own author.
  *
  * The author is stored twice, as everywhere else in a space: the relations say
  * who while they last and are `SET NULL`, while the label and `fromClient` are
@@ -60,6 +65,16 @@ abstract class AbstractSpaceFile implements SpaceFileInterface
     /** Which side it came from, independently of the rows below. */
     #[ORM\Column(options: ['default' => false])]
     protected bool $fromClient = false;
+
+    /**
+     * Whether the client's page lists this file and its address serves it.
+     *
+     * False for a new row; the rows that existed before the rule were set to
+     * true by their migration, so that nothing the client already read went
+     * missing on the day of the update.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $visibleToClient = false;
 
     #[ORM\ManyToOne(targetEntity: CoreUserInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -113,6 +128,27 @@ abstract class AbstractSpaceFile implements SpaceFileInterface
         return $this->fromClient;
     }
 
+    public function isVisibleToClient(): bool
+    {
+        return $this->visibleToClient;
+    }
+
+    public function setVisibleToClient(bool $visibleToClient): static
+    {
+        $this->visibleToClient = $visibleToClient;
+
+        return $this;
+    }
+
+    /**
+     * What the client's page reads: a file shown to them, or one they sent.
+     * The repository asks the same question in SQL for the list.
+     */
+    public function isShownToClient(): bool
+    {
+        return $this->visibleToClient || $this->fromClient;
+    }
+
     public function getAuthorUser(): ?CoreUserInterface
     {
         return $this->authorUser;
@@ -149,6 +185,9 @@ abstract class AbstractSpaceFile implements SpaceFileInterface
         $this->authorUser = null;
         $this->authorLabel = $link->getRecipientEmail();
         $this->fromClient = true;
+        // Ce que le client a envoyé, il le lit : caché, son propre fichier
+        // disparaîtrait de sa page à l'instant où il l'y dépose.
+        $this->visibleToClient = true;
 
         return $this;
     }

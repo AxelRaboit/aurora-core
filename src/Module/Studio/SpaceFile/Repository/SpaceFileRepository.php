@@ -49,6 +49,29 @@ class SpaceFileRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * The files the client's page lists: shown to them, or sent by them.
+     *
+     * The same order as {@see self::findForSpace()}, and the same rule as
+     * {@see SpaceFileInterface::isShownToClient()}, which the route serving a
+     * file asks of one row.
+     *
+     * @return list<SpaceFileInterface>
+     */
+    public function findShownForSpace(CustomerSpaceInterface $space): array
+    {
+        return $this->createQueryBuilder('f')
+            ->join('f.document', 'd')
+            ->addSelect('d')
+            ->where('f.space = :space')
+            ->andWhere('f.visibleToClient = true OR f.fromClient = true')
+            ->setParameter('space', $space)
+            ->orderBy('f.createdAt', Order::Descending->value)
+            ->addOrderBy('f.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * The rows that carry one document, so the library can say who uses it.
      *
      * Joined rather than scanned: the relation is a typed foreign key, and it

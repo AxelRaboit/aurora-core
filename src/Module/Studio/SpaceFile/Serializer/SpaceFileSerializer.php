@@ -36,6 +36,9 @@ class SpaceFileSerializer implements SpaceFileSerializerInterface
         ];
 
         return $this->shape($file) + [
+            // Pour le studio seulement : la page du client ne reçoit que ce
+            // qui lui est montré, où le drapeau ne dirait jamais que « oui ».
+            'visibleToClient' => $file->isShownToClient(),
             // Par la route de l'espace et pas celle de la médiathèque : un
             // fichier déposé ici est un brouillon, que `DocumentUrlGenerator`
             // adresse par `suite_ged_files` derrière un privilège que

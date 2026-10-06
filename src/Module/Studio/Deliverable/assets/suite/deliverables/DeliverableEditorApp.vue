@@ -450,6 +450,7 @@ const headerActions = computed(() => {
             :errors="errors"
             :customer-name="space?.customerName ?? ''"
             :with-client="!!space"
+            :can-show-to-client="mayShare"
             :can-change-scope="canChangeScope"
             :categories="categories"
             :customers="customers"

@@ -16,4 +16,7 @@ interface SpaceFileManagerInterface
     public function uploadAsStudio(CustomerSpaceInterface $space, UploadedFile $file): SpaceFileInterface;
 
     public function remove(SpaceFileInterface $file): void;
+
+    /** Shows the file to the client or hides it; a file the client sent stays shown. */
+    public function setVisibleToClient(SpaceFileInterface $file, bool $visible): void;
 }

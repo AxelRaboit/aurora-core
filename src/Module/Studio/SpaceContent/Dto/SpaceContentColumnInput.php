@@ -16,10 +16,9 @@ class SpaceContentColumnInput implements SpaceContentColumnInputInterface
         public readonly string $name = '',
         #[Assert\Range(min: 1, max: ChartPalette::MAX_SLOT)]
         public readonly ?int $colourSlot = null,
-        // Vrai par défaut : un appel qui ne connaît pas le champ garde le
-        // comportement d'avant plutôt que de cacher une étape sans que
-        // personne l'ait demandé.
-        public readonly bool $visibleToClient = true,
+        // Faux par défaut, comme tout ce qu'un espace peut montrer au
+        // client : une étape se montre par un geste, jamais par un oubli.
+        public readonly bool $visibleToClient = false,
         public readonly ?SpaceContentColumnRoleEnum $role = null,
     ) {}
 

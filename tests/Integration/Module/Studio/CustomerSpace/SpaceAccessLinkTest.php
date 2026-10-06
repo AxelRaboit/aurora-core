@@ -285,7 +285,9 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            // La Relecture : un espace neuf ne montre au client que la
+            // Relecture et Publié.
+            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
             'scheduledAt' => $scheduledAt,
         ]);
 

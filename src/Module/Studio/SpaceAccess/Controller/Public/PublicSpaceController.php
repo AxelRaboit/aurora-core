@@ -555,7 +555,10 @@ final class PublicSpaceController extends AbstractController
      * Un fichier de l'espace lui-même, lu par le lien.
      *
      * Le même 404 pour tout - jeton faux, lien révoqué, fichier d'un autre
-     * espace - que la route voisine, et pour la même raison.
+     * espace, fichier caché au client - que la route voisine, et pour la même
+     * raison. Le dernier cas compte autant que les autres : retirer un fichier
+     * de la page sans fermer son adresse n'aurait caché que le lien, et
+     * l'identifiant est un petit entier.
      */
     #[Route(
         '/{selector}/{token}/files/{fileId}/{variant}',
@@ -579,7 +582,7 @@ final class PublicSpaceController extends AbstractController
 
         $file = $this->spaceFiles->find($fileId);
 
-        if (!$file instanceof SpaceFileInterface || $file->getSpace()->getId() !== $link->getSpace()->getId()) {
+        if (!$file instanceof SpaceFileInterface || $file->getSpace()->getId() !== $link->getSpace()->getId() || !$file->isShownToClient()) {
             throw $this->createNotFoundException();
         }
 

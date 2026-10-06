@@ -454,7 +454,9 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function givenItem(CustomerSpace $space): array
     {
-        $column = $this->columns->findForSpace($space)[0];
+        // La Relecture (troisième étape) : un espace neuf ne montre au client
+        // que la Relecture et Publié, et cette fiche doit être sur sa page.
+        $column = $this->columns->findForSpace($space)[2];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Un contenu à illustrer',

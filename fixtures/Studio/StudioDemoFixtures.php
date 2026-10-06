@@ -509,11 +509,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ['text', 'Facturation', null, 'Mensuelle, le 5. Relance automatique à J+15, relance manuelle à J+30.', false],
         ]);
         // Des fichiers qui n'illustrent rien : ce qu'on tend au client sans
-        // l'épingler à une publication.
+        // l'épingler à une publication, et ce dont on travaille sans le lui
+        // tendre. Les deux états, pour la raison des ressources ci-dessus.
         $this->fileOnSpace($social, [
-            'Logo Aurora - Fond sombre',
-            'Plan des locaux - Étage 2',
-            'Charte Graphique Aurora - Brand Guidelines',
+            'Logo Aurora - Fond sombre' => true,
+            'Plan des locaux - Étage 2' => false,
+            'Charte Graphique Aurora - Brand Guidelines' => true,
         ]);
 
         // Le seul espace dont l'onglet Drive est ferme, et le seul qui designe
@@ -621,12 +622,25 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // whose posts go past a lawyer has one nobody else has. A demo that
         // only ever showed the default five would teach that they are the
         // product's, which is the opposite of what the table is for.
+        //
+        // Cachée au client, comme toute étape ajoutée : la relecture d'un
+        // avocat est un stade interne, et c'est l'exemple de la case décochée.
         $this->contentColumnManager->create($space, new SpaceContentColumnInput(
             name: 'Relecture juridique',
             colourSlot: 8,
         ));
 
         $columns = $this->contentColumns->findForSpace($space);
+
+        // « Programmé » montré à la main : un espace neuf ne montre au client
+        // que la relecture et ce qui est publié, et ce client-ci veut voir son
+        // mois à l'avance. Sans ce geste, la démonstration n'aurait aucune
+        // étape montrée par quelqu'un, et la carte qu'il a validée hier
+        // disparaîtrait de sa page.
+        if (isset($columns[3])) {
+            $columns[3]->setVisibleToClient(true);
+            $this->entityManager->flush();
+        }
 
         // Keyed by the step's place, not its name: the names are translated at
         // creation and a demo that matched on "Idées" would seed nothing the
@@ -1122,13 +1136,19 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
+        // Les pistes de logo attendent son avis, à l'étape que le client voit :
+        // c'est ce que la discussion lui annonce, et la seule chose que son
+        // lien lui montre du tableau. Le reste est du travail interne, caché
+        // comme toute étape d'idées ou de rédaction.
         $cards = [
             0 => [
-                ['Pistes de logo', "Trois directions : menuisier d'art, atelier familial, bois brut.", null, ['Logo Aurora - Fond sombre', 'Visuel de campagne - Automne 2025']],
                 ['Palette et typographie', 'À caler une fois la direction choisie.', null, []],
             ],
             1 => [
                 ["Photos de l'atelier", 'Prévoir une demi-journée sur place, lumière du matin.', '+6 days 10:00', ["Photo d'équipe - Séminaire 2025"]],
+            ],
+            2 => [
+                ['Pistes de logo', "Trois directions : menuisier d'art, atelier familial, bois brut.", '+4 days 18:00', ['Logo Aurora - Fond sombre', 'Visuel de campagne - Automne 2025']],
             ],
         ];
 
@@ -1299,7 +1319,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * logo, le plan des locaux. Pris dans la médiathèque par leur titre, pour
      * la même raison, et signés par le même compte.
      *
-     * @param list<string> $titles
+     * Chaque titre dit s'il est montré au client : un fichier d'espace naît
+     * caché, comme tout ce qu'un espace peut lui montrer.
+     *
+     * @param array<string, bool> $titles
      */
     private function fileOnSpace(CustomerSpaceInterface $space, array $titles): void
     {
@@ -1309,7 +1332,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
-        foreach ($titles as $title) {
+        foreach ($titles as $title => $visible) {
             $document = $this->documents->findOneBy(['title' => $title]);
 
             if (!$document instanceof Document) {
@@ -1317,7 +1340,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             }
 
             $file = new SpaceFile();
-            $file->setSpace($space)->setDocument($document)->addedByStudio($author, $author->getName());
+            $file->setSpace($space)->setDocument($document)->addedByStudio($author, $author->getName())->setVisibleToClient($visible);
 
             $this->entityManager->persist($file);
         }

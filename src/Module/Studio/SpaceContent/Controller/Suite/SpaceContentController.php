@@ -20,6 +20,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\View\SpaceInformationViewBuilder;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
@@ -101,6 +102,7 @@ class SpaceContentController extends AbstractController
         protected readonly PayloadValidator $payloadValidator,
         protected readonly StoredFileResponder $responder,
         protected readonly UploadPolicyProvider $uploadPolicies,
+        protected readonly ClientVisibility $clientVisibility,
     ) {}
 
     /**
@@ -497,6 +499,12 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
+        // Une étape naît cachée au client ; la créer montrée, c'est la
+        // montrer, et cela demande le droit de partager l'espace.
+        if (!$this->clientVisibility->allowsChange(false, $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
+        }
+
         $this->columnManager->create($space, $input);
 
         return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
@@ -517,6 +525,13 @@ class SpaceContentController extends AbstractController
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
+        }
+
+        // Renommer ou recolorer reste au droit de modifier ; montrer ou
+        // cacher l'étape demande celui de partager, même glissé dans le même
+        // enregistrement.
+        if (!$this->clientVisibility->allowsChange($column->isVisibleToClient(), $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
         }
 
         $this->columnManager->update($column, $input);

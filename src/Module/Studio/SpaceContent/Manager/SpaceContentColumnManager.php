@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceContent\Manager;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -150,6 +151,17 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
         $this->entityManager->flush();
     }
 
+    /**
+     * Le tableau d'un espace neuf.
+     *
+     * **Deux étapes montrées au client, les autres cachées.** La règle commune
+     * cache tout ce qui est neuf ({@see ClientVisibility}), mais un tableau
+     * dont aucune étape ne se voit ferait d'un lien d'accès une page vide :
+     * la Relecture est l'endroit où le client répond, et Publié ce qui est
+     * sorti. Les idées, la rédaction et la programmation restent du travail
+     * interne tant que quelqu'un qui a le droit de partager n'en décide pas
+     * autrement.
+     */
     public function seedDefaults(CustomerSpaceInterface $space): void
     {
         $position = 0;
@@ -161,6 +173,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
                 ->setName($this->translator->trans($key))
                 ->setColourSlot($colourSlot)
                 ->setRole($role)
+                ->setVisibleToClient(SpaceContentColumnRoleEnum::Review === $role || SpaceContentColumnRoleEnum::Published === $role)
                 ->setPosition($position);
 
             $this->entityManager->persist($column);

@@ -7,7 +7,9 @@ namespace Aurora\Module\Studio\SpaceContent\Entity;
 use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManager;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -73,17 +75,19 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
      * y repenser à chaque carte créée, ce que personne ne fait, et la première
      * oubliée annulerait la protection.
      *
-     * Le modèle existe déjà sur les canaux de discussion, qui portent le même
-     * interrupteur, avec le défaut inverse : un salon naît interne parce qu'on
-     * y parle entre soi, une étape naît visible parce que le tableau est fait
-     * pour être montré.
+     * **Cachée par défaut**, comme tout ce qu'un espace peut montrer au client
+     * (la règle commune de {@see ClientVisibility}) : une étape ajoutée au
+     * tableau est un stade de travail tant que quelqu'un qui a le droit de
+     * partager ne l'a pas montrée. Le tableau qu'un espace reçoit à sa
+     * naissance fait exception pour deux étapes, la Relecture, où le client
+     * répond, et Publié, ce qui est sorti : voir
+     * {@see SpaceContentColumnManager::seedDefaults()}.
      *
-     * Vrai par défaut. Fermé d'office aurait fait disparaître le contenu des
-     * espaces existants le jour de la mise à jour, ce qu'aucun client
-     * n'aurait compris.
+     * Les étapes d'avant la règle ont gardé leur état : la migration ne change
+     * que le défaut, pour que rien de ce que le client voyait ne disparaisse.
      */
-    #[ORM\Column(options: ['default' => true])]
-    protected bool $visibleToClient = true;
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $visibleToClient = false;
 
     /**
      * Which shared stage this step stands for, or none.

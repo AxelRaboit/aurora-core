@@ -157,4 +157,70 @@ describe("SpaceFilesView", () => {
 
         view.unmount();
     });
+
+    describe("client visibility of the space's own files", () => {
+        const SPACE_FILES = [
+            {
+                id: 30,
+                title: "Brief interne",
+                author: "Admin",
+                fromClient: false,
+                visibleToClient: false,
+                size: 10,
+                url: "/s/30",
+                createdAt: "2026-03-01T09:00:00+00:00",
+            },
+            {
+                id: 31,
+                title: "Logo du client",
+                author: "camille@boulangerie.test",
+                fromClient: true,
+                visibleToClient: true,
+                size: 10,
+                url: "/s/31",
+                createdAt: "2026-03-02T09:00:00+00:00",
+            },
+        ];
+
+        async function onSpaceTab(props) {
+            const view = render({
+                spaceFiles: SPACE_FILES,
+                editable: true,
+                ...props,
+            });
+            await view
+                .findAll("button")
+                .find((b) =>
+                    b.text().includes("suite.studio.space_files.tabs.space"),
+                )
+                .trigger("click");
+
+            return view;
+        }
+
+        it("offers « show to the client » with the right to share, never on a file the client sent", async () => {
+            const view = await onSpaceTab({ canShowToClient: true });
+            const toggles = view.findAll(
+                "button[title='suite.studio.space_files.show'], button[title='suite.studio.space_files.hide']",
+            );
+
+            expect(toggles).toHaveLength(1);
+            expect(toggles[0].attributes("title")).toBe(
+                "suite.studio.space_files.show",
+            );
+
+            await toggles[0].trigger("click");
+            expect(view.emitted("toggle-visibility")[0][0].id).toBe(30);
+        });
+
+        it("shows the state without the gesture to someone who cannot share the space", async () => {
+            const view = await onSpaceTab({ canShowToClient: false });
+
+            expect(
+                view.findAll("button[title='suite.studio.space_files.show']"),
+            ).toHaveLength(0);
+            expect(view.text()).toContain("suite.studio.space_files.hidden");
+            expect(view.text()).toContain("suite.studio.space_files.visible");
+        });
+    });
 });

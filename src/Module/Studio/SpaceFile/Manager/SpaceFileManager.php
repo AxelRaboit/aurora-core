@@ -26,6 +26,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * Le même téléverseur que les pièces jointes d'une fiche, donc le même dossier
  * et le même brouillon : un fichier d'espace n'est pas rangé ailleurs parce
  * qu'il n'est accroché à rien.
+ *
+ * Un fichier déposé ou choisi par le studio naît caché au client, comme tout ce
+ * qu'un espace peut lui montrer ; le montrer est un geste à part,
+ * {@see setVisibleToClient()}, sous le droit de partager l'espace.
  */
 #[AsAlias(SpaceFileManagerInterface::class)]
 class SpaceFileManager implements SpaceFileManagerInterface
@@ -73,6 +77,33 @@ class SpaceFileManager implements SpaceFileManagerInterface
 
         $this->entityManager->remove($file);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Montre le fichier au client, ou le lui cache.
+     *
+     * **Un fichier que le client a envoyé reste visible.** Le lui cacher
+     * retirerait de sa page ce qu'il vient d'y déposer, et il croirait l'envoi
+     * perdu : refusé avec une phrase plutôt qu'ignoré.
+     */
+    public function setVisibleToClient(SpaceFileInterface $file, bool $visible): void
+    {
+        if (!$visible && $file->isFromClient()) {
+            throw new FieldException('visibleToClient', $this->translator->trans('suite.studio.space_files.errors.client_file_stays_visible'));
+        }
+
+        $file->setVisibleToClient($visible);
+        $this->entityManager->flush();
+
+        // Deux branches et deux littéraux : le contrôle de dérive du journal
+        // lit les actions dans le code, et une valeur calculée lui échappe.
+        if ($visible) {
+            $this->auditLogger->log('studio', 'space_file.shown', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+
+            return;
+        }
+
+        $this->auditLogger->log('studio', 'space_file.hidden', 'SpaceFile', $file->getId(), $this->auditPayload($file));
     }
 
     /**
@@ -143,6 +174,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
             'documentTitle' => $file->getDocument()->getTitle(),
             'author' => $file->getAuthorLabel(),
             'fromClient' => $file->isFromClient(),
+            'visibleToClient' => $file->isVisibleToClient(),
         ];
     }
 }

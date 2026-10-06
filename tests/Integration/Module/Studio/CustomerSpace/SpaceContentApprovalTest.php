@@ -136,7 +136,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
 
         // An opinion, not a state machine: a client clicking the wrong button
         // would otherwise have moved or rescheduled a publication.
-        self::assertSame($columns[0]->getId(), $stored->getColumn()->getId());
+        self::assertSame($columns[2]->getId(), $stored->getColumn()->getId());
         self::assertSame('2026-12-01 10:00', $stored->getScheduledAt()?->format('Y-m-d H:i'));
     }
 
@@ -151,7 +151,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->loginAdmin();
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte reecrit',
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 
@@ -213,7 +213,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->loginAdmin();
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte repris',
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 
@@ -423,7 +423,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            // La Relecture, datée : un espace neuf ne montre au client que la
+            // Relecture et Publié.
+            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
             // Datée : la page du client ne montre que son calendrier, et
             // n'accepte d'avis que sur ce qu'elle montre.
             'scheduledAt' => '2026-12-01T10:00',

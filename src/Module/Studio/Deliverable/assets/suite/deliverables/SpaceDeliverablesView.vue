@@ -32,7 +32,10 @@ import { useDeliverableRequest } from "./composables/useDeliverableRequest.js";
 const props = defineProps({
     deliverables: { type: Array, default: () => [] },
     canEdit: { type: Boolean, default: false },
-    /** Donner une adresse de lecture : le droit de partager l'espace, qui n'est pas celui de le modifier. */
+    /**
+     * Le droit de partager l'espace, qui n'est pas celui de le modifier :
+     * donner une adresse de lecture, et montrer ou cacher un livrable au client.
+     */
     canShare: { type: Boolean, default: false },
     /** Faux pour une archive : elle ne reçoit plus de livrable, créé ni dupliqué. */
     canAdd: { type: Boolean, default: false },
@@ -241,18 +244,22 @@ function actionsFor(deliverable) {
     if (!props.canEdit) return actions;
 
     actions.push(
-        {
-            key: "visibility",
-            icon: deliverable.visibleToClient ? EyeOff : Eye,
-            title: t(deliverable.visibleToClient
-                ? "suite.studio.deliverables.hide"
-                : "suite.studio.deliverables.show"),
-            description: t(deliverable.visibleToClient
-                ? "suite.studio.deliverables.hide_hint"
-                : "suite.studio.deliverables.show_hint"),
-            disabled: busyId.value === deliverable.id,
-            onSelect: () => toggleVisibility(deliverable),
-        },
+        // Montrer ou cacher au client : le droit de partager l'espace, en plus
+        // de celui de le modifier, comme partout dans un espace.
+        ...(props.canShare
+            ? [{
+                key: "visibility",
+                icon: deliverable.visibleToClient ? EyeOff : Eye,
+                title: t(deliverable.visibleToClient
+                    ? "suite.studio.deliverables.hide"
+                    : "suite.studio.deliverables.show"),
+                description: t(deliverable.visibleToClient
+                    ? "suite.studio.deliverables.hide_hint"
+                    : "suite.studio.deliverables.show_hint"),
+                disabled: busyId.value === deliverable.id,
+                onSelect: () => toggleVisibility(deliverable),
+            }]
+            : []),
         ...(props.canAdd
             ? [{
                 key: "duplicate",

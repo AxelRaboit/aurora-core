@@ -29,6 +29,8 @@ const props = defineProps({
     channel: { type: Object, default: null },
     /** Null when this reader only looks: the client, or a read-only member. */
     canArrange: { type: Boolean, default: false },
+    /** Show the room to the client or hide it: the right to share the space. */
+    canSetAudience: { type: Boolean, default: false },
     canInvite: { type: Boolean, default: false },
     canUninvite: { type: Boolean, default: false },
     canHide: { type: Boolean, default: false },
@@ -158,6 +160,7 @@ function rename() {
                     }}
                 </p>
                 <AppButton
+                    v-if="canSetAudience"
                     size="sm"
                     variant="secondary"
                     class="w-full sm:w-auto"

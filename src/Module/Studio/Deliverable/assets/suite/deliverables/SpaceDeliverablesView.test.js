@@ -99,6 +99,15 @@ describe("SpaceDeliverablesView", () => {
         );
     });
 
+    it("offers to show or hide a deliverable only with the right to share the space", () => {
+        expect(actionKeys(mountView({ canShare: true }))).toContain(
+            "visibility",
+        );
+        expect(actionKeys(mountView({ canShare: false }))).not.toContain(
+            "visibility",
+        );
+    });
+
     it("leaves the action out without a links path", () => {
         expect(actionKeys(mountView({ canShare: true }))).not.toContain(
             "links",
@@ -141,7 +150,7 @@ describe("SpaceDeliverablesView", () => {
             placeholders: 3,
             withheldPictures: [{ id: 5, name: "portrait.jpg" }],
         });
-        const wrapper = mountView({ canAdd: true });
+        const wrapper = mountView({ canAdd: true, canShare: true });
 
         await actionsOf(wrapper)
             .find((action) => "visibility" === action.key)
@@ -175,7 +184,7 @@ describe("SpaceDeliverablesView", () => {
             success: true,
             deliverables: [{ ...AUDIT, visibleToClient: true }],
         });
-        const wrapper = mountView({ canAdd: true });
+        const wrapper = mountView({ canAdd: true, canShare: true });
 
         await actionsOf(wrapper)
             .find((action) => "visibility" === action.key)

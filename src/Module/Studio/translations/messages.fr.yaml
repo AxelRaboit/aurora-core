@@ -88,6 +88,8 @@ suite:
                 space_file:
                     added: Fichier ajouté à un espace
                     removed: Fichier retiré d'un espace
+                    shown: "Fichier d'espace montré au client"
+                    hidden: "Fichier d'espace caché au client"
                 space_chat_channel:
                     created: Canal de discussion ouvert
                     renamed: Canal de discussion renommé
@@ -1070,16 +1072,19 @@ suite:
             errors:
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
+        client_visibility:
+            share_needed: "Seule une personne qui peut partager l'espace le montre au client ou le lui cache."
         space_files:
             guide:
                 title: "Comment sont rangés les fichiers"
                 step_1: "« Sur les contenus » liste les fichiers déposés sur les contenus, par vous ou par le client, du plus récent au plus ancien."
                 step_2: "« De l'espace » rassemble ce qui sert à l'espace sans illustrer un contenu : la charte, les logos, le brief."
                 step_3: "Un fichier d'espace s'ajoute ici ; un fichier pour un contenu s'ajoute depuis ce contenu."
-                step_4: "Le client voit les deux sortes de fichiers ; retirer un fichier de l'espace le garde dans la médiathèque."
+                step_4: "Un fichier de l'espace naît caché au client ; « Montrer au client » le lui ouvre, avec le droit de partager l'espace. Ce que le client envoie reste visible pour lui."
+                step_5: "Le client voit aussi les fichiers des contenus qui lui sont montrés ; retirer un fichier de l'espace le garde dans la médiathèque."
             # Les fichiers de l'espace lui-même, sur aucune fiche : la charte,
-            # les logos, le brief. Le client les voit, comme le reste de
-            # l'espace ; ce que le studio garde pour lui, ce sont les notes.
+            # les logos, le brief. Chacun naît caché au client, comme tout ce
+            # qu'un espace peut lui montrer ; ce qu'il envoie reste visible pour lui.
             usage_detail: Fichier de l'espace
             label: Rattachement
             tabs:
@@ -1090,15 +1095,22 @@ suite:
             remove: Retirer de l'espace
             added: Fichier ajouté à l'espace.
             removed: "Fichier retiré de l'espace. Il reste dans la médiathèque."
+            visible: "Visible par le client"
+            hidden: "Caché au client"
+            show: "Montrer au client"
+            hide: "Cacher au client"
+            now_visible: "Le client voit maintenant ce fichier."
+            now_hidden: "Ce fichier est caché au client."
             empty_linked: "Aucun fichier sur les contenus de cet espace"
             empty_linked_hint: "Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien."
             empty_space: Aucun fichier sur cet espace
-            empty_space_hint: "La charte, les logos, le brief, un contrat signé : ce qui appartient à l'espace sans illustrer un contenu. Le client les voit."
+            empty_space_hint: "La charte, les logos, le brief, un contrat signé : ce qui appartient à l'espace sans illustrer un contenu. Chacun reste caché au client tant que vous ne le lui montrez pas."
             errors:
                 required: Choisissez un fichier.
                 unknown: "Ce fichier est introuvable."
                 duplicate: Ce fichier est déjà sur cet espace.
                 needs_account: Il faut être connecté pour ajouter un fichier.
+                client_file_stays_visible: "Ce fichier vient du client : il reste visible pour lui."
         drive:
             # Le compte de service appartient à l'installation ; le dossier
             # appartient à un client, et c'est lui qui le partage. La portée se
@@ -1251,7 +1263,7 @@ suite:
                 title: "Comment composer un livrable"
                 step_1: "« Contenu » se compose avec la grille des pages du site : ajoutez des zones et remplissez-les."
                 step_2: "« Apparence » règle les couleurs de la page et du contenu pour ce livrable seul, aux couleurs du client si vous voulez."
-                step_3: "« Réglages » porte le titre, le résumé, la langue et l'en-tête ; cochez « Visible par le client » pour qu'il le lise dans son espace."
+                step_3: "« Réglages » porte le titre, le résumé, la langue et l'en-tête ; cochez « Visible par le client » pour qu'il le lise dans son espace, avec le droit de partager l'espace."
                 step_4: "Enregistrez vos modifications, puis « Aperçu », dans le menu, ouvre la page telle que le client la lira."
                 step_5: "« Partager » crée un lien de lecture, une adresse secrète qui ouvre ce seul livrable sans compte, avec un mot de passe et une expiration facultatifs."
                 step_3_studio: "« Réglages » porte le titre, le résumé, la langue et l'en-tête, et sa visibilité : perso ou partagé."
@@ -1261,7 +1273,7 @@ suite:
             guide:
                 title: "Comment fonctionnent les livrables"
                 step_1: "« Nouveau livrable » crée un livrable (audit, stratégie, bilan) qui se compose comme une page, à vos couleurs ou à celles du client."
-                step_2: "Il reste caché au client tant que vous ne cliquez pas sur « Montrer au client »."
+                step_2: "Il reste caché au client tant que quelqu'un qui peut partager l'espace ne clique pas sur « Montrer au client »."
                 step_3: "« Partager », dans le menu ⋯ d'un livrable ou dans son éditeur, donne à quelqu'un un lien de lecture, une adresse secrète qui ouvre ce seul livrable, sans l'espace."
                 step_4: "Un lien peut avoir un mot de passe et une expiration, et se révoque un par un ; cacher le livrable ne coupe pas ses liens."
                 step_5: "« Dupliquer » crée une copie cachée au client, pratique pour repartir du bilan du mois dernier."
@@ -2115,7 +2127,7 @@ suite:
                 title: "Comment fonctionnent les ressources"
                 step_1: "« Nouvelle ressource » épingle un lien (une maquette, un accès), un texte (des consignes) ou un contact (la personne qui valide)."
                 step_2: "Une nouvelle ressource est cachée au client et se range sous « Pour vous seulement »."
-                step_3: "« Montrer au client » le fait passer dans « Ce que le client voit », lisible par toute personne qui a un lien d'accès."
+                step_3: "« Montrer au client » le fait passer dans « Ce que le client voit », lisible par toute personne qui a un lien d'accès ; il faut le droit de partager l'espace."
                 step_4: "Ne mettez jamais un mot de passe dans une ressource visible par le client ; les flèches règlent l'ordre d'affichage."
             intro: "Ce qui vit ailleurs et qu'on cherche à chaque fois : une maquette, un accès, la personne qui valide. Chaque ressource se montre ou se cache au client, une par une."
             add: "Nouvelle ressource"
@@ -2182,7 +2194,7 @@ suite:
                 title: "Comment fonctionne la discussion"
                 step_1: "La discussion sert à ce qui ne concerne pas un contenu précis ; ce qui porte sur un contenu va dans son propre fil."
                 step_2: "Le canal « Général » est toujours visible par le client : il le lit et peut y répondre."
-                step_3: "Un nouveau canal reste interne ; « Montrer au client » le rend lisible par toute personne qui a un lien d'accès."
+                step_3: "Un nouveau canal reste interne ; « Montrer au client », avec le droit de partager l'espace, le rend lisible par toute personne qui a un lien d'accès."
                 step_4: "Les messages privés se tiennent à deux, entre membres de l'équipe, et personne d'autre ne les lit."
             channels:
                 main_name: Général
@@ -2209,6 +2221,7 @@ suite:
                 step_3: "« Envoyer à relire » envoie un email à chaque destinataire qui peut valider, avec un lien neuf pour répondre « Validé » ou « À revoir »."
                 step_4: "La réponse du client ne déplace pas le contenu : c'est vous qui le faites avancer après l'avoir lue."
                 step_5: "Modifier le texte ou les fichiers d'un contenu efface la réponse du client : il est à faire relire de nouveau."
+                step_6: "Une étape neuve est cachée au client ; un nouvel espace ne lui montre que « À valider » et « Publié ». Montrer ou cacher une étape demande le droit de partager l'espace."
             tab: Espace de travail
             view_label: Vue
             nav_open: Changer de section
@@ -2315,6 +2328,8 @@ suite:
             column_colour_hint: Facultative. Elle distingue l'étape sur le tableau, et colore ses contenus au calendrier.
             column_visible: Visible par le client
             column_visible_hint: "Décochée, cette étape et ses contenus n'apparaissent pas dans l'espace que le client ouvre par son lien. Ils restent sur votre tableau."
+            column_state_visible: "Cette étape est visible par le client."
+            column_state_hidden: "Cette étape est cachée au client."
             column_created: Étape ajoutée.
             column_updated: Étape renommée.
             column_deleted: Étape supprimée.

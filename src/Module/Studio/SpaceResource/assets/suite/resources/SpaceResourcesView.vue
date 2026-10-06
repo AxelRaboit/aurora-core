@@ -41,6 +41,9 @@ const { t } = useI18n();
 const { can } = usePrivileges();
 
 const editable = computed(() => can("studio.spaces.edit"));
+// Montrer ou cacher au client : le droit de partager l'espace, en plus de
+// celui de le modifier. La règle de tout l'espace.
+const canShowToClient = computed(() => editable.value && can("studio.spaces.share"));
 
 const { resources, saving, create, update, toggleVisibility, remove, move } = useSpaceResources(props);
 
@@ -160,7 +163,7 @@ function isLast(resource) {
                              l'application est de les nommer dès qu'il n'y a
                              plus de survol pour les expliquer. -->
                         <div v-if="editable" class="flex flex-wrap items-center gap-1 sm:shrink-0">
-                            <AppButton size="sm" variant="ghost" v-on:click="toggleVisibility(resource)">
+                            <AppButton v-if="canShowToClient" size="sm" variant="ghost" v-on:click="toggleVisibility(resource)">
                                 <component
                                     :is="resource.visibleToClient ? EyeOff : Eye"
                                     class="h-3.5 w-3.5"
@@ -212,6 +215,7 @@ function isLast(resource) {
             :resource="editingResource"
             :saving="saving"
             :errors="errors"
+            :can-show-to-client="canShowToClient"
             v-on:close="formOpen = false"
             v-on:submit="submit"
         />
