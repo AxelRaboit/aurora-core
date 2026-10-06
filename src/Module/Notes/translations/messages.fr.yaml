@@ -37,11 +37,11 @@ suite:
         actions:
             notes_markdown:
                 space:
-                    published: 'Espace publié'
-                    unpublished: 'Espace dépublié'
-                    created: Espace créé
-                    updated: Espace modifié
-                    deleted: Espace retiré
+                    published: "Espace de notes publié"
+                    unpublished: "Espace de notes dépublié"
+                    created: "Espace de notes créé"
+                    updated: "Espace de notes modifié"
+                    deleted: "Espace de notes retiré"
                 note:
                     imported_from_craft: Note importée depuis Craft
                     trashed: Note mise à la corbeille
@@ -78,7 +78,7 @@ notes:
             how_step_paste: "Copiez l'adresse et la clé, et collez-les ci-dessous. Craft n'affiche la clé qu'une fois."
             scope_title: "Ce que cette clé peut faire"
             scope_body: "Lire les documents que vous avez cochés, et rien d'autre. C'est pour cela que le mode « lecture seule » compte : une connexion en écriture laisserait modifier et supprimer vos documents Craft depuis cette application, alors qu'elle ne fait qu'importer."
-            then_title: "Ensuite, espace par espace"
+            then_title: "Ensuite, espace de notes par espace de notes"
             then_body: "« Importer depuis Craft » apparaît dans le menu de chaque espace de notes, y compris celui d'un espace client, que son onglet Notes ouvre aussi. L'import est une copie franche : le document reste chez Craft, et la note ne suivra pas ses modifications."
             trouble_title: "Quand la liste est vide ou muette"
             trouble_body: "Une liste vide veut dire que la connexion n'expose aucun document : retournez dans Craft en ajouter. Une absence de réponse veut dire que l'adresse ou la clé ne conviennent plus, souvent parce que la connexion a été recréée chez Craft, qui frappe alors une nouvelle clé."
@@ -117,8 +117,8 @@ notes:
     markdown:
         guide:
             title: "Comment s'organisent les notes"
-            step_1: "Chaque note appartient à un espace : le vôtre, toujours privé, ou un espace partagé."
-            step_2: "Un espace partagé s'ouvre à vous seul, à certaines personnes ou à toute la suite, chacun en lecture, écriture ou gestion."
+            step_1: "Chaque note appartient à un espace de notes : le vôtre, toujours privé, ou un espace de notes partagé."
+            step_2: "Un espace de notes partagé s'ouvre à vous seul, à certaines personnes ou à toute la suite, chacun en lecture, écriture ou gestion."
             step_3: "Reliez les notes avec [[Titre]] : le graphe montre ces liens entre toutes les notes que vous pouvez lire."
             step_4: "Les étiquettes filtrent la bibliothèque, et « Gérer les tags » les renomme ou les fusionne sur toutes vos notes."
             step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
@@ -167,11 +167,11 @@ notes:
                 expires: 'Ce lien expire le %date%.'
                 read_only: Vous pouvez lire cette note, pas la modifier.
         spaces:
-            import_here: 'Importer dans cet espace'
-            export: 'Exporter cet espace'
+            import_here: "Importer dans cet espace de notes"
+            export: "Exporter cet espace de notes"
             publication:
                 title: 'Publication sur le web'
-                hint: 'L''espace se lit alors sans compte, à son adresse. Rien ne s''y écrit.'
+                hint: "L'espace de notes se lit alors sans compte, à son adresse. Rien ne s'y écrit."
                 slug: 'Adresse'
                 slug_placeholder: 'Déduite du nom si vide'
                 indexable: 'Laisser les moteurs de recherche l''indexer'
@@ -181,30 +181,30 @@ notes:
                 publish: 'Publier'
                 update: 'Mettre à jour'
                 unpublish: 'Dépublier'
-                published: 'Espace publié'
-                unpublished: 'Espace dépublié'
+                published: "Espace de notes publié"
+                unpublished: "Espace de notes dépublié"
                 badge: 'Publié sur le web'
-            my_space: 'Mon espace'
+            my_space: "Mon espace de notes"
             managed_badge: 'Espace client'
             managed_hint: 'Les notes de l''espace client du même nom. Son nom et son équipe suivent l''espace client : on les règle dans Studio.'
             errors:
-                private_owner_only: 'Seul le propriétaire peut réserver l''espace à lui seul.'
+                private_owner_only: "Seul le propriétaire peut réserver l'espace de notes à lui seul."
                 bad_slug: 'Adresse invalide : lettres, chiffres et tirets seulement.'
                 slug_taken: 'Cette adresse est déjà prise.'
-                name_required: 'Donnez un nom à l''espace.'
+                name_required: "Donnez un nom à l'espace de notes."
                 bad_access: 'Accès inconnu.'
                 bad_role: 'Rôle inconnu.'
                 bad_member: 'Cette personne ne peut pas être inscrite.'
-                save_failed: 'Impossible d''enregistrer l''espace.'
-                load_failed: 'Impossible de charger l''espace.'
-                managed: 'Cet espace suit un espace client de Studio : son nom et son équipe se règlent là-bas.'
+                save_failed: "Impossible d'enregistrer l'espace de notes."
+                load_failed: "Impossible de charger l'espace de notes."
+                managed: "Cet espace de notes suit un espace client de Studio : son nom et son équipe se règlent là-bas."
             name: 'Nom'
-            name_placeholder: 'Nom de l''espace'
-            label: 'Espace'
+            name_placeholder: "Nom de l'espace de notes"
+            label: "Espace de notes"
             loading: 'Chargement…'
-            personal_hint: 'Votre espace personnel reste privé : personne d''autre ne le voit. Seule sa couleur se règle.'
+            personal_hint: "Votre espace de notes personnel reste privé : personne d'autre ne le voit. Seule sa couleur se règle."
             owner: 'Propriétaire : {name}'
-            settings: 'Réglages de l''espace'
+            settings: "Réglages de l'espace de notes"
             members: 'Membres'
             members_hint: 'Seules les personnes inscrites entrent, chacune avec son rôle.'
             members_hint_backoffice: 'Toute la suite entre avec le rôle par défaut ; une inscription peut donner plus.'
@@ -212,13 +212,13 @@ notes:
             pick_person: 'Choisir une personne'
             add_member: 'Inscrire'
             remove_member: 'Retirer {name}'
-            delete: 'Retirer l''espace'
+            delete: "Retirer l'espace de notes"
             delete_confirm: 'Confirmer le retrait'
-            confirm_delete: 'L''espace {name} et tout ce qu''il contient disparaîtront pour tout le monde. Son propriétaire pourra le faire revenir.'
+            confirm_delete: "L'espace de notes {name} et tout ce qu'il contient disparaîtront pour tout le monde. Son propriétaire pourra le faire revenir."
             save: 'Enregistrer'
-            created: 'Espace créé'
-            updated: 'Espace enregistré'
-            deleted: 'Espace retiré'
+            created: "Espace de notes créé"
+            updated: "Espace de notes enregistré"
+            deleted: "Espace de notes retiré"
             read_only: 'Lecture'
             add_here: 'Ajouter dans {name}'
             empty: 'Rien ici pour l''instant.'
@@ -274,13 +274,13 @@ notes:
             pin_failed: Impossible de modifier les favoris.
             shared:
                 section: Visible pour moi
-                badge: Dans un espace partagé
+                badge: "Dans un espace de notes partagé"
                 by: 'Par {name}'
                 read_only: Lecture seule
             visibility:
                 all: 'Filtrer : tout'
-                shared: 'Filtre : espaces partagés'
-                private: 'Filtre : mon espace'
+                shared: "Filtre : espaces de notes partagés"
+                private: "Filtre : mon espace de notes"
                 clear: Retirer le filtre
             selected: '{count} sélectionné(s)'
             select: Sélectionner
@@ -436,8 +436,8 @@ notes:
             hint: '{marker} y devient la date du jour.'
             failed: 'La note n''a pas pu être créée depuis ce modèle.'
         add:
-            space: 'Espace'
-            create_space: 'Créer l''espace'
+            space: "Espace de notes"
+            create_space: "Créer l'espace de notes"
             title: 'Ajouter'
             kind: 'Ajouter une note ou un dossier'
             note: 'Note'

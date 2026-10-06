@@ -37,11 +37,11 @@ suite:
         actions:
             notes_markdown:
                 space:
-                    published: 'Space published'
-                    unpublished: 'Space unpublished'
-                    created: Space created
-                    updated: Space updated
-                    deleted: Space removed
+                    published: "Note space published"
+                    unpublished: "Note space unpublished"
+                    created: "Note space created"
+                    updated: "Note space updated"
+                    deleted: "Note space removed"
                 note:
                     imported_from_craft: Note imported from Craft
                     trashed: Note moved to trash
@@ -74,7 +74,7 @@ notes:
             how_step_paste: "Copy the address and the key, and paste them below. Craft shows the key only once."
             scope_title: "What this key can do"
             scope_body: "Read the documents you ticked, and nothing else. That is why read-only matters: a write connection would let this application modify and delete your Craft documents, when all it does is import."
-            then_title: "Then, space by space"
+            then_title: "Then, note space by note space"
             then_body: "« Import from Craft » appears in the menu of every note space, a customer space's included, which its Notes tab opens too. The import is a plain copy: the document stays in Craft, and the note will not follow its changes."
             trouble_title: "When the list is empty or silent"
             trouble_body: "An empty list means the connection exposes no document: go back to Craft and add some. No answer at all means the address or the key no longer fit, often because the connection was recreated in Craft, which then mints a new key."
@@ -113,8 +113,8 @@ notes:
     markdown:
         guide:
             title: "How notes are organised"
-            step_1: "Each note belongs to a space: yours, always private, or a shared space."
-            step_2: "A shared space opens to you alone, to some people or to the whole suite, each with read, write or manage rights."
+            step_1: "Each note belongs to a note space: yours, always private, or a shared note space."
+            step_2: "A shared note space opens to you alone, to some people or to the whole suite, each with read, write or manage rights."
             step_3: "Link notes with [[Title]]: the graph shows these links between all the notes you can read."
             step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
             step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
@@ -163,11 +163,11 @@ notes:
                 expires: 'This link expires on %date%.'
                 read_only: You can read this note, not edit it.
         spaces:
-            import_here: 'Import into this space'
-            export: 'Export this space'
+            import_here: "Import into this note space"
+            export: "Export this note space"
             publication:
                 title: 'Web publication'
-                hint: 'The space can then be read without an account, at its address. Nothing can be written there.'
+                hint: "The note space can then be read without an account, at its address. Nothing can be written there."
                 slug: 'Address'
                 slug_placeholder: 'Taken from the name when empty'
                 indexable: 'Let search engines index it'
@@ -177,30 +177,30 @@ notes:
                 publish: 'Publish'
                 update: 'Update'
                 unpublish: 'Unpublish'
-                published: 'Space published'
-                unpublished: 'Space unpublished'
+                published: "Note space published"
+                unpublished: "Note space unpublished"
                 badge: 'Published on the web'
-            my_space: 'My space'
-            managed_badge: 'Customer space'
-            managed_hint: 'The notes of the customer space of the same name. Its name and team follow the customer space: they are set in Studio.'
+            my_space: "My note space"
+            managed_badge: "Client space"
+            managed_hint: "The notes of the client space of the same name. Its name and team follow the client space: they are set in Studio."
             errors:
-                private_owner_only: 'Only the owner can keep the space to themselves.'
+                private_owner_only: "Only the owner can keep the note space to themselves."
                 bad_slug: 'Invalid address: letters, digits and hyphens only.'
                 slug_taken: 'This address is already taken.'
-                name_required: 'Give the space a name.'
+                name_required: "Give the note space a name."
                 bad_access: 'Unknown access.'
                 bad_role: 'Unknown role.'
                 bad_member: 'This person cannot be added.'
-                save_failed: 'Could not save the space.'
-                load_failed: 'Could not load the space.'
-                managed: 'This space follows a Studio customer space: its name and team are set there.'
+                save_failed: "Could not save the note space."
+                load_failed: "Could not load the note space."
+                managed: "This note space follows a Studio client space: its name and team are set there."
             name: 'Name'
-            name_placeholder: 'Space name'
-            label: 'Space'
+            name_placeholder: "Note space name"
+            label: "Note space"
             loading: 'Loading…'
-            personal_hint: 'Your personal space stays private: nobody else sees it. Only its colour can be set.'
+            personal_hint: "Your personal note space stays private: nobody else sees it. Only its colour can be set."
             owner: 'Owner: {name}'
-            settings: 'Space settings'
+            settings: "Note space settings"
             members: 'Members'
             members_hint: 'Only the people you add get in, each with their role.'
             members_hint_backoffice: 'The whole suite gets in with the default role; adding someone can give them more.'
@@ -208,13 +208,13 @@ notes:
             pick_person: 'Pick someone'
             add_member: 'Add'
             remove_member: 'Remove {name}'
-            delete: 'Remove space'
+            delete: "Remove note space"
             delete_confirm: 'Confirm removal'
-            confirm_delete: 'The space {name} and everything in it will disappear for everyone. Its owner can bring it back.'
+            confirm_delete: "The note space {name} and everything in it will disappear for everyone. Its owner can bring it back."
             save: 'Save'
-            created: 'Space created'
-            updated: 'Space saved'
-            deleted: 'Space removed'
+            created: "Note space created"
+            updated: "Note space saved"
+            deleted: "Note space removed"
             read_only: 'Read'
             add_here: 'Add in {name}'
             empty: 'Nothing here yet.'
@@ -270,13 +270,13 @@ notes:
             pin_failed: Could not update your favourites.
             shared:
                 section: Visible to me
-                badge: In a shared space
+                badge: "In a shared note space"
                 by: 'By {name}'
                 read_only: Read-only
             visibility:
                 all: 'Filter: everything'
-                shared: 'Filter: shared spaces'
-                private: 'Filter: my space'
+                shared: "Filter: shared note spaces"
+                private: "Filter: my note space"
                 clear: Clear the filter
             selected: '{count} selected'
             select: Select
@@ -432,8 +432,8 @@ notes:
             hint: '{marker} becomes today''s date.'
             failed: 'The note could not be created from this template.'
         add:
-            space: 'Space'
-            create_space: 'Create space'
+            space: "Note space"
+            create_space: "Create note space"
             title: 'Add'
             kind: 'Add a note or a folder'
             note: 'Note'
