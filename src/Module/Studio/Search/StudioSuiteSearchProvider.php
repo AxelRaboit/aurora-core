@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Search;
 
+use Aurora\Core\Search\SearchSnippetBuilder;
 use Aurora\Core\Search\SuiteSearchProviderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
@@ -19,8 +20,14 @@ use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessageInterface;
+use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatMessageRepository;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
+use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
+use Aurora\Module\Studio\SpaceResource\Entity\SpaceResourceInterface;
+use Aurora\Module\Studio\SpaceResource\Repository\SpaceResourceRepository;
 use Aurora\Module\Studio\StudioContext;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -32,26 +39,41 @@ use function array_map;
 use function array_values;
 use function count;
 use function implode;
+use function preg_replace;
 
 /**
  * Studio's slice of the suite global search: client spaces and their
- * cards, customers, contracts, contract templates and deliverables, pages and
- * presentations alike.
+ * cards, resources, files and conversation, customers, contracts, contract
+ * templates and deliverables, pages and presentations alike.
  *
- * **One provider, six sections, each with its own door.** Studio is several
+ * **One provider, nine sections, each with its own door.** Studio is several
  * screens behind several switches and several privileges, and the search has to
  * ask each section the question its screen asks: the customers list answers to
  * `studio.customers.view` and to the customers switch, the spaces to theirs. A
  * single guard for the module would hand contract references to an account that
  * may only open deliverables.
  *
- * **Spaces and their cards are scoped like the spaces list**, through
+ * **Spaces and everything in them are scoped like the spaces list**, through
  * {@see SpaceVisibility::seesAll()}: an administrator sees every space, anybody
  * else the ones they are a member of. A card title from a space the reader is
- * not on is exactly the leak the membership rule exists to prevent.
+ * not on is exactly the leak the membership rule exists to prevent. The
+ * conversation adds its own rule on top: a message is found only in a room the
+ * reader has in their list, never in an internal room or a private
+ * conversation they are not part of.
+ *
+ * **A space's notes are not here**: they live in the Notes module, whose own
+ * search already covers every note space the reader may open, the ones synced
+ * from client spaces included. Answering them twice would put each note under
+ * two headings.
+ *
+ * Nothing searched here is encrypted (resource label, body and address, the
+ * document title and file name, the message body are plain columns), so SQL
+ * `LIKE` is the right tool. A column that becomes encrypted cannot be matched
+ * this way and has to leave the query rather than be decrypted wholesale on
+ * every keystroke, as the Notes provider explains.
  *
  * **Each section fails alone.** The contract says never throw; one section's
- * query failing takes that section out, not the five others with it.
+ * query failing takes that section out, not the eight others with it.
  *
  * Every row carries its own `path`, as the palette expects of a module's rows:
  * core's search does not know Studio's routes and should not have to.
@@ -59,6 +81,9 @@ use function implode;
 final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInterface
 {
     private const int LIMIT = 8;
+
+    /** Characters kept on each side of the match in a message snippet. */
+    private const int SNIPPET_RADIUS = 40;
 
     public function __construct(
         private StudioContext $studioContext,
@@ -73,6 +98,10 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
         private DeliverableAccess $deliverableAccess,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
+        private SpaceResourceRepository $resources,
+        private SpaceFileRepository $files,
+        private SpaceChatMessageRepository $messages,
+        private SearchSnippetBuilder $snippets,
     ) {}
 
     public function search(string $query): array
@@ -86,10 +115,13 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
             $sections = [];
 
             if ($this->studioContext->areSpacesEnabled() && $this->security->isGranted('studio.spaces.view')) {
-                // Null for "every space": computed once for both sections.
+                // Null for "every space": computed once for every section.
                 $spaceIds = $this->visibleSpaceIds($user);
                 $sections['spaces'] = $this->section(fn (): array => $this->spaceRows($query, $spaceIds));
                 $sections['space_contents'] = $this->section(fn (): array => $this->itemRows($query, $spaceIds));
+                $sections['space_resources'] = $this->section(fn (): array => $this->resourceRows($query, $spaceIds));
+                $sections['space_files'] = $this->section(fn (): array => $this->fileRows($query, $spaceIds));
+                $sections['space_messages'] = $this->section(fn (): array => $this->messageRows($query, $spaceIds, $user));
             }
 
             if ($this->studioContext->areCustomersEnabled() && $this->security->isGranted('studio.customers.view')) {
@@ -188,6 +220,104 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
             ],
             $this->items->searchByTitle($query, $spaceIds, self::LIMIT),
         );
+    }
+
+    /**
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function resourceRows(string $query, ?array $spaceIds): array
+    {
+        return array_map(
+            fn (SpaceResourceInterface $resource): array => [
+                'id' => $resource->getId(),
+                'title' => $resource->getLabel(),
+                'subtitle' => $this->join([
+                    $resource->getSpace()->getName(),
+                    $this->translator->trans($resource->getKind()->getLabelKey()),
+                ]),
+                'path' => $this->spaceTab($resource->getSpace(), 'resources'),
+            ],
+            $this->resources->search($query, $spaceIds, self::LIMIT),
+        );
+    }
+
+    /**
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function fileRows(string $query, ?array $spaceIds): array
+    {
+        return array_map(
+            function (SpaceFileInterface $file): array {
+                $document = $file->getDocument();
+                $name = $document->getOriginalName();
+
+                return [
+                    'id' => $file->getId(),
+                    'title' => $document->getTitle(),
+                    'subtitle' => $this->join([
+                        $file->getSpace()->getName(),
+                        // The file name only when it says something the title
+                        // does not: most uploads are titled after it.
+                        null !== $name && $name !== $document->getTitle() ? $name : null,
+                        $file->isFromClient() ? $this->translator->trans('suite.studio.space_files.sent_by_client') : null,
+                    ]),
+                    'path' => $this->spaceTab($file->getSpace(), 'files'),
+                ];
+            },
+            $this->files->search($query, $spaceIds, self::LIMIT),
+        );
+    }
+
+    /**
+     * The messages, each shown by the words around the match.
+     *
+     * The title is the sentence and not the room: somebody searching the
+     * conversation is looking for what was said, and the room and its author
+     * are what tells two such sentences apart. The link opens the space on its
+     * conversation, in that room, scrolled to that message.
+     *
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function messageRows(string $query, ?array $spaceIds, CoreUserInterface $reader): array
+    {
+        return array_map(
+            fn (SpaceChatMessageInterface $message): array => [
+                'id' => $message->getId(),
+                'title' => $this->snippet($message->getBody(), $query),
+                'subtitle' => $this->join([
+                    $message->getSpace()->getName(),
+                    $message->getChannel()->getName(),
+                    $message->getAuthorLabel(),
+                ]),
+                'path' => $this->urlGenerator->generate('workspace_space_content', [
+                    'id' => $message->getSpace()->getId(),
+                    'view' => 'chat',
+                    'channel' => $message->getChannel()->getId(),
+                    'message' => $message->getId(),
+                ]),
+            ],
+            $this->messages->search($query, $spaceIds, $reader, self::LIMIT),
+        );
+    }
+
+    /** A space opened on one of its tabs, as the space reads `?view=`. */
+    private function spaceTab(CustomerSpaceInterface $space, string $view): string
+    {
+        return $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId(), 'view' => $view]);
+    }
+
+    /** The message around the match, on one line: the palette row has no room for paragraphs. */
+    private function snippet(string $body, string $query): string
+    {
+        $flat = preg_replace('/\s+/u', ' ', $body) ?? $body;
+
+        return $this->snippets->build($flat, mb_trim($query), self::SNIPPET_RADIUS);
     }
 
     /** @return list<array<string, mixed>> */

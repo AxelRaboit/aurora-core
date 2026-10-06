@@ -17,7 +17,7 @@
  * surfaces mount it: a key under `suite.` rendered on a page a customer reads
  * is a namespace that has stopped meaning anything.
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { MoreHorizontal, PanelLeft, Radio, Send, Trash2, WifiOff, X } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
@@ -94,6 +94,14 @@ const props = defineProps({
         default: "studio",
         validator: (value) => ["studio", "client"].includes(value),
     },
+    /**
+     * A message to open on rather than the end of the conversation.
+     *
+     * Set by the address a search result leads to. Scrolled to and marked
+     * once it is on screen; when it is older than what the room loaded, the
+     * panel opens at the end as usual.
+     */
+    focusMessageId: { type: [Number, null], default: null },
 });
 
 const { t, d } = useI18n();
@@ -397,14 +405,47 @@ async function fetchOlder() {
  */
 let observer = null;
 
+/** The message the address names, marked while it is the one being read. */
+const focused = ref(props.focusMessageId);
+/** Whether it still has to be scrolled to: once, on the first layout that can. */
+let focusPending = null !== props.focusMessageId;
+
+/**
+ * Scrolls the named message into the middle of the box, once.
+ *
+ * Asked on the same layout events as the end of the conversation, for the
+ * reason given above: before the box has a height, there is nothing to scroll.
+ * Returns whether it did, so the caller does not then jump to the end.
+ */
+function revealFocus() {
+    if (!focusPending || !scroller.value || 0 === scroller.value.clientHeight) return false;
+
+    const target = scroller.value.querySelector(`[data-message-id="${focused.value}"]`);
+    focusPending = false;
+
+    if (!target) return false;
+
+    following.value = false;
+    target.scrollIntoView?.({ block: "center" });
+
+    return true;
+}
+
+// Another room, another reading: the mark belongs to the room it was found in.
+watch(currentChannel, () => {
+    focused.value = null;
+    focusPending = false;
+});
+
 onMounted(() => {
     if (typeof ResizeObserver === "undefined") {
-        void nextTick().then(toBottom);
+        void nextTick().then(() => revealFocus() || toBottom());
 
         return;
     }
 
     observer = new ResizeObserver(() => {
+        if (revealFocus()) return;
         if (following.value) toBottom();
     });
 
@@ -590,14 +631,18 @@ function onKeydown(event) {
                             v-else
                             class="flex"
                             :class="mine(entry.message) ? 'justify-end' : 'justify-start'"
+                            :data-message-id="entry.message.id"
                         >
+                            <!-- The ring marks the message a search result
+                                 led here, so the eye lands on it. -->
                             <div
                                 class="group max-w-[min(42rem,80%)] rounded-lg px-3 py-2"
-                                :class="
+                                :class="[
                                     mine(entry.message)
                                         ? 'border border-accent-500/20 bg-accent-500/5'
-                                        : 'bg-surface-2/60'
-                                "
+                                        : 'bg-surface-2/60',
+                                    focused === entry.message.id ? 'ring-2 ring-accent-500/60' : '',
+                                ]"
                             >
                                 <!-- `flex-wrap` et pas une ligne : un nom, une
                                      date et la pastille « client » font 130

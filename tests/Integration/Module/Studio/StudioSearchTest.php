@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Studio;
 
 use Aurora\Core\Module\Service\ModuleAccessChecker;
+use Aurora\Core\Search\SearchSnippetBuilder;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -36,11 +38,24 @@ use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Slides\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use Aurora\Module\Studio\Search\StudioSuiteSearchProvider;
+use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
+use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
+use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatMessageRepository;
+use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
+use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
+use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
+use Aurora\Module\Studio\SpaceResource\Enum\SpaceResourceKindEnum;
+use Aurora\Module\Studio\SpaceResource\Repository\SpaceResourceRepository;
 use Aurora\Module\Studio\StudioContext;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -58,14 +73,16 @@ use function sprintf;
 /**
  * Studio in the global search.
  *
- * Six sections behind four switches and five privileges, so most of this is
+ * Nine sections behind four switches and five privileges, so most of this is
  * about each section asking its own screen's question - and about the spaces:
  * a teammate finds the spaces they are on and the cards in them, never a
  * client's board they were not put on.
  */
 final class StudioSearchTest extends IntegrationTestCase
 {
-    private const array SECTIONS = ['spaces', 'space_contents', 'customers', 'contracts', 'contract_templates', 'deliverables'];
+    private const array SECTIONS = ['spaces', 'space_contents', 'space_resources', 'space_files', 'space_messages', 'customers', 'contracts', 'contract_templates', 'deliverables'];
+
+    private const array SPACE_SECTIONS = ['spaces', 'space_contents', 'space_resources', 'space_files', 'space_messages'];
 
     private KernelBrowser $client;
 
@@ -229,7 +246,7 @@ final class StudioSearchTest extends IntegrationTestCase
 
         // Reading a space is also reading its deliverables: the section opens, and
         // each row is still checked one by one.
-        self::assertSame(['spaces', 'space_contents', 'deliverables'], array_keys($results), 'only the sections this account may open');
+        self::assertSame([...self::SPACE_SECTIONS, 'deliverables'], array_keys($results), 'only the sections this account may open');
         self::assertSame(['Le mien '.$this->needle], array_column($results['spaces'], 'title'));
         self::assertSame(['Carte du mien '.$this->needle], array_column($results['space_contents'], 'title'));
     }
@@ -245,6 +262,152 @@ final class StudioSearchTest extends IntegrationTestCase
 
         self::assertSame([], $results['spaces']);
         self::assertSame([], $results['space_contents']);
+    }
+
+    /**
+     * What a space holds besides its cards: a resource by its label, its text
+     * or its address, a file by its title or its name, a message by its words.
+     * Each row opens the space on the tab that shows it, the message in its
+     * room.
+     */
+    public function testResourcesFilesAndMessagesAreFoundAndOpenTheirTab(): void
+    {
+        $space = $this->space('Lancement', $this->customer('Client '.$this->needle, null));
+        $this->resource($space, 'Maquette '.$this->needle);
+        $this->resource($space, 'Ton', body: 'On dit atelier, '.$this->needle.' jamais entreprise.');
+        $this->resource($space, 'Tableau de bord', url: 'https://panel.example.com/'.$this->needle);
+        $this->spaceFile($space, 'Charte', 'charte-'.$this->needle.'.pdf', fromClient: true);
+        $message = $this->message($space, $this->mainRoom($space), 'Le logo '.$this->needle.' arrive jeudi.');
+
+        $this->client->loginUser($this->admin, 'admin');
+        $results = $this->provider->search($this->needle);
+
+        self::assertCount(3, $results['space_resources']);
+        self::assertSame(sprintf('/workspace/%d?view=resources', $space->getId()), $results['space_resources'][0]['path']);
+        self::assertStringStartsWith('Lancement', (string) $results['space_resources'][0]['subtitle']);
+
+        self::assertSame(['Charte'], array_column($results['space_files'], 'title'));
+        self::assertSame(sprintf('/workspace/%d?view=files', $space->getId()), $results['space_files'][0]['path']);
+        self::assertSame('Lancement · charte-'.$this->needle.'.pdf · Envoyé par le client', $results['space_files'][0]['subtitle']);
+
+        self::assertSame(['Le logo '.$this->needle.' arrive jeudi.'], array_column($results['space_messages'], 'title'));
+        self::assertSame(
+            sprintf('/workspace/%d?view=chat&channel=%d&message=%d', $space->getId(), $message->getChannel()->getId(), $message->getId()),
+            $results['space_messages'][0]['path'],
+        );
+    }
+
+    /**
+     * The membership rule, for what is inside a space: a teammate finds the
+     * resources, files and messages of the spaces they are on, and nothing of
+     * a space they were not put on.
+     */
+    public function testATeammateFindsOnlyWhatIsInTheirOwnSpaces(): void
+    {
+        $customer = $this->customer('Client', null);
+        $mine = $this->space('Le mien', $customer);
+        $theirs = $this->space('Le leur', $customer);
+
+        foreach (['mine' => $mine, 'theirs' => $theirs] as $key => $space) {
+            $this->resource($space, $key.' '.$this->needle);
+            $this->spaceFile($space, $key.' '.$this->needle, $key.'.pdf');
+            $this->message($space, $this->mainRoom($space), $key.' '.$this->needle);
+        }
+
+        $teammate = $this->accountWith(['studio.spaces.view']);
+        $this->membership($mine, $teammate);
+        $this->client->loginUser($teammate, 'admin');
+
+        $results = $this->provider->search($this->needle);
+
+        self::assertSame(['mine '.$this->needle], array_column($results['space_resources'], 'title'));
+        self::assertSame(['mine '.$this->needle], array_column($results['space_files'], 'title'));
+        self::assertSame(['mine '.$this->needle], array_column($results['space_messages'], 'title'));
+    }
+
+    /**
+     * Being on a space is not being in its internal rooms. A message is found
+     * in the main room, and in another room only once the reader is invited
+     * into it and has not put it away.
+     */
+    public function testAMessageIsFoundOnlyInARoomTheReaderIsIn(): void
+    {
+        $space = $this->space('Espace', $this->customer('Client', null));
+        $internal = $this->room($space, 'Interne', SpaceChatChannelKindEnum::Topic);
+        $this->message($space, $internal, 'Interne '.$this->needle);
+
+        $teammate = $this->accountWith(['studio.spaces.view']);
+        $this->membership($space, $teammate);
+        $this->client->loginUser($teammate, 'admin');
+
+        self::assertSame([], $this->provider->search($this->needle)['space_messages'], 'a room the reader was not invited into');
+
+        $member = new SpaceChatChannelMember();
+        $member->setUser($teammate)->setLabel('Équipier');
+        $internal->addMember($member);
+        $this->entityManager->flush();
+
+        self::assertSame(['Interne '.$this->needle], array_column($this->provider->search($this->needle)['space_messages'], 'title'));
+
+        $member->hide(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        self::assertSame([], $this->provider->search($this->needle)['space_messages'], 'a room the reader put away');
+    }
+
+    /**
+     * Nothing of a space in the trash answers, and a file whose document is in
+     * the library's trash does not either.
+     */
+    public function testTheTrashIsNeverSearched(): void
+    {
+        $customer = $this->customer('Client', null);
+        $trashed = $this->space('Jeté', $customer);
+        $this->resource($trashed, 'Jetée '.$this->needle);
+        $this->spaceFile($trashed, 'Jeté '.$this->needle, 'jete.pdf');
+        $this->message($trashed, $this->mainRoom($trashed), 'Jeté '.$this->needle);
+        $trashed->setDeletedAt(new DateTimeImmutable());
+
+        $living = $this->space('Vivant', $customer);
+        $this->spaceFile($living, 'Document jeté '.$this->needle, 'doc.pdf')->getDocument()->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->admin, 'admin');
+        $results = $this->provider->search($this->needle);
+
+        self::assertSame([], $results['space_resources']);
+        self::assertSame([], $results['space_files']);
+        self::assertSame([], $results['space_messages']);
+    }
+
+    /** The three sections open with the spaces, behind the same switch and privilege. */
+    public function testTheSpaceSectionsNeedTheSpacesPrivilege(): void
+    {
+        $space = $this->space('Espace', $this->customer('Client', null));
+        $this->resource($space, 'Ressource '.$this->needle);
+
+        $this->client->loginUser($this->accountWith(['studio.customers.view']), 'admin');
+
+        self::assertSame(['customers'], array_keys($this->provider->search($this->needle)));
+    }
+
+    /**
+     * The other half of a message result: the space opens its conversation
+     * on the room the address names, and only if the reader has that room.
+     */
+    public function testTheConversationOpensOnTheRoomTheAddressNames(): void
+    {
+        $space = $this->space('Espace', $this->customer('Client', null));
+        $main = $this->mainRoom($space);
+        $topic = $this->room($space, 'Sujet', SpaceChatChannelKindEnum::Topic);
+        $elsewhere = $this->room($space, 'Ailleurs', SpaceChatChannelKindEnum::Topic);
+
+        $this->client->loginUser($this->admin, 'admin');
+        $builder = self::getContainer()->get(SpaceChatViewBuilder::class);
+
+        self::assertSame($topic->getId(), $builder->view($space, $this->admin, [$main, $topic], $topic->getId())['chatChannelId']);
+        self::assertSame($main->getId(), $builder->view($space, $this->admin, [$main, $topic], $elsewhere->getId())['chatChannelId'], 'a room the reader does not have');
+        self::assertSame($main->getId(), $builder->view($space, $this->admin, [$main, $topic])['chatChannelId']);
     }
 
     /** The leak: the search box is one privilege, each Studio screen is another. */
@@ -322,6 +485,10 @@ final class StudioSearchTest extends IntegrationTestCase
             $container->get(DeliverableAccess::class),
             $container->get(UrlGeneratorInterface::class),
             $container->get(TranslatorInterface::class),
+            $container->get(SpaceResourceRepository::class),
+            $container->get(SpaceFileRepository::class),
+            $container->get(SpaceChatMessageRepository::class),
+            $container->get(SearchSnippetBuilder::class),
         );
 
         $results = $provider->search($this->needle);
@@ -408,6 +575,63 @@ final class StudioSearchTest extends IntegrationTestCase
         $this->created[] = $presentation;
 
         return $presentation;
+    }
+
+    private function resource(CustomerSpace $space, string $label, ?string $body = null, ?string $url = null): SpaceResource
+    {
+        $resource = new SpaceResource();
+        $resource->setSpace($space)
+            ->setKind(null !== $url ? SpaceResourceKindEnum::Link : SpaceResourceKindEnum::Text)
+            ->setLabel($label)
+            ->setBody($body)
+            ->setUrl($url);
+        $this->persist($resource);
+
+        return $resource;
+    }
+
+    private function spaceFile(CustomerSpace $space, string $title, string $name, bool $fromClient = false): SpaceFile
+    {
+        $document = new Document();
+        $document->setTitle($title)->setFilePath('ged/2026/10/'.$name)->setFileName($name)->setOriginalName($name)->setMimeType('application/pdf')->setSize(1024);
+        $this->persist($document);
+
+        $file = new SpaceFile();
+        $file->setSpace($space)->setDocument($document);
+
+        if ($fromClient) {
+            $link = self::getContainer()->get(SpaceAccessLinkManagerInterface::class)->issue($space, 'client@example.test', 'Le client', 30, false, false);
+            $file->addedByClient($link);
+        } else {
+            $file->addedByStudio($this->admin, 'Studio');
+        }
+
+        $this->persist($file);
+
+        return $file;
+    }
+
+    private function mainRoom(CustomerSpace $space): SpaceChatChannel
+    {
+        return $this->room($space, 'Général', SpaceChatChannelKindEnum::Main);
+    }
+
+    private function room(CustomerSpace $space, string $name, SpaceChatChannelKindEnum $kind): SpaceChatChannel
+    {
+        $room = new SpaceChatChannel();
+        $room->setSpace($space)->setName($name)->setKind($kind)->setOpenToClient(SpaceChatChannelKindEnum::Main === $kind);
+        $this->persist($room);
+
+        return $room;
+    }
+
+    private function message(CustomerSpace $space, SpaceChatChannel $room, string $body): SpaceChatMessage
+    {
+        $message = new SpaceChatMessage();
+        $message->setSpace($space)->setChannel($room)->setBody($body)->writtenByStudio($this->admin, 'Studio');
+        $this->persist($message);
+
+        return $message;
     }
 
     /** @param list<string> $privileges */

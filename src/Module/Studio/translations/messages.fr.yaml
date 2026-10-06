@@ -3,6 +3,9 @@ suite:
         sections:
             spaces: Espaces clients
             space_contents: Contenus des espaces
+            space_resources: Ressources des espaces
+            space_files: Fichiers des espaces
+            space_messages: Discussions des espaces
             deliverables: Livrables
             customers: Clients
             contracts: Contrats
@@ -1155,6 +1158,7 @@ suite:
             show: "Montrer au client"
             hide: "Cacher au client"
             now_visible: "Le client voit maintenant ce fichier."
+            sent_by_client: "Envoyé par le client"
             now_hidden: "Ce fichier est caché au client."
             empty_linked: "Aucun fichier sur les contenus de cet espace"
             empty_linked_hint: "Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien."

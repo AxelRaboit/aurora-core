@@ -56,6 +56,37 @@ afterEach(() => {
 });
 
 describe("SpaceChatPanel", () => {
+    it("marks the message a search result names, and only that one", () => {
+        const panel = render({ focusMessageId: 1 });
+
+        const marked = panel
+            .findAll("[data-message-id] > div")
+            .filter((bubble) => bubble.classes().includes("ring-2"));
+
+        expect(marked).toHaveLength(1);
+        expect(marked[0].text()).toContain("Le brief est prêt.");
+        expect(render().findAll(".ring-2")).toHaveLength(0);
+    });
+
+    it("scrolls to the named message once the box has a height", async () => {
+        const scrolled = vi.fn();
+        Element.prototype.scrollIntoView = scrolled;
+        vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(
+            300,
+        );
+
+        const panel = render({ focusMessageId: 1 });
+        await flushPromises();
+
+        expect(scrolled).toHaveBeenCalledTimes(1);
+        expect(scrolled.mock.contexts[0].getAttribute("data-message-id")).toBe(
+            "1",
+        );
+
+        panel.unmount();
+        delete Element.prototype.scrollIntoView;
+    });
+
     it("reads oldest first, whatever order it was handed", () => {
         expect(bodies(render())).toEqual([
             "Le brief est prêt.",

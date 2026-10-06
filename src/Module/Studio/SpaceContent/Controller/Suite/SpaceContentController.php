@@ -136,7 +136,9 @@ class SpaceContentController extends AbstractController
 
         $response = $this->render('@Studio/suite/space-content/content.html.twig', [
             ...$this->viewBuilder->contentView($space),
-            ...$this->chatViewBuilder->view($space, $reader, $rooms),
+            // `?channel=` opens the conversation on the room a search result
+            // points at; the builder keeps it only if the reader has that room.
+            ...$this->chatViewBuilder->view($space, $reader, $rooms, $request->query->getInt('channel') ?: null),
             ...$this->notesViewBuilder->view($space),
             ...$this->filesViewBuilder->view($space),
             ...$this->informationViewBuilder->view($space),

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceFile\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
@@ -130,5 +131,43 @@ class SpaceFileRepository extends ResolveTargetEntityRepository
     public function has(CustomerSpaceInterface $space, DocumentInterface $document): bool
     {
         return null !== $this->findOneBy(['space' => $space, 'document' => $document]);
+    }
+
+    /**
+     * The space files whose document title or file name contains the term, for
+     * the global search.
+     *
+     * `$spaceIds` as in the other Studio searches: null for every space, a list
+     * to narrow, an empty list for nothing. Neither a space in the trash nor a
+     * document in the library's trash is searched. The document and the space
+     * come along: the result shows the one and names the other.
+     *
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<SpaceFileInterface>
+     */
+    public function search(string $term, ?array $spaceIds, int $limit): array
+    {
+        if ('' === mb_trim($term) || [] === $spaceIds) {
+            return [];
+        }
+
+        $builder = $this->createQueryBuilder('f')
+            ->addSelect('d', 's')
+            ->join('f.document', 'd')
+            ->join('f.space', 's')
+            ->where('LOWER(d.title) LIKE :term OR LOWER(d.originalName) LIKE :term')
+            ->andWhere('s.deletedAt IS NULL')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('f.createdAt', Order::Descending->value)
+            ->addOrderBy('f.id', Order::Descending->value)
+            ->setMaxResults($limit);
+
+        if (null !== $spaceIds) {
+            $builder->andWhere('s.id IN (:ids)')->setParameter('ids', $spaceIds);
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }

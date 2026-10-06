@@ -294,6 +294,10 @@ const itemInUrl = useQueryState("item");
 
 // Read from the address as it is: see `viewFromAddress`.
 const viewAtLoad = viewFromAddress(window.location.search, VIEWS.map((entry) => entry.key));
+
+// The message a search result points at, scrolled to in the room the server
+// opened (`?channel=`). Read once: it names where the page lands, not a state.
+const chatFocusMessageId = Number(new URLSearchParams(window.location.search).get("message")) || null;
 if (viewAtLoad) view.value = viewAtLoad;
 
 /**
@@ -774,6 +778,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                     :delete-path="editable ? chatDeletePath : null"
                     :channels="chatChannels"
                     :channel-id="chatChannelId"
+                    :focus-message-id="chatFocusMessageId"
                     :team="chatTeam"
                     :channel-create-path="editable ? chatChannelCreatePath : null"
                     :channel-rename-path="editable ? chatChannelRenamePath : null"

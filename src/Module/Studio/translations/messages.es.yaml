@@ -3,6 +3,9 @@ suite:
         sections:
             spaces: Espacios de cliente
             space_contents: Contenidos de los espacios
+            space_resources: Recursos de los espacios
+            space_files: Archivos de los espacios
+            space_messages: Conversaciones de los espacios
             deliverables: Entregables
             customers: Clientes
             contracts: Contratos
@@ -1131,6 +1134,7 @@ suite:
             show: "Mostrar al cliente"
             hide: "Ocultar al cliente"
             now_visible: "El cliente ve ahora este archivo."
+            sent_by_client: "Enviado por el cliente"
             now_hidden: "Este archivo está oculto al cliente."
             empty_linked: "Ningún archivo en los contenidos de este espacio"
             empty_linked_hint: 'Los archivos subidos a los contenidos, por usted o por el cliente, aparecen aquí del más reciente al más antiguo.'

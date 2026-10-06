@@ -3,6 +3,9 @@ suite:
         sections:
             spaces: Client spaces
             space_contents: Space content
+            space_resources: Space resources
+            space_files: Space files
+            space_messages: Space conversations
             deliverables: Deliverables
             customers: Customers
             contracts: Contracts
@@ -1153,6 +1156,7 @@ suite:
             show: "Show to the client"
             hide: "Hide from the client"
             now_visible: "The client now sees this file."
+            sent_by_client: "Sent by the client"
             now_hidden: "This file is hidden from the client."
             empty_linked: "No file on this space's content items"
             empty_linked_hint: "Files dropped on the content, by you or by the client, appear here newest first."

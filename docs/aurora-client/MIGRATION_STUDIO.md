@@ -523,3 +523,46 @@ créer.
   (`section_general`, `section_team`, `general_intro`, `team_intro`, `saved`) ;
   `suite.studio.spaces.row_actions.edit_description` réécrite ;
   `suite.studio.spaces.edit` (titre de la fenêtre retirée) supprimée.
+
+## 14. La recherche globale entre dans les espaces
+
+La recherche globale trouvait les espaces et leurs contenus ; elle trouve
+maintenant aussi **les ressources** (libellé, texte, adresse), **les fichiers
+d'un espace** (titre du document, nom du fichier) et **les messages de la
+discussion**. Trois sections de plus, qui s'ouvrent avec celle des espaces
+(interrupteur des espaces, droit `studio.spaces.view`) et suivent la même
+règle d'appartenance (`SpaceVisibility::seesAll()`, sinon les espaces dont on
+est membre). Les notes d'un espace n'y sont pas : elles vivent dans le module
+Notes, dont la recherche couvre déjà les espaces de notes ouverts au lecteur.
+Aucune migration.
+
+- **Sections** : `space_resources`, `space_files`, `space_messages`, entre
+  `space_contents` et `customers`. Un message n'est trouvé que dans un salon
+  de la liste du lecteur (le canal « Général », ou un salon où il est invité
+  et qu'il n'a pas rangé) : être membre d'un espace n'ouvre pas ses canaux
+  internes ni les conversations privées des autres. Rien d'un espace à la
+  corbeille, ni d'un document à la corbeille de la médiathèque.
+- **Adresses** : une ressource ouvre `/workspace/{id}?view=resources`, un
+  fichier `?view=files`, un message `?view=chat&channel={salon}&message={message}`.
+  `SpaceContentController::content()` lit `?channel=` et
+  `SpaceChatViewBuilder::view()` gagne un quatrième argument optionnel
+  `?int $channelId` : le salon nommé s'ouvre s'il est dans la liste du
+  lecteur, sinon le premier, comme avant. Le panneau `SpaceChatPanel` gagne la
+  propriété `focusMessageId` (lue de `?message=` par `SpaceContentApp`) : le
+  message est entouré et amené au milieu de la boîte.
+- **Repositories, ajout** : `SpaceResourceRepository::search()`,
+  `SpaceFileRepository::search()` (`$term`, `?array $spaceIds`, `$limit`) et
+  `SpaceChatMessageRepository::search()` (`$term`, `?array $spaceIds`,
+  `CoreUserInterface $reader`, `$limit`), bornés comme les autres sections
+  et chargeant l'espace (et le document, le salon) dans la même requête.
+- **Rupture** : `StudioSuiteSearchProvider` (classe `final`) prend quatre
+  arguments de plus en fin de constructeur (`SpaceResourceRepository`,
+  `SpaceFileRepository`, `SpaceChatMessageRepository`,
+  `SearchSnippetBuilder`). Un projet qui l'instancie à la main, dans un test
+  par exemple, les ajoute.
+- **Chiffrement** : aucune colonne cherchée n'est chiffrée, d'où un `LIKE` en
+  SQL. Une colonne qui le deviendrait sortirait de la requête plutôt que
+  d'être déchiffrée en masse à chaque frappe.
+- **Traductions** : `suite.search.sections.space_resources`,
+  `.space_files`, `.space_messages` et `suite.studio.space_files.sent_by_client`
+  (fr, en, es).

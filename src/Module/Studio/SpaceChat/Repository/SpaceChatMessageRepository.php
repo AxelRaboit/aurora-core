@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceChat\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessageInterface;
+use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -122,5 +125,52 @@ class SpaceChatMessageRepository extends ResolveTargetEntityRepository
             ->getResult();
 
         return array_reverse($newestFirst);
+    }
+
+    /**
+     * The messages that contain the term, in the rooms this reader has in
+     * their list, for the global search.
+     *
+     * **The room rule is the one of the reader's own list**
+     * ({@see SpaceChatChannelRepository::findForUser()}): the main room, which
+     * everybody is in, and the rooms they were invited into and have not put
+     * away. Being allowed into a space is not being allowed into its internal
+     * rooms, and a sentence from a private conversation between two colleagues
+     * is exactly what a search result must not show a third one.
+     *
+     * `$spaceIds` as in the other Studio searches: null for every space, a list
+     * to narrow, an empty list for nothing; a space in the trash is never
+     * searched. The room and the space come along: the result names both.
+     *
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<SpaceChatMessageInterface>
+     */
+    public function search(string $term, ?array $spaceIds, CoreUserInterface $reader, int $limit): array
+    {
+        if ('' === mb_trim($term) || [] === $spaceIds) {
+            return [];
+        }
+
+        $builder = $this->createQueryBuilder('m')
+            ->addSelect('c', 's')
+            ->join('m.channel', 'c')
+            ->join('m.space', 's')
+            ->leftJoin('c.members', 'cm', 'WITH', 'cm.user = :reader AND cm.hiddenAt IS NULL')
+            ->where('LOWER(m.body) LIKE :term')
+            ->andWhere('s.deletedAt IS NULL')
+            ->andWhere('c.kind = :main OR cm.id IS NOT NULL')
+            ->setParameter('term', LikePattern::contains($term))
+            ->setParameter('reader', $reader)
+            ->setParameter('main', SpaceChatChannelKindEnum::Main)
+            ->orderBy('m.createdAt', Order::Descending->value)
+            ->addOrderBy('m.id', Order::Descending->value)
+            ->setMaxResults($limit);
+
+        if (null !== $spaceIds) {
+            $builder->andWhere('s.id IN (:ids)')->setParameter('ids', $spaceIds);
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }
