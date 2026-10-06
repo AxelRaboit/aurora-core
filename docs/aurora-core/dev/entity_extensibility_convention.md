@@ -66,7 +66,7 @@ l'ancienne version de cette table listait treize modules qui n'existent plus.
 | Notes | `MarkdownNote`, `NoteFolder` |
 | Planning | `Planning`, `PlanningEvent`, `PlanningReminder`, `PlanningShareLink` |
 | Platform | `AccessRequest`, `User` |
-| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `Deck`, `DeckCategory`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
+| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateCategory`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `Deck`, `DeckCategory`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
 
 Une nuance que le critère de la §2 laisse de côté : toutes n'ont pas leur propre
 page. `FormField`, `MenuItem`, `PostTypeField`, `TaxonomyTerm`,
