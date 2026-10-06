@@ -128,6 +128,29 @@ final class SpaceVisibilityTest extends IntegrationTestCase
         self::assertSame(403, $this->client->getResponse()->getStatusCode());
     }
 
+    /**
+     * L'onglet Drive se montre à qui voit l'espace : le lire ne peut pas
+     * demander davantage. Ranger un fichier dans la médiathèque écrit, et
+     * garde le droit de modifier.
+     */
+    public function testTheDriveIsReadWithTheRightToSeeAndFiledWithTheRightToEdit(): void
+    {
+        $space = $this->givenSpace('Drive en lecture', 'portee-g@example.test', '39860733100024');
+
+        $teammate = $this->givenTeammate('portee-equipier4@example.test');
+        $teammate->setPrivileges(['studio.spaces.view']);
+        $this->entityManager->flush();
+        $this->givenMembership($space, $teammate, CustomerSpaceMemberRoleEnum::Member);
+
+        $this->client->loginUser($teammate, 'admin');
+
+        $this->client->request('GET', sprintf('/workspace/%d/drive', $space->getId()));
+        self::assertNotSame(403, $this->client->getResponse()->getStatusCode());
+
+        $this->client->request('POST', sprintf('/workspace/%d/drive/abc123/import', $space->getId()), server: self::FROM_THE_PAGE);
+        self::assertSame(403, $this->client->getResponse()->getStatusCode());
+    }
+
     /** Un administrateur ne compose pas d'équipe pour voir un espace. */
     public function testAnAdminSeesEverySpaceWithoutBeingAMember(): void
     {

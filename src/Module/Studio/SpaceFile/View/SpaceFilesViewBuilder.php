@@ -50,7 +50,11 @@ final readonly class SpaceFilesViewBuilder
             'driveListPath' => $this->urlGenerator->generate('workspace_space_drive_list', ['id' => $space->getId()]),
             'driveFilePath' => $this->pathTemplates->generate('workspace_space_drive_file', ['id' => $space->getId(), 'fileId' => '__id__']),
             'driveArchivePath' => $this->urlGenerator->generate('workspace_space_drive_archive', ['id' => $space->getId()]),
-            'driveImportPath' => $this->pathTemplates->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__']),
+            // Ranger un fichier écrit dans la médiathèque : le bouton ne se
+            // montre qu'à qui peut modifier l'espace, comme la route l'exige.
+            'driveImportPath' => $this->canEdit()
+                ? $this->pathTemplates->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
+                : '',
             // Le dossier de l'agence : le même pour tous les espaces, choisi
             // dans la configuration du Drive. Réservé au studio, il n'est
             // jamais montré au client : rien ici ne part vers le portail.
@@ -58,7 +62,9 @@ final readonly class SpaceFilesViewBuilder
             'driveAgencyListPath' => $this->urlGenerator->generate('workspace_space_drive_agency_list', ['id' => $space->getId()]),
             'driveAgencyFilePath' => $this->pathTemplates->generate('workspace_space_drive_agency_file', ['id' => $space->getId(), 'fileId' => '__id__']),
             'driveAgencyArchivePath' => $this->urlGenerator->generate('workspace_space_drive_agency_archive', ['id' => $space->getId()]),
-            'driveAgencyImportPath' => $this->pathTemplates->generate('workspace_space_drive_agency_import', ['id' => $space->getId(), 'fileId' => '__fileId__']),
+            'driveAgencyImportPath' => $this->canEdit()
+                ? $this->pathTemplates->generate('workspace_space_drive_agency_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
+                : '',
             'driveUnlockPath' => $this->urlGenerator->generate('workspace_space_settings_drive_unlock', ['id' => $space->getId()]),
             // La serrure telle qu'elle est pour *cette* session : fermée mais
             // déjà ouverte ici ne se lit pas comme fermée.
@@ -125,5 +131,10 @@ final readonly class SpaceFilesViewBuilder
     public function files(CustomerSpaceInterface $space): array
     {
         return array_map($this->serializer->serialize(...), $this->files->findForSpace($space));
+    }
+
+    private function canEdit(): bool
+    {
+        return $this->authorization->isGranted('studio.spaces.edit');
     }
 }
