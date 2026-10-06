@@ -107,7 +107,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'deliverables' => $this->countDeliverables(),
                 'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),
-                'calendarPath' => $this->urlGenerator->generate('suite_studio_calendar'),
+                'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
                 'contractsPath' => $this->canSeeContracts() ? $this->urlGenerator->generate('suite_studio_contracts') : null,
                 // Chaque compteur ouvre la liste sur son étape, et non la
                 // liste entière.

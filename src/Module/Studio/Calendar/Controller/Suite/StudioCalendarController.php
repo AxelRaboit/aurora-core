@@ -11,6 +11,7 @@ use Aurora\Module\Studio\CustomerSpace\Enum\SpaceScopeEnum;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -26,7 +27,7 @@ use function in_array;
  * as the spaces themselves, and never wider than the spaces the reader may
  * see.
  */
-#[Route('/suite/studio/calendar', name: 'suite_studio_calendar')]
+#[Route(name: 'suite_studio_')]
 #[IsGranted('studio.spaces.view')]
 final class StudioCalendarController extends AbstractController
 {
@@ -39,13 +40,24 @@ final class StudioCalendarController extends AbstractController
         private readonly StudioCalendarViewBuilder $viewBuilder,
     ) {}
 
-    #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
+    #[Route('/suite/studio/spaces/calendar', name: 'spaces_calendar', methods: [HttpMethodEnum::Get->value], priority: 10)]
     public function index(Request $request): Response
     {
         return $this->render('@Studio/suite/calendar/index.html.twig', $this->viewBuilder->indexView(SpaceScopeEnum::fromRequest($request->query->get('scope'))));
     }
 
-    #[Route('/items', name: '_items', methods: [HttpMethodEnum::Get->value])]
+    /**
+     * The address the calendar had while it was a menu entry of its own. Kept
+     * as a redirect, query included: bookmarks and links in old mails still
+     * land on the month they asked for.
+     */
+    #[Route('/suite/studio/calendar', name: 'calendar_legacy', methods: [HttpMethodEnum::Get->value], priority: 10)]
+    public function legacy(Request $request): RedirectResponse
+    {
+        return $this->redirectToRoute('suite_studio_spaces_calendar', $request->query->all(), Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/suite/studio/spaces/calendar/items', name: 'spaces_calendar_items', methods: [HttpMethodEnum::Get->value], priority: 10)]
     public function items(Request $request): JsonResponse
     {
         $scope = SpaceScopeEnum::fromRequest($request->query->get('scope'));

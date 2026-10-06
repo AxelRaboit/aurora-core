@@ -98,8 +98,9 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
         if ($this->studioContext->areSpacesEnabled()) {
             // Before the customer list, and not alphabetically: a space is
             // opened every day and a legal identity block is filled in once.
+            // The editorial calendar is a view of the spaces, reached from
+            // their screen: one entry, not two.
             $items[] = $this->spacesNavItem();
-            $items[] = $this->calendarNavItem();
         }
 
         if ($this->studioContext->areCustomersEnabled()) {
@@ -133,7 +134,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
     {
         return [new NavSection('studio', [
             $this->spacesNavItem(),
-            $this->calendarNavItem(),
             $this->customersNavItem(),
             $this->contractsNavItem(),
             $this->decksNavItem(),
@@ -202,18 +202,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             'panels-top-left',
             requiredPrivilege: 'studio.spaces.view',
             descriptionKey: 'suite.nav.studio_spaces_description',
-        );
-    }
-
-    /** Next to the spaces it reads from: the same work, laid on one month. */
-    private function calendarNavItem(): NavItem
-    {
-        return new NavItem(
-            'suite_studio_calendar',
-            'suite.nav.studio_calendar',
-            'calendar-range',
-            requiredPrivilege: 'studio.spaces.view',
-            descriptionKey: 'suite.nav.studio_calendar_description',
         );
     }
 

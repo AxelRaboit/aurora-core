@@ -36,7 +36,6 @@ suite:
         studio_customers: Customers
         studio_customers_description: The companies you contract with, and their legal identity block.
         studio_calendar: Editorial calendar
-        studio_calendar_description: What goes out for every client, on one month.
         studio_spaces: Client spaces
         studio_spaces_description: One space per client engagement, with its team, its board and its calendar.
         studio_contracts: Contracts
@@ -1532,6 +1531,9 @@ suite:
             empty: No space yet.
             empty_hint: A space holds the work done for one client. Create one per engagement, not one per company.
             search_placeholder: Search by space name or company…
+            tab_list: "Spaces"
+            tab_calendar: "Editorial calendar"
+            tabs_label: "Spaces and calendar"
             customer_filter: 'Spaces of {name}'
             customer_filter_clear: 'All spaces'
             created: Space created.

@@ -36,7 +36,6 @@ suite:
         studio_customers: Clients
         studio_customers_description: Les sociétés avec qui vous contractez, et leur bloc d'identité légale.
         studio_calendar: Calendrier éditorial
-        studio_calendar_description: Ce qui sort chez tous vos clients, sur un seul mois.
         studio_spaces: Espaces clients
         studio_spaces_description: Un espace par chantier client, avec son équipe, son tableau et son calendrier.
         studio_contracts: Contrats
@@ -1532,6 +1531,9 @@ suite:
             empty: Aucun espace pour le moment.
             empty_hint: Un espace regroupe le travail mené pour un client. Créez-en un par chantier, pas un par société.
             search_placeholder: Rechercher par nom d'espace ou par société…
+            tab_list: "Les espaces"
+            tab_calendar: "Calendrier éditorial"
+            tabs_label: "Espaces et calendrier"
             customer_filter: 'Espaces de {name}'
             customer_filter_clear: 'Tous les espaces'
             created: Espace créé.

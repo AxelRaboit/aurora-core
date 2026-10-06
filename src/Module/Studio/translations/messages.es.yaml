@@ -36,7 +36,6 @@ suite:
         studio_customers: Clientes
         studio_customers_description: 'Las empresas con las que contrata, y su bloque de identidad legal.'
         studio_calendar: 'Calendario editorial'
-        studio_calendar_description: 'Lo que se publica en todos sus clientes, en un solo mes.'
         studio_spaces: 'Espacios de cliente'
         studio_spaces_description: 'Un espacio por proyecto de cliente, con su equipo, su tablero y su calendario.'
         studio_contracts: Contratos
@@ -1527,6 +1526,9 @@ suite:
             empty: 'Ningún espacio por el momento.'
             empty_hint: 'Un espacio agrupa el trabajo realizado para un cliente. Cree uno por proyecto, no uno por empresa.'
             search_placeholder: 'Buscar por nombre de espacio o por empresa…'
+            tab_list: "Los espacios"
+            tab_calendar: "Calendario editorial"
+            tabs_label: "Espacios y calendario"
             customer_filter: 'Espacios de {name}'
             customer_filter_clear: 'Todos los espacios'
             created: 'Espacio creado.'

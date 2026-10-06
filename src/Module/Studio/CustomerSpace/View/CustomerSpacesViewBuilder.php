@@ -65,6 +65,8 @@ final readonly class CustomerSpacesViewBuilder
             'timezones' => DateTimeZone::listIdentifiers(),
             'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('suite_studio_spaces_create'),
+            'spacesPath' => $this->urlGenerator->generate('suite_studio_spaces'),
+            'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
             'updatePath' => $this->pathTemplates->generate('suite_studio_spaces_update', ['id' => '__id__']),
             'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('suite_studio_spaces_delete', ['id' => '__id__']),

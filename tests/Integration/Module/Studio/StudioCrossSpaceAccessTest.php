@@ -87,8 +87,13 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         self::assertSame(['Publication du mien'], $this->calendarTitles('mine'));
         self::assertSame(['Publication du mien'], $this->calendarTitles('all'), '« all » is not a way round membership');
 
-        $this->client->request('GET', '/suite/studio/calendar');
+        $this->client->request('GET', '/suite/studio/spaces/calendar');
         self::assertResponseIsSuccessful();
+
+        // The address it had as a menu entry of its own still lands there,
+        // with the month it asked for.
+        $this->client->request('GET', '/suite/studio/calendar?scope=mine');
+        self::assertResponseRedirects('/suite/studio/spaces/calendar?scope=mine', 301);
     }
 
     /** Somebody who sees everything gets their own first, and everything on asking. */
@@ -185,7 +190,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         $this->givenScheduledItem($space, 'Manquée il y a deux mois', '-60 days');
         $this->givenScheduledItem($space, 'À venir', '+3 days');
 
-        $this->client->request('GET', '/suite/studio/calendar/items?scope=all&state=missed');
+        $this->client->request('GET', '/suite/studio/spaces/calendar/items?scope=all&state=missed');
         self::assertResponseIsSuccessful();
 
         self::assertSame(['Manquée il y a deux mois'], array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['items'], 'title'));
@@ -236,7 +241,7 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
     private function calendarTitles(string $scope): array
     {
         $query = sprintf('scope=%s&from=%s&to=%s', $scope, urlencode(new DateTimeImmutable('-1 day')->format(DATE_ATOM)), urlencode(new DateTimeImmutable('+30 days')->format(DATE_ATOM)));
-        $this->client->request('GET', '/suite/studio/calendar/items?'.$query);
+        $this->client->request('GET', '/suite/studio/spaces/calendar/items?'.$query);
         self::assertResponseIsSuccessful();
 
         $titles = array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['items'], 'title');

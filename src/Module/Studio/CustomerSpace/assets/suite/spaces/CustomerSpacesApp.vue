@@ -7,6 +7,7 @@
  * that has to go in it. Shipping the shell first would have been a click that
  * leads to an empty screen.
  */
+import StudioSectionTabs from "../../../../assets/suite/components/StudioSectionTabs.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -49,6 +50,9 @@ function weigh(bytes) {
 const { can } = usePrivileges();
 
 const props = defineProps({
+    /** Les deux onglets de l'entrée « Espaces clients » : la liste et le calendrier. */
+    spacesPath: { type: String, default: "" },
+    calendarPath: { type: String, default: "" },
     spaces: { type: Array, default: () => [] },
     customers: { type: Array, default: () => [] },
     users: { type: Array, default: () => [] },
@@ -206,6 +210,14 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
+        <StudioSectionTabs
+            current="spaces"
+            :tabs="[
+                { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
+                { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
+            ]"
+            :label="t('suite.studio.spaces.tabs_label')"
+        />
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
