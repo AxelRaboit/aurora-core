@@ -37,7 +37,7 @@ use const GLOB_ONLYDIR;
  * runs their queries against the real schema.
  *
  * **Typed relations only.** A document id parked in a JSON column is invisible
- * here, which is precisely why the rule wants stating: Deck slides hold theirs
+ * here, which is precisely why the rule wants stating: slides hold theirs
  * that way and went unreported for as long as they did because no grep would
  * have found them either.
  */

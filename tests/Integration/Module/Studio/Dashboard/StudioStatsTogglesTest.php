@@ -16,9 +16,10 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 /**
  * A tile on the dashboard follows its module's switch, as the menu does.
  *
- * The decks count used to show with decks switched off, and the contract
- * counters with contracts switched off: a figure that leads to a screen the
- * menu no longer offers.
+ * The decks count used to show with decks switched off (they are
+ * deliverables now, counted with them), and the contract counters with
+ * contracts switched off: a figure that leads to a screen the menu no longer
+ * offers.
  */
 final class StudioStatsTogglesTest extends IntegrationTestCase
 {
@@ -37,7 +38,7 @@ final class StudioStatsTogglesTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        $this->settings->set(ModuleParameterEnum::StudioDecks->value, '1');
+        $this->settings->set(ModuleParameterEnum::StudioDeliverables->value, '1');
         $this->settings->set(ModuleParameterEnum::StudioContracts->value, '1');
 
         parent::tearDown();
@@ -45,23 +46,24 @@ final class StudioStatsTogglesTest extends IntegrationTestCase
 
     public function testTheTilesFollowTheirModulesSwitch(): void
     {
-        $this->settings->set(ModuleParameterEnum::StudioDecks->value, '1');
+        $this->settings->set(ModuleParameterEnum::StudioDeliverables->value, '1');
         $this->settings->set(ModuleParameterEnum::StudioContracts->value, '1');
 
         $this->switched();
         $on = static::getContainer()->get(StudioStatsProvider::class)->getStats()['studio'];
-        self::assertNotNull($on['decks']);
-        self::assertNotNull($on['decksPath']);
+        self::assertNotNull($on['deliverables']);
+        self::assertNotNull($on['deliverablesPath']);
+        self::assertArrayNotHasKey('decks', $on, 'presentations are counted with the deliverables');
         self::assertNotNull($on['awaitingSignature']);
         self::assertNotNull($on['contractsPath']);
 
-        $this->settings->set(ModuleParameterEnum::StudioDecks->value, '0');
+        $this->settings->set(ModuleParameterEnum::StudioDeliverables->value, '0');
         $this->settings->set(ModuleParameterEnum::StudioContracts->value, '0');
 
         $this->switched();
         $off = static::getContainer()->get(StudioStatsProvider::class)->getStats()['studio'];
-        self::assertNull($off['decks']);
-        self::assertNull($off['decksPath']);
+        self::assertNull($off['deliverables']);
+        self::assertNull($off['deliverablesPath']);
         self::assertNull($off['awaitingSignature']);
         self::assertNull($off['contractsPath']);
     }

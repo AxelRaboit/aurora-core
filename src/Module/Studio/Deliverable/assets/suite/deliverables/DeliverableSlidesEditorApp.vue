@@ -5,8 +5,8 @@
  *
  * L'éditeur est celui des présentations, tel quel : mêmes diapositives, même
  * panneau d'apparence, même vue présentateur, même impression. Ce composant
- * lui donne les droits du livrable (son auteur, son rayon), remplace le
- * partage d'une présentation par les liens de lecture du livrable, et ajoute
+ * lui donne les droits du livrable (son auteur, son rayon), ouvre les liens
+ * de lecture du livrable quand on veut partager, et ajoute
  * la fenêtre des réglages (titre, résumé, image, catégorie, client, modèle,
  * rayon) qu'une page règle dans son onglet.
  */
@@ -91,7 +91,6 @@ const editorProps = computed(() => Object.fromEntries(Object.entries(props).filt
         <DeckEditorApp
             v-bind="editorProps"
             :deck="deck"
-            external-share
             :with-settings="canEdit"
             v-on:share="showLinks = true"
             v-on:settings="openSettings"

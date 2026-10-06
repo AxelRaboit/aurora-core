@@ -7,7 +7,6 @@ namespace Aurora\Module\Studio\Deck\Entity;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
-use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -25,11 +24,9 @@ use Doctrine\ORM\Mapping as ORM;
  * the slide is on screen, which is why it is a column of its own rather than a
  * slot: no layout should be able to put it on the wall by accident.
  *
- * **Two possible owners, for a while.** Studio's decks are becoming
- * deliverables in the slides format: until the last deck has moved, a slide
- * belongs to a deck *or* to a deliverable, both columns nullable, exactly one
- * of them set. `getOwner()` is what the code that writes and draws slides
- * reads, so it never has to ask which of the two it holds.
+ * **A slide belongs to a deliverable in the slides format.** Studio's decks
+ * became such deliverables (`Version20261006140000`); the table kept its name
+ * and its ids, and `deliverable_id` became the only owner.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -37,12 +34,12 @@ abstract class AbstractSlide implements SlideInterface
 {
     use TimestampableTrait;
 
-    #[ORM\ManyToOne(targetEntity: DeckInterface::class, inversedBy: 'slides')]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
-    protected ?DeckInterface $deck = null;
-
+    /**
+     * Nullable in PHP only for the moment between `new` and the `addSlide()`
+     * that attaches it: the column is not.
+     */
     #[ORM\ManyToOne(targetEntity: DeliverableInterface::class, inversedBy: 'slides')]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected ?DeliverableInterface $deliverable = null;
 
     #[ORM\Column(length: 20, enumType: SlideLayoutEnum::class)]
@@ -58,18 +55,6 @@ abstract class AbstractSlide implements SlideInterface
     #[ORM\Column(options: ['default' => 0])]
     protected int $position = 0;
 
-    public function getDeck(): ?DeckInterface
-    {
-        return $this->deck;
-    }
-
-    public function setDeck(?DeckInterface $deck): static
-    {
-        $this->deck = $deck;
-
-        return $this;
-    }
-
     public function getDeliverable(): ?DeliverableInterface
     {
         return $this->deliverable;
@@ -80,11 +65,6 @@ abstract class AbstractSlide implements SlideInterface
         $this->deliverable = $deliverable;
 
         return $this;
-    }
-
-    public function getOwner(): ?SlideOwnerInterface
-    {
-        return $this->deck ?? $this->deliverable;
     }
 
     public function getLayout(): SlideLayoutEnum

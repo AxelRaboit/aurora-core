@@ -50,7 +50,7 @@ avec un tableau ET un formulaire de création/édition dédié ?*
   admin) → seul le niveau 1 (entité substituable via `resolve_target_entities`)
   est requis
 
-### 2.1 Entités portant le pattern complet (35)
+### 2.1 Entités portant le pattern complet (33)
 
 Mesuré le 2026-09-16. Le marqueur est mécanique : une entité concrète dont le
 sous-domaine porte un `Dto/<X>Input.php`. Se recompte en une commande (§2.3)
@@ -66,7 +66,7 @@ l'ancienne version de cette table listait treize modules qui n'existent plus.
 | Notes | `MarkdownNote`, `NoteFolder` |
 | Planning | `Planning`, `PlanningEvent`, `PlanningReminder`, `PlanningShareLink` |
 | Platform | `AccessRequest`, `User` |
-| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateCategory`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `Deck`, `DeckCategory`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
+| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateCategory`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
 
 Une nuance que le critère de la §2 laisse de côté : toutes n'ont pas leur propre
 page. `FormField`, `MenuItem`, `PostTypeField`, `TaxonomyTerm`,
@@ -75,7 +75,7 @@ parent, mais portent quand même un Input parce que la charge utile du parent le
 imbrique. Le pattern complet leur sert alors à valider et à substituer, pas à
 dessiner un écran.
 
-### 2.2 Entités au niveau 1 seulement (30)
+### 2.2 Entités au niveau 1 seulement (29)
 
 | Module | Entités |
 |---|---|
@@ -87,7 +87,7 @@ dessiner un écran.
 | Notes | `MarkdownNoteShareLink` |
 | Planning | `PlanningEventAlert`, `PlanningEventAttendee`, `PlanningShare` |
 | Platform | `ResetPasswordRequest` |
-| Studio | `ContractAccessLink`, `ContractSignatureChallenge`, `ContractTemplateVersionTranslation`, `CustomerSpaceMember`, `DeckShareLink`, `Slide`, `SpaceContentAttachment`, `SpaceContentComment` |
+| Studio | `ContractAccessLink`, `ContractSignatureChallenge`, `ContractTemplateVersionTranslation`, `CustomerSpaceMember`, `Slide`, `SpaceContentAttachment`, `SpaceContentComment` |
 
 Elles se répartissent en cinq familles, et la famille explique l'exclusion mieux
 que la liste :
@@ -95,7 +95,7 @@ que la liste :
 | Famille | Exemples | Pourquoi pas de page |
 |---|---|---|
 | Traductions | toutes les `*Translation` | éditées dans le formulaire du parent, une langue par onglet |
-| Jetons et liens | `PostPreviewToken`, `DeckShareLink`, `ContractAccessLink`, `MarkdownNoteShareLink` | créés par une action, révoqués par une autre, jamais édités |
+| Jetons et liens | `PostPreviewToken`, `ContractAccessLink`, `MarkdownNoteShareLink` | créés par une action, révoqués par une autre, jamais édités |
 | Historique auto-généré | `AuditLog`, `PostRevision`, `PostSlugHistory`, `DocumentVersion`, `FormSubmission` | écrits par le code, lus en liste, pas modifiables |
 | Lignes et membres inline | `CustomerSpaceMember`, `Slide`, `SpaceContentComment`, `SpaceContentAttachment`, `PlanningEventAttendee` | gérés depuis l'écran de leur parent |
 | Infrastructure | `Setting`, `Locale`, `Notification`, `SequenceCounter`, `ResetPasswordRequest` | pas de CRUD : un éditeur clé-valeur, des fixtures, ou un tunnel d'auth |
@@ -127,7 +127,7 @@ ci-dessous. Ne pas en oublier une.
 
 ### Couche 1 - Entité Doctrine
 
-**Toujours** (déjà appliqué sur les 86 entités Aurora) :
+**Toujours** (déjà appliqué sur les 83 entités Aurora) :
 
 ```
 Aurora\<Module>\<Feature>\Entity\

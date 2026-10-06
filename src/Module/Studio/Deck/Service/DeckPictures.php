@@ -6,7 +6,7 @@ namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
-use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 
 use function array_unique;
 use function array_values;
@@ -38,7 +38,7 @@ final readonly class DeckPictures
      *
      * @return list<int>
      */
-    public function idsUsedBy(SlideOwnerInterface $deck): array
+    public function idsUsedBy(DeliverableInterface $deck): array
     {
         $ids = [];
 
@@ -107,7 +107,7 @@ final readonly class DeckPictures
      *
      * @return list<array{id: int, name: string}>
      */
-    public function withheldIn(SlideOwnerInterface $deck): array
+    public function withheldIn(DeliverableInterface $deck): array
     {
         $ids = $this->idsUsedBy($deck);
 

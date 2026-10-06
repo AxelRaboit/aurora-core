@@ -20,7 +20,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * to say it was ever there. Until this provider existed the deletion screen
  * answered "no usage" for exactly that document.
  *
- * Joined rather than scanned, unlike {@see DeckDocumentUsageProvider}: the
+ * Joined rather than scanned, unlike {@see DeliverableDocumentUsageProvider}: the
  * relation is a typed FK, so the query is exact and survives a rename.
  */
 final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface

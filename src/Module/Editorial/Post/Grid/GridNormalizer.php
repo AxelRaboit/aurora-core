@@ -213,15 +213,19 @@ final readonly class GridNormalizer
     /**
      * A Studio presentation, shown inside the page.
      *
-     * Only through a share link that is live: a deck is an internal document
-     * until somebody publishes one, and a zone naming a deck with no link
-     * draws nothing rather than inventing a way in.
+     * A presentation is a Studio deliverable in the slides format; the type
+     * keeps its stored value, `deck`, and the zone names the deliverable in
+     * `deliverableId`. Only through a reading link that is live: a
+     * deliverable is an internal document until somebody publishes one, and a
+     * zone naming one with no link draws nothing rather than inventing a way
+     * in.
      *
      * This is the one zone that reaches into another module, and it is worth
      * being plain about it: `Editorial` asking `Studio` for a share link is a
      * coupling the module toggles argue against. It is confined to one
      * resolver and one `null` - a site running without Studio gets a zone that
-     * draws nothing, which is what it already does for a deck nobody shared.
+     * draws nothing, which is what it already does for a presentation nobody
+     * shared.
      */
     public const string ZONE_DECK = 'deck';
 
@@ -231,7 +235,7 @@ final readonly class GridNormalizer
      * The accounts live in the settings rather than on the zone: they are the
      * site owner's, the same on every page that shows them, and the
      * integration stays off until somebody turns it on there. A zone placed
-     * while it is off draws nothing, like a deck nobody shared.
+     * while it is off draws nothing, like a presentation nobody shared.
      */
     public const string ZONE_GITHUB_ACTIVITY = 'githubActivity';
 
@@ -1083,10 +1087,12 @@ final readonly class GridNormalizer
                 // the renderer picks the right ones rather than asking an
                 // author to name a different taxonomy per language.
                 'taxonomyId' => $this->values->id($entry['taxonomyId'] ?? null),
-                // Which presentation a deck zone shows. Shared: a deck carries
-                // its own slides, and which one a page shows is not a matter
-                // of language.
-                'deckId' => $this->values->id($entry['deckId'] ?? null),
+                // Which presentation a deck zone shows: a Studio deliverable
+                // in the slides format, since presentations became
+                // deliverables (the zone kept its type). Shared: a
+                // presentation carries its own slides, and which one a page
+                // shows is not a matter of language.
+                'deliverableId' => $this->values->id($entry['deliverableId'] ?? null),
                 'postTypeId' => $this->values->id($entry['postTypeId'] ?? null),
                 'termId' => $this->values->id($entry['termId'] ?? null),
                 'limit' => min(self::MAX_LIST_LIMIT, max(1, (int) ($entry['limit'] ?? 3))),

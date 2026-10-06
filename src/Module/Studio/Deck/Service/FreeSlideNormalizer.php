@@ -36,7 +36,7 @@ use function str_starts_with;
  * **The same contract as a layout's slots, one level down.** A free slide's
  * content is JSON a page posted, and the frame draws it on a public share link;
  * every key here is declared, every value is bounded, and anything else is
- * dropped rather than refused, for the reason `DeckManager::writeContent()`
+ * dropped rather than refused, for the reason `SlidesManager::writeContent()`
  * gives: a stale editor posting a property that no longer exists is not an
  * error worth showing anybody.
  *

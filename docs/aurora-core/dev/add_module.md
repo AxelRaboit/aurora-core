@@ -21,7 +21,7 @@ types se cumulent (un module complexe en assemble plusieurs) :
 | Cas | Quand | Exemple canonique |
 |---|---|---|
 | **1. Stateless minimal** | Pas d'entité, juste 1 controller + 1 UI | `Documentation` (le manuel, aucune entité) |
-| **2. Sous-features togglables** | Plusieurs features indépendamment activables | `Studio` (Customers + Contracts + Spaces + Decks) |
+| **2. Sous-features togglables** | Plusieurs features indépendamment activables | `Studio` (Customers + Contracts + Spaces + Deliverables) |
 | **3. Avec entités CRUD** | Persistance Doctrine + extensibilité Sylius | `Editorial`, `Ged`, `Planning` |
 | **4. Avec frontend public** | Pages publiques (pas que back-office) | `Editorial`, `Ged` |
 | **5. Avec settings** | Onglet dans la page admin Settings | `Ged`, `Editorial`, `Notes`, `Configuration` |
@@ -344,7 +344,7 @@ case StudioSuite = 'modules_studio_suite';
 // Sub-modules - Studio
 case StudioCustomers = 'modules_studio_customers';
 case StudioContracts = 'modules_studio_contracts';
-case StudioDecks = 'modules_studio_decks';
+case StudioDeliverables = 'modules_studio_deliverables';
 case StudioSpaces = 'modules_studio_spaces';
 ```
 

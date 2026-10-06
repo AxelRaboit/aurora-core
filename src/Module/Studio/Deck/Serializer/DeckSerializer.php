@@ -5,29 +5,23 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Serializer;
 
 use Aurora\Core\Content\VideoEmbedResolver;
-use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
-use Aurora\Module\Studio\Deck\Entity\DeckCategoryInterface;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deck\Service\DeckAppearance;
 use Aurora\Module\Studio\Deck\Service\DeckFonts;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deck\Service\DeckVideo;
-use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 
 use function array_diff;
 use function array_keys;
 use function array_map;
 use function array_unique;
 use function array_values;
-use function count;
 use function is_array;
 use function is_int;
 use function sprintf;
 use function usort;
-
-use const DATE_ATOM;
 
 class DeckSerializer
 {
@@ -41,64 +35,16 @@ class DeckSerializer
     ) {}
 
     /**
-     * A deck as the list shows it: no slides, a count instead.
+     * What a slides deliverable needs to be drawn: its overrides, its resolved
+     * look and its slides, in order.
      *
-     * The list draws thirty rows and none of them shows a slide's contents.
-     * Sending them would be the whole deck thirty times over for a number the
-     * caller already has.
-     *
-     * @return array<string, mixed>
-     */
-    public function summary(DeckInterface $deck, int $slideCount = 0): array
-    {
-        return [
-            'id' => $deck->getId(),
-            'title' => $deck->getTitle(),
-            'description' => $deck->getDescription(),
-            'category' => $this->category($deck->getCategory()),
-            'customer' => $deck->getCustomer() instanceof CustomerInterface ? [
-                'id' => $deck->getCustomer()->getId(),
-                'legalName' => $deck->getCustomer()->getLegalName(),
-            ] : null,
-            'isTemplate' => $deck->isTemplate(),
-            'theme' => $deck->getTheme()->value,
-            'slideCount' => $slideCount,
-            'updatedAt' => $deck->getUpdatedAt()->format(DATE_ATOM),
-        ];
-    }
-
-    /**
-     * A deck as its own page shows it: slides included, in order.
-     *
-     * `appearance` is what the frame draws with, theme and overrides already
-     * merged; `style` is the raw overrides, which is what the appearance panel
-     * edits. Both, because the two answer different questions: "what colour is
-     * this slide" and "did somebody choose that colour, or is it the theme's".
-     *
-     * @return array<string, mixed>
-     */
-    public function full(DeckInterface $deck): array
-    {
-        $slideshow = $this->slideshow($deck);
-
-        return [
-            ...$this->summary($deck, count($slideshow['slides'])),
-            ...$slideshow,
-        ];
-    }
-
-    /**
-     * What any slide owner needs to be drawn: its overrides, its resolved look
-     * and its slides, in order.
-     *
-     * Split from {@see self::full()} so a slides-format deliverable is drawn by
-     * the very same code as a deck: the editor, the player, the print page and
-     * the public page all read this shape, and a second serialisation of it
-     * would be the first thing to drift.
+     * The editor, the player, the print page and the public page all read this
+     * shape, and a second serialisation of it would be the first thing to
+     * drift.
      *
      * @return array{style: array<string, mixed>, appearance: array<string, mixed>, slides: list<array<string, mixed>>}
      */
-    public function slideshow(SlideOwnerInterface $owner): array
+    public function slideshow(DeliverableInterface $owner): array
     {
         // The pictures resolved in one query rather than one per slide: a deck
         // of thirty slides is thirty round trips otherwise, for a handful of
@@ -139,7 +85,7 @@ class DeckSerializer
      *
      * @return array<string, mixed>
      */
-    public function appearanceOf(SlideOwnerInterface $deck): array
+    public function appearanceOf(DeliverableInterface $deck): array
     {
         return $this->appearance->resolve($deck);
     }
@@ -312,20 +258,5 @@ class DeckSerializer
         );
 
         return $content;
-    }
-
-    /** @return array<string, mixed>|null */
-    public function category(?DeckCategoryInterface $category): ?array
-    {
-        if (!$category instanceof DeckCategoryInterface) {
-            return null;
-        }
-
-        return [
-            'id' => $category->getId(),
-            'name' => $category->getName(),
-            'color' => $category->getColor(),
-            'position' => $category->getPosition(),
-        ];
     }
 }

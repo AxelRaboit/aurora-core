@@ -70,7 +70,6 @@ final class ModuleTogglesCloseTheirRoutesTest extends IntegrationTestCase
         yield 'customers' => [ModuleParameterEnum::StudioCustomers, 'suite_studio_customers', 404];
         yield 'spaces' => [ModuleParameterEnum::StudioSpaces, 'suite_studio_spaces', 404];
         yield 'contracts' => [ModuleParameterEnum::StudioContracts, 'suite_studio_contracts', 404];
-        yield 'decks' => [ModuleParameterEnum::StudioDecks, 'suite_studio_decks', 404];
         yield 'deliverables' => [ModuleParameterEnum::StudioDeliverables, 'suite_studio_deliverables', 404];
     }
 

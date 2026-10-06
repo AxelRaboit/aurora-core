@@ -17,7 +17,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { AlarmClock, CalendarClock, CalendarX, FileSignature,
-         PenLine, MessageSquareWarning, NotebookText, Presentation, UserRoundCheck } from "lucide-vue-next";
+         PenLine, MessageSquareWarning, NotebookText, UserRoundCheck } from "lucide-vue-next";
 import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import SpaceWorkloadBadges from "../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";
@@ -48,7 +48,6 @@ const tiles = computed(() =>
         // Ce qui attend mon geste, en urgence, avant ce qui attend le client.
         { key: "awaiting_countersignature", icon: PenLine, value: props.stats.awaitingCountersignature, href: props.stats.contractsToCountersignPath, urgent: true },
         { key: "awaiting_signature", icon: FileSignature, value: props.stats.awaitingSignature, href: props.stats.contractsWithCustomerPath },
-        { key: "decks", icon: Presentation, value: props.stats.decks, href: props.stats.decksPath },
         { key: "deliverables", icon: NotebookText, value: props.stats.deliverables, href: props.stats.deliverablesPath },
     ]
         // Null : un chiffre que ce lecteur n'a pas le droit d'ouvrir.

@@ -1375,7 +1375,7 @@ suite:
             comments_hint: "Rien à régler : le fil est celui de cette publication. Quand cette zone existe, le pied de page ne le dessine plus - une conversation par page, là où vous l'avez mise."
             zone_deck: Présentation
             zone_deck_none: "Choisir une présentation…"
-            zone_deck_hint: "Affichée dans la page par son lien de partage. Une présentation sans lien actif, ou dont le lien est révoqué, expiré ou protégé par un mot de passe, ne dessine rien."
+            zone_deck_hint: "Une présentation de Studio (un livrable au format présentation), affichée dans la page par son lien de lecture. Sans lien actif, ou si le lien est révoqué, expiré ou protégé par un mot de passe, la zone ne dessine rien."
             visibility: "Quand et pour qui"
             visibility_hint: "Sans rien ici, la zone est visible tout le temps et par tout le monde. C'est ce que fait toute zone qui ne dit rien."
             visible_from: À partir du

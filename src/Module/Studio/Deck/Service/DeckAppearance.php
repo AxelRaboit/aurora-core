@@ -9,7 +9,7 @@ use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
-use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 
 use function in_array;
 use function is_int;
@@ -34,7 +34,7 @@ final readonly class DeckAppearance
      *
      * @return array<string, mixed>
      */
-    public function resolve(SlideOwnerInterface $deck): array
+    public function resolve(DeliverableInterface $deck): array
     {
         $theme = $deck->getSlideTheme();
         $style = $deck->getSlideStyle();

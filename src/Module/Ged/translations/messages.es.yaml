@@ -216,7 +216,7 @@ suite:
             select_mode: Seleccionar
             stop_selecting: 'Terminar la selección'
             usage_unused_badge: 'Sin usar'
-            usage_unused_hint: 'Ninguna página, ningún deck y ningún espacio lo muestra'
+            usage_unused_hint: 'Ninguna página, ningún entregable y ningún espacio lo muestra'
             kept_badge: Conservar
             kept_hint: 'Sin usar a propósito, no eliminar'
             alternates_badge: 'Ninguna variante | 1 variante | {count} variantes'
@@ -253,7 +253,7 @@ suite:
                 usage_types:
                     other: '{count} uso | {count} uso | {count} usos'
                     editorial_post: '{count} publicación | {count} publicación | {count} publicaciones'
-                    studio_deck: '{count} presentación | {count} presentación | {count} presentaciones'
+                    studio_deliverable: '{count} entregable | {count} entregable | {count} entregables'
                     studio_space_note: '{count} nota de espacio | {count} nota de espacio | {count} notas de espacio'
                     studio_space_file: '{count} archivo de espacio | {count} archivo de espacio | {count} archivos de espacio'
                     studio_space_attachment: '{count} adjunto | {count} adjunto | {count} adjuntos'

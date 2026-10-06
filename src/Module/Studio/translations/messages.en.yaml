@@ -7,7 +7,6 @@ suite:
             customers: Customers
             contracts: Contracts
             contract_templates: Contract templates
-            decks: Presentations
     stats:
         studio:
             spaces: Active spaces
@@ -19,7 +18,6 @@ suite:
             awaiting_countersignature: Contracts to countersign
             awaiting_signature: Contracts with the customer
             deliverables: Deliverables
-            decks: Decks
             scope_label: Spaces counted
             scopes:
                 mine: My spaces
@@ -29,7 +27,7 @@ suite:
     modules:
         studio: Studio
         studio_suite: Studio
-        studio_suite_description: "What you sell and what you deliver to a client: customers, the spaces you work in with them, contracts, presentations and deliverables."
+        studio_suite_description: "What you sell and what you deliver to a client: customers, the spaces you work in with them, contracts and deliverables, pages and presentations."
     nav:
         sections:
             studio: Studio
@@ -40,8 +38,6 @@ suite:
         studio_spaces_description: One space per client engagement, with its team, its board and its calendar.
         studio_contracts: Contracts
         studio_contracts_description: Contracts prepared, sealed and signed.
-        studio_decks: Presentations
-        studio_decks_description: The slide decks you show, filed and reusable.
         studio_deliverables: "Deliverables"
         studio_deliverables_description: "The documents you write, for yourself or for the team."
     audit:
@@ -84,18 +80,6 @@ suite:
                     revoked: "Deliverable reading link revoked"
                     deleted: "Deliverable reading link deleted"
                     hidden: "Deliverable reading link hidden"
-                deck:
-                    created: "Presentation created"
-                    updated: "Presentation edited"
-                    duplicated: "Presentation duplicated"
-                    trashed: "Presentation moved to the trash"
-                    restored: "Presentation taken out of the trash"
-                    deleted: "Presentation deleted"
-                deck_link:
-                    issued: "Presentation share link created"
-                    revoked: "Presentation share link revoked"
-                    hidden: "Presentation share link hidden"
-                    deleted: "Presentation share link deleted"
                 space_access_link:
                     issued: Client access link created
                     revoked: Client access link revoked
@@ -186,14 +170,6 @@ suite:
                     delete: Delete a contract
                     send: 'Send a contract to the customer'
                     countersign: 'Countersign a contract'
-                decks:
-                    view: View presentations
-                    create: Create a presentation
-                    edit: Edit a presentation
-                    delete: Delete a presentation
-                    share: See and give the reading links of a presentation
-                deck_categories:
-                    manage: Manage presentation categories
                 deliverables:
                     view: "View deliverables"
                     create: "Create a deliverable"
@@ -796,72 +772,12 @@ suite:
                 step_2: "“Add a slide” offers the layouts; with “Free slide”, you place each element by hand."
                 step_3: "Fill in the layout's fields and the speaker notes, which the audience never sees: everything saves on its own."
                 step_4: "“Present” goes full screen; the menu beside it opens the presenter view, printing, sharing and the appearance."
-            guide:
-                title: "How presentations work"
-                step_1: "Create a presentation from scratch, from a template, or by importing a document where each heading opens a slide."
-                step_2: "In the editor, add slides, reorder them and write your speaker notes; everything saves on its own."
-                step_3: "“Present” goes full screen; the presenter view opens alongside with the notes, the next slide and a timer."
-                step_4: "“Share” creates a secret address that opens without an account, with an expiry and an optional password."
-                step_5: "Speaker notes are never shown through a link, and a link can be revoked at any time."
-            create: New presentation
-            created: Presentation created
-            updated: Presentation updated
-            deleted: "Presentation moved to the trash"
-            duplicated: Presentation duplicated
-            duplicate: Duplicate
-            duplicate_hint: Copies the slides, without the customer.
-            edit_hint: The title, the category and the customer.
-            delete_hint: "Moves it to the trash: it leaves the lists and its share links stop answering, until it is restored."
-            trash_action: "Move to the trash"
-            copy_of: '%title% (copy)'
-            title_column: Title
-            title_placeholder: Kick-off meeting, October
-            description_placeholder: One line, read in the list.
-            description: Description
-            category: Category
-            customer: Customer
             slides: Slides
-            uncategorised: No category
-            no_customer: No customer
-            all_categories: All categories
-            filter_by_category: Filter by category
-            search_placeholder: Search a presentation…
-            empty_title: No presentation
-            empty_description: A presentation is a deck of slides you show somebody. Create the first one.
-            delete_confirm: "Move \"{title}\" to the trash? It leaves the lists and its share links stop answering. You will find it in the trash, where you can restore it, until it is deleted for good."
             errors:
-                title_required: The title is required.
-                title_too_long: The title is too long.
                 layout_unknown: That layout does not exist.
                 theme_unknown: That theme does not exist.
-                import_empty: There is nothing in this document a slide could be made of.
             share: Share
-            share_intro: A secret address that opens this presentation without an account. The speaker notes are never on it.
-            share_label: Label
-            share_label_placeholder: Sent to Marie, 12 September
-            share_expiry: Expiry
-            share_no_expiry: No expiry
-            share_days: '{count} days'
-            share_create: Create the link
-            share_created: Link created
-            share_none: No link yet.
-            share_untitled: Link with no label
-            share_copy: Copy the address
-            share_copied: Address copied
-            share_copy_manually: Copy the address shown; the browser refused the clipboard.
-            share_revoke: Revoke
-            share_revoked: Revoked
-            share_revoked_toast: Link revoked
-            share_delete: Delete this link
-            share_deleted_toast: Link deleted
-            share_hide: "Hide this link"
-            share_hidden_toast: "Link hidden"
-            share_show_hidden: "Show hidden links ({count})"
-            share_hide_hidden: "Hide the hidden links"
-            share_hidden: "Hidden"
             share_expires_on: 'Expires on {date}'
-            share_last_used: 'Opened on {date}'
-            share_never_opened: Never opened
             share_footer: This link is personal to you. Please do not pass it on.
             present: Present
             print: Print
@@ -884,7 +800,6 @@ suite:
             speaker_notes: Speaker notes
             speaker_notes_hint: They are never shown to the audience.
             speaker_notes_placeholder: What you will say while this slide is on screen.
-            bullets_placeholder: One bullet per line.
             prose_placeholder: The text shown on the slide.
             image_hint: Picked from the library, or uploaded from your machine.
             appearance: Appearance
@@ -1073,26 +988,8 @@ suite:
             media_shape_arch: Arch
             media_shape_circle: Circle
             media_focus_hint: Click what has to stay visible when the picture is cropped.
-            import: Import a document
-            import_submit: Make the slides
-            imported: Deck built from the document
-            import_intro: Write or paste your document. A heading opens a slide, and what follows fills it.
-            import_document: The document
-            import_placeholder: Paste here, or write…
-            import_hint: Lists become bullet slides, quotes become quotes, tables become tables. Several blocks under one heading make several slides that repeat it.
-            is_template: This is a model
-            is_template_hint: Models are offered when a new deck is created.
-            template_badge: Model
-            from_template: Start from a model
-            from_nothing: Start from nothing
             fold_chapter: Fold this chapter
             unfold_chapter: Unfold this chapter
-            share_password: Password
-            share_password_placeholder: Leave empty for a link without one
-            share_password_hint: Send it by something other than the message carrying the link.
-            share_locked: Password protected
-            share_opened: 'Opened {count} times'
-            share_opened_once: Opened once
             overview: Overview
             pointer: Pointer
             transition: Transition
@@ -1101,9 +998,6 @@ suite:
                 fade: Fade
                 slide: Slide
             transition_hint: It only exists in the full screen. Paper and share links carry none.
-            withheld_title: "One picture on this deck is not published | {count} pictures on this deck are not published"
-            withheld_hint: A link's holder will not see them. Publish them in the library for them to appear.
-            usage_detail: Deck
             slots:
                 mediaFit: How the picture fills
                 mediaShape: Image shape
@@ -1413,14 +1307,6 @@ suite:
                 logos: Logo grid
                 mosaic: Picture mosaic
                 free: Free slide
-            categories:
-                manage: "Manage categories"
-                manage_hint: "Create, rename, colour and order the presentation categories."
-                manage_title: "Presentation categories"
-                manage_intro: "They file the presentations, for the whole team. Deleting a category deletes no presentation: they stay, without a category."
-                errors:
-                    name_required: The name is required.
-                    color_invalid: The colour must be a hex value, for example #6366f1.
         customers:
             guide:
                 title: "How records work"
@@ -1933,9 +1819,9 @@ suite:
             group_related: Around this client
             edit: Edit the record
             edit_title: Edit the client's record
-            related_empty: "No contract, presentation or other space for this client yet."
+            related_empty: "No contract, deliverable or other space for this client yet."
             related_contracts: "This client's contracts"
-            related_decks: "This client's decks"
+            related_deliverables: "This client's deliverables"
             related_spaces: "This client's other spaces"
             draft_contract: "Draft"
             saved: Sheet saved.

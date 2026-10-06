@@ -7,7 +7,6 @@ suite:
             customers: Clientes
             contracts: Contratos
             contract_templates: Plantillas de contrato
-            decks: Presentaciones
     stats:
         studio:
             spaces: 'Espacios activos'
@@ -19,7 +18,6 @@ suite:
             awaiting_countersignature: 'Contratos por contrafirmar'
             awaiting_signature: 'Contratos en manos del cliente'
             deliverables: Entregables
-            decks: Presentaciones
             scope_label: 'Espacios contados'
             scopes:
                 mine: 'Mis espacios'
@@ -29,7 +27,7 @@ suite:
     modules:
         studio: Studio
         studio_suite: Studio
-        studio_suite_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los espacios donde trabaja con ellos, los contratos, las presentaciones y los entregables.'
+        studio_suite_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los espacios donde trabaja con ellos, los contratos y los entregables, páginas y presentaciones.'
     nav:
         sections:
             studio: Studio
@@ -40,8 +38,6 @@ suite:
         studio_spaces_description: 'Un espacio por proyecto de cliente, con su equipo, su tablero y su calendario.'
         studio_contracts: Contratos
         studio_contracts_description: 'Los contratos preparados, sellados y firmados.'
-        studio_decks: Presentaciones
-        studio_decks_description: 'Los conjuntos de diapositivas que muestra, clasificados y reutilizables.'
         studio_deliverables: "Entregables"
         studio_deliverables_description: "Los documentos que escribe, para usted o para el equipo."
     audit:
@@ -84,18 +80,6 @@ suite:
                     revoked: "Enlace de lectura de un entregable revocado"
                     deleted: "Enlace de lectura de un entregable eliminado"
                     hidden: "Enlace de lectura de un entregable oculto"
-                deck:
-                    created: "Presentación creada"
-                    updated: "Presentación modificada"
-                    duplicated: "Presentación duplicada"
-                    trashed: "Presentación enviada a la papelera"
-                    restored: "Presentación sacada de la papelera"
-                    deleted: "Presentación eliminada"
-                deck_link:
-                    issued: "Enlace para compartir una presentación creado"
-                    revoked: "Enlace para compartir una presentación revocado"
-                    hidden: "Enlace para compartir una presentación ocultado"
-                    deleted: "Enlace para compartir una presentación eliminado"
                 space_access_link:
                     issued: 'Enlace de acceso de cliente creado'
                     revoked: 'Enlace de acceso de cliente revocado'
@@ -186,14 +170,6 @@ suite:
                     delete: 'Eliminar un contrato'
                     send: 'Enviar un contrato al cliente'
                     countersign: 'Contrafirmar un contrato'
-                decks:
-                    view: 'Consultar las presentaciones'
-                    create: 'Crear una presentación'
-                    edit: 'Editar una presentación'
-                    delete: 'Eliminar una presentación'
-                    share: 'Ver y dar los enlaces de lectura de una presentación'
-                deck_categories:
-                    manage: 'Gestionar las secciones de presentaciones'
                 deliverables:
                     view: "Consultar los entregables"
                     create: "Crear un entregable"
@@ -796,72 +772,12 @@ suite:
                 step_2: '«Añadir una diapositiva» propone las plantillas; con «Diapositiva libre», coloca cada elemento a mano.'
                 step_3: 'Rellene los campos de la plantilla y las notas del orador, que el público nunca ve: todo se guarda solo.'
                 step_4: '«Presentar» pasa a pantalla completa; el menú de al lado abre la vista del presentador, la impresión, el uso compartido y la apariencia.'
-            guide:
-                title: 'Cómo funcionan las presentaciones'
-                step_1: 'Cree una presentación desde cero, a partir de una plantilla, o importando un documento en el que cada título abre una diapositiva.'
-                step_2: 'En el editor, añada diapositivas, reordénelas y escriba sus notas de orador; todo se guarda solo.'
-                step_3: '«Presentar» pasa a pantalla completa; la vista de presentador se abre al lado con las notas, la diapositiva siguiente y un temporizador.'
-                step_4: '«Compartir» crea una dirección secreta que se abre sin cuenta, con caducidad y contraseña opcional.'
-                step_5: 'Las notas de orador nunca se muestran por un enlace, y un enlace se puede revocar en cualquier momento.'
-            create: 'Crear una presentación'
-            created: 'Presentación creada'
-            updated: 'Presentación actualizada'
-            deleted: "Presentación enviada a la papelera"
-            duplicated: 'Presentación duplicada'
-            duplicate: Duplicar
-            duplicate_hint: 'Copia las diapositivas, sin el cliente.'
-            edit_hint: 'El título, la sección y el cliente.'
-            delete_hint: "La envía a la papelera: sale de las listas y sus enlaces para compartir dejan de responder, hasta que se restaure."
-            trash_action: "Enviar a la papelera"
-            copy_of: '%title% (copia)'
-            title_column: Título
-            title_placeholder: 'Reunión de lanzamiento, octubre'
-            description_placeholder: 'Una línea, visible en la lista.'
-            description: Descripción
-            category: Sección
-            customer: Cliente
             slides: Diapositivas
-            uncategorised: 'Sin sección'
-            no_customer: 'Ningún cliente'
-            all_categories: 'Todas las secciones'
-            filter_by_category: 'Filtrar por sección'
-            search_placeholder: 'Buscar una presentación…'
-            empty_title: 'Ninguna presentación'
-            empty_description: 'Una presentación es un conjunto de diapositivas que muestra a alguien. Cree la primera.'
-            delete_confirm: "¿Enviar «{title}» a la papelera? Sale de las listas y sus enlaces para compartir dejan de responder. La encontrará en la papelera, donde podrá restaurarla, hasta que se elimine definitivamente."
             errors:
-                title_required: 'El título es obligatorio.'
-                title_too_long: 'El título es demasiado largo.'
                 layout_unknown: 'Este diseño no existe.'
                 theme_unknown: 'Este tema no existe.'
-                import_empty: 'Este documento no contiene nada con lo que se pueda hacer una diapositiva.'
             share: Compartir
-            share_intro: 'Una dirección secreta que abre esta presentación sin cuenta. Las notas del orador nunca aparecen en ella.'
-            share_label: Nombre
-            share_label_placeholder: 'Enviado a Marie, el 12 de septiembre'
-            share_expiry: Caducidad
-            share_no_expiry: 'Sin caducidad'
-            share_days: '{count} días'
-            share_create: 'Crear el enlace'
-            share_created: 'Enlace creado'
-            share_none: 'Ningún enlace por ahora.'
-            share_untitled: 'Enlace sin nombre'
-            share_copy: 'Copiar la dirección'
-            share_copied: 'Dirección copiada'
-            share_copy_manually: 'Copie la dirección mostrada, el navegador ha denegado el acceso al portapapeles.'
-            share_revoke: Revocar
-            share_revoked: Revocado
-            share_revoked_toast: 'Enlace revocado'
-            share_delete: Eliminar este enlace
-            share_deleted_toast: Enlace eliminado
-            share_hide: "Ocultar este enlace"
-            share_hidden_toast: "Enlace oculto"
-            share_show_hidden: "Mostrar enlaces ocultos ({count})"
-            share_hide_hidden: "Ocultar los enlaces ocultos"
-            share_hidden: "Oculto"
             share_expires_on: 'Caduca el {date}'
-            share_last_used: 'Abierto el {date}'
-            share_never_opened: 'Nunca abierto'
             share_footer: 'Este enlace es personal. No lo comparta.'
             present: Presentar
             print: Imprimir
@@ -884,7 +800,6 @@ suite:
             speaker_notes: 'Notas del orador'
             speaker_notes_hint: 'Nunca se muestran al público.'
             speaker_notes_placeholder: 'Lo que dirá mientras esta diapositiva esté en pantalla.'
-            bullets_placeholder: 'Una viñeta por línea.'
             prose_placeholder: 'El texto que se muestra en la diapositiva.'
             image_hint: 'Elegida en la mediateca, o subida desde su equipo.'
             appearance: Apariencia
@@ -1073,26 +988,8 @@ suite:
             media_shape_arch: Arco
             media_shape_circle: Círculo
             media_focus_hint: 'Haga clic en lo que debe seguir visible cuando la imagen se recorta.'
-            import: 'Importar un documento'
-            import_submit: 'Crear las diapositivas'
-            imported: 'Presentación creada a partir del documento'
-            import_intro: 'Escriba o pegue su documento. Un título abre una diapositiva, y lo que sigue la rellena.'
-            import_document: 'El documento'
-            import_placeholder: 'Pegue aquí, o escriba…'
-            import_hint: 'Las listas se convierten en diapositivas con viñetas, las citas en citas, las tablas en tablas. Varios bloques bajo un mismo título dan varias diapositivas que lo repiten.'
-            is_template: 'Es una plantilla'
-            is_template_hint: 'Las plantillas se proponen al crear una presentación.'
-            template_badge: Plantilla
-            from_template: 'Partir de una plantilla'
-            from_nothing: 'Partir de cero'
             fold_chapter: 'Plegar este capítulo'
             unfold_chapter: 'Desplegar este capítulo'
-            share_password: Contraseña
-            share_password_placeholder: 'Dejar vacío para un enlace sin contraseña'
-            share_password_hint: 'Comuníquela por un medio distinto del mensaje que contiene el enlace.'
-            share_locked: 'Protegido con contraseña'
-            share_opened: 'Abierto {count} veces'
-            share_opened_once: 'Abierto una vez'
             overview: Índice
             pointer: Puntero
             transition: Transición
@@ -1101,9 +998,6 @@ suite:
                 fade: Fundido
                 slide: Deslizamiento
             transition_hint: 'Solo existe en pantalla completa. El papel y el enlace para compartir no la incluyen.'
-            withheld_title: 'Una imagen de esta presentación no está publicada | {count} imágenes de esta presentación no están publicadas'
-            withheld_hint: 'El destinatario de un enlace no las verá. Publíquelas en la mediateca para que aparezcan.'
-            usage_detail: Presentación
             slots:
                 mediaFit: 'Encuadre de la imagen'
                 mediaShape: 'Forma de la imagen'
@@ -1413,14 +1307,6 @@ suite:
                 logos: 'Cuadrícula de logotipos'
                 mosaic: 'Mosaico de imágenes'
                 free: Diapositiva libre
-            categories:
-                manage: "Gestionar las categorías"
-                manage_hint: "Crear, renombrar, colorear y ordenar las categorías de las presentaciones."
-                manage_title: "Categorías de las presentaciones"
-                manage_intro: "Ordenan las presentaciones, para todo el equipo. Eliminar una categoría no elimina ninguna presentación: se quedan, sin categoría."
-                errors:
-                    name_required: 'El nombre es obligatorio.'
-                    color_invalid: 'El color debe estar en formato hexadecimal, por ejemplo'
         customers:
             guide:
                 title: "Cómo funcionan las fichas"
@@ -1913,9 +1799,9 @@ suite:
             group_related: 'En torno a este cliente'
             edit: 'Modificar la ficha'
             edit_title: 'Modificar la ficha del cliente'
-            related_empty: 'Todavía no hay contratos, presentaciones ni otros espacios para este cliente.'
+            related_empty: 'Todavía no hay contratos, entregables ni otros espacios para este cliente.'
             related_contracts: 'Contratos de este cliente'
-            related_decks: 'Presentaciones de este cliente'
+            related_deliverables: 'Entregables de este cliente'
             related_spaces: 'Otros espacios de este cliente'
             draft_contract: Borrador
             saved: 'Ficha guardada.'

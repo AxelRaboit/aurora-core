@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * A row the studio manages rather than the enum it used to be. The enum named
  * three trades - community management, photography, web development - which
- * were one freelancer's, written into a bundle anybody installs; and decks and
+ * were one freelancer's, written into a bundle anybody installs; and the
  * deliverables already had categories one creates from the screen. The shape
  * is theirs: a name, a colour for a list that is scanned rather than read, a
  * position somebody arranges.

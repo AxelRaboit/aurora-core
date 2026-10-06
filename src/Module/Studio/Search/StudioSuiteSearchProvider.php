@@ -16,8 +16,6 @@ use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
@@ -37,14 +35,15 @@ use function implode;
 
 /**
  * Studio's slice of the suite global search: client spaces and their
- * cards, customers, contracts, contract templates, decks and deliverables.
+ * cards, customers, contracts, contract templates and deliverables, pages and
+ * presentations alike.
  *
- * **One provider, seven sections, each with its own door.** Studio is several
+ * **One provider, six sections, each with its own door.** Studio is several
  * screens behind several switches and several privileges, and the search has to
  * ask each section the question its screen asks: the customers list answers to
  * `studio.customers.view` and to the customers switch, the spaces to theirs. A
  * single guard for the module would hand contract references to an account that
- * may only open decks.
+ * may only open deliverables.
  *
  * **Spaces and their cards are scoped like the spaces list**, through
  * {@see SpaceVisibility::seesAll()}: an administrator sees every space, anybody
@@ -70,7 +69,6 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
         private CustomerRepository $customers,
         private ContractRepository $contracts,
         private ContractTemplateRepository $templates,
-        private DeckRepository $decks,
         private DeliverableRepository $deliverables,
         private DeliverableAccess $deliverableAccess,
         private UrlGeneratorInterface $urlGenerator,
@@ -108,10 +106,6 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                 if ($this->security->isGranted('studio.contract_templates.view')) {
                     $sections['contract_templates'] = $this->section(fn (): array => $this->templateRows($query));
                 }
-            }
-
-            if ($this->studioContext->areDecksEnabled() && $this->security->isGranted('studio.decks.view')) {
-                $sections['decks'] = $this->section(fn (): array => $this->deckRows($query));
             }
 
             // A deliverable lives in Studio or in a space, behind a switch and a
@@ -279,23 +273,6 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
         ]);
     }
 
-    /** @return list<array<string, mixed>> */
-    private function deckRows(string $query): array
-    {
-        return array_map(
-            fn (DeckInterface $deck): array => [
-                'id' => $deck->getId(),
-                'title' => $deck->getTitle(),
-                'subtitle' => $this->join([
-                    $deck->isTemplate() ? $this->translator->trans('suite.studio.decks.template_badge') : null,
-                    $deck->getCustomer()?->getLegalName() ?? $deck->getCategory()?->getName(),
-                ]),
-                'path' => $this->urlGenerator->generate('suite_studio_deck', ['id' => $deck->getId()]),
-            ],
-            $this->decks->searchByTitle($query, self::LIMIT),
-        );
-    }
-
     /**
      * The deliverables the reader may open, whichever side they live on.
      *
@@ -304,13 +281,28 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
      * on, is exactly what a title in a search result must not reveal. Asked for
      * more than the section shows, so filtering still leaves a full list.
      *
+     * A presentation is also found by the words on its slides, after the
+     * titles: what was searched for is more often a title, and a slide that
+     * mentions it is the second-best answer.
+     *
      * @return list<array<string, mixed>>
      */
     private function deliverableRows(string $query): array
     {
         $rows = [];
+        $seen = [];
+        $candidates = [
+            ...$this->deliverables->searchByTitle($query, self::LIMIT * 5),
+            ...$this->deliverables->searchBySlideText($query, self::LIMIT * 5),
+        ];
 
-        foreach ($this->deliverables->searchByTitle($query, self::LIMIT * 5) as $deliverable) {
+        foreach ($candidates as $deliverable) {
+            if (isset($seen[$deliverable->getId()])) {
+                continue;
+            }
+
+            $seen[$deliverable->getId()] = true;
+
             if (!$this->isSearchable($deliverable)) {
                 continue;
             }

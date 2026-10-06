@@ -1375,7 +1375,7 @@ suite:
             comments_hint: "Nothing to set: the thread is this publication's. When this zone exists the foot of the page stops drawing it - one conversation per page, where you put it."
             zone_deck: Presentation
             zone_deck_none: "Choose a presentation…"
-            zone_deck_hint: "Shown in the page through its share link. A presentation with no live link, or one revoked, expired or password-protected, draws nothing."
+            zone_deck_hint: "A Studio presentation (a deliverable in the presentation format), shown in the page through its reading link. With no live link, or one revoked, expired or password-protected, the zone draws nothing."
             visibility: "When and for whom"
             visibility_hint: "With nothing here, the zone is visible all the time and to everybody. That is what a zone saying nothing already does."
             visible_from: From

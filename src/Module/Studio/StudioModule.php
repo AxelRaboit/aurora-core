@@ -68,12 +68,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             new NavPermission('studio.contracts.delete'),
             new NavPermission('studio.contracts.send'),
             new NavPermission('studio.contracts.countersign'),
-            new NavPermission('studio.decks.view'),
-            new NavPermission('studio.decks.create'),
-            new NavPermission('studio.decks.edit'),
-            new NavPermission('studio.decks.delete'),
-            new NavPermission('studio.decks.share'),
-            new NavPermission('studio.deck_categories.manage'),
             new NavPermission('studio.deliverables.view'),
             new NavPermission('studio.deliverables.create'),
             new NavPermission('studio.deliverables.edit'),
@@ -113,12 +107,8 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             $items[] = $this->contractsNavItem();
         }
 
-        if ($this->studioContext->areDecksEnabled()) {
-            $items[] = $this->decksNavItem();
-        }
-
-        // Après les présentations : l'autre document qu'on écrit pour
-        // quelqu'un, celui qu'on lui envoie à lire plutôt qu'on lui montre.
+        // Les documents qu'on écrit pour quelqu'un, pages et présentations :
+        // une seule entrée depuis que les présentations sont des livrables.
         if ($this->studioContext->areDeliverablesEnabled()) {
             $items[] = $this->deliverablesNavItem();
         }
@@ -136,7 +126,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             $this->spacesNavItem(),
             $this->customersNavItem(),
             $this->contractsNavItem(),
-            $this->decksNavItem(),
             $this->deliverablesNavItem(),
         ], priority: 45)];
     }
@@ -147,7 +136,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             ModuleParameterEnum::StudioSuite->toToggle(),
             ModuleParameterEnum::StudioCustomers->toToggle(),
             ModuleParameterEnum::StudioContracts->toToggle(),
-            ModuleParameterEnum::StudioDecks->toToggle(),
             ModuleParameterEnum::StudioDeliverables->toToggle(),
             ModuleParameterEnum::StudioSpaces->toToggle(),
         ];
@@ -164,21 +152,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             // préfixe, ouvrir une trame éteignait l'entrée.
             activeRoutePrefix: 'suite_studio_contract',
             descriptionKey: 'suite.nav.studio_contracts_description',
-        );
-    }
-
-    private function decksNavItem(): NavItem
-    {
-        return new NavItem(
-            'suite_studio_decks',
-            'suite.nav.studio_decks',
-            'presentation',
-            requiredPrivilege: 'studio.decks.view',
-            // Les pages d'une présentation s'appellent `suite_studio_deck`,
-            // au singulier : l'éditeur, le mode présentateur, l'impression.
-            // Sans ce préfixe, ouvrir une présentation éteignait le menu.
-            activeRoutePrefix: 'suite_studio_deck',
-            descriptionKey: 'suite.nav.studio_decks_description',
         );
     }
 

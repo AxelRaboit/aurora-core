@@ -9,8 +9,9 @@ use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\StudioContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -35,7 +36,8 @@ final readonly class SpaceInformationViewBuilder
         private CustomerInformationSerializerInterface $serializer,
         private UrlGeneratorInterface $urlGenerator,
         private ContractRepository $contracts,
-        private DeckRepository $decks,
+        private DeliverableRepository $deliverables,
+        private DeliverableAccess $deliverableAccess,
         private SpaceVisibility $visibility,
         private AuthorizationCheckerInterface $authorizationChecker,
         private TranslatorInterface $translator,
@@ -53,16 +55,18 @@ final readonly class SpaceInformationViewBuilder
     }
 
     /**
-     * Ce qui entoure ce client : ses contrats, ses présentations, ses autres
+     * Ce qui entoure ce client : ses contrats, les livrables de Studio écrits
+     * pour lui (la présentation qui l'a convaincu, la proposition), ses autres
      * espaces.
      *
      * Rien ne les reliait : un espace ne disait pas quel contrat couvrait le
      * travail, ni quelle présentation l'avait vendu, et il fallait chercher le
      * client dans trois listes. Chaque liste suit les interrupteurs de Studio
      * et les droits du lecteur - null pour ce qu'il ne peut pas ouvrir,
-     * plutôt qu'une liste de liens qui répondraient 404 ou 403.
+     * plutôt qu'une liste de liens qui répondraient 404 ou 403 ; un livrable
+     * perso d'un collègue n'y figure pas.
      *
-     * @return array{contracts: list<array<string, mixed>>|null, decks: list<array<string, mixed>>|null, spaces: list<array<string, mixed>>}
+     * @return array{contracts: list<array<string, mixed>>|null, deliverables: list<array<string, mixed>>|null, spaces: list<array<string, mixed>>}
      */
     private function related(CustomerSpaceInterface $space): array
     {
@@ -76,12 +80,15 @@ final readonly class SpaceInformationViewBuilder
                     'url' => $this->urlGenerator->generate('suite_studio_contracts_show', ['id' => $contract->getId()]),
                 ], $this->contracts->findBy(['customer' => $customer], ['id' => 'DESC']))
                 : null,
-            'decks' => $this->studioContext->areDecksEnabled() && $this->authorizationChecker->isGranted('studio.decks.view')
-                ? array_map(fn (DeckInterface $deck): array => [
-                    'label' => $deck->getTitle(),
-                    'detail' => null,
-                    'url' => $this->urlGenerator->generate('suite_studio_deck', ['id' => $deck->getId()]),
-                ], $this->decks->findLiveForCustomer($customer))
+            'deliverables' => $this->studioContext->areDeliverablesEnabled() && $this->authorizationChecker->isGranted(DeliverableAccess::VIEW)
+                ? array_values(array_map(fn (DeliverableInterface $deliverable): array => [
+                    'label' => $deliverable->getTitle(),
+                    'detail' => $this->translator->trans($deliverable->getFormat()->labelKey()),
+                    'url' => $this->urlGenerator->generate('suite_studio_deliverables_edit', ['id' => $deliverable->getId()]),
+                ], array_filter(
+                    $this->deliverables->findLiveStandaloneForCustomer($customer),
+                    $this->deliverableAccess->canRead(...),
+                )))
                 : null,
             'spaces' => array_values(array_map(fn (CustomerSpaceInterface $other): array => [
                 'label' => $other->getName(),

@@ -30,7 +30,7 @@ use function is_string;
 /**
  * The categories trames are filed under, managed from the trames screen.
  *
- * The same four gestures as the decks' and the deliverables' categories, for
+ * The same four gestures as the deliverables' categories, for
  * the shared management window: create, rename and colour, delete, reorder.
  * Under the right to edit trames, since filing one is editing it.
  */

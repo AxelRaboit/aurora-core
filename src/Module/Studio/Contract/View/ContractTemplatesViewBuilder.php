@@ -42,7 +42,7 @@ final readonly class ContractTemplatesViewBuilder
             'contractsPath' => $this->urlGenerator->generate('suite_studio_contracts'),
             'templatesPath' => $this->urlGenerator->generate('suite_studio_contract_templates'),
             // The categories are managed from this screen, in the window the
-            // decks and the deliverables use for theirs.
+            // deliverables use for theirs.
             'categoryCreatePath' => $this->urlGenerator->generate('suite_studio_contract_templates_category_create'),
             'categoryUpdatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_category_update', ['id' => '__id__']),
             'categoryDeletePath' => $this->pathTemplates->generate('suite_studio_contract_templates_category_delete', ['id' => '__id__']),

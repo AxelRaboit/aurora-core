@@ -9,6 +9,7 @@ use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
@@ -16,10 +17,13 @@ use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 use function array_map;
+use function mb_trim;
+use function sprintf;
 
 /**
  * @extends ResolveTargetEntityRepository<DeliverableInterface>
@@ -169,6 +173,67 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Les présentations dont une diapositive contient ce terme, les plus
+     * récentes d'abord : des candidats pour la recherche globale, filtrés
+     * ensuite comme ceux du titre.
+     *
+     * Les mots d'une diapositive sont dans son JSON, à toutes les profondeurs
+     * (une diapositive libre range ses textes dans ses éléments) : seules les
+     * valeurs qui sont des chaînes sont lues, jamais les clés, sans quoi
+     * chercher « title » trouverait toutes les présentations. Les notes de
+     * l'orateur n'y sont pas : elles sont à qui présente.
+     *
+     * @return list<DeliverableInterface>
+     */
+    public function searchBySlideText(string $term, int $limit): array
+    {
+        if ('' === mb_trim($term)) {
+            return [];
+        }
+
+        $entityManager = $this->getEntityManager();
+        $deliverables = $this->getClassMetadata();
+        $slides = $entityManager->getClassMetadata(SlideInterface::class);
+
+        $ids = $entityManager->getConnection()->fetchFirstColumn(
+            sprintf(
+                <<<'SQL'
+                    SELECT d.id FROM %1$s d
+                     WHERE d.deleted_at IS NULL AND d.format = :format
+                       AND EXISTS (SELECT 1 FROM %2$s s, jsonb_path_query(s.%3$s::jsonb, 'strict $.**') AS value
+                                    WHERE s.deliverable_id = d.id AND jsonb_typeof(value) = 'string' AND LOWER(value #>> '{}') LIKE :term)
+                     ORDER BY d.updated_at DESC, d.id DESC
+                     LIMIT %4$d
+                    SQL,
+                $deliverables->getTableName(),
+                $slides->getTableName(),
+                $slides->getColumnName('content'),
+                $limit,
+            ),
+            ['format' => DeliverableFormatEnum::Slides->value, 'term' => LikePattern::contains($term)],
+            ['format' => ParameterType::STRING, 'term' => ParameterType::STRING],
+        );
+
+        if ([] === $ids) {
+            return [];
+        }
+
+        $byId = [];
+        foreach ($this->findBy(['id' => array_map(intval(...), $ids)]) as $deliverable) {
+            $byId[(int) $deliverable->getId()] = $deliverable;
+        }
+
+        $ordered = [];
+        foreach ($ids as $id) {
+            if (isset($byId[(int) $id])) {
+                $ordered[] = $byId[(int) $id];
+            }
+        }
+
+        return $ordered;
+    }
+
+    /**
      * Un livrable vivant, de Studio ou d'un espace : celui qu'on ouvre, qu'on
      * modifie, qu'on envoie. Un livrable à la corbeille n'est plus là pour
      * personne, et répond comme un identifiant inconnu.
@@ -293,6 +358,28 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             ->setParameter('customer', $customer)
             ->orderBy('d.updatedAt', Order::Descending->value)
             ->addOrderBy('d.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les présentations de Studio vivantes, par titre : ce que propose la zone
+     * « présentation » d'une page du site. L'appelant filtre par ce que la
+     * personne a le droit de lire.
+     *
+     * @return list<DeliverableInterface>
+     */
+    public function findLiveStandaloneSlidesByTitle(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.owner', 'o')
+            ->addSelect('o')
+            ->where('d.space IS NULL')
+            ->andWhere('d.format = :format')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('format', DeliverableFormatEnum::Slides)
+            ->orderBy('d.title', Order::Ascending->value)
+            ->addOrderBy('d.id', Order::Ascending->value)
             ->getQuery()
             ->getResult();
     }

@@ -8,17 +8,16 @@ import DeliverableSlidesEditorApp from "./DeliverableSlidesEditorApp.vue";
  * Un diaporama s'écrit dans l'éditeur des présentations, avec les droits, les
  * liens de lecture et les réglages d'un livrable autour.
  *
- * Ce qui se casserait sans bruit : l'éditeur qui ouvrirait les liens de
- * partage d'une présentation au lieu de ceux du livrable, ou qui recevrait les
- * droits des présentations plutôt que ceux du livrable.
+ * Ce qui se casserait sans bruit : l'éditeur qui n'ouvrirait pas les liens de
+ * lecture du livrable quand on partage, ou qui ne recevrait pas les droits du
+ * livrable.
  */
 const DECK_EDITOR = {
     name: "DeckEditorApp",
     props: {
         deck: Object,
-        canEdit: { type: Boolean, default: null },
-        canShare: { type: Boolean, default: null },
-        externalShare: Boolean,
+        canEdit: { type: Boolean, default: false },
+        canShare: { type: Boolean, default: false },
         withSettings: Boolean,
         linksPath: String,
         slideCreatePath: String,
@@ -95,7 +94,6 @@ describe("DeliverableSlidesEditorApp", () => {
 
         expect(editor.props("canEdit")).toBe(false);
         expect(editor.props("canShare")).toBe(true);
-        expect(editor.props("externalShare")).toBe(true);
         expect(editor.props("withSettings")).toBe(false);
         expect(editor.props("linksPath")).toBeUndefined();
         expect(editor.props("slideCreatePath")).toBe("/s/create");

@@ -47,12 +47,6 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
-use Aurora\Module\Studio\Deck\Entity\DeckCategory;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Manager\DeckManager;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
-use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
@@ -153,8 +147,6 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly ContractTemplateRepository $templateRepository,
         private readonly ContractManagerInterface $contracts,
         private readonly ContractRepository $contractRepository,
-        private readonly DeckManager $decks,
-        private readonly DeckRepository $deckRepository,
         private readonly SettingRepository $settings,
         private readonly EntityManagerInterface $entityManager,
         private readonly SpaceResourceRepository $spaceResources,
@@ -273,12 +265,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $this->entityManager->flush();
         }
 
-        // Before the contracts guard below, and not after it: the decks were
-        // seeded at the end of this method and therefore never seeded at all
-        // on an instance that already had contracts, which is every instance
-        // where `make demo` had been run once.
-        $this->seedDecks($marie);
-        $this->seedTrashedDeck();
+        // The presentations are slides deliverables now, seeded by
+        // `DeliverableDemoFixtures`.
         $this->seedSpaces($marie, $jean, $sophie);
         $this->seedApprovals();
 
@@ -468,9 +456,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         CustomerInterface $jean,
         CustomerInterface $sophie,
     ): void {
-        // Built once, like the decks and the contracts. A space has no natural
-        // key to look one up by, so a second `make demo` would quietly double
-        // a list that is meant to be read.
+        // Built once, like the contracts. A space has no natural key to look
+        // one up by, so a second `make demo` would quietly double a list that
+        // is meant to be read.
         if (0 !== $this->spaceRepository->count([])) {
             return;
         }
@@ -1284,235 +1272,6 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Two decks: one written to be looked at, one written to be duplicated.
-     *
-     * The first is a real talk, in the sense that it has a beginning, a claim
-     * and an end - a dozen slides that could be given to a client without
-     * anybody apologising for the demo. That is what the module's screenshots
-     * need: a deck built to fill a page shows the editor, not the thing the
-     * editor is for.
-     *
-     * The second stays four slides on purpose. A trame is a skeleton somebody
-     * duplicates and fills, and dressing it up would hide what it is.
-     *
-     * Neither is an audit nor a strategy: those are written documents, and
-     * they live in the deliverables (since 04/10/2026, Axel's call). A deck is
-     * what is shown in a meeting - a kick-off, a monthly review.
-     *
-     * Between them they use every layout, images included: the full-page
-     * picture reads nothing from the deck itself, it points at a document in
-     * the library, so the two slides that carry one pull it by reference from
-     * the GED fixtures rather than inventing a file of their own.
-     */
-    /**
-     * Une présentation que l'équipe a mise à la corbeille, pour l'onglet des
-     * présentations. À part de `seedDecks()`, qui ne joue qu'une fois sur une
-     * base vide : celle-ci se pose aussi sur une démo déjà chargée, et une seule
-     * fois, retrouvée par son titre.
-     */
-    private function seedTrashedDeck(): void
-    {
-        if (null !== $this->deckRepository->findOneBy(['title' => 'Trame de bilan trimestriel'])) {
-            return;
-        }
-
-        $deck = $this->decks->create('Trame de bilan trimestriel');
-        $deck->setDescription('Remplacée par la trame de point mensuel.');
-        $this->slide($deck, SlideLayoutEnum::Title, ['title' => 'Bilan du trimestre', 'subtitle' => '{client}'], null);
-        $deck->setDeletedAt(new DateTimeImmutable('-5 days'));
-    }
-
-    private function seedDecks(CustomerInterface $customer): void
-    {
-        // Built once, like the contracts above. Nothing here is looked up
-        // before it is created - a deck has no natural key to look it up by -
-        // so a second run would silently double a list meant to be read.
-        if (0 !== $this->deckRepository->count([])) {
-            return;
-        }
-
-        $kickOff = new DeckCategory();
-        $kickOff->setName('Lancement')->setColor('#f59e0b')->setPosition(0);
-
-        $review = new DeckCategory();
-        $review->setName('Suivi')->setColor('#6366f1')->setPosition(1);
-
-        $this->entityManager->persist($kickOff);
-        $this->entityManager->persist($review);
-
-        $this->seedKickOffDeck($customer, $kickOff);
-        $this->seedMonthlyReviewTemplate($review);
-    }
-
-    /**
-     * The deck that gets shown: a kick-off meeting, from what the client asked
-     * for to the first date in the calendar.
-     *
-     * Ordered the way the meeting actually goes. What we heard comes first,
-     * so the client recognises their own words; then how we will work, then
-     * when. The quote at the end is the sentence everybody leaves the room
-     * with, which is what a deck is for.
-     */
-    private function seedKickOffDeck(CustomerInterface $customer, DeckCategory $category): void
-    {
-        $deck = $this->decks->create('Réunion de lancement, refonte du site');
-        $deck->setDescription('Ce que vous attendez du nouveau site, comment on travaille ensemble, et les six semaines qui viennent.');
-        $deck->setCategory($category);
-        $deck->setCustomer($customer);
-
-        $this->slide($deck, SlideLayoutEnum::Title, [
-            'title' => 'Réunion de lancement',
-            'subtitle' => 'Atelier Dupont, octobre 2026',
-        ], 'Remercier pour le temps pris. Annoncer quarante minutes, questions comprises.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Ce que vous nous avez dit',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Trois attentes, dans vos mots',
-            'bullets' => [
-                'Être trouvé par les gens de la région qui cherchent un menuisier',
-                "Montrer l'atelier et les chantiers, pas seulement le catalogue",
-                'Recevoir des demandes de devis plutôt que des appels à toute heure',
-            ],
-        ], 'Faire valider chaque ligne : si une seule est fausse, tout le reste se décale.');
-
-        // La photo de la médiathèque de démonstration, légendée pour ce
-        // qu'elle est réellement : une image de bannière. Une légende qui
-        // promettrait une capture d'écran mentirait sur la seule chose que
-        // cette slide montre.
-        $this->slide($deck, SlideLayoutEnum::Image, [
-            'mediaId' => $this->mediaId(1),
-            'caption' => "Le ton visé pour l'accueil : une grande image, peu de mots",
-        ], "Laisser l'image dix secondes avant de commenter.");
-
-        $this->slide($deck, SlideLayoutEnum::Quote, [
-            'quote' => "Un site qui ressemble à l'atelier, et qui ramène des demandes de devis.",
-            'attribution' => 'Votre objectif, en une phrase',
-        ], 'Marquer un temps ici : tout ce qui suit sert cette phrase.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Comment on travaille',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Qui fait quoi',
-            'bullets' => [
-                'Vous : les photos des chantiers, les textes sur le métier, une personne pour valider',
-                'Nous : les maquettes, la rédaction finale, la mise en ligne et les mesures',
-                'Ensemble : un point de trente minutes chaque semaine, à heure fixe',
-            ],
-        ], 'Insister sur « une personne pour valider » : c\'est ce qui tient les délais.');
-
-        $this->slide($deck, SlideLayoutEnum::Split, [
-            'title' => "Ce qu'on vous demande, ce que vous recevez",
-            'left' => 'Une vingtaine de photos de chantiers, trois textes sur votre métier, et une réponse sous deux jours à chaque validation.',
-            'right' => 'Un site rapide sur téléphone, une page par type de chantier, un formulaire de devis qui arrive dans votre boîte, et un point de mesure un mois après.',
-        ], 'Les deux colonnes se lisent en parallèle : laisser le temps.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Le calendrier',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Six semaines, trois étapes',
-            'bullets' => [
-                'Semaines 1 et 2 : les maquettes, présentées puis ajustées une fois',
-                'Semaines 3 et 4 : les contenus, rédigés à partir de vos photos et de vos notes',
-                'Semaines 5 et 6 : la mise en ligne, puis les premières mesures',
-            ],
-        ], 'Dire tout de suite la date de mise en ligne visée, et ce qui la ferait glisser.');
-
-        // Une slide libre, composée à la main : la démonstration de ce que le
-        // canevas sait faire que les gabarits ne font pas. Un dégradé tiré des
-        // couleurs du deck, une photo découpée en cercle, trois cartes groupées
-        // qui entrent une à une, et une flèche posée en biais.
-        $this->slide($deck, SlideLayoutEnum::Free, [
-            'fill' => ['type' => 'linear', 'angle' => 160, 'stops' => [
-                ['color' => 'background', 'at' => 0],
-                ['color' => 'background', 'at' => 55],
-                ['color' => 'accent', 'at' => 100],
-            ]],
-            'elements' => [
-                ['id' => 'title', 'type' => 'text', 'html' => "Le projet, en un coup d'œil", 'font' => 'heading', 'size' => 64, 'weight' => 700, 'lineHeight' => 1.05, 'x' => 6, 'y' => 9, 'w' => 62, 'h' => 14, 'enter' => 'rise'],
-                ['id' => 'subtitle', 'type' => 'text', 'html' => 'Six semaines, et <span style="color: #f2b33d">une validation</span> à chaque étape', 'size' => 28, 'x' => 6, 'y' => 24, 'w' => 60, 'h' => 8, 'enter' => 'fade', 'delay' => 200],
-                ['id' => 'photo', 'type' => 'image', 'mediaId' => $this->mediaId(1), 'mask' => 'circle', 'x' => 76, 'y' => 6, 'w' => 18, 'h' => 32, 'shadow' => ['x' => 0, 'y' => 12, 'blur' => 40, 'color' => '#00000066']],
-                ['id' => 'arrow', 'type' => 'shape', 'shape' => 'line', 'head' => 'end', 'x' => 66, 'y' => 30, 'w' => 9, 'h' => 4, 'rotate' => -24, 'stroke' => ['color' => 'accent', 'width' => 6, 'style' => 'solid']],
-                ['id' => 'card-1', 'type' => 'shape', 'shape' => 'rect', 'x' => 6, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'icon-1', 'type' => 'icon', 'icon' => 'palette', 'color' => 'accent', 'x' => 8.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'head-1', 'type' => 'text', 'html' => 'Les maquettes', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 8.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'body-1', 'type' => 'text', 'html' => "L'accueil et une page de chantier, ajustées ensemble.", 'size' => 20, 'lineHeight' => 1.35, 'x' => 8.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'card-2', 'type' => 'shape', 'shape' => 'rect', 'x' => 36.5, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'icon-2', 'type' => 'icon', 'icon' => 'pen-line', 'color' => 'accent', 'x' => 39.0, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'head-2', 'type' => 'text', 'html' => 'Les contenus', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 39.0, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'body-2', 'type' => 'text', 'html' => 'Vos photos et vos mots, mis en forme par nous.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 39.0, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'card-3', 'type' => 'shape', 'shape' => 'rect', 'x' => 67, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'icon-3', 'type' => 'icon', 'icon' => 'rocket', 'color' => 'accent', 'x' => 69.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'head-3', 'type' => 'text', 'html' => 'La mise en ligne', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 69.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'body-3', 'type' => 'text', 'html' => 'Puis un point de mesure un mois après.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 69.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-            ],
-        ], 'Une carte par pression : laisser lire chacune avant la suivante.');
-
-        $this->slide($deck, SlideLayoutEnum::Quote, [
-            'quote' => 'Six semaines, une validation à chaque étape, et un site qui ramène des devis.',
-            'attribution' => "Ce qu'il faut retenir",
-        ], 'Fin. Fixer ensemble la date du premier point avant de se quitter.');
-
-        // Un lien de partage, parce que l'écran qui les liste n'en montrait
-        // aucun : un deck envoyé, ouvert une fois et qui expire dans deux
-        // mois est l'état ordinaire d'un partage, pas un cas limite. La
-        // lecture est posée à la main, aucune fixture n'ouvrant réellement
-        // le lien.
-        $link = new DeckShareLink($deck);
-        $link
-            ->setLabel('Atelier Dupont - envoi du 12')
-            ->setExpiresAt(new DateTimeImmutable('+60 days'))
-            ->touch(new DateTimeImmutable('-2 days 14:05'));
-
-        $this->entityManager->persist($link);
-    }
-
-    /**
-     * The other kind of deck: a skeleton, addressed to nobody.
-     *
-     * Deliberately short and deliberately vague, because it exists to be
-     * duplicated per client rather than presented as it stands. The nullable
-     * customer is the decision worth seeing on screen: a deck written for
-     * oneself is the ordinary internal case, not a degraded one.
-     */
-    private function seedMonthlyReviewTemplate(DeckCategory $category): void
-    {
-        $deck = $this->decks->create('Trame de point mensuel');
-        $deck->setDescription('La forme que prend le point du mois avec un client. À dupliquer, puis à remplir.');
-        $deck->setCategory($category);
-
-        $this->slide($deck, SlideLayoutEnum::Title, [
-            'title' => 'Point du mois',
-            'subtitle' => '{client}, {mois}',
-        ], 'Remplacer les deux mentions avant de présenter.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Le mois écoulé',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Split, [
-            'title' => 'Prévu, fait',
-            'left' => 'Ce qui était prévu ce mois-ci.',
-            'right' => "Ce qui a été fait, et ce qui ne l'a pas été.",
-        ], "La colonne de droite d'abord : c'est celle qu'on attend.");
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Le mois qui vient',
-            'bullets' => [
-                'Trois priorités, pas plus',
-                'Ce que chacune demande de votre côté',
-                'La date du prochain point',
-            ],
-        ], null);
-    }
-
-    /**
      * Les fichiers de l'espace lui-même, sur aucune fiche.
      *
      * Le pendant de `hangPictures` pour l'autre rattachement : la charte, le
@@ -1583,26 +1342,6 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
             $this->contentAttachments->attachAs($item, $document, $author, $author->getName());
         }
-    }
-
-    /**
-     * The id of a demo picture from the media library.
-     *
-     * By reference rather than by a hardcoded id: the fixtures run in whatever
-     * order the loader chooses, and a number written here would point at
-     * whatever happened to be created first.
-     */
-    private function mediaId(int $index): int
-    {
-        return (int) $this->getReference(GedDemoFixtures::mediaRef($index), Document::class)->getId();
-    }
-
-    /** @param array<string, mixed> $content */
-    private function slide(DeckInterface $deck, SlideLayoutEnum $layout, array $content, ?string $notes): void
-    {
-        $slide = $this->decks->addSlide($deck, $layout);
-        $this->decks->writeContent($slide, $content);
-        $slide->setSpeakerNotes($notes);
     }
 
     /**

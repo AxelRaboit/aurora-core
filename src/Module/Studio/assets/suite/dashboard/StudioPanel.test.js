@@ -14,7 +14,7 @@ const STATS = {
     withClient: 5,
     upcoming: 3,
     awaitingSignature: 4,
-    decks: null,
+    deliverables: null,
     calendarPath: "/suite/studio/spaces/calendar",
     contractsPath: "/suite/studio/contracts",
     awaitingCountersignature: 1,
@@ -73,7 +73,9 @@ describe("the Studio panel", () => {
 
     /** A figure the reader may not open is not drawn at all. */
     it("leaves out a tile the server sent as null", () => {
-        expect(render().text()).not.toContain("suite.stats.studio.decks");
+        expect(render().text()).not.toContain(
+            "suite.stats.studio.deliverables",
+        );
     });
 
     it("lists what waits, space by space, each opening its space", () => {

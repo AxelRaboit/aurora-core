@@ -6,7 +6,7 @@ namespace Aurora\Module\Studio\Deck\Import;
 
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 
 use function array_filter;
@@ -61,7 +61,7 @@ final readonly class DeckFromBlocks
      *
      * @param list<mixed> $blocks
      */
-    public function fill(SlideOwnerInterface $owner, array $blocks): int
+    public function fill(DeliverableInterface $owner, array $blocks): int
     {
         $plan = $this->plan($blocks);
         $this->apply($owner, $plan);
@@ -75,7 +75,7 @@ final readonly class DeckFromBlocks
      *
      * @param list<array{layout: SlideLayoutEnum, content: array<string, mixed>}> $plan
      */
-    public function apply(SlideOwnerInterface $owner, array $plan): void
+    public function apply(DeliverableInterface $owner, array $plan): void
     {
         foreach ($plan as $slide) {
             $written = $this->slides->addSlide($owner, $slide['layout']);

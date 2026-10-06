@@ -10,6 +10,7 @@ use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 
@@ -27,14 +28,12 @@ use function min;
 use function preg_match;
 
 /**
- * Everything that writes slides goes through here, whoever owns them.
+ * Everything that writes slides goes through here.
  *
- * One place that knows how slides are added, filled, copied and ordered, for
- * the reason `DeckManager` gave when it held all of this alone: a second
- * implementation drifts the first time somebody adds a field, and it drifts
- * silently. Decks and slides-format deliverables both hand their slides here,
- * through {@see SlideOwnerInterface}; `DeckManager` delegates until the decks
- * have become deliverables.
+ * One place that knows how slides are added, filled, copied and ordered: a
+ * second implementation drifts the first time somebody adds a field, and it
+ * drifts silently. Slides belong to deliverables in the slides format, which
+ * is what Studio's presentations became.
  *
  * Nothing here flushes: the caller decides when its write is whole.
  */
@@ -57,7 +56,7 @@ class SlidesManager
      *
      * @param array<string, mixed> $style
      */
-    public function writeAppearance(SlideOwnerInterface $owner, DeckThemeEnum $theme, array $style): SlideOwnerInterface
+    public function writeAppearance(DeliverableInterface $owner, DeckThemeEnum $theme, array $style): DeliverableInterface
     {
         $owner->setSlideTheme($theme);
         $owner->setSlideStyle($this->styleNormalizer->normalize($style));
@@ -72,7 +71,7 @@ class SlidesManager
      * counter on the owner: the counter would be a second statement of the
      * same fact, and the day a slide is deleted the two disagree.
      */
-    public function addSlide(SlideOwnerInterface $owner, SlideLayoutEnum $layout): SlideInterface
+    public function addSlide(DeliverableInterface $owner, SlideLayoutEnum $layout): SlideInterface
     {
         $slide = $this->createSlide();
         $slide->setLayout($layout);
@@ -355,14 +354,14 @@ class SlidesManager
      */
     public function duplicateSlide(SlideInterface $source): SlideInterface
     {
-        $owner = $source->getOwner();
+        $owner = $source->getDeliverable();
 
-        // A slide always has an owner once it is saved: the only way to hold
-        // one is through the deck or the deliverable it belongs to. Said out
-        // loud because the getter is nullable for the moment between `new`
-        // and the `addSlide` that attaches it.
-        if (!$owner instanceof SlideOwnerInterface) {
-            throw new LogicException('a slide cannot be duplicated before it belongs to a deck or a deliverable');
+        // A slide always has its deliverable once it is saved: the only way to
+        // hold one is through the deliverable it belongs to. Said out loud
+        // because the getter is nullable for the moment between `new` and the
+        // `addSlide` that attaches it.
+        if (!$owner instanceof DeliverableInterface) {
+            throw new LogicException('a slide cannot be duplicated before it belongs to a deliverable');
         }
 
         $copy = $this->addSlide($owner, $source->getLayout());
@@ -384,7 +383,7 @@ class SlidesManager
     }
 
     /** Take a slide out: the row goes with it. */
-    public function removeSlide(SlideOwnerInterface $owner, SlideInterface $slide): void
+    public function removeSlide(DeliverableInterface $owner, SlideInterface $slide): void
     {
         $owner->removeSlide($slide);
         $this->entityManager->remove($slide);
@@ -398,7 +397,7 @@ class SlidesManager
      * slides in the same order, notes included. Each slide is written through
      * `writeContent`, so a copy is whitelisted like anything typed.
      */
-    public function copySlides(SlideOwnerInterface $target, SlideOwnerInterface $source): void
+    public function copySlides(DeliverableInterface $target, DeliverableInterface $source): void
     {
         $this->writeAppearance($target, $source->getSlideTheme(), $source->getSlideStyle());
 
@@ -418,7 +417,7 @@ class SlidesManager
      *
      * @param list<int> $orderedIds
      */
-    public function reorderSlides(SlideOwnerInterface $owner, array $orderedIds): void
+    public function reorderSlides(DeliverableInterface $owner, array $orderedIds): void
     {
         $byId = [];
         foreach ($owner->getSlides() as $slide) {
@@ -453,7 +452,7 @@ class SlidesManager
      * owner rather than from the repository is what makes that structural
      * rather than a check somebody has to remember.
      */
-    public function slideOf(SlideOwnerInterface $owner, int $slideId): ?SlideInterface
+    public function slideOf(DeliverableInterface $owner, int $slideId): ?SlideInterface
     {
         foreach ($owner->getSlides() as $slide) {
             if ($slide->getId() === $slideId) {
@@ -473,7 +472,7 @@ class SlidesManager
         return new Slide();
     }
 
-    private function nextPosition(SlideOwnerInterface $owner): int
+    private function nextPosition(DeliverableInterface $owner): int
     {
         $highest = -1;
 

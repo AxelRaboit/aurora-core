@@ -22,12 +22,11 @@ use const DATE_ATOM;
  * Ce que reçoivent les écrans d'un livrable au format diaporama : l'éditeur de
  * diapositives, la vue présentateur, l'impression et la page de lecture.
  *
- * **La même forme que celle d'une présentation**, cf.
- * `DecksViewBuilder::showView()` : l'éditeur, le lecteur et l'impression sont
- * les composants des présentations, et ils lisent un « deck ». Ce qui change
- * est autour : les adresses sont celles du livrable, les droits ceux de
- * {@see DeliverableAccess}, et le partage passe par les liens de lecture du
- * livrable plutôt que par ceux d'une présentation.
+ * **La forme qu'avaient les présentations** avant d'être des livrables :
+ * l'éditeur, le lecteur et l'impression sont les composants des
+ * présentations, et ils lisent un « deck ». Les adresses sont celles du
+ * livrable, les droits ceux de {@see DeliverableAccess}, et le partage passe
+ * par les liens de lecture du livrable.
  */
 final readonly class DeliverableSlidesViewBuilder
 {
@@ -84,9 +83,9 @@ final readonly class DeliverableSlidesViewBuilder
      * Le livrable sous la forme qu'attendent les composants des
      * présentations : titre, résumé, thème et diapositives.
      *
-     * `channel` sépare la vue présentateur d'un livrable de celle d'une
-     * présentation qui aurait le même identifiant : les deux fenêtres se
-     * parlent par un canal nommé, et deux numérotations partagent ce nom.
+     * `channel` nomme le canal par lequel l'éditeur et la vue présentateur se
+     * parlent : préfixé, il ne croise pas celui d'une autre fenêtre qui
+     * numéroterait autre chose.
      *
      * @return array<string, mixed>
      */

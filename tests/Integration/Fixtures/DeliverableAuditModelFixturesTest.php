@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Fixtures;
 
+use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Fixtures\Studio\DeliverableDemoFixtures;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
@@ -20,10 +22,13 @@ use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionMethod;
 
+use function bin2hex;
 use function json_encode;
+use function random_bytes;
 use function sprintf;
 
 /**
@@ -42,6 +47,9 @@ final class DeliverableAuditModelFixturesTest extends IntegrationTestCase
     /** @var list<int> */
     private array $documents = [];
 
+    /** @var list<int> */
+    private array $customers = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -55,6 +63,10 @@ final class DeliverableAuditModelFixturesTest extends IntegrationTestCase
         $this->entityManager->createQuery(sprintf('DELETE FROM %s', DeliverableCategory::class))->execute();
         foreach ($this->documents as $id) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s d WHERE d.id = :id', Document::class))->setParameter('id', $id)->execute();
+        }
+
+        foreach ($this->customers as $id) {
+            $this->entityManager->createQuery(sprintf('DELETE FROM %s c WHERE c.id = :id', Customer::class))->setParameter('id', $id)->execute();
         }
 
         parent::tearDown();
@@ -142,6 +154,60 @@ final class DeliverableAuditModelFixturesTest extends IntegrationTestCase
         self::assertCount(5, $deliverable->getSlides());
         self::assertSame(DeckThemeEnum::Paper, $deliverable->getSlideTheme());
         self::assertNotNull($deliverable->getSlides()->first()->getSpeakerNotes());
+    }
+
+    /**
+     * The presentations that were Studio decks before they were deliverables:
+     * the kick-off shown to a client with its reading link, the monthly
+     * template, the trashed one. Built once: a reload adds nothing.
+     */
+    public function testThePresentationsAreBuiltOnceWithTheirSlidesAndLink(): void
+    {
+        $customer = new Customer();
+        $customer->setLegalName('Client présentation')->setContractualEmail(bin2hex(random_bytes(4)).'@example.test');
+        $this->entityManager->persist($customer);
+        $picture = $this->document('banniere-presentation.jpg');
+        $this->entityManager->flush();
+        $this->customers[] = (int) $customer->getId();
+
+        $fixtures = $this->fixtures();
+        $references = new ReferenceRepository($this->entityManager);
+        $references->addReference(GedDemoFixtures::mediaRef(1), $this->entityManager->find(Document::class, $picture));
+        $fixtures->setReferenceRepository($references);
+        $presentations = new ReflectionMethod($fixtures, 'presentations');
+
+        foreach ([1, 2] as $load) {
+            $presentations->invoke(
+                $fixtures,
+                $this->entityManager,
+                null,
+                $this->entityManager->getReference(Customer::class, $customer->getId()),
+                $this->entityManager->getReference(DeliverableCategory::class, $this->category('Lancement')->getId()),
+                $this->entityManager->getReference(DeliverableCategory::class, $this->category('Suivi')->getId()),
+            );
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+        }
+
+        $repository = self::getContainer()->get(DeliverableRepository::class);
+        self::assertCount(1, $repository->findBy(['title' => 'Réunion de lancement, refonte du site']), 'a reload adds nothing');
+
+        $kickOff = $this->deliverable('Réunion de lancement, refonte du site');
+        self::assertSame(DeliverableFormatEnum::Slides, $kickOff->getFormat());
+        self::assertSame('Lancement', $kickOff->getCategory()?->getName());
+        self::assertSame($customer->getId(), $kickOff->getCustomer()?->getId());
+        self::assertCount(12, $kickOff->getSlides());
+        self::assertSame($picture, $kickOff->getSlides()->get(3)?->getContent()['mediaId'] ?? null);
+        $links = self::getContainer()->get(DeliverableLinkRepository::class)->findForDeliverable($kickOff);
+        self::assertCount(1, $links);
+        self::assertSame(1, $links[0]->getOpenCount());
+
+        $monthly = $this->deliverable('Trame de point mensuel');
+        self::assertTrue($monthly->isTemplate());
+        self::assertNull($monthly->getCustomer());
+        self::assertCount(4, $monthly->getSlides());
+
+        self::assertTrue($this->deliverable('Trame de bilan trimestriel')->isTrashed());
     }
 
     private function fixtures(): DeliverableDemoFixtures

@@ -1045,7 +1045,7 @@ const displayHint = computed(() =>
 
         <template v-else-if="zone.type === 'deck'">
             <AppSelect
-                v-model="bound.deckId.value"
+                v-model="bound.deliverableId.value"
                 :label="t('suite.posts.grid.zone_deck')"
                 :hint="t('suite.posts.grid.zone_deck_hint')"
                 :options="deckOptions"

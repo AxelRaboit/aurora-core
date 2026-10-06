@@ -19,7 +19,6 @@ import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDeckEditor } from "./composables/useDeckEditor.js";
-import { useDeckSharing } from "./composables/useDeckSharing.js";
 import { useDeckAppearance } from "./composables/useDeckAppearance.js";
 import { useDeckChapters } from "./composables/useDeckChapters.js";
 import SlideFrame from "./components/SlideFrame.vue";
@@ -52,7 +51,6 @@ import {
     ArrowUp,
     ChevronDown,
     ChevronRight,
-    Copy,
     CopyPlus,
     GripVertical,
     MonitorSpeaker,
@@ -68,10 +66,9 @@ import {
     Share2,
     Trash2,
     X,
-    EyeOff,
 } from "lucide-vue-next";
 
-const { t, d } = useI18n();
+const { t } = useI18n();
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -95,28 +92,12 @@ const props = defineProps({
     slideReorderPath: { type: String, required: true },
     printPath: { type: String, required: true },
     presenterPath: { type: String, required: true },
-    shareLinks: { type: Array, default: () => [] },
-    /** Pictures on this deck that a link's holder would not be served. */
-    withheldPictures: { type: Array, default: () => [] },
-    shareCreatePath: { type: String, default: "" },
-    shareRevokePath: { type: String, default: "" },
-    /** Deleting an address nobody ever opened; an opened one is only revoked. */
-    shareDeletePath: { type: String, default: "" },
-    /** Hiding a retired or expired link from the list; its row stays. */
-    shareHidePath: { type: String, default: "" },
     /**
-     * Who may write and share, when the page knows better than the deck
-     * privileges: a slides deliverable answers to the deliverables' own rule
-     * (its author, its shelf). Null means "ask the deck privileges".
+     * Who may write and share: the page around the editor answers, a slides
+     * deliverable by the deliverables' own rule (its author, its shelf).
      */
-    canEdit: { type: Boolean, default: null },
-    canShare: { type: Boolean, default: null },
-    /**
-     * Sharing handled by the page around the editor: the share entry emits
-     * `share` instead of opening the deck's own links. A deliverable hands out
-     * its reading links, not a deck's share links.
-     */
-    externalShare: { type: Boolean, default: false },
+    canEdit: { type: Boolean, default: false },
+    canShare: { type: Boolean, default: false },
     /** A "Settings" entry that emits `settings`: the page around owns the form. */
     withSettings: { type: Boolean, default: false },
     themes: { type: Array, default: () => [] },
@@ -155,7 +136,7 @@ const {
 
 const emit = defineEmits(["share", "settings"]);
 
-const editable = props.canEdit ?? can("studio.decks.edit");
+const editable = props.canEdit;
 
 /**
  * The channel the player and the presenter window talk on. A deliverable
@@ -356,28 +337,6 @@ async function print() {
     window.open(`${props.printPath}?print=1`, "_blank", "noopener");
 }
 
-const {
-    sharing,
-    links,
-    newLabel,
-    expiresInDays,
-    newPassword,
-    withheld,
-    creating,
-    createLink,
-    revoke,
-    remove,
-    hide,
-    copy,
-    copiedId,
-    isLive,
-    isDeletable,
-    isHideable,
-    showHidden,
-    hiddenCount,
-    shownLinks,
-} = useDeckSharing(props);
-
 /**
  * The four the header does not need to spell out.
  *
@@ -406,12 +365,14 @@ const deckActions = computed(() => {
         },
     ];
 
-    if (props.canShare ?? can("studio.decks.share")) {
+    // Sharing belongs to the page around the editor: a deliverable hands out
+    // its reading links.
+    if (props.canShare) {
         actions.push({
             key: "share",
             icon: Share2,
             title: t("suite.studio.decks.share"),
-            onSelect: () => (props.externalShare ? emit("share") : (sharing.value = true)),
+            onSelect: () => emit("share"),
         });
     }
 
@@ -1271,150 +1232,6 @@ onBeforeUnmount(() => {
                 </template>
             </AppModal>
         </div>
-
-        <AppModal
-            :show="sharing"
-            max-width="lg"
-            :title="t('suite.studio.decks.share')"
-            :icon="Share2"
-            v-on:close="sharing = false"
-        >
-            <div class="space-y-4">
-                <p class="m-0 text-sm text-secondary">
-                    {{ t("suite.studio.decks.share_intro") }}
-                </p>
-
-                <!-- L'avertissement avant le formulaire : il change ce qu'on
-                     s'apprête à envoyer, pas ce qu'on vient d'envoyer. -->
-                <div
-                    v-if="withheld.length"
-                    class="flex flex-col gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3"
-                    role="status"
-                >
-                    <p class="m-0 text-sm font-medium text-amber-300">
-                        {{ t("suite.studio.decks.withheld_title", withheld.length) }}
-                    </p>
-                    <p class="m-0 text-xs text-secondary">
-                        {{ t("suite.studio.decks.withheld_hint") }}
-                    </p>
-                    <p class="m-0 truncate text-xs text-muted">
-                        {{ withheld.map((picture) => picture.name).join(", ") }}
-                    </p>
-                </div>
-
-                <div class="flex flex-wrap items-end gap-2">
-                    <AppInput
-                        v-model="newLabel"
-                        class="min-w-48 flex-1"
-                        :label="t('suite.studio.decks.share_label')"
-                        :placeholder="t('suite.studio.decks.share_label_placeholder')"
-                    />
-                    <AppSelect
-                        v-model="expiresInDays"
-                        class="w-44"
-                        :label="t('suite.studio.decks.share_expiry')"
-                        :options="[
-                            { value: '', label: t('suite.studio.decks.share_no_expiry') },
-                            { value: '7', label: t('suite.studio.decks.share_days', { count: 7 }) },
-                            { value: '30', label: t('suite.studio.decks.share_days', { count: 30 }) },
-                            { value: '90', label: t('suite.studio.decks.share_days', { count: 90 }) },
-                        ]"
-                    />
-                    <AppButton variant="primary" :loading="creating" v-on:click="createLink">
-                        <Plus class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("suite.studio.decks.share_create") }}
-                    </AppButton>
-                </div>
-
-                <AppInput
-                    v-model="newPassword"
-                    type="password"
-                    :label="t('suite.studio.decks.share_password')"
-                    :placeholder="t('suite.studio.decks.share_password_placeholder')"
-                    :hint="t('suite.studio.decks.share_password_hint')"
-                />
-
-                <p v-if="!shownLinks.length" class="m-0 text-sm text-muted">
-                    {{ t("suite.studio.decks.share_none") }}
-                </p>
-
-                <ul v-else class="m-0 flex list-none flex-col gap-2 p-0">
-                    <li
-                        v-for="link in shownLinks"
-                        :key="link.id"
-                        class="rounded-lg border border-line p-3"
-                        :class="isLive(link) ? '' : 'opacity-60'"
-                    >
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <span class="min-w-0 text-sm font-medium text-primary">
-                                {{ link.label || t("suite.studio.decks.share_untitled") }}
-                            </span>
-                            <span class="flex shrink-0 gap-1">
-                                <AppIconButton
-                                    :title="t('suite.studio.decks.share_copy')"
-                                    v-on:click="copy(link)"
-                                >
-                                    <Copy class="h-3.5 w-3.5" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton
-                                    v-if="isDeletable(link)"
-                                    :title="t('suite.studio.decks.share_delete')"
-                                    v-on:click="remove(link)"
-                                >
-                                    <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton
-                                    v-else-if="isLive(link)"
-                                    :title="t('suite.studio.decks.share_revoke')"
-                                    v-on:click="revoke(link)"
-                                >
-                                    <X class="h-3.5 w-3.5" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton
-                                    v-if="isHideable(link)"
-                                    :title="t('suite.studio.decks.share_hide')"
-                                    v-on:click="hide(link)"
-                                >
-                                    <EyeOff class="h-3.5 w-3.5" :stroke-width="2" />
-                                </AppIconButton>
-                            </span>
-                        </div>
-
-                        <!-- `select-all` : un clic ou un triple clic prend l'adresse entière, et elle seule.
-                             Sans cela, la sélection d'une ligne emportait aussi la ligne du dessous
-                             (« Sans expiration · Jamais ouvert »), et l'adresse collée donnait un 404. -->
-                        <p class="m-0 mt-1 select-all truncate font-mono text-xs text-muted">
-                            {{ copiedId === link.id ? t("suite.studio.decks.share_copied") : link.url }}
-                        </p>
-
-                        <p class="m-0 mt-1 text-xs text-muted">
-                            <span v-if="link.hidden">{{ t("suite.studio.decks.share_hidden") }} · </span>
-                            <span v-if="link.revokedAt">{{ t("suite.studio.decks.share_revoked") }}</span>
-                            <span v-else-if="link.expiresAt">{{ t("suite.studio.decks.share_expires_on", { date: d(new Date(link.expiresAt), "short") }) }}</span>
-                            <span v-else>{{ t("suite.studio.decks.share_no_expiry") }}</span>
-                            <span v-if="link.locked"> · {{ t("suite.studio.decks.share_locked") }}</span>
-                            <span v-if="link.lastUsedAt">
-                                ·
-                                {{ link.openCount > 1
-                                    ? t("suite.studio.decks.share_opened", { count: link.openCount })
-                                    : t("suite.studio.decks.share_opened_once") }}
-                                · {{ t("suite.studio.decks.share_last_used", { date: d(new Date(link.lastUsedAt), "short") }) }}
-                            </span>
-                            <span v-else> · {{ t("suite.studio.decks.share_never_opened") }}</span>
-                        </p>
-                    </li>
-                </ul>
-
-                <button
-                    v-if="hiddenCount > 0"
-                    type="button"
-                    class="text-xs text-muted underline underline-offset-2 hover:text-primary"
-                    v-on:click="showHidden = !showHidden"
-                >
-                    {{ showHidden ? t("suite.studio.decks.share_hide_hidden") : t("suite.studio.decks.share_show_hidden", { count: hiddenCount }) }}
-                </button>
-            </div>
-        </AppModal>
 
         <DeckPlayer
             v-if="playing"

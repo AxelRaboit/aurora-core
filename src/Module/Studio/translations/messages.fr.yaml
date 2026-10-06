@@ -7,7 +7,6 @@ suite:
             customers: Clients
             contracts: Contrats
             contract_templates: Trames de contrat
-            decks: Présentations
     stats:
         studio:
             spaces: Espaces actifs
@@ -19,7 +18,6 @@ suite:
             awaiting_countersignature: Contrats à contresigner
             awaiting_signature: Contrats chez le client
             deliverables: Livrables
-            decks: Présentations
             scope_label: Espaces comptés
             scopes:
                 mine: Mes espaces
@@ -29,7 +27,7 @@ suite:
     modules:
         studio: Studio
         studio_suite: Studio
-        studio_suite_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les espaces où vous travaillez avec eux, les contrats, les présentations et les livrables."
+        studio_suite_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les espaces où vous travaillez avec eux, les contrats et les livrables, pages et présentations."
     nav:
         sections:
             studio: Studio
@@ -40,8 +38,6 @@ suite:
         studio_spaces_description: Un espace par chantier client, avec son équipe, son tableau et son calendrier.
         studio_contracts: Contrats
         studio_contracts_description: Les contrats préparés, scellés et signés.
-        studio_decks: Présentations
-        studio_decks_description: Les jeux de slides que vous montrez, classés et réutilisables.
         studio_deliverables: "Livrables"
         studio_deliverables_description: "Les documents que vous écrivez, pour vous ou pour l'équipe."
     audit:
@@ -84,18 +80,6 @@ suite:
                     revoked: "Lien de lecture d'un livrable révoqué"
                     deleted: "Lien de lecture d'un livrable supprimé"
                     hidden: "Lien de lecture d'un livrable masqué"
-                deck:
-                    created: "Présentation créée"
-                    updated: "Présentation modifiée"
-                    duplicated: "Présentation dupliquée"
-                    trashed: "Présentation mise à la corbeille"
-                    restored: "Présentation sortie de la corbeille"
-                    deleted: "Présentation supprimée"
-                deck_link:
-                    issued: "Lien de partage d'une présentation créé"
-                    revoked: "Lien de partage d'une présentation révoqué"
-                    hidden: "Lien de partage d'une présentation masqué"
-                    deleted: "Lien de partage d'une présentation supprimé"
                 space_access_link:
                     issued: Lien d'accès client créé
                     revoked: Lien d'accès client révoqué
@@ -186,14 +170,6 @@ suite:
                     delete: Supprimer un contrat
                     send: 'Envoyer un contrat au client'
                     countersign: 'Contresigner un contrat'
-                decks:
-                    view: Consulter les présentations
-                    create: Créer une présentation
-                    edit: Modifier une présentation
-                    delete: Supprimer une présentation
-                    share: Voir et donner les liens de lecture d'une présentation
-                deck_categories:
-                    manage: Gérer les catégories de présentation
                 deliverables:
                     view: "Consulter les livrables"
                     create: "Créer un livrable"
@@ -796,72 +772,12 @@ suite:
                 step_2: "« Ajouter une slide » propose les gabarits ; avec « Diapo libre », vous placez chaque élément à la main."
                 step_3: "Remplissez les champs du gabarit et les notes d'orateur, que le public ne voit jamais : tout s'enregistre seul."
                 step_4: "« Présenter » passe en plein écran ; le menu à côté ouvre la vue présentateur, l'impression, le partage et l'apparence."
-            guide:
-                title: "Comment fonctionnent les présentations"
-                step_1: "Créez une présentation de zéro, à partir d'un modèle, ou en important un document où chaque titre ouvre une slide."
-                step_2: "Dans l'éditeur, ajoutez des slides, réordonnez-les et écrivez vos notes d'orateur ; tout s'enregistre seul."
-                step_3: "« Présenter » passe en plein écran ; la vue présentateur s'ouvre à côté avec les notes, la slide suivante et un minuteur."
-                step_4: "« Partager » crée une adresse secrète qui s'ouvre sans compte, avec une expiration et un mot de passe facultatif."
-                step_5: "Les notes d'orateur ne sont jamais montrées par un lien, et un lien se révoque à tout moment."
-            create: Créer une présentation
-            created: Présentation créée
-            updated: Présentation mise à jour
-            deleted: "Présentation mise à la corbeille"
-            duplicated: Présentation dupliquée
-            duplicate: Dupliquer
-            duplicate_hint: Copie les slides, sans le client.
-            edit_hint: Le titre, la catégorie et le client.
-            delete_hint: "La met à la corbeille : elle sort des listes et ses liens de partage cessent de répondre, jusqu'à sa restauration."
-            trash_action: "Mettre à la corbeille"
-            copy_of: '%title% (copie)'
-            title_column: Titre
-            title_placeholder: Réunion de lancement, octobre
-            description_placeholder: Une ligne, lue dans la liste.
-            description: Description
-            category: Catégorie
-            customer: Client
             slides: Slides
-            uncategorised: Sans catégorie
-            no_customer: Aucun client
-            all_categories: Toutes les catégories
-            filter_by_category: Filtrer par catégorie
-            search_placeholder: Rechercher une présentation…
-            empty_title: Aucune présentation
-            empty_description: Une présentation est un jeu de slides que vous montrez à quelqu'un. Créez la première.
-            delete_confirm: "Mettre « {title} » à la corbeille ? Elle sort des listes et ses liens de partage cessent de répondre. Vous la retrouvez dans la corbeille, d'où vous pouvez la restaurer, jusqu'à sa suppression définitive."
             errors:
-                title_required: Le titre est obligatoire.
-                title_too_long: Le titre est trop long.
                 layout_unknown: Ce gabarit n'existe pas.
                 theme_unknown: Ce thème n'existe pas.
-                import_empty: Ce document ne contient rien dont on puisse faire une slide.
             share: Partager
-            share_intro: Une adresse secrète qui ouvre cette présentation sans compte. Les notes d'orateur n'y sont jamais.
-            share_label: Intitulé
-            share_label_placeholder: Envoyé à Marie, le 12 septembre
-            share_expiry: Expiration
-            share_no_expiry: Sans expiration
-            share_days: '{count} jours'
-            share_create: Créer le lien
-            share_created: Lien créé
-            share_none: Aucun lien pour l'instant.
-            share_untitled: Lien sans intitulé
-            share_copy: Copier l'adresse
-            share_copied: Adresse copiée
-            share_copy_manually: Copiez l'adresse affichée, le navigateur a refusé le presse-papiers.
-            share_revoke: Révoquer
-            share_revoked: Révoqué
-            share_revoked_toast: Lien révoqué
-            share_delete: Supprimer ce lien
-            share_deleted_toast: Lien supprimé
-            share_hide: "Masquer ce lien"
-            share_hidden_toast: "Lien masqué"
-            share_show_hidden: "Afficher les liens masqués ({count})"
-            share_hide_hidden: "Cacher les liens masqués"
-            share_hidden: "Masqué"
             share_expires_on: 'Expire le {date}'
-            share_last_used: 'Ouvert le {date}'
-            share_never_opened: Jamais ouvert
             share_footer: Ce lien vous est personnel. Ne le transmettez pas.
             present: Présenter
             print: Imprimer
@@ -884,7 +800,6 @@ suite:
             speaker_notes: Notes d'orateur
             speaker_notes_hint: Elles ne sont jamais montrées au public.
             speaker_notes_placeholder: Ce que vous direz pendant que cette slide est à l'écran.
-            bullets_placeholder: Une puce par ligne.
             prose_placeholder: Le texte affiché sur la slide.
             image_hint: Choisie dans la médiathèque, ou déposée depuis votre machine.
             appearance: Apparence
@@ -1073,26 +988,8 @@ suite:
             media_shape_arch: Arche
             media_shape_circle: Cercle
             media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
-            import: Importer un document
-            import_submit: Créer les slides
-            imported: Présentation créée à partir du document
-            import_intro: Écrivez ou collez votre document. Un titre ouvre une slide, et ce qui suit la remplit.
-            import_document: Le document
-            import_placeholder: Collez ici, ou écrivez…
-            import_hint: Les listes deviennent des slides à puces, les citations des citations, les tableaux des tableaux. Plusieurs blocs sous un même titre font plusieurs slides qui le répètent.
-            is_template: C'est un modèle
-            is_template_hint: Les modèles sont proposés au moment de créer une présentation.
-            template_badge: Modèle
-            from_template: Partir d'un modèle
-            from_nothing: Partir de rien
             fold_chapter: Replier ce chapitre
             unfold_chapter: Déplier ce chapitre
-            share_password: Mot de passe
-            share_password_placeholder: Laisser vide pour un lien sans mot de passe
-            share_password_hint: Communiquez-le autrement que par le message qui porte le lien.
-            share_locked: Protégé par mot de passe
-            share_opened: 'Ouvert {count} fois'
-            share_opened_once: Ouvert une fois
             overview: Sommaire
             pointer: Pointeur
             transition: Transition
@@ -1101,9 +998,6 @@ suite:
                 fade: Fondu
                 slide: Glissement
             transition_hint: Elle n'existe qu'au plein écran. Le papier et le lien de partage n'en portent pas.
-            withheld_title: "Une image de cette présentation n'est pas publiée | {count} images de cette présentation ne sont pas publiées"
-            withheld_hint: Le destinataire d'un lien ne les verra pas. Publiez-les dans la médiathèque pour qu'elles apparaissent.
-            usage_detail: Présentation
             slots:
                 mediaFit: Cadrage de l'image
                 mediaShape: Forme de l'image
@@ -1413,14 +1307,6 @@ suite:
                 logos: Grille de logos
                 mosaic: Mosaïque d'images
                 free: Diapo libre
-            categories:
-                manage: "Gérer les catégories"
-                manage_hint: "Créer, renommer, colorer et ranger les catégories des présentations."
-                manage_title: "Catégories des présentations"
-                manage_intro: "Elles rangent les présentations, pour toute l'équipe. Supprimer une catégorie ne supprime aucune présentation : elles restent, sans catégorie."
-                errors:
-                    name_required: Le nom est obligatoire.
-                    color_invalid: La couleur doit être au format hexadécimal, par exemple #6366f1.
         customers:
             guide:
                 title: "Comment fonctionnent les fiches"
@@ -1944,9 +1830,9 @@ suite:
             group_related: Autour de ce client
             edit: Modifier la fiche
             edit_title: Modifier la fiche du client
-            related_empty: "Aucun contrat, aucune présentation ni aucun autre espace pour ce client pour l'instant."
+            related_empty: "Aucun contrat, aucun livrable ni aucun autre espace pour ce client pour l'instant."
             related_contracts: "Contrats de ce client"
-            related_decks: "Présentations de ce client"
+            related_deliverables: "Livrables de ce client"
             related_spaces: "Autres espaces de ce client"
             draft_contract: "Brouillon"
             saved: Fiche enregistrée.

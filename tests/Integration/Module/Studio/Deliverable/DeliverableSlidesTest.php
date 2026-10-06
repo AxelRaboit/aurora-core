@@ -387,8 +387,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
 
     /**
      * Une police déposée depuis un diaporama se sert sous les livrables, sans
-     * compte, et suit leur interrupteur : couper les présentations n'éteint
-     * pas les polices d'un lien de lecture, couper les livrables, si.
+     * compte, et s'éteint avec eux.
      */
     public function testAnUploadedFontIsServedUnderTheDeliverables(): void
     {
@@ -409,8 +408,6 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         $this->client->getCookieJar()->clear();
 
         try {
-            $settings->set(ModuleParameterEnum::StudioDecks->value, '0');
-            $checker->reset();
             $this->client->request('GET', (string) $font['url']);
             self::assertResponseIsSuccessful();
             self::assertSame('font/woff2', $this->client->getResponse()->headers->get('Content-Type'));
@@ -420,7 +417,6 @@ final class DeliverableSlidesTest extends IntegrationTestCase
             $this->client->request('GET', (string) $font['url']);
             self::assertResponseStatusCodeSame(404);
         } finally {
-            $settings->set(ModuleParameterEnum::StudioDecks->value, '1');
             $settings->set(ModuleParameterEnum::StudioDeliverables->value, '1');
             $checker->reset();
         }

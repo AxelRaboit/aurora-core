@@ -17,7 +17,8 @@ use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\PostType\Serializer\PostTypeSerializerInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use Aurora\Module\Editorial\Taxonomy\Serializer\TaxonomySerializerInterface;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 
 /**
  * Builds the payloads for the posts list and the standalone editor page.
@@ -35,7 +36,8 @@ final readonly class PostsViewBuilder
         private TaxonomySerializerInterface $taxonomySerializer,
         private LocaleContextInterface $localeContext,
         private FormRepository $formRepository,
-        private DeckRepository $deckRepository,
+        private DeliverableRepository $deliverableRepository,
+        private DeliverableAccess $deliverableAccess,
         private SiteUsefulLinks $siteUsefulLinks,
     ) {}
 
@@ -141,6 +143,37 @@ final readonly class PostsViewBuilder
     }
 
     /**
+     * The presentations a deck zone may show: Studio deliverables in the
+     * slides format, the ones this author may read.
+     *
+     * Every one of them, not only those with a link: whether a link is live
+     * is answered at render, and a list that silently omitted a presentation
+     * would leave an author hunting for one they can see in Studio. The panel
+     * says what happens when there is no link. A colleague's personal one is
+     * left out, as it is everywhere else.
+     *
+     * @return list<array{id: int, title: string}>
+     */
+    private function deckChoices(): array
+    {
+        $choices = [];
+
+        foreach ($this->deliverableRepository->findLiveStandaloneSlidesByTitle() as $deliverable) {
+            $id = $deliverable->getId();
+            if (null === $id) {
+                continue;
+            }
+            if (!$this->deliverableAccess->canRead($deliverable)) {
+                continue;
+            }
+
+            $choices[] = ['id' => $id, 'title' => $deliverable->getTitle()];
+        }
+
+        return $choices;
+    }
+
+    /**
      * The forms a grid may pose, as a name and an id.
      *
      * Inactive ones are left out rather than offered and then refused at
@@ -153,33 +186,6 @@ final readonly class PostsViewBuilder
      *
      * @return list<array{id: int|null, title: string}>
      */
-    /**
-     * The presentations a deck zone may show.
-     *
-     * Every deck, not only the shared ones: whether a link is live is answered
-     * at render, and a list that silently omitted a deck would leave an author
-     * hunting for one they can see in Studio. The panel says what happens when
-     * there is no link.
-     *
-     * @return list<array{id: int, title: string}>
-     */
-    private function deckChoices(): array
-    {
-        $choices = [];
-
-        foreach ($this->deckRepository->findLiveByTitle() as $deck) {
-            $id = $deck->getId();
-
-            if (null === $id) {
-                continue;
-            }
-
-            $choices[] = ['id' => $id, 'title' => $deck->getTitle()];
-        }
-
-        return $choices;
-    }
-
     private function formChoices(): array
     {
         $choices = [];

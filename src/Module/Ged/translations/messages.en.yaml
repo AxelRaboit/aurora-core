@@ -216,7 +216,7 @@ suite:
             select_mode: Select
             stop_selecting: Stop selecting
             usage_unused_badge: Unused
-            usage_unused_hint: No page, deck or space is drawing it
+            usage_unused_hint: No page, deliverable or space is drawing it
             kept_badge: Keep
             kept_hint: Unused on purpose, do not delete
             alternates_badge: "No variant | 1 variant | {count} variants"
@@ -253,7 +253,7 @@ suite:
                 usage_types:
                     other: "{count} use | {count} use | {count} uses"
                     editorial_post: "{count} post | {count} post | {count} posts"
-                    studio_deck: "{count} deck | {count} deck | {count} decks"
+                    studio_deliverable: "{count} deliverable | {count} deliverable | {count} deliverables"
                     studio_space_note: "{count} space note | {count} space note | {count} space notes"
                     studio_space_file: "{count} space file | {count} space file | {count} space files"
                     studio_space_attachment: "{count} attachment | {count} attachment | {count} attachments"

@@ -23,7 +23,7 @@ use function preg_match;
 /**
  * What a deck may say about its own appearance, and nothing else.
  *
- * The same arrangement `DeckManager::writeContent()` uses for a slide: the
+ * The same arrangement `SlidesManager::writeContent()` uses for a slide: the
  * keys are declared here, the payload is whitelisted against them on the way
  * in, and anything else is dropped rather than refused. A stale form posting a
  * key the module no longer has is not an error worth showing a reader.

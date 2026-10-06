@@ -16,8 +16,9 @@ use Aurora\Module\Studio\StudioContext;
  * alone closes the contracts and leaves the spaces open.
  *
  * The client-facing pages go with the part they belong to. A space link, a
- * contract to sign or a shared deck is the studio speaking to a customer,
- * and a studio that switched the feature off is not answering any more.
+ * contract to sign or a deliverable's reading link is the studio speaking to
+ * a customer, and a studio that switched the feature off is not answering any
+ * more.
  */
 final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSubscriber
 {
@@ -25,7 +26,7 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
 
     protected function routeNamespaces(): array
     {
-        return ['suite_studio_', 'workspace_', 'public_space', 'public_contract', 'public_deck', 'public_deliverable'];
+        return ['suite_studio_', 'workspace_', 'public_space', 'public_contract', 'public_deliverable'];
     }
 
     protected function gates(): array
@@ -36,20 +37,17 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
             'suite_studio_' => $suite,
             'suite_studio_customers' => $this->studioContext->areCustomersEnabled(),
             'suite_studio_contract' => $this->studioContext->areContractsEnabled(),
-            'suite_studio_deck' => $this->studioContext->areDecksEnabled(),
             'suite_studio_deliverables' => $this->studioContext->areDeliverablesEnabled(),
             // The editorial calendar included: it lives under the spaces now.
             'suite_studio_spaces' => $this->studioContext->areSpacesEnabled(),
             'workspace_' => $suite && $this->studioContext->areSpacesEnabled(),
             'public_space' => $suite && $this->studioContext->areSpacesEnabled(),
             'public_contract' => $suite && $this->studioContext->areContractsEnabled(),
-            'public_deck' => $suite && $this->studioContext->areDecksEnabled(),
             // Un lien de lecture sert un livrable d'espace ou de Studio : le
             // contrôleur juge lequel, cf. DeliverableReadingController.
             'public_deliverable' => $suite,
             // Les polices ne servent que les présentations, qui sont des
-            // livrables de Studio : elles suivent le module Livrables, jamais
-            // celui des présentations.
+            // livrables de Studio : elles suivent le module Livrables.
             'public_deliverable_font' => $suite && $this->studioContext->areDeliverablesEnabled(),
         ];
     }

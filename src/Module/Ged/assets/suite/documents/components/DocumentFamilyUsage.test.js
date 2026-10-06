@@ -78,7 +78,7 @@ describe("the family usage line", () => {
                     id: 7,
                     title: "Carte",
                     usageCount: 1,
-                    usageByType: { "studio.deck": 1 },
+                    usageByType: { "studio.deliverable": 1 },
                 },
                 {
                     id: 8,

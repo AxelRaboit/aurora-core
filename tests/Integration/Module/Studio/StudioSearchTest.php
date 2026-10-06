@@ -29,11 +29,12 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
-use Aurora\Module\Studio\Deck\Entity\Deck;
-use Aurora\Module\Studio\Deck\Manager\DeckManager;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use Aurora\Module\Studio\Search\StudioSuiteSearchProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
@@ -64,7 +65,7 @@ use function sprintf;
  */
 final class StudioSearchTest extends IntegrationTestCase
 {
-    private const array SECTIONS = ['spaces', 'space_contents', 'customers', 'contracts', 'contract_templates', 'decks', 'deliverables'];
+    private const array SECTIONS = ['spaces', 'space_contents', 'customers', 'contracts', 'contract_templates', 'deliverables'];
 
     private KernelBrowser $client;
 
@@ -119,7 +120,7 @@ final class StudioSearchTest extends IntegrationTestCase
 
         $this->templateIds = [];
 
-        foreach ([ModuleParameterEnum::StudioSuite, ModuleParameterEnum::StudioSpaces, ModuleParameterEnum::StudioCustomers, ModuleParameterEnum::StudioContracts, ModuleParameterEnum::StudioDecks] as $toggle) {
+        foreach ([ModuleParameterEnum::StudioSuite, ModuleParameterEnum::StudioSpaces, ModuleParameterEnum::StudioCustomers, ModuleParameterEnum::StudioContracts, ModuleParameterEnum::StudioDeliverables] as $toggle) {
             $this->settings->set($toggle->value, '1');
         }
 
@@ -136,7 +137,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $item = $this->item($space, 'Carrousel '.$this->needle);
         $contract = $this->contract($customer, 'CT-'.$this->needle);
         $template = $this->template('Trame '.$this->needle);
-        $deck = $this->deck('Atelier '.$this->needle);
+        $presentation = $this->presentation('Atelier '.$this->needle);
 
         $this->client->loginUser($this->admin, 'admin');
         $results = $this->provider->search($this->needle);
@@ -162,21 +163,37 @@ final class StudioSearchTest extends IntegrationTestCase
             $results['contract_templates'][0]['path'],
         );
 
-        self::assertSame(['Atelier '.$this->needle], array_column($results['decks'], 'title'));
-        self::assertSame(sprintf('/suite/studio/decks/%d', $deck->getId()), $results['decks'][0]['path']);
+        self::assertSame(['Atelier '.$this->needle], array_column($results['deliverables'], 'title'));
+        self::assertSame(sprintf('/suite/studio/deliverables/%d', $presentation->getId()), $results['deliverables'][0]['path']);
     }
 
     /** Through the search box's own endpoint, which merges every provider. */
     public function testTheSearchBoxEndpointReturnsTheStudioSections(): void
     {
-        $deck = $this->deck('Atelier '.$this->needle);
+        $presentation = $this->presentation('Atelier '.$this->needle);
 
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request('GET', '/suite/general/search?q='.$this->needle, server: self::FROM_THE_PAGE);
         self::assertResponseIsSuccessful();
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-        self::assertSame(sprintf('/suite/studio/decks/%d', $deck->getId()), $payload['decks'][0]['path'] ?? null);
+        self::assertSame(sprintf('/suite/studio/deliverables/%d', $presentation->getId()), $payload['deliverables'][0]['path'] ?? null);
+    }
+
+    /**
+     * A presentation is found by the words on its slides too, after the
+     * titles, and never by a key of the slide's JSON nor by the speaker's
+     * notes.
+     */
+    public function testAPresentationIsFoundByTheWordsOnItsSlides(): void
+    {
+        $presentation = $this->presentation('Comité de pilotage', 'Les chiffres '.$this->needle);
+
+        $this->client->loginUser($this->admin, 'admin');
+
+        self::assertSame(['Comité de pilotage'], array_column($this->provider->search($this->needle)['deliverables'], 'title'));
+        self::assertSame(sprintf('/suite/studio/deliverables/%d', $presentation->getId()), $this->provider->search($this->needle)['deliverables'][0]['path']);
+        self::assertNotContains('Comité de pilotage', array_column($this->provider->search('subtitle')['deliverables'] ?? [], 'title'), 'a slot name is not a word on the slide');
     }
 
     /** A space is found by its client's name too, and a customer by its number written in groups. */
@@ -233,7 +250,7 @@ final class StudioSearchTest extends IntegrationTestCase
     public function testAnAccountWithoutAnyStudioPrivilegeFindsNothing(): void
     {
         $this->customer('Boulangerie '.$this->needle, null);
-        $this->deck('Atelier '.$this->needle);
+        $this->presentation('Atelier '.$this->needle);
 
         $this->client->loginUser($this->accountWith(['general.search.view']), 'admin');
 
@@ -242,9 +259,9 @@ final class StudioSearchTest extends IntegrationTestCase
 
     public function testEachSectionAnswersToItsOwnPrivilege(): void
     {
-        $this->client->loginUser($this->accountWith(['studio.decks.view', 'studio.contract_templates.view']), 'admin');
+        $this->client->loginUser($this->accountWith(['studio.deliverables.view', 'studio.contract_templates.view']), 'admin');
 
-        self::assertSame(['contract_templates', 'decks'], array_keys($this->provider->search($this->needle)));
+        self::assertSame(['contract_templates', 'deliverables'], array_keys($this->provider->search($this->needle)));
     }
 
     /** A section switched off has no business answering, and neither has the module. */
@@ -255,7 +272,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $this->settings->set(ModuleParameterEnum::StudioSpaces->value, '0');
         $this->settings->set(ModuleParameterEnum::StudioContracts->value, '0');
         $this->forgetSwitches();
-        self::assertSame(['customers', 'decks', 'deliverables'], array_keys($this->provider->search($this->needle)));
+        self::assertSame(['customers', 'deliverables'], array_keys($this->provider->search($this->needle)));
 
         $this->settings->set(ModuleParameterEnum::StudioSuite->value, '0');
         $this->forgetSwitches();
@@ -284,7 +301,7 @@ final class StudioSearchTest extends IntegrationTestCase
     /** One section failing takes that section out, not the search box, nor the other sections. */
     public function testAnInternalFailureDoesNotThrowAndSparesTheOtherSections(): void
     {
-        $this->deck('Atelier '.$this->needle);
+        $this->presentation('Atelier '.$this->needle);
         $this->client->loginUser($this->admin, 'admin');
 
         $customers = $this->createStub(CustomerRepository::class);
@@ -300,7 +317,6 @@ final class StudioSearchTest extends IntegrationTestCase
             $customers,
             $container->get(ContractRepository::class),
             $container->get(ContractTemplateRepository::class),
-            $container->get(DeckRepository::class),
             $container->get(DeliverableRepository::class),
             $container->get(DeliverableAccess::class),
             $container->get(UrlGeneratorInterface::class),
@@ -310,7 +326,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $results = $provider->search($this->needle);
 
         self::assertSame([], $results['customers']);
-        self::assertSame(['Atelier '.$this->needle], array_column($results['decks'], 'title'));
+        self::assertSame(['Atelier '.$this->needle], array_column($results['deliverables'], 'title'));
     }
 
     /** The checker keeps what it read for the request; a test flipping switches starts a new one. */
@@ -377,14 +393,20 @@ final class StudioSearchTest extends IntegrationTestCase
         return $template;
     }
 
-    private function deck(string $title): Deck
+    /** A shared Studio presentation, with one slide that says what it is about. */
+    private function presentation(string $title, string $slideTitle = 'Ordre du jour'): Deliverable
     {
-        $deck = self::getContainer()->get(DeckManager::class)->create($title);
-        self::assertInstanceOf(Deck::class, $deck);
-        $this->entityManager->flush();
-        $this->created[] = $deck;
+        $presentation = new Deliverable(null, $title, 'fr', DeliverableFormatEnum::Slides);
+        $this->entityManager->persist($presentation);
 
-        return $deck;
+        $slides = self::getContainer()->get(SlidesManager::class);
+        $slide = $slides->addSlide($presentation, SlideLayoutEnum::Title);
+        $slides->writeContent($slide, ['title' => $slideTitle]);
+
+        $this->entityManager->flush();
+        $this->created[] = $presentation;
+
+        return $presentation;
     }
 
     /** @param list<string> $privileges */

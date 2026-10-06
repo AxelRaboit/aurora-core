@@ -8,18 +8,49 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deck\Entity\SlideInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
-use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * Un livrable porte des diapositives quand son format est `slides` ; une page
- * n'en a aucune, cf. {@see SlideOwnerInterface}.
+ * n'en a aucune. Tout ce qui écrit, dessine ou compte des diapositives
+ * (`SlidesManager`, `DeckAppearance`, `DeckPictures`, `DeckFonts`, le
+ * sérialiseur) parle à un livrable : depuis que les présentations en sont
+ * devenues, il n'y a plus d'autre propriétaire.
+ *
+ * Le thème et ses retouches s'appellent `slideTheme`/`slideStyle` parce qu'un
+ * livrable a déjà son apparence, celle de la page : les deux ne se confondent
+ * pas.
  */
-interface DeliverableInterface extends SlideOwnerInterface
+interface DeliverableInterface
 {
     public function getId(): ?int;
+
+    /** @return Collection<int, SlideInterface> */
+    public function getSlides(): Collection;
+
+    public function addSlide(SlideInterface $slide): static;
+
+    public function removeSlide(SlideInterface $slide): static;
+
+    /** Le thème dans lequel les diapositives sont dessinées. */
+    public function getSlideTheme(): DeckThemeEnum;
+
+    public function setSlideTheme(DeckThemeEnum $theme): static;
+
+    /**
+     * Ce que les diapositives retouchent de leur thème, cf. `DeckStyleNormalizer`.
+     *
+     * @return array<string, mixed>
+     */
+    public function getSlideStyle(): array;
+
+    /** @param array<string, mixed> $style */
+    public function setSlideStyle(array $style): static;
 
     public function getSpace(): ?CustomerSpaceInterface;
 

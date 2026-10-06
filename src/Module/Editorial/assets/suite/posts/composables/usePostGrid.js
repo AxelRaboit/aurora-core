@@ -654,7 +654,7 @@ function newZone(type) {
         // A list with no filter is the whole site, newest first - the answer
         // that needs no setting up, which is what a zone should do on arrival.
         taxonomyId: null,
-        deckId: null,
+        deliverableId: null,
         postTypeId: null,
         termId: null,
         limit: 3,
@@ -1629,7 +1629,7 @@ export function usePostGrid(layout, content) {
                 display: shared("display"),
                 columns: shared("columns"),
                 taxonomyId: shared("taxonomyId"),
-                deckId: shared("deckId"),
+                deliverableId: shared("deliverableId"),
                 postTypeId: shared("postTypeId"),
                 termId: shared("termId"),
                 limit: shared("limit"),

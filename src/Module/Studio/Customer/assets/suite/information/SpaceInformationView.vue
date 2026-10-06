@@ -35,7 +35,7 @@ import CustomerInformationCard from "../../shared/CustomerInformationCard.vue";
 const props = defineProps({
     information: { type: Object, required: true },
     savePath: { type: String, required: true },
-    /** Ses contrats, ses présentations, ses autres espaces : null pour ce que le lecteur ne peut pas ouvrir. */
+    /** Ses contrats, ses livrables de Studio, ses autres espaces : null pour ce que le lecteur ne peut pas ouvrir. */
     related: { type: Object, default: () => ({}) },
 });
 
@@ -43,7 +43,7 @@ const props = defineProps({
 const relatedGroups = computed(() =>
     [
         { key: "contracts", titleKey: "suite.studio.space_information.related_contracts", rows: props.related?.contracts },
-        { key: "decks", titleKey: "suite.studio.space_information.related_decks", rows: props.related?.decks },
+        { key: "deliverables", titleKey: "suite.studio.space_information.related_deliverables", rows: props.related?.deliverables },
         { key: "spaces", titleKey: "suite.studio.space_information.related_spaces", rows: props.related?.spaces },
     ].filter((group) => Array.isArray(group.rows) && group.rows.length),
 );

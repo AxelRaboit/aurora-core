@@ -11,7 +11,6 @@ use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\SpaceScopeEnum;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
@@ -64,7 +63,6 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         private SpaceVisibility $visibility,
         private SpaceWorkload $workload,
         private ContractRepository $contractRepository,
-        private DeckRepository $deckRepository,
         private DeliverableRepository $deliverableRepository,
         private StudioContext $studioContext,
         private Security $security,
@@ -102,8 +100,6 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'upcomingDays' => SpaceWorkload::HORIZON_DAYS,
                 'awaitingSignature' => $this->countContracts(self::WITH_CUSTOMER),
                 'awaitingCountersignature' => $this->countContracts([ContractStatusEnum::SignedByCustomer]),
-                'decks' => $this->canSeeDecks() ? $this->deckRepository->countLive() : null,
-                'decksPath' => $this->canSeeDecks() ? $this->urlGenerator->generate('suite_studio_decks') : null,
                 'deliverables' => $this->countDeliverables(),
                 'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),
@@ -134,25 +130,16 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, $statuses));
     }
 
-    /**
-     * Les livrables de Studio que le lecteur ouvre, null quand il n'a pas le
-     * module sous la main : pas de tuile plutôt qu'un chiffre sans destination.
-     * Ceux des espaces se comptent dans leur espace.
-     */
-    /**
-     * The same two conditions as the deliverables tile: the module switched on,
-     * and the right to read it. The count used to show with decks turned off.
-     */
-    private function canSeeDecks(): bool
-    {
-        return $this->studioContext->areDecksEnabled() && $this->authorizationChecker->isGranted('studio.decks.view');
-    }
-
     private function canSeeContracts(): bool
     {
         return $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view');
     }
 
+    /**
+     * Les livrables de Studio que le lecteur ouvre, pages et présentations,
+     * null quand il n'a pas le module sous la main : pas de tuile plutôt qu'un
+     * chiffre sans destination. Ceux des espaces se comptent dans leur espace.
+     */
     private function countDeliverables(): ?int
     {
         $user = $this->security->getUser();

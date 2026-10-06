@@ -22,10 +22,8 @@ use function array_map;
  * What the slide editor offers, whoever owns the slides: the layouts and
  * their slots, the themes and everything the appearance panel picks from.
  *
- * Taken out of `DecksViewBuilder` the day a deliverable could be slides: the
- * deck's editor and the deliverable's are the same component, and two lists of
- * themes handed to it would be two lists that disagree the first time one of
- * them gains a value.
+ * One list, handed to the editor from here: two lists of themes would be two
+ * lists that disagree the first time one of them gains a value.
  */
 final readonly class SlideEditorOptions
 {
