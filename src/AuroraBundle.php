@@ -161,8 +161,6 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResourceInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
@@ -309,7 +307,6 @@ class AuroraBundle extends AbstractBundle
                     SpaceChatMessageInterface::class => SpaceChatMessage::class,
                     SpaceChatChannelInterface::class => SpaceChatChannel::class,
                     SpaceChatChannelMemberInterface::class => SpaceChatChannelMember::class,
-                    SpaceNoteInterface::class => SpaceNote::class,
                     SpaceFileInterface::class => SpaceFile::class,
                     SpaceResourceInterface::class => SpaceResource::class,
                     DeliverableInterface::class => Deliverable::class,

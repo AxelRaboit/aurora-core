@@ -88,11 +88,6 @@ suite:
                 space_file:
                     added: File added to a space
                     removed: File removed from a space
-                space_note:
-                    created: Space note created
-                    updated: Space note edited
-                    pinned: Space note pinned or unpinned
-                    deleted: Space note deleted
                 space_chat_channel:
                     created: Chat channel opened
                     renamed: Chat channel renamed
@@ -1192,16 +1187,6 @@ suite:
             empty_hint: "What the team needs to know about this client and no form carries. The client does not see notes."
             closed: These notes are not open to you
             closed_hint: "This client's note space is open to its team. Whoever sets up the space can add you to it."
-            visibilities:
-                shared: Shared with the team
-                personal: Personal
-                shared_plural: Shared
-                personal_plural: Personal
-            someone_elses: Somebody's personal note
-            errors:
-                title_required: The title is required.
-                title_too_long: The title cannot be longer than 180 characters.
-                needs_account: You have to be signed in to take a note.
         space_information:
             scope: "This sheet belongs to the customer, not to this project. Editing it here edits it in every space of theirs, deliberately: a SIRET is a company's."
             what_the_client_sees: What the client sees

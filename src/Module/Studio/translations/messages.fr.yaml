@@ -88,11 +88,6 @@ suite:
                 space_file:
                     added: Fichier ajouté à un espace
                     removed: Fichier retiré d'un espace
-                space_note:
-                    created: Note d'espace créée
-                    updated: Note d'espace modifiée
-                    pinned: Note d'espace épinglée ou dépinglée
-                    deleted: Note d'espace supprimée
                 space_chat_channel:
                     created: Canal de discussion ouvert
                     renamed: Canal de discussion renommé
@@ -1199,16 +1194,6 @@ suite:
             empty_hint: "Ce que l'équipe doit savoir sur ce client et qu'aucune fiche ne porte. Le client ne voit pas les notes."
             closed: Ces notes ne vous sont pas ouvertes
             closed_hint: "L'espace de notes de ce client est ouvert à son équipe. La personne qui règle l'espace peut vous y ajouter."
-            visibilities:
-                shared: Partagée avec l'équipe
-                personal: Personnelle
-                shared_plural: Partagées
-                personal_plural: Personnelles
-            someone_elses: La note personnelle de quelqu'un
-            errors:
-                title_required: Le titre est obligatoire.
-                title_too_long: Le titre ne peut pas dépasser 180 caractères.
-                needs_account: Il faut être connecté pour prendre une note.
         space_information:
             scope: "Cette fiche appartient au client, pas à ce projet. La modifier ici la modifie dans tous ses espaces, et c'est voulu : un SIRET est celui d'une société."
             what_the_client_sees: Ce que le client voit

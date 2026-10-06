@@ -254,7 +254,6 @@ suite:
                     other: "{count} usage | {count} usage | {count} usages"
                     editorial_post: "{count} publication | {count} publication | {count} publications"
                     studio_deliverable: "{count} livrable | {count} livrable | {count} livrables"
-                    studio_space_note: "{count} note d'espace | {count} note d'espace | {count} notes d'espace"
                     studio_space_file: "{count} fichier d'espace | {count} fichier d'espace | {count} fichiers d'espace"
                     studio_space_attachment: "{count} pièce jointe | {count} pièce jointe | {count} pièces jointes"
                     configuration_setting: "{count} réglage du site | {count} réglage du site | {count} réglages du site"

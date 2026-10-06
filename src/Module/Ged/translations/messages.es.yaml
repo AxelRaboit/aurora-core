@@ -254,7 +254,6 @@ suite:
                     other: '{count} uso | {count} uso | {count} usos'
                     editorial_post: '{count} publicación | {count} publicación | {count} publicaciones'
                     studio_deliverable: '{count} entregable | {count} entregable | {count} entregables'
-                    studio_space_note: '{count} nota de espacio | {count} nota de espacio | {count} notas de espacio'
                     studio_space_file: '{count} archivo de espacio | {count} archivo de espacio | {count} archivos de espacio'
                     studio_space_attachment: '{count} adjunto | {count} adjunto | {count} adjuntos'
                     configuration_setting: '{count} ajuste del sitio | {count} ajuste del sitio | {count} ajustes del sitio'

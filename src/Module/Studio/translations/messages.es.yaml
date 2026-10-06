@@ -88,11 +88,6 @@ suite:
                 space_file:
                     added: 'Archivo añadido a un espacio'
                     removed: 'Archivo retirado de un espacio'
-                space_note:
-                    created: 'Nota de espacio creada'
-                    updated: 'Nota de espacio modificada'
-                    pinned: 'Nota de espacio anclada o desanclada'
-                    deleted: 'Nota de espacio eliminada'
                 space_chat_channel:
                     created: 'Canal de conversación abierto'
                     renamed: 'Canal de conversación renombrado'
@@ -1173,16 +1168,6 @@ suite:
             empty_hint: 'Lo que el equipo debe saber sobre este cliente y que ninguna ficha recoge. El cliente no ve las notas.'
             closed: 'Estas notas no le están abiertas'
             closed_hint: 'El espacio de notas de este cliente está abierto a su equipo. Quien ajusta el espacio puede añadirle.'
-            visibilities:
-                shared: 'Compartida con el equipo'
-                personal: Personal
-                shared_plural: Compartidas
-                personal_plural: Personales
-            someone_elses: 'La nota personal de otra persona'
-            errors:
-                title_required: 'El título es obligatorio.'
-                title_too_long: 'El título no puede superar los 180 caracteres.'
-                needs_account: 'Debe iniciar sesión para tomar una nota.'
         space_information:
             scope: 'Esta ficha pertenece al cliente, no a este proyecto. Editarla aquí la edita en todos sus espacios, y es intencionado: un SIRET es el de una sociedad.'
             what_the_client_sees: 'Lo que ve el cliente'
