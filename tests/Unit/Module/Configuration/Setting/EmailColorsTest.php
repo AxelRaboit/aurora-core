@@ -21,8 +21,8 @@ use function file_get_contents;
 use function preg_quote;
 
 /**
- * Les couleurs des e-mails : au défaut un message sort comme avant, et ce qui
- * n'est pas un hexadécimal n'entre pas dans son HTML.
+ * The e-mail colors: at the default a message goes out as before, and
+ * anything that is not a hexadecimal does not get into its HTML.
  */
 final class EmailColorsTest extends TestCase
 {
@@ -79,7 +79,7 @@ final class EmailColorsTest extends TestCase
 
     /**
      * @param array<string, string>     $stored
-     * @param array<string, mixed>|null $themeConfig null = aucun thème actif
+     * @param array<string, mixed>|null $themeConfig null = no active theme
      */
     private function colorsWith(array $stored, ?array $themeConfig = []): EmailColors
     {

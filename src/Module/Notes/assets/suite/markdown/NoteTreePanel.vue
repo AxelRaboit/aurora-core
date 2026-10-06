@@ -1,30 +1,28 @@
 <script setup>
 /**
- * Le carnet, dans le menu latéral.
+ * The notebook, in the side menu.
  *
- * Il n'a porté que des dossiers pendant une version, et c'était une
- * demi-réponse : on voyait le rangement sans voir ce qui est rangé. **Un
- * dossier se déplie ici** et montre ses notes, comme dans n'importe quel
- * explorateur ; la bibliothèque reste l'écran où l'on regarde, trie et
- * range, le panneau celui d'où l'on atteint.
+ * For one version it only carried folders, and that was half an answer: one
+ * saw the filing without seeing what is filed. **A folder expands here** and
+ * shows its notes, as in any file explorer; the library stays the screen
+ * where one looks, sorts and files, the panel the one from which one gets
+ * there.
  *
- * **Le dépliage se retient.** Il vit dans le navigateur, pas dans le
- * carnet : c'est une habitude de lecture, elle ne regarde que la personne
- * assise là, et elle doit survivre au changement de page - le panneau est
- * remonté à chaque navigation.
+ * **Expansion is remembered.** It lives in the browser, not in the notebook:
+ * it is a reading habit, it only concerns the person sitting there, and it
+ * must survive a page change - the panel is remounted on every navigation.
  *
- * **Les lignes sont de vraies adresses.** Un dossier est une page
- * (`/suite/notes/markdown/folder/42`), une note aussi, donc les deux
- * s'envoient et le clic du milieu se comporte. Au clic simple le panneau
- * demande d'abord à la page, par `modulePanelBridge` : elle est montée, elle
- * prend le clic et change de dossier ou de note sur place. Personne à
- * l'écoute veut dire que le lecteur est ailleurs dans le module, et le lien
- * navigue.
+ * **Rows are real addresses.** A folder is a page
+ * (`/suite/notes/markdown/folder/42`), a note too, so both can be sent and a
+ * middle click behaves. On a simple click the panel first asks the page,
+ * through `modulePanelBridge`: it is mounted, it takes the click and changes
+ * folder or note in place. Nobody listening means the reader is elsewhere in
+ * the module, and the link navigates.
  *
- * **La recherche reste globale**, et c'est le seul endroit où elle l'est :
- * elle traverse les titres, les étiquettes et le texte des notes - ce
- * dernier côté serveur, les corps étant chiffrés - et l'arbre s'ouvre sur ce
- * qu'elle a trouvé.
+ * **The search stays global**, and it is the only place where it is: it goes
+ * through the titles, the tags and the text of the notes - the latter on the
+ * server side, the bodies being encrypted - and the tree opens on what it
+ * found.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -54,7 +52,7 @@ const PINNED_TAGS_KEY = "aurora.notes.panel.pinnedTags";
 const TAGS_OPEN_KEY = "aurora.notes.panel.tagsOpen";
 const SPACES_CLOSED_KEY = "aurora.notes.panel.spacesClosed";
 
-/** Combien d'étiquettes non épinglées on montre avant de replier. */
+/** How many unpinned tags are shown before folding. */
 const TAGS_SHOWN = 8;
 
 const { t } = useI18n();
@@ -70,11 +68,11 @@ const { data: fetchedNotes } = useModulePanelData(NOTES_ENDPOINT, {
 });
 
 /**
- * Ce que la page annonce l'emporte sur ce que le panneau a cherché.
+ * What the page announces wins over what the panel fetched.
  *
- * On charge à l'arrivée parce que le panneau peut être rendu avant que la
- * page soit montée ; ensuite la page annonce chaque changement, ce qui fait
- * apparaître ici un dossier créé là-bas sans recharger.
+ * We load on arrival because the panel may be rendered before the page is
+ * mounted; then the page announces every change, which makes a folder
+ * created there appear here without reloading.
  */
 const announcedFolders = ref(null);
 const announcedNotes = ref(null);
@@ -88,13 +86,12 @@ const treeQuery = ref("");
 const searching = computed(() => "" !== treeQuery.value.trim());
 
 /**
- * Le texte des notes, cherché côté serveur.
+ * The notes' text, searched on the server side.
  *
- * Les corps ne sont pas dans le navigateur, et ils sont chiffrés en base :
- * c'est l'endpoint `/search` qui déchiffre les notes de la personne et rend
- * les identifiants qui correspondent. Sans lui, chercher « facture » ne
- * trouverait que les notes qui ont ce mot dans leur titre, ce qui est
- * rarement là où on l'a écrit.
+ * The bodies are not in the browser, and they are encrypted in the database:
+ * the `/search` endpoint decrypts the person's notes and returns the matching
+ * ids. Without it, searching "facture" would only find the notes that have
+ * the word in their title, which is rarely where it was written.
  */
 const { request } = useRequest();
 const contentMatchIds = ref(new Set());
@@ -125,33 +122,31 @@ const { tree } = useNoteTree(folders, treeQuery, notes, contentMatchIds);
 
 const isEmpty = computed(() => 0 === folders.value.length && 0 === notes.value.length);
 
-// ── Plier, déplier ─────────────────────────────────────────────────
+// ── Fold, expand ───────────────────────────────────────────────────
 
 const openedIds = ref(readExpanded());
 
 /**
- * Ce qui est ouvert à l'écran : ce que la personne a déplié, et pendant une
- * recherche, tout ce que l'arbre filtré contient. Une recherche qui laisse
- * les branches fermées ne montre rien, puisque ce qu'elle a trouvé est
- * justement replié.
+ * What is open on screen: what the person expanded, and during a search,
+ * everything the filtered tree contains. A search that leaves the branches
+ * closed shows nothing, since what it found is precisely folded.
  */
 const expanded = computed(() =>
     searching.value ? folderIdsIn(tree.value) : openedIds.value,
 );
 
 /**
- * Déplier ce qu'il faut pour qu'une note soit visible.
+ * Expand what is needed for a note to be visible.
  *
- * **Le commentaire d'à côté promettait déjà que « son dossier s'ouvre », et
- * le code ne faisait que l'allumer.** On le voyait en créant une note dans un
- * dossier replié : la note était bien créée et bien sélectionnée, mais elle
- * restait cachée derrière une flèche fermée, et rien ne disait qu'il s'était
- * passé quelque chose.
+ * **The comment next door already promised that "son dossier s'ouvre", and
+ * the code only highlighted it.** It showed when creating a note in a folded
+ * folder: the note was indeed created and selected, but it stayed hidden
+ * behind a closed arrow, and nothing said anything had happened.
  *
- * Toute la chaîne, pas seulement le dossier direct : une note rangée à trois
- * niveaux reste invisible si l'on n'ouvre que le dernier. La boucle se garde
- * des cycles en comptant ses tours, parce qu'un parent qui se pointerait
- * lui-même ferait tourner la page sans rien afficher.
+ * The whole chain, not only the direct folder: a note filed three levels
+ * down stays invisible if only the last one is opened. The loop guards
+ * against cycles by counting its turns, because a parent pointing at itself
+ * would make the page spin without showing anything.
  */
 function revealNote(noteId) {
     const note = notes.value.find((n) => Number(n.id) === Number(noteId));
@@ -190,7 +185,7 @@ function toggle(node) {
     storeExpanded(next);
 }
 
-/** Déplier sans jamais replier : ce que fait un clic sur un dossier. */
+/** Expand without ever folding: what a click on a folder does. */
 function open(id) {
     if (null === id || openedIds.value.has(Number(id))) return;
 
@@ -201,10 +196,10 @@ function open(id) {
 }
 
 /**
- * Tout replier d'un geste, comme Obsidian.
+ * Fold everything in one gesture, like Obsidian.
  *
- * Un carnet qu'on a parcouru finit déplié partout, et replier dossier par
- * dossier est exactement le genre de ménage qu'on ne fait jamais.
+ * A notebook that has been browsed ends up expanded everywhere, and folding
+ * folder by folder is exactly the kind of housekeeping nobody ever does.
  */
 function collapseAll() {
     openedIds.value = new Set();
@@ -213,20 +208,20 @@ function collapseAll() {
 
 const anyOpen = computed(() => !searching.value && openedIds.value.size > 0);
 
-// ── Les favoris ────────────────────────────────────────────────────
+// ── Favourites ─────────────────────────────────────────────────────
 
-/** Un dossier est une page, une note aussi : chacun offre son adresse. */
+/** A folder is a page, a note too: each offers its address. */
 const hrefFor = (node) =>
     "folder" === node.kind
         ? `${LIBRARY_URL}/folder/${node.id}`
         : `${LIBRARY_URL}/${node.id}`;
 
 /**
- * Passer en lecture, d'un clic, depuis n'importe où dans le module.
+ * Switch to reading, in one click, from anywhere in the module.
  *
- * Il fallait ouvrir une note puis chercher « Lire » dans ses trois points :
- * deux gestes et un menu pour changer de façon d'être dans son carnet. On
- * lit la note ouverte, ou la première du carnet quand rien ne l'est.
+ * One had to open a note then look for "Lire" in its three dots: two
+ * gestures and a menu to change the way of being in one's notebook. We read
+ * the open note, or the first of the notebook when none is open.
  */
 function firstNoteIn(nodes) {
     for (const node of nodes) {
@@ -250,9 +245,9 @@ function openReader() {
 }
 
 /**
- * Alt+R, depuis n'importe quel écran des notes : le lecteur sans chercher
- * de bouton. Lu sur `code` et non sur `key`, parce qu'Alt+R écrit « ® »
- * sur un Mac et que la touche, elle, reste la même.
+ * Alt+R, from any notes screen: the reader without looking for a button.
+ * Read on `code` and not on `key`, because Alt+R types "®" on a Mac while
+ * the key itself stays the same.
  */
 function onShortcut(event) {
     if (!event.altKey || event.ctrlKey || event.metaKey || "KeyR" !== event.code) return;
@@ -262,12 +257,12 @@ function onShortcut(event) {
 }
 
 /**
- * Ce qui est épinglé, dossiers puis notes, le plus récent d'abord.
+ * What is pinned, folders then notes, most recent first.
  *
- * Craft ouvre son menu là-dessus, et c'est le seul endroit du module d'où
- * l'on atteint une note en un clic sans savoir où elle est rangée. Caché
- * pendant une recherche : la liste des résultats répond déjà à la question
- * posée.
+ * Craft opens its menu on this, and it is the only place in the module from
+ * which a note is reached in one click without knowing where it is filed.
+ * Hidden during a search: the result list already answers the question
+ * asked.
  */
 const favorites = computed(() => {
     if (searching.value) return [];
@@ -283,21 +278,21 @@ const favorites = computed(() => {
     ].sort((a, b) => Date.parse(b.favoritedAt) - Date.parse(a.favoritedAt));
 });
 
-// ── Les espaces ────────────────────────────────────────────────────
+// ── Spaces ─────────────────────────────────────────────────────────
 
 /**
- * Les espaces que la personne lit, chacun avec son rôle.
+ * The spaces the person reads, each with its role.
  *
- * **Une section par espace**, le sien d'abord : ce qui vit dans un espace
- * partagé se range sous son nom, et l'en-tête dit d'un coup d'œil qui le
- * lit et si l'on peut y écrire. Mélanger les racines de plusieurs espaces
- * dans un seul arbre ferait croire qu'une note glissée d'un dossier à
- * l'autre reste chez soi, alors qu'elle change de lecteurs.
+ * **One section per space**, one's own first: what lives in a shared space
+ * is filed under its name, and the header tells at a glance who reads it and
+ * whether one can write in it. Mixing the roots of several spaces in a single
+ * tree would suggest that a note dragged from one folder to another stays at
+ * home, when it actually changes readers.
  */
 const fetchedSpaces = ref(null);
 const announcedSpaces = ref(null);
 const canCreateSpace = ref(false);
-/** La connexion Craft est-elle ouverte : le menu d'un espace propose alors l'import. */
+/** Whether the Craft connection is open: a space's menu then offers the import. */
 const craftEnabled = ref(false);
 
 const spaces = computed(() => sortSpaces(announcedSpaces.value ?? fetchedSpaces.value ?? []));
@@ -319,7 +314,7 @@ function spaceById(id) {
     return spaces.value.find((space) => Number(space.id) === Number(id)) ?? null;
 }
 
-/** Tant que les espaces ne sont pas connus, on ne refuse rien : le serveur tranchera. */
+/** As long as the spaces are not known, nothing is refused: the server will decide. */
 function canWriteIn(spaceId) {
     if (null == spaceId || !spaces.value.length) return true;
 
@@ -327,8 +322,8 @@ function canWriteIn(spaceId) {
 }
 
 /**
- * L'arbre découpé par espace. Une ligne de premier niveau dit son espace ;
- * ce qu'elle contient est forcément du même.
+ * The tree split by space. A top-level row tells its space; what it holds is
+ * necessarily from the same one.
  */
 const spaceGroups = computed(() => {
     if (!spaces.value.length) return [{ space: null, nodes: tree.value }];
@@ -342,19 +337,19 @@ const spaceGroups = computed(() => {
 
     const groups = spaces.value.map((space) => ({ space, nodes: bySpace.get(Number(space.id)) }));
 
-    // Une ligne d'un espace que la liste ne connaît pas encore - créé à
-    // l'instant ailleurs - reste visible plutôt que de disparaître.
+    // A row of a space the list does not know yet - just created elsewhere -
+    // stays visible rather than disappearing.
     if (unplaced.length) groups[0].nodes = [...groups[0].nodes, ...unplaced];
 
     return searching.value ? groups.filter((group) => group.nodes.length) : groups;
 });
 
 /**
- * L'en-tête d'un espace se montre toujours, le sien compris.
+ * A space header always shows, one's own included.
  *
- * Seul, son espace s'affichait sans en-tête, pour garder le panneau d'avant :
- * les notes y étaient, mais rien ne disait où elles vivaient, et « Mon espace »
- * restait introuvable tant qu'on n'en avait pas créé un second.
+ * Alone, one's space showed without a header, to keep the old panel: the
+ * notes were there, but nothing said where they lived, and "Mon espace"
+ * could not be found until a second one had been created.
  */
 const showSpaceHeaders = computed(() => spaceGroups.value.some((group) => null !== group.space));
 
@@ -384,16 +379,16 @@ function toggleSpace(space) {
     try {
         window.localStorage.setItem(SPACES_CLOSED_KEY, JSON.stringify([...next]));
     } catch {
-        // Le repli reste valable pour la visite ; il ne sera pas retenu.
+        // The fold stays valid for the visit; it will not be remembered.
     }
 }
 
-/** La racine d'un espace, comme cible d'un dépôt. */
+/** A space's root, as a drop target. */
 function spaceRoot(space) {
     return { kind: "folder", id: null, key: `space:${space.id}`, spaceId: Number(space.id) };
 }
 
-/** Ce que le menu d'un en-tête d'espace propose. */
+/** What a space header's menu offers. */
 function spaceActions(space) {
     return [
         ...(space.canWrite
@@ -404,7 +399,7 @@ function spaceActions(space) {
                 onSelect: () => forward("import", Number(space.id)),
             }]
             : []),
-        // Seulement quand l'installation a ouvert la connexion Craft.
+        // Only when the installation has opened the Craft connection.
         ...(space.canWrite && craftEnabled.value
             ? [{
                 key: "craft-import",
@@ -427,21 +422,21 @@ function addInSpace(space) {
     forward("add", { folderId: null, spaceId: Number(space.id) });
 }
 
-// ── Les étiquettes ─────────────────────────────────────────────────
+// ── Tags ───────────────────────────────────────────────────────────
 
 /**
- * Les étiquettes du carnet, les épinglées d'abord.
+ * The notebook's tags, pinned ones first.
  *
- * **L'épinglage vit dans le navigateur, pas en base.** Une étiquette n'est
- * pas une ligne dans Aurora : c'est une chaîne dans le tableau `tags` d'une
- * note, sans identité propre. Lui donner une table serait la première dont
- * les lignes ne désignent rien, et l'écran d'administration des étiquettes
- * - qui renomme, fusionne et supprime - devrait la tenir à jour en trois
- * endroits de plus. Ici, une étiquette disparue disparaît d'elle-même de la
- * liste, puisqu'on n'affiche que celles qui existent encore.
+ * **Pinning lives in the browser, not in the database.** A tag is not a row
+ * in Aurora: it is a string in a note's `tags` array, with no identity of its
+ * own. Giving it a table would make the first table whose rows designate
+ * nothing, and the tags admin screen - which renames, merges and deletes -
+ * would have to keep it up to date in three more places. Here, a tag that is
+ * gone disappears from the list by itself, since only the ones that still
+ * exist are shown.
  *
- * Les favoris, eux, sont en base : ils s'accrochent à une note ou à un
- * dossier, c'est-à-dire à quelque chose qui a une ligne.
+ * Favourites, on the other hand, are in the database: they hang on a note or
+ * a folder, that is on something that has a row.
  */
 const pinnedTags = ref(readStoredTags());
 const tagsOpen = ref("1" === readStored(TAGS_OPEN_KEY, "1"));
@@ -451,8 +446,8 @@ function readStored(key, fallback) {
     try {
         return window.localStorage.getItem(key) ?? fallback;
     } catch {
-        // Navigation privée, cadre restreint : la préférence est un
-        // confort, pas un état du carnet.
+        // Private browsing, restricted frame: the preference is a comfort,
+        // not a state of the notebook.
         return fallback;
     }
 }
@@ -471,11 +466,11 @@ function store(key, value) {
     try {
         window.localStorage.setItem(key, value);
     } catch {
-        // Idem : rien à rattraper, la session continue sans mémoire.
+        // Same: nothing to recover, the session goes on without memory.
     }
 }
 
-/** Toutes les étiquettes portées par au moins une note, par fréquence. */
+/** Every tag carried by at least one note, by frequency. */
 const allTags = computed(() => {
     const counts = new Map();
 
@@ -497,11 +492,11 @@ const allTags = computed(() => {
 });
 
 /**
- * Ce qu'on affiche : les épinglées, puis les plus portées.
+ * What is shown: the pinned ones, then the most carried.
  *
- * Une étiquette épinglée qui n'existe plus - renommée, fusionnée, effacée
- * depuis l'écran des étiquettes - tombe d'elle-même, puisque la liste part
- * de ce que les notes portent réellement.
+ * A pinned tag that no longer exists - renamed, merged, deleted from the tags
+ * screen - drops by itself, since the list starts from what the notes
+ * actually carry.
  */
 const visibleTags = computed(() => {
     if (searching.value) return [];
@@ -545,26 +540,25 @@ function labelOf(node) {
     return node.title || t("notes.markdown.untitled");
 }
 
-// ── Ce que le panneau demande à la page ────────────────────────────
+// ── What the panel asks of the page ────────────────────────────────
 
 /**
- * Ce qu'on tient, et où ça tomberait.
+ * What is held, and where it would fall.
  *
- * **Le panneau range lui-même.** Il transmettait le dépôt à la
- * bibliothèque, qui n'existe pas quand une note est ouverte : glisser une
- * note sur un dossier depuis l'éditeur ne faisait rien, sans un mot. Il
- * calcule maintenant le résultat - quel dossier, quel rang - et le confie à
- * la page sous forme de données simples, qu'elle écrit quel que soit l'écran
- * affiché.
+ * **The panel files by itself.** It passed the drop to the library, which
+ * does not exist when a note is open: dragging a note onto a folder from the
+ * editor did nothing, without a word. It now computes the result - which
+ * folder, which rank - and hands it to the page as plain data, which the page
+ * writes whatever screen is shown.
  */
 const draggingKey = ref(null);
 const dropHint = ref(null);
 
-/** Le dossier survolé qui s'ouvrira si l'on attend dessus. */
+/** The hovered folder that will open if one waits on it. */
 let hoverTimer = null;
 let hoverKey = null;
 
-/** Le temps de survol qui déplie un dossier fermé, comme dans le Finder. */
+/** The hover time that expands a closed folder, as in the Finder. */
 const HOVER_OPEN_MS = 600;
 
 function clearHover() {
@@ -578,26 +572,26 @@ function forward(name, ...args) {
 }
 
 /**
- * Un clic ouvre : un dossier dans la bibliothèque, une note dans l'éditeur.
+ * A click opens: a folder in the library, a note in the editor.
  *
- * La page répond aux deux ; si personne n'écoute, le lien de la ligne a déjà
- * l'adresse et le navigateur y va.
+ * The page answers both; if nobody listens, the row's link already has the
+ * address and the browser goes there.
  */
 function onSelect(node) {
     selectedKey.value = node.key;
 
     if ("folder" === node.kind) {
-        // La racine n'a pas d'identifiant, et `Number(null)` vaut zéro :
-        // le panneau demandait donc le dossier 0, que la bibliothèque
-        // affichait vide et dont l'adresse rendait un 404.
-        // Personne à l'écoute : le lecteur est ailleurs dans le module, et la
-        // ligne, qui a annulé son lien pour laisser la page faire, navigue.
+        // The root has no id, and `Number(null)` is zero: so the panel
+        // asked for folder 0, which the library showed empty and whose
+        // address returned a 404.
+        // Nobody listening: the reader is elsewhere in the module, and the
+        // row, which cancelled its link to let the page act, navigates.
         if (!forward("open-folder", null === node.id ? null : Number(node.id))) {
             window.location.assign(null === node.id ? LIBRARY_URL : hrefFor(node));
         }
 
-        // Un dossier qu'on ouvre se déplie aussi : on vient voir ce qu'il
-        // contient, et la flèche n'était qu'un détour de plus.
+        // A folder being opened expands too: one comes to see what it holds,
+        // and the arrow was just one more detour.
         open(node.id);
 
         return;
@@ -607,10 +601,10 @@ function onSelect(node) {
 }
 
 /**
- * Ajouter aux favoris, ou retirer, depuis la ligne.
+ * Add to favourites, or remove, from the row.
  *
- * La page le fait quand elle est là, pour que la bibliothèque et l'éditeur
- * suivent. Sinon le panneau le fait seul et corrige sa propre liste.
+ * The page does it when it is there, so that the library and the editor
+ * follow. Otherwise the panel does it alone and corrects its own list.
  */
 async function toggleFavorite(node) {
     const kind = "folder" === node.kind ? "folder" : "note";
@@ -638,7 +632,7 @@ function onFavoriteClick(entry, event) {
     onSelect(entry);
 }
 
-/** Ce qu'un dépôt sur cette ligne, à cette hauteur, écrirait. */
+/** What a drop on this row, at this height, would write. */
 function planFor(node, event, dragged) {
     const zone = null === node.id
         ? "inside"
@@ -652,18 +646,18 @@ function planFor(node, event, dragged) {
         notes: notes.value,
     });
 
-    // Un espace où l'on ne peut pas écrire ne reçoit rien : autant le dire
-    // par le curseur que par un refus après coup.
+    // A space one cannot write in receives nothing: better to say it with
+    // the cursor than with a refusal afterwards.
     const plan = planned && canWriteIn(planned.spaceId) ? planned : null;
 
     return { zone, plan };
 }
 
 /**
- * Le glisser part d'ici, donc le presse-papier se remplit ici.
+ * The drag starts here, so the clipboard is filled here.
  *
- * La page ne peut pas le faire à notre place : elle reçoit l'événement une
- * fois le glisser commencé, et `setData` n'a plus d'effet à ce moment.
+ * The page cannot do it for us: it receives the event once the drag has
+ * started, and `setData` no longer has any effect at that point.
  */
 function onDragStart(node, event) {
     draggingKey.value = node.key;
@@ -684,9 +678,9 @@ function onDragOver(node, event) {
 
     const { zone, plan } = planFor(node, event, dragged);
 
-    // Un dépôt impossible - un dossier dans son propre enfant, une ligne sur
-    // elle-même - n'allume rien et montre le curseur d'interdiction : mieux
-    // vaut le savoir avant de lâcher qu'après.
+    // An impossible drop - a folder into its own child, a row onto itself -
+    // lights nothing and shows the not-allowed cursor: better to know before
+    // letting go than after.
     if (!plan) {
         if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
         dropHint.value = null;
@@ -700,8 +694,8 @@ function onDragOver(node, event) {
 
     dropHint.value = { key: node.key, zone };
 
-    // Attendre sur un dossier fermé l'ouvre : on descend dans l'arbre sans
-    // lâcher ce qu'on tient.
+    // Waiting on a closed folder opens it: one goes down the tree without
+    // letting go of what one holds.
     const closed = "folder" === node.kind && null !== node.id && !expanded.value.has(Number(node.id));
 
     if ("inside" === zone && closed && (node.children ?? []).length) {
@@ -740,18 +734,18 @@ function onDrop(node, event) {
     if (plan) forward("move", plan);
 }
 
-/** La racine est une cible comme une autre : on y remonte ce qu'on lâche. */
+/** The root is a target like any other: what is dropped goes back up there. */
 const rootNode = { kind: "folder", id: null, key: "root" };
 
-// ── Le clavier ─────────────────────────────────────────────────────
+// ── The keyboard ───────────────────────────────────────────────────
 
 /**
- * Parcourir l'arbre sans la souris, comme dans un explorateur.
+ * Walk the tree without the mouse, as in a file explorer.
  *
- * Haut et bas passent d'une ligne visible à l'autre, droite déplie puis
- * descend, gauche replie puis remonte au dossier parent, Entrée ouvre, F2
- * renomme. Une seule ligne à la fois porte le focus : l'arbre compte pour
- * une tabulation, pas pour cent.
+ * Up and down move from one visible row to the next, right expands then
+ * goes down, left folds then goes up to the parent folder, Enter opens, F2
+ * renames. Only one row at a time has the focus: the tree counts as one tab
+ * stop, not a hundred.
  */
 const treeRef = ref(null);
 
@@ -785,9 +779,9 @@ function onTreeFocus(event) {
 }
 
 function onTreeKeydown(event) {
-    // Seulement quand c'est la ligne qui a le focus : un bouton de la ligne
-    // - ses trois points - garde Entrée pour lui, sinon il ouvrait la ligne
-    // au lieu de son menu.
+    // Only when the row itself has the focus: a button of the row - its
+    // three dots - keeps Enter for itself, otherwise it opened the row
+    // instead of its menu.
     const current = event.target;
     if (!current?.matches?.("[data-tree-row]")) return;
 
@@ -846,9 +840,9 @@ onMounted(() => {
             if ("canCreateSpace" in (detail ?? {})) canCreateSpace.value = Boolean(detail.canCreateSpace);
             if ("craftEnabled" in (detail ?? {})) craftEnabled.value = Boolean(detail.craftEnabled);
 
-            // La page dit ce qu'elle montre : un dossier, une note, ou la
-            // racine. La ligne correspondante s'allume, et son dossier
-            // s'ouvre pour qu'elle soit visible.
+            // The page says what it shows: a folder, a note, or the root.
+            // The matching row lights up, and its folder opens so that it is
+            // visible.
             if (detail?.noteId) {
                 selectedKey.value = `note:${detail.noteId}`;
                 revealNote(detail.noteId);
@@ -878,7 +872,7 @@ onUnmounted(() => {
         :failed="failed"
     >
         <template #action>
-            <!-- Lire le carnet, d'un clic : l'espace de lecture, épuré. -->
+            <!-- Read the notebook, in one click: the uncluttered reading space. -->
             <AppIconButton
                 data-read-mode-toggle
                 :title="`${t('notes.markdown.read.mode')} (Alt+R)`"
@@ -906,9 +900,9 @@ onUnmounted(() => {
             >
                 <Download class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
-            <!-- Un seul plus, qui demande quoi : une note ou un dossier.
-                     Deux boutons côte à côte obligeaient à deviner lequel était
-                     lequel à la seule forme de leur icône. -->
+            <!-- A single plus, which asks what: a note or a folder.
+                     Two buttons side by side forced one to guess which was
+                     which from the shape of their icon alone. -->
             <AppIconButton
                 :title="t('notes.markdown.add.title')"
                 v-on:click="forward('add', null)"
@@ -917,8 +911,8 @@ onUnmounted(() => {
             </AppIconButton>
         </template>
 
-        <!-- Pas de retrait horizontal : les lignes de l'arborescence portent
-             le leur à l'intérieur et occupent toute la largeur du panneau. -->
+        <!-- No horizontal indent: the tree rows carry their own inside and
+             take the whole width of the panel. -->
         <div class="pb-1">
             <AppSearchInput
                 v-model="treeQuery"
@@ -926,8 +920,8 @@ onUnmounted(() => {
             />
         </div>
 
-        <!-- Les favoris, avant l'arborescence : ce qu'on vient chercher tous
-             les jours n'a pas à se retrouver dans un arbre. -->
+        <!-- Favourites, before the tree: what one comes for every day does
+             not have to be found in a tree. -->
         <div v-if="favorites.length" class="mb-2 border-b border-line pb-2">
             <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
                 {{ t('notes.markdown.library.favorites') }}
@@ -950,9 +944,9 @@ onUnmounted(() => {
             </a>
         </div>
 
-        <!-- La racine est une ligne comme les autres : c'est là qu'on
-             retombe, et une arborescence sans son sommet oblige à deviner
-             comment y revenir. -->
+        <!-- The root is a row like the others: it is where one lands back,
+             and a tree without its top forces one to guess how to get back
+             to it. -->
         <a
             :href="LIBRARY_URL"
             data-root-row
@@ -977,8 +971,8 @@ onUnmounted(() => {
             {{ t("notes.markdown.search_no_results") }}
         </p>
 
-        <!-- L'arbre compte pour une seule tabulation : on y entre, puis les
-             flèches font le reste. -->
+        <!-- The tree counts as a single tab stop: one enters it, then the
+             arrows do the rest. -->
         <div
             ref="treeRef"
             role="tree"
@@ -989,9 +983,9 @@ onUnmounted(() => {
             v-on:keydown="onTreeKeydown"
         >
             <template v-for="group in spaceGroups" :key="group.space ? `space:${group.space.id}` : 'all'">
-                <!-- L'en-tête d'un espace : son nom, s'il se lit seulement,
-                     et ce qu'on y fait. Lâcher quelque chose dessus le range
-                     à sa racine. -->
+                <!-- A space header: its name, whether it is read-only, and
+                     what can be done there. Dropping something on it files
+                     it at its root. -->
                 <div
                     v-if="showSpaceHeaders && group.space"
                     :data-space-header="group.space.id"
@@ -1028,8 +1022,8 @@ onUnmounted(() => {
                     >
                         <title>{{ t('notes.markdown.spaces.publication.badge') }}</title>
                     </Globe>
-                    <!-- Réglé depuis Studio : le badge le dit, et les réglages
-                         ne s'ouvrent pas d'ici. -->
+                    <!-- Set from Studio: the badge says so, and the settings
+                         do not open from here. -->
                     <span
                         v-if="group.space.managed"
                         data-space-managed
@@ -1059,8 +1053,8 @@ onUnmounted(() => {
                     >
                         <Settings2 class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
-                    <!-- Emporter un espace seul, ou y verser des fichiers : les
-                         deux gestes de la barre du panneau, bornés à lui. -->
+                    <!-- Take a single space away, or pour files into it: the
+                         two gestures of the panel's bar, limited to it. -->
                     <AppRowActions
                         class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
                         size="sm"
@@ -1103,9 +1097,9 @@ onUnmounted(() => {
                 </template>
             </template>
         </div>
-        <!-- Les étiquettes, sous l'arborescence : elles traversent le
-             rangement, donc elles ne peuvent pas y tenir une place. Cliquer
-             l'une d'elles montre ses notes, où qu'elles soient. -->
+        <!-- Tags, below the tree: they cut across the filing, so they cannot
+             hold a place in it. Clicking one shows its notes, wherever they
+             are. -->
         <div v-if="allTags.length && !searching" class="mt-2 border-t border-line pt-2">
             <button
                 type="button"

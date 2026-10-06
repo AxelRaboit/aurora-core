@@ -64,19 +64,19 @@
         {% endset %}
 
         {% if hero_content|trim %}
-            {# **Sur téléphone, le titre et sa phrase, puis le formulaire.**
-               L'argumentaire complet (titre, phrase et quatre atouts) faisait
-               près de trois cents pixels : avant le formulaire, il repoussait
-               « Se connecter » sous la barre du navigateur ; après, la page
-               s'ouvrait sur des champs sans dire où l'on était. Les atouts
-               sont donc réservés à l'ordinateur (cf. auth_hero.html.twig), et
-               ce qui reste passe en tête. À partir de `lg`, les deux colonnes
-               reprennent leur place et l'ordre écrit redevient l'ordre lu.
+            {# **On a phone, the title and its sentence, then the form.**
+               The full pitch (title, sentence and four strengths) was nearly
+               three hundred pixels: before the form, it pushed "Log in"
+               below the browser bar; after it, the page opened on fields
+               without saying where you were. The strengths are therefore
+               reserved for the computer (cf. auth_hero.html.twig), and what
+               remains goes first. From `lg`, the two columns take their
+               place back and the written order is the reading order again.
 
-               `contents` défait la cellule de gauche pour que le logo,
-               l'argumentaire et la carte deviennent trois éléments de la
-               grille, ordonnables séparément ; au-dessus de `lg` la cellule
-               redevient un bloc et les `order` n'ont plus d'effet. #}
+               `contents` undoes the left cell so that the logo, the pitch
+               and the card become three items of the grid, which can be
+               ordered separately; above `lg` the cell becomes a block again
+               and the `order` classes have no effect any more. #}
             <div class="flex min-h-screen items-center justify-center bg-bg px-2 py-4 sm:px-4 sm:py-12">
                 <div class="w-full max-w-7xl grid lg:grid-cols-2 gap-8 lg:gap-20 items-center">
                     <div class="contents lg:block">

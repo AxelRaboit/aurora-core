@@ -34,8 +34,8 @@ use function sprintf;
 use const PHP_URL_PATH;
 
 /**
- * Les livrables de Studio, ceux qui ne sont rattachés à aucun espace client :
- * perso ou partagés, et ce que chacun peut y faire.
+ * Studio deliverables, the ones linked to no client space: personal or
+ * shared, and what each person can do with them.
  */
 final class StudioDeliverablesTest extends IntegrationTestCase
 {
@@ -92,7 +92,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** Un livrable perso naît sans espace, à son auteur, et sans client à qui l'ouvrir. */
+    /** A personal deliverable is born without a space, owned by its author, and with no client to open it to. */
     public function testAStudioDeliverableIsBornWithoutAClient(): void
     {
         $id = $this->create('Proposition', DeliverableScopeEnum::Personal);
@@ -101,10 +101,10 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertNull($deliverable->getSpace());
         self::assertSame($this->admin->getId(), $deliverable->getOwner()?->getId());
         self::assertSame(DeliverableScopeEnum::Personal, $deliverable->getScope());
-        // Personne à nommer « préparé pour » : la normalisation n'en garde rien.
+        // Nobody to name in "préparé pour": normalization keeps nothing of it.
         self::assertEmpty($deliverable->getReadingHeader()['preparedFor'] ?? '');
 
-        // La case « visible par le client » ne tient pas : il n'y a pas de client.
+        // The "visible par le client" checkbox does not hold: there is no client.
         $this->update($id, ['visibleToClient' => true]);
         self::assertFalse($this->find($id)->isVisibleToClient());
 
@@ -112,7 +112,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Ce que l'auteur garde pour lui, personne d'autre ne le voit ni ne l'ouvre. */
+    /** What the author keeps to themselves, nobody else sees or opens. */
     public function testAPersonalDeliverableBelongsToItsAuthorAlone(): void
     {
         $id = $this->create('Brouillon', DeliverableScopeEnum::Personal);
@@ -130,7 +130,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    /** Un livrable partagé se lit par l'équipe, et se modifie avec le droit. */
+    /** A shared deliverable is read by the team, and edited with the right. */
     public function testASharedDeliverableIsReadByTheTeamAndEditedWithTheRight(): void
     {
         $id = $this->create('Modèle d\'audit', DeliverableScopeEnum::Shared);
@@ -151,7 +151,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertSame('Modèle d\'audit, version 2', $this->find($id)->getTitle());
     }
 
-    /** Passer de perso à partagé, ou l'inverse : à l'auteur seul, même pour qui peut modifier. */
+    /** Switching from personal to shared, or the reverse: the author alone, even over whoever can edit. */
     public function testOnlyTheAuthorMovesADeliverableBetweenScopes(): void
     {
         $author = $this->accountWith(self::TEAM);
@@ -167,15 +167,15 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/scope', $id), ['scope' => 'personal']);
         self::assertResponseStatusCodeSame(403);
 
-        // Envoyé avec un enregistrement, le rayon est ignoré pour qui n'est pas l'auteur.
+        // Sent with a save, the scope is ignored for whoever is not the author.
         $this->update($id, ['scope' => 'personal']);
         self::assertSame(DeliverableScopeEnum::Shared, $this->find($id)->getScope());
     }
 
     /**
-     * L'auteur garde la main sur ce qu'il a écrit : il modifie le livrable
-     * qu'il a partagé, et jette son brouillon perso, sans les droits de
-     * modification ni de suppression du module.
+     * The author keeps control over what they wrote: they edit the
+     * deliverable they shared, and throw away their personal draft, without
+     * the module's edit or delete rights.
      */
     public function testTheAuthorKeepsTheirOwnDeliverablesWithoutTheModuleRights(): void
     {
@@ -215,7 +215,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
-    /** Un livrable perso dont l'auteur a disparu revient à l'administrateur. */
+    /** A personal deliverable whose author is gone goes to the administrator. */
     public function testAnOrphanedPersonalDeliverableGoesToTheAdministrators(): void
     {
         $author = $this->accountWith(self::TEAM);
@@ -231,13 +231,13 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
         self::assertContains($id, array_column($this->lists()['personal'], 'id'));
 
-        // Le partager le rattache à qui l'a recueilli.
+        // Sharing it links it to whoever took it in.
         $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/scope', $id), ['scope' => 'shared']);
         self::assertResponseIsSuccessful();
         self::assertSame($this->admin->getId(), $this->find($id)->getOwner()?->getId());
     }
 
-    /** Ses liens de lecture marchent comme ceux d'un espace, et s'éteignent avec le module. */
+    /** Its reading links work like a space's, and go dark with the module. */
     public function testItsReadingLinkWorksAndDiesWithTheModule(): void
     {
         $id = $this->create('À envoyer', DeliverableScopeEnum::Shared);
@@ -261,7 +261,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    /** Un livrable d'espace s'ouvre par son espace, jamais par Studio ; et l'inverse. */
+    /** A space deliverable opens through its space, never through Studio; and the reverse. */
     public function testSpaceAndStudioDeliverablesKeepToTheirOwnAddresses(): void
     {
         $standalone = $this->create('Hors espace', DeliverableScopeEnum::Shared);
@@ -280,7 +280,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    /** Une copie est à qui la fait, dans le rayon de l'original. */
+    /** A copy belongs to whoever makes it, in the original's scope. */
     public function testACopyBelongsToWhoeverMadeIt(): void
     {
         $id = $this->create('Gabarit', DeliverableScopeEnum::Shared);
@@ -297,7 +297,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertNull($copy->getSpace());
     }
 
-    /** Le modèle de Studio recopié chez un client : la copie vit dans l'espace, l'original reste. */
+    /** The Studio template copied into a client space: the copy lives in the space, the original stays. */
     public function testACopyLandsInAClientSpaceAndTheOriginalStays(): void
     {
         $id = $this->create('Modèle d\'audit', DeliverableScopeEnum::Personal);
@@ -324,7 +324,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Un espace qu'on ne voit pas, ou qui n'existe pas, ne reçoit rien ; sans titre, la copie garde celui de l'original. */
+    /** A space one cannot see, or that does not exist, receives nothing; without a title, the copy keeps the original's. */
     public function testCopyingIntoASpaceNeedsToSeeIt(): void
     {
         $id = $this->create('Gabarit partagé', DeliverableScopeEnum::Shared);
@@ -345,7 +345,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertSame('Gabarit partagé', $this->find($copyId)->getTitle());
     }
 
-    /** Un livrable d'espace gardé comme modèle : la copie arrive dans « Mes livrables », sans client. */
+    /** A space deliverable kept as a template: the copy lands in "Mes livrables", without a customer. */
     public function testASpaceDeliverableCopiesIntoStudio(): void
     {
         $space = $this->givenSpace();
@@ -369,7 +369,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertSame($space->getId(), $this->find($inSpace)->getSpace()?->getId(), 'the space keeps its own');
     }
 
-    /** Module des livrables éteint : rien ne part d'un espace vers Studio. */
+    /** Deliverables module off: nothing goes from a space to Studio. */
     public function testCopyingIntoStudioNeedsTheModule(): void
     {
         $space = $this->givenSpace();
@@ -383,7 +383,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
-    /** Une catégorie se crée, se renomme, se range ; ses livrables la portent sur leur carte. */
+    /** A category is created, renamed, reordered; its deliverables carry it on their card. */
     public function testADeliverableIsFiledUnderACategory(): void
     {
         $audit = $this->createCategory('Audit', '#bd4a55');
@@ -409,12 +409,12 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $categories = json_decode((string) $this->client->getResponse()->getContent(), true)['categories'];
         self::assertSame([$strategy, $audit], array_column($categories, 'id'));
 
-        // Un identifiant que rien ne résout laisse sans catégorie, sans refuser l'enregistrement.
+        // An id that resolves to nothing leaves it without a category, without refusing the save.
         $this->update($id, ['categoryId' => 999999]);
         self::assertNull($this->find($id)->getCategory());
     }
 
-    /** Supprimer une catégorie laisse ses livrables, sans catégorie. */
+    /** Deleting a category leaves its deliverables, without a category. */
     public function testDeletingACategoryKeepsItsDeliverables(): void
     {
         $audit = $this->createCategory('Audit', null);
@@ -428,7 +428,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertNull($this->rowOf($id)['category']);
     }
 
-    /** Une catégorie a un nom, et une couleur valide quand elle en a une. */
+    /** A category has a name, and a valid color when it has one. */
     public function testACategoryNeedsANameAndAValidColour(): void
     {
         $this->client->jsonRequest('POST', '/suite/studio/deliverables/categories/create', ['name' => '  ']);
@@ -438,7 +438,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
-    /** Ranger la bibliothèque demande le droit de modifier les livrables ; ranger son livrable, non. */
+    /** Organizing the library requires the right to edit deliverables; filing one's own deliverable does not. */
     public function testManagingCategoriesNeedsTheEditRight(): void
     {
         $audit = $this->createCategory('Audit', null);
@@ -456,7 +456,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertSame($audit, $this->find($id)->getCategory()?->getId());
     }
 
-    /** La copie dans Studio garde la catégorie ; la copie chez un client la laisse, l'espace range seul. */
+    /** The copy in Studio keeps the category; the copy in a client space drops it, the space files on its own. */
     public function testACopyKeepsItsCategoryOnlyInStudio(): void
     {
         $audit = $this->createCategory('Audit', null);
@@ -473,7 +473,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertNull($this->find($inSpace)->getCategory());
     }
 
-    /** Une image de la médiathèque devient la vignette de la carte ; un PDF, non ; les copies la gardent. */
+    /** A media library image becomes the card's thumbnail; a PDF does not; copies keep it. */
     public function testADeliverableCarriesAnImage(): void
     {
         $image = $this->givenDocument('Couverture', 'image/jpeg');

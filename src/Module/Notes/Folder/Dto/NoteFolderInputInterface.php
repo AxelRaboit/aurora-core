@@ -8,13 +8,13 @@ interface NoteFolderInputInterface
 {
     public function getName(): ?string;
 
-    /** `#rrggbb`, ou null pour un dossier sans couleur. */
+    /** `#rrggbb`, or null for a folder without a colour. */
     public function getColor(): ?string;
 
     public function getParentId(): ?int;
 
     public function getPosition(): ?int;
 
-    /** L'espace d'une création à la racine ; null pour son espace personnel. */
+    /** The space of a creation at the root; null for one's personal space. */
     public function getSpaceId(): ?int;
 }

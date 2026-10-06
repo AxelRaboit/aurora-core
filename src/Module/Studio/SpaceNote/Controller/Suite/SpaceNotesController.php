@@ -16,18 +16,17 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Les notes d'un espace client, côté Studio : une seule route.
+ * A client space's notes, on the Studio side: a single route.
  *
- * **Les notes s'écrivent dans le module Notes**, dans l'espace de notes de
- * l'espace client, et chaque note passe par les routes et les règles de ce
- * module. Ce qui reste ici, c'est d'ouvrir cet espace de notes la première
- * fois qu'on en a besoin, avec l'équipe de l'espace.
+ * **Notes are written in the Notes module**, in the client space's notes
+ * space, and each note goes through that module's routes and rules. What is
+ * left here is opening that notes space the first time it is needed, with the
+ * space's team.
  *
- * **Aucune route publique, toujours** : le client ne voit pas les notes.
- * L'espace client arrive par l'URL et passe par la règle de visibilité des
- * espaces, comme toutes les routes `workspace_*` : un espace dont on n'est pas
- * répond 404. Et la route se ferme avec le module Notes
- * ({@see NotesRouteGateSubscriber}).
+ * **No public route, ever**: the client does not see the notes. The client
+ * space comes in through the URL and goes through the spaces' visibility rule,
+ * like every `workspace_*` route: a space one is not part of answers 404. And
+ * the route closes with the Notes module ({@see NotesRouteGateSubscriber}).
  */
 #[Route('/workspace/{id}/notes', name: 'workspace_space_notes', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -41,11 +40,11 @@ class SpaceNotesController extends AbstractController
     ) {}
 
     /**
-     * L'espace de notes de cet espace client, ouvert s'il ne l'est pas.
+     * This client space's notes space, opened if it is not.
      *
-     * Une écriture, d'où le POST : la première note, ou le premier import,
-     * crée l'espace de notes et y inscrit l'équipe. Rendre l'état de l'onglet
-     * avec la réponse évite un second aller-retour.
+     * A write, hence the POST: the first note, or the first import, creates the
+     * notes space and enrols the team in it. Returning the tab's state with the
+     * response saves a second round trip.
      */
     #[Route('/open', name: '_open', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('notes.markdown.use')]

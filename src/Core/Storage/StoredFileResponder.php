@@ -14,28 +14,27 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Rend un fichier stocké, une fois que l'appelant a dit oui.
+ * Returns a stored file, once the caller has said yes.
  *
- * **Il ne décide de rien.** Qui a le droit de lire, c'est la route qui le dit,
- * et c'est volontairement resté là : la médiathèque lit par son privilège, un
- * espace par le sien, un client par son lien. Un service qui trancherait à
- * leur place ferait de ces règles une seule.
+ * **It decides nothing.** Who may read is said by the route, and it was left
+ * there on purpose: the media library reads by its privilege, a space by its
+ * own, a client by their link. A service that ruled in their place would
+ * merge these rules into one.
  *
- * Ce qu'il porte est la mécanique, qui elle ne varie pas : trouver
- * l'adaptateur qui détient la clé, servir le fichier local tel quel - donc
- * déchargé par le serveur web en production - et diffuser le distant par
- * morceaux. Quatre contrôleurs en portaient une copie chacun, au caractère
- * près.
+ * What it carries is the mechanics, which do not vary: find the adapter that
+ * holds the key, serve the local file as is - so offloaded to the web server
+ * in production - and stream the remote one in chunks. Four controllers each
+ * carried a copy of it, character for character.
  *
- * **Privé, une heure.** C'est la politique de tout ce qui passe par une
- * autorisation : un cache partagé qui garderait la réponse répondrait à la
- * place du décideur, avec les octets d'un fichier qu'on ne lui a pas soumis.
- * Ce qui est public a son propre chemin, `UploadsServeController`, qui choisit
- * l'inverse en connaissance de cause et reste donc à part.
+ * **Private, one hour.** That is the policy for everything that goes through
+ * an authorization: a shared cache that kept the response would answer in
+ * place of the decider, with the bytes of a file that was never submitted to
+ * it. What is public has its own path, `UploadsServeController`, which
+ * deliberately chooses the opposite and therefore stays separate.
  *
- * Diffusé plutôt que redirigé, pour la raison que donne `GedFilesController` :
- * un lien signé ou un nom d'hôte public survivrait à l'autorisation qui vient
- * d'être accordée.
+ * Streamed rather than redirected, for the reason `GedFilesController` gives:
+ * a signed link or a public host name would outlive the authorization that
+ * has just been granted.
  */
 final readonly class StoredFileResponder
 {
@@ -46,7 +45,7 @@ final readonly class StoredFileResponder
         private string $uploadRoot,
     ) {}
 
-    /** @param string $key la clé de stockage, telle qu'elle est enregistrée */
+    /** @param string $key the storage key, as it is recorded */
     public function respond(string $key): Response
     {
         $adapter = $this->locator->locate($key);

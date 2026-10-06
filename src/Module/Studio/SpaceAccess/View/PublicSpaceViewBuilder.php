@@ -61,14 +61,14 @@ final readonly class PublicSpaceViewBuilder
     ) {}
 
     /**
-     * Les livrables que le studio a ouverts au client.
+     * The deliverables the studio opened to the client.
      *
-     * Les fermés ne sortent pas du serveur : c'est la requête qui les écarte,
-     * pas la page.
+     * Closed ones do not leave the server: the query leaves them out, not the
+     * page.
      *
-     * L'image de chaque livrable vient avec lui, si elle est publiée dans la
-     * médiathèque : le client n'est pas connecté, et une image privée ne
-     * s'afficherait pas chez lui. Elle n'est alors simplement pas envoyée.
+     * Each deliverable's image comes with it, if it is published in the media
+     * library: the client is not logged in, and a private image would not
+     * display for them. It is then simply not sent.
      *
      * @return list<array{id: int, title: string, description: ?string, format: string, updatedAt: string, url: string, thumbnailUrl: ?string, thumbnailPosition: ?string}>
      */
@@ -119,12 +119,12 @@ final readonly class PublicSpaceViewBuilder
                 'colourSlot' => $space->getColourSlot(),
                 'timezone' => $space->getTimezone(),
             ],
-            // Les étapes que le client voit, et elles seules. Le tableau du
-            // studio garde les siennes ; « Relecture juridique » n'a pas à
-            // être une nouvelle pour lui.
-            // Sans `visibleToClient` : toutes celles qui arrivent ici le sont,
-            // le champ ne pourrait dire que « oui ». Un drapeau qui n'a qu'une
-            // valeur n'informe personne et fait croire qu'il en a deux.
+            // The steps the client sees, and only those. The studio's board
+            // keeps its own; "Relecture juridique" does not need to be news to
+            // them.
+            // Without `visibleToClient`: every step that gets here is visible,
+            // the field could only say "yes". A flag with a single value
+            // informs nobody and suggests it has two.
             'columns' => array_map(
                 function (SpaceContentColumnInterface $column): array {
                     $shape = $this->columnSerializer->serialize($column);
@@ -137,33 +137,33 @@ final readonly class PublicSpaceViewBuilder
             'items' => $this->serializeCards($cards),
             'comments' => $this->commentsOn($space, $cards),
             'attachments' => $this->attachmentsOn($link, $token, $cards),
-            // La fiche du client, quand elle dit quelque chose.
+            // The client's record, when it says something.
             //
-            // **`null` plutôt qu'une fiche vide**, parce que c'est ce que
-            // l'onglet lit pour savoir s'il a lieu d'exister : une société
-            // connaît son propre nom, et un onglet qui ne lui apprendrait que
-            // celui-là est un onglet qu'on ouvre une fois.
+            // **`null` rather than an empty record**, because that is what the
+            // tab reads to know whether it should exist: a company knows its
+            // own name, and a tab that would teach it only that is a tab
+            // opened once.
             'information' => $this->informationSerializer->hasContent($space->getCustomer())
                 ? $this->informationSerializer->serialize($space->getCustomer())
                 : null,
-            // Les ressources ouvertes au client, et elles seules. Le filtre est
-            // dans la requête : une ressource fermée ne sort pas du serveur,
-            // parce que la cacher dans la page en aurait fait une préférence
-            // d'affichage et non une décision.
+            // The resources opened to the client, and only those. The filter
+            // is in the query: a closed resource does not leave the server,
+            // because hiding it in the page would have made it a display
+            // preference and not a decision.
             'resources' => array_map(
                 $this->resourceSerializer->serializeForGuest(...),
                 $this->resources->findForSpace($space, visibleOnly: true),
             ),
-            // Les documents écrits pour ce client et publiés : un brouillon reste
-            // à l'équipe tant qu'elle ne l'a pas publié. Chacun s'ouvre par le
-            // lien de l'espace lui-même, sans mot de passe de plus.
+            // The documents written for this client and published: a draft
+            // stays with the team until it is published. Each one opens through
+            // the space's own link, with no extra password.
             'documents' => $this->documents($link, $token),
             'expiresAt' => $link->getExpiresAt(),
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
             'canUpload' => $link->canUpload(),
-            // La page le dit en haut : ce qu'on regarde n'est pas ce que le
-            // client a reçu, et rien de ce qu'on y clique ne part.
+            // The page says so at the top: what is being looked at is not what
+            // the client received, and nothing clicked there is sent.
             'preview' => $link->isPreview(),
             // The one address this page may post to, and only when it may.
             // A reader who cannot answer is handed no endpoint at all rather
@@ -175,9 +175,9 @@ final readonly class PublicSpaceViewBuilder
                     'itemId' => '__id__',
                 ])
                 : null,
-            // La validation en lot, jamais la demande de modification : dix
-            // approbations disent une seule chose dix fois, dix demandes de
-            // reprise sans un mot n'apprennent rien au studio.
+            // Batch approval, never the change request: ten approvals say one
+            // thing ten times, ten change requests without a word teach the
+            // studio nothing.
             'approveManyPath' => $link->canApprove()
                 ? $this->urlGenerator->generate('public_space_approve_many', [
                     'selector' => $link->getSelector(),
@@ -207,9 +207,9 @@ final readonly class PublicSpaceViewBuilder
                     'token' => $token,
                 ])
                 : null,
-            // Le dossier Drive, s'il y en a un. Les adresses sont posées même
-            // quand le dossier est vide : l'écran décide de se montrer sur ce
-            // que la liste rend, et non sur ce que le serveur suppose.
+            // The Drive folder, if there is one. The addresses are set even
+            // when the folder is empty: the screen decides to show itself from
+            // what the list returns, not from what the server assumes.
             'drivePath' => !$link->canSeeDrive() || null === $link->getSpace()->getDriveFolderId()
                 ? null
                 : $this->urlGenerator->generate('public_space_drive', [
@@ -344,25 +344,24 @@ final readonly class PublicSpaceViewBuilder
     }
 
     /**
-     * Les fiches qu'un client a le droit de voir, indexées par identifiant.
+     * The cards a client is allowed to see, indexed by id.
      *
-     * **Le même tamis pour les trois listes, et c'est tout le sujet.** Les
-     * fiches le traversaient, les fils et les pièces jointes non : le fil
-     * d'une étape marquée interne et ses fichiers partaient dans la page du
-     * client, avec leurs adresses de téléchargement. L'écran n'en montrait
-     * rien parce qu'il ne connaissait pas la fiche, ce qui est la pire forme
-     * de fuite : invisible à l'usage, entière dans la source.
+     * **The same sieve for the three lists, and that is the whole point.**
+     * Cards went through it, threads and attachments did not: the thread of a
+     * step marked internal and its files went into the client's page, with
+     * their download addresses. The screen showed none of it because it did
+     * not know the card, which is the worst kind of leak: invisible in use,
+     * complete in the source.
      *
-     * **Les deux filtres, et pas seulement celui des colonnes.** Retirer une
-     * étape sans retirer ses fiches laisserait les cartes d'une colonne
-     * invisible dans le calendrier du client, qui les lit par leur date et non
-     * par leur étape.
+     * **Both filters, and not only the column one.** Removing a step without
+     * removing its cards would leave the cards of a hidden column in the
+     * client's calendar, which reads them by date and not by step.
      *
-     * Lu une fois par page et passé aux trois listes. Chacune le relisait
-     * pour son compte, et la page entière relisait le tableau quatre fois, à
-     * chaque chargement et après chaque réponse du client.
+     * Read once per page and passed to the three lists. Each one used to read
+     * it again on its own, and the whole page read the board four times, on
+     * every load and after every answer from the client.
      *
-     * @return array<int, SpaceContentItemInterface> dans l'ordre du tableau
+     * @return array<int, SpaceContentItemInterface> in board order
      */
     private function visibleCards(CustomerSpaceInterface $space): array
     {
@@ -378,10 +377,11 @@ final readonly class PublicSpaceViewBuilder
     }
 
     /**
-     * Les colonnes ouvertes au client.
+     * The columns opened to the client.
      *
-     * Filtrées ici plutôt que par une requête dédiée : le tableau d'un espace
-     * en compte une poignée, et le dépôt sert déjà les mêmes lignes au studio.
+     * Filtered here rather than by a dedicated query: a space's board has a
+     * handful of them, and the repository already serves the same rows to the
+     * studio.
      *
      * @return list<SpaceContentColumnInterface>
      */

@@ -24,7 +24,7 @@ use function sprintf;
 /** @extends ResolveTargetEntityRepository<MarkdownNoteInterface> */
 class MarkdownNoteRepository extends ResolveTargetEntityRepository
 {
-    /** Assez pour remplir une vignette de la mosaïque, sans porter la note entière. */
+    /** Enough to fill a grid thumbnail, without carrying the whole note. */
     public const int EXCERPT_LENGTH = 700;
 
     public function __construct(ManagerRegistry $registry)
@@ -37,32 +37,31 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * The library groups them by folder; the browser sorts them, the title
      * being encrypted and therefore beyond the reach of an ORDER BY.
      *
-     * Des tableaux, pas des entités : la requête sélectionne des colonnes, et
-     * l'annotation disait le contraire, ce qui laissait les appelants croire
-     * qu'ils tenaient des notes.
+     * Arrays, not entities: the query selects columns, and the annotation
+     * said the opposite, which let callers believe they were holding notes.
      *
-     * **Les dates partent en chaînes ISO**, comme celles du sérialiseur.
-     * L'hydratation en tableau rend des `DateTimeImmutable`, que `json_encode`
-     * écrit `{date, timezone_type, timezone}` : un objet que le navigateur ne
-     * sait pas lire comme une date. Personne ne l'avait vu tant que l'écran
-     * n'affichait aucune date ; le jour où la bibliothèque a montré « modifiée
-     * le », le formatage a levé et la page entière est restée blanche.
+     * **Dates go out as ISO strings**, like the serializer's. Array hydration
+     * returns `DateTimeImmutable`, which `json_encode` writes as
+     * `{date, timezone_type, timezone}`: an object the browser cannot read as
+     * a date. Nobody had noticed as long as the screen showed no date; the day
+     * the library showed "modifiée le", the formatting threw and the whole
+     * page stayed blank.
      *
      * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, version: int, folderId: int|null, spaceId: int}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
-        // `coverUrl`, `coverPosition` et `appearance` voyagent avec la liste
-        // pour que l'entête d'une note soit dessinée dès le clic, sans attendre
-        // le corps. Sans eux, passer d'une note à bandeau à une autre faisait
-        // disparaître l'image puis revenir : cent soixante pixels de saut,
-        // mesurés, à chaque changement. Ce sont trois colonnes en clair sur une
-        // requête qui en lisait déjà neuf ; seuls le titre et le texte sont
-        // chiffrés, donc elles ne coûtent rien à déchiffrer.
+        // `coverUrl`, `coverPosition` and `appearance` travel with the list
+        // so that a note's header is drawn on click, without waiting for the
+        // body. Without them, going from one banner note to another made the
+        // image disappear then come back: a jump of one hundred and sixty
+        // pixels, measured, at each switch. They are three plain-text columns
+        // on a query that already read nine; only the title and the text are
+        // encrypted, so they cost nothing to decrypt.
         /** @var list<array<string, mixed>> $rows */
-        // Les favoris de la personne qui demande, joints ici : ils sont à
-        // elle, pas à la note, et une seconde requête les recollerait ligne
-        // par ligne.
+        // The favorites of the person asking, joined here: they belong to
+        // them, not to the note, and a second query would stick them back
+        // row by row.
         $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
             ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'n.craftDocumentId', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
             ->leftJoin(NoteFavorite::class, 'fav', Join::WITH, 'fav.note = n AND fav.user = :favoriteViewer')
@@ -83,8 +82,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Ce qu'une personne peut lire : les notes des espaces qui lui sont
-     * ouverts, selon la seule règle de {@see NoteSpaceRepository::readableSubquery()}.
+     * What a person can read: the notes of the spaces open to them,
+     * according to the single rule of {@see NoteSpaceRepository::readableSubquery()}.
      */
     private function visibleTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
@@ -93,7 +92,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         return NoteSpaceRepository::bindViewer($qb, $user);
     }
 
-    /** Ce qu'une personne peut écrire : les espaces où elle est rédactrice ou plus. */
+    /** What a person can write: the spaces where they are editor or above. */
     private function writableTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
         $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
@@ -101,19 +100,19 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         return NoteSpaceRepository::bindViewer($qb, $user);
     }
 
-    /** La corbeille qu'une personne gère : celle des espaces où elle écrit. */
+    /** The trash a person manages: that of the spaces where they write. */
     private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
         return $this->writableTo($qb, $alias, $user);
     }
 
-    /** La racine d'un espace. */
+    /** The root of a space. */
     private function rootOf(QueryBuilder $qb, string $alias, NoteSpaceInterface $space): void
     {
         $qb->andWhere(sprintf('%s.space = :rootSpace', $alias))->setParameter('rootSpace', $space);
     }
 
-    /** Une date de l'hydratation en tableau, rendue lisible par un navigateur. */
+    /** A date from array hydration, made readable by a browser. */
     private static function asAtom(mixed $value): ?string
     {
         return $value instanceof DateTimeInterface ? $value->format(DateTimeInterface::ATOM) : null;
@@ -122,17 +121,16 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     /**
      * The first words of every note, for the cards that show them.
      *
-     * Le corps d'une note est chiffré, donc un extrait se paie en
-     * déchiffrement : une requête et 500 notes coûtent huit millisecondes de
-     * plus que la liste sans extrait, mesuré sur un jeu de cette taille. Cela
-     * reste une requête de plus, appelée seulement par les écrans qui
-     * montrent l'extrait.
+     * A note's body is encrypted, so an excerpt is paid for in decryption:
+     * one query and 500 notes cost eight milliseconds more than the list
+     * without excerpts, measured on a data set of that size. It is still one
+     * more query, called only by the screens that show the excerpt.
      *
-     * Ce qui sort est du Markdown, que la carte rend en petit : voir un
-     * titre, une liste ou une case cochée est ce qui fait reconnaître une
-     * note, là où un texte aplati les rendait toutes identiques.
+     * What comes out is Markdown, which the card renders small: seeing a
+     * heading, a list or a checked box is what makes a note recognizable,
+     * where a flattened text made them all look the same.
      *
-     * @return array<int, string> note id => les premières lignes, en Markdown
+     * @return array<int, string> note id => the first lines, in Markdown
      */
     public function findExcerptsForUser(CoreUserInterface $user, int $length = self::EXCERPT_LENGTH): array
     {
@@ -156,9 +154,9 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * L'extrait d'une seule note, par la même règle que la liste : ce que la
-     * route d'enregistrement renvoie, pour que la carte suive le texte sans
-     * attendre un rechargement de la page.
+     * The excerpt of a single note, by the same rule as the list: what the
+     * save route returns, so that the card follows the text without waiting
+     * for a page reload.
      */
     public function excerptOf(string $content): string
     {
@@ -166,18 +164,17 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Le début d'une note, tel qu'il se relira.
+     * The beginning of a note, as it will be reread.
      *
-     * **Du markdown, pas du texte aplati.** La mosaïque montre une vignette
-     * de la note, comme Craft : on y reconnaît un titre, une liste, une
-     * case cochée d'un coup d'œil, et c'est ce qui répond à « ah oui, c'est
-     * celle-là ». Aplati, tout se ressemblait.
+     * **Markdown, not flattened text.** The grid shows a thumbnail of the
+     * note, like Craft: you recognize a heading, a list, a checked box at a
+     * glance, and that is what answers "ah yes, that's the one". Flattened,
+     * everything looked alike.
      *
-     * Deux précautions. Les images partent : une seule en `data:` pèserait
-     * plus que tout le reste de la liste, et une vignette n'a pas à la
-     * porter. Et une coupe au milieu d'un bloc de code laisserait une
-     * clôture manquante, qui ferait passer toute la suite pour du code :
-     * on la referme.
+     * Two precautions. Images go: a single `data:` one would weigh more than
+     * the whole rest of the list, and a thumbnail has no need to carry it.
+     * And a cut in the middle of a code block would leave a missing fence,
+     * which would make everything after it pass for code: we close it.
      */
     private function summarise(string $content, int $length): string
     {
@@ -206,11 +203,10 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les notes vivantes d'un espace, avec leur texte.
+     * The live notes of a space, with their text.
      *
-     * Pour ce qui ne doit jamais sortir d'un espace : un lien public qui suit
-     * les wiki-liens d'une note, une réécriture de liens après un changement
-     * de titre.
+     * For what must never leave a space: a public link that follows a note's
+     * wiki links, a rewrite of links after a title change.
      *
      * @return list<MarkdownNoteInterface>
      */
@@ -225,9 +221,9 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les notes vivantes d'un espace, à plat et sans leur texte : de quoi
-     * dessiner son arbre et son ordre de lecture, pour qui n'a pas de
-     * compte - la lecture publique d'un espace.
+     * The live notes of a space, flat and without their text: enough to draw
+     * its tree and its reading order, for someone without an account - the
+     * public reading of a space.
      *
      * @return list<array{id: int, title: string|null, position: int, folderId: int|null, spaceId: int}>
      */
@@ -254,12 +250,12 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les notes vivantes d'un espace, les plus récemment touchées d'abord,
-     * sans leur texte.
+     * The live notes of a space, most recently touched first, without their
+     * text.
      *
-     * Pour un écran qui les liste hors du module - l'onglet Notes d'un espace
-     * client - et n'a besoin que de quoi les reconnaître et les ouvrir. Le
-     * texte est chiffré : ne pas le choisir est ce qui garde la liste légère.
+     * For a screen that lists them outside the module - the Notes tab of a
+     * client space - and only needs enough to recognize and open them. The
+     * text is encrypted: not selecting it is what keeps the list light.
      *
      * @return list<array{id: int, title: ?string, folderId: ?int, updatedAt: ?string, authorName: ?string}>
      */
@@ -288,8 +284,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
 
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        // Une note qu'on peut écrire, pas une note dont on est l'auteur : c'est
-        // l'espace qui décide.
+        // A note you can write, not a note you are the author of: the space
+        // decides.
         return $this->writableTo($this->createQueryBuilder('n'), 'n', $user)
             ->andWhere('n.id = :id')
             ->setParameter('id', $id)
@@ -298,7 +294,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les notes vivantes de ces dossiers, quel que soit leur propriétaire.
+     * The live notes of these folders, whoever their owner is.
      *
      * @param list<int> $folderIds
      *
@@ -320,11 +316,11 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Une note par son identifiant, sans regarder à qui elle est.
+     * A note by its id, without looking at whose it is.
      *
-     * La question du droit de lecture est posée ailleurs, par
-     * {@see NoteSpaceAccess} : la mêler
-     * à la requête donnerait deux endroits qui décident de la même chose.
+     * The question of the read right is asked elsewhere, by
+     * {@see NoteSpaceAccess}: mixing it
+     * into the query would give two places deciding the same thing.
      */
     public function findOneLiving(int $id): ?MarkdownNoteInterface
     {
@@ -411,8 +407,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les notes de ces dossiers, corbeille comprise - pour un changement
-     * d'espace, qui emporte tout ce que la branche range.
+     * The notes of these folders, trash included - for a change of space,
+     * which takes everything the branch holds.
      *
      * @param list<int> $folderIds
      *
@@ -467,8 +463,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->orderBy('n.position', Order::Ascending->value)
             ->addOrderBy('n.id', Order::Ascending->value);
 
-        // Un dossier dit à lui seul où il est ; la racine, elle, n'est à
-        // personne : celle d'un carnet, ou celle de l'équipe.
+        // A folder says on its own where it is; the root, though, belongs to
+        // nobody: a notebook's, or the team's.
         if (null === $folderId) {
             $this->rootOf($qb, 'n', $space);
             $qb->andWhere('n.folder IS NULL');

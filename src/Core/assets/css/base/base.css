@@ -11,24 +11,23 @@ body {
 }
 
 /**
- * La hauteur de la barre collée en haut d'une page d'administration.
+ * The height of the bar stuck at the top of an admin page.
  *
- * `page_header.html.twig` empile un bandeau de titre (`h-12`) et un fil
- * d'Ariane (`h-8`), et se colle en haut à partir de `lg`. Tout ce qui se colle
- * ensuite dans le contenu doit démarrer sous elle : `sticky top-4` plaçait le
- * sommaire d'une page de documentation à seize pixels du haut, c'est-à-dire
- * sous la barre, et il n'en restait que la dernière ligne à l'écran.
+ * `page_header.html.twig` stacks a title bar (`h-12`) and a breadcrumb
+ * (`h-8`), and sticks to the top from `lg`. Anything that sticks inside the
+ * content afterwards must start below it: `sticky top-4` put a documentation
+ * page's table of contents sixteen pixels from the top, that is under the
+ * bar, and only its last line was left on screen.
  *
- * Elle valait 6.5rem quand les deux bandes faisaient 64 et 40 pixels. Elles
- * ont été resserrées à 48 et 32, le fil passant en petit : vingt-quatre pixels
- * de hauteur rendus au contenu sur chaque page.
+ * It was 6.5rem when the two strips were 64 and 40 pixels. They were
+ * tightened to 48 and 32, the breadcrumb going small: twenty-four pixels of
+ * height given back to the content on every page.
  *
- * Elle dépend de la largeur, parce que la barre n'est pas la même en dessous
- * de `lg` : le menu y est un tiroir dont la barre fixe fait 3.5rem, et le
- * bandeau de page se réduit au fil d'Ariane, 2rem posés dessous. Ce qui se
- * colle dans le contenu s'en sert comme décalage, et une hauteur plein écran
- * comme retranchement - les deux veulent la même chose : ce que la page perd
- * en haut.
+ * It depends on the width, because the bar is not the same below `lg`: the
+ * menu there is a drawer whose fixed bar is 3.5rem, and the page bar shrinks
+ * to the breadcrumb, 2rem set underneath. What sticks inside the content uses
+ * it as an offset, and a full-screen height as a subtraction - both want the
+ * same thing: what the page loses at the top.
  */
 :root {
     --aurora-topbar: 5.5rem;
@@ -41,28 +40,27 @@ body {
 }
 
 /**
- * Le site public a sa propre barre, plus courte : un seul bandeau, sans fil
- * d'Ariane. La valeur est celle que la zone sommaire utilisait deja pour se
- * coller (`lg:top-24`), donc les deux disent la meme chose.
+ * The public site has its own bar, shorter: a single strip, without a
+ * breadcrumb. The value is the one the table of contents zone already used to
+ * stick (`lg:top-24`), so both say the same thing.
  */
 body.aurora-front {
     --aurora-topbar: 6rem;
 }
 
 /**
- * La pile de notifications déborde à droite sur un téléphone, et c'est la
- * bibliothèque qui le fait.
+ * The notification stack overflows to the right on a phone, and the library
+ * is the one doing it.
  *
- * `vue-sonner` pose sur son conteneur, sous 600 pixels, une largeur de 100 %
- * **et** un décalage à gauche : 375 + 16 font 391, donc la pile sort de
- * l'écran par la droite de la largeur de son propre décalage. Rien ne défile,
- * parce qu'elle est en `fixed`, mais un message d'information arrive
- * partiellement hors champ - sur la conversation d'un espace comme partout
- * ailleurs.
+ * `vue-sonner` sets on its container, below 600 pixels, a width of 100%
+ * **and** a left offset: 375 + 16 makes 391, so the stack leaves the screen
+ * on the right by the width of its own offset. Nothing scrolls, because it is
+ * `fixed`, but an information message arrives partly out of view - on a
+ * space's conversation as everywhere else.
  *
- * `width: auto` rend l'arbitrage aux deux décalages, qui sont déjà posés des
- * deux côtés. Écrit ici plutôt que dans un composant : la pile est montée une
- * fois pour toute l'application.
+ * `width: auto` hands the decision back to the two offsets, which are already
+ * set on both sides. Written here rather than in a component: the stack is
+ * mounted once for the whole application.
  */
 @media (max-width: 600px) {
     ol[data-sonner-toaster] {

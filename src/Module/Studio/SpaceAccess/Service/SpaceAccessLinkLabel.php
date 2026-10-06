@@ -15,22 +15,22 @@ use function str_replace;
 use const MB_CASE_TITLE;
 
 /**
- * Le nom sous lequel un invité apparaît.
+ * The name a guest appears under.
  *
- * **Jamais son adresse.** Elle signait ses messages, ses commentaires et ses
- * fichiers ; sur un espace qui compte plusieurs liens, chaque invité lisait
- * donc les adresses des autres, sans l'avoir demandé ni pouvoir l'empêcher.
+ * **Never their address.** It used to sign their messages, comments and
+ * files; on a space with several links, each guest could therefore read the
+ * others' addresses, without asking for it or being able to prevent it.
  *
- * Le libellé est obligatoire à l'émission d'un lien depuis
- * {@see SpaceAccessLinkInput}, donc le
- * cas normal est une seule ligne. Le repli existe pour les liens émis avant
- * cette règle : il tire un nom de la partie gauche de l'adresse plutôt que de
- * laisser un message anonyme, parce que deux invités sans nom dans un même fil
- * ne se distinguent plus.
+ * The label is required when issuing a link since
+ * {@see SpaceAccessLinkInput}, so the
+ * normal case is a single line. The fallback exists for links issued before
+ * this rule: it draws a name from the left part of the address rather than
+ * leaving an anonymous message, because two nameless guests in the same thread
+ * can no longer be told apart.
  *
- * Une classe plutôt qu'une méthode sur l'entité du lien : trois entités s'en
- * servent, et c'est la troisième copie d'une règle qui apprend qu'elle n'a pas
- * sa place dans chacune.
+ * A class rather than a method on the link entity: three entities use it, and
+ * the third copy of a rule is what teaches that it does not belong in each of
+ * them.
  */
 final readonly class SpaceAccessLinkLabel
 {
@@ -46,10 +46,10 @@ final readonly class SpaceAccessLinkLabel
     }
 
     /**
-     * « camille.perrot@… » devient « Camille Perrot ».
+     * "camille.perrot@…" becomes "Camille Perrot".
      *
-     * Le domaine ne sort pas : il nomme l'entreprise, et c'est la partie de
-     * l'adresse qu'on lit le plus vite dans un fil.
+     * The domain does not come out: it names the company, and it is the part
+     * of the address read fastest in a thread.
      */
     private static function fromEmail(string $email): string
     {

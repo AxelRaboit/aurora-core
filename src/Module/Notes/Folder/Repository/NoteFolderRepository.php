@@ -54,7 +54,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les dossiers vivants d'un espace, dans l'ordre du panneau.
+     * A space's living folders, in the panel's order.
      *
      * @return list<NoteFolderInterface>
      */
@@ -72,7 +72,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
 
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        // Un dossier qu'on peut écrire : c'est l'espace qui décide.
+        // A folder one can write to: the space decides.
         return $this->writableTo($this->createQueryBuilder('f'), 'f', $user)
             ->andWhere('f.id = :id')
             ->setParameter('id', $id)
@@ -81,7 +81,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les dossiers d'une personne, quel que soit leur propriétaire.
+     * A person's folders, whoever their owner is.
      *
      * @param list<int> $ids
      *
@@ -107,10 +107,10 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      * @return list<NoteFolderInterface>
      */
     /**
-     * Les enfants de ces dossiers, corbeille comprise : ce qui change
-     * d'espace avec sa branche doit emporter aussi ce qui dort à la
-     * corbeille, sinon sa restauration le rendrait dans un espace qui n'est
-     * plus celui de son dossier.
+     * The children of these folders, trash included: what changes space with
+     * its branch must also take along what sleeps in the trash, otherwise
+     * restoring it would put it back in a space that is no longer its
+     * folder's.
      *
      * @param list<int> $folderIds
      *
@@ -145,8 +145,8 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             return [];
         }
 
-        // Jointure externe : l'auteur d'un dossier peut avoir quitté
-        // l'instance, et son dossier reste dans la branche.
+        // Outer join: a folder's author may have left the instance, and their
+        // folder stays in the branch.
         return $this->createQueryBuilder('f')
             ->leftJoin('f.user', 'u')
             ->addSelect('u')
@@ -335,7 +335,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
-    /** Les dossiers des espaces qu'une personne peut lire. */
+    /** The folders of the spaces a person can read. */
     private function visibleTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
         $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
@@ -343,7 +343,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         return NoteSpaceRepository::bindViewer($qb, $user);
     }
 
-    /** Les dossiers des espaces où une personne écrit. */
+    /** The folders of the spaces where a person writes. */
     private function writableTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
         $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
@@ -351,7 +351,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         return NoteSpaceRepository::bindViewer($qb, $user);
     }
 
-    /** La corbeille qu'une personne gère : celle des espaces où elle écrit. */
+    /** The trash a person manages: the one of the spaces where they write. */
     private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
         return $this->writableTo($qb, $alias, $user);

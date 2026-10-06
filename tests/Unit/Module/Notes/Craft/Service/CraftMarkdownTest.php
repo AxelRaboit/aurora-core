@@ -8,12 +8,12 @@ use Aurora\Module\Notes\Craft\Service\CraftMarkdown;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Ce que Craft écrit, et ce qu'une note en garde.
+ * What Craft writes, and what a note keeps of it.
  *
- * Le Markdown de Craft entre presque tel quel dans une note : ce qui est
- * vérifié ici, c'est le « presque » - ses balises à lui, qui ressortiraient
- * en clair au milieu du texte, et son titre, qui ouvrirait la note une
- * seconde fois.
+ * Craft's Markdown goes into a note almost as is: what is checked here is
+ * the "almost" - its own tags, which would come out as raw text in the
+ * middle of the content, and its title, which would open the note a second
+ * time.
  */
 final class CraftMarkdownTest extends TestCase
 {
@@ -24,7 +24,7 @@ final class CraftMarkdownTest extends TestCase
         $this->markdown = new CraftMarkdown();
     }
 
-    /** Du Markdown ordinaire passe sans changer. */
+    /** Ordinary Markdown passes through unchanged. */
     public function testPlainMarkdownPassesThrough(): void
     {
         $source = "## Le contexte\n\nTrois **choses** à faire.\n\n- Relire\n- [x] Envoyer\n\n| a | b |\n| --- | --- |\n| 1 | 2 |";
@@ -33,9 +33,9 @@ final class CraftMarkdownTest extends TestCase
     }
 
     /**
-     * Craft enveloppe un document dans une page dont le titre est le sien. La
-     * note le porte déjà : l'écrire une seconde fois en tête du texte est un
-     * doublon, vu sur le premier import réel.
+     * Craft wraps a document in a page whose title is the document's own. The
+     * note already carries it: writing it a second time at the top of the
+     * text is a duplicate, seen on the first real import.
      */
     public function testTheDocumentTitleIsNotWrittenTwice(): void
     {
@@ -46,13 +46,13 @@ final class CraftMarkdownTest extends TestCase
         self::assertSame('Du texte.', $this->markdown->clean("#  Brief   Septembre\n\nDu texte.", 'brief septembre'));
     }
 
-    /** Un titre de section qui n'est pas celui du document, lui, reste. */
+    /** A section heading that is not the document's title stays. */
     public function testAHeadingThatIsNotTheTitleSurvives(): void
     {
         self::assertSame("## Le contexte\n\nDu texte.", $this->markdown->clean("## Le contexte\n\nDu texte.", 'Brief septembre'));
     }
 
-    /** Seulement en tête : un document qui répète son titre plus bas le fait exprès. */
+    /** Only at the top: a document that repeats its title further down does so on purpose. */
     public function testTheTitleFurtherDownStays(): void
     {
         self::assertSame("Intro.\n\n# Brief", $this->markdown->clean("Intro.\n\n# Brief", 'Brief'));
@@ -66,19 +66,19 @@ final class CraftMarkdownTest extends TestCase
         );
     }
 
-    /** La forme courte, que l'aperçu des notes sait surligner. */
+    /** The short form, which the notes preview knows how to highlight. */
     public function testAHighlightBecomesTheShortForm(): void
     {
         self::assertSame('une ==date== à tenir', $this->markdown->clean('une <highlight color="yellow">date</highlight> à tenir', 'T'));
     }
 
-    /** Un fil de commentaire est une conversation interne à Craft. */
+    /** A comment thread is a conversation internal to Craft. */
     public function testACommentThreadLeavesItsWordBehind(): void
     {
         self::assertSame('la phrase commentée', $this->markdown->clean('la <comment id="c-1">phrase</comment> commentée', 'T'));
     }
 
-    /** Ces renvois ne mènent nulle part hors de Craft : un lien mort est pire qu'un mot. */
+    /** These references lead nowhere outside Craft: a dead link is worse than a word. */
     public function testCraftInternalLinksKeepTheirWordAndLoseTheirAddress(): void
     {
         self::assertSame(
@@ -87,7 +87,7 @@ final class CraftMarkdownTest extends TestCase
         );
     }
 
-    /** Un encadré enveloppe des blocs : il devient l'encadré des notes, lignes vides comprises. */
+    /** A callout wraps blocks: it becomes the notes callout, blank lines included. */
     public function testACalloutBecomesTheNotesCallout(): void
     {
         self::assertSame(
@@ -97,8 +97,8 @@ final class CraftMarkdownTest extends TestCase
     }
 
     /**
-     * Sans fermeture, l'encadré ne mange pas la fin du document : la balise
-     * s'efface et le texte reste.
+     * Without a closing tag, the callout does not swallow the end of the
+     * document: the tag goes away and the text stays.
      */
     public function testAnUnclosedCalloutDoesNotSwallowTheRest(): void
     {
@@ -120,9 +120,9 @@ final class CraftMarkdownTest extends TestCase
     }
 
     /**
-     * Craft indente le corps d'un document dans son `<content>`, et deux
-     * espaces valent chez lui un niveau d'imbrication : sans le retrait, une
-     * liste à plat arrivait empilée sous sa première entrée.
+     * Craft indents a document's body inside its `<content>`, and for Craft
+     * two spaces are one nesting level: without removing the indent, a flat
+     * list arrived stacked under its first item.
      */
     public function testTheIndentationOfContentIsNotReadAsNesting(): void
     {
@@ -132,7 +132,7 @@ final class CraftMarkdownTest extends TestCase
         );
     }
 
-    /** Le retrait commun seulement : l'imbrication voulue survit. */
+    /** Only the common indent: the intended nesting survives. */
     public function testRealNestingSurvivesTheDedent(): void
     {
         self::assertSame("- parent\n  - enfant", $this->markdown->clean("<content>\n    - parent\n      - enfant\n</content>", 'T'));

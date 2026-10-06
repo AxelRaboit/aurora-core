@@ -38,14 +38,13 @@ use function random_bytes;
 use function sprintf;
 
 /**
- * Un document Craft qui devient une note d'un espace de notes.
+ * A Craft document that becomes a note in a notes space.
  *
- * Le chemin traverse quatre pièces - la connexion, le nettoyage du Markdown,
- * le gestionnaire de notes et l'écran - et chacune peut casser sans que les
- * trois autres s'en aperçoivent. Ce qui est vérifié ici est le bout du bout :
- * une note existe, dans l'espace demandé, elle porte le titre choisi dans la
- * liste et le texte de Craft sans ses balises, et elle se souvient d'où elle
- * vient.
+ * The path crosses four pieces - the connection, the Markdown clean-up, the
+ * notes manager and the screen - and each one can break without the other
+ * three noticing. What is checked here is the very end: a note exists, in
+ * the requested space, it carries the title chosen in the list and the Craft
+ * text without its tags, and it remembers where it comes from.
  */
 final class CraftImportTest extends IntegrationTestCase
 {
@@ -64,10 +63,9 @@ final class CraftImportTest extends IntegrationTestCase
         parent::setUp();
 
         $this->client = static::createClient();
-        // Sans cela, le noyau redémarre à la requête suivante et les services
-        // posés par le test disparaissent avec lui : c'est le piège classique
-        // du client de test, et il se voit comme une connexion « jamais
-        // ouverte ».
+        // Without this, the kernel reboots on the next request and the
+        // services set by the test disappear with it: it is the classic test
+        // client trap, and it shows as a connection "never opened".
         $this->client->disableReboot();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
@@ -162,13 +160,13 @@ final class CraftImportTest extends IntegrationTestCase
 
         self::assertSame($this->space->getId(), $note->getSpace()->getId());
         self::assertSame('Le brief de septembre', $note->getTitle());
-        // D'où elle vient, pour la remettre à jour plus tard.
+        // Where it comes from, to update it later.
         self::assertSame('doc-2', $note->getCraftDocumentId());
-        // Le titre n'est pas écrit deux fois, et les balises de Craft sont parties.
+        // The title is not written twice, and Craft's tags are gone.
         self::assertSame("Trois **choses** à faire.\n\n- Relire\n- Envoyer", $note->getContent());
     }
 
-    /** Sans espace dit, la note arrive dans son espace personnel, comme une note créée à la main. */
+    /** Without a space given, the note lands in the personal space, like a note created by hand. */
     public function testWithoutASpaceTheNoteGoesToThePersonalSpace(): void
     {
         $this->givenCraft(enabled: true, responses: [new MockResponse('Un texte.')]);
@@ -179,7 +177,7 @@ final class CraftImportTest extends IntegrationTestCase
         self::assertSame($this->author->getId(), $this->onlyNote()->getSpace()->getPersonalUser()?->getId());
     }
 
-    /** Un espace où l'on n'écrit pas n'existe pas pour l'import non plus. */
+    /** A space one cannot write in does not exist for the import either. */
     public function testASpaceOneCannotWriteInIsRefused(): void
     {
         $this->givenCraft(enabled: true, responses: [new MockResponse('Un texte.')]);
@@ -203,12 +201,12 @@ final class CraftImportTest extends IntegrationTestCase
     }
 
     /**
-     * Une image de Craft devient une image de l'espace de notes, et le texte
-     * suit : une image servie depuis un espace Craft privé ne s'afficherait
-     * que chez qui y a un compte.
+     * A Craft image becomes an image of the notes space, and the text follows:
+     * an image served from a private Craft space would only show for someone
+     * with an account there.
      *
-     * Le service d'images réel, et non un double : un double aurait rendu
-     * l'adresse que je lui aurais apprise.
+     * The real image service, not a double: a double would have returned the
+     * address I had taught it.
      */
     public function testACraftImageBecomesAnImageOfTheSpace(): void
     {
@@ -245,8 +243,8 @@ final class CraftImportTest extends IntegrationTestCase
     }
 
     /**
-     * Rafraîchir remet le texte sur la version actuelle du document, garde
-     * ce qui appartient à Aurora, et laisse l'ancien texte dans l'historique.
+     * Refreshing puts the text back on the document's current version, keeps
+     * what belongs to Aurora, and leaves the old text in the history.
      */
     public function testRefreshingPutsTheNoteBackOnTheDocumentAndKeepsWhatIsAurorasOwn(): void
     {
@@ -279,14 +277,14 @@ final class CraftImportTest extends IntegrationTestCase
         self::assertSame('La seconde version.', $refreshed->getContent());
         self::assertSame('Le brief', $refreshed->getTitle());
         self::assertSame(['client'], $refreshed->getTags());
-        // Une seule note : rafraîchir remplace, il n'en naît pas une seconde.
+        // A single note: refreshing replaces, no second one is born.
         self::assertCount(1, $this->notes());
 
         $revisions = $this->entityManager->getRepository(MarkdownNoteRevision::class)->findBy(['note' => $noteId]);
         self::assertSame(['La première version.'], array_map(static fn (MarkdownNoteRevision $revision): ?string => $revision->getContent(), $revisions));
     }
 
-    /** Une note écrite à la main n'a rien à rafraîchir. */
+    /** A note written by hand has nothing to refresh. */
     public function testANoteThatDoesNotComeFromCraftCannotBeRefreshed(): void
     {
         $this->givenCraft(enabled: true, responses: []);
@@ -300,7 +298,7 @@ final class CraftImportTest extends IntegrationTestCase
         self::assertSame('notes.craft.errors.not_imported', $this->payload()['error']);
     }
 
-    /** Craft muet ne doit pas donner une note vide portant un titre. */
+    /** A silent Craft must not produce an empty note carrying a title. */
     public function testASilentCraftCreatesNothing(): void
     {
         $this->givenCraft(enabled: true, responses: [new MockResponse('', ['http_code' => 404])]);
@@ -322,8 +320,8 @@ final class CraftImportTest extends IntegrationTestCase
     }
 
     /**
-     * Un vrai client, sur un vrai transport de test : la lecture de la réponse
-     * est donc exercée, seul le réseau est feint.
+     * A real client, on a real test transport: reading the response is
+     * therefore exercised, only the network is faked.
      *
      * @param list<MockResponse> $responses
      */

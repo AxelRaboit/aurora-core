@@ -1,18 +1,18 @@
-/* Comment une zone arrive quand le lecteur la rejoint.
+/* How a zone arrives when the reader reaches it.
 
-   Six effets, posés par `data-reveal` sur l'enveloppe d'une zone de grille
-   (voir `editorial/post/_grid.html.twig`), joués par
+   Six effects, set by `data-reveal` on the wrapper of a grid zone (see
+   `editorial/post/_grid.html.twig`), played by
    `shared/utils/scrollReveal.js`.
 
-   **Rien ici ne cache quoi que ce soit tout seul.** L'état de départ demande
-   `.aurora-reveal-armed`, et cette classe n'est jamais dans le HTML : le
-   script la pose, zone par zone, et seulement sur celles qui sont encore sous
-   la fenêtre. Sans script - erreur de chargement, JavaScript coupé, pas
-   d'IntersectionObserver - la page se lit normalement, et ce qui est déjà à
-   l'écran quand le paquet arrive n'est jamais escamoté puis remontré.
+   **Nothing here hides anything on its own.** The starting state requires
+   `.aurora-reveal-armed`, and that class is never in the HTML: the script
+   sets it, zone by zone, and only on those still below the window. Without
+   the script - a loading error, JavaScript turned off, no
+   IntersectionObserver - the page reads normally, and what is already on
+   screen when the bundle arrives is never whisked away and shown again.
 
-   La distance et la durée sont des propriétés personnalisées pour qu'un thème
-   les reprenne sans réécrire les six effets. */
+   The distance and the duration are custom properties so that a theme can
+   take them over without rewriting the six effects. */
 
 :root {
     --aurora-reveal-shift: 1.5rem;
@@ -20,31 +20,30 @@
     --aurora-reveal-blur: 6px;
     --aurora-reveal-duration: 700ms;
 
-    /* Sortie franche puis fin de course longue : le mouvement se termine en se
-       posant plutôt qu'en s'arrêtant net. */
+    /* A sharp start then a long tail: the movement ends by settling rather
+       than stopping dead. */
     --aurora-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Une zone qui vient de la droite est posée hors de sa boîte le temps
-   d'arriver, et un décalage vers la droite allonge la page : mesuré en
-   production à 481 pixels pour 457 de fenêtre, soit exactement le décalage,
-   et une barre de défilement horizontale sur un site public.
+/* A zone coming from the right sits outside its box while it arrives, and
+   an offset to the right makes the page wider: measured in production at 481
+   pixels for a 457-pixel window, exactly the offset, and a horizontal
+   scrollbar on a public site.
 
-   `clip` et non `hidden` : `hidden` fabrique un conteneur de défilement, ce
-   qui casse `position: sticky` chez les descendants et déplace l'ancrage du
-   défilement. `clip` coupe sans rien fabriquer.
+   `clip` and not `hidden`: `hidden` creates a scroll container, which breaks
+   `position: sticky` in descendants and moves the scroll anchoring. `clip`
+   cuts without creating anything.
 
-   **Sur les deux, et c'est le point.** Chacun seul laisse la page partir de
-   vingt-quatre pixels sur le côté, mesuré : sur la racine seule parce que la
-   valeur est propagée à la zone d'affichage et que la racine, elle, ne coupe
-   plus rien ; sur le corps seul parce qu'une racine `visible` lui prend sa
-   valeur pour la propager, et qu'il redevient `visible` à son tour. Les deux
-   ensemble : la zone d'affichage ne défile pas, et la boîte qui déborde est
-   coupée.
+   **On both, and that is the point.** Either one alone lets the page drift
+   twenty-four pixels sideways, measured: on the root alone because the value
+   is propagated to the viewport and the root itself no longer clips
+   anything; on the body alone because a `visible` root takes its value to
+   propagate it, and the body becomes `visible` in turn. Both together: the
+   viewport does not scroll, and the overflowing box is clipped.
 
-   Sous un attribut posé par le script, et retiré par lui quand la dernière
-   zone est arrivée : la page n'est bridée que pendant qu'elle bouge. Une
-   règle permanente toucherait aussi le back-office, qui n'a rien demandé. */
+   Under an attribute set by the script, and removed by it when the last zone
+   has arrived: the page is only restrained while it moves. A permanent rule
+   would also affect the back office, which asked for nothing. */
 html[data-reveal-running],
 html[data-reveal-running] body {
     overflow-x: clip;
@@ -53,17 +52,17 @@ html[data-reveal-running] body {
 [data-reveal].aurora-reveal-armed {
     opacity: 0;
 
-    /* `opacity` et `transform` seulement : ce sont les deux propriétés qu'un
-       navigateur anime sans refaire la mise en page, donc les seules qui
-       tiennent soixante images par seconde sur une page longue. `filter` s'y
-       ajoute pour le seul effet qui en a besoin. */
+    /* `opacity` and `transform` only: they are the two properties a browser
+       animates without redoing the layout, so the only ones that hold sixty
+       frames per second on a long page. `filter` is added for the one effect
+       that needs it. */
     transition:
         opacity var(--aurora-reveal-duration) var(--aurora-reveal-ease),
         transform var(--aurora-reveal-duration) var(--aurora-reveal-ease),
         filter var(--aurora-reveal-duration) var(--aurora-reveal-ease);
 
-    /* Le script retire la classe une fois l'arrivée jouée, donc cette
-       réservation ne survit pas au mouvement qu'elle prépare. */
+    /* The script removes the class once the arrival has played, so this
+       reservation does not outlive the movement it prepares. */
     will-change: opacity, transform;
 }
 
@@ -87,24 +86,24 @@ html[data-reveal-running] body {
     filter: blur(var(--aurora-reveal-blur));
 }
 
-/* L'arrivée. Une seule règle pour les six, parce que l'état d'arrivée est le
-   même : la zone telle qu'elle serait sans tout ceci. */
+/* The arrival. One rule for all six, because the arrival state is the same:
+   the zone as it would be without any of this. */
 [data-reveal].aurora-reveal-armed.aurora-revealed {
     opacity: 1;
     filter: none;
     transform: none;
 }
 
-/* Les entrées d'une liste - cartes, étapes, chiffres - arrivent l'une après
-   l'autre, une fois leur zone en route. Une zone de six cartes qui monte d'un
-   bloc se lit comme un seul rectangle ; en cascade, l'œil les compte.
+/* The entries of a list - cards, steps, figures - arrive one after the
+   other, once their zone is on its way. A zone of six cards rising as one
+   block reads as a single rectangle; in a cascade, the eye counts them.
 
-   La transition est déclarée hors de l'état armé, et c'est voulu : le script
-   retire `.aurora-reveal-armed` quand la zone a fini, pendant que les
-   dernières cartes sont encore en chemin. Si leur transition partait avec la
-   classe, elles sauteraient à l'arrivée ; déclarée ici, celle qui court
-   continue jusqu'au bout. Seul le délai dépend de l'état armé, et un délai
-   changé en route ne touche pas une transition déjà partie. */
+   The transition is declared outside the armed state, on purpose: the script
+   removes `.aurora-reveal-armed` when the zone is done, while the last cards
+   are still on their way. If their transition left with the class, they
+   would jump to the end; declared here, the running one carries on to the
+   end. Only the delay depends on the armed state, and a delay changed midway
+   does not affect a transition already started. */
 :root {
     --aurora-reveal-item-duration: 600ms;
     --aurora-reveal-item-step: 90ms;
@@ -125,10 +124,10 @@ html[data-reveal-running] body {
     transform: translate3d(0, 1rem, 0);
 }
 
-/* Un lecteur qui demande moins de mouvement reçoit la zone, pas une version
-   ralentie du mouvement. Le script s'arrête déjà de lui-même sur ce réglage ;
-   la règle est ici pour le cas où il change d'avis en cours de lecture, après
-   que des zones ont été armées. */
+/* A reader who asks for less motion gets the zone, not a slowed-down version
+   of the motion. The script already stops by itself on this setting; the
+   rule is here for when they change their mind while reading, after zones
+   have been armed. */
 @media (prefers-reduced-motion: reduce) {
     [data-reveal].aurora-reveal-armed {
         opacity: 1;

@@ -920,7 +920,7 @@ const wordHighlight = ref("#fde047");
     transform: translateX(-50%);
 }
 
-/* Au doigt, des poignées qu'un doigt attrape. */
+/* With a finger, handles a finger can grab. */
 @media (pointer: coarse) {
     .fc-handle,
     .fc-handle.is-n,
@@ -975,8 +975,7 @@ const wordHighlight = ref("#fde047");
     font-variant-numeric: tabular-nums;
 }
 
-/* La barre des mots : petite, au-dessus de la slide, collée à ce qu'elle
-   modifie. */
+/* The text bar: small, above the slide, stuck to what it edits. */
 .fc-text-bar {
     display: flex;
     flex-wrap: wrap;

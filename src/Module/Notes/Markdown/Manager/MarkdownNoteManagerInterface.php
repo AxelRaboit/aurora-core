@@ -27,7 +27,7 @@ interface MarkdownNoteManagerInterface
 
     public function update(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void;
 
-    /** Retient le document Craft dont la note vient d'être copiée. */
+    /** Remembers the Craft document the note was just copied from. */
     public function markImportedFromCraft(MarkdownNoteInterface $note, string $craftDocumentId): void;
 
     /** Moves a note to the trash. */
@@ -43,8 +43,8 @@ interface MarkdownNoteManagerInterface
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
     /**
-     * Range la note dans un dossier, ou à la racine d'un espace. Le dossier
-     * impose son espace ; sans dossier, `$space` dit quelle racine.
+     * Files the note in a folder, or at the root of a space. The folder
+     * imposes its space; without a folder, `$space` says which root.
      */
     /** A copy right under the original, in the same folder, with the given title. */
     public function duplicate(CoreUserInterface $user, MarkdownNoteInterface $note, string $title): MarkdownNoteInterface;
@@ -60,7 +60,7 @@ interface MarkdownNoteManagerInterface
 
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void;
 
-    /** Fait passer une note dans un autre espace, images comprises. */
+    /** Moves a note to another space, images included. */
     public function changeSpace(MarkdownNoteInterface $note, NoteSpaceInterface $space): void;
 
     /**

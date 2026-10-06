@@ -20,11 +20,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * Le cycle de vie d'un espace et de ses inscriptions.
+ * The life cycle of a space and its memberships.
  *
- * Qui a le droit de faire quoi se décide avant, dans le contrôleur, par
- * {@see NoteSpaceAccess} : ce manager
- * écrit, il ne juge pas.
+ * Who may do what is decided beforehand, in the controller, by
+ * {@see NoteSpaceAccess}: this manager
+ * writes, it does not judge.
  */
 #[AsAlias(NoteSpaceManagerInterface::class)]
 class NoteSpaceManager implements NoteSpaceManagerInterface
@@ -50,12 +50,12 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
     }
 
     /**
-     * Un espace que quelque chose d'autre règle : sans propriétaire, ouvert à
-     * ses seuls membres, que {@see self::syncManaged()} tient à jour.
+     * A space configured by something else: without an owner, open to its
+     * members only, whom {@see self::syncManaged()} keeps up to date.
      *
-     * Sans propriétaire, parce que personne n'en est le propriétaire : son
-     * accès suit une équipe définie ailleurs, et le premier membre inscrit
-     * n'a pas à en devenir le maître le jour où il quitte cette équipe.
+     * Without an owner, because nobody owns it: its access follows a team
+     * defined elsewhere, and the first member added has no reason to become
+     * its master the day they leave that team.
      */
     public function createManaged(string $name, string $managedBy): NoteSpaceInterface
     {
@@ -75,14 +75,13 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
     }
 
     /**
-     * Le nom et les membres d'un espace réglé d'ailleurs, remis sur ce qu'on
-     * lui donne.
+     * The name and the members of a space configured elsewhere, reset to
+     * what it is given.
      *
-     * Réconcilié plutôt que vidé et reconstruit, comme l'équipe d'un espace
-     * client : une inscription qui reste garde sa ligne, et seul son rôle
-     * bouge. Rien n'est écrit, et rien n'entre au journal, quand rien ne
-     * change - la synchronisation passe à chaque enregistrement de ce qui la
-     * règle.
+     * Reconciled rather than emptied and rebuilt, like a client space's team:
+     * a membership that stays keeps its row, and only its role moves. Nothing
+     * is written, and nothing enters the audit log, when nothing changes -
+     * the sync runs on every save of whatever configures it.
      */
     public function syncManaged(NoteSpaceInterface $space, string $name, array $members): void
     {
@@ -131,12 +130,12 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
     }
 
     /**
-     * Ce qui réglait l'espace a disparu : il part à la corbeille, et redevient
-     * un espace ordinaire.
+     * What configured the space is gone: it goes to the trash, and becomes an
+     * ordinary space again.
      *
-     * Sans propriétaire, il revient aux administrateurs, qui peuvent le faire
-     * revenir ({@see NoteSpaceAccess::adopts()}). Ses membres restent inscrits :
-     * le restaurer rend l'espace à ceux qui y écrivaient.
+     * Without an owner, it falls to the administrators, who can bring it back
+     * ({@see NoteSpaceAccess::adopts()}). Its members stay members: restoring
+     * it gives the space back to those who wrote in it.
      */
     public function releaseManaged(NoteSpaceInterface $space): void
     {
@@ -241,10 +240,10 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
     }
 
     /**
-     * L'espace personnel ne se renomme pas et ne s'ouvre à personne : il
-     * garde seulement sa couleur et sa place. Le reste est ignoré plutôt
-     * que refusé, comme le cycle d'un dossier : un point d'extension qui
-     * lève sur un envoi hostile, personne ne peut le surcharger sans risque.
+     * The personal space is not renamed and opens to nobody: it only keeps
+     * its colour and its place. The rest is ignored rather than refused, like
+     * a folder's cycle: an extension point that throws on a hostile payload
+     * is one nobody can override safely.
      */
     protected function applyInput(NoteSpaceInterface $space, NoteSpaceInputInterface $input): void
     {
@@ -254,9 +253,9 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
             $space->setPosition($input->getPosition());
         }
 
-        // Un espace réglé d'ailleurs garde son nom et son accès : le
-        // contrôleur refuse déjà, et ceci tient pour un appel qui passerait à
-        // côté de lui.
+        // A space configured elsewhere keeps its name and its access: the
+        // controller already refuses, and this holds for a call that would
+        // go around it.
         if ($space->isPersonal() || $space->isManaged()) {
             return;
         }
@@ -282,8 +281,8 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
     }
 
     /**
-     * Ce que le journal garde d'un espace : pas son nom, chiffré pour la même
-     * raison que celui d'un dossier.
+     * What the audit log keeps of a space: not its name, encrypted for the
+     * same reason as a folder's.
      *
      * @return array<string, mixed>
      */

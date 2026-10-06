@@ -18,8 +18,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * La règle produite ici est ce qui sépare un choix fait dans l'écran de thème
- * d'une application qui reste en Poppins sans rien dire.
+ * The rule produced here is what separates a choice made in the theme screen
+ * from an application that silently stays in Poppins.
  */
 #[AllowMockObjectsWithoutExpectations]
 final class ThemeContextFontTest extends TestCase
@@ -44,8 +44,8 @@ final class ThemeContextFontTest extends TestCase
 
     public function testAThemeWithoutAFontEmitsNothing(): void
     {
-        // Le défaut vit déjà dans theme.css : une règle qui le répète serait
-        // une seconde copie à tenir à jour.
+        // The default already lives in theme.css: a rule repeating it would
+        // be a second copy to keep up to date.
         self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->fontFamilyCss());
         self::assertSame('', $this->stylesOf($this->contextWithConfig(['font_family' => 'poppins']))->fontFamilyCss());
     }
@@ -54,9 +54,9 @@ final class ThemeContextFontTest extends TestCase
     {
         $css = $this->stylesOf($this->contextWithConfig(['font_family' => 'lora']))->fontFamilyCss();
 
-        // `--th-font-sans` et pas `--font-sans` : la seconde est recopiée
-        // littéralement par Tailwind au moment de la compilation, donc la
-        // redéfinir au chargement ne changerait rien.
+        // `--th-font-sans` and not `--font-sans`: the latter is copied
+        // literally by Tailwind at build time, so redefining it at load time
+        // would change nothing.
         self::assertStringContainsString('--th-font-sans:', $css);
         self::assertStringContainsString(ThemeFontEnum::Lora->stack(), $css);
         self::assertStringStartsWith(':root{', $css);

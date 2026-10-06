@@ -1,11 +1,11 @@
 <script setup>
 /**
- * La confirmation avant de supprimer un client, la même depuis la liste et
- * depuis sa page.
+ * The confirmation before deleting a customer, the same from the list and
+ * from their page.
  *
- * Elle prévient de la garde avant qu'on la rencontre : un client nommé par un
- * contrat ou par un espace, même à la corbeille, ne se supprime pas, et le
- * serveur le refuse en le disant.
+ * It warns about the guard before it is hit: a customer named by a contract
+ * or by a space, even in the trash, cannot be deleted, and the server refuses
+ * it and says so.
  */
 import { useI18n } from "vue-i18n";
 import { Trash2, X } from "lucide-vue-next";

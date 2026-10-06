@@ -705,8 +705,8 @@ function newZone(type) {
         // it one, so changing the page's moves everything that never
         // disagreed.
         reveal: "inherit",
-        // Personne ne colle une zone par défaut : c'est une décision de mise
-        // en page, pas un comportement.
+        // Nobody makes a zone sticky by default: it is a layout decision, not
+        // a behaviour.
         sticky: false,
         fullBleed: false,
         // A header zone's design - the banner's own layout, switched on since

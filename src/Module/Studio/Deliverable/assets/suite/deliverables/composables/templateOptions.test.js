@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { templateOptions } from "./templateOptions.js";
 
 /**
- * Le sélecteur « Partir d'un modèle » : seulement les modèles, une fois chacun,
- * par titre, avec leur catégorie pour que la fenêtre la reprenne.
+ * The "Partir d'un modèle" selector: only templates, once each, by title,
+ * with their category so that the dialog picks it up.
  */
 describe("templateOptions", () => {
     it("keeps the templates only, sorted by title, each with its category", () => {

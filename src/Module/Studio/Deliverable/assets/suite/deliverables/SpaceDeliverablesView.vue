@@ -1,19 +1,19 @@
 <script setup>
 /**
- * Les livrables d'un client : audits, stratégies, bilans, tout ce qu'on écrit
- * pour le lui remettre.
+ * A client's deliverables: audits, strategies, reports, everything written
+ * to hand over to them.
  *
- * Un module à lui, et plus des publications du site : la grille des pages
- * pour composer, l'apparence du document, et une case pour l'ouvrir au client.
- * Ni brouillon ni publication : ce qui est fermé est en cours, ce qui est
- * ouvert, le client le lit dans son espace.
+ * A module of its own, no longer site publications: the page grid to
+ * compose, the document's appearance, and a box to open it to the client.
+ * Neither draft nor publication: what is closed is in progress, what is open
+ * the client reads in their space.
  *
- * Même gabarit que les ressources voisines : l'intro et le bouton en tête, des
- * cartes en liste, les gestes écrits en toutes lettres sur téléphone.
+ * Same layout as the neighbouring resources: the intro and the button on top,
+ * cards in a list, the actions spelled out on a phone.
  *
  * A page or a presentation, as in Studio: the create modal asks the same two
- * questions (the format, the Studio template to start from), and « Importer
- * un texte » turns a pasted text into a presentation. A presentation wears
+ * questions (the format, the Studio template to start from), and "Importer
+ * un texte" turns a pasted text into a presentation. A presentation wears
  * its badge on its card.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
@@ -40,13 +40,13 @@ const props = defineProps({
     deliverables: { type: Array, default: () => [] },
     canEdit: { type: Boolean, default: false },
     /**
-     * Le droit de partager l'espace, qui n'est pas celui de le modifier :
-     * donner une adresse de lecture, et montrer ou cacher un livrable au client.
+     * The right to share the space, which is not the right to edit it: give a
+     * reading address, and show or hide a deliverable from the client.
      */
     canShare: { type: Boolean, default: false },
-    /** Faux pour une archive : elle ne reçoit plus de livrable, créé ni dupliqué. */
+    /** False for an archive: it receives no more deliverables, created or duplicated. */
     canAdd: { type: Boolean, default: false },
-    /** La route qui rend les lignes à jour, pour une liste devenue périmée. */
+    /** The route that returns the rows up to date, for a list gone stale. */
     listPath: { type: String, default: "" },
     createPath: { type: String, required: true },
     /** A pasted text that becomes a presentation; empty, the gesture is not offered. */
@@ -60,9 +60,9 @@ const props = defineProps({
     visibilityPathTemplate: { type: String, required: true },
     duplicatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
-    /** Les liens de lecture d'un livrable ; vide, l'action n'est pas proposée. */
+    /** A deliverable's reading links; when empty, the action is not offered. */
     linksPathTemplate: { type: String, default: "" },
-    /** Garder une copie dans Studio ; vide sans le droit d'y créer. */
+    /** Keep a copy in Studio; empty without the right to create there. */
     copyToStudioPathTemplate: { type: String, default: "" },
 });
 
@@ -70,8 +70,8 @@ const { t } = useI18n();
 
 const rows = ref([...props.deliverables]);
 
-// La page du parent peut rafraîchir ses lignes : sans cela, celles d'ici
-// restaient celles du premier chargement.
+// The parent page can refresh its rows: without this, the ones here stayed
+// those of the first load.
 watch(
     () => props.deliverables,
     (next) => (rows.value = [...next]),
@@ -82,7 +82,7 @@ const { send } = useDeliverableRequest({
     onList: (data) => (rows.value = data.deliverables ?? []),
 });
 
-// ── Création ────────────────────────────────────────────────────────────────
+// ── Creation ────────────────────────────────────────────────────────────────
 
 const creating = ref(false);
 const saving = ref(false);
@@ -117,7 +117,7 @@ async function create() {
             return;
         }
 
-        // Droit dans l'éditeur : un livrable se commence pour s'écrire.
+        // Straight into the editor: a deliverable is started to be written.
         window.location.href = data.editPath;
     } finally {
         saving.value = false;
@@ -162,7 +162,7 @@ async function submitImport() {
 
 const busyId = ref(null);
 
-/** Ce qui retient l'ouverture au client, en attendant que l'auteur dise qu'il le sait. */
+/** What holds back opening to the client, until the author says they know. */
 const pendingShow = ref(null);
 
 async function toggleVisibility(deliverable, confirm = false) {
@@ -175,8 +175,8 @@ async function toggleVisibility(deliverable, confirm = false) {
             { own: ["confirmation_needed"] },
         );
 
-        // Un modèle pas fini, ou des images pas publiées : le serveur refuse
-        // d'ouvrir sans que l'auteur le sache, et dit ce qui reste.
+        // An unfinished template, or unpublished images: the server refuses to
+        // open without the author knowing, and says what is left.
         if ("confirmation_needed" === data?.error) {
             pendingShow.value = {
                 deliverable,
@@ -239,8 +239,8 @@ async function doDelete() {
             toast.success(t("suite.studio.deliverables.deleted"));
         }
 
-        // Réussi ou refusé (le livrable n'existe plus), la fenêtre se ferme :
-        // la liste a été redessinée d'un côté ou de l'autre.
+        // Succeeded or refused (the deliverable no longer exists), the dialog
+        // closes: the list has been redrawn either way.
         pendingDelete.value = null;
     } finally {
         deleting.value = false;
@@ -249,7 +249,7 @@ async function doDelete() {
 
 // ── Liens de lecture ────────────────────────────────────────────────────────
 
-/** Le livrable dont la fenêtre des liens est ouverte. */
+/** The deliverable whose links dialog is open. */
 const linksFor = ref(null);
 
 function actionsFor(deliverable) {
@@ -260,8 +260,8 @@ function actionsFor(deliverable) {
             icon: Pencil,
             title: t("suite.studio.deliverables.open"),
             description: t("suite.studio.deliverables.open_hint"),
-            // Une navigation est un lien, comme le veut la feuille d'actions :
-            // changer l'adresse depuis `onSelect` ne partait pas au vrai clic.
+            // A navigation is a link, as the action sheet wants: changing the
+            // address from `onSelect` did not fire on a real click.
             href: deliverable.editPath,
         },
         {
@@ -273,9 +273,9 @@ function actionsFor(deliverable) {
         },
     ];
 
-    // Les liens de lecture, comme dans l'éditeur : créer une adresse pour un
-    // destinataire ne demande plus d'ouvrir le document d'abord. Seulement
-    // avec le droit de partager l'espace : la liste porte les adresses mêmes.
+    // The reading links, as in the editor: creating an address for a
+    // recipient no longer requires opening the document first. Only with the
+    // right to share the space: the list carries the addresses themselves.
     if (props.linksPathTemplate && props.canShare) {
         actions.push({
             key: "links",
@@ -286,8 +286,8 @@ function actionsFor(deliverable) {
         });
     }
 
-    // Garder ce livrable comme modèle : il suffit de le lire ici et de
-    // pouvoir créer dans Studio.
+    // Keep this deliverable as a template: reading it here and being able to
+    // create in Studio is enough.
     if (props.copyToStudioPathTemplate) {
         actions.push({
             key: "copy-to-studio",
@@ -302,8 +302,8 @@ function actionsFor(deliverable) {
     if (!props.canEdit) return actions;
 
     actions.push(
-        // Montrer ou cacher au client : le droit de partager l'espace, en plus
-        // de celui de le modifier, comme partout dans un espace.
+        // Show or hide from the client: the right to share the space, on top
+        // of the right to edit it, as everywhere in a space.
         ...(props.canShare
             ? [{
                 key: "visibility",
@@ -370,8 +370,8 @@ function actionsFor(deliverable) {
             </div>
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains;
+     collapsed or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.deliverables.guide.title')" storage-key="space-deliverables">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 6" :key="step">{{ t(`suite.studio.deliverables.guide.step_${step}`) }}</li>
@@ -454,8 +454,8 @@ function actionsFor(deliverable) {
             v-on:submit="submitImport"
         />
 
-        <!-- Ouvrir au client un document qui n'est pas fini : on le dit, on
-             ne le refuse pas, l'auteur sait ce qu'il fait. -->
+        <!-- Opening an unfinished document to the client: say so, do not
+             refuse it, the author knows what they are doing. -->
         <AppModal
             :show="!!pendingShow"
             max-width="md"

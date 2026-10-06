@@ -8,9 +8,9 @@ import {
 } from "./surfaceContrast.js";
 
 /**
- * Les couleurs de référence sont volontairement les mêmes que celles du test PHP
- * `SurfaceContrastTest`. Si les deux implémentations divergent un jour, c'est
- * ici que ça se verra.
+ * The reference colours are deliberately the same as those of the PHP test
+ * `SurfaceContrastTest`. If the two implementations ever diverge, this is
+ * where it will show.
  */
 describe("surfaceContrast", () => {
     it("gives the known WCAG maximum for black on white", () => {
@@ -42,8 +42,8 @@ describe("surfaceContrast", () => {
     });
 
     it("never lets any background fall below AA", () => {
-        // L'invariant qui justifie de signaler AAA plutôt qu'AA, vérifié sur les
-        // 256 gris, là où se situe le pire cas.
+        // The invariant that justifies flagging AAA rather than AA, checked on the
+        // 256 greys, where the worst case lies.
         let worst = 21;
         for (let v = 0; v <= 255; v += 1) {
             const hex = `#${v.toString(16).padStart(2, "0").repeat(3)}`;

@@ -21,14 +21,14 @@ use function sprintf;
 use const DATE_ATOM;
 
 /**
- * Ce que reçoivent les écrans d'un livrable au format diaporama : l'éditeur de
- * diapositives, la vue présentateur, l'impression et la page de lecture.
+ * What the screens of a slideshow deliverable receive: the slide editor, the
+ * presenter view, printing and the reading page.
  *
- * **La forme qu'avaient les présentations** avant d'être des livrables :
- * l'éditeur, le lecteur et l'impression sont les composants des
- * présentations, et ils lisent un « deck ». Les adresses sont celles du
- * livrable, les droits ceux de {@see DeliverableAccess}, et le partage passe
- * par les liens de lecture du livrable.
+ * **The shape presentations had** before they were deliverables: the editor,
+ * the player and the print view are the presentation components, and they
+ * read a "deck". The addresses are the deliverable's, the rights those of
+ * {@see DeliverableAccess}, and sharing goes through the deliverable's
+ * reading links.
  *
  * A presentation lives in Studio or in a client space: each has its editor
  * view ({@see self::editorView()}, {@see self::spaceEditorView()}) over the
@@ -48,7 +48,7 @@ final readonly class DeliverableSlidesViewBuilder
     ) {}
 
     /**
-     * L'éditeur de diapositives d'un livrable de Studio.
+     * The slide editor of a Studio deliverable.
      *
      * @return array<string, mixed>
      */
@@ -59,9 +59,9 @@ final readonly class DeliverableSlidesViewBuilder
 
         return [
             'deck' => $this->deck($deliverable),
-            // Les réglages du document (titre, résumé, catégorie, modèle,
-            // client, rayon) : la fenêtre « Réglages » de l'éditeur les écrit
-            // par l'enregistrement d'un livrable, comme l'onglet d'une page.
+            // The document settings (title, summary, category, template,
+            // client, shelf): the editor's "Réglages" dialog writes them
+            // through a deliverable save, like a page's tab.
             ...$this->deliverablesView->editorView($deliverable),
             ...$this->slidePaths('suite_studio_deliverables_slides_', $params, $canWrite),
             'backPath' => $this->urlGenerator->generate('suite_studio_deliverables').'?scope='.$deliverable->getScope()->value,
@@ -128,8 +128,8 @@ final readonly class DeliverableSlidesViewBuilder
 
         return [
             ...$this->editorOptions->all(),
-            // Un fichier de police devient un document de la médiathèque : il
-            // faut aussi le droit d'y en déposer un.
+            // A font file becomes a media library document: it also takes the
+            // right to upload one there.
             'fontUploadPath' => $canWrite && $this->authorizationChecker->isGranted('ged.documents.create')
                 ? $route('font_upload')
                 : '',
@@ -145,12 +145,12 @@ final readonly class DeliverableSlidesViewBuilder
     }
 
     /**
-     * Le livrable sous la forme qu'attendent les composants des
-     * présentations : titre, résumé, thème et diapositives.
+     * The deliverable in the shape the presentation components expect:
+     * title, summary, theme and slides.
      *
-     * `channel` nomme le canal par lequel l'éditeur et la vue présentateur se
-     * parlent : préfixé, il ne croise pas celui d'une autre fenêtre qui
-     * numéroterait autre chose.
+     * `channel` names the channel through which the editor and the presenter
+     * view talk to each other: prefixed, it does not cross another window's
+     * that would number something else.
      *
      * @return array<string, mixed>
      */
@@ -172,9 +172,9 @@ final readonly class DeliverableSlidesViewBuilder
     }
 
     /**
-     * Ce que lit le destinataire d'un lien : les diapositives, sans les notes
-     * de l'orateur. Elles sont à qui présente, jamais au public : retirées
-     * ici plutôt que confiées au gabarit.
+     * What a link's recipient reads: the slides, without the speaker notes.
+     * They belong to whoever presents, never to the audience: removed here
+     * rather than left to the template.
      *
      * @return array<string, mixed>
      */
@@ -194,8 +194,8 @@ final readonly class DeliverableSlidesViewBuilder
     }
 
     /**
-     * L'apparence après son enregistrement, sans les diapositives : le
-     * panneau change des couleurs, pas le contenu.
+     * The appearance after it is saved, without the slides: the panel changes
+     * colours, not content.
      *
      * @return array<string, mixed>
      */

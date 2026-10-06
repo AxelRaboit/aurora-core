@@ -34,12 +34,11 @@ class SpaceChatMessageRepository extends ResolveTargetEntityRepository
     public const int WINDOW = 200;
 
     /**
-     * Ce qu'une remontée dans l'historique rapporte d'un coup.
+     * What one step back through the history brings at once.
      *
-     * Plus petit que la fenêtre d'ouverture, et volontairement : la première
-     * charge doit remplir l'écran, les suivantes doivent arriver avant que le
-     * pouce ait fini son geste. Cinquante messages tiennent dans une réponse
-     * qu'on ne voit pas passer.
+     * Smaller than the opening window, on purpose: the first load must fill
+     * the screen, the next ones must arrive before the thumb has finished its
+     * gesture. Fifty messages fit in a response nobody sees go by.
      */
     public const int PAGE = 50;
 
@@ -74,14 +73,13 @@ class SpaceChatMessageRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Ce qui précède un message, du plus récent au plus ancien puis remis à
-     * l'endroit.
+     * What precedes a message, newest to oldest and then put back in order.
      *
-     * **La page suivante se demande par un identifiant, jamais par un
-     * décalage.** Un `OFFSET` compte des lignes depuis le début : une
-     * conversation où quelqu'un écrit pendant qu'on remonte décale tout ce qui
-     * suit, et le lecteur voit deux fois le même message ou en saute un. Le
-     * repère est donc la ligne d'où l'on part, qui ne bouge pas.
+     * **The next page is asked for by an id, never by an offset.** An
+     * `OFFSET` counts rows from the start: a conversation where someone writes
+     * while the reader scrolls up shifts everything after it, and the reader
+     * sees the same message twice or skips one. The marker is therefore the
+     * row one starts from, which does not move.
      *
      * @return list<SpaceChatMessageInterface>
      */

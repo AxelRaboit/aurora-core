@@ -11,19 +11,17 @@ use function array_values;
 use const DATE_ATOM;
 
 /**
- * Ce qu'une révision retient d'une publication.
+ * What a revision keeps of a post.
  *
- * La forme vivait dans une méthode privée du gestionnaire, qui est le seul
- * endroit d'où naît une révision - tant qu'on ne cherche pas à en fabriquer
- * ailleurs. Le jeu de démonstration en a eu besoin : il écrit ses
- * publications en direct, donc aucune révision n'existait, et la modale
- * « Historique des versions » s'ouvrait sur un écran vide. C'est précisément
- * la fonction que la page publique du module promet.
+ * The shape lived in a private method of the manager, which is the only
+ * place a revision is born - as long as nobody tries to make one elsewhere.
+ * The demo data set needed it: it writes its posts directly, so no revision
+ * existed, and the "Historique des versions" modal opened on an empty
+ * screen. That is precisely the feature the module's public page promises.
  *
- * Sortie ici plutôt que recopiée dans les fixtures : deux définitions de ce
- * qu'une révision contient dériveraient, et la seconde ne se verrait qu'au
- * moment d'une restauration - c'est-à-dire le jour où quelqu'un compte
- * dessus.
+ * Moved out here rather than copied into the fixtures: two definitions of
+ * what a revision holds would drift, and the second would only show at
+ * restore time - that is, the day someone counts on it.
  */
 final readonly class PostSnapshot
 {
@@ -35,10 +33,10 @@ final readonly class PostSnapshot
             $translations[(string) $locale] = [
                 'title' => $translation->getTitle(),
                 'slug' => $translation->getSlug(),
-                // Le corps, qui est une grille et vit en deux moitiés : ce que
-                // chaque zone porte est ici, l'arrangement est sur la
-                // publication plus bas. Prendre l'un sans l'autre restaure des
-                // mots sans emplacement, ou un emplacement sans mots.
+                // The body, which is a grid and lives in two halves: what each
+                // zone carries is here, the arrangement is on the post further
+                // down. Taking one without the other restores words without a
+                // place, or a place without words.
                 'grid' => $translation->getGrid(),
                 'description' => $translation->getDescription(),
                 'metaTitle' => $translation->getMetaTitle(),

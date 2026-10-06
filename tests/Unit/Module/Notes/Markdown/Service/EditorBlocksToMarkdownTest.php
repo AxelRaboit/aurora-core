@@ -8,12 +8,12 @@ use Aurora\Module\Notes\Markdown\Service\EditorBlocksToMarkdown;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Le corps d'une note d'espace client, en blocs, devenu le Markdown du module
- * Notes.
+ * The body of a client space note, in blocks, turned into the Markdown of the
+ * Notes module.
  *
- * La conversion ne sert qu'une fois, dans la migration qui déplace ces notes,
- * et c'est précisément pourquoi elle est testée bloc par bloc : ce qu'elle
- * rate ne se voit qu'après, dans une note qu'on ne peut plus reconvertir.
+ * The conversion is only used once, in the migration that moves these notes,
+ * and that is precisely why it is tested block by block: what it misses only
+ * shows afterwards, in a note that can no longer be converted again.
  */
 final class EditorBlocksToMarkdownTest extends TestCase
 {
@@ -45,7 +45,7 @@ final class EditorBlocksToMarkdownTest extends TestCase
         );
     }
 
-    /** `<b> mot</b>` donnerait `** mot**`, que le Markdown ne lit pas comme du gras. */
+    /** `<b> mot</b>` would give `** mot**`, which Markdown does not read as bold. */
     public function testSpacesInsideAMarkGoOutsideIt(): void
     {
         self::assertSame(
@@ -70,7 +70,7 @@ final class EditorBlocksToMarkdownTest extends TestCase
         );
     }
 
-    /** Un paragraphe qui commence comme une liste reste un paragraphe. */
+    /** A paragraph that starts like a list stays a paragraph. */
     public function testAParagraphThatLooksLikeAListStaysAParagraph(): void
     {
         self::assertSame(
@@ -111,7 +111,7 @@ final class EditorBlocksToMarkdownTest extends TestCase
         );
     }
 
-    /** L'ancienne forme, où une entrée de liste était une simple chaîne. */
+    /** The old form, where a list item was a plain string. */
     public function testALegacyListOfStringsIsRead(): void
     {
         self::assertSame(
@@ -149,7 +149,7 @@ final class EditorBlocksToMarkdownTest extends TestCase
         );
     }
 
-    /** Trois accents graves dans le code ne ferment pas le bloc au milieu. */
+    /** Three backticks in the code do not close the block halfway. */
     public function testACodeFenceIsLongerThanWhatItHolds(): void
     {
         self::assertSame(
@@ -203,7 +203,7 @@ final class EditorBlocksToMarkdownTest extends TestCase
         );
     }
 
-    /** Un bloc inconnu rend son texte s'il en a un ; jamais de JSON dans une note. */
+    /** An unknown block renders its text if it has any; never JSON in a note. */
     public function testAnUnknownBlockGivesItsTextOrNothing(): void
     {
         self::assertSame(

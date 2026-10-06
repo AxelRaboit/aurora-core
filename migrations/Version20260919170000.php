@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Un espace peut désigner le dossier Drive que son client a partagé.
+ * A space can name the Drive folder its client shared.
  *
- * Nul partout au départ, ce qui est l'état de tous les espaces existants :
- * aucun n'a de Drive, et la plupart n'en auront jamais. L'identifiant et non
- * l'adresse - c'est ce que Google attend, et c'est ce qui suit `/folders/`.
+ * Null everywhere at first, which is the state of every existing space: none
+ * has a Drive, and most never will. The id rather than the address - that is
+ * what Google expects, and it is what follows `/folders/`.
  */
 final class Version20260919170000 extends AbstractMigration
 {

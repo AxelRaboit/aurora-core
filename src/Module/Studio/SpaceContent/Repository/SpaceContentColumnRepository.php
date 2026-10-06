@@ -66,9 +66,9 @@ class SpaceContentColumnRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Range dans une autre étape les contenus à la corbeille de celle-ci, et
-     * dit combien : l'étape va disparaître, et un contenu restauré doit avoir
-     * une étape où revenir.
+     * Moves this stage's trashed contents into another stage, and says how
+     * many: the stage is about to disappear, and a restored content must have
+     * a stage to come back to.
      */
     public function moveTrashedItems(SpaceContentColumnInterface $from, SpaceContentColumnInterface $to): int
     {

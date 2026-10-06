@@ -12,12 +12,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Dit quels espaces portent un fichier, avant qu'on ne le supprime.
+ * Says which spaces carry a file, before it is deleted.
  *
- * Le même silence coûteux que {@see SpaceAttachmentDocumentUsageProvider}
- * évitait pour les fiches, et pour la même raison : la ligne cascade, donc
- * supprimer le document ne noircit pas une vignette, il retire le fichier de
- * l'espace sans rien laisser derrière.
+ * The same costly silence {@see SpaceAttachmentDocumentUsageProvider} avoided
+ * for records, and for the same reason: the row cascades, so deleting the
+ * document does not blank a thumbnail, it removes the file from the space
+ * without leaving anything behind.
  */
 final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
@@ -42,13 +42,13 @@ final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsag
 
             $usages[] = [
                 'type' => $this->usageType(),
-                // Le nom de l'espace, pas celui du document : l'écran de
-                // suppression dit déjà quel fichier part, et ce qu'il faut
-                // savoir avant de valider, c'est chez qui il sert.
+                // The space's name, not the document's: the delete screen
+                // already says which file goes, and what is worth knowing
+                // before confirming is where it is used.
                 'label' => $space->getName(),
-                // Un espace à la corbeille garde ses fichiers pour sa
-                // restauration : on le dit, sans lien vers une adresse qui ne
-                // répond plus.
+                // A space in the trash keeps its files for its restoration:
+                // this says so, without a link to an address that no longer
+                // answers.
                 'detail' => $this->translator->trans($space->isTrashed() ? 'suite.studio.space_files.usage_detail_trashed' : 'suite.studio.space_files.usage_detail'),
                 'href' => $space->isTrashed() ? null : $this->urlGenerator->generate(
                     'workspace_space_content',

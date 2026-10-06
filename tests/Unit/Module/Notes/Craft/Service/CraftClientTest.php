@@ -19,12 +19,12 @@ use function base64_decode;
 use function base64_encode;
 
 /**
- * Ce que le serveur demande à Craft, et ce qu'il fait de la réponse.
+ * What the server asks Craft, and what it does with the answer.
  *
- * Trois choses se passent mal en silence sur ce chemin : une connexion qui n'a
- * jamais été ouverte, une adresse en clair, et une réponse qui n'a pas la
- * forme attendue. Aucune des trois ne doit faire remonter une exception au
- * milieu de l'écran des notes d'un espace.
+ * Three things go wrong silently on this path: a connection that was never
+ * opened, a plain-text address, and a response that does not have the
+ * expected shape. None of the three may raise an exception in the middle of
+ * a space's notes screen.
  */
 final class CraftClientTest extends TestCase
 {
@@ -32,10 +32,10 @@ final class CraftClientTest extends TestCase
     private array $calls = [];
 
     /**
-     * Un vrai {@see CraftSettings} au-dessus d'un magasin en mémoire : la
-     * classe est finale, et la construire pour de bon prouve au passage que le
-     * client pose la bonne question - allumée, adressée et munie d'un jeton,
-     * et pas seulement munie d'un jeton.
+     * A real {@see CraftSettings} on top of an in-memory store: the class is
+     * final, and building it for real also proves that the client asks the
+     * right question - enabled, addressed and holding a token, and not just
+     * holding a token.
      */
     private function settings(string $endpoint, string $token, bool $enabled = true): CraftSettings
     {
@@ -94,7 +94,7 @@ final class CraftClientTest extends TestCase
         self::assertSame([], $this->calls);
     }
 
-    /** Un jeton parti en clair est un jeton lu par qui tient le réseau. */
+    /** A token sent in clear text is a token read by whoever holds the network. */
     public function testAnAddressWithoutTlsCountsAsNoConnection(): void
     {
         $client = $this->client($this->settings('http://connect.example/c/1', 'jeton'), []);
@@ -120,14 +120,14 @@ final class CraftClientTest extends TestCase
             ['id' => 'b', 'title' => 'Zèbre'],
         ], $documents);
 
-        // La barre finale de l'adresse est retirée : sans cela, `//documents`.
+        // The trailing slash of the address is removed: otherwise, `//documents`.
         self::assertSame('https://connect.example/c/1/documents', $this->calls[0]['url']);
         self::assertContains('Authorization: Bearer jeton-secret', $this->calls[0]['options']['headers']);
     }
 
     /**
-     * `rootBlockId` et non `id` : c'est celui que `/blocks` attend, et
-     * l'identifiant qu'une adresse de document affiche en est un autre.
+     * `rootBlockId` and not `id`: it is the one `/blocks` expects, and the id
+     * a document address shows is yet another one.
      */
     public function testARowWithoutAnIdOrAliveDocumentIsSkipped(): void
     {
@@ -144,7 +144,7 @@ final class CraftClientTest extends TestCase
         self::assertSame([['id' => 'ok', 'title' => 'Bon']], $client->documents());
     }
 
-    /** Un document sans titre reste choisissable, sous son identifiant. */
+    /** A document without a title can still be chosen, under its id. */
     public function testAnUntitledDocumentFallsBackToItsIdentifier(): void
     {
         $client = $this->client(
@@ -158,8 +158,8 @@ final class CraftClientTest extends TestCase
     }
 
     /**
-     * C'est Craft qui rend le Markdown, parce que c'est lui qui connaît ses
-     * blocs. L'en-tête est donc la moitié importante de cet appel.
+     * Craft renders the Markdown, because it is the one that knows its
+     * blocks. The header is therefore the important half of this call.
      */
     public function testTheContentIsAskedAsMarkdown(): void
     {
@@ -185,12 +185,12 @@ final class CraftClientTest extends TestCase
     }
 
     /**
-     * Un écran qui ne propose rien est une déception ; une erreur 500 au
-     * milieu d'un espace client en est une autre.
+     * A screen that offers nothing is a letdown; a 500 error in the middle of
+     * a client space is another one.
      */
     /**
-     * Rien entendu, et non rien à dire : les deux se ressemblent à l'écran et
-     * ne se réparent pas au même endroit.
+     * Nothing heard, not nothing to say: the two look alike on screen and are
+     * not fixed in the same place.
      */
     public function testAServerErrorIsToldApartFromAnEmptyConnection(): void
     {

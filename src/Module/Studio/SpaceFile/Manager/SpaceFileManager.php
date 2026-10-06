@@ -23,15 +23,15 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Les fichiers de l'espace lui-même, déposés ou choisis.
+ * The files of the space itself, dropped or picked.
  *
- * Le même téléverseur que les pièces jointes d'une fiche, donc le même dossier
- * et le même brouillon : un fichier d'espace n'est pas rangé ailleurs parce
- * qu'il n'est accroché à rien.
+ * The same uploader as a record's attachments, so the same folder and the
+ * same draft: a space file is not stored elsewhere because it is attached to
+ * nothing.
  *
- * Un fichier déposé ou choisi par le studio naît caché au client, comme tout ce
- * qu'un espace peut lui montrer ; le montrer est un geste à part,
- * {@see setVisibleToClient()}, sous le droit de partager l'espace.
+ * A file dropped or picked by the studio is born hidden from the client, like
+ * everything a space can show them; showing it is a separate action,
+ * {@see setVisibleToClient()}, under the right to share the space.
  */
 #[AsAlias(SpaceFileManagerInterface::class)]
 class SpaceFileManager implements SpaceFileManagerInterface
@@ -98,11 +98,11 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Retire le fichier de l'espace, et laisse le document tranquille.
+     * Removes the file from the space, and leaves the document alone.
      *
-     * La même règle que sur une fiche : la ligne dit un rattachement, pas une
-     * possession. Le document reste dans la médiathèque, où sa suppression est
-     * un écran qui prévient et une corbeille qui rattrape.
+     * The same rule as on a record: the row states an attachment, not
+     * ownership. The document stays in the media library, where deleting it is
+     * a screen that warns and a trash that catches.
      */
     public function remove(SpaceFileInterface $file): void
     {
@@ -113,11 +113,11 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Montre le fichier au client, ou le lui cache.
+     * Shows the file to the client, or hides it from them.
      *
-     * **Un fichier que le client a envoyé reste visible.** Le lui cacher
-     * retirerait de sa page ce qu'il vient d'y déposer, et il croirait l'envoi
-     * perdu : refusé avec une phrase plutôt qu'ignoré.
+     * **A file the client sent stays visible.** Hiding it would remove from
+     * their page what they just dropped there, and they would think the upload
+     * was lost: refused with a sentence rather than ignored.
      */
     public function setVisibleToClient(SpaceFileInterface $file, bool $visible): void
     {
@@ -128,8 +128,8 @@ class SpaceFileManager implements SpaceFileManagerInterface
         $file->setVisibleToClient($visible);
         $this->entityManager->flush();
 
-        // Deux branches et deux littéraux : le contrôle de dérive du journal
-        // lit les actions dans le code, et une valeur calculée lui échappe.
+        // Two branches and two literals: the audit log drift check reads the
+        // actions in the code, and a computed value escapes it.
         if ($visible) {
             $this->auditLogger->log('studio', 'space_file.shown', 'SpaceFile', $file->getId(), $this->auditPayload($file));
 
@@ -140,11 +140,11 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Refuse deux fois le même document sur un espace.
+     * Refuses the same document twice on a space.
      *
-     * Deux lignes vers un seul fichier se lisent comme une erreur de celui qui
-     * regarde, et c'en est une. Attrapé ici plutôt que par un index unique,
-     * pour que la réponse soit une phrase.
+     * Two rows pointing to a single file read as a mistake by whoever looks,
+     * and it is one. Caught here rather than by a unique index, so the
+     * response is a sentence.
      */
     protected function refuseDuplicate(CustomerSpaceInterface $space, DocumentInterface $document): void
     {
@@ -164,9 +164,9 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Instancie l'entité concrète. À surcharger pour rendre une classe
-     * substituée côté client - `resolve_target_entities` ne touche que les
-     * relations Doctrine, pas les `new` directs.
+     * Instantiates the concrete entity. Override it to return a class
+     * substituted on the client side - `resolve_target_entities` only touches
+     * Doctrine relations, not direct `new` calls.
      */
     protected function createFile(): SpaceFileInterface
     {
@@ -194,12 +194,12 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Ce que porte chaque entrée du journal.
+     * What each audit log entry carries.
      *
-     * L'action, elle, est écrite en toutes lettres dans chaque hook plutôt que
-     * passée en paramètre : le contrôle de dérive des libellés lit le code à la
-     * recherche de `log('module', 'action')`, et une action passée en variable
-     * est un angle mort qu'il refuse d'avoir.
+     * The action itself is spelled out in each hook rather than passed as a
+     * parameter: the label drift check reads the code looking for
+     * `log('module', 'action')`, and an action passed as a variable is a blind
+     * spot it refuses to have.
      *
      * @return array<string, mixed>
      */

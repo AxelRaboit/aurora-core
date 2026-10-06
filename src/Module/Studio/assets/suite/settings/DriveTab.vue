@@ -12,16 +12,16 @@ import { useClipboard } from "@/shared/composables/useClipboard.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * L'onglet Google Drive de l'écran des réglages.
+ * The Google Drive tab of the settings screen.
  *
- * **L'adresse du compte est la moitié utile de cet écran.** La clé se colle
- * une fois et se range ; l'adresse, elle, se recopie à chaque nouveau client,
- * dans le partage de son dossier. Elle est donc affichée en grand avec un
- * bouton pour la copier, plutôt qu'enterrée dans un message de confirmation.
+ * **The account's address is the useful half of this screen.** The key is
+ * pasted once and put away; the address, on the other hand, is copied for
+ * every new client, into their folder's sharing. It is therefore shown large
+ * with a button to copy it, rather than buried in a confirmation message.
  *
- * Un champ de texte long pour la clé, et non un champ de fichier : un JSON se
- * colle depuis l'éditeur où on vient de l'ouvrir, et un champ de fichier
- * obligerait à retrouver le téléchargement.
+ * A long text field for the key, and not a file field: a JSON is pasted from
+ * the editor it was just opened in, and a file field would force finding the
+ * download again.
  */
 defineProps({
     groups: { type: Object, default: () => ({}) },
@@ -35,12 +35,13 @@ const { request } = useRequest();
 const { copy } = useClipboard();
 
 /**
- * Les quatre écrans de la console Google, dans l'ordre où on les traverse.
+ * The four screens of the Google console, in the order they are crossed.
  *
- * **Un lien par étape, et non un seul en bas.** Ils se suivent mal : celui
- * qu'on cherche n'est jamais celui qu'on a sous les yeux, et le sélecteur de
- * projet en haut de la console décide silencieusement de ce que la page
- * affiche. Une liste d'étapes sans leur adresse laisse chercher.
+ * **One link per step, and not a single one at the bottom.** They follow
+ * each other poorly: the one you are looking for is never the one in front
+ * of you, and the project selector at the top of the console silently
+ * decides what the page shows. A list of steps without their address leaves
+ * people searching.
  */
 const STEPS = [
     { key: "how_step_project", href: "https://console.cloud.google.com/projectcreate" },
@@ -55,12 +56,12 @@ const enabled = ref(false);
 const hasAccount = ref(false);
 const email = ref(null);
 
-// Jamais préremplie : à partir d'ici la clé ne se lit plus, elle ne s'écrit
-// que. Laissée vide, l'enregistrement garde celle qui est stockée.
+// Never prefilled: from here on the key is no longer read, it is only
+// written. Left empty, the save keeps the stored one.
 const serviceAccount = ref("");
 
-// Le dossier de l'agence, le même pour tous les espaces. Préremplie, elle :
-// ce n'est pas un secret, et un champ vide ne dirait pas s'il y en a un.
+// The agency's folder, the same for every space. This one is prefilled: it
+// is not a secret, and an empty field would not say whether there is one.
 const agencyFolder = ref("");
 
 const canEnable = computed(() => hasAccount.value || "" !== serviceAccount.value.trim());
@@ -85,7 +86,7 @@ onMounted(async () => {
 async function save() {
     saving.value = true;
     try {
-        // Toujours envoyé, vide compris : vider le champ retire le dossier.
+        // Always sent, empty included: clearing the field removes the folder.
         const payload = { enabled: enabled.value && canEnable.value, agencyFolderId: agencyFolder.value.trim() };
         if ("" !== serviceAccount.value.trim()) payload.serviceAccount = serviceAccount.value.trim();
 
@@ -100,7 +101,7 @@ async function save() {
     }
 }
 
-/** Allumé, prêt mais éteint (une clé sans activation), ou encore à configurer. */
+/** On, ready but off (a key without activation), or still to configure. */
 const status = computed(() => {
     if (enabled.value && hasAccount.value) return "active";
 
@@ -112,8 +113,8 @@ defineExpose({ save, apply, canEnable });
 
 <template>
     <IntegrationLayout :summary="t('suite.studio.drive.settings.what_body')" :status="status" :loading="loading">
-        <!-- Ce que la clé autorise, dit avant de la demander : elle a l'air
-             d'ouvrir un Drive entier, elle n'ouvre que ce qu'on lui partage. -->
+        <!-- What the key allows, said before asking for it: it looks like it
+             opens a whole Drive, it only opens what is shared with it. -->
         <p class="m-0 rounded-lg border border-line bg-surface-2 p-3 text-xs text-secondary">
             <span class="font-medium text-primary">{{ t("suite.studio.drive.settings.scope_title") }}.</span>
             {{ t("suite.studio.drive.settings.scope_body") }}
@@ -131,8 +132,8 @@ defineExpose({ save, apply, canEnable });
             <span class="text-xs text-muted">{{ t("suite.studio.drive.settings.key_hint") }}</span>
         </label>
 
-        <!-- Facultatif, et dit pour quoi faire : sans lui, l'onglet Drive
-             d'un espace reste celui du seul client, comme avant. -->
+        <!-- Optional, and says what for: without it, a space's Drive tab
+             stays the client's alone, as before. -->
         <AppInput
             v-model="agencyFolder"
             :label="t('suite.studio.drive.settings.agency_label')"
@@ -159,8 +160,8 @@ defineExpose({ save, apply, canEnable });
             </AppButton>
         </template>
 
-        <!-- L'adresse à recopier chez chaque client. Ce n'est pas un secret,
-             et c'est la seule partie de la clé qu'on montre. -->
+        <!-- The address to copy at each client's. It is not a secret, and it
+             is the only part of the key that is shown. -->
         <template v-if="email" #after>
             <article class="aurora-card flex flex-col gap-3 p-3 sm:p-4">
                 <div class="flex flex-col gap-1">
@@ -177,10 +178,10 @@ defineExpose({ save, apply, canEnable });
             </article>
         </template>
 
-        <!-- Chaque étape porte son propre lien, et non un seul en bas.
-             Quatre écrans de la console Google se suivent, et celui qu'on
-             cherche n'est jamais celui qu'on a sous les yeux : un lien unique
-             obligeait à retrouver les trois autres à la main. -->
+        <!-- Each step carries its own link, and not a single one at the
+             bottom. Four screens of the Google console follow each other, and
+             the one you are looking for is never the one in front of you: a
+             single link forced finding the other three by hand. -->
         <template #guide>
             <ol class="m-0 flex list-decimal flex-col gap-2 pl-5">
                 <li v-for="step in STEPS" :key="step.key">
@@ -197,9 +198,9 @@ defineExpose({ save, apply, canEnable });
                     </a>
                 </li>
             </ol>
-            <!-- L'étape qu'on oublie : la clé ne branche rien toute seule, elle
-                 ouvre seulement la possibilité. Le dossier se désigne espace par
-                 espace, et c'est là qu'on cherche quand rien ne s'affiche. -->
+            <!-- The step people forget: the key connects nothing on its own, it
+                 only opens the possibility. The folder is set space by space,
+                 and that is where to look when nothing shows up. -->
             <div class="flex flex-col gap-1 border-t border-line/60 pt-3">
                 <p class="m-0 font-medium text-primary">{{ t("suite.studio.drive.settings.then_title") }}</p>
                 <p class="m-0">{{ t("suite.studio.drive.settings.then_body") }}</p>

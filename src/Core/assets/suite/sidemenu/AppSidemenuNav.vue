@@ -128,9 +128,9 @@ defineProps({
                                 <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
                             </span>
                         </a>
-                        <!-- `title` reste : c'est le nom accessible d'un bouton
-                             sans texte, pas une bulle d'aide. Sans lui, un
-                             lecteur d'écran annonce « bouton » et rien d'autre. -->
+                        <!-- `title` stays: it is the accessible name of a button
+                             without text, not a tooltip. Without it, a screen
+                             reader announces "button" and nothing else. -->
                         <AppIconButton
                             :title="item.label"
                             class="mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"

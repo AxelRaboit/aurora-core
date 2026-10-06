@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useNotePreview } from "./useNotePreview.js";
 
 /**
- * L'aperçu au survol : ce qu'il demande au serveur, et quand.
+ * The hover preview: what it asks of the server, and when.
  */
 function anchor() {
     const element = document.createElement("div");
@@ -77,8 +77,8 @@ describe("useNotePreview", () => {
     });
 
     /**
-     * Le curseur ne s'arrête pas pour attendre le serveur : la réponse d'une
-     * carte qu'on a quittée ne doit pas s'afficher sur celle qu'on regarde.
+     * The cursor does not stop to wait for the server: the answer for a card
+     * that was left must not show on the one being looked at.
      */
     it("drops an answer for a card the reader has already left", async () => {
         const lente = {
@@ -142,11 +142,11 @@ describe("useNotePreview", () => {
     });
 
     /**
-     * Un aperçu qui échoue ne coûte que son absence.
+     * A preview that fails costs only its absence.
      *
-     * L'appel part d'un minuteur : personne ne l'attend, donc une exception
-     * remonterait en rejet non traité jusqu'au garde-fou de la page, qui
-     * remplacerait la bibliothèque par son écran d'erreur.
+     * The call starts from a timer: nobody awaits it, so an exception would
+     * bubble up as an unhandled rejection to the page's safety net, which
+     * would replace the library with its error screen.
      */
     it("stays quiet when the request blows up", async () => {
         const fetchNote = vi.fn().mockRejectedValue(new Error("réseau"));
@@ -159,7 +159,7 @@ describe("useNotePreview", () => {
         expect(preview.loading.value).toBe(false);
     });
 
-    /** Une carte près du bord droit passe à gauche plutôt que de déborder. */
+    /** A card near the right edge moves to the left rather than overflowing. */
     it("puts the card where it fits", async () => {
         const fetchNote = vi.fn().mockResolvedValue({
             ok: true,
@@ -171,8 +171,8 @@ describe("useNotePreview", () => {
         preview.open({ id: 7 }, anchor());
         await vi.advanceTimersByTimeAsync(500);
 
-        // 100 (bord gauche de la carte) - 12 (écart) - 360 (largeur) est
-        // négatif, donc la marge l'emporte.
+        // 100 (card's left edge) - 12 (gap) - 360 (width) is negative, so
+        // the margin wins.
         expect(preview.position.value.left).toBe(8);
     });
 });

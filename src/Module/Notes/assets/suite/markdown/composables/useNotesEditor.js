@@ -46,13 +46,13 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     const notes = ref([...initialNotes]);
     const selectedId = ref(null);
     /**
-     * Ce que l'habillage d'une note ajoute au formulaire.
+     * What a note's styling adds to the form.
      *
-     * Le bandeau et l'apparence se sauvegardent comme le texte - par la même
-     * écriture automatique, sur la même route - parce que ce sont des champs
-     * de la note et rien d'autre. Les nommer ici les fait entrer dans
-     * l'instantané, donc dans la détection de modification : choisir une
-     * image déclenche l'enregistrement, sans bouton.
+     * The banner and the appearance are saved like the text - through the
+     * same autosave, on the same route - because they are fields of the note
+     * and nothing else. Naming them here brings them into the snapshot, so
+     * into change detection: picking an image triggers the save, without a
+     * button.
      */
     const LOOK_DEFAULTS = {
         coverUrl: null,
@@ -86,23 +86,22 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     // includes content (which the flat `notes` list omits). The isDirty
     // comparison runs against this, not against the flat list entry.
     const loadedSnapshot = ref(null);
-    // Quelle note ce formulaire contient réellement. Sans elle, un chargement
-    // qui échoue laissait le texte de la note précédente en face d'un
-    // identifiant déjà changé, et la sauvegarde automatique écrivait l'une
-    // par-dessus l'autre.
+    // Which note this form really holds. Without it, a load that failed left
+    // the previous note's text facing an id that had already changed, and
+    // the autosave wrote one over the other.
     const loadedId = ref(null);
     const saving = ref(false);
     const deleting = ref(false);
     const pendingDelete = ref(null);
 
     /**
-     * La version de la note telle qu'elle a été chargée, et ce qui arrive
-     * quand le serveur en a une plus récente.
+     * The note's version as it was loaded, and what happens when the server
+     * has a more recent one.
      *
-     * Un enregistrement parti d'une version dépassée est refusé : quelqu'un
-     * a écrit entre-temps. L'éditeur s'arrête alors d'enregistrer - il ne
-     * doit ni réessayer en boucle ni écraser - et la personne choisit :
-     * recharger, ou écraser en connaissance de cause.
+     * A save that started from an outdated version is refused: someone wrote
+     * in the meantime. The editor then stops saving - it must neither retry
+     * in a loop nor overwrite - and the person chooses: reload, or overwrite
+     * knowingly.
      */
     const loadedVersion = ref(null);
     const conflict = ref(false);
@@ -113,12 +112,12 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     );
 
     /**
-     * Ce que le formulaire montre appartient-il à la note demandée ?
+     * Does what the form shows belong to the requested note?
      *
-     * Faux entre le clic et l'arrivée de la réponse, et faux aussi quand le
-     * chargement a échoué. C'est le même `loadedId` qui garde la sauvegarde
-     * automatique : une seule vérité pour « ce formulaire est-il celui de
-     * cette note », plutôt qu'un drapeau de chargement à tenir à jour à côté.
+     * False between the click and the arrival of the response, and false
+     * too when loading failed. It is the same `loadedId` that guards the
+     * autosave: a single truth for "is this form this note's", rather than a
+     * loading flag to keep up to date on the side.
      */
     const bodyReady = computed(
         () => null !== loadedId.value && loadedId.value === selectedId.value,
@@ -126,7 +125,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
     const isDirty = computed(() => {
         if (!loadedSnapshot.value) return false;
-        // En conflit, rien ne part tout seul : c'est la personne qui décide.
+        // In a conflict, nothing goes out on its own: the person decides.
         if (conflict.value) return false;
         if (loadedSnapshot.value.title !== form.value.title) return true;
         if (loadedSnapshot.value.content !== form.value.content) return true;
@@ -140,11 +139,11 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
             if (loadedSnapshot.value[key] !== form.value[key]) return true;
         }
 
-        // L'habillage compte autant que le texte. Sans ces clés, choisir
-        // une image ou déplacer le cadrage laissait le formulaire « propre » :
-        // la surveillance se déclenchait bien, mais repartait aussitôt
-        // faute de différence à écrire, et le réglage disparaissait au
-        // rechargement suivant. Signalé par Axel le 23/09.
+        // The styling counts as much as the text. Without these keys,
+        // picking an image or moving the framing left the form "clean": the
+        // watcher did fire, but went off again right away for lack of a
+        // difference to write, and the setting disappeared on the next
+        // reload. Reported by Axel on 23/09.
         for (const key of Object.keys(LOOK_DEFAULTS)) {
             if (loadedSnapshot.value[key] !== form.value[key]) return true;
         }
@@ -162,8 +161,8 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         isDirty: () => isDirty.value,
         save: performSave,
         onError: () => {
-            // Un conflit a sa propre modale : un second message par-dessus
-            // dirait deux fois la même chose, et la moins claire des deux.
+            // A conflict has its own modal: a second message on top would
+            // say the same thing twice, and the less clear of the two.
             if (!conflict.value)
                 toast.error(t("notes.markdown.errors.save_failed"));
         },
@@ -181,24 +180,24 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         await flushPendingSave();
 
         selectedId.value = id;
-        // Le formulaire ne contient plus rien de fiable tant que la note
-        // demandée n'est pas arrivée : la marquer non chargée ferme la porte à
-        // une sauvegarde qui écrirait l'ancienne note sur la nouvelle.
+        // The form holds nothing reliable until the requested note has
+        // arrived: marking it unloaded shuts the door on a save that would
+        // write the old note over the new one.
         loadedId.value = null;
         loadedSnapshot.value = null;
-        // Et on le vide pour de bon. Le marquer non chargé suffisait à
-        // protéger les données, pas les yeux : le titre, le texte et le
-        // bandeau de la note qu'on venait de quitter restaient à l'écran le
-        // temps de l'aller-retour, sous l'identité de la nouvelle. On voyait
-        // donc, une fraction de seconde, une note qui n'a jamais existé.
+        // And we empty it for good. Marking it unloaded was enough to protect
+        // the data, not the eyes: the title, the text and the banner of the
+        // note just left stayed on screen for the round trip, under the new
+        // one's identity. So for a split second one saw a note that never
+        // existed.
         form.value = blankForm();
 
-        // Le titre et l'entête, on les connaît déjà : ils sont dans la liste à
-        // plat, qui est ce sur quoi on vient de cliquer. Les poser tout de
-        // suite évite deux clignotements - un mauvais titre remplacé par un
-        // champ vide, et surtout le bandeau qui disparaissait puis revenait,
-        // cent soixante pixels de saut à chaque passage d'une note à bandeau à
-        // une autre. Seul le texte attend la réponse.
+        // The title and the header are already known: they are in the flat
+        // list, which is what was just clicked. Setting them right away
+        // avoids two flickers - a wrong title replaced by an empty field, and
+        // above all the banner that disappeared then came back, a hundred and
+        // sixty pixel jump each time one went from one note with a banner to
+        // another. Only the text waits for the response.
         const connue = notes.value.find((n) => n.id === id);
         if (connue) {
             form.value.title = connue.title ?? "";
@@ -207,11 +206,11 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
         const { ok, reported, payload } = await api.show(id);
 
-        // Une réponse en retard ne doit pas écraser une note choisie depuis.
-        // L'écran en demande deux coup sur coup au chargement - la note active
-        // du gabarit, puis celle de l'adresse - et quand elles revenaient dans
-        // le désordre, c'est la première qui s'affichait : ouvrir le lien d'une
-        // note en montrait une autre, au hasard du réseau.
+        // A late response must not overwrite a note chosen since. The screen
+        // asks for two in a row on load - the template's active note, then
+        // the address's - and when they came back out of order, the first one
+        // was shown: opening a note's link showed another one, at the
+        // network's whim.
         if (selectedId.value !== id) {
             return;
         }
@@ -262,9 +261,8 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     async function performSave() {
         if (!selectedNote.value) return true;
 
-        // Ne jamais écrire un formulaire qui n'a pas été chargé pour cette
-        // note : c'est le seul point où la confusion se transformerait en
-        // perte de texte.
+        // Never write a form that was not loaded for this note: it is the
+        // only point where the confusion would turn into lost text.
         if (loadedId.value !== selectedNote.value.id) return true;
 
         saving.value = true;
@@ -415,7 +413,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
      * touching multiple notes) so both the sidebar and the editor pane
      * reflect the new server state in one call.
      */
-    /** Écraser la version du serveur avec ce qui est à l'écran, sciemment. */
+    /** Overwrite the server's version with what is on screen, knowingly. */
     async function saveAnyway() {
         conflict.value = false;
         forceNextSave = true;
@@ -424,10 +422,9 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     }
 
     /**
-     * Reprendre la version du serveur, en laissant tomber ce qui n'a pas pu
-     * être enregistré. Le formulaire est d'abord déclaré propre : sans cela,
-     * le changement de note tenterait un dernier enregistrement, refusé à
-     * son tour.
+     * Take back the server's version, dropping what could not be saved. The
+     * form is first declared clean: otherwise, the note change would attempt
+     * a last save, refused in turn.
      */
     async function reloadDiscarding() {
         cancelAutoSave();
@@ -469,19 +466,18 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
     // ── Lifecycle ──────────────────────────────────────────────────────────
     //
-    // Plus d'ouverture automatique de la première note.
+    // No more automatic opening of the first note.
     //
-    // Elle datait du temps où cette page n'était qu'un éditeur : sans note
-    // ouverte il n'y avait rien à montrer, donc on en ouvrait une. Depuis
-    // que le carnet a une bibliothèque, cette ligne détournait tout :
-    // arriver sur « Tous les documents » ouvrait une note, entrer dans un
-    // dossier en ouvrait une aussi, et cliquer sur un dossier dans le menu
-    // semblait ne rien faire - la bibliothèque n'était jamais montée, donc
-    // le panneau parlait à une page absente et se rabattait sur une
-    // navigation qui rouvrait une note.
+    // It dated from the time when this page was only an editor: with no open
+    // note there was nothing to show, so one was opened. Since the notebook
+    // has a library, this line hijacked everything: arriving on "Tous les
+    // documents" opened a note, entering a folder opened one too, and
+    // clicking a folder in the menu seemed to do nothing - the library was
+    // never mounted, so the panel talked to an absent page and fell back on
+    // a navigation that reopened a note.
     //
-    // C'est le serveur qui décide : une adresse de note ouvre cette note
-    // (cf. `useMarkdownNotesPage`), les autres montrent la bibliothèque.
+    // The server decides: a note address opens that note (see
+    // `useMarkdownNotesPage`), the others show the library.
 
     function beforeUnloadHandler(event) {
         event.preventDefault();

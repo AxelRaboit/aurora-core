@@ -11,18 +11,18 @@ import DeliverableScopePicker from "./DeliverableScopePicker.vue";
 import { categoryOptions } from "../composables/categoryOptions.js";
 
 /**
- * Ce qui entoure le document : son nom, sa langue, ce que dit l'en-tête de sa
- * page, et si le client le voit.
+ * What surrounds the document: its name, its language, what its page header
+ * says, and whether the client sees it.
  *
- * La visibilité est ici, en toutes lettres, et pas sous la forme d'un statut :
- * rien ne se programme ni ne se relit, une case décide si le client le lit
- * dans son espace. Les liens de lecture, eux, ouvrent le livrable qu'il soit
- * visible ou non : c'est un envoi décidé à part.
+ * Visibility is here, spelled out, and not as a status: nothing is scheduled
+ * or reviewed, a checkbox decides whether the client reads it in their space.
+ * Reading links, for their part, open the deliverable whether it is visible
+ * or not: that is a separate decision to send it.
  *
- * Sans espace, pas de client : la section laisse la place au rayon du
- * livrable, perso ou partagé, que seul son auteur change. Un livrable de
- * Studio peut aussi être un modèle, et nommer le client pour qui il est écrit
- * (le sélecteur ne s'affiche qu'avec le droit de voir les clients).
+ * Without a space, no client: the section gives way to the deliverable's
+ * shelf, personal or shared, which only its author changes. A Studio
+ * deliverable can also be a template, and name the client it is written for
+ * (the selector only shows with the right to see clients).
  */
 const title = defineModel("title", { type: String, required: true });
 const summary = defineModel("summary", { type: String, default: "" });
@@ -31,39 +31,39 @@ const readingHeader = defineModel("readingHeader", { type: Object, required: tru
 const visibleToClient = defineModel("visibleToClient", { type: Boolean, default: false });
 const scope = defineModel("scope", { type: String, default: null });
 const categoryId = defineModel("categoryId", { type: [Number, null], default: null });
-/** Studio seulement : proposé à la création d'un livrable. */
+/** Studio only: offered when creating a deliverable. */
 const template = defineModel("template", { type: Boolean, default: false });
-/** Studio seulement : le client pour qui il est écrit, avant son espace. */
+/** Studio only: the client it is written for, before their space exists. */
 const customerId = defineModel("customerId", { type: [Number, null], default: null });
-/** L'image de la carte : `{ id, url }`, prise dans la médiathèque. */
+/** The card image: `{ id, url }`, taken from the media library. */
 const thumbnail = defineModel("thumbnail", { type: Object, default: () => ({ id: null, url: null }) });
 
 const props = defineProps({
     locales: { type: Array, default: () => [] },
     errors: { type: Object, default: () => ({}) },
     customerName: { type: String, default: "" },
-    /** Faux pour un livrable de Studio : il n'y a pas de client à qui l'ouvrir. */
+    /** False for a Studio deliverable: there is no client to open it to. */
     withClient: { type: Boolean, default: true },
     /**
-     * Montrer ou cacher au client : le droit de partager l'espace. Sans lui,
-     * l'état se lit, la case ne s'offre pas.
+     * Show or hide from the client: the right to share the space. Without it,
+     * the state can be read, the checkbox is not offered.
      */
     canShowToClient: { type: Boolean, default: true },
     canChangeScope: { type: Boolean, default: false },
-    /** Les catégories des livrables de Studio : `{ id, name, color }`. */
+    /** The Studio deliverable categories: `{ id, name, color }`. */
     categories: { type: Array, default: () => [] },
-    /** Les clients à nommer, `{ id, legalName }` ; vide sans le droit de les voir. */
+    /** The clients that can be named, `{ id, legalName }`; empty without the right to see them. */
     customers: { type: Array, default: () => [] },
     canPickCustomer: { type: Boolean, default: false },
     /** The [blanks] still in the document: a client should not read one. */
     placeholders: { type: Number, default: 0 },
-    /** Faux pour un diaporama : l'en-tête est celui de la page, et il n'a pas de page. */
+    /** False for a slideshow: the header is the page's, and it has no page. */
     withReadingHeader: { type: Boolean, default: true },
 });
 
 const { t } = useI18n();
 
-/** Le nom de chaque langue dans la sienne : c'est ainsi qu'on la cherche. */
+/** Each language's name in that language: that is how people look for it. */
 const localeOptions = computed(() =>
     props.locales.map((code) => {
         let label = code.toUpperCase();
@@ -71,7 +71,7 @@ const localeOptions = computed(() =>
             const name = new Intl.DisplayNames([code], { type: "language" }).of(code);
             if (name) label = name.charAt(0).toUpperCase() + name.slice(1);
         } catch {
-            // Un navigateur sans Intl.DisplayNames garde le code.
+            // A browser without Intl.DisplayNames keeps the code.
         }
 
         return { value: code, label };
@@ -80,7 +80,7 @@ const localeOptions = computed(() =>
 
 const categorySelectOptions = computed(() => categoryOptions(props.categories));
 
-/** Le sélecteur parle en chaînes, le livrable en identifiants. */
+/** The selector speaks in strings, the deliverable in ids. */
 const categoryValue = computed({
     get: () => (null === categoryId.value || undefined === categoryId.value ? "" : String(categoryId.value)),
     set: (value) => (categoryId.value = value ? Number(value) : null),
@@ -141,15 +141,15 @@ const showLogo = computed({
                 :options="localeOptions"
                 :error="errors.locale ?? ''"
             />
-            <!-- La vignette de la carte, dans les deux listes : on repère un
-                 livrable à son image avant de lire son titre. -->
+            <!-- The card thumbnail, in both lists: you spot a deliverable by
+                 its image before reading its title. -->
             <AppImagePickerField
                 v-model="thumbnail"
                 :label="t('suite.studio.deliverables.settings.thumbnail')"
                 :hint="t('suite.studio.deliverables.settings.thumbnail_hint')"
                 :size="96"
             />
-            <!-- Studio seulement : un livrable d'espace se range par son espace. -->
+            <!-- Studio only: a space deliverable is filed by its space. -->
             <AppSelect
                 v-if="!withClient && scope"
                 v-model="categoryValue"
@@ -158,8 +158,8 @@ const showLogo = computed({
                 :hint="t(categories.length ? 'suite.studio.deliverables.categories.settings_hint' : 'suite.studio.deliverables.categories.settings_empty_hint')"
                 :options="categorySelectOptions"
             />
-            <!-- Studio seulement, et avec le droit de voir les clients : la
-                 liste entière des clients est derrière ce sélecteur. -->
+            <!-- Studio only, and with the right to see clients: the whole
+                 client list is behind this selector. -->
             <AppSelect
                 v-if="!withClient && scope && canPickCustomer"
                 v-model="customerValue"

@@ -21,13 +21,14 @@ use function sprintf;
 use function str_ends_with;
 
 /**
- * Un survol du site public passe par `highlight`, jamais par `accent` en dur.
+ * A hover on the public site goes through `highlight`, never through a
+ * hard-coded `accent`.
  *
- * {@see ThemeContext::highlight()} laisse un thème rendre ses survols neutres ;
- * un bloc qui écrit `hover:border-accent` échappe à ce choix sans que rien ne
- * le signale, et c'est précisément sur une page aux couleurs travaillées qu'un
- * liseré vert se remarque. Les boutons pleins ou contour gardent leur accent
- * au survol (`hover:bg-accent`) : ils sont hors de la règle.
+ * {@see ThemeContext::highlight()} lets a theme make its hovers neutral; a
+ * block that writes `hover:border-accent` escapes that choice without anything
+ * flagging it, and it is precisely on a page with carefully worked colors that
+ * a green edge stands out. Filled or outline buttons keep their accent on
+ * hover (`hover:bg-accent`): they are outside the rule.
  */
 final class FrontendHoversFollowHighlightTest extends TestCase
 {

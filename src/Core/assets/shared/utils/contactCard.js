@@ -1,15 +1,15 @@
 /**
- * Le QR code et le contact à enregistrer d'une carte de visite - `[data-contact-card]`.
+ * The QR code and the contact to save of a business card - `[data-contact-card]`.
  *
- * Les deux portent la même vCard, écrite une fois côté serveur dans
- * `data-vcard`. Le QR code se lit avec l'appareil photo d'un téléphone ; le
- * bouton fait télécharger le même contact, que le téléphone propose aussitôt
- * d'enregistrer. Les deux restent cachés sans ce module, et la carte garde
- * ses liens, qui marchent seuls.
+ * Both carry the same vCard, written once on the server side in
+ * `data-vcard`. The QR code is read with a phone camera; the button
+ * downloads the same contact, which the phone immediately offers to save.
+ * Both stay hidden without this module, and the card keeps its links, which
+ * work on their own.
  *
- * La bibliothèque du QR code n'est chargée que sur une page qui a une carte.
+ * The QR code library is only loaded on a page that has a card.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_contact_card.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_contact_card.html.twig
  */
 const SELECTOR = "[data-contact-card]";
 
@@ -62,7 +62,7 @@ async function arm() {
             slot.hidden = false;
         }
     } catch {
-        // Sans QR code, la carte reste complète : ses liens et le bouton.
+        // Without a QR code, the card stays complete: its links and the button.
     }
 }
 

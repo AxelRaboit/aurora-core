@@ -23,18 +23,17 @@ use function array_reverse;
 use function implode;
 
 /**
- * L'onglet Notes d'un espace client : une porte sur son espace de notes.
+ * A client space's Notes tab: a door onto its notes space.
  *
- * **Les notes ne sont plus écrites ici.** Elles vivent dans le module Notes,
- * dans l'espace de notes de l'espace client ; l'onglet en montre la liste et
- * y mène - une note s'ouvre dans l'éditeur des notes, qui sait tout ce que
- * l'ancien mur ne savait pas (dossiers, liens entre notes, historique,
- * recherche, partage d'une note).
+ * **Notes are no longer written here.** They live in the Notes module, in the
+ * client space's notes space; the tab shows their list and leads there - a
+ * note opens in the notes editor, which knows everything the old wall did not
+ * (folders, links between notes, history, search, sharing a note).
  *
- * **Absent pour qui n'a pas les notes.** Module éteint, ou personne sans le
- * droit `notes.markdown.use` : l'onglet ne se montre pas, plutôt que de mener
- * à des écrans qui répondraient 404. Le droit n'est pas donné en passant, il
- * se règle avec les autres.
+ * **Absent for whoever does not have notes.** Module turned off, or a person
+ * without the `notes.markdown.use` right: the tab does not show, rather than
+ * leading to screens that would answer 404. The right is not granted in
+ * passing, it is set with the others.
  */
 final readonly class SpaceNotesViewBuilder
 {
@@ -50,7 +49,7 @@ final readonly class SpaceNotesViewBuilder
     ) {}
 
     /**
-     * Ce dont l'onglet a besoin, envoyé avec le reste de la page.
+     * What the tab needs, sent with the rest of the page.
      *
      * @return array<string, mixed>
      */
@@ -60,8 +59,8 @@ final readonly class SpaceNotesViewBuilder
     }
 
     /**
-     * L'état de l'onglet : rendu à la page, puis après l'ouverture de
-     * l'espace de notes.
+     * The tab's state: rendered with the page, then after the notes space is
+     * opened.
      *
      * @return array<string, mixed>
      */
@@ -92,8 +91,8 @@ final readonly class SpaceNotesViewBuilder
                 'create' => $this->urlGenerator->generate('suite_notes_markdown_create'),
                 'show' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => '__id__']),
             ],
-            // L'import Craft n'existe dans l'onglet que si l'installation a
-            // ouvert la connexion.
+            // The Craft import only exists in the tab if the installation has
+            // opened the connection.
             'craftEnabled' => $this->craft->isConfigured(),
             'craftPaths' => [
                 'documents' => $this->urlGenerator->generate('suite_notes_craft_documents'),
@@ -102,7 +101,7 @@ final readonly class SpaceNotesViewBuilder
         ];
     }
 
-    /** Le module allumé, et le droit de s'en servir. */
+    /** The module turned on, and the right to use it. */
     public function enabled(): bool
     {
         return $this->notesContext->isSuiteEnabled()
@@ -111,7 +110,7 @@ final readonly class SpaceNotesViewBuilder
     }
 
     /**
-     * Les notes de l'espace, avec le chemin de leur dossier pour les situer.
+     * The space's notes, with their folder path to place them.
      *
      * @return list<array<string, mixed>>
      */

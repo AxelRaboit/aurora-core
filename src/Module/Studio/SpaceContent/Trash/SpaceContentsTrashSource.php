@@ -19,14 +19,14 @@ use function array_values;
 use function count;
 
 /**
- * Les contenus mis à la corbeille, dans les espaces que le lecteur voit.
+ * The contents put in the trash, in the spaces the reader sees.
  *
- * Seulement ceux d'un espace vivant : un contenu d'un espace lui-même à la
- * corbeille ne reviendrait nulle part, et il revient avec son espace. La ligne
- * nomme l'espace, parce que « Post du lundi » existe dans chacun.
+ * Only those of a living space: a content of a space that is itself in the
+ * trash would come back nowhere, and it comes back with its space. The row
+ * names the space, because "Post du lundi" exists in each of them.
  *
- * Restaurer et détruire demandent le droit qui y a mis le contenu, modifier
- * l'espace.
+ * Restoring and destroying require the right that put the content there,
+ * editing the space.
  */
 final readonly class SpaceContentsTrashSource implements TrashSourceInterface
 {

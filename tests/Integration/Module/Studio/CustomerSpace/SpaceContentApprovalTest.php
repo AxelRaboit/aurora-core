@@ -65,10 +65,10 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le compteur du limiteur survit au processus : une classe qui écrit
-        // comme un invité dépense un budget horaire partagé, et vire au
-        // rouge au troisième lancement de l'heure - par un 429 sur une
-        // route que le test ne voulait pas éprouver.
+        // The rate limiter's counter outlives the process: a class that writes
+        // as a guest spends a shared hourly budget, and turns red on the
+        // third run within the hour - through a 429 on a route the test did
+        // not mean to exercise.
         $this->resetRateLimiter('space_guest_write');
 
         $this->links = $container->get(SpaceAccessLinkRepository::class);
@@ -112,8 +112,8 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         self::assertCount(1, $thread);
         self::assertSame('Parfait.', $thread[0]->getBody());
         self::assertTrue($thread[0]->isFromClient());
-        // Le nom du lien, jamais son adresse : c'est ce que lisent les autres
-        // invités du même espace.
+        // The link's name, never its address: that is what the other guests
+        // of the same space read.
         self::assertSame('Camille, gérante', $thread[0]->getAuthorLabel());
         // Who answered, by the address the link was sent to: there is no
         // account behind this.
@@ -344,10 +344,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
-        // L'en-tête que le composant de requête du navigateur pose sur
-        // chaque appel, et que les routes publiques exigent : sans lui,
-        // un formulaire hébergé ailleurs pourrait faire poster le
-        // navigateur d'un client vers ces adresses.
+        // The header the browser's request helper sets on every call, and
+        // that public routes require: without it, a form hosted elsewhere
+        // could make a client's browser post to these addresses.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
@@ -423,11 +422,11 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            // La Relecture, datée : un espace neuf ne montre au client que la
-            // Relecture et Publié.
+            // Relecture, dated: a new space only shows the client the
+            // Relecture and Publié columns.
             'columnId' => $this->columns->findForSpace($space)[2]->getId(),
-            // Datée : la page du client ne montre que son calendrier, et
-            // n'accepte d'avis que sur ce qu'elle montre.
+            // Dated: the client's page only shows its calendar, and only
+            // accepts a verdict on what it shows.
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 

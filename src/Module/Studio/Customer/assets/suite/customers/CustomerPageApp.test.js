@@ -76,11 +76,11 @@ function saveButton(wrapper) {
 }
 
 /**
- * La page d'un client.
+ * A customer's page.
  *
- * Ce qui se casse en silence : un lecteur sans le droit de modifier qui
- * trouverait un formulaire actif et un bouton qui répond 403, ou un bouton
- * Enregistrer actif sur une fiche que personne n'a touchée.
+ * What breaks silently: a reader without the right to edit who would find an
+ * active form and a button that answers 403, or an active Enregistrer button
+ * on a sheet nobody has touched.
  */
 describe("CustomerPageApp", () => {
     beforeEach(() => {

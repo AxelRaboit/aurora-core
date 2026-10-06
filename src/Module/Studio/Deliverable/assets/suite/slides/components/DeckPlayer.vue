@@ -69,9 +69,9 @@ const shown = ref(0);
 const revealable = computed(() => revealableIn(props.slides[at.value]));
 
 const isFirst = computed(() => at.value === 0 && shown.value === 0);
-/* Une slide qui retient encore des lignes n'est pas au bout de sa course, meme
-   quand elle est la derniere du deck : sans ca, les fleches a l'ecran restent
-   grisees et les apparitions ne sont atteignables qu'au clavier. */
+/* A slide still holding back lines is not at the end of its run, even when it
+   is the last one in the deck: without this, the on-screen arrows stay greyed
+   out and the reveals can only be reached from the keyboard. */
 const isLast = computed(() => at.value >= props.slides.length - 1 && shown.value >= revealable.value);
 
 
@@ -297,9 +297,9 @@ onBeforeUnmount(() => {
     >
         <div class="deck-player-stage">
             <Transition :name="transition">
-                <!-- La clé porte l'index : sans elle Vue réutilise le même
-                     composant et la transition n'a rien à faire entrer ni
-                     sortir. -->
+                <!-- The key carries the index: without it Vue reuses the same
+                     component and the transition has nothing to bring in or
+                     take out. -->
                 <SlideFrame
                     v-if="current"
                     :key="at"
@@ -312,9 +312,9 @@ onBeforeUnmount(() => {
             </Transition>
         </div>
 
-        <!-- Le sommaire, par-dessus la slide plutôt qu'à sa place : on y entre
-             pour en ressortir, et remplacer l'écran ferait perdre où on en
-             était à la salle aussi. -->
+        <!-- The overview, over the slide rather than in its place: you go in
+             to come back out, and replacing the screen would make the room
+             lose where it was too. -->
         <div v-if="overview" class="deck-player-grid" role="dialog" :aria-label="t('suite.studio.deliverables.slides.overview')">
             <button
                 v-for="(slide, index) in slides"
@@ -422,17 +422,17 @@ onBeforeUnmount(() => {
 }
 
 .deck-player-stage > * {
-    /* `100dvh` moins la barre et les marges, converti en largeur par le
-       rapport : c'est la contrainte de hauteur exprimée en largeur, et `min`
-       retient celle des deux qui mord la première. `dvh` plutôt que `vh`
-       parce que la barre d'adresse d'un téléphone change la hauteur réelle. */
+    /* `100dvh` minus the bar and the margins, converted to a width through
+       the ratio: it is the height constraint expressed as a width, and `min`
+       keeps whichever of the two bites first. `dvh` rather than `vh` because
+       a phone's address bar changes the real height. */
     width: min(100%, calc((100dvh - 8rem) * 16 / 9));
     max-width: 1600px;
-    /* Le 16/9 par le rapport, ici et seulement ici. Le cadre le tient d'un
-       remplissage en pourcentage, qui se calcule sur la largeur du bloc
-       conteneur ; dans une grille, ce bloc est la cellule et non la slide, et
-       sur un écran plus large que haut la slide prenait la hauteur de la
-       cellule : un rond posé sur une slide libre y devenait un ovale. */
+    /* The 16/9 through the ratio, here and only here. The frame gets it from
+       a percentage padding, which is computed on the containing block's
+       width; in a grid, that block is the cell and not the slide, and on a
+       screen wider than tall the slide took the cell's height: a circle
+       placed on a free slide became an oval there. */
     padding-top: 0;
     aspect-ratio: 16 / 9;
 }
@@ -475,17 +475,17 @@ onBeforeUnmount(() => {
 
 .deck-player-button.is-on { background: rgb(110 231 183 / 0.18); color: #6ee7b7; }
 
-/* Le curseur disparaît quand la souris ne bouge plus : une flèche garée au
-   milieu d'une slide projetée est la tache que personne ne voit sur sa propre
-   présentation. Elle revient au premier mouvement. */
+/* The cursor disappears when the mouse stops moving: an arrow parked in the
+   middle of a projected slide is the blemish nobody sees on their own
+   presentation. It comes back on the first movement. */
 .deck-player.is-idle { cursor: none; }
 
 /**
- * Les deux couches, empilées pendant la transition.
+ * The two layers, stacked during the transition.
  *
- * La scène est une grille d'une seule case : les deux slides y tombent l'une
- * sur l'autre au lieu de se pousser, ce qui est la seule façon d'avoir un
- * fondu plutôt qu'un défilement vertical d'une demi-seconde.
+ * The stage is a single-cell grid: the two slides land on top of each other
+ * instead of pushing each other, which is the only way to get a fade rather
+ * than a half-second vertical scroll.
  */
 .deck-player-stage > * { grid-area: 1 / 1; }
 
@@ -504,22 +504,22 @@ onBeforeUnmount(() => {
 .deck-slide-back-enter-from { transform: translateX(-4%); opacity: 0; }
 .deck-slide-back-leave-to { transform: translateX(4%); opacity: 0; }
 
-/* Le sommaire, par-dessus. */
+/* The overview, on top. */
 .deck-player-grid {
     position: absolute;
     inset: 0;
     z-index: 10;
     overflow-y: auto;
     display: grid;
-    /* Assez large pour qu'un titre se lise : on vient ici reconnaître une
-       slide, pas compter combien il y en a. */
+    /* Wide enough for a title to be read: you come here to recognise a
+       slide, not to count how many there are. */
     grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
     align-content: start;
     gap: 0.75rem;
     padding: 1.5rem;
-    /* Opaque, et non un voile : à 96 % la slide en cours transparaissait en
-       grand derrière les vignettes, et la grille avait l'air posée sur une
-       image fantôme plutôt que d'être l'écran qu'on regarde. */
+    /* Opaque, not a veil: at 96% the current slide showed through large
+       behind the thumbnails, and the grid looked laid over a ghost image
+       rather than being the screen you are looking at. */
     background: #0b0d10;
 }
 
@@ -546,18 +546,17 @@ onBeforeUnmount(() => {
 }
 
 /**
- * Le point lumineux, hors de tout flux et insensible au clic.
+ * The laser dot, outside any flow and immune to clicks.
  *
- * `pointer-events: none` est ce qui fait qu'il suit la souris sans jamais se
- * mettre entre elle et ce qu'elle vise : sans ça, le cercle recevrait
- * lui-même le `mousemove` et se figerait sous le curseur.
+ * `pointer-events: none` is what lets it follow the mouse without ever
+ * getting between it and what it aims at: without it, the circle would
+ * receive the `mousemove` itself and freeze under the cursor.
  */
 .deck-player-spot {
     position: fixed;
     z-index: 20;
-    /* Assez grand et assez dense pour survivre à un vidéoprojecteur : à
-       l'écran on le voit de toute façon, au mur c'est le seul endroit où ça
-       se joue. */
+    /* Large and dense enough to survive a projector: on screen you see it
+       anyway, on the wall is the only place where it matters. */
     width: 3.5rem;
     height: 3.5rem;
     margin: -1.75rem 0 0 -1.75rem;
@@ -569,8 +568,8 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
     .deck-player-bar { transition: none; }
 
-    /* Ce que ce réglage système demande, c'est justement de ne pas voir les
-       slides bouger. Le thème du deck ne prime pas là-dessus. */
+    /* What this system setting asks for is precisely not to see the slides
+       move. The deck theme does not override that. */
     .deck-fade-enter-active,
     .deck-fade-leave-active,
     .deck-slide-forward-enter-active,

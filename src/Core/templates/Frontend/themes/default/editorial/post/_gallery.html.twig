@@ -58,12 +58,11 @@
     <div class="{{ 'masonry' == gallery.layout ? masonry_columns[columns]|default(masonry_columns[3]) ~ ' gap-3' : ('justified' == gallery.layout ? 'flex flex-wrap gap-3' : 'grid ' ~ (grid_columns[columns]|default(grid_columns[3])) ~ ' gap-3') }}">
         {% for index, item in gallery.items %}
             {% set justifiedRatio = ('justified' == gallery.layout and item.height|default(0) > 0) ? (item.width|default(item.height) / item.height) : 1 %}
-            {# **Sur chaque photo, pas sur la galerie.** Une galerie qui
-               arrive d'un bloc ne se lit pas comme vingt photos, elle se lit
-               comme un rectangle qui change d'opacité. Portées une par une,
-               elles franchissent le seuil ensemble et le script les décale
-               de soixante-dix millisecondes chacune, dans l'ordre où l'œil
-               les prend. #}
+            {# **On each photo, not on the gallery.** A gallery that arrives
+               in one block does not read as twenty photos, it reads as a
+               rectangle changing opacity. Carried one by one, they cross the
+               threshold together and the script staggers them by seventy
+               milliseconds each, in the order the eye takes them. #}
             <figure
                 {% if reveal|default('none') != 'none' %}data-reveal="{{ reveal }}"{% endif %}
                 class="{{ 'justified' == gallery.layout ? 'm-0 overflow-hidden rounded-lg' : 'm-0' ~ ('masonry' == gallery.layout ? ' mb-3 break-inside-avoid' : '') }}"
@@ -81,13 +80,13 @@
                     class="block {{ 'justified' == gallery.layout ? 'h-full w-full' : 'w-full' }} cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left"
                     aria-label="{{ 'frontend.gallery.open'|trans({'%position%': index + 1, '%total%': gallery.items|length}) }}"
                 >
-                    {# `width` et `height` réservent la hauteur avant que la
-                       photo arrive. Sans eux, vingt images différées occupent
-                       zéro pixel et la page s'allonge vingt fois sous le
-                       lecteur. Avec `h-auto` le navigateur n'en garde que le
-                       rapport et laisse la largeur au CSS - sauf en
-                       disposition justifiée, où c'est l'inverse : la hauteur
-                       est fixe et `h-full` la lui donne. #}
+                    {# `width` and `height` reserve the height before the
+                       photo arrives. Without them, twenty lazy images take up
+                       zero pixels and the page grows twenty times under the
+                       reader. With `h-auto` the browser only keeps their
+                       ratio and leaves the width to CSS - except in the
+                       justified layout, where it is the other way round: the
+                       height is fixed and `h-full` gives it to the image. #}
                     <img
                         src="{{ item.url }}"
                         alt="{{ item.alt }}"

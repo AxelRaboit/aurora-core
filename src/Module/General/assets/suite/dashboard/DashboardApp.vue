@@ -18,8 +18,8 @@ const hasModule = computed(() => Object.values(props.enabledModules).some(Boolea
 
 <template>
     <div class="aurora-stack">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide v-if="hasModule" :title="t('suite.stats.guide.title')" storage-key="dashboard">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.stats.guide.step_${step}`) }}</li>

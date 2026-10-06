@@ -16,12 +16,11 @@ vi.mock("vue-sonner", () => ({
 const i18n = createTestI18n();
 
 /**
- * La fenêtre des liens de lecture, une seule pour toutes les lignes d'une
- * liste.
+ * The reading links dialog, a single one for every row of a list.
  *
- * Ce qui se cassait sans bruit : ouvrir « Liens » sur un livrable B montrait
- * d'abord ceux de A (et les gardait si la requête de B échouait), et un mot
- * de passe tapé pour A sans être validé partait avec le lien créé pour B.
+ * What broke silently: opening "Liens" on a deliverable B first showed A's
+ * (and kept them if B's request failed), and a password typed for A without
+ * being submitted went out with the link created for B.
  */
 const link = (id, label) => ({
     id,

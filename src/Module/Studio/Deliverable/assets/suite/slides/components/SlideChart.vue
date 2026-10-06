@@ -120,9 +120,9 @@ const options = computed(() => {
 </template>
 
 <style scoped>
-/* Une hauteur explicite : `maintainAspectRatio: false` demande au conteneur de
-   décider, et un conteneur en `flex: 1` dans une boîte dont la hauteur vient
-   d'un rapport 16/9 n'en a pas à donner tant que le canevas n'a pas de taille. */
+/* An explicit height: `maintainAspectRatio: false` asks the container to
+   decide, and a `flex: 1` container in a box whose height comes from a 16/9
+   ratio has none to give as long as the canvas has no size. */
 .slide-chart {
     flex: 1;
     min-height: 0;

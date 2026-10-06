@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
-// jsdom ne fournit pas `matchMedia`, et la bascule de thème de l'en-tête la
-// demande **au chargement du module**, pas au montage. `vi.hoisted` place donc
-// le remplaçant au-dessus des imports, que le moteur remonte de toute façon :
-// posé plus bas, il arriverait après le composant qui s'en sert.
+// jsdom does not provide `matchMedia`, and the header's theme toggle asks for
+// it **when the module loads**, not on mount. `vi.hoisted` therefore puts the
+// stand-in above the imports, which the engine hoists anyway: placed lower, it
+// would arrive after the component that uses it.
 vi.hoisted(() => {
     window.matchMedia = (query) => ({
         matches: false,
@@ -23,17 +23,17 @@ import PublicSpaceApp from "./PublicSpaceApp.vue";
 const i18n = createTestI18n();
 
 /**
- * La page qu'un client ouvre par son lien, et ses onglets.
+ * The page a client opens through their link, and its tabs.
  *
- * **Elle n'avait aucun test de montage.** Elle empilait tout, donc il n'y
- * avait rien à choisir ni rien qui pouvait disparaître ; depuis qu'elle se lit
- * par onglets, trois règles sont devenues cassables en silence : l'onglet
- * d'arrivée, l'onglet qui n'existe pas faute de contenu, et la barre qui ne se
- * dessine pas quand il n'y a qu'un choix.
+ * **It had no mount test.** It stacked everything, so there was nothing to
+ * choose and nothing that could disappear; since it is read in tabs, three
+ * rules can break silently: the landing tab, the tab that does not exist for
+ * lack of content, and the bar that is not drawn when there is only one
+ * choice.
  *
- * Ce sont trois règles dont le défaut ne lève aucune erreur : une page qui
- * s'ouvre sur la discussion au lieu du calendrier, ou qui propose un onglet
- * vide, a l'air de marcher.
+ * These are three rules whose failure raises no error: a page that opens on
+ * the chat instead of the calendar, or that offers an empty tab, looks like it
+ * works.
  */
 const SPACE = {
     name: "Atelier Dupont - Réseaux sociaux",
@@ -84,7 +84,7 @@ function monter(props = {}) {
     });
 }
 
-/** Les onglets que la barre propose, dans l'ordre. */
+/** The tabs the bar offers, in order. */
 function onglets(wrapper) {
     return wrapper
         .findAll("[role='group'] button")
@@ -107,8 +107,8 @@ describe("PublicSpaceApp", () => {
         const wrapper = monter({ chatChannels: [CHANNEL], spaceFiles: [FILE] });
         await flushPromises();
 
-        // Le premier bouton porte l'état actif : c'est le calendrier qu'on
-        // vient voir, la discussion est la deuxième raison d'ouvrir la page.
+        // The first button carries the active state: the calendar is what
+        // people come to see, the chat is the second reason to open the page.
         const boutons = wrapper.findAll("[role='group'] button");
         expect(boutons[0].attributes("aria-pressed")).toBe("true");
         expect(onglets(wrapper)[0]).toContain("tab_calendar");
@@ -118,8 +118,8 @@ describe("PublicSpaceApp", () => {
         const wrapper = monter({ spaceFiles: [FILE] });
         await flushPromises();
 
-        // Deux onglets, donc la barre existe, mais pas celui-là : un onglet
-        // vide se lit comme un écran inachevé.
+        // Two tabs, so the bar exists, but not that one: an empty tab reads
+        // as an unfinished screen.
         expect(onglets(wrapper)).toHaveLength(2);
         expect(onglets(wrapper).join(" ")).not.toContain("tab_chat");
     });
@@ -136,8 +136,8 @@ describe("PublicSpaceApp", () => {
         const wrapper = monter();
         await flushPromises();
 
-        // Un sélecteur à un choix est un ornement, et il occuperait une ligne
-        // sur un téléphone pour ne rien proposer.
+        // A selector with one choice is an ornament, and it would take up a
+        // line on a phone to offer nothing.
         expect(wrapper.find("[role='group']").exists()).toBe(false);
     });
 
@@ -145,8 +145,8 @@ describe("PublicSpaceApp", () => {
         const wrapper = monter({ chatChannels: [CHANNEL], resources: [] });
         await flushPromises();
 
-        // Ce qui n'a pas été ouvert n'arrive pas ici : la liste est vide, donc
-        // l'onglet n'a rien à montrer et n'existe pas.
+        // What was not opened never gets here: the list is empty, so the tab
+        // has nothing to show and does not exist.
         expect(onglets(wrapper).join(" ")).not.toContain("tab_resources");
     });
 
@@ -203,9 +203,9 @@ describe("PublicSpaceApp", () => {
     });
 
     /**
-     * Ce qui attend une réponse doit se voir sans ouvrir une seule carte, et
-     * le compteur est aussi le filtre : un client qui revient veut sa liste de
-     * tâches, pas son mois.
+     * What is waiting for an answer must be visible without opening a single
+     * card, and the counter is also the filter: a client coming back wants
+     * their task list, not their month.
      */
     it("annonce ce qui attend une réponse, et seulement à qui peut répondre", async () => {
         const items = [
@@ -227,8 +227,8 @@ describe("PublicSpaceApp", () => {
 
         const lecteur = monter({ items });
         await flushPromises();
-        // Un lien en lecture seule ne peut rien valider : lui annoncer ce qui
-        // l'attend serait lui montrer une porte fermée.
+        // A read-only link cannot approve anything: telling it what is waiting
+        // would be showing it a closed door.
         expect(lecteur.text()).not.toContain("awaiting_you");
 
         const wrapper = monter({ items, canApprove: true });
@@ -264,8 +264,8 @@ describe("PublicSpaceApp", () => {
 
         await filtre.trigger("click");
         expect(filtre.attributes("aria-pressed")).toBe("true");
-        // La carte déjà validée sort de la grille : c'est la même liste qui
-        // alimente le mois et celle du jour.
+        // The card already approved leaves the grid: the same list feeds the
+        // month and the day list.
         expect(wrapper.text()).not.toContain("Validée");
     });
 
@@ -282,7 +282,7 @@ describe("PublicSpaceApp", () => {
         expect(wrapper.text()).toContain("Charte graphique");
     });
 
-    /** Les étapes du mode d'emploi, par leur clé. */
+    /** The how-to guide's steps, by their key. */
     function etapes(wrapper) {
         return wrapper
             .findAll("[data-guide] li")
@@ -295,8 +295,7 @@ describe("PublicSpaceApp", () => {
         const lecture = monter({ canApprove: false, canComment: false });
         await flushPromises();
 
-        // Un lien en lecture seule : pas d'étape qui promettrait un bouton
-        // absent de la page.
+        // A read-only link: no step promising a button missing from the page.
         expect(etapes(lecture)).toEqual(["calendar"]);
 
         const complet = monter({

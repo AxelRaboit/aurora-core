@@ -35,9 +35,9 @@ describe("AppIconButton", () => {
     });
 
     /**
-     * Trente pixels sous le pouce, l'ancien serrage à la souris : c'est la
-     * seule taille, et une valeur inconnue retombe dessus plutôt que de rendre
-     * un bouton sans dimensions.
+     * Thirty pixels under the thumb, the old tight fit with a mouse: it is the
+     * only size, and an unknown value falls back to it rather than rendering a
+     * button without dimensions.
      */
     it("gives every button a thumb-sized box below sm", () => {
         const wrapper = mount(AppIconButton);
@@ -50,7 +50,7 @@ describe("AppIconButton", () => {
         expect(wrapper.classes()).toContain("min-h-7.5");
     });
 
-    // Quinze boutons de l'éditeur de grille passaient `:icon` et s'affichaient vides.
+    // Fifteen buttons of the grid editor passed `:icon` and showed up empty.
     it("renders the icon prop when no slot is given", () => {
         const Icon = { template: '<svg data-test="icon" />' };
         const wrapper = mount(AppIconButton, {

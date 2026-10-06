@@ -15,7 +15,7 @@ const { t } = useI18n();
 const props = defineProps({
     tab: { type: String, default: "overview" },
     stats: { type: Object, default: () => ({}) },
-    /** Les modules allumés de l'installation, pour les onglets de la vue d'ensemble. */
+    /** The installation's enabled modules, for the overview tabs. */
     enabledModules: { type: Object, default: () => ({}) },
     users: { type: Object, default: () => ({}) },
     accessRequests: { type: Object, default: () => ({}) },
@@ -95,8 +95,8 @@ function initialDataFor(key) {
              surfaces answering "which tab am I on" is one too many - the same
              call the settings page made in 0.9.29. -->
         <div class="flex-1 min-w-0 aurora-stack">
-            <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-                 replié ou déplié, le choix vaut pour tous les encarts. -->
+            <!-- The screen's how-to, next to what it explains; folded or
+                 unfolded, the choice holds for every guide. -->
             <AppGuide :title="t('suite.settings.administration_guide.title')" storage-key="dev-administration">
                 <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                     <li v-for="step in 5" :key="step">{{ t(`suite.settings.administration_guide.step_${step}`) }}</li>

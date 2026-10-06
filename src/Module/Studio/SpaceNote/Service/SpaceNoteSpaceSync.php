@@ -12,22 +12,22 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use DateTimeImmutable;
 
 /**
- * Tient l'espace de notes d'un espace client dans le pas de son équipe.
+ * Keeps a client space's notes space in step with its team.
  *
- * **L'équipe de l'espace client fait foi.** Qui est sur l'espace écrit dans
- * ses notes ; qui le quitte n'y entre plus. Le référent gère l'espace de notes
- * (il en vide la corbeille), un membre y écrit. Personne d'autre n'est
- * inscrit, et l'écran des notes refuse qu'on y inscrive quelqu'un à la main :
- * une inscription posée là-bas serait défaite au prochain enregistrement d'ici.
+ * **The client space's team is the reference.** Whoever is on the space
+ * writes in its notes; whoever leaves it no longer gets in. The lead manages
+ * the notes space (they empty its trash), a member writes in it. Nobody else
+ * is enrolled, and the notes screen refuses enrolling someone there by hand:
+ * an enrolment made over there would be undone at the next save from here.
  *
- * **Aucun privilège n'est donné.** Un membre de l'équipe qui n'a pas le droit
- * d'utiliser les notes (`notes.markdown.use`) est inscrit quand même, et ne
- * voit pas l'onglet : lui ouvrir le module serait une décision qui appartient
- * à qui règle les droits, pas un effet de bord de la composition d'une équipe.
+ * **No privilege is granted.** A team member who does not have the right to
+ * use notes (`notes.markdown.use`) is enrolled anyway, and does not see the
+ * tab: opening the module to them would be a decision belonging to whoever
+ * sets the rights, not a side effect of how a team is made up.
  *
- * Rien ne se passe tant que l'espace de notes n'existe pas : il est ouvert la
- * première fois que quelqu'un en a besoin, par {@see SpaceNoteSpaceProvider},
- * qui le synchronise à ce moment-là.
+ * Nothing happens as long as the notes space does not exist: it is opened the
+ * first time someone needs it, by {@see SpaceNoteSpaceProvider}, which syncs
+ * it at that moment.
  */
 final readonly class SpaceNoteSpaceSync
 {
@@ -55,9 +55,9 @@ final readonly class SpaceNoteSpaceSync
     }
 
     /**
-     * L'espace client part à la corbeille : son espace de notes l'y suit,
-     * toujours réglé par lui. Personne ne le règle ni ne le restaure depuis
-     * l'écran des notes ; il revient quand l'espace client revient.
+     * The client space goes to the trash: its notes space follows it there,
+     * still governed by it. Nobody manages or restores it from the notes
+     * screen; it comes back when the client space comes back.
      */
     public function trash(CustomerSpaceInterface $space): void
     {
@@ -71,8 +71,8 @@ final readonly class SpaceNoteSpaceSync
     }
 
     /**
-     * L'espace client sort de la corbeille : son espace de notes en sort
-     * aussi, s'il y est encore et toujours le sien, et retrouve son équipe.
+     * The client space leaves the trash: its notes space leaves it too, if it
+     * is still there and still its own, and gets its team back.
      */
     public function restore(CustomerSpaceInterface $space): void
     {
@@ -87,10 +87,9 @@ final readonly class SpaceNoteSpaceSync
     }
 
     /**
-     * L'espace client est détruit pour de bon : son espace de notes reste à
-     * la corbeille (ou y part), redevenu un espace ordinaire que les
-     * administrateurs peuvent faire revenir. Les notes ne partent pas avec un
-     * client.
+     * The client space is destroyed for good: its notes space stays in the
+     * trash (or goes there), back to being an ordinary space that
+     * administrators can bring back. Notes do not leave with a client.
      */
     public function release(CustomerSpaceInterface $space): void
     {
@@ -103,7 +102,7 @@ final readonly class SpaceNoteSpaceSync
         $this->noteSpaces->releaseManaged($noteSpace);
     }
 
-    /** Le référent gère, un membre écrit. */
+    /** The lead manages, a member writes. */
     public static function roleFor(CustomerSpaceMemberRoleEnum $role): NoteSpaceRoleEnum
     {
         return match ($role) {

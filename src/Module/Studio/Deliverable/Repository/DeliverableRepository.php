@@ -36,11 +36,11 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les livrables d'un espace, le dernier touché en premier.
+     * A space's deliverables, the last touched first.
      *
-     * `$visibleOnly` est ce que la page du client appelle : un livrable fermé
-     * ne sort pas du serveur, plutôt que d'être caché à l'affichage. Le studio
-     * appelle la même méthode sans le drapeau, d'où un seul tri.
+     * `$visibleOnly` is what the client's page calls: a closed deliverable
+     * never leaves the server, rather than being hidden on display. The studio
+     * calls the same method without the flag, hence a single sort.
      *
      * @return list<DeliverableInterface>
      */
@@ -63,14 +63,13 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les lignes de la liste d'un espace, sans leur corps.
+     * The rows of a space's list, without their body.
      *
-     * Un livrable porte sa grille et son contenu en JSON, jusqu'à une centaine
-     * de kilo-octets pour un audit complet ; la page de l'espace n'en affiche
-     * que le titre, l'état et l'image. Lire les colonnes seules évite
-     * d'hydrater et de décoder tous les corps à chaque ouverture d'un onglet
-     * qui n'est même pas celui des livrables. Le même tri que
-     * {@see self::findForSpace()}.
+     * A deliverable carries its grid and its content as JSON, up to a hundred
+     * kilobytes or so for a full audit; the space page only shows the title,
+     * the state and the image. Reading only the columns avoids hydrating and
+     * decoding every body each time a tab is opened that is not even the
+     * deliverables tab. The same sort as {@see self::findForSpace()}.
      *
      * @return list<array{id: int, title: string, summary: ?string, format: string, visibleToClient: bool, updatedAt: DateTimeImmutable, thumbnailId: ?int}>
      */
@@ -99,7 +98,7 @@ class DeliverableRepository extends ResolveTargetEntityRepository
         ], $builder->getQuery()->getArrayResult());
     }
 
-    /** Celui-ci, à condition qu'il appartienne à cet espace : une adresse ne franchit pas un espace. */
+    /** This one, provided it belongs to this space: an address does not cross spaces. */
     public function findInSpace(CustomerSpaceInterface $space, int $id): ?DeliverableInterface
     {
         return $this->createQueryBuilder('d')
@@ -113,11 +112,11 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les livrables perso d'une personne, sans espace, le dernier touché en
-     * premier.
+     * A person's personal deliverables, without a space, the last touched
+     * first.
      *
-     * Un administrateur y trouve aussi les livrables perso restés sans auteur :
-     * c'est lui qui les recueille, cf. {@see DeliverableAccess::adopts()}.
+     * An administrator also finds there the personal deliverables left
+     * without an author: they take them in, see {@see DeliverableAccess::adopts()}.
      *
      * @return list<DeliverableInterface>
      */
@@ -135,7 +134,7 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les livrables partagés de Studio, ceux de toute l'équipe.
+     * Studio's shared deliverables, the whole team's.
      *
      * @return list<DeliverableInterface>
      */
@@ -145,9 +144,9 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les livrables dont le titre contient ce terme, les plus récents d'abord :
-     * des candidats pour la recherche globale, que l'appelant filtre par ce que
-     * la personne a le droit de lire, ce que le SQL ne sait pas dire.
+     * The deliverables whose title contains this term, most recent first:
+     * candidates for the global search, which the caller filters by what the
+     * person may read, something SQL cannot express.
      *
      * @return list<DeliverableInterface>
      */
@@ -173,15 +172,14 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les présentations dont une diapositive contient ce terme, les plus
-     * récentes d'abord : des candidats pour la recherche globale, filtrés
-     * ensuite comme ceux du titre.
+     * The presentations with a slide containing this term, most recent
+     * first: candidates for the global search, then filtered like the title
+     * ones.
      *
-     * Les mots d'une diapositive sont dans son JSON, à toutes les profondeurs
-     * (une diapositive libre range ses textes dans ses éléments) : seules les
-     * valeurs qui sont des chaînes sont lues, jamais les clés, sans quoi
-     * chercher « title » trouverait toutes les présentations. Les notes de
-     * l'orateur n'y sont pas : elles sont à qui présente.
+     * A slide's words are in its JSON, at every depth (a free slide keeps its
+     * texts in its elements): only values that are strings are read, never
+     * keys, otherwise searching "title" would find every presentation. The
+     * speaker notes are not included: they belong to whoever presents.
      *
      * @return list<DeliverableInterface>
      */
@@ -234,9 +232,9 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Un livrable vivant, de Studio ou d'un espace : celui qu'on ouvre, qu'on
-     * modifie, qu'on envoie. Un livrable à la corbeille n'est plus là pour
-     * personne, et répond comme un identifiant inconnu.
+     * A live deliverable, from Studio or from a space: the one you open, edit,
+     * send. A trashed deliverable is no longer there for anyone, and answers
+     * like an unknown id.
      */
     public function findLive(int $id): ?DeliverableInterface
     {
@@ -248,7 +246,7 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             ->getOneOrNullResult();
     }
 
-    /** Un livrable à la corbeille, de Studio ou d'un espace : ce qu'on restaure ou détruit pour de bon. */
+    /** A trashed deliverable, from Studio or from a space: what you restore or destroy for good. */
     public function findTrashed(int $id): ?DeliverableInterface
     {
         return $this->createQueryBuilder('d')
@@ -260,9 +258,9 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Tout ce que la corbeille contient, le dernier arrivé en premier. L'appelant
-     * garde ce que la personne a le droit de voir : le SQL ne sait pas dire qui
-     * lit un livrable perso ou celui d'un espace.
+     * Everything the trash holds, the last arrived first. The caller keeps
+     * what the person may see: SQL cannot express who reads a personal
+     * deliverable or a space's.
      *
      * @return list<DeliverableInterface>
      */
@@ -280,8 +278,8 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Ceux qui sont à la corbeille depuis avant cette date : la purge
-     * planifiée les détruit.
+     * The ones in the trash since before this date: the scheduled purge
+     * destroys them.
      *
      * @return list<DeliverableInterface>
      */
@@ -296,11 +294,11 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Tous les livrables, de Studio et d'espaces, avec leur image : de quoi
-     * dire quels documents de la médiathèque ils affichent.
+     * Every deliverable, from Studio and from spaces, with its image: enough
+     * to tell which media library documents they display.
      *
-     * Parcourus et non joints : un livrable garde ses images en identifiants
-     * dans son JSON, comme une diapositive. Sans ordre, c'est un décompte.
+     * Walked through rather than joined: a deliverable keeps its images as
+     * ids in its JSON, like a slide. No order, it is a count.
      *
      * @return list<DeliverableInterface>
      */
@@ -311,8 +309,8 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             ->addSelect('t')
             ->leftJoin('d.space', 's')
             ->addSelect('s')
-            // Les diapositives d'un diaporama portent ses images : chargées
-            // avec lui, plutôt qu'une requête par livrable.
+            // A slideshow's slides carry its images: loaded with it, rather
+            // than one query per deliverable.
             ->leftJoin('d.slides', 'sl')
             ->addSelect('sl')
             ->getQuery()
@@ -320,9 +318,9 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Combien de livrables de Studio cette personne voit : les partagés, et
-     * ses propres livrables perso (ceux sans auteur aussi, pour qui les
-     * recueille). Un décompte, pour le tableau de bord, sans rien hydrater.
+     * How many Studio deliverables this person sees: the shared ones, and
+     * their own personal ones (the authorless ones too, for whoever takes them
+     * in). A count, for the dashboard, without hydrating anything.
      */
     public function countStandaloneFor(CoreUserInterface $user): int
     {
@@ -338,12 +336,12 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les livrables de Studio écrits pour ce client, vivants, le dernier
-     * touché en premier : la proposition faite avant que son espace existe.
-     * Ceux de son espace ne comptent pas ici, l'espace les liste lui-même.
+     * The live Studio deliverables written for this client, the last touched
+     * first: the proposal made before their space existed. The ones in their
+     * space do not count here, the space lists them itself.
      *
-     * Tous rayons confondus : l'appelant garde ce que la personne a le droit
-     * de lire, ce que le SQL ne sait pas dire.
+     * All shelves together: the caller keeps what the person may read,
+     * something SQL cannot express.
      *
      * @return list<DeliverableInterface>
      */
@@ -363,9 +361,8 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les présentations de Studio vivantes, par titre : ce que propose la zone
-     * « présentation » d'une page du site. L'appelant filtre par ce que la
-     * personne a le droit de lire.
+     * The live Studio presentations, by title: what the "présentation" zone of
+     * a site page offers. The caller filters by what the person may read.
      *
      * @return list<DeliverableInterface>
      */
@@ -407,7 +404,7 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
-    /** Un livrable sans espace : ceux d'un espace ne s'ouvrent que par lui. */
+    /** A deliverable without a space: a space's deliverables only open through it. */
     public function findStandalone(int $id): ?DeliverableInterface
     {
         return $this->createQueryBuilder('d')
@@ -424,7 +421,7 @@ class DeliverableRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('d')
             ->leftJoin('d.owner', 'o')
             ->addSelect('o')
-            // La catégorie, le client et l'image de chaque carte, dans la même requête.
+            // Each card's category, client and image, in the same query.
             ->leftJoin('d.category', 'c')
             ->addSelect('c')
             ->leftJoin('d.customer', 'cu')

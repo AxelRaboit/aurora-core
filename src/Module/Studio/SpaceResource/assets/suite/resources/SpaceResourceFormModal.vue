@@ -1,22 +1,22 @@
 <script setup>
 /**
- * Ajouter ou reprendre une ressource.
+ * Add or edit a resource.
  *
- * **Le genre se choisit d'abord, et il commande le reste.** Un lien veut une
- * adresse, un texte veut un corps, un contact veut une adresse et un numéro :
- * un formulaire qui montrerait les cinq champs à chaque fois demanderait de
- * deviner lesquels comptent. Le choix est en haut, en trois pavés plutôt qu'en
- * liste déroulante, parce qu'ils sont trois et qu'on les compare.
+ * **The kind is chosen first, and it dictates the rest.** A link wants an
+ * address, a text wants a body, a contact wants an address and a number: a
+ * form that showed all five fields every time would ask people to guess
+ * which ones count. The choice is at the top, as three tiles rather than a
+ * dropdown, because there are three of them and they get compared.
  *
- * **La visibilité est dans la modale, pas après coup.** C'est une décision qui
- * appartient au moment où l'on range : refermer la modale puis chercher un
- * interrupteur dans la liste est ce qui fait qu'on oublie. Fermée par défaut,
- * et offerte seulement à qui peut partager l'espace : les autres préparent la
- * ressource, quelqu'un qui le peut la montre.
+ * **Visibility is in the modal, not after the fact.** It is a decision that
+ * belongs to the moment of filing: closing the modal and then looking for a
+ * switch in the list is what makes people forget. Closed by default, and
+ * offered only to whoever can share the space: the others prepare the
+ * resource, someone who can shows it.
  *
- * Le genre ne peut plus changer à la reprise : ce qui a été enregistré comme
- * un contact et deviendrait un texte laisserait derrière une adresse et un
- * numéro que plus rien n'affiche.
+ * The kind can no longer change when editing: what was saved as a contact
+ * and became a text would leave behind an address and a number that nothing
+ * displays any more.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -30,11 +30,11 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 
 const props = defineProps({
     show: { type: Boolean, default: false },
-    /** La ressource reprise, ou `null` pour en poser une neuve. */
+    /** The resource being edited, or `null` to add a new one. */
     resource: { type: Object, default: null },
     saving: { type: Boolean, default: false },
     errors: { type: Object, default: () => ({}) },
-    /** Montrer ou cacher au client : le droit de partager l'espace. */
+    /** Showing or hiding from the client: the right to share the space. */
     canShowToClient: { type: Boolean, default: false },
 });
 
@@ -97,9 +97,9 @@ function error(field) {
             <fieldset v-if="!editing" class="space-y-2">
                 <legend class="text-sm font-medium text-primary">{{ t("suite.studio.space_resources.kind") }}</legend>
 
-                <!-- Une colonne sur téléphone : trois pavés sur 375 px donnent
-                     des libellés coupés, et le choix est ce qui commande tout
-                     le reste du formulaire. -->
+                <!-- One column on a phone: three tiles on 375 px give cut-off
+                     labels, and the choice is what dictates the whole rest
+                     of the form. -->
                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <button
                         v-for="entry in KINDS"
@@ -174,7 +174,7 @@ function error(field) {
         </form>
 
         <template #footer>
-            <!-- `AppModalFooter` empile déjà pleine largeur sur téléphone. -->
+            <!-- `AppModalFooter` already stacks full width on a phone. -->
             <AppModalFooter>
                 <AppButton variant="ghost" size="md" v-on:click="emit('close')">
                     {{ t("shared.common.cancel") }}

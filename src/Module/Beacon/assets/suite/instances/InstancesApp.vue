@@ -58,7 +58,7 @@ const {
     "suite.beacon.forgotten",
 );
 
-/** Ce qu'on peut faire d'une instance, derrière « … » comme sur les autres listes. */
+/** What can be done with an instance, behind "…" as on the other lists. */
 function rowActions(row) {
     return [
         {

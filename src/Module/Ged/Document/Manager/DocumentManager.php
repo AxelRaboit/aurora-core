@@ -318,23 +318,22 @@ class DocumentManager implements DocumentManagerInterface
         $renditionsByDisk = [];
         $pathsByDisk = [];
 
-        // Deux passes, et c'est tout l'objet de la correction. `auditDeleted()`
-        // écrit une ligne et flush ; en une seule boucle, ce flush tombait
-        // alors qu'un document précédent était déjà marqué pour suppression.
-        // Le document quittait l'unité de travail, ses lignes de version -
-        // chargées une ligne plus haut pour lire leurs chemins - y restaient
-        // en pointant sur lui, et le flush final s'arrêtait sur « a new entity
-        // was found through the relationship DocumentVersion#document ».
+        // Two passes, and that is the whole point of the fix. `auditDeleted()`
+        // writes a row and flushes; in a single loop, that flush happened
+        // while a previous document was already marked for removal.
+        // The document left the unit of work, its version rows - loaded one
+        // line above to read their paths - stayed in it pointing at it, and
+        // the final flush stopped on "a new entity was found through the
+        // relationship DocumentVersion#document".
         //
-        // D'où une panne qui ne ressemblait à rien : vider une corbeille
-        // marchait, sauf si elle contenait un document ayant des versions, et
-        // alors elle ne marchait plus jamais. Rien ne partait, l'écran
-        // affichait « une erreur est survenue », et la suppression unitaire -
-        // un seul document, donc pas de second audit au milieu - continuait
-        // de passer.
+        // Hence a failure that looked like nothing: emptying a trash worked,
+        // unless it held a document with versions, and then it never worked
+        // again. Nothing went, the screen showed "une erreur est survenue",
+        // and single deletion - one document, so no second audit in the
+        // middle - kept passing.
         //
-        // Les lignes d'audit partent désormais toutes en un flush, avant la
-        // première suppression, ce qui garde la même garantie.
+        // The audit rows now all go in one flush, before the first removal,
+        // which keeps the same guarantee.
         $this->auditLogger->logMany('ged', 'document.deleted', 'Document', $this->auditEntries($documents));
 
         $documentsByDisk = [];

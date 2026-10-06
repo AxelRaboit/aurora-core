@@ -21,13 +21,13 @@ use const OPENSSL_ALGO_SHA256;
 use const STR_PAD_RIGHT;
 
 /**
- * L'assertion qu'un compte de service signe.
+ * The assertion a service account signs.
  *
- * **Vérifiée pour de vrai, pas comparée à une chaîne attendue.** Une vraie clé
- * RSA est fabriquée ici, l'assertion est signée avec, et la signature est
- * vérifiée avec la clé publique correspondante : c'est le seul contrôle qui
- * dise que Google l'accepterait. Comparer le jeton à un littéral prouverait
- * seulement qu'il n'a pas changé.
+ * **Verified for real, not compared to an expected string.** A real RSA key is
+ * made here, the assertion is signed with it, and the signature is verified
+ * with the matching public key: it is the only check that says Google would
+ * accept it. Comparing the token to a literal would only prove it has not
+ * changed.
  */
 final class GoogleServiceAccountTest extends TestCase
 {
@@ -79,8 +79,8 @@ final class GoogleServiceAccountTest extends TestCase
     }
 
     /**
-     * `aud` vaut le point d'échange et non l'adresse du Drive. La confusion
-     * est courante et donne un refus sans explication utile.
+     * `aud` is the token exchange endpoint and not the Drive address. The
+     * mix-up is common and gives a refusal with no useful explanation.
      */
     public function testTheClaimsAreTheOnesGoogleAsksFor(): void
     {
@@ -98,7 +98,7 @@ final class GoogleServiceAccountTest extends TestCase
         ], $this->json($claims));
     }
 
-    /** Une heure, ce que Google accepte au maximum. */
+    /** One hour, the most Google accepts. */
     public function testTheAssertionLastsAnHourAtMost(): void
     {
         $claims = $this->json(explode('.', $this->account()->assertion('x', now: 0))[1]);
@@ -107,8 +107,8 @@ final class GoogleServiceAccountTest extends TestCase
     }
 
     /**
-     * Un `+` ou un `/` laissés tels quels font une assertion que Google
-     * rejette une fois sur mille, au gré du contenu signé.
+     * A `+` or a `/` left as they are make an assertion Google rejects once in
+     * a thousand, depending on the signed content.
      */
     public function testTheSegmentsAreUrlSafeAndUnpadded(): void
     {
@@ -119,14 +119,14 @@ final class GoogleServiceAccountTest extends TestCase
         self::assertStringNotContainsString('=', $assertion);
     }
 
-    /** Un fichier qui n'est pas une clé de compte de service ne l'est pas. */
+    /** A file that is not a service account key is not treated as one. */
     public function testAnythingThatIsNotAServiceAccountKeyIsRefused(): void
     {
         self::assertNull(GoogleServiceAccount::fromJson('pas du json'));
         self::assertNull(GoogleServiceAccount::fromJson('{}'));
         self::assertNull(GoogleServiceAccount::fromJson((string) json_encode([
-            // Une clé OAuth d'application, qu'on télécharge au même endroit et
-            // qui ne sert pas à ça.
+            // An application OAuth key, downloaded from the same place and not
+            // meant for this.
             'type' => 'authorized_user',
             'client_email' => 'x@y.z',
             'private_key' => $this->keys['private'],

@@ -46,12 +46,12 @@ use function sprintf;
 use function sys_get_temp_dir;
 
 /**
- * Une seule règle de visibilité dans un espace client.
+ * A single visibility rule in a client space.
  *
- * Fixée le 06/10/2026 : tout ce qu'un espace peut montrer au client naît
- * caché, et le montrer ou le cacher demande le droit `studio.spaces.share`,
- * en plus de celui de modifier. L'audit avait trouvé six règles ; ce test les
- * tient ensemble, élément par élément, pour qu'aucune ne reparte de son côté.
+ * Set on 06/10/2026: everything a space can show the client is born hidden,
+ * and showing or hiding it requires the `studio.spaces.share` right, on top
+ * of the right to edit. The audit had found six rules; this test holds them
+ * together, item by item, so that none drifts off on its own again.
  */
 final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
 {
@@ -109,8 +109,8 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
     }
 
     /**
-     * Le tableau d'un espace neuf ne montre au client que la Relecture et
-     * Publié ; une étape ajoutée naît cachée.
+     * A new space's board only shows the client the Relecture and Publié
+     * steps; an added step is born hidden.
      */
     public function testANewBoardShowsOnlyTheReviewAndPublishedStepsAndANewStepIsHidden(): void
     {
@@ -123,8 +123,8 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
 
         self::assertTrue($visible[SpaceContentColumnRoleEnum::Review->value]);
         self::assertTrue($visible[SpaceContentColumnRoleEnum::Published->value]);
-        // Le calendrier du client garde ce qu'il a validé jusqu'à sa sortie :
-        // l'étape programmée est montrée, les deux étapes de travail cachées.
+        // The client's calendar keeps what they approved until it goes out:
+        // the scheduled step is shown, the two working steps are hidden.
         self::assertCount(2, array_filter($visible, static fn (bool $shown): bool => !$shown), 'the two working steps are hidden');
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/create', $space->getId()), ['name' => 'Relecture juridique']);
@@ -135,7 +135,7 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
         self::assertFalse($added->isVisibleToClient());
     }
 
-    /** Ressource, livrable, canal et fichier : cachés à la création. */
+    /** Resource, deliverable, channel and file: hidden on creation. */
     public function testEveryOtherElementIsBornHidden(): void
     {
         $space = $this->givenSpace();
@@ -162,16 +162,16 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
     }
 
     /**
-     * Le droit de modifier ne suffit plus : chaque geste qui montre ou cache
-     * quelque chose au client répond 403 sans le droit de partager, et les
-     * modifications qui ne touchent pas à la visibilité passent toujours.
+     * The right to edit is no longer enough: every action that shows or hides
+     * something from the client answers 403 without the right to share, and
+     * edits that do not touch visibility still go through.
      */
     public function testShowingOrHidingNeedsTheRightToShareTheSpace(): void
     {
         $space = $this->givenSpace();
         $sid = $space->getId();
 
-        // Préparés par l'administrateur, qui a tous les droits.
+        // Prepared by the administrator, who has every right.
         $review = $this->column($space, SpaceContentColumnRoleEnum::Review);
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/resources/create', $sid), ['kind' => 'text', 'label' => 'Consignes', 'body' => 'Court.']);
         $resourceId = (int) $this->json()['resources'][0]['id'];
@@ -208,7 +208,7 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
             self::assertResponseStatusCodeSame(403, $what);
         }
 
-        // Ce qui ne touche pas à la visibilité reste au droit de modifier.
+        // What does not touch visibility stays under the right to edit.
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/create', $sid), ['name' => 'Cachée']);
         self::assertResponseIsSuccessful();
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/%d/update', $sid, $review->getId()), ['name' => 'Relecture du client', 'role' => 'review', 'visibleToClient' => true]);
@@ -222,7 +222,7 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
         self::assertFalse($this->entityManager->find(SpaceFile::class, $fileId)?->isVisibleToClient());
         self::assertTrue($this->entityManager->find(SpaceContentColumn::class, $review->getId())?->isVisibleToClient());
 
-        // Avec le droit de partager, le même geste passe.
+        // With the right to share, the same action goes through.
         $sharer = $this->teammate(['studio.spaces.view', 'studio.spaces.edit', 'studio.spaces.share'], $space);
         $this->client->loginUser($sharer, 'admin');
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/files/%d/visibility', $sid, $fileId), ['visible' => true]);
@@ -233,8 +233,9 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
     }
 
     /**
-     * La page du client ne liste pas un fichier caché, et son adresse ne le
-     * sert pas : cacher le lien sans fermer la route n'aurait rien caché.
+     * The client's page does not list a hidden file, and its address does not
+     * serve it: hiding the link without closing the route would have hidden
+     * nothing.
      */
     public function testThePublicPageNeitherListsNorServesAHiddenFile(): void
     {
@@ -259,7 +260,7 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Ce que le client a envoyé, il le lit : son fichier ne se cache pas. */
+    /** What the client sent, they can read: their file cannot be hidden. */
     public function testAFileTheClientSentStaysVisibleToThem(): void
     {
         $space = $this->givenSpace();
@@ -277,11 +278,11 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
     }
 
     /**
-     * Les fichiers d'avant la règle restent visibles : la migration écrit
-     * vrai sur les lignes qui existent, puis faux pour celles à venir.
+     * Files from before the rule stay visible: the migration writes true on
+     * the rows that exist, then false for those to come.
      *
-     * Rejouée dans une transaction sur la base de test : la colonne est
-     * retirée, la migration repasse, et tout revient en arrière à la fin.
+     * Replayed in a transaction on the test database: the column is dropped,
+     * the migration runs again, and everything is rolled back at the end.
      */
     public function testTheMigrationKeepsExistingFilesVisibleAndHidesNewOnes(): void
     {

@@ -171,16 +171,16 @@ class UserManager implements UserManagerInterface
     }
 
     /**
-     * Bascule l'accès d'un compte, et envoie son invitation si c'est la première
-     * fois qu'on l'ouvre.
+     * Toggles an account's access, and sends its invitation if it is the first
+     * time it is opened.
      *
-     * `invitedAt` nul veut dire que personne n'a jamais été contacté - le compte
-     * a été créé pré-provisionné. L'activer ne peut donc pas le passer `Active` :
-     * son mot de passe est un aléa que personne ne connaît, et le compte
-     * paraîtrait utilisable sans l'être. Il passe `Invited`, et l'invitation part
-     * à ce moment-là.
+     * A null `invitedAt` means nobody was ever contacted - the account was
+     * created pre-provisioned. Enabling it therefore cannot make it `Active`:
+     * its password is a random value nobody knows, and the account would look
+     * usable without being so. It becomes `Invited`, and the invitation goes
+     * out at that moment.
      *
-     * @return bool true si le compte est désormais ouvert
+     * @return bool true if the account is now open
      */
     public function toggleDisabled(User $user): bool
     {
@@ -193,9 +193,9 @@ class UserManager implements UserManagerInterface
             return false;
         }
 
-        // Le renvoi manuel fait déjà exactement ce qu'il faut : passer `Invited`,
-        // émettre un jeton neuf - le jeton en clair n'étant jamais stocké, il n'y
-        // a pas d'autre moyen que d'en refaire un - et envoyer le mail.
+        // The manual resend already does exactly what is needed: switch to
+        // `Invited`, issue a new token - the plain token is never stored, so
+        // there is no other way than making a new one - and send the mail.
         if (!$user->getInvitedAt() instanceof DateTimeImmutable) {
             $this->resendInvitation($user, null);
 
@@ -387,8 +387,8 @@ class UserManager implements UserManagerInterface
     }
 
     /**
-     * @param bool         $disabled créer le compte sans contacter personne - voir plus bas
-     * @param UserTypeEnum $type     suite (l'administration) ou frontend (le site public)
+     * @param bool         $disabled create the account without contacting anyone - see below
+     * @param UserTypeEnum $type     suite (the administration) or frontend (the public site)
      */
     public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Suite): User
     {
@@ -401,34 +401,34 @@ class UserManager implements UserManagerInterface
         $user->setEmail($email);
         $user->setType($type);
         /*
-         * Le frontend n'a qu'un rôle, et ce n'est pas un choix de l'opérateur.
+         * The frontend has only one role, and it is not the operator's choice.
          *
-         * L'inscription publique pose `ROLE_USER` en dur ; une invitation doit
-         * aboutir au même compte, sinon deux chemins produiraient deux
-         * populations différentes. Forcé ici plutôt que validé dans le DTO parce
-         * que c'est la frontière d'écriture : une charge utile trafiquée
-         * demandant ROLE_ADMIN sur un compte frontend n'obtient rien.
+         * Public sign-up sets `ROLE_USER` hard-coded; an invitation must end
+         * in the same account, otherwise two paths would produce two different
+         * populations. Forced here rather than validated in the DTO because
+         * this is the write boundary: a tampered payload asking for ROLE_ADMIN
+         * on a frontend account gets nothing.
          */
         $user->setRoles(UserTypeEnum::Frontend === $type ? [UserRoleEnum::User->value] : [$role]);
         $user->setStatus($disabled ? UserStatusEnum::Disabled : UserStatusEnum::Invited);
         $user->setLocale(LocaleEnum::French);
-        // Un mot de passe que personne ne connaît : il faut bien remplir la
-        // colonne, et l'accès se fera par l'invitation.
+        // A password nobody knows: the column has to be filled, and access
+        // will go through the invitation.
         $user->setPassword($this->passwordHasher->hashPassword($user, bin2hex(random_bytes(24))));
 
         $prefix = $this->settingRepository->get(ApplicationParameterEnum::CoreUserPrefix->value, SequencePrefixEnum::User->value) ?? SequencePrefixEnum::User->value;
         $user->setReference($this->sequenceGenerator->next($prefix));
 
         /**
-         * Un compte pré-provisionné n'émet aucun jeton et n'envoie aucun mail.
+         * A pre-provisioned account issues no token and sends no mail.
          *
-         * C'est ce qui laisse `invitedAt` nul, et c'est ce nul qui distingue
-         * « jamais contacté » de « désactivé après avoir été actif » - les deux
-         * portent le même statut `Disabled`, et sans cette différence la liste
-         * les afficherait à l'identique. Émettre un jeton que personne ne
-         * recevra le ferait expirer en 48 heures pour rien.
+         * That is what leaves `invitedAt` null, and that null is what tells
+         * "never contacted" apart from "disabled after having been active" -
+         * both carry the same `Disabled` status, and without this difference
+         * the list would show them identically. Issuing a token nobody will
+         * receive would make it expire in 48 hours for nothing.
          *
-         * L'invitation part quand le compte est activé, cf. toggleDisabled().
+         * The invitation goes out when the account is enabled, see toggleDisabled().
          */
         $plainToken = $disabled ? null : $this->prepareInvitationToken($user);
 

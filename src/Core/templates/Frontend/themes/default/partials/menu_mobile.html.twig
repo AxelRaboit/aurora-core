@@ -1,22 +1,22 @@
-{# Le même menu, mis à plat pour le tiroir du téléphone.
+{# The same menu, flattened for the phone drawer.
 
-   Le panneau au survol de `menu.html.twig` n'existe pas au doigt. Une entrée
-   qui a des enfants y était donc un mot qu'on ne pouvait pas ouvrir, et tout ce
-   qu'elle contient restait hors d'atteinte sur téléphone. Ici elle devient un
-   `<details>` qui se déplie sur place, sans rien attendre de JavaScript, et la
-   branche de la page courante arrive déjà ouverte.
+   The hover panel of `menu.html.twig` does not exist under a finger. An entry
+   with children was therefore a word that could not be opened, and everything
+   it holds stayed out of reach on a phone. Here it becomes a `<details>` that
+   expands in place, without waiting on JavaScript, and the branch of the
+   current page arrives already open.
 
-   Une entrée prend sa ligne entière : c'est une cible qu'on vise du pouce, pas
-   un mot dans une phrase. Le fond ne se pose que sur la branche courante, pour
-   que la liste reste une liste et non un empilement de boutons.
+   An entry takes its whole row: it is a target aimed at with the thumb, not a
+   word in a sentence. The background is only set on the current branch, so
+   the list stays a list and not a pile of buttons.
 
-   **Une entrée qui a une adresse et des enfants garde les deux.** Le `summary`
-   sert à déplier, il ne peut donc pas mener ailleurs : sa propre page devient
-   la première ligne du repli, sans quoi elle ne serait atteignable que depuis
-   un ordinateur.
+   **An entry that has an address and children keeps both.** The `summary`
+   is there to expand, so it cannot lead elsewhere: its own page becomes the
+   first row of the fold, otherwise it would only be reachable from a
+   computer.
 
-   `isActive` (la branche) et `isCurrent` (la page elle-même) arrivent de
-   MenuRenderer et ne sont pas la même chose ; voir `menu.html.twig`. #}
+   `isActive` (the branch) and `isCurrent` (the page itself) come from
+   MenuRenderer and are not the same thing; see `menu.html.twig`. #}
 
 {% macro rowClass(item) %}
     {%- if item.isActive -%}

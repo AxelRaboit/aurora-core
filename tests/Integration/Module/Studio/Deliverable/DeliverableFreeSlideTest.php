@@ -26,12 +26,12 @@ use function tempnam;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * La diapositive libre d'une présentation, par les routes de l'éditeur.
+ * A presentation's free slide, through the editor's routes.
  *
- * Ce qui vaut d'être vérifié de bout en bout : qu'une diapositive écrite par
- * la route d'enregistrement revienne nettoyée et avec ce qu'il faut pour la
- * dessiner, que la médiathèque compte une image posée dessus, et qu'un fichier
- * qui n'est pas une police soit refusé.
+ * What is worth checking end to end: that a slide written through the save
+ * route comes back sanitized and with what is needed to draw it, that the
+ * media library counts an image placed on it, and that a file that is not a
+ * font is refused.
  */
 final class DeliverableFreeSlideTest extends IntegrationTestCase
 {
@@ -88,7 +88,7 @@ final class DeliverableFreeSlideTest extends IntegrationTestCase
         self::assertSame('linear', $payload['slide']['content']['fill']['type']);
     }
 
-    /** Une image posée à la main est une image que la médiathèque ne doit pas croire inutilisée. */
+    /** An image placed by hand is an image the media library must not believe unused. */
     public function testThePicturesAndFilmsOfAFreeSlideAreCountedAsUsed(): void
     {
         [$id] = $this->freeSlide([
@@ -125,8 +125,8 @@ final class DeliverableFreeSlideTest extends IntegrationTestCase
     }
 
     /**
-     * Une présentation de Studio et une diapositive libre, écrites par le
-     * gestionnaire comme l'éditeur les écrit.
+     * A Studio presentation and a free slide, written by the manager the way
+     * the editor writes them.
      *
      * @param list<array<string, mixed>> $elements
      * @param array<string, mixed>       $extra

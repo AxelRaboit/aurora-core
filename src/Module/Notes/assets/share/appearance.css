@@ -1,29 +1,29 @@
 /*
- * L'habillage d'une note : un fond, une encre, et tout ce qui va avec.
+ * A note's styling: a background, an ink, and everything that goes with them.
  *
- * **Une apparence redéfinit les variables du thème, elle ne peint pas des
- * éléments un par un.** La première version posait un fond et une couleur de
- * texte sur le bloc, et tout ce qui vivait dedans gardait les couleurs du
- * back-office : sur le fond papier, le lien de retour restait gris clair, et
- * au survol il passait à `text-primary`, c'est-à-dire presque blanc en thème
- * sombre - invisible sur du blanc. C'est ce qu'Axel a vu le 23/09, et ce
- * n'était pas le lien qui avait tort, c'était la peinture.
+ * **An appearance redefines the theme variables, it does not paint elements
+ * one by one.** The first version set a background and a text colour on the
+ * block, and everything living inside kept the back-office colours: on the
+ * paper background, the back link stayed light grey, and on hover it turned
+ * `text-primary`, that is almost white in the dark theme - invisible on white.
+ * That is what Axel saw on 23/09, and it was not the link that was wrong, it
+ * was the paint.
  *
- * Les variables `--th-*` sont celles que `@theme inline` recopie dans chaque
- * utilitaire Tailwind : les redéfinir ici suffit pour que `text-muted`,
- * `hover:text-primary`, `bg-surface-2` et `border-line` se recalculent dans
- * la note, du champ de titre aux icônes de la barre. C'est le mécanisme que
- * le thème clair et le thème sombre utilisent déjà entre eux.
+ * The `--th-*` variables are the ones `@theme inline` copies into every
+ * Tailwind utility: redefining them here is enough for `text-muted`,
+ * `hover:text-primary`, `bg-surface-2` and `border-line` to be recomputed in
+ * the note, from the title field to the bar icons. It is the mechanism the
+ * light and dark themes already use between themselves.
  *
- * Des apparences déclarées plutôt qu'une couleur à la pipette : un nom se
- * fait évoluer, un code hexadécimal écrit dans mille notes non.
+ * Declared appearances rather than a colour picked with an eyedropper: a name
+ * can evolve, a hex code written into a thousand notes cannot.
  */
 .note-look {
     background-color: var(--th-surface);
     color: var(--th-primary);
 }
 
-/* Papier chaud, encre brune. Pour lire longtemps. */
+/* Warm paper, brown ink. For long reading. */
 .note-look-sepia {
     --th-surface: #f6efe2;
     --th-surface-2: #efe5d3;
@@ -35,7 +35,7 @@
     --color-border-strong: #cdbb9b;
 }
 
-/* Ardoise. Plus sombre que le reste de l'écran, pour s'en détacher. */
+/* Slate. Darker than the rest of the screen, to stand out from it. */
 .note-look-slate {
     --th-surface: #1b2430;
     --th-surface-2: #223041;
@@ -47,7 +47,7 @@
     --color-border-strong: #3d4f63;
 }
 
-/* Presque blanc, encre noire. Le registre d'un document imprimé. */
+/* Almost white, black ink. The register of a printed document. */
 .note-look-paper {
     --th-surface: #ffffff;
     --th-surface-2: #f4f5f7;
@@ -59,7 +59,7 @@
     --color-border-strong: #d3d7dd;
 }
 
-/* Nuit profonde, encre claire. */
+/* Deep night, light ink. */
 .note-look-midnight {
     --th-surface: #0d1220;
     --th-surface-2: #151c2f;
@@ -71,7 +71,7 @@
     --color-border-strong: #2d3857;
 }
 
-/* Vert d'eau très pâle. */
+/* Very pale aqua green. */
 .note-look-mint {
     --th-surface: #eef7f2;
     --th-surface-2: #e2f0e9;

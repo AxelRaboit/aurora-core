@@ -17,11 +17,11 @@ interface UserInviteInputInterface
     public function getMessage(): ?string;
 
     /**
-     * Créer le compte sans contacter personne, connexion refusée jusqu'à son
-     * activation - c'est elle qui envoie l'invitation.
+     * Create the account without contacting anyone, login refused until it is
+     * enabled - enabling it is what sends the invitation.
      */
     public function isDisabled(): bool;
 
-    /** L'administration ou le site public : les deux populations sont distinctes. */
+    /** The administration or the public site: the two populations are distinct. */
     public function getType(): UserTypeEnum;
 }

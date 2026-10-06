@@ -8,12 +8,12 @@ use Aurora\Module\Studio\Sharing\ShareToken;
 use Aurora\Tests\Integration\IntegrationTestCase;
 
 /**
- * Une adresse de présentation partagée avant le passage aux livrables.
+ * A presentation address shared before the move to deliverables.
  *
- * La migration a gardé le jeton de chaque lien : `/decks/{jeton}` doit mener
- * pour de bon à `/deliverables/{jeton}`, où la page de lecture juge le jeton.
- * Ce qui se casserait sans bruit : un client qui ouvre le lien reçu le mois
- * dernier et tombe sur une page introuvable.
+ * The migration kept each link's token: `/decks/{jeton}` must really lead to
+ * `/deliverables/{jeton}`, where the reading page judges the token. What
+ * would break silently: a client who opens the link received last month and
+ * lands on a page that cannot be found.
  */
 final class LegacyDeckLinkTest extends IntegrationTestCase
 {

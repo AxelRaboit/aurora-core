@@ -28,31 +28,31 @@ use function str_replace;
 use function strip_tags;
 
 /**
- * Des blocs d'éditeur (Editor.js), remis en Markdown.
+ * Editor blocks (Editor.js), turned back into Markdown.
  *
- * **Le chemin inverse de l'import Craft, pour une raison précise** : les notes
- * d'un espace client étaient écrites en blocs, comme le corps d'une
- * publication, et le module Notes écrit en Markdown. La migration qui les y
- * fait passer convertit leur corps une fois, ici.
+ * **The reverse path of the Craft import, for a precise reason**: the notes
+ * of a client space were written in blocks, like the body of a post, and the
+ * Notes module writes in Markdown. The migration that moves them there
+ * converts their body once, here.
  *
- * Pur : ni base, ni stockage, ni traduction. Ce qui entre est un tableau de
- * blocs tel que l'éditeur l'enregistre, ce qui sort est un texte. C'est ce qui
- * le rend testable bloc par bloc, et appelable depuis une migration qui ne
- * dispose d'aucun service.
+ * Pure: no database, no storage, no translation. What goes in is an array of
+ * blocks as the editor saves it, what comes out is a text. That is what makes
+ * it testable block by block, and callable from a migration that has no
+ * service at hand.
  *
- * **Ce qui se perd est nommé.** Le soulignement n'a pas d'équivalent Markdown
- * et devient du texte simple ; un tableau sans ligne d'en-tête prend sa
- * première ligne pour en-tête, faute de quoi le Markdown n'en fait pas un
- * tableau ; un bloc de HTML brut est gardé, mais dans un bloc de code plutôt
- * que rendu. Un bloc d'un type inconnu rend son texte s'il en a un, et rien
- * sinon : jamais de JSON recopié dans une note.
+ * **What is lost is named.** Underline has no Markdown equivalent and becomes
+ * plain text; a table without a header row takes its first row as header,
+ * otherwise Markdown does not make it a table; a raw HTML block is kept, but
+ * in a code block rather than rendered. A block of an unknown type renders
+ * its text if it has one, and nothing otherwise: never JSON copied into a
+ * note.
  */
 final readonly class EditorBlocksToMarkdown
 {
-    /** Le décalage d'un niveau de liste : assez pour une puce comme pour un numéro. */
+    /** The offset of one list level: enough for a bullet as for a number. */
     private const string LIST_INDENT = '    ';
 
-    /** Les types d'encadré que l'aperçu des notes sait dessiner. */
+    /** The callout types the notes preview can draw. */
     private const array CALLOUT_TYPES = ['note', 'tip', 'info', 'warning', 'caution', 'danger', 'success', 'question', 'example', 'quote', 'todo', 'failure', 'bug', 'abstract', 'summary', 'hint', 'faq'];
 
     /**
@@ -113,8 +113,8 @@ final readonly class EditorBlocksToMarkdown
     }
 
     /**
-     * Les deux écritures d'une liste : les entrées en chaînes de l'ancien
-     * outil, et les objets `content` / `meta` / `items` de l'actuel, imbriqués.
+     * The two ways a list is written: the string entries of the old tool, and
+     * the nested `content` / `meta` / `items` objects of the current one.
      *
      * @param array<mixed> $data
      */
@@ -159,7 +159,7 @@ final readonly class EditorBlocksToMarkdown
     }
 
     /**
-     * L'ancien outil de cases à cocher, avant que la liste ne les porte.
+     * The old checkbox tool, before the list carried them.
      *
      * @param array<mixed> $data
      */
@@ -200,9 +200,8 @@ final readonly class EditorBlocksToMarkdown
     }
 
     /**
-     * Un bloc de code, dont la clôture est plus longue que tout ce qu'il
-     * contient : trois accents graves dans le code fermeraient sinon le bloc
-     * au milieu.
+     * A code block, whose fence is longer than anything it contains: three
+     * backticks in the code would otherwise close the block in the middle.
      */
     private function code(string $code, string $language): string
     {
@@ -288,7 +287,7 @@ final readonly class EditorBlocksToMarkdown
         return implode("\n", $lines);
     }
 
-    /** Un encadré, dans l'écriture que l'aperçu des notes reconnaît : `> [!type] Titre`. */
+    /** A callout, in the syntax the notes preview recognizes: `> [!type] Titre`. */
     private function callout(string $type, string $title, string $message): string
     {
         $type = in_array($type, self::CALLOUT_TYPES, true) ? $type : 'note';
@@ -332,17 +331,16 @@ final readonly class EditorBlocksToMarkdown
     }
 
     /**
-     * Le HTML en ligne que les blocs portent, en Markdown.
+     * The inline HTML the blocks carry, in Markdown.
      *
-     * Le code littéral est mis de côté d'abord et remis à la fin, décodé
-     * (derrière deux caractères d'usage privé, que `strip_tags` laisse en
-     * place quand il efface l'octet nul) :
-     * sans cela, deux astérisques dans un extrait deviendraient du gras, et
-     * un `&lt;` y resterait écrit tel quel.
+     * Literal code is set aside first and put back at the end, decoded
+     * (behind two private use characters, which `strip_tags` leaves in
+     * place when it erases the null byte):
+     * without that, two asterisks in a snippet would become bold, and a
+     * `&lt;` would stay written as is.
      *
-     * Les espaces collés à l'intérieur d'une balise sont sortis de la marque :
-     * `<b> mot</b>` donnerait `** mot**`, que le Markdown ne lit pas comme du
-     * gras.
+     * Spaces stuck inside a tag are moved out of the mark: `<b> mot</b>`
+     * would give `** mot**`, which Markdown does not read as bold.
      */
     private function inline(string $html, bool $multiline = true): string
     {
@@ -406,13 +404,13 @@ final readonly class EditorBlocksToMarkdown
         return mb_trim($text);
     }
 
-    /** Le texte seul, sans aucune marque : pour une légende d'image ou d'intégration. */
+    /** The text alone, without any mark: for an image or embed caption. */
     private function plain(string $html): string
     {
         return mb_trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     }
 
-    /** Une adresse qu'une espace ou une parenthèse ne coupe pas. */
+    /** An address that a space or a parenthesis does not cut. */
     private function destination(string $url): string
     {
         return 1 === preg_match('/[\s()]/u', $url) ? '<'.$url.'>' : $url;
@@ -427,8 +425,8 @@ final readonly class EditorBlocksToMarkdown
     }
 
     /**
-     * Un paragraphe qui commence comme un titre, une liste ou une citation
-     * resterait un paragraphe : la marque du début est échappée.
+     * A paragraph that starts like a heading, a list or a quote would not
+     * stay a paragraph: the leading mark is escaped.
      */
     private function escapeLineStarts(string $text): string
     {

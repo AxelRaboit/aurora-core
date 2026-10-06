@@ -210,9 +210,9 @@ final class PostReviewTest extends IntegrationTestCase
     }
 
     /**
-     * « Programmée » est une publication différée : sans le droit de publier,
-     * elle part en relecture comme « Publiée », et garde la date demandée.
-     * Avant, la tâche planifiée la publiait à l'heure dite sans relecture.
+     * "Programmée" is a deferred publication: without the right to publish, it
+     * goes to review like "Publiée", and keeps the requested date. Before, the
+     * scheduled task published it at the set time without review.
      */
     public function testAnAuthorSchedulingSendsItForReviewAndKeepsTheDate(): void
     {
@@ -235,7 +235,7 @@ final class PostReviewTest extends IntegrationTestCase
         self::assertNotSame([], $this->notificationsFor($this->reviewer, 'editorial.post.review_requested'));
     }
 
-    /** Qui a le droit de publier programme sans passer par la relecture. */
+    /** Whoever has the right to publish schedules without going through review. */
     public function testAPublisherSchedulesDirectly(): void
     {
         $post = $this->draft();
@@ -254,7 +254,7 @@ final class PostReviewTest extends IntegrationTestCase
         self::assertSame(PostStatusEnum::Scheduled, $this->reload($post)->getStatus());
     }
 
-    /** Une date encore à venir : approuver programme, sans publier tout de suite. */
+    /** A date still to come: approving schedules, without publishing right away. */
     public function testApprovingAPostWithAFutureDateSchedulesIt(): void
     {
         $when = new DateTimeImmutable('+3 days')->setTime(9, 0);
@@ -270,7 +270,7 @@ final class PostReviewTest extends IntegrationTestCase
         self::assertNull($stored->getPublishedAt());
     }
 
-    /** Une date dépassée pendant la relecture : approuver publie, daté du jour voulu. */
+    /** A date passed during review: approving publishes, dated on the intended day. */
     public function testApprovingAPostWhoseDateHasPassedPublishesIt(): void
     {
         $when = new DateTimeImmutable('-1 day')->setTime(9, 0);
@@ -286,7 +286,7 @@ final class PostReviewTest extends IntegrationTestCase
         self::assertEquals($when, $stored->getPublishedAt());
     }
 
-    /** La tâche planifiée ne publie jamais une publication en attente de relecture. */
+    /** The scheduled task never publishes a publication awaiting review. */
     public function testTheSchedulerNeverPublishesAPostAwaitingReview(): void
     {
         $post = $this->pending(new DateTimeImmutable('-1 hour'));

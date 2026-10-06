@@ -204,10 +204,10 @@ class SlidesManager
             // Which line of an agenda is the one being opened. One-based, so
             // a zero is the value an empty number field posts rather than a
             // line, and anything past the list simply lights nothing.
-            // Accepte le nombre ecrit comme une chaine, parce que c'est la
-            // seule forme sous laquelle il arrive : le formulaire rend un champ
-            // texte pour ce slot, et un `is_int` strict jetait donc toujours la
-            // valeur, sans que rien ne le dise.
+            // Accepts the number written as a string, because that is the
+            // only form it arrives in: the form renders a text field for this
+            // slot, so a strict `is_int` always threw the value away, without
+            // anything saying so.
             if ('current' === $slot) {
                 $rank = is_int($value) ? $value : (is_string($value) && ctype_digit($value) ? (int) $value : 0);
 

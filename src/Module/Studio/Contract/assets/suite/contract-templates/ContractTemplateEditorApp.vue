@@ -23,9 +23,9 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { Archive, Check, Eye, FilePlus2, Lock, Save, ScrollText, Trash2, X } from "lucide-vue-next";
 
 /**
- * Ce que peut être une valeur de l'aperçu : un exemple inventé, une vraie
- * donnée (vos réglages), ou un champ à remplir pour chaque contrat. Les
- * pastilles reprennent les fonds que le document donne aux mêmes valeurs.
+ * What a preview value can be: a made-up example, real data (your settings),
+ * or a field to fill in for each contract. The pills reuse the backgrounds
+ * the document gives the same values.
  */
 const VALUE_KINDS = ["example", "real", "slot"];
 const VALUE_KIND_SWATCH = {
@@ -231,9 +231,9 @@ async function openPreview() {
 async function loadPreview(locale) {
     preview.value = { ...preview.value, loading: true, error: "" };
 
-    // Le corps en deuxième, les options en troisième : `{ method: "GET" }` en
-    // deuxième position partait comme corps d'un POST, que la route refuse, et
-    // l'aperçu échouait à chaque fois.
+    // The body second, the options third: `{ method: "GET" }` in second
+    // position went out as the body of a POST, which the route refuses, and
+    // the preview failed every time.
     const data = await request(`${props.previewPath}?locale=${encodeURIComponent(locale)}`, null, {
         method: HttpMethod.Get,
     });
@@ -322,8 +322,8 @@ const governingLabel = computed(
             </AppButton>
         </AppPageBar>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contract_templates.editor_guide.title')" storage-key="contract-template-editor">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.contract_templates.editor_guide.step_${step}`) }}</li>
@@ -427,10 +427,10 @@ const governingLabel = computed(
                             :hint="t('suite.studio.contract_templates.document_title_hint')"
                             :readonly="isPublished"
                         />
-                        <!-- `overflow-wrap: anywhere` : un jeton comme
-                             {{contract.custom.plateformes_retenues}} n'a pas
-                             d'espace où passer à la ligne, et sortait de la
-                             carte sur téléphone (02/10/2026). -->
+                        <!-- `overflow-wrap: anywhere`: a token like
+                             {{contract.custom.plateformes_retenues}} has no
+                             space to wrap at, and spilled out of the card on
+                             a phone (02/10/2026). -->
                         <div
                             class="aurora-card p-3 [overflow-wrap:anywhere]"
                             :class="{ 'opacity-70 pointer-events-none': isPublished }"
@@ -533,8 +533,8 @@ const governingLabel = computed(
                     {{ t("suite.studio.contract_templates.preview_notice") }}
                 </AppMessage>
 
-                <!-- La légende des trois couleurs, avec les mêmes classes que
-                     le document : elle ne peut pas dire autre chose que lui. -->
+                <!-- The legend of the three colours, with the same classes as
+                     the document: it cannot say anything different from it. -->
                 <ul class="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-xs text-secondary">
                     <li v-for="kind in VALUE_KINDS" :key="kind" class="flex items-center gap-1.5">
                         <span class="inline-block h-3 w-3 rounded-sm" :class="VALUE_KIND_SWATCH[kind]" aria-hidden="true" />

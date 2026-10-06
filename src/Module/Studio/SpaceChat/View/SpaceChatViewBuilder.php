@@ -99,9 +99,9 @@ final readonly class SpaceChatViewBuilder
             'chatChannelId' => $open?->getId(),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
-            // Deux trous dans la même adresse : le salon, et le message d'où
-            // l'on repart. La route exige les deux, et une génération à laquelle
-            // il en manque un lève une exception au rendu de la page.
+            // Two holes in the same address: the room, and the message to go
+            // back from. The route requires both, and a generation missing one
+            // throws an exception when the page renders.
             'chatOlderPath' => $this->pathTemplates->generate('workspace_space_chat_older', [
                 'id' => $space->getId(),
                 'channelId' => '__channel__',
@@ -120,9 +120,9 @@ final readonly class SpaceChatViewBuilder
             'chatChannelAudiencePath' => $this->channelTemplate('workspace_space_chat_channel_audience', $space),
             'chatChannelDeletePath' => $this->channelTemplate('workspace_space_chat_channel_delete', $space),
             'chatChannelInvitePath' => $this->channelTemplate('workspace_space_chat_channel_invite', $space),
-            // Deux trous encore : le salon, et la ligne qu'on retire. C'est le
-            // membre qu'on nomme et non le compte, parce qu'une même personne
-            // peut être dans plusieurs canaux du même espace.
+            // Two holes again: the room, and the row being removed. It is the
+            // member that is named and not the account, because the same person
+            // can be in several channels of the same space.
             'chatChannelUninvitePath' => $this->pathTemplates->generate('workspace_space_chat_channel_uninvite', [
                 'id' => $space->getId(),
                 'channelId' => '__channel__',
@@ -130,8 +130,8 @@ final readonly class SpaceChatViewBuilder
             ]),
             'chatDirectPath' => $this->urlGenerator->generate('workspace_space_chat_direct', ['id' => $space->getId()]),
             'chatTeam' => $this->team($space),
-            // Soi-même en moins : une conversation privée avec soi n'existe pas,
-            // et l'offrir dans la liste serait offrir une erreur.
+            // Minus oneself: a private conversation with oneself does not
+            // exist, and offering it in the list would be offering an error.
             'chatPeople' => array_values(array_filter(
                 $this->team($space),
                 static fn (array $person): bool => $person['id'] !== $user->getId(),
@@ -164,17 +164,16 @@ final readonly class SpaceChatViewBuilder
             'chatChannelId' => $open?->getId(),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
-            // **Ni chemin de conversation privée, ni annuaire.** Les deux
-            // sont partis ensemble : l'un ouvrait une messagerie vers les
-            // salariés à qui cochait « peut commenter », l'autre livrait
-            // leurs noms et les identifiants de leurs comptes à toute page
-            // publique. Une liste nominative de qui travaille chez vous n'a
-            // rien à faire dans la source d'une page dont l'adresse se
-            // transfère.
+            // **Neither a private conversation path, nor a directory.** Both
+            // left together: one opened a messaging channel to the employees
+            // for whoever ticked "peut commenter", the other handed their
+            // names and their account ids to any public page. A list of who
+            // works for you, by name, has no business in the source of a page
+            // whose address gets forwarded.
             'chatDirectPath' => null,
             'chatPeople' => [],
-            // Le droit d'écrire ici est `canChat`, distinct de celui de
-            // commenter une fiche : ce sont deux conversations.
+            // The right to write here is `canChat`, separate from the one to
+            // comment on a card: they are two conversations.
             'chatPostPath' => $link->canChat()
                 ? $this->pathTemplates->generate('public_space_chat_post', [
                     'selector' => $link->getSelector(),
@@ -193,14 +192,14 @@ final readonly class SpaceChatViewBuilder
                 'channelId' => '__channel__',
                 'beforeId' => '__before__',
             ]),
-            // Ranger un canal n'a de sens que pour une conversation privée,
-            // et un lien n'en voit plus.
+            // Putting a channel away only makes sense for a private
+            // conversation, and a link no longer sees any.
             'chatHidePath' => null,
         ];
     }
 
     /**
-     * Les salons d'un lecteur, nommés de son point de vue.
+     * A reader's rooms, named from their point of view.
      *
      * @param list<SpaceChatChannelInterface> $rooms
      *
@@ -226,11 +225,11 @@ final readonly class SpaceChatViewBuilder
     }
 
     /**
-     * Une page d'historique, plus vieille que le message donné.
+     * A page of history, older than the given message.
      *
-     * `hasMore` dit s'il reste quelque chose derrière, et il est calculé en
-     * demandant une ligne de plus que ce qu'on rend : c'est la seule façon de
-     * répondre sans compter toute la conversation à chaque remontée.
+     * `hasMore` says whether anything is left behind it, and it is computed by
+     * asking for one row more than what is returned: it is the only way to
+     * answer without counting the whole conversation on every scroll up.
      *
      * @return array<string, mixed>
      */
@@ -240,7 +239,7 @@ final readonly class SpaceChatViewBuilder
         $hasMore = count($page) > SpaceChatMessageRepository::PAGE;
 
         if ($hasMore) {
-            // La ligne en trop servait à savoir, pas à être lue.
+            // The extra row was there to know, not to be read.
             array_shift($page);
         }
 

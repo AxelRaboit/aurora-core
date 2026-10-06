@@ -347,10 +347,9 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
-        // L'en-tête que le composant de requête du navigateur pose sur
-        // chaque appel, et que les routes publiques exigent : sans lui,
-        // un formulaire hébergé ailleurs pourrait faire poster le
-        // navigateur d'un client vers ces adresses.
+        // The header the browser's request helper sets on every call, and
+        // that public routes require: without it, a form hosted elsewhere
+        // could make a client's browser post to these addresses.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
@@ -373,10 +372,9 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function upload(string $url, int $itemId, UploadedFile $file): void
     {
         $this->client->getCookieJar()->clear();
-        // L'en-tête que le composant de requête du navigateur pose sur
-        // chaque appel, et que les routes publiques exigent : sans lui,
-        // un formulaire hébergé ailleurs pourrait faire poster le
-        // navigateur d'un client vers ces adresses.
+        // The header the browser's request helper sets on every call, and
+        // that public routes require: without it, a form hosted elsewhere
+        // could make a client's browser post to these addresses.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         $path = (string) parse_url($url, PHP_URL_PATH);
@@ -454,15 +452,15 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function givenItem(CustomerSpace $space): array
     {
-        // La Relecture (troisième étape) : un espace neuf ne montre au client
-        // que la Relecture et Publié, et cette fiche doit être sur sa page.
+        // Relecture (third step): a new space only shows the client the
+        // Relecture and Publié columns, and this item must be on their page.
         $column = $this->columns->findForSpace($space)[2];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Un contenu à illustrer',
             'columnId' => $column->getId(),
-            // Datée : la page du client ne montre que son calendrier, et
-            // n'accepte de fichier que sur ce qu'elle montre.
+            // Dated: the client's page only shows its calendar, and only
+            // accepts a file on what it shows.
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 

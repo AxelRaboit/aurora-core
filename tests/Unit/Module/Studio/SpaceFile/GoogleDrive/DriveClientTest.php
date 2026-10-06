@@ -18,12 +18,12 @@ use function openssl_pkey_export;
 use function openssl_pkey_new;
 
 /**
- * Ce que le serveur demande au Drive, et ce qu'il fait des réponses.
+ * What the server asks Drive for, and what it does with the answers.
  *
- * Trois choses se passent mal en silence : un dossier partagé depuis un Drive
- * partagé qui rend une liste vide sans erreur, une corbeille qui ressort comme
- * un fichier vivant, et un jeton d'échec gardé une heure. Aucune ne doit faire
- * remonter une exception au milieu d'un espace client.
+ * Three things go wrong silently: a folder shared from a shared Drive that
+ * returns an empty list without an error, a trashed file that comes back as a
+ * live one, and a failure token kept for an hour. None of them may raise an
+ * exception in the middle of a client space.
  */
 final class DriveClientTest extends TestCase
 {
@@ -114,7 +114,7 @@ final class DriveClientTest extends TestCase
         self::assertContains('Authorization: Bearer jeton-google', $this->calls[1]['options']['headers']);
     }
 
-    /** Un jeton vaut une heure : le redemander à chaque page est un aller-retour pour rien. */
+    /** A token lasts an hour: asking for it again on every page is a wasted round trip. */
     public function testTheTokenIsAskedOnceAndReused(): void
     {
         $client = $this->client([$this->token(), $this->listing([]), $this->listing([])]);
@@ -128,7 +128,7 @@ final class DriveClientTest extends TestCase
         self::assertStringContainsString('/drive/v3/files', $this->calls[2]['url']);
     }
 
-    /** La corbeille reste dans le dossier et ressortirait comme un fichier. */
+    /** The trash stays in the folder and would come back as a file. */
     public function testTheQueryExcludesTheTrash(): void
     {
         $client = $this->client([$this->token(), $this->listing([])]);
@@ -139,14 +139,14 @@ final class DriveClientTest extends TestCase
 
         self::assertStringContainsString("'dossier-1' in parents", $query['q']);
         self::assertStringContainsString('trashed = false', $query['q']);
-        // Les dossiers ne sont plus exclus : c'est par eux qu'on descend.
+        // Folders are no longer excluded: they are how the walk goes down.
         self::assertStringNotContainsString('mimeType !=', $query['q']);
     }
 
     /**
-     * **Un appel par étage, pas par dossier.** Descendre dossier par dossier
-     * aurait fait une requête chacun ; ce test est la seule chose qui
-     * empêchera quelqu'un de réécrire la boucle de la façon évidente.
+     * **One call per level, not per folder.** Going down folder by folder
+     * would have made one request each; this test is the only thing that will
+     * stop someone from rewriting the loop the obvious way.
      */
     public function testAWholeLevelIsAskedInOneCall(): void
     {
@@ -164,14 +164,14 @@ final class DriveClientTest extends TestCase
 
         $files = $client->files($this->account, 'racine');
 
-        // Le jeton, la racine, puis les deux dossiers ensemble : trois appels
-        // et non quatre.
+        // The token, the root, then both folders together: three calls, not
+        // four.
         self::assertCount(3, $this->calls);
         self::assertStringContainsString("'d-a' in parents or 'd-b' in parents", $this->calls[2]['options']['query']['q']);
         self::assertCount(2, $files);
     }
 
-    /** Une liste plate sans dire d'où vient chaque fichier serait illisible. */
+    /** A flat list that does not say where each file comes from would be unreadable. */
     public function testEachFileCarriesTheFolderItCameFrom(): void
     {
         $client = $this->client([
@@ -191,13 +191,13 @@ final class DriveClientTest extends TestCase
         self::assertSame('Contrats/2026', $paths['bail.pdf']);
     }
 
-    /** Un raccourci circulaire ferait tourner la descente sans fin. */
+    /** A circular shortcut would make the walk go round forever. */
     public function testAFolderThatPointsBackAtItselfDoesNotLoop(): void
     {
         $client = $this->client([
             $this->token(),
             $this->listing([$this->folder('d-a', 'Boucle', 'racine')]),
-            // Le même dossier, remonté par lui-même.
+            // The same folder, returned by itself.
             $this->listing([$this->folder('d-a', 'Boucle', 'd-a'), $this->file('f-1', 'seul.pdf', 'd-a')]),
         ]);
 
@@ -205,12 +205,12 @@ final class DriveClientTest extends TestCase
         self::assertCount(3, $this->calls);
     }
 
-    /** Au-delà, ce n'est plus une liste qu'on parcourt des yeux. */
+    /** Beyond that, it is no longer a list one scans by eye. */
     public function testTheDescentStopsAtTheDepthLimit(): void
     {
         $responses = [$this->token()];
 
-        // Sept étages pour une borne à cinq.
+        // Seven levels for a limit of five.
         for ($level = 0; $level < 7; ++$level) {
             $responses[] = $this->listing([$this->folder('d-'.$level, 'N'.$level, 0 === $level ? 'racine' : 'd-'.($level - 1))]);
         }
@@ -218,13 +218,13 @@ final class DriveClientTest extends TestCase
         $client = $this->client($responses);
         $client->files($this->account, 'racine');
 
-        // Le jeton plus cinq étages, pas sept.
+        // The token plus five levels, not seven.
         self::assertCount(6, $this->calls);
     }
 
     /**
-     * Sans ces deux drapeaux, un dossier partagé depuis un Drive partagé rend
-     * une liste vide - et rend une liste vide sans dire pourquoi.
+     * Without these two flags, a folder shared from a shared Drive returns an
+     * empty list - and returns an empty list without saying why.
      */
     public function testSharedDrivesAreIncluded(): void
     {
@@ -238,7 +238,7 @@ final class DriveClientTest extends TestCase
         self::assertSame('true', $query['includeItemsFromAllDrives']);
     }
 
-    /** Un dossier partagé se lit par ce qui vient d'y arriver. */
+    /** A shared folder is read starting with what just arrived in it. */
     public function testFilesComeBackNewestFirst(): void
     {
         $client = $this->client([$this->token(), $this->listing([
@@ -253,9 +253,9 @@ final class DriveClientTest extends TestCase
     }
 
     /**
-     * Google sert ses vignettes depuis son CDN, sans authentification :
-     * mesuré à deux cent vingt pixels et moins d'un kilo-octet. Elles
-     * voyagent donc telles quelles, ce qui épargne un appel par vignette.
+     * Google serves its thumbnails from its CDN, without authentication:
+     * measured at two hundred and twenty pixels and under a kilobyte. They
+     * therefore travel as they are, which saves one call per thumbnail.
      */
     public function testTheThumbnailTravelsWhenGoogleHasOne(): void
     {
@@ -268,11 +268,11 @@ final class DriveClientTest extends TestCase
         $thumbnails = array_combine(array_column($files, 'name'), array_column($files, 'thumbnail'));
 
         self::assertSame('https://lh3.example/x=s220', $thumbnails['photo.jpg']);
-        // Rien pour ce dont Google ne sait pas faire d'image.
+        // Nothing for what Google cannot make an image of.
         self::assertNull($thumbnails['archive.zip']);
     }
 
-    /** Un document Google n'a pas d'octets tant qu'on ne l'a pas exporté. */
+    /** A Google document has no bytes until it is exported. */
     public function testAFileWithoutASizeIsStillListed(): void
     {
         $client = $this->client([$this->token(), $this->listing([
@@ -292,7 +292,7 @@ final class DriveClientTest extends TestCase
         self::assertSame([], $client->files($this->account, 'dossier-1'));
     }
 
-    /** Une clé qu'on vient de corriger doit marcher tout de suite. */
+    /** A key that was just corrected must work right away. */
     public function testARefusedTokenIsNotKeptForAnHour(): void
     {
         $client = $this->client([
@@ -307,7 +307,7 @@ final class DriveClientTest extends TestCase
         self::assertSame(['Enfin'], array_column($client->files($this->account, 'dossier-1'), 'name'));
     }
 
-    /** Un fichier retiré du partage n'est pas une erreur, c'est un message. */
+    /** A file removed from the share is not an error, it is a message. */
     public function testARefusedDownloadIsNull(): void
     {
         $client = $this->client([$this->token(), new MockResponse('', ['http_code' => 404])]);
@@ -316,8 +316,8 @@ final class DriveClientTest extends TestCase
     }
 
     /**
-     * Le flux est rendu tel quel : mettre une vidéo de cinquante mégaoctets
-     * dans une chaîne PHP pour la recracher ferait tomber le serveur.
+     * The stream is returned as is: putting a fifty-megabyte video in a PHP
+     * string to spit it back out would bring the server down.
      */
     public function testADownloadComesBackAsAStreamNotAsAString(): void
     {

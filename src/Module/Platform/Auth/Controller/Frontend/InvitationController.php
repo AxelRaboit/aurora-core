@@ -21,17 +21,16 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * Accepter une invitation sur le site public.
+ * Accepting an invitation on the public site.
  *
- * Le miroir de {@see \Aurora\Module\Platform\Auth\Controller\Suite\InvitationController},
- * et un contrôleur séparé pour la même raison que les deux firewalls le sont :
- * les deux populations ne se mélangent pas. Ce qui change ici est le firewall où
- * la personne est connectée, la page où elle atterrit, et le type de compte
- * accepté.
+ * The mirror of {@see \Aurora\Module\Platform\Auth\Controller\Suite\InvitationController},
+ * and a separate controller for the same reason the two firewalls are separate:
+ * the two populations do not mix. What changes here is the firewall the person
+ * is logged into, the page they land on, and the type of account accepted.
  *
- * Le jeton et son cycle de vie, eux, sont partagés : c'est le même
- * `findValidInvitation` / `consumeInvitation` que la suite, donc une seule
- * mécanique d'expiration et de hachage à maintenir.
+ * The token and its lifecycle, though, are shared: it is the same
+ * `findValidInvitation` / `consumeInvitation` as the suite, so only one
+ * expiry and hashing mechanism to maintain.
  */
 final class InvitationController extends AbstractController
 {
@@ -48,9 +47,9 @@ final class InvitationController extends AbstractController
     {
         $request->setLocale($locale);
 
-        // Déjà connecté : le lien n'a plus rien à donner, et lui faire reposer un
-        // mot de passe serait un moyen détourné d'en changer sans connaître
-        // l'ancien.
+        // Already logged in: the link has nothing left to give, and making them
+        // set a password again would be a roundabout way to change it without
+        // knowing the old one.
         if ($this->getUser() instanceof UserInterface) {
             return $this->redirectToRoute('frontend_account', ['locale' => $locale]);
         }
@@ -58,17 +57,17 @@ final class InvitationController extends AbstractController
         $user = $this->userManager->findValidInvitation($selector, $token);
 
         /*
-         * Un jeton de compte suite n'est pas accepté ici, et réciproquement.
+         * A suite account token is not accepted here, and vice versa.
          *
-         * `findValidInvitation` ne filtre pas le type - il n'a pas à le faire,
-         * la mécanique du jeton est commune. C'est donc à chaque route de
-         * refuser la population qui n'est pas la sienne. Sans ce garde, un
-         * invité suite qui suivrait cette adresse serait connecté sur le
-         * firewall public, où son compte n'existe pas : sa session sauterait au
-         * rafraîchissement suivant, sans rien qui le lui explique.
+         * `findValidInvitation` does not filter on the type - it does not have
+         * to, the token mechanism is shared. So it is up to each route to
+         * refuse the population that is not its own. Without this guard, a
+         * suite invitee following this address would be logged into the public
+         * firewall, where their account does not exist: their session would
+         * drop on the next refresh, with nothing to explain it to them.
          *
-         * Le refus est indistinguable d'un jeton expiré, délibérément : la page
-         * n'a pas à révéler qu'un compte existe ailleurs.
+         * The refusal is indistinguishable from an expired token, on purpose:
+         * the page has no business revealing that an account exists elsewhere.
          */
         if (!$user instanceof User || UserTypeEnum::Frontend !== $user->getType()) {
             return $this->render(
@@ -93,10 +92,10 @@ final class InvitationController extends AbstractController
 
             $this->userManager->consumeInvitation($user, $input->password);
 
-            // Le firewall public, nommé explicitement : la route n'est pas sous
-            // ^/suite, donc il serait déduit correctement, mais un déduit
-            // silencieux sur une connexion programmatique est ce qu'on relit
-            // trois fois sans en être sûr.
+            // The public firewall, named explicitly: the route is not under
+            // ^/suite, so it would be inferred correctly, but a silent
+            // inference on a programmatic login is something one rereads three
+            // times without being sure.
             $this->security->login($user, firewallName: 'main');
 
             return new RedirectResponse($this->generateUrl('frontend_account', ['locale' => $locale]));

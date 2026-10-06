@@ -52,8 +52,8 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case DefaultFront = 'default_front';
     case LogoMediaId = 'logo_media_id';
     case FaviconMediaId = 'favicon_media_id';
-    // Le nom du site à côté du logo, dans la barre du haut du back-office sur
-    // téléphone. Affiché par défaut ; désactivé, le logo reste seul (02/10/2026).
+    // The site name next to the logo, in the back office's top bar on a
+    // phone. Shown by default; turned off, the logo stands alone (02/10/2026).
     case SuiteBarSiteNameOnPhone = 'suite_bar_site_name_on_phone';
     case SeoTitleTemplate = 'seo_title_template';
     case SeoDefaultDescription = 'seo_default_description';
@@ -294,12 +294,12 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
         return match ($this) {
             self::SiteName => 'Aurora',
             self::SiteDescription => 'Propulsé par Aurora',
-            // Semes vides, et non avec une valeur plausible. Un `http://localhost`
-            // ou un `admin@aurora.app` affiche dans l'ecran de reglages se lit
-            // comme un choix deja fait : personne ne le corrige, et le site part
-            // en production en annoncant une adresse injoignable. Vide, le champ
-            // dit ce qu'il est. Cf. Context::siteUrl() et MailService::adminEmail(),
-            // qui savent tous deux quoi faire d'une valeur absente.
+            // Seeded empty, and not with a plausible value. An `http://localhost`
+            // or an `admin@aurora.app` shown on the settings screen reads as a
+            // choice already made: nobody corrects it, and the site goes to
+            // production announcing an unreachable address. Empty, the field
+            // says what it is. See Context::siteUrl() and MailService::adminEmail(),
+            // which both know what to do with a missing value.
             self::SiteUrl => '',
             self::AdminEmail => '',
             self::DefaultLocale => 'fr',
@@ -364,7 +364,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::NavItemOrder => '{}',
             self::ColorPickerPresets => json_encode(self::DEFAULT_COLOR_PICKER_PRESETS, JSON_THROW_ON_ERROR),
             self::SuitePalette => '{}',
-            // Les couleurs que email.css code en dur : un e-mail sort comme avant.
+            // The colours email.css hard-codes: an email goes out as before.
             self::EmailAccentFollowsTheme => '1',
             self::EmailAccentColor => '#059669',
             self::EmailBackgroundColor => '#f5f3ff',

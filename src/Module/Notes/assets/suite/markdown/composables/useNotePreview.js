@@ -1,38 +1,38 @@
 import { ref } from "vue";
 
-/** Ce qu'on attend avant de déranger : assez pour ne pas suivre un curseur. */
+/** What we wait before disturbing: enough not to follow a cursor around. */
 const DELAI = 450;
 
-/** La carte, en pixels. Sert à décider de quel côté elle tient. */
+/** The card, in pixels. Used to decide which side it fits on. */
 const LARGEUR = 360;
 const HAUTEUR = 280;
 const ECART = 12;
 const MARGE = 8;
 
 /**
- * Ce qu'on garde de la note : au-delà, on ne lit plus, on survole.
+ * What is kept of the note: beyond it, one no longer reads, one skims.
  *
- * Une note de dix mille signes rendue en entier coûte un analyseur complet
- * et un arbre DOM qu'on ne montrera jamais, pour une carte qui en affiche
- * vingt lignes.
+ * A ten-thousand-character note rendered in full costs a complete parser
+ * and a DOM tree that will never be shown, for a card that displays twenty
+ * lines of it.
  */
 const COUPE = 1200;
 
 /**
- * Le rendu d'une note, au survol de sa carte.
+ * A note's rendering, on hovering its card.
  *
- * **Le rendu, pas la source.** L'extrait des cartes est du texte aplati, ce
- * qui répond à « laquelle est-ce » ; l'aperçu répond à « qu'est-ce qu'il y a
- * dedans », et pour ça il faut les titres, les listes et les cases cochées
- * telles qu'elles se liront.
+ * **The rendering, not the source.** The cards' excerpt is flattened text,
+ * which answers "which one is it"; the preview answers "what is in it", and
+ * for that it needs the headings, the lists and the ticked boxes as they
+ * will be read.
  *
- * Le contenu est chiffré en base, donc il n'arrive pas avec la liste : c'est
- * une requête par note, faite une fois et gardée pour la session. D'où le
- * délai avant d'ouvrir - traverser une mosaïque ne doit pas déclencher
- * trente requêtes.
+ * The content is encrypted in the database, so it does not come with the
+ * list: it is one request per note, made once and kept for the session.
+ * Hence the delay before opening - crossing a mosaic must not trigger thirty
+ * requests.
  *
- * Rien de tout cela sur un écran tactile : il n'y a pas de survol, et une
- * carte qui s'ouvrirait à l'effleurement passerait devant ce qu'on visait.
+ * None of this on a touch screen: there is no hover, and a card opening on
+ * a light touch would get in front of what one was aiming at.
  */
 export function useNotePreview({ fetchNote }) {
     const noteId = ref(null);
@@ -48,18 +48,18 @@ export function useNotePreview({ fetchNote }) {
         try {
             return window.matchMedia?.("(hover: hover)")?.matches ?? false;
         } catch {
-            // matchMedia absent (jsdom ancien, environnement restreint) :
-            // pas d'aperçu plutôt qu'une exception au survol.
+            // matchMedia missing (old jsdom, restricted environment): no
+            // preview rather than an exception on hover.
             return false;
         }
     }
 
     /**
-     * Où poser la carte par rapport à ce qu'on survole.
+     * Where to place the card relative to what is hovered.
      *
-     * À droite quand il y a la place, à gauche sinon, et remontée pour
-     * rester entière à l'écran. Coordonnées de fenêtre, pour un `position:
-     * fixed` : la carte doit pouvoir sortir de la grille qui défile.
+     * On the right when there is room, on the left otherwise, and moved up
+     * to stay whole on screen. Window coordinates, for a `position:
+     * fixed`: the card must be able to leave the scrolling grid.
      */
     function place(rect) {
         const largeurVue = window.innerWidth;
@@ -79,13 +79,13 @@ export function useNotePreview({ fetchNote }) {
     }
 
     /**
-     * Rien de ce qui se passe ici ne doit ressortir en exception.
+     * Nothing that happens here must come out as an exception.
      *
-     * L'appel part d'un minuteur, donc son échec n'aurait aucun appelant
-     * pour l'attraper : il remonterait en rejet non traité jusqu'au
-     * `errorCaptured` de la page, qui remplacerait la bibliothèque entière
-     * par son écran d'erreur - pour une bulle d'aperçu. Un aperçu qui ne
-     * vient pas ne doit rien coûter de plus que son absence.
+     * The call starts from a timer, so its failure would have no caller to
+     * catch it: it would bubble up as an unhandled rejection to the page's
+     * `errorCaptured`, which would replace the whole library with its error
+     * screen - for a preview bubble. A preview that does not come must cost
+     * nothing more than its absence.
      */
     async function charge(id) {
         if (cache.has(id)) return cache.get(id);
@@ -105,10 +105,11 @@ export function useNotePreview({ fetchNote }) {
     }
 
     /**
-     * Programme l'ouverture. Le vrai travail n'a lieu qu'au bout du délai.
+     * Schedules the opening. The real work only happens at the end of the
+     * delay.
      *
      * @param {{id: number}} note
-     * @param {HTMLElement} element ce qui est survolé
+     * @param {HTMLElement} element what is hovered
      */
     function open(note, element) {
         if (!survolPossible() || !element) return;
@@ -126,8 +127,8 @@ export function useNotePreview({ fetchNote }) {
 
             const texte = await charge(id);
 
-            // Le curseur a pu partir ailleurs pendant la requête : ce qui
-            // revient ne doit pas écraser ce qu'on regarde maintenant.
+            // The cursor may have moved elsewhere during the request: what
+            // comes back must not overwrite what is being looked at now.
             if (jeton !== demande) return;
 
             loading.value = false;

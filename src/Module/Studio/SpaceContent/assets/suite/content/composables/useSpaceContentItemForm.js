@@ -19,8 +19,8 @@ import { required } from "@/shared/utils/validation/validators.js";
  * @param {(id: number) => void} removeLocally drops a deleted card from the view
  */
 function emptyForm(columnId = "", scheduledAt = "") {
-    // Cochée d'office : le cas courant est qu'une carte datée paraisse, et
-    // l'inverse obligerait à cocher chaque nouvelle carte.
+    // Ticked by default: the common case is that a dated card goes out, and
+    // the opposite would mean ticking every new card.
     return {
         title: "",
         body: "",
@@ -39,7 +39,7 @@ function formFrom(item) {
         // The wall clock the server already expressed in the space's zone, so
         // the field never converts and can never convert it wrong.
         scheduledAt: item.scheduledAtLocal ?? "",
-        // Même forme et même raison que la parution ci-dessus.
+        // Same form and same reason as the publication above.
         reviewBy: item.reviewByLocal ?? "",
         showOnCalendar: false !== item.showOnCalendar,
     };

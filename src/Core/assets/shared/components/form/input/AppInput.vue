@@ -21,9 +21,9 @@ const props = defineProps({
     /** Topic id from `helpTopics.js`, surfaced next to the label. */
     help: { type: String, default: '' },
     readonly: { type: Boolean, default: false },
-    /** Suggestions d'un `<datalist>` voisin, par son identifiant : le champ reste libre. */
+    /** Suggestions from a neighbouring `<datalist>`, by its identifier: the field stays free. */
     list: { type: String, default: '' },
-    /** Le nom du champ pour un lecteur d'écran, quand il n'a pas d'étiquette visible. */
+    /** The name of the field for a screen reader, when it has no visible label. */
     ariaLabel: { type: String, default: '' },
     toggleable: { type: Boolean, default: false },
     /**

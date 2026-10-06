@@ -29,8 +29,8 @@ const NOTES = [
 ];
 
 /**
- * Le panneau demande deux listes, et une recherche quand on tape : la réponse
- * dépend donc de l'adresse, pas du rang de l'appel.
+ * The panel asks for two lists, and a search when typing: so the answer
+ * depends on the address, not on the call's rank.
  */
 function answerWith({
     folders = FOLDERS,
@@ -47,8 +47,8 @@ function answerWith({
             ? { success: true, folders }
             : path.includes("/search")
               ? { success: true, ids }
-              : // Les espaces : aucun par défaut, et le panneau garde alors
-                // son arbre d'un seul tenant.
+              : // The spaces: none by default, and the panel then keeps
+                // its tree in one piece.
                 path.includes("/notes/spaces")
                 ? { success: true, spaces, canCreate, craftEnabled }
                 : { success: true, notes };
@@ -67,9 +67,9 @@ const stops = [];
 async function render(url = "/suite/notes/markdown", { expanded = [] } = {}) {
     window.history.replaceState({}, "", url);
 
-    // L'arbre s'ouvre replié : un carnet de neuf cents notes déplié d'un
-    // coup est ce que la refonte a supprimé. Un cas qui regarde une branche
-    // la déplie, comme le lecteur.
+    // The tree opens folded: a notebook of nine hundred notes expanded at
+    // once is what the redesign removed. A case that looks at a branch
+    // expands it, like the reader.
     window.localStorage.setItem(
         "aurora.notes.panel.expanded",
         JSON.stringify(expanded),
@@ -83,8 +83,8 @@ async function render(url = "/suite/notes/markdown", { expanded = [] } = {}) {
 }
 
 /**
- * Les lignes de dossiers de l'arborescence : ni « Tous les documents » en
- * tête, ni les favoris, qui montrent les mêmes adresses plus haut.
+ * The folder rows of the tree: neither "Tous les documents" at the top, nor
+ * the favourites, which show the same addresses higher up.
  */
 const folderLinks = (wrapper) =>
     wrapper
@@ -132,9 +132,8 @@ describe("les espaces du panneau", () => {
     ];
 
     /**
-     * Une section par espace, le sien d'abord : ce qui vit dans un espace
-     * partagé se range sous son nom, et l'en-tête dit qu'on ne fait que le
-     * lire.
+     * One section per space, one's own first: what lives in a shared space
+     * is filed under its name, and the header says it is only read.
      */
     it("groups the tree by space, one's own first", async () => {
         answerWith({
@@ -156,7 +155,7 @@ describe("les espaces du panneau", () => {
         expect(headers[1].find("[data-space-readonly]").exists()).toBe(true);
         expect(wrapper.text()).toContain("Compte rendu");
 
-        // Une ligne d'un espace qu'on lit seulement ne propose que les favoris.
+        // A row of a space one only reads offers favourites only.
         const row = wrapper
             .findAllComponents(NoteTreeItem)
             .find((item) => "note:91" === item.props("node").key);
@@ -166,10 +165,10 @@ describe("les espaces du panneau", () => {
         ]);
     });
 
-    /** Seul avec son espace, le panneau reste celui d'avant, sans en-tête. */
+    /** Alone with its space, the panel stays the old one, without a header. */
     /**
-     * Seul, son espace garde son en-tête : sans lui, rien ne disait où
-     * vivaient les notes, et « Mon espace » restait introuvable.
+     * Alone, one's space keeps its header: without it, nothing said where
+     * the notes lived, and "Mon espace" could not be found.
      */
     it("names one's own space even when it is the only one", async () => {
         answerWith({ spaces: [SPACES[0]] });
@@ -182,7 +181,7 @@ describe("les espaces du panneau", () => {
         expect(wrapper.text()).toContain("Journal");
     });
 
-    /** Tant que les espaces ne sont pas connus, l'arbre s'affiche sans en-tête. */
+    /** As long as the spaces are not known, the tree shows without a header. */
     it("draws the tree without a header before the spaces arrive", async () => {
         const wrapper = await render();
 
@@ -190,7 +189,7 @@ describe("les espaces du panneau", () => {
         expect(wrapper.text()).toContain("Journal");
     });
 
-    /** Le plus d'un en-tête ajoute à la racine de cet espace. */
+    /** A header's plus adds at the root of that space. */
     it("asks the page to add at the root of a space", async () => {
         const handler = vi.fn();
         stops.push(onPanelRequest("notes:add", handler));
@@ -208,7 +207,7 @@ describe("les espaces du panneau", () => {
         });
     });
 
-    /** Les réglages ne s'offrent qu'à qui gère l'espace. */
+    /** Settings are only offered to whoever manages the space. */
     it("offers the settings to managers only", async () => {
         const handler = vi.fn();
         stops.push(onPanelRequest("notes:space-settings", handler));
@@ -231,8 +230,8 @@ describe("les espaces du panneau", () => {
     });
 
     /**
-     * L'import Craft est un geste du menu d'un espace où l'on écrit, et
-     * seulement quand la connexion est ouverte.
+     * The Craft import is a gesture of the menu of a space one writes in,
+     * and only when the connection is open.
      */
     it("offers the Craft import where one writes, once the connection is open", async () => {
         const handler = vi.fn();
@@ -277,8 +276,8 @@ describe("les espaces du panneau", () => {
     });
 
     /**
-     * Un espace réglé depuis Studio porte son badge, et ses réglages ne
-     * s'ouvrent pas d'ici, même pour qui le gère.
+     * A space set from Studio carries its badge, and its settings do not
+     * open from here, even for whoever manages it.
      */
     it("keeps the settings of a managed space closed", async () => {
         answerWith({
@@ -303,7 +302,7 @@ describe("les espaces du panneau", () => {
 });
 
 describe("les étiquettes du panneau", () => {
-    /** La ligne d'une étiquette, visée par son libellé. */
+    /** A tag's row, targeted by its label. */
     function tagRow(wrapper, name) {
         return wrapper
             .findAll("button")
@@ -339,8 +338,8 @@ describe("les étiquettes du panneau", () => {
     });
 
     /**
-     * L'épinglage vit dans le navigateur : une étiquette n'est pas une ligne
-     * dans Aurora, c'est une chaîne dans le tableau d'une note.
+     * Pinning lives in the browser: a tag is not a row in Aurora, it is a
+     * string in a note's array.
      */
     it("remembers a pinned tag for the next visit", async () => {
         const wrapper = await render();
@@ -359,8 +358,8 @@ describe("les étiquettes du panneau", () => {
     });
 
     /**
-     * Une étiquette renommée ou effacée depuis l'écran des étiquettes n'a
-     * aucune ligne à nettoyer : la liste part de ce que les notes portent.
+     * A tag renamed or deleted from the tags screen has no row to clean up:
+     * the list starts from what the notes carry.
      */
     it("drops a pinned tag that no note carries any more", async () => {
         window.localStorage.setItem(
@@ -415,8 +414,8 @@ describe("the folders panel", () => {
     });
 
     /**
-     * Ce que le dépliage sert : voir ce qu'un dossier contient sans quitter
-     * le menu. Replié, la ligne dit seulement combien.
+     * What expanding is for: seeing what a folder holds without leaving the
+     * menu. Folded, the row only says how many.
      */
     it("shows the notes of a folder once it is unfolded", async () => {
         const wrapper = await render();
@@ -474,8 +473,8 @@ describe("the folders panel", () => {
     });
 
     /**
-     * Un seul plus, qui demande quoi. Il y en avait deux côte à côte, une
-     * note et un dossier, qu'on ne distinguait qu'à la forme de l'icône.
+     * A single plus, which asks what. There used to be two side by side, a
+     * note and a folder, told apart only by the shape of the icon.
      */
     it("asks the page to add something at the root", async () => {
         const handler = vi.fn();
@@ -491,8 +490,8 @@ describe("the folders panel", () => {
     });
 
     /**
-     * Le cas d'Axel : il ne trouvait pas où mettre en favori. La ligne le
-     * propose, et c'est la page qui le fait pour que tout suive.
+     * Axel's case: he could not find where to add a favourite. The row
+     * offers it, and the page does it so that everything follows.
      */
     it("asks the page to toggle a favourite from a row", async () => {
         const handler = vi.fn();
@@ -518,7 +517,7 @@ describe("the folders panel", () => {
         });
     });
 
-    /** Le cas d'Axel : le plus d'un dossier ne savait créer qu'une note. */
+    /** Axel's case: a folder's plus could only create a note. */
     it("asks the page to add inside the folder whose plus was pressed", async () => {
         const handler = vi.fn();
         stops.push(onPanelRequest("notes:add", handler));
@@ -553,8 +552,8 @@ describe("the folders panel", () => {
      * job, and the matched notes are listed flat beneath the folders.
      */
     /**
-     * Une recherche ouvre les branches où elle a trouvé quelque chose :
-     * laisser le résultat replié, c'est ne rien montrer.
+     * A search opens the branches where it found something: leaving the
+     * result folded means showing nothing.
      */
     it("finds a note across the notebook and opens its folder", async () => {
         const wrapper = await render();
@@ -563,8 +562,8 @@ describe("the folders panel", () => {
         await flushPromises();
 
         expect(wrapper.text()).toContain("Tarte");
-        // Son dossier reste affiché, sinon la note trouvée n'aurait plus de
-        // branche à laquelle se rattacher.
+        // Its folder stays shown, otherwise the found note would have no
+        // branch left to hang from.
         expect(wrapper.text()).toContain("Recettes");
         expect(wrapper.text()).not.toContain("Journal de bord");
     });
@@ -580,10 +579,10 @@ describe("the folders panel", () => {
 
 describe("la racine", () => {
     /**
-     * `Number(null)` vaut zéro, et zéro n'est pas un dossier : le panneau
-     * demandait le dossier 0, la bibliothèque le montrait vide et l'adresse
-     * rendait un 404 - lequel renvoie un visiteur non connecté vers la page
-     * de connexion. Axel a vu les trois symptômes à la fois.
+     * `Number(null)` is zero, and zero is not a folder: the panel asked for
+     * folder 0, the library showed it empty and the address returned a 404 -
+     * which sends a logged-out visitor to the login page. Axel saw all three
+     * symptoms at once.
      */
     it("asks for the root, not for folder zero", async () => {
         const handler = vi.fn();
@@ -598,8 +597,8 @@ describe("la racine", () => {
 
 describe("les favoris", () => {
     /**
-     * Craft ouvre son menu sur eux, et c'est le seul endroit d'où l'on
-     * atteint une note en un clic sans savoir où elle est rangée.
+     * Craft opens its menu on them, and it is the only place from which a
+     * note is reached in one click without knowing where it is filed.
      */
     it("lists what is pinned, above the tree", async () => {
         const wrapper = await render();
@@ -622,15 +621,14 @@ describe("les favoris", () => {
 
 describe("what the panel kept from the aside", () => {
     /**
-     * Le plus reste dehors, le reste passe dans la feuille.
+     * The plus stays outside, the rest goes into the sheet.
      *
-     * Avant, une ligne de dossier portait deux boutons - créer et supprimer -
-     * et une ligne de note n'en portait aucun : ni renommer, ni supprimer,
-     * alors que tout existait derrière. La règle de la maison veut qu'au-delà
-     * de deux gestes on empile, et une ligne d'arbre est trop étroite pour en
-     * aligner trois : la suppression et le renommage sont donc dans la
-     * feuille, et le plus d'un dossier - le seul qu'on répète - reste sous la
-     * main.
+     * Before, a folder row carried two buttons - create and delete - and a
+     * note row carried none: no rename, no delete, although everything
+     * existed behind. The house rule says that beyond two gestures we stack,
+     * and a tree row is too narrow to line up three: deleting and renaming
+     * are therefore in the sheet, and a folder's plus - the only one that is
+     * repeated - stays at hand.
      */
     it("garde le plus dehors et passe le reste dans la feuille", async () => {
         const titles = (await render())
@@ -667,9 +665,9 @@ describe("what the panel kept from the aside", () => {
      * once on arrival and nothing ever told it otherwise.
      */
     /**
-     * Le cas d'Axel : créer une note dans un dossier replié la laissait
-     * invisible. Le commentaire du panneau promettait pourtant que « son
-     * dossier s'ouvre », et rien ne le vérifiait.
+     * Axel's case: creating a note in a folded folder left it invisible. Yet
+     * the panel's comment promised that "son dossier s'ouvre", and nothing
+     * checked it.
      */
     it("ouvre le dossier d'une note quand la page l'annonce", async () => {
         const wrapper = await render("/suite/notes/markdown", {
@@ -688,7 +686,7 @@ describe("what the panel kept from the aside", () => {
         expect(wrapper.text()).toContain("Journal de bord");
     });
 
-    /** Une note rangée profond n'est visible que si toute la chaîne s'ouvre. */
+    /** A deeply filed note is only visible if the whole chain opens. */
     it("remonte toute la chaîne des dossiers, pas seulement le dernier", async () => {
         const wrapper = await render("/suite/notes/markdown", {
             expanded: [],
@@ -706,7 +704,7 @@ describe("what the panel kept from the aside", () => {
         });
         await flushPromises();
 
-        // « Lundi » est dans « Journal » : les deux doivent s'être ouverts.
+        // "Lundi" is in "Journal": both must have opened.
         expect(wrapper.text()).toContain("Lundi");
         expect(wrapper.text()).toContain("Sous-note");
     });
@@ -727,8 +725,8 @@ describe("what the panel kept from the aside", () => {
 });
 
 /**
- * Un glisser simulé : ce que le navigateur donne, les types lisibles au
- * survol et le contenu au dépôt seulement.
+ * A simulated drag: what the browser gives, the readable types on hover and
+ * the content on drop only.
  */
 function transferFor(kind, id) {
     const data = {};
@@ -751,7 +749,7 @@ function transferFor(kind, id) {
     return transfer;
 }
 
-/** Le milieu d'une ligne : « dedans » pour un dossier. */
+/** The middle of a row: "inside" for a folder. */
 function middleOf(row) {
     row.element.getBoundingClientRect = () => ({
         top: 0,
@@ -767,10 +765,10 @@ function middleOf(row) {
 
 describe("le glisser-déposer du panneau", () => {
     /**
-     * Le bug d'Axel : glisser une note sur un dossier depuis l'éditeur ne
-     * faisait rien, parce que le panneau confiait le dépôt à la bibliothèque,
-     * absente quand une note est ouverte. Le panneau calcule maintenant le
-     * rangement et le demande à la page sous forme de données.
+     * Axel's bug: dragging a note onto a folder from the editor did nothing,
+     * because the panel handed the drop to the library, which is absent when
+     * a note is open. The panel now computes the filing and asks the page
+     * for it as data.
      */
     it("asks the page to file a note into the folder it was dropped on", async () => {
         const handler = vi.fn();
@@ -794,7 +792,7 @@ describe("le glisser-déposer du panneau", () => {
                     fromFolderId: 3,
                     spaceId: null,
                     fromSpaceId: null,
-                    // Dossiers et notes du dossier, mêlés dans leur ordre.
+                    // The folder's folders and notes, mixed in their order.
                     order: [
                         { kind: "folder", id: 2 },
                         { kind: "note", id: 11 },
@@ -889,7 +887,7 @@ describe("le confort de l'arbre", () => {
         expect(wrapper.text()).not.toContain("Tarte");
     });
 
-    /** Haut et bas passent d'une ligne à l'autre, droite déplie. */
+    /** Up and down move from one row to the next, right expands. */
     it("walks the tree with the arrow keys", async () => {
         const wrapper = await render();
         const rows = wrapper.findAll("[data-tree-row]");
@@ -926,8 +924,8 @@ describe("passer en lecture", () => {
     });
 
     /**
-     * Il fallait ouvrir une note puis chercher « Lire » dans ses trois
-     * points. Le panneau porte maintenant le bouton, toujours là.
+     * One had to open a note then look for "Lire" in its three dots. The
+     * panel now carries the button, always there.
      */
     it("opens the reader on the first note when none is open", async () => {
         const assign = vi.fn();

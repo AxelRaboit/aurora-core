@@ -2,10 +2,10 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * Le nom d'un espace tel qu'on le lit.
+ * A space's name as it is read.
  *
- * L'espace personnel n'en porte pas : chacun y lit « Mon espace » dans sa
- * langue, et non le nom de quelqu'un.
+ * The personal space carries none: everyone reads "Mon espace" there in
+ * their own language, and not someone's name.
  */
 export function spaceLabel(space, t) {
     if (!space) return "";
@@ -15,10 +15,10 @@ export function spaceLabel(space, t) {
 }
 
 /**
- * Les espaces dans l'ordre du panneau : le sien d'abord, puis par position.
+ * The spaces in the panel's order: one's own first, then by position.
  *
- * Le serveur les rend déjà ainsi ; on retrie quand même, parce qu'un espace
- * créé à l'instant arrive au bout de la liste sans passer par lui.
+ * The server already returns them that way; we sort again anyway, because a
+ * space just created lands at the end of the list without going through it.
  */
 export function sortSpaces(spaces) {
     return [...(spaces ?? [])].sort(
@@ -30,8 +30,8 @@ export function sortSpaces(spaces) {
 }
 
 /**
- * Les appels des espaces, avec la même enveloppe que ceux des dossiers :
- * `reported` dit si un message a déjà été montré.
+ * The space calls, with the same envelope as the folder ones: `reported`
+ * says whether a message has already been shown.
  */
 export function useNoteSpacesApi(paths) {
     const { request } = useRequest();

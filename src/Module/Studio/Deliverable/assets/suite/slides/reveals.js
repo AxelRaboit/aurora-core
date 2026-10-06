@@ -1,27 +1,25 @@
 /**
- * Combien de lignes une slide peut faire entrer une a une.
+ * How many lines a slide can bring in one by one.
  *
- * **Compte depuis le contenu, jamais depuis la page.** Les lignes vivent dans
- * un slot de liste, donc leur nombre est connu avant que quoi que ce soit soit
- * dessine ; demander au DOM lierait la facon dont un deck se pilote a la facon
- * dont il se trouve mis en page ce jour-la, et repondrait autrement sur une
- * vignette.
+ * **Counted from the content, never from the page.** The lines live in a list
+ * slot, so their number is known before anything is drawn; asking the DOM
+ * would tie the way a deck is driven to the way it happens to be laid out
+ * that day, and would answer differently on a thumbnail.
  *
- * **Dans son propre fichier parce que deux fenetres s'en servent.** Le lecteur
- * projette et le presentateur pilote, et les deux doivent compter pareil : une
- * copie dans chacun, c'est le jour ou l'une gagne un gabarit et ou les deux
- * fenetres cessent d'etre d'accord sur le nombre de pressions que la slide
- * demande.
+ * **In its own file because two windows use it.** The player projects and the
+ * presenter drives, and both must count the same: a copy in each is the day
+ * one of them gains a template and the two windows stop agreeing on how many
+ * key presses the slide needs.
  */
 const REVEAL_SLOTS = ["bullets", "items", "steps", "figures", "lines"];
 
-/** Zero pour toute slide qui n'a rien demande, donc pour toutes les anciennes. */
+/** Zero for any slide that asked for nothing, so for all the old ones. */
 export function revealableIn(slide) {
     const content = slide?.content;
 
-    // Une slide libre compte ses pressions sur ses elements : chacun dit a
-    // quelle pression il entre, et la slide en demande autant que le plus
-    // tardif. Deux elements sur la meme pression entrent ensemble.
+    // A free slide counts its presses on its elements: each one says on which
+    // press it enters, and the slide needs as many as the latest one. Two
+    // elements on the same press enter together.
     if (slide?.layout === "free") {
         const ranks = (content?.elements ?? []).map(
             (element) => element?.reveal ?? 0,

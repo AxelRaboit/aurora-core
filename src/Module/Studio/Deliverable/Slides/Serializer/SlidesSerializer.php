@@ -123,11 +123,10 @@ class SlidesSerializer
         // arrangement is the order somebody picked, so the frame must be able
         // to draw the first one first without looking anything up.
         if (is_array($content['mediaIds'] ?? null)) {
-            // Alignee sur `mediaIds` position par position, trous compris.
-            // Compactee, elle decalait tout ce qui suit une image supprimee de
-            // la mediatheque : le formulaire montrait la vignette suivante sous
-            // l'identifiant precedent, et remplacer une case en modifiait une
-            // autre.
+            // Aligned with `mediaIds` position by position, gaps included.
+            // Compacted, it shifted everything after an image deleted from
+            // the media library: the form showed the next thumbnail under the
+            // previous id, and replacing one slot changed another.
             $content['mediaPictures'] = array_map(
                 function (mixed $id) use ($pictures): ?array {
                     if (!is_int($id)) {

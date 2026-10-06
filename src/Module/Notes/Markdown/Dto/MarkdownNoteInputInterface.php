@@ -19,14 +19,14 @@ interface MarkdownNoteInputInterface
 
     public function getPosition(): ?int;
 
-    /** L'adresse de l'image d'entête, chez celui qui l'héberge. */
+    /** The address of the header image, at whoever hosts it. */
     public function getCoverUrl(): ?string;
 
     public function getCoverCreditName(): ?string;
 
     public function getCoverCreditUrl(): ?string;
 
-    /** Où couper la photo, en pourcentage de sa hauteur. */
+    /** Where to crop the photo, as a percentage of its height. */
     public function getCoverPosition(): ?int;
 
     /** {@see NoteAppearanceEnum} */
@@ -36,6 +36,6 @@ interface MarkdownNoteInputInterface
 
     public function isForce(): bool;
 
-    /** L'espace d'une création à la racine ; null pour son espace personnel. */
+    /** The space of a creation at the root; null for the personal space. */
     public function getSpaceId(): ?int;
 }

@@ -20,27 +20,27 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
- * Le rôle d'une personne dans un espace, et tout ce qui en découle.
+ * A person's role in a space, and everything that follows from it.
  *
- * **Un seul endroit décide.** Chaque route qui lit ou écrit une note demande
- * ici ; aucune ne charge plus rien « par propriétaire ». La règle :
+ * **A single place decides.** Every route that reads or writes a note asks
+ * here; none loads anything "by owner" any more. The rule:
  *
- * - son espace personnel, et ceux dont on est propriétaire : gestionnaire ;
- * - un espace ouvert aux membres : le rôle de son inscription ;
- * - un espace ouvert à tout le back-office : le rôle par défaut, ou celui de
- *   son inscription s'il est plus fort ;
- * - sinon, rien : l'espace n'existe pas pour la personne.
+ * - one's personal space, and the ones one owns: manager;
+ * - a space open to members: the role of one's membership;
+ * - a space open to the whole back office: the default role, or the one of
+ *   one's membership if it is stronger;
+ * - otherwise, nothing: the space does not exist for the person.
  *
- * Pas de passe-droit pour les administrateurs sur le **contenu** : ils ont
- * les droits du module (créer, publier), pas les carnets privés des autres.
- * Le carnet de quelqu'un reste le sien.
+ * No special pass for administrators on the **content**: they have the
+ * module's rights (create, publish), not other people's private notebooks.
+ * Somebody's notebook stays theirs.
  */
 final readonly class NoteSpaceAccess
 {
-    /** Créer un espace partagé - son espace personnel ne demande rien. */
+    /** Create a shared space - one's personal space requires nothing. */
     public const string CREATE = 'notes.spaces.create';
 
-    /** Publier un espace sur le web, en lecture sans connexion. */
+    /** Publish a space on the web, readable without logging in. */
     public const string PUBLISH = 'notes.spaces.publish';
 
     public function __construct(
@@ -59,14 +59,14 @@ final readonly class NoteSpaceAccess
     }
 
     /**
-     * Le rôle d'une personne dans plusieurs espaces, en une requête.
+     * A person's role in several spaces, in one query.
      *
-     * Pour une liste : `roleIn()` cherche l'inscription espace par espace, ce
-     * qui ferait une requête par ligne.
+     * For a list: `roleIn()` looks up the membership space by space, which
+     * would make one query per row.
      *
      * @param list<NoteSpaceInterface> $spaces
      *
-     * @return array<int, NoteSpaceRoleEnum> identifiant d'espace => rôle, sans les espaces fermés à la personne
+     * @return array<int, NoteSpaceRoleEnum> space id => role, without the spaces closed to the person
      */
     public function rolesFor(CoreUserInterface $user, array $spaces): array
     {
@@ -86,7 +86,7 @@ final readonly class NoteSpaceAccess
         return $roles;
     }
 
-    /** La règle, une fois l'inscription connue. */
+    /** The rule, once the membership is known. */
     private function roleWith(CoreUserInterface $user, NoteSpaceInterface $space, ?NoteSpaceMemberInterface $membership): ?NoteSpaceRoleEnum
     {
         if ($space->getDeletedAt() instanceof DateTimeImmutable) {
@@ -116,13 +116,12 @@ final readonly class NoteSpaceAccess
     }
 
     /**
-     * Un espace partagé dont le propriétaire est parti revient aux
-     * administrateurs.
+     * A shared space whose owner has left falls to the administrators.
      *
-     * Sans cette règle, il restait lisible mais plus personne ne pouvait le
-     * régler, y inscrire quelqu'un ou le faire revenir de la corbeille. C'est
-     * la seule exception au principe du contenu : elle ne touche jamais un
-     * espace personnel, qui part avec son compte.
+     * Without this rule, it stayed readable but nobody could configure it,
+     * add someone to it or bring it back from the trash any more. It is the
+     * only exception to the content principle: it never touches a personal
+     * space, which leaves with its account.
      */
     public function adopts(CoreUserInterface $user, NoteSpaceInterface $space): bool
     {
@@ -169,7 +168,7 @@ final readonly class NoteSpaceAccess
         return $this->canWrite($user, $folder->getSpace());
     }
 
-    /** La note, vivante, si la personne peut la lire. */
+    /** The note, not trashed, if the person can read it. */
     public function readableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
         $note = $this->notes->findOneLiving($id);
@@ -178,8 +177,8 @@ final readonly class NoteSpaceAccess
     }
 
     /**
-     * La note si la personne peut l'écrire - corbeille comprise : restaurer
-     * ou supprimer pour de bon est aussi une écriture.
+     * The note if the person can write it - trash included: restoring or
+     * deleting for good is a write too.
      */
     public function writableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
@@ -224,12 +223,11 @@ final readonly class NoteSpaceAccess
     }
 
     /**
-     * L'espace personnel d'une personne, créé la première fois qu'on le
-     * demande.
+     * A person's personal space, created the first time it is asked for.
      *
-     * À la demande plutôt qu'à la création du compte : un compte sans le
-     * module n'a pas à porter un carnet vide, et la migration a déjà donné le
-     * sien à chaque personne qui avait des notes.
+     * On demand rather than at account creation: an account without the
+     * module has no reason to carry an empty notebook, and the migration
+     * already gave one to every person who had notes.
      */
     public function personalSpace(CoreUserInterface $user): NoteSpaceInterface
     {

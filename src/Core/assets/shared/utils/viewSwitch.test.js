@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { currentSection, revealSection, switchHref } from "./viewSwitch.js";
 
 /**
- * Passer d'une vue à l'autre d'un livrable sans perdre sa place : les deux
- * vues partagent `#diapo-N`.
+ * Switching from one view of a deliverable to the other without losing your
+ * place: the two views share `#diapo-N`.
  */
 function sections(tops) {
     document.body.innerHTML = tops

@@ -1,21 +1,20 @@
 <script setup>
 /**
- * Ce qui entoure un client : ses contrats, ses livrables de Studio, ses
- * espaces, en liens.
+ * What surrounds a customer: their contracts, their Studio deliverables,
+ * their spaces, as links.
  *
- * Le même bloc sur sa page et dans l'onglet Informations de chacun de ses
- * espaces, comme le serveur les calcule d'une seule façon
- * (`CustomerRelatedViewBuilder`). Une liste à `null` est une liste que le
- * lecteur ne peut pas ouvrir : elle ne se montre pas, plutôt que d'aligner des
- * liens qui répondraient 403.
+ * The same block on their page and in the Informations tab of each of their
+ * spaces, as the server computes them in a single way
+ * (`CustomerRelatedViewBuilder`). A `null` list is a list the reader cannot
+ * open: it is not shown, rather than lining up links that would answer 403.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps({
-    /** `{contracts, deliverables, spaces}`, chacune une liste ou null. */
+    /** `{contracts, deliverables, spaces}`, each a list or null. */
     related: { type: Object, default: () => ({}) },
-    /** Vu depuis un espace : les autres espaces seulement, et le titre le dit. */
+    /** Seen from a space: the other spaces only, and the title says so. */
     fromSpace: { type: Boolean, default: false },
 });
 
@@ -23,7 +22,7 @@ const { t } = useI18n();
 
 const R = "suite.studio.customers.related";
 
-/** Les trois listes qui ont quelque chose à montrer, dans l'ordre où on les consulte. */
+/** The three lists that have something to show, in the order they are consulted. */
 const groups = computed(() =>
     [
         { key: "contracts", title: t(`${R}.contracts`), rows: props.related?.contracts },

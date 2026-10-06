@@ -1,48 +1,46 @@
 /**
- * L'entête du sommaire, avec le tableau de bord dans ses deux thèmes.
+ * The hub page's header, with the dashboard in its two themes.
  *
- * **Deux panneaux, pas un seul coupé en deux.** Première version livrée avec
- * une diagonale qui partageait un unique écran ; ce n'était pas la demande.
- * Ce qu'il faut montrer, c'est le même tableau de bord deux fois, en sombre
- * et en clair, le clair posé par-dessus, décalé.
+ * **Two panels, not a single one cut in two.** The first version shipped with
+ * a diagonal splitting a single screen; that was not what was asked. What has
+ * to be shown is the same dashboard twice, dark and light, the light one laid
+ * on top, offset.
  *
- * **Le fond peut être laissé transparent**, et c'est le meilleur choix : le
- * gabarit pose le dégradé sur le conteneur du bandeau et l'image par-dessus,
- * donc une image sans fond laisse passer le vert du bandeau lui-même. Rien
- * n'est refabriqué, rien ne peut diverger, et les captures se détachent sur
- * le vert au lieu du noir vers lequel l'ancienne image virait à droite.
- * Passer `none` comme fond.
+ * **The background can be left transparent**, and it is the best choice: the
+ * template sets the gradient on the banner's container and the image on top,
+ * so an image without a background lets the banner's own green show through.
+ * Nothing is rebuilt, nothing can drift, and the screenshots stand out on the
+ * green instead of the black the old image turned to on the right.
+ * Pass `none` as the background.
  *
- * **Sauf que le dégradé du bandeau vire au noir vers la droite**, et que
- * c'est précisément là que sont les captures : transparente, l'image les
- * laisse sur du sombre. `vert` fabrique donc un fond qui garde du vert d'un
- * bout à l'autre, avec les couleurs du bandeau - même départ `#064e3b`, même
- * inclinaison de 160 degrés - mais une arrivée verte sombre au lieu du quasi
- * noir, plus une lueur douce derrière les panneaux. La densité visée est
- * celle de la maison : luminance du vert entre 28 et 50, l'original mesurait
- * 38.
+ * **Except that the banner's gradient turns black towards the right**, and
+ * that is exactly where the screenshots are: transparent, the image leaves
+ * them on dark. `vert` therefore makes a background that keeps green from end
+ * to end, with the banner's colours - same start `#064e3b`, same 160-degree
+ * angle - but a dark green end instead of near black, plus a soft glow behind
+ * the panels. The target density is the house one: green luminance between
+ * 28 and 50, the original measured 38.
  *
- * **Sinon l'entête existante sert de fond, elle n'est pas refabriquée.** Son
- * dégradé vert sombre est celui de la maison, et le reconstruire tomberait
- * droit dans le piège connu : estimer un fond par la couleur médiane par
- * anneau donne un halo, parce qu'au rayon zéro le sujet couvre tous les
- * pixels. Reprendre l'image telle quelle rend le dégradé exact.
+ * **Otherwise the existing header serves as the background, it is not
+ * rebuilt.** Its dark green gradient is the house one, and rebuilding it
+ * would fall straight into the known trap: estimating a background by the
+ * median colour per ring gives a halo, because at radius zero the subject
+ * covers every pixel. Reusing the image as is gives the exact gradient.
  *
- * Conséquence directe sur la géométrie : **le panneau sombre doit recouvrir
- * entièrement celui de l'original**, sinon un bout de l'ancien dépasse par en
- * dessous. L'original occupe 1240,60 sur 898x561 ; celui-ci part plus haut et
- * descend au même endroit, ce qui l'efface.
+ * Direct consequence on the geometry: **the dark panel must fully cover the
+ * original's one**, otherwise a piece of the old one shows from underneath.
+ * The original sits at 1240,60 over 898x561; this one starts higher and ends
+ * at the same place, which hides it.
  *
- * Le panneau déborde par la droite, et c'est voulu : **le téléphone rogne les
- * côtés** et ne garde que les 500 pixels centraux d'une toile de 1920. Rien
- * de ce qui compte ne doit y être, et l'entête d'origine faisait déjà ce
- * choix.
+ * The panel overflows on the right, on purpose: **the phone crops the sides**
+ * and keeps only the central 500 pixels of a 1920 canvas. Nothing that
+ * matters may be there, and the original header already made that choice.
  *
- * Aucun texte dans l'image : le premier élément du bandeau porte déjà le
- * `h1` de la page.
+ * No text in the image: the banner's first element already carries the
+ * page's `h1`.
  *
- * Usage :
- *   node tools/screenshots/compose-header-themes.mjs <fond> <sombre> <clair> <sortie>
+ * Usage:
+ *   node tools/screenshots/compose-header-themes.mjs <background> <dark> <light> <output>
  */
 import { chromium } from "@playwright/test";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
@@ -64,26 +62,26 @@ if (!base || !darkName || !lightName || !out) {
     process.exit(1);
 }
 
-/** Le format d'une entête `full_aligned` en hauteur `lg`. */
+/** The size of a `full_aligned` header at `lg` height. */
 const WIDTH = 1920;
 const HEIGHT = 682;
 
 /**
- * Les deux panneaux.
+ * The two panels.
  *
- * Le sombre couvre l'empreinte de celui de l'original (1240,60, 898x561) :
- * il part plus haut, garde le même bas, et il est donc plus grand. Le clair
- * se pose dessus, rentré de tous les côtés, pour qu'on voie du sombre autour
- * de lui : sa barre latérale à gauche, une bande en haut, un liseré en bas.
+ * The dark one covers the footprint of the original's (1240,60, 898x561): it
+ * starts higher, keeps the same bottom, and is therefore larger. The light
+ * one sits on top, inset on every side, so that dark shows around it: its
+ * sidebar on the left, a strip at the top, a thin edge at the bottom.
  *
- * Réglables, parce que la bonne place se juge sur le rendu et pas sur le
- * papier.
+ * Adjustable, because the right position is judged on the render and not on
+ * paper.
  */
 const args = process.argv.slice(2);
 const at = (flag, fallback) =>
     args.includes(flag) ? Number(args[args.indexOf(flag) + 1]) : fallback;
 
-/** La capture source, dont l'échelle découle de la hauteur voulue. */
+/** The source screenshot, whose scale follows from the wanted height. */
 const SOURCE = { width: 1600, height: 1000 };
 
 const RADIUS = 12;
@@ -171,8 +169,8 @@ const tab = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } }
 
 await tab.goto(pathToFileURL(file).href, { waitUntil: "load" });
 
-// `load` ne promet pas que les images soient décodées, et une capture prise
-// trop tôt sort à moitié vide.
+// `load` does not promise that the images are decoded, and a screenshot taken
+// too early comes out half empty.
 await tab.evaluate(() =>
     Promise.all(
         Array.from(document.images)

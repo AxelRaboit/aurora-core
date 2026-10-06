@@ -32,11 +32,11 @@ const emit = defineEmits(["update:modelValue"]);
 const { t } = useI18n();
 
 /**
- * Prospect ou client.
+ * Prospect or customer.
  *
- * Ecrit ici et pas recu en props : l'enum a deux cas, il ne bougera pas, et le
- * faire traverser le controleur, la vue et le composant parent pour lister deux
- * valeurs coute plus que ce que ca rapporte.
+ * Written here and not received as props: the enum has two cases, it will not
+ * move, and passing it through the controller, the view and the parent
+ * component to list two values costs more than it brings.
  */
 const statusOptions = computed(() => [
     { value: "prospect", label: t("suite.studio.customers.statuses.prospect") },
@@ -70,9 +70,9 @@ function removeLink(index) {
 }
 
 /**
- * L'erreur d'une ligne de liens. Le serveur les rend sous `links[2].url`, ce
- * qui permet de la poser sous le bon champ plutôt que d'annoncer qu'« un des
- * liens » est invalide.
+ * The error of a link row. The server returns them under `links[2].url`,
+ * which lets it be placed under the right field rather than announcing that
+ * "one of the links" is invalid.
  */
 function linkError(index, field) {
     return props.errors[`links[${index}].${field}`] ?? "";
@@ -93,10 +93,9 @@ const currencyOptions = computed(() =>
                 {{ t("suite.studio.customers.group_identity") }}
             </h3>
 
-            <!-- En tete de la fiche, parce que c'est ce qui dit au lecteur
-                 pourquoi la moitie des champs plus bas sont vides : un
-                 prospect n'a pas encore de SIRET, ni de forme juridique, ni
-                 de siege. -->
+            <!-- At the top of the sheet, because it is what tells the reader
+                 why half the fields below are empty: a prospect does not yet
+                 have a SIRET, a legal form or a head office. -->
             <AppSelect
                 :model-value="form.status"
                 :label="t('suite.studio.customers.status')"
@@ -262,8 +261,8 @@ const currencyOptions = computed(() =>
             </div>
         </section>
 
-        <!-- Ce que le client lit dans l'onglet Informations de ses espaces :
-             le dire ici, puisque c'est ici qu'on l'écrit. -->
+        <!-- What the customer reads in the Informations tab of their spaces:
+             say so here, since this is where it is written. -->
         <section class="space-y-4">
             <div class="space-y-0.5">
                 <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
@@ -298,9 +297,9 @@ const currencyOptions = computed(() =>
                         :error="linkError(index, 'url')"
                         v-on:update:model-value="setLink(index, 'url', $event)"
                     />
-                    <!-- Le geste est écrit en toutes lettres sur téléphone :
-                         une icône seule dans une ligne de champs ne dit pas
-                         laquelle des deux lignes elle retire. -->
+                    <!-- The gesture is spelled out on phones: an icon alone
+                         in a row of fields does not say which of the two rows
+                         it removes. -->
                     <AppButton
                         variant="ghost"
                         size="sm"

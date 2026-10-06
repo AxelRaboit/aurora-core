@@ -8,15 +8,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Deux choses que la vague de blocs de septembre 2026 garde en base.
+ * Two things the September 2026 wave of blocks keeps in the database.
  *
- * Les réglages de l'appareil photo d'une image, lus au dépôt avant que le
- * fichier ne perde ses métadonnées au réencodage : `{}` pour tout ce qui est
- * déjà là, dont le fichier ne sait plus rien.
+ * An image's camera settings, read at upload before the file loses its
+ * metadata when re-encoded: `{}` for everything already there, whose file no
+ * longer knows anything.
  *
- * Et les votes des sondages : un par lecteur et par sondage, repéré par une
- * empreinte plutôt que par une adresse ou un compte, pour compter sans rien
- * garder qui désigne quelqu'un.
+ * And the poll votes: one per reader and per poll, identified by a
+ * fingerprint rather than by an address or an account, to count without
+ * keeping anything that points to someone.
  */
 final class Version20260925180000 extends AbstractMigration
 {

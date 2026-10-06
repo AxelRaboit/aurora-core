@@ -65,9 +65,9 @@ import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-// Même module, autre sous-domaine : un chemin relatif plutôt qu'un alias,
-// comme le fait déjà la page publique. La règle qui interdit de traverser les
-// modules parle des modules, et le Drive d'un espace est le même Studio.
+// Same module, another sub-domain: a relative path rather than an alias, the
+// way the public page already does it. The rule against crossing modules is
+// about modules, and a space's Drive is the same Studio.
 import SpaceSettingsView from "../../../../CustomerSpace/assets/suite/settings/SpaceSettingsView.vue";
 import SpaceInformationView from "../../../../Customer/assets/suite/information/SpaceInformationView.vue";
 import SpaceResourcesView from "../../../../SpaceResource/assets/suite/resources/SpaceResourcesView.vue";
@@ -102,7 +102,7 @@ import { toast } from "vue-sonner";
 const { t } = useI18n();
 const { can } = usePrivileges();
 
-/** Aucun rôle d'abord : c'est la réponse d'une étape nommée librement. */
+/** No role first: that is the answer for a freely named stage. */
 const columnRoleOptions = computed(() => [
     { value: "", label: t("suite.studio.space_content.column_role_none") },
     ...COLUMN_ROLES.map((role) => ({ value: role.value, label: t(role.labelKey) })),
@@ -128,13 +128,13 @@ const props = defineProps({
     columnUpdatePath: { type: String, required: true },
     columnDeletePath: { type: String, required: true },
     columnReorderPath: { type: String, required: true },
-    /** Où demander au client d'aller relire ce qui attend son avis. */
+    /** Where to ask the client to review what is waiting for their opinion. */
     reviewPath: { type: String, required: true },
-    /** Combien de cartes datées et visibles du client attendent sa réponse. */
+    /** How many dated cards visible to the client are waiting for their answer. */
     awaitingApproval: { type: Number, default: 0 },
-    /** Combien d'entre elles ont dépassé leur échéance de relecture. */
+    /** How many of them are past their review deadline. */
     lateForReview: { type: Number, default: 0 },
-    /** Les contrats, présentations et autres espaces du même client. */
+    /** The contracts, presentations and other spaces of the same client. */
     related: { type: Object, default: () => ({}) },
     chatMessages: { type: Array, default: () => [] },
     /** Null when no hub is running, and then the panel never connects. */
@@ -156,8 +156,8 @@ const props = defineProps({
     chatHidePath: { type: String, default: null },
     chatPeople: { type: Array, default: () => [] },
     /**
-     * L'onglet Notes : l'espace de notes de cet espace client, dans le module
-     * Notes. `enabled` faux pour qui n'a pas les notes, et l'onglet disparaît.
+     * The Notes tab: the note space of this client space, in the Notes
+     * module. `enabled` is false for whoever lacks notes, and the tab goes.
      */
     spaceNotes: { type: Object, default: () => ({ enabled: false }) },
     spaceFiles: { type: Array, default: () => [] },
@@ -171,13 +171,13 @@ const props = defineProps({
     driveFilePath: { type: String, default: "" },
     driveArchivePath: { type: String, default: "" },
     driveImportPath: { type: String, default: "" },
-    /** Le dossier de l'agence, le même pour tous les espaces. Studio seulement. */
+    /** The agency folder, the same for every space. Studio only. */
     driveAgencyFolderId: { type: String, default: null },
     driveAgencyListPath: { type: String, default: "" },
     driveAgencyFilePath: { type: String, default: "" },
     driveAgencyArchivePath: { type: String, default: "" },
     driveAgencyImportPath: { type: String, default: "" },
-    /** Vrai pour le référent de l'espace, l'administrateur et le développeur. */
+    /** True for the space lead, the administrator and the developer. */
     canConfigure: { type: Boolean, default: false },
     settingsPath: { type: String, default: "" },
     /**
@@ -189,9 +189,9 @@ const props = defineProps({
     driveServiceAccountEmail: { type: String, default: null },
     driveUnlockPath: { type: String, default: "" },
     driveLocked: { type: Boolean, default: false },
-    /** La fiche du client, portée par la société et non par ce projet ; en lecture ici. */
+    /** The client record, carried by the company and not by this project; read-only here. */
     information: { type: Object, default: () => ({}) },
-    /** La page du client, où la fiche se modifie ; null sans le droit de la modifier. */
+    /** The client page, where the record is edited; null without the right to edit it. */
     customerPath: { type: String, default: null },
     resources: { type: Array, default: () => [] },
     resourceCreatePath: { type: String, default: "" },
@@ -199,12 +199,12 @@ const props = defineProps({
     resourceVisibilityPath: { type: String, default: "" },
     resourceDeletePath: { type: String, default: "" },
     resourceReorderPath: { type: String, default: "" },
-    /** Les documents écrits pour ce client : audits, stratégies, bilans. */
+    /** The documents written for this client: audits, strategies, reports. */
     deliverables: { type: Array, default: () => [] },
     canEditDeliverables: { type: Boolean, default: false },
-    /** Donner une adresse de lecture : le droit de partager l'espace, pas celui de le modifier. */
+    /** Handing out a reading address: the right to share the space, not to edit it. */
     canShareDeliverables: { type: Boolean, default: false },
-    /** Faux dans une archive : elle ne reçoit plus de livrable, ni créé ni dupliqué. */
+    /** False in an archive: it takes no more deliverables, neither created nor duplicated. */
     canAddDeliverables: { type: Boolean, default: false },
     deliverableListPath: { type: String, default: "" },
     deliverableCreatePath: { type: String, default: "" },
@@ -222,17 +222,17 @@ const VIEWS = [
     { key: "content", labelKey: "suite.studio.space_content.view_content", icon: FileStack },
     { key: "calendar", labelKey: "suite.studio.space_content.view_calendar", icon: CalendarDays },
     { key: "files", labelKey: "suite.studio.space_content.view_files", icon: Paperclip },
-    // Absente tant que l'installation n'a pas de compte de service : une
-    // entrée qui mène à un écran vide est une entrée qu'on ouvre une fois.
+    // Absent while the installation has no service account: an entry that
+    // leads to an empty screen is an entry people open once.
     { key: "drive", labelKey: "suite.studio.space_content.view_drive", icon: FolderOpen },
     { key: "chat", labelKey: "suite.studio.space_content.view_chat", icon: MessagesSquare },
     { key: "notes", labelKey: "suite.studio.space_content.view_notes", icon: StickyNote },
-    // Après les notes, qu'on garde pour soi : ce sont les documents qu'on livre
-    // au client, audits, stratégies et bilans, composés comme une page.
+    // After the notes, which people keep to themselves: these are the documents
+    // delivered to the client, audits, strategies and reports, laid out as a page.
     { key: "deliverables", labelKey: "suite.studio.space_content.view_deliverables", icon: NotebookText },
-    // La fiche du client, puis ce qu'on épingle autour d'elle : deux sujets
-    // qui ne sont pas des lectures du tableau, à gauche des réglages parce
-    // qu'on les consulte et qu'on ne les règle pas.
+    // The client record, then what gets pinned around it: two subjects that
+    // are not readings of the board, left of the settings because people
+    // consult them and do not configure them.
     { key: "information", labelKey: "suite.studio.space_content.view_information", icon: IdCard },
     { key: "resources", labelKey: "suite.studio.space_content.view_resources", icon: Link2 },
     // Last, and only for whoever may edit the space (its form) or configure it
@@ -242,28 +242,28 @@ const VIEWS = [
 ];
 
 /**
- * Ce que la barre montre vraiment.
+ * What the bar actually shows.
  *
- * Le Drive n'y est que si l'installation a une clé de compte de service : une
- * entrée qui mène à un écran vide est une entrée qu'on ouvre une fois et qu'on
- * n'ouvre plus.
+ * The Drive is there only if the installation has a service account key: an
+ * entry that leads to an empty screen is an entry people open once and never
+ * again.
  */
 const views = computed(() =>
     VIEWS.filter((entry) => {
         if ("drive" === entry.key) return props.driveEnabled;
         if ("settings" === entry.key) return props.canConfigure || !!props.spaceSettings;
-        // Les notes vivent dans le module Notes : sans lui, ou sans le droit
-        // de s'en servir, l'onglet mènerait à des écrans fermés.
+        // Notes live in the Notes module: without it, or without the right to
+        // use it, the tab would lead to closed screens.
         if ("notes" === entry.key) return true === props.spaceNotes?.enabled;
 
         return true;
     }),
 );
 
-/** Le bandeau « à relire », mis de côté jusqu'au prochain chargement. */
+/** The "to review" banner, set aside until the next load. */
 const reviewBannerHidden = ref(false);
 
-/** Ce qui attend un geste, par section : les publications à faire relire. */
+/** What is waiting for an action, per section: the posts to send for review. */
 const navBadges = computed(() => ({ content: can("studio.spaces.share") ? props.awaitingApproval : 0 }));
 const navUrgent = computed(() => (props.lateForReview > 0 ? ["content"] : []));
 
@@ -281,13 +281,13 @@ const { choice: view } = usePersistedChoice(
 );
 
 /**
- * La vue et la fiche ouvertes, dans l'adresse.
+ * The open view and card, in the address.
  *
- * **L'adresse d'abord, la préférence ensuite.** La vue mémorisée est un goût
- * de lecteur ; une notification, le tableau de bord ou le calendrier
- * éditorial désignent un endroit précis, et l'ouvrir sur la dernière vue
- * utilisée envoyait chercher la carte à la main. Un lien envoyé à un collègue
- * ouvre maintenant ce qu'il montre.
+ * **The address first, the preference second.** The remembered view is a
+ * reader's taste; a notification, the dashboard or the editorial calendar
+ * point at a precise place, and opening on the last view used sent people
+ * looking for the card by hand. A link sent to a colleague now opens what it
+ * shows.
  */
 const viewInUrl = useQueryState("view", { defaultValue: "content", valid: VIEWS.map((entry) => entry.key) });
 const itemInUrl = useQueryState("item");
@@ -301,9 +301,9 @@ const chatFocusMessageId = Number(new URLSearchParams(window.location.search).ge
 if (viewAtLoad) view.value = viewAtLoad;
 
 /**
- * Une vue mémorisée que cet espace n'offre pas - le Drive sans compte de
- * service, les réglages pour qui ne configure pas - retombait sur un écran
- * vide sans rien dire. Elle revient au contenu.
+ * A remembered view this space does not offer - the Drive without a service
+ * account, the settings for whoever does not configure - fell back on an empty
+ * screen without a word. It returns to the content.
  */
 watch(
     views,
@@ -405,20 +405,20 @@ const {
 
 const showDrivePicker = ref(false);
 
-/** Ce que les réglages viennent de décider, sans attendre un rechargement. */
+/** What the settings just decided, without waiting for a reload. */
 const driveLockedNow = ref(props.driveLocked);
 
-/** Le dossier tel que les réglages viennent de le poser. */
+/** The folder as the settings just set it. */
 const driveFolderNow = ref(props.driveFolderId ?? "");
 // Same for the agency folder, which the settings view can now set in place.
 const driveAgencyFolderNow = ref(props.driveAgencyFolderId ?? null);
 
 /**
- * Le fichier choisi entre dans la médiathèque, puis sur la fiche.
+ * The chosen file goes into the media library, then onto the card.
  *
- * La fenêtre ne se referme que si les deux ont abouti : refermée d'office,
- * elle aurait fait croire à un ajout qui n'a pas eu lieu, sur un écran où la
- * liste des pièces jointes est juste derrière.
+ * The window closes only if both succeeded: closed regardless, it would have
+ * suggested an addition that never happened, on a screen where the list of
+ * attachments is right behind it.
  */
 async function attachFromDrive(file) {
     if (await pickFromDrive(editingItem.value, file)) {
@@ -427,8 +427,8 @@ async function attachFromDrive(file) {
 }
 
 const editable = computed(() => can("studio.spaces.edit"));
-// Montrer ou cacher au client, une étape, un canal ou un fichier : le droit de
-// partager l'espace, en plus de celui de le modifier.
+// Showing to or hiding from the client, a stage, a channel or a file: the right
+// to share the space, on top of the right to edit it.
 const canShowToClient = computed(() => editable.value && can("studio.spaces.share"));
 
 const {
@@ -438,10 +438,10 @@ const {
 } = useSpaceReviewInvite(props.reviewPath);
 
 /**
- * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
+ * The space's files, those on no card.
  *
- * La même offre de nettoyage que partout ailleurs : retirer un fichier ne le
- * supprime pas, et ce que plus rien n'utilise est proposé plutôt que jeté.
+ * The same clean-up offer as everywhere else: removing a file does not delete
+ * it, and what nothing uses any more is offered rather than thrown away.
  */
 const {
     files: ownFiles,
@@ -469,7 +469,7 @@ const actionsFor = useSpaceCardActions({
     confirmDelete: confirmItemDelete,
 });
 
-/** La fiche désignée par l'adresse, ouverte une fois la page montée. */
+/** The card named by the address, opened once the page is mounted. */
 onMounted(() => {
     const id = Number(itemInUrl.value.value);
     const item = id ? liveItems.value.find((entry) => entry.id === id) : null;
@@ -482,7 +482,7 @@ watch(showItemForm, (open) => {
     if (!open) itemInUrl.set("");
 });
 
-/** Les états qu'une fiche peut porter, dans l'ordre d'urgence du tableau de bord. */
+/** The states a card can carry, in the dashboard's order of urgency. */
 const stateOptions = computed(() =>
     ["missed", "late_review", "changes_requested", "with_client", "upcoming", "published"].map((value) => ({
         value,
@@ -499,23 +499,23 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 </script>
 
 <template>
-    <!-- Une colonne, parce que la discussion veut la hauteur qui reste et que
-         `space-y` ne la transmet pas. Les autres écrans gardent leur taille :
-         un flex item ne descend pas sous son contenu.
+    <!-- A column, because the conversation wants the remaining height and
+         `space-y` does not pass it on. The other screens keep their size: a
+         flex item does not shrink below its content.
 
-         Sur ordinateur, le rail des sections à gauche et l'écran à droite ;
-         la colonne de droite garde la hauteur pour la discussion. -->
+         On a computer, the section rail on the left and the screen on the
+         right; the right column keeps the height for the conversation. -->
     <div class="flex flex-1 flex-col aurora-gap lg:flex-row lg:items-start">
         <SpaceSectionNav v-model="view" :views="views" :badges="navBadges" :urgent="navUrgent" />
 
         <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-2 self-stretch sm:gap-4">
-            <!-- Les outils de la vue ouverte : filtre, forme et étapes, pour le
-             tableau et le calendrier seulement. -->
+            <!-- The tools of the open view: filter, shape and stages, for the
+             board and the calendar only. -->
             <div v-if="'content' === view || 'calendar' === view" class="flex flex-wrap items-center gap-3 sm:justify-end">
                 <div class="flex items-center gap-2">
-                    <!-- Les mêmes états que le tableau de bord et le calendrier
-                     éditorial, dans l'adresse : un lien « en retard » ouvre
-                     l'espace déjà filtré. -->
+                    <!-- The same states as the dashboard and the editorial
+                     calendar, in the address: a "late" link opens the space
+                     already filtered. -->
                     <AppSelect
                         v-if="'content' === view || 'calendar' === view"
                         v-model="stateFilter"
@@ -528,10 +528,10 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                      than inside the switcher: two segmented groups side by side
                      would read as one control with seven choices.
 
-                     Absent quand le conteneur est étroit : là, le kanban est
-                     refusé de toute façon et l'interrupteur ne changeait rien
-                     à l'écran. Un bouton qui ne fait rien se lit comme un
-                     bouton cassé ; celui-ci revient avec la place. -->
+                     Absent when the container is narrow: there the kanban is
+                     refused anyway and the switch changed nothing on screen.
+                     A button that does nothing reads as a broken button; this
+                     one comes back with the room. -->
                     <div
                         v-if="view === 'content' && !shapeOverruled"
                         class="flex rounded-lg border border-line p-0.5"
@@ -552,9 +552,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                         </AppIconButton>
                     </div>
 
-                    <!-- Une étape est une colonne du kanban : elle n'a rien à faire
-                     au-dessus des fichiers, où elle voisinait avec leurs
-                     propres actions sans rien avoir à voir avec elles. -->
+                    <!-- A stage is a kanban column: it has no business above
+                     the files, where it sat next to their own actions with
+                     nothing to do with them. -->
                     <AppButton
                         v-if="editable && 'content' === view"
                         variant="ghost"
@@ -567,18 +567,18 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 </div>
             </div>
 
-            <!-- **Un bandeau, et non un bouton dans la barre.** Rangé parmi les
-             filtres, « Envoyer à relire » ne disait ni à qui ni pourquoi, et
-             il se lisait comme un réglage de l'onglet ouvert. Ici il dit ce
-             qui attend, ce que reçoit le client, et il reste le même sur tous
-             les onglets : le lot à relire ne dépend pas de la vue.
+            <!-- **A banner, not a button in the bar.** Placed among the
+             filters, "Envoyer à relire" said neither to whom nor why, and it
+             read as a setting of the open tab. Here it says what is waiting,
+             what the client receives, and it stays the same on every tab:
+             the batch to review does not depend on the view.
 
-             Absent quand rien n'attend, parce qu'une invitation à relire zéro
-             publication est ce qui apprend à ignorer les suivantes. -->
-            <!-- Fermable, pour la visite seulement : sur un écran étroit il prend
-             la place du travail, et le compteur du rail continue de dire ce
-             qui attend. Il revient au rechargement, parce qu'un lot à relire
-             oublié pour de bon est la raison d'être du bandeau. -->
+             Absent when nothing is waiting, because an invitation to review
+             zero posts is what teaches people to ignore the next ones. -->
+            <!-- Dismissible, for the visit only: on a narrow screen it takes
+             the room of the work, and the rail's counter keeps saying what
+             is waiting. It comes back on reload, because a batch to review
+             forgotten for good is the reason the banner exists. -->
             <AppMessage
                 v-if="awaitingApproval > 0 && can('studio.spaces.share') && !reviewBannerHidden"
                 variant="info"
@@ -586,16 +586,16 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :dismiss-label="t('suite.studio.space_content.review.banner_hide')"
                 v-on:dismiss="reviewBannerHidden = true"
             >
-                <!-- Le bouton dans le texte plutôt que dans l'emplacement d'action :
-                 sur téléphone il passe dessous, en pleine largeur, au lieu de
-                 réduire le texte à une colonne de trois mots. -->
+                <!-- The button in the text rather than in the action slot: on
+                 a phone it drops below, full width, instead of squeezing the
+                 text into a column of three words. -->
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="min-w-0">
                         <p class="m-0 flex flex-wrap items-center gap-2 font-medium">
                             {{ t("suite.studio.space_content.review.banner_title", { count: awaitingApproval }) }}
-                            <!-- Le retard à côté du nombre, parce que « trois en
-                             attente » et « trois en attente dont deux en
-                             retard » ne décrivent pas la même journée. -->
+                            <!-- The delay next to the number, because "three
+                             waiting" and "three waiting, two of them late" do
+                             not describe the same day. -->
                             <span
                                 v-if="lateForReview > 0"
                                 class="rounded-full bg-warning-soft px-1.5 py-0.5 text-2xs font-medium text-warning"
@@ -616,16 +616,16 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             <!-- The container and not the window decides the shape: bound here,
              around both drawings, so a narrow panel gets the list. -->
             <div v-if="view === 'content'" ref="shapeContainer">
-                <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-                 replié ou déplié, le choix vaut pour tous les encarts. -->
+                <!-- The screen's how-to, next to what it explains; folded or
+                 unfolded, the choice holds for every guide. -->
                 <AppGuide :title="t('suite.studio.space_content.guide.title')" storage-key="space-content" class="mb-[var(--aurora-page-margin)]">
                     <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                         <li v-for="step in 6" :key="step">{{ t(`suite.studio.space_content.guide.step_${step}`) }}</li>
                     </ol>
                 </AppGuide>
-                <!-- Filtrées, les colonnes n'ont plus toutes leurs cartes : un
-                 glisser-déposer y réécrirait l'ordre d'une partie seulement.
-                 Le tri se refait sans filtre. -->
+                <!-- Filtered, the columns no longer hold all their cards: a
+                 drag and drop would rewrite the order of only part of them.
+                 Sorting is done again without a filter. -->
                 <SpaceBoardView
                     v-if="shape === 'board'"
                     :grouped="grouped"
@@ -669,10 +669,10 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 v-on:toggle-visibility="toggleOwnFileVisibility"
             />
 
-            <!-- Sa propre vue, à côté de Fichiers. La barre sépare déjà par
-             origine - ce qui est sur les fiches, ce qui est à l'espace - et un
-             dossier chez le client en est une troisième. En section sous les
-             fichiers, il fallait faire défiler tout le reste pour l'atteindre. -->
+            <!-- Its own view, next to Files. The bar already separates by
+             origin - what is on the cards, what belongs to the space - and a
+             folder at the client's is a third one. As a section under the
+             files, everything else had to be scrolled past to reach it. -->
             <SpaceDriveTabs
                 v-else-if="view === 'drive' && driveEnabled"
                 :folder-id="driveFolderNow"
@@ -744,26 +744,26 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
              chatting on holds no connection open. The cost is that a message
              arriving while somebody is looking at the calendar is not
              announced - that is a notification's job, not a panel's. -->
-            <!-- Toute la place qui reste, mesurée et non calculée : la colonne
-             part du corps de la page, donc l'en-tête peut prendre une ligne ou
-             deux sans que rien ne dépasse. Une boîte de 32rem au milieu d'un
-             écran vide donnait trois messages visibles sur une conversation qui
-             en compte trente, et une soustraction en dur laissait le bas de la
-             page sous le bord de l'écran.
+            <!-- All the remaining room, measured and not computed: the column
+             starts from the page body, so the header can take one line or two
+             without anything spilling over. A 32rem box in the middle of an
+             empty screen showed three messages of a conversation that has
+             thirty, and a hard-coded subtraction left the bottom of the page
+             below the edge of the screen.
 
-             `data-fills-viewport` est ce qui le demande : la coquille y répond
-             en donnant à la fenêtre une hauteur ferme, sans quoi la colonne
-             n'aurait rien à distribuer (voir le commentaire du gabarit).
+             `data-fills-viewport` is what asks for it: the shell answers by
+             giving the window a firm height, without which the column would
+             have nothing to distribute (see the layout's comment).
 
-             Le plancher reste : sur un écran très bas, mieux vaut une page qui
-             défile qu'un fil de deux lignes. -->
+             The floor stays: on a very short screen, a page that scrolls is
+             better than a thread of two lines. -->
             <div
                 v-else-if="view === 'chat'"
                 data-fills-viewport
                 class="flex min-h-[20rem] flex-1 flex-col"
             >
-                <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+                <!-- The screen's how-to, next to what it explains; folded or
+     unfolded, the choice holds for every guide. -->
                 <AppGuide :title="t('suite.studio.space_chat.guide.title')" storage-key="space-chat" class="mb-[var(--aurora-page-margin)] shrink-0">
                     <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                         <li v-for="step in 4" :key="step">{{ t(`suite.studio.space_chat.guide.step_${step}`) }}</li>
@@ -793,8 +793,8 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 />
             </div>
 
-            <!-- La porte de l'espace de notes : les notes s'écrivent dans
-                 le module Notes. -->
+            <!-- The door to the note space: notes are written in the Notes
+                 module. -->
             <SpaceNoteSpaceView v-else-if="view === 'notes'" :state="spaceNotes" />
 
             <SpaceCalendarView
@@ -809,10 +809,10 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 v-on:open-item="openItemEdit"
             />
 
-            <!-- Une confirmation parce que l'envoi ne fait pas que poster un
-             courriel : il remplace l'adresse de chaque destinataire et révoque
-             la précédente. Le texte le dit, sans quoi le studio découvrirait la
-             conséquence par un client qui n'arrive plus à ouvrir son favori. -->
+            <!-- A confirmation because sending does more than post an email:
+             it replaces each recipient's address and revokes the previous
+             one. The text says so, otherwise the studio would learn of the
+             consequence from a client who can no longer open their bookmark. -->
             <AppModal
                 :show="confirmingReview"
                 max-width="sm"
@@ -878,9 +878,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                     />
                 </form>
 
-                <!-- Posé dans le formulaire de la fiche : c'est là qu'on décide
-                 d'accrocher un fichier, et la fenêtre se referme sur la fiche
-                 plutôt que sur le tableau. -->
+                <!-- Placed in the card's form: that is where people decide to
+                 attach a file, and the window closes back onto the card
+                 rather than onto the board. -->
                 <SpaceDrivePicker
                     :show="showDrivePicker"
                     :list-path="driveListPath"
@@ -941,9 +941,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                         :error="columnErrors.colourSlot"
                         v-on:update:model-value="columnForm = { ...columnForm, colourSlot: $event }"
                     />
-                    <!-- Facultatif : l'étape garde son nom, le rôle dit seulement
-                     laquelle des étapes communes elle représente, pour que
-                     les compteurs de tous les espaces se calculent. -->
+                    <!-- Optional: the stage keeps its name, the role only says
+                     which of the common stages it stands for, so the
+                     counters of every space can be computed. -->
                     <AppSelect
                         :model-value="columnForm.role ?? ''"
                         :options="columnRoleOptions"
@@ -952,11 +952,11 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                         v-on:update:model-value="columnForm = { ...columnForm, role: $event }"
                     />
 
-                    <!-- Sur l'étape et non sur la fiche : un tableau dit déjà
-                     « ce qui est à ce stade », donc « ce stade ne regarde pas
-                     le client » se pose dessus. Marquer carte par carte
-                     obligerait à y repenser à chaque création, et la première
-                     oubliée annulerait la protection. -->
+                    <!-- On the stage and not on the card: a board already says
+                     "what is at this stage", so "this stage is none of the
+                     client's business" goes on it. Marking card by card would
+                     mean thinking of it at every creation, and the first one
+                     forgotten would cancel the protection. -->
                     <AppCheckbox
                         v-if="canShowToClient"
                         :model-value="true === columnForm.visibleToClient"
@@ -964,9 +964,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                         :hint="t('suite.studio.space_content.column_visible_hint')"
                         v-on:update:model-value="columnForm = { ...columnForm, visibleToClient: $event }"
                     />
-                    <!-- Sans le droit de partager, l'état se lit et ne se
-                         change pas : montrer une étape au client est le même
-                         geste que lui donner un lien d'accès. -->
+                    <!-- Without the right to share, the state is read and not
+                         changed: showing a stage to the client is the same
+                         act as giving them an access link. -->
                     <p v-else class="m-0 text-xs text-muted">
                         {{ t(true === columnForm.visibleToClient ? "suite.studio.space_content.column_state_visible" : "suite.studio.space_content.column_state_hidden") }}
                         {{ t("suite.studio.client_visibility.share_needed") }}

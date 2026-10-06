@@ -8,14 +8,14 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les livrables portent un format, une case « modèle » et un client.
+ * Deliverables carry a format, a "template" flag and a customer.
  *
- * Le format (page ou diapositives) prépare l'arrivée des présentations de
- * Studio parmi les livrables : tout livrable existant est une page. La case
- * « modèle » et le client ne valent que pour un livrable de Studio, sans
- * espace ; aucun livrable existant n'est un modèle ni n'a de client.
+ * The format (page or slides) prepares the arrival of Studio presentations
+ * among deliverables: every existing deliverable is a page. The "template"
+ * flag and the customer only apply to a Studio deliverable, without a space;
+ * no existing deliverable is a template or has a customer.
  *
- * Écrite à la main : le diff généré renommait aussi des index sans rapport.
+ * Written by hand: the generated diff also renamed unrelated indexes.
  */
 final class Version20261006120000 extends AbstractMigration
 {

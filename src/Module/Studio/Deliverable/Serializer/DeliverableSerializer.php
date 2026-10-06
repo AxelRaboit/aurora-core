@@ -16,7 +16,7 @@ use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
 use DateTimeInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-/** Les trois formes d'un livrable : une ligne de liste, l'éditeur, un lien de lecture. */
+/** The three shapes of a deliverable: a list row, the editor, a reading link. */
 final readonly class DeliverableSerializer
 {
     public function __construct(
@@ -38,7 +38,7 @@ final readonly class DeliverableSerializer
             'scope' => $deliverable->isStandalone() ? $deliverable->getScope()->value : null,
             'category' => $deliverable->isStandalone() ? $this->category($deliverable->getCategory()) : null,
             'ownerName' => $deliverable->getOwner()?->getName(),
-            // La vignette en taille réduite, cadrée sur le point d'intérêt du document.
+            // The thumbnail at reduced size, framed on the document's focal point.
             'thumbnailUrl' => $this->documentUrls->thumbUrl($deliverable->getThumbnail()),
             'thumbnailPosition' => $this->documentUrls->focalPositionCss($deliverable->getThumbnail()),
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
@@ -48,10 +48,10 @@ final readonly class DeliverableSerializer
     }
 
     /**
-     * La ligne d'un livrable d'espace, depuis les colonnes de la liste : le
-     * même dessin que {@see self::row()}, sans avoir lu le corps du livrable.
-     * Un livrable d'espace n'a ni rayon, ni catégorie, ni propriétaire à
-     * montrer, et il n'est jamais un modèle.
+     * A space deliverable's row, from the list columns: the same shape as
+     * {@see self::row()}, without having read the deliverable's body. A space
+     * deliverable has no shelf, category or owner to show, and it is never a
+     * template.
      *
      * @param array{id: int, title: string, summary: ?string, format: string, visibleToClient: bool, updatedAt: DateTimeInterface, thumbnailId: ?int} $row
      *
@@ -81,8 +81,8 @@ final readonly class DeliverableSerializer
     }
 
     /**
-     * L'adresse d'un geste sur un livrable, là où il vit : dans son espace,
-     * ou dans le module Livrables de Studio.
+     * The address of an action on a deliverable, where it lives: in its
+     * space, or in Studio's Deliverables module.
      */
     public function path(DeliverableInterface $deliverable, string $action): string
     {

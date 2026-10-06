@@ -15,7 +15,7 @@ interface SpaceContentItemInterface
 
     public function getSpace(): CustomerSpaceInterface;
 
-    /** Quand le contenu a été mis à la corbeille ; nul tant qu'il est vivant. */
+    /** When the content was put in the trash; null while it is alive. */
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;

@@ -33,18 +33,17 @@ class InvitationManager implements InvitationManagerInterface
         }
 
         /**
-         * L'adresse d'acceptation dépend de la population invitée.
+         * The acceptance address depends on the invited population.
          *
-         * Les deux firewalls sont distincts et chacun n'accepte que son type
-         * (cf. les deux UserProvider) : envoyer un invité frontend sur la page
-         * d'acceptation de la suite l'y connecterait le temps d'une requête, et
-         * la session serait invalidée au rafraîchissement suivant, sans que rien
-         * ne lui explique pourquoi. Les deux routes refusent d'ailleurs
-         * explicitement le mauvais type.
+         * The two firewalls are separate and each accepts only its own type
+         * (see the two UserProviders): sending a frontend invitee to the
+         * suite's acceptance page would log them in there for one request, and
+         * the session would be invalidated on the next refresh, with nothing
+         * to explain why. Both routes also explicitly refuse the wrong type.
          *
-         * Le lien de connexion suit la même logique : renvoyer quelqu'un vers un
-         * formulaire de connexion où son compte n'existe pas est pire que ne pas
-         * mettre de lien.
+         * The login link follows the same logic: sending someone to a login
+         * form where their account does not exist is worse than giving no
+         * link.
          */
         $isFrontend = UserTypeEnum::Frontend === $user->getType();
 

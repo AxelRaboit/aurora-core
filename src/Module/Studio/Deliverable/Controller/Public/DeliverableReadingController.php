@@ -27,22 +27,23 @@ use function password_verify;
 use function sprintf;
 
 /**
- * Un livrable ouvert par un lien de lecture, sans l'espace du client autour.
+ * A deliverable opened through a reading link, without the client's space
+ * around it.
  *
- * Une seule réponse pour « pas de tel lien », « révoqué » et « expiré » : dire
- * au porteur laquelle confirmerait que l'adresse était réelle. Un mot de passe
- * faux répond ce que répond une adresse fausse.
+ * A single answer for "no such link", "revoked" and "expired": telling the
+ * holder which one would confirm the address was real. A wrong password
+ * answers what a wrong address answers.
  *
- * Nommées `public_deliverable_read` : elles s'éteignent avec le module
- * Livrables pour un livrable de Studio, avec les espaces clients pour celui
- * d'un espace, par la garde de {@see self::isServed()}.
+ * Named `public_deliverable_read`: they switch off with the Deliverables
+ * module for a Studio deliverable, with client spaces for a space's, through
+ * the guard in {@see self::isServed()}.
  */
 #[Route('/deliverables', name: 'public_deliverable_read')]
 final class DeliverableReadingController extends AbstractController
 {
     use PrivateAddressResponseTrait;
 
-    /** Les liens que ce navigateur a déjà ouverts, dans sa session. */
+    /** The links this browser has already opened, in its session. */
     private const string UNLOCKED = 'studio.deliverable.unlocked';
 
     public function __construct(
@@ -69,9 +70,9 @@ final class DeliverableReadingController extends AbstractController
         $deliverable = $link->getDeliverable();
         $request->setLocale($deliverable->getLocale());
 
-        // Un diaporama se lit diapositive par diapositive, comme une
-        // présentation partagée : jamais par le gabarit des pages, et jamais
-        // avec les notes de l'orateur, retirées avant le gabarit.
+        // A slideshow is read slide by slide, like a shared presentation:
+        // never through the page template, and never with the speaker notes,
+        // removed before the template.
         if ($deliverable->isSlides()) {
             $link->touch(new DateTimeImmutable());
             $this->entityManager->flush();
@@ -82,9 +83,9 @@ final class DeliverableReadingController extends AbstractController
             ]));
         }
 
-        // Changer de vue (présentation, page) n'est pas ouvrir de nouveau le
-        // lien : le compteur de l'auteur dit combien de fois on est venu, pas
-        // combien de fois on a basculé.
+        // Switching views (presentation, page) is not opening the link again:
+        // the author's counter says how many times someone came, not how many
+        // times they switched.
         $view = DeliverablePageRenderer::requestedView($request->query->all()['view'] ?? null);
         if (null === $view) {
             $link->touch(new DateTimeImmutable());
@@ -97,21 +98,21 @@ final class DeliverableReadingController extends AbstractController
     #[Route('/{token}/unlock', name: '_unlock', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Post->value])]
     public function unlock(string $token, Request $request): Response
     {
-        // Par adresse de lecture et par IP, et seuls les échecs comptent : un
-        // bureau derrière une seule adresse ne se bloque pas pour tous ses
-        // liens, ni parce que dix collègues ont ouvert le même document. La
-        // lecture sans jeton (`consume(0)`) dit s'il reste de la place ; le
-        // jeton n'est dépensé qu'à l'échec, plus bas.
+        // Per reading address and per IP, and only failures count: an office
+        // behind a single address does not get blocked for all its links, nor
+        // because ten colleagues opened the same document. The token-free read
+        // (`consume(0)`) says whether there is room left; the token is only
+        // spent on failure, further down.
         $limiter = $this->deliverablePasswordLimiter->create(sprintf('%s|%s', $request->getClientIp(), $token));
-        // `consume(0)` accepte toujours, même fenêtre pleine : c'est ce qui
-        // reste de jetons qui dit si l'on est bloqué.
+        // `consume(0)` always accepts, even with a full window: the tokens
+        // left are what says whether you are blocked.
         if ($limiter->consume(0)->getRemainingTokens() < 1) {
             throw new TooManyRequestsHttpException();
         }
 
         $link = $this->links->findByToken($token);
-        // Nettoyé comme à la création : un mot de passe tapé avec une espace
-        // de fin ouvre le lien qu'il a fermé.
+        // Cleaned as on creation: a password typed with a trailing space
+        // opens the link it locked.
         $password = DeliverableLinkIssuer::password(['password' => (string) $request->request->get('password', '')]);
 
         if (!$link instanceof DeliverableLinkInterface
@@ -149,11 +150,12 @@ final class DeliverableReadingController extends AbstractController
     }
 
     /**
-     * La partie de Studio dont le livrable dépend est-elle allumée ?
+     * Is the part of Studio the deliverable depends on switched on?
      *
-     * Un livrable d'espace s'éteint avec les espaces, ou avec son espace mis à
-     * la corbeille, un livrable de Studio avec le module Livrables : le même 404 qu'un lien inconnu, plutôt
-     * qu'une page servie par une partie que l'administrateur a coupée.
+     * A space deliverable switches off with spaces, or with its space moved to
+     * the trash, a Studio deliverable with the Deliverables module: the same
+     * 404 as an unknown link, rather than a page served by a part the
+     * administrator turned off.
      */
     private function isServed(DeliverableLinkInterface $link): bool
     {
@@ -163,7 +165,7 @@ final class DeliverableReadingController extends AbstractController
             return $this->studioContext->areDeliverablesEnabled();
         }
 
-        // Et un espace à la corbeille emporte la lecture de ses livrables.
+        // And a trashed space takes the reading of its deliverables with it.
         return $this->studioContext->areSpacesEnabled() && true !== $deliverable->getSpace()?->isTrashed();
     }
 

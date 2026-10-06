@@ -6,15 +6,15 @@
  * row, and what let the copies drift apart.
  */
 /*
- * Le défaut, et il doit rester d'accord avec `defaultValue` dans
- * AppSidemenu.vue : celui-ci est appliqué au premier rendu, celui-là dès que Vue
- * monte (`watch(..., { immediate: true })`). Deux valeurs différentes font
- * sauter la largeur sous les yeux, une fois, chez qui n'a jamais redimensionné.
+ * The default, and it must stay in step with `defaultValue` in
+ * AppSidemenu.vue: this one applies on first render, that one as soon as Vue
+ * mounts (`watch(..., { immediate: true })`). Two different values make the
+ * width jump in plain sight, once, for anyone who never resized.
  *
- * C'est le maximum que le redimensionnement autorise, et c'est voulu : le menu
- * n'est plus une liste de liens qu'on longe du regard, il porte des
- * arborescences, des recherches et des boutons. Il s'ouvre donc à la largeur
- * qu'il peut occuper, et qui veut la reprendre la reprend en tirant la poignée.
+ * It is the maximum the resizing allows, on purpose: the menu is no longer a
+ * list of links scanned with the eye, it carries trees, searches and
+ * buttons. So it opens at the width it can take, and whoever wants it back
+ * takes it back by dragging the handle.
  */
 :root { --sidemenu-width: 480px; }
 
@@ -132,11 +132,11 @@
 .si-label { display: block; min-width: 0; }
 .si-section-header { padding: 0.374rem 0.74rem; }
 
-/* Trente pixels sous le pouce. Ces en-têtes ouvrent et ferment une section du
-   menu - ce sont des commandes, pas des titres - et ils font vingt-huit
-   pixels de haut, ce qu'un doigt rate. La souris garde le serrage : le tiroir
-   déplié d'un écran large tient dix sections, et les espacer toutes pour une
-   précision que le curseur a déjà rallongerait le menu pour rien. */
+/* Thirty pixels under the thumb. These headers open and close a section of
+   the menu - they are commands, not titles - and they are twenty-eight
+   pixels tall, which a finger misses. The mouse keeps the tight spacing: the
+   open drawer of a wide screen holds ten sections, and spacing them all out
+   for a precision the cursor already has would lengthen the menu for nothing. */
 @media (max-width: 639px) {
     .si-section-header { padding-block: 0.5rem; }
 }

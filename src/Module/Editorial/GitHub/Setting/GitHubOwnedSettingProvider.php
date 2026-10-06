@@ -7,8 +7,8 @@ namespace Aurora\Module\Editorial\GitHub\Setting;
 use Aurora\Module\Configuration\Setting\Provider\OwnedSettingProviderInterface;
 
 /**
- * Les lignes que l'onglet GitHub possède, pour que la synchronisation de
- * déploiement ne les efface pas.
+ * The rows the GitHub tab owns, so that the deployment sync does not erase
+ * them.
  */
 final readonly class GitHubOwnedSettingProvider implements OwnedSettingProviderInterface
 {

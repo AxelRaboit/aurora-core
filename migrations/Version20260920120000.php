@@ -8,10 +8,10 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Un lien d'accès peut être l'aperçu d'un autre.
+ * An access link can be the preview of another one.
  *
- * Nul partout au départ : tous les liens existants sont de vrais liens. La
- * cascade est voulue, un aperçu ne survit pas à ce qu'il montre.
+ * Null everywhere to begin with: all existing links are real links. The
+ * cascade is intended, a preview does not outlive what it shows.
  */
 final class Version20260920120000 extends AbstractMigration
 {

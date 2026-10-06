@@ -131,8 +131,8 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-         replié ou déplié, le choix vaut pour tous les encarts. -->
+    <!-- The screen's how-to guide, next to what it explains; collapsed
+         or expanded, the choice applies to every guide. -->
     <AppGuide :title="t('suite.taxonomies.guide.title')" storage-key="taxonomies" class="mb-[var(--aurora-page-margin)]">
         <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
             <li v-for="step in 5" :key="step">{{ t(`suite.taxonomies.guide.step_${step}`) }}</li>
@@ -150,13 +150,13 @@ const pageActions = computed(() => {
         <!-- No picker column: the side menu lists the taxonomies, one entry per
              record and one address each. The create button stays - a group
              header in the menu has nowhere to put one. -->
-        <!-- Pleine largeur sous `sm` : seul geste de la page, il prend la
-             ligne plutôt que de se serrer dans un coin.
+        <!-- Full width below `sm`: the page's only gesture, it takes the
+             line rather than squeezing into a corner.
 
-             La largeur est posée sur l'enfant rendu et non sur le composant :
-             {@see AppActionSheet} a deux racines - le déclencheur et sa modale
-             - et Vue laisse alors tomber les attributs qu'on lui passe. C'est
-             la même réponse que dans {@see AppListToolbar}. -->
+             The width is set on the rendered child and not on the component:
+             {@see AppActionSheet} has two roots - the trigger and its modal
+             - and Vue then drops the attributes passed to it. It is the same
+             answer as in {@see AppListToolbar}. -->
         <div v-if="pageActions.length" class="flex justify-end *:w-full sm:*:w-auto">
             <AppPageActions :actions="pageActions" />
         </div>

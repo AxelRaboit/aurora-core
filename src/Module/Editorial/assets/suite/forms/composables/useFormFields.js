@@ -59,10 +59,10 @@ export function splitOptions(text) {
 function toPayload(draft, hasSteps) {
     return {
         ...draft,
-        // Sans étapes, un champ n'en porte aucune : le serveur refuserait un
-        // numéro d'étape sur un formulaire qui n'en compte pas.
+        // Without steps, a field carries none: the server would refuse a step
+        // number on a form that has none.
         step: hasSteps ? (draft.step ?? 1) : null,
-        // Une condition à moitié remplie n'en est pas une.
+        // A half-filled condition is not one.
         conditions: draft.conditions.filter((condition) => condition.fieldId),
         translations: Object.fromEntries(
             Object.entries(draft.translations).map(([locale, translation]) => [
@@ -88,16 +88,16 @@ export function useFormFields(props, form, upsert) {
 
     const hasSteps = computed(() => (form.value?.steps?.length ?? 0) > 0);
 
-    /** Les questions d'une étape, dans leur ordre ; toutes quand il n'y a pas d'étape. */
+    /** A step's questions, in their order; all of them when there are no steps. */
     function fieldsOfStep(number) {
         if (!hasSteps.value) return fields.value;
 
         return fields.value.filter((field) => (field.step ?? 1) === number);
     }
 
-    // ── Édition ─────────────────────────────────────────────────────────────
+    // ── Editing ─────────────────────────────────────────────────────────────
 
-    /** Vrai tant qu'une question est ouverte, nouvelle ou non. */
+    /** True while a question is open, new or not. */
     const editorOpen = ref(false);
     const editingField = ref(null);
     const draft = ref(emptyField(props.locales));
@@ -191,7 +191,7 @@ export function useFormFields(props, form, upsert) {
         draft.value.conditions.splice(index, 1);
     }
 
-    // ── Suppression ─────────────────────────────────────────────────────────
+    // ── Deletion ────────────────────────────────────────────────────────────
 
     const pendingFieldDelete = ref(null);
     const fieldDeleteLoading = ref(false);
@@ -218,7 +218,7 @@ export function useFormFields(props, form, upsert) {
         }
     }
 
-    // ── Ordre ───────────────────────────────────────────────────────────────
+    // ── Order ───────────────────────────────────────────────────────────────
 
     /**
      * Swaps with the neighbour *in the same step* and posts the whole order.

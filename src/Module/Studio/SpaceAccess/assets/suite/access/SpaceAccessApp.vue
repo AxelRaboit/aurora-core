@@ -46,9 +46,9 @@ const props = defineProps({
     issuePath: { type: String, required: true },
     revokePath: { type: String, required: true },
     deletePath: { type: String, required: true },
-    /** Non nul quand l'espace a un dossier Drive branché. */
+    /** Not null when the space has a Drive folder connected. */
     driveFolderId: { type: String, default: null },
-    /** Gabarit d'adresse de l'aperçu, `__id__` remplacé par le lien. */
+    /** Address template of the preview, `__id__` replaced by the link. */
     previewPath: { type: String, default: "" },
 });
 
@@ -142,15 +142,14 @@ const {
 );
 
 /**
- * Ce qu'on peut faire d'un lien, derrière le bouton « … » (décision d'Axel
- * du 04/10/2026) : voir l'espace tel que le destinataire le verra, révoquer
- * le lien, le supprimer.
+ * What can be done with a link, behind the "…" button (Axel's decision of
+ * 04/10/2026): see the space as the recipient will see it, revoke the link,
+ * delete it.
  */
 function linkActions(link) {
     const actions = [];
-    // Voir avant d'envoyer, et après avoir changé un réglage. Sans lui, la
-    // seule façon de savoir ce qu'un lien montre est de l'ouvrir dans une
-    // fenêtre privée.
+    // See before sending, and after changing a setting. Without it, the only
+    // way to know what a link shows is to open it in a private window.
     if (props.previewPath && link.usable) {
         actions.push({
             key: "preview",
@@ -204,9 +203,9 @@ function openedLabel(link) {
             <p class="max-w-xl text-sm text-secondary">
                 {{ t("suite.studio.space_access.intro") }}
             </p>
-            <!-- Pleine largeur sur téléphone, comme partout ailleurs dans
-                 l'espace : c'est le seul geste de la page, il n'a pas à se
-                 serrer contre le bord droit. -->
+            <!-- Full width on a phone, as everywhere else in the space: it
+                 is the page's only gesture, it has no reason to squeeze
+                 against the right edge. -->
             <AppButton
                 v-if="canShare"
                 class="w-full sm:w-auto"
@@ -219,8 +218,8 @@ function openedLabel(link) {
             </AppButton>
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains;
+     collapsed or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.space_access.guide.title')" storage-key="space-access">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.space_access.guide.step_${step}`) }}</li>
@@ -263,11 +262,11 @@ function openedLabel(link) {
         />
 
         <ul v-else class="aurora-card divide-y divide-line/40">
-            <!-- Le nom, l'adresse et les dates prennent la ligne ; l'état et le
-                 bouton « … » se tiennent à droite. Les gestes en toutes lettres
-                 repliaient chaque mot sur téléphone (« Camille, g… », «
-                 Révoquer » coincé entre deux lignes) : derrière le bouton, ils
-                 ne prennent plus de place. -->
+            <!-- The name, the address and the dates take the line; the state
+                 and the "…" button stay on the right. The gestures spelled
+                 out wrapped every word on a phone ("Camille, g…", "Révoquer"
+                 caught between two lines): behind the button, they take no
+                 room any more. -->
             <li
                 v-for="link in links"
                 :key="link.id"
@@ -294,9 +293,9 @@ function openedLabel(link) {
                         <template v-if="link.canUpload">
                             · {{ t("suite.studio.space_access.may_upload") }}
                         </template>
-                        <!-- Dit seulement quand c'est retiré : la liste
-                             nomme ce qui sort de l'ordinaire, pas ce qui est
-                             le cas pour tous les liens. -->
+                        <!-- Said only when it is withdrawn: the list names
+                             what is out of the ordinary, not what holds for
+                             every link. -->
                         <template v-if="false === link.canSeeDrive">
                             · {{ t("suite.studio.space_access.no_drive") }}
                         </template>
@@ -306,8 +305,8 @@ function openedLabel(link) {
                     </p>
                 </div>
 
-                <!-- L'état, puis les gestes derrière le bouton « … », comme sur
-                     toutes les listes (décision d'Axel du 04/10/2026). -->
+                <!-- The state, then the gestures behind the "…" button, as on
+                     every list (Axel's decision of 04/10/2026). -->
                 <div class="flex shrink-0 items-center gap-1">
                     <span
                         class="w-fit shrink-0 rounded-full px-2 py-0.5 text-xs"
@@ -369,10 +368,10 @@ function openedLabel(link) {
                     :hint="t('suite.studio.space_access.can_approve_hint')"
                     v-on:update:model-value="issueForm.canApprove = $event"
                 />
-                <!-- Deux conversations, deux cases. Un seul droit les
-                     commandait : autoriser une remarque sous une publication
-                     ouvrait aussi le fil de la relation, qui n'est pas la
-                     même chose et ne se donne pas au même monde. -->
+                <!-- Two conversations, two boxes. A single right used to
+                     control both: allowing a remark under a post also opened
+                     the relationship thread, which is not the same thing and
+                     is not given to the same people. -->
                 <AppCheckbox
                     :model-value="issueForm.canComment"
                     :label="t('suite.studio.space_access.can_comment')"
@@ -392,8 +391,8 @@ function openedLabel(link) {
                     v-on:update:model-value="issueForm.canUpload = $event"
                 />
 
-                <!-- Offerte seulement quand l'espace a un dossier branché :
-                     une case qui ne gouverne rien se lit comme cassée. -->
+                <!-- Offered only when the space has a folder connected: a box
+                     that controls nothing reads as broken. -->
                 <AppCheckbox
                     v-if="driveFolderId"
                     :model-value="false !== issueForm.canSeeDrive"

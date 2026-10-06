@@ -91,8 +91,8 @@ class PostReviewManager implements PostReviewManagerInterface
         $post->setReviewNote(null);
         $this->stamp($post, $reviewer, $now);
 
-        // Une date encore à venir : approuver la programme, pour qu'elle parte
-        // quand l'auteur l'avait voulu, et non le jour de la relecture.
+        // A date still to come: approving schedules it, so it goes out when
+        // the author wanted, not on the day of the review.
         $scheduledAt = $post->getScheduledAt();
         if ($scheduledAt instanceof DateTimeImmutable && $scheduledAt > $now) {
             $post->setStatus(PostStatusEnum::Scheduled);
@@ -224,7 +224,7 @@ class PostReviewManager implements PostReviewManagerInterface
 
     private function editUrl(PostInterface $post): string
     {
-        // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
+        // A path, not an absolute address: see NotificationManagerInterface::notify().
         return $this->urlGenerator->generate(
             'suite_editorial_posts_edit',
             ['id' => $post->getId()]

@@ -10,12 +10,12 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 
 /**
- * Ce qui entoure les questions, rangé par la question qu'on se pose.
+ * What surrounds the questions, grouped by the question one asks oneself.
  *
- * Comment il s'appelle et où il vit, s'il est en ligne, et ce qui se passe
- * quand quelqu'un répond. L'ancienne fenêtre mettait les trois dans une seule
- * colonne, le webhook avant le titre, et chaque langue répétait les mêmes
- * trois champs les uns sous les autres.
+ * What it is called and where it lives, whether it is online, and what
+ * happens when someone answers. The old dialog put all three in a single
+ * column, the webhook before the title, and each language repeated the same
+ * three fields one under the other.
  */
 const { t } = useI18n();
 const { can } = usePrivileges();

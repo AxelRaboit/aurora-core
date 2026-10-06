@@ -14,7 +14,7 @@ import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useSpaceRowActions } from "./composables/useSpaceRowActions.js";
-// Meme module, un autre sous-domaine : chemin relatif, comme ailleurs.
+// Same module, another subdomain: relative path, as elsewhere.
 import { useProspectConversion } from "../../../../Customer/assets/suite/customers/composables/useProspectConversion.js";
 import ConvertProspectModal from "../../../../Customer/assets/suite/customers/components/ConvertProspectModal.vue";
 import { useCustomerSpacesForm } from "./composables/useCustomerSpacesForm.js";
@@ -38,7 +38,7 @@ import { PanelsTopLeft, Plus, Save, Trash2, X } from "lucide-vue-next";
 const { t } = useI18n();
 const { container, isNarrow } = useNarrowContainer();
 
-/** Des unités qu'on lit, pas des octets qu'on compte. */
+/** Units people read, not bytes people count. */
 function weigh(bytes) {
     if (!bytes) return "—";
 
@@ -50,7 +50,7 @@ function weigh(bytes) {
 const { can } = usePrivileges();
 
 const props = defineProps({
-    /** Les deux onglets de l'entrée « Espaces clients » : la liste et le calendrier. */
+    /** The two tabs of the "Espaces clients" entry: the list and the calendar. */
     spacesPath: { type: String, default: "" },
     calendarPath: { type: String, default: "" },
     spaces: { type: Array, default: () => [] },
@@ -58,16 +58,16 @@ const props = defineProps({
     users: { type: Array, default: () => [] },
     statuses: { type: Array, default: () => [] },
     /**
-     * Ce que chaque espace a fait déposer, en octets, par identifiant.
+     * What each space has had uploaded, in bytes, by id.
      *
-     * Le poids du dossier de l'espace dans la médiathèque, c'est-à-dire ce qui
-     * est arrivé *par* lui : un document choisi dans la médiathèque était déjà
-     * là et le serait resté sans lui.
+     * The size of the space's folder in the media library, that is what
+     * arrived *through* it: a document picked from the media library was
+     * already there and would have stayed there without it.
      */
     storage: { type: Object, default: () => ({}) },
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
-    /** Ouvrir un espace pour un prospect crée sa fiche : réservé à qui crée des clients. */
+    /** Opening a space for a prospect creates their sheet: reserved to whoever creates customers. */
     canCreateCustomer: { type: Boolean, default: false },
     boardPath: { type: String, required: true },
     createPath: { type: String, required: true },
@@ -107,10 +107,9 @@ const {
 // Its own rather than the shared edit/delete pair: the menu also opens the
 // space, which is the thing one actually does to a row. See the composable.
 /**
- * La conversion ne renvoie pas des espaces mais des clients, donc la liste
- * n'est pas remplacee : on marque sur place les lignes de la societe qui vient
- * de signer. Elles changent d'onglet aussitot, ce qui est exactement ce que la
- * conversion veut dire.
+ * The conversion does not return spaces but customers, so the list is not
+ * replaced: the rows of the company that just signed are marked in place.
+ * They change tab right away, which is exactly what the conversion means.
  */
 const {
     pending: converting,
@@ -159,9 +158,9 @@ const teamOf = ref(null);
 const { formatDate } = useDateFormat();
 
 /**
- * Le plus urgent en haut, sur demande : parutions manquées, relectures en
- * retard, contenus à reprendre, puis ce qui attend le client. Sans la case,
- * l'ordre reste celui des noms, qu'on parcourt pour retrouver un espace.
+ * The most urgent at the top, on demand: missed publications, late reviews,
+ * content to rework, then what is waiting on the client. Without the
+ * checkbox, the order stays by name, which is scanned to find a space.
  */
 const byUrgency = ref(false);
 
@@ -224,8 +223,8 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
-        <!-- Arrivé depuis la fiche d'une société : on le dit, et on se défait
-             du filtre d'un geste, plutôt qu'une liste mystérieusement courte. -->
+        <!-- Arrived from a company's sheet: say so, and drop the filter in one
+             gesture, rather than a mysteriously short list. -->
         <div
             v-if="filteredCustomer"
             class="flex flex-wrap items-center gap-2 text-sm text-secondary"
@@ -236,22 +235,21 @@ const pageActions = computed(() => {
                 {{ t("suite.studio.spaces.customer_filter_clear") }}
             </AppButton>
         </div>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.spaces.guide.title')" storage-key="spaces-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.spaces.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- Deux onglets plutot qu'une colonne : « ce sur quoi je travaille »
-             et « ce que j'essaie de decrocher » ne se lisent pas dans la meme
-             minute, et un statut a deux valeurs sur lequel on veut filtrer est
-             un filtre.
+        <!-- Two tabs rather than a column: "what I am working on" and "what I
+             am trying to land" are not read in the same minute, and a
+             two-valued status people want to filter on is a filter.
 
-             Le compte est sur l'etiquette parce que c'est lui qui rend l'autre
-             onglet visible : un espace ouvert pour un prospect serait sinon
-             range quelque part que personne ne pense a ouvrir. -->
+             The count is on the label because it is what makes the other tab
+             visible: a space opened for a prospect would otherwise be filed
+             somewhere nobody thinks to open. -->
         <div
             class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="group"
@@ -323,9 +321,9 @@ const pageActions = computed(() => {
                             v-on:open="teamOf = space"
                         />
                     </div>
-                    <!-- Les gestes derrière le bouton « … », à hauteur du titre,
-                     comme sur toutes les listes (décision d'Axel du 04/10/2026) :
-                     la carte garde sa place pour son contenu. -->
+                    <!-- The gestures behind the "…" button, level with the title,
+                     as on every list (Axel's decision of 04/10/2026): the card
+                     keeps its room for its content. -->
                     <AppRowActions class="shrink-0" :actions="actionsFor(space)" :label="space.name" />
                 </div>
             </div>
@@ -433,11 +431,11 @@ const pageActions = computed(() => {
                                 {{ t("suite.studio.spaces.statuses.active") }}
                             </span>
                         </td>
-                        <!-- Le poids de ce que cet espace a fait déposer. Une
-                             colonne discrète, à droite et masquée sur les
-                             écrans étroits : on ne la lit pas tous les jours,
-                             mais le jour où le disque se remplit, c'est elle
-                             qui dit chez qui. -->
+                        <!-- The size of what this space has had uploaded. A
+                             discreet column, on the right and hidden on
+                             narrow screens: nobody reads it every day, but
+                             the day the disk fills up, it is what says
+                             whose. -->
                         <td class="px-4 py-2 text-right text-xs text-muted tabular-nums hidden xl:table-cell">
                             {{ weigh(storage[space.id] ?? 0) }}
                         </td>

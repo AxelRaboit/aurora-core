@@ -1,55 +1,55 @@
 {#
-   Le bandeau d'une page, en deux bandes.
+   A page's header, in two strips.
 
-   Bande du haut : les commandes, et le nom de la page où l'on est. Bande du
-   bas : le chemin qui y mène. Une seule bande a porté les deux un moment, le
-   dernier niveau du fil servant de titre ; c'était plus court de quarante-huit
-   pixels, mais le nom de la page se lisait au milieu d'un chemin plutôt que
-   comme un titre.
+   Top strip: the controls, and the name of the current page. Bottom strip:
+   the path that leads there. A single strip carried both for a while, the
+   last level of the breadcrumb serving as the title; it was forty-eight
+   pixels shorter, but the page's name read in the middle of a path rather
+   than as a title.
 
-   Les deux bandes reviennent donc, mais serrées : quarante-huit pixels pour le
-   titre au lieu de soixante-quatre, trente-deux pour le fil au lieu de
-   quarante, et le fil passe en petit puisque c'est une navigation secondaire.
-   Quatre-vingts pixels au total contre cent quatre.
+   The two strips are therefore back, but tighter: forty-eight pixels for the
+   title instead of sixty-four, thirty-two for the breadcrumb instead of
+   forty, and the breadcrumb goes small since it is secondary navigation.
+   Eighty pixels in total against a hundred and four.
 
-   **Le nom est pris au dernier niveau du fil, pas passé à part.** Le nom de
-   chaque page est déjà le dernier élément de son chemin ; demander aux dix-neuf
-   gabarits de le répéter dans un `title` serait la même chaîne écrite deux
-   fois, qui diverge à la première reformulation. Une page qui veut un nom plus
-   complet que son niveau ne le permet passe quand même `title`, et il gagne -
-   « Modifier la publication » là où le fil dit « Modifier ».
+   **The name is taken from the breadcrumb's last level, not passed
+   separately.** Each page's name is already the last item of its path; asking
+   the nineteen templates to repeat it in a `title` would be the same string
+   written twice, which drifts at the first rewording. A page that wants a
+   fuller name than its level allows still passes `title`, and it wins -
+   "Modifier la publication" where the breadcrumb says "Modifier".
 
-   **Le fil garde tous ses niveaux, y compris la page où il est.** La première
-   version supprimait ce dernier niveau, au motif que la bande au-dessus le dit
-   déjà. C'était faux d'une manière que seule la page rendue montre : quatorze
-   pages sur dix-neuf ont exactement deux niveaux, donc le fil devenait un mot
-   unique - le nom de la section, que le menu latéral affiche déjà. Un fil d'un
-   seul élément n'est pas un fil, c'est une étiquette.
+   **The breadcrumb keeps all its levels, including the current page.** The
+   first version removed that last level, on the grounds that the strip above
+   already says it. It was wrong in a way only the rendered page shows:
+   fourteen pages out of nineteen have exactly two levels, so the breadcrumb
+   became a single word - the section's name, which the side menu already
+   shows. A breadcrumb with a single item is not a breadcrumb, it is a label.
 
-   Le dernier niveau est marqué comme courant mais reste discret : la mise en
-   avant est le travail de la bande du dessus.
+   The last level is marked as current but stays discreet: emphasis is the
+   job of the strip above.
 
-   Les bords des deux bandes lisent `--aurora-page-margin`, comme `<main>`. Sur
-   téléphone, où il ne reste que le fil, celui-ci tombe donc exactement à la
-   verticale de la première carte - c'est le décrochage que les deux fichiers
-   entretenaient chacun de son côté, seize pixels ici contre huit en dessous.
+   The edges of both strips read `--aurora-page-margin`, like `<main>`. On a
+   phone, where only the breadcrumb is left, it therefore lines up exactly
+   with the first card - this is the offset the two files each kept on their
+   own side, sixteen pixels here against eight below.
 
-   `strict_variables` est actif, donc la garde ci-dessous porte : demander
-   `.label` à une liste vide lève une erreur au lieu de ne rien rendre.
+   `strict_variables` is on, so the guard below matters: asking an empty list
+   for `.label` raises an error instead of rendering nothing.
 #}
 {% set trail = crumbs|default([]) %}
 {% set pageTitle = title|default(trail ? (trail|last).label : '') %}
 
 <header class="lg:sticky lg:top-0 lg:z-20 shrink-0">
-    {# Réservée aux grands écrans, toute entière : en dessous, le menu est un
-       tiroir qui porte sa propre barre avec le logo, la recherche et la
-       cloche, et cette bande n'y tiendrait qu'un titre entre deux groupes
-       cachés - quarante-huit pixels de bordure. #}
+    {# Reserved for large screens, all of it: below that, the menu is a drawer
+       that carries its own bar with the logo, the search and the bell, and
+       this strip would only hold a title between two hidden groups there -
+       forty-eight pixels of border. #}
     <div class="aurora-page-x hidden h-12 items-center gap-3 border-b border-line bg-surface lg:flex">
-        {# La seule commande qui replie le menu, en haut à gauche de la page -
-           pas dans le menu qu'elle cache. Un bouton qui vit dans ce qu'il cache
-           demande une seconde copie ailleurs pour le faire revenir, ce qu'Aurora
-           avait. Suivent les flèches du navigateur, amenées dans la page. #}
+        {# The only control that collapses the menu, at the top left of the
+           page - not in the menu it hides. A button that lives in what it hides
+           needs a second copy elsewhere to bring it back, which Aurora had.
+           Then come the browser's arrows, brought into the page. #}
         <div class="flex shrink-0 items-center gap-1">
             <div {{ vue_component('core/suite/sidemenu/AppSidemenuToggle', {
                 collapsedPath: path('suite_general_profile_sidemenu_collapsed'),
@@ -59,15 +59,15 @@
             </div>
         </div>
 
-        {# `h2` et pas `h1` : deux pages donnent déjà leur `h1` à ce dont elles
-           parlent - le titre d'un document, un intitulé de section à côté de
-           son bouton Nouveau - et un second `h1` ici laisserait le plan du
-           document avec deux sommets. #}
+        {# `h2` and not `h1`: two pages already give their `h1` to what they are
+           about - a document's title, a section heading next to its Nouveau
+           button - and a second `h1` here would leave the document outline
+           with two tops. #}
         <h2 class="min-w-0 flex-1 truncate text-base font-semibold leading-tight text-primary">{{ pageTitle }}</h2>
 
-        {# Recherche, notifications et compte, tout à droite. Ils vivaient dans
-           le menu de navigation, au-dessus du filtre, ce qui mettait des
-           commandes sans rapport avec la navigation dans ce qui navigue. #}
+        {# Search, notifications and account, far right. They used to live in
+           the navigation menu, above the filter, which put controls unrelated
+           to navigation into what navigates. #}
         <div class="flex shrink-0 items-center gap-1">
             <div {{ vue_component('core/suite/sidemenu/AppTopbarActions', {
                 notificationsListPath: path('suite_notifications_list'),
@@ -87,10 +87,9 @@
         </div>
     </div>
 
-    {# Le fil, à toutes les tailles. Sur téléphone c'est tout le bandeau, et les
-       niveaux au-dessus des deux derniers s'effacent : il n'y a pas de seconde
-       bande où se replier, et un chemin profond pousserait hors de l'écran la
-       page qu'il nomme. #}
+    {# The breadcrumb, at every size. On a phone it is the whole header, and the
+       levels above the last two fade out: there is no second strip to fall
+       back to, and a deep path would push the page it names off the screen. #}
     {% if trail %}
         <nav class="aurora-page-x flex h-8 items-center gap-1.5 border-b border-line bg-surface text-xs" aria-label="{{ 'suite.nav.breadcrumb'|trans }}">
             {% for crumb in trail %}

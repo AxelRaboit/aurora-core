@@ -11,16 +11,16 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * L'onglet Craft de l'écran des réglages.
+ * The Craft tab of the settings screen.
  *
- * Il se dessine lui-même plutôt que de déclarer des champs : le jeton n'a rien
- * à faire dans le source d'une page, et le rendu générique l'y mettrait comme
- * une valeur ordinaire.
+ * It draws itself rather than declaring fields: the token has no business in
+ * a page's source, and the generic rendering would put it there like an
+ * ordinary value.
  *
- * **La marche à suivre est sur la page.** Une connexion Craft se crée dans
- * Craft, dans un onglet que personne ne trouve du premier coup, et la portée
- * qu'on lui donne là-bas décide de ce qu'Aurora verra. Les trois pas comptent
- * donc plus que les deux champs.
+ * **The steps to follow are on the page.** A Craft connection is created in
+ * Craft, in a tab nobody finds the first time, and the scope given to it
+ * there decides what Aurora will see. So the three steps matter more than
+ * the two fields.
  */
 defineProps({
     groups: { type: Object, default: () => ({}) },
@@ -38,13 +38,13 @@ const enabled = ref(false);
 const endpoint = ref("");
 const hasToken = ref(false);
 
-// Jamais prérempli depuis le serveur : à partir d'ici le jeton ne se lit plus,
-// il ne s'écrit que. Laissé vide, l'enregistrement garde celui qui est stocké.
+// Never prefilled from the server: from here on the token can no longer be
+// read, only written. Left empty, saving keeps the stored one.
 const token = ref("");
 
 /**
- * L'interrupteur demande une adresse et un jeton, et le serveur refuse sans
- * eux. Le désactiver ici met la raison devant le clic plutôt qu'après.
+ * The switch needs an address and a token, and the server refuses without
+ * them. Disabling it here puts the reason before the click rather than after.
  */
 const canEnable = computed(
     () => "" !== endpoint.value.trim() && (hasToken.value || "" !== token.value.trim()),
@@ -73,15 +73,15 @@ async function save() {
             enabled: enabled.value && canEnable.value,
             endpoint: endpoint.value.trim(),
         };
-        // Envoyé seulement si quelqu'un a tapé, pour qu'enregistrer l'onglet
-        // sans toucher au champ garde le jeton déjà en place.
+        // Sent only if someone typed, so that saving the tab without touching
+        // the field keeps the token already in place.
         if ("" !== token.value.trim()) payload.token = token.value.trim();
 
         const state = await request(SETTINGS_PATH, payload, { noGuard: true });
 
-        // Rien ne change visiblement quand l'enregistrement marche - le jeton
-        // revient en « un jeton est enregistré », pas en lui-même - donc sans
-        // un mot, appuyer ressemble à ne rien appuyer.
+        // Nothing visibly changes when the save works - the token comes back
+        // as "un jeton est enregistré", not as itself - so without a word,
+        // pressing looks like pressing nothing.
         if (state) {
             apply(state);
             toast.success(t("suite.settings.saved"));
@@ -91,7 +91,7 @@ async function save() {
     }
 }
 
-/** Allumée, prête mais éteinte, ou encore à configurer. */
+/** On, ready but off, or still to configure. */
 const status = computed(() => {
     if (enabled.value) return "active";
 
@@ -103,9 +103,9 @@ defineExpose({ save, apply, canEnable });
 
 <template>
     <IntegrationLayout :summary="t('notes.craft.settings.what_body')" :status="status" :loading="loading">
-        <!-- Ce que la clé peut faire, dit avant de la demander : une
-             connexion Craft en écriture laisserait modifier et supprimer des
-             documents depuis ici, ce qui n'est jamais ce qu'on veut pour un
+        <!-- What the key can do, said before asking for it: a Craft
+             connection with write access would allow editing and deleting
+             documents from here, which is never what one wants for an
              import. -->
         <p class="m-0 rounded-lg border border-line bg-surface-2 p-3 text-xs text-secondary">
             <span class="font-medium text-primary">{{ t("notes.craft.settings.scope_title") }}.</span>

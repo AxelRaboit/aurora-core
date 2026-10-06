@@ -47,8 +47,8 @@ final readonly class FoldersTrashSource implements TrashSourceInterface
             forceDeleteRoute: 'suite_ged_folders_force_delete',
             emptyTrashRoute: 'suite_ged_folders_empty_trash',
             actionPrivilege: 'ged.folders.manage',
-            // Les dossiers n'ont pas d'écran à eux : leur arborescence est le
-            // panneau de la médiathèque, et c'est là qu'on va les revoir.
+            // Folders have no screen of their own: their tree is the media
+            // library panel, and that is where you go to see them again.
             listRoute: 'suite_ged_documents',
         );
     }

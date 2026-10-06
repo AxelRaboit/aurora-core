@@ -8,17 +8,17 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Dossiers et notes d'un même dossier partagent désormais un seul ordre.
+ * Folders and notes of the same folder now share a single order.
  *
- * Jusqu'ici chacun avait le sien, et l'arborescence montrait toujours les
- * dossiers d'abord : on ne pouvait pas ranger une note avant un dossier. Les
- * deux colonnes `position` restent, mais elles se comparent ensemble.
+ * Until now each had its own, and the tree always showed folders first: a
+ * note could not be placed before a folder. The two `position` columns stay,
+ * but they are compared together.
  *
- * Pour que rien ne bouge à l'écran, chaque groupe de frères (un dossier, ou la
- * racine d'un espace) est renuméroté comme il s'affichait : ses dossiers de 0
- * à F-1, dans leur ordre (position, puis id), puis ses notes de F à F+N-1.
- * La corbeille est renumérotée avec le reste : une restauration retrouve un
- * rang du même ordre.
+ * So that nothing moves on screen, each group of siblings (a folder, or the
+ * root of a space) is renumbered the way it was displayed: its folders from 0
+ * to F-1, in their order (position, then id), then its notes from F to F+N-1.
+ * The trash is renumbered with the rest: a restore gets back a rank in the
+ * same order.
  */
 final class Version20261003100000 extends AbstractMigration
 {
@@ -58,7 +58,7 @@ final class Version20261003100000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Rien à défaire : les rangs restent valables pour l'ancien ordre, qui
-        // comparait chaque nature à part dans le même sens.
+        // Nothing to undo: the ranks stay valid for the old order, which
+        // compared each kind separately in the same direction.
     }
 }

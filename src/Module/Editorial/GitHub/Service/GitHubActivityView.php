@@ -25,20 +25,19 @@ use function sprintf;
 use function usort;
 
 /**
- * Ce que dessine la zone « Activité GitHub » : une carte par compte réglé.
+ * What the "Activité GitHub" zone draws: one card per configured account.
  *
- * Les semaines arrivent en colonnes de sept cases, dimanche en haut, comme
- * GitHub les montre. La première et la dernière semaine sont incomplètes : les
- * jours qui manquent restent des cases vides plutôt que de décaler la grille,
- * sans quoi chaque ligne cesserait d'être un jour de la semaine.
+ * The weeks come in columns of seven cells, Sunday at the top, as GitHub
+ * shows them. The first and last weeks are incomplete: the missing days stay
+ * empty cells rather than shifting the grid, otherwise each row would stop
+ * being a day of the week.
  *
- * `null` quand l'intégration est éteinte ou qu'aucun compte ne répond : la
- * zone ne dessine alors rien, comme une présentation que personne n'a
- * partagée.
+ * `null` when the integration is off or no account answers: the zone then
+ * draws nothing, like a presentation nobody has shared.
  */
 final readonly class GitHubActivityView
 {
-    /** L'écart minimal, en semaines, entre deux noms de mois. */
+    /** The minimum gap, in weeks, between two month names. */
     private const int MONTH_GAP = 3;
 
     public function __construct(
@@ -188,10 +187,10 @@ final readonly class GitHubActivityView
                 ], 'messages', $locale),
             ];
 
-            // Un mois s'écrit sur sa première semaine pleine, celle dont le
-            // dimanche lui appartient : une étiquette par mois, espacées de
-            // quatre ou cinq colonnes, sans chevauchement. Les deux dernières
-            // colonnes restent nues, l'étiquette y déborderait du cadre.
+            // A month is written on its first full week, the one whose Sunday belongs
+            // to it: one label per month, spaced four or five columns apart, without
+            // overlap. The last two columns stay bare, the label would overflow the
+            // frame there.
             $month = $date->format('Y-m');
 
             if (0 === $day['row'] && !isset($labelled[$month]) && $day['col'] < $weeks - 2) {
@@ -200,16 +199,16 @@ final readonly class GitHubActivityView
             }
         }
 
-        // Le mois coupé au bord gauche n'a souvent qu'une ou deux semaines
-        // dans la grille, et son nom se colle au suivant : « sept.oct. ». Il
-        // cède la place au mois entier qui le suit.
+        // The month cut off at the left edge often has only one or two weeks in
+        // the grid, and its name sticks to the next one: "sept.oct.". It gives way
+        // to the full month that follows it.
         if (isset($candidates[1]) && $candidates[1][0] - $candidates[0][0] < self::MONTH_GAP) {
             array_shift($candidates);
         }
 
-        // Sur un téléphone la grille fait un tiers de sa largeur d'écran
-        // d'ordinateur, et douze noms de mois s'y touchent : un sur deux y
-        // suffit à se repérer.
+        // On a phone the grid is a third of its width on a computer screen, and
+        // twelve month names touch each other there: one in two is enough to find
+        // your way.
         foreach ($candidates as $index => [$column, $label]) {
             $months[$column] = ['label' => $label, 'phone' => 0 === $index % 2];
         }

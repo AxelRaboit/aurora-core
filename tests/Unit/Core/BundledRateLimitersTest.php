@@ -23,17 +23,17 @@ use function sort;
 use function sprintf;
 
 /**
- * Chaque limiteur qu'un contrôleur demande est fourni par le paquet.
+ * Every limiter a controller asks for is provided by the bundle.
  *
- * **Le défaut ne se voit qu'au déploiement d'un projet client**, et il se voit
- * mal : un conteneur qui refuse de se construire, sur un service dont le
- * projet n'a jamais entendu parler, au premier `make aurora-update` après la
- * version fautive. Rien dans aurora-core ne bronche, puisque son propre
- * `config/packages/rate_limiter.yaml` les déclare tous.
+ * **The flaw only shows when a client project deploys**, and it shows badly:
+ * a container that refuses to build, over a service the project has never
+ * heard of, at the first `make aurora-update` after the faulty version.
+ * Nothing in aurora-core flinches, since its own
+ * `config/packages/rate_limiter.yaml` declares them all.
  *
- * C'est arrivé deux fois en une heure : une première en ajoutant celui du lot
- * Drive, une seconde en les déplaçant dans le paquet et en en oubliant un.
- * D'où ce test, qui lit les deux listes plutôt que de faire confiance.
+ * It happened twice in one hour: first when adding the one for the Drive
+ * batch, then when moving them into the bundle and forgetting one. Hence this
+ * test, which reads both lists rather than trusting.
  */
 final class BundledRateLimitersTest extends TestCase
 {
@@ -41,11 +41,11 @@ final class BundledRateLimitersTest extends TestCase
     {
         $root = dirname(__DIR__, 3);
 
-        // Ce que le code demande : Symfony nomme le service d'après
-        // l'argument, donc `$spaceGuestWriteLimiter` veut `space_guest_write`.
+        // What the code asks for: Symfony names the service after the
+        // argument, so `$spaceGuestWriteLimiter` wants `space_guest_write`.
         //
-        // Lu en PHP et non par un `grep` : un test qui dépend d'un binaire du
-        // système échoue pour la mauvaise raison le jour où il manque.
+        // Read in PHP and not with a `grep`: a test that depends on a system
+        // binary fails for the wrong reason the day it is missing.
         $asked = [1 => []];
 
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/src'));
@@ -64,7 +64,7 @@ final class BundledRateLimitersTest extends TestCase
 
         self::assertNotEmpty($wanted, 'Aucun limiteur demandé : le motif de lecture a changé.');
 
-        // Ce que le paquet fournit.
+        // What the bundle provides.
         $bundle = (string) file_get_contents($root.'/src/AuroraBundle.php');
         preg_match_all("/'([a-z_]+)' => \['policy' => 'sliding_window'/", $bundle, $shipped);
 

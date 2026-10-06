@@ -1,10 +1,10 @@
 /**
- * L'ordre d'un niveau de l'arborescence des notes.
+ * The order of one level of the notes tree.
  *
- * Dossiers et notes d'un même dossier partagent un seul ordre depuis qu'on
- * peut les mêler : la position d'abord, puis, à égalité, le dossier avant la
- * note, puis le plus ancien. C'est la règle du serveur pour l'ordre de
- * lecture (`MarkdownNotesViewBuilder::readingOrder`).
+ * Folders and notes of the same folder share a single order since they can
+ * be mixed: the position first, then, on a tie, the folder before the note,
+ * then the oldest. It is the server's rule for the reading order
+ * (`MarkdownNotesViewBuilder::readingOrder`).
  *
  * @param {{kind: string, id: number, position?: number}} a
  * @param {{kind: string, id: number, position?: number}} b

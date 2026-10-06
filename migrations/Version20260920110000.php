@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Un lien d'accès peut montrer le dossier Drive, ou non.
+ * An access link may or may not show the Drive folder.
  *
- * Vrai partout au départ : c'est le comportement des liens déjà dehors, et un
- * droit ajouté qui vaudrait faux leur retirerait le dossier sans que personne
- * l'ait demandé.
+ * True everywhere at first: that is how the links already out there behave,
+ * and a new right defaulting to false would take the folder away from them
+ * without anyone asking for it.
  */
 final class Version20260920110000 extends AbstractMigration
 {

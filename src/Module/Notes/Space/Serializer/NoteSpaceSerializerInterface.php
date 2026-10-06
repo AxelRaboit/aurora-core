@@ -12,8 +12,8 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 interface NoteSpaceSerializerInterface
 {
     /**
-     * Un espace tel que le voit une personne : son rôle dit ce que l'écran
-     * lui propose.
+     * A space as a person sees it: their role says what the screen offers
+     * them.
      *
      * @return array<string, mixed>
      */

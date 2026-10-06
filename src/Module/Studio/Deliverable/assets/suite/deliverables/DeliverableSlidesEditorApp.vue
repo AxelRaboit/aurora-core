@@ -1,17 +1,17 @@
 <script setup>
 /**
- * Un livrable au format diaporama : l'éditeur de diapositives des
- * présentations, et ce qu'un livrable porte autour.
+ * A slideshow deliverable: the presentation slide editor, and what a
+ * deliverable carries around it.
  *
- * L'éditeur est celui des présentations, tel quel : mêmes diapositives, même
- * panneau d'apparence, même vue présentateur, même impression. Ce composant
- * lui donne les droits du livrable (son auteur, son rayon), ouvre les liens
- * de lecture du livrable quand on veut partager, et ajoute
- * la fenêtre des réglages (titre, résumé, image, catégorie, client, modèle,
- * rayon) qu'une page règle dans son onglet.
+ * The editor is the presentation editor, as is: same slides, same appearance
+ * panel, same presenter view, same printing. This component gives it the
+ * deliverable's rights (its author, its shelf), opens the deliverable's
+ * reading links when sharing, and adds
+ * the settings dialog (title, summary, image, category, client, template,
+ * shelf) that a page sets in its tab.
  *
  * In a client space (`space`), the settings are a space deliverable's: no
- * shelf, category or template, but the « Visible par le client » toggle,
+ * shelf, category or template, but the "Visible par le client" toggle,
  * under the right to share the space, as for a page.
  */
 import { computed, reactive, ref } from "vue";
@@ -26,9 +26,9 @@ import DeliverableSettingsTab from "./components/DeliverableSettingsTab.vue";
 import { useDeliverableSlidesSettings } from "./composables/useDeliverableSlidesSettings.js";
 
 const props = defineProps({
-    /** Le livrable sous la forme d'une présentation : ce que lit l'éditeur. */
+    /** The deliverable in the shape of a presentation: what the editor reads. */
     deck: { type: Object, required: true },
-    /** Le livrable tel que l'enregistre la route des livrables. */
+    /** The deliverable as the deliverables route saves it. */
     deliverable: { type: Object, required: true },
     /** The client space that holds it; null for a Studio presentation. */
     space: { type: Object, default: null },
@@ -71,8 +71,8 @@ const props = defineProps({
 const { t } = useI18n();
 
 /**
- * Le titre et le résumé suivent les réglages : la barre de la page les lit
- * dans le « deck », qui ne se recharge pas.
+ * The title and the summary follow the settings: the page bar reads them in
+ * the "deck", which does not reload.
  */
 const deck = reactive({ ...props.deck });
 
@@ -86,7 +86,7 @@ const { form, open, saving, errors, openSettings, save } = useDeliverableSlidesS
 
 const showLinks = ref(false);
 
-/** Ce que l'éditeur reçoit tel quel : tout sauf ce qui n'est qu'au livrable. */
+/** What the editor receives as is: everything except what belongs only to the deliverable. */
 const OWN = ["deck", "deliverable", "space", "updatePath", "linksPath", "locales", "categories", "customers", "canPickCustomer", "canChangeScope"];
 
 const editorProps = computed(() => Object.fromEntries(Object.entries(props).filter(([key]) => !OWN.includes(key))));

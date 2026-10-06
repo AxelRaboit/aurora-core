@@ -19,15 +19,16 @@ use function array_values;
 use function count;
 
 /**
- * Les espaces clients mis à la corbeille, ceux de l'équipe du lecteur.
+ * The customer spaces moved to the trash, those of the reader's team.
  *
- * Une source répond pour la personne qui regarde : un équipier voit les
- * espaces dont il est membre, un administrateur tous, par la même règle que la
- * liste des espaces ({@see SpaceVisibility::reaches()}). La ligne nomme le
- * client, parce que deux espaces d'une même agence s'appellent souvent pareil.
+ * A source answers for the person looking: a teammate sees the spaces they
+ * are a member of, an administrator all of them, by the same rule as the
+ * spaces list ({@see SpaceVisibility::reaches()}). The row names the
+ * customer, because two spaces of the same agency are often named alike.
  *
- * Restaurer et détruire demandent le droit qui y a mis l'espace, le supprimer :
- * rendre un espace à son client est aussi lourd que le lui retirer.
+ * Restoring and destroying require the right that put the space there,
+ * deleting it: giving a space back to its customer weighs as much as taking
+ * it away.
  */
 final readonly class CustomerSpacesTrashSource implements TrashSourceInterface
 {

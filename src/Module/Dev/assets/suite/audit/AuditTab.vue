@@ -18,11 +18,10 @@ const { data, load, module, setModule } = useAudit(props.auditPath, props.initia
 const moduleOptions = computed(() =>
     (data.value?.modules ?? []).map((name) => ({
         value: name,
-        // Le nom brut en repli : un module renommé laisse derrière lui des
-        // lignes qui portent son ancien nom, et une clé de traduction affichée
-        // telle quelle est plus déroutante que le nom lui-même. Mesuré le
-        // 16/09/2026 : vingt-sept lignes écrites sous « accounting », que
-        // Studio a remplacé.
+        // The raw name as a fallback: a renamed module leaves behind rows
+        // carrying its old name, and a translation key shown as it is is more
+        // confusing than the name itself. Measured on 16/09/2026: twenty-seven
+        // rows written under "accounting", which Studio replaced.
         label: t(`suite.modules.${name}`, name),
     })),
 );

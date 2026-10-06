@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { stylePayload } from "./useDeckAppearance.js";
 
 /**
- * Ce que le panneau d'apparence envoie au serveur.
+ * What the appearance panel sends to the server.
  *
- * Ce fichier existe a cause d'une panne precise : sept reglages avaient ete
- * ajoutes au style, au panneau, a l'apercu et aux looks, et la fonction qui
- * composait l'envoi tenait une liste de cles ecrite a la main qui ne les
- * nommait pas. Rien n'echouait. Le deck s'enregistrait, la page annoncait un
- * succes, et aucun des sept ne touchait la base. Le dernier test de ce fichier
- * est celui qui aurait crie.
+ * This file exists because of one specific failure: seven settings had been
+ * added to the style, the panel, the preview and the looks, and the function
+ * that built the request kept a hand-written list of keys that did not name
+ * them. Nothing failed. The deck saved, the page announced a success, and
+ * none of the seven reached the database. The last test in this file is the
+ * one that would have screamed.
  */
 const SHAPE = {
     background: null,
@@ -99,9 +99,9 @@ describe("stylePayload", () => {
     });
 
     /**
-     * Le test qui ferme la panne. Toute cle de la forme du style doit pouvoir
-     * atteindre le serveur : si une huitieme est ajoutee demain et que
-     * quelqu'un revient a une liste ecrite a la main, c'est ici que ca casse.
+     * The test that closes the failure. Every key of the style's shape must
+     * be able to reach the server: if an eighth is added tomorrow and someone
+     * goes back to a hand-written list, this is where it breaks.
      */
     it("laisse passer chaque cle de la forme du style", () => {
         const filled = {};

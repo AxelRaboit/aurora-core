@@ -3,7 +3,7 @@ import { nextTick } from "vue";
 import { useFoldable } from "./useFoldable.js";
 
 /**
- * Un contrôle replié, et le piège de le brancher directement sur un clic.
+ * A folded control, and the trap of wiring it straight onto a click.
  */
 describe("useFoldable", () => {
     it("opens, and hands the keyboard to what appeared", async () => {
@@ -24,11 +24,11 @@ describe("useFoldable", () => {
     });
 
     /**
-     * Branché tel quel sur un `@click`, `reveal` reçoit l'événement à la
-     * place du sélecteur. `querySelector` le refusait en levant, la promesse
-     * partait en échec, et Vue remontait cet échec jusqu'au `errorCaptured`
-     * de la page, qui remplaçait la bibliothèque entière par son écran
-     * d'erreur : cliquer la loupe vidait l'écran.
+     * Wired as is on a `@click`, `reveal` receives the event instead of the
+     * selector. `querySelector` refused it by throwing, the promise
+     * rejected, and Vue bubbled that rejection up to the page's
+     * `errorCaptured`, which replaced the whole library with its error
+     * screen: clicking the magnifier emptied the screen.
      */
     it("survives being handed a click event instead of a selector", async () => {
         const { open, box, reveal } = useFoldable();

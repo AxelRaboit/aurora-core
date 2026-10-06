@@ -87,17 +87,18 @@ watch(query, (value) => {
 });
 
 /**
- * Le sommaire reste rendu par le serveur et ce composant le masque, plutôt
- * que de le redessiner lui-même : ce sont cent trente liens que les moteurs
- * doivent lire et qu'un lecteur sans JavaScript doit pouvoir suivre. Les
- * déplacer dans le composant les ferait disparaître pour les deux.
+ * The table of contents stays rendered by the server and this component hides
+ * it, rather than drawing it again itself: these are a hundred and thirty
+ * links that search engines must read and that a reader without JavaScript
+ * must be able to follow. Moving them into the component would make them
+ * disappear for both.
  */
 let summary = null;
 
 function showSummary(visible) {
-    // Retenu à la première recherche : au démontage, la référence du
-    // composant est déjà rendue et le sommaire resterait masqué, donc perdu
-    // pour le lecteur.
+    // Kept at the first search: on unmount, the component's ref is already
+    // released and the table of contents would stay hidden, and so be lost
+    // for the reader.
     summary ??= root.value
         ?.closest("nav")
         ?.querySelector("[data-sequence-summary]");

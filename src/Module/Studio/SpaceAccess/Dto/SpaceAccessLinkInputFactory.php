@@ -31,7 +31,7 @@ class SpaceAccessLinkInputFactory implements SpaceAccessLinkInputFactoryInterfac
             // grants.
             canChat: (bool) ($data['canChat'] ?? true),
             canUpload: (bool) ($data['canUpload'] ?? false),
-            // Absent vaut vrai : seul un faux explicite retire le dossier.
+            // Missing means true: only an explicit false removes the folder.
             canSeeDrive: false !== ($data['canSeeDrive'] ?? true),
         );
     }

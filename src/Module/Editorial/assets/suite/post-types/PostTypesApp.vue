@@ -128,8 +128,8 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-         replié ou déplié, le choix vaut pour tous les encarts. -->
+    <!-- The screen's how-to guide, next to what it explains; collapsed
+         or expanded, the choice applies to every guide. -->
     <AppGuide :title="t('suite.post_types.guide.title')" storage-key="post-types" class="mb-[var(--aurora-page-margin)]">
         <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
             <li v-for="step in 5" :key="step">{{ t(`suite.post_types.guide.step_${step}`) }}</li>
@@ -148,13 +148,13 @@ const pageActions = computed(() => {
              per record and one address each. The create button stays, because
              a group header in the menu has nowhere to put one - and it is the
              only way to make the next type. -->
-        <!-- Pleine largeur sous `sm` : seul geste de la page, il prend la
-             ligne plutôt que de se serrer dans un coin.
+        <!-- Full width below `sm`: the page's only gesture, it takes the
+             line rather than squeezing into a corner.
 
-             La largeur est posée sur l'enfant rendu et non sur le composant :
-             {@see AppActionSheet} a deux racines - le déclencheur et sa modale
-             - et Vue laisse alors tomber les attributs qu'on lui passe. C'est
-             la même réponse que dans {@see AppListToolbar}. -->
+             The width is set on the rendered child and not on the component:
+             {@see AppActionSheet} has two roots - the trigger and its modal
+             - and Vue then drops the attributes passed to it. It is the same
+             answer as in {@see AppListToolbar}. -->
         <div v-if="pageActions.length" class="flex justify-end *:w-full sm:*:w-auto">
             <AppPageActions :actions="pageActions" />
         </div>
@@ -189,10 +189,10 @@ const pageActions = computed(() => {
             <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">{{ t("suite.post_types.fields.title") }}</h3>
-                    <!-- Le plus seul sur téléphone : « Ajouter un champ » en
-                         face du titre du bloc, c'est deux lignes pour trois
-                         mots que le signe dit déjà, à l'endroit où on les
-                         cherche. Le libellé revient avec la place. -->
+                    <!-- The plus alone on a phone: "Ajouter un champ" facing
+                         the block's title takes two lines for three words the
+                         sign already says, where people look for them. The
+                         label comes back with the room. -->
                     <AppButton
                         v-if="can('editorial.post_types.edit')"
                         class="shrink-0"

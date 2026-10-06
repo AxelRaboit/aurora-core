@@ -135,46 +135,45 @@ abstract class AbstractCustomer implements CustomerInterface
     protected ?string $contractualEmail = null;
 
     /**
-     * Le portable, et c'est ce que le champ a toujours été.
+     * The mobile number, and that is what the field has always been.
      *
-     * Son exemple à l'écran est un numéro mobile depuis le premier jour, et
-     * c'est celui qu'on compose. Le fixe est la colonne d'à côté plutôt qu'un
-     * second sens donné à celle-ci : un seul champ obligeait à choisir lequel
-     * des deux on gardait, et la réponse était toujours « celui-ci ».
+     * Its on-screen example has been a mobile number since day one, and it is
+     * the one people dial. The landline is the column next to it rather than
+     * a second meaning given to this one: a single field forced a choice of
+     * which of the two to keep, and the answer was always "this one".
      */
     #[ORM\Column(length: 30, nullable: true)]
     protected ?string $phone = null;
 
-    /** Le fixe, quand il y en a un - un standard, un atelier. */
+    /** The landline, when there is one - a switchboard, a workshop. */
     #[ORM\Column(length: 30, nullable: true)]
     protected ?string $landline = null;
 
     /**
-     * Les neuf chiffres qui identifient l'entreprise.
+     * The nine digits that identify the company.
      *
-     * **Ce ne sont pas ceux du SIRET par accident** : un SIRET est ce SIREN
-     * suivi des cinq chiffres de l'établissement. Les deux colonnes existent
-     * quand même, parce qu'une entreprise se connaît souvent par son SIREN
-     * bien avant qu'on sache de quel établissement on parle, et que le déduire
-     * silencieusement d'un SIRET reviendrait à inventer une saisie.
+     * **They are not the SIRET's by accident**: a SIRET is this SIREN followed
+     * by the establishment's five digits. Both columns exist anyway, because a
+     * company is often known by its SIREN well before anyone knows which
+     * establishment is meant, and deriving it silently from a SIRET would
+     * amount to inventing an input.
      *
-     * Quand les deux sont remplis, ils doivent s'accorder, et c'est la saisie
-     * qui le vérifie : deux numéros qui se contredisent sur la même ligne sont
-     * pires qu'un seul.
+     * When both are filled in, they must agree, and the input checks it: two
+     * numbers contradicting each other on the same row are worse than one.
      */
     #[ORM\Column(length: 9, nullable: true)]
     protected ?string $siren = null;
 
     /**
-     * Les adresses du client : son site, ses réseaux, ce qu'il publie.
+     * The customer's addresses: their site, their networks, what they publish.
      *
-     * **Ce ne sont pas les ressources d'un espace.** Celles-là vivent sur
-     * l'espace et se montrent ou se cachent une par une ; celles-ci sont au
-     * client, les suivent d'un projet à l'autre, et disent simplement où on le
-     * trouve. Deux propriétaires, deux durées de vie, deux colonnes.
+     * **These are not a space's resources.** Those live on the space and are
+     * shown or hidden one by one; these belong to the customer, follow them
+     * from one project to the next, and simply say where to find them. Two
+     * owners, two lifetimes, two columns.
      *
-     * Une liste de `{label, url}` plutôt que deux colonnes de plus : leur
-     * nombre n'est pas connu, et rien ne les interroge - elles s'affichent.
+     * A list of `{label, url}` rather than two more columns: their number is
+     * not known, and nothing queries them - they are displayed.
      *
      * @var list<array{label: string, url: string}>
      */
@@ -182,11 +181,11 @@ abstract class AbstractCustomer implements CustomerInterface
     protected array $links = [];
 
     /**
-     * Ce qu'on note sur ce client et qui n'entre dans aucune case.
+     * What is noted about this customer that fits in no field.
      *
-     * **Visible par le client**, comme le reste de la fiche, et l'écran le dit
-     * sous le champ. Ce qui ne doit pas l'être a déjà son endroit : une note
-     * d'espace, que le client ne voit jamais.
+     * **Visible to the customer**, like the rest of the sheet, and the screen
+     * says so under the field. What must not be visible already has its place:
+     * a space note, which the customer never sees.
      */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $informationNotes = null;

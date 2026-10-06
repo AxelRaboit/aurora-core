@@ -1,31 +1,29 @@
 <script setup>
 /**
- * Les livrables de Studio : ceux qu'on écrit sans espace client.
+ * Studio deliverables: the ones written without a client space.
  *
- * Deux rayons, comme les notes : « Mes livrables », que soi seul voit, et
- * « Partagés », ceux de l'équipe. Un livrable passe de l'un à l'autre par son
- * auteur. Pour le reste, c'est le même document que dans un espace : la
- * grille des pages, son apparence, ses liens de lecture.
+ * Two shelves, like the notes: "Mes livrables", which only you see, and
+ * "Partagés", the team's. A deliverable moves from one to the other through
+ * its author. Otherwise it is the same document as in a space: the page grid,
+ * its appearance, its reading links.
  *
- * Les contrôles sont ceux de la liste des trames de contrat, l'écran voisin :
- * la barre de recherche et le bouton en tête, l'encart du mode d'emploi, les
- * rayons en pastilles avec leur compte.
+ * The controls are those of the contract template list, the neighbouring
+ * screen: the search bar and the button on top, the how-to guide, the shelves
+ * as pills with their count.
  *
- * Les livrables de Studio se rangent par catégorie (audit, stratégie...) :
- * un filtre à côté des rayons, comme celui des métiers sur les trames, et un
- * affichage par catégorie, en sections, ou en simple liste. Le filtre et
- * l'affichage vont dans l'adresse, comme le rayon : un lien rouvre la même vue.
+ * Studio deliverables are sorted by category (audit, strategy...): a filter
+ * next to the shelves, like the trade filter on the templates, and a display
+ * by category, in sections, or as a plain list. The filter and the display go
+ * into the address, like the shelf: a link reopens the same view.
  *
- * Un livrable peut être un modèle : un badge sur sa carte, le filtre
- * « Modèles » à côté des catégories, et « Partir d'un modèle » dans la fenêtre
- * de création. Le client pour qui il a été écrit, quand il en a un, se lit sur
- * la carte.
+ * A deliverable can be a template: a badge on its card, the "Modèles" filter
+ * next to the categories, and "Partir d'un modèle" in the creation dialog.
+ * The client it was written for, when it has one, shows on the card.
  *
- * Pages et présentations sont une seule liste : un badge sur la carte d'une
- * présentation, et un filtre de format (Tous, Pages, Présentations) à côté des
- * autres, dans l'adresse comme eux. « Importer un texte » fait d'un texte
- * collé une présentation : un titre ouvre une diapositive, ce qui suit la
- * remplit.
+ * Pages and presentations are a single list: a badge on a presentation's
+ * card, and a format filter (Tous, Pages, Présentations) next to the others,
+ * in the address like them. "Importer un texte" turns pasted text into a
+ * presentation: a heading opens a slide, what follows fills it.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -65,19 +63,19 @@ const props = defineProps({
     shared: { type: Array, default: () => [] },
     initialScope: { type: String, default: "personal" },
     canCreate: { type: Boolean, default: false },
-    /** La route qui rend les deux rayons à jour, pour une liste devenue périmée. */
+    /** The route that returns both shelves up to date, for a list gone stale. */
     listsPath: { type: String, default: "" },
     createPath: { type: String, required: true },
-    /** Un texte collé qui devient une présentation ; vide, le geste ne s'affiche pas. */
+    /** Pasted text that becomes a presentation; when empty, the action is not shown. */
     importPath: { type: String, default: "" },
     scopePathTemplate: { type: String, required: true },
     duplicatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
     linksPathTemplate: { type: String, required: true },
     copyToSpacePathTemplate: { type: String, default: "" },
-    /** Les espaces où déposer une copie ; vide, le geste ne s'affiche pas. */
+    /** The spaces a copy can be dropped into; when empty, the action is not shown. */
     copyTargets: { type: Array, default: () => [] },
-    /** Les catégories, dans l'ordre choisi : `{ id, name, color, position }`. */
+    /** The categories, in the chosen order: `{ id, name, color, position }`. */
     categories: { type: Array, default: () => [] },
     canManageCategories: { type: Boolean, default: false },
     categoryCreatePath: { type: String, default: "" },
@@ -94,14 +92,14 @@ const lists = ref({ personal: [...props.personal], shared: [...props.shared] });
 const search = ref("");
 
 /**
- * Le rayon ouvert va dans l'adresse : revenir d'un livrable rouvre le même.
- * Comme tous les états de liste, avec `useQueryState` : le rayon par défaut
- * n'y est pas écrit, et l'historique du navigateur est conservé.
+ * The open shelf goes into the address: coming back from a deliverable
+ * reopens the same one. Like every list state, through `useQueryState`: the
+ * default shelf is not written there, and the browser history is kept.
  */
 const { value: scopeQuery, set: setScope } = useQueryState("scope", { defaultValue: "personal", valid: SCOPES });
 
-// Sans rayon dans l'adresse, celui que le serveur a choisi pour la page : il
-// lit l'adresse lui aussi, donc cela ne compte que pour un écran monté ailleurs.
+// With no shelf in the address, the one the server chose for the page: it
+// reads the address too, so this only matters for a screen mounted elsewhere.
 if (!new URLSearchParams(window.location.search).has("scope") && SCOPES.includes(props.initialScope)) {
     scopeQuery.value = props.initialScope;
 }
@@ -110,9 +108,9 @@ const scope = computed(() => (SCOPES.includes(scopeQuery.value) ? scopeQuery.val
 const categories = ref([...props.categories]);
 
 /**
- * La réponse du serveur porte les deux rayons : un geste peut faire passer un
- * livrable de l'un à l'autre. Celle d'une catégorie porte aussi la liste des
- * catégories, renommée ou rangée.
+ * The server response carries both shelves: an action can move a deliverable
+ * from one to the other. A category response also carries the category list,
+ * renamed or reordered.
  */
 function refresh(data) {
     lists.value = { personal: data.personal ?? [], shared: data.shared ?? [] };
@@ -121,16 +119,16 @@ function refresh(data) {
 
 const { send } = useDeliverableRequest({ listPath: props.listsPath, onList: refresh });
 
-// ── Catégories : filtre et affichage ────────────────────────────────────────
+// ── Categories: filter and display ──────────────────────────────────────────
 
 const NO_CATEGORY = "none";
 
 const { value: categoryQuery, set: setCategory } = useQueryState("category", { defaultValue: "" });
 
 /**
- * Le filtre en vigueur : celui de l'adresse, s'il désigne encore une catégorie.
- * Une catégorie supprimée (depuis la fenêtre, ou un vieux lien) ne doit pas
- * laisser une liste vide sans raison : le filtre retombe sur « Toutes ».
+ * The filter in force: the one in the address, if it still names a category.
+ * A deleted category (from the dialog, or an old link) must not leave an
+ * empty list for no reason: the filter falls back to "Toutes".
  */
 const categoryFilter = computed(() => {
     const value = categoryQuery.value;
@@ -140,32 +138,32 @@ const categoryFilter = computed(() => {
 });
 const { value: layout, set: setLayout } = useQueryState("layout", { defaultValue: "grouped", valid: ["grouped", "flat"] });
 
-/** Désélectionner rend null, et le filtre parle en chaînes. */
+/** Deselecting returns null, and the filter speaks in strings. */
 function setCategoryFilter(value) {
     setCategory(null === value || undefined === value ? "" : String(value));
 }
 
 /**
- * Pages, présentations, ou les deux : dans l'adresse comme les autres filtres.
- * Le format par défaut, « Tous », n'y est pas écrit.
+ * Pages, presentations, or both: in the address like the other filters.
+ * The default format, "Tous", is not written there.
  */
 const FORMATS = ["page", "slides"];
-// « Tous » est la chaîne vide : elle doit être valide, sans quoi `set("")`
-// serait ignoré et le filtre ne s'éteindrait plus.
+// "Tous" is the empty string: it must be valid, otherwise `set("")` would be
+// ignored and the filter could no longer be turned off.
 const { value: formatQuery, set: setFormatQuery } = useQueryState("format", { defaultValue: "", valid: ["", ...FORMATS] });
 const formatFilter = computed(() => (FORMATS.includes(formatQuery.value) ? formatQuery.value : ""));
 
-/** Un livrable sans format dit est une page : c'est ce que le serveur crée par défaut. */
+/** A deliverable with no stated format is a page: that is what the server creates by default. */
 function formatOf(row) {
     return "slides" === row.format ? "slides" : "page";
 }
 
-/** Le rayon ouvert, au format choisi : ce que comptent et filtrent les autres filtres. */
+/** The open shelf, in the chosen format: what the other filters count and filter. */
 const scoped = computed(() =>
     "" === formatFilter.value ? lists.value[scope.value] : lists.value[scope.value].filter((row) => formatOf(row) === formatFilter.value),
 );
 
-/** Combien de chaque format dans le rayon ouvert, pour les pastilles. */
+/** How many of each format in the open shelf, for the pills. */
 const formatCounts = computed(() => {
     const rows = lists.value[scope.value];
 
@@ -180,7 +178,7 @@ const formatFilters = computed(() =>
     ["", ...FORMATS].map((value) => ({ value, label: t(`suite.studio.deliverables.format.filter_${value || "all"}`) })),
 );
 
-/** Les modèles seuls, ou tout : dans l'adresse comme les autres filtres. */
+/** Templates only, or everything: in the address like the other filters. */
 const { value: templatesQuery, set: setTemplatesQuery } = useQueryState("templates", { defaultValue: "", valid: ["", "1"] });
 const templatesOnly = computed(() => "1" === templatesQuery.value);
 
@@ -188,10 +186,10 @@ function toggleTemplatesOnly() {
     setTemplatesQuery(templatesOnly.value ? "" : "1");
 }
 
-/** Combien de modèles dans le rayon ouvert, pour le compte du filtre. */
+/** How many templates in the open shelf, for the filter's count. */
 const templateCount = computed(() => scoped.value.filter((row) => row.template).length);
 
-/** La recherche porte sur le titre, le résumé et le client, dans le rayon ouvert. */
+/** The search covers the title, the summary and the client, in the open shelf. */
 const searched = computed(() => {
     const needle = search.value.trim().toLocaleLowerCase();
     const rows = templatesOnly.value ? scoped.value.filter((row) => row.template) : scoped.value;
@@ -209,7 +207,7 @@ const visible = computed(() =>
     "" === categoryFilter.value ? searched.value : searched.value.filter((row) => categoryKey(row) === categoryFilter.value),
 );
 
-/** Les comptes du filtre, sur le rayon ouvert et la recherche en cours. */
+/** The filter's counts, over the open shelf and the current search. */
 const categoryCounts = computed(() => {
     const counts = {};
     for (const row of searched.value) counts[categoryKey(row)] = (counts[categoryKey(row)] ?? 0) + 1;
@@ -226,10 +224,10 @@ const categoryFilterOptions = computed(() => [
     { value: NO_CATEGORY, label: `${t("suite.studio.deliverables.categories.none")} (${categoryCounts.value[NO_CATEGORY] ?? 0})` },
 ]);
 
-/** Par catégorie, seulement quand il y en a : sinon, une seule section ne dirait rien. */
+/** By category, only when there are some: otherwise a single section would say nothing. */
 const grouped = computed(() => "grouped" === layout.value && categories.value.length > 0);
 
-/** Les sections, dans l'ordre des catégories, « Sans catégorie » à la fin ; les vides se taisent. */
+/** The sections, in category order, "Sans catégorie" last; empty ones stay silent. */
 const groups = computed(() => {
     const sections = categories.value.map((category) => ({
         key: String(category.id),
@@ -247,14 +245,14 @@ const groups = computed(() => {
     return sections.filter((section) => section.rows.length);
 });
 
-/** Ce que la page affiche : les sections, ou une seule, sans titre, en liste simple. */
+/** What the page shows: the sections, or a single untitled one as a plain list. */
 const sections = computed(() => (grouped.value ? groups.value : [{ key: "all", name: null, color: null, rows: visible.value }]));
 
 const categorySelectOptions = computed(() => categoryOptions(categories.value));
 
 const managingCategories = ref(false);
 
-// ── Création ────────────────────────────────────────────────────────────────
+// ── Creation ────────────────────────────────────────────────────────────────
 
 const creating = ref(false);
 const saving = ref(false);
@@ -262,7 +260,7 @@ const title = ref("");
 const newScope = ref("personal");
 const newCategory = ref("");
 const newTemplate = ref("");
-/** Une page ou une présentation : décidé ici, une fois pour toutes. */
+/** A page or a presentation: decided here, once and for all. */
 const newFormat = ref("page");
 const errors = ref({});
 
@@ -275,8 +273,8 @@ const templateRows = computed(() => [...lists.value.personal, ...lists.value.sha
 /** The templates of the chosen format, to take over the category of the one picked. */
 const templateSelectOptions = computed(() => templateOptions(templateRows.value, newFormat.value));
 
-// Choisir un modèle range le nouveau livrable dans sa catégorie : c'est ce
-// qu'il en reprend, et le sélecteur reste là pour en changer.
+// Picking a template files the new deliverable under its category: that is
+// what it takes from it, and the selector stays there to change it.
 watch(newTemplate, (value) => {
     const chosen = templateSelectOptions.value.find((option) => String(option.value) === String(value));
     if (chosen) newCategory.value = null === chosen.categoryId ? "" : chosen.categoryId;
@@ -286,9 +284,9 @@ function openCreate() {
     title.value = "";
     newTemplate.value = "";
     newFormat.value = "page";
-    // Dans le rayon qu'on regarde : on crée là où l'on cherchait.
+    // In the shelf being viewed: create where you were looking.
     newScope.value = scope.value;
-    // La catégorie qu'on filtre, si c'en est une : on crée là où l'on regardait.
+    // The filtered category, if it is one: create where you were looking.
     newCategory.value = "" !== categoryFilter.value && NO_CATEGORY !== categoryFilter.value ? categoryFilter.value : "";
     errors.value = {};
     creating.value = true;
@@ -312,7 +310,7 @@ async function create() {
             return;
         }
 
-        // Droit dans l'éditeur : un livrable se commence pour s'écrire.
+        // Straight into the editor: a deliverable is started to be written.
         window.location.href = data.editPath;
     } finally {
         saving.value = false;
@@ -434,18 +432,18 @@ async function doDelete() {
             toast.success(t("suite.studio.deliverables.deleted"));
         }
 
-        // Réussi ou refusé (déjà supprimé par un collègue), la fenêtre se
-        // ferme : la liste a été redessinée d'un côté ou de l'autre.
+        // Succeeded or refused (already deleted by a colleague), the dialog
+        // closes: the list has been redrawn either way.
         pendingDelete.value = null;
     } finally {
         deleting.value = false;
     }
 }
 
-/** Le livrable dont la fenêtre des liens est ouverte. */
+/** The deliverable whose links dialog is open. */
 const linksFor = ref(null);
 
-/** Le livrable qu'on recopie dans un espace client. */
+/** The deliverable being copied into a client space. */
 const copyFor = ref(null);
 
 function actionsFor(deliverable) {
@@ -530,11 +528,11 @@ function actionsFor(deliverable) {
     <div class="aurora-stack">
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('suite.studio.deliverables.search_placeholder')" />
-            <!-- Par catégorie ou en liste : le même interrupteur que la vue
-                 des autres listes, à côté de la recherche. Sans catégorie, il
-                 n'y a rien à choisir. Caché sur téléphone, comme celui des
-                 trames : empilé sous la recherche, il s'étirait sur toute une
-                 ligne pour deux icônes collées à gauche. -->
+            <!-- By category or as a list: the same switch as the view of the
+                 other lists, next to the search. Without categories there is
+                 nothing to choose. Hidden on phones, like the one on the
+                 templates: stacked under the search, it stretched across a
+                 whole line for two icons stuck to the left. -->
             <template v-if="categories.length" #inline>
                 <div class="hidden shrink-0 border border-line rounded-lg p-0.5 sm:flex">
                     <AppIconButton
@@ -558,22 +556,22 @@ function actionsFor(deliverable) {
             </template>
         </AppListToolbar>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.deliverables.studio_guide.title')" storage-key="studio-deliverables">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 6" :key="step">{{ t(`suite.studio.deliverables.studio_guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- Les rayons et la phrase qui dit ce qu'est celui qu'on regarde :
-             un seul bloc, l'espace de la page vient après, avant les cartes. -->
+        <!-- The shelves and the sentence that says what the current one is:
+             a single block, the page spacing comes after, before the cards. -->
         <div class="flex flex-col gap-2">
-            <!-- Les rayons, puis le filtre des catégories : empilés sur un
-                 téléphone, côte à côte dès `sm`, comme sur les trames. -->
+            <!-- The shelves, then the category filter: stacked on a phone,
+                 side by side from `sm`, as on the templates. -->
             <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-                <!-- Les deux rayons, en pastilles avec leur compte, comme les filtres
-                 des autres listes de Studio. -->
+                <!-- The two shelves, as pills with their count, like the filters
+                 of the other Studio lists. -->
                 <div
                     class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start"
                     role="tablist"
@@ -599,9 +597,8 @@ function actionsFor(deliverable) {
                     </AppTab>
                 </div>
 
-                <!-- « Toutes » en tête et « Sans catégorie » en dernier, avec leur
-                 compte : un filtre qui mène à une liste vide se voit avant le
-                 clic. -->
+                <!-- "Toutes" first and "Sans catégorie" last, with their count:
+                 a filter that leads to an empty list shows before the click. -->
                 <AppMultiselect
                     v-if="categories.length"
                     :model-value="categoryFilter"
@@ -612,9 +609,8 @@ function actionsFor(deliverable) {
                     v-on:update:model-value="setCategoryFilter"
                 />
 
-                <!-- Pages, présentations, ou les deux : des pastilles avec leur
-                     compte, comme les rayons ; « Tous » n'est pas écrit dans
-                     l'adresse. -->
+                <!-- Pages, presentations, or both: pills with their count, like
+                     the shelves; "Tous" is not written in the address. -->
                 <div
                     class="flex w-full p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:self-start"
                     role="group"
@@ -640,9 +636,9 @@ function actionsFor(deliverable) {
                     </AppTab>
                 </div>
 
-                <!-- Les modèles seuls : une pastille qu'on enfonce, avec son
-                     compte, comme les rayons. Visible même à zéro quand le
-                     filtre est allumé, pour pouvoir l'éteindre. -->
+                <!-- Templates only: a pill you press in, with its count, like
+                     the shelves. Visible even at zero when the filter is on, so
+                     it can be turned off. -->
                 <div
                     v-if="templateCount || templatesOnly"
                     class="flex w-full p-1 bg-surface-2 border border-line rounded-lg sm:inline-flex sm:w-auto sm:self-start"
@@ -677,8 +673,8 @@ function actionsFor(deliverable) {
             :hint="lists[scope].length || !canCreate ? '' : t(`suite.studio.deliverables.scope.empty_${scope}_hint`)"
         />
 
-        <!-- Une section par catégorie, ou une seule sans titre en liste
-             simple : les mêmes cartes, les mêmes gestes. -->
+        <!-- One section per category, or a single untitled one as a plain
+             list: the same cards, the same actions. -->
         <div v-else class="flex flex-col gap-6">
             <section v-for="section in sections" :key="section.key" class="flex flex-col gap-2">
                 <h3 v-if="section.name" class="m-0 flex items-center gap-2 text-sm font-semibold text-primary">

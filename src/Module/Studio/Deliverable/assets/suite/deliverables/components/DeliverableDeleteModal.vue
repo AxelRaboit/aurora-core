@@ -1,8 +1,8 @@
 <script setup>
 /**
- * La confirmation avant de mettre un livrable à la corbeille, la même partout :
- * depuis une liste ou depuis l'éditeur. Il n'est pas détruit : il se restaure
- * depuis la corbeille, jusqu'à sa suppression définitive.
+ * The confirmation before moving a deliverable to the trash, the same
+ * everywhere: from a list or from the editor. It is not destroyed: it can be
+ * restored from the trash, until it is permanently deleted.
  */
 import { useI18n } from "vue-i18n";
 import { Trash2, X } from "lucide-vue-next";

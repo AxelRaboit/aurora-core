@@ -1,25 +1,25 @@
 import { computed, ref } from "vue";
 
 /**
- * L'arborescence d'un dossier Drive, reconstruite dans le navigateur.
+ * A Drive folder's tree, rebuilt in the browser.
  *
- * **La descente a déjà tout ramené.** Chaque fichier arrive avec son chemin,
- * donc les dossiers se déduisent de la liste : entrer dans un dossier et en
- * ressortir ne coûte aucun appel. Redemander le contenu à chaque ouverture
- * paierait deux fois ce qu'on a en main.
+ * **The descent already brought everything back.** Each file arrives with its
+ * path, so the folders are deduced from the list: entering a folder and
+ * coming back out costs no call. Asking for the content again on every open
+ * would pay twice for what is already in hand.
  *
- * Posé ici plutôt que dans l'écran parce que deux surfaces le lisent : la vue
- * Drive d'un espace, et le sélecteur qui accroche un fichier à une fiche. Une
- * seconde copie aurait fini par diverger sur un détail, et le détail qui
- * diverge dans un arbre est celui qui perd un fichier.
+ * Placed here rather than in the screen because two surfaces read it: a
+ * space's Drive view, and the picker that attaches a file to a record. A
+ * second copy would have ended up diverging on a detail, and the detail that
+ * diverges in a tree is the one that loses a file.
  *
- * @param {import("vue").Ref<Array>} files la liste plate, chaque entrée portant `path`
+ * @param {import("vue").Ref<Array>} files the flat list, each entry carrying `path`
  */
 export function useDriveTree(files) {
-    /** Le dossier ouvert, « » à la racine. */
+    /** The open folder, "" at the root. */
     const cwd = ref("");
 
-    /** « Contrats/2026 » devient les deux marches qui y mènent. */
+    /** "Contrats/2026" becomes the two steps that lead to it. */
     const breadcrumb = computed(() =>
         "" === cwd.value ? [] : cwd.value.split("/"),
     );
@@ -36,7 +36,7 @@ export function useDriveTree(files) {
         cwd.value = "";
     }
 
-    /** Les sous-dossiers directs du dossier ouvert, déduits des chemins. */
+    /** The direct subfolders of the open folder, deduced from the paths. */
     const folders = computed(() => {
         const prefix = "" === cwd.value ? "" : cwd.value + "/";
         const names = new Map();
@@ -54,7 +54,7 @@ export function useDriveTree(files) {
             .sort((a, b) => a.name.localeCompare(b.name));
     });
 
-    /** Les fichiers posés directement dans le dossier ouvert. */
+    /** The files placed directly in the open folder. */
     const visible = computed(() =>
         files.value.filter((file) => file.path === cwd.value),
     );

@@ -3,18 +3,18 @@ import { computed } from "vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 
 /**
- * Le choix unique du back-office, jamais un `<select>` natif.
+ * The single choice of the back office, never a native `<select>`.
  *
- * Le menu du navigateur ne suit ni le thème ni la police, et il n'a pas la
- * même allure d'un système à l'autre : c'était le seul contrôle de la maison
- * à trancher sur le reste de l'écran. Celui-ci repose sur le sélecteur de
- * `AppMultiselect`, sans recherche tant que la liste reste courte.
+ * The browser menu follows neither the theme nor the font, and it does not
+ * look the same from one system to another: it was the only house control
+ * that clashed with the rest of the screen. This one relies on the select of
+ * `AppMultiselect`, without search as long as the list stays short.
  *
- * Le contrat de l'ancien `<select>` est gardé tel quel, pour que les appelants
- * n'aient rien à changer : la valeur émise est toujours une chaîne (ce que
- * rendait `$event.target.value`, et ce que `v-model.number` sait convertir),
- * et le placeholder reste une entrée qu'on peut choisir, celle qui ramène à
- * « Tous les … » dans une barre de filtres.
+ * The contract of the old `<select>` is kept as it was, so that callers have
+ * nothing to change: the emitted value is always a string (what
+ * `$event.target.value` returned, and what `v-model.number` can convert),
+ * and the placeholder remains an entry that can be chosen, the one that
+ * goes back to "All …" in a filter bar.
  */
 const props = defineProps({
     modelValue: { type: [String, Number, null], default: "" },
@@ -29,7 +29,7 @@ const props = defineProps({
     disabled: { type: Boolean, default: false },
     /** Array of { value, label } OR object { value: label }. */
     options: { type: [Array, Object], default: () => [] },
-    /** Au-delà de ce nombre d'entrées, taper filtre la liste. */
+    /** Beyond this number of entries, typing filters the list. */
     searchAbove: { type: Number, default: 10 },
 });
 

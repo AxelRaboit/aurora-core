@@ -3,11 +3,11 @@ import { ref } from "vue";
 import { useNoteLibrary } from "./useNoteLibrary.js";
 
 /**
- * Ce que la bibliothèque montre, et dans quel ordre.
+ * What the library shows, and in what order.
  *
- * Les deux règles qui ne doivent jamais bouger sont ici : les dossiers
- * passent avant les notes quel que soit le tri, et entrer dans un dossier
- * écrit une vraie adresse plutôt que de recharger la page.
+ * The two rules that must never move are here: folders come before notes
+ * whatever the sort, and entering a folder writes a real address rather
+ * than reloading the page.
  */
 const FOLDERS = [
     {
@@ -61,8 +61,8 @@ const NOTES = [
         updatedAt: "2026-09-15T10:00:00+00:00",
         createdAt: "2026-06-01T10:00:00+00:00",
     },
-    // Deux crans plus bas : ce que le mode à plat doit remonter et que le
-    // mode rangé doit laisser derrière son dossier.
+    // Two levels down: what flat mode must bring up and what filed mode must
+    // leave behind its folder.
     {
         id: 14,
         folderId: 2,
@@ -108,7 +108,7 @@ describe("useNoteLibrary", () => {
         const library = build();
 
         library.setSort("name");
-        library.toggleDirection(); // desc par défaut, donc asc ici
+        library.toggleDirection(); // desc by default, so asc here
 
         expect(library.direction.value).toBe("asc");
         expect(library.folders.value.map((f) => f.name)).toEqual([
@@ -137,9 +137,9 @@ describe("useNoteLibrary", () => {
     });
 
     /**
-     * Le bouton de sens avait l'air cassé sur le jeu d'Axel : ses trois
-     * notes portaient la même seconde, donc le tri par date les déclarait à
-     * égalité et l'inversion ne changeait rien de visible.
+     * The direction button looked broken on Axel's data set: his three notes
+     * carried the same second, so the sort by date declared them tied and
+     * reversing changed nothing visible.
      */
     it("still reverses something when the dates are all equal", () => {
         const sameSecond = "2026-09-23T06:59:00+00:00";
@@ -194,7 +194,7 @@ describe("useNoteLibrary", () => {
     });
 
     /**
-     * Le carnet, comme s'il n'y avait pas de rangement.
+     * The notebook, as if there were no filing.
      */
     describe("à plat", () => {
         it("shows every note of here and below, and no folder", () => {
@@ -214,8 +214,8 @@ describe("useNoteLibrary", () => {
 
             library.toggleFlat();
 
-            // 13 est dans « Clients », 14 dans « Studio Lumen » qui est
-            // dedans ; 11 et 12 sont à la racine et restent dehors.
+            // 13 is in "Clients", 14 in "Studio Lumen" which is inside it;
+            // 11 and 12 are at the root and stay out.
             expect(library.notes.value.map((n) => n.id).sort()).toEqual([
                 13, 14,
             ]);
@@ -229,9 +229,9 @@ describe("useNoteLibrary", () => {
         });
 
         /**
-         * Deux notes de deux dossiers n'ont pas de position commune : à
-         * plat, l'ordre manuel classerait par un nombre qui ne veut rien
-         * dire d'un dossier à l'autre.
+         * Two notes from two folders have no common position: flattened,
+         * manual order would rank by a number that means nothing from one
+         * folder to the next.
          */
         it("leaves the manual order behind", () => {
             const library = build();
@@ -272,8 +272,8 @@ describe("useNoteLibrary", () => {
     });
 
     /**
-     * Une étiquette traverse le rangement : c'est la question qu'on pose en
-     * cliquant dessus.
+     * A tag cuts across the filing: it is the question one asks when
+     * clicking it.
      */
     describe("une étiquette", () => {
         function withTags() {
@@ -367,7 +367,7 @@ describe("useNoteLibrary", () => {
         expect(window.location.pathname).toBe("/suite/notes/markdown");
     });
 
-    /** Zéro n'est pas un dossier : c'est un `Number(null)` en chemin. */
+    /** Zero is not a folder: it is a `Number(null)` along the way. */
     it("reads a zero as the root rather than as a folder", () => {
         const library = build(1);
 
@@ -392,8 +392,8 @@ describe("useNoteLibrary", () => {
         library.onPopState({ state: { folderId: 1 } });
         expect(library.currentFolderId.value).toBe(1);
 
-        // Sans état - une entrée d'historique écrite ailleurs - c'est
-        // l'adresse qui fait foi.
+        // Without state - a history entry written elsewhere - the address is
+        // what counts.
         window.history.replaceState({}, "", "/suite/notes/markdown/folder/3");
         library.onPopState({});
         expect(library.currentFolderId.value).toBe(3);

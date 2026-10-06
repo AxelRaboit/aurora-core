@@ -15,12 +15,12 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         #[Assert\Length(max: 180)]
         public readonly string $recipientEmail = '',
         /**
-         * Comment cette personne s'appelle, et c'est obligatoire.
+         * What this person is called, and it is required.
          *
-         * **Parce que c'est ce nom qui signe ses messages.** L'adresse le
-         * faisait, et elle est alors lue par tous les autres invités du même
-         * espace. Un libellé facultatif aurait laissé le choix entre nommer
-         * quelqu'un et exposer son adresse, ce qui n'est pas un choix.
+         * **Because this name is what signs their messages.** The address
+         * used to, and it is then read by every other guest of the same
+         * space. An optional label would have left the choice between naming
+         * someone and exposing their address, which is not a choice.
          */
         #[Assert\NotBlank(message: 'suite.studio.space_access.errors.label_required')]
         #[Assert\Length(max: 120)]

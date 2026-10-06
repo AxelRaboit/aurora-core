@@ -37,8 +37,8 @@ class SpaceContentCommentRepository extends ResolveTargetEntityRepository
         $comments = $this->createQueryBuilder('c')
             ->join('c.item', 'i')
             ->where('i.space = :space')
-            // Pas les fils des contenus à la corbeille : ils restent en base,
-            // et reviennent avec leur contenu.
+            // Not the threads of contents in the trash: they stay in the
+            // database, and come back with their content.
             ->andWhere('i.deletedAt IS NULL')
             ->setParameter('space', $space)
             ->orderBy('c.createdAt', Order::Ascending->value)

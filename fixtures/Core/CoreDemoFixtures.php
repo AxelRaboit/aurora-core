@@ -75,26 +75,25 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
     }
 
     /**
-     * Quelques notifications dans la cloche.
+     * A few notifications in the bell.
      *
-     * Elles naissent d'habitude d'une tâche de fond : un rappel d'événement
-     * qui arrive à échéance, une publication envoyée en relecture. Une démo
-     * fraîche n'en a donc aucune tant que le worker n'a pas tourné, et la
-     * cloche s'ouvre sur « Aucune notification » - ce qu'a montré la page de
-     * documentation qui la décrit.
+     * They usually come from a background task: an event reminder falling
+     * due, a publication sent for review. A fresh demo therefore has none
+     * until the worker has run, and the bell opens on "Aucune notification" -
+     * which is what the documentation page describing it showed.
      *
-     * Écrites directement plutôt qu'attendues : ce qu'il faut voir est ce
-     * que la cloche affiche, et trois lignes dont une lue le disent mieux
-     * qu'un délai à espérer.
+     * Written directly rather than waited for: what has to be seen is what
+     * the bell displays, and three rows, one of them read, say it better
+     * than a delay to hope for.
      *
-     * Idempotent sur le titre, par destinataire.
+     * Idempotent on the title, per recipient.
      */
     private function createNotifications(EntityManagerInterface $em): void
     {
-        // Le compte que l'on regarde, pas le premier de la liste. Les
-        // notifications sont personnelles : rangées ailleurs, la cloche
-        // s'ouvre vide pour qui prend la capture, ce qui est exactement ce
-        // qui s'est passé la première fois.
+        // The account being looked at, not the first in the list.
+        // Notifications are personal: filed elsewhere, the bell opens empty
+        // for whoever takes the screenshot, which is exactly what happened
+        // the first time.
         $recipient = $em->getRepository(User::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
 
@@ -143,9 +142,9 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                 ->setBody($entry['body'])
                 ->setUrl($entry['url']);
 
-            // L'entité ne laisse pas écrire la date de lecture : elle se
-            // pose en marquant lu, ce qui est la seule façon dont ça arrive
-            // dans le produit.
+            // The entity does not let the read date be written: it is set by
+            // marking as read, which is the only way it happens in the
+            // product.
             if ($entry['read']) {
                 $notification->markAsRead();
             }
@@ -169,15 +168,14 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
      * whatever theme somebody is currently working on.
      */
     /**
-     * Trois demandes d'accès, une par état.
+     * Three access requests, one per state.
      *
-     * Elles naissent d'un formulaire public que personne ne remplit sur une
-     * démo, donc l'écran qui les traite s'ouvrait sur « Aucune demande
-     * d'accès » - et c'est cet écran vide qui est parti dans la
-     * documentation. Une en attente pour montrer les actions, une acceptée
-     * et une refusée pour montrer ce que la liste garde.
+     * They come from a public form nobody fills in on a demo, so the screen
+     * handling them opened on "Aucune demande d'accès" - and that empty
+     * screen is what went into the documentation. One pending to show the
+     * actions, one accepted and one refused to show what the list keeps.
      *
-     * Idempotent sur l'adresse du demandeur.
+     * Idempotent on the requester's address.
      */
     private function createAccessRequests(EntityManagerInterface $em): void
     {
@@ -324,11 +322,11 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                     'ged.documents.view', 'ged.documents.create', 'ged.documents.edit', 'ged.documents.delete',
                     'ged.categories.view', 'ged.categories.create', 'ged.categories.edit', 'ged.categories.delete',
                     'ged.tags.manage', 'ged.folders.manage',
-                    // Les espaces clients, pour que la démonstration porte le
-                    // cas que le modèle existe pour montrer : un équipier qui
-                    // a le droit de travailler dans un espace, et qui ne voit
-                    // que ceux dont il est membre. Sans lui, la liste
-                    // paraîtrait toujours complète à qui la regarde.
+                    // The client spaces, so the demo carries the case the
+                    // model exists to show: a teammate who has the right to
+                    // work in a space, and who only sees those they are a
+                    // member of. Without it, the list would always look
+                    // complete to whoever looks at it.
                     'studio.spaces.view', 'studio.spaces.edit', 'studio.spaces.share',
                 ],
                 'mood' => 'Gestionnaire documentaire',

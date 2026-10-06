@@ -28,8 +28,8 @@ final readonly class ThemeStyleRenderer
     ) {}
 
     /**
-     * Clés de `Theme::config` portant les couleurs des trois surfaces publiques,
-     * associées au sélecteur qu'elles habillent.
+     * Keys of `Theme::config` carrying the colors of the three public surfaces,
+     * mapped to the selector they dress.
      */
     private const array SURFACES = [
         'background_color' => 'html[data-theme]',
@@ -38,9 +38,9 @@ final readonly class ThemeStyleRenderer
     ];
 
     /**
-     * Les types d'encadré dont le thème peut reprendre la couleur, chacun sous
-     * la clé `callout_<type>_color`. `accent` n'y est pas : il suit déjà la
-     * couleur principale. Les couleurs d'origine vivent dans
+     * The callout types whose color the theme can take over, each under the
+     * key `callout_<type>_color`. `accent` is not there: it already follows
+     * the main color. The original colors live in
      * `content-blocks.css`.
      */
     public const array CALLOUT_TYPES = [
@@ -49,14 +49,14 @@ final readonly class ThemeStyleRenderer
     ];
 
     /**
-     * La règle qui compose l'application dans la police du thème, posée dans le
-     * `<head>` par `primary_color_style.html.twig`.
+     * The rule that sets the application in the theme's font, placed in the
+     * `<head>` by `primary_color_style.html.twig`.
      *
-     * Elle redéfinit `--th-font-sans`, dont `--font-sans` n'est qu'un renvoi :
-     * `body` s'en sert directement et l'utilitaire `font-sans` en recopie le
-     * `var(...)`, donc toute la page suit. Un thème resté sur Poppins n'émet
-     * rien : le défaut vit déjà dans `theme.css`, et une règle qui répète un
-     * défaut est une seconde copie à tenir à jour.
+     * It redefines `--th-font-sans`, which `--font-sans` only points to:
+     * `body` uses it directly and the `font-sans` utility copies its
+     * `var(...)`, so the whole page follows. A theme left on Poppins emits
+     * nothing: the default already lives in `theme.css`, and a rule repeating
+     * a default is a second copy to keep up to date.
      */
     public function fontFamilyCss(): string
     {
@@ -70,12 +70,12 @@ final readonly class ThemeStyleRenderer
     }
 
     /**
-     * Le choix d'une publication, borné à son contenu comme son accent.
+     * A publication's choice, bounded to its content like its accent.
      *
-     * Posé sur le conteneur **et** chacun de ses descendants, sous
-     * `html[data-theme]` : le mode neutre du thème se pose élément par élément,
-     * et seule une règle plus spécifique au même niveau le remplace. `initial`
-     * efface la valeur du thème, et le repli sur l'accent reprend la main.
+     * Set on the container **and** each of its descendants, under
+     * `html[data-theme]`: the theme's neutral mode is set element by element,
+     * and only a more specific rule at the same level replaces it. `initial`
+     * clears the theme's value, and the fallback to the accent takes over.
      */
     public function postHighlightCss(string $selector, ?string $highlight, ?string $color): string
     {
@@ -165,9 +165,9 @@ final readonly class ThemeStyleRenderer
 
         $declarations = $this->accentScale($accentColor);
 
-        // --th-accent est résolu une fois sur :root et hérité tel quel : sans
-        // le reposer ici, `text-accent` et `bg-accent` gardaient la couleur du
-        // thème au milieu d'une page qui en avait choisi une autre.
+        // --th-accent is resolved once on :root and inherited as is: without
+        // setting it again here, `text-accent` and `bg-accent` kept the
+        // theme's color in the middle of a page that had chosen another one.
         $declarations[] = '--th-accent: var(--th-accent-500);--th-accent-hover: var(--th-accent-600);';
 
         return $selector.'{'.implode('', $declarations).'}'
@@ -181,9 +181,9 @@ final readonly class ThemeStyleRenderer
             return '';
         }
 
-        // Filtré à la lecture, faute de l'être à l'écriture : un nom de
-        // propriété personnalisée, et une valeur qui ne peut ni fermer la
-        // déclaration, ni la règle, ni la balise `<style>` qui la porte.
+        // Filtered on read, since it is not on write: a custom property name,
+        // and a value that can close neither the declaration, nor the rule,
+        // nor the `<style>` tag carrying it.
         $parts = [];
         foreach ($config as $key => $value) {
             if (is_string($value)
@@ -197,32 +197,32 @@ final readonly class ThemeStyleRenderer
     }
 
     /**
-     * Le CSS qui colore le frontend public à partir des couleurs choisies dans
-     * l'écran de thème.
+     * The CSS that colors the public frontend from the colors chosen in the
+     * theme screen.
      *
-     * Une surface non configurée n'émet aucune règle : l'apparence historique
-     * (fond clair, texte sombre, topbar et pied transparents) est donc le
-     * comportement par défaut, sans valeur à maintenir quelque part.
+     * An unconfigured surface emits no rule: the historical look (light
+     * background, dark text, transparent topbar and footer) is therefore the
+     * default behavior, with no value to maintain anywhere.
      *
-     * Chaque règle pose le fond **et** le jeu de jetons contrasté qui va avec,
-     * au même endroit. Les propriétés personnalisées étant héritées, tout ce que
-     * la surface contient suit : libellés, mentions discrètes, bordures, et les
-     * panneaux de menu déroulant, peints en `bg-bg`, qui se retrouvent ainsi sur
-     * le fond de leur topbar plutôt que sur celui de la page.
+     * Each rule sets the background **and** the matching contrasted token
+     * set, in the same place. Custom properties being inherited, everything
+     * the surface holds follows: labels, discreet mentions, borders, and the
+     * dropdown menu panels, painted in `bg-bg`, which thus end up on their
+     * topbar's background rather than the page's.
      *
-     * `$overrides` porte les couleurs de la page en cours de rendu, quand elle
-     * en a - une publication peut habiller ses trois surfaces pour elle seule.
-     * La substitution se fait surface par surface, et pas en bloc : une
-     * publication qui ne choisit que sa topbar garde le fond et le pied du
-     * thème, ce qui est le seul sens qui rende `null` utilisable comme
-     * « hérite ». Celles d'une publication sont validées à l'écriture
-     * (`PostInputFactory::colorOrNull`), mais pas celles du thème, dont la
-     * config n'est contrôlée nulle part en entrée : le filtre hexadécimal de
-     * `surfaceColor()` est donc la seule garde avant le `<style>` public.
+     * `$overrides` carries the colors of the page being rendered, when it has
+     * any - a publication can dress its three surfaces for itself alone.
+     * The substitution happens surface by surface, not as a block: a
+     * publication that only picks its topbar keeps the theme's background and
+     * footer, which is the only meaning that makes `null` usable as
+     * "inherit". A publication's colors are validated on write
+     * (`PostInputFactory::colorOrNull`), but not the theme's, whose config is
+     * checked nowhere on input: the hexadecimal filter of `surfaceColor()` is
+     * therefore the only guard before the public `<style>`.
      *
-     * @param array<string, string|null> $overrides couleurs par clé de surface (cf. self::SURFACES), et
-     *                                              celles du texte, des traits, des cartes, des titres et
-     *                                              des chiffres (cf. PostColorOverrides::KEYS)
+     * @param array<string, string|null> $overrides colors by surface key (cf. self::SURFACES), and
+     *                                              those of the text, lines, cards, headings and
+     *                                              figures (cf. PostColorOverrides::KEYS)
      */
     public function frontendSurfacesCss(array $overrides = []): string
     {
@@ -230,9 +230,9 @@ final readonly class ThemeStyleRenderer
         $rules = [];
 
         foreach (self::SURFACES as $key => $selector) {
-            // Le vide vaut l'absence des deux côtés, et pas seulement `null` :
-            // sans ça une chaîne vide passerait le `??` et éteindrait la
-            // couleur du thème au lieu de la laisser passer.
+            // Empty counts as absent on both sides, not only `null`: without
+            // that an empty string would pass the `??` and switch off the
+            // theme's color instead of letting it through.
             $color = $this->surfaceColor($overrides[$key] ?? null)
                 ?? $this->surfaceColor($config[$key] ?? null);
 
@@ -247,9 +247,9 @@ final readonly class ThemeStyleRenderer
     }
 
     /**
-     * Les couleurs d'encadré reprises par le thème, une règle par type posé.
-     * `html[data-theme]` passe devant les règles d'origine de
-     * `content-blocks.css`, qui n'ont qu'une classe.
+     * The callout colors taken over by the theme, one rule per type set.
+     * `html[data-theme]` wins over the original rules of
+     * `content-blocks.css`, which only have one class.
      */
     public function calloutCss(): string
     {
@@ -354,8 +354,8 @@ final readonly class ThemeStyleRenderer
     }
 
     /**
-     * La couleur d'une clé : celle de la publication si elle en pose une,
-     * sinon celle du thème, sinon rien. Les deux passent par le même filtre.
+     * The color of a key: the publication's if it sets one, otherwise the
+     * theme's, otherwise nothing. Both go through the same filter.
      *
      * @param array<string, string|null> $overrides
      * @param array<string, mixed>       $config
@@ -366,11 +366,11 @@ final readonly class ThemeStyleRenderer
     }
 
     /**
-     * Une couleur de surface utilisable, ou null.
+     * A usable surface color, or null.
      *
-     * Hexadécimal strict, comme les couleurs de survol : la valeur finit dans
-     * un `<style>` servi à tous les visiteurs, et une chaîne libre y fermerait
-     * la règle pour écrire la suite de la page.
+     * Strict hexadecimal, like the hover colors: the value ends up in a
+     * `<style>` served to every visitor, and a free string could close the
+     * rule there and write the rest of the page.
      */
     private function surfaceColor(mixed $raw): ?string
     {

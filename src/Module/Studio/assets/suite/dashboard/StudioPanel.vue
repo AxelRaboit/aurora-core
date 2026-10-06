@@ -1,18 +1,18 @@
 <script setup>
 /**
- * Le panneau du Studio : ce qui m'attend chez mes clients aujourd'hui.
+ * The Studio panel: what is waiting for me at my clients' today.
  *
- * Même forme que les autres panneaux, délibérément : une rangée de chiffres
- * puis le détail. Un tableau de bord dont chaque onglet invente sa mise en
- * page oblige à la réapprendre à chaque fois.
+ * Same shape as the other panels, deliberately: a row of numbers then the
+ * detail. A dashboard where each tab invents its own layout forces people to
+ * learn it again every time.
  *
- * **Chaque chiffre mène quelque part**, et la liste nomme les espaces. Un
- * compte sans destination oblige à ouvrir les espaces un par un pour trouver
- * celui qui attend ; une ligne par espace, la plus urgente en haut, dit chez
- * qui aller.
+ * **Every number leads somewhere**, and the list names the spaces. A count
+ * with no destination forces opening the spaces one by one to find the one
+ * that is waiting; one row per space, the most urgent at the top, says whose
+ * place to go to.
  *
- * Les chiffres viennent de `SpaceWorkload`, comme ceux de l'espace et du
- * calendrier éditorial : le même mot compte la même chose partout.
+ * The numbers come from `SpaceWorkload`, like those of the space and the
+ * editorial calendar: the same word counts the same thing everywhere.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -29,12 +29,12 @@ const props = defineProps({
 const { t } = useI18n();
 const { formatDate } = useDateFormat();
 
-/** Le calendrier éditorial, filtré sur un état, pour une tuile qui y mène. */
+/** The editorial calendar, filtered on a state, for a tile that leads there. */
 function calendarFor(state) {
     const path = props.stats.calendarPath;
 
-    // En liste : pour un état, la liste montre toutes ses cartes, des mois
-    // passés comme sans date, là où le mois affiché en cachait une partie.
+    // As a list: for a state, the list shows all its cards, from past months
+    // as well as undated, where the displayed month hid part of them.
     return path ? `${path}?scope=${props.stats.scope ?? "mine"}&view=list&state=${state}` : null;
 }
 
@@ -45,17 +45,17 @@ const tiles = computed(() =>
         { key: "changes_requested", icon: MessageSquareWarning, value: props.stats.changesRequested ?? 0, href: calendarFor("changes_requested"), urgent: true },
         { key: "with_client", icon: UserRoundCheck, value: props.stats.withClient ?? 0, href: calendarFor("with_client") },
         { key: "upcoming", icon: CalendarClock, value: props.stats.upcoming ?? 0, href: calendarFor("upcoming") },
-        // Ce qui attend mon geste, en urgence, avant ce qui attend le client.
+        // What is waiting on my gesture, urgently, before what is waiting on the client.
         { key: "awaiting_countersignature", icon: PenLine, value: props.stats.awaitingCountersignature, href: props.stats.contractsToCountersignPath, urgent: true },
         { key: "awaiting_signature", icon: FileSignature, value: props.stats.awaitingSignature, href: props.stats.contractsWithCustomerPath },
         { key: "deliverables", icon: NotebookText, value: props.stats.deliverables, href: props.stats.deliverablesPath },
     ]
-        // Null : un chiffre que ce lecteur n'a pas le droit d'ouvrir.
+        // Null: a number this reader has no right to open.
         .filter((tile) => null !== tile.value && undefined !== tile.value)
         .map((tile) => ({ ...tile, tone: tile.urgent && tile.value > 0 ? "attention" : "default" })),
 );
 
-/** La même adresse, l'autre portée : le panneau se recalcule côté serveur. */
+/** The same address, the other scope: the panel is recomputed on the server. */
 function scopeHref(scope) {
     const params = new URLSearchParams(window.location.search);
     params.set("module", "studio");
@@ -67,8 +67,8 @@ function scopeHref(scope) {
 
 <template>
     <div class="aurora-stack">
-        <!-- Les mêmes onglets de portée que la liste des espaces et le
-             calendrier éditorial. -->
+        <!-- The same scope tabs as the spaces list and the editorial
+             calendar. -->
         <div
             v-if="stats.hasScopeChoice"
             class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"

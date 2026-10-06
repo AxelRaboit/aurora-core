@@ -20,7 +20,7 @@ describe("withoutLeadingTitle", () => {
         ).toBe("Texte.");
     });
 
-    /** Un vrai titre de document, différent du nom de la note, reste. */
+    /** A real document title, different from the note's name, stays. */
     it("keeps a heading that says something else", () => {
         const body = "# Résumé\n\nDeux séances.";
 
@@ -33,7 +33,7 @@ describe("withoutLeadingTitle", () => {
         expect(withoutLeadingTitle(body, "Studio Lumen")).toBe(body);
     });
 
-    /** Un sous-titre n'est pas le titre : `##` ne se retire pas. */
+    /** A subtitle is not the title: `##` is not removed. */
     it("only touches a first-level heading", () => {
         const body = "## Studio Lumen\n\nTexte.";
 
@@ -52,7 +52,7 @@ describe("withoutLeadingTitle", () => {
         expect(withoutLeadingTitle(null, "Studio Lumen")).toBe("");
     });
 
-    /** Une note qui n'est que son titre devient vide, et c'est correct. */
+    /** A note that is only its title becomes empty, and that is correct. */
     it("empties a note that is only its own title", () => {
         expect(withoutLeadingTitle("# Studio Lumen", "Studio Lumen")).toBe("");
     });

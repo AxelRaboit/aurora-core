@@ -40,13 +40,13 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
             'suite_studio_deliverables' => $this->studioContext->areDeliverablesEnabled(),
             // The editorial calendar included: it lives under the spaces now.
             'suite_studio_spaces' => $this->studioContext->areSpacesEnabled(),
-            // La corbeille des contenus, qui ne vit pas sous l'adresse d'un espace.
+            // The content trash, which does not live under a space's address.
             'suite_studio_space_contents' => $this->studioContext->areSpacesEnabled(),
             'workspace_' => $suite && $this->studioContext->areSpacesEnabled(),
             'public_space' => $suite && $this->studioContext->areSpacesEnabled(),
             'public_contract' => $suite && $this->studioContext->areContractsEnabled(),
-            // Un lien de lecture sert un livrable d'espace ou de Studio : le
-            // contrôleur juge lequel, cf. DeliverableReadingController.
+            // A reading link serves a space or Studio deliverable: the
+            // controller judges which, cf. DeliverableReadingController.
             'public_deliverable' => $suite,
             // Fonts only serve presentations, which live in Studio or in a
             // client space: they answer while either is switched on.

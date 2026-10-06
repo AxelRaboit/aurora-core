@@ -21,18 +21,18 @@ use function json_decode;
 use function sprintf;
 
 /**
- * Voir ce qu'un lien montre, sans pouvoir répondre à la place du client.
+ * Seeing what a link shows, without being able to answer in the client's
+ * place.
  *
- * **L'aperçu est un vrai lien, et c'est la seule façon qu'il dise vrai.** Le
- * jeton en clair n'existe qu'à la création ; une page reconstruite avec un
- * jeton inventé s'affiche et ne répond à rien, donc ni le dossier Drive ni
- * les fichiers n'y apparaissent, c'est-à-dire justement ce qu'on venait
- * vérifier.
+ * **The preview is a real link, and that is the only way it tells the
+ * truth.** The plain token only exists at creation; a page rebuilt with a
+ * made-up token renders and answers nothing, so neither the Drive folder nor
+ * the files appear in it, which is exactly what one came to check.
  *
- * Le prix de cette honnêteté est qu'il faut le tenir : un lien qui recopie
- * les droits pourrait valider un contenu au nom du client. Ce que ces tests
- * pinnent, c'est ce refus, et le fait qu'il ne tienne pas aux droits mais à
- * la nature du lien.
+ * The price of that honesty is that it has to be held in check: a link that
+ * copies the rights could approve content on the client's behalf. What these
+ * tests pin is that refusal, and the fact that it rests not on the rights but
+ * on the nature of the link.
  */
 final class SpaceAccessPreviewTest extends IntegrationTestCase
 {
@@ -57,15 +57,15 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le compteur du limiteur survit au processus : une classe qui écrit
-        // comme un invité dépense un budget horaire partagé, et vire au
-        // rouge au troisième lancement de l'heure - par un 429 sur une
-        // route que le test ne voulait pas éprouver.
+        // The rate limiter's counter outlives the process: a class that writes
+        // as a guest spends a shared hourly budget, and turns red on the
+        // third run within the hour - through a 429 on a route the test did
+        // not mean to exercise.
         $this->resetRateLimiter('space_guest_write');
 
-        // Le navigateur pose cet en-tête sur chaque appel, et les routes
-        // publiques l'exigent : ce qui les protège est un secret dans
-        // l'adresse, et une adresse se transfère.
+        // The browser sets this header on every call, and public routes
+        // require it: what protects them is a secret in the address, and an
+        // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         $this->links = $container->get(SpaceAccessLinkManagerInterface::class);
@@ -86,8 +86,8 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
 
         $this->client->request('GET', sprintf('/workspace/%d/access/%d/preview', $link->getSpace()->getId(), $link->getId()));
 
-        // Une redirection vers la vraie route publique, et non une seconde
-        // façon de rendre la même page.
+        // A redirect to the real public route, and not a second way of
+        // rendering the same page.
         self::assertSame(302, $this->client->getResponse()->getStatusCode());
 
         $this->client->followRedirect();
@@ -95,11 +95,11 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
     }
 
     /**
-     * Le refus tient à la nature du lien, pas à ses droits.
+     * The refusal rests on the nature of the link, not on its rights.
      *
-     * L'aperçu recopie « peut valider » pour que l'écran soit le même ; une
-     * réponse envoyée depuis lui doit malgré tout être refusée, sinon un clic
-     * distrait enregistre un verdict au nom du client.
+     * The preview copies "can approve" so that the screen is the same; an
+     * answer sent from it must still be refused, otherwise a careless click
+     * records a verdict on the client's behalf.
      */
     public function testAPreviewCannotAnswerEvenThoughItMayOnPaper(): void
     {
@@ -118,8 +118,8 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
     }
 
     /**
-     * Tous les droits, discussion comprise : l'aperçu la perdait, et l'écran
-     * montré au studio n'était plus celui du client.
+     * All the rights, conversation included: the preview lost it, and the
+     * screen shown to the studio was no longer the client's.
      */
     public function testAPreviewCarriesEveryRightOfItsLink(): void
     {
@@ -135,7 +135,7 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
         );
     }
 
-    /** Un aperçu n'est le destinataire de personne : la liste l'ignore. */
+    /** A preview is nobody's recipient: the list ignores it. */
     public function testAPreviewNeverShowsInTheListOfLinks(): void
     {
         $source = $this->givenLink();
@@ -151,10 +151,10 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
     }
 
     /**
-     * Un seul aperçu à la fois.
+     * A single preview at a time.
      *
-     * Le précédent est supprimé, sans quoi une adresse encore valide
-     * traînerait après qu'on a changé les droits qu'elle était censée montrer.
+     * The previous one is deleted, otherwise a still valid address would
+     * linger after the rights it was meant to show had changed.
      */
     public function testAskingTwiceReplacesTheFirstPreview(): void
     {
@@ -169,7 +169,7 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
         self::assertNull($this->entityManager->getRepository(SpaceAccessLink::class)->find($firstId));
     }
 
-    /** Il expire de lui-même, en minutes et non en jours. */
+    /** It expires on its own, in minutes and not in days. */
     public function testAPreviewDiesOnItsOwnWithinTheHour(): void
     {
         $preview = $this->links->preview($this->givenLink());

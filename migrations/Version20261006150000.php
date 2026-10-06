@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les diapositives prennent le nom de leur seul propriétaire : le livrable.
+ * Slides take the name of their only owner: the deliverable.
  *
- * Le moteur de diapositives a quitté `Studio/Deck` pour `Deliverable/Slides`,
- * et sa table suit, renommée et pas recréée : les identifiants restent, ceux
- * que nomment déjà les zones et les liens aussi. La séquence suit la table.
+ * The slides engine left `Studio/Deck` for `Deliverable/Slides`, and its table
+ * follows, renamed and not recreated: the ids stay, including the ones that
+ * zones and links already name. The sequence follows the table.
  */
 final class Version20261006150000 extends AbstractMigration
 {

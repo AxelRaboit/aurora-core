@@ -1,25 +1,25 @@
 <script setup>
 /**
- * Ouvrir un canal : un nom, et c'est tout.
+ * Opening a channel: a name, and that is all.
  *
- * **Une modale plutôt qu'un champ dans le rail.** Le formulaire poussait en bas
- * de la liste, dans deux cents pixels de large, sous les salons qu'il allait
- * rejoindre : le champ, deux boutons et le libellé de chacun tenaient sur trois
- * lignes serrées, et sur téléphone tout cela vivait dans un tiroir qui couvre
- * déjà la conversation. La question est courte mais elle mérite d'être posée au
- * milieu de l'écran, comme les deux autres de cette discussion.
+ * **A modal rather than a field in the rail.** The form grew at the bottom of
+ * the list, in two hundred pixels of width, under the rooms it was about to
+ * join: the field, two buttons and the label of each fit on three cramped
+ * lines, and on a phone all of it lived in a drawer that already covers the
+ * conversation. The question is short but it deserves to be asked in the middle
+ * of the screen, like the two others of this conversation.
  *
- * **L'audience se décide ici, et c'est un revirement.** Elle ne s'y décidait
- * pas : un canal naissait interne, et l'ouvrir au client attendait les réglages
- * du salon. Le raisonnement tenait - décider une fois qu'il y a quelque chose
- * dedans - mais il laissait la question sans réponse au moment où on se la
- * pose, c'est-à-dire en nommant la pièce. « Le mois prochain » et « Entre
- * nous » ne se nomment pas pareil selon qui les lit.
+ * **The audience is decided here, and that is a reversal.** It used not to be:
+ * a channel was born internal, and opening it to the client waited for the
+ * room's settings. The reasoning held - decide once there is something in it -
+ * but it left the question unanswered at the moment it is asked, that is while
+ * naming the room. "Le mois prochain" and "Entre nous" are not named the same
+ * way depending on who reads them.
  *
- * La case reste **décochée**, comme l'entité : un salon ouvert pour parler d'un
- * client ne devient pas un salon que ce client lit parce que quelqu'un a coché
- * sans lire. Ce qui change est qu'on le décide en connaissance de cause au lieu
- * de l'hériter.
+ * The box stays **unticked**, like the entity: a room opened to talk about a
+ * client does not become a room that client reads because someone ticked
+ * without reading. What changes is that it is decided knowingly instead of
+ * inherited.
  */
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,8 +32,9 @@ import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 const props = defineProps({
     show: { type: Boolean, default: false },
     /**
-     * Montrer le canal au client dès sa création : le droit de partager
-     * l'espace. Sans lui, la case n'est pas offerte et le canal naît interne.
+     * Showing the channel to the client from its creation: the right to share
+     * the space. Without it, the box is not offered and the channel is born
+     * internal.
      */
     canShowToClient: { type: Boolean, default: false },
 });
@@ -45,7 +46,7 @@ const { t } = useI18n();
 const name = ref("");
 const openToClient = ref(false);
 
-/** Rouvrir, c'est repartir d'une page blanche : le nom d'avant a été créé. */
+/** Reopening starts from a blank page: the previous name has been created. */
 watch(
     () => props.show,
     () => {
@@ -72,10 +73,10 @@ function submit() {
         v-on:close="emit('close')"
     >
         <div class="space-y-4">
-            <!-- Un exemple dans le champ plutôt qu'un vide : « Nom du canal »
-                 est déjà écrit au-dessus, le répéter dedans n'aurait rien
-                 appris, tandis qu'un nom plausible dit quelle sorte de nom on
-                 attend. -->
+            <!-- An example in the field rather than nothing: "Nom du canal"
+                 is already written above, repeating it inside would teach
+                 nothing, whereas a plausible name says what kind of name is
+                 expected. -->
             <AppInput
                 id="space-chat-new-channel"
                 v-model="name"
@@ -84,9 +85,9 @@ function submit() {
                 v-on:keydown.enter.prevent="submit"
             />
 
-            <!-- Décochée par défaut, et la phrase change avec l'état : « qui
-                 le lira » est ce qu'on veut savoir avant de nommer une pièce,
-                 pas après l'avoir remplie. -->
+            <!-- Unticked by default, and the sentence changes with the state:
+                 "who will read it" is what one wants to know before naming a
+                 room, not after filling it. -->
             <AppCheckbox
                 v-if="canShowToClient"
                 v-model="openToClient"

@@ -98,23 +98,23 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     protected ?DocumentFolderInterface $documentFolder = null;
 
     /**
-     * L'espace de notes où l'équipe garde ce qu'elle sait de ce client.
+     * The notes space where the team keeps what it knows about this customer.
      *
-     * **Les notes d'un espace client vivent dans le module Notes**, et non
-     * plus ici : un espace de notes par espace client, ouvert à son équipe,
-     * que {@see SpaceNoteSpaceProvider} ouvre la première fois qu'on en a
-     * besoin et que {@see SpaceNoteSpaceSync} tient à jour (son nom, ses
-     * membres). C'est ce qui donne à ces notes tout ce que le module sait
-     * faire - dossiers, liens entre notes, historique, recherche, partage
-     * d'une note - sans le refaire dans Studio.
+     * **A customer space's notes live in the Notes module**, and no longer
+     * here: one notes space per customer space, open to its team, which
+     * {@see SpaceNoteSpaceProvider} opens the first time it is needed and
+     * {@see SpaceNoteSpaceSync} keeps up to date (its name, its members). That
+     * is what gives these notes everything the module can do - folders, links
+     * between notes, history, search, sharing a note - without redoing it in
+     * Studio.
      *
-     * **Un sens seulement.** L'espace de notes ne connaît pas Studio : il
-     * porte un marqueur (`managedBy`) qui dit seulement que son nom, son accès
-     * et ses membres viennent d'ailleurs.
+     * **One direction only.** The notes space does not know Studio: it carries
+     * a marker (`managedBy`) that only says its name, access and members come
+     * from elsewhere.
      *
-     * **Nullable, et `SET NULL`**, comme le dossier de la médiathèque : créé
-     * à la demande, et un espace de notes que quelqu'un retirerait ne doit pas
-     * être une suppression que la base refuse.
+     * **Nullable, and `SET NULL`**, like the media library folder: created on
+     * demand, and a notes space someone removed must not be a deletion the
+     * database refuses.
      */
     #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
     #[ORM\JoinColumn(unique: true, nullable: true, onDelete: 'SET NULL')]
@@ -150,62 +150,62 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     protected string $timezone = 'Europe/Paris';
 
     /**
-     * Le dossier Drive que le client a partagé pour cet espace.
+     * The Drive folder the customer shared for this space.
      *
-     * **L'identifiant, pas l'adresse.** C'est ce que Google attend, et c'est
-     * la fin de l'adresse d'un dossier - ce qui suit `/folders/`. Le stocker
-     * entier obligerait à le découper à chaque appel, et à redécouper le jour
-     * où Google change la forme de ses adresses.
+     * **The id, not the address.** That is what Google expects, and it is the
+     * end of a folder's address - what follows `/folders/`. Storing it whole
+     * would force splitting it on every call, and splitting it differently
+     * the day Google changes the shape of its addresses.
      *
-     * Nul par défaut : un espace n'a pas de Drive tant que personne n'en
-     * branche un, et la plupart n'en auront jamais.
+     * Null by default: a space has no Drive until someone connects one, and
+     * most never will.
      */
     #[ORM\Column(length: 128, nullable: true)]
     protected ?string $driveFolderId = null;
 
     /**
-     * Le mot de passe qui ferme l'onglet Drive, haché.
+     * The password that locks the Drive tab, hashed.
      *
-     * **Haché et non chiffré**, contrairement à la clé du compte de service :
-     * une clé doit être relue pour signer, un mot de passe n'a jamais besoin
-     * d'être relu, seulement comparé. Personne ne peut donc le retrouver, pas
-     * même depuis la base, et c'est la propriété qu'on veut.
+     * **Hashed and not encrypted**, unlike the service account key: a key
+     * must be read back to sign, a password never needs to be read back, only
+     * compared. Nobody can therefore recover it, not even from the database,
+     * and that is the property wanted.
      *
-     * Nul par défaut : l'onglet est ouvert tant que personne ne le ferme.
+     * Null by default: the tab is open until someone locks it.
      */
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $drivePassword = null;
 
     /**
-     * La génération en cours des sessions ouvertes sur le Drive.
+     * The current generation of the sessions open on the Drive.
      *
-     * **Ce qui permet de tout refermer sans changer le mot de passe.** Une
-     * session qui a saisi le bon mot de passe retient cette valeur ; elle
-     * reste ouverte tant que l'espace montre la même. En tirer une nouvelle
-     * referme donc toutes les sessions d'un coup, celle qui appuie comprise,
-     * sans que personne ait à changer quoi que ce soit.
+     * **What allows locking everything again without changing the password.**
+     * A session that entered the right password keeps this value; it stays
+     * open as long as the space shows the same one. Drawing a new one
+     * therefore locks every session at once, the one pressing included,
+     * without anyone having to change anything.
      *
-     * Elle change aussi quand le mot de passe change ou disparaît : sans
-     * cela, celui qui avait ouvert avec l'ancien resterait dedans, et
-     * remplacer un mot de passe compromis n'aurait servi à rien.
+     * It also changes when the password changes or goes away: otherwise,
+     * whoever had opened with the old one would stay in, and replacing a
+     * compromised password would have achieved nothing.
      */
     #[ORM\Column(length: 32, nullable: true)]
     protected ?string $driveLockGeneration = null;
 
     /**
-     * Quand l'espace a été mis à la corbeille ; nul, il est vivant.
+     * When the space was moved to the trash; null, it is alive.
      *
-     * Une suppression douce, comme celle des livrables : un espace porte des
-     * mois de travail d'un client, et le supprimer par erreur emportait tout,
-     * sans retour. À la corbeille, il sort des listes, de la recherche, des
-     * comptes, du calendrier éditorial et du Planning ; ses écrans, sa page
-     * client et ses liens d'accès répondent comme une adresse inconnue. Rien
-     * n'est détruit : la restauration remet tout comme c'était, et seules la
-     * suppression définitive et la purge planifiée font ce que faisait la
-     * suppression d'avant.
+     * A soft delete, like the deliverables': a space carries months of a
+     * customer's work, and deleting it by mistake took everything with it,
+     * with no way back. In the trash, it leaves the lists, the search, the
+     * counts, the editorial calendar and the Planning; its screens, its
+     * customer page and its access links answer like an unknown address.
+     * Nothing is destroyed: restoring puts everything back as it was, and only
+     * permanent deletion and the scheduled purge do what the old deletion
+     * did.
      *
-     * Un espace à la corbeille compte toujours pour son client : la fiche ne
-     * se supprime pas tant qu'il n'est pas détruit pour de bon.
+     * A space in the trash still counts for its customer: the sheet cannot be
+     * deleted until it is destroyed for good.
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -357,7 +357,7 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
         return $this;
     }
 
-    /** L'onglet Drive est-il fermé par un mot de passe ? */
+    /** Is the Drive tab locked by a password? */
     public function isDriveLocked(): bool
     {
         return null !== $this->drivePassword && '' !== $this->drivePassword;

@@ -569,8 +569,8 @@ suite:
         search_placeholder: Rechercher par clé…
         all_groups: Tous les groupes
     title: Administration
-    # Coquille du dashboard uniquement - un module qui dessine un panneau
-    # embarque ses propres libellés.
+    # Dashboard shell only - a module that draws a panel ships its own
+    # labels.
     stats:
         guide:
             title: "Lire le tableau de bord"

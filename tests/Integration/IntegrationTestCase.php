@@ -15,16 +15,15 @@ use Symfony\Component\Filesystem\Filesystem;
 abstract class IntegrationTestCase extends WebTestCase
 {
     /**
-     * L'en-tête que le navigateur pose sur chaque écriture d'invité.
+     * The header the browser sets on every guest write.
      *
-     * **Les routes publiques l'exigent**, parce que ce qui les protège est un
-     * secret dans l'adresse, et qu'une adresse se transfère : sans cet
-     * en-tête, un formulaire hébergé n'importe où pourrait faire poster le
-     * navigateur d'un client vers ces routes. Le composant de requête côté
-     * navigateur l'envoie sur tous les appels ; un test qui simule cette page
-     * doit donc l'envoyer aussi.
+     * **Public routes require it**, because what protects them is a secret in
+     * the address, and an address can be forwarded: without this header, a
+     * form hosted anywhere could make a client's browser post to these
+     * routes. The browser-side request helper sends it on every call; a test
+     * that simulates that page must therefore send it too.
      *
-     * Le garde lui-même est vérifié par un test dédié, qui appelle sans.
+     * The guard itself is checked by a dedicated test, which calls without it.
      *
      * @var array<string, string>
      */

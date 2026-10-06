@@ -13,12 +13,12 @@ use Symfony\Component\Yaml\Yaml;
 final class TranslationConsistencyTest extends TestCase
 {
     private const PLACEHOLDER_EXCEPTIONS = [
-        // ICU plural syntax - accolades imbriquées contiennent du texte traduit, pas des placeholders
+        // ICU plural syntax - nested braces contain translated text, not placeholders
         'photo.galleries.usage.item_count',
     ];
 
     private const PARITY_EXCEPTIONS = [
-        // Laisse vide pour l'instant - on ajoutera au fur et à mesure
+        // Left empty for now - entries will be added as we go
     ];
 
     /** @return list<array{string, array<string, mixed>, array<string, mixed>}> */

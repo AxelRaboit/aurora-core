@@ -8,8 +8,8 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * La corbeille des livrables : une date de mise à la corbeille, nulle tant que
- * le livrable est vivant. Les livrables existants le restent.
+ * The deliverables trash: a date of moving to the trash, null while the
+ * deliverable is alive. Existing deliverables stay alive.
  */
 final class Version20261005120000 extends AbstractMigration
 {

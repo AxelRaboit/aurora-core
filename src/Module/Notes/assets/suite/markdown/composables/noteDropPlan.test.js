@@ -16,7 +16,7 @@ const NOTES = [
     { id: 13, title: "Campus", folderId: 2, position: 0 },
 ];
 
-// Les frères d'un dossier, dossiers et notes mêlés, dans l'ordre affiché.
+// A folder's siblings, folders and notes mixed, in the displayed order.
 const F = (id) => ({ kind: "folder", id });
 const N = (id) => ({ kind: "note", id });
 
@@ -184,7 +184,7 @@ describe("planDrop across spaces", () => {
     const across = (dragged, target, zone) =>
         planDrop({ dragged, target, zone, folders, notes });
 
-    /** Glisser sur l'en-tête d'un espace range à sa racine. */
+    /** Dragging onto a space header files at its root. */
     it("files at the root of the space whose header it was dropped on", () => {
         expect(
             across(
@@ -200,7 +200,7 @@ describe("planDrop across spaces", () => {
         });
     });
 
-    /** Un dossier d'un autre espace emmène la note dans cet espace. */
+    /** A folder from another space takes the note into that space. */
     it("takes the space of the folder it lands in", () => {
         expect(
             across(
@@ -211,7 +211,7 @@ describe("planDrop across spaces", () => {
         ).toMatchObject({ folderId: 2, spaceId: 7, order: [N(12), N(10)] });
     });
 
-    /** La racine d'un espace ne compte pas les notes d'un autre. */
+    /** A space's root does not count the notes of another one. */
     it("orders the root of a space on its own", () => {
         expect(
             across(
@@ -222,7 +222,7 @@ describe("planDrop across spaces", () => {
         ).toMatchObject({ spaceId: 1, order: [F(1), N(10), N(11)] });
     });
 
-    /** Revenir à la racine de son propre espace, déjà en place : rien à faire. */
+    /** Going back to the root of one's own space, already in place: nothing to do. */
     it("does nothing when the note is already last at that root", () => {
         expect(
             across(

@@ -146,10 +146,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         $recipient = $contract->getCustomer()->getContractualEmail();
 
         if (null === $recipient || '' === $recipient) {
-            // Un prospect peut n'avoir qu'un nom, et c'est voulu. Mais on
-            // n'envoie pas un contrat a personne : c'est ici, au moment de
-            // l'envoi, que l'adresse devient indispensable - pas a la creation
-            // de la fiche.
+            // A prospect can have only a name, and that is intended. But a
+            // contract is not sent to nobody: it is here, at sending time,
+            // that the address becomes required - not when the record is
+            // created.
             throw new FieldException('customer', $this->translator->trans('suite.studio.contracts.errors.customer_has_no_address'));
         }
 

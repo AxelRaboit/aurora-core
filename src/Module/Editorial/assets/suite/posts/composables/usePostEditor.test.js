@@ -61,8 +61,8 @@ const props = {
  * The banner shipped that way once already.
  */
 describe("usePostEditor slug seeding", () => {
-    // Le slug est une URL publique. Le deriver du titre fait gagner du temps a
-    // la creation ; l'ecraser ensuite casserait un lien deja partage.
+    // The slug is a public URL. Deriving it from the title saves time on
+    // creation; overwriting it later would break a link already shared.
 
     it("derives the slug from the title while the slug is empty", async () => {
         const { form, current } = usePostEditor(props);
@@ -102,7 +102,7 @@ describe("usePostEditor slug seeding", () => {
     it("does not invent a slug just because the language tab changed", async () => {
         const { form, current, locale } = usePostEditor(props);
 
-        // La traduction anglaise a deja un titre, saisi ailleurs, et pas de slug.
+        // The English translation already has a title, typed elsewhere, and no slug.
         form.value.translations.en.title = "About";
 
         locale.value = "en";

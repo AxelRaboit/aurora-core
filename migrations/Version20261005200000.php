@@ -8,8 +8,8 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * La corbeille des présentations : une date de mise à la corbeille, nulle tant
- * que la présentation est vivante. Les présentations existantes le restent.
+ * The presentations' trash: a trashed-at date, null as long as the
+ * presentation is live. Existing presentations stay live.
  */
 final class Version20261005200000 extends AbstractMigration
 {

@@ -9,17 +9,17 @@
 parameters:
     app.admin_email: '%env(ADMIN_EMAIL)%'
     app.mailer_from: '%env(MAILER_FROM)%'
-    # La racine du support local, hors document root. Ne pas l'injecter :
-    # tout passe par StorageAdapterInterface, et seuls LocalStorageAdapter
-    # et UploadsServeController lisent encore ce paramètre.
-    # Voir docs/aurora-core/dev/storage_backends.md.
+    # The root of local storage, outside the document root. Do not inject it:
+    # everything goes through StorageAdapterInterface, and only
+    # LocalStorageAdapter and UploadsServeController still read this parameter.
+    # See docs/aurora-core/dev/storage_backends.md.
     app.upload_dir: '%kernel.project_dir%/var/uploads'
-    # L'origine du serveur Vite en développement, admise par la CSP.
+    # The origin of the Vite dev server, allowed by the CSP.
     app.vite_dev_server: 'http://localhost:5173'
-    # Le beacon : chaque instance déployée ping ce récepteur une fois par jour,
-    # pour repérer une mise en production non autorisée du code (voir LICENSE).
-    # BEACON_SECRET vit côté client (pas dans ce dépôt public) et ne sert qu'à
-    # marquer les instances « vérifiées ✓ », jamais à rejeter un ping.
+    # The beacon: every deployed instance pings this receiver once a day, to
+    # spot an unauthorised production deployment of the code (see LICENSE).
+    # BEACON_SECRET lives on the client side (not in this public repository)
+    # and only marks instances as "verified ✓", never rejects a ping.
     app.beacon_url: '%env(BEACON_URL)%'
     app.beacon_secret: '%env(BEACON_SECRET)%'
     app.beacon_enabled: '%env(bool:BEACON_ENABLED)%'
@@ -138,16 +138,17 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    # La politique de sécurité du contenu. `devMode` ouvre le strict minimum
-    # pour le serveur Vite et son socket de rechargement, qui n'existent pas
-    # dans un build : la politique de production n'en sait rien.
+    # The content security policy. `devMode` opens the bare minimum for the
+    # Vite server and its reload socket, which do not exist in a build: the
+    # production policy knows nothing of them.
     Aurora\Core\Http\Csp\ContentSecurityPolicy:
         arguments:
             $devMode: '%kernel.debug%'
             $viteDevServer: '%app.vite_dev_server%'
-            # L'origine du hub Mercure, vide quand il n'y en a pas. Derrière le
-            # même hôte en production, `'self'` suffirait ; ailleurs non, et une
-            # connexion bloquée par la CSP ressemble à un hub en panne.
+            # The origin of the Mercure hub, empty when there is none. Behind
+            # the same host in production, `'self'` would do; elsewhere it
+            # would not, and a connection blocked by the CSP looks like a hub
+            # that is down.
             $mercurePublicUrl: '%env(MERCURE_PUBLIC_URL)%'
 
     Aurora\Module\Configuration\Theme\Service\ThemeResolver:
@@ -237,8 +238,9 @@ services:
                     class: Symfony\Component\Mercure\Jwt\Grant
                     arguments:
                         - ['publish']
-                        # Un sujet par canal depuis que la discussion en a
-                        # plusieurs : le motif couvre l'espace et le canal.
+                        # One topic per channel since the conversation has
+                        # had several: the pattern covers the space and the
+                        # channel.
                         - urlpattern: ['https://aurora.invalid/studio/spaces/*/chat/*']
 
 # Fixtures live in fixtures/, outside src/, precisely so that nothing scanning

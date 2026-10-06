@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const listeners = [];
 
-// jsdom ne fournit pas `matchMedia` : le module l'appelle au chargement, donc
-// le double doit être en place avant l'import.
+// jsdom does not provide `matchMedia`: the module calls it on load, so the
+// double must be in place before the import.
 vi.stubGlobal("matchMedia", (query) => ({
     matches: false,
     media: query,

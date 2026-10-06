@@ -10,11 +10,11 @@ use function mb_substr;
 use function mb_trim;
 
 /**
- * Ce que dit l'en-tête de la page d'un livrable.
+ * What a deliverable page's header says.
  *
- * Le même trio que la lecture par lien d'une publication, pour que le gabarit
- * de lecture serve aux deux : pour qui le document a été préparé, sa date de
- * mise à jour, le logo et le nom du studio.
+ * The same trio as reading a publication through a link, so that the reading
+ * template serves both: who the document was prepared for, its update date,
+ * the studio's logo and name.
  */
 final class DeliverableReadingHeader
 {

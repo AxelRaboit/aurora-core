@@ -242,8 +242,8 @@ final class SlideContentWhitelistTest extends TestCase
             $agenda->getContent(),
         );
 
-        // Le formulaire rend un champ texte pour ce slot, donc le rang
-        // arrive en chaine : un `is_int` strict le jetait toujours.
+        // The form renders a text field for this slot, so the rank arrives as
+        // a string: a strict `is_int` always threw it away.
         $typed = (new Slide())->setLayout(SlideLayoutEnum::Agenda);
         $manager->writeContent($typed, ['title' => 'Au programme', 'current' => '3']);
         self::assertSame(['title' => 'Au programme', 'current' => 3], $typed->getContent());

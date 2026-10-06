@@ -16,23 +16,23 @@ const props = defineProps({
      */
     active: { type: Boolean, default: false },
     /**
-     * Le nom du bouton, quand il accompagne une icône passée dans le slot.
-     * Obligatoire avec `iconOnlyOnPhone` : c'est lui qui reste en infobulle et
-     * pour les lecteurs d'écran quand le mot disparaît.
+     * The name of the button, when it goes with an icon passed in the slot.
+     * Required with `iconOnlyOnPhone`: it is what stays as the tooltip and for
+     * screen readers when the word disappears.
      */
     label: { type: String, default: null },
     /**
-     * **Une commande de barre, en icône seule sous `sm`** (02/10/2026). Le mot
-     * part, le bouton devient un carré de la hauteur de ses voisins, et garde
-     * son fond ou son filet : dans une barre, une commande est un vrai bouton.
-     * Réservé aux barres qui restent horizontales ; une commande pleine largeur
-     * garde son nom (voir {@see AppPageActions}).
+     * **A bar command, icon only below `sm`** (02/10/2026). The word goes, the
+     * button becomes a square the height of its neighbours, and keeps its
+     * background or its border: in a bar, a command is a real button. Reserved
+     * for bars that stay horizontal; a full-width command keeps its name (see
+     * {@see AppPageActions}).
      */
     iconOnlyOnPhone: { type: Boolean, default: false },
     /**
-     * Toujours en icône seule, à toutes les largeurs : une bascule de barre
-     * (favori) dont le nom tiendrait mal à côté des autres. Même carré, même
-     * fond, le nom en infobulle et pour les lecteurs d'écran.
+     * Always icon only, at every width: a bar toggle (favourite) whose name
+     * would sit badly next to the others. Same square, same background, the
+     * name as a tooltip and for screen readers.
      */
     iconOnly: { type: Boolean, default: false },
 });
@@ -72,22 +72,22 @@ function onClick(event) {
 const base = 'inline-flex items-center justify-center gap-2 rounded-lg transition duration-150 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed';
 
 const variants = {
-    // **Un filet transparent sur les boutons pleins** (02/10/2026) : sans lui,
-    // un primary faisait deux pixels de moins qu'un secondary ou qu'un ghost
-    // posé à côté (36 contre 38 en md), et une barre d'entête alignait trois
-    // hauteurs différentes. Tous les boutons d'une taille ont la même hauteur.
+    // **A transparent border on solid buttons** (02/10/2026): without it, a
+    // primary was two pixels shorter than a secondary or a ghost placed next to
+    // it (36 against 38 in md), and a header bar lined up three different
+    // heights. All the buttons of one size have the same height.
     primary: 'bg-accent-600 hover:bg-accent-700 text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent-500',
     secondary: 'bg-surface-3 hover:bg-surface-2 text-primary border border-line focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-base',
     danger: 'bg-rose-600 hover:bg-rose-500 text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-rose-500',
     'danger-outline': 'bg-transparent hover:bg-rose-500/10 text-rose-400 border border-line focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-rose-500',
 
     accent: 'bg-accent hover:bg-accent-hover text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent',
-    // **Jamais transparent sur téléphone.** Un bouton fantôme se lit à la
-    // souris : il attend le survol pour exister, et sa place dans une barre
-    // dense dit déjà que c'en est un. Au doigt, il n'y a pas de survol, et un
-    // bouton pleine largeur sans fond ressemble à une ligne de texte - on ne
-    // sait pas qu'on peut appuyer. Sous `sm` il porte donc une surface sourde
-    // et un filet ; au-dessus, il redevient le fantôme qu'il doit être.
+    // **Never transparent on a phone.** A ghost button reads with a mouse: it
+    // waits for the hover to exist, and its place in a dense bar already says
+    // that it is one. With a finger there is no hover, and a full-width button
+    // without a background looks like a line of text - nobody knows it can be
+    // pressed. Below `sm` it therefore carries a muted surface and a border;
+    // above, it becomes the ghost it should be again.
     ghost: 'bg-surface-2 border border-line text-secondary hover:bg-surface-2 hover:text-primary sm:border-transparent sm:bg-transparent',
     dashed: 'bg-transparent border-2 border-dashed border-line text-secondary hover:bg-surface-2 hover:text-primary',
     link: 'bg-transparent text-muted hover:text-secondary underline p-0 text-sm',
@@ -103,8 +103,8 @@ const variants = {
 
 const activeStyles = {
     nav: 'bg-accent-600/15 hover:bg-accent-600/15 text-accent-400 border-accent-600/30',
-    // Une bascule de barre allumée (panneau ouvert) : la teinte d'accent, le
-    // même dessin que l'onglet actif d'un sélecteur posé à côté.
+    // A bar toggle that is on (panel open): the accent tint, the same look as
+    // the active tab of a switcher placed next to it.
     secondary: 'bg-accent-600/15 hover:bg-accent-600/20 text-accent-400 border-accent-600/30',
 };
 
@@ -116,10 +116,10 @@ const sizes = {
     none: '',
 };
 
-// Le carré d'une commande en icône seule, à la hauteur de la taille : un
-// bouton md fait 38 px de haut avec son filet, donc 38 de large.
-// La hauteur aussi : sans le mot, il ne reste que l'icône (16 px) pour la
-// donner, et le carré tombait à 34 px de haut à côté de voisins de 38.
+// The square of an icon-only command, at the height of the size: an md
+// button is 38 px high with its border, so 38 wide.
+// The height too: without the word, only the icon (16 px) is left to give
+// it, and the square dropped to 34 px high next to neighbours of 38.
 const squares = {
     sm: 'max-sm:size-7.5 max-sm:p-0',
     md: 'max-sm:size-9.5 max-sm:p-0',
@@ -131,18 +131,18 @@ const alwaysSquares = {
     lg: 'size-12.5 p-0',
 };
 
-// `icon` porte son propre rembourrage : celui de la taille passait devant (Tailwind
-// range `padding` avant `padding-inline`) et donnait une cible de 26 × 38.
-// Pareil pour `iconOnly` : son `p-0` passait après le `px-4` de la taille et
-// l'icône tombait à six pixels de large (vu le 02/10/2026). Les variantes
-// `max-sm:` d'`iconOnlyOnPhone` arrivent après dans la feuille et gagnent seules.
+// `icon` carries its own padding: the size's padding won (Tailwind orders
+// `padding` before `padding-inline`) and gave a 26 × 38 target.
+// Same for `iconOnly`: its `p-0` came after the size's `px-4` and the icon
+// dropped to six pixels wide (seen on 02/10/2026). The `max-sm:` variants of
+// `iconOnlyOnPhone` come later in the sheet and win on their own.
 const sizeClass = computed(() => ('icon' === props.variant || props.iconOnly ? '' : (sizes[props.size] ?? sizes.md)));
 const squareClass = computed(() => {
     if (props.iconOnly) return alwaysSquares[props.size] ?? alwaysSquares.md;
 
     return props.iconOnlyOnPhone ? (squares[props.size] ?? squares.md) : '';
 });
-// Le mot part sous `sm` (ou toujours) mais reste lu : jamais `hidden`.
+// The word goes below `sm` (or always) but is still read: never `hidden`.
 const labelClass = computed(() => {
     if (props.iconOnly) return 'sr-only';
 

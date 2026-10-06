@@ -11,11 +11,11 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * L'onglet GitHub de l'écran des réglages.
+ * The GitHub tab of the settings screen.
  *
- * Il se dessine lui-même pour que le serveur vérifie chaque identifiant avant
- * de l'enregistrer : un compte mal recopié doit être refusé à la saisie, pas
- * découvert plus tard comme une grille qui n'apparaît pas.
+ * It draws itself so that the server checks every identifier before saving
+ * it: a mistyped account must be refused on entry, not discovered later as a
+ * grid that does not appear.
  */
 defineProps({
     groups: { type: Object, default: () => ({}) },
@@ -32,7 +32,7 @@ const saving = ref(false);
 const enabled = ref(false);
 const logins = ref("");
 
-/** Le serveur refuse l'interrupteur sans compte : la raison se lit avant le clic. */
+/** The server refuses the switch without an account: the reason reads before the click. */
 const canEnable = computed(() => "" !== logins.value.trim());
 
 function apply(state) {
@@ -73,7 +73,7 @@ async function save() {
     }
 }
 
-/** Allumée, prête mais éteinte, ou encore à configurer. */
+/** On, ready but off, or still to be configured. */
 const status = computed(() => {
     if (enabled.value) return "active";
 

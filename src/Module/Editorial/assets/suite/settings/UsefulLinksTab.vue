@@ -63,8 +63,8 @@ async function save() {
             <p class="text-sm text-secondary">{{ t("suite.editorial.useful_links.settings.intro") }}</p>
         </section>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.editorial.useful_links.settings.guide.title')" storage-key="useful-links-settings">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.editorial.useful_links.settings.guide.step_${step}`) }}</li>

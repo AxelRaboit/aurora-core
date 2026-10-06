@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une carte peut porter une date sans paraître dans le calendrier.
+ * A card can carry a date without appearing in the calendar.
  *
- * Vrai partout au départ, ce qui est l'état de toutes les cartes existantes :
- * jusqu'ici, une date valait une parution. Le défaut reste vrai pour que
- * personne n'ait à cocher quoi que ce soit pour retrouver ce qu'il avait.
+ * True everywhere at first, which is the state of every existing card: until
+ * now, a date meant a publication. The default stays true so that nobody has
+ * to tick anything to get back what they had.
  */
 final class Version20260919220000 extends AbstractMigration
 {

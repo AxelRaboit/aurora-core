@@ -65,9 +65,9 @@ final class GedFilesController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        // Servi par le service commun : local déchargé par le serveur web,
-        // distant diffusé par morceaux, privé une heure. L'autorisation, elle,
-        // vient d'être donnée ci-dessus et reste ici.
+        // Served by the shared service: local offloaded to the web server,
+        // remote streamed in chunks, private for an hour. The authorization,
+        // though, was just given above and stays here.
         return $this->responder->respond($path);
     }
 }

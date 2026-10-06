@@ -129,10 +129,10 @@ export function useUserActions(props) {
 
         if (props.canAct) {
             const disabled = "disabled" === user.status;
-            // Un compte désactivé que personne n'a jamais contacté : l'ouvrir
-            // n'est pas une réactivation, c'est le premier envoi de son
-            // invitation. Le libellé le dit, sinon on croit rendre l'accès à
-            // quelqu'un qui ne l'a jamais eu.
+            // A disabled account nobody has ever contacted: opening it is not a
+            // reactivation, it is the first sending of its invitation. The
+            // label says so, otherwise it looks like giving access back to
+            // someone who never had it.
             const neverInvited = disabled && !user.invitedAt;
 
             actions.push({

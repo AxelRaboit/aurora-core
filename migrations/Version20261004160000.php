@@ -9,11 +9,11 @@ use Doctrine\Migrations\AbstractMigration;
 use Override;
 
 /**
- * Les catégories des livrables de Studio : audit, stratégie, proposition.
+ * The categories of Studio deliverables: audit, strategy, proposal.
  *
- * Une table à elles, et une catégorie facultative par livrable. Supprimer une
- * catégorie laisse ses livrables « sans catégorie ». Aucun livrable existant
- * n'en reçoit.
+ * A table of their own, and an optional category per deliverable. Deleting a
+ * category leaves its deliverables "uncategorised". No existing deliverable
+ * gets one.
  */
 final class Version20261004160000 extends AbstractMigration
 {

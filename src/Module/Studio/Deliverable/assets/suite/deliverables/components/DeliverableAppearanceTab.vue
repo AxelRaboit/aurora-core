@@ -12,21 +12,21 @@ import { highlightModeOptions } from "@configuration/suite/themes/highlightModes
 import BannerColorField from "../../../../../../Editorial/assets/suite/posts/components/BannerColorField.vue";
 
 /**
- * L'habit d'un livrable : ses couleurs, par-dessus celles du thème.
+ * A deliverable's dress: its colours, over the theme's.
  *
- * Chaque couleur vide veut dire « celle du thème », jamais « aucune » : un
- * livrable qui ne change que son en-tête garde le fond et le pied du site.
- * Un document aux couleurs du client se fait ici, sans toucher au thème.
+ * Each empty colour means "the theme's", never "none": a deliverable that
+ * only changes its header keeps the site's background and footer. A
+ * document in the client's colours is made here, without touching the theme.
  *
- * L'aperçu en tête est indicatif : il montre l'accord des couleurs entre
- * elles. La page elle-même, par « Aperçu », montre le rendu exact.
+ * The preview at the top is indicative: it shows how the colours go
+ * together. The page itself, through "Aperçu", shows the exact rendering.
  */
 const appearance = defineModel("appearance", { type: Object, required: true });
 
 defineProps({
     title: { type: String, default: "" },
     summary: { type: String, default: "" },
-    /** Le format du livrable : la lecture en diaporama n'a de sens que pour une page. */
+    /** The deliverable's format: reading as a slideshow only makes sense for a page. */
     format: { type: String, default: "page" },
 });
 
@@ -127,7 +127,7 @@ const highlight = computed({
     },
 });
 
-/** Les grands titres : ceux du thème, ou en capitales grasses. */
+/** The large headings: the theme's, or in bold capitals. */
 const headingStyleOptions = computed(() =>
     ["theme", "display"].map((value) => ({
         value,
@@ -142,7 +142,7 @@ const headingStyle = computed({
     },
 });
 
-/** Page web ou présentation. */
+/** Web page or presentation. */
 const displayOptions = computed(() =>
     ["page", "slides"].map((value) => ({
         value,
@@ -172,8 +172,8 @@ const titleVisible = computed({
 });
 
 /**
- * Un texte lisible sur ce fond : sombre sur clair, clair sur sombre. Rien
- * quand le fond est celui du thème : le texte du thème va déjà avec.
+ * A text readable on this background: dark on light, light on dark. Nothing
+ * when the background is the theme's: the theme's text already goes with it.
  */
 function inkOn(hex) {
     if (!hex) return null;
@@ -185,7 +185,7 @@ function inkOn(hex) {
     return luminance > 0.6 ? "#111827" : "#f9fafb";
 }
 
-/** Les variables du thème, quand le livrable n'a pas choisi. */
+/** The theme variables, when the deliverable has not chosen. */
 const swatch = computed(() => ({
     headerInk: inkOn(appearance.value.headerColor),
     pageInk: inkOn(appearance.value.backgroundColor),
@@ -201,8 +201,8 @@ const swatch = computed(() => ({
 
 <template>
     <div class="space-y-4">
-        <!-- Une ambiance entière d'un clic ; les réglages ci-dessous restent
-             là pour l'ajuster. -->
+        <!-- A whole mood in one click; the settings below stay there to
+             adjust it. -->
         <section class="aurora-card space-y-3 p-3 sm:p-5">
             <div>
                 <h3 class="m-0 flex items-center gap-2 text-sm font-semibold text-primary">
@@ -237,7 +237,7 @@ const swatch = computed(() => ({
             </div>
         </section>
 
-        <!-- L'accord des couleurs, d'un coup d'œil. -->
+        <!-- How the colours go together, at a glance. -->
         <div class="aurora-card space-y-3 p-3 sm:p-5">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h3 class="m-0 text-sm font-semibold text-primary">{{ t("suite.studio.deliverables.appearance.preview_title") }}</h3>
@@ -325,9 +325,9 @@ const swatch = computed(() => ({
                 :label="t('suite.studio.deliverables.appearance.title_visible')"
                 :hint="t('suite.studio.deliverables.appearance.title_visible_hint')"
             />
-            <!-- Lire une page en diaporama, section par section : rien à voir
-                 avec un livrable au format diaporama, qui a ses diapositives
-                 et ne passe jamais par cet onglet. -->
+            <!-- Reading a page as a slideshow, section by section: nothing to
+                 do with a deliverable in slideshow format, which has its slides
+                 and never goes through this tab. -->
             <AppChoiceRow
                 v-if="'slides' !== format"
                 v-model="display"

@@ -13,9 +13,9 @@ const { settingsPayload, useDeliverableSlidesSettings } =
     await import("./useDeliverableSlidesSettings.js");
 
 /**
- * Les réglages d'un diaporama passent par l'enregistrement d'un livrable :
- * sans la date de modification (chaque diapositive enregistrée la change),
- * jamais ouverts au client, et repartant de ce qui est enregistré.
+ * A slideshow's settings go through the deliverable save: without the
+ * modification date (each saved slide changes it), never opened to the
+ * client, and starting again from what is saved.
  */
 const DELIVERABLE = {
     id: 4,

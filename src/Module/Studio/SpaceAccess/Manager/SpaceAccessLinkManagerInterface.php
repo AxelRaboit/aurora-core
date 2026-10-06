@@ -26,10 +26,10 @@ interface SpaceAccessLinkManagerInterface
     ): SpaceAccessLinkInterface;
 
     /**
-     * Un aperçu de ce lien, valable quelques minutes et incapable d'écrire.
+     * A preview of this link, valid for a few minutes and unable to write.
      *
-     * Le jeton en clair du lien rendu est lisible une seule fois, comme pour
-     * tout lien fraîchement émis.
+     * The clear-text token of the returned link can be read only once, as for
+     * any freshly issued link.
      */
     public function preview(SpaceAccessLinkInterface $source): SpaceAccessLinkInterface;
 

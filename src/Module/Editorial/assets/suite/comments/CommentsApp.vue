@@ -92,8 +92,8 @@ function badgeColor(value) {
             />
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.comments.guide.title')" storage-key="comments">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.comments.guide.step_${step}`) }}</li>
@@ -109,11 +109,11 @@ function badgeColor(value) {
             >
                 <header class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <!-- **L'adresse sous le nom sur téléphone.** Les deux
-                             sur une ligne, c'est « Best SEO Offer <contact@e… »
-                             pour trois cent vingt-cinq pixels : le nom perd sa
-                             fin et l'adresse n'a jamais commencé. Chacun sa
-                             ligne, et les deux se lisent. -->
+                        <!-- **The address under the name on a phone.** Both
+                             on one line gives "Best SEO Offer <contact@e…"
+                             for three hundred and twenty-five pixels: the name
+                             loses its end and the address never started. Each
+                             on its own line, and both can be read. -->
                         <p class="text-sm font-medium text-primary truncate">
                             {{ comment.authorName }}
                             <span class="hidden text-muted font-normal sm:inline">
@@ -121,9 +121,9 @@ function badgeColor(value) {
                             </span>
                         </p>
                         <p class="truncate text-xs text-muted sm:hidden">{{ comment.authorEmail }}</p>
-                        <!-- Tronquée sur une ligne, « En réponse à … » tombait
-                             toujours hors du cadre sur téléphone : elle passe
-                             à la ligne sous `sm`. -->
+                        <!-- Truncated on one line, "En réponse à …" always
+                             fell outside the frame on a phone: it wraps
+                             below `sm`. -->
                         <p class="text-xs text-muted mt-0.5 sm:truncate">
                             {{ t("suite.comments.on_post") }} {{ comment.postTitle }}
                             · {{ formatDate(comment.createdAt) }}
@@ -138,8 +138,8 @@ function badgeColor(value) {
                             {{ t(`suite.comments.status.${comment.status}`) }}
                         </AppBadge>
 
-                        <!-- Les trois points sur tous les écrans, comme sur
-                             toutes les listes (décision d'Axel du 04/10/2026). -->
+                        <!-- The three dots on every screen, as on every list
+                             (Axel's decision of 04/10/2026). -->
                         <AppRowActions :actions="actionsFor(comment)" :label="comment.authorName ?? ''" />
                     </div>
                 </header>
@@ -153,8 +153,8 @@ function badgeColor(value) {
             </article>
         </div>
 
-        <!-- La pagination de toutes les listes : « précédent » était une icône
-             nue et « suivant » un bouton encadré, tous deux sans nom (02/10/2026). -->
+        <!-- The pagination of every list: "précédent" was a bare icon and
+             "suivant" a framed button, both without a name (02/10/2026). -->
         <AppPagination :page="page" :total-pages="totalPages" class="pt-2" v-on:change="goToPage" />
 
         <AppModal

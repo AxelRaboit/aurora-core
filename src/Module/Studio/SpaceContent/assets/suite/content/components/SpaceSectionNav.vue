@@ -1,22 +1,21 @@
 <script setup>
 /**
- * Les sections d'un espace, regroupées.
+ * A space's sections, grouped.
  *
- * **Un rail sur ordinateur, une feuille ailleurs.** Dix onglets sur une ligne
- * débordaient dès 1 024 pixels, et sur téléphone il ne restait que des icônes
- * à deviner. Regroupés par ce qu'on y fait - travailler, ranger des documents,
- * connaître le client - ils tiennent dans une colonne qu'on lit d'un coup
- * d'œil. Sous `lg`, un bouton dit où l'on est et ouvre la même liste : le nom
- * de la section ouverte répond à « où suis-je », la liste à « où aller ».
+ * **A rail on a computer, a sheet elsewhere.** Ten tabs on one line overflowed
+ * from 1,024 pixels, and on a phone only icons were left to guess. Grouped by
+ * what people do there - work, file documents, know the client - they fit in a
+ * column read at a glance. Below `lg`, a button says where you are and opens
+ * the same list: the name of the open section answers "where am I", the list
+ * "where to go".
  *
- * **Un compteur quand il y a quelque chose à faire, et seulement là.** Le
- * nombre de fichiers ou de notes n'appelle aucun geste ; des publications qui
- * attendent l'avis du client, si. Un compteur sur chaque entrée apprendrait à
- * n'en lire aucun.
+ * **A counter when there is something to do, and only then.** The number of
+ * files or notes calls for no action; posts waiting for the client's opinion
+ * do. A counter on every entry would teach people to read none of them.
  *
- * Les entrées viennent de l'appelant, déjà filtrées (le Drive sans compte de
- * service, les réglages pour qui ne configure pas) ; ce composant ne décide
- * que de leur place.
+ * The entries come from the caller, already filtered (the Drive without a
+ * service account, the settings for whoever does not configure); this
+ * component only decides where they go.
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -24,11 +23,11 @@ import { ChevronDown } from "lucide-vue-next";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 
 const props = defineProps({
-    /** `{ key, labelKey, icon }`, dans l'ordre de la barre. */
+    /** `{ key, labelKey, icon }`, in the bar's order. */
     views: { type: Array, required: true },
-    /** Par clé de section, un nombre qui appelle un geste. */
+    /** Per section key, a number that calls for an action. */
     badges: { type: Object, default: () => ({}) },
-    /** Les clés dont le compteur signale un retard. */
+    /** The keys whose counter signals a delay. */
     urgent: { type: Array, default: () => [] },
 });
 
@@ -36,7 +35,7 @@ const view = defineModel({ type: String, required: true });
 
 const { t } = useI18n();
 
-/** Ce qu'on fait dans chaque section ; Réglages, à part, ferme la liste. */
+/** What people do in each section; Settings, apart, closes the list. */
 const GROUPS = [
     { key: "work", views: ["content", "calendar", "chat"] },
     { key: "documents", views: ["files", "drive", "deliverables", "notes"] },
@@ -45,7 +44,7 @@ const GROUPS = [
 
 const byKey = computed(() => Object.fromEntries(props.views.map((entry) => [entry.key, entry])));
 
-/** Les groupes qui ont au moins une entrée, et une section inconnue des groupes à la fin. */
+/** The groups with at least one entry, and a section unknown to the groups at the end. */
 const groups = computed(() => {
     const placed = new Set(GROUPS.flatMap((group) => group.views));
     const result = GROUPS.map((group) => ({
@@ -77,7 +76,7 @@ function badgeOf(key) {
 </script>
 
 <template>
-    <!-- Ordinateur : le rail, collé sous l'entête pendant qu'on fait défiler. -->
+    <!-- Computer: the rail, stuck under the header while scrolling. -->
     <nav
         class="sticky top-20 hidden w-52 shrink-0 flex-col gap-5 self-start lg:flex"
         :aria-label="t('suite.studio.space_content.view_label')"
@@ -131,7 +130,7 @@ function badgeOf(key) {
         </div>
     </nav>
 
-    <!-- Téléphone et tablette : la section ouverte, et la liste derrière. -->
+    <!-- Phone and tablet: the open section, and the list behind it. -->
     <button
         type="button"
         class="flex min-w-0 items-center gap-2 rounded-lg border border-line bg-surface-2/40 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-surface-2 lg:hidden"
@@ -175,8 +174,8 @@ function badgeOf(key) {
                     </span>
                 </button>
             </div>
-            <!-- Le filet sur un conteneur, pas sur le bouton : posé sur un
-                 bouton arrondi, il suivait l'arrondi et dessinait un arc. -->
+            <!-- The rule on a container, not on the button: on a rounded
+                 button, it followed the rounding and drew an arc. -->
             <div v-if="settings" class="border-t border-line pt-3">
                 <button
                     type="button"

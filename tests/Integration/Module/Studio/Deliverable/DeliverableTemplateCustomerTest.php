@@ -33,13 +33,13 @@ use function random_bytes;
 use function sprintf;
 
 /**
- * Ce qu'un livrable de Studio porte en plus d'un livrable d'espace : la case
- * « modèle », le client pour qui il est écrit, et son format.
+ * What a Studio deliverable carries beyond a space deliverable: the
+ * "template" flag, the customer it is written for, and its format.
  *
- * Ce qui se casserait sans bruit : un livrable d'espace qui deviendrait un
- * modèle, une copie chez un client qui en resterait un ou garderait le client
- * de Studio, un modèle qu'on ne lit pas recopié quand même, ou le nom d'un
- * client montré à qui n'a pas le droit de voir les clients.
+ * What would break silently: a space deliverable that would become a
+ * template, a copy in a client space that would stay one or keep the Studio
+ * customer, a template the reader cannot read copied anyway, or a customer's
+ * name shown to someone without the right to see customers.
  */
 final class DeliverableTemplateCustomerTest extends IntegrationTestCase
 {
@@ -87,7 +87,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** Une page par défaut, dans la liste comme dans l'éditeur ; un diaporama se crée sur demande, une valeur inconnue non. */
+    /** A page by default, in the list as in the editor; a slideshow is created on request, an unknown value is not. */
     public function testADeliverableIsAPageByDefaultAndSlidesOnRequest(): void
     {
         $id = $this->create('Proposition', DeliverableScopeEnum::Personal);
@@ -107,7 +107,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** La case « modèle » tient dans Studio, se lit sur la carte et dans l'éditeur, et ne tient pas dans un espace. */
+    /** The "template" flag holds in Studio, reads on the card and in the editor, and does not hold in a space. */
     public function testOnlyAStudioDeliverableIsATemplate(): void
     {
         $id = $this->create('Modèle d\'audit', DeliverableScopeEnum::Shared);
@@ -118,7 +118,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertTrue($saved['deliverable']['template']);
         self::assertSame('page', $saved['deliverable']['format']);
 
-        // Un enregistrement qui ne nomme pas la case ne la décoche pas.
+        // A save that does not name the flag does not untick it.
         $this->update($id, ['summary' => 'Repris pour chaque client'], withFlags: false);
         self::assertTrue($this->find($id)->isTemplate());
 
@@ -139,7 +139,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertNull($inSpace->getCustomer(), 'the space names the client');
     }
 
-    /** Ce qu'on tire d'un modèle n'en est pas un : ni la copie chez un client, ni la copie dans Studio. */
+    /** What is drawn from a template is not one: neither the copy in a client space, nor the copy in Studio. */
     public function testCopiesOfATemplateAreNotTemplates(): void
     {
         $customer = $this->givenCustomer('Prospect Martin');
@@ -169,7 +169,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertTrue($this->find($id)->isTemplate(), 'the template itself stays one');
     }
 
-    /** Partir d'un modèle reprend son corps, son image d'en-tête et sa catégorie, sous le nouveau titre. */
+    /** Starting from a template takes its body, its header image and its category, under the new title. */
     public function testANewDeliverableStartsFromATemplate(): void
     {
         $category = $this->createCategory('Audits');
@@ -199,7 +199,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertFalse($created->isTemplate(), 'one starts from a template to write to somebody');
         self::assertNull($created->getCustomer(), 'the template\'s client is not the new one\'s');
 
-        // Une catégorie nommée par la fenêtre l'emporte, même « aucune ».
+        // A category named by the dialog wins, even "none".
         $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Audit sans rangement', 'fromTemplateId' => $template, 'categoryId' => null]);
         self::assertResponseIsSuccessful();
         self::assertNull($this->find((int) basename((string) $this->json()['editPath']))->getCategory());
@@ -208,7 +208,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertContains((string) $template, $created, 'the journal says which template it came from');
     }
 
-    /** Un livrable qui n'est pas un modèle, ou le modèle perso d'un autre, ne se recopie pas : on part d'une page blanche. */
+    /** A deliverable that is not a template, or someone else's personal template, is not copied: it starts from a blank page. */
     public function testOnlyAReadableTemplateIsCopied(): void
     {
         $notATemplate = $this->create('Brouillon', DeliverableScopeEnum::Shared);
@@ -228,7 +228,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertNull($this->find((int) basename((string) $this->json()['editPath']))->getSummary(), 'a personal template is its author\'s alone');
     }
 
-    /** Le client d'un livrable de Studio se nomme dans les réglages, se lit sur la carte, et le dépôt retrouve ses livrables. */
+    /** A Studio deliverable's customer is named in the settings, reads on the card, and the repository finds their deliverables. */
     public function testAStudioDeliverableNamesItsCustomer(): void
     {
         $customer = $this->givenCustomer('Prospect Fabre');
@@ -250,13 +250,13 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         $found = self::getContainer()->get(DeliverableRepository::class)->findLiveStandaloneForCustomer($customer);
         self::assertSame([$id], array_map(static fn (Deliverable $deliverable): ?int => $deliverable->getId(), $found), 'live Studio deliverables only');
 
-        // Supprimer la fiche du client ne supprime pas ce qu'on lui a écrit.
+        // Deleting the customer record does not delete what was written for them.
         $this->entityManager->createQuery(sprintf('DELETE FROM %s c WHERE c.id = :id', Customer::class))->setParameter('id', $customer->getId())->execute();
         self::assertNull($this->find($id)->getCustomer());
         self::assertSame('Proposition à Fabre', $this->find($id)->getTitle());
     }
 
-    /** Sans le droit de voir les clients, ou sans le module, ni le nom sur la carte, ni le sélecteur, ni l'écriture. */
+    /** Without the right to see customers, or without the module, no name on the card, no picker, no writing. */
     public function testTheCustomerIsForWhoMaySeeCustomers(): void
     {
         $customer = $this->givenCustomer('Prospect discret');
@@ -283,7 +283,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         self::assertNull($this->rowOf($id)['customer'], 'customers switched off are named nowhere');
     }
 
-    /** Le journal dit le format et la case « modèle » de chaque geste. */
+    /** The log states the format and the "template" flag of each action. */
     public function testTheAuditLogCarriesTheFormatAndTheTemplateFlag(): void
     {
         $id = $this->create('Journalisé', DeliverableScopeEnum::Shared);
@@ -352,7 +352,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
     /**
      * @param array<string, mixed> $changes
      *
-     * @return array<string, mixed> la réponse
+     * @return array<string, mixed> the response
      */
     private function update(int $id, array $changes, bool $withFlags = true): array
     {
@@ -367,7 +367,7 @@ final class DeliverableTemplateCustomerTest extends IntegrationTestCase
         return $this->json();
     }
 
-    /** @return array<string, mixed> ce qu'envoie l'éditeur, sans la date : rien n'est comparé */
+    /** @return array<string, mixed> what the editor sends, without the date: nothing is compared */
     private function payload(int $id): array
     {
         $entity = $this->find($id);

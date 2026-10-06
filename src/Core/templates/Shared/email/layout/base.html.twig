@@ -1,5 +1,5 @@
-{# Les couleurs réglées dans Réglages > Emails : des règles ajoutées après
-   email.css, et les valeurs que le HTML porte lui-même. #}
+{# The colours set in Réglages > Emails: rules added after email.css, and the
+   values the HTML carries itself. #}
 {% set emailColors = app_email_colors() %}
 {% apply inline_css(source('@styles/email.css'), app_email_css()) %}
 {% set logoInitial = (siteName|default('A')|trim|first|upper) %}

@@ -111,7 +111,7 @@ describe("SpaceChatPanel", () => {
         const studio = render();
         const rows = studio.findAll(".flex.justify-end, .flex.justify-start");
 
-        expect(rows[0].classes()).toContain("justify-end"); // du studio
+        expect(rows[0].classes()).toContain("justify-end"); // from the studio
         expect(rows[1].classes()).toContain("justify-start"); // du client
 
         const client = render({ ownSide: "client" });

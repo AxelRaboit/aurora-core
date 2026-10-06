@@ -1,15 +1,15 @@
 <script setup>
 /**
- * Choisir quelqu'un : pour lui parler en privé, ou pour l'ajouter à un canal.
+ * Picking someone: to talk to them privately, or to add them to a channel.
  *
- * **Une modale plutôt qu'une liste qui se déplie dans le rail.** Le rail fait
- * deux cents pixels et sert à naviguer ; y faire pousser un second menu déplace
- * ce qu'on regardait et donne deux listes qui se ressemblent. Une modale pose
- * la question au milieu de l'écran, avec de la place pour les noms, et rend la
- * main au même endroit.
+ * **A modal rather than a list unfolding in the rail.** The rail is two hundred
+ * pixels wide and is for navigating; growing a second menu in it moves what one
+ * was looking at and gives two lists that look alike. A modal asks the question
+ * in the middle of the screen, with room for the names, and hands control back
+ * in the same place.
  *
- * Un seul composant pour les deux usages, parce que c'est la même question posée
- * deux fois : le titre change, pas le geste.
+ * One component for both uses, because it is the same question asked twice:
+ * the title changes, not the gesture.
  */
 import { useI18n } from "vue-i18n";
 import { Users } from "lucide-vue-next";
@@ -19,16 +19,16 @@ defineProps({
     show: { type: Boolean, default: false },
     title: { type: String, required: true },
     /**
-     * Pourquoi la question est posée, renvoyé tel quel avec la réponse.
+     * Why the question is asked, sent back as is with the answer.
      *
-     * **Rendu plutôt que relu.** L'appelant tenait l'intention dans une
-     * variable et la relisait au moment du clic ; entre les deux, la fermeture
-     * de la modale la remettait à zéro, et « Ajouter quelqu'un » finissait par
-     * ouvrir une conversation privée. Une réponse qui porte sa question ne peut
-     * pas se tromper de question.
+     * **Handed back rather than read again.** The caller held the intent in a
+     * variable and read it again at click time; in between, closing the modal
+     * reset it, and "Ajouter quelqu'un" ended up opening a private
+     * conversation. An answer that carries its question cannot mistake the
+     * question.
      */
     purpose: { type: String, default: null },
-    /** Qui peut être choisi. Vide quand il n'y a personne à proposer. */
+    /** Who can be picked. Empty when there is nobody to offer. */
     people: { type: Array, default: () => [] },
     emptyLabel: { type: String, default: "" },
 });
@@ -57,8 +57,9 @@ const { t } = useI18n();
                     class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-primary transition-colors hover:bg-surface-2/70"
                     v-on:click="emit('pick', { id: person.id, purpose })"
                 >
-                    <!-- L'initiale plutôt qu'un avatar : il n'y a pas de photo
-                         dans un espace, et un rond vide serait un trou. -->
+                    <!-- The initial rather than an avatar: there are no
+                         photos in a space, and an empty circle would be a
+                         hole. -->
                     <span
                         class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs font-medium text-secondary"
                     >

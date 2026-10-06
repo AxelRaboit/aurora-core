@@ -28,10 +28,10 @@ interface UserManagerInterface
     public function toggleDevRole(User $user): bool;
 
     /**
-     * Bascule l'accès. Ouvrir un compte jamais contacté (`invitedAt` nul) envoie
-     * son invitation et le passe `Invited` plutôt que `Active`.
+     * Toggles access. Opening a never-contacted account (null `invitedAt`)
+     * sends its invitation and makes it `Invited` rather than `Active`.
      *
-     * @return bool true si le compte est désormais ouvert
+     * @return bool true if the account is now open
      */
     public function toggleDisabled(User $user): bool;
 
@@ -96,12 +96,12 @@ interface UserManagerInterface
     public function isEmailTaken(string $email, ?User $excludeUser = null): bool;
 
     /**
-     * @param bool         $disabled crée le compte pré-provisionné : aucun jeton, aucun
-     *                               mail, connexion refusée. `invitedAt` reste nul, et
-     *                               c'est l'activation du compte qui envoie l'invitation
-     * @param UserTypeEnum $type     suite (l'administration) ou frontend (le site
-     *                               public). Un compte frontend reçoit ROLE_USER quel
-     *                               que soit `$role` : le frontend n'a qu'un rôle
+     * @param bool         $disabled creates the account pre-provisioned: no token, no
+     *                               mail, login refused. `invitedAt` stays null, and
+     *                               enabling the account is what sends the invitation
+     * @param UserTypeEnum $type     suite (the administration) or frontend (the public
+     *                               site). A frontend account gets ROLE_USER whatever
+     *                               `$role` is: the frontend has only one role
      */
     public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Suite): User;
 

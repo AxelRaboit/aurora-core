@@ -7,17 +7,17 @@ namespace Aurora\Core\Locale\Service;
 interface TranslationLocaleSyncerInterface
 {
     /**
-     * Parmi les translations existantes en DB (indexées par locale), retourne
-     * celles qu'il faut supprimer pour refléter l'input :
+     * Among the translations existing in DB (keyed by locale), returns the
+     * ones to delete to reflect the input:
      *
-     *  - les locales hors du mode actif (ex: EN quand single FR) sont
-     *    **préservées** systématiquement (réversibilité du single-locale mode) ;
-     *  - les locales actives absentes de l'input sont marquées pour suppression.
+     *  - locales outside the active mode (e.g. EN when single FR) are always
+     *    **preserved** (so the single-locale mode can be reversed);
+     *  - active locales missing from the input are marked for deletion.
      *
      * @template T
      *
      * @param iterable<string, T> $existing     existing translations keyed by locale
-     * @param list<string>        $inputLocales locales présentes dans l'input
+     * @param list<string>        $inputLocales locales present in the input
      *
      * @return list<T>
      */

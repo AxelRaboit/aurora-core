@@ -21,13 +21,13 @@ export const SORTS = ["name", "updated", "created", "manual"];
  * a note is a thing in it; every file browser ever written agrees, and Craft
  * does too.
  *
- * **Deux façons de regarder le même carnet.** Rangée, la liste montre ce
- * que l'endroit contient : ses dossiers, puis ses notes, et le reste est
- * derrière les dossiers. À plat, elle montre toutes les notes d'ici et de
- * dessous d'un coup, comme s'il n'y avait pas de rangement - ce qu'on veut
- * quand on cherche quelque chose dont on ne sait plus où on l'a mis. Les
- * dossiers disparaissent alors de la liste : les afficher en plus des notes
- * qu'ils contiennent montrerait deux fois la même chose.
+ * **Two ways of looking at the same notebook.** Filed, the list shows what
+ * the place contains: its folders, then its notes, and the rest is behind
+ * the folders. Flattened, it shows all the notes from here and below at
+ * once, as if there were no filing - what one wants when looking for
+ * something one no longer knows where one put. The folders then disappear
+ * from the list: showing them on top of the notes they contain would show
+ * the same thing twice.
  *
  * Navigation writes the real address with `pushState` rather than reloading:
  * the whole notebook is already in the page, so entering a folder is a filter
@@ -51,27 +51,27 @@ export function useNoteLibrary({
     const flat = ref("1" === readStored(FLAT_KEY, ["0", "1"], "0"));
 
     /**
-     * L'étiquette qu'on regarde, s'il y en a une.
+     * The tag being viewed, if there is one.
      *
-     * Pas retenue d'une visite à l'autre, contrairement à la vue et au tri :
-     * c'est une question qu'on pose, pas une façon de lire. Retrouver son
-     * carnet filtré le lendemain sans savoir pourquoi serait un piège.
+     * Not remembered from one visit to the next, unlike the view and the
+     * sort: it is a question one asks, not a way of reading. Finding one's
+     * notebook filtered the next day without knowing why would be a trap.
      */
     const tag = ref(null);
 
     /**
-     * Ce qu'on regarde : tout, ce qui est ouvert à l'équipe, ou ce qui ne
-     * l'est pas.
+     * What is being viewed: everything, what is open to the team, or what
+     * is not.
      *
-     * **Savoir ce qu'on expose vaut mieux que de le deviner.** Une fois le
-     * partage possible, la question « qu'est-ce qui est sorti de chez
-     * moi » se pose vraiment, et parcourir les cartes une par une pour y
-     * répondre serait absurde. Trois états plutôt que deux : « privé »
-     * répond à la question inverse, qui est celle qu'on se pose quand on
-     * cherche où ranger quelque chose de sensible.
+     * **Knowing what one exposes is better than guessing it.** Once sharing
+     * is possible, the question "what has left my place" really comes up,
+     * and going through the cards one by one to answer it would be absurd.
+     * Three states rather than two: "privé" answers the opposite question,
+     * which is the one asked when looking for where to file something
+     * sensitive.
      *
-     * Pas retenu d'une visite à l'autre, comme l'étiquette : c'est une
-     * question qu'on pose, pas une façon de lire.
+     * Not remembered from one visit to the next, like the tag: it is a
+     * question one asks, not a way of reading.
      */
     const visibility = ref("all");
 
@@ -119,10 +119,10 @@ export function useNoteLibrary({
     });
 
     /**
-     * Ce qui est ouvert, et tout ce qui se trouve dessous.
+     * What is open, and everything below it.
      *
-     * Borné par le nombre de dossiers : une boucle dans les parents ne doit
-     * pas figer la page, pas plus ici que dans le fil d'Ariane.
+     * Bounded by the number of folders: a loop in the parents must not
+     * freeze the page, here no more than in the breadcrumb.
      */
     const subtreeIds = computed(() => {
         const ids = new Set([currentFolderId.value]);
@@ -148,14 +148,14 @@ export function useNoteLibrary({
         return ids;
     });
 
-    // À plat comme sous une étiquette, il n'y a pas de dossier à montrer :
-    // les notes sont déjà toutes là, et les redonner en cartes doublerait
-    // l'affichage. Un dossier ne porte d'ailleurs pas d'étiquette.
+    // Flattened as under a tag, there is no folder to show: the notes are
+    // all already there, and giving them again as cards would double the
+    // display. A folder does not carry a tag anyway.
     /**
-     * Le filtre de visibilité, posé sur un dossier comme sur une note.
+     * The visibility filter, applied to a folder as to a note.
      *
-     * « Partagé » veut dire : dans un autre espace que le sien. C'est
-     * l'espace qui dit qui lit, plus une marque posée sur la ligne.
+     * "Partagé" means: in a space other than one's own. The space says who
+     * reads, no longer a mark set on the row.
      */
     function matchesVisibility(item) {
         if ("all" === visibility.value) return true;
@@ -176,11 +176,11 @@ export function useNoteLibrary({
     );
 
     /**
-     * Une étiquette se cherche dans tout le carnet, pas dans un dossier.
+     * A tag is searched across the whole notebook, not within a folder.
      *
-     * C'est la question qu'on pose en cliquant dessus : « où sont mes notes
-     * de repérage », pas « lesquelles de celles-ci ». La limiter au dossier
-     * ouvert rendrait le clic muet une fois sur deux.
+     * It is the question asked when clicking it: "where are my location
+     * scouting notes", not "which of these". Limiting it to the open folder
+     * would make the click silent one time out of two.
      */
     const childNotes = computed(() => {
         if (null !== tag.value) {
@@ -198,7 +198,7 @@ export function useNoteLibrary({
         );
     });
 
-    /** Le nom du dossier qui contient une note, pour le dire sur sa carte. */
+    /** The name of the folder holding a note, to say it on its card. */
     function folderNameOf(id) {
         return foldersById.value.get(normaliseId(id))?.name ?? null;
     }
@@ -221,13 +221,13 @@ export function useNoteLibrary({
     );
 
     /**
-     * Le rang de deux éléments, avant que le sens s'en mêle.
+     * The rank of two items, before the direction gets involved.
      *
-     * **Il n'y a jamais d'égalité au bout.** Une importation donne la même
-     * seconde à trente notes, et un tri par date les laissait alors dans un
-     * ordre que le bouton de sens ne changeait pas : il avait l'air cassé,
-     * et il ne l'était pas. Le nom départage, puis l'identifiant, qui lui
-     * est unique - ainsi inverser le sens inverse toujours quelque chose.
+     * **There is never a tie at the end.** An import gives the same second
+     * to thirty notes, and a sort by date then left them in an order the
+     * direction button did not change: it looked broken, and it was not.
+     * The name breaks the tie, then the id, which is unique - so reversing
+     * the direction always reverses something.
      */
     function rank(a, b, labelOf) {
         if ("manual" === sort.value) {
@@ -237,8 +237,8 @@ export function useNoteLibrary({
         } else if ("name" !== sort.value) {
             const field = "created" === sort.value ? "createdAt" : "updatedAt";
 
-            // Une date illisible vaut zéro plutôt que `NaN` : un comparateur
-            // qui rend `NaN` laisse l'ordre à la merci du moteur.
+            // An unreadable date is zero rather than `NaN`: a comparator that
+            // returns `NaN` leaves the order at the engine's mercy.
             const at = (item) => {
                 const value = Date.parse(item[field]);
 
@@ -250,8 +250,8 @@ export function useNoteLibrary({
             if (0 !== byDate) return byDate;
         }
 
-        // `localeCompare` avec `numeric` pour que « Note 2 » précède
-        // « Note 10 », que la comparaison de codes inverse.
+        // `localeCompare` with `numeric` so that "Note 2" comes before
+        // "Note 10", which a code comparison reverses.
         const byName = String(labelOf(a) ?? "").localeCompare(
             String(labelOf(b) ?? ""),
             undefined,
@@ -277,9 +277,9 @@ export function useNoteLibrary({
      * the same screen on a reload.
      */
     function openFolder(id, { push = true } = {}) {
-        // Zéro n'est pas un dossier : aucune séquence ne le distribue, donc
-        // un zéro qui arrive ici vient d'un `Number(null)` en chemin, et il
-        // veut dire la racine.
+        // Zero is not a folder: no sequence hands it out, so a zero arriving
+        // here comes from a `Number(null)` along the way, and it means the
+        // root.
         const next = normaliseId(id) || null;
         currentFolderId.value = next;
 
@@ -318,8 +318,8 @@ export function useNoteLibrary({
     function setSort(value) {
         if (!SORTS.includes(value)) return;
 
-        // L'ordre manuel appartient à un dossier : à plat, il n'a personne
-        // à qui appartenir.
+        // Manual order belongs to a folder: flattened, it has nobody to
+        // belong to.
         if (flat.value && "manual" === value) return;
 
         sort.value = value;
@@ -327,12 +327,12 @@ export function useNoteLibrary({
     }
 
     /**
-     * Passer du rangé au tout-à-plat.
+     * Switch from filed to completely flat.
      *
-     * L'ordre manuel n'a plus de sens à plat - deux notes de deux dossiers
-     * n'ont pas de position commune - donc on retombe sur la date, qui est
-     * le tri par défaut et le seul qui veuille dire quelque chose quand on
-     * mélange des endroits.
+     * Manual order no longer makes sense when flat - two notes from two
+     * folders have no common position - so we fall back to the date, which
+     * is the default sort and the only one that means something when places
+     * are mixed.
      */
     function toggleFlat() {
         flat.value = !flat.value;
@@ -342,11 +342,11 @@ export function useNoteLibrary({
     }
 
     /**
-     * Regarder une étiquette, ou revenir à l'endroit où l'on était.
+     * View a tag, or go back to the place one was in.
      *
-     * Le dossier ouvert n'est pas perdu pendant ce temps : il est toujours
-     * dans l'adresse et dans le fil d'Ariane, et fermer l'étiquette y
-     * ramène sans naviguer.
+     * The open folder is not lost in the meantime: it is still in the
+     * address and in the breadcrumb, and closing the tag goes back there
+     * without navigating.
      */
     function setTag(value) {
         tag.value =
@@ -355,7 +355,7 @@ export function useNoteLibrary({
                 : String(value);
     }
 
-    /** Dans un espace partagé, donc lisible par d'autres que soi. */
+    /** In a shared space, so readable by others than oneself. */
     function isShared(item) {
         return (
             null !== personalSpaceId &&
@@ -365,10 +365,10 @@ export function useNoteLibrary({
     }
 
     /**
-     * Fait tourner le filtre : tout, partagés, privés, et retour.
+     * Cycles the filter: everything, shared, private, and back.
      *
-     * Un seul bouton plutôt que trois : la barre en porte déjà six, et
-     * l'infobulle dit lequel des trois états est en vigueur.
+     * A single button rather than three: the bar already carries six, and
+     * the tooltip says which of the three states is in force.
      */
     function cycleVisibility() {
         visibility.value =

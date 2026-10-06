@@ -1,13 +1,13 @@
 /**
- * Le chemin d'un dossier depuis la racine, le plus haut d'abord.
+ * A folder's path from the root, the highest first.
  *
- * C'est ce qu'écrit le fil d'Ariane au-dessus d'une note ouverte, et ce que la
- * modale de création dit de l'endroit où elle range. La boucle compte ses
- * tours : un carnet abîmé dont un dossier se désignerait lui-même doit donner
- * un chemin court, pas une page figée.
+ * It is what the breadcrumb writes above an open note, and what the creation
+ * modal says of the place where it files. The loop counts its turns: a
+ * damaged notebook where a folder designated itself must give a short path,
+ * not a frozen page.
  *
- * @param {Array} folders           les dossiers de la personne, à plat
- * @param {number|null} folderId    le dossier d'arrivée ; `null` = la racine
+ * @param {Array} folders           the person's folders, flat
+ * @param {number|null} folderId    the target folder; `null` = the root
  * @returns {Array<{id: number, name: string, color: ?string}>}
  */
 export function folderPath(folders, folderId) {

@@ -16,12 +16,12 @@ import { ref, computed } from "vue";
  *                                   or null when items are updated externally
  * @param {(item: T, lowerQuery: string) => boolean} matcher  filter predicate
  *
- * **Le filtre se lit dans l'adresse au premier rendu.** `useUrlSearchSync`
- * écrit `?search=` dans l'URL pour qu'une liste filtrée se partage ; sans cette
- * lecture au démarrage, le lien arrivait sur une liste entière et le mot tapé
- * ne servait qu'à celui qui l'avait tapé. C'est aussi ce qui permet d'envoyer
- * quelqu'un d'un écran à un autre déjà filtré - d'un client vers ses espaces,
- * par exemple.
+ * **The filter is read from the address on the first render.** `useUrlSearchSync`
+ * writes `?search=` into the URL so that a filtered list can be shared; without
+ * this read at startup, the link landed on a whole list and the typed word only
+ * served the person who typed it. It is also what makes it possible to send
+ * someone from one screen to another already filtered - from a client to their
+ * spaces, for example.
  * @returns {{
  *   items: import('vue').Ref<T[]>,
  *   searchInput: import('vue').Ref<string>,
@@ -30,9 +30,9 @@ import { ref, computed } from "vue";
  * }}
  */
 /**
- * Ce que l'adresse demande de chercher, s'il y a quelque chose.
+ * What the address asks to search for, if anything.
  *
- * Enveloppé : une URL exotique ne doit pas empêcher une liste de s'afficher.
+ * Wrapped: an exotic URL must not prevent a list from showing.
  */
 function initialSearch() {
     try {

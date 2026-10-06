@@ -20,7 +20,7 @@ use function array_key_exists;
 use function mb_trim;
 
 /**
- * Lit et écrit l'onglet Google Drive de l'écran des réglages.
+ * Reads and writes the Google Drive tab of the settings screen.
  */
 #[Route('/suite/studio/drive/settings', name: 'suite_studio_drive_settings')]
 #[IsGranted('configuration.settings.manage')]
@@ -46,15 +46,15 @@ final class DriveSettingsController extends AbstractController
 
         $enabled = true === ($payload['enabled'] ?? false);
 
-        // Absent veut dire « laisse la clé enregistrée tranquille ».
+        // Absent means "leave the stored key alone".
         $key = array_key_exists('serviceAccount', $payload)
             ? mb_trim((string) $payload['serviceAccount'])
             : null;
 
-        // **Refusée ici plutôt qu'au premier appel.** Une clé collée de
-        // travers - le fichier à moitié sélectionné, une clé OAuth prise pour
-        // une clé de compte de service - donnerait sinon une intégration qui
-        // s'allume et ne répond jamais, sans dire pourquoi.
+        // **Refused here rather than on the first call.** A key pasted wrong
+        // - the file half selected, an OAuth key mistaken for a service
+        // account key - would otherwise give an integration that switches on
+        // and never answers, without saying why.
         if (null !== $key && '' !== $key && !GoogleServiceAccount::fromJson($key) instanceof GoogleServiceAccount) {
             return $this->jsonFailure('suite.studio.drive.errors.key_invalid');
         }

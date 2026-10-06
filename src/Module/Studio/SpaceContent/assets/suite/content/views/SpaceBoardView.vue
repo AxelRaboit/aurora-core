@@ -43,9 +43,9 @@ const { t } = useI18n();
              its columns shrink to fit stops being scannable at the fourth one,
              and a client's steps are theirs to add. -->
         <div class="overflow-x-auto pb-2 scrollbar-thin">
-            <!-- Les étapes se réordonnent par la poignée de leur en-tête : la
-                 route existait, l'écran ne l'appelait pas, et une étape
-                 ajoutée restait pour toujours au bout du tableau. -->
+            <!-- Stages are reordered by the handle in their header: the route
+                 existed, the screen did not call it, and an added stage stayed
+                 at the end of the board forever. -->
             <VueDraggable
                 :model-value="grouped"
                 handle=".column-drag-handle"
@@ -79,8 +79,8 @@ const { t } = useI18n();
                         <h3 class="min-w-0 flex-1 truncate text-sm font-medium text-primary">
                             {{ group.column.name }}
                         </h3>
-                        <!-- Une étape neuve est cachée au client : le dire sur
-                             l'en-tête évite d'ouvrir son formulaire pour le savoir. -->
+                        <!-- A new stage is hidden from the client: saying so on
+                             the header saves opening its form to find out. -->
                         <span
                             v-if="!group.column.visibleToClient"
                             class="shrink-0 text-muted"

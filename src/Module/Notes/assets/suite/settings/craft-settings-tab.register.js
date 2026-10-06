@@ -1,7 +1,7 @@
 import { registerSettingsTabComponent } from "@configuration/suite/settings/tabRegistry.js";
 import CraftTab from "./CraftTab.vue";
 
-// Correspond à `componentName: 'craft'` sur l'onglet que le module Notes
-// contribue. Enregistré depuis le module plutôt qu'importé par le registre du
-// noyau : c'est ainsi qu'un module garde ses propres écrans.
+// Matches `componentName: 'craft'` on the tab the Notes module contributes.
+// Registered from the module rather than imported by the core registry: that
+// is how a module keeps its own screens.
 registerSettingsTabComponent("craft", CraftTab);

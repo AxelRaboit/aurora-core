@@ -13,22 +13,21 @@ use function mb_trim;
 use function str_starts_with;
 
 /**
- * Si cette installation peut lire un espace Craft, et lequel.
+ * Whether this installation can read a Craft space, and which one.
  *
- * **Éteinte tant que personne ne l'allume**, comme les autres intégrations :
- * Aurora est livrée à des clients, et le compte derrière le jeton est celui de
- * la personne qui installe, pas le mien.
+ * **Off until someone turns it on**, like the other integrations: Aurora is
+ * delivered to clients, and the account behind the token belongs to the
+ * person who installs it, not to me.
  *
- * **La connexion ne porte que les documents choisis.** Craft propose les deux :
- * tout l'espace, ou une sélection. Une installation d'Aurora vit sur un serveur
- * loué, et un jeton qui y dort ne doit pas ouvrir l'intégralité d'un savoir
- * personnel pour qu'un brief atterrisse dans une note. C'est donc dans
- * Craft qu'on désigne ce qu'Aurora a le droit de voir, et l'écran d'import ne
- * montre rien d'autre.
+ * **The connection only carries the chosen documents.** Craft offers both:
+ * the whole space, or a selection. An Aurora installation lives on a rented
+ * server, and a token sleeping there must not open the whole of a body of
+ * personal knowledge so that a brief can land in a note. So it is in Craft
+ * that you designate what Aurora is allowed to see, and the import screen
+ * shows nothing else.
  *
- * Le jeton est chiffré au repos avec {@see EncryptionServiceInterface}, comme
- * les mots de passe des points de montage : un dump de base reste un dump de
- * base.
+ * The token is encrypted at rest with {@see EncryptionServiceInterface}, like
+ * the mount point passwords: a database dump stays a database dump.
  */
 final readonly class CraftSettings
 {
@@ -38,10 +37,10 @@ final readonly class CraftSettings
     ) {}
 
     /**
-     * La seule question que le reste du code pose.
+     * The only question the rest of the code asks.
      *
-     * Les trois conditions à chaque fois : une adresse sans jeton ne répond
-     * rien, un jeton sans adresse ne va nulle part.
+     * All three conditions every time: an address without a token answers
+     * nothing, a token without an address goes nowhere.
      */
     public function isEnabled(): bool
     {
@@ -51,19 +50,19 @@ final readonly class CraftSettings
     }
 
     /**
-     * L'adresse, sans barre oblique finale.
+     * The address, without a trailing slash.
      *
-     * Craft la donne telle quelle et les chemins s'y ajoutent : la normaliser
-     * ici évite le `//documents` qu'une adresse recopiée avec sa barre produit
-     * une fois sur deux.
+     * Craft gives it as is and paths are appended to it: normalizing it here
+     * avoids the `//documents` that an address copied with its slash produces
+     * one time out of two.
      */
     public function endpoint(): string
     {
         $stored = mb_trim((string) $this->settingRepository->get(CraftSettingEnum::Endpoint->value, ''));
 
         if ('' === $stored || !str_starts_with($stored, 'https://')) {
-            // Une adresse en clair refusée plutôt que corrigée : un jeton
-            // parti en HTTP est un jeton lu par qui tient le réseau.
+            // A plain-text address refused rather than corrected: a token
+            // sent over HTTP is a token read by whoever holds the network.
             return '';
         }
 
@@ -78,18 +77,18 @@ final readonly class CraftSettings
             return '';
         }
 
-        // Un jeton écrit avant une rotation de la clé de chiffrement se
-        // déchiffre en null. Traité comme absent plutôt que fatal :
-        // l'intégration se tait et l'onglet redemande le jeton, qui est la
-        // seule chose qui répare.
+        // A token written before a rotation of the encryption key decrypts
+        // to null. Treated as absent rather than fatal: the integration goes
+        // quiet and the tab asks for the token again, which is the only
+        // thing that fixes it.
         return $this->encryption->decrypt($stored) ?? '';
     }
 
     /**
-     * Ce que l'écran de réglages a le droit de savoir.
+     * What the settings screen is allowed to know.
      *
-     * `hasToken` et non le jeton : le navigateur doit dessiner « un jeton est
-     * enregistré », rien de plus.
+     * `hasToken` and not the token: the browser must draw "a token is
+     * saved", nothing more.
      *
      * @return array{enabled: bool, endpoint: string, hasToken: bool}
      */
@@ -103,10 +102,10 @@ final readonly class CraftSettings
     }
 
     /**
-     * @param string|null $token null laisse le jeton enregistré tranquille -
-     *                           c'est ainsi qu'un formulaire qui ne l'a jamais
-     *                           reçu enregistre le reste de l'onglet. Une
-     *                           chaîne vide est un « oublie-le » explicite.
+     * @param string|null $token null leaves the saved token alone -
+     *                           that is how a form that never received it
+     *                           saves the rest of the tab. An empty
+     *                           string is an explicit "forget it".
      */
     public function save(
         bool $enabled,

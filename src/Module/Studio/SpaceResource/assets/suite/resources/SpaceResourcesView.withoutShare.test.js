@@ -1,9 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
-// Lu au chargement du module `usePrivileges` : posé avant l'import du
-// composant, comme dans le test voisin, mais avec le droit de modifier
-// seulement.
+// Read when the `usePrivileges` module loads: set before the import of the
+// component, as in the neighbouring test, but with the right to edit only.
 vi.hoisted(() => {
     window.__privileges__ = ["studio.spaces.view", "studio.spaces.edit"];
 });
@@ -13,10 +12,10 @@ import SpaceResourcesView from "./SpaceResourcesView.vue";
 const i18n = createTestI18n();
 
 /**
- * Montrer ou cacher une ressource au client demande le droit de partager
- * l'espace : sans lui, la ligne se range, se modifie et se supprime, mais le
- * geste de visibilité n'est pas offert, ni dans la liste ni dans le
- * formulaire.
+ * Showing or hiding a resource from the client requires the right to share
+ * the space: without it, the row can be reordered, edited and deleted, but
+ * the visibility gesture is not offered, neither in the list nor in the
+ * form.
  */
 describe("SpaceResourcesView without the right to share", () => {
     it("keeps the editing gestures and hides the visibility toggle", async () => {

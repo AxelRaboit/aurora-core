@@ -4,15 +4,15 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 
 /**
- * Les onglets d'une entrée du menu de Studio qui mène à plusieurs pages.
+ * The tabs of a Studio menu entry that leads to several pages.
  *
- * Contrats et trames, espaces et calendrier : chaque fois, une seule entrée
- * dans le menu, et des pastilles en tête de page pour passer de l'une à
- * l'autre. Les pastilles reprennent celles des livrables (« Mes livrables »,
- * « Partagés ») ; chaque onglet est une vraie page, avec son adresse.
+ * Contracts and templates, spaces and calendar: each time, a single entry in
+ * the menu, and pills at the top of the page to switch from one to the
+ * other. The pills reuse the deliverables' ones ("Mes livrables",
+ * "Partagés"); each tab is a real page, with its address.
  *
- * Un onglet qui demande un droit que le lecteur n'a pas disparaît, et s'il
- * n'en reste qu'un, la rangée aussi : un seul bouton n'offre aucun choix.
+ * A tab that requires a right the reader does not have disappears, and if
+ * only one is left, so does the row: a single button offers no choice.
  */
 const props = defineProps({
     current: { type: String, required: true },

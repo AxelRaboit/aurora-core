@@ -9,15 +9,15 @@ use Aurora\Module\Configuration\Setting\Configuration\ConfigurationTabProviderIn
 use Aurora\Module\Notes\NotesContext;
 
 /**
- * Pose l'onglet « Craft » sur l'écran des réglages.
+ * Puts the "Craft" tab on the settings screen.
  *
- * Aucun champ déclaré : le rendu générique enverrait le jeton au navigateur
- * comme une valeur ordinaire. L'onglet se dessine donc lui-même, exactement
- * comme celui de Pexels et pour la même raison.
+ * No declared field: the generic rendering would send the token to the
+ * browser like an ordinary value. The tab therefore draws itself, exactly
+ * like the Pexels one and for the same reason.
  *
- * **Seulement tant que les notes sont allumées.** L'import arrive dans une
- * note, et la route de l'onglet se ferme avec le module : un onglet qui ne
- * se charge plus est pire qu'un onglet absent.
+ * **Only as long as notes are on.** The import lands in a note, and the tab's
+ * route closes with the module: a tab that no longer loads is worse than a
+ * missing tab.
  */
 final readonly class CraftConfigurationTabProvider implements ConfigurationTabProviderInterface
 {

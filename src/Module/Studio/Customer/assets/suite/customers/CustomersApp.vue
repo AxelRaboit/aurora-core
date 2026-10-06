@@ -30,11 +30,11 @@ const props = defineProps({
     customers: { type: Array, default: () => [] },
     currencies: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
-    /** La page d'un client, avec `__id__` : la fiche se modifie là. */
+    /** A customer's page, with `__id__`: the sheet is edited there. */
     showPath: { type: String, required: true },
     convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
-    /** La liste des espaces, où l'on va depuis un client. */
+    /** The spaces list, reached from a customer. */
     spacesPath: { type: String, default: "" },
 });
 
@@ -80,11 +80,11 @@ const actionsFor = useCustomerRowActions({
 });
 
 /**
- * Clients ou prospects, jamais les deux.
+ * Customers or prospects, never both.
  *
- * Retenu d'un ecran a l'autre, comme les vues d'un espace : quelqu'un qui
- * travaille ses pistes une matiniere entiere ne veut pas rechoisir a chaque
- * retour sur la liste.
+ * Remembered from one screen to the next, like a space's views: someone
+ * working their leads for a whole morning does not want to choose again
+ * every time they come back to the list.
  */
 const { choice: tab } = usePersistedChoice("studio.customers.tab", "client", [
     "client",
@@ -104,7 +104,7 @@ const tabs = computed(() =>
     })),
 );
 
-/** La page du client : le nom y mène, sur la liste comme sur les cartes. */
+/** The customer's page: the name leads there, on the list as on the cards. */
 function pageOf(customer) {
     return buildPath(props.showPath, { id: customer.id });
 }
@@ -174,22 +174,22 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.customers.guide.title')" storage-key="customers-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.customers.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- Deux onglets plutot qu'une colonne : un statut a deux valeurs sur
-             lequel on veut filtrer est un filtre, pas une colonne - et une
-             pastille repetee sur chaque ligne d'un onglet qui porte deja le mot
-             ne distingue plus rien.
+        <!-- Two tabs rather than a column: a two-valued status people want to
+             filter on is a filter, not a column - and a badge repeated on
+             every row of a tab that already carries the word no longer
+             distinguishes anything.
 
-             Le compte est sur l'etiquette parce que c'est lui qui rend l'autre
-             onglet visible : un prospect cree depuis un espace serait sinon
-             range quelque part que personne ne pense a ouvrir. -->
+             The count is on the label because it is what makes the other tab
+             visible: a prospect created from a space would otherwise be
+             filed somewhere nobody thinks to open. -->
         <div
             class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="group"
@@ -243,9 +243,9 @@ const pageActions = computed(() => {
                             {{ formatSiret(customer.siret) }}
                         </p>
                     </div>
-                    <!-- Les gestes derrière le bouton « … », à hauteur du titre,
-                     comme sur toutes les listes (décision d'Axel du 04/10/2026) :
-                     la carte garde sa place pour son contenu. -->
+                    <!-- The gestures behind the "…" button, level with the title,
+                     as on every list (Axel's decision of 04/10/2026): the card
+                     keeps its room for its content. -->
                     <AppRowActions class="shrink-0" :actions="actionsFor(customer)" :label="customer.legalName" />
                 </div>
             </div>
@@ -293,8 +293,8 @@ const pageActions = computed(() => {
                         class="group hover:bg-surface-2/40 transition-colors"
                     >
                         <td class="px-4 py-2">
-                            <!-- Le nom mène à sa page, où toute la fiche se lit et
-                                 se modifie. -->
+                            <!-- The name leads to their page, where the whole sheet
+                                 is read and edited. -->
                             <a :href="pageOf(customer)" class="font-medium text-primary hover:underline">
                                 {{ customer.legalName }}
                             </a>
@@ -307,8 +307,8 @@ const pageActions = computed(() => {
                                     {{ formatCapital(customer) }}
                                 </span>
                             </div>
-                            <!-- Ses espaces, d'un clic : la fiche d'un client ne
-                                 disait pas quels projets tournaient pour lui. -->
+                            <!-- Their spaces, in one click: a customer sheet did
+                                 not say which projects were running for them. -->
                             <div v-if="customer.spaces?.length" class="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-xs">
                                 <a
                                     v-for="space in customer.spaces"
@@ -320,7 +320,7 @@ const pageActions = computed(() => {
                                     {{ space.name }}
                                 </a>
                             </div>
-                            <!-- Ses contrats, d'un clic : la liste s'ouvre filtrée sur lui. -->
+                            <!-- Their contracts, in one click: the list opens filtered on them. -->
                             <a
                                 v-if="customer.contracts?.count"
                                 :href="customer.contracts.url"

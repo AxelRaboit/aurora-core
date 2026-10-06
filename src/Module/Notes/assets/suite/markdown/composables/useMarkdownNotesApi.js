@@ -48,7 +48,7 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Post, resolvePath(props.updatePath, id), payload),
         remove: (id) =>
             call(HttpMethod.Post, resolvePath(props.deletePath, id), {}),
-        /** `spaceId` dit quelle racine quand `folderId` est nul. */
+        /** `spaceId` says which root when `folderId` is null. */
         move: (id, folderId, spaceId = null) =>
             call(HttpMethod.Post, resolvePath(props.movePath, id), {
                 folderId,
@@ -57,23 +57,23 @@ export function useMarkdownNotesApi(props) {
         favorite: (id) =>
             call(HttpMethod.Post, resolvePath(props.favoritePath, id), {}),
         /**
-         * Les notes d'un dossier, dans l'ordre voulu.
+         * A folder's notes, in the wanted order.
          *
-         * Envoie ce que le serveur lit - `{entries: [{id, folderId,
-         * position}]}` - et non une liste d'identifiants : l'appel promettait
-         * `{ids}` depuis toujours, que le contrôleur ignorait en silence.
+         * Sends what the server reads - `{entries: [{id, folderId,
+         * position}]}` - and not a list of ids: the call had always promised
+         * `{ids}`, which the controller silently ignored.
          */
         reorder: (entries) =>
             call(HttpMethod.Post, props.reorderPath, { entries }),
-        /** Une copie juste sous la note, dans le même dossier. */
+        /** A copy right below the note, in the same folder. */
         duplicate: (id) =>
             call(HttpMethod.Post, resolvePath(props.duplicatePath, id), {}),
-        /** Faire de la note un modèle, ou la rendre à l'ordinaire. */
+        /** Make the note a template, or turn it back into an ordinary one. */
         markTemplate: (id, template) =>
             call(HttpMethod.Post, resolvePath(props.templatePath, id), {
                 template,
             }),
-        /** Les versions passées d'une note, les plus récentes d'abord. */
+        /** A note's past versions, most recent first. */
         revisions: (id) =>
             call(HttpMethod.Get, resolvePath(props.revisionsPath, id)),
         revision: (id, revisionId) =>
@@ -93,7 +93,7 @@ export function useMarkdownNotesApi(props) {
                 ),
                 {},
             ),
-        /** Une note neuve depuis un modèle : `{folderId, spaceId, title}`. */
+        /** A new note from a template: `{folderId, spaceId, title}`. */
         fromTemplate: (id, payload) =>
             call(
                 HttpMethod.Post,
@@ -134,11 +134,11 @@ export function useMarkdownNotesApi(props) {
         },
 
         /**
-         * Des fichiers Markdown, ou un zip, remis en notes.
+         * Markdown files, or a zip, turned back into notes.
          *
-         * Le `FormData` est construit par l'appelant : c'est lui qui sait
-         * dans quel dossier on importe, et le composer ici demanderait de lui
-         * passer les deux moitiés séparément pour les recoller aussitôt.
+         * The `FormData` is built by the caller: it knows which folder is
+         * being imported into, and building it here would require passing
+         * the two halves separately only to glue them back right away.
          */
         import: async (formData) => {
             const payload = await request(props.importPath, null, {

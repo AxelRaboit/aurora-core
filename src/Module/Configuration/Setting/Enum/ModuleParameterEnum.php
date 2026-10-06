@@ -213,10 +213,10 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // customer. Templates without the customer screen would build
             // documents with nobody to address them to.
             self::StudioContracts => self::StudioCustomers->value,
-            // Un livrable de Studio, page ou présentation, ne dépend que du
-            // module. Il peut nommer le client pour qui il est écrit, mais le
-            // champ est facultatif exprès : une stratégie écrite pour soi n'a
-            // pas de client, et exiger l'écran des clients la rendrait
+            // A Studio deliverable, page or presentation, depends only on the
+            // module. It can name the client it is written for, but the field
+            // is optional on purpose: a strategy written for oneself has no
+            // client, and requiring the clients screen would make it
             // impossible.
             self::StudioDeliverables => self::StudioSuite->value,
             // A space is the space of a customer: it is created from the

@@ -18,16 +18,16 @@ import FormPreview from "./FormPreview.vue";
 import { iconForType } from "./fieldTypeIcons.js";
 
 /**
- * Les questions d'un formulaire, et le formulaire tel qu'on le verra.
+ * A form's questions, and the form as it will be seen.
  *
- * À gauche la liste, rangée par étape quand il y en a : une étape est un
- * titre au-dessus de ses questions, et plus un numéro à taper dans chaque
- * question sans voir les autres. À droite l'aperçu, et au-dessus de lui la
- * question ouverte - on règle et on regarde le résultat au même endroit.
+ * On the left the list, grouped by step when there are steps: a step is a
+ * title above its questions, no longer a number to type into each question
+ * without seeing the others. On the right the preview, and above it the open
+ * question - you adjust and see the result in the same place.
  *
- * Quand la place manque (téléphone, ou sidemenu ouverte sur un petit écran),
- * il n'y a pas de droite : la question s'ouvre en plein écran, l'aperçu passe
- * sous la liste.
+ * When space runs short (a phone, or the sidemenu open on a small screen),
+ * there is no right side: the question opens full screen, the preview moves
+ * below the list.
  */
 const props = defineProps({
     form: { type: Object, required: true },
@@ -45,15 +45,15 @@ const {
 const { fieldTypes, editLocale, labelOf, saveSteps, savingSteps } = inject("formEditor");
 
 /**
- * Deux colonnes quand la place le permet, mesurée sur le conteneur et jamais
- * sur la fenêtre : la sidemenu prend 480 pixels dès 1024, et un « lg: » de
- * Tailwind ouvrait les deux colonnes là où il en restait 410 pour les deux.
- * 900, c'est la liste à l'aise à côté d'un panneau de 28rem.
+ * Two columns when there is room, measured on the container and never on the
+ * window: the sidemenu takes 480 pixels from 1024 on, and a Tailwind "lg:"
+ * opened both columns where 410 were left for the two of them. 900 is the
+ * list at ease next to a 28rem panel.
  */
 const { container, isNarrow } = useNarrowContainer(900);
 const wide = computed(() => !isNarrow.value);
 
-// ── Ajouter une question ────────────────────────────────────────────────────
+// ── Add a question ──────────────────────────────────────────────────────────
 
 const picking = ref(false);
 const pickStep = ref(null);
@@ -68,11 +68,11 @@ function pick(type) {
     openFieldCreate(type, pickStep.value);
 }
 
-// ── Étapes ──────────────────────────────────────────────────────────────────
+// ── Steps ───────────────────────────────────────────────────────────────────
 
 const steps = computed(() => props.form.steps ?? []);
 
-/** Les titres tels qu'on les tape, enregistrés en quittant le champ. */
+/** The titles as they are typed, saved when leaving the field. */
 const stepTitles = ref(steps.value.map((step) => step.title ?? ""));
 
 function syncTitles() {
@@ -92,9 +92,9 @@ function renameStep(index) {
 }
 
 /**
- * Deux étapes d'un coup : une seule n'a rien d'un formulaire en plusieurs
- * temps, et la seconde est celle qu'on vient chercher. Les questions déjà là
- * restent dans la première.
+ * Two steps at once: a single one is nothing like a multi-step form, and the
+ * second is the one people come for. The questions already there stay in the
+ * first.
  */
 function splitIntoSteps() {
     void commitSteps([{ title: "" }, { title: "" }]);
@@ -105,10 +105,10 @@ function addStep() {
 }
 
 /**
- * Seule la dernière étape se retire, et seulement vide. Retirer celle du
- * milieu renumérote les suivantes, et leurs questions changeraient d'étape
- * sans qu'on l'ait demandé ; en retirer une pleine les ferait disparaître du
- * formulaire. La dernière qui reste, elle, ramène tout sur une page.
+ * Only the last step can be removed, and only when empty. Removing one in the
+ * middle renumbers the following ones, and their questions would change step
+ * without anyone asking; removing a full one would make them vanish from the
+ * form. Removing the last remaining one brings everything back onto one page.
  */
 function canRemoveStep(index) {
     return index === steps.value.length - 1 && (1 === steps.value.length || !fieldsOfStep(index + 1).length);
@@ -119,14 +119,14 @@ function removeStep(index) {
     void commitSteps(next.length ? next : null);
 }
 
-/** Les groupes que la liste dessine : un par étape, ou un seul sans titre. */
+/** The groups the list draws: one per step, or a single one without a title. */
 const groups = computed(() =>
     hasSteps.value
         ? steps.value.map((step, index) => ({ number: index + 1, fields: fieldsOfStep(index + 1) }))
         : [{ number: null, fields: fields.value }],
 );
 
-// ── Une ligne ───────────────────────────────────────────────────────────────
+// ── One row ─────────────────────────────────────────────────────────────────
 
 function rowActions(field) {
     return [
@@ -151,7 +151,7 @@ function rowActions(field) {
 
 const typeLabel = (type) => t(`suite.forms.field_types.${type}`);
 
-// ── Aperçu ──────────────────────────────────────────────────────────────────
+// ── Preview ─────────────────────────────────────────────────────────────────
 
 function readerField(field, locale) {
     const translation = field.translations?.[locale] ?? {};
@@ -170,9 +170,9 @@ function readerField(field, locale) {
 }
 
 /**
- * Le formulaire au format du site, la question ouverte comprise telle qu'on
- * la tape. Une question nouvelle prend un identifiant qui ne peut appartenir à
- * aucune autre, et s'ajoute à la fin de son étape.
+ * The form in the site's format, including the open question as it is being
+ * typed. A new question takes an id that cannot belong to any other, and is
+ * added at the end of its step.
  */
 const previewForm = computed(() => {
     const locale = editLocale.value;
@@ -230,8 +230,8 @@ const previewForm = computed(() => {
                 </AppButton>
             </div>
 
-            <!-- Une page ou des étapes, dit d'emblée : c'est la forme du
-                 formulaire, pas un réglage parmi d'autres. -->
+            <!-- One page or steps, said up front: it is the shape of the
+                 form, not one setting among others. -->
             <div v-if="!hasSteps" class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-surface-2/40 px-3 py-2">
                 <span class="flex items-center gap-2 text-xs text-secondary">
                     <Layers class="h-3.5 w-3.5 text-muted" :stroke-width="2" /> {{ t("suite.forms.steps.single_page") }}
@@ -250,8 +250,8 @@ const previewForm = computed(() => {
             <AppNoData v-if="!fields.length && !hasSteps" :message="t('suite.forms.fields.empty')" :hint="t('suite.forms.fields.empty_hint')" />
 
             <section v-for="group in groups" :key="group.number ?? 'all'" class="space-y-1">
-                <!-- Le titre d'une étape se tape à sa place, au-dessus de ses
-                     questions, et s'enregistre en quittant le champ. -->
+                <!-- A step's title is typed in place, above its questions,
+                     and saved when leaving the field. -->
                 <div v-if="group.number" class="flex items-center gap-2 border-b border-line/40 pb-2">
                     <span class="shrink-0 rounded-md bg-accent-600/15 px-2 py-0.5 text-xs font-medium text-accent-400">
                         {{ t("suite.forms.steps.numbered", { number: group.number }) }}
@@ -287,8 +287,9 @@ const previewForm = computed(() => {
                         class="flex items-center gap-2 rounded-md py-2 transition-colors"
                         :class="editingField?.id === field.id ? 'bg-accent-600/10 px-2' : ''"
                     >
-                        <!-- Toute la ligne ouvre la question : c'est le geste
-                             qu'on vient faire, le menu reste pour supprimer. -->
+                        <!-- The whole line opens the question: it is the
+                             gesture people come for, the menu stays for
+                             deleting. -->
                         <button
                             type="button"
                             class="flex min-w-0 flex-1 items-center gap-3 text-left"
@@ -344,8 +345,8 @@ const previewForm = computed(() => {
             </div>
         </div>
 
-        <!-- La colonne de droite : la question ouverte, puis l'aperçu dessous,
-             qui la montre déjà telle qu'on la tape. -->
+        <!-- The right column: the open question, then the preview below,
+             which already shows it as it is being typed. -->
         <div class="min-w-0 space-y-4">
             <div v-if="editorOpen && wide" class="aurora-card border-accent-500/40 p-3 sm:p-5">
                 <FormFieldPanel />
@@ -353,8 +354,8 @@ const previewForm = computed(() => {
             <FormPreview :form="previewForm" />
         </div>
 
-        <!-- Sur téléphone, la question en plein écran : un panneau de côté n'y a
-             pas de côté où se mettre. -->
+        <!-- On a phone, the question full screen: a side panel has no side
+             to sit on there. -->
         <AppModal
             :show="editorOpen && !wide"
             mobile-fullscreen

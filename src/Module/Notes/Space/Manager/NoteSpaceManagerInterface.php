@@ -12,51 +12,52 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 
 interface NoteSpaceManagerInterface
 {
-    /** Un espace partagé, dont la personne qui le crée est propriétaire. */
+    /** A shared space, owned by the person who creates it. */
     public function create(CoreUserInterface $owner, NoteSpaceInputInterface $input): NoteSpaceInterface;
 
     /**
-     * Un espace partagé que quelque chose d'autre règle (`$managedBy`) : sans
-     * propriétaire, ouvert à ses seuls membres.
+     * A shared space configured by something else (`$managedBy`): without an
+     * owner, open to its members only.
      */
     public function createManaged(string $name, string $managedBy): NoteSpaceInterface;
 
     /**
-     * Remet le nom et les membres d'un espace réglé d'ailleurs sur ceux
-     * donnés : qui n'y est plus est désinscrit, qui y arrive est inscrit.
+     * Resets the name and the members of a space configured elsewhere to the
+     * given ones: whoever is no longer there is removed, whoever arrives is
+     * added.
      *
      * @param list<array{user: CoreUserInterface, role: NoteSpaceRoleEnum}> $members
      */
     public function syncManaged(NoteSpaceInterface $space, string $name, array $members): void;
 
     /**
-     * Ce qui réglait l'espace a disparu : il passe à la corbeille et
-     * redevient un espace ordinaire, que les administrateurs reprennent.
+     * What configured the space is gone: it goes to the trash and becomes an
+     * ordinary space again, which the administrators take over.
      */
     public function releaseManaged(NoteSpaceInterface $space): void;
 
     public function update(NoteSpaceInterface $space, NoteSpaceInputInterface $input): void;
 
     /**
-     * Retire un espace partagé, avec tout ce qu'il range, sans rien
-     * détruire : il disparaît pour tout le monde et peut revenir.
+     * Removes a shared space, with everything it holds, without destroying
+     * anything: it disappears for everybody and can come back.
      */
     public function delete(NoteSpaceInterface $space): void;
 
     public function restore(NoteSpaceInterface $space): void;
 
     /**
-     * Ouvre l'espace en lecture sur le web, à cette adresse. L'adresse est
-     * déjà validée et libre : le contrôleur l'a vérifié.
+     * Opens the space for reading on the web, at this address. The address
+     * is already validated and free: the controller checked it.
      */
     public function publish(NoteSpaceInterface $space, string $slug, bool $indexable): void;
 
-    /** Referme l'espace au web ; son adresse reste la sienne pour une prochaine fois. */
+    /** Closes the space to the web; its address stays its own for next time. */
     public function unpublish(NoteSpaceInterface $space): void;
 
-    /** Inscrit une personne, ou change son rôle si elle l'est déjà. */
+    /** Adds a person as a member, or changes their role if they already are one. */
     public function setMember(NoteSpaceInterface $space, CoreUserInterface $user, NoteSpaceRoleEnum $role): NoteSpaceMemberInterface;
 
-    /** @return bool faux quand la personne n'était pas inscrite */
+    /** @return bool false when the person was not a member */
     public function removeMember(NoteSpaceInterface $space, CoreUserInterface $user): bool;
 }

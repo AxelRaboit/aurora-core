@@ -18,40 +18,39 @@ use function sprintf;
 use function str_contains;
 
 /**
- * Ce dépôt est public : rien n'y nomme une infrastructure réelle.
+ * This repository is public: nothing in it names real infrastructure.
  *
- * **La règle existait, et rien ne la tenait.** Un identifiant de vrai dossier
- * Google Drive est entré dans les fixtures et dans un test, relevé d'un écran
- * de réglages pendant une session de travail, et il y est resté jusqu'à ce
- * qu'un œil le remarque - après avoir été poussé, tagué et publié.
+ * **The rule existed, and nothing enforced it.** The identifier of a real
+ * Google Drive folder got into the fixtures and into a test, copied from a
+ * settings screen during a work session, and it stayed there until someone
+ * noticed it - after it had been pushed, tagged and released.
  *
- * Un identifiant de dossier n'ouvre rien à lui seul : il faut être partagé
- * pour le lire. Ce n'est donc pas une fuite de secret, c'est une trace : il
- * nomme une infrastructure qui appartient à quelqu'un, dans un dépôt que
- * n'importe qui lit.
+ * A folder identifier opens nothing on its own: you have to be shared on it
+ * to read it. So it is not a leaked secret, it is a trace: it names
+ * infrastructure that belongs to someone, in a repository anyone can read.
  *
- * Le test ne cherche pas « un secret », ce qui serait sans fin. Il cherche les
- * deux formes précises qui sont déjà passées, et il est fait pour grandir
- * quand une troisième passera.
+ * The test does not look for "a secret", which would be endless. It looks for
+ * the two precise shapes that already got through, and it is meant to grow
+ * when a third one gets through.
  */
 final class NoRealInfrastructureInTheRepositoryTest extends TestCase
 {
     /**
-     * Les dossiers qui décrivent le produit, par opposition à ceux qui le
-     * configurent.
+     * The directories that describe the product, as opposed to those that
+     * configure it.
      *
-     * `config/` et `.env` portent des valeurs de déploiement par nature ; ce
-     * qu'on surveille ici est le code, les fixtures et les tests, où une
-     * valeur réelle n'a aucune raison d'apparaître.
+     * `config/` and `.env` carry deployment values by nature; what is watched
+     * here is the code, the fixtures and the tests, where a real value has no
+     * reason to appear.
      */
     private const array SCANNED = ['src', 'fixtures', 'tests', 'tools'];
 
     /**
-     * Ce qui ressemble à un identifiant Google, et les formes qu'on accepte.
+     * What looks like a Google identifier, and the shapes that are accepted.
      *
-     * Un identifiant Drive fait au moins vingt-cinq caractères de base64 sans
-     * signification. Les nôtres en ont une - ils se lisent - donc ils ne
-     * déclenchent rien.
+     * A Drive identifier is at least twenty-five characters of meaningless
+     * base64. Ours have a meaning - they read as words - so they trigger
+     * nothing.
      */
     public function testNoGoogleDriveFolderIdentifierIsCommitted(): void
     {
@@ -62,9 +61,9 @@ final class NoRealInfrastructureInTheRepositoryTest extends TestCase
             foreach ($this->filesIn($root.'/'.$dir) as $file) {
                 $source = (string) file_get_contents($file->getPathname());
 
-                // Un identifiant Drive tel que Google les frappe : au moins
-                // vingt-cinq caractères, et au moins un chiffre ET une
-                // majuscule ET une minuscule, ce qu'un mot français n'a pas.
+                // A Drive identifier as Google mints them: at least
+                // twenty-five characters, and at least one digit AND one
+                // uppercase AND one lowercase letter, which a French word lacks.
                 preg_match_all("/'([A-Za-z0-9_-]{25,})'/", $source, $matches);
 
                 foreach ($matches[1] as $candidate) {
@@ -91,9 +90,9 @@ final class NoRealInfrastructureInTheRepositoryTest extends TestCase
                 continue;
             }
 
-            // `tools/` porte ses propres dépendances : ce qu'on y trouve
-            // appartient à d'autres, et les sommes de contrôle que Composer y
-            // écrit ressemblent à tout ce qu'on cherche.
+            // `tools/` carries its own dependencies: what is found there
+            // belongs to others, and the checksums Composer writes there look
+            // like everything being searched for.
             if (str_contains($file->getPathname(), '/vendor/')) {
                 continue;
             }
@@ -105,11 +104,11 @@ final class NoRealInfrastructureInTheRepositoryTest extends TestCase
     }
 
     /**
-     * Une suite frappée par une machine, et non un nom écrit par quelqu'un.
+     * A string minted by a machine, not a name written by someone.
      *
-     * Les trois classes de caractères ensemble, et aucun séparateur qui ferait
-     * des mots : « dossier-de-demonstration-aurora » n'a ni chiffre ni
-     * majuscule, « 1bbo9FyKEudNl7oeyPX-R5uX41_cPZLk3 » a les trois.
+     * All three character classes together, and no separator that would make
+     * words: "dossier-de-demonstration-aurora" has neither digit nor
+     * uppercase, "1bbo9FyKEudNl7oeyPX-R5uX41_cPZLk3" has all three.
      */
     private function looksGenerated(string $candidate): bool
     {

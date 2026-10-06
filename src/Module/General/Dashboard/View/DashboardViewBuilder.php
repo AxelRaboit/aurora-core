@@ -37,10 +37,10 @@ final readonly class DashboardViewBuilder
      * the Vue definitions match on, and the screen draws only the panels this
      * table says yes to.
      *
-     * Planning fournissait ses chiffres depuis le début sans être listé ici :
-     * ses chiffres n'étaient jamais demandés, et le calendrier annonçait zéro
-     * calendrier et zéro retard. Un module absent de cette table n'a plus de
-     * panneau du tout.
+     * Planning supplied its figures from the start without being listed here:
+     * its figures were never asked for, and the calendar announced zero
+     * calendars and zero delays. A module missing from this table no longer
+     * has a panel at all.
      *
      * @var array<string, array{toggle: string, privilege: string}>
      */

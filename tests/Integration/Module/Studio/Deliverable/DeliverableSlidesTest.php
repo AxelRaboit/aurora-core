@@ -42,14 +42,15 @@ use function tempnam;
 use const PHP_URL_PATH;
 
 /**
- * Un livrable au format diaporama : composé avec l'éditeur des présentations,
- * présenté, imprimé et lu par un lien, sous la règle d'accès des livrables.
+ * A deliverable in the slides format: composed with the presentation editor,
+ * presented, printed and read through a link, under the deliverables access
+ * rule.
  *
- * Ce qui se casserait sans bruit : une diapositive d'un autre livrable écrite
- * par l'adresse de celui-ci, les notes de l'orateur sur la page d'un lecteur,
- * une copie qui perdrait ses diapositives ou son thème, ou une image de
- * diapositive que la médiathèque croirait inutilisée. Presentations kept in a
- * client space are covered by SpaceSlidesTest.
+ * What would break silently: a slide of another deliverable written through
+ * this one's address, the speaker notes on a reader's page, a copy that would
+ * lose its slides or its theme, or a slide image the media library would
+ * believe unused. Presentations kept in a client space are covered by
+ * SpaceSlidesTest.
  */
 final class DeliverableSlidesTest extends IntegrationTestCase
 {
@@ -99,7 +100,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** Un diaporama s'ouvre dans l'éditeur des présentations ; une page, dans celui des pages. */
+    /** A slideshow opens in the presentation editor; a page, in the page editor. */
     public function testASlidesDeliverableOpensTheSlideEditor(): void
     {
         $id = $this->createSlides('Comité de pilotage');
@@ -116,7 +117,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertStringNotContainsString('DeliverableSlidesEditorApp', (string) $this->client->getResponse()->getContent());
     }
 
-    /** Ajouter, écrire, dupliquer, ranger et retirer une diapositive, par les routes de l'éditeur. */
+    /** Adding, writing, duplicating, reordering and removing a slide, through the editor's routes. */
     public function testSlidesAreWrittenThroughTheDeliverable(): void
     {
         $id = $this->createSlides('Lancement');
@@ -154,7 +155,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
-    /** L'apparence des diapositives s'écrit, revient résolue, et refuse un thème inconnu. */
+    /** The slides' appearance is written, comes back resolved, and refuses an unknown theme. */
     public function testTheAppearanceIsWrittenAndComesBackResolved(): void
     {
         $id = $this->createSlides('Thème');
@@ -176,7 +177,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
-    /** Une diapositive d'un autre livrable ne s'écrit pas par celui-ci, et une page n'a pas de diapositives. */
+    /** A slide of another deliverable cannot be written through this one, and a page has no slides. */
     public function testASlideIsOnlyWrittenThroughItsOwnDeliverable(): void
     {
         $mine = $this->createSlides('Le mien');
@@ -199,9 +200,9 @@ final class DeliverableSlidesTest extends IntegrationTestCase
     }
 
     /**
-     * La règle des livrables : un diaporama perso d'un autre ne s'ouvre pas
-     * (404), un diaporama partagé se lit sans le droit de modifier mais ne
-     * s'écrit pas (403).
+     * The deliverables rule: someone else's personal slideshow does not open
+     * (404), a shared slideshow can be read without the right to edit but
+     * cannot be written (403).
      */
     public function testTheDeliverablesAccessRuleApplies(): void
     {
@@ -226,7 +227,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertCount(1, $this->find($shared)->getSlides());
     }
 
-    /** La vue présentateur porte les notes, et demande un compte. */
+    /** The presenter view carries the notes, and requires an account. */
     public function testThePresenterPageCarriesTheNotesAndNeedsAnAccount(): void
     {
         $id = $this->createSlides('Présentateur');
@@ -253,9 +254,9 @@ final class DeliverableSlidesTest extends IntegrationTestCase
     }
 
     /**
-     * Le lien de lecture d'un diaporama montre ses diapositives, sans les notes
-     * de l'orateur, et garde les règles des liens : un mot de passe demandé
-     * sans rien nommer, un lien retiré qui ne répond plus.
+     * A slideshow's reading link shows its slides, without the speaker notes,
+     * and keeps the link rules: a password asked for without naming anything,
+     * a withdrawn link that no longer answers.
      */
     public function testTheReadingLinkShowsTheSlidesWithoutTheNotes(): void
     {
@@ -284,7 +285,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
         self::assertStringNotContainsString('Bilan du trimestre', (string) $this->client->getResponse()->getContent());
 
-        // L'aperçu de l'auteur, comme le lira le destinataire : sans notes non plus.
+        // The author's preview, as the recipient will read it: without notes either.
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/preview', $id));
         self::assertResponseIsSuccessful();
@@ -300,7 +301,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    /** Dupliquer, ou partir d'un modèle, emporte les diapositives, leurs notes et leur thème. */
+    /** Duplicating, or starting from a template, takes the slides, their notes and their theme. */
     public function testCopiesKeepTheSlidesAndTheirLook(): void
     {
         $id = $this->createSlides('Trame de lancement');
@@ -331,7 +332,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertFalse($fromTemplate->isTemplate());
         self::assertSame(DeckThemeEnum::Paper, $fromTemplate->getSlideTheme());
 
-        // Un modèle de l'autre format ne compte pas : une page vide, pas un diaporama.
+        // A template of the other format does not count: an empty page, not a slideshow.
         $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Une page', 'format' => 'page', 'fromTemplateId' => $id]);
         self::assertResponseIsSuccessful();
         $page = $this->find((int) basename((string) $this->json()['editPath']));
@@ -340,9 +341,8 @@ final class DeliverableSlidesTest extends IntegrationTestCase
     }
 
     /**
-     * Une image posée sur une diapositive, ou le logo des diapositives, est
-     * comptée par la médiathèque, et nommée au moment de donner un lien quand
-     * elle n'est pas publiée.
+     * An image placed on a slide, or the slides' logo, is counted by the media
+     * library, and named when a link is given if it is not published.
      */
     public function testThePicturesOfTheSlidesAreCountedAndWarnedAbout(): void
     {
@@ -369,9 +369,9 @@ final class DeliverableSlidesTest extends IntegrationTestCase
     }
 
     /**
-     * Une police déposée depuis un diaporama se sert sous les livrables, sans
-     * compte. It goes dark only when neither Studio deliverables nor client
-     * spaces, which both hold presentations, are on.
+     * A font uploaded from a slideshow is served under the deliverables,
+     * without an account. It goes dark only when neither Studio deliverables
+     * nor client spaces, which both hold presentations, are on.
      */
     public function testAnUploadedFontIsServedUnderTheDeliverables(): void
     {
@@ -451,7 +451,7 @@ final class DeliverableSlidesTest extends IntegrationTestCase
     }
 
     /**
-     * Un lien de lecture neuf, sous ce libellé, et son jeton.
+     * A new reading link, under this label, and its token.
      *
      * @param array<string, mixed> $settings
      */

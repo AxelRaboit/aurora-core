@@ -49,11 +49,11 @@ export function useSpaceRowActions({
             },
         ];
 
-        // **Convertir depuis ici et pas seulement depuis la fiche client.**
-        // C'est dans cette liste qu'on voit l'espace avancer, donc c'est ici
-        // qu'on apprend que la societe a dit oui - aller la chercher dans un
-        // autre ecran pour changer une colonne est le detour que ce bouton
-        // existe pour supprimer.
+        // **Convert from here and not only from the customer sheet.**
+        // This list is where the space is seen moving forward, so this is
+        // where you learn the company said yes - going to find it in another
+        // screen to change one column is the detour this button exists to
+        // remove.
         if (
             can("studio.customers.edit") &&
             "prospect" === record.customerStatus

@@ -4,11 +4,11 @@ import { useI18n } from "vue-i18n";
 import StudioSectionTabs from "../../../../assets/suite/components/StudioSectionTabs.vue";
 
 /**
- * Contrats et trames, deux onglets d'une même entrée du menu.
+ * Contracts and templates, two tabs of the same menu entry.
  *
- * Les trames ont longtemps eu leur propre entrée, alors qu'elles partageaient
- * déjà avec les contrats l'interrupteur, le verrou des routes et la recherche :
- * on écrit une trame pour en tirer des contrats.
+ * Templates long had their own entry, even though they already shared the
+ * toggle, the route lock and the search with contracts: a template is written
+ * to draw contracts from it.
  */
 const props = defineProps({
     current: { type: String, required: true }, // contracts | templates

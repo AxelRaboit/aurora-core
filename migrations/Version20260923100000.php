@@ -8,15 +8,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une note peut porter une image d'entête et une apparence.
+ * A note can carry a cover image and an appearance.
  *
- * L'image reste chez celui qui l'héberge : on ne garde que son adresse, le
- * nom du photographe et le lien vers sa page, parce que la licence demande
- * de créditer et qu'une fois l'image hors de la médiathèque il n'y a plus
- * qu'ici pour le faire. Rien n'entre dans la GED, exprès.
+ * The image stays with whoever hosts it: only its address, the
+ * photographer's name and the link to their page are kept, because the
+ * licence requires credit and, with the image outside the media library,
+ * this is the only place left to give it. Nothing enters the GED, on purpose.
  *
- * `appearance` vaut `plain` par défaut : aucune note existante ne change
- * d'allure le jour de la migration.
+ * `appearance` defaults to `plain`: no existing note changes its look on
+ * the day of the migration.
  */
 final class Version20260923100000 extends AbstractMigration
 {

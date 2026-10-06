@@ -52,15 +52,15 @@ use function mb_substr;
 use function mb_trim;
 
 /**
- * Les livrables de Studio : ceux qu'on écrit sans espace client, pour soi ou
- * pour l'équipe.
+ * Studio deliverables: the ones written without a client space, for yourself
+ * or for the team.
  *
- * Un livrable d'espace ne s'ouvre pas ici : son adresse est celle de son
- * espace, qui en garde l'accès. Ici, un identifiant qui n'est pas celui d'un
- * livrable de Studio lisible répond le même 404 qu'un identifiant inconnu ;
- * un livrable lisible qu'on n'a pas le droit de modifier répond 403.
+ * A space deliverable does not open here: its address is its space's, which
+ * guards access to it. Here, an id that is not that of a readable Studio
+ * deliverable answers the same 404 as an unknown id; a readable deliverable
+ * you are not allowed to edit answers 403.
  *
- * Toute la règle d'accès est dans {@see DeliverableAccess}.
+ * The whole access rule is in {@see DeliverableAccess}.
  */
 #[Route('/suite/studio/deliverables', name: 'suite_studio_deliverables')]
 #[IsGranted(DeliverableAccess::VIEW)]
@@ -95,15 +95,15 @@ final class DeliverablesController extends AbstractController
     {
         return $this->render('@Studio/suite/deliverables/index.html.twig', [
             'view' => $this->viewBuilder->index(),
-            // L'onglet ouvert par l'adresse : on revient d'un livrable partagé
-            // dans les partagés.
+            // The tab opened by the address: coming back from a shared
+            // deliverable lands in the shared ones.
             'scope' => DeliverableScopeEnum::Shared->value === $request->query->get('scope')
                 ? DeliverableScopeEnum::Shared->value
                 : DeliverableScopeEnum::Personal->value,
         ]);
     }
 
-    /** Les deux rayons tels que la personne les voit, pour rafraîchir la liste. */
+    /** Both shelves as the person sees them, to refresh the list. */
     #[Route('/lists', name: '_lists', methods: [HttpMethodEnum::Get->value])]
     public function lists(): JsonResponse
     {
@@ -111,19 +111,19 @@ final class DeliverablesController extends AbstractController
     }
 
     /**
-     * Un titre et un rayon, et on arrive dans l'éditeur.
+     * A title and a shelf, and you land in the editor.
      *
-     * Le format se choisit ici et nulle part ailleurs : absent, c'est une
-     * page ; `slides`, un diaporama, cf. {@see DeliverableFormatEnum}.
+     * The format is chosen here and nowhere else: absent, it is a page;
+     * `slides`, a slideshow, see {@see DeliverableFormatEnum}.
      *
-     * Parti d'un modèle (`fromTemplateId`), le livrable en reprend le corps
-     * (la grille d'une page, les diapositives d'un diaporama) ; la catégorie
-     * aussi, sauf si l'envoi en nomme une. Un modèle qu'on ne lit pas, qui
-     * n'en est plus un, ou qui n'est pas du format demandé, donne un livrable
-     * vide plutôt qu'un refus : le sélecteur vient de la liste, filtrée par
-     * format, et la seule façon d'envoyer un identifiant périmé est un modèle
-     * retiré entre l'ouverture de la page et la création, qui ferait perdre
-     * le titre tapé.
+     * Started from a template (`fromTemplateId`), the deliverable takes its
+     * body (a page's grid, a slideshow's slides); the category too, unless
+     * the request names one. A template you cannot read, that is no longer
+     * one, or that is not in the requested format, gives an empty deliverable
+     * rather than a refusal: the selector comes from the list, filtered by
+     * format, and the only way to send a stale id is a template withdrawn
+     * between opening the page and creating, which would lose the typed
+     * title.
      */
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     public function create(Request $request): JsonResponse
@@ -153,8 +153,8 @@ final class DeliverablesController extends AbstractController
 
         $scope = DeliverableScopeEnum::fromInput($payload['scope'] ?? null);
         $template = $this->template($payload['fromTemplateId'] ?? null);
-        // Sans format envoyé, c'est le modèle qui le dit ; avec, un modèle de
-        // l'autre format ne compte pas.
+        // With no format sent, the template says it; with one, a template of
+        // the other format does not count.
         if ($template instanceof DeliverableInterface && array_key_exists('format', $payload) && $template->getFormat() !== $format) {
             $template = null;
         }
@@ -183,15 +183,14 @@ final class DeliverablesController extends AbstractController
     }
 
     /**
-     * Un texte écrit ailleurs, collé ou tapé dans la fenêtre, qui devient une
-     * présentation : un titre ouvre une diapositive, ce qui suit la remplit,
-     * cf. {@see SlidesFromBlocks}.
+     * Text written elsewhere, pasted or typed in the dialog, that becomes a
+     * presentation: a heading opens a slide, what follows fills it, see
+     * {@see SlidesFromBlocks}.
      *
-     * La conversion est faite ici plutôt que dans le navigateur : chaque
-     * diapositive passe par le gestionnaire et sa liste blanche, comme une
-     * diapositive tapée dans l'éditeur. Un texte dont rien ne se tire est
-     * refusé avant que le livrable existe : on ne laisse pas une présentation
-     * vide derrière un import raté.
+     * The conversion is done here rather than in the browser: every slide goes
+     * through the manager and its allow list, like a slide typed in the
+     * editor. Text that yields nothing is refused before the deliverable
+     * exists: a failed import does not leave an empty presentation behind.
      */
     #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
     public function import(Request $request): JsonResponse
@@ -233,8 +232,8 @@ final class DeliverablesController extends AbstractController
     }
 
     /**
-     * L'éditeur du livrable : la grille d'une page, ou les diapositives d'un
-     * diaporama, dans l'éditeur des présentations.
+     * The deliverable's editor: a page's grid, or a slideshow's slides in the
+     * presentation editor.
      */
     #[Route('/{id}', name: '_edit', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function edit(int $id): Response
@@ -258,14 +257,14 @@ final class DeliverablesController extends AbstractController
 
         $payload = $this->decodeJson($request);
 
-        // Le client ne se nomme qu'avec le droit de voir les clients : sans
-        // lui, l'éditeur renvoie celui qu'il a reçu, et il ne compte pas.
+        // The client can only be named with the right to see clients: without
+        // it, the editor sends back the one it received, and it does not count.
         if (!$this->access->canPickCustomer()) {
             unset($payload['customerId']);
         }
 
-        // Avant la validation : dire que le titre est invalide quand la vraie
-        // réponse est qu'un collègue a enregistré entre-temps serait faux.
+        // Before validation: saying the title is invalid when the real answer
+        // is that a colleague saved in the meantime would be wrong.
         if ($this->manager->isStale($deliverable, $payload)) {
             return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true]);
         }
@@ -275,8 +274,8 @@ final class DeliverablesController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
-        // Le rayon se change aussi depuis les réglages de l'éditeur, par
-        // l'auteur seul : un autre membre l'envoie sans qu'il compte.
+        // The shelf can also be changed from the editor settings, by the
+        // author only: another member sends it without it counting.
         $scope = isset($payload['scope']) ? DeliverableScopeEnum::fromInput($payload['scope']) : null;
         if ($scope instanceof DeliverableScopeEnum && $scope !== $deliverable->getScope() && $this->access->canChangeScope($deliverable)) {
             $this->manager->setScope($deliverable, $scope, $this->access->user());
@@ -285,7 +284,7 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess(['deliverable' => $this->serializer->editor($deliverable)]);
     }
 
-    /** Perso ou partagé, depuis la liste. */
+    /** Personal or shared, from the list. */
     #[Route('/{id}/scope', name: '_scope', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function scope(int $id, Request $request): JsonResponse
     {
@@ -294,9 +293,9 @@ final class DeliverablesController extends AbstractController
             return $this->jsonForbidden();
         }
 
-        // Strict, au contraire de la création : un corps vide ou une faute de
-        // frappe ne doit pas retirer à l'équipe un livrable partagé. « perso »
-        // n'est pas la valeur par défaut d'un geste qui retire.
+        // Strict, unlike creation: an empty body or a typo must not take a
+        // shared deliverable away from the team. "perso" is not the default
+        // value of an action that takes something away.
         $requested = $this->decodeJson($request)['scope'] ?? null;
         $scope = is_string($requested) ? DeliverableScopeEnum::tryFrom($requested) : null;
         if (!$scope instanceof DeliverableScopeEnum) {
@@ -331,12 +330,12 @@ final class DeliverablesController extends AbstractController
     }
 
     /**
-     * Une copie déposée dans l'espace d'un client : le modèle qu'on remplit
-     * pour lui. On arrive dans l'éditeur de la copie, dans son espace.
+     * A copy dropped into a client's space: the template you fill in for
+     * them. You land in the copy's editor, in its space.
      * A presentation travels with its slides, notes, theme and style.
      *
-     * Un espace inconnu, invisible ou archivé répond 404, comme un livrable
-     * qu'on ne lit pas ; un espace qu'on voit sans pouvoir y écrire, 403.
+     * An unknown, invisible or archived space answers 404, like a deliverable
+     * you cannot read; a space you can see but not write to, 403.
      */
     #[Route('/{id}/copy-to-space', name: '_copy_to_space', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function copyToSpace(int $id, Request $request): JsonResponse
@@ -376,17 +375,17 @@ final class DeliverablesController extends AbstractController
             return $this->jsonForbidden();
         }
 
-        // À la corbeille, pas détruit : il y reste le délai commun, et ses
-        // liens de lecture reprennent s'il en sort.
+        // To the trash, not destroyed: it stays there for the common delay,
+        // and its reading links resume if it comes back out.
         $this->manager->trash($deliverable);
 
         return $this->jsonSuccess($this->viewBuilder->lists());
     }
 
     /**
-     * Sortir un livrable de la corbeille, de Studio ou d'un espace : c'est ce
-     * que l'écran de la corbeille appelle pour chacun de ses livrables. Le
-     * droit est celui de le modifier ; un livrable qu'on ne lit pas répond 404.
+     * Take a deliverable out of the trash, from Studio or from a space: this
+     * is what the trash screen calls for each of its deliverables. The right
+     * is the right to edit it; a deliverable you cannot read answers 404.
      */
     #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function restore(int $id): JsonResponse
@@ -401,7 +400,7 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess();
     }
 
-    /** Détruire pour de bon un livrable de la corbeille : le droit de le supprimer, comme avant la corbeille. */
+    /** Destroy a trashed deliverable for good: the right to delete it, as before the trash existed. */
     #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function forceDelete(int $id): JsonResponse
     {
@@ -416,9 +415,9 @@ final class DeliverablesController extends AbstractController
     }
 
     /**
-     * Vider la corbeille : seulement ce que la personne lit et a le droit de
-     * supprimer, jamais le livrable perso d'un collègue ni celui d'un espace
-     * qui n'est pas le sien.
+     * Empty the trash: only what the person can read and is allowed to
+     * delete, never a colleague's personal deliverable nor one from a space
+     * that is not theirs.
      */
     #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
     public function emptyTrash(): JsonResponse
@@ -440,14 +439,14 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess(['deleted' => $deleted]);
     }
 
-    /** La page telle que la lira celui qui reçoit le lien. */
+    /** The page as the person receiving the link will read it. */
     #[Route('/{id}/preview', name: '_preview', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function preview(int $id, Request $request): Response
     {
         $deliverable = $this->readable($id);
 
-        // Un diaporama s'aperçoit comme le lira le destinataire du lien :
-        // ses diapositives, sans les notes de l'orateur.
+        // A slideshow is previewed as the link's recipient will read it: its
+        // slides, without the speaker notes.
         if ($deliverable->isSlides()) {
             return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
                 'deck' => $this->slidesView->readerDeck($deliverable),
@@ -481,8 +480,8 @@ final class DeliverablesController extends AbstractController
     #[Route('/{id}/links', name: '_links', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function links(int $id): JsonResponse
     {
-        // La liste porte les adresses elles-mêmes, jetons compris : la lire,
-        // c'est pouvoir les transmettre. Même droit que d'en créer.
+        // The list carries the addresses themselves, tokens included: reading
+        // it means being able to pass them on. Same right as creating them.
         $deliverable = $this->readable($id);
         if (!$this->access->canShare($deliverable)) {
             return $this->jsonForbidden();
@@ -525,7 +524,7 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
-    /** Masquer de la liste un lien retiré ou expiré : sa ligne reste, un lien vivant ne se masque pas. */
+    /** Hide a revoked or expired link from the list: its row stays, a live link cannot be hidden. */
     #[Route('/{id}/links/{linkId}/hide', name: '_links_hide', requirements: ['id' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function hideLink(int $id, int $linkId): JsonResponse
     {
@@ -546,7 +545,7 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
-    /** Supprimer une adresse que personne n'a jamais ouverte ; une adresse déjà ouverte se révoque seulement. */
+    /** Delete an address nobody has ever opened; an address already opened can only be revoked. */
     #[Route('/{id}/links/{linkId}/delete', name: '_links_delete', requirements: ['id' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function deleteLink(int $id, int $linkId): JsonResponse
     {
@@ -608,7 +607,7 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
     }
 
-    /** Ses livrables restent, sans catégorie. */
+    /** Its deliverables stay, without a category. */
     #[Route('/categories/{id}/delete', name: '_category_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function deleteCategory(int $id): JsonResponse
     {
@@ -626,7 +625,7 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
     }
 
-    /** L'ordre des catégories, tel qu'on l'a rangé dans la fenêtre. */
+    /** The category order, as arranged in the dialog. */
     #[Route('/categories/reorder', name: '_category_reorder', methods: [HttpMethodEnum::Post->value])]
     public function reorderCategories(Request $request): JsonResponse
     {
@@ -648,7 +647,7 @@ final class DeliverablesController extends AbstractController
         return new DeliverableCategoryInput(is_string($payload['name'] ?? null) ? mb_trim($payload['name']) : '', $color);
     }
 
-    /** Le modèle dont part un livrable neuf : un livrable de Studio vivant, lisible, et toujours un modèle. */
+    /** The template a new deliverable starts from: a live, readable Studio deliverable that is still a template. */
     private function template(mixed $id): ?DeliverableInterface
     {
         $id = is_int($id) || (is_string($id) && is_numeric($id)) ? (int) $id : null;
@@ -657,7 +656,7 @@ final class DeliverablesController extends AbstractController
         return $template instanceof DeliverableInterface && $template->isTemplate() && $this->access->canRead($template) ? $template : null;
     }
 
-    /** Un livrable à la corbeille que la personne peut lire, ou 404. */
+    /** A trashed deliverable the person can read, or 404. */
     private function trashed(int $id): DeliverableInterface
     {
         $deliverable = $this->deliverables->findTrashed($id);
@@ -668,7 +667,7 @@ final class DeliverablesController extends AbstractController
         return $deliverable;
     }
 
-    /** Un livrable de Studio que la personne peut lire, ou 404. */
+    /** A Studio deliverable the person can read, or 404. */
     private function readable(int $id): DeliverableInterface
     {
         $deliverable = $this->deliverables->findStandalone($id);

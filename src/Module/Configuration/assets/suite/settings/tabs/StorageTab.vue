@@ -47,15 +47,15 @@ const testing = ref(false);
 const activeDisk = ref("local");
 
 /**
- * Ce que pèse chaque emplacement.
+ * How much each location weighs.
  *
- * Les deux sont toujours montrés, même à zéro : ce qu'on vient vérifier après
- * une bascule, c'est justement qu'il ne reste plus rien de l'autre côté, et un
- * écran qui masque l'emplacement vide ne sait pas le dire.
+ * Both are always shown, even at zero: what you come to check after a switch
+ * is precisely that nothing is left on the other side, and a screen that hides
+ * the empty location cannot say so.
  */
 const usage = ref({ local: { count: 0, bytes: 0 }, r2: { count: 0, bytes: 0 } });
 
-/** Des unités qu'on lit, pas des octets qu'on compte. */
+/** Units you read, not bytes you count. */
 function weigh(bytes) {
     if (!bytes) return "0 ko";
 
@@ -324,8 +324,8 @@ defineExpose({ save, apply, canSwitchToR2 });
             </div>
         </AppMessage>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.settings.storage.guide.title')" storage-key="settings-storage">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.settings.storage.guide.step_${step}`) }}</li>
@@ -336,9 +336,9 @@ defineExpose({ save, apply, canSwitchToR2 });
             <p class="text-sm text-muted">{{ t("suite.settings.storage.when_useful") }}</p>
         </section>
 
-        <!-- Ce que ça pèse, et de quel côté. L'écran disait où les fichiers
-             vont ; il ne disait pas où ils sont, ce qui est la seule chose
-             qu'on vient vérifier après une bascule. -->
+        <!-- How much it weighs, and on which side. The screen said where
+             files go; it did not say where they are, which is the only thing
+             you come to check after a switch. -->
         <section v-if="!loading" class="space-y-2">
             <h3 class="text-sm font-medium text-primary">{{ t("suite.settings.storage.usage_title") }}</h3>
             <div class="grid gap-2 sm:grid-cols-2">

@@ -1,30 +1,31 @@
 <script setup>
 /**
- * La barre d'entête d'un écran : le retour à gauche, les commandes à droite.
+ * The header bar of a screen: the way back on the left, the commands on the
+ * right.
  *
- * **Une seule disposition, partout** (décision d'Axel du 02/10/2026). Avant
- * elle, chaque écran avait la sienne : le retour à gauche et les commandes
- * poussées à droite par un `justify-between` (publication), par un espaceur
- * (galerie), par un `ml-auto` (notes), ou collées derrière le retour (trame,
- * texte adapté), et sur ordinateur leur place dépendait de la longueur du
- * titre. Le titre n'entre pas dans la barre : il vient en dessous, sur sa
- * propre ligne, où il peut être long sans rien pousser.
+ * **A single layout, everywhere** (Axel's decision of 02/10/2026). Before it,
+ * each screen had its own: the way back on the left and the commands pushed
+ * to the right by a `justify-between` (publication), by a spacer (gallery),
+ * by an `ml-auto` (notes), or stuck right after the way back (contract
+ * template, adapted text), and on a computer their place depended on the
+ * length of the title. The title does not go into the bar: it comes below,
+ * on its own line, where it can be long without pushing anything.
  *
- * Les commandes y sont de vrais boutons, de la même taille (md, 38 px), et
- * passent en icône seule sous `sm` (`AppButton` `icon-only-on-phone`,
- * `AppPageActions` `icon-only-on-phone`) : la barre tient alors sur une ligne
- * à 375 px. Le retour reste une navigation, un chevron nu ({@see AppBackLink}).
+ * The commands there are real buttons, of the same size (md, 38 px), and
+ * turn icon only below `sm` (`AppButton` `icon-only-on-phone`,
+ * `AppPageActions` `icon-only-on-phone`): the bar then fits on one line at
+ * 375 px. The way back remains navigation, a bare chevron ({@see AppBackLink}).
  *
- * `start` reçoit ce qui accompagne le retour à gauche (rarement) ; le slot
- * par défaut, les commandes, dans l'ordre de lecture : la feuille « Actions »
- * puis le verbe principal, le plus à droite.
+ * `start` receives what goes with the way back on the left (rarely); the
+ * default slot, the commands, in reading order: the "Actions" sheet, then
+ * the main verb, furthest to the right.
  */
 import AppBackLink from "./AppBackLink.vue";
 
 defineProps({
-    /** Où mène le retour. Sans adresse, le retour émet `back`. */
+    /** Where the way back leads. Without an address, it emits `back`. */
     backHref: { type: String, default: null },
-    /** Le nom du retour : visible à partir de `sm`, toujours lu par les lecteurs d'écran. */
+    /** The name of the way back: visible from `sm`, always read by screen readers. */
     backLabel: { type: String, default: null },
 });
 

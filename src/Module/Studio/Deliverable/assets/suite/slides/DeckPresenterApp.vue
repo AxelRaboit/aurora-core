@@ -34,14 +34,14 @@ const current = computed(() => slides[at.value] ?? null);
 const next = computed(() => slides[at.value + 1] ?? null);
 
 /**
- * Combien de lignes sont sorties, ici comme sur le mur.
+ * How many lines are revealed, here as on the wall.
  *
- * **Le presentateur pilote, donc il compte aussi.** Cette fenetre n'affichait
- * qu'un index : une pression passait a la slide suivante et les lignes
- * arrivaient toutes ensemble sur le mur, alors que la personne qui parle
- * croyait les faire entrer une par une. Le compte se fait des deux cotes, avec
- * la meme fonction, et voyage dans le message pour que les deux fenetres ne
- * puissent pas diverger.
+ * **The presenter drives, so it counts too.** This window only showed an
+ * index: one key press moved to the next slide and the lines all arrived
+ * together on the wall, while the person speaking believed they were bringing
+ * them in one by one. The count is done on both sides, with the same
+ * function, and travels in the message so that the two windows cannot
+ * diverge.
  */
 const shown = ref(0);
 const revealable = computed(() => revealableIn(current.value));
@@ -69,9 +69,9 @@ function step(by) {
 
     if (to < 0 || to >= slides.length) return;
 
-    // Revenir en arriere retrouve la slide entierement sortie, comme dans le
-    // lecteur : reculer dans un deck ne doit pas obliger a repasser ligne a
-    // ligne dans l'autre sens.
+    // Going back finds the slide fully revealed, as in the player: stepping
+    // back in a deck must not force you through it line by line the other
+    // way.
     shown.value = by < 0 ? revealableIn(slides[to]) : 0;
     announce(to, shown.value);
 }
@@ -139,8 +139,8 @@ onBeforeUnmount(() => {
                     {{ t("suite.studio.deliverables.slides.presenter_now") }}
                     <span class="presenter-count">{{ at + 1 }} / {{ slides.length }}</span>
                 </p>
-                <!-- La slide en cours est regardee, celle d'apres est une
-                     vignette de preparation : le mouvement n'a rien a y faire. -->
+                <!-- The current slide is being watched, the next one is a
+                     preparation thumbnail: motion has no business there. -->
                 <SlideFrame
                     v-if="current"
                     :slide="current"
@@ -226,8 +226,8 @@ onBeforeUnmount(() => {
     color: #e6e9ef;
 }
 
-/* La slide en cours large, la suivante petite : ce qu'on regarde en parlant
-   est le texte qu'on est en train de commenter, pas celui d'après. */
+/* The current slide large, the next one small: what you look at while
+   speaking is the text you are discussing, not the next one. */
 .presenter-stage { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
 
 @media (min-width: 64rem) {
@@ -283,7 +283,7 @@ onBeforeUnmount(() => {
 .presenter-link { margin-left: auto; font-size: 0.72rem; color: #8b94a3; }
 .presenter-link.is-live { color: #6ee7b7; }
 
-/* Grand, parce qu'il est lu de biais, à un mètre, en parlant. */
+/* Large, because it is read at an angle, from a metre away, while speaking. */
 .presenter-note { margin: 0; font-size: 1.35rem; line-height: 1.5; white-space: pre-wrap; }
 .presenter-note.is-empty { font-size: 0.9rem; color: #8b94a3; }
 </style>

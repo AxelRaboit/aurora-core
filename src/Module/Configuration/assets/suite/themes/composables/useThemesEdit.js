@@ -27,14 +27,14 @@ const DEFAULTS = {
 // moment nothing compares them.
 const DEFAULT_PRIMARY_COLOR = "#10b981";
 
-// Miroir de ThemeFontEnum::default(). La liste des familles, elle, arrive du
-// serveur : c'est la seule valeur de l'enum que le formulaire a besoin de
-// connaitre avant d'avoir recu quoi que ce soit.
+// Mirror of ThemeFontEnum::default(). The list of families arrives from the
+// server: this is the only enum value the form needs to know before having
+// received anything.
 const DEFAULT_FONT_FAMILY = "poppins";
 
-// Les couleurs d'origine des encadrés, celles de content-blocks.css ; tenu en
-// phase par useThemesEdit.test.js. Le thème ne stocke que celles qu'il change,
-// sous `callout_<type>_color`, et ThemeStyleRenderer::calloutCss() les pose.
+// The original colors of the callouts, the ones in content-blocks.css; kept
+// in sync by useThemesEdit.test.js. The theme only stores the ones it changes,
+// under `callout_<type>_color`, and ThemeStyleRenderer::calloutCss() applies them.
 export const CALLOUT_DEFAULTS = {
     info: "#3b82f6",
     success: "#22c55e",
@@ -152,36 +152,36 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const headerLogo = ref({ id: null, url: null });
     const headerCustomText = ref("");
     const headerMode = ref("default");
-    // Le logo seul sur téléphone : le nom du site part sous `sm`, le logo
-    // reste. Stocké seulement s'il est demandé, et seulement avec un logo
-    // (sans lui, la barre n'aurait plus rien à montrer).
+    // Logo only on phone: the site name goes below `sm`, the logo stays.
+    // Stored only if requested, and only with a logo (without it, the bar
+    // would have nothing left to show).
     const headerTextHiddenOnPhone = ref(false);
     const contentWidth = ref("narrow");
-    // La barre de lecture du site public : affichée par défaut, donc stockée
-    // seulement quand on la coupe.
+    // The reading bar of the public site: shown by default, so stored only
+    // when turned off.
     const readingProgress = ref(true);
-    // Le crédit « Aurora » en pied de page : masqué par défaut, donc stocké
-    // seulement quand on l'allume.
+    // The "Aurora" credit in the footer: hidden by default, so stored only
+    // when turned on.
     const watermarkVisible = ref(false);
     const highlight = ref("accent");
     const highlightColor = ref(DEFAULT_PRIMARY_COLOR);
     const menuActive = ref("accent");
     const menuActiveColor = ref(DEFAULT_PRIMARY_COLOR);
-    // Pictogrammes des cartes : `original` garde chaque SVG dans sa couleur
-    // (rien n'est stocke), `accent` suit la couleur principale, `custom` prend
-    // iconColor. Stocke en une seule cle, `icon_color` = "accent" ou un hex.
+    // Card pictograms: `original` keeps each SVG in its own color (nothing is
+    // stored), `accent` follows the main color, `custom` takes iconColor.
+    // Stored in a single key, `icon_color` = "accent" or a hex.
     const iconMode = ref("original");
     const iconColor = ref(DEFAULT_PRIMARY_COLOR);
     const fontFamily = ref(DEFAULT_FONT_FAMILY);
     const primaryColor = ref(DEFAULT_PRIMARY_COLOR);
 
-    // Couleurs de surface du frontend public. Vides par defaut, et c'est le
-    // point : une surface sans couleur n'emet aucune regle CSS, donc garde
-    // l'apparence historique. Cote serveur, SurfaceContrast deduit de chacune
-    // le jeu de texte et de bordures qui la rend lisible.
-    // text_color et line_color ne sont pas des surfaces mais s'y appliquent :
-    // la couleur du texte et des traits, posee par-dessus ce que chaque
-    // surface en deduit. Meme stockage, meme vide par defaut.
+    // Surface colors of the public frontend. Empty by default, and that is
+    // the point: a surface without a color emits no CSS rule, so it keeps the
+    // historical look. On the server side, SurfaceContrast derives from each
+    // one the set of text and border colors that makes it readable.
+    // text_color and line_color are not surfaces but apply to them: the color
+    // of the text and of the rules, applied on top of what each surface
+    // derives from them. Same storage, same empty default.
     const SURFACE_KEYS = [
         "background_color",
         "header_color",

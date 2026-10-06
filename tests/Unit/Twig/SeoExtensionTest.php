@@ -204,7 +204,7 @@ final class SeoExtensionTest extends TestCase
         $localeContext = $this->createMock(LocaleContextInterface::class);
         $localeContext->method('isSingleLocaleMode')->willReturn(false);
 
-        // Contexte de routage vide : ces tests s'appuient sur la requete.
+        // Empty routing context: these tests rely on the request.
         $routingContext = new RequestContext();
         $routingContext->setHost('');
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);

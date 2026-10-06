@@ -1,12 +1,12 @@
 import { required } from "@/shared/utils/validation/validators.js";
 
 /**
- * La fiche d'un client, sous la forme que le formulaire édite.
+ * A customer's sheet, in the shape the form edits.
  *
- * **Une seule forme pour créer et pour modifier**, et désormais pour toute la
- * fiche : la fenêtre de création de la liste et la page du client remplissent
- * les mêmes champs, avec le même composant. Il y avait deux formulaires qui ne
- * portaient pas les mêmes, et le SIREN ne se saisissait que depuis un espace.
+ * **A single shape to create and to edit**, and now for the whole sheet: the
+ * list's creation dialog and the customer's page fill in the same fields,
+ * with the same component. There used to be two forms that did not carry the
+ * same ones, and the SIREN could only be entered from a space.
  */
 export function emptyCustomerForm() {
     return {
@@ -28,15 +28,15 @@ export function emptyCustomerForm() {
         landline: "",
         links: [],
         informationNotes: "",
-        // Ce qu'est une fiche au moment où on la crée.
+        // What a sheet is at the moment it is created.
         status: "prospect",
     };
 }
 
 /**
- * Un montant enregistré est en centimes, un montant tapé en unités. Les
- * décimales n'apparaissent que quand il y en a : un capital de 10 000 € ne se
- * relit pas « 10 000,00 » dans un champ qu'on s'apprête à retaper.
+ * A stored amount is in cents, a typed amount in units. Decimals only appear
+ * when there are some: a capital of 10 000 € does not read back as
+ * "10 000,00" in a field about to be typed again.
  */
 export function centsToInput(cents) {
     if (cents === null || cents === undefined) return "";
@@ -46,7 +46,7 @@ export function centsToInput(cents) {
     return Number.isInteger(units) ? String(units) : units.toFixed(2);
 }
 
-/** La forme du formulaire, depuis ce que le serveur rend d'une fiche. */
+/** The form's shape, from what the server returns for a sheet. */
 export function customerFormFrom(customer) {
     return {
         legalName: customer?.legalName ?? "",
@@ -65,8 +65,8 @@ export function customerFormFrom(customer) {
         contractualEmail: customer?.contractualEmail ?? "",
         phone: customer?.phone ?? "",
         landline: customer?.landline ?? "",
-        // Copiés ligne par ligne : partager le tableau reçu ferait bouger ce
-        // que la page affiche de la fiche enregistrée pendant la frappe.
+        // Copied row by row: sharing the received array would move what the
+        // page shows of the saved sheet while typing.
         links: (customer?.links ?? []).map((link) => ({
             label: link.label ?? "",
             url: link.url ?? "",
@@ -77,9 +77,9 @@ export function customerFormFrom(customer) {
 }
 
 /**
- * Ce que le navigateur vérifie avant d'envoyer : la raison sociale, et
- * l'email contractuel d'un client. Le serveur tient les mêmes règles, et les
- * autres (SIRET, SIREN, liens) restent les siennes.
+ * What the browser checks before sending: the company name, and a
+ * customer's contractual email. The server holds the same rules, and the
+ * others (SIRET, SIREN, links) remain its own.
  *
  * @param {(key: string) => string} t
  * @param {import("vue").Ref<object>} form
@@ -90,8 +90,8 @@ export function customerFormRules(t, form) {
             required(t("suite.studio.customers.errors.legal_name_required"))(
                 form.value.legalName,
             ),
-        // Exigée d'un client, facultative d'un prospect : c'est la seule chose
-        // que le statut impose, et le serveur la tient aussi.
+        // Required for a customer, optional for a prospect: it is the only
+        // thing the status requires, and the server holds it too.
         contractualEmail: () =>
             "prospect" === form.value.status
                 ? null

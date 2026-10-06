@@ -134,11 +134,11 @@ final readonly class AuditUserManagerDecorator implements UserManagerInterface
     public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Suite): User
     {
         $user = $this->inner->invite($name, $email, $role, $customMessage, $disabled, $type);
-        // `disabled` est journalisé parce que les deux actes sont différents : un
-        // compte a été créé, mais personne n'a reçu de mail. Le type l'est parce
-        // qu'inviter dans l'administration et inviter sur le site public ne
-        // donnent pas les mêmes accès, et que le rôle journalisé ci-dessous ne
-        // le dit pas - un compte frontend reçoit ROLE_USER quoi qu'on demande.
+        // `disabled` is logged because the two acts are different: an account
+        // was created, but nobody received a mail. The type is logged because
+        // inviting into the administration and inviting onto the public site
+        // do not give the same access, and the role logged below does not say
+        // so - a frontend account gets ROLE_USER whatever is asked.
         $this->auditLogger->log('core', 'user.invited', 'User', $user->getId(), [
             'email' => $email,
             'role' => $user->getRoles()[0] ?? $role,

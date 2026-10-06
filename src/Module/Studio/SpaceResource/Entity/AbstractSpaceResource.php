@@ -11,24 +11,24 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Un élément épinglé dans un espace : un lien, un texte, un contact.
+ * An item pinned in a space: a link, a text, a contact.
  *
- * **Ce que l'espace ne sait pas produire lui-même.** Le tableau porte le
- * travail, les fichiers portent ce qui a été échangé, les notes portent ce que
- * le studio pense. Reste tout ce qui vit ailleurs et qu'on recherche à chaque
- * fois : la maquette dans Canva, le tableau de bord de l'hébergeur, le nom de
- * la personne qui valide chez le client. C'est ce que cette table garde, à
- * l'endroit où on la cherche.
+ * **What the space cannot produce by itself.** The board carries the work,
+ * the files carry what was exchanged, the notes carry what the studio thinks.
+ * What remains is everything that lives elsewhere and that people look for
+ * every time: the mockup in Canva, the host's dashboard, the name of the
+ * person who signs off on the client's side. That is what this table keeps,
+ * in the place where people look for it.
  *
- * **La visibilité est par élément, et fermée par défaut.** C'est la raison
- * d'être de la fonctionnalité autant que la liste elle-même : on range au même
- * endroit ce qui se partage et ce qui ne se partage pas, et c'est une case qui
- * décide, élément par élément. Par défaut fermé, parce qu'une valeur par
- * défaut qui publie se découvre après coup.
+ * **Visibility is per item, and closed by default.** It is as much the
+ * reason the feature exists as the list itself: what is shared and what is
+ * not are filed in the same place, and a checkbox decides, item by item.
+ * Closed by default, because a default value that publishes is discovered
+ * after the fact.
  *
- * Le filtre est appliqué là où les éléments sont lus, jamais à l'affichage :
- * un élément caché ne sort pas du serveur pour le client. Filtrer dans la page
- * aurait fait d'une confidence une préférence d'affichage.
+ * The filter is applied where the items are read, never at display time: a
+ * hidden item does not leave the server for the client. Filtering in the
+ * page would have turned a confidence into a display preference.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -41,54 +41,54 @@ abstract class AbstractSpaceResource implements SpaceResourceInterface
     protected CustomerSpaceInterface $space;
 
     /**
-     * Ce que la ligne est, et ce qui décide du reste.
+     * What the row is, and what decides the rest.
      *
-     * Voir {@see SpaceResourceKindEnum} : le genre commande ce qui est exigé,
-     * ce qui est validé et la façon dont la ligne se dessine.
+     * See {@see SpaceResourceKindEnum}: the kind dictates what is required, what
+     * is validated and how the row is drawn.
      */
     #[ORM\Column(length: 20, enumType: SpaceResourceKindEnum::class)]
     protected SpaceResourceKindEnum $kind;
 
-    /** Le mot qu'on lit dans la liste, quel que soit le genre. */
+    /** The word read in the list, whatever the kind. */
     #[ORM\Column(length: 180)]
     protected string $label;
 
     /**
-     * L'adresse, pour un lien.
+     * The address, for a link.
      *
-     * 2048 parce que c'est ce qu'une adresse partagée fait réellement : un
-     * document Google ou une vue Canva porte un identifiant long et des
-     * paramètres, et une colonne de 255 les aurait tronqués en silence.
+     * 2048 because that is what a shared address really takes: a Google
+     * document or a Canva view carries a long identifier and parameters, and a
+     * 255 column would have truncated them silently.
      */
     #[ORM\Column(length: 2048, nullable: true)]
     protected ?string $url = null;
 
-    /** Le corps, pour un texte ; une précision, pour les autres genres. */
+    /** The body, for a text; a detail, for the other kinds. */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $body = null;
 
-    /** L'adresse d'un contact, quand la ligne en est un. */
+    /** The address of a contact, when the row is one. */
     #[ORM\Column(length: 180, nullable: true)]
     protected ?string $email = null;
 
-    /** Son téléphone. */
+    /** Their phone number. */
     #[ORM\Column(length: 30, nullable: true)]
     protected ?string $phone = null;
 
     /**
-     * Si le client voit cette ligne.
+     * Whether the client sees this row.
      *
-     * Fermé par défaut : voir l'en-tête de la classe.
+     * Closed by default: see the class header.
      */
     #[ORM\Column(options: ['default' => false])]
     protected bool $visibleToClient = false;
 
     /**
-     * L'ordre choisi, et non l'ordre d'arrivée.
+     * The chosen order, not the order of arrival.
      *
-     * Une liste de ressources est une liste qu'on range : le lien qu'on ouvre
-     * chaque jour remonte en haut. Trier par date de création aurait imposé
-     * l'inverse - le dernier ajouté devant, qui est rarement le plus utile.
+     * A list of resources is a list people arrange: the link opened every day
+     * moves to the top. Sorting by creation date would have imposed the
+     * opposite - the last one added first, which is rarely the most useful.
      */
     #[ORM\Column(options: ['default' => 0])]
     protected int $position = 0;

@@ -12,11 +12,10 @@
 {% endblock %}
 
 {% block body %}
-{# `spacesPath` : l'adresse de la liste des espaces, pour y aller depuis un
-   client. Le nom de la société part en recherche, c'est ce que cette liste
-   cherche. Le commentaire est ici et non dans l'appel : à l'intérieur d'une
-   expression Twig, `{#` n'est pas un commentaire et l'apostrophe casse le
-   gabarit. #}
+{# `spacesPath`: the address of the spaces list, to go there from a client.
+   The company name is sent as the search, which is what that list searches.
+   The comment is here and not in the call: inside a Twig expression, `{#` is
+   not a comment and the apostrophe breaks the template. #}
 <div {{ vue_component('studio/suite/customers/CustomersApp', {
     customers: customers,
     currencies: currencies,

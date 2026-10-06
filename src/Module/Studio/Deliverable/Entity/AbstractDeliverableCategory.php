@@ -8,16 +8,16 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Ce sous quoi on range un livrable de Studio : audit, stratégie, proposition.
+ * What a Studio deliverable is filed under: audit, strategy, proposal.
  *
- * Propre au module, comme les catégories des présentations : les taxonomies
- * de l'éditorial sont liées aux types de publication et n'ont rien à dire
- * d'un document qui ne va jamais sur le site. Elles ne valent que pour les
- * livrables de Studio, ceux qu'on garde comme modèles ; un livrable d'espace
- * se range par son espace.
+ * Specific to the module, like the presentation categories: the editorial
+ * taxonomies are tied to publication types and have nothing to say about a
+ * document that never goes on the site. They only apply to Studio
+ * deliverables, the ones kept as templates; a space deliverable is filed by
+ * its space.
  *
- * Une couleur, parce qu'une liste de modèles se parcourt d'un coup d'œil, et
- * un ordre choisi à la main : on range par habitude, pas par ordre alphabétique.
+ * A colour, because a list of templates is scanned at a glance, and a
+ * hand-picked order: people sort by habit, not alphabetically.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -28,7 +28,7 @@ abstract class AbstractDeliverableCategory implements DeliverableCategoryInterfa
     #[ORM\Column(length: 100)]
     protected string $name = '';
 
-    /** Couleur hexadécimale de la pastille, par exemple `#bd4a55`. */
+    /** Hexadecimal colour of the pill, for example `#bd4a55`. */
     #[ORM\Column(length: 7, nullable: true)]
     protected ?string $color = null;
 

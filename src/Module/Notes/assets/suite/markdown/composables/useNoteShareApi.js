@@ -20,15 +20,15 @@ export function useNoteShareApi(props) {
         list: (noteId) =>
             request(withId(props.sharesListPath, noteId), null, "GET"),
         /**
-         * Ce qu'un lien emporterait, avant qu'il existe.
+         * What a link would carry, before it exists.
          *
-         * Cette méthode manquait depuis que la modale demande la liste des
-         * notes liées : la route était là, le chemin était passé au
-         * composant, et l'appel tombait sur `api.preview is not a
-         * function`. L'exception partait d'un `watch` sur l'ouverture, donc
-         * elle remontait en rejet non traité - invisible - jusqu'à ce que
-         * la page se dote d'un garde-fou, qui l'a rendue spectaculaire :
-         * ouvrir le partage effaçait l'écran.
+         * This method was missing since the modal asks for the list of
+         * linked notes: the route was there, the path was passed to the
+         * component, and the call hit `api.preview is not a function`. The
+         * exception started from a `watch` on the opening, so it bubbled up
+         * as an unhandled rejection - invisible - until the page got a
+         * safety net, which made it spectacular: opening the share wiped
+         * the screen.
          */
         preview: (noteId, { linked = false } = {}) =>
             request(

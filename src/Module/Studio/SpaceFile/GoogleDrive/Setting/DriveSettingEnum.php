@@ -7,25 +7,24 @@ namespace Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 
 /**
- * Les deux lignes que l'intégration Drive garde dans la table des réglages.
+ * The two rows the Drive integration keeps in the settings table.
  *
- * Volontairement pas un {@see ApplicationParameterEnumInterface} : cette
- * interface existe pour que l'écran générique dessine un champ et renvoie sa
- * valeur au navigateur, et la clé d'un compte de service n'a rien à faire dans
- * le source d'une page.
+ * Deliberately not an {@see ApplicationParameterEnumInterface}: that interface
+ * exists so the generic screen draws a field and sends its value back to the
+ * browser, and a service account key has no business in a page's source.
  *
- * **Le dossier d'un client vit sur son espace, pas ici.** Le compte de service
- * appartient à l'installation, et un seul dossier aussi : celui de l'agence,
- * le même pour tous les espaces, que l'équipe consulte depuis n'importe
- * lequel. Brancher le Drive d'un client reste un dossier par client.
+ * **A client's folder lives on their space, not here.** The service account
+ * belongs to the installation, and so does a single folder: the agency's,
+ * the same for every space, which the team browses from any of them.
+ * Connecting a client's Drive stays one folder per client.
  */
 enum DriveSettingEnum: string
 {
     case Enabled = 'suite_studio_drive_enabled';
 
-    /** La clé JSON telle que Google la livre. Stockée chiffrée. */
+    /** The JSON key as Google delivers it. Stored encrypted. */
     case ServiceAccount = 'suite_studio_drive_service_account';
 
-    /** Le dossier de l'agence, commun à tous les espaces. Facultatif. */
+    /** The agency's folder, shared by every space. Optional. */
     case AgencyFolder = 'suite_studio_drive_agency_folder';
 }

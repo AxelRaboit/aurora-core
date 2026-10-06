@@ -34,11 +34,11 @@ use function sprintf;
 use function str_contains;
 
 /**
- * Valider plusieurs cartes d'un geste, et l'échéance de relecture.
+ * Approving several cards in one action, and the review deadline.
  *
- * Deux sujets dans une classe parce qu'ils se tiennent : l'échéance est ce qui
- * décide de l'ordre dans lequel un client traite sa liste, et la liste est ce
- * qui rend l'action de masse possible.
+ * Two subjects in one class because they go together: the deadline decides
+ * the order in which a client works through their list, and the list is what
+ * makes the bulk action possible.
  */
 final class SpaceContentBulkApprovalTest extends IntegrationTestCase
 {
@@ -94,17 +94,16 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         $this->entityManager->clear();
         self::assertSame('approved', $this->items->find($first)->getApproval()->value);
         self::assertSame('approved', $this->items->find($second)->getApproval()->value);
-        // Ce qui n'était pas coché n'a pas bougé : une action de masse porte
-        // sur une sélection, pas sur un écran.
+        // What was not ticked did not move: a bulk action applies to a
+        // selection, not to a screen.
         self::assertSame('pending', $this->items->find($untouched)->getApproval()->value);
     }
 
     /**
-     * Trois cartes validées d'un geste : une lecture, une nouvelle.
+     * Three cards approved in one action: one read, one notification.
      *
-     * Chaque carte était relue seule, écrite seule, et annoncée seule à
-     * chaque membre de l'équipe : vingt cartes rangées d'un coup faisaient
-     * vingt cloches.
+     * Each card was read on its own, written on its own, and announced on its
+     * own to every team member: twenty cards filed at once made twenty bells.
      */
     public function testSeveralApprovalsAreReadOnceAndAnnouncedOnce(): void
     {
@@ -144,11 +143,11 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
     }
 
     /**
-     * La page du client lit son tableau une fois.
+     * The client's page reads its board once.
      *
-     * Les cartes, leurs fils et leurs fichiers relisaient chacun le tableau
-     * pour savoir ce que le client a le droit de voir : quatre lectures par
-     * chargement, et autant après chaque réponse.
+     * The cards, their threads and their files each read the board again to
+     * know what the client is allowed to see: four reads per load, and as many
+     * after each answer.
      */
     public function testTheClientPageReadsItsBoardOnce(): void
     {
@@ -174,10 +173,10 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
     }
 
     /**
-     * La page du client lit ses salons une fois, avec leurs membres.
+     * The client's page reads its rooms once, with their members.
      *
-     * La page et le jeton du hub les lisaient chacun, et les membres de
-     * chaque salon venaient un par un.
+     * The page and the hub token each read them, and the members of each room
+     * came one by one.
      */
     public function testTheClientPageReadsItsRoomsOnce(): void
     {
@@ -200,7 +199,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         self::assertSame([], array_values($memberLoads), 'no room loads its members alone');
     }
 
-    /** La carte d'un autre client est ignorée, jamais validée. */
+    /** Another client's card is ignored, never approved. */
     public function testACardFromAnotherSpaceIsIgnored(): void
     {
         $space = $this->givenSpace();
@@ -220,10 +219,10 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
     }
 
     /**
-     * Un lien en lecture seule reçoit le 404 d'un inconnu.
+     * A read-only link gets a stranger's 404.
      *
-     * Dire « vous pouvez lire mais pas répondre » serait vrai et apprendrait à
-     * qui tient une adresse fuitée ce qu'il tient exactement.
+     * Saying "you may read but not answer" would be true and would tell
+     * whoever holds a leaked address exactly what they are holding.
      */
     public function testAReadOnlyLinkCannotApproveInBulk(): void
     {
@@ -250,8 +249,8 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
     }
 
     /**
-     * Le retard se compte sur les trois mêmes conditions que l'attente, plus
-     * l'échéance dépassée. Une carte déjà validée n'est en retard de rien.
+     * Lateness is counted on the same three conditions as waiting, plus the
+     * passed deadline. A card already approved is late on nothing.
      */
     public function testLatenessNeedsADeadlineAndNoAnswer(): void
     {
@@ -272,7 +271,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         self::assertSame(3, $workload->forSpace($stored)->withClient);
         self::assertSame(1, $workload->forSpace($stored)->lateReview);
 
-        // Répondue, elle sort du retard sans que son échéance ait bougé.
+        // Once answered, it is no longer late without its deadline having moved.
         $url = $this->issue($space);
         $this->asGuest()->jsonRequest('POST', $this->approvePath($url), ['ids' => [$late]]);
 
@@ -351,8 +350,8 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $this->reviewStep($space)->getId(),
-            // Datée : la page du client ne montre que son calendrier, et
-            // n'accepte d'avis que sur ce qu'elle montre.
+            // Dated: the client's page only shows its calendar, and only
+            // accepts a verdict on what it shows.
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 

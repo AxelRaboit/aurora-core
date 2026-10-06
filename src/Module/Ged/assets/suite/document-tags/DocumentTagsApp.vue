@@ -66,8 +66,8 @@ const pageActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.ged.tags.guide.title')" storage-key="ged-tags">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.ged.tags.guide.step_${step}`) }}</li>
@@ -94,8 +94,8 @@ const pageActions = computed(() => {
                         <p class="font-medium text-primary text-sm truncate">{{ tag.name }}</p>
                         <p v-if="tag.color" class="text-xs text-muted font-mono mt-0.5">{{ tag.color }}</p>
                     </div>
-                    <!-- Les gestes derrière le bouton « … », comme sur toutes
-                         les listes (décision d'Axel du 04/10/2026). -->
+                    <!-- The actions behind the "…" button, as on every list
+                         (Axel's decision of 04/10/2026). -->
                     <AppRowActions class="shrink-0" :actions="actionsFor(tag)" :label="tag.name" />
                 </div>
             </div>

@@ -331,7 +331,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                     $this->translator->trans($customer->getStatus()->getLabelKey()),
                     $customer->getSiret(),
                 ]),
-                // Sa page, où toute la fiche se lit et se modifie.
+                // Their page, where the whole sheet is read and edited.
                 'path' => $this->urlGenerator->generate('suite_studio_customers_show', ['id' => $customer->getId()]),
             ],
             $this->customers->searchByNameOrNumber($query, self::LIMIT),

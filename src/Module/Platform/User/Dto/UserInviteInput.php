@@ -25,21 +25,21 @@ class UserInviteInput implements UserInviteInputInterface
         public readonly string $role,
         public readonly ?string $message = null,
         /**
-         * Créer le compte sans contacter personne.
+         * Create the account without contacting anyone.
          *
-         * Pour quelqu'un qui arrive plus tard : le compte existe et la connexion
-         * lui est refusée, mais aucun jeton n'est émis et aucun mail ne part -
-         * `invitedAt` reste donc nul, ce qui est ce qui distingue « jamais
-         * contacté » de « désactivé après avoir été actif ». C'est l'activation
-         * du compte qui envoie l'invitation.
+         * For someone who arrives later: the account exists and login is
+         * refused, but no token is issued and no mail goes out - `invitedAt`
+         * therefore stays null, which is what tells "never contacted" apart
+         * from "disabled after having been active". Enabling the account is
+         * what sends the invitation.
          */
         public readonly bool $disabled = false,
         /**
-         * L'administration ou le site public.
+         * The administration or the public site.
          *
-         * `role` reste validé dans les deux cas - il est toujours envoyé - mais
-         * il est ignoré pour un compte frontend : le manager y force ROLE_USER,
-         * parce que le frontend n'a qu'un rôle et que ce n'est pas un choix.
+         * `role` stays validated in both cases - it is always sent - but it is
+         * ignored for a frontend account: the manager forces ROLE_USER there,
+         * because the frontend has only one role and it is not a choice.
          */
         #[Assert\Choice(callback: [UserTypeEnum::class, 'values'], message: 'suite.users.errors.type_invalid')]
         public readonly string $type = 'suite',

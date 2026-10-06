@@ -14,16 +14,17 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 /**
- * Les couleurs qu'une publication pose pour elle seule, jusqu'à la page servie.
+ * The colours a publication sets for itself alone, all the way to the served
+ * page.
  *
- * Testé ici plutôt qu'en unitaire parce que le trou était précisément entre les
- * deux : la colonne, le DTO et l'écran d'édition étaient branchés, et rien ne
- * lisait la couleur au rendu - la fonctionnalité était complète en base et
- * invisible sur le site. Ce qui se vérifie donc : que la couleur traverse la
- * chaîne entière, du tableau d'entrée au CSS de la réponse.
+ * Tested here rather than as a unit test because the gap was precisely between
+ * the two: the column, the DTO and the edit screen were wired, and nothing read
+ * the colour at render time - the feature was complete in the database and
+ * invisible on the site. So what is checked: that the colour crosses the whole
+ * chain, from the input array to the response's CSS.
  *
- * La résolution elle-même - précédence, héritage, contraste - est couverte à
- * l'unité par ThemeContextSurfacesTest, qui n'a pas besoin d'une base.
+ * The resolution itself - precedence, inheritance, contrast - is covered as a
+ * unit by ThemeContextSurfacesTest, which does not need a database.
  */
 final class PostSurfaceColorsTest extends IntegrationTestCase
 {
@@ -56,7 +57,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** Sans couleur choisie, la page sort exactement comme avant. */
+    /** Without a chosen colour, the page comes out exactly as before. */
     public function testAPublicationWithoutColoursEmitsNoSurfaceRule(): void
     {
         $this->published('Page ordinaire');
@@ -71,8 +72,8 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
     }
 
     /**
-     * Le cœur de la fonctionnalité : la couleur posée sur la publication arrive
-     * dans le CSS de sa page, et emporte son jeu de jetons contrasté.
+     * The heart of the feature: the colour set on the publication reaches its
+     * page's CSS, and carries its contrasted set of tokens with it.
      */
     public function testTheTopbarColourReachesTheServedPage(): void
     {
@@ -85,12 +86,12 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
 
         self::assertStringContainsString('html[data-theme] .aurora-surface-header{', $html);
         self::assertStringContainsString('--th-surface-bg: #0f172a;', $html);
-        // Sans ce jeton, les libellés de la topbar resteraient sombres sur
-        // sombre - c'est ce qui sépare « repeindre » de « rendre illisible ».
+        // Without this token, the topbar's labels would stay dark on dark -
+        // it is what separates "repainting" from "making unreadable".
         self::assertStringContainsString('--th-primary: rgb(243 244 246);', $html);
     }
 
-    /** Les trois surfaces sont indépendantes jusque dans la page servie. */
+    /** The three surfaces stay independent all the way into the served page. */
     public function testTheThreeSurfacesArePaintedIndependently(): void
     {
         $this->published('Page tricolore', [
@@ -110,11 +111,11 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
     }
 
     /**
-     * La couleur d'une publication ne fuit pas sur les autres.
+     * A publication's colour does not leak onto the others.
      *
-     * Le CSS est posé dans le `<head>` de la page rendue, donc rien ne le
-     * partage ; le test existe parce qu'une implémentation par variable de
-     * thème l'aurait fait, et que rien ne l'aurait signalé.
+     * The CSS is set in the rendered page's `<head>`, so nothing shares it; the
+     * test exists because an implementation through a theme variable would
+     * have shared it, and nothing would have flagged it.
      */
     public function testTheColourStaysOnItsOwnPublication(): void
     {
@@ -127,7 +128,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertStringNotContainsString('#0f172a', (string) $this->client->getResponse()->getContent());
     }
 
-    /** Une couleur qui n'est pas un `#rrggbb` n'atteint pas la page. */
+    /** A colour that is not a `#rrggbb` does not reach the page. */
     public function testAMalformedColourIsRefusedAtTheWriteBoundary(): void
     {
         $post = $this->published('Page douteuse', ['headerColor' => 'red; background: url(x)']);
@@ -142,7 +143,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
 
     // ── The accent colour, scoped rather than global ───────────────────────
 
-    /** Sans accent choisi, la page ne porte aucune règle scopée. */
+    /** Without a chosen accent, the page carries no scoped rule. */
     public function testAPublicationWithoutAnAccentEmitsNoScopedRule(): void
     {
         $this->published('Page sans accent');
@@ -154,9 +155,9 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
     }
 
     /**
-     * La couleur d'accent d'une publication atteint sa page, sous son propre
-     * sélecteur plutôt que `:root` - pour ne jamais repeindre la topbar ou le
-     * pied de page partagés.
+     * A publication's accent colour reaches its page, under its own selector
+     * rather than `:root` - so the shared topbar and footer are never
+     * repainted.
      */
     public function testTheAccentColourReachesItsOwnSelector(): void
     {
@@ -171,7 +172,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertStringContainsString('--th-accent-500:', $html);
     }
 
-    /** L'accent d'une publication ne fuit pas sur une autre. */
+    /** A publication's accent does not leak onto another one. */
     public function testTheAccentStaysOnItsOwnPublication(): void
     {
         $this->published('Page accentuée', ['accentColor' => '#b45309']);
@@ -183,7 +184,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertStringNotContainsString('.aurora-post-accent{', (string) $this->client->getResponse()->getContent());
     }
 
-    /** Une couleur d'accent qui n'est pas un `#rrggbb` n'atteint pas la page. */
+    /** An accent colour that is not a `#rrggbb` does not reach the page. */
     public function testAMalformedAccentIsRefusedAtTheWriteBoundary(): void
     {
         $post = $this->published('Page accent douteux', ['accentColor' => 'red; background: url(x)']);
@@ -198,7 +199,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
 
     // ── Hovers and card markers, scoped like the accent ───────────────────
 
-    /** Sans choix, la page hérite du thème et ne porte aucune règle. */
+    /** Without a choice, the page inherits the theme and carries no rule. */
     public function testAPublicationWithoutAHighlightEmitsNoScopedRule(): void
     {
         $this->published('Page survol hérité');
@@ -210,9 +211,9 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
     }
 
     /**
-     * Le neutre d'une publication atteint sa page sous son propre sélecteur,
-     * descendants compris : c'est ce qui le fait passer devant le réglage du
-     * thème, posé lui aussi élément par élément.
+     * A publication's neutral reaches its page under its own selector,
+     * descendants included: that is what puts it ahead of the theme's setting,
+     * which is also set element by element.
      */
     public function testANeutralHighlightReachesItsOwnSelector(): void
     {
@@ -240,8 +241,8 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
     }
 
     /**
-     * Un mode inconnu, ou un « custom » sans couleur valable, hérite du thème
-     * dès l'écriture plutôt que de rendre des survols sans couleur.
+     * An unknown mode, or a "custom" without a valid colour, inherits the theme
+     * from the moment it is written rather than rendering colourless hovers.
      */
     public function testAnUnusableHighlightIsRefusedAtTheWriteBoundary(): void
     {
@@ -261,9 +262,9 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
     // ── The rest of the theme's colours, and the chrome ────────────────────
 
     /**
-     * Texte, traits, titres : les couleurs du thème qu'une publication peut
-     * repeindre en plus de ses trois surfaces, jusqu'au CSS de sa page. Une clé
-     * inconnue ou une valeur qui n'est pas un `#rrggbb` est écartée.
+     * Text, lines, headings: the theme colours a publication can repaint on top
+     * of its three surfaces, all the way to its page's CSS. An unknown key or a
+     * value that is not a `#rrggbb` is dropped.
      */
     public function testTheOtherThemeColoursReachTheServedPage(): void
     {
@@ -294,7 +295,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertStringNotContainsString('</style>;', $html);
     }
 
-    /** Par défaut, la topbar et le pied gardent l'accent du thème. */
+    /** By default, the topbar and the footer keep the theme's accent. */
     public function testTheChromeKeepsTheThemeByDefault(): void
     {
         $this->published('Page sobre', ['accentColor' => '#b45309']);
@@ -308,7 +309,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertDoesNotMatchRegularExpression('/<footer class="[^"]*aurora-post-accent/', $html);
     }
 
-    /** Demandé, la topbar et le pied prennent l'accent et les survols de la page. */
+    /** When asked, the topbar and the footer take the page's accent and hovers. */
     public function testTheChromeFollowsThePageWhenAsked(): void
     {
         $this->published('Page entière', [

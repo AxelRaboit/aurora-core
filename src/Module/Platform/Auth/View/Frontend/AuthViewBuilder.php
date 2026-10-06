@@ -103,10 +103,10 @@ final readonly class AuthViewBuilder
     }
 
     /**
-     * La même forme que la réinitialisation - un jeton, un mot de passe à poser -
-     * et une page distincte quand même : « réinitialiser » est faux pour
-     * quelqu'un qui n'a jamais eu de mot de passe, et la personne arrive ici
-     * parce qu'on l'a invitée, pas parce qu'elle a oublié quelque chose.
+     * The same shape as the reset - a token, a password to set - and a
+     * separate page all the same: "reset" is wrong for someone who never had
+     * a password, and the person arrives here because they were invited, not
+     * because they forgot something.
      *
      * @param array<string, string> $errors
      *

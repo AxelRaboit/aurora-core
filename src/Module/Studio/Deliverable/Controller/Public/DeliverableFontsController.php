@@ -18,19 +18,17 @@ use Symfony\Component\Routing\Attribute\Route;
 use function flush;
 
 /**
- * Les polices déposées pour les diapositives, servies à qui lit une
- * présentation.
+ * The fonts uploaded for slides, served to whoever reads a presentation.
  *
- * **Servies ici et pas par `/uploads`**, pour la raison que donne
- * {@see DeckFonts} : une page ne charge ses polices que depuis sa propre
- * origine, et une médiathèque rangée sur un stockage objet répond à
- * `/uploads` par une redirection vers un autre domaine. Ici, ce sont les
- * octets, quel que soit le stockage : un lien de lecture dessine ses mots
- * dans la police où ils ont été composés.
+ * **Served here and not through `/uploads`**, for the reason given in
+ * {@see DeckFonts}: a page only loads its fonts from its own origin, and a
+ * media library kept on object storage answers `/uploads` with a redirect to
+ * another domain. Here, it is the bytes, whatever the storage: a reading
+ * link draws its words in the font they were set in.
  *
- * Sans compte exprès : un lien de lecture se lit sans compte, et une police
- * n'est pas un secret. Ce qui n'est pas une police n'est jamais servi, quel
- * que soit l'identifiant demandé.
+ * No account on purpose: a reading link is read without an account, and a
+ * font is not a secret. What is not a font is never served, whatever id is
+ * requested.
  *
  * Named `public_deliverable_font`, it goes dark when neither the
  * Deliverables module nor the client spaces, which hold the presentations,
@@ -63,9 +61,9 @@ final class DeliverableFontsController extends AbstractController
             }
         });
 
-        // Un fichier de police ne change jamais sous son identifiant : le
-        // remplacer dans la médiathèque écrit un autre fichier. Un an, et le
-        // navigateur le garde d'une présentation à l'autre.
+        // A font file never changes under its id: replacing it in the media
+        // library writes another file. One year, and the browser keeps it
+        // from one presentation to the next.
         $response->headers->set(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER, 'true');
         $response->headers->set('Content-Type', $this->fonts->contentTypeOf($document));
         $response->headers->set('X-Content-Type-Options', 'nosniff');

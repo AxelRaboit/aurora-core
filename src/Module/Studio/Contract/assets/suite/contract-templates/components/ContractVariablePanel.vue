@@ -66,9 +66,9 @@ async function copy(token) {
             </p>
         </div>
 
-        <!-- Dit avant la liste : une valeur posée à côté d'un jeton se lit
-             comme la vraie, et un SIRET bien formé sous « Le client » faisait
-             croire que la trame connaissait déjà un client. -->
+        <!-- Said before the list: a value set next to a token reads as the
+             real one, and a well-formed SIRET under "Le client" made it look
+             as if the template already knew a client. -->
         <AppMessage variant="info">
             {{ t("suite.studio.contract_templates.variables.examples_notice") }}
         </AppMessage>

@@ -35,18 +35,18 @@ final class InvitationController extends AbstractController
         $user = $this->userManager->findValidInvitation($selector, $token);
 
         /*
-         * Un jeton de compte frontend n'est pas accepté ici.
+         * A frontend account token is not accepted here.
          *
-         * `findValidInvitation` ne filtre pas le type, et c'est normal : la
-         * mécanique du jeton est commune aux deux populations. Le filtrage
-         * appartient donc à la route. Sans ce garde, un invité frontend suivant
-         * cette adresse serait connecté sur le firewall d'administration, où son
-         * compte n'existe pas - `admin_user_provider` ne résout que les comptes
-         * suite, donc la session sauterait au rafraîchissement suivant, après
-         * un passage sur le tableau de bord.
+         * `findValidInvitation` does not filter on the type, and that is
+         * expected: the token mechanism is shared by both populations. The
+         * filtering therefore belongs to the route. Without this guard, a
+         * frontend invitee following this address would be logged into the
+         * admin firewall, where their account does not exist -
+         * `admin_user_provider` only resolves suite accounts, so the session
+         * would drop on the next refresh, after a stop on the dashboard.
          *
-         * Le refus emprunte le même message qu'un jeton expiré : cette page n'a
-         * pas à révéler qu'un compte existe ailleurs.
+         * The refusal borrows the same message as an expired token: this page
+         * has no business revealing that an account exists elsewhere.
          */
         if (!$user instanceof User || UserTypeEnum::Suite !== $user->getType()) {
             $this->addFlash('error', $this->translator->trans('suite.auth.invitation.expired'));

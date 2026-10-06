@@ -162,9 +162,9 @@ suite:
             timezone_unknown: Ce fuseau horaire est inconnu.
             window_invalid: "La période demandée est invalide."
         reminders:
-            # L'intitulé de la bande, dans la grille.
+            # The heading of the band, in the grid.
             title: Rappels
-            # Le libellé du champ, dans la fenêtre.
+            # The label of the field, in the dialog.
             title_label: Titre
             title_placeholder: "Appeler le client, relire le brouillon…"
             new: Nouveau rappel
@@ -218,9 +218,9 @@ suite:
                 1440: "1 jour avant"
                 10080: "1 semaine avant"
         events:
-            # Le libellé du champ, au singulier : c'est un titre qu'on y écrit,
-            # pas une liste d'événements. La bande des rappels de la grille garde
-            # son intitulé à elle, `reminders.title`.
+            # The label of the field, in the singular: it is a title written
+            # there, not a list of events. The reminders band of the grid keeps
+            # its own heading, `reminders.title`.
             title: Titre
             new: Nouvel événement
             all_day: Toute la journée

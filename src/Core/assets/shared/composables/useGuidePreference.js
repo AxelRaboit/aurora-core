@@ -1,17 +1,17 @@
 import { readonly, ref } from "vue";
 
 /**
- * Ouvert ou replié : un seul choix pour tous les encarts « Comment ça marche ».
+ * Open or collapsed: one choice for all the "How it works" panels.
  *
- * Replier un encart les replie tous, sur l'écran ouvert comme sur les autres,
- * et le choix est gardé dans le navigateur ; le déplier les rouvre tous. Le
- * lecteur qui connaît l'outil ne referme pas vingt encarts un par un, celui
- * qui le découvre les garde ouverts.
+ * Collapsing one panel collapses them all, on the open screen as on the
+ * others, and the choice is kept in the browser; expanding it reopens them
+ * all. The reader who knows the tool does not close twenty panels one by
+ * one, the one who is discovering it keeps them open.
  *
- * L'état vit au niveau du module, donc partagé par toutes les instances de la
- * page, et suivi d'un onglet à l'autre par l'événement `storage`. Le stockage
- * peut manquer (navigation privée) : les encarts restent alors d'accord sur la
- * page, sans mémoire d'une visite à l'autre.
+ * The state lives at module level, so it is shared by every instance on the
+ * page, and followed from one tab to another through the `storage` event.
+ * Storage can be missing (private browsing): the panels then stay in
+ * agreement on the page, with no memory from one visit to the next.
  */
 const STORAGE_KEY = "aurora.guides.open";
 
@@ -25,7 +25,7 @@ function read() {
     }
 }
 
-/** `null` tant que le lecteur n'a rien choisi. */
+/** `null` as long as the reader has chosen nothing. */
 const choice = ref(read());
 
 if ("undefined" !== typeof window) {
@@ -39,17 +39,17 @@ function remember(open) {
     try {
         window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0");
     } catch {
-        // Sans stockage, les encarts restent d'accord sur la page, sans mémoire.
+        // Without storage, the panels stay in agreement on the page, with no memory.
     }
 }
 
-/** Pour les tests : oublier le choix, comme un navigateur neuf. */
+/** For tests: forget the choice, like a fresh browser. */
 function forget() {
     choice.value = null;
     try {
         window.localStorage.removeItem(STORAGE_KEY);
     } catch {
-        // Rien à oublier.
+        // Nothing to forget.
     }
 }
 

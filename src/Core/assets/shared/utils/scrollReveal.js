@@ -1,98 +1,98 @@
 /**
- * L'arrivée d'une zone de grille quand le lecteur la rejoint - `[data-reveal]`.
+ * The arrival of a grid zone when the reader reaches it - `[data-reveal]`.
  *
- * **La page se lit sans ce fichier**, et c'est la contrainte qui décide de sa
- * forme. Rien n'est caché par la feuille de style : l'état de départ est posé
- * ici, zone par zone, par la classe `aurora-reveal-armed`. Script en erreur,
- * JavaScript coupé, navigateur sans IntersectionObserver : la classe n'est
- * jamais posée et le contenu s'affiche. Cacher d'abord pour remontrer ensuite
- * est la façon classique de perdre une page entière sur une erreur de
- * chargement.
+ * **The page reads without this file**, and that constraint decides its
+ * shape. Nothing is hidden by the stylesheet: the starting state is set here,
+ * zone by zone, through the `aurora-reveal-armed` class. Script in error,
+ * JavaScript turned off, browser without IntersectionObserver: the class is
+ * never set and the content shows. Hiding first to show again afterwards is
+ * the classic way to lose a whole page on a loading error.
  *
- * **Et une zone déjà à l'écran n'est jamais armée.** Le paquet pèse plusieurs
- * centaines de kilo-octets : sur une connexion lente la page est peinte bien
- * avant qu'il ne s'exécute, et armer à ce moment-là ferait disparaître puis
- * revenir ce que le lecteur regarde déjà. C'est aussi la bonne règle en soi -
- * animer l'entrée de ce qui est sous les yeux depuis le début n'annonce rien.
+ * **And a zone already on screen is never armed.** The bundle weighs several
+ * hundred kilobytes: on a slow connection the page is painted well before it
+ * runs, and arming at that moment would make what the reader is already
+ * looking at disappear and come back. It is also the right rule in itself -
+ * animating the entrance of what has been in view from the start announces
+ * nothing.
  *
- * Les mesures se font toutes avant les écritures. Lire une position puis
- * écrire une classe puis relire la suivante force le navigateur à recalculer
- * la mise en page à chaque tour, sur une page longue c'est trente fois.
+ * The measurements all happen before the writes. Reading a position, then
+ * writing a class, then reading the next one forces the browser to recompute
+ * the layout on every turn, which on a long page is thirty times.
  *
- * Un observateur pour toute la page, pas un par zone, et **une zone n'arrive
- * qu'une fois** : rejouer l'effet en remontant donne une page qui clignote
- * quand on cherche un paragraphe déjà lu, exactement le moment où il ne faut
- * pas bouger.
+ * One observer for the whole page, not one per zone, and **a zone arrives
+ * only once**: replaying the effect when scrolling back up gives a page that
+ * flickers while someone looks for a paragraph already read, exactly the
+ * moment when nothing should move.
  *
- * Balisage : templates/Frontend/themes/default/editorial/post/_grid.html.twig
+ * Markup: templates/Frontend/themes/default/editorial/post/_grid.html.twig
  */
 const SELECTOR = "[data-reveal]";
 
-/** Ce qui cache une zone en attendant son tour. Posé ici, jamais par le HTML. */
+/** What hides a zone while it waits for its turn. Set here, never by the HTML. */
 const ARMED = "aurora-reveal-armed";
 
-/** La classe que porte une zone arrivée. */
+/** The class a zone carries once it has arrived. */
 const REVEALED = "aurora-revealed";
 
 /**
- * Posé sur `<html>` tant qu'une zone attend son tour.
+ * Set on `<html>` while a zone waits for its turn.
  *
- * Une zone qui vient de la droite est décalée hors de sa boîte, ce qui
- * allonge la page et lui donne une barre de défilement horizontale - mesuré
- * en production, vingt-quatre pixels, exactement le décalage. La feuille de
- * style coupe ce dépassement sous cet attribut, et il s'en va avec la
- * dernière zone : brider la page en permanence pour un mouvement qui dure
- * sept dixièmes de seconde serait payer trop cher.
+ * A zone that comes from the right is shifted out of its box, which makes
+ * the page longer and gives it a horizontal scrollbar - measured in
+ * production, twenty-four pixels, exactly the shift. The stylesheet clips
+ * that overflow under this attribute, and it goes away with the last zone:
+ * restraining the page permanently for a movement that lasts seven tenths of
+ * a second would be paying too much.
  */
 const RUNNING = "data-reveal-running";
 
 /**
- * Le moindre pixel suffit : c'est la marge basse qui décide du moment, en
- * déclenchant quand le haut de la zone franchit 92 % de la fenêtre.
+ * The slightest pixel is enough: the bottom margin decides the moment, by
+ * firing when the top of the zone crosses 92% of the window.
  *
- * Un seuil en fraction de la zone ne tient pas pour un grand bloc. Il valait
- * 0,08 jusqu'au 25/09/2026, et sur téléphone la liste des vingt-quatre sujets
- * du tour Aurora, empilés en une colonne, faisait près de 10 000 px : la
- * fenêtre n'en montre jamais plus de 7 %, la zone restait armée, invisible,
- * en gardant sa place. Sur ordinateur les trois colonnes la rendaient trois
- * fois plus courte, et le défaut ne se voyait pas.
+ * A threshold as a fraction of the zone does not hold for a large block. It
+ * was 0.08 until 25/09/2026, and on a phone the list of the twenty-four
+ * topics of the Aurora tour, stacked in one column, was nearly 10,000 px:
+ * the window never shows more than 7% of it, so the zone stayed armed,
+ * invisible, while keeping its space. On a computer the three columns made
+ * it three times shorter, and the defect did not show.
  */
 const THRESHOLD = 0;
 const MARGIN = "0px 0px -8% 0px";
 
 /**
- * Le décalage entre deux arrivées d'un même groupe.
+ * The delay between two arrivals of the same group.
  *
- * Une galerie de vingt photos franchit le seuil d'un coup, et vingt zones qui
- * apparaissent ensemble ne se lisent pas comme vingt : elles se lisent comme
- * un bloc qui change d'opacité. Soixante-dix millisecondes suffisent à ce que
- * l'œil suive la série sans que la dernière se fasse attendre.
+ * A gallery of twenty photos crosses the threshold at once, and twenty zones
+ * that appear together do not read as twenty: they read as one block that
+ * changes opacity. Seventy milliseconds are enough for the eye to follow the
+ * series without the last one keeping it waiting.
  *
- * **Le décalage se calcule au moment de l'arrivée, pas à l'écriture du
- * HTML.** Un rang gravé dans le balisage pénaliserait la vingtième photo même
- * quand on la rejoint seule, en bas de page, un quart d'heure plus tard :
- * elle attendrait 1,4 seconde pour rien. Ici, ce qui arrive ensemble se
- * décale, ce qui arrive seul n'attend pas.
+ * **The delay is computed at the moment of arrival, not when the HTML is
+ * written.** A rank engraved in the markup would penalise the twentieth
+ * photo even when it is reached alone, at the bottom of the page, a quarter
+ * of an hour later: it would wait 1.4 seconds for nothing. Here, what arrives
+ * together is staggered, and what arrives alone does not wait.
  */
 const STAGGER = 70;
 
-/** Au-delà, on ne lit plus une cascade, on attend la fin. */
+/** Beyond this, it no longer reads as a cascade, it reads as waiting for the end. */
 const STAGGER_MAX = 8;
 
 /**
- * L'ordre dans lequel un lot d'arrivées se joue.
+ * The order in which a batch of arrivals plays.
  *
- * Extrait de la fermeture de l'observateur pour être vérifiable : c'est la
- * seule logique de ce fichier qui décide de quelque chose, et un effet piloté
- * par le défilement ne se teste pas dans un navigateur sans le regarder.
+ * Pulled out of the observer's closure to be testable: it is the only logic
+ * in this file that decides something, and a scroll-driven effect cannot be
+ * tested in a browser without watching it.
  *
- * De haut en bas, puis de gauche à droite, parce que **le navigateur ne
- * promet rien sur l'ordre des entrées d'un même lot** et qu'une cascade qui
- * part du bas ou du milieu se remarque tout de suite.
+ * Top to bottom, then left to right, because **the browser promises nothing
+ * about the order of the entries in a batch** and a cascade that starts from
+ * the bottom or the middle is noticed at once.
  *
  * @param {Array<{isIntersecting: boolean, target: Element}>} entries
  *
- * @returns {Array<Element>} ce qui arrive, dans l'ordre où l'œil le prend
+ * @returns {Array<Element>} what arrives, in the order the eye takes it in
  */
 export function cascadeOrder(entries) {
     return entries
@@ -106,26 +106,26 @@ export function cascadeOrder(entries) {
 }
 
 /**
- * Le retard d'une arrivée selon son rang dans le lot, en millisecondes.
+ * The delay of an arrival according to its rank in the batch, in milliseconds.
  *
- * Plafonné : au-delà de huit crans on ne lit plus une cascade, on attend la
- * fin. Une galerie de quarante photos qui franchissent le seuil ensemble
- * s'étalerait sinon sur près de trois secondes.
+ * Capped: beyond eight steps it no longer reads as a cascade, it reads as
+ * waiting for the end. A gallery of forty photos crossing the threshold
+ * together would otherwise spread over nearly three seconds.
  */
 export function cascadeDelay(rank) {
     return Math.min(Math.max(rank, 0), STAGGER_MAX) * STAGGER;
 }
 
 function reveal(element, remaining, rank = 0) {
-    // Écrit en ligne plutôt qu'en CSS : le rang n'est connu qu'ici.
+    // Written inline rather than in CSS: the rank is only known here.
     if (rank > 0) {
         element.style.transitionDelay = `${cascadeDelay(rank)}ms`;
     }
 
     element.classList.add(REVEALED);
 
-    // Rendu une fois posée : `will-change` laissé sur trente zones réserve de
-    // la mémoire pour un mouvement qui ne se reproduira pas.
+    // Released once the zone has landed: `will-change` left on thirty zones
+    // reserves memory for a movement that will not happen again.
     // Only the zone's own transition ends the arrival: the cards inside it
     // run theirs too, and `transitionend` bubbles - the first card to land
     // would otherwise disarm the zone while it was still moving.
@@ -152,18 +152,18 @@ function arm() {
         return;
     }
 
-    // Le réglage système d'abord : on ne touche à rien.
+    // The system setting first: we touch nothing.
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
         return;
     }
 
-    // Sans observateur, on laisse tout affiché plutôt que d'armer ce que rien
-    // ne viendrait désarmer.
+    // Without an observer, everything stays shown rather than arming what
+    // nothing would come to disarm.
     if (!("IntersectionObserver" in window)) {
         return;
     }
 
-    // Toutes les lectures, puis toutes les écritures.
+    // All the reads, then all the writes.
     const below = zones.filter(
         (zone) => zone.getBoundingClientRect().top >= window.innerHeight,
     );
@@ -189,18 +189,18 @@ function arm() {
 
     below.forEach((zone) => observer.observe(zone));
 
-    // **Une page qui s'allonge après coup ne doit pas laisser du caché en
-    // vue.** Les positions sont mesurées au chargement du document, avant
-    // que les images ne se posent : une image sans dimensions occupe zéro
-    // pixel, la page est donc plus courte qu'elle ne sera, et une zone jugée
-    // « sous la fenêtre » peut se retrouver dedans une seconde plus tard
-    // sans que rien ne la croise à nouveau - l'observateur ne se redéclenche
-    // pas sur un élément qui n'a pas bougé par rapport à la fenêtre.
+    // **A page that grows longer afterwards must not leave hidden content in
+    // view.** The positions are measured when the document loads, before the
+    // images settle: an image without dimensions takes up zero pixels, so the
+    // page is shorter than it will be, and a zone judged "below the window" can
+    // end up inside it a second later without anything crossing it again - the
+    // observer does not fire again for an element that has not moved relative
+    // to the window.
     //
-    // La cause se corrige ailleurs, en écrivant `width` et `height` sur les
-    // images. Ceci est le filet : à `load`, tout ce qui est armé et
-    // désormais visible arrive, et le pire cas devient une zone qui apparaît
-    // sans effet plutôt qu'une zone qui n'apparaît pas.
+    // The cause is fixed elsewhere, by writing `width` and `height` on the
+    // images. This is the safety net: on `load`, everything armed and now
+    // visible arrives, and the worst case becomes a zone that appears without
+    // the effect rather than a zone that does not appear.
     window.addEventListener(
         "load",
         () => {

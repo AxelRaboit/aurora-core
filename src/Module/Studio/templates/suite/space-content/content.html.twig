@@ -5,8 +5,8 @@
 {% block title %}{{ space.name }}{% endblock %}
 
 {% block body %}
-{# Maillon de la colonne : la hauteur descend du corps jusqu'à l'écran
-   ouvert, et une div sans classe l'aurait coupée ici. #}
+{# A link in the column chain: the height flows down from the body to the open
+   screen, and a div without a class would have cut it here. #}
 <div class="flex flex-1 flex-col" {{ vue_component('studio/suite/content/SpaceContentApp', {
     space: space,
     columns: columns,

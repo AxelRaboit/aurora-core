@@ -542,57 +542,55 @@ class AuroraBundle extends AbstractBundle
         ]);
 
         /*
-         * Les neuf limiteurs que les contrôleurs d'aurora-core câblent par leur
-         * nom.
+         * The nine limiters that aurora-core's controllers wire by their name.
          *
-         * La liste se relit par `grep -oE '\$[a-zA-Z]+Limiter' src/` : en
-         * oublier un ne se voit qu'au déploiement d'un projet client, sur le
-         * contrôleur qui le demande.
+         * The list is checked again with `grep -oE '\$[a-zA-Z]+Limiter' src/`:
+         * forgetting one only shows when a client project is deployed, on the
+         * controller that asks for it.
          *
-         * **C'était au client de les répéter, et rien ne le disait** - sinon un
-         * conteneur qui refuse de se construire au premier déploiement, sur un
-         * service dont le projet n'a jamais entendu parler. Le commentaire du
-         * routage messenger juste au-dessus notait déjà que les limiteurs ont
-         * cette forme ; il a fallu en ajouter un pour que ça se voie.
+         * **It was up to the client to repeat them, and nothing said so** -
+         * except a container that refuses to build on the first deployment, on
+         * a service the project has never heard of. The messenger routing
+         * comment just above already noted that the limiters have this shape;
+         * it took adding one for it to show.
          *
-         * Fournis ici, ils arrivent avec le paquet. Un client qui veut d'autres
-         * chiffres redéclare la clé dans son propre `rate_limiter.yaml` : sa
-         * configuration est chargée après, donc elle gagne.
+         * Provided here, they come with the package. A client that wants other
+         * figures declares the key again in its own `rate_limiter.yaml`: its
+         * configuration is loaded after, so it wins.
          */
         $builder->prependExtensionConfig('framework', [
             'rate_limiter' => [
-                // L'envoi d'un formulaire du site public.
+                // Submitting a form on the public site.
                 'form_submission' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
-                // La signature d'un contrat par quelqu'un qui tient un lien.
+                // Signing a contract by someone who holds a link.
                 'contract_signature' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 'contract_signature_code' => ['policy' => 'sliding_window', 'limit' => 15, 'interval' => '1 hour'],
-                // Le mot de passe d'un lien de lecture d'une publication.
+                // The password of a publication's reading link.
                 'post_reading_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
-                // Le mot de passe d'un lien de lecture d'un livrable.
+                // The password of a deliverable's reading link.
                 'deliverable_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
-                // Les gestes d'un client sur l'espace qu'un lien lui ouvre :
-                // valider, commenter, écrire. Plus haut que la signature parce
-                // qu'on parcourt un mois et qu'on valide six publications
-                // d'affilée, là où on ne signe qu'une fois.
+                // A client's actions on the space a link opens to them:
+                // approving, commenting, writing. Higher than the signature
+                // because one goes through a month and approves six
+                // publications in a row, where one signs only once.
                 'space_guest_write' => ['policy' => 'sliding_window', 'limit' => 40, 'interval' => '1 hour'],
-                // Le dépôt d'un fichier : il traverse le stockage, la vignette
-                // et, pour une vidéo, la capture d'une image de couverture.
+                // Uploading a file: it goes through the storage, the thumbnail
+                // and, for a video, the capture of a cover image.
                 'space_guest_upload' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
-                // Le lot du dossier Drive, la route publique la plus chère :
-                // chaque fichier est téléchargé chez Google et le zip est
-                // construit en entier avant le premier octet envoyé.
+                // The Drive folder bundle, the most expensive public route:
+                // every file is downloaded from Google and the zip is built
+                // whole before the first byte is sent.
                 'space_guest_archive' => ['policy' => 'sliding_window', 'limit' => 5, 'interval' => '1 hour'],
-                // Le mot de passe qui ouvre le Drive d'un espace, par personne
-                // et par espace : dix essais le quart d'heure suffisent à qui
-                // l'a mal tapé, pas à qui le cherche.
+                // The password that opens a space's Drive, per person and per
+                // space: ten tries per quarter of an hour are enough for
+                // someone who mistyped it, not for someone guessing it.
                 'space_drive_unlock' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '15 minutes'],
-                // L'inscription à la lettre d'information et la prise d'un
-                // rendez-vous, sur le même mur extérieur que les autres,
-                // gardées par IP.
+                // Subscribing to the newsletter and booking an appointment,
+                // on the same outer wall as the others, guarded by IP.
                 'newsletter_subscription' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 'editorial_booking' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
-                // Le vote d'un sondage : un par lecteur déjà, plus large pour
-                // un foyer derrière une seule adresse.
+                // A poll vote: already one per reader, wider for a household
+                // behind a single address.
                 'editorial_poll_vote' => ['policy' => 'sliding_window', 'limit' => 30, 'interval' => '1 hour'],
             ],
         ]);

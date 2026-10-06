@@ -1,20 +1,20 @@
 /**
- * Ce qui change entre deux textes, ligne par ligne.
+ * What changes between two texts, line by line.
  *
- * Pour l'historique d'une note : une version se compare à l'état courant en
- * montrant les lignes retirées et ajoutées, comme un « git diff » sans ses
- * en-têtes. Une note est du texte, et c'est ce qu'on veut voir d'abord : ce
- * qui a bougé, pas deux colonnes à relire côte à côte.
+ * For a note's history: a version is compared with the current state by
+ * showing the removed and added lines, like a "git diff" without its
+ * headers. A note is text, and that is what one wants to see first: what
+ * moved, not two columns to reread side by side.
  *
- * Plus longue sous-suite commune, en O(n × m). Au-delà de `MAX_CELLS`
- * (deux notes de deux mille lignes), le calcul s'arrête et rend `null` :
- * l'écran montre alors la version entière plutôt que de figer la page.
+ * Longest common subsequence, in O(n × m). Beyond `MAX_CELLS` (two notes of
+ * two thousand lines), the computation stops and returns `null`: the screen
+ * then shows the whole version rather than freezing the page.
  */
 const MAX_CELLS = 4_000_000;
 
 /**
- * @param {string} before le texte de la version
- * @param {string} after  le texte courant
+ * @param {string} before the version's text
+ * @param {string} after  the current text
  * @returns {Array<{kind: "same"|"removed"|"added", text: string}>|null}
  */
 export function lineDiff(before, after) {
@@ -23,7 +23,7 @@ export function lineDiff(before, after) {
 
     if (a.length * b.length > MAX_CELLS) return null;
 
-    // lengths[i][j] : la plus longue suite commune de a[i..] et b[j..].
+    // lengths[i][j]: the longest common subsequence of a[i..] and b[j..].
     const lengths = Array.from(
         { length: a.length + 1 },
         () => new Uint32Array(b.length + 1),
@@ -59,7 +59,7 @@ export function lineDiff(before, after) {
     return lines;
 }
 
-/** Combien de lignes ajoutées et retirées. */
+/** How many lines were added and removed. */
 export function diffStats(lines) {
     return (lines ?? []).reduce(
         (stats, line) => ({

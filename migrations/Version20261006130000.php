@@ -8,14 +8,14 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Un livrable peut être un diaporama.
+ * A deliverable can be a slideshow.
  *
- * Une diapositive appartient désormais à une présentation ou à un livrable :
- * `deliverable_id` arrive à côté de `deck_id`, qui devient nullable le temps
- * que les présentations rejoignent les livrables. Le livrable gagne le thème
- * et les retouches de ses diapositives, vides pour une page.
+ * A slide now belongs to a presentation or to a deliverable: `deliverable_id`
+ * arrives next to `deck_id`, which becomes nullable while presentations join
+ * the deliverables. The deliverable gains the theme and the overrides of its
+ * slides, empty for a page.
  *
- * Écrite à la main : le diff généré renommait aussi des index sans rapport.
+ * Written by hand: the generated diff also renamed unrelated indexes.
  */
 final class Version20261006130000 extends AbstractMigration
 {
@@ -36,8 +36,8 @@ final class Version20261006130000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Les diapositives d'un livrable n'ont pas de présentation où revenir :
-        // elles partent avant que `deck_id` redevienne obligatoire.
+        // A deliverable's slides have no presentation to go back to: they are
+        // removed before `deck_id` becomes required again.
         $this->addSql('DELETE FROM core_deck_slides WHERE deck_id IS NULL');
         $this->addSql('ALTER TABLE core_deck_slides DROP CONSTRAINT FK_5F851CE8F3C6560A');
         $this->addSql('DROP INDEX IDX_5F851CE8F3C6560A');

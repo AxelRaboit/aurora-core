@@ -599,9 +599,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'table'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <table v-if="!compact" class="sf-table">
-                        <!-- La première ligne est l'en-tête, et c'est une
-                             convention du gabarit : un tableau de slide sans
-                             en-tête est une grille de chiffres sans légende. -->
+                        <!-- The first row is the header, and that is a
+                             convention of the template: a slide table without
+                             a header is a grid of numbers without a legend. -->
                         <thead v-if="(slide.content.rows ?? []).length">
                             <tr>
                                 <th v-for="(cell, at) in cells(slide.content.rows[0])" :key="at">{{ cell }}</th>
@@ -620,11 +620,10 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
                 <template v-else-if="slide.layout === 'chart'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
-                    <!-- Pas de canevas dans une vignette de 160 px : une toile
-                         Chart.js par slide dans la colonne, c'est une douzaine
-                         de contextes de rendu pour des barres hautes de trois
-                         pixels. Les barres grises disent qu'il y a un graphique
-                         là, ce qui est tout ce qu'une vignette a à dire. -->
+                    <!-- No canvas in a 160 px thumbnail: one Chart.js canvas
+                         per slide in the column is a dozen rendering contexts
+                         for bars three pixels tall. The grey bars say there is
+                         a chart there, which is all a thumbnail has to say. -->
                     <SlideChart
                         v-if="!compact"
                         :rows="slide.content.series ?? []"
@@ -660,10 +659,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 </template>
             </div>
 
-            <!-- Hors du flux : la bande porte un logo et un numéro, pas du
-                 contenu, et un pied de page qui pousse le texte vers le haut
-                 ferait d'une slide numérotée une slide plus petite que ses
-                 voisines. -->
+            <!-- Out of the flow: the strip carries a logo and a number, not
+                 content, and a footer that pushes the text up would make a
+                 numbered slide smaller than its neighbours. -->
             <div v-if="hasFooter" class="sf-footer">
                 <img v-if="showsLogo" class="sf-logo" :src="appearance.logoUrl" :alt="appearance.logoAlt ?? ''">
                 <span v-else />
@@ -681,21 +679,21 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    160px thumbnail and a 700px preview on the same screen, so what the type has
    to follow is its own box, not the window. */
 /**
- * Le rapport 16/9 par le remplissage, pas par `aspect-ratio`.
+ * The 16/9 ratio through padding, not through `aspect-ratio`.
  *
- * `aspect-ratio` cède dès que le parent décide la hauteur autrement, et la
- * vignette redevenait carrée sans que rien ne le signale : ni `min-height: 0`
- * ni une sortie du contexte flex n'y ont suffi. `padding-top: 56.25%` se
- * résout toujours contre la largeur, quel que soit le contexte, et c'est le
- * seul point ici qui doit être vrai partout : un aperçu qui ne fait pas la
- * forme de la slide est un aperçu qui ment.
+ * `aspect-ratio` gives way as soon as the parent decides the height some other
+ * way, and the thumbnail went square again without anything flagging it:
+ * neither `min-height: 0` nor leaving the flex context was enough.
+ * `padding-top: 56.25%` always resolves against the width, whatever the
+ * context, and that is the one thing here that must hold everywhere: a preview
+ * that does not have the shape of the slide is a preview that lies.
  */
 .slide-ratio {
-    /* Le conteneur de requête, c'est cette boîte-ci : sa largeur est décidée
-       par la colonne (246 px) ou par la page (768 px), donc `cqw` y résout
-       quelque chose de connu. Portée par le cadre lui-même, qui est
-       positionné, l'unité se résolvait contre une largeur que le navigateur
-       n'avait pas encore arrêtée, et la typographie tombait à rien. */
+    /* The query container is this box: its width is decided by the column
+       (246 px) or by the page (768 px), so `cqw` resolves to something known
+       here. Carried by the frame itself, which is positioned, the unit
+       resolved against a width the browser had not settled yet, and the
+       type shrank to nothing. */
     container-type: inline-size;
     position: relative;
     width: 100%;
@@ -703,11 +701,11 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 }
 
 /**
- * Les valeurs de repli sont celles d'avant les thèmes.
+ * The fallback values are the ones from before themes.
  *
- * Un cadre dessiné hors d'un deck - une vignette de démonstration, un test de
- * composant - n'a pas d'apparence à recevoir, et doit rester lisible. Les
- * propriétés personnalisées le disent une fois ici plutôt qu'à chaque usage.
+ * A frame drawn outside a deck (a demo thumbnail, a component test) has no
+ * appearance to receive, and must stay readable. The custom properties say so
+ * once here rather than at every use.
  */
 .slide-frame {
     --slide-bg: var(--color-surface-2, #161b22);
@@ -728,21 +726,21 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     font-family: var(--slide-body);
     border: 1px solid var(--color-line, #30363d);
     border-radius: 0.5rem;
-    /* Rogné plutôt qu'étiré : une slide trop remplie déborde au mur aussi, et
-       un aperçu qui s'agrandit pour tout montrer est un aperçu qui ment. */
+    /* Clipped rather than stretched: an overfilled slide overflows on the wall
+       too, and a preview that grows to show everything is a preview that lies. */
     overflow: hidden;
 }
 
 /**
- * Le facteur d'ajustement, et le centrage qui ne jette rien dehors.
+ * The fit factor, and centring that throws nothing out.
  *
- * `safe center` centre tant que le contenu tient et bascule en alignement haut
- * dès qu'il déborde. Sans lui, une colonne centrée qui dépasse sort par les
- * deux bouts : le titre partait au-dessus du cadre, la dernière ligne en
- * dessous, et `overflow: hidden` coupait les deux sans rien dire.
+ * `safe center` centres while the content fits and switches to top alignment
+ * as soon as it overflows. Without it, a centred column that runs over spills
+ * out at both ends: the title went above the frame, the last line below, and
+ * `overflow: hidden` cut both without a word.
  *
- * C'est la ceinture ; `useSlideFit` est les bretelles, et fait que le cas ne
- * se présente qu'avec vraiment trop de mots.
+ * This is the belt; `useSlideFit` is the braces, and makes sure the case only
+ * comes up with really too many words.
  */
 .slide-stage {
     --fit: 1;
@@ -756,21 +754,21 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     gap: calc(2cqw * var(--fit));
 }
 
-/* Sous le contenu et sous le pied de page, dans leur propre couche : posée en
-   `background-image` sur le cadre, l'image aurait été rognée par le
-   remplissage et le voile aurait eu à être une seconde image. */
+/* Under the content and under the footer, in their own layer: set as a
+   `background-image` on the frame, the image would have been clipped by the
+   padding and the veil would have had to be a second image. */
 .sf-backdrop { position: absolute; inset: 0; overflow: hidden; }
-/* La peinture d'une slide libre, sous tout le reste : une couleur ou un
-   dégradé choisi pour elle, par-dessus le fond du deck. */
+/* The paint of a free slide, under everything else: a colour or a gradient
+   chosen for it, over the deck background. */
 .sf-fill { position: absolute; inset: 0; }
-/* `cover` ici, contrairement à la slide image : un fond est un décor, et une
-   bande de couleur sur le côté d'un décor se voit plus que le coin qu'il perd. */
+/* `cover` here, unlike the image slide: a background is scenery, and a strip
+   of colour on the side of scenery shows more than the corner it loses. */
 .sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
 .sf-backdrop-veil { position: absolute; inset: 0; background: var(--slide-bg); }
 
-/* Le travelling. Vingt secondes pour un pour cent de déplacement : à l'oeil
-   ce n'est pas un mouvement, c'est une image qui respire. Coupé net quand la
-   personne a demandé moins d'animation. */
+/* The tracking shot. Twenty seconds for one percent of movement: to the eye
+   it is not motion, it is an image that breathes. Cut off when the person
+   asked for reduced motion. */
 @keyframes sf-drift {
     from { transform: scale(1.06) translate3d(-0.6%, -0.4%, 0); }
     to { transform: scale(1.12) translate3d(0.6%, 0.4%, 0); }
@@ -785,10 +783,10 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     .sf-backdrop-file.is-drifting { animation: none; }
 }
 
-/* Une ligne pas encore sortie garde sa place et ne se voit pas. `visibility`
-   et non `display` : le cadre mesure son propre texte et le réduit pour qu'il
-   tienne, donc une liste qui grandirait ligne à ligne redimensionnerait tous
-   les mots de la slide à chaque pression. */
+/* A line not revealed yet keeps its place and stays invisible. `visibility`
+   and not `display`: the frame measures its own text and shrinks it to fit,
+   so a list that grew line by line would resize every word on the slide at
+   each key press. */
 .is-held { visibility: hidden; }
 .sf-agenda li.is-held,
 .sf-end-lines > .is-held { visibility: hidden; }
@@ -802,36 +800,36 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     .is-held { opacity: 0; }
 }
 
-/* Le papier ne bouge pas. La classe n'est déjà posée que par le lecteur, mais
-   une feuille imprimée qui attraperait une image en plein travelling est une
-   erreur que personne ne verrait avant de recevoir le PDF. */
+/* Paper does not move. The class is already only set by the player, but a
+   printed sheet that caught an image mid-drift is a mistake nobody would see
+   before receiving the PDF. */
 @media print {
     .sf-backdrop-file.is-drifting { animation: none; }
 
-    /* Le deck s'imprime dans ses couleurs, point.
+    /* The deck prints in its colours, full stop.
      *
-     * Sans cette ligne, le fond ne sort que si le lecteur a coché « imprimer
-     * les arrière-plans », donc le rendu dépend d'une case dans le navigateur
-     * de quelqu'un d'autre : personne ne sait ce qu'il va obtenir, l'auteur le
-     * premier. Un PDF de deck est un fichier qu'on envoie, pas une feuille
-     * qu'on imprime, et un deck qui arrive gris sur blanc est un livrable
-     * cassé. Celui qui veut économiser son encre a « niveaux de gris » dans sa
-     * propre boîte de dialogue, qu'il connaît déjà. */
+     * Without this line, the background only comes out if the reader ticked
+     * "print backgrounds", so the result depends on a checkbox in someone
+     * else's browser: nobody knows what they will get, the author first of
+     * all. A deck PDF is a file you send, not a sheet you print, and a deck
+     * that arrives grey on white is a broken deliverable. Whoever wants to
+     * save ink has "greyscale" in their own print dialog, which they already
+     * know. */
     .slide-frame {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
 }
 
-/* Le traitement de la photo. Le flou est agrandi d'un poil : une image floutée
-   dans son cadre laisse voir ses bords nets, ce qui est pire que pas de flou. */
+/* The photo treatment. The blur is scaled up a touch: a blurred image in its
+   frame shows its sharp edges, which is worse than no blur. */
 .sf-backdrop[data-treatment="blur"] .sf-backdrop-file { filter: blur(1.2cqw); transform: scale(1.06); }
 .sf-backdrop[data-treatment="mono"] .sf-backdrop-file { filter: grayscale(1) contrast(1.06); }
 .sf-backdrop[data-treatment="duotone"] .sf-backdrop-file { filter: grayscale(1) contrast(1.1); }
 
-/* La couche qui ajoute ce qu'un filtre ne sait pas faire : une couleur, ou du
-   bruit. Entre la photo et le voile, pour que baisser le voile dévoile aussi
-   la teinte plutôt que de la laisser flotter au-dessus. */
+/* The layer that adds what a filter cannot do: a colour, or noise. Between
+   the photo and the veil, so that lowering the veil also uncovers the tint
+   rather than leaving it floating on top. */
 .sf-backdrop-film { position: absolute; inset: 0; }
 
 .sf-backdrop[data-treatment="duotone"] .sf-backdrop-film {
@@ -849,9 +847,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     mix-blend-mode: overlay;
 }
 
-/* Le voile dirigé. Pour rendre le texte lisible, le voile plat doit ternir
-   toute la photo ; celui-ci ne descend que du côté où il y a des mots, et
-   l'opacité posée en ligne le multiplie comme elle multipliait l'aplat. */
+/* The directional veil. To make the text readable, the flat veil has to dull
+   the whole photo; this one only comes down on the side where the words are,
+   and the inline opacity multiplies it as it multiplied the flat one. */
 .sf-backdrop[data-veil="bottom"] .sf-backdrop-veil {
     background: linear-gradient(0deg, var(--slide-bg) 6%, color-mix(in srgb, var(--slide-bg) 58%, transparent) 46%, transparent 82%);
 }
@@ -860,17 +858,17 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     background: linear-gradient(180deg, var(--slide-bg) 6%, color-mix(in srgb, var(--slide-bg) 58%, transparent) 46%, transparent 82%);
 }
 
-/* Le vignettage ramène l'oeil au centre. Au-dessus du décor et sous le lavis,
-   comme une correction de la photo et non comme une couleur du deck. */
+/* The vignette brings the eye back to the centre. Above the scenery and under
+   the wash, as a correction of the photo and not as a colour of the deck. */
 .sf-vignette {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    /* Vers l'encre du deck et pas vers le noir, et discret.
-       Un vignettage noir sur un thème clair ne fait pas un coin sombre, il
-       fait une slide grise : c'est déjà la raison pour laquelle le voile du
-       décor teinte vers le fond plutôt que vers le noir, et je l'avais
-       oubliée en écrivant celui-ci. */
+    /* Towards the deck's ink and not towards black, and subtle.
+       A black vignette on a light theme does not make a dark corner, it
+       makes a grey slide: that is already why the scenery veil tints towards
+       the background rather than towards black, and I had forgotten it when
+       writing this one. */
     background: radial-gradient(
         82% 92% at 50% 50%,
         transparent 58%,
@@ -878,7 +876,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     );
 }
 
-/* Le contenant de l'image, dans les deux gabarits qui en portent un. */
+/* The image container, in the two templates that have one. */
 .slide-frame[data-media-frame="line"] :is(.sf-image, .sf-beside-media) {
     border: 0.6cqw solid var(--slide-accent);
 }
@@ -887,9 +885,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     box-shadow: 0 2cqw 4.5cqw rgb(0 0 0 / 30%);
 }
 
-/* La légende posée dans le coin de l'image plutôt que sous elle : la photo
-   reprend les deux lignes qu'elle lui prenait. Son propre voile, parce qu'une
-   légende ne choisit pas ce qu'il y a derrière elle. */
+/* The caption set in the corner of the image rather than under it: the photo
+   gets back the two lines the caption took from it. Its own veil, because a
+   caption does not choose what is behind it. */
 .sf-caption-over {
     position: absolute;
     left: 2cqw;
@@ -902,14 +900,14 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     opacity: 1;
 }
 
-/* La marge du cadre. `normal` n'a pas de règle : c'est la valeur que porte
-   `.slide-frame` lui-même, donc un deck qui n'a jamais ouvert le panneau
-   dessine exactement comme avant. */
+/* The frame margin. `normal` has no rule: it is the value `.slide-frame`
+   itself carries, so a deck that never opened the panel draws exactly as
+   before. */
 .slide-frame[data-margins="tight"] { --frame-pad: 3cqw; }
 .slide-frame[data-margins="wide"] { --frame-pad: 11cqw; }
 
-/* Au-dessus de tout, y compris du contenu : un filet posé sous le texte
-   passerait derrière une image de fond et ne se verrait plus. */
+/* Above everything, content included: a hairline set under the text would go
+   behind a background image and no longer show. */
 .sf-hairline {
     position: absolute;
     inset: 3cqw;
@@ -919,16 +917,16 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     pointer-events: none;
 }
 
-/* L'ancrage, l'alignement et la largeur. Aucune règle pour les valeurs qui
-   étaient déjà celles du module : l'attribut n'est même pas émis. */
+/* Anchoring, alignment and width. No rule for the values that were already
+   the module's: the attribute is not even emitted. */
 .slide-frame[data-anchor="top"] .slide-stage { justify-content: safe flex-start; }
 .slide-frame[data-anchor="bottom"] .slide-stage { justify-content: safe flex-end; }
 
-/* L'alignement ne touche que le texte, et jamais la largeur des boites.
-   Un `align-items` autre que `stretch` fait dimensionner chaque enfant sur son
-   contenu : une image, dont le fichier est en position absolue, ne mesure alors
-   rien du tout et disparait de la slide. Le texte s'aligne donc par
-   `text-align`, et seuls les blocs qui ne portent que du texte se resserrent. */
+/* Alignment only touches the text, never the width of the boxes.
+   An `align-items` other than `stretch` sizes each child on its content: an
+   image, whose file is absolutely positioned, then measures nothing at all
+   and disappears from the slide. The text is therefore aligned with
+   `text-align`, and only the blocks that carry nothing but text shrink. */
 .slide-frame[data-align="left"] .slide-stage { text-align: left; }
 .slide-frame[data-align="center"] .slide-stage { text-align: center; }
 .slide-frame[data-align="right"] .slide-stage { text-align: right; }
@@ -936,21 +934,21 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .slide-frame[data-align="center"] .slide-stage > :is(p, ul, ol) { align-self: center; }
 .slide-frame[data-align="right"] .slide-stage > :is(p, ul, ol) { align-self: flex-end; }
 
-/* L'alignement explicite l'emporte sur le centrage que le gabarit section
-   porte en dur, sinon le choix serait ignoré sur le seul gabarit où il se
-   remarque le plus. */
+/* The explicit alignment wins over the centring the section template has
+   hard-coded, otherwise the choice would be ignored on the one template where
+   it shows the most. */
 .slide-frame[data-align="left"] .sf-section { text-align: left; }
 .slide-frame[data-align="right"] .sf-section { text-align: right; }
 
-/* La largeur suit l'alignement : une colonne étroite alignée à droite se cale
-   à droite, elle ne reste pas centrée avec un trou d'un côté. */
+/* The width follows the alignment: a narrow column aligned right sits on the
+   right, it does not stay centred with a gap on one side. */
 .slide-frame[data-measure="two_thirds"] .slide-stage > * { max-width: 66%; }
 .slide-frame[data-measure="half"] .slide-stage > * { max-width: 50%; }
 .slide-frame[data-align="center"][data-measure] .slide-stage > * { margin-inline: auto; }
 
-/* Sous le décor : un motif est une texture du fond, et une slide dont le fond
-   est une photo n'en montre pas. Les tailles sont en `cqw` comme le reste, pour
-   que le grain d'une vignette soit celui du mur. */
+/* Under the scenery: a pattern is a texture of the background, and a slide
+   whose background is a photo shows none. Sizes are in `cqw` like the rest,
+   so that the grain of a thumbnail is the grain of the wall. */
 .sf-pattern { position: absolute; inset: 0; pointer-events: none; }
 
 .slide-frame[data-pattern="dots"] .sf-pattern {
@@ -976,21 +974,20 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     );
 }
 
-/* La forme de l'image, posée sur le conteneur et non sur le fichier : c'est
-   lui qui porte le rognage et le fond de remplacement, et une image absente
-   doit garder la forme que la slide a choisie. */
+/* The image shape, set on the container and not on the file: the container
+   carries the clipping and the placeholder background, and a missing image
+   must keep the shape the slide chose. */
 .slide-frame[data-shape="round"] :is(.sf-image, .sf-beside-media) { border-radius: 3cqw; }
 
-/* Le rayon du haut en pourcentage, celui du bas en unité fixe : une arche dont
-   les pieds s'arrondissent avec la largeur n'est plus une arche, c'est une
-   gélule. */
+/* The top radius in percent, the bottom one in a fixed unit: an arch whose
+   feet round off with the width is no longer an arch, it is a capsule. */
 .slide-frame[data-shape="arch"] :is(.sf-image, .sf-beside-media) {
     border-radius: 50% 50% 0.25rem 0.25rem / 30% 30% 0.25rem 0.25rem;
 }
 
-/* Le cercle ne peut pas se contenter d'un rayon : la boîte est plus large que
-   haute et en ferait une ellipse. Elle est donc ramenée au carré, centrée sur
-   la largeur qu'elle laisse. */
+/* The circle cannot make do with a radius: the box is wider than it is tall
+   and would turn it into an ellipse. So it is brought back to a square,
+   centred in the width it leaves. */
 .slide-frame[data-shape="circle"] :is(.sf-image, .sf-beside-media) {
     align-self: center;
     justify-self: center;
@@ -1000,10 +997,11 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     border-radius: 9999px;
 }
 
-/* Au-dessus du décor et sous le contenu : le lavis teinte aussi la photo, sans
-   quoi une slide à fond image perdrait le dégradé que porte tout le deck.
-   L'accent est mélangé à du transparent plutôt qu'au fond, pour que la même
-   déclaration tienne sur une couleur plate comme sur une image. */
+/* Above the scenery and under the content: the wash tints the photo too,
+   otherwise a slide with an image background would lose the gradient the
+   whole deck carries. The accent is mixed with transparent rather than with
+   the background, so that the same declaration holds on a flat colour as on
+   an image. */
 .sf-wash { position: absolute; inset: 0; pointer-events: none; }
 
 .slide-frame[data-gradient="top"] .sf-wash {
@@ -1060,20 +1058,20 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-subtitle { margin: 0; font-size: calc(4cqw * var(--fit)); opacity: 0.7; }
 .sf-section { position: relative; margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; text-align: center; }
 .sf-heading { margin: 0; font-family: var(--slide-heading); font-size: calc(6cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; }
-/* `list-style` rétabli explicitement : la réinitialisation de Tailwind retire
-   les marqueurs de toutes les listes, et une liste à puces sans puces se lit
-   comme un paragraphe coupé. */
+/* `list-style` restored explicitly: the Tailwind reset removes the markers
+   from every list, and a bulleted list without bullets reads like a broken
+   paragraph. */
 .sf-list { margin: 0; padding-left: 5cqw; font-size: calc(4cqw * var(--fit)); line-height: 1.5; list-style: disc outside; }
 .sf-list li { margin-bottom: 1cqw; }
-/* La couleur d'accent se dépense sur les marqueurs et nulle part ailleurs dans
-   une liste : une puce colorée se remarque, une phrase colorée se lit mal. */
+/* The accent colour is spent on the markers and nowhere else in a list: a
+   coloured bullet stands out, a coloured sentence reads badly. */
 .sf-list li::marker { color: var(--slide-accent); }
 .sf-quote { margin: 0; font-size: calc(6cqw * var(--fit)); font-style: italic; line-height: 1.3; }
 .sf-attribution { margin: 0; font-size: calc(3.5cqw * var(--fit)); opacity: 0.7; }
 .sf-caption { margin: 0; font-size: calc(3.5cqw * var(--fit)); opacity: 0.7; }
 
-/* Un titre au-dessus d'un contenu dense : plus petit que celui d'une slide à
-   puces, sans quoi il prend le tiers de la hauteur qui reste au tableau. */
+/* A heading above dense content: smaller than on a bullet slide, otherwise it
+   takes a third of the height left for the table. */
 .sf-heading-small { font-size: calc(4.8cqw * var(--fit) * var(--title-scale, 1)); }
 
 .sf-stat {
@@ -1090,11 +1088,11 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-stat-label { margin: 0; font-size: calc(4cqw * var(--fit)); line-height: 1.35; max-width: 70%; opacity: 0.85; }
 
 .sf-beside { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.1fr 1fr; gap: 4cqw; align-items: center; }
-/* L'image passe à droite en inversant l'ordre plutôt que les colonnes : le
-   texte reste avant l'image dans le document, donc dans l'ordre de lecture
-   d'un lecteur d'écran, quel que soit le côté choisi à l'œil. */
+/* The image moves to the right by reversing the order rather than the
+   columns: the text stays before the image in the document, so in a screen
+   reader's reading order, whatever side was chosen for the eye. */
 .sf-beside.is-right .sf-beside-media { order: 2; }
-/* Même arrangement que `.sf-image`, pour la même raison. */
+/* Same arrangement as `.sf-image`, for the same reason. */
 .sf-beside-media { position: relative; height: 100%; min-height: 0; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
 .sf-beside-text { margin: 0; font-size: calc(3.6cqw * var(--fit)); line-height: 1.5; }
 
@@ -1113,8 +1111,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
 .sf-steps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2cqw; margin: 0; padding: 0; list-style: none; }
 .sf-step { display: flex; flex-direction: column; gap: 1.2cqw; }
-/* Le trait part du point et file vers la droite : c'est la ligne du temps, et
-   elle s'arrête à la dernière étape plutôt que de sortir du cadre. */
+/* The line starts at the dot and runs to the right: it is the timeline, and
+   it stops at the last step rather than leaving the frame. */
 .sf-step-mark { position: relative; height: 2.4cqw; border-radius: 50%; width: 2.4cqw; background: var(--slide-accent); }
 .sf-step-mark::after { content: ""; position: absolute; top: 50%; left: 2.4cqw; width: 100cqw; height: 0.3cqw; background: currentColor; opacity: 0.22; }
 .sf-step:last-child .sf-step-mark::after { display: none; }
@@ -1127,9 +1125,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-table tr:last-child td { border-bottom: 0; }
 .sf-table th + th, .sf-table td + td { padding-left: 3cqw; }
 
-/* `code` dans une slide : une teinte de la couleur du texte plutôt qu'une
-   boîte grise, qui sur un thème clair devient la seule tache sombre de la
-   slide et attire l'œil plus que ce qu'elle marque. */
+/* `code` in a slide: a tint of the text colour rather than a grey box, which
+   on a light theme becomes the only dark spot on the slide and draws the eye
+   more than what it marks. */
 .slide-frame :deep(code) {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.9em;
@@ -1139,17 +1137,17 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 }
 
 /**
- * Le gras, dans un titre, par la couleur autant que par la graisse.
+ * Bold in a heading, through colour as much as through weight.
  *
- * Un titre est déjà en 600, et en chasse fixe l'écart jusqu'à 700 est
- * invisible : le mot mis en valeur ne l'était pas. L'accent le dit dans toutes
- * les paires. Dans le texte courant, où l'on part de 400, la graisse suffit et
- * une couleur de plus ferait une deuxième chose à lire.
+ * A heading is already at 600, and in a monospace face the step up to 700 is
+ * invisible: the highlighted word was not highlighted. The accent says it in
+ * every pair. In body text, which starts at 400, weight is enough and one more
+ * colour would be a second thing to read.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
 
-/* L'étiquette, et l'icône. Toutes deux dans l'accent, toutes deux discrètes :
-   elles ponctuent une carte, elles ne la remplacent pas. */
+/* The badge, and the icon. Both in the accent, both discreet: they punctuate
+   a card, they do not replace it. */
 .sf-badge {
     align-self: flex-start;
     font-size: calc(2.2cqw * var(--fit));
@@ -1165,23 +1163,23 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-icon { width: 6cqw; height: 6cqw; color: var(--slide-accent); }
 .sf-step-icon { width: 4cqw; height: 4cqw; color: var(--slide-accent); flex: 0 0 auto; }
 
-/* La jauge : la part qu'un chiffre représente, dessinée sous lui. */
+/* The gauge: the share a figure represents, drawn under it. */
 .sf-gauge { display: block; height: 1.4cqw; border-radius: 9999px; background: color-mix(in srgb, currentColor 14%, transparent); overflow: hidden; }
 .sf-gauge > i { display: block; height: 100%; background: var(--slide-accent); }
 
-/* Les marques, ramenées à une même hauteur optique plutôt qu'à une même
-   largeur : c'est la hauteur qu'un oeil compare, et `contain` garde chacune
-   entière dans sa case. */
+/* The brands, brought to the same optical height rather than the same width:
+   height is what an eye compares, and `contain` keeps each one whole in its
+   cell. */
 .sf-logos { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--logos, 4), 1fr); gap: 4cqw; align-items: center; justify-items: center; }
-/* `sf-logos-cell` et pas `sf-logo` : le pied de page porte deja une classe de
-   ce nom pour la marque du deck, et les deux regles se marchaient dessus. */
+/* `sf-logos-cell` and not `sf-logo`: the footer already has a class of that
+   name for the deck's brand, and the two rules stepped on each other. */
 .sf-logos-cell { display: block; width: 100%; height: 8cqw; }
 .sf-logos-cell img { width: 100%; height: 100%; object-fit: contain; }
 
-/* La mosaïque. Les arrangements sont déclarés comme les gabarits le sont : à
-   deux images une colonne chacune, à trois une grande et deux petites, au-delà
-   une grille régulière. Le point de visée de chaque document est respecté,
-   sans quoi un recadrage couperait les visages. */
+/* The mosaic. The arrangements are declared the way templates are: with two
+   images one column each, with three one large and two small, beyond that a
+   regular grid. Each document's focal point is respected, otherwise a crop
+   would cut through faces. */
 .sf-mosaic { flex: 1; min-height: 0; display: grid; gap: 1.5cqw; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
 .sf-mosaic[data-count="1"] { grid-template-columns: 1fr; }
 .sf-mosaic[data-count="3"] { grid-template-columns: 1.4fr 1fr; }
@@ -1193,19 +1191,19 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-mosaic-cell { position: relative; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
 .sf-mosaic-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
-/* Le sommaire. Le rang en chasse fixe et en accent, la ligne courante seule à
-   pleine encre : c'est le contraste qui dit où on en est, pas une puce. */
+/* The agenda. The rank in monospace and in the accent, the current line alone
+   at full ink: contrast says where we are, not a bullet. */
 .sf-agenda { flex: 1; min-height: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; justify-content: center; gap: 1.8cqw; }
 .sf-agenda li { display: flex; align-items: baseline; gap: 3cqw; font-size: calc(4.2cqw * var(--fit)); opacity: 0.45; }
 .sf-agenda li.is-current { opacity: 1; font-weight: 600; }
 .sf-agenda-rank { font-family: var(--slide-body); font-size: calc(2.8cqw * var(--fit)); font-variant-numeric: tabular-nums; color: var(--slide-accent); }
 
-/* Le témoignage. Le visage rond et petit : une citation reste une citation, la
-   photo l'accompagne au lieu de la disputer. */
+/* The testimonial. The face round and small: a quote stays a quote, the photo
+   goes with it instead of competing with it. */
 .sf-portrait { flex: 1; min-height: 0; display: flex; align-items: center; gap: 5cqw; }
-/* Toujours recadre, jamais mis en boite aux lettres : un portrait rond dont
-   l'image est contenue laisse deux bandes de fond dans le cercle, ce que
-   personne ne choisit. Le gabarit ne propose donc pas de cadrage, il en a un. */
+/* Always cropped, never letterboxed: a round portrait whose image is contained
+   leaves two background bands inside the circle, which nobody chooses. So the
+   template offers no framing option, it has one. */
 .sf-portrait-face { flex: 0 0 auto; position: relative; width: 22cqw; aspect-ratio: 1; border-radius: 9999px; overflow: hidden; background: color-mix(in srgb, currentColor 10%, transparent); }
 .sf-portrait-face .sf-image-file { object-fit: cover; }
 .sf-portrait-words { min-width: 0; display: flex; flex-direction: column; gap: 2cqw; }
@@ -1213,25 +1211,25 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-portrait-who { margin: 0; display: flex; flex-direction: column; font-size: calc(2.8cqw * var(--fit)); }
 .sf-portrait-role { opacity: 0.7; }
 
-/* L'aplat. Sous le contenu et sous le décor du deck, mais au-dessus du fond :
-   c'est une forme posée sur la slide, pas une teinte du sol. */
+/* The colour band. Under the content and under the deck's scenery, but above
+   the background: it is a shape laid on the slide, not a tint of the floor. */
 .sf-band { position: absolute; background: var(--slide-accent); pointer-events: none; }
 
-/* En unites de conteneur des deux cotes : la bande se mesurait sur le cadre et
-   le decalage du texte sur la scene, qui est deja rognee de ses marges, donc le
-   texte ne se calait jamais la ou la bande finissait. */
+/* In container units on both sides: the band was measured on the frame and
+   the text offset on the stage, which already has its margins cut off, so the
+   text never lined up where the band ended. */
 .slide-frame[data-band="left"] .sf-band { inset: 0 auto 0 0; width: 32cqw; }
 .slide-frame[data-band="bottom"] .sf-band { inset: auto 0 0 0; height: 18cqh; }
 .slide-frame[data-band="edge"] .sf-band { inset: 0 auto 0 0; width: 2.5cqw; }
 
-/* Le contenu se pousse pour ne pas passer dessous. Le fin bord n'a pas besoin
-   de plus que la marge que le cadre garde déjà. */
+/* The content moves aside so as not to go under it. The thin edge needs no
+   more than the margin the frame already keeps. */
 .slide-frame[data-band="left"] .slide-stage { padding-left: calc(32cqw - var(--frame-pad) + 4cqw); }
 .slide-frame[data-band="bottom"] .slide-stage { padding-bottom: calc(18cqh - var(--frame-pad) + 3cqw); }
 
-/* Le débord : l'image sort de la marge du cadre du côté où elle est posée, et
-   va toucher le bord. La marge est lue plutôt que recopiée, sans quoi un deck
-   à marges larges laisserait une bande de fond entre l'image et le bord. */
+/* The bleed: the image leaves the frame margin on the side where it sits, and
+   reaches the edge. The margin is read rather than copied, otherwise a deck
+   with wide margins would leave a band of background between image and edge. */
 .slide-frame[data-bleed="on"] .sf-beside-media {
     margin-left: calc(var(--frame-pad) * -1);
     border-radius: 0;
@@ -1242,7 +1240,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     margin-right: calc(var(--frame-pad) * -1);
 }
 
-/* Les filets du deck : entre les deux colonnes, et sous le sur-titre. */
+/* The deck's rules: between the two columns, and under the kicker. */
 .slide-frame[data-rules="on"] .sf-columns > :last-child {
     border-left: 0.2cqw solid color-mix(in srgb, currentColor 22%, transparent);
     padding-left: 4cqw;
@@ -1253,11 +1251,12 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     border-bottom: 0.2cqw solid color-mix(in srgb, var(--slide-accent) 45%, transparent);
 }
 
-/* Deux colonnes qui se répondent. Le filet entre elles dit l'opposition que
-   le gabarit `split` laissait deviner. */
-/* `align-items: start` aligne les deux en-tetes entre elles, `align-content`
-   centre le bloc dans la hauteur qui reste : sans le second, une comparaison
-   de deux phrases courtes se colle en haut d'un cadre aux trois quarts vide. */
+/* Two columns that answer each other. The rule between them states the
+   contrast the `split` template only hinted at. */
+/* `align-items: start` lines the two headers up with each other,
+   `align-content` centres the block in the remaining height: without the
+   second, a comparison of two short sentences sticks to the top of a frame
+   left three quarters empty. */
 .sf-compare { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; align-content: center; gap: 5cqw; align-items: start; }
 .sf-compare-side { display: flex; flex-direction: column; gap: 1.6cqw; min-width: 0; }
 .sf-compare-side.is-second { border-left: 0.25cqw solid color-mix(in srgb, currentColor 22%, transparent); padding-left: 5cqw; }
@@ -1272,8 +1271,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     color: var(--slide-accent);
 }
 
-/* Les chiffres, côte à côte. La valeur porte l'accent et la légende reste en
-   encre : l'inverse ferait lire la légende avant le chiffre. */
+/* The figures, side by side. The value carries the accent and the label stays
+   in ink: the reverse would make the label read before the figure. */
 .sf-figures { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--figures, 3), 1fr); gap: 4cqw; align-items: center; }
 .sf-figure { display: flex; flex-direction: column; gap: 1cqw; min-width: 0; }
 
@@ -1288,26 +1287,26 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
 .sf-figure-label { font-size: calc(2.9cqw * var(--fit)); line-height: 1.35; opacity: 0.78; }
 
-/* La dernière slide. Les lignes de contact sous le mot, serrées, sans puce. */
+/* The last slide. The contact lines under the word, tight, without bullets. */
 .sf-end-lines { display: flex; flex-direction: column; gap: 0.8cqw; font-size: calc(3.2cqw * var(--fit)); opacity: 0.8; }
 
-/* La casse des titres, décidée pour tout le deck. Les trois sélecteurs et pas
-   un seul : ce sont trois classes différentes selon le gabarit, et un titre
-   en capitales sur la couverture seulement ne serait pas une décision de deck. */
+/* Heading case, decided for the whole deck. All three selectors and not just
+   one: they are three different classes depending on the template, and an
+   upper-case title on the cover only would not be a deck decision. */
 .slide-frame[data-title-case="upper"] :is(.sf-title, .sf-heading, .sf-section) {
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 
-/* La forme de la puce. La couleur, elle, est déjà celle de l'accent. */
+/* The bullet shape. The colour is already the accent's. */
 .slide-frame[data-bullets="dash"] .sf-list { list-style-type: "–  "; }
 .slide-frame[data-bullets="arrow"] .sf-list { list-style-type: "→  "; }
 .slide-frame[data-bullets="check"] .sf-list { list-style-type: "✓  "; }
 .slide-frame[data-bullets="number"] .sf-list { list-style: decimal outside; }
 
-/* Le chiffre de section, derrière le titre et hors du calcul de place : posé
-   dans le flux, il pousserait le titre et ferait rétrécir le texte par
-   `useSlideFit` pour laisser de la place à une décoration. */
+/* The section number, behind the title and outside the space calculation: in
+   the flow, it would push the title and make `useSlideFit` shrink the text to
+   make room for a decoration. */
 .sf-ghost {
     position: absolute;
     right: 0;
@@ -1321,9 +1320,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     pointer-events: none;
 }
 
-/* Le mot en accent. Pas de fond, contrairement à ce que `mark` fait par
-   défaut dans un navigateur : sur une slide, un surlignage jaune serait la
-   seule couleur du deck que personne n'a choisie. */
+/* The accented word. No background, unlike what `mark` does by default in a
+   browser: on a slide, a yellow highlight would be the only colour in the deck
+   that nobody chose. */
 .slide-frame :deep(mark) {
     background: none;
     color: var(--slide-accent);
@@ -1336,24 +1335,24 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-columns p { margin: 0; }
 
 /**
- * L'image occupe sa boîte, et la boîte décide.
+ * The image fills its box, and the box decides.
  *
- * En grille avec `place-items: center`, le `height: 100%` de l'image se
- * résolvait contre une rangée dont la hauteur était décidée par l'image :
- * le navigateur rompait le cycle en revenant à la taille naturelle, une image
- * carrée de 1280 px se dessinait en 815 px de haut dans une boîte de 293, et
- * `overflow: hidden` la rognait en haut et en bas. Une image en `contain` qui
- * se fait rogner est précisément ce que `contain` promet de ne pas faire.
+ * In a grid with `place-items: center`, the image's `height: 100%` resolved
+ * against a row whose height was decided by the image: the browser broke the
+ * cycle by falling back to the natural size, a 1280 px square image was drawn
+ * 815 px tall in a 293 px box, and `overflow: hidden` clipped it top and
+ * bottom. A `contain` image getting clipped is precisely what `contain`
+ * promises not to do.
  *
- * En absolu contre une boîte positionnée, il n'y a plus de cycle : la boîte a
- * sa hauteur avant que l'image ne demande la sienne.
+ * Absolutely positioned against a positioned box, there is no cycle any more:
+ * the box has its height before the image asks for its own.
  */
 .sf-image { position: relative; flex: 1; min-height: 0; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
 .sf-image-mark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .sf-image-mark { width: 12cqw; height: 12cqw; border-radius: 9999px; background: currentColor; opacity: 0.25; }
-/* `contain` par défaut : une capture rognée pour remplir le cadre perd
-   justement le coin qu'on voulait montrer. Une photo, elle, gagne souvent à
-   remplir, d'où le réglage par slide - et le point de visée qui va avec. */
+/* `contain` by default: a screenshot cropped to fill the frame loses exactly
+   the corner you wanted to show. A photo, though, often gains from filling,
+   hence the per-slide setting - and the focal point that goes with it. */
 .sf-image-file {
     position: absolute;
     inset: 0;
@@ -1363,8 +1362,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     object-position: var(--media-focus, 50% 50%);
 }
 
-/* Le tenant-lieu d'un graphique dans une vignette : des hauteurs fixes, parce
-   que les mesurer demanderait de lire les données pour trois pixels de haut. */
+/* The stand-in for a chart in a thumbnail: fixed heights, because measuring
+   them would mean reading the data for three pixels of height. */
 .sf-bars { display: flex; align-items: flex-end; gap: 2cqw; height: 28cqw; }
 .sf-bars span { flex: 1; background: currentColor; opacity: 0.25; border-radius: 1px 1px 0 0; height: 45%; }
 .sf-bars span:nth-child(2) { height: 75%; }
@@ -1380,11 +1379,11 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-lines span:nth-child(3) { width: 65%; }
 .sf-lines span:nth-child(4) { width: 72%; }
 
-/* Trois colonnes et non un `space-between` : le texte du pied reste au centre
-   de la slide même quand il n'y a ni logo ni numéro de part et d'autre. */
+/* Three columns and not a `space-between`: the footer text stays centred on
+   the slide even when there is no logo or number on either side. */
 .sf-footer {
-    /* Positionné, comme la scène : une couche de fond l'est aussi, et un
-       élément non positionné passe dessous quoi qu'en dise l'ordre du DOM. */
+    /* Positioned, like the stage: a background layer is too, and an
+       unpositioned element goes under it whatever the DOM order says. */
     position: relative;
     display: grid;
     grid-template-columns: 1fr auto 1fr;

@@ -1,15 +1,14 @@
 <script setup>
 /**
- * Choisir un fichier du dossier Drive pour l'accrocher à une fiche.
+ * Picks a file from the Drive folder to attach it to a record.
  *
- * **Le même arbre que la vue Drive**, par le même composable : on cherche un
- * fichier là où on a l'habitude de le voir, et un sélecteur qui aplatirait ce
- * que l'autre écran range en dossiers obligerait à réapprendre le dossier du
- * client à chaque fois.
+ * **The same tree as the Drive view**, through the same composable: a file is
+ * looked for where one is used to seeing it, and a picker that flattened what
+ * the other screen files into folders would force relearning the client's
+ * folder every time.
  *
- * La liste est chargée à l'ouverture et non au montage : la fenêtre vit dans
- * le formulaire d'une fiche, qui s'ouvre bien plus souvent qu'on n'attache un
- * fichier venu du Drive.
+ * The list is loaded on open and not on mount: the window lives in a record's
+ * form, which opens far more often than a file from Drive gets attached.
  */
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -26,15 +25,15 @@ import { useDriveTree } from "./useDriveTree.js";
 const props = defineProps({
     show: { type: Boolean, default: false },
     listPath: { type: String, default: "" },
-    /** Vrai pendant que le serveur descend le fichier chez Google. */
+    /** True while the server fetches the file from Google. */
     importing: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["close", "choose"]);
 
 const { t } = useI18n();
-// Le formateur partagé : trois copies locales disaient la même chose,
-// et une seule connaissait les unités des autres langues.
+// The shared formatter: three local copies said the same thing,
+// and only one knew the units of the other languages.
 const { formatSize } = useFileSize();
 const { request } = useRequest();
 
@@ -49,8 +48,8 @@ watch(
     async (isOpen) => {
         if (!isOpen || !props.listPath) return;
 
-        // Toujours à la racine : rouvrir la fenêtre dans le sous-dossier de la
-        // fois d'avant fait chercher un fichier qui n'y est pas.
+        // Always at the root: reopening the window in the previous time's
+        // subfolder makes one look for a file that is not there.
         reset();
         chosen.value = null;
         loading.value = true;
@@ -138,9 +137,9 @@ watch(
                 </li>
             </ul>
 
-            <!-- Ce que le bouton va faire, dit avant de le presser : le fichier
-                 est recopié dans la médiathèque, et il n'y suivra plus le
-                 Drive du client. -->
+            <!-- What the button will do, said before it is pressed: the file
+                 is copied into the media library, and there it will no longer
+                 follow the client's Drive. -->
             <p v-if="chosen" class="text-xs text-muted">{{ t("suite.studio.drive.picker.copy_notice") }}</p>
         </div>
 

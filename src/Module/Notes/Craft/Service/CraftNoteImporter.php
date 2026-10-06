@@ -27,29 +27,29 @@ use function tempnam;
 use function unlink;
 
 /**
- * Un document Craft, déposé dans un espace de notes.
+ * A Craft document, dropped into a notes space.
  *
- * **Une copie, pas un lien vivant.** Le document reste chez Craft, la note
- * devient une note comme les autres : on la modifie, on la range, on la
- * supprime, et rien ne revient la changer toute seule. Un miroir synchronisé
- * aurait demandé d'arbitrer des conflits pour un gain nul.
+ * **A copy, not a live link.** The document stays in Craft, the note becomes
+ * a note like the others: you edit it, file it, delete it, and nothing comes
+ * back to change it on its own. A synchronized mirror would have meant
+ * settling conflicts for no gain.
  *
- * **L'identifiant du document d'origine est gardé** : il permet de remettre la
- * note sur la version actuelle du document ({@see self::refresh()}), et de
- * retrouver la source sans la chercher au titre.
+ * **The id of the source document is kept**: it makes it possible to bring
+ * the note back to the current version of the document ({@see self::refresh()}),
+ * and to find the source without searching by title.
  *
- * **Les images sont recopiées.** C'est la partie qu'on ne peut pas sauter :
- * une image servie depuis un espace Craft privé ne s'affiche que chez qui y a
- * un compte. Elles passent donc par le même rangement que celles qu'on colle
- * dans une note, dans le compartiment de l'espace de notes. Une image qu'on ne
- * peut pas prendre garde son adresse d'origine : la note arrive entière, avec
- * un trou visible, plutôt qu'amputée en silence.
+ * **Images are copied.** This is the part that cannot be skipped: an image
+ * served from a private Craft space only displays for those who have an
+ * account there. They therefore go through the same storage as the ones
+ * pasted into a note, in the notes space bucket. An image that cannot be
+ * fetched keeps its original address: the note arrives whole, with a visible
+ * hole, rather than silently cut down.
  */
 final readonly class CraftNoteImporter
 {
     private const int TIMEOUT_SECONDS = 20;
 
-    /** Une image seule ou dans une phrase, à une adresse https. */
+    /** An image alone or within a sentence, at an https address. */
     private const string IMAGE_PATTERN = '/!\[([^\]]*)\]\((https:\/\/[^)\s]+)((?:\s+"[^"]*")?)\)/u';
 
     public function __construct(
@@ -64,11 +64,11 @@ final readonly class CraftNoteImporter
     ) {}
 
     /**
-     * Null quand Craft n'a rien rendu : l'appelant en fait un message plutôt
-     * qu'une note vide portant un titre.
+     * Null when Craft rendered nothing: the caller turns it into a message
+     * rather than an empty note carrying a title.
      *
-     * Le dossier, quand il y en a un, est de cet espace : le contrôleur l'a
-     * vérifié, comme il a vérifié qu'on y écrit.
+     * The folder, when there is one, belongs to this space: the controller
+     * checked it, as it checked that you can write there.
      */
     public function import(
         NoteSpaceInterface $space,
@@ -96,20 +96,19 @@ final readonly class CraftNoteImporter
     }
 
     /**
-     * La note, remise sur la version actuelle du document.
+     * The note, brought back to the current version of the document.
      *
-     * **Elle remplace, et ne fusionne pas.** Un document Craft et une note
-     * sont deux textes que deux personnes peuvent avoir touchés ; décider
-     * lequel gagne ligne à ligne demanderait d'arbitrer des conflits. La note
-     * est une copie : la rafraîchir refait la copie, et l'écran le dit avant
-     * de le faire. L'historique de la note garde ce qui est remplacé.
+     * **It replaces, and does not merge.** A Craft document and a note are two
+     * texts that two people may have touched; deciding which one wins line by
+     * line would mean settling conflicts. The note is a copy: refreshing it
+     * makes the copy again, and the screen says so before doing it. The note's
+     * history keeps what is replaced.
      *
-     * **Ce qui appartient à Aurora survit** : le titre, le dossier, les
-     * étiquettes, le bandeau et l'apparence ne sont pas dans le document Craft
-     * et n'ont aucune raison d'être remis à zéro parce qu'un texte a changé
-     * ailleurs.
+     * **What belongs to Aurora survives**: the title, the folder, the tags,
+     * the banner and the appearance are not in the Craft document and have no
+     * reason to be reset because a text changed elsewhere.
      *
-     * Faux quand la note ne vient pas de Craft, ou quand Craft n'a rien rendu.
+     * False when the note does not come from Craft, or when Craft rendered nothing.
      */
     public function refresh(MarkdownNoteInterface $note): bool
     {
@@ -141,7 +140,7 @@ final readonly class CraftNoteImporter
         return true;
     }
 
-    /** Chaque image distante devient une image de l'espace de notes. */
+    /** Each remote image becomes an image of the notes space. */
     private function withLocalImages(string $markdown, NoteSpaceInterface $space): string
     {
         /** @var array<string, string> $filed */
@@ -159,12 +158,12 @@ final readonly class CraftNoteImporter
     }
 
     /**
-     * Prend une image et la range, ou rend null.
+     * Fetches an image and stores it, or returns null.
      *
-     * Par le service des images de note, qui refuse ce qui n'est pas une
-     * image ou dépasse la taille permise : une adresse qui rend une page
-     * d'erreur garde donc son adresse d'origine au lieu de devenir un
-     * fichier cassé.
+     * Through the note images service, which refuses what is not an image or
+     * exceeds the allowed size: an address that returns an error page
+     * therefore keeps its original address instead of becoming a broken
+     * file.
      */
     private function fetch(string $url, NoteSpaceInterface $space): ?string
     {
@@ -179,8 +178,8 @@ final readonly class CraftNoteImporter
 
             $name = pathinfo((string) parse_url($url, PHP_URL_PATH), PATHINFO_BASENAME);
 
-            // `test: true` : le fichier n'est pas arrivé par un formulaire,
-            // et sans cela Symfony refuse de le déplacer.
+            // `test: true`: the file did not arrive through a form, and
+            // without it Symfony refuses to move it.
             $filename = $this->images->store(new UploadedFile($path, '' !== $name ? $name : 'image', null, null, true), $space);
 
             return $this->urlGenerator->generate('suite_notes_markdown_images_serve', ['filename' => $filename]);

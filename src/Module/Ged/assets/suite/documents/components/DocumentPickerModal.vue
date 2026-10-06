@@ -421,10 +421,10 @@ function isSelected(doc) {
                             ]"
                             v-on:click="pick(memberOf(doc))"
                         >
-                            <!-- Un aperçu plutôt qu'une icône : choisir une image
-                                 sur son seul nom de fichier obligeait à la
-                                 retrouver ailleurs. La petite taille générée
-                                 d'abord, plus légère que le fichier entier. -->
+                            <!-- A preview rather than an icon: picking an image
+                                 from its file name alone meant finding it
+                                 somewhere else. The small generated size
+                                 first, lighter than the whole file. -->
                             <AppThumbnail
                                 :src="memberOf(doc).renditions?.thumbnail ?? memberOf(doc).thumbnailUrl ?? null"
                                 :alt="memberOf(doc).alt ?? memberOf(doc).title ?? ''"

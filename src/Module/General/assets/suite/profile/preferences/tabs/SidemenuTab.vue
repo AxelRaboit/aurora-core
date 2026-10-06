@@ -39,8 +39,8 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
 
 <template>
     <div>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.profile.sidemenu.guide.title')" storage-key="profile-sidemenu" class="mb-4">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.profile.sidemenu.guide.step_${step}`) }}</li>

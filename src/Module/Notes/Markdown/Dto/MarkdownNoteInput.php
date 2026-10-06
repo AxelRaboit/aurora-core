@@ -21,11 +21,11 @@ class MarkdownNoteInput implements MarkdownNoteInputInterface
         #[Assert\PositiveOrZero]
         public readonly ?int $position = null,
         /**
-         * L'adresse de l'image d'entête.
+         * The address of the header image.
          *
-         * Seulement `https` : elle part dans un attribut de style et dans
-         * un `src`, et une adresse en `javascript:` ou en `data:` n'a rien
-         * à y faire. La longueur est celle de la colonne.
+         * Only `https`: it goes into a style attribute and into a `src`,
+         * and a `javascript:` or `data:` address has no business there.
+         * The length is the column's.
          */
         #[Assert\Length(max: 1024)]
         #[Assert\Url(protocols: ['https'], requireTld: true)]
@@ -39,11 +39,11 @@ class MarkdownNoteInput implements MarkdownNoteInputInterface
         public readonly ?int $coverPosition = null,
         #[Assert\Choice(callback: [NoteAppearanceEnum::class, 'values'])]
         public readonly ?string $appearance = null,
-        /** La version d'où part l'enregistrement ; null pour un appel qui ne la connaît pas. */
+        /** The version the save starts from; null for a call that does not know it. */
         public readonly ?int $version = null,
-        /** Écraser malgré une version dépassée : le choix explicite de la personne. */
+        /** Overwrite despite an outdated version: the person's explicit choice. */
         public readonly bool $force = false,
-        /** L'espace d'une création à la racine ; null pour son espace personnel. Un dossier impose le sien. */
+        /** The space of a creation at the root; null for the personal space. A folder imposes its own. */
         public readonly ?int $spaceId = null,
     ) {}
 

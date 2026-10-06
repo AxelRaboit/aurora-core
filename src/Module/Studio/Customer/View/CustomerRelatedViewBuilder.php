@@ -22,19 +22,19 @@ use function array_map;
 use function array_values;
 
 /**
- * Ce qui entoure un client : ses contrats, les livrables de Studio écrits pour
- * lui, ses espaces.
+ * What surrounds a customer: their contracts, the Studio deliverables written
+ * for them, their spaces.
  *
- * **Deux écrans le montrent, une seule façon de le calculer** : la page du
- * client, et l'onglet Informations de chacun de ses espaces (qui retire alors
- * l'espace où l'on se trouve). Les deux disaient la même chose et l'auraient
- * dite différemment au premier droit oublié d'un côté.
+ * **Two screens show it, one way to compute it**: the customer's page, and
+ * the Informations tab of each of their spaces (which then leaves out the
+ * space being viewed). Both said the same thing and would have said it
+ * differently at the first right forgotten on one side.
  *
- * Chaque liste suit les interrupteurs de Studio et les droits du lecteur :
- * `null` pour ce qu'il ne peut pas ouvrir, plutôt qu'une liste de liens qui
- * répondraient 404 ou 403 ; un livrable perso d'un collègue n'y figure pas
- * ({@see DeliverableAccess::canRead()}), un espace dont il n'est pas membre
- * non plus ({@see SpaceVisibility::visibleSpaces()}).
+ * Each list follows Studio's switches and the reader's rights: `null` for
+ * what they cannot open, rather than a list of links that would answer 404
+ * or 403; a colleague's personal deliverable is not in it
+ * ({@see DeliverableAccess::canRead()}), nor is a space they are not a member
+ * of ({@see SpaceVisibility::visibleSpaces()}).
  */
 final readonly class CustomerRelatedViewBuilder
 {
@@ -50,7 +50,7 @@ final readonly class CustomerRelatedViewBuilder
     ) {}
 
     /**
-     * @param CustomerSpaceInterface|null $except l'espace d'où l'on regarde, qui ne se liste pas lui-même
+     * @param CustomerSpaceInterface|null $except the space being viewed from, which does not list itself
      *
      * @return array{contracts: list<array<string, mixed>>|null, deliverables: list<array<string, mixed>>|null, spaces: list<array<string, mixed>>|null}
      */

@@ -1,20 +1,20 @@
 <script setup>
 /**
- * Choisir le bandeau d'une note, chez Pexels, sans rien télécharger.
+ * Pick a note's banner, from Pexels, without downloading anything.
  *
- * **L'image ne passe pas par la médiathèque, et c'est voulu.** Une photo
- * décorative n'a pas de vie propre : personne ne la cherchera, ne la
- * renommera, ne la rangera dans un dossier. La verser en GED la mettrait
- * dans la même liste que les contrats et les factures, où elle ne ferait que
- * du bruit. La note garde l'adresse de l'image et le crédit de son auteur ;
- * si elle disparaît un jour de chez eux, on en choisit une autre.
+ * **The image does not go through the media library, on purpose.** A
+ * decorative photo has no life of its own: nobody will search for it, rename
+ * it, or file it in a folder. Pouring it into the GED would put it in the
+ * same list as the contracts and invoices, where it would only be noise. The
+ * note keeps the image's address and its author's credit; if it disappears
+ * from their side one day, another one is picked.
  *
- * Le crédit n'est pas une politesse : la licence Pexels demande de nommer le
- * photographe, et hors de la médiathèque il n'y a plus de fiche pour le
- * porter à notre place.
+ * The credit is not a courtesy: the Pexels licence asks for the photographer
+ * to be named, and outside the media library there is no record left to
+ * carry it for us.
  *
- * La recherche passe par notre serveur, comme celle de la médiathèque : la
- * clé d'API reste côté serveur.
+ * The search goes through our server, like the media library's: the API key
+ * stays on the server side.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -30,7 +30,7 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 const props = defineProps({
     show: { type: Boolean, default: false },
     searchPath: { type: String, default: "" },
-    /** Ce que la note porte déjà : `{url, creditName, creditUrl, position}`. */
+    /** What the note already carries: `{url, creditName, creditUrl, position}`. */
     cover: { type: Object, default: null },
     /** {@see NoteAppearanceEnum} */
     appearance: { type: String, default: "plain" },
@@ -45,11 +45,11 @@ const emit = defineEmits([
 ]);
 
 /**
- * Les apparences, dans l'ordre où on les essaie.
+ * The appearances, in the order they are tried.
  *
- * Les noms viennent de l'enum du serveur : ajouter une apparence là-bas et
- * l'oublier ici la rendrait injoignable, donc la liste est courte et se lit
- * d'un coup d'œil à côté du `case` qui la déclare.
+ * The names come from the server's enum: adding an appearance there and
+ * forgetting it here would make it unreachable, so the list is short and
+ * reads at a glance next to the `case` that declares it.
  */
 const LOOKS = [
     { value: "plain", swatch: "var(--color-surface)" },
@@ -76,9 +76,9 @@ watch(
 
         position.value = Number(props.cover?.position ?? 50);
 
-        // La liste ne se garde pas d'une ouverture à l'autre : on ne
-        // cherche pas deux fois la même image, et une grille de la veille
-        // ferait croire à un résultat.
+        // The list is not kept from one opening to the next: nobody looks
+        // for the same image twice, and yesterday's grid would look like a
+        // result.
         results.value = [];
         query.value = "";
     },
@@ -105,8 +105,8 @@ async function search() {
 
 function choose(photo) {
     emit("choose", {
-        // La grande plutôt que l'originale : un bandeau de deux cents pixels
-        // de haut n'a rien à faire d'une image de cinq mille de large.
+        // The large one rather than the original: a banner two hundred
+        // pixels high has no use for an image five thousand wide.
         url: photo.largeUrl || photo.url,
         creditName: photo.authorName || null,
         creditUrl: photo.authorUrl || null,
@@ -129,9 +129,9 @@ function applyPosition(value) {
         :icon="Image"
         v-on:close="emit('close')"
     >
-        <!-- Ce que la note porte déjà, avec son réglage de cadrage : un
-             bandeau montre une bande d'une photo qui n'a pas été prise pour
-             ça, donc le point de coupe doit être réglable. -->
+        <!-- What the note already carries, with its framing setting: a
+             banner shows a strip of a photo that was not taken for it, so
+             the cut point must be adjustable. -->
         <div v-if="hasCover" class="mb-4">
             <div class="overflow-hidden rounded-lg border border-line">
                 <img
@@ -213,9 +213,9 @@ function applyPosition(value) {
             {{ t('notes.markdown.cover.search_empty') }}
         </p>
 
-        <!-- L'apparence au même endroit que l'image : les deux répondent à
-             « de quoi cette note a l'air », et un second bouton dans la barre
-             pour six pastilles ne valait pas sa place. -->
+        <!-- The appearance in the same place as the image: both answer
+             "what this note looks like", and a second button in the bar for
+             six swatches was not worth its place. -->
         <div class="mt-5 border-t border-line pt-4">
             <p class="mb-2 text-xs font-medium text-secondary">
                 {{ t('notes.markdown.appearance.title') }}
@@ -241,14 +241,13 @@ function applyPosition(value) {
             </div>
         </div>
 
-        <!-- « Fermer » et non « Annuler ».
-             
-             Rien ici n'attend d'être validé : choisir une photo, la recadrer
-             ou changer d'apparence écrit dans la note, et l'enregistrement
-             automatique s'en charge comme pour le texte - la barre de la
-             note dit « enregistré » quand c'est fait. Un bouton nommé
-             « Annuler » promettait un retour en arrière qu'il ne faisait
-             pas : il ne faisait que fermer. -->
+        <!-- "Fermer" and not "Annuler".
+
+             Nothing here waits to be confirmed: picking a photo, reframing
+             it or changing the appearance writes into the note, and the
+             autosave takes care of it as for the text - the note's bar says
+             "enregistré" when it is done. A button named "Annuler" promised
+             a step back it did not take: it only closed. -->
         <template #footer>
             <AppModalFooter>
                 <AppButton variant="primary" size="md" v-on:click="emit('close')">

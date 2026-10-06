@@ -7,9 +7,9 @@ export const PALETTE_MODES = ["light", "dark"];
 const STORAGE_KEY = "suite_palette";
 const STYLE_ELEMENT_ID = "aurora-suite-palette";
 
-// Les familles et leurs paliers viennent du serveur (SuitePalette::FAMILIES),
-// posés dans la page par suite_globals : une seule source pour le CSS émis
-// et pour l'aperçu.
+// The families and their steps come from the server (SuitePalette::FAMILIES),
+// put in the page by suite_globals: a single source for the emitted CSS and
+// for the preview.
 export function useSuitePalette({
     updatePath,
     config = window.__auroraConfig?.suitePalette,
@@ -34,8 +34,8 @@ export function useSuitePalette({
 
     const { loading: saving, request } = useRequest();
 
-    // La couleur d'un jeton tant qu'on ne l'a pas retouchée : le palier de la
-    // famille pour un gris, le défaut de theme.css pour une couleur d'état.
+    // The color of a token as long as it has not been retouched: the family
+    // step for a gray, the theme.css default for a state color.
     function familyColor(mode, token) {
         if (token in states) return states[token][mode];
         const step = tokens[token]?.[mode];
@@ -51,8 +51,8 @@ export function useSuitePalette({
         return token in palette[mode].overrides;
     }
 
-    // Une couleur ramenée sur celle de la famille n'est plus une retouche :
-    // elle suivra la famille si on en change.
+    // A color brought back to the family's one is no longer a retouch: it
+    // will follow the family if the family changes.
     function setColor(mode, token, hex) {
         const value = String(hex ?? "").toLowerCase();
         if (!value || value === familyColor(mode, token)) {

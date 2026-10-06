@@ -15,13 +15,14 @@ use function array_map;
 use function str_starts_with;
 
 /**
- * La fiche d'un client, entiere, telle que sa page la remplit.
+ * A customer's whole sheet, as their page fills it in.
  *
- * **Une seule saisie pour toute la fiche.** Il y en avait deux : celle-ci, sans
- * SIREN, fixe, liens ni notes, et celle de l'onglet Informations d'un espace,
- * sans capital, RCS, TVA ni representant. Chacune ne pouvait ecrire que ses
- * colonnes, et le SIREN ne se saisissait que depuis un espace. La page du
- * client porte maintenant tous les champs, et c'est le seul chemin d'ecriture.
+ * **A single input for the whole sheet.** There used to be two: this one,
+ * without SIREN, landline, links or notes, and the one of a space's
+ * Informations tab, without capital, RCS, VAT or representative. Each could
+ * only write its own columns, and the SIREN could only be entered from a
+ * space. The customer's page now carries every field, and it is the only
+ * write path.
  */
 class CustomerInput implements CustomerInputInterface
 {
@@ -53,8 +54,8 @@ class CustomerInput implements CustomerInputInterface
         public readonly ?string $representativeLastName = null,
         #[Assert\Length(max: 120)]
         public readonly ?string $representativeRole = null,
-        // Requis d'un client et pas d'un prospect, donc la regle porte sur la
-        // paire : le Manager la tient, c'est lui qui voit le statut.
+        // Required for a customer and not for a prospect, so the rule covers
+        // the pair: the Manager holds it, it is the one that sees the status.
         #[Assert\Email(message: 'suite.studio.customers.errors.contractual_email_invalid')]
         #[Assert\Length(max: 180)]
         public readonly ?string $contractualEmail = null,
@@ -66,9 +67,9 @@ class CustomerInput implements CustomerInputInterface
         #[Assert\Length(max: 30, maxMessage: 'suite.studio.customers.errors.phone_too_long')]
         public readonly ?string $landline = null,
         /**
-         * `Valid` est ce qui fait descendre la validation dans chaque ligne.
-         * Sans lui, un tableau d'objets est traverse sans que leurs propres
-         * contraintes soient lues, et une adresse invalide passerait.
+         * `Valid` is what makes validation go down into each row. Without it,
+         * an array of objects is traversed without their own constraints
+         * being read, and an invalid address would pass.
          *
          * @var list<CustomerLinkInput>
          */
@@ -80,15 +81,15 @@ class CustomerInput implements CustomerInputInterface
     ) {}
 
     /**
-     * Les deux numeros doivent parler de la meme entreprise.
+     * Both numbers must refer to the same company.
      *
-     * Un SIRET est le SIREN suivi des cinq chiffres de l'etablissement. Quand
-     * les deux sont saisis et ne s'accordent pas, l'un des deux est faux et
-     * rien ne dit lequel. L'erreur se pose sur le SIREN : c'est le champ
-     * qu'on corrige le plus souvent, le SIRET se recopiant d'un document.
+     * A SIRET is the SIREN followed by the establishment's five digits. When
+     * both are entered and do not agree, one of them is wrong and nothing
+     * says which. The error goes on the SIREN: it is the field corrected most
+     * often, the SIRET being copied from a document.
      *
-     * Chacun garde sa propre cle de controle par ailleurs ; ceci ne remplace
-     * pas {@see Siret} ni {@see Siren}, cela verifie leur accord.
+     * Each keeps its own check digit elsewhere; this does not replace
+     * {@see Siret} or {@see Siren}, it checks that they agree.
      */
     #[Assert\Callback]
     public function validateNumbersAgree(ExecutionContextInterface $context): void
@@ -192,11 +193,11 @@ class CustomerInput implements CustomerInputInterface
     }
 
     /**
-     * Les liens, sous la forme que la colonne stocke.
+     * The links, in the shape the column stores.
      *
-     * La conversion se fait ici et pas dans le gestionnaire : la saisie est ce
-     * qui connait la forme de ses propres objets, et l'entite ne doit voir
-     * qu'une liste de couples.
+     * The conversion happens here and not in the manager: the input is what
+     * knows the shape of its own objects, and the entity must only see a list
+     * of pairs.
      *
      * @return list<array{label: string, url: string}>
      */

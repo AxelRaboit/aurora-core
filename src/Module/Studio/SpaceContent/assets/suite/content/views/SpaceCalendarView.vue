@@ -36,19 +36,20 @@ const year = ref(today.getFullYear());
 const month = ref(today.getMonth());
 
 /**
- * Une grille de mois ne tient pas sur un téléphone, et c'est mesurable.
+ * A month grid does not fit on a phone, and that can be measured.
  *
- * Sept colonnes dans trois cent soixante-quinze pixels font des cases de
- * cinquante : la place d'un numéro de jour, pas celle d'un titre. Sous le seuil,
- * la grille devient un index à pastilles et le contenu passe dans une liste en
- * dessous - ce que font Google et Apple, pour la même raison arithmétique.
+ * Seven columns in three hundred and seventy-five pixels make cells of fifty:
+ * room for a day number, not for a title. Below the threshold, the grid
+ * becomes an index of dots and the content moves into a list underneath -
+ * what Google and Apple do, for the same arithmetic reason.
  *
- * Le conteneur et jamais la fenêtre : c'est la colonne qui tient le calendrier
- * qui décide, et elle est plus étroite que l'écran dès qu'un rail l'accompagne.
+ * The container and never the window: the column holding the calendar
+ * decides, and it is narrower than the screen as soon as a rail sits next to
+ * it.
  */
 const { container, isNarrow } = useNarrowContainer(560);
 
-/** Le jour que la liste montre. Aujourd'hui tant que personne n'en a choisi un. */
+/** The day the list shows. Today until somebody picks one. */
 const selectedDay = ref(new Date());
 
 function sameDay(a, b) {
@@ -60,13 +61,13 @@ function sameDay(a, b) {
 }
 
 /**
- * Les publications du jour choisi, dans l'ordre de la journée.
+ * The posts of the chosen day, in the order of the day.
  *
- * Écrite ici plutôt qu'empruntée au module Calendrier : celui-ci a bien une
- * liste de jour, mais elle parle d'événements et de rappels, et surtout elle
- * appartient à un module qui s'installe séparément. Une trentaine de lignes
- * valent mieux qu'un couplage qui casserait la vue d'un espace le jour où le
- * calendrier n'est pas là.
+ * Written here rather than borrowed from the Calendar module: that one does
+ * have a day list, but it talks about events and reminders, and above all it
+ * belongs to a module installed separately. Thirty or so lines are better
+ * than a coupling that would break a space's view the day the calendar is
+ * not there.
  */
 const dayItems = computed(() =>
     props.events
@@ -139,9 +140,9 @@ function goToToday() {
                     v-on:select-day="selectedDay = $event"
                 />
 
-                <!-- La grille dit quels jours portent quelque chose ; celle-ci
-                     dit quoi. L'une sans l'autre est illisible sur un
-                     téléphone. -->
+                <!-- The grid says which days carry something; this one says
+                     what. One without the other is unreadable on a
+                     phone. -->
                 <section v-if="isNarrow" class="aurora-card">
                     <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
                         <h3 class="text-sm font-medium capitalize text-primary">

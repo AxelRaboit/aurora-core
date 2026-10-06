@@ -1,20 +1,19 @@
 <script setup>
 /**
- * Le carnet, vu de dehors.
+ * The notebook, seen from outside.
  *
- * Avant elle, le module n'avait pas d'écran pour regarder ce qu'il contenait :
- * l'adresse rendait la première note et l'arborescence vivait dans le menu.
- * Cette page est la contrepartie de la séparation dossier/note - un endroit
- * où l'on voit ce qu'on a écrit, rangé, et où l'on range.
+ * Before it, the module had no screen to look at what it contained: the
+ * address returned the first note and the tree lived in the menu. This page
+ * is the counterpart of the folder/note split - a place where one sees what
+ * one has written, filed, and where one files.
  *
- * **Trois façons de regarder, une seule source.** Mosaïque, cartes et liste
- * dessinent la même liste triée ; le tri et l'affichage sont des préférences
- * de lecture, retenues dans le navigateur, pas des états du carnet.
+ * **Three ways of looking, a single source.** Mosaic, cards and list draw
+ * the same sorted list; sort and display are reading preferences, kept in
+ * the browser, not states of the notebook.
  *
- * **Le rangement se fait ici.** Une carte se glisse sur un dossier ou sur un
- * maillon du fil d'Ariane, et la modale « Déplacer vers » fait la même chose
- * au clavier et au doigt, parce qu'un glisser-déposer n'existe pas sur un
- * téléphone.
+ * **Filing happens here.** A card is dragged onto a folder or onto a link of
+ * the breadcrumb, and the "Déplacer vers" modal does the same thing by
+ * keyboard and by finger, because drag and drop does not exist on a phone.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
@@ -98,7 +97,7 @@ const props = defineProps({
     noteUrlFor: { type: Function, required: true },
     /** Builds the address that downloads one note as Markdown. */
     noteExportUrlFor: { type: Function, default: () => "" },
-    /** Ce que le serveur accepte comme profondeur, pour le dire au refus. */
+    /** What the server accepts as depth, to say it on refusal. */
     maxDepth: { type: Number, default: 8 },
 });
 
@@ -152,21 +151,21 @@ const {
 onMounted(() => window.addEventListener("popstate", onPopState));
 onUnmounted(() => window.removeEventListener("popstate", onPopState));
 
-// La page suit le dossier ouvert : c'est là qu'un import doit atterrir, et
-// c'est ce que le panneau du menu met en évidence. Sans cela, importer
-// après avoir changé de dossier déposait les fichiers dans celui d'où l'on
-// était parti, c'est-à-dire celui que le serveur avait rendu.
+// The page follows the open folder: that is where an import must land, and
+// it is what the menu panel highlights. Without this, importing after
+// changing folder dropped the files into the one we had started from, that
+// is the one the server had rendered.
 watch(currentFolderId, (id) => emit("folder-changed", id), { immediate: true });
 
 const query = ref("");
 
 /**
- * La recherche se replie en loupe, comme chez Craft.
+ * The search folds into a magnifier, as in Craft.
  *
- * Un champ vide qui occupe le tiers de la barre coûte cette place à tout le
- * reste, et on ne cherche pas en permanence. L'icône l'ouvre, la barre
- * oblique aussi, Échap la referme - mais seulement si elle est vide : un
- * filtre actif et invisible ferait chercher pourquoi la liste est courte.
+ * An empty field taking up a third of the bar costs that space to everything
+ * else, and nobody searches all the time. The icon opens it, the slash key
+ * too, Escape closes it - but only if it is empty: an active and invisible
+ * filter would make one wonder why the list is short.
  */
 const {
     open: searchOpen,
@@ -176,20 +175,19 @@ const {
 } = useFoldable();
 
 function closeSearch() {
-    // Tant qu'il y a quelque chose dans le champ, il reste ouvert : un
-    // filtre actif et invisible ferait chercher pourquoi la liste est
-    // courte.
+    // As long as there is something in the field, it stays open: an active
+    // and invisible filter would make one wonder why the list is short.
     if ("" !== query.value.trim()) return;
 
     foldSearch();
 }
 
 /**
- * La recherche filtre ce qui est sous les yeux, pas le carnet entier.
+ * The search filters what is in view, not the whole notebook.
  *
- * Chercher dans tout le carnet est le travail du panneau du menu, qui a le
- * champ pour ça et qui remonte les résultats de toute l'arborescence. Ici on
- * filtre le dossier ouvert, ce qui est ce qu'on attend d'un explorateur.
+ * Searching the whole notebook is the job of the menu panel, which has the
+ * field for it and brings back results from the whole tree. Here we filter
+ * the open folder, which is what one expects from a file explorer.
  */
 function matches(label) {
     const needle = query.value.trim().toLowerCase();
@@ -210,13 +208,13 @@ const nothingShown = computed(
 );
 
 /**
- * Ce qui est dessiné d'un coup, et ce qui attend.
+ * What is drawn at once, and what waits.
  *
- * Le carnet entier est déjà dans la page - le tri se fait ici, faute de
- * pouvoir trier des colonnes chiffrées en SQL - mais dessiner mille cartes
- * d'un coup fige l'écran pour rien : on n'en lit jamais mille. Le reste
- * arrive à la demande, et le compteur repart dès qu'on change de dossier ou
- * qu'on tape autre chose.
+ * The whole notebook is already in the page - sorting happens here, since
+ * encrypted columns cannot be sorted in SQL - but drawing a thousand cards
+ * at once freezes the screen for nothing: nobody ever reads a thousand. The
+ * rest comes on demand, and the counter starts over as soon as one changes
+ * folder or types something else.
  */
 const PAGE = 60;
 const shown = ref(PAGE);
@@ -236,19 +234,19 @@ const hasMore = computed(
 );
 
 /**
- * Les dernières notes touchées, en tête du carnet.
+ * The last notes touched, at the top of the notebook.
  *
- * Craft ouvre sur elles, et c'est la question posée neuf fois sur dix en
- * arrivant : « où en étais-je ». Seulement à la racine, et seulement sans
- * recherche : dans un dossier, ce qu'on cherche est le contenu du dossier.
+ * Craft opens on them, and it is the question asked nine times out of ten
+ * on arrival: "where was I". Only at the root, and only without a search: in
+ * a folder, what one is looking for is the folder's content.
  */
 const recent = computed(() => {
     if (
         null !== currentFolderId.value ||
         null !== activeTag.value ||
-        // Un filtre posé vaut pour tout l'écran : la rangée des récentes
-        // montrait encore ce que le filtre venait d'écarter, ce qui fait
-        // douter du filtre plutôt que de la rangée.
+        // A filter applies to the whole screen: the recent row still showed
+        // what the filter had just excluded, which makes one doubt the
+        // filter rather than the row.
         "all" !== visibility.value ||
         "" !== query.value.trim()
     ) {
@@ -267,21 +265,21 @@ const viewOptions = computed(() => [
 ]);
 
 /**
- * Le tri se replie comme la recherche, mais pas sur le même signal.
+ * The sort folds like the search, but not on the same signal.
  *
- * Son panneau est téléporté hors du bouton : un `focusout` posé là le
- * fermerait au moment même où l'on clique une option, et le clic
- * n'arriverait jamais. C'est donc le sélecteur lui-même qui dit quand il se
- * referme - qu'on ait choisi, appuyé sur Échap, ou cliqué ailleurs - et le
- * contrôle se replie avec lui. L'icône dit en infobulle quel critère est en
- * vigueur : un tri replié dont on ignore la valeur serait pire qu'un tri
- * qui prend de la place.
+ * Its panel is teleported out of the button: a `focusout` set there would
+ * close it at the very moment an option is clicked, and the click would
+ * never arrive. So the selector itself says when it closes - whether a
+ * choice was made, Escape pressed, or a click landed elsewhere - and the
+ * control folds with it. The icon's tooltip says which criterion is in
+ * force: a folded sort whose value is unknown would be worse than a sort
+ * that takes up space.
  *
- * C'est aussi pourquoi le clavier va au sélecteur lui-même et non à un
- * champ : sans recherche dedans, il n'y a pas d'`input`, et c'est la racine
- * du contrôle qui porte le focus. Elle ouvre la liste en le recevant, donc
- * un clic sur l'icône déroule les critères au lieu de poser une boîte
- * fermée que le lecteur devrait cliquer une seconde fois.
+ * That is also why the keyboard goes to the selector itself and not to a
+ * field: without a search inside, there is no `input`, and the control's
+ * root carries the focus. It opens the list on receiving it, so a click on
+ * the icon unrolls the criteria instead of showing a closed box the reader
+ * would have to click a second time.
  */
 const {
     open: sortOpen,
@@ -300,50 +298,49 @@ const sortOptions = computed(() =>
         { value: "name", label: t("notes.markdown.library.sort.name") },
         { value: "updated", label: t("notes.markdown.library.sort.updated") },
         { value: "created", label: t("notes.markdown.library.sort.created") },
-        // L'ordre manuel se range dans un dossier ; à plat, deux notes de
-        // deux dossiers n'ont pas de position commune à comparer.
+        // Manual order is filed within a folder; flattened, two notes from
+        // two folders have no common position to compare.
         ...(flat.value
             ? []
             : [{ value: "manual", label: t("notes.markdown.library.sort.manual") }]),
     ],
 );
 
-/** L'état du filtre de visibilité, écrit, pour l'infobulle et la puce. */
+/** The visibility filter's state, written out, for the tooltip and the chip. */
 const visibilityLabel = computed(() =>
     t(`notes.markdown.library.visibility.${visibility.value}`),
 );
 
-/** Le critère en vigueur, écrit, pour que l'icône puisse le dire. */
+/** The criterion in force, written out, so that the icon can say it. */
 const sortLabel = computed(
     () => sortOptions.value.find((one) => one.value === sort.value)?.label ?? "",
 );
 
 /**
- * La couleur d'un dossier, s'il en porte une.
+ * A folder's colour, if it carries one.
  *
- * Posée en style plutôt qu'en classe : c'est une valeur libre, choisie par
- * le lecteur, et Tailwind ne génère que les classes qu'il voit écrites.
+ * Set as a style rather than a class: it is a free value, chosen by the
+ * reader, and Tailwind only generates the classes it sees written.
  */
 function folderTint(folder) {
     return folder.color ? { color: folder.color } : null;
 }
 
 /**
- * La vignette d'une note : son début, rendu petit.
+ * A note's thumbnail: its beginning, rendered small.
  *
- * **C'est le rendu qui fait reconnaître une note**, pas le texte. Un titre,
- * une liste, une case cochée se repèrent d'un coup d'œil, là où le même
- * début aplati en une phrase rendait toutes les cartes identiques. C'est ce
- * que fait Craft, et ce qu'Axel a demandé le 23/09 en montrant son mur de
- * cartes.
+ * **The rendering is what makes a note recognisable**, not the text. A
+ * heading, a list, a ticked box are spotted at a glance, where the same
+ * beginning flattened into a sentence made every card identical. That is
+ * what Craft does, and what Axel asked for on 23/09 when showing his wall of
+ * cards.
  *
- * Le confort de lecture n'est pas le sujet ici : on cherche « ah oui, c'est
- * celle-là », donc le texte est petit et la vignette est coupée en bas.
+ * Reading comfort is not the point here: one is looking for "ah yes, that
+ * one", so the text is small and the thumbnail is cut at the bottom.
  *
- * Gardé en mémoire par note et par date de modification : on redessine la
- * grille à chaque tri, à chaque filtre, à chaque page de plus, et analyser
- * soixante extraits à chaque fois pour un résultat identique se paierait à
- * chaque clic.
+ * Kept in memory per note and per modification date: the grid is redrawn on
+ * every sort, every filter, every extra page, and parsing sixty excerpts
+ * each time for an identical result would be paid on every click.
  */
 const { render: renderMarkdown } = useMarkdownRenderer();
 const thumbnails = new Map();
@@ -356,9 +353,9 @@ function thumbnail(note) {
 
     if (undefined !== known) return known;
 
-    // Le titre est déjà écrit au-dessus de la vignette : le laisser en
-    // tête du rendu le dirait deux fois, et mangerait la première ligne
-    // de ce qu'on cherche à reconnaître.
+    // The title is already written above the thumbnail: leaving it at the
+    // top of the rendering would say it twice, and eat the first line of
+    // what one is trying to recognise.
     const html = renderMarkdown(withoutLeadingTitle(note.excerpt, note.title));
     thumbnails.set(key, html);
 
@@ -370,11 +367,11 @@ function folderLabel(folder) {
 }
 
 /**
- * Où vit une note, dit sur sa carte - seulement quand la liste est à plat.
+ * Where a note lives, said on its card - only when the list is flattened.
  *
- * Rangée, la réponse est le dossier qu'on vient d'ouvrir, et la répéter sur
- * chaque carte serait du bruit. À plat, c'est l'information qui manque : on
- * voit tout, et on ne sait plus d'où ça vient.
+ * Filed, the answer is the folder just opened, and repeating it on every
+ * card would be noise. Flattened, it is the missing information: one sees
+ * everything, and no longer knows where it comes from.
  */
 function noteFolderLabel(note) {
     if (!flat.value && null === activeTag.value) return null;
@@ -390,18 +387,18 @@ function noteLabel(note) {
     return note.title || t("notes.markdown.untitled");
 }
 
-// ── Choisir plusieurs choses à la fois ─────────────────────────────
+// ── Choose several things at once ──────────────────────────────────
 
 /**
- * La sélection, et les deux gestes qu'elle sert.
+ * The selection, and the two gestures it serves.
  *
- * Ranger un carnet, c'est rarement déplacer une note : c'est en déplacer
- * douze. Une case sur chaque carte, une barre qui dit combien, et les deux
- * actions qui valaient la peine d'être groupées - déplacer et supprimer. Le
- * reste (renommer, exporter) n'a pas de sens au pluriel.
+ * Tidying a notebook is rarely moving one note: it is moving twelve. A box on
+ * each card, a bar that says how many, and the two actions that were worth
+ * grouping - move and delete. The rest (rename, export) makes no sense in
+ * the plural.
  *
- * Les clés portent la nature avec l'identifiant : une note 3 et un dossier 3
- * ne sont pas la même chose, et un simple identifiant les aurait confondus.
+ * The keys carry the kind with the id: a note 3 and a folder 3 are not the
+ * same thing, and a plain id would have mixed them up.
  */
 const selected = ref(new Set());
 
@@ -431,12 +428,12 @@ function clearSelection() {
 }
 
 /**
- * Le mode sélection, comme dans la médiathèque.
+ * Selection mode, as in the media library.
  *
- * Les ronds ne s'affichent qu'une fois le mode ouvert par son bouton : sur
- * chaque carte en permanence, ils encombraient la bibliothèque pour un geste
- * qu'on fait rarement. Dans ce mode, cliquer une carte la coche au lieu de
- * l'ouvrir. En sortir vide la sélection.
+ * The circles only show once the mode is opened by its button: on every
+ * card all the time, they cluttered the library for a rare gesture. In this
+ * mode, clicking a card ticks it instead of opening it. Leaving the mode
+ * clears the selection.
  */
 const selecting = ref(false);
 
@@ -457,12 +454,12 @@ function toggleSelecting() {
     }
 }
 
-// Changer de dossier vide la sélection et referme le mode : ce qu'elle
-// contient n'est plus à l'écran, et agir dessus de loin est la meilleure
-// façon de déplacer ce qu'on ne regardait pas.
+// Changing folder clears the selection and closes the mode: what it holds
+// is no longer on screen, and acting on it from afar is the best way to move
+// what one was not looking at.
 watch(currentFolderId, stopSelecting);
 
-/** Les éléments choisis, rendus à leur nature et à leur objet. */
+/** The chosen items, resolved back to their kind and their object. */
 function selectedItems() {
     const items = [];
 
@@ -482,9 +479,9 @@ async function moveSelection(targetFolderId) {
     const items = selectedItems();
     let refused = 0;
 
-    // En série plutôt qu'en parallèle : chaque déplacement est une écriture,
-    // et le serveur refuse un dossier rangé dans sa propre branche - une
-    // rafale rendrait l'ordre des refus imprévisible.
+    // In series rather than in parallel: each move is a write, and the
+    // server refuses a folder filed into its own branch - a burst would make
+    // the order of the refusals unpredictable.
     for (const { kind, item } of items) {
         if ("folder" === kind && Number(item.id) === targetFolderId) continue;
 
@@ -498,8 +495,8 @@ async function moveSelection(targetFolderId) {
     stopSelecting();
     emit("changed");
 
-    // Un message par refus, pour douze éléments, c'est douze messages
-    // empilés sur ce qu'on voulait lire : la fin du geste se dit une fois.
+    // One message per refusal, for twelve items, is twelve messages stacked
+    // over what one wanted to read: the end of the gesture is said once.
     if (refused) {
         toast.error(t("notes.markdown.library.some_refused", { count: refused }));
 
@@ -529,7 +526,7 @@ async function deleteSelection() {
     }
 }
 
-// ── Créer, renommer ────────────────────────────────────────────────
+// ── Create, rename ─────────────────────────────────────────────────
 const nameModal = ref(null);
 const nameValue = ref("");
 const nameColor = ref(null);
@@ -586,15 +583,15 @@ async function submitName() {
     emit("changed");
 }
 
-// ── Supprimer ──────────────────────────────────────────────────────
+// ── Delete ─────────────────────────────────────────────────────────
 
 /**
- * Une note aussi se supprime d'ici.
+ * A note can be deleted from here too.
  *
- * Elle ne se supprimait que depuis l'éditeur, ce qui obligeait à ouvrir une
- * note pour s'en défaire - et à lire d'abord ce qu'on voulait jeter. Les
- * deux natures passent par la même confirmation, avec le mot juste : un
- * dossier emporte ce qu'il contient, une note part seule.
+ * It could only be deleted from the editor, which forced one to open a note
+ * to get rid of it - and to read first what one wanted to throw away. Both
+ * kinds go through the same confirmation, with the right word: a folder
+ * takes what it holds with it, a note leaves alone.
  */
 const pendingDelete = ref(null);
 const deleting = ref(false);
@@ -628,9 +625,9 @@ async function confirmDelete() {
 
     if (!ok) {
         if (!reported) {
-            // La clé se choisit avant l'appel : `t()` est lu par un test qui
-            // relève les clés du fichier, et une ternaire dans ses
-            // parenthèses lui fait relever « folder ».
+            // The key is chosen before the call: `t()` is read by a test that
+            // collects the file's keys, and a ternary inside its parentheses
+            // makes it collect "folder".
             const failed = isFolder
                 ? "notes.markdown.folders.errors.delete_failed"
                 : "notes.markdown.errors.delete_failed";
@@ -650,15 +647,15 @@ async function confirmDelete() {
     emit("changed");
 }
 
-// ── Déplacer ───────────────────────────────────────────────────────
+// ── Move ───────────────────────────────────────────────────────────
 const moving = ref(null);
 
 /**
- * Les destinations possibles pour ce qu'on déplace.
+ * The possible destinations for what is being moved.
  *
- * Un dossier ne peut pas se ranger dans lui-même ni dans sa propre branche :
- * le serveur le refuse, et l'offrir dans une liste pour le refuser ensuite
- * serait une porte peinte sur un mur.
+ * A folder cannot be filed into itself nor into its own branch: the server
+ * refuses it, and offering it in a list only to refuse it afterwards would
+ * be a door painted on a wall.
  */
 const moveTargets = computed(() => {
     if (!moving.value) return [];
@@ -690,11 +687,11 @@ const moveTargets = computed(() => {
 const moveTarget = ref("");
 
 /**
- * Un dossier et tout ce qui pend dessous, marqués comme interdits.
+ * A folder and everything hanging below it, marked as forbidden.
  *
- * Le parcours tient une liste de ce qu'il a déjà vu : le serveur refuse les
- * cycles, mais une ligne modifiée à la main en ferait un, et une boucle sans
- * garde bloquerait l'onglet plutôt que d'afficher un menu incomplet.
+ * The walk keeps a list of what it has already seen: the server refuses
+ * cycles, but a row edited by hand would make one, and an unguarded loop
+ * would freeze the tab rather than show an incomplete menu.
  */
 function excludeBranch(rootId, excluded) {
     const queue = [rootId];
@@ -712,7 +709,7 @@ function excludeBranch(rootId, excluded) {
     }
 }
 
-/** Le chemin complet d'un dossier, pour que deux homonymes se distinguent. */
+/** A folder's full path, so that two namesakes can be told apart. */
 function pathLabel(folder) {
     const names = [];
     const seen = new Set();
@@ -753,8 +750,8 @@ async function applyMove(kind, id, targetFolderId, { quiet = false } = {}) {
             : await props.notesApi.move(id, targetFolderId);
 
     if (!ok) {
-        // Un déplacement de groupe compte ses refus et le dit une fois ;
-        // seul, il se dit tout de suite.
+        // A group move counts its refusals and says it once; alone, it is
+        // said right away.
         if (!reported && !quiet) {
             const failed =
                 "refused" === payload?.error
@@ -775,10 +772,10 @@ async function applyMove(kind, id, targetFolderId, { quiet = false } = {}) {
     return true;
 }
 
-// ── Glisser-déposer ────────────────────────────────────────────────
+// ── Drag and drop ──────────────────────────────────────────────────
 //
-// Le format du presse-papier est partagé avec le panneau du menu, d'où l'on
-// glisse aussi : voir `noteDrag.js`.
+// The clipboard format is shared with the menu panel, from which one drags
+// too: see `noteDrag.js`.
 const dragOverId = ref(null);
 const rootDragOver = ref(false);
 const dragging = ref(null);
@@ -803,8 +800,8 @@ function acceptsDrop(event) {
 function onDragOverFolder(folder, event) {
     if (!acceptsDrop(event)) return;
 
-    // On ne dépose pas un dossier sur lui-même : le serveur refuserait, et
-    // la cible ne doit pas s'allumer pour un geste qui ne peut pas aboutir.
+    // A folder is not dropped onto itself: the server would refuse, and the
+    // target must not light up for a gesture that cannot succeed.
     if (dragging.value?.kind === "folder" && dragging.value.id === Number(folder.id)) return;
 
     event.preventDefault();
@@ -846,14 +843,14 @@ async function onDropOn(targetFolderId, event) {
     await applyMove(dragged.kind, dragged.id, targetFolderId);
 }
 
-// ── L'aperçu au survol ─────────────────────────────────────────────
+// ── The hover preview ──────────────────────────────────────────────
 
 /**
- * L'aperçu au survol : le rendu de la note, pas sa source.
+ * The hover preview: the note's rendering, not its source.
  *
- * Le contenu est chiffré, donc il n'arrive pas avec la liste ; l'aperçu le
- * demande à la carte survolée, une fois, et le garde. Il ne s'ouvre pas
- * pendant un glisser : on est en train de ranger, pas de lire.
+ * The content is encrypted, so it does not come with the list; the preview
+ * asks the hovered card for it, once, and keeps it. It does not open during
+ * a drag: one is filing, not reading.
  */
 const {
     noteId: previewId,
@@ -875,19 +872,19 @@ function hoverNote(note, event) {
     openPreview(note, event.currentTarget);
 }
 
-// ── Le clavier ─────────────────────────────────────────────────────
+// ── The keyboard ───────────────────────────────────────────────────
 
 /**
- * Se déplacer sans la souris.
+ * Move around without the mouse.
  *
- * Les cartes sont une liste : les flèches y descendent, Entrée ouvre,
- * Retour arrière remonte d'un dossier, Espace choisit, Échap lâche tout.
- * `n` fait une note, `N` un dossier - pas `Cmd+N`, que le navigateur garde
- * pour lui et qui ouvrirait une fenêtre par-dessus l'écran.
+ * The cards are a list: the arrows go down it, Enter opens, Backspace goes
+ * up one folder, Space selects, Escape lets go of everything. `n` makes a
+ * note, `N` a folder - not `Cmd+N`, which the browser keeps for itself and
+ * which would open a window over the screen.
  *
- * Rien de tout cela quand on écrit : un champ, une zone de texte ou un
- * contenu éditable garde ses touches, sinon taper « nouvelle » dans la
- * recherche créerait deux notes.
+ * None of this while writing: a field, a text area or an editable content
+ * keeps its keys, otherwise typing "nouvelle" in the search would create two
+ * notes.
  */
 const focused = ref(-1);
 
@@ -916,8 +913,8 @@ function typing(event) {
 }
 
 function onKeydown(event) {
-    // Une modale ouverte a ses propres touches, et le clavier de la
-    // bibliothèque n'a rien à dire par-dessus.
+    // An open modal has its own keys, and the library's keyboard has
+    // nothing to say over it.
     if (typing(event) || nameModal.value || moving.value || pendingDelete.value) {
         return;
     }
@@ -959,8 +956,8 @@ function onKeydown(event) {
         const current = navigable.value[focused.value];
         if (!current) return;
         event.preventDefault();
-        // L'espace ouvre le mode s'il ne l'est pas : c'est la touche qui
-        // cochait déjà, elle n'a pas à attendre le bouton.
+        // Space opens the mode if it is not open: it is the key that already
+        // ticked, it does not have to wait for the button.
         startSelecting();
         toggleSelection(current.kind, current.item);
 
@@ -979,8 +976,8 @@ function onKeydown(event) {
 
         return;
 
-    // La barre oblique ouvre la recherche : la convention est celle de
-    // GitHub et de Craft, et elle évite d'aller viser la loupe.
+    // The slash opens the search: the convention is GitHub's and Craft's,
+    // and it saves aiming at the magnifier.
     case "/":
         event.preventDefault();
         void openSearch();
@@ -1002,25 +999,25 @@ function onKeydown(event) {
 onMounted(() => window.addEventListener("keydown", onKeydown));
 onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
-// Ce qui était visé peut disparaître : changer de dossier, filtrer, trier.
+// What was targeted can disappear: changing folder, filtering, sorting.
 watch([currentFolderId, query, sort, direction, flat, activeTag, visibility], () => {
     focused.value = -1;
 });
 
-// ── L'ordre manuel ─────────────────────────────────────────────────
+// ── Manual order ───────────────────────────────────────────────────
 
 /**
- * Monter et descendre, plutôt qu'une ligne d'insertion au glisser.
+ * Move up and down, rather than an insertion line on drag.
  *
- * Le glisser sert déjà à ranger : lâcher une carte sur un dossier la met
- * dedans. Lui faire dire aussi « insère-toi ici » demande de distinguer le
- * bord d'une carte de son milieu, ce qui se rate au doigt. Deux entrées dans
- * le menu de la carte disent la même chose sans ambiguïté, et marchent au
- * clavier.
+ * Dragging already serves to file: dropping a card onto a folder puts it
+ * inside. Making it also say "insert yourself here" requires telling the
+ * edge of a card from its middle, which is easy to miss with a finger. Two
+ * entries in the card's menu say the same thing without ambiguity, and work
+ * with the keyboard.
  *
- * Offert seulement quand le tri est manuel : déplacer une carte d'un cran
- * dans une liste triée par date ne voudrait rien dire, puisque le tri la
- * remettrait où elle était.
+ * Offered only when the sort is manual: moving a card one step in a list
+ * sorted by date would mean nothing, since the sort would put it back where
+ * it was.
  */
 const manualOrder = computed(() => "manual" === sort.value && !flat.value);
 
@@ -1031,14 +1028,14 @@ async function nudge(kind, item, delta) {
 
     if (from < 0 || to < 0 || to >= list.length) return;
 
-    // Le voisin qu'on dépasse, celui qui est à côté à l'écran.
+    // The neighbour being passed, the one next to it on screen.
     const neighbour = list[to];
 
-    // Dossiers et notes du dossier partagent un seul ordre, celui que
-    // l'arborescence montre mêlé : la carte change de place avec son voisin
-    // dans cet ordre commun, sans toucher au rang des éléments de l'autre
-    // nature. Renuméroter une seule nature de 0 à n-1, comme avant,
-    // écraserait l'ordre de l'autre.
+    // The folder's folders and notes share a single order, the one the tree
+    // shows mixed: the card swaps places with its neighbour in that common
+    // order, without touching the rank of the items of the other kind.
+    // Renumbering a single kind from 0 to n-1, as before, would overwrite
+    // the other's order.
     const parentOf = (value) => (null == value || "" === value ? null : Number(value));
     const inFolder = (one, key) => parentOf(one[key]) === parentOf(currentFolderId.value);
     const combined = [
@@ -1052,9 +1049,9 @@ async function nudge(kind, item, delta) {
 
     if (!moving || anchor < 0) return;
 
-    // Vers les positions croissantes, l'élément passe après son voisin ;
-    // vers les décroissantes, avant. En ordre décroissant, « monter » à
-    // l'écran va vers les positions croissantes.
+    // Towards increasing positions, the item moves after its neighbour;
+    // towards decreasing ones, before. In descending order, "moving up" on
+    // screen goes towards increasing positions.
     const towardsHigher = ("desc" === direction.value) === (delta < 0);
     combined.splice(towardsHigher ? anchor + 1 : anchor, 0, moving);
 
@@ -1082,12 +1079,12 @@ async function nudge(kind, item, delta) {
 }
 
 /**
- * Épingler, ou décrocher.
+ * Pin, or unpin.
  *
- * Un carnet a trois ou quatre endroits où l'on retourne tous les jours, et
- * les chercher dans l'arbre à chaque fois est une corvée que Craft supprime
- * avec ses favoris. L'action dit ce qu'elle va faire, pas l'état actuel :
- * « Épingler » sur ce qui ne l'est pas.
+ * A notebook has three or four places one goes back to every day, and
+ * looking for them in the tree each time is a chore Craft removes with its
+ * favourites. The action says what it will do, not the current state:
+ * "Épingler" on what is not pinned.
  */
 function favoriteAction(kind, item) {
     const pinned = Boolean(item.favoritedAt);
@@ -1136,7 +1133,7 @@ function orderActions(kind, item) {
     ];
 }
 
-// ── Les actions d'une carte ────────────────────────────────────────
+// ── A card's actions ───────────────────────────────────────────────
 function folderActions(folder) {
     return [
         {
@@ -1204,31 +1201,29 @@ function noteActions(note) {
 }
 
 /**
- * La date d'une carte, ou rien.
+ * A card's date, or nothing.
  *
- * `Intl` lève une `RangeError` sur une date qu'il ne comprend pas, et une
- * exception pendant le rendu emporte le composant entier : la page devient
- * un cadre vide, sans un mot. C'est arrivé le 23/09, avec des dates que le
- * serveur envoyait en objets plutôt qu'en chaînes. Le serveur est corrigé,
- * et l'affichage ne dépend plus de sa bonne volonté.
+ * `Intl` throws a `RangeError` on a date it does not understand, and an
+ * exception during rendering takes the whole component down: the page
+ * becomes an empty frame, without a word. It happened on 23/09, with dates
+ * the server sent as objects rather than strings. The server is fixed, and
+ * the display no longer depends on its goodwill.
  */
 /**
- * Toute la carte ouvre, pas seulement son titre.
+ * The whole card opens, not only its title.
  *
- * Une carte est une cible large, c'est ce qu'elle promet en occupant cette
- * place ; ne rendre cliquable que ses vingt pixels de titre oblige à viser.
- * Le titre reste un lien, pour le clic du milieu et pour « ouvrir dans un
- * nouvel onglet ».
+ * A card is a wide target, that is what it promises by taking up that space;
+ * making only its twenty pixels of title clickable forces one to aim. The
+ * title stays a link, for the middle click and for "open in a new tab".
  *
- * Deux gestes ne sont pas des ouvertures et sont laissés tranquilles : ce
- * qui part d'un bouton ou d'un lien (la case à cocher, le menu, le titre
- * lui-même, qui ont leur propre réponse), et un clic qui vient de terminer
- * une sélection de texte - lire un extrait en le surlignant ne doit pas
- * quitter la page.
+ * Two gestures are not openings and are left alone: what starts from a
+ * button or a link (the checkbox, the menu, the title itself, which have
+ * their own answer), and a click that has just ended a text selection -
+ * reading an excerpt by highlighting it must not leave the page.
  */
 function onCardClick(kind, item, event) {
-    // En mode sélection, la carte entière coche, lien du titre compris :
-    // seul un bouton (le menu, l'épingle) garde son propre geste.
+    // In selection mode, the whole card ticks, title link included: only a
+    // button (the menu, the pin) keeps its own gesture.
     if (selecting.value) {
         if (event.target.closest("button")) return;
         event.preventDefault();
@@ -1258,12 +1253,12 @@ function updatedLabel(item) {
 }
 
 /**
- * Ce que le panneau du menu peut demander à cette page.
+ * What the menu panel can ask of this page.
  *
- * Le pont `modulePanelBridge` parle à l'application, qui est montée en
- * permanence ; la bibliothèque, elle, ne l'est que quand aucune note n'est
- * ouverte. L'application relaie donc, et ces quatre fonctions sont le
- * contrat entre les deux.
+ * The `modulePanelBridge` bridge talks to the application, which is always
+ * mounted; the library is only mounted when no note is open. So the
+ * application relays, and these four functions are the contract between
+ * the two.
  */
 defineExpose({
     openFolder,
@@ -1277,9 +1272,9 @@ defineExpose({
 <template>
     <div class="flex flex-col min-h-0 flex-1">
         <header class="flex flex-col gap-3 border-b border-line p-3">
-            <!-- Le fil d'Ariane est aussi une cible : remonter d'un niveau se
-                 fait en y glissant ce qu'on tient, sans ouvrir de modale. -->
-            <!-- Première ligne : où l'on est, et ce qu'on peut y créer. -->
+            <!-- The breadcrumb is a target too: going up one level is done by
+                 dragging what one holds onto it, without opening a modal. -->
+            <!-- First line: where one is, and what one can create there. -->
             <div class="flex items-start justify-between gap-3">
                 <nav class="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-sm" :aria-label="t('notes.markdown.library.title')">
                     <button
@@ -1297,10 +1292,10 @@ defineExpose({
                         {{ t('notes.markdown.library.title') }}
                     </button>
 
-                    <!-- L'étiquette regardée prend la place du fil : elle
-                         traverse le carnet, donc le chemin d'un dossier ne
-                         décrit plus ce qui est à l'écran. La croix rend le
-                         dossier où l'on était, qui n'a pas bougé. -->
+                    <!-- The tag being viewed takes the breadcrumb's place: it
+                         cuts across the notebook, so a folder's path no
+                         longer describes what is on screen. The cross returns
+                         the folder one was in, which has not moved. -->
                     <template v-if="'all' !== visibility">
                         <ChevronRight class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" />
                         <span class="inline-flex items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400">
@@ -1354,15 +1349,15 @@ defineExpose({
                     </template>
                 </nav>
 
-                <!-- Icônes seules : le libellé prenait la moitié de la barre
-                     pour dire ce qu'un « + » dit aussi bien, et l'infobulle
-                     le nomme pour qui hésite.
+                <!-- Icons only: the label took half the bar to say what a
+                     "+" says just as well, and the tooltip names it for
+                     whoever hesitates.
 
-                     Les deux sont des boutons d'icône, du même dessin. Celui
-                     de la note était un bouton plein vert, plus gros et
-                     rempli, posé à côté de son voisin en simple contour :
-                     deux gestes du même genre, à un pas l'un de l'autre, qui
-                     n'avaient pas l'air de la même famille. -->
+                     Both are icon buttons, with the same design. The note's
+                     one was a solid green button, bigger and filled, set next
+                     to its outlined neighbour: two gestures of the same kind,
+                     one step from each other, that did not look like the
+                     same family. -->
                 <div class="flex shrink-0 items-center gap-1">
                     <AppIconButton
                         color="accent"
@@ -1384,15 +1379,15 @@ defineExpose({
                 </div>
             </div>
 
-            <!-- Deuxième ligne : comment on regarde. Ce qui *crée* est
-                 monté d'un cran, à droite du fil d'Ariane, parce que ces
-                 gestes portent sur l'endroit où l'on est, pas sur la façon
-                 de le lire. Une barre unique les mélangeait, et huit
-                 contrôles collés se lisaient comme un mur. -->
-            <!-- Tout à droite, en un seul groupe : la loupe seule à gauche
-                 laissait un vide de la moitié de la barre pour un bouton de
-                 trente pixels. Ouverte, la recherche prend sa place dans le
-                 groupe et repousse le reste, au lieu de traverser l'écran. -->
+            <!-- Second line: how one looks. What *creates* moved up a row,
+                 to the right of the breadcrumb, because those gestures are
+                 about the place one is in, not about the way of reading it.
+                 A single bar mixed them, and eight controls packed together
+                 read like a wall. -->
+            <!-- All the way to the right, in a single group: the magnifier
+                 alone on the left left a gap of half the bar for a thirty
+                 pixel button. Opened, the search takes its place in the group
+                 and pushes the rest, instead of crossing the screen. -->
             <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
                 <AppIconButton
                     v-if="!searchOpen"
@@ -1417,13 +1412,13 @@ defineExpose({
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <!-- Rangé ou tout à plat. Deux lectures du même carnet :
-                         ce que l'endroit contient, ou toutes les notes d'ici
-                         et de dessous d'un coup, pour retrouver ce dont on
-                         ne sait plus où on l'a mis. -->
-                    <!-- Ce qui est ouvert à l'équipe, ce qui ne l'est pas,
-                         ou tout. Un bouton qui tourne plutôt que trois :
-                         la barre en porte déjà six. -->
+                    <!-- Filed or completely flat. Two readings of the same
+                         notebook: what the place holds, or all the notes from
+                         here and below at once, to find what one no longer
+                         knows where one put. -->
+                    <!-- What is open to the team, what is not, or everything.
+                         A button that cycles rather than three: the bar
+                         already carries six. -->
                     <AppIconButton
                         :class="'all' === visibility ? '' : 'text-accent-400'"
                         :title="visibilityLabel"
@@ -1446,8 +1441,8 @@ defineExpose({
                         <FolderTree v-else class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
 
-                    <!-- Le mode sélection, comme dans la médiathèque : les ronds
-                         n'apparaissent qu'une fois ouvert. -->
+                    <!-- Selection mode, as in the media library: the circles
+                         only appear once it is open. -->
                     <AppIconButton
                         :class="selecting ? 'text-accent-400' : ''"
                         :title="selecting ? t('notes.markdown.library.stop_selecting') : t('notes.markdown.library.select')"
@@ -1473,13 +1468,13 @@ defineExpose({
                         </AppTab>
                     </div>
 
-                    <!-- Le sens est un bouton séparé du critère, comme chez
-                         Craft : changer d'ordre ne doit pas demander de
-                         rouvrir la liste des critères. -->
+                    <!-- The direction is a button separate from the criterion,
+                         as in Craft: changing order must not require
+                         reopening the list of criteria. -->
                     <div class="flex items-center gap-1">
-                        <!-- Replié en icône, comme la recherche : le
-                             critère se change par à-coups et n'a pas à
-                             occuper sa largeur en permanence. -->
+                        <!-- Folded into an icon, like the search: the
+                             criterion changes in fits and starts and does not
+                             have to take up its width all the time. -->
                         <AppIconButton
                             v-if="!sortOpen"
                             :title="`${t('notes.markdown.library.sort.label')} : ${sortLabel}`"
@@ -1489,10 +1484,10 @@ defineExpose({
                             <ArrowUpDown class="h-4 w-4" :stroke-width="2" />
                         </AppIconButton>
 
-                        <!-- Le sélecteur de la maison plutôt que le
-                             `<select>` natif : même allure que partout
-                             ailleurs dans le back-office. Pas de recherche
-                             dedans, quatre critères ne se cherchent pas. -->
+                        <!-- The house selector rather than the native
+                             `<select>`: same look as everywhere else in the
+                             back-office. No search inside, four criteria are
+                             not searched for. -->
                         <div v-else ref="sortBox" class="w-44" v-on:keyup.esc="foldSort">
                             <AppMultiselect
                                 :model-value="sort"
@@ -1513,19 +1508,19 @@ defineExpose({
                 </div>
             </div>
         </header>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. Les marges
-             de l'entête et du contenu (`p-3`) : posé à même la carte, il en
-             touchait les bords. -->
+        <!-- The screen's how-to, next to what it explains; folded or
+             expanded, the choice applies to every callout. The header and
+             content margins (`p-3`): set right on the card, it touched its
+             edges. -->
         <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library" class="mx-3 mt-3">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 7" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- Ce que la sélection permet, quand il y en a une. Une barre
-             plutôt qu'un menu : ce qui est choisi doit rester compté sous
-             les yeux pendant qu'on décide. -->
+        <!-- What the selection allows, when there is one. A bar rather than
+             a menu: what is chosen must stay counted in view while one
+             decides. -->
         <div
             v-if="selectionCount"
             class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-2 px-3 py-2 sm:px-4"
@@ -1558,8 +1553,8 @@ defineExpose({
             v-on:dragover="onDragOverCrumb(null, $event)"
             v-on:drop="onDropOn(null, $event)"
         >
-            <!-- Une étiquette sans note a son propre mot : « ce dossier est
-                 vide » serait faux, le dossier n'y est pour rien. -->
+            <!-- A tag without notes has its own wording: "ce dossier est
+                 vide" would be wrong, the folder has nothing to do with it. -->
             <AppNoData
                 v-if="null !== activeTag && isEmpty"
                 :message="t('notes.markdown.library.tag.none')"
@@ -1581,9 +1576,9 @@ defineExpose({
                 :icon="FileText"
             />
 
-            <!-- Tout le reste tient dans une seule branche : un `v-else`
-                 doit suivre son `v-if` immédiatement, et la rangée des
-                 récentes s'était glissée entre les deux. -->
+            <!-- Everything else fits in a single branch: a `v-else` must
+                 follow its `v-if` immediately, and the recent row had slipped
+                 in between the two. -->
             <template v-else>
                 <section v-if="recent.length" class="mb-5">
                     <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -1604,9 +1599,9 @@ defineExpose({
                     </div>
                 </section>
 
-                <!-- Mosaïque et cartes partagent la grille et ne diffèrent que par
-                 la hauteur des tuiles : une seule colonne sur téléphone, c'est
-                 la règle de la maison depuis le 14/09. -->
+                <!-- Mosaic and cards share the grid and only differ by the
+                 height of the tiles: a single column on a phone, that is the
+                 house rule since 14/09. -->
                 <div v-if="'list' !== view">
                     <div
                         class="grid grid-cols-1 gap-3"
@@ -1631,9 +1626,9 @@ defineExpose({
                             v-on:click="onCardClick('folder', folder, $event)"
                         >
                             <div class="flex items-start gap-2">
-                                <!-- La case précède le titre au lieu de le
-                                     recouvrir : en surimpression, elle
-                                     tombait sur le nom des dossiers courts. -->
+                                <!-- The box comes before the title instead
+                                     of covering it: overlaid, it landed on
+                                     the name of short folders. -->
                                 <button
                                     v-if="selecting"
                                     type="button"
@@ -1644,10 +1639,10 @@ defineExpose({
                                     <AppSelectionCheck :active="isSelected('folder', folder)" size="xs" />
                                 </button>
 
-                                <!-- Un clic ouvre, un double-clic renomme :
-                                     c'est le geste d'un explorateur de
-                                     fichiers, et le menu garde l'entrée
-                                     pour qui ne le connaît pas. -->
+                                <!-- A click opens, a double click renames:
+                                     it is a file explorer's gesture, and the
+                                     menu keeps the entry for whoever does
+                                     not know it. -->
                                 <button
                                     type="button"
                                     class="flex min-w-0 flex-1 items-center gap-2 text-left"
@@ -1660,8 +1655,8 @@ defineExpose({
                                         :stroke-width="2"
                                     />
                                     <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
-                                    <!-- Ce qui est sorti de chez soi se voit
-                                         sans avoir à ouvrir un menu. -->
+                                    <!-- What has left one's place shows
+                                         without having to open a menu. -->
                                     <Users
                                         v-if="isShared(folder)"
                                         class="h-3.5 w-3.5 shrink-0 text-accent-400"
@@ -1723,11 +1718,11 @@ defineExpose({
                                 <AppRowActions :actions="noteActions(note)" :label="noteLabel(note)" />
                             </div>
 
-                            <!-- La vignette, en mosaïque seulement : c'est ce
-                                 qui distingue cette vue des cartes. Coupée en
-                                 bas par un dégradé plutôt que par une ligne
-                                 nette, pour que rien ne ressemble à une fin
-                                 de note. -->
+                            <!-- The thumbnail, in the mosaic only: it is what
+                                 sets this view apart from the cards. Cut at
+                                 the bottom by a gradient rather than a sharp
+                                 line, so that nothing looks like the end of
+                                 a note. -->
                             <div
                                 v-if="'mosaic' === view && note.excerpt"
                                 class="note-thumb relative mt-2 h-40 overflow-hidden text-[0.6875rem] leading-snug text-muted"
@@ -1736,8 +1731,8 @@ defineExpose({
                                 <div class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface to-transparent" />
                             </div>
 
-                            <!-- À plat, le dossier d'où la note vient, et
-                                 le chemin pour y aller. -->
+                            <!-- Flattened, the folder the note comes from,
+                                 and the way to get there. -->
                             <button
                                 v-if="noteFolderLabel(note)"
                                 type="button"
@@ -1749,9 +1744,9 @@ defineExpose({
                                 <span class="truncate">{{ noteFolderLabel(note) }}</span>
                             </button>
 
-                            <!-- Une étiquette se clique : c'est le geste
-                                 qu'on tente en la voyant, et il n'existait
-                                 nulle part depuis la refonte. -->
+                            <!-- A tag is clickable: it is the gesture one
+                                 tries on seeing it, and it existed nowhere
+                                 since the redesign. -->
                             <div v-if="note.tags?.length" class="mt-2 flex flex-wrap gap-1">
                                 <button
                                     v-for="one in note.tags"
@@ -1776,9 +1771,9 @@ defineExpose({
                     />
                 </div>
 
-                <!-- La liste : un tableau sur écran large, des lignes empilées en
-                 dessous. Le tableau défile dans son propre conteneur pour que
-                 la page ne parte jamais de côté. -->
+                <!-- The list: a table on a wide screen, stacked rows below.
+                 The table scrolls in its own container so that the page
+                 never goes sideways. -->
                 <div v-else class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="text-left text-xs uppercase tracking-wide text-muted">
@@ -1905,9 +1900,9 @@ defineExpose({
                 v-on:keyup.enter="submitName"
             />
 
-            <!-- Une couleur pour reconnaître un dossier sans le lire. Le
-                 sélecteur de la maison, présets et hexadécimal, le même
-                 qu'aux étiquettes de document. -->
+            <!-- A colour to recognise a folder without reading it. The house
+                 picker, presets and hexadecimal, the same as for document
+                 tags. -->
             <AppColorPicker
                 v-model="nameColor"
                 class="mt-4"
@@ -1934,9 +1929,9 @@ defineExpose({
             :icon="FolderInput"
             v-on:close="moving = null"
         >
-            <!-- Cherchable, celui-ci : un carnet rangé a des dizaines de
-                 dossiers, et dérouler la liste entière pour en viser un
-                 serait la même corvée que l'arbre qu'on vient de quitter. -->
+            <!-- Searchable, this one: a tidy notebook has dozens of folders,
+                 and unrolling the whole list to target one would be the same
+                 chore as the tree one has just left. -->
             <AppMultiselect
                 v-model="moveTarget"
                 :options="moveTargets"
@@ -1993,11 +1988,11 @@ defineExpose({
             </template>
         </AppModal>
 
-        <!-- L'aperçu vit dans le `body` : la grille défile et rogne, et une
-             carte flottante ne doit pas se faire couper par ce qu'elle
-             survole. Elle ne prend jamais le pointeur - `pointer-events` à
-             none - sinon elle s'interposerait entre le curseur et la carte
-             qui l'a ouverte, qui recevrait aussitôt un `mouseleave`. -->
+        <!-- The preview lives in the `body`: the grid scrolls and clips, and
+             a floating card must not be cut by what it hovers over. It never
+             takes the pointer - `pointer-events` set to none - otherwise it
+             would get between the cursor and the card that opened it, which
+             would immediately receive a `mouseleave`. -->
         <Teleport to="body">
             <div
                 v-if="null !== previewId"
@@ -2022,12 +2017,12 @@ defineExpose({
 
 <style scoped>
 /*
- * La vignette d'une carte : le rendu de la note, en petit.
+ * A card's thumbnail: the note's rendering, small.
  *
- * `:deep` parce que ce HTML vient d'un `v-html` et non du gabarit : les
- * styles de portée ne le marquent pas. Et pas la feuille de l'aperçu
- * (`preview.css`), qui est dimensionnée pour être lue : ici on veut la
- * silhouette d'une note, pas son confort.
+ * `:deep` because this HTML comes from a `v-html` and not from the template:
+ * scoped styles do not mark it. And not the preview stylesheet
+ * (`preview.css`), which is sized to be read: here we want the silhouette of
+ * a note, not its comfort.
  */
 .note-thumb :deep(h1),
 .note-thumb :deep(h2),
@@ -2082,13 +2077,13 @@ defineExpose({
 }
 
 /*
- * Les cases à cocher : sans puce, avec de l'air, et inertes.
+ * Checkboxes: without bullet, with some air, and inert.
  *
- * La feuille de l'aperçu les traite déjà, mais elle vise `.note-preview`
- * et la vignette n'en est pas : les lignes gardaient donc leur puce *et*
- * leur case, collées au texte. Et une case dans une vignette ne doit pas
- * se cocher - la carte ouvre la note, et cocher ici changerait un dessin
- * sans rien écrire.
+ * The preview stylesheet already handles them, but it targets
+ * `.note-preview` and the thumbnail is not one: the lines therefore kept
+ * their bullet *and* their box, stuck to the text. And a box in a thumbnail
+ * must not tick - the card opens the note, and ticking here would change a
+ * drawing without writing anything.
  */
 .note-thumb :deep(.task-list-item) {
     list-style: none;
@@ -2106,14 +2101,14 @@ defineExpose({
     margin: 0;
 }
 
-/* Une table entière dans une vignette de quinze lignes ne dirait rien de
-   plus qu'un bloc gris, et ferait déborder la carte en largeur. */
+/* A whole table in a fifteen-line thumbnail would say nothing more than a
+   grey block, and would make the card overflow in width. */
 .note-thumb :deep(table) {
     display: none;
 }
 
-/* Le serveur retire les images de l'extrait ; celles qui passeraient par un
-   autre chemin (une balise HTML dans le texte) restent bornées. */
+/* The server strips images from the excerpt; those that would come another
+   way (an HTML tag in the text) stay bounded. */
 .note-thumb :deep(img) {
     max-height: 4rem;
     width: auto;

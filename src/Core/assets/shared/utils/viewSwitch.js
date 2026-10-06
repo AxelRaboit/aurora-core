@@ -1,30 +1,32 @@
 /**
- * Passer un livrable de la présentation à la page, et retour, au même endroit.
+ * Switch a deliverable from the presentation to the page, and back, at the
+ * same place.
  *
- * Les deux vues partagent l'adresse des sections, `#diapo-N` : la diapositive
- * N en présentation, la première zone de la section N en page. Les liens
- * `[data-view-switch]` mènent à `?view=page` ou `?view=slides` ; sans script,
- * ils ouvrent l'autre vue en haut du document, et c'est encore juste.
+ * The two views share the address of the sections, `#diapo-N`: slide N in
+ * the presentation, the first zone of section N in the page. The
+ * `[data-view-switch]` links lead to `?view=page` or `?view=slides`; without
+ * a script, they open the other view at the top of the document, and that is
+ * still correct.
  *
- * - De la présentation, l'adresse porte déjà la diapositive affichée
- *   (`slides.js` la tient à jour) : on la garde.
- * - De la page, la section est celle dont le début est passé sous le haut de
- *   l'écran, la dernière qui l'a été.
- * - En arrivant sur la page avec `#diapo-N`, si l'auteur a mis sa propre ancre
- *   sur la zone (l'identifiant n'est alors pas `diapo-N`), on la retrouve par
- *   son numéro.
+ * - From the presentation, the address already carries the displayed slide
+ *   (`slides.js` keeps it up to date): it is kept.
+ * - From the page, the section is the one whose start has passed under the
+ *   top of the screen, the last one that has.
+ * - When arriving on the page with `#diapo-N`, if the author put their own
+ *   anchor on the zone (the identifier is then not `diapo-N`), it is found by
+ *   its number.
  */
 
 const SECTION = /^#diapo-(\d+)$/;
 
-/** La section où se trouve le lecteur en page, ou null en haut du document. */
+/** The section where the reader is in the page, or null at the top of the document. */
 export function currentSection(root = document, offset = 120) {
     let current = null;
 
     for (const element of root.querySelectorAll("[data-section]")) {
         const rect = element.getBoundingClientRect();
-        // Une zone masquée à cette largeur (« cacher sur téléphone ») n'a pas
-        // de taille et se dit en haut de l'écran : elle ne dit pas où l'on est.
+        // A zone hidden at this width ("hide on phone") has no size and claims to
+        // be at the top of the screen: it does not say where the reader is.
         if (0 === rect.width && 0 === rect.height) continue;
         if (rect.top <= offset) {
             current = Number(element.dataset.section);
@@ -34,7 +36,7 @@ export function currentSection(root = document, offset = 120) {
     return current;
 }
 
-/** L'adresse de l'autre vue, au même endroit. */
+/** The address of the other view, at the same place. */
 export function switchHref(
     target,
     { hash = window.location.hash, root = document } = {},
@@ -48,7 +50,7 @@ export function switchHref(
     return `?view=slides${null !== section ? `#diapo-${section}` : ""}`;
 }
 
-/** Arrivé en page sur `#diapo-N` dont la zone porte l'ancre de l'auteur. */
+/** Arrived on the page on a `#diapo-N` whose zone carries the author's anchor. */
 export function revealSection(hash = window.location.hash, root = document) {
     const match = SECTION.exec(hash ?? "");
     if (!match || root.getElementById?.(`diapo-${match[1]}`)) return;

@@ -51,9 +51,9 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
 
         $this->client->loginUser($admin, 'admin');
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le navigateur pose cet en-tête sur chaque appel, et les routes
-        // publiques l'exigent : ce qui les protège est un secret dans
-        // l'adresse, et une adresse se transfère.
+        // The browser sets this header on every call, and public routes
+        // require it: what protects them is a secret in the address, and an
+        // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
@@ -215,10 +215,10 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         self::assertTrue($direct['isDirect']);
         self::assertFalse($direct['openToClient'], 'A private conversation is not something the client reads.');
         self::assertCount(2, $direct['members']);
-        // Nommée par l'autre personne, jamais par soi-même.
+        // Named after the other person, never after oneself.
         self::assertSame('Camille Martin', $direct['name']);
 
-        // Deux personnes n'ont qu'une conversation : redemander rouvre la même.
+        // Two people have only one conversation: asking again reopens the same one.
         $this->client->jsonRequest(
             'POST',
             sprintf('/workspace/%d/chat/direct', $space->getId()),
@@ -229,9 +229,9 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
     }
 
     /**
-     * **Une conversation privée ne se lit qu'en y étant.** La liste le
-     * disait déjà, les routes non : un autre membre de l'espace qui
-     * connaissait le numéro du salon le lisait, y écrivait, ou s'y invitait.
+     * **A private conversation can only be read from inside it.** The list
+     * already said so, the routes did not: another member of the space who
+     * knew the room number could read it, write in it, or invite themselves.
      */
     public function testSomebodyElseOnTheSpaceCannotReadWriteOrJoinAPrivateConversation(): void
     {
@@ -299,19 +299,19 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         );
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        // Rangée : elle quitte ma liste.
+        // Put away: it leaves my list.
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d/hide', $space->getId(), $channelId));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $names = array_column($this->payload()['chatChannels'], 'name');
         self::assertNotContains('Camille Martin', $names);
 
-        // Rien n'a été effacé : le salon et son message sont toujours là.
+        // Nothing was erased: the room and its message are still there.
         $this->entityManager->clear();
         $channel = $this->entityManager->find(SpaceChatChannel::class, $channelId);
         self::assertInstanceOf(SpaceChatChannel::class, $channel);
 
-        // Rouvrir avec la même personne rend la conversation, et son historique.
+        // Reopening with the same person brings back the conversation, and its history.
         $this->client->jsonRequest(
             'POST',
             sprintf('/workspace/%d/chat/direct', $space->getId()),
@@ -349,8 +349,8 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
 
         $member = $this->memberNamed($invited, 'Camille Martin');
 
-        // Ce qu'elle a écrit reste : retirer quelqu'un range une liste, ça
-        // n'efface pas une conversation.
+        // What she wrote stays: removing someone tidies a list, it does not
+        // erase a conversation.
         $this->client->jsonRequest(
             'POST',
             sprintf('/workspace/%d/chat/%d', $space->getId(), $room['id']),
@@ -444,8 +444,8 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
 
         self::assertCount(12, $window, 'A dozen messages fit in the opening window, which is what makes the next assertion about the cursor and not about the window.');
 
-        // Le repère est un message, pas un numéro de page : ce qui précède le
-        // sixième, ce sont les cinq premiers, et rien d'autre.
+        // The cursor is a message, not a page number: what comes before the
+        // sixth is the first five, and nothing else.
         $this->client->request(
             'GET',
             sprintf('/workspace/%d/chat/%d/older/%d', $space->getId(), $main->getId(), $window[5]['id']),
@@ -494,12 +494,12 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
     }
 
     /**
-     * Un compte de test, dont l'adresse est unique.
+     * A test account, with a unique address.
      *
-     * Deux méthodes de ce fichier demandent « Camille Martin » : le nom est ce
-     * que les assertions lisent, l'adresse est ce que la base contraint, et
-     * réutiliser la seconde faisait échouer la deuxième méthode sur une
-     * violation d'unicité plutôt que sur son sujet.
+     * Two methods in this file ask for "Camille Martin": the name is what the
+     * assertions read, the address is what the database constrains, and
+     * reusing the latter made the second method fail on a uniqueness
+     * violation rather than on its subject.
      */
     private function givenAccount(string $email, string $name): User
     {

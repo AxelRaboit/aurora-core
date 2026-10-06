@@ -77,20 +77,20 @@ const emit = defineEmits([
 const write = (key, value) => emit("write", key, value);
 
 /**
- * Ce que dit le rapport entre l'encre et le fond, sans jamais l'interdire.
+ * What the ratio between ink and background says, without ever forbidding it.
  *
- * Le contrepoids de tous les réglages que ce panneau a fini par porter : un
- * lavis, un aplat et une inversion sont chacun raisonnables, et ensemble ils
- * rendent facile d'écrire un texte que personne ne lira, sans s'en apercevoir
- * sur un portable dans une pièce éclairée. Le panneau le dit, il ne refuse pas :
- * un deck est le document de quelqu'un.
+ * The counterweight to all the settings this panel ended up carrying: a wash,
+ * a colour band and an inversion are each reasonable, and together they make
+ * it easy to write text nobody will read, without noticing on a laptop in a
+ * lit room. The panel says so, it does not refuse: a deck is someone's
+ * document.
  */
 const contrastNote = computed(() => {
-    // Les trois sols qu'une slide peut prendre, et pas seulement le cas
-    // ordinaire : une slide posee sur l'accent porte le fond du deck comme
-    // encre, une slide inversee echange les deux. Ne mesurer que la paire
-    // ordinaire annoncait « lisible partout » pour un deck dont les slides de
-    // section etaient illisibles.
+    // The three grounds a slide can take, and not only the ordinary case: a
+    // slide set on the accent carries the deck background as ink, an
+    // inverted slide swaps the two. Measuring only the ordinary pair
+    // announced "lisible partout" for a deck whose section slides were
+    // unreadable.
     const pairs = [
         readability(props.preview.ink, props.preview.background),
         readability(props.preview.background, props.preview.ink),
@@ -99,16 +99,16 @@ const contrastNote = computed(() => {
 
     if (pairs.length === 0) return null;
 
-    // La pire des trois : c'est elle qui decide si le deck est lisible.
+    // The worst of the three: it decides whether the deck is readable.
     return pairs.reduce((worst, one) => (one.ratio < worst.ratio ? one : worst));
 });
 
 /**
- * Les teintes du logo, proposées comme accent.
+ * The logo's hues, suggested as accent.
  *
- * Choisir une couleur d'accent à l'aveugle donne des decks qui jurent. Ici, la
- * proposition vient de la marque elle-même. Une liste vide est une réponse
- * normale : un logo en noir et blanc n'a pas d'accent à offrir.
+ * Picking an accent colour blind gives decks that clash. Here, the suggestion
+ * comes from the brand itself. An empty list is a normal answer: a black and
+ * white logo has no accent to offer.
  */
 const tones = ref([]);
 
@@ -157,11 +157,11 @@ const fontOptions = computed(() => [
 ]);
 
 /**
- * Le premier choix est « celui du thème », comme pour la typographie.
+ * The first option is "the theme's", as for typography.
  *
- * Sans lui, le lavis d'un thème deviendrait inatteignable dès qu'un deck a
- * touché au select une fois : `none` dirait à la fois « à plat » et « je n'ai
- * rien choisi », et le deck ne pourrait plus revenir à ce que son thème porte.
+ * Without it, a theme's wash would become unreachable as soon as a deck had
+ * touched the select once: `none` would mean both "flat" and "I chose
+ * nothing", and the deck could never go back to what its theme carries.
  */
 const gradientOptions = computed(() => [
     { value: "", label: t("suite.studio.deliverables.slides.wash_from_theme") },
@@ -224,8 +224,8 @@ const placementOptions = computed(() =>
         v-on:close="emit('close')"
     >
         <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
-            <!-- L'aperçu d'abord, et il reste visible pendant qu'on règle :
-                 c'est lui qui répond à la question posée par ce panneau. -->
+            <!-- The preview first, and it stays visible while adjusting: it is
+                 what answers the question this panel asks. -->
             <div class="w-full shrink-0 lg:w-80">
                 <SlideFrame :slide="previewed" :appearance="preview" :index="1" />
                 <p class="mt-2 text-xs text-muted">
@@ -251,10 +251,10 @@ const placementOptions = computed(() =>
                             :aria-pressed="option.value === theme"
                             v-on:click="emit('update:theme', option.value)"
                         >
-                            <!-- La pastille dit la palette en trois couches :
-                                 le fond, une barre d'encre, un point d'accent.
-                                 C'est la plus petite chose qui distingue deux
-                                 thèmes sans les dessiner en entier. -->
+                            <!-- The swatch shows the palette in three layers:
+                                 the background, a bar of ink, a dot of accent.
+                                 It is the smallest thing that tells two themes
+                                 apart without drawing them in full. -->
                             <span
                                 class="flex h-8 w-8 shrink-0 flex-col justify-end gap-1 rounded border border-line p-1"
                                 :style="{ background: option.palette.background }"
@@ -279,9 +279,9 @@ const placementOptions = computed(() =>
                     </p>
                 </div>
 
-                <!-- Avant les huit réglages plutôt qu'après : quelqu'un qui
-                     ouvre ce panneau cherche d'abord à ce que son deck
-                     ressemble à quelque chose, pas à choisir une trame. -->
+                <!-- Before the eight settings rather than after: someone who
+                     opens this panel first wants their deck to look like
+                     something, not to pick a texture. -->
                 <div class="flex flex-col gap-3 rounded-lg border border-line p-3">
                     <span class="text-xs uppercase tracking-wide text-muted">
                         {{ t("suite.studio.deliverables.slides.looks_label") }}
@@ -339,8 +339,8 @@ const placementOptions = computed(() =>
                         v-on:update:model-value="(value) => write('accent', value)"
                     />
 
-                    <!-- Proposées et non appliquées : la marque donne l'idée,
-                         la décision reste au lecteur. -->
+                    <!-- Suggested and not applied: the brand gives the idea,
+                         the decision stays with the reader. -->
                     <div v-if="tones.length" class="flex flex-col gap-1.5">
                         <span class="text-xs text-muted">
                             {{ t("suite.studio.deliverables.slides.accent_from_logo") }}
@@ -462,9 +462,9 @@ const placementOptions = computed(() =>
                         v-on:update:model-value="(value) => write('slideNumbers', value)"
                     />
 
-                    <!-- La transition ne change ni le papier ni le lien de
-                         partage : elle n'existe qu'au plein écran, d'où sa
-                         place en bas, après ce qui se voit partout. -->
+                    <!-- The transition changes neither the paper nor the share
+                         link: it only exists in full screen, hence its place
+                         at the bottom, after what shows everywhere. -->
                     <AppSelect
                         :model-value="overrides.transition ?? 'fade'"
                         :options="transitionOptions"

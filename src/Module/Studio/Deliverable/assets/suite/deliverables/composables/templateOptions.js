@@ -1,19 +1,19 @@
 /**
- * Les modèles qu'on peut prendre pour départ d'un livrable neuf, au format des
- * sélecteurs, par titre.
+ * The templates a new deliverable can start from, in the selector format, by
+ * title.
  *
- * Lus dans les rayons déjà chargés plutôt que demandés au serveur : la liste
- * est là, un modèle en est une ligne, et une seconde source serait une seconde
- * chose qui peut se tromper sur ce qui est un modèle. La catégorie suit
- * l'option, pour que la fenêtre de création la reprenne quand on choisit un
- * modèle.
+ * Read from the shelves already loaded rather than asked of the server: the
+ * list is there, a template is one of its rows, and a second source would be
+ * a second thing that can be wrong about what is a template. The category
+ * follows the option, so that the creation dialog picks it up when a
+ * template is chosen.
  *
- * Un format donné ne garde que les modèles de ce format : on ne part pas
- * d'une page pour écrire une présentation. Une ligne sans format est une page,
- * comme le dit le serveur d'un envoi sans format.
+ * A given format only keeps the templates of that format: you do not start
+ * from a page to write a presentation. A row without a format is a page, as
+ * the server says of a request without a format.
  *
  * @param {Array<{id: number, title: string, format?: string, template?: boolean, category?: {id: number}|null}>} rows
- * @param {string|null} [format] `page` ou `slides` ; absent, tous les modèles
+ * @param {string|null} [format] `page` or `slides`; absent, every template
  */
 export function templateOptions(rows, format = null) {
     const seen = new Set();

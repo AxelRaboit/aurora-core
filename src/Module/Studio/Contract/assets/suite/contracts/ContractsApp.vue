@@ -38,7 +38,7 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import ContractsSectionTabs from "../components/ContractsSectionTabs.vue";
 
 const props = defineProps({
-    /** Les deux onglets de la section : contrats et trames. */
+    /** The section's two tabs: contracts and templates. */
     contractsPath: { type: String, default: "" },
     templatesPath: { type: String, default: "" },
     /** How long a signing address stays valid, from the setting. */
@@ -215,8 +215,8 @@ const pageActions = computed(() =>
                 <AppPageActions v-if="pageActions.length" :actions="pageActions" class="w-full sm:w-auto" />
             </template>
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contracts.guide.title')" storage-key="contracts-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="n in 5" :key="n">{{ t(`suite.studio.contracts.guide.step_${n}`, { days: linkDays }) }}</li>
@@ -305,8 +305,8 @@ const pageActions = computed(() =>
                             <AppBadge v-if="contract.isAdapted" color="violet" class="ml-1 align-middle">{{ t("suite.studio.contracts.wording.badge") }}</AppBadge>
                         </p>
                     </div>
-                    <!-- Le statut, puis les gestes derrière le bouton « … », comme
-                         sur toutes les listes (décision d'Axel du 04/10/2026). -->
+                    <!-- The status, then the actions behind the "…" button, as
+                         on every list (Axel's decision of 04/10/2026). -->
                     <div class="flex shrink-0 items-start gap-1">
                         <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
                         <AppRowActions :actions="rowActions(contract)" :label="contract.reference ?? contract.customerName ?? ''" />

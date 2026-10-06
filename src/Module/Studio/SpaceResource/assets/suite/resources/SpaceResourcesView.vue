@@ -1,18 +1,17 @@
 <script setup>
 /**
- * Les ressources d'un espace : ce qui vit ailleurs et qu'on cherche à chaque
- * fois.
+ * The resources of a space: what lives elsewhere and gets looked for every
+ * time.
  *
- * **Deux listes sur un seul écran, et c'est ce qui fait la fonctionnalité.**
- * On range au même endroit la maquette qu'on montre au client et le tableau de
- * bord qu'on ne montre pas ; ce qui les sépare est une case, ligne par ligne.
- * Elles sont donc dessinées séparément plutôt que mélangées avec une pastille
- * à repérer : « ce que le client voit » se lit d'un coup d'œil ou ne se lit
- * pas du tout.
+ * **Two lists on a single screen, and that is what makes the feature.** The
+ * mockup shown to the client and the dashboard that is not shown are filed
+ * in the same place; what separates them is a checkbox, row by row. They are
+ * therefore drawn separately rather than mixed with a badge to spot: "what
+ * the client sees" reads at a glance or does not read at all.
  *
- * **La visibilité est à un clic et son effet est annoncé.** Publier quelque
- * chose par inadvertance et publier quelque chose sont le même geste à
- * l'écran ; ce qui les distingue est de savoir ce qui vient de se passer.
+ * **Visibility is one click away and its effect is announced.** Publishing
+ * something by accident and publishing something are the same gesture on
+ * screen; what tells them apart is knowing what just happened.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
@@ -41,8 +40,8 @@ const { t } = useI18n();
 const { can } = usePrivileges();
 
 const editable = computed(() => can("studio.spaces.edit"));
-// Montrer ou cacher au client : le droit de partager l'espace, en plus de
-// celui de le modifier. La règle de tout l'espace.
+// Showing or hiding from the client: the right to share the space, on top
+// of the right to edit it. The rule of the whole space.
 const canShowToClient = computed(() => editable.value && can("studio.spaces.share"));
 
 const { resources, saving, create, update, toggleVisibility, remove, move } = useSpaceResources(props);
@@ -89,11 +88,11 @@ async function confirmDelete() {
 }
 
 /**
- * Où en est la ligne dans sa propre liste.
+ * Where the row stands in its own list.
  *
- * Les flèches se lisent sur la liste entière, qui est ce que l'ordre stocké
- * décrit ; les désactiver d'après la position dans « ce que le client voit »
- * bloquerait une ligne qui a pourtant une voisine.
+ * The arrows read on the whole list, which is what the stored order
+ * describes; disabling them based on the position in "what the client sees"
+ * would block a row that does have a neighbour.
  */
 function isFirst(resource) {
     return 0 === resources.value.findIndex((row) => row.id === resource.id);
@@ -121,8 +120,8 @@ function isLast(resource) {
             </AppButton>
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The guide to the screen, next to what it explains;
+     collapsed or expanded, the choice applies to all panels. -->
         <AppGuide :title="t('suite.studio.space_resources.guide.title')" storage-key="space-resources">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.studio.space_resources.guide.step_${step}`) }}</li>
@@ -157,11 +156,11 @@ function isLast(resource) {
                             <SpaceResourceItem :resource="resource" />
                         </div>
 
-                        <!-- **Les gestes sont écrits en toutes lettres sur
-                             téléphone.** Une rangée d'icônes sur une carte ne
-                             dit pas ce qu'elle fait, et la convention de
-                             l'application est de les nommer dès qu'il n'y a
-                             plus de survol pour les expliquer. -->
+                        <!-- **The actions are spelled out in full on a
+                             phone.** A row of icons on a card does not say
+                             what it does, and the convention of the
+                             application is to name them as soon as there is
+                             no hover left to explain them. -->
                         <div v-if="editable" class="flex flex-wrap items-center gap-1 sm:shrink-0">
                             <AppButton v-if="canShowToClient" size="sm" variant="ghost" v-on:click="toggleVisibility(resource)">
                                 <component

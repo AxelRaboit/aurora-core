@@ -12,7 +12,7 @@ import ContractSignApp from "./ContractSignApp.vue";
 
 const i18n = createTestI18n({}, "fr");
 
-/** La garde du produit : pas de code tant que l'identité et le trait manquent. */
+/** The product's guard: no code as long as the identity and the stroke are missing. */
 function ready(wrapper) {
     Object.assign(wrapper.vm.form, {
         firstName: "Marie",
@@ -43,12 +43,12 @@ function build() {
 }
 
 /**
- * Ce que le client lit quand l'envoi du code échoue.
+ * What the client reads when sending the code fails.
  *
- * L'écran basculait dans l'état « code envoyé » quoi qu'il arrive, et
- * affichait « Code envoyé à . » sans adresse : le client attendait alors un
- * code que personne n'avait expédié. Seule l'adresse rendue par le serveur
- * prouve que l'envoi a eu lieu.
+ * The screen switched to the "code sent" state whatever happened, and showed
+ * "Code envoyé à ." with no address: the client then waited for a code nobody
+ * had sent. Only the address returned by the server proves the sending took
+ * place.
  */
 describe("ContractSignApp, demande de code", () => {
     it("annonce l'envoi quand le serveur rend l'adresse", async () => {
@@ -69,7 +69,7 @@ describe("ContractSignApp, demande de code", () => {
 
     it("signale l'échec plutôt que d'annoncer un envoi qui n'a pas eu lieu", async () => {
         request.mockReset();
-        // Ce que rend le helper quand la requête a échoué.
+        // What the helper returns when the request failed.
         request.mockResolvedValue(null);
 
         const wrapper = build();
@@ -83,11 +83,10 @@ describe("ContractSignApp, demande de code", () => {
 });
 
 /**
- * La limite de tentatives se dit en clair.
+ * The attempt limit is spelled out.
  *
- * Un 429 devenait un toast « Une erreur est survenue » : le client
- * réessayait, et retombait sur la même limite sans savoir qu'il fallait
- * attendre.
+ * A 429 became a "Une erreur est survenue" toast: the client tried again, and
+ * hit the same limit without knowing they had to wait.
  */
 describe("ContractSignApp, limite de tentatives", () => {
     const LIMITED = {

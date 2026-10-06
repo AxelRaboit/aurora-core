@@ -86,16 +86,17 @@ class CustomerManager implements CustomerManagerInterface
     }
 
     /**
-     * Un prospect devient client, en un geste.
+     * A prospect becomes a customer, in one gesture.
      *
-     * **Une operation a elle seule plutot qu'une mise a jour ordinaire**, parce
-     * que c'est ce qu'elle est : on ne modifie pas une fiche, on dit qu'une
-     * societe s'est engagee. Passer par `update` aurait demande de renvoyer la
-     * raison sociale et tout le reste pour changer une colonne, et aurait ecrit
-     * dans l'audit une modification la ou il s'est passe quelque chose.
+     * **An operation of its own rather than an ordinary update**, because that
+     * is what it is: a sheet is not being edited, a company is being declared
+     * committed. Going through `update` would have meant sending the company
+     * name and everything else again to change one column, and would have
+     * written an edit into the audit where something actually happened.
      *
-     * L'adresse est le seul champ accepte : c'est le seul que le statut impose.
-     * Une fiche qui en a deja une peut donc etre convertie sans rien saisir.
+     * The address is the only field accepted: it is the only one the status
+     * requires. A sheet that already has one can therefore be converted
+     * without entering anything.
      */
     public function convertToClient(CustomerInterface $customer, ?string $contractualEmail): void
     {
@@ -118,16 +119,16 @@ class CustomerManager implements CustomerManagerInterface
     }
 
     /**
-     * Un client a une adresse, un prospect pas forcement.
+     * A customer has an address, a prospect not necessarily.
      *
-     * **C'est la seule chose que le statut impose**, et elle porte sur la paire
-     * plutot que sur le champ, donc elle est ici et pas dans le DTO : c'est le
-     * Manager qui voit les deux. Un prospect peut n'etre qu'un nom - on le
-     * rencontre, on ouvre un espace, on structure le travail, et on n'a rien
-     * d'autre. Un client, lui, est quelqu'un a qui on envoie un contrat.
+     * **It is the only thing the status requires**, and it covers the pair
+     * rather than the field, so it is here and not in the DTO: the Manager is
+     * the one that sees both. A prospect can be just a name - you meet them,
+     * open a space, structure the work, and have nothing else. A customer, on
+     * the other hand, is someone you send a contract to.
      *
-     * Signale sous le champ de l'adresse et pas sous le statut : c'est
-     * l'adresse qui manque, et c'est elle que le lecteur doit remplir.
+     * Reported under the address field and not under the status: the address
+     * is what is missing, and it is what the reader must fill in.
      */
     protected function assertClientHasAnAddress(CustomerInputInterface $input): void
     {

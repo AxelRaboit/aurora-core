@@ -7,11 +7,11 @@ import { useClientFilteredList } from "@/shared/composables/list/useClientFilter
 import { customerFormRules, emptyCustomerForm } from "./customerFormModel.js";
 
 /**
- * La liste des clients : la recherche, la création et la suppression.
+ * The customers list: search, creation and deletion.
  *
- * **La modification n'est plus ici.** Elle se fait sur la page du client, où
- * toute la fiche tient dans un formulaire ; la liste y mène (« Ouvrir »). La
- * fenêtre de création garde le même composant de champs, donc la même fiche.
+ * **Editing is no longer here.** It happens on the customer's page, where
+ * the whole sheet fits in one form; the list leads there ("Ouvrir"). The
+ * creation dialog keeps the same fields component, so the same sheet.
  */
 export function useCustomersForm(initialCustomers, createPath, deletePath) {
     const { t } = useI18n();

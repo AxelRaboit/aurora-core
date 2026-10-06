@@ -14,9 +14,9 @@ import { slugifyIfEmpty } from "@/shared/utils/format/slugify.js";
 // banner and translating one means writing its words, not rebuilding it.
 /** The bands as BannerNormalizer starts them: three, leaning right. */
 /**
- * Les couleurs du thème qu'une publication peut repeindre en plus du fond, de
- * la topbar et du pied. Mêmes clés que le thème et que
- * `PostColorOverrides::KEYS` côté serveur, qui écarte toute autre.
+ * The theme colours a post can repaint besides the background, the topbar and
+ * the footer. The same keys as the theme and as `PostColorOverrides::KEYS` on
+ * the server side, which rejects any other.
  */
 export const COLOR_OVERRIDE_KEYS = [
     "text_color",
@@ -305,9 +305,9 @@ export function usePostEditor(props) {
         accentColor: props.post?.accentColor ?? null,
         highlight: props.post?.highlight ?? "",
         highlightColor: props.post?.highlightColor ?? null,
-        // Les autres couleurs du thème, une clé par couleur ; vide garde celle
-        // du thème. Toutes présentes dans le formulaire, nulles par défaut,
-        // pour que chaque champ ait sa case dès l'ouverture.
+        // The other theme colours, one key per colour; empty keeps the theme's
+        // one. All present in the form, null by default, so that every field
+        // has its slot from the moment it opens.
         colorOverrides: {
             ...Object.fromEntries(
                 COLOR_OVERRIDE_KEYS.map((key) => [key, null]),
@@ -328,14 +328,13 @@ export function usePostEditor(props) {
     const locale = ref(props.locales[0] ?? "en");
     const current = computed(() => form.value.translations[locale.value]);
 
-    // Le slug se remplit depuis le titre tant qu'il est vide, et seulement dans
-    // ce cas. Ecrire par-dessus un slug existant changerait l'URL d'un contenu
-    // deja publie sur une simple correction de titre - c'est le referencement
-    // qu'on casserait, en silence.
+    // The slug fills from the title while it is empty, and only then. Writing
+    // over an existing slug would change the URL of content already published
+    // on a mere title fix - it is the SEO that would break, silently.
     //
-    // Le watcher observe aussi la langue courante pour distinguer une frappe
-    // d'un changement d'onglet : passer sur une traduction qui a deja un titre
-    // ne doit pas lui inventer un slug que personne n'a demande.
+    // The watcher also observes the current language to tell a keystroke from
+    // a tab change: switching to a translation that already has a title must
+    // not invent a slug for it that nobody asked for.
     watch(
         () => [locale.value, current.value?.title ?? ""],
         ([nextLocale, title], previous) => {

@@ -74,8 +74,8 @@ final class NoteFoldersController extends AbstractController
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
-        // Là où l'on crée, on doit pouvoir écrire : le parent demandé, la
-        // racine de l'espace demandé, ou son espace personnel.
+        // Where one creates, one must be able to write: the requested parent,
+        // the root of the requested space, or one's personal space.
         $parentId = $input->getParentId();
         $spaceId = $input->getSpaceId();
         $allowed = match (true) {
@@ -142,8 +142,8 @@ final class NoteFoldersController extends AbstractController
         $data = $this->decodeJson($request);
         $raw = $data['parentId'] ?? null;
 
-        // Sous un dossier où l'on peut écrire, ou à la racine d'un espace où
-        // l'on peut écrire - celle où le dossier est déjà, sauf avis contraire.
+        // Under a folder one can write to, or at the root of a space one can
+        // write to - the one the folder is already in, unless told otherwise.
         $parent = null;
         $space = $folder->getSpace();
         if (null !== $raw && '' !== $raw) {
@@ -166,9 +166,9 @@ final class NoteFoldersController extends AbstractController
     }
 
     /**
-     * Ajouter un dossier à ses favoris, ou l'en retirer.
+     * Add a folder to one's favourites, or remove it.
      *
-     * Lire suffit : les favoris sont à la personne, pas au dossier.
+     * Reading is enough: favourites belong to the person, not to the folder.
      */
     #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function favorite(int $id): JsonResponse
@@ -246,7 +246,7 @@ final class NoteFoldersController extends AbstractController
         $user = $this->getUser();
 
         $deleted = 0;
-        // Définitif : seulement dans les espaces qu'on gère.
+        // Permanent: only in the spaces one manages.
         foreach ($this->repository->findTrashedRootsForUser($user) as $folder) {
             if (!$this->spaceAccess->canManage($user, $folder->getSpace())) {
                 continue;
@@ -309,7 +309,7 @@ final class NoteFoldersController extends AbstractController
         );
     }
 
-    /** Le sérialiseur, avec l'épinglage de ce dossier par cette personne. */
+    /** The serializer, with this person's pinning of this folder. */
     private function serializerFor(CoreUserInterface $user, NoteFolderInterface $folder): NoteFolderSerializerInterface
     {
         $at = $this->favorites->favoritedAt($user, $folder);

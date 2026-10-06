@@ -7,13 +7,13 @@ namespace Aurora\Module\Notes\Craft\Setting;
 use Aurora\Module\Configuration\Setting\Provider\OwnedSettingProviderInterface;
 
 /**
- * Les trois lignes que l'onglet Craft possède, pour que la synchronisation de
- * déploiement les laisse tranquilles.
+ * The three rows the Craft tab owns, so that the deployment sync leaves them
+ * alone.
  *
- * Pas un `ApplicationParameterProviderInterface`, pour la raison que donne
- * {@see CraftSettingEnum} : l'écran générique dessinerait le jeton dans une
- * page. Celui-ci dit la chose plus étroite - ces lignes existent et sont à
- * quelqu'un - qui est tout ce qu'il faut pour cesser de les effacer.
+ * Not an `ApplicationParameterProviderInterface`, for the reason given by
+ * {@see CraftSettingEnum}: the generic screen would draw the token in a
+ * page. This one says the narrower thing - these rows exist and belong to
+ * someone - which is all that is needed to stop erasing them.
  */
 final readonly class CraftOwnedSettingProvider implements OwnedSettingProviderInterface
 {

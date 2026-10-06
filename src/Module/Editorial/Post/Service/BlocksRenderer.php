@@ -217,16 +217,16 @@ final readonly class BlocksRenderer
 
     /** @param array<string, mixed> $data */
     /**
-     * Le bloc « code source » : du HTML ecrit a la main, rendu tel quel.
+     * The "code source" block: HTML written by hand, rendered as is.
      *
-     * Il passe par RawHtmlSanitizer et non par le filtre du texte courant, qui
-     * le viderait de tout ce qui justifie son existence - tableaux, figures,
-     * lecteurs integres. Ce second filtre est nettement plus large, mais ferme
-     * aux memes choses : scripts, gestionnaires d'evenements, URL `javascript:`,
-     * formulaires, et les cadres vers un hote non liste.
+     * It goes through RawHtmlSanitizer and not through the running-text filter,
+     * which would strip it of everything that justifies its existence - tables,
+     * figures, embedded players. This second filter is much wider, but closed
+     * to the same things: scripts, event handlers, `javascript:` URLs, forms,
+     * and frames pointing to an unlisted host.
      *
-     * A ne pas confondre avec le bloc `code`, juste au-dessus, qui echappe tout
-     * pour montrer du code plutot que l'executer.
+     * Not to be confused with the `code` block, just above, which escapes
+     * everything to show code rather than run it.
      */
     private function renderRaw(array $data): string
     {

@@ -104,7 +104,7 @@ readonly class PlanningNotifier
             $this->translator->trans('suite.plannings.reminders.notification', [
                 '%calendar%' => $reminder->getPlanning()->getName(),
             ]),
-            // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
+            // A path, not an absolute address: see NotificationManagerInterface::notify().
             $this->urlGenerator->generate(
                 'suite_planning_calendar',
                 ['view' => 'day', 'date' => $reminder->getDueAt()->format('Y-m-d')]
@@ -219,10 +219,10 @@ readonly class PlanningNotifier
 
     private function dayUrl(string $date): string
     {
-        // **Absolue, celle-ci** : elle part dans un e-mail, lu hors de
-        // l'application, où un chemin ne mènerait nulle part. L'hôte vient de
-        // la configuration du routeur, pas d'une requête, c'est ce qui la rend
-        // juste même écrite par le worker.
+        // **This one is absolute**: it goes out in an e-mail, read outside the
+        // application, where a path would lead nowhere. The host comes from
+        // the router's configuration, not from a request, which is what makes
+        // it right even when written by the worker.
         return $this->urlGenerator->generate(
             'suite_planning_calendar',
             ['view' => 'day', 'date' => $date],
@@ -262,7 +262,7 @@ readonly class PlanningNotifier
                 '%calendar%' => $event->getPlanning()->getName(),
                 '%when%' => $this->localTime($event),
             ]),
-            // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
+            // A path, not an absolute address: see NotificationManagerInterface::notify().
             $this->urlGenerator->generate(
                 'suite_planning_calendar',
                 // The day, not the month: a alert is about one event, and the

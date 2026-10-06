@@ -56,14 +56,14 @@
    stylesheet build sees every class. #}
 <div class="aurora-grid aurora-grid-flush {{ {tight: 'gap-y-4', normal: 'gap-y-8', loose: 'gap-y-16'}[grid.rowGap|default('normal')]|default('gap-y-8') }}">
     {% for zone in grid.zones %}
-        {# `data-reveal` sur l'enveloppe et non à l'intérieur : elle contient
-           la zone *et* le fond sur lequel elle est posée, donc la carte arrive
-           avec son contenu au lieu que le texte glisse dans un cadre déjà là.
+        {# `data-reveal` on the wrapper and not inside it: it holds the zone
+           *and* the background it sits on, so the card arrives with its
+           content instead of the text sliding into a frame already there.
 
-           Émis seulement quand il y a un effet. Un attribut à `none` sur
-           chaque zone ferait travailler l'observateur pour rien, et
-           `|default('none')` couvre les grilles écrites avant que la clé
-           existe. #}
+           Only emitted when there is an effect. An attribute set to `none` on
+           every zone would make the observer work for nothing, and
+           `|default('none')` covers grids written before the key
+           existed. #}
         {% set reveal = zone.reveal|default('none') %}
         {# A zone shorter than its row sits at the top by default, stretched;
            a card beside a tall phone reads better centred against it. From
@@ -79,8 +79,9 @@
                there picks the zone. Only there - the page has no use for it. #}
             {% if editorPreview|default(false) %}data-grid-zone="{{ zone.id }}"{% endif %}
             {% if zone.anchor|default('') %}id="{{ zone.anchor }}"{% endif %}
-            {# Le numéro de section d'un livrable lu en page : là où mène
-               `#diapo-N`, et là où repasser en présentation reprend. #}
+            {# The section number of a deliverable read as a page: where
+               `#diapo-N` leads, and where switching back to presenting
+               resumes. #}
             {% if zone.section|default(null) %}data-section="{{ zone.section }}"{% endif %}
             {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
             {% if zone.highlight|default(null) %}data-zone-highlight="{{ zone.highlight }}"{% endif %}
@@ -113,12 +114,11 @@
                        it does the opposite of what it says - the picture
                        imposes its natural height and its neighbours give way. #}
                     {% for child in zone.children %}
-                        {# Un enfant de pile a son propre effet, et c'est
-                           volontaire : deux moitiés qui se rejoignent, l'une
-                           par la gauche et l'autre par la droite, est
-                           précisément ce qu'une pile permet d'écrire. Si la
-                           pile en porte un elle-même, les deux se jouent, la
-                           sienne portant l'ensemble. #}
+                        {# A stack child has its own effect, on purpose: two
+                           halves meeting, one from the left and the other
+                           from the right, is exactly what a stack lets you
+                           write. If the stack carries one itself, both play,
+                           the stack's carrying the whole. #}
                         {% set childReveal = child.reveal|default('none') %}
                         <div
                             {% if child.anchor|default('') %}id="{{ child.anchor }}"{% endif %}
@@ -136,17 +136,17 @@
                 {% endset %}
                 {{ surface.wrap(zone, stackBody) }}
             {% elseif zone.sticky|default(false) %}
-                {# **Collant à l'intérieur de la cellule, pas sur la cellule.**
-                   Un item de grille s'étire déjà à la hauteur de sa ligne, donc
-                   il n'a nulle part où glisser : c'est lui qui fournit la
-                   course, et c'est son contenu qui la parcourt.
+                {# **Sticky inside the cell, not on the cell.**
+                   A grid item already stretches to the height of its row, so
+                   it has nowhere to slide: it provides the track, and its
+                   content is what travels along it.
 
-                   `lg:` seulement. En dessous, tout est empilé en pleine
-                   largeur et une zone collante n'aurait rien à laisser passer ;
-                   elle resterait accrochée au-dessus d'elle-même.
+                   `lg:` only. Below that, everything is stacked full width
+                   and a sticky zone would have nothing to let pass; it would
+                   stay hooked above itself.
 
-                   `top-24` est la hauteur de l'entête fixe plus sa respiration,
-                   la même valeur que le `scroll-mt-24` des ancres au-dessus. #}
+                   `top-24` is the height of the fixed header plus its spacing,
+                   the same value as the `scroll-mt-24` of the anchors above. #}
                 <div class="lg:sticky lg:top-24">
                     {{ include('Frontend/themes/default/editorial/post/_grid_zone.html.twig', {zone: zone, locale: locale}) }}
                 </div>

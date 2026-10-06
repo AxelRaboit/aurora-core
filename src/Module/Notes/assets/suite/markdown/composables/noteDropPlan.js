@@ -1,27 +1,27 @@
 import { compareSiblings } from "./noteSiblingOrder.js";
 
 /**
- * Où tombe ce qu'on lâche dans l'arborescence, et ce que ça change.
+ * Where what is dropped in the tree lands, and what it changes.
  *
- * Craft, Notion et Obsidian lisent tous la même chose dans la position du
- * pointeur sur une ligne : le haut veut dire « avant », le bas « après », et le
- * milieu d'un dossier « dedans ». Une note ne contient rien, donc elle n'a que
- * deux moitiés.
+ * Craft, Notion and Obsidian all read the same thing in the pointer's
+ * position on a row: the top means "before", the bottom "after", and the
+ * middle of a folder "inside". A note contains nothing, so it only has two
+ * halves.
  *
- * Le calcul est ici, loin du composant, pour deux raisons : il se teste sans
- * navigateur, et le panneau comme la page en ont besoin - l'un pour allumer la
- * bonne ligne pendant le glisser, l'autre pour écrire le résultat.
+ * The computation is here, away from the component, for two reasons: it is
+ * tested without a browser, and both the panel and the page need it - one to
+ * light the right row during the drag, the other to write the result.
  */
 
-/** La part de la hauteur d'un dossier qui vaut « avant » ou « après ». */
+/** The share of a folder's height that counts as "before" or "after". */
 const EDGE = 0.25;
 
 /**
- * La zone visée sur une ligne.
+ * The zone targeted on a row.
  *
- * @param {{top: number, height: number}} rect la ligne, en pixels écran
- * @param {number} clientY                       le pointeur
- * @param {"folder"|"note"} kind                 ce qu'est la ligne
+ * @param {{top: number, height: number}} rect the row, in screen pixels
+ * @param {number} clientY                       the pointer
+ * @param {"folder"|"note"} kind                 what the row is
  * @returns {"before"|"inside"|"after"}
  */
 export function dropZone(rect, clientY, kind) {
@@ -35,11 +35,11 @@ export function dropZone(rect, clientY, kind) {
 }
 
 /**
- * Un dossier range-t-il l'autre, à n'importe quelle profondeur ?
+ * Does one folder hold the other, at any depth?
  *
- * Vrai aussi pour un dossier et lui-même : dans les deux cas, le déposer là
- * fermerait une boucle. La boucle compte ses tours, parce qu'un carnet abîmé
- * dont un parent se désignerait lui-même ne doit pas figer la page.
+ * True also for a folder and itself: in both cases, dropping it there would
+ * close a loop. The loop counts its turns, because a damaged notebook where
+ * a parent designated itself must not freeze the page.
  */
 export function isWithin(folders, ancestorId, folderId) {
     if (null === ancestorId || null === folderId) return false;
@@ -62,25 +62,25 @@ export function isWithin(folders, ancestorId, folderId) {
     return false;
 }
 
-/** Le dossier qui porte une ligne, `null` pour la racine. */
+/** The folder that holds a row, `null` for the root. */
 function parentOf(item, kind) {
     const raw = "folder" === kind ? item.parentId : item.folderId;
 
     return null == raw ? null : Number(raw);
 }
 
-/** L'espace d'une ligne, `null` quand la liste ne le dit pas. */
+/** A row's space, `null` when the list does not say. */
 function spaceOf(item) {
     return null == item?.spaceId ? null : Number(item.spaceId);
 }
 
 /**
- * Les frères d'un dossier, dossiers et notes mêlés, dans l'ordre affiché.
+ * A folder's siblings, folders and notes mixed, in the displayed order.
  *
- * Un seul ordre pour les deux natures : la position, à égalité le dossier
- * d'abord, puis le plus ancien (la règle de `compareSiblings`). À la racine,
- * seulement ceux du même espace : chaque espace a la sienne, et compter
- * ensemble les racines de deux espaces mélangerait deux ordres.
+ * A single order for both kinds: the position, on a tie the folder first,
+ * then the oldest (the rule of `compareSiblings`). At the root, only those
+ * of the same space: each space has its own, and counting the roots of two
+ * spaces together would mix two orders.
  *
  * @returns {Array<{kind: string, id: number}>}
  */
@@ -112,18 +112,18 @@ function siblings(folders, notes, parentId, spaceId = null) {
 const sameEntry = (a, b) => a.kind === b.kind && a.id === b.id;
 
 /**
- * Ce qu'un dépôt demande d'écrire, ou `null` quand il ne peut pas aboutir.
+ * What a drop asks to write, or `null` when it cannot succeed.
  *
- * Le résultat dit **où** ranger (`folderId`, `null` pour la racine) et
- * **dans quel ordre** laisser les frères (`order`, des `{kind, id}`), dossiers
- * et notes mêlés : depuis qu'ils partagent un ordre, une note se lâche avant
- * un dossier et y reste.
+ * The result says **where** to file (`folderId`, `null` for the root) and
+ * **in which order** to leave the siblings (`order`, `{kind, id}` items),
+ * folders and notes mixed: since they share an order, a note dropped before
+ * a folder stays there.
  *
  * @param {object} args
- * @param {{kind: string, id: number}} args.dragged      ce qu'on tient
+ * @param {{kind: string, id: number}} args.dragged      what is held
  * @param {{kind: string, id: number|null, spaceId?: number}} args.target
- *        la ligne visée ; `{kind: "folder", id: null}` est la racine, celle
- *        de l'espace `spaceId` quand il est dit, sinon celle où l'on est
+ *        the targeted row; `{kind: "folder", id: null}` is the root, the one
+ *        of the `spaceId` space when given, otherwise the one we are in
  * @param {"before"|"inside"|"after"} args.zone
  * @param {Array} args.folders
  * @param {Array} args.notes
@@ -139,7 +139,7 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
 
     if (!moving) return null;
 
-    // La racine, ou le milieu d'un dossier : on range dedans, en dernier.
+    // The root, or the middle of a folder: we file inside, last.
     const intoFolder =
         null === target.id || ("folder" === target.kind && "inside" === zone);
 
@@ -172,7 +172,7 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
         after = "after" === zone;
     }
 
-    // Un dossier ne se range ni en lui-même ni dans ce qu'il contient.
+    // A folder is filed neither into itself nor into what it holds.
     if (
         "folder" === kind &&
         null !== folderId &&
@@ -198,8 +198,8 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
     const fromSpaceId = spaceOf(moving);
     const key = (list) => list.map((one) => `${one.kind}:${one.id}`).join(",");
 
-    // Rien ne bouge : même dossier, même espace, même rang. Pas d'appel, pas
-    // de message.
+    // Nothing moves: same folder, same space, same rank. No call, no
+    // message.
     if (
         fromFolderId === folderId &&
         fromSpaceId === spaceId &&

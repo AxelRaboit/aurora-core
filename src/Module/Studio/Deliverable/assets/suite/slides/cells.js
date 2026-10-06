@@ -52,11 +52,10 @@ export function decorated(line) {
     const [head, ...rest] = cells(line);
     const [body = "", badge = "", ...tail] = rest;
 
-    // Une quatrieme cellule qui n'est pas le nom d'une icone est du texte que
-    // quelqu'un a tape, et elle retourne dans le corps plutot que de
-    // disparaitre. C'est la meme regle que l'import de documents suit : un
-    // module qui perd silencieusement un mot est pire qu'un module qui n'a pas
-    // la fonctionnalite.
+    // A fourth cell that is not an icon name is text someone typed, and it
+    // goes back into the body rather than disappearing. It is the same rule
+    // the document import follows: a module that silently loses a word is
+    // worse than a module that lacks the feature.
     const known = tail.length > 0 && ICON_NAMES.includes(tail[0]);
     const icon = known ? tail[0] : "";
     const extra = known ? tail.slice(1) : tail;

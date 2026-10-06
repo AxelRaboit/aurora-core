@@ -67,13 +67,12 @@ function when(item) {
                 <span class="text-xs tabular-nums text-muted">
                     {{ group.cards.length }}
                 </span>
-                <!-- **Le plus seul sur téléphone.** « Ajouter un contenu »
-                     fait cent quarante pixels en face d'un nom de colonne qui
-                     peut en faire autant : les deux se repliaient sur trois
-                     lignes pour un bouton dont le signe dit déjà tout, à
-                     l'endroit où l'on s'y attend. Le libellé revient dès qu'il
-                     y a la place, et reste lisible par un lecteur d'écran
-                     entre-temps. -->
+                <!-- **The plus alone on a phone.** "Ajouter un contenu" is a
+                     hundred and forty pixels wide facing a column name that
+                     can be as wide: both wrapped onto three lines for a
+                     button whose sign already says everything, where people
+                     expect it. The label comes back as soon as there is room,
+                     and stays readable by a screen reader in the meantime. -->
                 <button
                     v-if="editable"
                     type="button"
@@ -125,17 +124,17 @@ function when(item) {
                         </span>
                     </button>
 
-                    <!-- **Sous le titre sur téléphone, à côté ailleurs.** La date
-                         et la pastille tiennent leur largeur quoi qu'il arrive,
-                         donc sur un écran étroit c'est le titre qui payait : « Le
-                         témoignage de Mme Lefèvre » devenait « Témoignag… ».
-                         Descendues sur leur propre ligne, elles rendent au titre
-                         toute la largeur de la carte.
+                    <!-- **Under the title on a phone, beside it elsewhere.** The
+                         date and the badge keep their width whatever happens, so
+                         on a narrow screen the title paid for it: "Le
+                         témoignage de Mme Lefèvre" became "Témoignag…". Moved
+                         down to their own line, they give the title back the
+                         card's full width.
 
-                         Au bord gauche et non sous le titre : un décalage calé
-                         sur la vignette ne vaut que pour les fiches qui en ont
-                         une, et celles qui n'en ont pas voyaient leur date
-                         partir seule vers le milieu. -->
+                         At the left edge and not under the title: an offset
+                         aligned on the thumbnail only works for cards that
+                         have one, and those without saw their date drift off
+                         alone towards the middle. -->
                     <div class="order-3 flex w-full items-center gap-3 sm:w-auto">
                         <span
                             v-if="card.approval !== 'pending'"

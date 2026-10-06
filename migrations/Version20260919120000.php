@@ -8,15 +8,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une note sait de quel document Craft elle est la copie.
+ * A note knows which Craft document it is a copy of.
  *
- * Nulle partout au départ, ce qui est l'état de toutes les notes existantes :
- * aucune n'a été importée. La colonne sert à retrouver la source et, plus
- * tard, à reconnaître un réimport du même document plutôt que d'en créer une
- * seconde à côté de la première.
+ * Null everywhere at first, which is the state of every existing note: none
+ * was imported. The column is used to find the source again and, later, to
+ * recognise a re-import of the same document rather than create a second note
+ * next to the first.
  *
- * Soixante-quatre caractères : un identifiant de bloc Craft est un UUID avec
- * des tirets, et la marge évite d'y revenir si leur forme change.
+ * Sixty-four characters: a Craft block id is a UUID with hyphens, and the
+ * margin avoids coming back to it if their shape changes.
  */
 final class Version20260919120000 extends AbstractMigration
 {

@@ -113,19 +113,19 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     protected bool $canComment = true;
 
     /**
-     * Si ce lien écrit dans la discussion de l'espace.
+     * Whether this link writes in the space's chat.
      *
-     * **Séparé de « peut commenter », et c'est une correction.** Le même
-     * droit commandait les deux : cocher une case pour autoriser une remarque
-     * sous une publication ouvrait aussi la discussion de l'espace, qui n'est
-     * pas la même conversation. Un commentaire porte sur une fiche et reste
-     * avec elle ; la discussion est le fil de la relation, et on peut vouloir
-     * lire l'un sans écrire dans l'autre - une agence partenaire qui annote
-     * un plan n'a pas à parler dans le salon du client.
+     * **Separate from "may comment", and that is a fix.** The same right used
+     * to control both: ticking a box to allow a remark under a post also
+     * opened the space's chat, which is not the same conversation. A comment
+     * is about a card and stays with it; the chat is the thread of the
+     * relationship, and one may want to read one without writing in the other
+     * - a partner agency annotating a plan has no business talking in the
+     * client's room.
      *
-     * Vrai par défaut, parce que c'est ainsi que les liens se comportaient
-     * quand un seul droit commandait les deux. La migration le recopie depuis
-     * « peut commenter » pour que rien ne change pour un lien déjà dehors.
+     * True by default, because that is how links behaved when a single right
+     * controlled both. The migration copies it from "may comment" so that
+     * nothing changes for a link already out there.
      */
     #[ORM\Column(options: ['default' => true])]
     protected bool $canChat = true;
@@ -149,18 +149,17 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     protected bool $canUpload = false;
 
     /**
-     * Si ce lien montre le dossier Drive.
+     * Whether this link shows the Drive folder.
      *
-     * **L'asymétrie que ce droit corrige.** Déposer un fichier se coupait
-     * déjà ; emporter tout le dossier partagé du client, non. Pour le client
-     * lui-même c'est sans conséquence, c'est son dossier. Pour un second
-     * lecteur, un collègue ou une agence partenaire, c'était l'intégralité de
-     * ce que son client a partagé, téléchargeable en un zip, sans aucun
-     * réglage pour le retenir.
+     * **The asymmetry this right fixes.** Uploading a file could already be
+     * switched off; taking away the client's whole shared folder could not.
+     * For the client themselves it does not matter, it is their folder. For a
+     * second reader, a colleague or a partner agency, it was everything their
+     * client shared, downloadable as a zip, with no setting to hold it back.
      *
-     * Vrai par défaut, comme les liens existants se comportent aujourd'hui :
-     * un droit ajouté qui vaudrait faux ferait disparaître le dossier de tous
-     * les liens déjà dehors sans que personne l'ait demandé.
+     * True by default, as existing links behave today: an added right that
+     * defaulted to false would make the folder disappear from every link
+     * already out there without anyone asking for it.
      */
     #[ORM\Column(options: ['default' => true])]
     protected bool $canSeeDrive = true;
@@ -191,19 +190,19 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     protected ?string $plainToken = null;
 
     /**
-     * Le lien dont celui-ci est l'aperçu, ou null pour un vrai lien.
+     * The link this one is the preview of, or null for a real link.
      *
-     * **Un aperçu est un vrai lien, et c'est la seule façon qu'il dise vrai.**
-     * Le jeton en clair n'existe qu'à l'instant où un lien est créé ; il n'est
-     * pas relisible ensuite, c'est ce qui protège le client. Fabriquer les
-     * adresses de la page à partir d'un jeton inventé donne une page qui
-     * s'affiche et dont rien ne répond : ni le dossier Drive, ni les fichiers.
-     * Un aperçu doit donc être émis pour de bon, avec ses propres octets.
+     * **A preview is a real link, and that is the only way it tells the
+     * truth.** The clear-text token only exists at the moment a link is
+     * created; it cannot be read again afterwards, which is what protects the
+     * client. Building the page's addresses from an invented token gives a
+     * page that displays and where nothing answers: neither the Drive folder
+     * nor the files. A preview must therefore be issued for real, with its own
+     * bytes.
      *
-     * Ce qui le distingue tient dans cette colonne, et elle décide de trois
-     * choses : il n'apparaît pas dans la liste des liens, il ne vit que
-     * quelques minutes, et **il n'écrit rien**, quels que soient les droits
-     * qu'il recopie.
+     * What sets it apart fits in this column, and it decides three things: it
+     * does not appear in the list of links, it lives only a few minutes, and
+     * **it writes nothing**, whatever rights it copies.
      */
     #[ORM\ManyToOne(targetEntity: SpaceAccessLinkInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
@@ -244,10 +243,10 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     }
 
     /**
-     * Est-ce un aperçu ?
+     * Is this a preview?
      *
-     * Posée ici parce que trois endroits la posent : la liste qui l'exclut,
-     * les écritures qui le refusent, et la page qui l'annonce.
+     * Asked here because three places ask it: the list that excludes it, the
+     * writes that refuse it, and the page that announces it.
      */
     public function isPreview(): bool
     {

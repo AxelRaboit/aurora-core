@@ -27,12 +27,12 @@ use function is_numeric;
 use function mb_trim;
 
 /**
- * Importer un document Craft dans un espace de notes, et l'y remettre à jour.
+ * Import a Craft document into a notes space, and update it there again.
  *
- * **Les règles sont celles d'une note ordinaire.** Importer, c'est créer une
- * note : il faut pouvoir écrire dans l'espace (et dans le dossier) où elle
- * arrive. Rafraîchir, c'est la réécrire : il faut pouvoir écrire la note. Un
- * espace ou une note hors de portée répond 404, comme partout dans le module.
+ * **The rules are those of an ordinary note.** Importing means creating a
+ * note: you must be able to write in the space (and in the folder) where it
+ * lands. Refreshing means rewriting it: you must be able to write the note. A
+ * space or a note out of reach answers 404, as everywhere in the module.
  */
 #[Route('/suite/notes/craft', name: 'suite_notes_craft')]
 #[IsGranted('notes.markdown.use')]
@@ -51,15 +51,15 @@ final class CraftController extends AbstractController
     ) {}
 
     /**
-     * Ce que la connexion Craft laisse voir.
+     * What the Craft connection lets you see.
      *
-     * Une liste courte, et c'est voulu : la connexion ne porte que les
-     * documents désignés dans Craft, ce qui est la seule façon d'éviter qu'un
-     * jeton posé sur un serveur loué ouvre tout un savoir personnel.
+     * A short list, on purpose: the connection only carries the documents
+     * designated in Craft, which is the only way to keep a token placed on a
+     * rented server from opening a whole body of personal knowledge.
      *
-     * `configured` plutôt qu'une liste vide muette : un écran qui ne propose
-     * rien doit pouvoir dire si c'est parce que l'intégration est éteinte ou
-     * parce que la connexion est vide.
+     * `configured` rather than a silent empty list: a screen that offers
+     * nothing must be able to say whether it is because the integration is off
+     * or because the connection is empty.
      */
     #[Route('/documents', name: '_documents', methods: [HttpMethodEnum::Get->value])]
     public function documents(): JsonResponse
@@ -68,18 +68,18 @@ final class CraftController extends AbstractController
 
         return $this->jsonSuccess([
             'configured' => $this->craft->isConfigured(),
-            // Trois états, pas deux : éteinte, injoignable, et ouverte mais
-            // vide. Chacun se répare à un endroit différent.
+            // Three states, not two: off, unreachable, and open but empty.
+            // Each one is fixed in a different place.
             'reachable' => null !== $documents,
             'documents' => $documents ?? [],
         ]);
     }
 
     /**
-     * Un document Craft, devenu une note de l'espace demandé.
+     * A Craft document, turned into a note of the requested space.
      *
-     * Le titre vient de la liste et non du corps : c'est celui que Craft
-     * affiche, et le Markdown rendu commence rarement par lui.
+     * The title comes from the list and not from the body: it is the one
+     * Craft displays, and the rendered Markdown rarely starts with it.
      */
     #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
     public function import(Request $request): JsonResponse
@@ -95,8 +95,8 @@ final class CraftController extends AbstractController
             return $this->jsonFailure('notes.craft.errors.document_required');
         }
 
-        // Le dossier impose son espace ; sans dossier, l'espace demandé, et
-        // son espace personnel à défaut - la même règle qu'une création.
+        // The folder imposes its space; without a folder, the requested
+        // space, and failing that the personal space - the same rule as a creation.
         $folderId = is_numeric($payload['folderId'] ?? null) ? (int) $payload['folderId'] : null;
         $folder = null === $folderId ? null : $this->spaceAccess->writableFolder($user, $folderId);
         $spaceId = is_numeric($payload['spaceId'] ?? null) ? (int) $payload['spaceId'] : null;
@@ -121,11 +121,11 @@ final class CraftController extends AbstractController
     }
 
     /**
-     * La note, remise sur la version actuelle de son document Craft.
+     * The note, brought back to the current version of its Craft document.
      *
-     * **Elle remplace.** L'écran demande confirmation avant, et l'état
-     * remplacé entre dans l'historique de la note, d'où on le fait revenir :
-     * une note est une copie, la rafraîchir refait la copie.
+     * **It replaces.** The screen asks for confirmation first, and the
+     * replaced state goes into the note's history, where it can be brought
+     * back from: a note is a copy, refreshing it makes the copy again.
      */
     #[Route('/{id}/refresh', name: '_refresh', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function refresh(int $id): JsonResponse
@@ -143,9 +143,9 @@ final class CraftController extends AbstractController
             return $this->jsonFailure('notes.craft.errors.not_imported');
         }
 
-        // Gardée quoi qu'il arrive, et non selon l'écart habituel entre deux
-        // versions : ce qui est remplacé ici vient d'une main, pas d'un
-        // enregistrement automatique.
+        // Kept no matter what, and not according to the usual gap between two
+        // versions: what is replaced here comes from a hand, not from an
+        // automatic save.
         $this->history->keep($note, $user);
 
         if (!$this->importer->refresh($note)) {

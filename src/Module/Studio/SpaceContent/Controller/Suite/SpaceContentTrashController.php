@@ -16,16 +16,16 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Ce que l'écran de la corbeille fait aux contenus des espaces.
+ * What the trash screen does to the spaces' contents.
  *
- * **Hors de l'adresse d'un espace**, parce que la corbeille ne connaît qu'un
- * identifiant par ligne, comme pour les livrables : le tableau d'un espace
- * met un contenu à la corbeille, ces routes l'en sortent ou le détruisent.
+ * **Outside a space's address**, because the trash knows only one identifier
+ * per row, as for deliverables: a space's board puts a content in the trash,
+ * these routes take it out or destroy it.
  *
- * Le droit est celui qui l'y a mis, modifier un espace, et seulement sur un
- * espace vivant que la personne voit : un contenu d'un espace qui n'est pas le
- * sien, ou d'un espace lui-même à la corbeille, répond 404 comme un contenu
- * inconnu.
+ * The right is the one that put it there, editing a space, and only on a
+ * living space the person sees: a content of a space that is not theirs, or
+ * of a space that is itself in the trash, answers 404 like an unknown
+ * content.
  */
 #[Route('/suite/studio/space-contents', name: 'suite_studio_space_contents')]
 #[IsGranted('studio.spaces.edit')]
@@ -55,7 +55,7 @@ class SpaceContentTrashController extends AbstractController
         return $this->jsonSuccess();
     }
 
-    /** Vider la corbeille des contenus : seulement ceux des espaces que la personne voit. */
+    /** Empty the contents trash: only those of the spaces the person sees. */
     #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
     public function emptyTrash(): JsonResponse
     {
@@ -72,7 +72,7 @@ class SpaceContentTrashController extends AbstractController
         return $this->jsonSuccess(['deleted' => $deleted]);
     }
 
-    /** Un contenu à la corbeille, d'un espace vivant que la personne voit, ou 404. */
+    /** A content in the trash, from a living space the person sees, or 404. */
     private function trashed(int $id): SpaceContentItemInterface
     {
         $item = $this->items->findTrashed($id);

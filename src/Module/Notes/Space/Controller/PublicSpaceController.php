@@ -20,19 +20,20 @@ use Symfony\Component\Routing\Attribute\Route;
 use function in_array;
 
 /**
- * Un espace publié, lu sans compte.
+ * A published space, read without an account.
  *
- * **Tout part de l'adresse de l'espace**, et rien dans la requête n'élargit
- * ce qu'elle ouvre : une note se cherche dans l'espace nommé, jamais seule,
- * et une image doit être citée par la note qui la demande. Demander la note
- * d'un autre espace, même publié, répond comme une note qui n'existe pas.
+ * **Everything starts from the space's address**, and nothing in the request
+ * widens what it opens: a note is looked up in the named space, never on its
+ * own, and an image must be cited by the note that asks for it. Asking for
+ * another space's note, even a published one, answers like a note that does
+ * not exist.
  *
- * **Tous les refus se ressemblent** : espace inconnu, dépublié, retiré,
- * module éteint, note absente. Les distinguer dirait à un inconnu lesquelles
- * de ses tentatives ont touché quelque chose.
+ * **All refusals look alike**: unknown space, unpublished, removed, module
+ * switched off, missing note. Telling them apart would tell a stranger which
+ * of their attempts hit something.
  *
- * Pas indexé par défaut : la page le dit aux moteurs, dans l'en-tête HTTP
- * comme dans la page, tant que l'espace ne le demande pas.
+ * Not indexed by default: the page tells the engines so, in the HTTP header
+ * as in the page, as long as the space does not ask for it.
  */
 #[Route('/p/{slug}', name: 'notes_public', requirements: ['slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'])]
 final class PublicSpaceController extends AbstractController
@@ -46,7 +47,7 @@ final class PublicSpaceController extends AbstractController
         private readonly NotesContext $context,
     ) {}
 
-    /** L'entrée de l'espace : sa première note, dans l'ordre de l'arbre. */
+    /** The space's entrance: its first note, in tree order. */
     #[Route('', name: '_space', methods: [HttpMethodEnum::Get->value])]
     public function space(string $slug): Response
     {
@@ -64,8 +65,8 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * `__id__` passe l'exigence pour que la page reçoive un seul modèle
-     * d'adresse ; il arrive ici comme 0, qui n'est dans aucun espace.
+     * `__id__` passes the requirement so the page receives a single address
+     * template; it arrives here as 0, which is in no space.
      */
     #[Route('/{id}', name: '_note', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
     public function note(string $slug, int $id): Response
@@ -86,7 +87,7 @@ final class PublicSpaceController extends AbstractController
         return $response;
     }
 
-    /** Une image, servie seulement si la note publiée qui la demande la cite. */
+    /** An image, served only if the published note asking for it cites it. */
     #[Route('/{id}/images/{filename}', name: '_image', requirements: ['id' => '\d+', 'filename' => '[^/]+'], methods: [HttpMethodEnum::Get->value])]
     public function image(string $slug, int $id, string $filename): Response
     {

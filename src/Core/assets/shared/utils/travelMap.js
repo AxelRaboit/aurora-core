@@ -1,12 +1,12 @@
 /**
- * La carte de voyage - `[data-travel-map]`.
+ * The travel map - `[data-travel-map]`.
  *
- * Dessine les étapes lues dans `data-travel-stops` avec Leaflet, sur les
- * tuiles publiques d'OpenStreetMap : aucune clé, aucun compte. Chaque
- * marqueur ouvre une bulle avec la photo prise là, quand il y en a une.
- * La bibliothèque n'est chargée que sur une page qui a une carte.
+ * Draws the stops read from `data-travel-stops` with Leaflet, on the public
+ * OpenStreetMap tiles: no key, no account. Each marker opens a bubble with
+ * the photo taken there, when there is one.
+ * The library is only loaded on a page that has a map.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_travel_map.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_travel_map.html.twig
  */
 const SELECTOR = "[data-travel-map]";
 

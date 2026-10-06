@@ -15,33 +15,33 @@ use function mb_trim;
 use function usort;
 
 /**
- * Parle à Craft pour le serveur.
+ * Talks to Craft for the server.
  *
- * **Deux appels, pas un client MCP.** Craft expose bien son serveur MCP en
- * HTTP, derrière un OAuth 2.1 complet ; il expose aussi, par connexion, une
- * adresse REST et un jeton. La seconde porte demande deux requêtes GET là où
- * la première demanderait un client MCP en PHP, un enregistrement dynamique de
- * client, une route de retour et des jetons à rafraîchir - pour le même
- * résultat : lire un document.
+ * **Two calls, not an MCP client.** Craft does expose its MCP server over
+ * HTTP, behind a full OAuth 2.1; it also exposes, per connection, a REST
+ * address and a token. The second door takes two GET requests where the
+ * first would take an MCP client in PHP, dynamic client registration, a
+ * callback route and tokens to refresh - for the same result: reading a
+ * document.
  *
- * `GET /documents` donne la liste, `GET /blocks?id=<rootBlockId>` donne le
- * contenu, et l'en-tête `Accept: text/markdown` demande à Craft de faire
- * lui-même le rendu. C'est le point important de tout ce chemin : le Markdown
- * vient de Craft, qui connaît ses propres blocs, et Aurora n'a jamais à
- * interpréter une structure qui ne lui appartient pas.
+ * `GET /documents` gives the list, `GET /blocks?id=<rootBlockId>` gives the
+ * content, and the `Accept: text/markdown` header asks Craft to do the
+ * rendering itself. That is the key point of this whole path: the Markdown
+ * comes from Craft, which knows its own blocks, and Aurora never has to
+ * interpret a structure that does not belong to it.
  *
- * **Les échecs deviennent une liste vide plutôt qu'une exception.** Un import
- * qui ne joint pas Craft est un écran qui ne propose rien, ce qui est une
- * déception ; une exception ici serait une erreur 500 au milieu des notes,
- * ce qui est autre chose.
+ * **Failures become an empty list rather than an exception.** An import that
+ * cannot reach Craft is a screen that offers nothing, which is a
+ * disappointment; an exception here would be a 500 error in the middle of the
+ * notes, which is something else.
  */
 final readonly class CraftClient
 {
     private const int TIMEOUT_SECONDS = 10;
 
     /**
-     * Ce qu'une connexion peut légitimement porter. Au-delà, la liste n'est
-     * plus un écran de choix et la connexion a été créée trop large.
+     * What a connection can legitimately carry. Beyond that, the list is no
+     * longer a selection screen and the connection was created too wide.
      */
     private const int MAX_DOCUMENTS = 200;
 
@@ -57,17 +57,16 @@ final readonly class CraftClient
     }
 
     /**
-     * Les documents que la connexion laisse voir.
+     * The documents the connection lets you see.
      *
-     * Triés par titre : Craft les rend dans son ordre à lui, qui n'est pas
-     * celui d'une liste qu'on parcourt des yeux.
+     * Sorted by title: Craft returns them in its own order, which is not the
+     * order of a list you scan with your eyes.
      *
-     * **Null quand rien n'est venu, et non une liste vide.** Les deux se
-     * ressemblent à l'écran et ne veulent pas du tout dire la même chose :
-     * une connexion à laquelle on n'a pas encore ajouté de document se
-     * répare dans Craft, une clé fausse se répare dans les réglages. Dire
-     * « aucun document » dans le second cas est un mensonge qui envoie
-     * chercher au mauvais endroit.
+     * **Null when nothing came back, and not an empty list.** The two look
+     * alike on screen and do not mean the same thing at all: a connection to
+     * which no document has been added yet is fixed in Craft, a wrong key is
+     * fixed in the settings. Saying "no document" in the second case is a lie
+     * that sends you looking in the wrong place.
      *
      * @return list<array{id: string, title: string}>|null
      */
@@ -79,9 +78,9 @@ final readonly class CraftClient
             return null;
         }
 
-        // `items`, le nom que donne la spécification publiée par la connexion
-        // elle-même (`GET /openapi.json`). Le repli sur la racine couvre une
-        // réponse qui serait un tableau nu.
+        // `items`, the name given by the specification published by the
+        // connection itself (`GET /openapi.json`). The fallback to the root
+        // covers a response that would be a bare array.
         $rows = is_array($payload['items'] ?? null) ? $payload['items'] : $payload;
         $documents = [];
 
@@ -90,8 +89,8 @@ final readonly class CraftClient
                 continue;
             }
 
-            // `rootBlockId` et pas `id` : c'est celui que `/blocks` attend, et
-            // l'identifiant qu'une adresse de document affiche est un autre.
+            // `rootBlockId` and not `id`: it is the one `/blocks` expects, and
+            // the id that a document address displays is a different one.
             $id = $row['rootBlockId'] ?? $row['id'] ?? null;
             $title = $row['title'] ?? null;
             if (!is_string($id)) {
@@ -102,8 +101,8 @@ final readonly class CraftClient
                 continue;
             }
 
-            // Craft garde la ligne d'un document supprimé, avec son titre.
-            // Le proposer à l'import serait proposer une note vide.
+            // Craft keeps the row of a deleted document, with its title.
+            // Offering it for import would be offering an empty note.
             if (true === ($row['isDeleted'] ?? false)) {
                 continue;
             }
@@ -124,10 +123,10 @@ final readonly class CraftClient
     }
 
     /**
-     * Le contenu d'un document, en Markdown rendu par Craft.
+     * The content of a document, as Markdown rendered by Craft.
      *
-     * Null quand rien n'est venu : l'appelant en fait un message, pas une note
-     * vide.
+     * Null when nothing came back: the caller turns it into a message, not an
+     * empty note.
      */
     public function markdown(string $rootBlockId): ?string
     {
@@ -183,15 +182,15 @@ final readonly class CraftClient
     }
 
     /**
-     * Les options communes, dont l'en-tête d'authentification.
+     * The common options, including the authentication header.
      *
-     * **Le seul endroit où la forme de la clé est écrite.** Craft montre
-     * une connexion en « Publique » ou en « Clé API ». Publique, l'adresse
-     * seule ouvre tout - et la spécification que la connexion publie déclare
-     * dix-neuf opérations d'écriture. En mode clé, l'API répond
-     * `401 MISSING_AUTH_HEADER` sans en-tête `Authorization` : c'est mesuré,
-     * pas supposé, et c'est cette méthode seule qu'on corrige si la forme
-     * change.
+     * **The only place where the shape of the key is written.** Craft shows a
+     * connection as "Public" or "API key". Public, the address alone opens
+     * everything - and the specification the connection publishes declares
+     * nineteen write operations. In key mode, the API answers
+     * `401 MISSING_AUTH_HEADER` without an `Authorization` header: this is
+     * measured, not assumed, and this method alone is the one to fix if the
+     * shape changes.
      *
      * @param array<string, mixed> $extra
      *

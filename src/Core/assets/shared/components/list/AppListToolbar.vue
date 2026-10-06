@@ -24,10 +24,10 @@ const slots = useSlots();
 
 <template>
     <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-        <!-- **Les filtres passent sous la recherche sur téléphone.** Posés à
-             côté d'elle, deux sélecteurs de douze rem prenaient les trois cent
-             cinquante pixels de la ligne et la recherche tombait à zéro, son
-             icône coincée derrière eux (liste des contrats, 02/10/2026). -->
+        <!-- **The filters go under the search on a phone.** Placed next
+             to it, two twelve-rem selects took the three hundred and fifty
+             pixels of the line and the search dropped to zero, its icon
+             stuck behind them (contract list, 02/10/2026). -->
         <div v-if="slots.inline" class="flex flex-col gap-2 min-w-0 sm:flex-row sm:items-center">
             <div class="flex-1 min-w-0">
                 <slot />
@@ -36,14 +36,14 @@ const slots = useSlots();
         </div>
         <slot v-else />
 
-        <!-- **Les actions dans leur propre boîte, pleine largeur sur
-             téléphone.** Posées directement dans la grille, deux boutons
-             devenaient deux cellules et cassaient la colonne de droite ; et
-             chacun gardait sa largeur naturelle, donc un « Actions » de
-             quatre-vingt-dix pixels collé à gauche d'un vide de deux cent
-             cinquante. Ici ils s'empilent et prennent la ligne sous `sm`, et
-             retrouvent leur taille dès qu'il y a la place - la même réponse
-             que {@see AppModalFooter}, au même endroit du geste. -->
+        <!-- **The actions in their own box, full width on a phone.**
+             Placed directly in the grid, two buttons became two cells and
+             broke the right-hand column; and each kept its natural width,
+             so a ninety-pixel "Actions" stuck to the left of a two hundred
+             and fifty pixel gap. Here they stack and take the line below
+             `sm`, and get their size back as soon as there is room - the
+             same answer as {@see AppModalFooter}, at the same point of the
+             gesture. -->
         <div
             v-if="slots.actions"
             class="flex flex-col gap-2 sm:flex-row sm:items-center *:w-full sm:*:w-auto"

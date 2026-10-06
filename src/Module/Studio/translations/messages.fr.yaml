@@ -1140,9 +1140,9 @@ suite:
                 step_3: "Un fichier d'espace s'ajoute ici ; un fichier pour un contenu s'ajoute depuis ce contenu."
                 step_4: "Un fichier de l'espace naît caché au client ; « Montrer au client » le lui ouvre, avec le droit de partager l'espace. Ce que le client envoie reste visible pour lui."
                 step_5: "Le client voit aussi les fichiers des contenus qui lui sont montrés ; retirer un fichier de l'espace le garde dans la médiathèque."
-            # Les fichiers de l'espace lui-même, sur aucune fiche : la charte,
-            # les logos, le brief. Chacun naît caché au client, comme tout ce
-            # qu'un espace peut lui montrer ; ce qu'il envoie reste visible pour lui.
+            # The files of the space itself, on no card: the brand guidelines, the
+            # logos, the brief. Each one is born hidden from the client, like everything
+            # a space can show them; what they send stays visible to them.
             usage_detail: Fichier de l'espace
             usage_detail_trashed: "Fichier d'un espace à la corbeille"
             label: Rattachement
@@ -1172,9 +1172,9 @@ suite:
                 needs_account: Il faut être connecté pour ajouter un fichier.
                 client_file_stays_visible: "Ce fichier vient du client : il reste visible pour lui."
         drive:
-            # Le compte de service appartient à l'installation ; le dossier
-            # appartient à un client, et c'est lui qui le partage. La portée se
-            # décide donc dans Drive, jamais ici.
+            # The service account belongs to the installation; the folder belongs to a
+            # client, and the client is the one who shares it. The scope is therefore
+            # decided in Drive, never here.
             settings:
                 what_title: Ce que fait cette connexion
                 what_body: "Elle affiche dans un espace les fichiers d'un dossier Drive que le client a partagé. Rien n'est recopié : le fichier est lu chez Google au moment où quelqu'un le regarde, et servi à un client qui n'a pas de compte Google."
@@ -1251,8 +1251,8 @@ suite:
                 folder_invalid: "Ce n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
                 import_failed: "Ce fichier n'a pas pu être recopié. Les documents Google n'ont pas de fichier à télécharger."
         space_notes:
-            # Les notes d'un espace client vivent dans le module Notes, dans
-            # l'espace de notes de ce client : l'onglet en est la porte.
+            # The notes of a client space live in the Notes module, in that client's
+            # notes space: the tab is the door to it.
             guide:
                 title: "Comment fonctionnent les notes"
                 step_1: "Les notes restent entre vous : le client ne les voit jamais."
@@ -2199,8 +2199,8 @@ suite:
                 phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
                 order_invalid: Cet ordre n'est pas lisible.
         space_notifications:
-            # Ce que le studio apprend sans avoir à ouvrir l'espace. Seulement
-            # le côté client : le studio sait déjà ce que le studio a fait.
+            # What the studio learns without having to open the space. Only the client
+            # side: the studio already knows what the studio did.
             chat: '%who% vous a écrit'
             comment: '%who% a commenté « %item% »'
             upload: '%who% a envoyé un fichier sur « %item% »'
@@ -2391,14 +2391,14 @@ suite:
                 attachment_needs_account: Il faut être connecté pour ajouter un fichier.
 
             attachments:
-                # Le nom de la catégorie GED sous laquelle sont classés les
-                # fichiers arrivés par un espace. Lu dans la GED, pas ici.
+                # The name of the GED category under which files that arrived through a
+                # space are filed. Read in the GED, not here.
                 category: Espaces clients
                 category_description: Fichiers déposés sur les contenus d'un espace client, par le studio ou par le client lui-même.
 studio:
     contract:
-        # Écrit dans le document lui-même, donc scellé avec lui : ces phrases
-        # partent dans le HTML rendu, pas dans l'habillage de la page.
+        # Written into the document itself, so sealed with it: these sentences go
+        # into the rendered HTML, not into the dressing of the page.
         language:
             fr: française
             en: anglaise

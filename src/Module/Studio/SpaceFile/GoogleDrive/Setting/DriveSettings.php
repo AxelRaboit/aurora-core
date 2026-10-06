@@ -12,19 +12,19 @@ use SensitiveParameter;
 use function mb_trim;
 
 /**
- * Si cette installation peut lire un Drive, et avec quel compte.
+ * Whether this installation can read a Drive, and with which account.
  *
- * **Éteinte tant que personne ne l'allume**, comme les autres intégrations.
+ * **Off until someone switches it on**, like the other integrations.
  *
- * **Un seul compte de service pour l'installation.** Chaque espace désigne
- * ensuite son dossier, et c'est le client qui partage ce dossier avec
- * l'adresse du compte : la portée se décide dans Drive, pas ici. Un compte par
- * espace obligerait à créer un projet Google par client pour ne rien gagner -
- * un compte qui n'a reçu aucun partage ne voit rien de toute façon.
+ * **A single service account for the installation.** Each space then
+ * designates its folder, and the client shares that folder with the
+ * account's address: the scope is decided in Drive, not here. One account per
+ * space would require a Google project per client to gain nothing - an
+ * account nothing was shared with sees nothing anyway.
  *
- * La clé est chiffrée au repos avec {@see EncryptionServiceInterface}. Elle
- * pèse plus lourd qu'un jeton et vaut plus cher : elle contient une clé privée
- * RSA, et qui la tient peut lire tout ce que le compte s'est vu partager.
+ * The key is encrypted at rest with {@see EncryptionServiceInterface}. It
+ * weighs more than a token and is worth more: it holds an RSA private key,
+ * and whoever holds it can read everything shared with the account.
  */
 final readonly class DriveSettings
 {
@@ -40,12 +40,12 @@ final readonly class DriveSettings
     }
 
     /**
-     * Le compte de service, prêt à signer.
+     * The service account, ready to sign.
      *
-     * Null quand rien n'est enregistré, quand le déchiffrement échoue - une
-     * clé écrite avant une rotation - ou quand le contenu n'est pas une clé de
-     * compte de service. Les trois cas se réparent au même endroit, l'onglet
-     * des réglages, et l'intégration se tait en attendant.
+     * Null when nothing is stored, when decryption fails - a key written before
+     * a rotation - or when the content is not a service account key. All three
+     * cases are fixed in the same place, the settings tab, and the integration
+     * stays quiet meanwhile.
      */
     public function account(): ?GoogleServiceAccount
     {
@@ -61,11 +61,11 @@ final readonly class DriveSettings
     }
 
     /**
-     * Ce que l'écran de réglages a le droit de savoir.
+     * What the settings screen is allowed to know.
      *
-     * L'adresse du compte, et pas la clé : c'est celle que le client doit
-     * recopier dans le partage de son dossier, donc elle doit être affichable
-     * - et c'est la seule partie de la clé qui n'est pas un secret.
+     * The account's address, and not the key: it is the one the client must
+     * copy into their folder's sharing, so it must be displayable - and it is
+     * the only part of the key that is not a secret.
      *
      * @return array{enabled: bool, hasAccount: bool, email: string|null}
      */

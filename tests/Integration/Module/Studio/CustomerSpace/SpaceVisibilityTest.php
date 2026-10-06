@@ -19,16 +19,16 @@ use function json_decode;
 use function sprintf;
 
 /**
- * Un espace dont on n'est pas membre n'existe pas.
+ * A space you are not a member of does not exist.
  *
- * **Le contrôle est posé sur l'argument, pas dans les contrôleurs**, et c'est
- * ce que ces tests tiennent : une dizaine d'écrans reçoivent un espace, et le
- * onzième qu'on écrira ne pensera pas à vérifier. Ce qui est vérifié ici est
- * donc moins « la liste filtre » que « l'adresse directe ne passe pas », sur
- * plusieurs routes qui n'ont rien en commun.
+ * **The check sits on the argument, not in the controllers**, and that is
+ * what these tests hold: some ten screens receive a space, and the eleventh
+ * one to be written will not think of checking. What is checked here is
+ * therefore less "the list filters" than "the direct address does not get
+ * through", on several routes that have nothing in common.
  *
- * Et un 404, jamais un 403 : un refus explicite dirait à quelqu'un qui tâtonne
- * que l'espace existe et appartient à un autre client.
+ * And a 404, never a 403: an explicit refusal would tell someone probing
+ * that the space exists and belongs to another client.
  */
 final class SpaceVisibilityTest extends IntegrationTestCase
 {
@@ -73,15 +73,15 @@ final class SpaceVisibilityTest extends IntegrationTestCase
         $this->client->request('GET', sprintf('/workspace/%d', $mine->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode(), 'son propre espace');
 
-        // Le cœur du sujet : l'adresse directe d'un espace qui ne le regarde
-        // pas. Pas un 403, qui confirmerait que la ligne existe.
+        // The heart of the matter: the direct address of a space that is none
+        // of their business. Not a 403, which would confirm the row exists.
         $this->client->request('GET', sprintf('/workspace/%d', $theirs->getId()));
         self::assertSame(404, $this->client->getResponse()->getStatusCode(), "l'espace d'un autre");
     }
 
     /**
-     * Le contrôle vaut pour toutes les routes d'un espace, pas seulement la
-     * première. C'est ce qu'un contrôle posé sur l'argument achète.
+     * The check applies to every route of a space, not just the first. That
+     * is what a check sitting on the argument buys.
      */
     public function testEveryRouteOfAnUnseenSpaceIsNotFound(): void
     {
@@ -105,9 +105,9 @@ final class SpaceVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * La page des accès liste à qui l'espace est ouvert, adresses comprises :
-     * elle demande le droit de donner ces accès, pas seulement de voir
-     * l'espace. Et l'onglet ne se montre pas à qui ne peut pas l'ouvrir.
+     * The access page lists who the space is open to, addresses included: it
+     * requires the right to grant that access, not just to see the space. And
+     * the tab is not shown to whoever cannot open it.
      */
     public function testTheAccessPageNeedsTheRightToGiveAccess(): void
     {
@@ -129,9 +129,9 @@ final class SpaceVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * L'onglet Drive se montre à qui voit l'espace : le lire ne peut pas
-     * demander davantage. Ranger un fichier dans la médiathèque écrit, et
-     * garde le droit de modifier.
+     * The Drive tab is shown to whoever sees the space: reading it cannot
+     * require more. Filing a file in the media library writes, and keeps the
+     * right to edit.
      */
     public function testTheDriveIsReadWithTheRightToSeeAndFiledWithTheRightToEdit(): void
     {
@@ -151,7 +151,7 @@ final class SpaceVisibilityTest extends IntegrationTestCase
         self::assertSame(403, $this->client->getResponse()->getStatusCode());
     }
 
-    /** Un administrateur ne compose pas d'équipe pour voir un espace. */
+    /** An administrator does not put a team together to see a space. */
     public function testAnAdminSeesEverySpaceWithoutBeingAMember(): void
     {
         $space = $this->givenSpace('Sans lui dedans', 'portee-e@example.test', '73282932000074');
@@ -165,9 +165,9 @@ final class SpaceVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * L'équipe et ses rôles sont l'affaire du chef de l'espace. Le droit de
-     * modifier un espace suffisait : un simple membre se renvoyait lui-même
-     * avec le rôle de chef, et le devenait.
+     * The team and its roles are the business of the space's lead. The right
+     * to edit a space used to be enough: a plain member sent themselves back
+     * with the lead role, and became it.
      */
     public function testAMemberCannotMakeThemselvesLeadButCanStillRenameTheSpace(): void
     {

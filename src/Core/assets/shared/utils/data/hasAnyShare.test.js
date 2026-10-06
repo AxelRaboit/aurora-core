@@ -6,10 +6,9 @@ describe("hasAnyShare", () => {
         expect(hasAnyShare([{ value: 0 }, { value: 3 }])).toBe(true);
     });
 
-    // Le défaut : le tableau de bord comptait les segments. Une barre de
-    // répartition en reçoit un par catégorie connue, remplie ou non, donc un
-    // site sans un seul commentaire affichait une carte titrée au-dessus
-    // d'une barre vide.
+    // The defect: the dashboard counted the segments. A breakdown bar receives
+    // one per known category, filled or not, so a site without a single comment
+    // showed a titled card above an empty bar.
     it("dit non quand tous les segments sont à zéro", () => {
         expect(hasAnyShare([{ value: 0 }, { value: 0 }, { value: 0 }])).toBe(
             false,

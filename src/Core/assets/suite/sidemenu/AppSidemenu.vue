@@ -77,7 +77,7 @@ const props = defineProps({
     mailpitUrl: { type: String, default: "" },
     siteName: { type: String, default: "Aurora" },
     siteLogoUrl: { type: String, default: "" },
-    /** Réglage du site : le nom à côté du logo dans la barre du haut sur téléphone. */
+    /** Site setting: the name next to the logo in the top bar on a phone. */
     siteNameOnPhone: { type: Boolean, default: true },
     appVersion: { type: String, default: "" },
     searchPath: { type: String, default: "/suite/general/search" },
@@ -113,12 +113,12 @@ const { showDescriptions, toggleDescriptions } = useSidemenuDescriptions(
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",
-    // À garder égal au `--sidemenu-width` de sidemenu.css, cf. le commentaire
-    // qui y est : une divergence se voit comme un saut au chargement.
+    // Keep equal to the `--sidemenu-width` in sidemenu.css, see the comment
+    // there: a mismatch shows as a jump on load.
     //
-    // Le défaut est le maximum : le menu porte maintenant des arborescences et
-    // des recherches, pas seulement des liens. Une largeur déjà choisie est
-    // conservée - ceci ne déplace que ceux qui n'ont jamais tiré la poignée.
+    // The default is the maximum: the menu now carries trees and searches,
+    // not only links. A width already chosen is kept - this only moves those
+    // who never dragged the handle.
     defaultValue: 480,
     min: 200,
     max: 480,
@@ -360,18 +360,19 @@ function openSearchFromMobile() {
                  sidebar, and the phone bar kept drawing the default mark. -->
             <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-contain">
             <AppLogo v-else :size="28" />
-            <!-- Le nom à côté du logo, ou le logo seul sous `sm` : un réglage du
-                 site (Réglages > Marque, 02/10/2026). Masqué, il reste lu par
-                 les lecteurs d'écran. Sans logo, le nom reste toujours. -->
+            <!-- The name next to the logo, or the logo alone below `sm`: a site
+                 setting (Réglages > Marque, 02/10/2026). When hidden, it is
+                 still read by screen readers. Without a logo, the name always
+                 stays. -->
             <span
                 class="text-primary font-bold text-base tracking-tight"
                 :class="siteNameOnPhone || !siteLogoUrl ? '' : 'sr-only sm:not-sr-only'"
             >{{ siteName }}</span>
         </a>
         <div class="flex items-center gap-1">
-            <!-- La barre de l'application : des icônes nues, comme la cloche
-                 et le compte à côté (la règle des barres de page ne vaut pas
-                 pour le cadre de l'app), mais chacune avec son nom. -->
+            <!-- The application bar: bare icons, like the bell and the account
+                 next to them (the page bar rule does not apply to the app
+                 frame), but each one with its name. -->
             <AppButton
                 variant="icon"
                 size="none"
@@ -393,10 +394,10 @@ function openSearchFromMobile() {
                 :delete-path="notificationsDeletePath"
                 :delete-all-path="notificationsDeleteAllPath"
             />
-            <!-- Le compte, ici aussi. Sur grand écran il vit dans l'en-tête
-                 de page, qui est caché sous le grand point de rupture : sans
-                 cette copie, un téléphone n'aurait plus aucun moyen de se
-                 déconnecter depuis que le bloc a quitté le pied du menu. -->
+            <!-- The account, here too. On a large screen it lives in the page
+                 header, which is hidden below the large breakpoint: without
+                 this copy, a phone would have no way left to log out since
+                 the block left the foot of the menu. -->
             <AppTopbarAccount
                 :user-name="userName"
                 :user-email="userEmail"

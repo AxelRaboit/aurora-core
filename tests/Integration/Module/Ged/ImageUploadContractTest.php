@@ -135,17 +135,17 @@ final class ImageUploadContractTest extends IntegrationTestCase
     }
 
     /**
-     * Le poids enregistré est celui du fichier rangé, pas celui reçu.
+     * The recorded size is that of the stored file, not of the one received.
      *
-     * Une source JPEG est ré-encodée en place à la qualité 85 et perd ses
-     * métadonnées au moment où ses tailles générées sont fabriquées. Le nombre relevé
-     * à l'arrivée cesse donc d'être vrai une ligne plus tard, et la
-     * médiathèque affichait un poids sans rapport avec ce qui est stocké -
-     * mesuré sur un import réel : un million et demi d'octets annoncés pour
-     * deux cent mille sur le disque.
+     * A JPEG source is re-encoded in place at quality 85 and loses its
+     * metadata when its generated sizes are produced. The number taken
+     * on arrival therefore stops being true one line later, and the media
+     * library showed a size unrelated to what is stored - measured on a real
+     * import: one and a half million bytes announced for two hundred
+     * thousand on disk.
      *
-     * Demandé à l'adaptateur et non au disque local : la source peut vivre
-     * dans un stockage objet, où seul un `stat` répond honnêtement.
+     * Asked of the adapter and not of the local disk: the source may live in
+     * object storage, where only a `stat` answers honestly.
      */
     public function testTheRecordedSizeIsTheSizeOfWhatWasActuallyStored(): void
     {
@@ -176,9 +176,9 @@ final class ImageUploadContractTest extends IntegrationTestCase
         $path = tempnam(sys_get_temp_dir(), 'aurora-upload').'.'.$extension;
 
         if ('jpeg' === $format) {
-            // Un vrai JPEG, assez grand pour que le ré-encodage change son
-            // poids : un pixel pèse la même chose avant et après, et ne
-            // prouverait rien.
+            // A real JPEG, large enough for the re-encoding to change its
+            // size: one pixel weighs the same before and after, and would
+            // prove nothing.
             $image = imagecreatetruecolor(600, 400);
             self::assertNotFalse($image);
 

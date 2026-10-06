@@ -8,28 +8,27 @@ use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Doctrine\DBAL\Connection;
 
 /**
- * Ce que pèse le stockage, et de quel côté.
+ * How much the storage weighs, and on which side.
  *
- * **Lu sur la table des documents, pas sur le disque.** Ce qui intéresse celui
- * qui regarde, c'est ce que l'application a rangé quelque part et dont elle
- * répond. Un `du` compterait aussi les restes d'un import raté et les
- * tailles générées qu'une purge n'a pas encore ramassées, ce qui donne un nombre plus
- * grand et moins vrai.
+ * **Read from the documents table, not from the disk.** What matters to the
+ * person looking is what the application has stored somewhere and answers
+ * for. A `du` would also count the leftovers of a failed import and the
+ * generated sizes that a purge has not collected yet, which gives a bigger
+ * and less true number.
  *
- * Une requête agrégée plutôt qu'un chargement : l'inventaire peut faire des
- * milliers de lignes, et personne n'a besoin de les voir pour connaître leur
- * somme.
+ * An aggregate query rather than a load: the inventory can run to thousands
+ * of rows, and nobody needs to see them to know their sum.
  */
 final readonly class StorageUsageProbe
 {
     public function __construct(private Connection $connection) {}
 
     /**
-     * Le poids et le nombre, par emplacement.
+     * The weight and the count, per location.
      *
-     * Les deux emplacements sont toujours rendus, même à zéro : un écran qui
-     * masquerait celui qui est vide ne permettrait pas de lire « il ne reste
-     * plus rien sur le serveur », qui est précisément ce qu'on vient vérifier.
+     * Both locations are always returned, even at zero: a screen that hid the
+     * empty one would not let you read "nothing is left on the server", which
+     * is exactly what you came to check.
      *
      * @return array<string, array{count: int, bytes: int}>
      */
@@ -65,18 +64,18 @@ final readonly class StorageUsageProbe
     }
 
     /**
-     * Le poids des fichiers rangés dans le dossier de chaque espace client.
+     * The weight of the files stored in the folder of each client space.
      *
-     * **Le dossier, et pas les rattachements.** Ce qu'on cherche à savoir,
-     * c'est ce qu'un espace a fait *déposer* : un document choisi dans la
-     * médiathèque était déjà là et le serait resté sans lui. Le téléverseur
-     * range tout ce qui arrive par un espace dans son dossier, donc le dossier
-     * est exactement la réponse.
+     * **The folder, not the attachments.** What we want to know is what a
+     * space caused to be *uploaded*: a document picked from the media library
+     * was already there and would have stayed without it. The uploader stores
+     * everything that comes in through a space in its folder, so the folder is
+     * exactly the answer.
      *
-     * Une seule requête groupée : une liste d'espaces en compte des dizaines,
-     * et une somme par ligne ferait autant d'allers-retours que de lignes.
+     * A single grouped query: a list of spaces counts dozens of them, and one
+     * sum per row would make as many round trips as rows.
      *
-     * @return array<int, int> id de l'espace => octets
+     * @return array<int, int> space id => bytes
      */
     public function bySpace(): array
     {

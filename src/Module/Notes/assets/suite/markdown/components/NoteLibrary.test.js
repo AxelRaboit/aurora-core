@@ -78,10 +78,10 @@ function apis() {
 }
 
 /**
- * Le menu d'une carte, visé par son libellé et non par sa place.
+ * A card's menu, targeted by its label and not by its position.
  *
- * Il a été « le dernier bouton de la carte » un temps, et les étiquettes
- * cliquables ajoutées en dessous ont fait tomber trois cas d'un coup.
+ * It was "the card's last button" for a while, and the clickable tags added
+ * below it brought down three cases at once.
  */
 function rowMenu(card) {
     return card
@@ -117,8 +117,8 @@ beforeEach(() => {
 
 afterEach(() => {
     while (mounted.length) mounted.pop().unmount();
-    // Les feuilles d'actions se téléportent dans le body : sans ce coup de
-    // balai, un cas retrouve le menu ouvert par le précédent.
+    // Action sheets teleport into the body: without this sweep, a case finds
+    // the menu opened by the previous one.
     document.body.innerHTML = "";
     vi.restoreAllMocks();
 });
@@ -131,15 +131,15 @@ describe("the library", () => {
 
         expect(cards.some((text) => text.includes("Clients"))).toBe(true);
         expect(cards.some((text) => text.includes("À la racine"))).toBe(true);
-        // Ce qui est rangé dans un dossier n'est pas à la racine. La rangée
-        // des récentes, elle, traverse le carnet : c'est son travail.
+        // What is filed in a folder is not at the root. The recent row, on
+        // the other hand, cuts across the notebook: that is its job.
         expect(cards.some((text) => text.includes("Devis"))).toBe(false);
     });
 
     /**
-     * « Où en étais-je » est la question qu'on pose en arrivant, et la
-     * rangée des récentes y répond sans faire chercher dans quel dossier la
-     * note avait été rangée.
+     * "Where was I" is the question asked on arrival, and the recent row
+     * answers it without making one search for which folder the note had
+     * been filed in.
      */
     it("opens on the notes most recently changed, wherever they are filed", () => {
         const wrapper = render();
@@ -164,7 +164,7 @@ describe("the library", () => {
         expect(text).not.toContain("À la racine");
     });
 
-    /** Chaque carte est une adresse : le clic du milieu doit se comporter. */
+    /** Each card is an address: a middle click must behave. */
     it("points a note card at the note's own address", () => {
         const hrefs = render()
             .findAll("a")
@@ -187,8 +187,8 @@ describe("the library", () => {
     it("asks the page for a new note in the folder being looked at", async () => {
         const wrapper = render({ initialFolderId: 1 });
 
-        // Le bouton ne porte plus son libellé, seulement son icône : c'est
-        // son infobulle qui le nomme.
+        // The button no longer carries its label, only its icon: its
+        // tooltip names it.
         await wrapper
             .findAll("button")
             .find(
@@ -201,9 +201,9 @@ describe("the library", () => {
     });
 
     /**
-     * Le geste central de la refonte : ranger en glissant une carte sur un
-     * dossier. Ce qui est déplacé voyage dans le presse-papier de
-     * l'événement, donc la cible n'a pas besoin de savoir ce qui arrive.
+     * The central gesture of the redesign: filing by dragging a card onto a
+     * folder. What is moved travels in the event's clipboard, so the target
+     * does not need to know what is coming.
      */
     it("files a note into the folder it is dropped on", async () => {
         const notesApi = {
@@ -256,8 +256,8 @@ describe("the library", () => {
     });
 
     /**
-     * L'extrait ne vaut que dans la mosaïque : la vue en cartes est dense
-     * par choix, et la liste montre des colonnes.
+     * The excerpt only applies in the mosaic: the card view is dense by
+     * choice, and the list shows columns.
      */
     it("shows the first lines in the mosaic, and only there", async () => {
         const wrapper = render();
@@ -277,12 +277,12 @@ describe("the library", () => {
     });
 
     /**
-     * L'ordre manuel ne vaut que si quelque chose peut le changer : un
-     * critère de tri sans geste pour l'alimenter est un menu qui ment.
+     * The manual order only makes sense if something can change it: a sort
+     * criterion without a gesture to feed it is a menu that lies.
      *
-     * Le geste est dans le menu de la carte plutôt qu'au glisser : lâcher
-     * une carte sur une autre veut déjà dire « range-la dedans », et
-     * distinguer le bord du milieu d'une carte se rate au doigt.
+     * The gesture is in the card's menu rather than on drag: dropping a card
+     * onto another already means "file it inside", and telling the edge from
+     * the middle of a card is easy to miss with a finger.
      */
     it("moves a note within its folder, in manual order", async () => {
         window.localStorage.setItem("aurora.notes.library.sort", "manual");
@@ -309,8 +309,8 @@ describe("the library", () => {
             ],
         });
 
-        // Ordre manuel décroissant par défaut : « Seconde », position 1,
-        // est en tête, et c'est « À la racine » qui peut monter.
+        // Descending manual order by default: "Seconde", position 1, is at
+        // the top, and "À la racine" is the one that can move up.
         const first = wrapper
             .findAll("article")
             .find((one) => one.text().includes("À la racine"));
@@ -326,8 +326,8 @@ describe("the library", () => {
         up.click();
         await flushPromises();
 
-        // Monter d'un cran en ordre décroissant, c'est prendre la position
-        // la plus haute : les deux notes échangent leurs rangs.
+        // Moving up one step in descending order means taking the highest
+        // position: the two notes swap their ranks.
         expect(notesApi.reorder).toHaveBeenCalledWith([
             { id: 14, folderId: null, position: 0 },
             { id: 11, folderId: null, position: 1 },
@@ -336,9 +336,9 @@ describe("the library", () => {
     });
 
     /**
-     * Dossiers et notes partagent un seul ordre, celui que l'arborescence
-     * montre mêlé. Déplacer une note d'un cran ne doit pas écraser le rang
-     * du dossier qui se trouve entre elles.
+     * Folders and notes share a single order, the one the tree shows mixed.
+     * Moving a note one step must not overwrite the rank of the folder that
+     * sits between them.
      */
     it("keeps a folder's rank when a note moves past its neighbour", async () => {
         window.localStorage.setItem("aurora.notes.library.sort", "manual");
@@ -390,8 +390,8 @@ describe("the library", () => {
             .click();
         await flushPromises();
 
-        // Avant : note 11, dossier 5, note 14. La note 11 passe après sa
-        // voisine 14, et le dossier garde sa place devant elles.
+        // Before: note 11, folder 5, note 14. Note 11 moves after its
+        // neighbour 14, and the folder keeps its place in front of them.
         expect(foldersApi.reorder).toHaveBeenCalledWith([
             { id: 5, parentId: null, position: 0 },
         ]);
@@ -411,8 +411,8 @@ describe("the library", () => {
     });
 
     /**
-     * Se défaire d'une note sans avoir à l'ouvrir : elle ne se supprimait
-     * que depuis l'éditeur, donc il fallait lire ce qu'on voulait jeter.
+     * Get rid of a note without having to open it: it could only be deleted
+     * from the editor, so one had to read what one wanted to throw away.
      */
     it("deletes a note from the library, after asking", async () => {
         const notesApi = {
@@ -432,8 +432,8 @@ describe("the library", () => {
         remove.click();
         await flushPromises();
 
-        // La feuille d'actions et la confirmation portent le même libellé ;
-        // celle qui vient d'apparaître est la dernière du document.
+        // The action sheet and the confirmation carry the same label; the one
+        // that just appeared is the last in the document.
         const confirm = [...document.body.querySelectorAll("button")]
             .filter((b) => b.textContent.includes("markdown.delete"))
             .at(-1);
@@ -446,9 +446,9 @@ describe("the library", () => {
     });
 
     /**
-     * Ranger un carnet, c'est rarement déplacer une note : c'est en
-     * déplacer douze. La sélection existe pour ces deux gestes-là, et pour
-     * aucun autre - renommer ou exporter n'a pas de sens au pluriel.
+     * Tidying a notebook is rarely moving one note: it is moving twelve. The
+     * selection exists for those two gestures, and for no other - renaming
+     * or exporting makes no sense in the plural.
      */
     it("moves everything that is selected, in one dialog", async () => {
         const notesApi = {
@@ -463,8 +463,8 @@ describe("the library", () => {
         const wrapper = render({ notesApi, foldersApi });
         await startSelecting(wrapper);
 
-        // Une note et un dossier : la sélection porte les deux natures, et
-        // un identifiant seul les aurait confondus.
+        // A note and a folder: the selection carries both kinds, and an id
+        // alone would have mixed them up.
         const cards = wrapper.findAll("article");
         await cards[0].findAll("button")[0].trigger("click");
         await cards.at(-1).findAll("button")[0].trigger("click");
@@ -505,7 +505,7 @@ describe("the library", () => {
     });
 
     /**
-     * Le clavier, parce qu'un explorateur sans flèches oblige à viser.
+     * The keyboard, because an explorer without arrows forces one to aim.
      */
     describe("au clavier", () => {
         function press(key) {
@@ -547,8 +547,8 @@ describe("the library", () => {
         });
 
         /**
-         * Le piège du raccourci à une lettre : taper « nouvelle » dans la
-         * recherche créerait une note par « n ».
+         * The trap of the one-letter shortcut: typing "nouvelle" in the
+         * search would create a note for each "n".
          */
         it("keeps its hands off the keyboard while somebody types", async () => {
             const wrapper = render();
@@ -607,10 +607,10 @@ describe("the library", () => {
     });
 
     /**
-     * Le défaut qui a rendu la page blanche : le serveur envoyait ses dates
-     * en objets, `Intl` levait, et l'exception emportait le composant
-     * entier. Le serveur est corrigé ; ceci vérifie que l'affichage tient
-     * même si une date redevenait illisible.
+     * The defect that blanked the page: the server sent its dates as
+     * objects, `Intl` threw, and the exception took the whole component
+     * down. The server is fixed; this checks that the display holds even if
+     * a date became unreadable again.
      */
     it("survives a date it cannot read", () => {
         const wrapper = render({
@@ -629,8 +629,8 @@ describe("the library", () => {
     });
 
     /**
-     * Une carte est une cible large : ne rendre cliquable que son titre
-     * oblige à viser vingt pixels de texte.
+     * A card is a wide target: making only its title clickable forces one to
+     * aim at twenty pixels of text.
      */
     it("opens the note from anywhere on its card", async () => {
         const wrapper = render({ folders: [] });
@@ -639,7 +639,7 @@ describe("the library", () => {
             .findAll("article")
             .find((one) => one.text().includes("À la racine"));
 
-        // L'extrait, pas le titre : le clic doit compter quand même.
+        // The excerpt, not the title: the click must count anyway.
         await card.find("p").trigger("click");
 
         expect(wrapper.emitted("open-note")?.[0]).toEqual([11]);
@@ -657,7 +657,7 @@ describe("the library", () => {
         expect(wrapper.text()).toContain("Devis");
     });
 
-    /** La case à cocher choisit, elle n'ouvre pas. */
+    /** The checkbox selects, it does not open. */
     it("does not open when the checkbox is pressed", async () => {
         const wrapper = render({ folders: [] });
         await startSelecting(wrapper);
@@ -672,8 +672,8 @@ describe("the library", () => {
     });
 
     /**
-     * Comme dans la médiathèque : les ronds ne se montrent qu'en mode
-     * sélection, et dans ce mode un clic sur la carte coche au lieu d'ouvrir.
+     * As in the media library: the circles only show in selection mode, and
+     * in that mode a click on the card ticks instead of opening.
      */
     it("shows no checkbox until selection mode is opened", async () => {
         const wrapper = render({ folders: [] });
@@ -708,8 +708,8 @@ describe("the library", () => {
     });
 
     /**
-     * Un champ vide qui prend le tiers de la barre coûte cette place à tout
-     * le reste, et on ne cherche pas en permanence.
+     * An empty field taking a third of the bar costs that space to everything
+     * else, and nobody searches all the time.
      */
     it("keeps the search folded until it is asked for", async () => {
         const wrapper = render();
@@ -740,7 +740,7 @@ describe("the library", () => {
         expect(wrapper.find("input").exists()).toBe(true);
     });
 
-    /** Un filtre actif mais invisible ferait chercher pourquoi la liste est courte. */
+    /** An active but invisible filter would make one wonder why the list is short. */
     it("stays open while something is typed in it", async () => {
         const wrapper = render();
 
@@ -759,9 +759,9 @@ describe("the library", () => {
     });
 
     /**
-     * Le tri se replie lui aussi : on en change par à-coups, il n'a pas à
-     * occuper sa largeur en permanence. Mais il dit ce qu'il vaut, sinon
-     * on ignorerait pourquoi la liste est dans cet ordre.
+     * The sort folds too: it is changed in fits and starts, it does not have
+     * to take up its width all the time. But it says what it is set to,
+     * otherwise one would not know why the list is in this order.
      */
     it("folds the sort into an icon that names the current criterion", async () => {
         const wrapper = render();
@@ -786,10 +786,10 @@ describe("the library", () => {
     });
 
     /**
-     * Et il se replie quand on le quitte, comme la loupe. Le signal vient du
-     * sélecteur lui-même : son panneau est téléporté dans le `body`, donc un
-     * `focusout` posé autour se déclencherait au moment du clic sur une
-     * option, avant que le choix n'arrive.
+     * And it folds when one leaves it, like the magnifier. The signal comes
+     * from the selector itself: its panel is teleported into the `body`, so
+     * a `focusout` set around it would fire on the click on an option,
+     * before the choice arrives.
      */
     it("folds the sort back when the select closes", async () => {
         const wrapper = render();
@@ -818,9 +818,9 @@ describe("the library", () => {
     });
 
     /**
-     * Le carnet a deux lectures : ce que l'endroit contient, et tout ce
-     * qu'il y a dessous d'un coup. La seconde est celle qu'on veut quand
-     * on ne sait plus dans quel dossier on a rangé quelque chose.
+     * The notebook has two readings: what the place contains, and everything
+     * beneath it at once. The second is the one wanted when one no longer
+     * knows which folder something was filed in.
      */
     describe("le tout-à-plat", () => {
         function scopeButton(wrapper) {
@@ -840,10 +840,10 @@ describe("the library", () => {
 
             const cards = wrapper.findAll("article").map((one) => one.text());
 
-            // Les deux notes, celle de la racine et celle du dossier, et
-            // rien d'autre : un dossier montré en plus des notes qu'il
-            // contient afficherait deux fois la même chose. « Clients »
-            // reste lisible, mais sur la carte de la note qu'il range.
+            // The two notes, the root's and the folder's, and nothing else:
+            // a folder shown on top of the notes it holds would show the
+            // same thing twice. "Clients" stays readable, but on the card of
+            // the note it holds.
             expect(cards).toHaveLength(2);
             expect(cards.some((text) => text.includes("Devis"))).toBe(true);
             expect(cards.some((text) => text.includes("À la racine"))).toBe(
@@ -892,9 +892,8 @@ describe("the library", () => {
     });
 
     /**
-     * Une couleur se pose en style et non en classe : elle est choisie par
-     * le lecteur, et Tailwind n'écrit que les classes qu'il voit dans le
-     * source.
+     * A colour is set as a style and not as a class: it is chosen by the
+     * reader, and Tailwind only writes the classes it sees in the source.
      */
     it("paints a folder's icon with the colour it carries", () => {
         const wrapper = render();
@@ -922,8 +921,8 @@ describe("the library", () => {
     });
 
     /**
-     * L'aperçu au survol montre le rendu, pas la source : c'est ce qui le
-     * distingue de l'extrait des cartes, qui est du texte aplati.
+     * The hover preview shows the rendering, not the source: that is what
+     * sets it apart from the cards' excerpt, which is flattened text.
      */
     describe("l'aperçu au survol", () => {
         beforeEach(() => {
@@ -950,7 +949,7 @@ describe("the library", () => {
 
             expect(show).toHaveBeenCalled();
             expect(document.body.innerHTML).toContain("Repérage");
-            // Le rendu, pas la source : le titre markdown est devenu un h2.
+            // The rendering, not the source: the markdown heading became an h2.
             expect(document.body.innerHTML).toContain("<h2");
         });
 
@@ -969,8 +968,8 @@ describe("the library", () => {
     });
 
     /**
-     * Cliquer une étiquette est le geste qu'on tente en la voyant, et il
-     * n'existait nulle part depuis la refonte.
+     * Clicking a tag is the gesture one tries on seeing it, and it existed
+     * nowhere since the redesign.
      */
     it("shows a tag's notes when its badge is clicked, wherever they are filed", async () => {
         const wrapper = render();
@@ -983,8 +982,8 @@ describe("the library", () => {
 
         await badge.trigger("click");
 
-        // Le dossier « Clients » disparaît : une étiquette traverse le
-        // rangement, et un dossier n'en porte pas.
+        // The "Clients" folder disappears: a tag cuts across the filing, and
+        // a folder does not carry one.
         const cards = wrapper.findAll("article").map((one) => one.text());
 
         expect(cards.some((text) => text.includes("Clients"))).toBe(false);
@@ -993,8 +992,8 @@ describe("the library", () => {
     });
 
     /**
-     * La mosaïque montre une vignette de la note, pas une phrase : c'est le
-     * rendu - un titre, une liste - qui fait reconnaître une note.
+     * The mosaic shows a thumbnail of the note, not a sentence: the
+     * rendering - a heading, a list - is what makes a note recognisable.
      */
     it("draws the first lines as they will read, not as flat text", () => {
         const wrapper = render();
@@ -1021,15 +1020,14 @@ describe("the library", () => {
     });
 
     /**
-     * « Qu'est-ce qui est sorti de chez moi » : ce qui vit dans un autre
-     * espace que le sien. Y répondre en parcourant les cartes une par une
-     * serait absurde.
+     * "What has left my place": what lives in a space other than one's own.
+     * Answering it by going through the cards one by one would be absurd.
      */
     describe("le filtre de visibilité", () => {
         /**
-         * Le bouton de la barre, pas la croix de la puce : les deux
-         * portent un titre qui commence pareil, et viser par préfixe
-         * attrapait la croix, qui est plus haut dans le document.
+         * The bar's button, not the chip's cross: both carry a title that
+         * starts the same way, and targeting by prefix caught the cross,
+         * which is higher in the document.
          */
         function filtre(wrapper) {
             return wrapper.findAll("button").find((b) => {
@@ -1118,7 +1116,7 @@ describe("the library", () => {
     it("filters what is on screen on what the reader typed", async () => {
         const wrapper = render();
 
-        // La recherche est repliée en loupe tant qu'on ne cherche pas.
+        // The search is folded into a magnifier as long as nobody searches.
         await wrapper
             .findAll("button")
             .find(
@@ -1136,7 +1134,7 @@ describe("the library", () => {
     });
 });
 
-/** Ouvre le mode sélection par son bouton, comme l'utilisateur. */
+/** Opens selection mode through its button, like the user. */
 async function startSelecting(wrapper) {
     await wrapper
         .findAll("button")

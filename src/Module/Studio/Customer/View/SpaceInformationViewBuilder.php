@@ -11,17 +11,18 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
- * La fiche du client, envoyée avec la page de son espace, en lecture.
+ * The customer's sheet, sent read-only with their space's page.
  *
- * **La fiche est au client, pas à l'espace**, et c'est le point : un SIRET
- * appartient à une société et non à un projet. Deux espaces ouverts pour le
- * même client montrent donc la même fiche, et ne peuvent pas se contredire.
+ * **The sheet belongs to the customer, not to the space**, and that is the
+ * point: a SIRET belongs to a company and not to a project. Two spaces opened
+ * for the same customer therefore show the same sheet, and cannot contradict
+ * each other.
  *
- * **Elle ne s'écrit plus d'ici.** L'onglet avait son propre formulaire, avec
- * d'autres champs que l'écran des clients : le SIREN, le fixe, les liens et
- * les notes ne se saisissaient que depuis un espace, le capital et le RCS que
- * depuis la liste. Tout se modifie maintenant sur la page du client, et
- * l'onglet y mène, pour qui a le droit de la modifier.
+ * **It is no longer written from here.** The tab had its own form, with other
+ * fields than the customers screen: the SIREN, landline, links and notes
+ * could only be entered from a space, the capital and RCS only from the
+ * list. Everything is now edited on the customer's page, and the tab leads
+ * there, for whoever has the right to edit it.
  */
 final readonly class SpaceInformationViewBuilder
 {
@@ -46,13 +47,12 @@ final readonly class SpaceInformationViewBuilder
     }
 
     /**
-     * La page du client, ou null pour qui ne pourrait pas y modifier la fiche.
+     * The customer's page, or null for whoever could not edit the sheet there.
      *
-     * Les deux droits, parce que le lien s'appelle « Modifier la fiche » : la
-     * page demande de voir les clients, l'enregistrement de les modifier. Un
-     * lien vers un formulaire en lecture seule serait une promesse qu'il ne
-     * tient pas. Et rien quand le module des clients est éteint : sa page
-     * répondrait 404.
+     * Both rights, because the link is called "Modifier la fiche": the page
+     * requires viewing customers, the save editing them. A link to a read-only
+     * form would be a promise it does not keep. And nothing when the
+     * customers module is off: its page would answer 404.
      */
     private function customerPath(CustomerSpaceInterface $space): ?string
     {

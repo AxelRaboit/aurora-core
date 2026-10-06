@@ -9,10 +9,10 @@ use Doctrine\Migrations\AbstractMigration;
 use Override;
 
 /**
- * Une image par livrable, prise dans la médiathèque : la vignette de sa carte.
+ * One image per deliverable, taken from the media library: its card thumbnail.
  *
- * Facultative ; supprimer le document la retire du livrable. Aucun livrable
- * existant n'en reçoit.
+ * Optional; deleting the document removes it from the deliverable. No
+ * existing deliverable gets one.
  */
 final class Version20261004180000 extends AbstractMigration
 {

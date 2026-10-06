@@ -8,20 +8,20 @@ import { useProspectConversion } from "./useProspectConversion.js";
 import { customerFormFrom, customerFormRules } from "./customerFormModel.js";
 
 /**
- * La page d'un client : sa fiche entière en un formulaire, sa conversion et sa
- * suppression.
+ * A customer's page: their whole sheet in one form, their conversion and
+ * their deletion.
  *
- * **Le seul endroit où la fiche s'écrit.** Elle avait deux formulaires, celui
- * de la liste et celui de l'onglet Informations d'un espace, qui ne portaient
- * pas les mêmes champs ; tous vivent ici, et l'enregistrement passe par la
- * même route, avec les mêmes règles.
+ * **The only place where the sheet is written.** It had two forms, the
+ * list's and the one of a space's Informations tab, which did not carry the
+ * same fields; all of them live here, and the save goes through the same
+ * route, with the same rules.
  *
  * @param {object} options
- * @param {object} options.customer    la fiche telle que le serveur la rend
- * @param {string} options.indexPath   la liste, où l'on revient après une suppression
- * @param {string} options.updatePath  l'enregistrement de cette fiche
- * @param {string} options.convertPath gabarit portant `__id__`
- * @param {string} options.deletePath  gabarit portant `__id__`
+ * @param {object} options.customer    the sheet as the server returns it
+ * @param {string} options.indexPath   the list, returned to after a deletion
+ * @param {string} options.updatePath  the save of this sheet
+ * @param {string} options.convertPath template carrying `__id__`
+ * @param {string} options.deletePath  template carrying `__id__`
  */
 export function useCustomerPage({
     customer: initial,
@@ -32,7 +32,7 @@ export function useCustomerPage({
 }) {
     const { t } = useI18n();
 
-    /** La fiche enregistrée : l'entête et le titre la lisent, pas la saisie. */
+    /** The saved sheet: the header and the title read it, not the input. */
     const customer = ref(initial);
     const form = ref(customerFormFrom(initial));
 
@@ -51,8 +51,8 @@ export function useCustomerPage({
         url: () => updatePath,
         body: () => form.value,
         onSuccess: (data) => {
-            // Relue depuis la réponse : les chiffres d'un SIRET sont
-            // normalisés en chemin, et la page doit montrer ce que la base a.
+            // Read again from the response: a SIRET's digits are normalized
+            // on the way, and the page must show what the database has.
             if (data.customer) {
                 customer.value = data.customer;
                 form.value = customerFormFrom(data.customer);
@@ -62,10 +62,10 @@ export function useCustomerPage({
     });
 
     /**
-     * Quitter la page avec une saisie en cours le demande d'abord.
+     * Leaving the page with input in progress asks first.
      *
-     * Une fiche entière se remplit en plusieurs minutes, et un clic sur le
-     * fil d'Ariane les perdait sans un mot.
+     * A whole sheet takes several minutes to fill in, and a click on the
+     * breadcrumb lost them without a word.
      */
     let leaving = false;
 
@@ -94,8 +94,8 @@ export function useCustomerPage({
     } = useDelete(
         deletePath,
         () => {
-            // La page n'a plus d'objet : retour à la liste, et le message
-            // l'y suit plutôt que de disparaître avec cette page.
+            // The page has no purpose left: back to the list, and the message
+            // follows there rather than disappearing with this page.
             queueFlash("success", t("suite.studio.customers.deleted"));
             leaveFor(indexPath);
         },
@@ -103,11 +103,12 @@ export function useCustomerPage({
     );
 
     /**
-     * Convertir depuis la page.
+     * Convert from the page.
      *
-     * La route répond avec la liste entière ; la page y relit sa propre fiche,
-     * et ne reprend que ce que la conversion change - le statut et l'adresse -
-     * pour ne pas effacer une saisie en cours dans le reste du formulaire.
+     * The route answers with the whole list; the page reads its own sheet
+     * from it, and only takes what the conversion changes - the status and
+     * the address - so as not to erase input in progress in the rest of the
+     * form.
      */
     const conversion = useProspectConversion(convertPath, (data) => {
         const converted = (data?.customers ?? []).find(
@@ -116,8 +117,8 @@ export function useCustomerPage({
 
         if (!converted) return;
 
-        // Les lignes de la liste portent aussi ses espaces et ses contrats, que
-        // la page lit ailleurs : seuls les champs de la fiche sont repris.
+        // The list rows also carry their spaces and contracts, which the page
+        // reads elsewhere: only the sheet's fields are taken.
         const fields = { ...converted };
         delete fields.spaces;
         delete fields.contracts;

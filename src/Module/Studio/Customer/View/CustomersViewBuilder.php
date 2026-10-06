@@ -46,7 +46,7 @@ final readonly class CustomersViewBuilder
             'customers' => $this->customers(),
             'currencies' => $this->currencyOptions(),
             'createPath' => $this->urlGenerator->generate('suite_studio_customers_create'),
-            // La page de chaque client : la liste ne modifie plus, elle y mène.
+            // Each customer's page: the list no longer edits, it leads there.
             'showPath' => $this->pathTemplates->generate('suite_studio_customers_show', ['id' => '__id__']),
             'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
@@ -56,8 +56,8 @@ final readonly class CustomersViewBuilder
     /** @return list<array<string, mixed>> */
     public function customers(): array
     {
-        // Ses espaces avec lui, ceux que le lecteur voit : une fiche client
-        // ne disait pas quels projets tournaient pour lui.
+        // Their spaces along with them, the ones the reader sees: a customer
+        // sheet did not say which projects were running for them.
         $spacesByCustomer = [];
         foreach ($this->studioContext->areSpacesEnabled() ? $this->visibility->visibleSpaces() : [] as $space) {
             $spacesByCustomer[(int) $space->getCustomer()->getId()][] = [
@@ -68,8 +68,8 @@ final readonly class CustomersViewBuilder
             ];
         }
 
-        // Ses contrats aussi, en nombre, et la liste des contrats filtrée sur
-        // lui d'un clic : la fiche ne disait rien de ce qui avait été signé.
+        // Their contracts too, as a count, and the contracts list filtered on
+        // them in one click: the sheet said nothing of what had been signed.
         $contractsShown = $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view');
         $contractCounts = $contractsShown ? $this->contractRepository->countByCustomer() : [];
 
@@ -114,14 +114,12 @@ final readonly class CustomersViewBuilder
     }
 
     /**
-     * La page d'un client : toute sa fiche dans un formulaire, et ce qui
-     * l'entoure (ses espaces, ses contrats, ses livrables de Studio) en
-     * lecture.
+     * A customer's page: their whole sheet in a form, and what surrounds it
+     * (their spaces, contracts, Studio deliverables) read-only.
      *
-     * **Le seul endroit où la fiche s'écrit.** Elle avait deux formulaires qui
-     * ne portaient pas les mêmes champs, celui de la liste et celui de
-     * l'onglet Informations d'un espace ; ce dernier ne fait plus que la
-     * montrer et mener ici.
+     * **The only place where the sheet is written.** It had two forms that did
+     * not carry the same fields, the list's and the one of a space's
+     * Informations tab; the latter now only shows it and leads here.
      *
      * @return array<string, mixed>
      */
@@ -137,8 +135,8 @@ final readonly class CustomersViewBuilder
             'updatePath' => $this->urlGenerator->generate('suite_studio_customers_update', ['id' => $id]),
             'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
-            // La liste des espaces filtrée sur lui, et celle des contrats :
-            // ses listes complètes, au-delà de ce que la page résume.
+            // The spaces list filtered on them, and the contracts one: their
+            // complete lists, beyond what the page summarizes.
             'spacesPath' => $this->studioContext->areSpacesEnabled() && $this->authorizationChecker->isGranted('studio.spaces.view')
                 ? $this->urlGenerator->generate('suite_studio_spaces', ['customer' => $id])
                 : null,
@@ -149,11 +147,11 @@ final readonly class CustomersViewBuilder
     }
 
     /**
-     * Ce que répond l'enregistrement depuis la page : la fiche relue.
+     * What the save from the page answers: the sheet read again.
      *
-     * Relue plutôt que renvoyée depuis la saisie : les chiffres d'un SIRET
-     * sont normalisés en chemin, et un écran qui garderait ce qui a été tapé
-     * afficherait des espaces que la base n'a pas.
+     * Read again rather than echoed from the input: a SIRET's digits are
+     * normalized on the way, and a screen keeping what was typed would show
+     * spaces the database does not have.
      *
      * @return array<string, mixed>
      */

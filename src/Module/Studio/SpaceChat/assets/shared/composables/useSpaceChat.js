@@ -302,8 +302,8 @@ export function useSpaceChat(initial, paths, channelId = null) {
 
         currentChannel.value = id;
         messages.value = [];
-        // Une autre conversation, une autre histoire : ce qu'on savait du
-        // précédent fil ne dit rien de celui-ci.
+        // Another conversation, another story: what was known about the
+        // previous thread says nothing about this one.
         hasOlder.value = true;
 
         await reload();

@@ -15,28 +15,29 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Un espace dont on n'est pas membre n'existe pas.
+ * A space one is not a member of does not exist.
  *
- * **Posé sur les arguments plutôt que dans chaque contrôleur**, et c'est tout
- * l'intérêt. Une dizaine de contrôleurs reçoivent un espace aujourd'hui, la
- * discussion, les notes, les fichiers, le Drive, l'accès client ; en ajouter
- * un onzième est une chose qu'on fait sans y penser, et la ligne de contrôle
- * est exactement ce qu'on oublie alors. Ici, le contrôle arrive avec
- * l'argument.
- *
- * **Un 404 et non un 403.** Un refus explicite dirait à quelqu'un qui tâtonne
- * que l'espace numéro douze existe et appartient à un autre client. Du point
- * de vue d'un équipier qui n'en est pas membre, il n'y a rien à cette adresse.
- *
- * **La corbeille passe par ici aussi.** Un espace à la corbeille n'est vu de
- * personne ({@see SpaceVisibility::canSee()}), et un contenu à la corbeille,
- * avec son fil et ses fichiers, répond comme une fiche inconnue : chaque route
- * qui reçoit un contenu, un message ou un fichier d'un contenu le refuse sans
- * avoir à y penser. La corbeille agit sur eux par leur identifiant, jamais en
+ * **Set on the arguments rather than in each controller**, and that is the
+ * whole point. About ten controllers receive a space today, the
+ * conversation, the notes, the files, the Drive, the client access; adding an
+ * eleventh is something done without thinking, and the check line is
+ * exactly what gets forgotten then. Here, the check arrives with the
  * argument.
  *
- * Les routes publiques ne passent pas par là : elles résolvent un lien et ne
- * reçoivent jamais d'espace en argument. Leur contrôle, c'est le lien.
+ * **A 404 and not a 403.** An explicit refusal would tell someone probing
+ * that space number twelve exists and belongs to another customer. From the
+ * point of view of a teammate who is not a member, there is nothing at this
+ * address.
+ *
+ * **The trash goes through here too.** A space in the trash is seen by
+ * nobody ({@see SpaceVisibility::canSee()}), and a content item in the trash,
+ * with its thread and files, answers like an unknown record: every route that
+ * receives a content item, a message or a file of a content item refuses it
+ * without having to think about it. The trash acts on them by their id, never
+ * as an argument.
+ *
+ * Public routes do not go through here: they resolve a link and never
+ * receive a space as an argument. Their check is the link.
  */
 final readonly class SpaceVisibilitySubscriber implements EventSubscriberInterface
 {

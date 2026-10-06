@@ -1,10 +1,10 @@
 <script setup>
 /**
- * Perso ou partagé : le choix du rayon d'un livrable de Studio, le même à la
- * création et dans les réglages.
+ * Personal or shared: the choice of a Studio deliverable's shelf, the same at
+ * creation and in the settings.
  *
- * Deux grandes cases plutôt qu'un sélecteur : le choix engage (qui le lit),
- * et la phrase qui l'explique doit être lue, pas devinée derrière un clic.
+ * Two large boxes rather than a selector: the choice matters (who reads it),
+ * and the sentence explaining it must be read, not guessed behind a click.
  */
 import { useI18n } from "vue-i18n";
 import { Lock, Users } from "lucide-vue-next";
@@ -12,7 +12,7 @@ import { Lock, Users } from "lucide-vue-next";
 const scope = defineModel({ type: String, default: "personal" });
 
 defineProps({
-    /** Sans le droit de changer ce choix, les cases se lisent et ne bougent pas. */
+    /** Without the right to change this choice, the boxes can be read and do not move. */
     disabled: { type: Boolean, default: false },
 });
 

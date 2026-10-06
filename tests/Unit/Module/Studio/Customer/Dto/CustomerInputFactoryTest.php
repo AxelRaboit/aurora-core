@@ -108,7 +108,7 @@ final class CustomerInputFactoryTest extends TestCase
         self::assertSame('contact@societe.fr', $input->getContractualEmail());
     }
 
-    /** Le SIREN se tape par groupes de trois, comme il s'imprime ; il se range d'un seul tenant. */
+    /** The SIREN is typed in groups of three, as it is printed; it is stored in one piece. */
     public function testTheSirenKeepsOnlyItsDigits(): void
     {
         self::assertSame('112817044', $this->factory->fromArray(['siren' => ' 112 817 044 '])->getSiren());
@@ -116,8 +116,8 @@ final class CustomerInputFactoryTest extends TestCase
     }
 
     /**
-     * Une ligne de liens laissée vide tombe ; une ligne à moitié remplie reste,
-     * pour que la contrainte la signale sur sa ligne.
+     * A links row left empty is dropped; a half-filled row stays, so that the
+     * constraint flags it on its own row.
      */
     public function testAnEmptyLinkRowIsDroppedAndAHalfFilledOneKept(): void
     {
@@ -143,7 +143,7 @@ final class CustomerInputFactoryTest extends TestCase
         self::assertSame('Ouvert le samedi', $input->getInformationNotes());
     }
 
-    /** Le compte utilisateur est parti : un `userId` envoyé quand même n'est lu par rien. */
+    /** The user account is gone: a `userId` sent anyway is read by nothing. */
     public function testAnAccountIsNoLongerRead(): void
     {
         self::assertFalse(method_exists($this->factory->fromArray(['userId' => '7']), 'getUserId'));

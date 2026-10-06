@@ -99,8 +99,8 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
          the tabs now. The page is the tab. -->
     <div class="flex flex-col">
         <div class="flex-1 min-w-0 aurora-stack">
-            <!-- Le mode d'emploi de l'onglet, au-dessus de ses champs ;
-                 seuls les onglets génériques listés dans TAB_GUIDES en ont un. -->
+            <!-- The tab's how-to guide, above its fields; only the generic
+                 tabs listed in TAB_GUIDES have one. -->
             <AppGuide v-if="tabGuide" :title="t(`${tabGuide.namespace}.title`)" :storage-key="`settings-${activeTab}`">
                 <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                     <li v-for="step in tabGuide.steps" :key="step">{{ t(`${tabGuide.namespace}.step_${step}`) }}</li>

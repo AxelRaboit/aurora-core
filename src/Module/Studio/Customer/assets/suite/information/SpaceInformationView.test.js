@@ -6,12 +6,11 @@ import SpaceInformationView from "./SpaceInformationView.vue";
 const i18n = createTestI18n();
 
 /**
- * La fiche d'un client, vue depuis son espace.
+ * A customer's sheet, seen from their space.
  *
- * **En lecture.** Elle se modifie sur la page du client, et l'onglet y mène.
- * Ce qui se casserait en silence : un formulaire qui reviendrait ici, et la
- * fiche aurait de nouveau deux endroits pour s'écrire, avec deux listes de
- * champs.
+ * **Read-only.** It is edited on the customer's page, and the tab leads
+ * there. What would break silently: a form coming back here, and the sheet
+ * would again have two places to be written, with two lists of fields.
  */
 const FICHE = {
     legalName: "Atelier Temoin",

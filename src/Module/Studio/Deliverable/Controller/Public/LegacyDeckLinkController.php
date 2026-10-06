@@ -12,17 +12,18 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * Les adresses des présentations partagées, d'avant leur passage aux
- * livrables : `/decks/{jeton}` renvoie pour de bon vers `/deliverables/{jeton}`.
+ * The addresses of shared presentations, from before they moved to
+ * deliverables: `/decks/{jeton}` redirects for good to
+ * `/deliverables/{jeton}`.
  *
- * La migration a recopié chaque lien de partage en lien de lecture avec le
- * même jeton : l'adresse déjà envoyée à un client continue de mener au même
- * document. Rien n'est cherché ici : c'est la page de lecture qui juge le
- * jeton, avec ses règles (expiré, révoqué, mot de passe, module éteint), et
- * un jeton inconnu y répond le même 404 qu'avant.
+ * The migration copied each share link into a reading link with the same
+ * token: the address already sent to a client keeps leading to the same
+ * document. Nothing is looked up here: the reading page judges the token,
+ * with its rules (expired, revoked, password, module off), and an unknown
+ * token answers the same 404 as before there.
  *
- * Nommées `public_deliverable_from_deck` : elles s'éteignent avec Studio,
- * comme toute page de lecture, cf. `StudioRouteGateSubscriber`.
+ * Named `public_deliverable_from_deck`: they switch off with Studio, like
+ * every reading page, see `StudioRouteGateSubscriber`.
  */
 #[Route('/decks', name: 'public_deliverable_from_deck')]
 final class LegacyDeckLinkController extends AbstractController
@@ -36,8 +37,8 @@ final class LegacyDeckLinkController extends AbstractController
     }
 
     /**
-     * Le formulaire du mot de passe d'une page restée ouverte avant la mise à
-     * jour : renvoyé lui aussi, la page de lecture redemande le mot de passe.
+     * The password form of a page left open from before the update:
+     * redirected too, and the reading page asks for the password again.
      */
     #[Route('/{token}/unlock', name: '_unlock', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Post->value])]
     public function unlock(string $token): RedirectResponse

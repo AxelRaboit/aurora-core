@@ -46,14 +46,14 @@ const props = defineProps({
     storageRelocationAvailable: { type: Boolean, default: false },
     alternatesPath: { type: String, default: "" },
     showPath: { type: String, default: "" },
-    /** De quoi ranger le document, comme dans la médiathèque. */
+    /** What to file the document with, as in the media library. */
     categories: { type: Array, default: () => [] },
     tags: { type: Array, default: () => [] },
     folders: { type: Array, default: () => [] },
 });
 
-// La fenêtre « Modifier » range le document comme celle de la médiathèque :
-// catégorie, étiquettes et dossier, et pas seulement son titre et son statut.
+// The "Modifier" window files the document like the media library one does:
+// category, tags and folder, and not only its title and status.
 const categoryOptions = computed(() => props.categories.map((category) => ({ value: category.id, label: category.name })));
 const tagOptions = computed(() => props.tags.map((tag) => ({ value: tag.id, label: tag.name })));
 const folderOptions = computed(() => withDepthLabel(flattenFolders(buildFolderTree(props.folders, byPosition))));
@@ -182,8 +182,8 @@ function isPdf(mimeType) {
             </template>
         </AppMessage>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.ged.documents.show_guide.title')" storage-key="ged-document-show">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.ged.documents.show_guide.step_${step}`) }}</li>

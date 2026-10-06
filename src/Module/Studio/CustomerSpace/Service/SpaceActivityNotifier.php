@@ -173,9 +173,9 @@ final readonly class SpaceActivityNotifier
         ?SpaceContentItemInterface $item = null,
         array $query = [],
     ): void {
-        // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
-        // Sur la fiche quand il y en a une : ouvrir l'espace sur la dernière
-        // vue utilisée envoyait chercher la carte à la main.
+        // A path, not an absolute address: cf. NotificationManagerInterface::notify().
+        // On the record when there is one: opening the space on the last view
+        // used sent people looking for the card by hand.
         $url = $this->urlGenerator->generate(
             'workspace_space_content',
             ['id' => $space->getId(), ...($item instanceof SpaceContentItemInterface ? ['item' => $item->getId()] : []), ...$query],

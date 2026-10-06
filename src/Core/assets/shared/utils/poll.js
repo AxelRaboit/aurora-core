@@ -1,12 +1,12 @@
 /**
- * Le sondage d'une zone - `[data-poll]`.
+ * The poll of a zone - `[data-poll]`.
  *
- * Envoie la réponse choisie, puis remplace les boutons par les résultats. Le
- * serveur ne compte qu'un vote par lecteur ; ce navigateur retient en plus
- * qu'il a voté ici, pour montrer les résultats d'emblée à la visite suivante
- * au lieu de proposer un vote qui ne compterait pas.
+ * Sends the chosen answer, then replaces the buttons with the results. The
+ * server counts only one vote per reader; this browser also remembers that
+ * it voted here, to show the results straight away on the next visit instead
+ * of offering a vote that would not count.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_poll.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_poll.html.twig
  */
 const SELECTOR = "[data-poll]";
 const STORAGE_PREFIX = "aurora-poll:";
@@ -23,11 +23,11 @@ function remember(key) {
     try {
         window.localStorage.setItem(STORAGE_PREFIX + key, "1");
     } catch {
-        // Stockage refusé : le serveur, lui, a compté le vote.
+        // Storage refused: the server, for its part, has counted the vote.
     }
 }
 
-/** Écrit les résultats dans la zone : barres, pourcentages et total. */
+/** Writes the results into the zone: bars, percentages and total. */
 export function showResults(poll, results) {
     const buttons = [...poll.querySelectorAll("[data-poll-answer]")];
 
@@ -86,7 +86,7 @@ function arm() {
 
         const answers = [...poll.querySelectorAll("[data-poll-answer]")];
 
-        // Déjà voté ici : les résultats sont ceux que la page a apportés.
+        // Already voted here: the results are the ones the page brought.
         if (remembered(poll.dataset.pollKey)) {
             const results = {
                 total: Number(

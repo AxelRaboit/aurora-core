@@ -8,12 +8,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * La table des instances déployées, alimentée par le beacon.
+ * The table of deployed instances, fed by the beacon.
  *
- * Un enregistrement par instance (clé unique `instance_id`), mis à jour à
- * chaque ping plutôt qu'ajouté : la table reste de la taille du nombre de
- * déploiements vivants. Sert à repérer une mise en production non autorisée du
- * code (voir LICENSE).
+ * One record per instance (unique key `instance_id`), updated on every ping
+ * rather than appended: the table stays the size of the number of live
+ * deployments. Used to spot an unauthorised production deployment of the
+ * code (see LICENSE).
  */
 final class Version20261003180000 extends AbstractMigration
 {

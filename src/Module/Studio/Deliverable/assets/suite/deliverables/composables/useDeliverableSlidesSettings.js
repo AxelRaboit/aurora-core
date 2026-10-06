@@ -4,17 +4,17 @@ import { toast } from "vue-sonner";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
- * Ce que la fenêtre « Réglages » d'un diaporama envoie à l'enregistrement d'un
- * livrable : tout ce que l'éditeur d'une page enverrait, pour que la même
- * route serve les deux formats.
+ * What a slideshow's "Réglages" dialog sends to the deliverable save: all
+ * that a page's editor would send, so that the same route serves both
+ * formats.
  *
- * **Sans la date de modification.** L'éditeur de diapositives enregistre une
- * diapositive à chaque pas, et chaque écriture date le livrable : la date reçue
- * à l'ouverture serait toujours périmée, et la route répondrait « un collègue
- * a enregistré avant vous » à chaque réglage. Les réglages ne touchent pas aux
- * diapositives : rien ne s'écrase.
+ * **Without the modification date.** The slide editor saves a slide at every
+ * step, and each write dates the deliverable: the date received on opening
+ * would always be stale, and the route would answer "a colleague saved
+ * before you" on every setting. The settings do not touch the slides:
+ * nothing gets overwritten.
  *
- * @param {object} form le livrable tel que le sérialise l'éditeur
+ * @param {object} form the deliverable as the editor serializes it
  */
 export function settingsPayload(form) {
     return {
@@ -40,15 +40,15 @@ export function settingsPayload(form) {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 /**
- * Les réglages d'un livrable au format diaporama, dans une fenêtre : le titre,
- * le résumé, l'image, la catégorie, le client, la case « modèle » et le rayon.
+ * A slideshow deliverable's settings, in a dialog: the title, the summary,
+ * the image, the category, the client, the "modèle" box and the shelf.
  *
- * Une fenêtre plutôt qu'un onglet : l'éditeur de diapositives n'a pas
- * d'onglets, et ces réglages se changent rarement. Ouvrir repart toujours de
- * ce qui est enregistré : une saisie abandonnée ne revient pas.
+ * A dialog rather than a tab: the slide editor has no tabs, and these
+ * settings rarely change. Opening always starts again from what is saved: an
+ * abandoned input does not come back.
  *
  * @param {{ deliverable: object, updatePath: string }} props
- * @param {{ onSaved?: Function }} [options] reçoit le livrable enregistré
+ * @param {{ onSaved?: Function }} [options] receives the saved deliverable
  */
 export function useDeliverableSlidesSettings(props, { onSaved = null } = {}) {
     const { t } = useI18n();

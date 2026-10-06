@@ -67,8 +67,8 @@ class CustomerSpacesController extends AbstractController
     }
 
     /**
-     * À la corbeille, pas détruit : il y reste le délai commun à toutes les
-     * corbeilles, et tout revient s'il en sort.
+     * To the trash, not destroyed: it stays there for the delay shared by
+     * every trash, and everything comes back if it leaves it.
      */
     #[Route('/{id}/delete', name: '_delete', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.delete')]
@@ -80,9 +80,9 @@ class CustomerSpacesController extends AbstractController
     }
 
     /**
-     * Sortir un espace de la corbeille : c'est ce que l'écran de la corbeille
-     * appelle. Le droit qui l'y a mis, sur un espace de son équipe ; un
-     * espace qu'on ne verrait pas répond 404.
+     * Take a space out of the trash: that is what the trash screen calls. The
+     * right that put it there, on a space of one's team; a space that would
+     * not be visible answers 404.
      */
     #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.delete')]
@@ -93,7 +93,7 @@ class CustomerSpacesController extends AbstractController
         return $this->jsonSuccess();
     }
 
-    /** Détruire pour de bon un espace de la corbeille, avec tout ce qu'il contient. */
+    /** Destroy a space in the trash for good, with everything it holds. */
     #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.delete')]
     public function forceDelete(int $id): JsonResponse
@@ -103,7 +103,7 @@ class CustomerSpacesController extends AbstractController
         return $this->jsonSuccess();
     }
 
-    /** Vider la corbeille des espaces : seulement ceux que la personne y voit. */
+    /** Empty the spaces trash: only the ones the person sees there. */
     #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.delete')]
     public function emptyTrash(): JsonResponse
@@ -121,7 +121,7 @@ class CustomerSpacesController extends AbstractController
         return $this->jsonSuccess(['deleted' => $deleted]);
     }
 
-    /** Un espace à la corbeille que la personne peut voir, ou 404. */
+    /** A space in the trash that the person can see, or 404. */
     private function trashed(int $id): CustomerSpaceInterface
     {
         $space = $this->spaces->findTrashed($id);

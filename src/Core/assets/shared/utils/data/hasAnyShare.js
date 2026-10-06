@@ -1,14 +1,13 @@
 /**
- * Est-ce qu'une répartition a quelque chose à montrer ?
+ * Does a breakdown have anything to show?
  *
- * Une barre de répartition reçoit un segment par catégorie connue, qu'elle
- * soit remplie ou non : trois statuts de commentaire donnent trois segments
- * même sans un seul commentaire. Compter les segments répondait donc « oui »
- * à un site qui n'a rien, et le tableau de bord affichait une carte titrée
- * au-dessus d'une barre vide.
+ * A breakdown bar receives one segment per known category, filled or not:
+ * three comment statuses give three segments even without a single comment.
+ * Counting the segments therefore answered "yes" for a site that has
+ * nothing, and the dashboard showed a titled card above an empty bar.
  *
- * La question utile est celle-ci, et elle se pose au même endroit pour les
- * quatre répartitions du tableau de bord.
+ * This is the useful question, and it is asked in the same place for the
+ * four breakdowns of the dashboard.
  *
  * @param {Array<{value?: number}>} segments
  */

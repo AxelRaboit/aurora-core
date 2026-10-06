@@ -56,8 +56,8 @@ const slides = props.deck.slides ?? [];
                 </p>
             </div>
 
-            <!-- Le seul geste de la page prend la ligne sur téléphone : c'est
-                 un client qui l'ouvre, souvent sur son écran d'accueil. -->
+            <!-- The page's only action takes the full line on a phone: a client
+                 opens it, often from their home screen. -->
             <AppButton
                 v-if="slides.length"
                 class="w-full sm:w-auto"

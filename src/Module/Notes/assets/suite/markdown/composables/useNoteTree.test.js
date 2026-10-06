@@ -3,12 +3,12 @@ import { nextTick, ref } from "vue";
 import { useNoteTree } from "./useNoteTree.js";
 
 /**
- * L'arborescence, qui ne porte plus que des dossiers.
+ * The tree, which now only carries folders.
  *
- * Elle portait des notes, du temps où une note qui avait des enfants tenait
- * lieu de dossier. Ce que ces cas gardent de l'ancienne suite, c'est la règle
- * qui compte : un ancêtre d'un résultat reste affiché, sans quoi le résultat
- * n'a plus de branche à laquelle se rattacher.
+ * It used to carry notes, back when a note with children stood in for a
+ * folder. What these cases keep from the old suite is the rule that matters:
+ * an ancestor of a result stays shown, otherwise the result has no branch
+ * left to hang from.
  */
 function collectIds(nodes) {
     return nodes.flatMap((node) => [
@@ -58,12 +58,12 @@ describe("useNoteTree", () => {
     });
 
     /**
-     * Le dépliage sert à voir ce qui est rangé : les notes sont dans
-     * l'arbre, à la suite des sous-dossiers de leur dossier.
+     * Expanding is for seeing what is filed: the notes are in the tree,
+     * after the subfolders of their folder.
      */
     it("files the notes under their folder, in their rank among the sub-folders", () => {
-        // Les rangs que la migration a donnés : les dossiers d'abord, puis
-        // les notes, à la suite.
+        // The ranks the migration gave: folders first, then the notes,
+        // after them.
         const notes = [
             { id: 11, folderId: 1, title: "Devis", position: 2 },
             { id: 12, folderId: null, title: "À la racine", position: 2 },
@@ -79,21 +79,21 @@ describe("useNoteTree", () => {
             "note",
         ]);
 
-        // Ce qui n'est rangé nulle part ferme la liste, à côté des dossiers.
+        // What is filed nowhere closes the list, next to the folders.
         expect(tree.value.at(-1)).toMatchObject({ kind: "note", id: 12 });
     });
 
     /**
-     * Dossiers et notes partagent un seul ordre : une note rangée avant un
-     * dossier passe avant lui, ce que l'arbre refusait.
+     * Folders and notes share a single order: a note filed before a folder
+     * comes before it, which the tree used to refuse.
      */
     it("puts a note before a folder when its rank says so", () => {
         const notes = [{ id: 11, folderId: 1, title: "Tâches", position: 0 }];
 
         const { tree } = useNoteTree(ref(FOLDERS), null, ref(notes));
 
-        // Rang 0 pour la note comme pour « Studio Lumen » : à égalité, le
-        // dossier d'abord, puis la note avant « Cabinet Verrier » (rang 1).
+        // Rank 0 for the note as for "Studio Lumen": on a tie, the folder
+        // first, then the note before "Cabinet Verrier" (rank 1).
         expect(
             tree.value[0].children.map((child) => `${child.kind}:${child.id}`),
         ).toEqual(["folder:2", "note:11", "folder:3"]);
@@ -109,7 +109,7 @@ describe("useNoteTree", () => {
         expect(collectIds(tree.value)).toContain(11);
     });
 
-    /** Le texte d'une note est au serveur : il arrive par ses identifiants. */
+    /** A note's text is on the server: it arrives through its ids. */
     it("takes the content matches the server resolved", () => {
         const notes = [{ id: 11, folderId: 1, title: "Sans rapport" }];
 

@@ -31,14 +31,14 @@ const props = defineProps({
      */
     monthOnly: { type: Boolean, default: false },
     /**
-     * Le fuseau dans lequel l'heure se lit et se tape, avec `enableTime`.
+     * The time zone in which the time is read and typed, with `enableTime`.
      *
-     * Sans lui, le champ suit le navigateur et rend une heure nue
-     * (`2026-10-02T09:00`), que le serveur interprète à sa façon. Avec lui,
-     * une valeur reçue avec son décalage s'affiche à l'heure de ce fuseau, et
-     * le champ rend l'heure tapée avec le décalage qui s'y applique
-     * (`2026-10-02T09:00:00+02:00`) : 9 h veut dire 9 h à l'heure du site,
-     * quel que soit le réglage de l'ordinateur.
+     * Without it, the field follows the browser and returns a bare time
+     * (`2026-10-02T09:00`), which the server interprets its own way. With it, a
+     * value received with its offset is shown at the time of that zone, and the
+     * field returns the typed time with the offset that applies to it
+     * (`2026-10-02T09:00:00+02:00`): 9:00 means 9:00 in the site's time,
+     * whatever the computer's setting.
      */
     timeZone: { type: String, default: "" },
 });
@@ -46,53 +46,54 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 /**
- * Les formats acceptés au clavier, du plus courant au plus toléré.
+ * The formats accepted from the keyboard, from the most common to the most
+ * tolerated.
  *
- * Le champ ressemble à un champ de texte, donc il se tape. Avant, une date
- * tapée s'affichait puis disparaissait à la fermeture du calendrier, sans un
- * mot : le composant n'écoutait que les clics. Le premier format est celui
- * que rend le composant, les suivants sont ce qu'une personne écrit d'elle
- * même.
+ * The field looks like a text field, so people type in it. Before, a typed
+ * date was shown and then disappeared when the calendar closed, without a
+ * word: the component only listened to clicks. The first format is the one
+ * the component returns, the next ones are what a person writes on their
+ * own.
  *
- * Le mois seul a les siens : `2026-05` et `05/2026`.
+ * Month only has its own: `2026-05` and `05/2026`.
  */
 const TEXT_FORMATS = ["dd/MM/yyyy", "yyyy-MM-dd", "ddMMyyyy", "dd-MM-yyyy", "dd.MM.yyyy"];
 const TIME_FORMATS = ["dd/MM/yyyy HH:mm", "yyyy-MM-dd HH:mm"];
 const MONTH_FORMATS = ["MM/yyyy", "yyyy-MM"];
 
 /**
- * Les formats que ce champ accepte, dans l'ordre.
+ * The formats this field accepts, in order.
  *
- * Un seul endroit pour les deux usages : ce qui est affiché est le premier de
- * la liste, ce qui est accepté au clavier est la liste entière.
+ * One place for both uses: what is displayed is the first in the list, what
+ * is accepted from the keyboard is the whole list.
  */
 const acceptedFormats = computed(
     () => props.monthOnly ? MONTH_FORMATS : (props.enableTime ? TIME_FORMATS : TEXT_FORMATS),
 );
 
 /**
- * Ce que le champ affiche, et non ce que le navigateur préfère.
+ * What the field displays, and not what the browser prefers.
  *
- * Sans cette ligne, `VueDatePicker` rend la date avec son format par défaut,
- * qui suit la machine plutôt que l'application : un back-office français
- * affichait `09/20/2026, 20:00` pour le 20 septembre. Le docblock au-dessus
- * annonçait déjà que « le premier format est celui que rend le composant » -
- * c'était une intention, pas une implémentation.
+ * Without this line, `VueDatePicker` renders the date with its default
+ * format, which follows the machine rather than the application: a French
+ * back office showed `09/20/2026, 20:00` for 20 September. The docblock above
+ * already announced that "the first format is the one the component
+ * returns" - it was an intention, not an implementation.
  *
- * C'est le même défaut que celui qui avait fait remplacer les `datetime-local`
- * natifs par ce composant : une date lue de travers n'est pas une date
- * illisible, c'est une date comprise à l'envers.
+ * It is the same defect as the one that had the native `datetime-local`
+ * fields replaced by this component: a date read the wrong way is not an
+ * unreadable date, it is a date understood backwards.
  *
- * Passé par `formats.input` : depuis sa version 12, la bibliothèque ne lit plus
- * `format`, et l'ignorait sans un mot (tout le back-office affichait de
- * nouveau `11/05/2026, 01:00` pour le 5 novembre).
+ * Passed through `formats.input`: since its version 12, the library no longer
+ * reads `format`, and ignored it without a word (the whole back office again
+ * showed `11/05/2026, 01:00` for 5 November).
  */
 const displayFormat = computed(() => acceptedFormats.value[0]);
 
 const textInput = computed(() => ({
     format: acceptedFormats.value,
-    // Entrée valide la saisie, et une saisie que le composant ne sait pas
-    // lire laisse la valeur précédente plutôt que de vider le champ.
+    // Enter validates the input, and an input the component cannot read leaves
+    // the previous value rather than emptying the field.
     enterSubmit: true,
     tabSubmit: true,
     openMenu: "open",
@@ -100,7 +101,7 @@ const textInput = computed(() => ({
 
 const HAS_OFFSET = /(?:[zZ]|[+-]\d{2}:?\d{2})$/;
 
-/** Le fuseau demandé, s'il est connu de ce navigateur ; sinon celui du navigateur. */
+/** The requested time zone, if this browser knows it; otherwise the browser's own. */
 const zone = computed(() => (isKnownZone(props.timeZone) ? props.timeZone : ""));
 
 function onUpdate(val) {
@@ -133,8 +134,8 @@ const internalValue = computed(() => {
         if (!match) return null;
         return { year: Number.parseInt(match[1], 10), month: Number.parseInt(match[2], 10) - 1 };
     }
-    // Une valeur qui porte son décalage est un instant : on la montre à
-    // l'heure du fuseau demandé. Une heure nue est déjà une heure de ce fuseau.
+    // A value that carries its offset is an instant: it is shown at the time of
+    // the requested zone. A bare time is already a time in that zone.
     const value = zone.value && props.enableTime && HAS_OFFSET.test(props.modelValue)
         ? toDisplay(props.modelValue, zone.value)
         : props.modelValue;
@@ -166,16 +167,16 @@ const internalValue = computed(() => {
 </template>
 
 <style>
-/* Le champ du calendrier, peint comme AppInput.
+/* The calendar field, painted like AppInput.
  *
- * Il n'est pas rendu par nous - la bibliotheque pose son propre `input` - donc
- * il ne peut pas porter les classes utilitaires des autres champs, et ces
- * regles sont la traduction litterale de celles d'AppInput. Le liseré de
- * focus etait un indigo ecrit en dur : sur un site dont l'accent n'est pas
- * l'indigo, un seul champ du formulaire s'allumait de la mauvaise couleur.
+ * It is not rendered by us - the library sets its own `input` - so it
+ * cannot carry the utility classes of the other fields, and these rules are
+ * the literal translation of AppInput's. The focus ring was a hard-coded
+ * indigo: on a site whose accent is not indigo, a single field of the form
+ * lit up in the wrong colour.
  *
- * Toute retouche d'AppInput doit passer ici, faute de quoi les deux champs se
- * remettent a diverger. */
+ * Any change to AppInput must go through here, or the two fields start
+ * diverging again. */
 .dp-custom-input {
     width: 100%;
     border-radius: 0.375rem;

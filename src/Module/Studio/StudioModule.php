@@ -126,8 +126,8 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             $items[] = $this->contractsNavItem();
         }
 
-        // Les documents qu'on écrit pour quelqu'un, pages et présentations :
-        // une seule entrée depuis que les présentations sont des livrables.
+        // The documents written for someone, pages and presentations: a single
+        // entry since presentations became deliverables.
         if ($this->studioContext->areDeliverablesEnabled()) {
             $items[] = $this->deliverablesNavItem();
         }
@@ -167,8 +167,8 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             'suite.nav.studio_contracts',
             'file-signature',
             requiredPrivilege: 'studio.contracts.view',
-            // Lit aussi les pages des trames, son second onglet : sans ce
-            // préfixe, ouvrir une trame éteignait l'entrée.
+            // Also reads the templates' pages, its second tab: without this
+            // prefix, opening a template switched the entry off.
             activeRoutePrefix: 'suite_studio_contract',
             descriptionKey: 'suite.nav.studio_contracts_description',
         );

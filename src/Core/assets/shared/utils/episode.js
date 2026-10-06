@@ -1,11 +1,11 @@
 /**
- * Les chapitres d'un épisode audio - `[data-episode-seek]`.
+ * The chapters of an audio episode - `[data-episode-seek]`.
  *
- * Un chapitre est un bouton qui place le lecteur de sa zone au bon moment et
- * lance la lecture. Sans ce module, les chapitres restent une table des
- * matières lisible, avec leurs minutages.
+ * A chapter is a button that moves the player of its zone to the right
+ * moment and starts playback. Without this module, the chapters stay a
+ * readable table of contents, with their timings.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/_grid_zone.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/_grid_zone.html.twig
  */
 function arm() {
     document.querySelectorAll("[data-episode-seek]").forEach((button) => {

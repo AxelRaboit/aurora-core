@@ -11,17 +11,17 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 interface NoteFavoriteManagerInterface
 {
     /**
-     * Épingle, ou décroche ce qui l'était.
+     * Pins, or unpins what was pinned.
      *
-     * @return bool vrai quand l'élément est épinglé à la sortie
+     * @return bool true when the item is pinned on return
      */
     public function toggle(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): bool;
 
-    /** L'heure où cet élément a été épinglé par cette personne, ou rien. */
+    /** When this item was pinned by this person, or nothing. */
     public function favoritedAt(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): ?string;
 
     /**
-     * Ce qu'une personne a épinglé, par identifiant, avec l'heure du geste.
+     * What a person has pinned, by id, with the time of the action.
      *
      * @return array{notes: array<int, string>, folders: array<int, string>}
      */

@@ -177,12 +177,12 @@
     background-color: var(--color-border);
 }
 
-/* Le separateur ressemble a ce qu'il produit.
+/* The delimiter looks like what it produces.
  *
- * @editorjs/delimiter dessine trois asterisques dans l'editeur, alors que le
- * rendu public est un <hr>. L'ecart suffit a ce qu'on cherche l'outil sans le
- * reconnaitre : trois etoiles ne se lisent pas comme une ligne de separation.
- * On affiche donc dans l'editeur ce que le lecteur verra. */
+ * @editorjs/delimiter draws three asterisks in the editor, whereas the public
+ * rendering is an <hr>. The gap is enough for people to look for the tool
+ * without recognising it: three stars do not read as a separator line. The
+ * editor therefore shows what the reader will see. */
 .codex-editor .ce-delimiter {
     display: flex;
     align-items: center;
@@ -198,15 +198,15 @@
     border-top: 1px solid var(--color-border);
 }
 
-/* Le bloc HTML brut, rendu utilisable et accorde au theme.
+/* The raw HTML block, made usable and matched to the theme.
  *
- * Sa feuille livree ne fixe aucune largeur : sans `width`, un <textarea>
- * retombe sur son attribut `cols`, soit une vingtaine de caracteres. Pour du
- * HTML ecrit a la main, c'est inutilisable.
+ * Its shipped stylesheet sets no width: without `width`, a <textarea> falls
+ * back on its `cols` attribute, about twenty characters. For HTML written by
+ * hand, that is unusable.
  *
- * Elle code aussi ses couleurs en dur, en sombre : sur une suite en theme
- * clair, la zone de saisie restait noire au milieu d'une page blanche. Les
- * jetons du projet reglent les deux cas d'un coup. */
+ * It also hard-codes its colours, in dark: on a suite with a light theme, the
+ * input area stayed black in the middle of a white page. The project tokens
+ * settle both cases at once. */
 .codex-editor .ce-rawtool__textarea {
     width: 100%;
     box-sizing: border-box;
@@ -221,14 +221,14 @@
     outline-offset: -1px;
 }
 
-/* La sélection, en couleur du thème plutôt qu'en bleu pâle.
+/* The selection, in the theme colour rather than pale blue.
 
-   Editor.js impose `#d4ecff` à la sélection de texte et `#e1f2ff` aux blocs
-   sélectionnés : deux bleus pensés pour un fond blanc. Sur un thème sombre,
-   le texte clair disparaissait dedans au moment précis où on le choisissait.
-   L'accent du thème à 35 %, sans toucher à la couleur du texte, se lit sur les
-   deux fonds. Un cran de plus que le sélecteur d'Editor.js
-   (`.codex-editor ::selection`), qui est injecté après cette feuille. */
+   Editor.js forces `#d4ecff` on text selection and `#e1f2ff` on selected
+   blocks: two blues designed for a white background. On a dark theme, the
+   light text disappeared into them at the very moment it was being chosen.
+   The theme accent at 35%, without touching the text colour, reads on both
+   backgrounds. One notch more specific than the Editor.js selector
+   (`.codex-editor ::selection`), which is injected after this sheet. */
 .editor-block-holder .codex-editor ::selection,
 .codex-editor .ce-block ::selection {
     background-color: color-mix(in srgb, var(--color-accent-500) 35%, transparent);

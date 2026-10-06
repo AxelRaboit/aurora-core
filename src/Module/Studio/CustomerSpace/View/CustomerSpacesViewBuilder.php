@@ -49,9 +49,9 @@ final readonly class CustomerSpacesViewBuilder
     {
         return [
             'spaces' => $this->spaces(),
-            // Ce que chaque espace a fait déposer, en une requête. Sans ce
-            // chiffre, « quel client remplit mon disque » se répond en ouvrant
-            // les espaces un par un, donc ne se répond pas.
+            // What each space has had uploaded, in one query. Without this
+            // number, "which customer fills my disk" is answered by opening
+            // the spaces one by one, so it is not answered.
             'storage' => $this->storageUsage->bySpace(),
             ...$this->formOptions(),
             'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
@@ -74,8 +74,9 @@ final readonly class CustomerSpacesViewBuilder
     {
         return [
             'customers' => $this->customerOptions(),
-            // Ouvrir un espace pour un inconnu crée sa fiche client : le
-            // formulaire ne propose ce chemin qu'à qui peut créer un client.
+            // Opening a space for someone unknown creates their customer
+            // sheet: the form only offers this path to whoever can create a
+            // customer.
             'canCreateCustomer' => $this->authorizationChecker->isGranted('studio.customers.create'),
             'users' => $this->userOptions(),
             'statuses' => $this->statusOptions(),
@@ -119,15 +120,15 @@ final readonly class CustomerSpacesViewBuilder
     /** @return list<array<string, mixed>> */
     public function spaces(): array
     {
-        // Les siens, ou tous pour un administrateur : la règle vit dans
-        // `SpaceVisibility`, pas ici, parce que trois écrans se la posent.
-        // `canConfigure` par ligne : l'équipe et les rôles d'un espace sont
-        // l'affaire de son chef, et le formulaire les montre en lecture seule
-        // aux autres plutôt que de laisser le serveur refuser après coup.
+        // Their own, or all for an administrator: the rule lives in
+        // `SpaceVisibility`, not here, because three screens ask it.
+        // `canConfigure` per row: a space's team and roles are its lead's
+        // business, and the form shows them read-only to the others rather
+        // than letting the server refuse afterwards.
         //
-        // `workload` : ce qui attend dans chaque espace, compté par
-        // `SpaceWorkload` comme au tableau de bord, en une requête pour toute
-        // la liste. Null pour un espace archivé, dont le travail est fini.
+        // `workload`: what is waiting in each space, counted by
+        // `SpaceWorkload` as on the dashboard, in one query for the whole
+        // list. Null for an archived space, whose work is done.
         $spaces = $this->visibility->visibleSpaces();
         $workload = [];
         foreach ($this->workload->forSpaces($spaces) as $row) {

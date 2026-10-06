@@ -154,9 +154,9 @@ class SpaceContentController extends AbstractController
         // refused, and a refused connection looks exactly like a hub that is
         // down - which is how this line came to be missing long enough to be
         // noticed on screen rather than in a test.
-        // Les canaux que ce lecteur entend, pas ceux de l'espace : le jeton
-        // nomme ses sujets un par un, et un canal interne dont il n'est pas
-        // n'y figure pas.
+        // The channels this reader hears, not the space's: the token names its
+        // topics one by one, and an internal channel they are not part of is
+        // not among them.
         $cookie = $this->chatHub->subscriptionCookie($request, $rooms);
 
         if ($cookie instanceof Cookie) {
@@ -246,9 +246,9 @@ class SpaceContentController extends AbstractController
     ): JsonResponse {
         $this->assertOwned($space, $item->getSpace()->getId());
 
-        // À la corbeille, pas détruit : son fil et ses fichiers restent
-        // attachés pour une restauration, donc aucun fichier n'est laissé sans
-        // usage et il n'y a rien à proposer de jeter.
+        // To the trash, not destroyed: its thread and files stay attached for
+        // a restore, so no file is left unused and there is nothing to offer
+        // to throw away.
         $this->itemManager->trash($item);
 
         return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
@@ -358,10 +358,9 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'suite.studio.space_content.errors.attachment_required']);
         }
 
-        // La même règle que sur une note et que sur un dépôt d'invité : ce qui
-        // monte passe par la politique de l'administrateur. Sans elle, le seul
-        // plafond était celui de PHP, et un type refusé partout ailleurs
-        // entrait ici.
+        // The same rule as on a note and on a guest upload: what is uploaded
+        // goes through the administrator's policy. Without it, the only cap
+        // was PHP's, and a type refused everywhere else got in here.
         $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
@@ -483,8 +482,8 @@ class SpaceContentController extends AbstractController
     ): Response {
         $this->assertOwned($space, $attachment->getItem()->getSpace()->getId());
 
-        // Servi par le service commun : local déchargé par le serveur
-        // web, distant diffusé par morceaux, privé une heure.
+        // Served by the common service: local offloaded to the web server,
+        // remote streamed in chunks, private for an hour.
         return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
     }
 
@@ -499,8 +498,8 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
-        // Une étape naît cachée au client ; la créer montrée, c'est la
-        // montrer, et cela demande le droit de partager l'espace.
+        // A stage is born hidden from the client; creating it shown means
+        // showing it, and that requires the right to share the space.
         if (!$this->clientVisibility->allowsChange(false, $input->isVisibleToClient())) {
             return $this->jsonForbidden();
         }
@@ -527,9 +526,9 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
-        // Renommer ou recolorer reste au droit de modifier ; montrer ou
-        // cacher l'étape demande celui de partager, même glissé dans le même
-        // enregistrement.
+        // Renaming or recolouring stays with the right to edit; showing or
+        // hiding the stage requires the right to share, even slipped into the
+        // same save.
         if (!$this->clientVisibility->allowsChange($column->isVisibleToClient(), $input->isVisibleToClient())) {
             return $this->jsonForbidden();
         }
@@ -586,10 +585,10 @@ class SpaceContentController extends AbstractController
     }
 
     /**
-     * La clé du fichier ou de sa vignette.
+     * The key of the file or of its thumbnail.
      *
-     * Le service ne connaît pas les documents, et c'est voulu : il sert une
-     * clé de stockage, quelle que soit la chose qui l'a produite.
+     * The service does not know about documents, and that is deliberate: it
+     * serves a storage key, whatever produced it.
      */
     private function keyOf(DocumentInterface $document, string $variant): string
     {

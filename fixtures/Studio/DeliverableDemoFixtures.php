@@ -52,47 +52,47 @@ use const JSON_THROW_ON_ERROR;
 use const PASSWORD_DEFAULT;
 
 /**
- * Les livrables de la démo : quatre documents qui montrent ce qu'un livrable
- * sait être, finis et habillés.
+ * The demo deliverables: four documents that show what a deliverable can be,
+ * finished and dressed.
  *
- * - **L'audit** d'Atelier Dupont, aux couleurs de l'atelier (noyer et cuivre) :
- *   chiffres clés, graphique, constats, plan en étapes, une citation. Ouvert
- *   au client, avec un lien de lecture déjà envoyé.
- * - **Le bilan de septembre**, en sombre : un rapport mensuel, avec sa courbe
- *   de portée et les contenus qui ont le mieux marché. Ouvert au client.
- * - **La stratégie du trimestre**, encore en cours : fermée au client, pour
- *   montrer qu'un livrable se prépare chez soi avant de s'ouvrir.
- * - **La proposition** faite à la Menuiserie Fabre, prospect : démarche, deux
- *   formules et calendrier, en vert forêt. Ouverte au prospect.
+ * - **The audit** for Atelier Dupont, in the workshop's colours (walnut and
+ *   copper): key figures, a chart, findings, a plan in steps, a quote. Open
+ *   to the client, with a read link already sent.
+ * - **The September review**, in dark: a monthly report, with its reach
+ *   curve and the content that worked best. Open to the client.
+ * - **The quarter's strategy**, still in progress: closed to the client, to
+ *   show that a deliverable is prepared in-house before it opens.
+ * - **The proposal** made to Menuiserie Fabre, a prospect: approach, two
+ *   packages and a schedule, in forest green. Open to the prospect.
  *
- * Et deux **modèles d'audit des réseaux sociaux** dans Studio, ceux que
- * l'équipe duplique pour chaque client : l'un en page continue, l'autre en
- * présentation aux couleurs du site. Quinze sections, des cartes colorées, un
- * camembert, des [passages à remplacer] : le plus complet de ce que la grille
- * sait faire pour un livrable. Eux, la stratégie qui les suit, le modèle
- * d'audit de l'équipe et la proposition type sont marqués « modèle » : ce sont
- * eux que propose « Partir d'un modèle », dans les deux rayons. La ligne
- * éditoriale écrite pour un menuisier nomme son client, la Menuiserie Fabre. Leur grille est dans `data/*.json`, les images
- * désignées par leur nom (`@doc:`) puisque les identifiants changent à chaque
- * chargement.
+ * And two **social media audit templates** in Studio, the ones the team
+ * duplicates for each client: one as a continuous page, the other as a
+ * presentation in the site's colours. Fifteen sections, coloured cards, a
+ * pie chart, [passages to replace]: the most complete of what the grid can
+ * do for a deliverable. They, the strategy that follows them, the team's
+ * audit template and the standard proposal are marked as templates: they are
+ * what "Start from a template" offers, in both lists. The editorial line
+ * written for a carpenter names its client, Menuiserie Fabre. Their grid is
+ * in `data/*.json`, the images designated by their name (`@doc:`) since the
+ * identifiers change on every load.
  *
- * Et quatre **présentations**, des livrables au format diaporama : la trame
- * d'une réunion de lancement (modèle), la réunion de lancement d'Atelier Dupont
- * avec son lien de lecture, la trame du point mensuel (modèle) et une trame de
- * bilan à la corbeille. Les trois dernières étaient les présentations de
- * Studio avant qu'elles deviennent des livrables.
+ * And four **presentations**, deliverables in slideshow format: the outline
+ * of a kickoff meeting (template), the Atelier Dupont kickoff meeting with
+ * its read link, the outline of the monthly check-in (template) and a review
+ * outline in the trash. The last three were the Studio presentations before
+ * they became deliverables.
  *
  * And one presentation inside a client space: Atelier Dupont's October
  * check-in, shown to the client, so their page lists a presentation and opens
  * it in the slide reader (the speaker notes stay on the studio's side).
  *
- * En français seulement : un livrable a une langue, celle de son client.
+ * French only: a deliverable has a language, the one of its client.
  *
- * Rejouable : `make fixtures` charge tous les groupes, `make demo` recharge
- * celui-ci, et un livrable déjà présent dans son espace (même titre) est
- * laissé tel quel.
+ * Replayable: `make fixtures` loads every group, `make demo` reloads this
+ * one, and a deliverable already present in its space (same title) is left
+ * as it is.
  *
- * Dev/test seulement, groupe `demo`.
+ * Dev/test only, `demo` group.
  */
 class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
@@ -100,7 +100,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
     private const string FABRE = 'Menuiserie Fabre - Identité visuelle';
 
-    /** Toute la largeur, sur chaque écran. */
+    /** Full width, on every screen. */
     private const array FULL = ['base' => 48, 'md' => null, 'lg' => 48];
 
     private const array HALF = ['base' => 48, 'md' => null, 'lg' => 24];
@@ -123,8 +123,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
     public function getDependencies(): array
     {
-        // La médiathèque de démonstration : les deux modèles d'audit montrent
-        // ses images, retrouvées par leur nom.
+        // The demo media library: the two audit templates show its images, found
+        // by their name.
         return [StudioDemoFixtures::class, GedDemoFixtures::class];
     }
 
@@ -139,16 +139,16 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $this->deliverable($manager, $fabre, ...$this->proposal());
         $this->spacePresentation($manager, $dupont);
 
-        // Les catégories des livrables de Studio, dans l'ordre où l'équipe les
-        // range : chaque modèle ci-dessous en reçoit une.
+        // The Studio deliverable categories, in the order the team files them:
+        // each template below gets one.
         $proposals = $this->category($manager, 'Propositions', '#34d399', 1);
         $audits = $this->category($manager, 'Audits', '#bd4a55', 2);
         $strategies = $this->category($manager, 'Stratégies', '#8b6cff', 3);
         $reports = $this->category($manager, 'Bilans', '#cd8f31', 4);
 
-        // Deux livrables de Studio, hors de tout espace : une proposition que
-        // le compte de démo garde pour lui, et un modèle d'audit que l'équipe
-        // partage et reprend pour chaque prospect.
+        // Two Studio deliverables, outside any space: a proposal the demo account
+        // keeps to itself, and an audit template the team shares and reuses for
+        // each prospect.
         $author = $this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $proposalLook, $proposalZones, $proposalContent] = $this->proposal();
         $this->deliverable(
@@ -181,9 +181,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             template: true,
         );
 
-        // Un partagé écrit par une collègue, et un second brouillon perso :
-        // chaque rayon a de quoi se lire, et la liste des partagés dit qui a
-        // écrit quoi.
+        // A shared one written by a colleague, and a second personal draft: each
+        // list has something to read, and the shared list says who wrote what.
         $colleague = $this->users->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $strategyLook, $strategyZones, $strategyContent] = $this->strategy();
         $this->deliverable(
@@ -215,19 +214,19 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $reports,
         );
 
-        // Les deux modèles d'audit, partagés avec l'équipe et rangés dans les audits.
+        // The two audit templates, shared with the team and filed under audits.
         $this->model($manager, 'deliverable-audit-model.json', $author, $audits);
         $this->model($manager, 'deliverable-audit-presentation.json', $author, $audits);
-        // La stratégie qui suit l'audit, au même habillage, rangée dans les stratégies.
+        // The strategy that follows the audit, in the same dress, filed under strategies.
         $this->model($manager, 'deliverable-strategy-presentation.json', $author, $strategies);
 
-        // Une présentation parmi les livrables : des diapositives plutôt
-        // qu'une page, un modèle que l'équipe reprend pour chaque lancement.
+        // A presentation among the deliverables: slides rather than a page, a
+        // template the team reuses for each kickoff.
         $this->kickOffSlides($manager, $author instanceof CoreUserInterface ? $author : null, $proposals);
 
-        // Les présentations de la démo, qui étaient des « présentations » de
-        // Studio avant d'être des livrables : celle qu'on montre à un client,
-        // avec son lien, la trame qu'on duplique, et une à la corbeille.
+        // The demo presentations, which were Studio "presentations" before being
+        // deliverables: the one shown to a client, with its link, the outline that
+        // gets duplicated, and one in the trash.
         $this->presentations(
             $manager,
             $author instanceof CoreUserInterface ? $author : null,
@@ -236,8 +235,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $this->category($manager, 'Suivi', '#6366f1', 6),
         );
 
-        // Un livrable que l'équipe a mis à la corbeille : de quoi montrer
-        // l'onglet des livrables, et qu'on peut le reprendre.
+        // A deliverable the team put in the trash: enough to show the trash tab of
+        // the deliverables, and that it can be restored.
         $abandoned = $this->deliverable(
             $manager,
             null,
@@ -266,10 +265,10 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Les trois états d'un lien de lecture, sur le modèle d'audit de l'équipe :
-     * un lien déjà ouvert (qui ne peut plus que se retirer), un lien protégé qui
-     * expire et que personne n'a ouvert, et un lien neuf (qui peut encore se
-     * supprimer). Posés une fois : un rechargement ne les double pas.
+     * The three states of a read link, on the team's audit template: a link
+     * already opened (which can now only be revoked), a protected link that
+     * expires and that nobody has opened, and a new link (which can still be
+     * deleted). Set once: a reload does not duplicate them.
      */
     private function readingLinks(ObjectManager $manager): void
     {
@@ -312,13 +311,13 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Un livrable, s'il n'existe pas déjà dans cet espace.
+     * A deliverable, unless it already exists in this space.
      *
-     * @param list<array<string, mixed>> $zones      la disposition, zone par zone
-     * @param array<string, mixed>       $content    le contenu, par identifiant de zone
+     * @param list<array<string, mixed>> $zones      the layout, zone by zone
+     * @param array<string, mixed>       $content    the content, by zone identifier
      * @param array<string, string|bool> $appearance
      *
-     * @return Deliverable|null le nouveau, ou null quand il était déjà là
+     * @return Deliverable|null the new one, or null when it was already there
      */
     private function deliverable(
         ObjectManager $manager,
@@ -364,9 +363,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Un livrable au format diaporama : la trame d'une réunion de lancement,
-     * avec les notes de l'orateur que seule la vue présentateur montre.
-     * Posé une fois : un rechargement le retrouve par son titre.
+     * A deliverable in slideshow format: the outline of a kickoff meeting, with
+     * the speaker notes that only the presenter view shows. Set once: a reload
+     * finds it by its title.
      */
     private function kickOffSlides(ObjectManager $manager, ?CoreUserInterface $owner, DeliverableCategoryInterface $category): void
     {
@@ -411,24 +410,23 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Trois présentations, au format diaporama.
+     * Three presentations, in slideshow format.
      *
-     * - **La réunion de lancement** d'Atelier Dupont : une vraie présentation,
-     *   avec un début, une thèse et une fin, une douzaine de diapositives qu'on
-     *   pourrait montrer au client sans s'excuser de la démo. Tous les gabarits
-     *   y passent, images et diapositive libre comprises, et un lien de
-     *   lecture déjà envoyé, ouvert une fois.
-     * - **La trame de point mensuel**, un modèle de quatre diapositives
-     *   exprès : un squelette qu'on duplique et qu'on remplit, sans client.
-     * - **La trame de bilan trimestriel**, à la corbeille : remplacée par la
-     *   précédente.
+     * - **The kickoff meeting** of Atelier Dupont: a real presentation, with a
+     *   beginning, a thesis and an end, a dozen slides that could be shown to
+     *   the client without apologising for the demo. Every template goes
+     *   through it, images and free slide included, and a read link already
+     *   sent, opened once.
+     * - **The monthly check-in outline**, a template of four slides on
+     *   purpose: a skeleton to duplicate and fill in, without a client.
+     * - **The quarterly review outline**, in the trash: replaced by the
+     *   previous one.
      *
-     * Ni audit ni stratégie : ce sont des pages (décision d'Axel du
-     * 04/10/2026). Une présentation est ce qu'on montre en réunion.
+     * Neither audit nor strategy: those are pages (Axel's decision of
+     * 04/10/2026). A presentation is what gets shown in a meeting.
      *
-     * Posées une fois, retrouvées par leur titre : un rechargement ne les
-     * double pas, et une démo migrée depuis les anciennes présentations les
-     * garde telles qu'elles sont.
+     * Set once, found by their title: a reload does not duplicate them, and a
+     * demo migrated from the old presentations keeps them as they are.
      */
     private function presentations(
         ObjectManager $manager,
@@ -465,10 +463,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
                 ],
             ], 'Faire valider chaque ligne : si une seule est fausse, tout le reste se décale.');
 
-            // La photo de la médiathèque de démonstration, légendée pour ce
-            // qu'elle est réellement : une image de bannière. Une légende qui
-            // promettrait une capture d'écran mentirait sur la seule chose que
-            // cette slide montre.
+            // The photo from the demo media library, captioned for what it really is:
+            // a banner image. A caption that promised a screenshot would lie about the
+            // only thing this slide shows.
             $this->slide($deliverable, SlideLayoutEnum::Image, [
                 'mediaId' => $this->mediaId(1),
                 'caption' => "Le ton visé pour l'accueil : une grande image, peu de mots",
@@ -511,11 +508,10 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
                 ],
             ], 'Dire tout de suite la date de mise en ligne visée, et ce qui la ferait glisser.');
 
-            // Une diapositive libre, composée à la main : la démonstration de ce
-            // que le canevas sait faire que les gabarits ne font pas. Un dégradé
-            // tiré des couleurs de la présentation, une photo découpée en cercle,
-            // trois cartes groupées qui entrent une à une, et une flèche posée
-            // en biais.
+            // A free slide, composed by hand: the demonstration of what the canvas can
+            // do that the templates cannot. A gradient drawn from the colours of the
+            // presentation, a photo cropped into a circle, three grouped cards that
+            // enter one by one, and an arrow set at an angle.
             $this->slide($deliverable, SlideLayoutEnum::Free, [
                 'fill' => ['type' => 'linear', 'angle' => 160, 'stops' => [
                     ['color' => 'background', 'at' => 0],
@@ -547,9 +543,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
                 'attribution' => "Ce qu'il faut retenir",
             ], 'Fin. Fixer ensemble la date du premier point avant de se quitter.');
 
-            // Un lien de lecture, l'état ordinaire d'une présentation envoyée :
-            // ouverte une fois, elle expire dans deux mois. La lecture est
-            // posée à la main, aucune fixture n'ouvrant réellement le lien.
+            // A read link, the ordinary state of a sent presentation: opened once, it
+            // expires in two months. The read is recorded by hand, since no fixture
+            // actually opens the link.
             $link = new DeliverableLink($deliverable);
             $link
                 ->setLabel('Atelier Dupont - envoi du 12')
@@ -642,9 +638,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Un livrable de Studio au format diaporama, partagé avec l'équipe, s'il
-     * n'existe pas déjà sous ce titre ; null quand il était là, mis au niveau
-     * par {@see self::catchUp()}.
+     * A Studio deliverable in slideshow format, shared with the team, unless it
+     * already exists under this title; null when it was there, brought up to
+     * date by {@see self::catchUp()}.
      */
     private function slidesDeliverable(
         ObjectManager $manager,
@@ -688,9 +684,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * L'identifiant d'une image de la médiathèque de démonstration, par sa
-     * référence plutôt qu'en dur : les fixtures se chargent dans l'ordre que
-     * choisit le chargeur.
+     * The identifier of an image from the demo media library, by its reference
+     * rather than hard-coded: the fixtures load in the order the loader picks.
      */
     private function mediaId(int $index): int
     {
@@ -698,13 +693,13 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Met un livrable déjà là au niveau de la démo : sa catégorie, sa case
-     * « modèle » et son client, s'il ne les a pas encore.
+     * Brings a deliverable that is already there up to the demo's level: its
+     * category, its "template" box and its client, if it does not have them yet.
      *
-     * Les fixtures s'arrêtaient à « existe déjà » : une catégorie, un modèle ou
-     * un client ajoutés après le premier chargement n'arrivaient jamais sur les
-     * livrables chargés avant. Seulement ce qui manque : un rangement ou un
-     * client choisis à la main ne sont pas défaits par un rechargement.
+     * The fixtures stopped at "already exists": a category, a template or a
+     * client added after the first load never reached the deliverables loaded
+     * before. Only what is missing: a filing or a client chosen by hand is not
+     * undone by a reload.
      */
     private function catchUp(object $deliverable, ?DeliverableCategoryInterface $category, bool $template = false, ?CustomerInterface $customer = null): void
     {
@@ -726,8 +721,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Un modèle complet, lu dans `data/` : le titre, le résumé, l'apparence, la
-     * grille entière et son contenu, avec les images retrouvées par leur nom.
+     * A complete template, read from `data/`: the title, the summary, the
+     * appearance, the whole grid and its content, with the images found by name.
      */
     private function model(ObjectManager $manager, string $file, ?CoreUserInterface $owner, DeliverableCategoryInterface $category): void
     {
@@ -759,10 +754,10 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Les `@doc:Nom d'origine` d'un modèle remplacés par l'identifiant du
-     * document de la médiathèque qui porte ce nom : les identifiants changent à
-     * chaque chargement, les noms non. Une image absente laisse un trou plutôt
-     * que de faire échouer tout le chargement.
+     * The `@doc:Nom d'origine` of a template replaced by the identifier of the
+     * media library document that carries that name: identifiers change on
+     * every load, names do not. A missing image leaves a hole rather than
+     * failing the whole load.
      */
     private function resolveImages(mixed $value): mixed
     {
@@ -775,7 +770,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         return is_array($value) ? array_map($this->resolveImages(...), $value) : $value;
     }
 
-    /** Une catégorie de livrables, si elle n'existe pas déjà sous ce nom. */
+    /** A deliverable category, unless it already exists under this name. */
     private function category(ObjectManager $manager, string $name, string $color, int $position): DeliverableCategoryInterface
     {
         $category = $this->categories->findOneBy(['name' => $name]);
@@ -791,8 +786,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Une zone de texte posée sur un dégradé, en contraste clair : l'ouverture
-     * d'un document, comme un bloc d'entête sans image.
+     * A text zone set on a gradient, in light contrast: the opening of a
+     * document, like a banner block without an image.
      *
      * @return array<string, mixed>
      */
@@ -845,8 +840,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Les textes d'une liste d'éléments, dans l'ordre : `[titre, description]`
-     * ou `[titre, description, légende]`.
+     * The texts of a list of items, in order: `[title, description]` or
+     * `[title, description, caption]`.
      *
      * @param array<string, list<string>> $entries
      *
@@ -885,7 +880,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             'Audit de présence en ligne',
             'Instagram et Facebook, septembre 2026 : où en est Atelier Dupont, et ce que nous proposons pour les trois prochains mois.',
             true,
-            // Noyer et cuivre : les couleurs de l'atelier, pas celles du studio.
+            // Walnut and copper: the workshop's colours, not the studio's.
             [
                 'backgroundColor' => '#fbf7f1',
                 'headerColor' => '#3d2b1f',
@@ -951,8 +946,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             'Bilan de septembre',
             'Le mois en chiffres, les trois contenus qui ont le mieux marché, et ce que nous ajustons pour octobre.',
             true,
-            // Le bilan en sombre : un rapport se lit d'un coup d'œil, chiffres
-            // en clair sur fond nuit.
+            // The review in dark: a report reads at a glance, light figures on a night
+            // background.
             [
                 'backgroundColor' => '#0f172a',
                 'headerColor' => '#0b1120',
@@ -1011,7 +1006,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         return [
             'Stratégie de contenus, dernier trimestre',
             'Les trois axes et le calendrier proposés pour octobre à décembre.',
-            // En cours : le client ne le voit pas encore.
+            // In progress: the client does not see it yet.
             false,
             ['accentColor' => '#b5652b', 'figureColor' => '#b5652b'],
             [
@@ -1060,8 +1055,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             "Proposition d'accompagnement",
             'Une identité visuelle pour la Menuiserie Fabre : la démarche, deux formules et le calendrier.',
             true,
-            // Vert forêt : la piste de couleurs dont nous avons parlé au
-            // premier rendez-vous.
+            // Forest green: the colour direction we talked about at the first meeting.
             [
                 'backgroundColor' => '#f4f7f3',
                 'headerColor' => '#1f3a2e',

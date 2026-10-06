@@ -9,19 +9,20 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Ce que plus rien n'utilise, proposé plutôt que jeté.
+ * What nothing uses any more, offered rather than thrown away.
  *
- * Retirer un fichier d'une fiche, supprimer une note, retirer un fichier d'un
- * espace : trois gestes, une seule suite. Le registre d'usages dit ce qui est
- * devenu orphelin, et la réponse porte de quoi l'envoyer à la corbeille d'un
- * clic, sans jamais le faire à la place de quelqu'un.
+ * Removing a file from a card, deleting a note, removing a file from a
+ * space: three actions, a single follow-up. The usage registry says what has
+ * become orphaned, and the response carries what is needed to send it to the
+ * trash in one click, without ever doing it on somebody's behalf.
  *
- * **Le droit reste au contrôleur.** L'offre n'est faite qu'à qui peut déjà
- * supprimer un document, et c'est `$mayTrash` qui le dit : un bouton qui
- * répondrait 403 serait pire que pas de bouton, et accorder le privilège au
- * passage serait un privilège entré par la porte de service. Ce service ne
- * sait pas qui regarde, et c'est voulu - trois contrôleurs en portaient une
- * copie chacun, et l'un des trois avait déjà oublié la garde une fois.
+ * **The right stays with the controller.** The offer is made only to whoever
+ * can already delete a document, and `$mayTrash` says so: a button that
+ * answered 403 would be worse than no button, and granting the privilege in
+ * passing would be a privilege let in through the back door. This service
+ * does not know who is looking, and that is deliberate - three controllers
+ * each carried a copy of it, and one of the three had already forgotten the
+ * guard once.
  */
 final readonly class SpaceOrphanedDocumentOffer
 {

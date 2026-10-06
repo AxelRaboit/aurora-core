@@ -19,31 +19,30 @@ use function preg_replace;
 use function sprintf;
 
 /**
- * Les notes d'une personne, telles qu'elle pourrait les emporter.
+ * A person's notes, as they could take them away.
  *
- * **Du Markdown, et rien d'autre.** Le module range des notes chiffrées dans
- * une base ; ce qui en sort est une arborescence de fichiers `.md` qu'un
- * éditeur de texte ouvre, qu'Obsidian lit, et qui survivra à Aurora. C'est la
- * contrepartie de l'enfermement qu'un carnet en base représente, et elle ne
- * vaut que si elle est complète : les étiquettes voyagent donc en tête de
- * fichier, dans le préambule que les mêmes outils connaissent.
+ * **Markdown, and nothing else.** The module stores encrypted notes in a
+ * database; what comes out is a tree of `.md` files that a text editor opens,
+ * that Obsidian reads, and that will outlive Aurora. It is the counterpart of
+ * the lock-in a notebook in a database represents, and it is only worth
+ * anything if it is complete: the tags therefore travel at the top of the
+ * file, in the front matter those same tools know.
  *
- * **Un dossier est un dossier, une note est un fichier.** L'ancienne
- * convention, celle d'Obsidian, écrivait une note qui avait des enfants en
- * deux entrées du même nom, un `.md` et un répertoire, faute de savoir dire
- * autrement qu'un objet était les deux à la fois. Les dossiers existent
- * maintenant, et l'archive dit simplement ce qu'elle contient.
+ * **A folder is a folder, a note is a file.** The old convention, Obsidian's,
+ * wrote a note that had children as two entries with the same name, a `.md`
+ * and a directory, for lack of another way to say that an object was both at
+ * once. Folders now exist, and the archive simply says what it contains.
  */
 final readonly class MarkdownNoteArchive
 {
     /**
-     * Le dossier où l'archive range les images, à sa racine.
+     * The folder where the archive stores images, at its root.
      *
-     * Un seul, et pas un par note : une image peut être citée par deux notes,
-     * et la copier deux fois doublerait le poids du zip sans rien apporter.
-     * Le nom commence par un tiret bas pour qu'il se distingue d'un dossier
-     * que la personne aurait créé - `_images` n'est pas un nom qu'on donne à
-     * un carnet.
+     * A single one, and not one per note: an image can be cited by two notes,
+     * and copying it twice would double the zip's weight for nothing.
+     * The name starts with an underscore so that it stands out from a folder
+     * the person might have created - `_images` is not a name you give to a
+     * notebook.
      */
     private const string IMAGE_DIR = '_images';
 
@@ -54,15 +53,15 @@ final readonly class MarkdownNoteArchive
     ) {}
 
     /**
-     * Le carnet entier dans un zip, écrit dans un fichier temporaire.
+     * The whole notebook in a zip, written to a temporary file.
      *
-     * Écrit sur disque plutôt que gardé en mémoire : `ZipArchive` ne sait
-     * travailler que sur un fichier, et un carnet de plusieurs milliers de
-     * notes n'a pas à tenir deux fois en RAM pour être téléchargé.
+     * Written to disk rather than kept in memory: `ZipArchive` can only work
+     * on a file, and a notebook of several thousand notes has no reason to
+     * sit twice in RAM to be downloaded.
      *
-     * @param ?NoteSpaceInterface $only un seul espace, rangé à la racine de l'archive ; tout ce que la personne lit à défaut
+     * @param ?NoteSpaceInterface $only a single space, stored at the root of the archive; everything the person reads otherwise
      *
-     * @return string le chemin du zip, à supprimer par l'appelant
+     * @return string the path of the zip, to be deleted by the caller
      */
     public function zipFor(CoreUserInterface $user, ?NoteSpaceInterface $only = null): string
     {
@@ -76,10 +75,10 @@ final readonly class MarkdownNoteArchive
 
         $notes = $this->notes->findAllWithContentForUser($user);
 
-        // Chaque espace partagé part dans son propre dossier, à son nom : à la
-        // racine de l'archive, ses dossiers se mêleraient à ceux du carnet
-        // personnel, et un réimport rangerait tout chez soi sans prévenir. La
-        // racine d'un espace est la clé négative de son identifiant.
+        // Each shared space goes into its own folder, under its name: at the
+        // root of the archive, its folders would mix with those of the
+        // personal notebook, and a reimport would file everything at home
+        // without warning. The root of a space is the negative key of its id.
         /** @var array<int, list<MarkdownNoteInterface>> $notesByFolder */
         $notesByFolder = [];
         /** @var array<int, NoteSpaceInterface> $spaces */
@@ -104,20 +103,20 @@ final readonly class MarkdownNoteArchive
             $foldersByParent[$folder->getParent()?->getId() ?? -(int) $folder->getSpace()->getId()][] = $folder;
         }
 
-        // Un carnet vide donnerait un zip sans entrée, que certains outils
-        // refusent d'ouvrir. Une ligne suffit à le rendre valide et à dire
-        // pourquoi il est vide.
+        // An empty notebook would give a zip with no entry, which some tools
+        // refuse to open. One line is enough to make it valid and to say why
+        // it is empty.
         if ([] === $notesByFolder && [] === $foldersByParent) {
             $zip->addFromString('notes.md', "# Aucune note\n");
         }
 
-        // Les images déjà écrites dans l'archive, pour n'en ajouter aucune
-        // deux fois : deux notes peuvent citer la même.
+        // The images already written into the archive, so as to add none of
+        // them twice: two notes can cite the same one.
         $ajoutees = [];
 
         $seenSpaces = [];
         foreach ($spaces as $id => $space) {
-            // Un seul espace demandé : il est toute l'archive, à sa racine.
+            // A single space requested: it is the whole archive, at its root.
             if ($space->isPersonal() || $only instanceof NoteSpaceInterface) {
                 $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, '', $user, $ajoutees);
 
@@ -135,12 +134,12 @@ final readonly class MarkdownNoteArchive
     }
 
     /**
-     * Une note seule, prête à être enregistrée.
+     * A single note, ready to be saved.
      *
-     * Ses images gardent l'adresse du back-office : un `.md` téléchargé seul
-     * n'a pas de dossier voisin où les poser, et réécrire le lien vers un
-     * fichier qui n'accompagne rien serait pire qu'une adresse qui demande de
-     * se connecter. C'est l'archive du carnet qui emporte les images.
+     * Its images keep the back office address: a `.md` downloaded alone has
+     * no neighbouring folder to put them in, and rewriting the link to a file
+     * that comes with nothing would be worse than an address that asks you
+     * to log in. It is the notebook archive that takes the images along.
      */
     public function fileFor(MarkdownNoteInterface $note): string
     {
@@ -154,7 +153,7 @@ final readonly class MarkdownNoteArchive
         return sprintf("---\ntags: [%s]\n---\n\n%s", implode(', ', $tags), $content);
     }
 
-    /** Le nom de fichier d'une note, sans le dossier ni l'extension. */
+    /** A note's file name, without the folder or the extension. */
     public function nameOf(MarkdownNoteInterface $note): string
     {
         return $this->safeName((string) $note->getTitle(), sprintf('note-%d', $note->getId()));
@@ -163,7 +162,7 @@ final readonly class MarkdownNoteArchive
     /**
      * @param array<int, list<MarkdownNoteInterface>> $notesByFolder
      * @param array<int, list<NoteFolderInterface>>   $foldersByParent
-     * @param array<string, true>                     $ajoutees        images déjà dans l'archive
+     * @param array<string, true>                     $ajoutees        images already in the archive
      */
     private function addBranch(
         ZipArchive $zip,
@@ -189,9 +188,9 @@ final readonly class MarkdownNoteArchive
                 $seenFolders,
             );
 
-            // Un dossier vide disparaîtrait de l'archive, puisque rien n'y
-            // écrit de fichier. Déclaré explicitement, il survit à
-            // l'aller-retour comme le reste du rangement.
+            // An empty folder would disappear from the archive, since nothing
+            // writes a file in it. Declared explicitly, it survives the round
+            // trip like the rest of the filing.
             $zip->addEmptyDir($prefix.$name);
 
             $this->addBranch($zip, $notesByFolder, $foldersByParent, (int) $folder->getId(), $prefix.$name.'/', $user, $ajoutees);
@@ -199,9 +198,9 @@ final readonly class MarkdownNoteArchive
     }
 
     /**
-     * Ce qu'un système de fichiers refuse, plus les caractères qui font d'un
-     * nom un chemin. Le reste des accents et des espaces est gardé : c'est le
-     * titre que la personne a écrit.
+     * What a file system refuses, plus the characters that turn a name into
+     * a path. The rest of the accents and spaces is kept: it is the title the
+     * person wrote.
      */
     private function safeName(string $raw, string $fallback): string
     {
@@ -215,8 +214,8 @@ final readonly class MarkdownNoteArchive
     }
 
     /**
-     * Deux notes peuvent porter le même titre ; deux fichiers d'un dossier,
-     * non. Le second prend un suffixe plutôt que d'écraser le premier.
+     * Two notes can carry the same title; two files of a folder cannot. The
+     * second one takes a suffix rather than overwriting the first.
      *
      * @param array<string, int> $seen
      */
@@ -232,7 +231,7 @@ final readonly class MarkdownNoteArchive
     }
 
     /**
-     * Le préambule, puis le texte, images comprises.
+     * The front matter, then the text, images included.
      *
      * @param array<string, true> $ajoutees
      */
@@ -254,23 +253,23 @@ final readonly class MarkdownNoteArchive
     }
 
     /**
-     * Copie dans l'archive les images que la note cite, et remplace leur
-     * adresse par un chemin relatif.
+     * Copies into the archive the images the note cites, and replaces their
+     * address with a relative path.
      *
-     * Sans ça, un carnet exporté sortait avec des images qui pointent vers le
-     * back-office : ouvert dans Obsidian ou dans n'importe quel éditeur, le
-     * texte arrivait entier et les images étaient des icônes cassées, ou pire,
-     * demandaient de se connecter. Une archive est censée se suffire.
+     * Without that, an exported notebook came out with images pointing to the
+     * back office: opened in Obsidian or in any editor, the text arrived whole
+     * and the images were broken icons, or worse, asked you to log in. An
+     * archive is meant to be self-sufficient.
      *
-     * Le chemin est relatif à la note, donc il remonte d'autant de crans que
-     * son dossier est profond : une note à la racine écrit `_images/x.png`,
-     * une note deux niveaux plus bas `../../_images/x.png`. C'est ce que tout
-     * lecteur de markdown résout, Obsidian compris.
+     * The path is relative to the note, so it goes up as many levels as its
+     * folder is deep: a note at the root writes `_images/x.png`, a note two
+     * levels down `../../_images/x.png`. That is what every markdown reader
+     * resolves, Obsidian included.
      *
-     * Une image absente - supprimée du stockage depuis que la note la cite -
-     * laisse son adresse d'origine. Refuser d'exporter le carnet entier pour
-     * un fichier manquant serait une punition disproportionnée, et l'adresse
-     * telle quelle dit au moins ce qui manquait.
+     * A missing image - deleted from storage since the note cited it - keeps
+     * its original address. Refusing to export the whole notebook for one
+     * missing file would be a disproportionate punishment, and the address
+     * as is at least says what was missing.
      *
      * @param array<string, true> $ajoutees
      */

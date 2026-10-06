@@ -911,7 +911,7 @@ final class GridNormalizerTest extends TestCase
         self::assertSame($content, $this->normalizer->normalizeContent($content, $layout));
     }
 
-    // ── Listes d'entrées ──────────────────────────────────────────────────
+    // ── Entry lists ───────────────────────────────────────────────────────
 
     /** @return array<string, mixed> */
     private function itemsZone(array $items): array

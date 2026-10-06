@@ -86,11 +86,11 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
     }
 
     /**
-     * Met le contenu à la corbeille : il quitte le tableau, la liste, le
-     * calendrier, les comptes et la page du client, et sa date quitte le
-     * Planning. Rien n'est détruit : son étape, son fil, ses fichiers et la
-     * réponse du client restent en base, et la restauration remet tout comme
-     * c'était.
+     * Puts the content in the trash: it leaves the board, the list, the
+     * calendar, the counts and the client page, and its date leaves the
+     * Planning. Nothing is destroyed: its stage, its thread, its files and the
+     * client's answer stay in the database, and restoring puts everything
+     * back as it was.
      */
     public function trash(SpaceContentItemInterface $item): void
     {
@@ -106,10 +106,10 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
     }
 
     /**
-     * Sort le contenu de la corbeille, en bas de son étape : celle qu'il avait,
-     * ou la première du tableau si la sienne a été supprimée entre-temps
-     * ({@see SpaceContentColumnManager::delete()} l'y a déjà rangé). Sa date
-     * revient au calendrier et au Planning.
+     * Takes the content out of the trash, at the bottom of its stage: the one
+     * it had, or the board's first one if its own was deleted in the meantime
+     * ({@see SpaceContentColumnManager::delete()} already moved it there). Its
+     * date comes back to the calendar and the Planning.
      */
     public function restore(SpaceContentItemInterface $item): void
     {
@@ -127,13 +127,13 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
     }
 
     /**
-     * Détruit le contenu pour de bon, avec son fil et ses fichiers attachés
-     * (les documents restent dans la médiathèque). Le bouton « Supprimer
-     * définitivement » de la corbeille et la purge planifiée y passent.
+     * Destroys the content for good, with its thread and attached files (the
+     * documents stay in the media library). The trash's "Supprimer
+     * définitivement" button and the scheduled purge go through here.
      */
     public function forceDelete(SpaceContentItemInterface $item): void
     {
-        // Journalisé avant d'être retiré : après, il n'a plus d'identifiant.
+        // Logged before being removed: afterwards, it has no identifier.
         $this->auditDeleted($item);
 
         $id = (int) $item->getId();
@@ -345,14 +345,14 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $scheduledAt = $item->getScheduledAt();
         $space = $item->getSpace();
 
-        // **Décochée vaut non datée, ici aussi.** Une carte retirée du
-        // calendrier de l'espace mais qui resterait dans l'agenda partagé du
-        // studio ferait mentir la case : « ne pas afficher dans le
-        // calendrier » se lit comme valant pour tous les calendriers, et
-        // c'est le seul endroit où cette règle peut être dite une fois.
-        // Et une carte d'un espace archivé non plus : son travail est fini, et
-        // elle encombrerait l'agenda de ceux qui s'occupent des autres.
-        // Ni une carte à la corbeille, ni celle d'un espace à la corbeille.
+        // **Unticked means undated, here too.** A card removed from the
+        // space's calendar but left in the studio's shared agenda would make
+        // the box lie: "ne pas afficher dans le calendrier" reads as applying
+        // to every calendar, and this is the only place where that rule can
+        // be stated once.
+        // Nor a card of an archived space: its work is done, and it would
+        // clutter the agenda of those looking after the others.
+        // Nor a card in the trash, nor one from a space in the trash.
         if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar() || $space->isArchived() || $item->isTrashed() || $space->isTrashed()) {
             $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
 
@@ -369,7 +369,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             // to know which client a date belongs to, and "Espaces clients"
             // told them the same thing eight times.
             sourceLabel: $space->getName(),
-            // La fiche, pas seulement l'espace : l'agenda mène à ce qu'il montre.
+            // The card, not only the space: the agenda leads to what it shows.
             url: $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId(), 'view' => 'calendar', 'item' => $item->getId()]),
             colourSlot: $space->getColourSlot(),
         ));

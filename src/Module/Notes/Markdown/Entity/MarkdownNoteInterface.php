@@ -15,7 +15,7 @@ interface MarkdownNoteInterface extends TimestampableInterface
 {
     public function getId(): ?int;
 
-    /** L'auteur ; null quand son compte a été supprimé. */
+    /** The author; null when their account has been deleted. */
     public function getUser(): ?CoreUserInterface;
 
     public function setUser(?CoreUserInterface $user): static;
@@ -33,7 +33,7 @@ interface MarkdownNoteInterface extends TimestampableInterface
     public function setContent(?string $content): static;
 
     /** @return list<string> */
-    /** L'adresse de l'image d'entête, chez celui qui l'héberge. */
+    /** The address of the header image, at whoever hosts it. */
     public function getCoverUrl(): ?string;
 
     public function setCoverUrl(?string $coverUrl): static;
@@ -46,7 +46,7 @@ interface MarkdownNoteInterface extends TimestampableInterface
 
     public function setCoverCreditUrl(?string $url): static;
 
-    /** Où couper la photo, en pourcentage de sa hauteur. */
+    /** Where to crop the photo, as a percentage of its height. */
     public function getCoverPosition(): int;
 
     public function setCoverPosition(int $percent): static;
@@ -80,17 +80,17 @@ interface MarkdownNoteInterface extends TimestampableInterface
 
     public function setTrashedWithFolderId(?int $trashedWithFolderId): static;
 
-    /** Avance à chaque écriture du contenu : un enregistrement parti d'une version dépassée est refusé. */
+    /** Moves forward on each write of the content: a save started from an outdated version is refused. */
     public function getVersion(): int;
 
     public function bumpVersion(): void;
 
-    /** L'espace où vit la ligne : c'est lui qui dit qui la lit et qui l'écrit. */
+    /** The space where the row lives: it is what says who reads it and who writes it. */
     public function getSpace(): NoteSpaceInterface;
 
     public function setSpace(NoteSpaceInterface $space): static;
 
-    /** Le document Craft dont la note est la copie, quand elle en vient. */
+    /** The Craft document the note is a copy of, when it comes from one. */
     public function getCraftDocumentId(): ?string;
 
     public function setCraftDocumentId(?string $craftDocumentId): static;

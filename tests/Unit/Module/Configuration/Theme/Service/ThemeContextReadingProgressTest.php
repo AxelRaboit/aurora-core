@@ -18,8 +18,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * La barre de lecture du site public : là par défaut, absente seulement quand
- * le thème l'a coupée.
+ * The reading bar of the public site: there by default, absent only when the
+ * theme has turned it off.
  */
 #[AllowMockObjectsWithoutExpectations]
 final class ThemeContextReadingProgressTest extends TestCase

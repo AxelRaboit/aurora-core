@@ -21,27 +21,26 @@ use function is_array;
 use function sprintf;
 
 /**
- * Pose l'effet d'apparition sur des publications déjà écrites.
+ * Sets the scroll-in effect on posts already written.
  *
- * Le réglage existe depuis la 0.9.235, mais il ne se met pas tout seul sur
- * quarante pages publiées avant lui, et les ouvrir une par une dans
- * l'éditeur pour changer un menu déroulant n'est pas un travail.
+ * The setting has existed since 0.9.235, but it does not apply itself to
+ * forty pages published before it, and opening them one by one in the
+ * editor to change a dropdown is not a job.
  *
- * **Elle ne discute jamais avec une zone qui a un avis.** Seules celles qui
- * disent « comme la page » sont touchées, et le réglage de page n'écrase
- * rien d'autre que lui-même : relancer la commande après qu'un auteur a
- * réglé une zone à la main ne défait pas son travail.
+ * **It never argues with a zone that has an opinion.** Only the zones that
+ * say "same as the page" are touched, and the page setting overwrites
+ * nothing but itself: running the command again after an author set a zone
+ * by hand does not undo their work.
  *
- * `--pairs` traite le cas que le réglage de page ne sait pas écrire : deux
- * zones qui partagent une ligne arrivent l'une par la gauche et l'autre par
- * la droite, et se rejoignent au milieu. La ligne se lit dans `newRow` -
- * une zone qui l'ouvre, une qui la suit - et une ligne de trois zones ou
- * plus est laissée à l'effet de la page, parce que « du bord vers le
- * milieu » ne veut plus rien dire à trois.
+ * `--pairs` handles the case the page setting cannot write: two zones that
+ * share a row come in, one from the left and the other from the right, and
+ * meet in the middle. The row is read from `newRow` - one zone opens it, one
+ * follows - and a row of three zones or more is left to the page effect,
+ * because "from the edge to the middle" no longer means anything with three.
  *
- * Tout passe par `GridNormalizer`, donc aucune valeur inventée ne peut
- * atteindre la base : un attribut que la feuille de style ne sait pas lire
- * laisserait une zone invisible sur le site public.
+ * Everything goes through `GridNormalizer`, so no made-up value can reach the
+ * database: an attribute the stylesheet cannot read would leave a zone
+ * invisible on the public site.
  */
 #[AsCommand(
     name: 'aurora:editorial:reveal',
@@ -98,7 +97,7 @@ final class SetPostRevealCommand extends Command
 
             $layout = $post->getGridLayout();
 
-            // Une publication sans grille n'a pas de zone à faire arriver.
+            // A post without a grid has no zone to bring in.
             if (true !== ($layout['enabled'] ?? false)) {
                 continue;
             }
@@ -146,10 +145,10 @@ final class SetPostRevealCommand extends Command
     }
 
     /**
-     * Deux zones qui partagent une ligne, du bord vers le milieu.
+     * Two zones that share a row, from the edge to the middle.
      *
-     * À deux, la première vient de la gauche et la seconde de la droite ;
-     * seule ou à trois, la ligne garde l'effet de la page.
+     * With two, the first comes from the left and the second from the right;
+     * alone or with three, the row keeps the page effect.
      *
      * @param list<array<string, mixed>> $zones
      *
@@ -157,14 +156,14 @@ final class SetPostRevealCommand extends Command
      */
     private function pairUp(array $zones): array
     {
-        // **La ligne se demande au normaliseur, elle ne se devine pas.**
-        // Premier essai : lire `newRow`. Il dit qu'une zone *ouvre* une
-        // ligne, pas qu'elle en partage une, et une page peut n'en porter
-        // aucun tout en plaçant deux zones côte à côte - c'est le cas de
-        // toute la démonstration locale, où quatorze pages sur quatorze
-        // auraient été traitées comme une seule ligne chacune. `place()`
-        // fait déjà le calcul, avec les largeurs, les décalages et les
-        // débordements, et c'est lui que le rendu suit.
+        // **The row is asked of the normaliser, not guessed.**
+        // First attempt: read `newRow`. It says a zone *opens* a row, not
+        // that it shares one, and a page can carry none of them while still
+        // placing two zones side by side - that is the case for the whole
+        // local demo, where fourteen pages out of fourteen would have been
+        // treated as a single row each. `place()` already does the
+        // calculation, with widths, offsets and overflows, and it is what
+        // the rendering follows.
         $rows = [];
 
         foreach (GridNormalizer::place($zones) as $index => $place) {
@@ -179,7 +178,7 @@ final class SetPostRevealCommand extends Command
             foreach (['left', 'right'] as $position => $effect) {
                 $index = $row[$position];
 
-                // Une zone qui a déjà un avis le garde.
+                // A zone that already has an opinion keeps it.
                 if (GridNormalizer::ZONE_REVEALS[0] !== ($zones[$index]['reveal'] ?? GridNormalizer::ZONE_REVEALS[0])) {
                     continue;
                 }
@@ -192,7 +191,7 @@ final class SetPostRevealCommand extends Command
     }
 
     /**
-     * De quoi dire si quelque chose a bougé, et le montrer en une ligne.
+     * Enough to tell whether something moved, and to show it in one line.
      *
      * @param array<string, mixed> $layout
      */

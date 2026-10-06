@@ -5,12 +5,11 @@ import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import DeliverableSlidesEditorApp from "./DeliverableSlidesEditorApp.vue";
 
 /**
- * Un diaporama s'écrit dans l'éditeur des présentations, avec les droits, les
- * liens de lecture et les réglages d'un livrable autour.
+ * A slideshow is written in the presentation editor, with a deliverable's
+ * rights, reading links and settings around it.
  *
- * Ce qui se casserait sans bruit : l'éditeur qui n'ouvrirait pas les liens de
- * lecture du livrable quand on partage, ou qui ne recevrait pas les droits du
- * livrable.
+ * What would break silently: the editor not opening the deliverable's
+ * reading links when sharing, or not receiving the deliverable's rights.
  */
 const DECK_EDITOR = {
     name: "DeckEditorApp",

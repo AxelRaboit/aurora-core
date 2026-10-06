@@ -14,13 +14,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * Épingler, ranger et retirer les ressources d'un espace.
+ * Pin, reorder and remove the resources of a space.
  *
- * **Chaque changement de visibilité est journalisé.** C'est le geste qui
- * publie : il décide qu'une ligne rangée dans un espace devient une ligne que
- * le client lit. Savoir après coup quand une ressource s'est ouverte, et qui
- * l'a ouverte, est ce qui fait la différence entre une erreur qu'on corrige et
- * une erreur qu'on découvre.
+ * **Every visibility change is logged.** It is the gesture that publishes:
+ * it decides that a row filed in a space becomes a row the client reads.
+ * Knowing after the fact when a resource was opened, and who opened it, is
+ * what makes the difference between an error you fix and an error you
+ * discover.
  */
 #[AsAlias(SpaceResourceManagerInterface::class)]
 class SpaceResourceManager implements SpaceResourceManagerInterface
@@ -59,9 +59,9 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
         $resource->setVisibleToClient(!$resource->isVisibleToClient());
         $this->entityManager->flush();
 
-        // Deux branches et deux littéraux plutôt qu'un ternaire dans
-        // l'appel : le contrôle de dérive du journal lit les arguments dans
-        // le code, et une valeur calculée est un angle mort pour lui.
+        // Two branches and two literals rather than a ternary in the call: the log
+        // drift check reads the arguments in the code, and a computed value is a
+        // blind spot for it.
         if ($resource->isVisibleToClient()) {
             $this->auditLogger->log('studio', 'space_resource.shown', 'SpaceResource', $resource->getId(), $this->auditPayload($resource));
 
@@ -72,12 +72,12 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
     }
 
     /**
-     * L'ordre voulu, appliqué aux seules ressources de cet espace.
+     * The wanted order, applied to the resources of this space only.
      *
-     * Les identifiants viennent du navigateur, donc rien n'empêche une requête
-     * d'en glisser un qui appartient ailleurs. La liste de l'espace est relue
-     * ici et indexée : ce qui n'y figure pas est ignoré, et ne change donc pas
-     * de place chez quelqu'un d'autre.
+     * The identifiers come from the browser, so nothing prevents a request from
+     * slipping in one that belongs elsewhere. The list of the space is read back
+     * here and indexed: what is not in it is ignored, and so does not change
+     * place for someone else.
      *
      * @param list<int> $orderedIds
      */
@@ -131,11 +131,11 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
     }
 
     /**
-     * Ce que le journal garde.
+     * What the log keeps.
      *
-     * Pas le corps : une ressource peut porter un paragraphe entier, et un
-     * journal d'audit n'est pas une seconde copie du contenu. Le genre, le
-     * libellé et la visibilité suffisent à reconstituer ce qui s'est passé.
+     * Not the body: a resource can carry a whole paragraph, and an audit log is
+     * not a second copy of the content. The kind, the label and the visibility
+     * are enough to reconstruct what happened.
      *
      * @return array<string, mixed>
      */

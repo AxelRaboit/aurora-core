@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * L'historique des notes : leurs versions passées, chiffrées comme elles.
+ * Note history: their past versions, encrypted like the notes themselves.
  *
- * Une version est gardée juste avant l'enregistrement qui la remplace, au
- * plus une toutes les dix minutes par défaut, cinquante par note (réglages >
- * Notes). Elle part avec sa note.
+ * A version is kept just before the save that replaces it, at most one every
+ * ten minutes by default, fifty per note (settings > Notes). It goes away with
+ * its note.
  */
 final class Version20261003120000 extends AbstractMigration
 {

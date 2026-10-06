@@ -10,33 +10,34 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Une adresse secrète qui ouvre un livrable, sans espace client autour.
+ * A secret address that opens a deliverable, without a client space around
+ * it.
  *
- * Pour celui à qui on transmet un document sans lui ouvrir l'espace : la
- * direction d'un client, un associé, un prestataire. Une adresse par
- * destinataire, pour pouvoir couper l'une sans toucher aux autres ; une date
- * d'expiration et un mot de passe au choix. Le même contrat que les liens de
- * lecture des publications, gardé à part avec le reste du livrable.
+ * For someone you pass a document to without opening the space to them: a
+ * client's management, a partner, a contractor. One address per recipient,
+ * so that one can be cut off without touching the others; an optional expiry
+ * date and password. The same contract as the publications' reading links,
+ * kept separate with the rest of the deliverable.
  *
- * Révoquer ne supprime pas : la ligne garde qui a eu l'adresse, quand, et
- * combien de fois elle a servi.
+ * Revoking does not delete: the row keeps who had the address, when, and how
+ * many times it was used.
  */
 #[ORM\MappedSuperclass]
 abstract class AbstractDeliverableLink implements DeliverableLinkInterface
 {
     /**
-     * 64 caractères hexadécimaux, tirés de 32 octets aléatoires, chiffrés au
-     * repos : une sauvegarde ou un journal SQL ne donne plus d'adresse
-     * utilisable, et la fenêtre des liens peut toujours l'afficher.
+     * 64 hexadecimal characters, drawn from 32 random bytes, encrypted at
+     * rest: a backup or an SQL log no longer gives a usable address, and the
+     * links dialog can still display it.
      */
     #[ORM\Column(type: EncryptedStringType::NAME, length: 255)]
     protected string $token;
 
-    /** Empreinte SHA-256 du jeton : ce par quoi on le cherche, jamais ce qu'on montre. */
+    /** SHA-256 hash of the token: what it is looked up by, never what is shown. */
     #[ORM\Column(length: 64, unique: true)]
     protected string $tokenHash;
 
-    /** À qui on l'a envoyée, pour s'y retrouver dans la liste. */
+    /** Who it was sent to, to find your way in the list. */
     #[ORM\Column(length: 120, options: ['default' => ''])]
     protected string $label = '';
 
@@ -47,10 +48,10 @@ abstract class AbstractDeliverableLink implements DeliverableLinkInterface
     protected ?DateTimeImmutable $revokedAt = null;
 
     /**
-     * Quand l'auteur a masqué ce lien de sa liste ; nul, il y figure. Un lien
-     * retiré ou expiré encombre la fenêtre sans servir : on le masque au lieu de
-     * le supprimer, parce que sa ligne dit encore qui a pu lire et combien de
-     * fois. Masquer ne rouvre rien : le lien reste retiré.
+     * When the author hid this link from their list; null, it is listed. A
+     * revoked or expired link clutters the dialog without being of use: it is
+     * hidden instead of deleted, because its row still says who may have read
+     * and how many times. Hiding reopens nothing: the link stays revoked.
      */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $hiddenAt = null;

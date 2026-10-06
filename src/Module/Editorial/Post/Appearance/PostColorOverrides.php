@@ -11,22 +11,22 @@ use function mb_trim;
 use function preg_match;
 
 /**
- * Les couleurs du thème qu'une publication repeint pour elle seule, au-delà
- * du fond, de la topbar et du pied (qui ont leurs colonnes depuis longtemps).
+ * The theme colours a post repaints for itself alone, beyond the background,
+ * the topbar and the footer (which have had their own columns for a long time).
  *
- * **Les clés sont celles du thème**, pas des noms à part : c'est le thème qui
- * les résout (`ThemeStyleRenderer::frontendSurfacesCss`), surface par surface
- * contre sa propre configuration, et une clé absente laisse passer la sienne.
- * Une publication n'a donc rien à traduire, et l'écran de thème et l'onglet
- * Apparence parlent des mêmes réglages.
+ * **The keys are the theme's**, not separate names: the theme resolves them
+ * (`ThemeStyleRenderer::frontendSurfacesCss`), surface by surface against its
+ * own configuration, and a missing key lets the theme's own value through.
+ * So a post has nothing to translate, and the theme screen and the Appearance
+ * tab talk about the same settings.
  *
- * **Toute couleur est vérifiée ici.** Elles finissent dans un `<style>`
- * public : une valeur qui n'est pas un hexadécimal est écartée, et une clé
- * inconnue aussi. Écarter veut dire « celle du thème », jamais « aucune ».
+ * **Every colour is checked here.** They end up in a public `<style>`: a value
+ * that is not hexadecimal is dropped, and so is an unknown key. Dropping means
+ * "the theme's one", never "none".
  */
 final class PostColorOverrides
 {
-    /** Texte, traits, cartes, titres et chiffres mis en avant. */
+    /** Text, lines, cards, headings and highlighted figures. */
     public const array KEYS = [
         'text_color',
         'line_color',

@@ -5,23 +5,23 @@ declare(strict_types=1);
 namespace Aurora\Module\Configuration\Theme\Service;
 
 /**
- * Décide, pour une couleur de fond donnée, quel jeu de jetons de texte et de
- * bordure la rend lisible.
+ * Decides, for a given background color, which set of text and border tokens
+ * makes it readable.
  *
- * Le frontend n'écrit jamais une couleur de texte en dur : il utilise quatre
- * jetons hiérarchisés (`--th-primary` pour le texte fort, `--th-secondary` pour
- * les libellés de menu, `--th-muted` et `--th-subtle` pour les mentions
- * discrètes) et deux jetons de bordure. Basculer la seule couleur principale sur
- * un fond sombre laisserait donc les gris moyens et les traits de séparation
- * invisibles. La décision porte sur le jeu entier, pas sur une couleur.
+ * The frontend never hardcodes a text color: it uses four ranked tokens
+ * (`--th-primary` for strong text, `--th-secondary` for menu labels,
+ * `--th-muted` and `--th-subtle` for discreet mentions) and two border
+ * tokens. Switching only the main color on a dark background would therefore
+ * leave the mid greys and the separator lines invisible. The decision covers
+ * the whole set, not one color.
  *
- * Les deux jeux sont ceux que `theme.css` définit déjà pour `:root` et `.dark`.
- * Ils sont repris tels quels plutôt que réinventés : la suite en mode sombre
- * les éprouve tous les jours.
+ * Both sets are the ones `theme.css` already defines for `:root` and `.dark`.
+ * They are taken as they are rather than reinvented: the suite in dark mode
+ * tests them every day.
  *
- * Le choix se fait au rapport de contraste WCAG, pas à un seuil de luminance à
- * 50 %. Un seuil se trompe sur les couleurs très saturées : un rouge vif et un
- * bleu vif partagent une luminance moyenne mais n'appellent pas le même texte.
+ * The choice is made on the WCAG contrast ratio, not on a luminance threshold
+ * at 50%. A threshold gets very saturated colors wrong: a bright red and a
+ * bright blue share a mid luminance but do not call for the same text.
  */
 final readonly class SurfaceContrast
 {
@@ -49,37 +49,38 @@ final readonly class SurfaceContrast
         $this->palette = $palette ?? new PrimaryColorPalette();
     }
 
-    /** Texte fort du jeu clair et du jeu sombre, tels quels dans theme.css. */
+    /** Strong text of the light set and the dark set, as they are in theme.css. */
     private const string LIGHT_PRIMARY = 'rgb(17 24 39)';
 
     private const string DARK_PRIMARY = 'rgb(243 244 246)';
 
     /**
-     * Seuil AAA de WCAG 2.1 pour du texte de taille normale.
+     * WCAG 2.1 AAA threshold for normal-size text.
      *
-     * C'est bien AAA et non AA, parce qu'AA ne peut pas échouer ici. Le service
-     * retient toujours le meilleur du noir et du blanc, et ce meilleur ne
-     * descend jamais sous **4,608:1** - le minimum est atteint sur le gris
-     * `#757575`, là où noir et blanc se valent. AA demandant 4,5, il est tenu
-     * par construction : un avertissement AA serait une interface morte.
+     * It really is AAA and not AA, because AA cannot fail here. The service
+     * always keeps the better of black and white, and that better one never
+     * goes below **4.608:1** - the minimum is reached on the grey `#757575`,
+     * where black and white are equal. AA asking for 4.5, it holds by
+     * construction: an AA warning would be dead interface.
      *
-     * AAA se franchit en revanche sur toute la zone des tons moyens, ce qui en
-     * fait le seul seuil informatif à signaler dans l'écran de thème.
+     * AAA, on the other hand, is crossed across the whole range of mid tones,
+     * which makes it the only informative threshold to flag in the theme
+     * screen.
      */
     public const float AAA_NORMAL_TEXT = 7.0;
 
     /**
-     * Plancher garanti par la stratégie « meilleur des deux ». Exposé pour que
-     * le jour où quelqu'un doute, la valeur soit dans le code et pas dans un
-     * souvenir.
+     * Floor guaranteed by the "better of the two" strategy. Exposed so that
+     * the day someone doubts it, the value is in the code and not in a
+     * memory.
      */
     public const float GUARANTEED_FLOOR = 4.608;
 
     /**
-     * Le fond appelle-t-il un texte clair ?
+     * Does the background call for light text?
      *
-     * Vrai quand du blanc contraste mieux que du noir, ce qui revient à demander
-     * « ce fond est-il sombre ? » sans avoir à fixer arbitrairement la frontière.
+     * True when white contrasts better than black, which amounts to asking
+     * "is this background dark?" without having to set the border arbitrarily.
      */
     public function needsLightText(string $hex): bool
     {
@@ -87,8 +88,8 @@ final readonly class SurfaceContrast
     }
 
     /**
-     * Rapport de contraste WCAG entre deux couleurs, de 1 (identiques) à 21
-     * (noir sur blanc).
+     * WCAG contrast ratio between two colors, from 1 (identical) to 21
+     * (black on white).
      */
     public function ratio(string $hexA, string $hexB): float
     {
@@ -101,27 +102,27 @@ final readonly class SurfaceContrast
     }
 
     /**
-     * Le contraste obtenu tient-il le seuil AAA pour du texte courant ?
+     * Does the resulting contrast meet the AAA threshold for body text?
      *
-     * Sert l'avertissement de l'écran de thème : la couleur reste acceptée, mais
-     * signalée comme confortable ou seulement correcte. Voir AAA_NORMAL_TEXT
-     * pour la raison du choix de ce seuil plutôt que d'AA.
+     * Serves the theme screen warning: the color is still accepted, but
+     * flagged as comfortable or only adequate. See AAA_NORMAL_TEXT for why
+     * this threshold was chosen rather than AA.
      */
     public function meetsAaa(string $backgroundHex): bool
     {
         return $this->bestRatio($backgroundHex) >= self::AAA_NORMAL_TEXT;
     }
 
-    /** Le meilleur rapport atteignable sur ce fond, blanc ou noir confondus. */
+    /** The best ratio reachable on this background, white or black alike. */
     public function bestRatio(string $backgroundHex): float
     {
         return max($this->ratioAgainstWhite($backgroundHex), $this->ratioAgainstBlack($backgroundHex));
     }
 
     /**
-     * Le jeu complet de jetons pour une surface de cette couleur.
+     * The full set of tokens for a surface of this color.
      *
-     * @return array<string, string> nom de variable CSS => valeur
+     * @return array<string, string> CSS variable name => value
      */
     public function tokensFor(string $backgroundHex): array
     {
@@ -295,7 +296,7 @@ final readonly class SurfaceContrast
         return $this->ratio($hex, '#000000');
     }
 
-    /** Luminance relative WCAG, 0 pour le noir, 1 pour le blanc. */
+    /** WCAG relative luminance, 0 for black, 1 for white. */
     private function relativeLuminance(string $hex): float
     {
         [$r, $g, $b] = $this->hexToRgb($hex);
@@ -311,9 +312,9 @@ final readonly class SurfaceContrast
     }
 
     /**
-     * Accepte `#abc`, `#aabbcc` et les mêmes sans dièse. Une saisie illisible
-     * retombe sur le blanc, ce qui donne le jeu clair : le défaut historique du
-     * frontend, donc le moins surprenant.
+     * Accepts `#abc`, `#aabbcc` and the same without the hash. An unreadable
+     * input falls back to white, which gives the light set: the frontend's
+     * historical default, so the least surprising one.
      *
      * @return array{int, int, int}
      */

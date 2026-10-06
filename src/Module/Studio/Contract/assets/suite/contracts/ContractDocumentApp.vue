@@ -453,8 +453,8 @@ const confirmBlocked = computed(
     <div class="aurora-stack">
         <!-- The same bar as every screen, with nothing on its right: this page's
              commands live in the « next step » card below. -->
-        <!-- Les autres gestes dans la barre, comme sur tous les écrans de
-             détail ; l'étape suivante garde son bouton dans sa carte, plus bas. -->
+        <!-- The other actions in the bar, as on every detail screen; the
+             next step keeps its button in its card, further down. -->
         <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')">
             <AppPageActions
                 v-if="otherActions.length"
@@ -480,8 +480,8 @@ const confirmBlocked = computed(
             </div>
         </header>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contracts.document_guide.title')" storage-key="contract-document">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.contracts.document_guide.step_${step}`) }}</li>
@@ -899,8 +899,8 @@ const confirmBlocked = computed(
  * survive a PDF engine and a decade of storage - so the styling lives here
  * rather than in the markup that was hashed.
  */
-/* Une variable `{{contract.custom.…}}` ou une adresse sans espace se coupe
-   au lieu de sortir de la carte sur téléphone. */
+/* A `{{contract.custom.…}}` variable or an address without a space breaks
+   instead of spilling out of the card on a phone. */
 .prose-contract {
     overflow-wrap: anywhere;
 }

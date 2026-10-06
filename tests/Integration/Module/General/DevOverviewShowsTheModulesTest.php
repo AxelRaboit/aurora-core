@@ -11,11 +11,11 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use function json_decode;
 
 /**
- * La vue d'ensemble de l'administration montre les chiffres des modules.
+ * The administration overview shows the modules' figures.
  *
- * Elle demandait les statistiques d'une liste de modules vide, écrite du
- * temps où aucun module n'en fournissait : l'onglet annonçait toujours
- * « Aucun module de tableau de bord activé », alors que cinq en fournissent.
+ * It asked for the statistics of an empty module list, written back when no
+ * module provided any: the tab always announced "Aucun module de tableau de
+ * bord activé", while five provide some.
  */
 final class DevOverviewShowsTheModulesTest extends IntegrationTestCase
 {

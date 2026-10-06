@@ -29,16 +29,15 @@ use function sprintf;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * La fiche d'un client, vue depuis son espace.
+ * A customer's record, seen from their space.
  *
- * **En lecture.** L'onglet Informations avait son propre formulaire et sa
- * propre route d'écriture, avec d'autres champs que l'écran des clients. La
- * fiche s'écrit maintenant sur la page du client, et seulement là : la route
- * de l'onglet n'existe plus, et l'onglet mène à la page pour qui a le droit de
- * la modifier.
+ * **Read-only.** The Informations tab had its own form and its own write
+ * route, with other fields than the customers screen. The record is now
+ * written on the customer's page, and only there: the tab's route no longer
+ * exists, and the tab leads to the page for whoever has the right to edit it.
  *
- * Ce qui ne change pas : la fiche appartient au client (deux espaces montrent
- * la même), et la page que lit le client montre ce qu'elle montrait.
+ * What does not change: the record belongs to the customer (two spaces show
+ * the same one), and the page the client reads shows what it showed.
  */
 final class SpaceInformationTest extends IntegrationTestCase
 {
@@ -78,11 +77,11 @@ final class SpaceInformationTest extends IntegrationTestCase
     }
 
     /**
-     * La route d'écriture de l'onglet n'existe plus.
+     * The tab's write route no longer exists.
      *
-     * **La moitié positive d'abord** : le même compte enregistre bien la fiche
-     * par la page du client. Un 404 seul ne prouverait rien, il serait le même
-     * si l'espace n'existait pas.
+     * **The positive half first**: the same account does save the record
+     * through the customer's page. A 404 alone would prove nothing, it would
+     * be the same if the space did not exist.
      */
     public function testTheTabNoLongerWritesTheRecord(): void
     {
@@ -103,7 +102,7 @@ final class SpaceInformationTest extends IntegrationTestCase
         self::assertSame('06 11 22 33 44', $stored?->getPhone());
     }
 
-    /** L'onglet reçoit la fiche à lire, et plus d'adresse où l'enregistrer. */
+    /** The tab receives the record to read, and no longer an address to save it to. */
     public function testTheTabReceivesTheRecordToReadAndNoSavePath(): void
     {
         $customer = $this->givenCustomer();
@@ -117,11 +116,11 @@ final class SpaceInformationTest extends IntegrationTestCase
     }
 
     /**
-     * « Modifier la fiche » ne mène à la page que pour qui peut l'y modifier.
+     * "Modifier la fiche" only leads to the page for whoever can edit it there.
      *
-     * Un lien vers un formulaire en lecture seule serait une promesse que la
-     * page ne tient pas ; quelqu'un qui tient le tableau d'un espace sans
-     * toucher aux fiches clients n'a pas de lien du tout.
+     * A link to a read-only form would be a promise the page does not keep;
+     * someone who runs a space's board without touching customer records gets
+     * no link at all.
      */
     public function testTheLinkToTheCustomerPageFollowsTheEditPrivilege(): void
     {
@@ -144,7 +143,7 @@ final class SpaceInformationTest extends IntegrationTestCase
         self::assertSame(sprintf('/suite/studio/customers/%d', $customer->getId()), $this->spaceProps($space)['customerPath']);
     }
 
-    /** La fiche est au client : modifiée sur sa page, ses deux espaces montrent la même. */
+    /** The record belongs to the customer: edited on their page, both their spaces show the same. */
     public function testTwoSpacesOfTheSameCustomerShowTheSameRecord(): void
     {
         $customer = $this->givenCustomer();
@@ -157,7 +156,7 @@ final class SpaceInformationTest extends IntegrationTestCase
         self::assertSame('112817044', $this->spaceProps($second)['information']['siren']);
     }
 
-    /** Autour du client, depuis un espace : les autres espaces, pas celui où l'on est. */
+    /** Around the customer, from a space: the other spaces, not the one you are in. */
     public function testTheRelatedSpacesLeaveOutTheCurrentOne(): void
     {
         $customer = $this->givenCustomer();
@@ -168,8 +167,8 @@ final class SpaceInformationTest extends IntegrationTestCase
     }
 
     /**
-     * Ce que lit le client ne change pas : l'onglet de sa page n'existe pas
-     * tant que la fiche ne dit rien, et montre ce qu'elle dit ensuite.
+     * What the client reads does not change: the tab on their page does not
+     * exist as long as the record says nothing, and shows what it says after.
      */
     public function testTheClientTabAppearsOnlyOnceTheSheetSaysSomething(): void
     {
@@ -182,8 +181,8 @@ final class SpaceInformationTest extends IntegrationTestCase
         $space = $this->givenSpace($customer, 'Projet nu');
         $link = $this->givenLink($space);
 
-        // Les propriétés voyagent dans un attribut, donc les guillemets y sont
-        // échappés : c'est bien ce HTML-là que le client reçoit.
+        // The props travel in an attribute, so the quotes in it are escaped:
+        // that is indeed the HTML the client receives.
         self::assertStringContainsString('information&quot;:null', $this->clientPage($link));
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/update', $customer->getId()), [
@@ -198,12 +197,12 @@ final class SpaceInformationTest extends IntegrationTestCase
         self::assertStringContainsString('06 00 11 22 33', $page);
         self::assertStringContainsString('https:\\/\\/societe.example.com', $page);
         self::assertStringContainsString('Ouvert le samedi', $page);
-        // Rien de contractuel ne voyage vers le client.
+        // Nothing contractual travels to the client.
         self::assertStringNotContainsString('shareCapitalCents', $page);
     }
 
     /**
-     * Enregistrer la fiche, par le seul chemin qui l'écrit : la page du client.
+     * Saves the record, through the only path that writes it: the customer's page.
      *
      * @param array<string, mixed> $payload
      */
@@ -249,7 +248,7 @@ final class SpaceInformationTest extends IntegrationTestCase
 
     private function joinSpace(CustomerSpace $space, User $user): void
     {
-        // Relus : une requête passée entre-temps a pu vider l'unité de travail.
+        // Read again: a request made in between may have cleared the unit of work.
         $space = $this->entityManager->find(CustomerSpace::class, $space->getId());
         $user = $this->entityManager->find(User::class, $user->getId());
         self::assertInstanceOf(CustomerSpace::class, $space);
@@ -263,7 +262,7 @@ final class SpaceInformationTest extends IntegrationTestCase
     }
 
     /**
-     * Un compte de production, avec ces privilèges-là et pas d'autres.
+     * A production account, with exactly these privileges and no others.
      *
      * @param list<string> $privileges
      */
@@ -284,7 +283,7 @@ final class SpaceInformationTest extends IntegrationTestCase
         return $user;
     }
 
-    /** Une société dont l'identité contractuelle est complète, comme après un contrat. */
+    /** A company whose contractual identity is complete, as after a contract. */
     private function givenCustomer(): Customer
     {
         $customer = new Customer();

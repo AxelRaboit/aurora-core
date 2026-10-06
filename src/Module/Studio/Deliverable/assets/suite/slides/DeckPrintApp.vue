@@ -56,8 +56,8 @@ onMounted(() => {
 </template>
 
 <style>
-/* Non scopé, et il le faut : `@page` est une règle de document, elle n'a pas
-   de sélecteur à qui attacher une portée. */
+/* Not scoped, and it has to be: `@page` is a document rule, it has no
+   selector to attach a scope to. */
 @page {
     size: landscape;
     margin: 0;
@@ -80,18 +80,18 @@ onMounted(() => {
 @media print {
     .deck-print { gap: 0; max-width: none; margin: 0; padding: 0; }
 
-    /* Le titre et la consigne sont pour l'écran : une page imprimée qui porte
-       un mode d'emploi de l'impression est une page qu'on ne montre pas. */
+    /* The title and the instructions are for the screen: a printed page that
+       carries printing instructions is a page you do not show. */
     .deck-print-head { display: none; }
 
     .deck-print-page {
-        /* Une slide, une page. `avoid` à l'intérieur, sans quoi une citation
-           longue se coupe au milieu d'une phrase. */
+        /* One slide, one page. `avoid` inside, otherwise a long quote breaks
+           in the middle of a sentence. */
         break-after: page;
         break-inside: avoid;
-        /* Centrée sur la page : une slide en 16/9 sur une page en 4/3 laisse
-           forcément une bande, et la laisser entièrement en bas donne une
-           page qui a l'air inachevée plutôt qu'une slide cadrée. */
+        /* Centred on the page: a 16/9 slide on a 4/3 page always leaves a
+           band, and leaving it all at the bottom gives a page that looks
+           unfinished rather than a framed slide. */
         height: 100vh;
         display: grid;
         place-items: center;

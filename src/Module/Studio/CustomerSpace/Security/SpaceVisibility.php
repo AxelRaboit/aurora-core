@@ -14,20 +14,21 @@ use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
- * Quels espaces une personne voit, et lesquels elle administre.
+ * Which spaces a person sees, and which ones they administer.
  *
- * **Une seule réponse à « voit-il tout »**, et c'est la raison d'être de ce
- * service. Trois écrans se posent la question, et trois copies auraient fini
- * par répondre différemment le jour où un quatrième rôle apparaît.
+ * **A single answer to "do they see everything"**, and that is this
+ * service's reason to exist. Three screens ask the question, and three
+ * copies would have ended up answering differently the day a fourth role
+ * appears.
  *
- * Le privilège dit *ce qu'on peut faire*, l'appartenance dit *sur quoi*. Les
- * deux se cumulent : un équipier sans le privilège de modifier ne modifie pas,
- * même sur son propre espace ; un équipier qui l'a ne modifie que les siens.
+ * The privilege says *what one can do*, membership says *on what*. The two
+ * add up: a teammate without the edit privilege does not edit, even on their
+ * own space; a teammate who has it only edits their own.
  *
- * Administrateur et développeur court-circuitent déjà chaque privilège dans
- * {@see ModulePermissionVoter} ; ils
- * court-circuitent l'appartenance ici, pour que les deux moitiés du modèle
- * disent la même chose.
+ * Administrator and developer already bypass every privilege in
+ * {@see ModulePermissionVoter}; they
+ * bypass membership here, so both halves of the model say the same
+ * thing.
  */
 final readonly class SpaceVisibility
 {
@@ -37,9 +38,9 @@ final readonly class SpaceVisibility
     ) {}
 
     /**
-     * Voit-elle tous les espaces, sans être membre d'aucun ?
+     * Do they see every space, without being a member of any?
      *
-     * Les deux rôles qui passent au-dessus des privilèges, et eux seuls.
+     * The two roles that go above privileges, and only those.
      */
     public function seesAll(): bool
     {
@@ -101,11 +102,11 @@ final readonly class SpaceVisibility
     }
 
     /**
-     * Voit-elle cet espace ?
+     * Do they see this space?
      *
-     * Un espace à la corbeille n'est vu par personne : ses écrans, ses
-     * livrables et sa recherche répondent comme pour un espace inconnu. Seul
-     * l'écran de la corbeille le montre, par {@see self::reaches()}.
+     * A space in the trash is seen by nobody: its screens, its deliverables
+     * and its search answer as for an unknown space. Only the trash screen
+     * shows it, through {@see self::reaches()}.
      */
     public function canSee(CustomerSpaceInterface $space): bool
     {
@@ -113,11 +114,11 @@ final readonly class SpaceVisibility
     }
 
     /**
-     * Est-il des siens, qu'il soit vivant ou à la corbeille ?
+     * Is it one of theirs, whether alive or in the trash?
      *
-     * La moitié « appartenance » de {@see self::canSee()} : la corbeille montre
-     * à chacun les espaces de son équipe qu'on y a mis, et à qui voit tout,
-     * tous.
+     * The "membership" half of {@see self::canSee()}: the trash shows each
+     * person the spaces of their team that were put there, and to whoever
+     * sees everything, all of them.
      */
     public function reaches(CustomerSpaceInterface $space): bool
     {
@@ -132,12 +133,12 @@ final readonly class SpaceVisibility
     }
 
     /**
-     * Peut-elle ouvrir les réglages de cet espace ?
+     * Can they open this space's settings?
      *
-     * **C'est ce qui donne enfin un sens au rôle de référent.** Il ne disait
-     * jusqu'ici qu'à qui s'adresser ; il ouvre maintenant une porte que ses
-     * coéquipiers n'ont pas. Le reste du travail dans l'espace ne change pas :
-     * un équipier écrit, commente et programme comme avant.
+     * **This is what finally gives the lead role a meaning.** Until now it
+     * only said who to talk to; it now opens a door their teammates do not
+     * have. The rest of the work in the space does not change: a teammate
+     * writes, comments and schedules as before.
      */
     public function canConfigure(CustomerSpaceInterface $space): bool
     {

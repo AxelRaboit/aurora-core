@@ -19,13 +19,13 @@ use function bin2hex;
 use function random_bytes;
 
 /**
- * « Programmée pour 9 h » veut dire 9 h à l'heure du site.
+ * "Scheduled for 9am" means 9am in the site's time.
  *
- * Le sélecteur envoyait une heure nue, que le serveur (en UTC) lisait comme
- * une heure UTC : une publication programmée pour 9 h à Paris sortait à 11 h
- * l'été. L'éditeur envoie désormais l'heure avec le décalage du site, et une
- * heure nue venue d'un ancien client se lit à l'heure du site. Dans les deux
- * cas la colonne reçoit l'instant en UTC.
+ * The picker sent a bare time, which the server (in UTC) read as a UTC time: a
+ * publication scheduled for 9am in Paris went out at 11am in summer. The
+ * editor now sends the time with the site's offset, and a bare time coming
+ * from an old client is read in the site's time. In both cases the column
+ * receives the instant in UTC.
  */
 final class PostScheduledAtTheSiteTimeTest extends IntegrationTestCase
 {

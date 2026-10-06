@@ -29,15 +29,15 @@ use function sprintf;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * La page d'un client, `/suite/studio/customers/{id}`.
+ * A customer's page, `/suite/studio/customers/{id}`.
  *
- * **Le seul endroit où la fiche s'écrit.** Elle avait deux formulaires : celui
- * de la liste (capital, RCS, TVA, représentant) et celui de l'onglet
- * Informations d'un espace (SIREN, fixe, liens, notes). Chacun n'écrivait que
- * ses colonnes, et le SIREN ne se saisissait que depuis un espace. Ces tests
- * tiennent la nouvelle promesse : une saisie porte tout, les règles d'avant
- * restent, et ce que la page liste autour du client suit les droits du
- * lecteur.
+ * **The only place where the record is written.** It had two forms: the
+ * list's (share capital, RCS, VAT, representative) and the one in a space's
+ * Informations tab (SIREN, landline, links, notes). Each only wrote its own
+ * columns, and the SIREN could only be entered from a space. These tests hold
+ * the new promise: one submission carries everything, the earlier rules
+ * stay, and what the page lists around the customer follows the reader's
+ * rights.
  */
 final class CustomerPageTest extends IntegrationTestCase
 {
@@ -83,17 +83,17 @@ final class CustomerPageTest extends IntegrationTestCase
         $props = $this->pageProps($customer);
 
         self::assertSame('Atelier Temoin', $props['customer']['legalName']);
-        // Les champs que seul l'onglet d'un espace portait sont sur la page.
+        // The fields only a space's tab carried are on the page.
         self::assertSame('112817044', $props['customer']['siren']);
         self::assertSame('04 76 00 00 00', $props['customer']['landline']);
         self::assertSame([['label' => 'Site web', 'url' => 'https://atelier.example.com']], $props['customer']['links']);
         self::assertSame('Lu par le client', $props['customer']['informationNotes']);
-        // Et ceux de l'identité contractuelle aussi.
+        // And so are the contractual identity fields.
         self::assertSame(1_000_000, $props['customer']['shareCapitalCents']);
         self::assertSame('Lyon B 123 456 789', $props['customer']['tradeRegister']);
         self::assertSame(sprintf('/suite/studio/customers/%d/update', $customer->getId()), $props['updatePath']);
 
-        // Studio > Clients > la raison sociale, la liste en lien.
+        // Studio > Clients > the company name, with the list as a link.
         $crawler = $this->client->getCrawler();
         self::assertStringStartsWith('Atelier Temoin - ', mb_trim($crawler->filter('title')->text()));
         $header = $crawler->filter('main header, body header')->first()->text();
@@ -113,7 +113,7 @@ final class CustomerPageTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer();
 
-        // La moitié positive d'abord : le droit de voir suffit à lire.
+        // The positive half first: the right to view is enough to read.
         $this->client->loginUser($this->account(['studio.customers.view']), 'admin');
         $this->client->request('GET', sprintf('/suite/studio/customers/%d', $customer->getId()));
         self::assertResponseIsSuccessful();
@@ -139,8 +139,8 @@ final class CustomerPageTest extends IntegrationTestCase
     }
 
     /**
-     * Une saisie, toute la fiche : les champs de l'ancien onglet d'espace et
-     * ceux de l'identité contractuelle partent ensemble, et arrivent ensemble.
+     * One submission, the whole record: the fields of the old space tab and
+     * those of the contractual identity leave together, and arrive together.
      */
     public function testOneFormSavesEveryField(): void
     {
@@ -196,7 +196,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertSame('direction@atelier.test', $stored->getContractualEmail());
         self::assertSame('06 11 22 33 44', $stored->getPhone());
         self::assertSame('04 76 11 22 33', $stored->getLandline());
-        // La ligne laissée vide est tombée, pas refusée.
+        // The row left empty was dropped, not refused.
         self::assertSame([
             ['label' => 'Site web', 'url' => 'https://atelier-fils.example.com'],
             ['label' => 'Instagram', 'url' => 'https://instagram.example.com/atelier'],
@@ -204,7 +204,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertSame('Atelier ouvert le samedi.', $stored->getInformationNotes());
     }
 
-    /** L'écran Clients refusait de vider l'adresse d'un client signé ; la page aussi. */
+    /** The Clients screen refused to clear a signed customer's address; so does the page. */
     public function testASignedClientKeepsTheAddressTheirContractsGoTo(): void
     {
         $customer = $this->givenCustomer(CustomerStatusEnum::Client);
@@ -222,7 +222,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertSame('temoin@example.test', $this->reload($customer)->getContractualEmail());
     }
 
-    /** Un SIREN qui ne correspond pas au SIRET est refusé, sur son champ. */
+    /** A SIREN that does not match the SIRET is refused, on its own field. */
     public function testTwoNumbersThatDisagreeAreRefusedOnTheSirenField(): void
     {
         $customer = $this->givenCustomer();
@@ -272,7 +272,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertStringContainsString('Societe Voisine', $this->json()['errors']['siret']);
     }
 
-    /** Une ligne à moitié remplie est une erreur posée sur sa ligne ; une adresse non web aussi. */
+    /** A half-filled row is an error set on that row; so is a non-web address. */
     public function testAHalfFilledOrNonWebLinkIsRefusedOnItsRow(): void
     {
         $customer = $this->givenCustomer();
@@ -293,9 +293,9 @@ final class CustomerPageTest extends IntegrationTestCase
     }
 
     /**
-     * Ce qui entoure le client suit les droits du lecteur : une liste qu'il ne
-     * peut pas ouvrir n'existe pas pour lui, un livrable perso d'un collègue
-     * non plus, ni un espace dont il n'est pas membre.
+     * What surrounds the customer follows the reader's rights: a list they
+     * cannot open does not exist for them, nor does a colleague's personal
+     * deliverable, nor a space they are not a member of.
      */
     public function testRelatedListsFollowTheReadersRights(): void
     {
@@ -310,15 +310,15 @@ final class CustomerPageTest extends IntegrationTestCase
         $shared = $this->givenDeliverable($customer, 'Proposition commerciale', DeliverableScopeEnum::Shared);
         $personal = $this->givenDeliverable($customer, 'Notes perso de l admin', DeliverableScopeEnum::Personal);
 
-        // Celui qui voit tout voit les trois listes, entières.
+        // Whoever sees everything sees the three lists, in full.
         $related = $this->pageProps($customer)['related'];
         self::assertSame([sprintf('/suite/studio/contracts/%d', $contract->getId())], array_column($related['contracts'], 'url'));
         self::assertSame('draft', $related['contracts'][0]['status']);
         self::assertSame(['Refonte du site'], array_column($related['spaces'], 'label'));
         self::assertEqualsCanonicalizing([$shared, $personal], array_column($related['deliverables'], 'id'));
 
-        // Un collègue qui voit les clients et les livrables, sans les contrats,
-        // et qui n'est membre d'aucun espace.
+        // A colleague who sees customers and deliverables, without contracts,
+        // and who is a member of no space.
         $this->client->loginUser($this->account(['studio.customers.view', 'studio.deliverables.view', 'studio.spaces.view']), 'admin');
         $props = $this->pageProps($customer);
         $related = $props['related'];
@@ -328,7 +328,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertSame([], $related['spaces'], 'un espace dont il n est pas membre ne se liste pas');
         self::assertSame([$shared], array_column($related['deliverables'], 'id'), 'le livrable perso de l admin reste le sien');
 
-        // Sans le droit des espaces ni celui des livrables, rien de ces listes.
+        // Without the spaces right or the deliverables right, none of these lists.
         $this->client->loginUser($this->account(['studio.customers.view']), 'admin');
         $related = $this->pageProps($customer)['related'];
         self::assertNull($related['spaces']);
@@ -336,7 +336,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertNull($related['contracts']);
     }
 
-    /** Supprimer depuis la page garde la garde d'avant : un client nommé par un espace reste. */
+    /** Deleting from the page keeps the earlier guard: a customer named by a space stays. */
     public function testDeletionKeepsItsGuard(): void
     {
         $customer = $this->givenCustomer();
@@ -348,7 +348,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertArrayHasKey('customer', $this->json()['errors']);
     }
 
-    /** La conversion se fait depuis la page aussi, par sa propre route. */
+    /** Conversion is done from the page too, through its own route. */
     public function testAProspectIsConvertedFromThePage(): void
     {
         $customer = $this->givenCustomer();
@@ -360,7 +360,7 @@ final class CustomerPageTest extends IntegrationTestCase
         self::assertSame(CustomerStatusEnum::Client, $this->reload($customer)->getStatus());
     }
 
-    /** La liste ne modifie plus : elle mène à la page, et ne reçoit plus de comptes. */
+    /** The list no longer edits: it leads to the page, and no longer receives accounts. */
     public function testTheListLeadsToThePage(): void
     {
         $this->givenCustomer();
@@ -416,7 +416,7 @@ final class CustomerPageTest extends IntegrationTestCase
     }
 
     /**
-     * Un compte de la suite, avec ces privilèges-là et pas d'autres.
+     * A suite account, with exactly these privileges and no others.
      *
      * @param list<string> $privileges
      */
@@ -475,7 +475,7 @@ final class CustomerPageTest extends IntegrationTestCase
         return $space;
     }
 
-    /** Un livrable de Studio écrit par l'administrateur, rattaché au client. */
+    /** A Studio deliverable written by the administrator, linked to the customer. */
     private function givenDeliverable(Customer $customer, string $title, DeliverableScopeEnum $scope): int
     {
         $this->client->loginUser($this->admin, 'admin');

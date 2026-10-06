@@ -171,10 +171,10 @@ async function requestCode() {
             return;
         }
 
-        // L'adresse est ce qui prouve que l'envoi a eu lieu : sans elle, la
-        // requête a échoué, et basculer quand même dans l'état « code envoyé »
-        // affichait « Code envoyé à . » à un client qui attendrait ensuite un
-        // code que personne n'a expédié.
+        // The address is what proves the sending took place: without it, the
+        // request failed, and switching to the "code sent" state anyway showed
+        // "Code envoyé à ." to a client who would then wait for a code nobody
+        // sent.
         if (!data?.sentTo) {
             errors.value = { code: t("studio.public.sign.errors.code_not_sent") };
 
@@ -271,8 +271,8 @@ async function sign() {
             </p>
         </header>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('studio.public.sign.guide.title')" storage-key="contract-sign">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`studio.public.sign.guide.step_${step}`) }}</li>
@@ -349,9 +349,9 @@ async function sign() {
                 <p class="text-sm text-secondary">
                     {{ t("studio.public.sign.code_intro") }}
                 </p>
-                <!-- Pleine largeur sous `sm`, comme « Signer le contrat » plus
-                     bas : c'est l'étape d'avant, sur la page qu'un client ouvre
-                     presque toujours au téléphone. -->
+                <!-- Full width below `sm`, like "Signer le contrat" further
+                     down: it is the step before, on the page a client almost
+                     always opens on a phone. -->
                 <AppButton
                     class="w-full sm:w-auto"
                     variant="secondary"

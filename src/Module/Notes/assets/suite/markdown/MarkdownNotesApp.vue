@@ -48,14 +48,14 @@ const props = defineProps({
     folderId: { type: Number, default: null },
     /** The chain the server resolved for that folder, root first. */
     breadcrumb: { type: Array, default: () => [] },
-    /** Les routes des dossiers, en un objet plutôt qu'en sept props. */
+    /** The folder routes, in one object rather than in seven props. */
     folderPaths: { type: Object, required: true },
-    /** Les routes des espaces, en un objet comme celles des dossiers. */
+    /** The space routes, in one object like the folder ones. */
     spacePaths: { type: Object, default: () => ({}) },
-    /** Les espaces lisibles, le sien d'abord, avec le rôle de qui lit. */
+    /** The readable spaces, one's own first, with the reader's role. */
     spaces: { type: Array, default: () => [] },
     canCreateSpace: { type: Boolean, default: false },
-    /** L'adresse de la bibliothèque, c'est-à-dire du carnet à sa racine. */
+    /** The library's address, that is the notebook at its root. */
     libraryPath: { type: String, required: true },
     maxDepth: { type: Number, default: 8 },
     listPath: { type: String, required: true },
@@ -65,7 +65,7 @@ const props = defineProps({
     deletePath: { type: String, required: true },
     movePath: { type: String, required: true },
     favoritePath: { type: String, default: '' },
-    /** L'espace personnel de qui lit : ce qui vit ailleurs est partagé. */
+    /** The reader's personal space: whatever lives elsewhere is shared. */
     personalSpaceId: { type: Number, default: null },
     reorderPath: { type: String, required: true },
     duplicatePath: { type: String, default: '' },
@@ -77,7 +77,7 @@ const props = defineProps({
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
     graphPath: { type: String, required: true },
-    /** Le carnet entier en zip, une note seule en .md, et le chemin du retour. */
+    /** The whole notebook as a zip, a single note as .md, and the way back. */
     exportPath: { type: String, required: true },
     exportOnePath: { type: String, required: true },
     importPath: { type: String, required: true },
@@ -91,15 +91,15 @@ const props = defineProps({
     sharesCreatePath: { type: String, required: true },
     sharesRevokePath: { type: String, required: true },
     imageUploadPath: { type: String, required: true },
-    /** L'adresse qui montre une note seule, sans le back-office. */
+    /** The address that shows a single note, without the back-office. */
     readPath: { type: String, default: '' },
-    /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
+    /** The relay to Pexels for the banner: no image enters the GED. */
     coversSearchPath: { type: String, default: '' },
-    /** L'installation a-t-elle ouvert une connexion Craft. */
+    /** Whether the installation has opened a Craft connection. */
     craftEnabled: { type: Boolean, default: false },
-    /** Les routes de l'import Craft : la liste, l'import, la mise à jour. */
+    /** The Craft import routes: the list, the import, the update. */
     craftPaths: { type: Object, default: () => ({}) },
-    /** Ce que les autres ont ouvert à tout le back-office. */
+    /** What the others have opened to the whole back-office. */
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**
@@ -162,12 +162,11 @@ const {
 const shareModalOpen = ref(false);
 
 /**
- * Le bandeau et l'apparence : une seule porte pour « de quoi cette note a
- * l'air ».
+ * The banner and the appearance: a single door for "what this note looks
+ * like".
  *
- * Les deux s'écrivent dans le formulaire, donc l'enregistrement automatique
- * les emporte comme le reste : choisir une image n'a pas de bouton à
- * valider.
+ * Both are written into the form, so the autosave carries them like the
+ * rest: picking an image has no button to confirm.
  */
 const coverModalOpen = ref(false);
 
@@ -191,9 +190,9 @@ function removeCover() {
     form.value.coverPosition = 50;
 }
 
-// `plain` ne pose aucune classe : une note sans habillage suit le thème
-// clair ou sombre de la personne, et une classe qui la repeindrait en dur
-// lui retirerait ce choix.
+// `plain` sets no class: a note without styling follows the person's light
+// or dark theme, and a class that repainted it in hard colours would take
+// that choice away.
 const lookClass = computed(() =>
     'plain' === form.value.appearance || !form.value.appearance
         ? ''
@@ -201,24 +200,23 @@ const lookClass = computed(() =>
 );
 
 /**
- * Le corps tel que l'aperçu le montre : sans le titre répété en tête.
+ * The body as the preview shows it: without the title repeated at the top.
  *
- * Les index des cases à cocher suivent : retirer un titre ne change ni le
- * nombre ni l'ordre des cases, donc cocher dans l'aperçu écrit toujours
- * dans la bonne ligne du source.
+ * The checkbox indexes follow: removing a heading changes neither the number
+ * nor the order of the boxes, so ticking in the preview always writes to the
+ * right line of the source.
  */
 const previewBody = computed(() =>
     withoutLeadingTitle(form.value.content, form.value.title),
 );
 
 /**
- * Rendre la note ouverte visible par l'équipe, ou la refermer.
+ * Make the open note visible to the team, or close it again.
  *
- * La bascule n'existait que dans le menu d'une carte, donc depuis la
- * bibliothèque : depuis la note elle-même, la seule chose qui ressemblait
- * à un partage était le lien public, qui est une tout autre chose. Deux
- * gestes différents portaient le même mot, et il en manquait un là où on
- * l'attend.
+ * The toggle only existed in a card's menu, so from the library: from the
+ * note itself, the only thing that looked like sharing was the public link,
+ * which is something else entirely. Two different gestures carried the same
+ * word, and one was missing where it is expected.
  */
 const readHref = computed(() =>
     selectedId.value && props.readPath
@@ -227,17 +225,16 @@ const readHref = computed(() =>
 );
 
 /**
- * Les étiquettes se replient en icône, comme la recherche de la
- * bibliothèque.
+ * Tags fold into an icon, like the library search.
  *
- * Elles occupaient une ligne entière de l'en-tête en permanence, c'est-à-dire
- * une ligne de moins pour le texte, pour une chose qu'on touche une fois
- * quand la note naît et plus jamais ensuite. Repliées, l'icône porte leur
- * nombre et les nomme en infobulle : on sait qu'il y en a et lesquelles sans
- * les avoir sous les yeux.
+ * They took up a whole line of the header all the time, that is one line
+ * less for the text, for something touched once when the note is born and
+ * never again after. Folded, the icon carries their count and names them in
+ * a tooltip: one knows there are some, and which, without having them in
+ * view.
  *
- * Le repli à la perte du focus ne vaut que si le champ est vide, comme pour
- * la recherche : refermer sous un mot à moitié tapé le ferait disparaître.
+ * Folding on focus loss only applies when the field is empty, as for the
+ * search: closing on a half-typed word would make it disappear.
  */
 const {
     open: tagsOpen,
@@ -265,9 +262,9 @@ function closeTagsIfIdle(event) {
 }
 
 const tagsLabel = computed(() => {
-    // `form` est une `ref` : le modèle s'y lit par `.value`, là où le
-    // gabarit le déballe tout seul. Sans cela l'infobulle restait au
-    // texte du champ vide pendant que la pastille comptait juste.
+    // `form` is a `ref`: the model is read through `.value`, where the
+    // template unwraps it on its own. Without this the tooltip stayed on the
+    // empty-field text while the badge counted right.
     const tags = form.value.tags ?? [];
 
     return tags.length
@@ -276,33 +273,33 @@ const tagsLabel = computed(() => {
 });
 
 /**
- * Ce qui casse doit se voir.
+ * What breaks must show.
  *
- * Une erreur dans un composant enfant vide sa zone sans un mot : Vue la
- * consigne dans la console et rend du vide. Axel a eu deux fois un grand
- * cadre blanc pour tout message, et la seule façon de savoir ce qui s'était
- * passé était d'ouvrir les outils de développement. Une page qui échoue doit
- * le dire à qui la regarde, et dire quoi.
+ * An error in a child component empties its area without a word: Vue logs
+ * it to the console and renders nothing. Twice Axel got a large white frame
+ * as the only message, and the only way to know what had happened was to
+ * open the developer tools. A page that fails must say so to whoever is
+ * looking at it, and say what.
  */
 const crashed = ref(null);
 
 onErrorCaptured((error) => {
     crashed.value = error;
 
-    // Consigné quand même : le message à l'écran sert la personne, la trace
-    // sert celui qui répare.
+    // Logged anyway: the message on screen serves the person, the trace
+    // serves whoever fixes it.
     console.error('[notes] la page a échoué', error);
 
     return false;
 });
 
 /**
- * Les dossiers, et le va-et-vient entre la bibliothèque et l'éditeur.
+ * The folders, and the back and forth between the library and the editor.
  *
- * Une seule page monte les deux : ouvrir une note depuis la bibliothèque
- * écrit son adresse et charge son texte, sans recharger le document. Le
- * retour arrière du navigateur rend la bibliothèque, parce que l'adresse
- * qu'on quitte est une vraie adresse et pas un état interne.
+ * A single page mounts both: opening a note from the library writes its
+ * address and loads its text, without reloading the document. The browser's
+ * back button returns the library, because the address being left is a real
+ * address and not an internal state.
  */
 const foldersApi = useNoteFoldersApi(props.folderPaths);
 const folders = ref([...props.folders]);
@@ -316,34 +313,34 @@ async function refreshSpaces() {
     if (ok) spaces.value = sortSpaces(payload.spaces ?? []);
 }
 
-/** L'espace dont on ouvre les réglages, ou rien. */
+/** The space whose settings are open, or nothing. */
 const settingsSpaceId = ref(null);
 
-/** Après un changement de réglages : l'espace, et ce qu'il range, ont pu changer. */
+/** After a settings change: the space, and what it holds, may have changed. */
 async function onSpaceChanged() {
     await Promise.all([refreshSpaces(), refreshList(), refreshFolders()]);
 }
 
 /**
- * La bibliothèque, quand elle est là.
+ * The library, when it is there.
  *
- * Le panneau du menu parle à cette application, montée sur toutes les pages
- * du module ; la bibliothèque n'est montée que lorsque aucune note n'est
- * ouverte. Quand elle manque, une demande du panneau devient une navigation,
- * ce qui est la réponse honnête : on quitte l'éditeur pour aller voir.
+ * The menu panel talks to this application, mounted on every page of the
+ * module; the library is only mounted when no note is open. When it is
+ * missing, a request from the panel becomes a navigation, which is the
+ * honest answer: we leave the editor to go and look.
  */
 const libraryRef = ref(null);
 
 /**
- * Le dossier sous les yeux, qui n'est pas toujours celui de l'adresse
- * initiale : la bibliothèque navigue sans recharger.
+ * The folder in view, which is not always the one of the initial address:
+ * the library navigates without reloading.
  */
 const openFolderId = ref(props.folderId);
 
-/** Dans les favoris de qui lit : le menu dit l'inverse de l'état. */
+/** In the reader's favourites: the menu says the opposite of the state. */
 const isFavorite = computed(() => Boolean(selectedNote.value?.favoritedAt));
 
-/** Peut-on écrire la note ouverte : son espace le dit (`canWrite`). */
+/** Whether the open note can be written: its space says so (`canWrite`). */
 const canEditSelected = computed(() => {
     const spaceId = selectedNote.value?.spaceId ?? null;
 
@@ -351,16 +348,16 @@ const canEditSelected = computed(() => {
 });
 
 /**
- * L'import Craft : l'espace (et le dossier) où la note arrivera, ou rien.
+ * The Craft import: the space (and the folder) where the note will land, or
+ * nothing.
  *
- * Ouvert depuis le menu d'un espace, dans le panneau ; la modale se charge
- * elle-même à l'ouverture.
+ * Opened from a space's menu, in the panel; the modal loads itself on open.
  */
 const craftImport = ref(null);
 
 const { request: craftRequest } = useRequest();
 
-/** La note importée s'ouvre aussitôt : c'est elle qu'on venait chercher. */
+/** The imported note opens right away: it is what we came for. */
 async function onCraftImported(payload) {
     await overlaysSettled();
     await refreshList();
@@ -368,10 +365,10 @@ async function onCraftImported(payload) {
 }
 
 /**
- * Remettre la note ouverte sur la version actuelle de son document Craft.
+ * Reset the open note to the current version of its Craft document.
  *
- * Confirmée avant : le texte est remplacé. L'état d'avant entre dans
- * l'historique de la note, d'où on le fait revenir.
+ * Confirmed first: the text is replaced. The previous state goes into the
+ * note's history, from where it can be brought back.
  */
 const craftRefreshPending = ref(false);
 const craftRefreshing = ref(false);
@@ -399,14 +396,13 @@ async function refreshFromCraft() {
 }
 
 /**
- * Ce que le menu de la note porte : les gestes qu'on fait une fois.
+ * What the note's menu holds: the gestures done once.
  *
- * Exporter, envoyer un lien, choisir une image, ouvrir le graphe,
- * l'épingler : chacun se fait une fois par note, quand les modes
- * d'affichage, les étiquettes et les liens se touchent en écrivant. Les
- * douze sur une ligne ne laissaient plus de place au titre.
+ * Exporting, sending a link, picking an image, opening the graph, pinning
+ * it: each is done once per note, while view modes, tags and links are
+ * touched while writing. All twelve on one line left no room for the title.
  */
-/** L'historique des versions de la note ouverte. */
+/** The version history of the open note. */
 const historyOpen = ref(false);
 
 const noteActions = computed(() => {
@@ -418,8 +414,8 @@ const noteActions = computed(() => {
             href: readHref.value,
         },
         {
-            // Le lecteur imprime : la note sans l'éditeur autour, et le
-            // dialogue s'ouvre de lui-même. « Enregistrer en PDF » y est.
+            // The reader prints: the note without the editor around it, and
+            // the dialog opens by itself. "Enregistrer en PDF" is in it.
             key: "print",
             title: t('notes.markdown.print.open'),
             icon: Printer,
@@ -427,16 +423,15 @@ const noteActions = computed(() => {
                 if (!readHref.value) return;
 
                 await flushPendingSave();
-                // Le retour d'historique du menu, encore en route, annulerait
-                // la navigation : on part une fois qu'il a abouti.
+                // The menu's history back, still on its way, would cancel the
+                // navigation: we leave once it has completed.
                 await overlaysSettled();
                 window.location.assign(`${readHref.value}?print=1`);
             },
         },
         {
-            // Le compteur d'étiquettes était une pastille sur l'icône ;
-            // dans un menu, c'est le libellé qui les nomme, ce qui en dit
-            // plus qu'un chiffre.
+            // The tag count was a badge on the icon; in a menu, the label
+            // names them, which says more than a number.
             key: "tags",
             title: tagsLabel.value,
             icon: Tag,
@@ -459,9 +454,9 @@ const noteActions = computed(() => {
             },
         },
         {
-            // Les favoris sont à soi : la note s'épingle d'ici, là où l'on
-            // est quand on se dit qu'on y reviendra. Seule la bibliothèque le
-            // proposait, et personne ne l'y trouvait.
+            // Favourites are one's own: the note is pinned from here, where
+            // one is when thinking of coming back to it. Only the library
+            // offered it, and nobody found it there.
             key: "favorite",
             title: isFavorite.value
                 ? t('notes.markdown.library.unpin')
@@ -482,18 +477,18 @@ const noteActions = computed(() => {
             title: t('notes.markdown.revisions.open'),
             icon: History,
             onSelect: async () => {
-                // Ce qui attend d'être enregistré part d'abord : comparer avec
-                // un texte que le serveur n'a pas encore serait trompeur.
+                // What is waiting to be saved goes first: comparing with a
+                // text the server does not have yet would be misleading.
                 await flushPendingSave();
-                // Le menu s'est refermé pendant l'attente, et son retour
-                // d'historique n'a pas encore abouti : la fenêtre ouverte
-                // avant pousserait son entrée sous ce retour.
+                // The menu closed during the wait, and its history back has
+                // not completed yet: the window opened before would push its
+                // entry under that back.
                 await overlaysSettled();
                 historyOpen.value = true;
             },
         },
-        // Seulement sur une note copiée d'un document Craft, et pour qui
-        // peut l'écrire : ailleurs, il n'y a rien à reprendre de nulle part.
+        // Only on a note copied from a Craft document, and for whoever can
+        // write it: elsewhere, there is nothing to take back from anywhere.
         ...(props.craftEnabled && selectedNote.value?.craftDocumentId && canEditSelected.value
             ? [{
                 key: "craft-refresh",
@@ -513,8 +508,8 @@ const noteActions = computed(() => {
             onSelect: () => void duplicateNote(),
         },
         {
-            // Un modèle reste une note : on le lit et on le modifie comme
-            // les autres, et « Ajouter » propose de partir de lui.
+            // A template stays a note: it is read and edited like the
+            // others, and "Ajouter" offers to start from it.
             key: "template",
             title: selectedNote.value?.template
                 ? t('notes.markdown.template.unmark')
@@ -528,9 +523,9 @@ const noteActions = computed(() => {
             icon: FileDown,
             onSelect: () => exportOne(selectedId.value),
         },
-        // Mettre la note à la corbeille. Le geste existait et n'était
-        // atteignable que depuis la bibliothèque : depuis la note elle-même,
-        // l'endroit le plus évident, il n'y avait rien.
+        // Move the note to the trash. The gesture existed and could only be
+        // reached from the library: from the note itself, the most obvious
+        // place, there was nothing.
         {
             key: "delete",
             title: t('notes.markdown.delete'),
@@ -547,12 +542,12 @@ const noteActions = computed(() => {
 const previewPaneRef = ref(null);
 
 /**
- * Aller au titre cliqué dans le plan.
+ * Go to the heading clicked in the outline.
  *
- * Dans l'aperçu, le titre rendu qui porte le même texte (le n-ième s'il y en
- * a plusieurs) ; en écriture, le curseur au début de sa ligne. Le premier
- * titre peut manquer à l'aperçu, qui ne redit pas le titre de la note : on
- * remonte alors en haut.
+ * In the preview, the rendered heading carrying the same text (the n-th if
+ * there are several); while writing, the cursor at the start of its line.
+ * The first heading may be missing from the preview, which does not repeat
+ * the note's title: we then go back to the top.
  */
 function jumpToHeading(heading) {
     const normalise = (text) => String(text ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -563,8 +558,8 @@ function jumpToHeading(heading) {
         const matches = [...preview.querySelectorAll('h1, h2, h3, h4, h5, h6')].filter((el) => normalise(el.textContent) === normalise(heading.text));
         const target = matches[before] ?? null;
 
-        // Le volet seul défile : `scrollIntoView` emmenait aussi la page, et
-        // le chemin de la note passait sous l'entête.
+        // Only the pane scrolls: `scrollIntoView` also took the page along,
+        // and the note's path went under the header.
         const top = target
             ? preview.scrollTop + target.getBoundingClientRect().top - preview.getBoundingClientRect().top - 12
             : 0;
@@ -582,7 +577,7 @@ function jumpToHeading(heading) {
         pane.scrollTop = Math.max(0, textarea.offsetTop + (heading.line / Math.max(1, lines.length)) * textarea.scrollHeight - 48);
     }
 
-    // Sur téléphone, le panneau couvre la note : on le referme pour la voir.
+    // On a phone, the panel covers the note: we close it to see the note.
     if (isMobile.value) sidePanelOpen.value = false;
 }
 
@@ -591,19 +586,19 @@ function outlineOfContent() {
 }
 
 
-/** Une version vient d'être restaurée : la note se recharge depuis le serveur. */
+/** A version has just been restored: the note reloads from the server. */
 async function onRevisionRestored(note) {
     historyOpen.value = false;
-    // La fenêtre retire son entrée d'historique en différé : rouvrir la note
-    // avant, c'est pousser l'adresse sous ce retour, qui remonterait alors
-    // d'un cran de trop et quitterait la page.
+    // The window removes its history entry with a delay: reopening the note
+    // before that pushes the address under that back, which would then go
+    // back one step too far and leave the page.
     await overlaysSettled();
     await refreshList();
     await openNote(note.id);
     toast.success(t('notes.markdown.revisions.restored'));
 }
 
-/** Une copie de la note ouverte, juste sous elle, qu'on ouvre aussitôt. */
+/** A copy of the open note, right below it, opened right away. */
 async function duplicateNote() {
     if (!selectedId.value) return;
 
@@ -622,7 +617,7 @@ async function duplicateNote() {
     toast.success(t('notes.markdown.duplicate.done'));
 }
 
-/** Faire de la note ouverte un modèle, ou la rendre à l'ordinaire. */
+/** Make the open note a template, or turn it back into an ordinary one. */
 async function toggleTemplate() {
     if (!selectedId.value) return;
 
@@ -641,10 +636,10 @@ async function toggleTemplate() {
     toast.success(t(next ? 'notes.markdown.template.marked' : 'notes.markdown.template.unmarked'));
 }
 
-/** Les modèles qu'on peut lire, pour « Ajouter ». */
+/** The templates one can read, for "Ajouter". */
 const templates = computed(() => notes.value.filter((one) => one.template));
 
-/** Ajouter aux favoris, ou retirer : une note ou un dossier. */
+/** Add to favourites, or remove: a note or a folder. */
 async function toggleFavorite(kind, id) {
     if (!id) return;
 
@@ -664,21 +659,20 @@ function folderUrlFor(id) {
 }
 
 /**
- * Revenir à la bibliothèque, et s'y poser où on le demande.
+ * Go back to the library, and land where asked.
  *
- * Elle et l'éditeur vivent dans la même application : quitter l'un pour
- * l'autre est un changement d'affichage, pas une navigation. Le panneau
- * déclenchait un rechargement complet quand une note était ouverte, ce qui
- * jetait le défilement, la sélection, et l'état déplié de l'arbre pour
- * revenir au même endroit.
+ * It and the editor live in the same application: leaving one for the other
+ * is a change of display, not a navigation. The panel triggered a full
+ * reload when a note was open, which threw away the scroll, the selection,
+ * and the tree's expanded state only to come back to the same place.
  *
- * @returns {Promise<void>} résolue une fois la bibliothèque montée
+ * @returns {Promise<void>} resolved once the library is mounted
  */
 async function showLibrary(folderId = null) {
     selectedId.value = null;
 
-    // La bibliothèque n'existe qu'une fois l'éditeur retiré : sans ce tour
-    // de boucle, la référence est encore nulle et l'ordre se perd.
+    // The library only exists once the editor is removed: without this
+    // tick, the reference is still null and the order is lost.
     await nextTick();
 
     if (libraryRef.value) {
@@ -687,7 +681,7 @@ async function showLibrary(folderId = null) {
         return;
     }
 
-    // Repli : si elle ne s'est pas montée, l'adresse reste la vérité.
+    // Fallback: if it did not mount, the address stays the truth.
     window.location.assign(
         null === folderId || undefined === folderId
             ? props.libraryPath
@@ -712,16 +706,16 @@ async function openNote(id) {
     try {
         window.history.pushState({ noteId: id }, '', noteUrlFor(id));
     } catch {
-        // Cadre bac à sable : la note s'ouvre quand même, seule l'adresse
-        // ne suit pas.
+        // Sandboxed frame: the note opens anyway, only the address does not
+        // follow.
     }
 
     await selectNote(id);
 }
 
 function onHistoryPop() {
-    // La bibliothèque a son propre écouteur pour le dossier ; celui-ci ne
-    // tranche qu'entre « une note » et « la liste ».
+    // The library has its own listener for the folder; this one only
+    // decides between "a note" and "the list".
     const match = /\/markdown\/(\d+)(?:$|[?#])/.exec(window.location.pathname);
 
     if (match) {
@@ -736,23 +730,23 @@ function onHistoryPop() {
 async function onLibraryChanged() {
     await Promise.all([refreshFolders(), refreshList()]);
 
-    // Une note absente de la liste rafraîchie est partie à la corbeille,
-    // seule ou avec son dossier. La garder ouverte laisserait
-    // l'enregistrement automatique écrire dans une note supprimée, et le
-    // lecteur croirait travailler sur quelque chose qui n'existe plus.
+    // A note missing from the refreshed list went to the trash, alone or
+    // with its folder. Keeping it open would let the autosave write into a
+    // deleted note, and the reader would believe they were working on
+    // something that no longer exists.
     if (selectedId.value && !notes.value.some((note) => note.id === selectedId.value)) {
         backToLibrary();
     }
 }
 
 /**
- * Supprimer, puis rendre l'adresse juste.
+ * Delete, then make the address right.
  *
- * La note ouverte supprimée, l'écran revient à la bibliothèque mais l'adresse
- * restait la sienne : rafraîchir la page répondait 404. L'adresse est réécrite
- * une fois la fenêtre de confirmation refermée, pas avant : la fenêtre tient
- * une entrée d'historique à elle, et la réécrire pendant qu'elle est là, c'est
- * écrire sur cette entrée, que son propre retour arrière effacerait aussitôt.
+ * With the open note deleted, the screen goes back to the library but the
+ * address stayed the note's: refreshing the page answered 404. The address
+ * is rewritten once the confirmation dialog has closed, not before: the
+ * dialog holds a history entry of its own, and rewriting while it is there
+ * writes over that entry, which its own back would erase right away.
  */
 async function confirmDeleteAndLeave() {
     const target = pendingDelete.value;
@@ -760,7 +754,7 @@ async function confirmDeleteAndLeave() {
 
     await confirmDelete();
 
-    // Toujours en attente : le serveur a refusé, la note est toujours là.
+    // Still pending: the server refused, the note is still there.
     if (!wasOpen || null !== pendingDelete.value) return;
 
     await overlaysSettled();
@@ -770,7 +764,7 @@ async function confirmDeleteAndLeave() {
     try {
         window.history.replaceState({ folderId }, '', folderId ? folderUrlFor(folderId) : props.libraryPath);
     } catch {
-        // Cadre bac à sable : la bibliothèque est affichée, seule l'adresse ne suit pas.
+        // Sandboxed frame: the library is shown, only the address does not follow.
     }
 }
 
@@ -781,7 +775,7 @@ function backToLibrary() {
     try {
         window.history.pushState({ folderId }, '', url);
     } catch {
-        // Idem : le retour se fait, l'adresse ne suit pas.
+        // Same: the back happens, the address does not follow.
     }
 
     selectedId.value = null;
@@ -801,14 +795,14 @@ function backToLibrary() {
  * arrival until the reader reloaded the page.
  */
 /**
- * Emporter le carnet, et le rendre.
+ * Take the notebook away, and bring it back.
  *
- * L'export est une navigation, pas une requête : le navigateur sait recevoir
- * un fichier et le ranger, et passer par `fetch` obligerait à garder un zip
- * entier en mémoire pour le redonner à un lien fabriqué.
+ * The export is a navigation, not a request: the browser knows how to
+ * receive a file and store it, and going through `fetch` would force keeping
+ * a whole zip in memory to hand it back to a fabricated link.
  */
 function exportAll(spaceId = null) {
-    // Un espace seul quand le panneau le demande depuis son en-tête.
+    // A single space when the panel asks for it from its header.
     const url = null == spaceId ? props.exportPath : `${props.exportPath}?spaceId=${encodeURIComponent(String(spaceId))}`;
 
     window.location.assign(url);
@@ -820,7 +814,7 @@ function exportOne(id) {
 
 const importInput = ref(null);
 
-/** La racine d'espace où importer, quand l'import part de son en-tête. */
+/** The space root to import into, when the import starts from its header. */
 const importSpaceId = ref(null);
 
 function askForFiles(spaceId = null) {
@@ -830,8 +824,8 @@ function askForFiles(spaceId = null) {
 
 async function onImportFiles(event) {
     const files = [...(event.target.files ?? [])];
-    // Remis à zéro tout de suite : sans ça, réimporter le même fichier
-    // n'émettrait rien, le champ n'ayant pas changé de valeur.
+    // Reset right away: otherwise, reimporting the same file would emit
+    // nothing, since the field's value has not changed.
     event.target.value = "";
 
     if (!files.length) return;
@@ -839,8 +833,8 @@ async function onImportFiles(event) {
     const form = new FormData();
     files.forEach((file) => form.append("files[]", file));
 
-    // À la racine de l'espace demandé ; sinon dans le dossier ouvert, là
-    // où l'on regarde.
+    // At the root of the requested space; otherwise in the open folder,
+    // where one is looking.
     if (null !== importSpaceId.value) form.append("spaceId", String(importSpaceId.value));
     else if (openFolderId.value) form.append("folderId", String(openFolderId.value));
     importSpaceId.value = null;
@@ -857,14 +851,14 @@ async function onImportFiles(event) {
     toast.success(t("notes.markdown.import.done", { count: payload.created ?? 0 }));
 }
 
-// ── Ajouter, déplacer : ce que le panneau demande ──────────────────
+// ── Add, move: what the panel asks for ─────────────────────────────
 
 const addModal = ref(null);
 const addSaving = ref(false);
 
 /**
- * Ouvrir la modale d'ajout : dans un dossier (son identifiant), ou à la
- * racine d'un espace (`{ spaceId }`), ou sans rien dire - la racine du sien.
+ * Open the add modal: in a folder (its id), or at the root of a space
+ * (`{ spaceId }`), or without saying anything - the root of one's own.
  */
 function openAdd(target) {
     if (null !== target && 'object' === typeof target) {
@@ -880,15 +874,15 @@ function openAdd(target) {
 }
 
 /**
- * Créer ce que la modale demande, là où elle le dit.
+ * Create what the modal asks for, where it says.
  *
- * Une note s'ouvre tout de suite, titre compris : on vient de la nommer, on
- * veut écrire dedans. Un dossier reste où il est créé, et le panneau le
- * montre - on range souvent plusieurs dossiers d'affilée.
+ * A note opens right away, title included: it has just been named, one
+ * wants to write in it. A folder stays where it is created, and the panel
+ * shows it - several folders are often filed in a row.
  */
 async function submitAdd({ kind, name, color, spaceId, access, defaultRole, templateId = null }) {
     const folderId = addModal.value?.folderId ?? null;
-    // Un dossier impose son espace ; sans dossier, la racine choisie.
+    // A folder imposes its space; without a folder, the chosen root.
     const rootSpaceId = null === folderId ? spaceId ?? null : null;
 
     addSaving.value = true;
@@ -896,8 +890,8 @@ async function submitAdd({ kind, name, color, spaceId, access, defaultRole, temp
     const request = {
         space: () => spacesApi.create({ name, color, access, defaultRole }),
         folder: () => foldersApi.create(name, folderId, color, rootSpaceId),
-        // Depuis un modèle, le serveur copie son texte ; le nom tapé reste
-        // le titre, celui du modèle à défaut.
+        // From a template, the server copies its text; the typed name stays
+        // the title, the template's one otherwise.
         note: () => (null !== templateId
             ? api.fromTemplate(templateId, { folderId, spaceId: rootSpaceId, title: name })
             : api.create({ folderId, spaceId: rootSpaceId, title: name, content: '' })),
@@ -926,8 +920,8 @@ async function submitAdd({ kind, name, color, spaceId, access, defaultRole, temp
         await refreshSpaces();
         toast.success(t('notes.markdown.spaces.created'));
 
-        // Un espace ouvert à des personnes choisies ne sert à rien tant que
-        // personne n'y est : on ouvre tout de suite de quoi les inscrire.
+        // A space opened to chosen people is useless as long as nobody is in
+        // it: we open right away what is needed to add them.
         if ('members' === access) settingsSpaceId.value = Number(payload.space.id);
 
         return;
@@ -945,23 +939,22 @@ async function submitAdd({ kind, name, color, spaceId, access, defaultRole, temp
 }
 
 /**
- * Écrire un dépôt : changer de dossier s'il le faut, puis l'ordre.
+ * Write a drop: change folder if needed, then the order.
  *
- * Le déplacement d'abord : il passe par la route qui refuse une boucle ou
- * une profondeur de trop, et c'est elle qui doit trancher. Le
- * réordonnancement vient ensuite, entre frères d'un même dossier, là où il
- * ne peut rien casser ; dossiers et notes y partagent un seul ordre.
+ * The move first: it goes through the route that refuses a loop or one
+ * level too deep, and that route must decide. The reordering comes next,
+ * between siblings of the same folder, where it cannot break anything;
+ * folders and notes share a single order there.
  */
 async function applyDropPlan(plan) {
     if (!plan?.id) return;
 
     const isFolder = 'folder' === plan.kind;
 
-    // La note ouverte se range : ce qui attend d'être enregistré part
-    // d'abord, puis sa ligne prend son nouveau dossier tout de suite.
-    // L'enregistrement automatique envoie le dossier de la liste, et un envoi
-    // parti avec l'ancien, après le déplacement, remettait la note où elle
-    // était.
+    // The open note is being filed: what is waiting to be saved goes first,
+    // then its row takes its new folder right away. The autosave sends the
+    // folder from the list, and a send that left with the old one, after the
+    // move, put the note back where it was.
     const moves = plan.fromFolderId !== plan.folderId || (plan.fromSpaceId ?? null) !== (plan.spaceId ?? null);
 
     if (!isFolder && plan.id === selectedId.value && moves) {
@@ -994,8 +987,8 @@ async function applyDropPlan(plan) {
         }
     }
 
-    // Un seul ordre pour les dossiers et les notes du dossier : chacun reçoit
-    // son rang dans la liste mêlée, par la route de sa nature.
+    // A single order for the folder's folders and notes: each gets its rank
+    // in the mixed list, through the route of its kind.
     const folderEntries = [];
     const noteEntries = [];
     plan.order.forEach((entry, position) => {
@@ -1017,11 +1010,11 @@ async function applyDropPlan(plan) {
 }
 
 /**
- * Le chemin de la note ouverte, depuis la racine.
+ * The open note's path, from the root.
  *
- * Une note n'avait que son titre au-dessus d'elle : on ne savait plus dans
- * quel dossier on écrivait, ni comment y remonter, sans aller chercher dans
- * le panneau. Chaque étape ramène à son dossier.
+ * A note only had its title above it: one no longer knew which folder one
+ * was writing in, nor how to go back up to it, without searching the panel.
+ * Each step leads back to its folder.
  */
 const notePath = computed(() => folderPath(folders.value, selectedNote.value?.folderId ?? null));
 
@@ -1047,8 +1040,8 @@ const PANEL_INTENTS = {
 
         await showLibrary(id);
     },
-    // Une étiquette traverse le rangement : elle se regarde dans la
-    // bibliothèque, jamais dans l'éditeur, donc on l'y ramène d'abord.
+    // A tag cuts across the filing: it is viewed in the library, never in
+    // the editor, so we bring the reader back there first.
     'filter-tag': async (tag) => {
         if (!libraryRef.value) await showLibrary(null);
 
@@ -1064,32 +1057,32 @@ const PANEL_INTENTS = {
 
         libraryRef.value?.askToDelete(folder);
     },
-    // La modale de renommage est celle de la bibliothèque, pas une seconde :
-    // elle écrit aussi la couleur, et deux modales pour le même geste
-    // finissent par ne plus dire la même chose.
+    // The rename modal is the library's, not a second one: it also writes
+    // the colour, and two modals for the same gesture end up no longer
+    // saying the same thing.
     'rename-folder': async (folder) => {
         if (!libraryRef.value) await showLibrary(folder?.parentId ?? null);
 
         libraryRef.value?.askForFolderName(folder);
     },
-    // Renommer une note, c'est écrire son titre : on l'ouvre et on met le
-    // curseur dedans. Pas de modale pour un champ qui est déjà sur la page.
+    // Renaming a note means writing its title: we open it and put the cursor
+    // in it. No modal for a field that is already on the page.
     'rename-note': async (note) => {
         await openNote(note.id);
 
         await nextTick();
         document.querySelector('[data-note-title]')?.focus();
     },
-    // Le glisser du panneau : la cible est une ligne de dossier, et ce qui
-    // est déplacé voyage dans le presse-papier de l'événement, donc la
-    // bibliothèque sait quoi en faire sans qu'on le lui répète.
+    // The panel's drag: the target is a folder row, and what is moved
+    // travels in the event's clipboard, so the library knows what to do
+    // with it without being told again.
     drop: (folder, event) => libraryRef.value?.dropInto(Number(folder.id), event),
-    // Le « + » du panneau : une note ou un dossier, au choix, là où l'on a
-    // cliqué. La modale vit ici et non dans la bibliothèque, pour marcher
-    // aussi quand une note est ouverte.
+    // The panel's "+": a note or a folder, as chosen, where one clicked. The
+    // modal lives here and not in the library, so that it also works when a
+    // note is open.
     add: (target) => openAdd(target ?? null),
-    // Un dépôt dans le panneau, déjà calculé là-bas : où ranger, dans quel
-    // ordre. On l'écrit quel que soit l'écran affiché.
+    // A drop in the panel, already computed there: where to file, in which
+    // order. We write it whatever screen is shown.
     move: (plan) => applyDropPlan(plan),
 };
 
@@ -1135,19 +1128,19 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <!-- La hauteur est ce qui reste, dite avec les valeurs qui la font : la
-         barre du haut porte la sienne dans `--aurora-topbar`, et la zone de
-         contenu ses marges haute et basse dans `--aurora-page-margin`, la même
-         valeur que ses marges latérales. Le `8rem`
-         écrit ici avant était une estimation, fausse de trois douzaines de
-         pixels : la carte dépassait le bas de l'écran, donc la fin d'une note
-         longue se lisait en faisant défiler la page entière. Le `4rem` qui a
-         suivi était juste, mais recopié : il valait les `py-8` de `<main>`
-         écrits ailleurs, et serait devenu faux le jour où cette marge
-         changerait - c'est-à-dire aujourd'hui. `dvh` plutôt que `vh` pour que
-         la barre d'un navigateur mobile compte. -->
-    <!-- Le champ qui reçoit les fichiers importés : invisible, déclenché par
-         le bouton du panneau. Un `input[type=file]` ne se dessine pas. -->
+    <!-- The height is what is left, expressed with the values that make it:
+         the top bar carries its own in `--aurora-topbar`, and the content
+         area its top and bottom margins in `--aurora-page-margin`, the same
+         value as its side margins. The `8rem`
+         written here before was an estimate, off by three dozen pixels: the
+         card went past the bottom of the screen, so the end of a long note
+         was read by scrolling the whole page. The `4rem` that followed was
+         right, but copied: it was the `py-8` of `<main>` written elsewhere,
+         and would have become wrong the day that margin changed - that is,
+         today. `dvh` rather than `vh` so that a mobile browser's bar
+         counts. -->
+    <!-- The field that receives imported files: invisible, triggered by the
+         panel's button. An `input[type=file]` is not drawn. -->
     <input
         ref="importInput"
         type="file"
@@ -1157,21 +1150,21 @@ onUnmounted(() => {
         v-on:change="onImportFiles"
     >
 
-    <!-- Une colonne, et la carte prend ce qui reste.
-         Le chemin de retour vit **au-dessus** de la note, pas dedans : une
-         note peut porter son propre fond - papier, ardoise, nuit - et un
-         lien de navigation posé sur ce fond se lit mal, voire pas du tout
-         quand son survol prend la couleur d'encre du back-office. Il est
-         sorti de la carte plutôt que recoloré, parce qu'il n'appartient pas
-         à la note : il dit comment en sortir. `flex-1 min-h-0` sur la carte
-         évite d'écrire sa hauteur en soustrayant celle du lien, un nombre
-         qui serait faux au premier changement de taille de police. -->
+    <!-- One column, and the card takes what is left.
+         The way back lives **above** the note, not inside it: a note can
+         carry its own background - paper, slate, night - and a navigation
+         link set on that background reads badly, or not at all when its
+         hover takes the back-office ink colour. It was taken out of the card
+         rather than recoloured, because it does not belong to the note: it
+         says how to leave it. `flex-1 min-h-0` on the card avoids writing its
+         height by subtracting the link's, a number that would be wrong at the
+         first change of font size. -->
     <div class="flex h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-page-margin)*2)] flex-col gap-1.5">
-        <!-- Le fil d'Ariane prolonge le lien de retour : la racine, puis
-             chaque dossier jusqu'à la note, chacun cliquable. Une note
-             n'avait que son titre au-dessus d'elle, et l'on ne savait plus
-             dans quel dossier on écrivait sans aller le chercher dans le
-             panneau. Hors de la carte pour la même raison que le lien. -->
+        <!-- The breadcrumb extends the back link: the root, then each folder
+             down to the note, each one clickable. A note only had its title
+             above it, and one no longer knew which folder one was writing in
+             without searching the panel for it. Outside the card for the
+             same reason as the link. -->
         <nav
             v-if="selectedNote && !crashed"
             data-note-breadcrumb
@@ -1206,12 +1199,12 @@ onUnmounted(() => {
              Two drawers was two gestures to learn for the same thing. -->
 
             <!-- Editor pane -->
-            <!-- `min-h-0` sur toute la colonne, et pas seulement `overflow-auto` en
-             bas : un enfant de flex vaut `min-height: auto`, donc il refuse de
-             descendre sous la hauteur de son contenu. Une note longue poussait
-             la colonne au-delà de la carte au lieu de faire défiler le volet,
-             et la fin du texte sortait de l'écran. C'est le pendant vertical de
-             ce que le commentaire des deux volets dit déjà pour la largeur. -->
+            <!-- `min-h-0` on the whole column, and not only `overflow-auto` at
+             the bottom: a flex child is `min-height: auto`, so it refuses to
+             shrink below the height of its content. A long note pushed the
+             column past the card instead of scrolling the pane, and the end
+             of the text went off screen. It is the vertical counterpart of
+             what the comment on the two panes already says for the width. -->
             <section class="flex-1 flex flex-col min-w-0 min-h-0">
                 <div v-if="crashed" class="flex flex-1 items-center justify-center p-4">
                     <AppNoData
@@ -1222,14 +1215,14 @@ onUnmounted(() => {
                 </div>
 
                 <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0" :class="lookClass">
-                    <!-- Le bandeau, quand la note en porte un. L'image vit chez
-                     celui qui l'héberge : rien n'est entré en médiathèque, et
-                     si elle disparaît de là-bas on en choisit une autre.
-                     
-                     Plus haut dans la vue de lecture que dans l'éditeur, et
-                     c'est voulu : ici il partage la colonne avec le texte
-                     qu'on est en train d'écrire, là-bas la page défile et
-                     n'a que la note à montrer. -->
+                    <!-- The banner, when the note has one. The image lives
+                     with whoever hosts it: nothing entered the media library,
+                     and if it disappears from there another one is picked.
+
+                     Higher in the reading view than in the editor, and on
+                     purpose: here it shares the column with the text being
+                     written, there the page scrolls and has only the note to
+                     show. -->
                     <figure v-if="form.coverUrl" class="relative m-0 shrink-0">
                         <img
                             :src="form.coverUrl"
@@ -1245,35 +1238,34 @@ onUnmounted(() => {
                         </figcaption>
                     </figure>
 
-                    <!-- Le titre et les commandes sur une seule ligne : seul,
-                         le titre laissait la moitié de l'en-tête vide et
-                         poussait la note d'un rang vers le bas. Le repli est
-                         celui du panneau du menu - le titre réclame quinze
-                         rem, les commandes descendent d'elles-mêmes quand la
-                         place manque vraiment. -->
+                    <!-- The title and the commands on a single line: alone,
+                         the title left half the header empty and pushed the
+                         note down a row. The wrapping is the menu panel's -
+                         the title asks for fifteen rem, the commands drop
+                         down by themselves when space really runs out. -->
                     <header class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line p-3">
-                        <!-- Le titre s'écrit comme un titre, pas comme un
-                             champ de formulaire.
-                             
-                             Une boîte avec sa bordure et son fond disait « ici
-                             une donnée à saisir » au-dessus d'un document qui
-                             est, lui, du texte libre : deux registres pour la
-                             même page. Craft et Notion écrivent le titre dans
-                             la page, en grand, et c'est ce qu'on lit d'abord.
-                             
-                             Ce n'est pas un `AppInput` sans bordure mais un
-                             champ nu : la boîte de la maison porte son fond,
-                             son filet et son anneau de focus, et les enlever
-                             un par un en classes aurait laissé un composant
-                             qui promet une apparence qu'il n'a plus. -->
-                        <!-- **Un champ qui ressemble à un titre n'a pas
-                             l'air d'un champ.** Sans bordure, sans fond et en
-                             2xl, celui-ci se lisait comme le titre de la page,
-                             et on cherchait ailleurs de quoi renommer la note.
-                             Une surface sourde au survol et au focus suffit à
-                             dire qu'on peut écrire dedans, sans l'encadrer en
-                             permanence : le titre reste un titre tant qu'on ne
-                             le vise pas. -->
+                        <!-- The title is written like a title, not like a
+                             form field.
+
+                             A box with its border and its background said
+                             "data to enter here" above a document that is
+                             free text: two registers for the same page.
+                             Craft and Notion write the title in the page,
+                             large, and it is what is read first.
+
+                             It is not a borderless `AppInput` but a bare
+                             field: the house box carries its background, its
+                             rule and its focus ring, and removing them one by
+                             one with classes would have left a component
+                             promising a look it no longer has. -->
+                        <!-- **A field that looks like a title does not look
+                             like a field.** Without border, without background
+                             and in 2xl, this one read as the page title, and
+                             people looked elsewhere for a way to rename the
+                             note. A muted surface on hover and focus is
+                             enough to say one can write in it, without
+                             framing it all the time: the title stays a title
+                             as long as it is not aimed at. -->
                         <input
                             v-model="form.title"
                             data-note-title
@@ -1285,10 +1277,10 @@ onUnmounted(() => {
                         >
 
                         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
-                            <!-- L'état de l'enregistrement d'abord, les boutons à sa
-                                 droite : on lit « Enregistré » là où le regard
-                                 quitte le titre, et les gestes restent groupés
-                                 au bord de l'écran. -->
+                            <!-- The save state first, the buttons to its
+                                 right: "Enregistré" is read where the eye
+                                 leaves the title, and the gestures stay
+                                 grouped at the edge of the screen. -->
                             <div class="flex items-center gap-3 shrink-0">
                                 <span
                                     v-if="saveStatusDisplay"
@@ -1312,24 +1304,22 @@ onUnmounted(() => {
                                 </span>
                             </div>
 
-                            <!-- Ce qu'on touche en écrivant reste sous la
-                                 main ; le reste passe dans le menu.
-                                 
-                                 Douze commandes sur la ligne du titre, et
-                                 le titre n'avait plus de place : exporter,
-                                 partager, changer l'image ou ouvrir le
-                                 graphe se font une fois par note, quand
-                                 les modes d'affichage, les étiquettes et
-                                 les liens se touchent en permanence. La
-                                 règle de la maison le dit déjà pour les
-                                 cartes - au-delà de cinq, on garde la
-                                 feuille. -->
-                            <!-- Lire, d'un clic et à la vue : c'était une ligne
-                                 cachée dans le menu, et passer en lecture
-                                 demandait de la chercher à chaque fois. -->
-                            <!-- De vrais boutons, tous de 38 px (02/10/2026) :
-                                 trois icônes nues côtoyaient un sélecteur
-                                 encadré, chacun à sa hauteur. -->
+                            <!-- What is touched while writing stays at
+                                 hand; the rest goes into the menu.
+
+                                 Twelve commands on the title line, and the
+                                 title had no room left: exporting, sharing,
+                                 changing the image or opening the graph are
+                                 done once per note, while view modes, tags
+                                 and links are touched all the time. The
+                                 house rule already says it for cards -
+                                 beyond five, we keep the sheet. -->
+                            <!-- Read, in one click and in plain sight: it
+                                 was a line hidden in the menu, and switching
+                                 to reading meant searching for it every time. -->
+                            <!-- Real buttons, all 38 px (02/10/2026): three
+                                 bare icons sat next to a framed selector,
+                                 each at its own height. -->
                             <AppButton
                                 v-if="readHref"
                                 variant="secondary"
@@ -1347,11 +1337,11 @@ onUnmounted(() => {
                                 icon-only-on-phone
                             />
 
-                            <!-- Le dépliant reste dehors, à droite du menu :
-                                 c'est le seul de ces gestes qui change ce
-                                 qu'on a sous les yeux pendant qu'on écrit,
-                                 et son état - ouvert ou fermé - doit se
-                                 lire sans ouvrir quoi que ce soit. -->
+                            <!-- The fold-out stays outside, to the right of
+                                 the menu: it is the only one of these
+                                 gestures that changes what is in view while
+                                 writing, and its state - open or closed -
+                                 must be readable without opening anything. -->
                             <AppButton
                                 variant="secondary"
                                 :active="sidePanelOpen"
@@ -1365,7 +1355,7 @@ onUnmounted(() => {
                             </AppButton>
 
                             <!-- View mode toggle (edit / split / preview) - segmented AppTab control,
-                                 à la hauteur des boutons voisins. -->
+                                 at the height of the neighbouring buttons. -->
                             <div class="inline-flex h-9.5 items-stretch rounded-lg border border-line overflow-hidden">
                                 <AppTab
                                     v-for="opt in viewModeOptions"
@@ -1382,10 +1372,10 @@ onUnmounted(() => {
                             </div>
                         </div>
 
-                        <!-- Repliées en icône : voir la note s'écrire vaut mieux
-                         qu'une ligne d'étiquettes qu'on ne touche presque
-                         jamais. Le nombre est sur l'icône, les noms dans son
-                         infobulle. -->
+                        <!-- Folded into an icon: seeing the note being written
+                         is worth more than a line of tags that are almost
+                         never touched. The count is on the icon, the names
+                         in its tooltip. -->
                         <div
                             v-if="tagsOpen"
                             ref="tagsBox"
@@ -1421,12 +1411,12 @@ onUnmounted(() => {
                      columns would be unusable even when they fit. `min-w-0` on
                      both panes lets them actually shrink: a flex item defaults
                      to `min-width: auto` and refuses to go below its content. -->
-                    <!-- Rien du corps tant qu'il n'est pas celui de cette
-                         note. Le titre est déjà là, il vient de la liste ; le
-                         texte, lui, arrive du serveur, et l'afficher avant
-                         revenait à montrer la note qu'on quittait sous le nom
-                         de celle qu'on ouvrait. Trois traits gris le temps de
-                         l'aller-retour valent mieux qu'une réponse fausse. -->
+                    <!-- Nothing of the body as long as it is not this note's.
+                         The title is already there, it comes from the list;
+                         the text comes from the server, and showing it
+                         before meant showing the note being left under the
+                         name of the one being opened. Three grey lines for
+                         the round trip are better than a wrong answer. -->
                     <div v-if="!bodyReady" class="flex-1 min-h-0 space-y-3 p-3" aria-hidden="true">
                         <div class="h-3 w-2/3 animate-pulse rounded bg-surface-2" />
                         <div class="h-3 w-full animate-pulse rounded bg-surface-2" />
@@ -1466,11 +1456,11 @@ onUnmounted(() => {
                             ref="previewPaneRef"
                             class="flex-1 min-w-0 p-2 overflow-auto sm:p-4"
                         >
-                            <!-- Le titre vit dans le champ au-dessus : l'aperçu
-                                 ne le redit pas. Le texte, lui, n'est pas
-                                 touché - c'est le rendu qui s'abstient, et le
-                                 `# ` reste dans la zone d'écriture comme à
-                                 l'export. -->
+                            <!-- The title lives in the field above: the
+                                 preview does not repeat it. The text is not
+                                 touched - the rendering abstains, and the
+                                 `# ` stays in the writing area as in the
+                                 export. -->
                             <NotePreview
                                 :content="previewBody"
                                 :note-titles="notes"
@@ -1482,8 +1472,8 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <!-- Pas de note ouverte : la bibliothèque. C'était un écran vide
-                 qui disait « choisissez une note » sans montrer lesquelles. -->
+                <!-- No open note: the library. It used to be an empty screen
+                 that said "choisissez une note" without showing which. -->
                 <NoteLibrary
                     v-else
                     ref="libraryRef"
@@ -1626,9 +1616,9 @@ onUnmounted(() => {
                 </template>
             </AppModal>
 
-            <!-- Quelqu'un a écrit dans la note entre-temps. On ne décide pas à
-                 la place de la personne : reprendre sa version, ou écraser la
-                 sienne en le sachant. -->
+            <!-- Someone wrote in the note in the meantime. We do not decide
+                 for the person: take back their version, or overwrite it
+                 knowingly. -->
             <AppModal
                 :show="conflict"
                 max-width="md"

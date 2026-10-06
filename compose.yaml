@@ -1,19 +1,19 @@
 services:
 ###> symfony/mercure-bundle ###
-    # Le hub temps reel, pour developper : `make start` le monte, `make
-    # hub-start` le remonte seul. En production il tourne en service systemd
-    # derriere Apache, ou le navigateur l'atteint par la meme origine que
-    # l'application et ou rien de tout ceci n'est necessaire.
+    # The real-time hub, for development: `make start` brings it up, `make
+    # hub-start` brings it back up on its own. In production it runs as a
+    # systemd service behind Apache, where the browser reaches it through the
+    # same origin as the application and none of this is needed.
     #
-    # Quatre origines autorisees parce que le serveur de dev se sert aussi bien
-    # en http qu'en https et sous les deux noms de la boucle locale : une seule
-    # d'entre elles laisse la connexion echouer sous les trois autres, et ca
-    # ressemble a un hub en panne.
+    # Four allowed origins because the dev server is served over http as well
+    # as https and under both loopback names: a single one of them lets the
+    # connection fail under the other three, and that looks like a hub that
+    # is down.
     #
-    # Protocole 1.0, comme l'application : l'emetteur de confiance est le
-    # serveur Symfony, et `resource_identifier` epingle l'audience des jetons
-    # pour que PHP puisse publier par la boucle locale pendant que le
-    # navigateur se connecte par l'hote public.
+    # Protocol 1.0, like the application: the trusted issuer is the Symfony
+    # server, and `resource_identifier` pins the tokens' audience so PHP can
+    # publish over the loopback while the browser connects through the public
+    # host.
     mercure:
         image: dunglas/mercure
         restart: unless-stopped

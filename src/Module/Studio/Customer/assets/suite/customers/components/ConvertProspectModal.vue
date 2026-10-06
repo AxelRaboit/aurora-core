@@ -1,15 +1,16 @@
 <script setup>
 /**
- * La fenêtre qui transforme un prospect en client.
+ * The dialog that turns a prospect into a customer.
  *
- * **Un seul champ**, et c'est le seul que le statut impose : l'adresse où part
- * le contrat. Demander le SIRET, la forme juridique et le siège au même moment
- * serait redemander la fiche entière pour changer une colonne, et c'est
- * exactement ce que la conversion doit éviter - on convertit quand la personne
- * dit oui, pas quand on a fini de remplir son dossier.
+ * **A single field**, and it is the only one the status requires: the
+ * address the contract goes to. Asking for the SIRET, the legal form and the
+ * head office at the same moment would be asking for the whole sheet again
+ * to change one column, and that is exactly what the conversion must avoid -
+ * you convert when the person says yes, not when you have finished filling
+ * in their file.
  *
- * La phrase sous le champ le dit, pour que personne ne croie avoir oublié
- * quelque chose : le reste s'ajoute sur la fiche, quand on l'a.
+ * The sentence under the field says so, so nobody thinks they forgot
+ * something: the rest is added on the sheet, when it is known.
  */
 import { useI18n } from "vue-i18n";
 import { BadgeCheck, X } from "lucide-vue-next";
@@ -20,7 +21,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 
 defineProps({
     show: { type: Boolean, default: false },
-    /** La société convertie, pour la nommer dans le titre. */
+    /** The converted company, to name it in the title. */
     name: { type: String, default: "" },
     modelValue: { type: String, default: "" },
     error: { type: String, default: "" },

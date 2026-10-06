@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une note peut servir de modèle.
+ * A note can serve as a template.
  *
- * « Nouvelle note depuis un modèle » en fait une copie : un brief client, un
- * compte rendu, une procédure, prêts à remplir. Le modèle reste une note
- * ordinaire, qu'on lit et qu'on modifie ; seul ce drapeau le distingue.
+ * "Nouvelle note depuis un modèle" makes a copy of it: a client brief, meeting
+ * minutes, a procedure, ready to fill in. The template stays an ordinary note,
+ * read and edited as usual; only this flag sets it apart.
  */
 final class Version20261003110000 extends AbstractMigration
 {

@@ -62,7 +62,7 @@ describe("decorated", () => {
     });
 
     it("never drops a cell it does not understand", () => {
-        // Une ligne ecrite avant que la quatrieme cellule veuille dire icone.
+        // A row written before the fourth cell meant an icon.
         expect(
             decorated("Cadrage | deux semaines | a confirmer | avec Claire"),
         ).toEqual({

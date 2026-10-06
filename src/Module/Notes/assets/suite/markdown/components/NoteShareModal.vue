@@ -176,13 +176,12 @@ function openedLabel(link) {
                     :error="errors.expiresAt"
                 />
 
-                <!-- Un seul commutateur depuis que les dossiers existent :
-                     les sous-notes n'existent plus, et un dossier ne se
-                     partage pas.
+                <!-- A single switch since folders exist: sub-notes no longer
+                     exist, and a folder is not shared.
 
-                     `AppCheckbox` apporte son propre <label> ; l'envelopper
-                     dans un second empilait deux étiquettes sur le même
-                     champ, si bien qu'un clic le cochait deux fois. -->
+                     `AppCheckbox` brings its own <label>; wrapping it in a
+                     second one stacked two labels on the same field, so that
+                     a click ticked it twice. -->
                 <AppCheckbox
                     v-model="includeLinked"
                     :label="t('notes.markdown.share.include_linked')"

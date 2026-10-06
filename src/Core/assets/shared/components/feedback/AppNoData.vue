@@ -6,13 +6,13 @@ defineProps({
     /** Secondary line under the message - usually what to do about the emptiness. */
     hint: { type: String, default: "" },
     /**
-     * Ce qu'on dessine au-dessus, quand la boîte vide ne dit pas assez.
+     * What gets drawn above, when the empty box does not say enough.
      *
-     * Huit écrans en passaient déjà un, et le recevaient en attribut inconnu
-     * : l'icône n'apparaissait pas, et comme ces mêmes appels nommaient leur
-     * texte `title` plutôt que `message`, ils affichaient tous la phrase par
-     * défaut à la place de la leur. Un vide qui ne dit rien ressemble à une
-     * page cassée, ce qui est exactement ce qu'Axel a signalé le 23/09.
+     * Eight screens already passed one, and received it as an unknown attribute:
+     * the icon did not appear, and since those same calls named their text
+     * `title` rather than `message`, they all showed the default sentence
+     * instead of their own. An empty state that says nothing looks like a
+     * broken page, which is exactly what Axel reported on 23/09.
      */
     icon: { type: [Object, Function], default: null },
 });

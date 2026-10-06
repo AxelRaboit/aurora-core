@@ -1,23 +1,23 @@
 <script setup>
 /**
- * Un chiffre du tableau de bord, avec ce qu'il compte.
+ * A dashboard figure, with what it counts.
  *
- * **La même tuile pour tous les panneaux.** Chacun la redessinait, et le
- * détail qui s'était perdu en route est l'alignement : un libellé qui passe
- * sur deux lignes poussait son nombre d'une ligne vers le bas, et deux tuiles
- * côte à côte affichaient leurs chiffres à deux hauteurs différentes. Une
- * rangée de tuiles est un objet répété : mêmes bords, mêmes lignes de base.
+ * **The same tile for every panel.** Each one redrew it, and the detail lost
+ * along the way was the alignment: a label that wrapped onto two lines
+ * pushed its number one line down, and two tiles side by side showed their
+ * figures at two different heights. A row of tiles is a repeated object:
+ * same edges, same baselines.
  *
- * Le libellé prend la place qu'il lui faut et le nombre se pose au bas de la
- * tuile, donc l'alignement ne dépend plus de la longueur des mots.
+ * The label takes the room it needs and the number sits at the bottom of the
+ * tile, so the alignment no longer depends on the length of the words.
  */
 defineProps({
     label: { type: String, required: true },
     value: { type: [Number, String], default: 0 },
     icon: { type: [Object, Function], default: null },
     /**
-     * Une nuance quand le chiffre demande une réaction plutôt qu'une lecture.
-     * Discrète : un tableau de bord où tout est rouge ne dit plus rien.
+     * A tint when the figure calls for a reaction rather than a reading.
+     * Discreet: a dashboard where everything is red no longer says anything.
      */
     tone: { type: String, default: "default" },
 });

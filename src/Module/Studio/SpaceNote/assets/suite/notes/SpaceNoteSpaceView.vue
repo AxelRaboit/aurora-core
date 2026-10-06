@@ -1,15 +1,15 @@
 <script setup>
 /**
- * L'onglet Notes d'un espace client : la porte de son espace de notes.
+ * A client space's Notes tab: the door to its notes space.
  *
- * **Les notes s'écrivent dans le module Notes.** Chaque espace client a son
- * espace de notes, ouvert à son équipe ; l'onglet en montre la liste, la plus
- * récemment touchée d'abord, et chaque ligne ouvre la note dans l'éditeur des
- * notes. « Nouvelle note » y mène aussi, sur une note neuve rangée dans cet
- * espace. Le client, lui, ne voit rien de tout cela.
+ * **Notes are written in the Notes module.** Each client space has its notes
+ * space, open to its team; the tab shows its list, most recently touched
+ * first, and each row opens the note in the notes editor. "Nouvelle note"
+ * leads there too, on a new note filed in this space. The client sees none of
+ * this.
  *
- * L'espace de notes n'existe qu'à partir de la première note : avant, l'onglet
- * le dit, et le premier geste l'ouvre.
+ * The notes space only exists from the first note on: before that, the tab
+ * says so, and the first gesture opens it.
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -22,7 +22,7 @@ import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import NoteCraftImportModal from "@notes/suite/markdown/components/NoteCraftImportModal.vue";
 
 const props = defineProps({
-    /** Ce que rend `SpaceNotesViewBuilder::payload()`. */
+    /** What `SpaceNotesViewBuilder::payload()` returns. */
     state: { type: Object, required: true },
 });
 
@@ -38,17 +38,17 @@ const noteSpace = computed(() => current.value.noteSpace ?? null);
 const notes = computed(() => current.value.notes ?? []);
 const paths = computed(() => current.value.paths ?? {});
 
-/** Pas encore ouvert, on peut l'ouvrir ; ouvert, il faut pouvoir y écrire. */
+/** Not open yet, it can be opened; once open, one must be able to write in it. */
 const canWrite = computed(() => null === noteSpace.value || true === noteSpace.value.canWrite);
 
-/** Ouvert, mais fermé à qui regarde : rien à lister, et on le dit. */
+/** Open, but closed to whoever is looking: nothing to list, and that is said. */
 const closed = computed(() => null !== noteSpace.value && !noteSpace.value.readable);
 
 function noteHref(id) {
     return String(paths.value.show ?? "").replace("__id__", String(id));
 }
 
-/** L'espace de notes, ouvert s'il ne l'était pas : son identifiant, ou null. */
+/** The notes space, opened if it was not: its id, or null. */
 async function ensureNoteSpace() {
     if (noteSpace.value) return noteSpace.value.id;
 
@@ -61,7 +61,7 @@ async function ensureNoteSpace() {
     return payload.noteSpace.id;
 }
 
-/** Une note neuve dans l'espace de notes, ouverte aussitôt dans l'éditeur. */
+/** A new note in the notes space, opened right away in the editor. */
 async function createNote() {
     if (busy.value) return;
 
@@ -101,8 +101,8 @@ function onCraftImported(payload) {
 
 <template>
     <div class="aurora-stack">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.space_notes.guide.title')" storage-key="space-notes">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.studio.space_notes.guide.step_${step}`) }}</li>
@@ -123,9 +123,9 @@ function onCraftImported(payload) {
                 {{ t("suite.studio.space_notes.add") }}
             </AppButton>
 
-            <!-- Second, et secondaire : écrire une note est le geste de
-                 l'écran, en importer une est l'exception. Absent tant que
-                 l'installation n'a pas ouvert de connexion Craft. -->
+            <!-- Second, and secondary: writing a note is the screen's
+                 gesture, importing one is the exception. Absent as long as
+                 the installation has not opened a Craft connection. -->
             <AppButton
                 v-if="canWrite && !closed && state.craftEnabled"
                 class="w-full sm:w-auto"

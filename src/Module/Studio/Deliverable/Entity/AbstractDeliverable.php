@@ -23,51 +23,47 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Un document écrit pour un client : un audit, une stratégie, un bilan.
+ * A document written for a client: an audit, a strategy, a report.
  *
- * **Une page, pas une publication.** Il se compose avec la même grille de
- * zones que les pages du site, mais il n'en a ni l'adresse, ni le
- * référencement, ni le cycle brouillon, relecture, publication : il n'est
- * jamais sur le site. Il a été une publication rattachée à un espace jusqu'à
- * la 0.9.321 ; le module éditorial portait alors un identifiant d'espace, des
- * exceptions dans ses listes, son plan du site et son flux, pour un document
- * qui n'avait rien à y faire. Ici il vit à côté de l'espace, et rien dans
- * l'éditorial ne sait qu'il existe.
+ * **A page, not a publication.** It is composed with the same zone grid as
+ * the site's pages, but it has neither their address, nor SEO, nor the
+ * draft, review, publish cycle: it is never on the site. It was a publication
+ * attached to a space until 0.9.321; the editorial module then carried a
+ * space id, exceptions in its lists, its sitemap and its feed, for a document
+ * that had no business there. Here it lives next to the space, and nothing in
+ * the editorial module knows it exists.
  *
- * **Une langue, celle du client.** Une page du site se traduit parce que ses
- * lecteurs parlent plusieurs langues ; un livrable a un lecteur. La grille
- * garde donc sa disposition et son contenu côte à côte, sans traductions.
+ * **One language, the client's.** A site page is translated because its
+ * readers speak several languages; a deliverable has one reader. The grid
+ * therefore keeps its layout and its content side by side, without
+ * translations.
  *
- * **Ce que voit le client se décide par une case**, `visibleToClient`, fermée
- * par défaut : comme une ressource de l'espace, un livrable en cours n'apparaît
- * pas chez le client avant qu'on l'ait décidé. Ce n'est pas un statut : rien
- * n'est programmé, relu ni archivé.
+ * **What the client sees is decided by a checkbox**, `visibleToClient`, off
+ * by default: like a space resource, a deliverable in progress does not show
+ * up for the client before you decide so. It is not a status: nothing is
+ * scheduled, reviewed or archived.
  *
- * **Son apparence lui appartient** : les couleurs du fond, de l'en-tête, du
- * pied, l'accent, les titres et les chiffres clés, par-dessus celles du thème.
- * Un livrable porte souvent les couleurs du client plutôt que celles du
- * studio.
+ * **Its appearance is its own**: the colours of the background, the header,
+ * the footer, the accent, the headings and the key figures, over the theme's.
+ * A deliverable often carries the client's colours rather than the studio's.
  *
- * **Avec ou sans espace.** Rattaché à un espace client, il vit dans son onglet
- * et c'est l'équipe de l'espace qui le lit. Sans espace (depuis la 1.7.0), il
- * vit dans le module Livrables de Studio : une proposition écrite avant qu'un
- * client existe, une stratégie pour soi, un modèle que l'équipe reprend. Il a
- * alors un auteur et une portée, perso ou partagée, cf.
- * {@see DeliverableScopeEnum}. La case « visible par le client » n'a de sens
- * que dans un espace.
+ * **With or without a space.** Attached to a client space, it lives in its
+ * tab and the space's team reads it. Without a space (since 1.7.0), it lives
+ * in Studio's Deliverables module: a proposal written before a client exists,
+ * a strategy for yourself, a template the team reuses. It then has an author
+ * and a scope, personal or shared, see {@see DeliverableScopeEnum}. The
+ * "visible par le client" box only makes sense in a space.
  *
- * **Ce qui n'a de sens que sans espace** : la case
- * « modèle », qui le propose au moment d'en créer un autre, et le client pour
- * qui il a été écrit avant qu'un espace existe. Les deux se taisent dans un
- * espace : l'entité les refuse, et une copie déposée chez un client ne les
- * emporte pas.
+ * **What only makes sense without a space**: the "modèle" box, which offers
+ * it when creating another one, and the client it was written for before a
+ * space existed. Both stay silent in a space: the entity refuses them, and a
+ * copy dropped at a client's does not take them along.
  *
- * **Une page ou des diapositives**, cf. {@see DeliverableFormatEnum}. Un
- * diaporama n'a pas de grille : il a ses diapositives, ordonnées, et leur
- * propre apparence (`slideTheme`, `slideStyle`), distincte de celle de la
- * page, parce qu'une diapositive se dessine avec le thème des présentations
- * et non avec les couleurs du site. Une page n'en a aucune, et ces deux
- * colonnes y restent vides.
+ * **A page or slides**, see {@see DeliverableFormatEnum}. A slideshow has no
+ * grid: it has its slides, ordered, and their own appearance (`slideTheme`,
+ * `slideStyle`), separate from the page's, because a slide is drawn with the
+ * presentation theme and not with the site colours. A page has neither, and
+ * these two columns stay empty for it.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -75,26 +71,26 @@ abstract class AbstractDeliverable implements DeliverableInterface
 {
     use TimestampableTrait;
 
-    /** La phrase sous le titre, dans la liste du client et en tête de la page. */
+    /** The sentence under the title, in the client's list and at the top of the page. */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $summary = null;
 
-    /** La disposition de la grille : `{enabled, snap, reveal, zones}`, comme une page du site. */
+    /** The grid layout: `{enabled, snap, reveal, zones}`, like a site page. */
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
     protected array $gridLayout = [];
 
-    /** Le contenu de ses zones : `{zones: {id: …}}`. */
+    /** The content of its zones: `{zones: {id: …}}`. */
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
     protected array $gridContent = [];
 
     /**
-     * Les couleurs et les choix de présentation de la page, cf.
+     * The page's colours and presentation choices, see
      * {@see DeliverableAppearance}.
      */
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
     protected array $appearance = [];
 
-    /** Ce que dit l'en-tête de la page : pour qui, la date, le logo. */
+    /** What the page header says: for whom, the date, the logo. */
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
     protected array $readingHeader = [];
 
@@ -102,59 +98,60 @@ abstract class AbstractDeliverable implements DeliverableInterface
     protected bool $visibleToClient = false;
 
     /**
-     * Qui l'a créé. Nul quand le compte a été supprimé : un livrable partagé
-     * reste à l'équipe, un livrable perso revient aux administrateurs.
+     * Who created it. Null when the account was deleted: a shared deliverable
+     * stays with the team, a personal one falls to the administrators.
      */
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?CoreUserInterface $owner = null;
 
     /**
-     * Sa catégorie, pour un livrable de Studio ; un livrable d'espace se range
-     * par son espace et n'en a pas. Supprimer la catégorie ne supprime rien :
-     * le livrable redevient « sans catégorie ».
+     * Its category, for a Studio deliverable; a space deliverable is filed by
+     * its space and has none. Deleting the category deletes nothing: the
+     * deliverable goes back to "sans catégorie".
      */
     #[ORM\ManyToOne(targetEntity: DeliverableCategoryInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DeliverableCategoryInterface $category = null;
 
     /**
-     * Son image, prise dans la médiathèque : la vignette qui le distingue des
-     * autres dans une liste. Supprimer le document la retire, rien de plus.
+     * Its image, taken from the media library: the thumbnail that sets it
+     * apart from the others in a list. Deleting the document removes it,
+     * nothing more.
      */
     #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentInterface $thumbnail = null;
 
-    /** Perso ou partagé, pour un livrable sans espace ; ignoré dans un espace. */
+    /** Personal or shared, for a deliverable without a space; ignored in a space. */
     #[ORM\Column(length: 16, enumType: DeliverableScopeEnum::class, options: ['default' => 'shared'])]
     protected DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared;
 
     /**
-     * Un modèle : un livrable de Studio qui existe pour être recopié, proposé
-     * au moment d'en créer un. Un drapeau et pas une table, parce qu'un modèle
-     * *est* un livrable : il se compose, s'aperçoit et s'envoie comme les
-     * autres. Jamais dans un espace : ce qu'on y dépose est écrit pour un
-     * client, pas pour être repris.
+     * A template: a Studio deliverable that exists to be copied, offered when
+     * creating one. A flag and not a table, because a template *is* a
+     * deliverable: it is composed, previewed and sent like the others. Never
+     * in a space: what is dropped there is written for a client, not to be
+     * reused.
      */
     #[ORM\Column(options: ['default' => false])]
     protected bool $template = false;
 
     /**
-     * Le client pour qui il a été écrit, quand il n'a pas encore d'espace :
-     * la proposition faite à un prospect. Dans un espace, c'est l'espace qui
-     * dit son client, et ce champ reste vide.
+     * The client it was written for, when it has no space yet: the proposal
+     * made to a prospect. In a space, the space states its client, and this
+     * field stays empty.
      *
-     * `SET NULL` et pas une cascade : supprimer la fiche d'un client ne
-     * supprime pas ce qu'on lui a écrit.
+     * `SET NULL` and not a cascade: deleting a client's record does not
+     * delete what was written to them.
      */
     #[ORM\ManyToOne(targetEntity: CustomerInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?CustomerInterface $customer = null;
 
     /**
-     * Les diapositives d'un diaporama, dans l'ordre ; une page n'en a pas.
-     * Elles n'ont pas de vie hors du livrable : supprimé, il les emporte.
+     * A slideshow's slides, in order; a page has none. They have no life
+     * outside the deliverable: deleted, it takes them along.
      *
      * @var Collection<int, SlideInterface>
      */
@@ -163,15 +160,15 @@ abstract class AbstractDeliverable implements DeliverableInterface
     protected Collection $slides;
 
     /**
-     * Le thème des diapositives ; nul pour une page, et lu « ardoise »
-     * (le thème par défaut des présentations) tant qu'on n'en a pas choisi.
+     * The slides' theme; null for a page, and read as "ardoise" (the default
+     * presentation theme) until one is chosen.
      */
     #[ORM\Column(length: 20, nullable: true, enumType: DeckThemeEnum::class)]
     protected ?DeckThemeEnum $slideTheme = null;
 
     /**
-     * Ce que les diapositives retouchent de leur thème, passé au crible de
-     * {@see DeckStyleNormalizer} à l'écriture.
+     * What the slides adjust in their theme, screened by
+     * {@see DeckStyleNormalizer} on write.
      *
      * @var array<string, mixed>
      */
@@ -179,16 +176,16 @@ abstract class AbstractDeliverable implements DeliverableInterface
     protected array $slideStyle = [];
 
     public function __construct(
-        /** L'espace client qui le reçoit ; nul pour un livrable de Studio. */
+        /** The client space that receives it; null for a Studio deliverable. */
         #[ORM\ManyToOne(targetEntity: CustomerSpaceInterface::class)]
         #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
         protected ?CustomerSpaceInterface $space,
         #[ORM\Column(length: 255)]
         protected string $title,
-        /** La langue dans laquelle il est écrit : celle des dates et des libellés de la page. */
+        /** The language it is written in: that of the page's dates and labels. */
         #[ORM\Column(length: 8)]
         protected string $locale,
-        /** Une page ou des diapositives : fixé ici, sans setter, cf. {@see DeliverableFormatEnum}. */
+        /** A page or slides: set here, without a setter, see {@see DeliverableFormatEnum}. */
         #[ORM\Column(length: 16, enumType: DeliverableFormatEnum::class, options: ['default' => 'page'])]
         protected DeliverableFormatEnum $format = DeliverableFormatEnum::Page,
     ) {
@@ -259,7 +256,7 @@ abstract class AbstractDeliverable implements DeliverableInterface
         return $this->template;
     }
 
-    /** Sans effet dans un espace : un livrable d'espace n'est jamais un modèle. */
+    /** No effect in a space: a space deliverable is never a template. */
     public function setTemplate(bool $template): static
     {
         $this->template = $template && $this->isStandalone();
@@ -272,7 +269,7 @@ abstract class AbstractDeliverable implements DeliverableInterface
         return $this->customer;
     }
 
-    /** Sans effet dans un espace : c'est l'espace qui dit son client. */
+    /** No effect in a space: the space states its client. */
     public function setCustomer(?CustomerInterface $customer): static
     {
         $this->customer = $this->isStandalone() ? $customer : null;
@@ -435,15 +432,15 @@ abstract class AbstractDeliverable implements DeliverableInterface
     }
 
     /**
-     * Quand il a été mis à la corbeille ; nul, il est vivant.
+     * When it was moved to the trash; null, it is live.
      *
-     * Une suppression douce, comme celle des notes et des publications : un
-     * livrable est un document client écrit à la main, et la suppression
-     * définitive d'un audit par erreur ne se rattrape pas. Mis à la corbeille,
-     * il sort des listes, de la recherche et des comptes, et ses liens de
-     * lecture cessent de répondre ; il garde pourtant ses images (la
-     * médiathèque le compte encore) et ses liens, qui reprennent à la
-     * restauration. La purge planifiée le détruit au bout du délai commun.
+     * A soft delete, like the one for notes and publications: a deliverable
+     * is a client document written by hand, and permanently deleting an audit
+     * by mistake cannot be undone. Once trashed, it leaves the lists, the
+     * search and the counts, and its reading links stop answering; it still
+     * keeps its images (the media library still counts it) and its links,
+     * which resume on restore. The scheduled purge destroys it after the
+     * common delay.
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -466,12 +463,11 @@ abstract class AbstractDeliverable implements DeliverableInterface
     }
 
     /**
-     * Marque le livrable comme modifié maintenant.
+     * Marks the deliverable as modified now.
      *
-     * Le rappel de Doctrine ne date une modification que si une colonne a
-     * changé ; une sauvegarde qui ne touche qu'un lien de lecture, ou qui
-     * réécrit la même grille, doit quand même dire « mis à jour aujourd'hui »
-     * au client qui revient voir.
+     * The Doctrine callback only dates a change if a column changed; a save
+     * that only touches a reading link, or rewrites the same grid, must still
+     * say "mis à jour aujourd'hui" to the client who comes back to look.
      */
     public function touch(): static
     {

@@ -33,8 +33,8 @@ function emptyForm() {
         name: "",
         description: "",
         customerId: "",
-        // Remplis a la place de customerId quand on ouvre un espace pour
-        // quelqu'un dont on n'a pas encore de fiche.
+        // Filled in instead of customerId when a space is opened for someone
+        // who has no sheet yet.
         prospectName: "",
         prospectEmail: "",
         status: "active",
@@ -57,10 +57,10 @@ export function spaceFormRules(form, t) {
             required(t("suite.studio.spaces.errors.name_required"))(
                 form.value.name,
             ),
-        // L'un ou l'autre : une societe deja connue, ou le nom d'un
-        // prospect qu'on ouvre en meme temps que l'espace. La regle porte
-        // sur la paire, donc elle est signalee sous le selecteur - c'est
-        // la que le lecteur choisit entre les deux.
+        // One or the other: an already known company, or the name of a
+        // prospect opened at the same time as the space. The rule covers the
+        // pair, so it is reported under the selector - that is where the
+        // reader chooses between the two.
         customerId: () =>
             form.value.customerId || form.value.prospectName
                 ? null
@@ -136,11 +136,11 @@ export function useCustomerSpacesForm(
     const showArchived = ref(false);
 
     /**
-     * Clients ou prospects, jamais les deux.
+     * Customers or prospects, never both.
      *
-     * Retenu d'une visite a l'autre, comme les vues d'un espace : « ce sur quoi
-     * je travaille » et « ce que j'essaie de decrocher » ne se lisent pas dans
-     * la meme minute, et personne ne veut rechoisir a chaque retour.
+     * Remembered from one visit to the next, like a space's views: "what I am
+     * working on" and "what I am trying to land" are not read in the same
+     * minute, and nobody wants to choose again on every return.
      */
     const { choice: tab } = usePersistedChoice("studio.spaces.tab", "client", [
         "client",
@@ -148,12 +148,12 @@ export function useCustomerSpacesForm(
     ]);
 
     /**
-     * Les espaces d'une seule société, quand on arrive de sa fiche.
+     * The spaces of a single company, when arriving from its sheet.
      *
-     * Par identifiant et non par la recherche : chercher sa raison sociale
-     * ramenait aussi toutes celles qui la contiennent. Et l'onglet suit la
-     * société, sans quoi un prospect ouvert depuis l'onglet « clients » retenu
-     * tombait sur une liste vide.
+     * By id and not through the search: searching its company name also
+     * brought back every one that contains it. And the tab follows the
+     * company, otherwise a prospect opened from the remembered "clients" tab
+     * landed on an empty list.
      */
     const customerFilter = ref(initialCustomerFilter());
     const filteredCustomer = computed(() =>
@@ -185,7 +185,7 @@ export function useCustomerSpacesForm(
             url.searchParams.delete("customer");
             window.history.replaceState(window.history.state, "", url);
         } catch {
-            // L'adresse reste telle quelle : le filtre est levé dans la page.
+            // The address stays as is: the filter is lifted within the page.
         }
     }
 
@@ -197,7 +197,7 @@ export function useCustomerSpacesForm(
               ),
     );
 
-    /** Les filtres se composent : la société, l'onglet, puis les archives. */
+    /** The filters compose: the company, the tab, then the archives. */
     const ofTab = computed(() =>
         ofCustomer.value.filter(
             (space) => (space.customerStatus ?? "client") === tab.value,
@@ -213,9 +213,9 @@ export function useCustomerSpacesForm(
     const tabs = computed(() =>
         ["client", "prospect"].map((key) => ({
             key,
-            // Le compte ignore les archives, comme l'etiquette qu'il porte :
-            // il dit combien il y a de choses derriere cet onglet, pas combien
-            // on en montre.
+            // The count ignores the archives, like the label it sits on: it
+            // says how many things are behind this tab, not how many are
+            // shown.
             count: ofCustomer.value.filter(
                 (space) => (space.customerStatus ?? "client") === key,
             ).length,

@@ -45,15 +45,15 @@ const { activeModule, selectModule, visibleModules } = useDashboardModule(enable
                     class="whitespace-nowrap"
                     v-on:click="selectModule(module.id)"
                 >
-                    <!-- **Sur téléphone, seul l'onglet ouvert porte son nom.**
-                         Cinq libellés font quatre cent quarante-neuf pixels
-                         pour trois cent cinquante-neuf de bande : elle défilait
-                         de côté sur l'écran d'arrivée, celui qu'on ouvre le
-                         plus souvent. L'icône répond à « où puis-je aller »,
-                         le nom de l'onglet ouvert à « où suis-je » - et c'est
-                         la seule des deux questions qui a besoin de mots. Le
-                         libellé reste lisible par un lecteur d'écran, et
-                         revient en entier dès `sm`. -->
+                    <!-- **On phone, only the open tab carries its name.**
+                         Five labels take four hundred and forty-nine pixels
+                         for a three hundred and fifty-nine pixel strip: it
+                         scrolled sideways on the landing screen, the one
+                         opened most often. The icon answers "where can I
+                         go", the name of the open tab "where am I" - and it
+                         is the only one of the two questions that needs
+                         words. The label stays readable by a screen reader,
+                         and comes back in full from `sm`. -->
                     <component :is="module.icon" class="w-4 h-4 shrink-0" :stroke-width="2" />
                     <span :class="activeModule === module.id ? '' : 'sr-only sm:not-sr-only'">
                         {{ module.label() }}

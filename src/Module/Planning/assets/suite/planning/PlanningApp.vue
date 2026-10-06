@@ -119,10 +119,10 @@ const rangeLabel = computed(() => {
 });
 
 const viewOptions = computed(() =>
-    // La semaine est refusée sous `md`, où elle retombe sur le jour : sept
-    // colonnes ne tiennent pas dans trois cent soixante pixels. L'onglet
-    // restait allumé en montrant un seul jour ; il s'efface là et revient avec
-    // la place, le choix gardé.
+    // The week is refused below `md`, where it falls back to the day: seven
+    // columns do not fit in three hundred and sixty pixels. The tab stayed lit
+    // while showing a single day; it goes away there and comes back with the
+    // room, the choice kept.
     ["day", "week", "month", "agenda"]
         .filter((value) => !(narrow.value && "week" === value))
         .map((value) => ({
@@ -160,8 +160,8 @@ const canManageCalendars = computed(() => can("planning.calendars.manage"));
 
 /** An event needs a calendar to live in, so an empty sidebar closes this too. */
 const canCreateEvents = computed(() => can("planning.events.create") && calendars.value.length > 0);
-// Les droits d'écriture des événements et des rappels, comme le serveur les
-// exige : modifier, déplacer et cocher demandent `edit`, supprimer `delete`.
+// The write rights for events and reminders, as the server requires them:
+// editing, moving and ticking require `edit`, deleting `delete`.
 const canEditEvents = computed(() => can("planning.events.edit"));
 const canDeleteEvents = computed(() => can("planning.events.delete"));
 
@@ -225,7 +225,7 @@ const {
     canCreate: canCreateEvents,
 });
 
-/** Cocher un rappel le modifie : sans le droit, la case ne fait rien. */
+/** Ticking a reminder edits it: without the right, the checkbox does nothing. */
 function toggleReminderGuarded(reminder) {
     if (!canEditEvents.value) return;
     toggleReminderItem(reminder);
@@ -332,8 +332,8 @@ onUnmounted(() => {
         <AppLoader :active="loading" />
 
         <div class="min-w-0 aurora-stack">
-            <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-                 replié ou déplié, le choix vaut pour tous les encarts. -->
+            <!-- The guide to the screen, next to what it explains;
+                 collapsed or expanded, the choice applies to all panels. -->
             <AppGuide :title="t('suite.plannings.guide.title')" storage-key="planning">
                 <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                     <li v-for="step in 5" :key="step">{{ t(`suite.plannings.guide.step_${step}`) }}</li>

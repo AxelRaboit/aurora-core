@@ -11,18 +11,18 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * Choisir un document Craft, et le déposer dans un espace de notes.
+ * Pick a Craft document, and drop it into a notes space.
  *
- * **La liste est courte, et c'est le réglage qui le veut.** La connexion ne
- * porte que les documents désignés dans Craft : ce qui n'y est pas n'apparaît
- * pas ici, et la façon de l'ajouter est de retourner dans Craft. L'écran le
- * dit plutôt que de laisser croire à une panne.
+ * **The list is short, and the setting wants it so.** The connection only
+ * carries the documents designated in Craft: what is not there does not
+ * appear here, and the way to add it is to go back to Craft. The screen says
+ * so rather than suggesting an outage.
  *
- * **Chargée à l'ouverture, pas au montage.** Un appel à Craft coûte une
- * seconde et la plupart des visites de l'écran des notes ne l'ouvrent jamais.
+ * **Loaded on open, not on mount.** A call to Craft costs a second, and most
+ * visits to the notes screen never open it.
  *
- * La note arrive à la racine de l'espace donné, ou dans le dossier donné ; le
- * serveur vérifie qu'on y écrit.
+ * The note lands at the root of the given space, or in the given folder; the
+ * server checks that one can write there.
  */
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -114,8 +114,8 @@ async function submit() {
                     <p class="mt-1 text-xs text-muted">{{ t("notes.craft.import.disabled_hint") }}</p>
                 </div>
 
-                <!-- Injoignable et vide ne se réparent pas au même endroit :
-                     l'un dans les réglages, l'autre dans Craft. -->
+                <!-- Unreachable and empty are not fixed in the same place:
+                     one in the settings, the other in Craft. -->
                 <div v-else-if="!reachable" class="rounded-lg border border-line bg-surface-2 p-4">
                     <p class="text-sm text-primary">{{ t("notes.craft.import.unreachable") }}</p>
                     <p class="mt-1 text-xs text-muted">{{ t("notes.craft.import.unreachable_hint") }}</p>
@@ -126,9 +126,9 @@ async function submit() {
                     <p class="mt-1 text-xs text-muted">{{ t("notes.craft.import.empty_hint") }}</p>
                 </div>
 
-                <!-- Des boutons radio, et non une liste déroulante : ils sont
-                     une poignée, et voir les titres côte à côte est le geste
-                     qu'on vient faire. -->
+                <!-- Radio buttons, and not a dropdown: there are only a
+                     handful, and seeing the titles side by side is what one
+                     comes to do. -->
                 <ul v-else class="divide-y divide-line/40 overflow-hidden rounded-lg border border-line">
                     <li v-for="document in documents" :key="document.id">
                         <label

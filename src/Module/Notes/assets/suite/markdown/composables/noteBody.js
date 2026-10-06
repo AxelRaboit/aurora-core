@@ -1,31 +1,29 @@
 /**
- * Le corps d'une note, sans le titre qu'elle répète en tête.
+ * A note's body, without the title it repeats at the top.
  *
- * Une note d'Aurora porte son titre dans un champ, et presque toutes le
- * réécrivent en `# Titre` sur leur première ligne - c'est ce que fait un
- * éditeur markdown quand rien ne tient le titre à sa place. Partout où
- * l'écran affiche déjà le titre à côté du corps (la carte, la page de
- * lecture, l'aperçu de l'éditeur), il se lisait donc deux fois de suite.
+ * An Aurora note carries its title in a field, and almost all of them write
+ * it again as `# Titre` on their first line - it is what a markdown editor
+ * does when nothing holds the title in its place. Everywhere the screen
+ * already shows the title next to the body (the card, the reading page, the
+ * editor preview), it was therefore read twice in a row.
  *
- * **Le texte n'est pas touché.** On ne retire rien en base, rien à
- * l'export, rien dans la zone d'écriture : c'est le rendu qui cesse de dire
- * deux fois la même chose. Un titre changé plus tard fait simplement
- * réapparaître le `# ` d'origine dans le rendu, ce qui est la bonne
- * surprise - le texte de la note n'a pas bougé sous les pieds de son
- * auteur.
+ * **The text is not touched.** Nothing is removed in the database, nothing
+ * in the export, nothing in the writing area: it is the rendering that stops
+ * saying the same thing twice. A title changed later simply makes the
+ * original `# ` reappear in the rendering, which is the right surprise - the
+ * note's text has not moved under its author's feet.
  *
- * Et seulement quand les deux disent exactement la même chose : un
- * document dont la première ligne est un vrai titre différent garde son
- * titre.
+ * And only when both say exactly the same thing: a document whose first
+ * line is a real, different title keeps its title.
  */
 
-/** `# Titre` en tête, avec les lignes vides qui le précèdent ou le suivent. */
+/** `# Titre` at the top, with the blank lines before or after it. */
 const LEADING_HEADING = /^\s*#\s+(.+?)\s*(?:\n+|$)/;
 
 /**
- * @param {string} markdown le corps de la note
- * @param {string} title ce que l'écran affiche déjà à côté
- * @returns {string} le corps, moins son titre répété
+ * @param {string} markdown the note's body
+ * @param {string} title what the screen already shows next to it
+ * @returns {string} the body, minus its repeated title
  */
 export function withoutLeadingTitle(markdown, title) {
     const body = String(markdown ?? "");
@@ -38,7 +36,7 @@ export function withoutLeadingTitle(markdown, title) {
     return body.slice(heading[0].length);
 }
 
-/** Une comparaison de lecteur : ni la casse ni les espaces ne comptent. */
+/** A reader's comparison: neither case nor spaces count. */
 function same(a, b) {
     return (
         "" !== String(b ?? "").trim() &&

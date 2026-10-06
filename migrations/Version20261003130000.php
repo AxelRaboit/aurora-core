@@ -8,13 +8,13 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * L'apparence d'une publication rejoint celle du thème.
+ * The appearance of a post joins that of the theme.
  *
- * `color_overrides` porte les couleurs du thème qu'une publication repeint en
- * plus du fond, de la topbar et du pied : texte, traits, cartes, titres,
- * chiffres. Vide par défaut, donc chaque publication garde le rendu qu'elle
- * avait. `chrome_follows_page` dit si la topbar et le pied prennent l'accent
- * et les survols de la page ; faux par défaut, pour la même raison.
+ * `color_overrides` holds the theme colors that a post repaints on top of the
+ * background, the topbar and the footer: text, rules, cards, headings,
+ * figures. Empty by default, so every post keeps the rendering it had.
+ * `chrome_follows_page` says whether the topbar and the footer take the
+ * page's accent and hovers; false by default, for the same reason.
  */
 final class Version20261003130000 extends AbstractMigration
 {

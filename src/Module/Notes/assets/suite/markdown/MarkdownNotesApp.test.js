@@ -6,11 +6,11 @@ import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 window.__isAdmin__ = true;
 
 /**
- * Reposé avant chaque cas, et pas une fois pour toutes.
+ * Set again before each case, and not once and for all.
  *
- * `vi.restoreAllMocks()` rend à un `vi.fn()` son implémentation vide : posé
- * au chargement du module, `matchMedia` cessait de répondre dès le deuxième
- * cas, et la page se montait alors sans savoir si elle est sur un téléphone.
+ * `vi.restoreAllMocks()` gives a `vi.fn()` back its empty implementation: set
+ * when the module loaded, `matchMedia` stopped answering from the second case
+ * on, and the page then mounted without knowing whether it is on a phone.
  */
 function installMatchMedia() {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -86,13 +86,13 @@ const FOLDERS = [
 ];
 
 /**
- * Le menu de la note : ce qui se fait une fois par note y vit, plutôt que
- * d'occuper la ligne du titre.
+ * The note's menu: what is done once per note lives there, rather than
+ * taking up the title line.
  */
 async function openNoteMenu(wrapper) {
     const trigger = wrapper
         .findAll("button")
-        // Le bouton « Actions » de la barre (AppPageActions depuis le 02/10/2026).
+        // The bar's "Actions" button (AppPageActions since 02/10/2026).
         .find((b) => "shared.actions.plain_title" === b.attributes("title"));
 
     await trigger.trigger("click");
@@ -172,10 +172,9 @@ describe("the notes page, once its tree moved to the menu", () => {
 });
 
 /**
- * Une note peut porter son propre fond : le chemin de retour ne doit donc
- * pas vivre dessus. Sur du papier blanc, son survol prenait la couleur
- * d'encre du back-office - presque blanche en thème sombre - et le lien
- * disparaissait.
+ * A note can carry its own background: so the way back must not live on it.
+ * On white paper, its hover took the back-office ink colour - almost white
+ * in the dark theme - and the link disappeared.
  */
 describe("le chemin de retour", () => {
     it("lives outside the note's own card", async () => {
@@ -198,9 +197,8 @@ describe("le chemin de retour", () => {
 
 describe("les étiquettes de l'éditeur", () => {
     /**
-     * Les étiquettes vivent dans le menu de la note depuis que la ligne du
-     * titre a été allégée : douze commandes ne laissaient plus de place au
-     * titre lui-même.
+     * Tags live in the note's menu since the title line was slimmed down:
+     * twelve commands no longer left room for the title itself.
      */
     async function tagsEntry(wrapper) {
         const entrees = await openNoteMenu(wrapper);
@@ -212,7 +210,7 @@ describe("les étiquettes de l'éditeur", () => {
         );
     }
 
-    /** L'éditeur n'est à l'écran qu'une fois une note ouverte. */
+    /** The editor is only on screen once a note is open. */
     async function editing(tags = []) {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
@@ -235,8 +233,8 @@ describe("les étiquettes de l'éditeur", () => {
     }
 
     /**
-     * Elles prenaient une ligne entière de l'en-tête en permanence, pour une
-     * chose qu'on touche quand la note naît et plus guère ensuite.
+     * They took up a whole line of the header all the time, for something
+     * touched when the note is born and hardly ever after.
      */
     it("keeps its row out of the way until it is asked for", async () => {
         const wrapper = await editing();
@@ -258,8 +256,8 @@ describe("les étiquettes de l'éditeur", () => {
     });
 
     /**
-     * Dans un menu, c'est le libellé qui nomme les étiquettes - ce qui en
-     * dit plus que le chiffre que portait l'icône.
+     * In a menu, the label names the tags - which says more than the number
+     * the icon carried.
      */
     it("names them in the entry itself", async () => {
         const wrapper = await editing(["client", "photo"]);
@@ -270,12 +268,12 @@ describe("les étiquettes de l'éditeur", () => {
 });
 
 /**
- * Ouvrir le partage effaçait la page.
+ * Opening the share wiped the page.
  *
- * `api.preview` n'existait pas : la route était là, le chemin était passé au
- * composant, et l'appel partait d'un `watch` sur l'ouverture de la modale.
- * L'exception y devenait un rejet non traité - invisible - jusqu'à ce que la
- * page se dote d'un garde-fou, qui l'a rendue spectaculaire.
+ * `api.preview` did not exist: the route was there, the path was passed to
+ * the component, and the call started from a `watch` on the modal opening.
+ * The exception became an unhandled rejection there - invisible - until the
+ * page got a safety net, which made it spectacular.
  */
 describe("le partage", () => {
     it("opens without taking the page down with it", async () => {
@@ -363,13 +361,13 @@ describe("what the page tells the panel", () => {
 });
 
 /**
- * Ce que le panneau demande doit changer l'écran, pas seulement trouver
- * quelqu'un au bout du fil.
+ * What the panel asks for must change the screen, not just find someone at
+ * the other end of the line.
  *
- * Le test précédent vérifiait que l'intention était *répondue* - `askPage`
- * rend vrai dès qu'un écouteur existe - ce qui laissait passer une
- * bibliothèque qui n'avait jamais reçu l'ordre. Axel a cliqué sur un
- * dossier et est resté sur « Tous les documents ».
+ * The previous test checked that the intent was *answered* - `askPage`
+ * returns true as soon as a listener exists - which let through a library
+ * that had never received the order. Axel clicked a folder and stayed on
+ * "Tous les documents".
  */
 describe("ouvrir un dossier depuis le panneau", () => {
     it("shows what the folder holds, not the root", async () => {
@@ -381,8 +379,8 @@ describe("ouvrir un dossier depuis le panneau", () => {
         askPage("notes:open-folder", { args: [7] });
         await flushPromises();
 
-        // Le dossier contient « Devis Lumen » et rien d'autre ; « Journal »
-        // est à la racine, donc il disparaît de la grille.
+        // The folder holds "Devis Lumen" and nothing else; "Journal" is at
+        // the root, so it disappears from the grid.
         const cards = wrapper.findAll("article").map((one) => one.text());
         expect(cards.some((text) => text.includes("Devis Lumen"))).toBe(true);
         expect(cards.some((text) => text.includes("Journal"))).toBe(false);
@@ -404,10 +402,10 @@ describe("ouvrir un dossier depuis le panneau", () => {
 });
 
 /**
- * Depuis l'éditeur, la bibliothèque n'est pas montée. Elle vit pourtant
- * dans la même application : quitter l'une pour l'autre est un changement
- * d'affichage, pas un rechargement - celui-ci jetait le défilement, la
- * sélection et l'arbre déplié pour revenir au même endroit.
+ * From the editor, the library is not mounted. Yet it lives in the same
+ * application: leaving one for the other is a change of display, not a
+ * reload - the reload threw away the scroll, the selection and the expanded
+ * tree only to come back to the same place.
  */
 describe("ouvrir un dossier avec une note ouverte", () => {
     it("swaps the editor for the folder, without reloading", async () => {
@@ -425,7 +423,7 @@ describe("ouvrir un dossier avec une note ouverte", () => {
         const wrapper = render({ activeId: 1 });
         await flushPromises();
 
-        // Une note est ouverte : l'éditeur occupe la place, pas la grille.
+        // A note is open: the editor takes the space, not the grid.
         expect(wrapper.findAll("article")).toHaveLength(0);
 
         askPage("notes:open-folder", { args: [7] });
@@ -456,19 +454,19 @@ describe("ouvrir un dossier avec une note ouverte", () => {
 });
 
 /**
- * Supprimer un dossier depuis le menu emporte ses notes, dont peut-être
- * celle qu'on est en train d'écrire : la laisser ouverte ferait écrire
- * l'enregistrement automatique dans une note à la corbeille.
+ * Deleting a folder from the menu takes its notes with it, possibly
+ * including the one being written: leaving it open would make the autosave
+ * write into a note in the trash.
  */
 describe("la note ouverte disparaît sous nos pieds", () => {
     it("closes the editor when the note is no longer in the list", async () => {
         const wrapper = render({ activeId: 1 });
         await flushPromises();
 
-        // L'éditeur tient la note 1.
+        // The editor holds note 1.
         expect(wrapper.findAll("article")).toHaveLength(0);
 
-        // Le serveur ne la rend plus : elle est partie avec son dossier.
+        // The server no longer returns it: it left with its folder.
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             status: 200,
@@ -478,7 +476,7 @@ describe("la note ouverte disparaît sous nos pieds", () => {
         askPage("notes:delete-folder", { args: [{ id: 7 }] });
         await flushPromises();
 
-        // Retour à la bibliothèque plutôt qu'un éditeur sur du vide.
+        // Back to the library rather than an editor on nothing.
         expect(wrapper.text()).toContain("library.title");
         document.body.innerHTML = "";
     });
@@ -527,15 +525,15 @@ describe("deleting a note the panel asked to delete", () => {
  * was nothing to photograph.
  */
 describe("the way into the graph", () => {
-    // Le graphe est une commande de l'éditeur : sans note ouverte, la page
-    // montre la bibliothèque, qui n'a pas de bouton pour lui.
+    // The graph is an editor command: with no note open, the page shows
+    // the library, which has no button for it.
     it("opens the graph when its button is pressed", async () => {
         const wrapper = render({ activeId: 1 });
         await flushPromises();
 
-        // La note s'ouvre par le pont, comme le ferait le panneau : c'est le
-        // même chemin que celui d'un lecteur, et il ne dépend pas de l'ordre
-        // dans lequel les cas de ce fichier se suivent.
+        // The note opens through the bridge, as the panel would do it: it is
+        // the same path as a reader's, and it does not depend on the order in
+        // which the cases of this file run.
         askPage("notes:select", { args: [1] });
         await flushPromises();
 
@@ -559,7 +557,7 @@ describe("the way into the graph", () => {
 });
 
 describe("ce que le panneau demande depuis l'éditeur", () => {
-    /** Les appels faits, adresse et corps, dans l'ordre. */
+    /** The calls made, address and body, in order. */
     const calls = () =>
         global.fetch.mock.calls.map(([url, init]) => ({
             url: String(url),
@@ -567,9 +565,9 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
         }));
 
     /**
-     * Le bug d'Axel : une note glissée sur un dossier pendant qu'une note est
-     * ouverte ne bougeait pas. La page écrit maintenant le dépôt elle-même,
-     * sans passer par la bibliothèque.
+     * Axel's bug: a note dragged onto a folder while a note is open did not
+     * move. The page now writes the drop itself, without going through the
+     * library.
      */
     it("files a dropped note even while a note is open", async () => {
         render();
@@ -639,8 +637,8 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
     });
 
     /**
-     * Dossiers et notes partagent un ordre : chacun part par la route de sa
-     * nature, avec son rang dans la liste mêlée.
+     * Folders and notes share one order: each goes by the route of its kind,
+     * with its rank in the mixed list.
      */
     it("sends a mixed order through both reorder routes", async () => {
         render();
@@ -680,7 +678,7 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
         });
     });
 
-    /** Le plus d'un dossier ouvre une modale qui crée une note ou un dossier. */
+    /** A folder's plus opens a modal that creates a note or a folder. */
     it("creates a folder where the plus was pressed", async () => {
         render();
         await flushPromises();
@@ -713,7 +711,7 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
         });
     });
 
-    /** Qui en a le droit crée un espace depuis la même modale. */
+    /** Whoever is allowed to creates a space from the same modal. */
     it("creates a space from the add modal", async () => {
         render({ canCreateSpace: true });
         await flushPromises();
@@ -758,7 +756,7 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
         ).toBeNull();
     });
 
-    /** Le plus d'un en-tête d'espace range à la racine de cet espace. */
+    /** A space header's plus files at the root of that space. */
     it("files a new note at the root of the space it was asked for", async () => {
         render({
             spaces: [
@@ -800,7 +798,7 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
 });
 
 describe("emporter un espace seul", () => {
-    /** L'en-tête d'un espace exporte cet espace, et lui seul. */
+    /** A space header exports that space, and that space only. */
     it("exports the space the panel asks for", async () => {
         const assign = vi.fn();
         const original = window.location;

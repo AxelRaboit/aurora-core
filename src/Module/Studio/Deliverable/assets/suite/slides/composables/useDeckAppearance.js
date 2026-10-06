@@ -4,24 +4,24 @@ import { toast } from "vue-sonner";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
- * Ce qu'un style envoie au serveur, derive de sa forme et non d'une liste.
+ * What a style sends to the server, derived from its shape and not from a
+ * list.
  *
- * **La liste ecrite a la main est exactement ce qui a casse.** Sept reglages
- * ont ete ajoutes a la forme du style, a l'ecriture, a l'apercu et aux looks,
- * la normalisation serveur les acceptait tous, et la fonction qui composait
- * l'envoi ne les nommait pas : ils partaient dans le vide a chaque
- * enregistrement, sans erreur, et comme le serveur remplace le style entier ils
- * effacaient meme ce qui avait ete stocke avant. Un huitieme reglage aurait
- * repete la panne.
+ * **The hand-written list is exactly what broke.** Seven settings were added
+ * to the style's shape, to writing, to the preview and to the looks, the
+ * server normalization accepted them all, and the function that built the
+ * request did not name them: they went nowhere on every save, without an
+ * error, and since the server replaces the whole style they even erased what
+ * had been stored before. An eighth setting would have repeated the failure.
  *
- * `shape` est la forme du style. Une cle qui y entre voyage desormais toute
- * seule. Ne partent pas les valeurs qui veulent dire « je n'ai rien choisi » :
- * `null` laisse le theme decider, `false` est l'absence d'un interrupteur, la
- * chaine vide celle d'un texte.
+ * `shape` is the style's shape. A key that enters it now travels on its own.
+ * Values that mean "I chose nothing" are not sent: `null` lets the theme
+ * decide, `false` is the absence of a switch, the empty string that of a
+ * text.
  *
- * Fonction pure et exportee pour une seule raison : celle-ci se teste, la
- * version enfermee dans le composable ne se testait pas, et c'est pour ca que
- * la panne a tenu treize commits.
+ * A pure, exported function for one reason only: this one can be tested, the
+ * version locked inside the composable could not, and that is why the
+ * failure lasted thirteen commits.
  */
 export function stylePayload(style, shape) {
     const written = {};
@@ -42,8 +42,8 @@ export function stylePayload(style, shape) {
         written[key] = value;
     }
 
-    // Un placement sans logo ne place rien : les deux se posent ensemble dans
-    // le panneau et se rangent ensemble ici.
+    // A placement without a logo places nothing: the two are set together in
+    // the panel and put away together here.
     if (!written.logoMediaId) delete written.logoPlacement;
 
     return written;

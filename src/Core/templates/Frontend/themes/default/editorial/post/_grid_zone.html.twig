@@ -107,16 +107,16 @@
             {% set showCredit = (zone.options.showCredit ?? true) %}
             {% set framed = zone.surface|default('none') != 'none' and not zone.caption and not (showCredit and zone.media.credit|default(null)) %}
             {% set picture %}
-                {# `width` et `height` réservent la hauteur avant que l'image
-                   arrive : avec `h-auto`, le navigateur n'en garde que le
-                   rapport et laisse la largeur au CSS. Sans eux, une image
-                   différée occupe zéro pixel, la page est courte puis
-                   s'allonge à chaque arrivée, et on regarde le contenu
-                   descendre par à-coups.
+                {# `width` and `height` reserve the height before the image
+                   arrives: with `h-auto`, the browser only keeps their ratio
+                   and leaves the width to CSS. Without them, a lazy image
+                   takes up zero pixels, the page is short then grows with
+                   each arrival, and you watch the content move down in
+                   jolts.
 
-                   `|default(null)` parce que six documents sur cent
-                   quatre-vingt-onze n'ont pas les leurs, et qu'un attribut
-                   vide vaut mieux qu'une page qui casse. #}
+                   `|default(null)` because six documents out of one hundred
+                   and ninety-one do not have theirs, and an empty attribute
+                   is better than a page that breaks. #}
                 <img
                     src="{{ zone.media.url }}"
                     alt="{{ zone.media.alt }}"

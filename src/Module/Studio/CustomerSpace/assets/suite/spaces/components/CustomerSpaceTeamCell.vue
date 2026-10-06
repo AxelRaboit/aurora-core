@@ -50,16 +50,16 @@ const label = computed(() =>
         v-on:click="$emit('open')"
     >
         <span class="flex -space-x-2">
-            <!-- Un fond opaque sous chaque rond, et c'est tout ce que fait ce
-                 conteneur. L'avatar est peint en `bg-accent-600/20` : posé
-                 directement sur son voisin, il le laissait transparaître et
-                 les deux initiales se chevauchaient. Sur un fond de la couleur
-                 de la ligne, il rend exactement ce qu'il rend seul, et celui du
-                 dessus masque la part qu'il recouvre - ce que font les piles
-                 d'avatars partout ailleurs.
+            <!-- An opaque background under each circle, and that is all this
+                 container does. The avatar is painted in `bg-accent-600/20`:
+                 set directly on its neighbour, it let it show through and the
+                 two initials overlapped. On a background of the row's color,
+                 it renders exactly what it renders alone, and the one on top
+                 hides the part it covers - what avatar stacks do everywhere
+                 else.
 
-                 La couleur suit le survol comme l'anneau le faisait déjà :
-                 les deux disent la même chose, « ce qu'il y a derrière ». -->
+                 The color follows the hover as the ring already did: both
+                 say the same thing, "what is behind". -->
             <span
                 v-for="member in shown"
                 :key="member.userId"

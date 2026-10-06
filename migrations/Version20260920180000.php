@@ -8,15 +8,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Écrire dans la discussion devient un droit à part.
+ * Writing in the conversation becomes a right of its own.
  *
- * Un seul droit commandait deux conversations : commenter une fiche, et parler
- * dans le salon de l'espace. Cocher une case pour autoriser une remarque sous
- * une publication ouvrait donc aussi le fil de la relation.
+ * A single right controlled two conversations: commenting on an item, and
+ * talking in the space's channel. Ticking a box to allow a remark under a
+ * publication therefore also opened the relationship thread.
  *
- * La colonne est recopiée depuis « peut commenter » plutôt que posée à vrai :
- * un lien déjà dehors se comporte exactement comme avant, y compris celui qui
- * ne commentait pas et qui ne doit pas se mettre à pouvoir parler.
+ * The column is copied from "can comment" rather than set to true: a link
+ * already sent out behaves exactly as before, including one that could not
+ * comment and must not suddenly be able to talk.
  */
 final class Version20260920180000 extends AbstractMigration
 {

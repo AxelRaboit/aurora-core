@@ -13,10 +13,10 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 
 /**
- * Les adresses qui ouvrent ce livrable sans l'espace du client autour : pour
- * celui à qui on transmet le document sans lui ouvrir l'espace.
+ * The addresses that open this deliverable without the client's space around
+ * it: for someone you pass the document to without opening the space to them.
  *
- * La fenêtre des liens de lecture des publications, reprise pour le module :
+ * The publications' reading links dialog, reused for the module:
  *
  * The deck's share panel, for a publication: one link per recipient, each
  * with a label, an optional expiry and an optional password, and how often it
@@ -30,7 +30,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
  */
 const props = defineProps({
     show: { type: Boolean, default: false },
-    /** La liste ; `/create` et `/{id}/revoke` se greffent dessus. */
+    /** The list; `/create` and `/{id}/revoke` hang off it. */
     linksPath: { type: String, required: true },
 });
 
@@ -47,7 +47,7 @@ const placeholders = ref(0);
 const loading = ref(false);
 const creating = ref(false);
 const revoking = ref(null);
-/** Ce que la confirmation ouverte sur une ligne fera : retirer (révoquer) ou supprimer. */
+/** What the confirmation open on a row will do: revoke or delete. */
 const revokingKind = ref("revoke");
 const revokingBusy = ref(false);
 const newLabel = ref("");
@@ -68,7 +68,7 @@ const isLive = (link) =>
     !link.revokedAt &&
     (!link.expiresAt || new Date(link.expiresAt) > new Date());
 
-/** Le premier message d'erreur du serveur, traduit. */
+/** The server's first error message, translated. */
 function firstError(data) {
     const key = Object.values(data?.errors ?? {}).find((value) => "string" === typeof value && "" !== value);
 
@@ -84,10 +84,10 @@ function apply(data) {
 }
 
 /**
- * Remise à zéro : une seule fenêtre sert toutes les lignes d'une liste. Sans
- * cela, ouvrir « Liens » sur B montrait d'abord ceux de A, qui y restaient si
- * la requête de B échouait, et un mot de passe tapé pour A sans être validé
- * partait avec le lien créé pour B.
+ * Reset: a single dialog serves every row of a list. Without this, opening
+ * "Liens" on B first showed A's, which stayed there if B's request failed,
+ * and a password typed for A without being submitted went out with the link
+ * created for B.
  */
 function reset() {
     links.value = [];
@@ -101,7 +101,7 @@ function reset() {
     copiedId.value = null;
 }
 
-/** Quelle ouverture attend sa réponse : une réponse d'une ouverture précédente est ignorée. */
+/** Which opening awaits its response: a response from a previous opening is ignored. */
 let opening = 0;
 
 async function load() {
@@ -152,17 +152,17 @@ async function createLink() {
     }
 }
 
-/** Une adresse jamais ouverte se supprime ; une adresse ouverte se révoque et garde sa ligne. */
+/** An address never opened is deleted; an opened address is revoked and keeps its row. */
 const isDeletable = (link) => 0 === link.openCount;
 
 /**
- * Un lien retiré ou expiré qu'on a ouvert garde sa ligne (qui a pu lire), et
- * n'a plus rien à offrir : il se masque de la liste au lieu de l'encombrer.
- * Un lien jamais ouvert, lui, se supprime.
+ * A revoked or expired link that was opened keeps its row (who may have read
+ * it), and has nothing left to offer: it is hidden from the list instead of
+ * cluttering it. A link never opened is deleted instead.
  */
 const isHideable = (link) => !link.hidden && !isLive(link) && !isDeletable(link);
 
-/** Les liens masqués ne se montrent que sur demande. */
+/** Hidden links only show on request. */
 const showHidden = ref(false);
 const hiddenCount = computed(() => links.value.filter((link) => link.hidden).length);
 const shownLinks = computed(() => links.value.filter((link) => showHidden.value || !link.hidden));
@@ -190,7 +190,7 @@ async function hide(link) {
     }
 }
 
-/** Les textes de la confirmation ouverte : supprimer ou retirer. */
+/** The texts of the open confirmation: delete or revoke. */
 const removal = computed(() => {
     const scope = "suite.studio.deliverables.links";
 
@@ -204,7 +204,7 @@ function askToRemove(link) {
     revoking.value = link.id;
 }
 
-/** Retirer une adresse ne se rattrape pas : on demande confirmation sur sa ligne. */
+/** Revoking an address cannot be undone: confirmation is asked on its row. */
 async function revoke(link) {
     if (revokingBusy.value) return;
 
@@ -214,7 +214,7 @@ async function revoke(link) {
         const data = await request(`${base()}/${link.id}/${kind}`);
 
         if (!data?.success) {
-            // Quelqu'un l'a ouverte entre-temps : le serveur le dit, la liste se met à jour, et ce sera une révocation.
+            // Someone opened it in the meantime: the server says so, the list updates, and it will be a revocation.
             const reason = firstError(data);
             toast.error(reason ?? t(removal.value.failed));
             if (reason) {
@@ -295,7 +295,7 @@ async function copy(link) {
                 <p class="m-0 truncate text-xs text-muted">{{ withheld.map((picture) => picture.name).join(", ") }}</p>
             </div>
 
-            <!-- Un vrai formulaire : Entrée crée le lien, comme le bouton. -->
+            <!-- A real form: Enter creates the link, like the button. -->
             <form class="space-y-4" v-on:submit.prevent="createLink">
                 <div class="flex flex-wrap items-end gap-2">
                     <AppInput
@@ -362,8 +362,8 @@ async function copy(link) {
                         </span>
                     </div>
 
-                    <!-- Un lien retiré ne se rétablit pas : une seconde étape,
-                         sur la ligne même, plutôt qu'une fenêtre de plus. -->
+                    <!-- A revoked link cannot be restored: a second step, on
+                         the row itself, rather than one more dialog. -->
                     <div
                         v-if="revoking === link.id"
                         class="mt-2 flex flex-wrap items-center gap-2 rounded-md bg-rose-500/10 p-2"
@@ -378,9 +378,9 @@ async function copy(link) {
                         </AppButton>
                     </div>
 
-                    <!-- `select-all` : un clic ou un triple clic prend l'adresse entière, et elle seule.
-                         Sans cela, la sélection d'une ligne emportait aussi la ligne du dessous
-                         (« Sans expiration · Jamais ouvert »), et l'adresse collée donnait un 404. -->
+                    <!-- `select-all`: a click or a triple click takes the whole address, and only it.
+                         Without it, selecting a line also took the line below
+                         ("Sans expiration · Jamais ouvert"), and the pasted address gave a 404. -->
                     <p class="m-0 mt-1 select-all truncate font-mono text-xs text-muted">
                         {{ copiedId === link.id ? t("suite.studio.deliverables.links.copied") : link.url }}
                     </p>
@@ -403,8 +403,8 @@ async function copy(link) {
                 </li>
             </ul>
 
-            <!-- Les liens retirés qu'on a masqués restent à portée : un bouton
-                 pour les revoir, un autre pour les cacher de nouveau. -->
+            <!-- Hidden revoked links stay within reach: one button to show
+                 them again, another to hide them again. -->
             <button
                 v-if="hiddenCount > 0"
                 type="button"

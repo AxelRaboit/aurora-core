@@ -23,15 +23,14 @@ use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 
 /**
- * Une publication partagée par lien seulement, pour la démo : un dossier de
- * presse, envoyé à une rédaction par un lien de lecture.
+ * A post shared by link only, for the demo: a press kit, sent to a newsroom
+ * through a reading link.
  *
- * Les livrables des clients ont quitté les publications pour leur propre
- * module ; les liens de lecture restent une fonction des publications, pour
- * une page qu'on veut faire lire sans la mettre sur le site. Celle-ci en
- * montre un, déjà envoyé.
+ * Client deliverables have left posts for their own module; reading links
+ * remain a feature of posts, for a page you want read without putting it on
+ * the site. This one shows a link, already sent.
  *
- * Rejouable : sautée quand son adresse française est prise. Groupe `demo`.
+ * Replayable: skipped when its French address is taken. Group `demo`.
  */
 class ReadingLinkDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {

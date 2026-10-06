@@ -8,13 +8,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une publication peut être écrite pour un espace client.
+ * A post can be written for a customer space.
  *
- * Un audit ou une stratégie livré à un client, rédigé depuis son espace. Un
- * identifiant plutôt qu'une clé étrangère : le module du site ne dépend pas de
- * celui de l'agence, comme une zone de deck nomme son deck. Supprimer l'espace
- * remet la colonne à vide, et la publication reste. Vide pour toutes les
- * publications existantes.
+ * An audit or a strategy delivered to a client, written from their space. An
+ * id rather than a foreign key: the site module does not depend on the agency
+ * one, the same way a deck zone names its deck. Deleting the space empties
+ * the column, and the post stays. Empty for every existing post.
  */
 final class Version20261001160000 extends AbstractMigration
 {

@@ -1,8 +1,8 @@
 import hljs from "@/shared/utils/format/highlighter.js";
 
-// La liste des langages a demenage dans le module partage le jour ou le
-// front en a eu besoin lui aussi : deux copies, c'etait un langage ajoute
-// pour un lecteur et manquant pour un redacteur.
+// The language list moved to the shared module the day the front end needed
+// it too: two copies meant a language added for a reader and missing for a
+// writer.
 
 function escapeHtml(text) {
     return text

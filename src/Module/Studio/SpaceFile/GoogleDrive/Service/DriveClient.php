@@ -24,29 +24,29 @@ use function sprintf;
 use function usort;
 
 /**
- * Lit le dossier Drive qu'un client a partagé avec le compte de service.
+ * Reads the Drive folder a client shared with the service account.
  *
- * **Rien n'est recopié.** Le Drive reste la source : Aurora lit le fichier
- * chez Google au moment où quelqu'un le demande et le sert sous sa propre
- * adresse. Le client de l'espace, qui n'a pas de compte Google, voit donc le
- * fichier sans jamais parler à Google ; et retirer le fichier du dossier
- * partagé le retire de l'espace, ce qui est le comportement qu'on attend d'un
- * dossier partagé plutôt que d'une copie qui vieillit.
+ * **Nothing is copied.** Drive stays the source: Aurora reads the file from
+ * Google when someone asks for it and serves it under its own address. The
+ * space's client, who has no Google account, so sees the file without ever
+ * talking to Google; and removing the file from the shared folder removes it
+ * from the space, which is the behaviour expected of a shared folder rather
+ * than of a copy that ages.
  *
- * **Lecture seule, et dite à Google.** Le jeton est demandé pour la portée
- * `drive.readonly` : même si quelqu'un se trompait plus tard en écrivant une
- * requête d'écriture, Google la refuserait. Une intégration qui ne peut pas
- * écrire est une intégration qui ne peut pas casser le Drive d'un client.
+ * **Read-only, and Google is told so.** The token is requested for the
+ * `drive.readonly` scope: even if someone later wrote a write request by
+ * mistake, Google would refuse it. An integration that cannot write is an
+ * integration that cannot break a client's Drive.
  *
- * **Le jeton est mis en cache.** Google en donne un pour une heure ; le
- * redemander à chaque affichage ajouterait un aller-retour à chaque page pour
- * rien. Gardé cinquante minutes, ce qui laisse dix minutes de marge avant
- * l'expiration réelle - une horloge qui dérive de deux minutes ne doit pas
- * produire un refus au milieu d'une consultation.
+ * **The token is cached.** Google issues one for an hour; asking again on
+ * every display would add a round trip to every page for nothing. Kept for
+ * fifty minutes, which leaves a ten-minute margin before the real expiry - a
+ * clock that drifts by two minutes must not cause a refusal in the middle of
+ * a visit.
  *
- * Les échecs deviennent une liste vide ou un null plutôt qu'une exception :
- * un dossier qu'on ne joint pas est un écran qui ne propose rien, pas une
- * erreur 500 au milieu d'un espace client.
+ * Failures become an empty list or a null rather than an exception: a folder
+ * that cannot be reached is a screen that offers nothing, not a 500 error in
+ * the middle of a customer space.
  */
 final readonly class DriveClient
 {
@@ -56,25 +56,25 @@ final readonly class DriveClient
 
     private const int TIMEOUT_SECONDS = 15;
 
-    /** Cinquante minutes sur les soixante que Google accorde. */
+    /** Fifty minutes out of the sixty Google grants. */
     private const int TOKEN_TTL_SECONDS = 3000;
 
     /**
-     * Ce qu'un dossier peut légitimement porter à l'écran. Au-delà, ce n'est
-     * plus une liste qu'on parcourt et le dossier partagé était trop large.
+     * What a folder can legitimately put on screen. Beyond that, it is no
+     * longer a list one browses and the shared folder was too wide.
      */
     private const int MAX_FILES = 200;
 
     /**
-     * Jusqu'où on descend. Cinq étages couvrent tout rangement raisonnable, et
-     * la borne existe surtout parce qu'un raccourci circulaire dans un Drive
-     * ferait tourner la descente sans fin.
+     * How deep the descent goes. Five levels cover any reasonable filing, and
+     * the limit exists mostly because a circular shortcut in a Drive would
+     * make the descent run forever.
      */
     private const int MAX_DEPTH = 5;
 
     /**
-     * Combien de dossiers tiennent dans une même requête. La clause `q` a une
-     * longueur maximale, et quarante parents y tiennent largement.
+     * How many folders fit in a single request. The `q` clause has a maximum
+     * length, and forty parents fit in it easily.
      */
     private const int PARENTS_PER_QUERY = 40;
 
@@ -87,23 +87,23 @@ final readonly class DriveClient
     ) {}
 
     /**
-     * Tout ce que le dossier contient, sous-dossiers compris.
+     * Everything the folder holds, subfolders included.
      *
-     * **Un appel par étage, et non par dossier.** Google accepte plusieurs
-     * parents dans la même requête : une arborescence de trois niveaux coûte
-     * donc trois appels quel que soit le nombre de dossiers qu'elle porte.
-     * Descendre dossier par dossier aurait fait une requête chacun, et une
-     * page qui attend trente allers-retours n'est plus une page.
+     * **One call per level, not per folder.** Google accepts several parents
+     * in the same request: a three-level tree therefore costs three calls
+     * whatever the number of folders it holds. Going down folder by folder
+     * would have made one request each, and a page that waits for thirty round
+     * trips is no longer a page.
      *
-     * **Le chemin voyage avec le fichier.** Une liste plate de quarante
-     * fichiers sans dire d'où ils viennent serait moins lisible que l'arbre
-     * qu'elle remplace ; `path` porte donc « Contrats/2026 », vide à la
-     * racine, et l'écran s'en sert pour situer.
+     * **The path travels with the file.** A flat list of forty files that does
+     * not say where they come from would be less readable than the tree it
+     * replaces; so `path` carries "Contrats/2026", empty at the root, and the
+     * screen uses it to place each file.
      *
-     * Deux bornes. La profondeur, parce qu'un raccourci circulaire dans un
-     * Drive ferait tourner cette descente sans fin. Et le nombre de fichiers,
-     * parce qu'au-delà ce n'est plus une liste qu'on parcourt des yeux - le
-     * dossier partagé était trop large, et c'est dans Drive que ça se règle.
+     * Two limits. The depth, because a circular shortcut in a Drive would make
+     * this descent run forever. And the number of files, because beyond it this
+     * is no longer a list one scans with the eye - the shared folder was too
+     * wide, and that is fixed in Drive.
      *
      * @return list<array{id: string, name: string, path: string, mimeType: string, size: int|null, modifiedAt: string|null, thumbnail: string|null}>
      */
@@ -121,8 +121,8 @@ final readonly class DriveClient
                     $parentPath = $this->parentPathOf($row, $chunk);
 
                     if (self::FOLDER_MIME === $row['mimeType']) {
-                        // Un raccourci peut ramener un dossier déjà vu, et un
-                        // dossier vu deux fois est une boucle.
+                        // A shortcut can bring back a folder already seen, and
+                        // a folder seen twice is a loop.
                         if (!isset($seen[$row['id']])) {
                             $seen[$row['id']] = true;
                             $next[$row['id']] = '' === $parentPath ? $row['name'] : $parentPath.'/'.$row['name'];
@@ -147,14 +147,13 @@ final readonly class DriveClient
     }
 
     /**
-     * Si ce fichier est l'un de ceux que le dossier montre.
+     * Whether this file is one of those the folder shows.
      *
-     * **Le compte de service lit tous les dossiers qu'on lui a partagés**, et
-     * pas seulement celui de cet espace : relayer un identifiant sans cette
-     * question servait le Drive d'un autre client à qui en devinait un.
-     * Posée à la liste elle-même, et non aux parents du fichier : ce qui se
-     * relaie est exactement ce que l'écran propose, mêmes bornes de
-     * profondeur et de nombre, corbeille exclue.
+     * **The service account reads every folder shared with it**, not only this
+     * space's: relaying an id without asking this served another client's
+     * Drive to whoever guessed one. Asked of the list itself, not of the
+     * file's parents: what gets relayed is exactly what the screen offers, same
+     * depth and count limits, trash excluded.
      */
     public function contains(GoogleServiceAccount $account, string $folderId, string $fileId): bool
     {
@@ -162,7 +161,7 @@ final readonly class DriveClient
     }
 
     /**
-     * Les enfants directs d'un lot de dossiers, en une requête.
+     * The direct children of a batch of folders, in one request.
      *
      * @param list<string> $parentIds
      *
@@ -173,15 +172,15 @@ final readonly class DriveClient
         $clauses = array_map(static fn (string $id): string => sprintf("'%s' in parents", $id), $parentIds);
 
         $payload = $this->get($account, self::FILES_URI, [
-            // `trashed = false` explicitement : la corbeille d'un Drive reste
-            // dans le dossier et ressortirait comme un fichier vivant.
+            // `trashed = false` explicitly: a Drive's trash stays in the folder
+            // and would come back out as a live file.
             'q' => '('.implode(' or ', $clauses).') and trashed = false',
-            // `parents` est ce qui permet de savoir de quel dossier du lot
-            // chaque ligne vient, donc de reconstruire son chemin.
+            // `parents` is what tells which folder of the batch each row comes
+            // from, and so rebuilds its path.
             'fields' => 'files(id,name,mimeType,size,modifiedTime,parents,thumbnailLink)',
             'pageSize' => self::MAX_FILES,
-            // Un dossier partagé depuis un Drive partagé n'est pas visible
-            // sans cela, et le symptôme est une liste vide sans erreur.
+            // A folder shared from a shared Drive is not visible without this,
+            // and the symptom is an empty list with no error.
             'supportsAllDrives' => 'true',
             'includeItemsFromAllDrives' => 'true',
         ]);
@@ -211,20 +210,20 @@ final readonly class DriveClient
                 'id' => $id,
                 'name' => $name,
                 'mimeType' => is_string($row['mimeType'] ?? null) ? $row['mimeType'] : 'application/octet-stream',
-                // Google rend la taille en chaîne, et l'omet pour ses propres
-                // formats - un Google Doc n'a pas d'octets tant qu'on ne l'a
-                // pas exporté.
+                // Google returns the size as a string, and leaves it out for
+                // its own formats - a Google Doc has no bytes until it is
+                // exported.
                 'size' => isset($row['size']) ? (int) $row['size'] : null,
                 'modifiedAt' => is_string($row['modifiedTime'] ?? null) ? $row['modifiedTime'] : null,
                 'parents' => array_values(array_filter((array) ($row['parents'] ?? []), is_string(...))),
-                // **Servie par le CDN de Google, sans authentification** -
-                // mesuré : deux cent vingt pixels, moins d'un kilo-octet, et
-                // un `200` sans le moindre en-tête. Elle voyage donc jusqu'au
-                // navigateur au lieu d'être relayée, ce qui épargne un appel
-                // par vignette affichée. La contrepartie est dite à l'endroit
-                // où l'image est posée : le navigateur du client parle à
-                // Google pour elle, ce qui ne conditionne aucun accès mais se
-                // sait. Absente pour ce dont Google ne sait pas faire d'image.
+                // **Served by Google's CDN, without authentication** -
+                // measured: two hundred and twenty pixels, under a kilobyte,
+                // and a `200` without a single header. So it travels to the
+                // browser instead of being relayed, which saves one call per
+                // thumbnail shown. The trade-off is stated where the image is
+                // placed: the client's browser talks to Google for it, which
+                // gates no access but is worth knowing. Absent for what Google
+                // cannot make an image of.
                 'thumbnail' => is_string($row['thumbnailLink'] ?? null) ? $row['thumbnailLink'] : null,
             ];
         }
@@ -233,11 +232,10 @@ final readonly class DriveClient
     }
 
     /**
-     * Le chemin du dossier d'où vient cette ligne, parmi ceux du lot.
+     * The path of the folder this row comes from, among those of the batch.
      *
-     * Un fichier peut avoir plusieurs parents dans un Drive ; on garde le
-     * premier qui appartient au lot interrogé, parce que c'est celui qui l'a
-     * fait remonter.
+     * A file can have several parents in a Drive; the first one that belongs
+     * to the queried batch is kept, because it is the one that brought it up.
      *
      * @param array<string, mixed>  $row
      * @param array<string, string> $chunk
@@ -254,8 +252,8 @@ final readonly class DriveClient
     }
 
     /**
-     * Un dossier partagé se lit par ce qui vient d'y arriver, pas par ordre
-     * alphabétique.
+     * A shared folder is read by what just arrived in it, not in alphabetical
+     * order.
      *
      * @param list<array<string, mixed>> $files
      *
@@ -269,17 +267,16 @@ final readonly class DriveClient
     }
 
     /**
-     * Le nom du fichier, et rien d'autre.
+     * The file's name, and nothing else.
      *
-     * **Google ne le donne pas avec le contenu.** Sa réponse à `alt=media`
-     * porte bien un `Content-Disposition: attachment`, mais sans `filename` :
-     * relayée telle quelle, elle ferait atterrir « 1BxY_…Kp3 » dans le dossier
-     * de téléchargement du client. Le nom se demande donc à part.
+     * **Google does not give it with the content.** Its response to
+     * `alt=media` does carry a `Content-Disposition: attachment`, but without
+     * `filename`: relayed as is, it would land "1BxY_…Kp3" in the client's
+     * downloads folder. So the name is asked for separately.
      *
-     * **Et il se demande à Google, jamais au navigateur.** Le laisser voyager
-     * dans l'adresse reviendrait à écrire un en-tête à partir de ce qu'un
-     * visiteur envoie ; ici le seul nom possible est celui que porte vraiment
-     * le fichier partagé.
+     * **And it is asked of Google, never of the browser.** Letting it travel in
+     * the address would mean writing a header from what a visitor sends; here
+     * the only possible name is the one the shared file really carries.
      *
      * @return array{name: string, mimeType: string}|null
      */
@@ -301,15 +298,15 @@ final readonly class DriveClient
     }
 
     /**
-     * Le fichier lui-même, en flux.
+     * The file itself, as a stream.
      *
-     * Rendu tel quel pour que l'appelant le relaie sans le charger en mémoire :
-     * un dossier partagé contient des vidéos et des PDF de plusieurs dizaines
-     * de mégaoctets, et les mettre dans une chaîne PHP pour les recracher
-     * ensuite ferait tomber le serveur sur le premier gros fichier.
+     * Returned as is so the caller relays it without loading it into memory: a
+     * shared folder holds videos and PDFs of several tens of megabytes, and
+     * putting them in a PHP string to spit them out afterwards would bring the
+     * server down on the first big file.
      *
-     * Null quand Google refuse - le fichier a été retiré du partage, ou
-     * supprimé. L'appelant en fait un message, pas une erreur.
+     * Null when Google refuses - the file was removed from sharing, or
+     * deleted. The caller turns it into a message, not an error.
      */
     public function download(GoogleServiceAccount $account, string $fileId): ?ResponseInterface
     {
@@ -327,8 +324,8 @@ final readonly class DriveClient
                 'buffer' => false,
             ]);
 
-            // Lu maintenant : sans cela l'appelant découvrirait le refus en
-            // plein milieu du flux, une fois les en-têtes déjà envoyés.
+            // Read now: otherwise the caller would discover the refusal in the
+            // middle of the stream, once the headers were already sent.
             if (200 !== $response->getStatusCode()) {
                 return null;
             }
@@ -345,10 +342,10 @@ final readonly class DriveClient
     }
 
     /**
-     * Le corps d'un téléchargement, morceau par morceau.
+     * The body of a download, chunk by chunk.
      *
-     * Posé ici plutôt que chez l'appelant pour qu'il n'ait pas à connaître le
-     * client HTTP : il reçoit un itérable de chaînes et les renvoie.
+     * Placed here rather than in the caller so it does not have to know the
+     * HTTP client: it receives an iterable of strings and sends them on.
      *
      * @return iterable<string>
      */
@@ -389,11 +386,11 @@ final readonly class DriveClient
     }
 
     /**
-     * L'assertion échangée contre un jeton d'accès, gardée le temps qu'elle
-     * vaut.
+     * The assertion exchanged for an access token, kept for as long as it is
+     * valid.
      *
-     * La clé du cache porte l'adresse du compte : deux installations, ou un
-     * compte remplacé, ne doivent pas se partager un jeton.
+     * The cache key carries the account's address: two installations, or a
+     * replaced account, must not share a token.
      */
     private function token(GoogleServiceAccount $account): ?string
     {
@@ -414,11 +411,11 @@ final readonly class DriveClient
                     $access = $payload['access_token'] ?? null;
 
                     if (!is_string($access) || '' === $access) {
-                        // **Pas enregistré du tout**, et non enregistré pour
-                        // une seconde : le contrat du cache garde aussi les
-                        // `null`, donc un refus ferait taire l'intégration
-                        // pendant cinquante minutes. Une clé qu'on vient de
-                        // corriger doit marcher au rechargement suivant.
+                        // **Not stored at all**, rather than stored for one
+                        // second: the cache contract keeps `null` values too,
+                        // so a refusal would silence the integration for fifty
+                        // minutes. A key that was just fixed must work on the
+                        // next reload.
                         $save = false;
 
                         return null;

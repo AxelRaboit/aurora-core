@@ -23,10 +23,10 @@
             </div>
         {% endfor %}
 
-        {# `hidden` en attribut et non en classe : le script l'ouvre par
-           `form.hidden = false`, qui ne retire pas une classe. Avec la classe
-           Tailwind, un créneau choisi n'ouvrait rien et personne ne pouvait
-           réserver. #}
+        {# `hidden` as an attribute and not a class: the script opens it with
+           `form.hidden = false`, which does not remove a class. With the
+           Tailwind class, choosing a slot opened nothing and nobody could
+           book. #}
         <form class="mt-5 space-y-3 border-t border-line pt-5" data-booking-form hidden>
             <p class="m-0 text-sm font-medium text-primary" data-booking-chosen></p>
             <div class="grid gap-3 sm:grid-cols-2">

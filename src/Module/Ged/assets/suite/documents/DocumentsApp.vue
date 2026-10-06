@@ -467,8 +467,8 @@ const pageActions = computed(() => {
             </div>
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains;
+     folded or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.ged.documents.guide.title')" storage-key="ged-documents">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.ged.documents.guide.step_${step}`) }}</li>
@@ -594,9 +594,9 @@ const pageActions = computed(() => {
                 <div v-if="selectedIds.size" class="flex flex-wrap items-center gap-2 bg-accent-500/10 border border-accent-400/30 rounded-xl px-2 py-2 sm:px-4 sm:py-2.5">
                     <span class="text-sm font-medium text-accent-400">{{ selectedIds.size }} {{ t("shared.common.selected") }}</span>
                     <div class="flex gap-2 ml-auto flex-wrap">
-                        <!-- La même barre que la sélection des publications :
-                             deux vrais boutons de la même taille, et non un
-                             fantôme à côté d'une croix nue (02/10/2026). -->
+                        <!-- The same bar as the post selection: two real
+                             buttons of the same size, and not a ghost next
+                             to a bare cross (02/10/2026). -->
                         <AppPageActions :actions="bulkActions" variant="secondary" size="sm" :busy="bulkRelocating" />
                         <AppButton
                             variant="ghost"
@@ -626,11 +626,11 @@ const pageActions = computed(() => {
                             <SortDesc v-else-if="sortBy === s.key" class="w-3 h-3" :stroke-width="2" />
                         </AppTab>
                     </div>
-                    <!-- Absent là où il est déjà refusé : un conteneur étroit
-                         impose les vignettes, donc l'interrupteur ne changeait
-                         rien à l'écran, et un bouton qui ne fait rien se lit
-                         comme un bouton cassé. Le choix est gardé et revient
-                         avec la place. -->
+                    <!-- Absent where it is already refused: a narrow container
+                         forces the thumbnails, so the switch changed nothing
+                         on screen, and a button that does nothing reads as a
+                         broken button. The choice is kept and comes back
+                         with the room. -->
                     <div v-if="!isNarrow" class="flex border border-line rounded-lg p-0.5">
                         <AppIconButton
                             :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
@@ -697,15 +697,14 @@ const pageActions = computed(() => {
                                 <Paperclip v-else-if="doc.fileUrl" class="w-10 h-10 text-muted" :stroke-width="1.5" />
                                 <FileText v-else class="w-10 h-10 text-muted" :stroke-width="1.5" />
                                 <AppBadge v-if="doc.status" :color="DOCUMENT_STATUS_BADGE[doc.status]" class="absolute top-1 right-1">{{ doc.statusLabel }}</AppBadge>
-                                <!-- **Au doigt, un bouton ; à la souris, le
-                                     survol.** Les trois gestes de cette
-                                     vignette vivaient dans un voile qui
-                                     n'apparaît qu'au survol : sur un téléphone,
-                                     où le survol n'existe pas, modifier un
-                                     document depuis la médiathèque était
-                                     impossible. Sous `sm`, les six gestes
-                                     s'ouvrent donc dans la feuille, par un
-                                     bouton qu'on voit. -->
+                                <!-- **By finger, a button; by mouse, the
+                                     hover.** The three actions of this
+                                     thumbnail lived in an overlay that only
+                                     appears on hover: on a phone, where hover
+                                     does not exist, editing a document from
+                                     the media library was impossible. Below
+                                     `sm`, the six actions therefore open in
+                                     the sheet, through a visible button. -->
                                 <div
                                     v-if="!isSelecting"
                                     class="absolute bottom-1 right-1 sm:hidden"
@@ -773,12 +772,12 @@ const pageActions = computed(() => {
                     </div>
 
                     <!-- Mobile cards (list view fallback on mobile) -->
-                    <!-- Pas de liste en cartes ici : `useListViewMode` impose
-                         les vignettes dès que le conteneur est étroit, donc
-                         « liste » et « étroit » ne sont jamais vrais ensemble.
-                         Le bloc qui vivait là ne s'est jamais affiché ; c'est
-                         la vignette, une par ligne sur téléphone, qui tient ce
-                         rôle. -->
+                    <!-- No card list here: `useListViewMode` forces the
+                         thumbnails as soon as the container is narrow, so
+                         "list" and "narrow" are never true together. The
+                         block that lived here was never displayed; the
+                         thumbnail, one per row on phone, plays that
+                         role. -->
 
                     <!-- Desktop table (list view) -->
                     <div v-show="viewMode === 'list' && !isNarrow" class="aurora-card overflow-x-auto scrollbar-thin">
@@ -818,13 +817,13 @@ const pageActions = computed(() => {
                                                 <Folder class="w-3 h-3" :stroke-width="2" /> {{ doc.folderName }}
                                             </span>
                                             <DocumentTagChip v-for="tag in doc.tags" :key="tag.id" :tag="tag" />
-                                            <!-- **Seulement quand rien ne l'affiche.** Un compte sur
-                                                 chaque ligne remplirait la liste d'un chiffre qui ne
-                                                 sert à rien : ce qu'on cherche ici, c'est ce qu'on
-                                                 peut supprimer sans rien casser. Les documents
-                                                 utilisés ne portent donc aucune marque, et l'oeil
-                                                 tombe sur les autres. Le détail de qui l'utilise
-                                                 s'ouvre avec le document. -->
+                                            <!-- **Only when nothing displays it.** A count on
+                                                 every row would fill the list with a figure that
+                                                 is of no use: what you look for here is what you
+                                                 can delete without breaking anything. Documents
+                                                 in use therefore carry no mark, and the eye
+                                                 lands on the others. The detail of who uses it
+                                                 opens with the document. -->
                                             <DocumentStateBadges :doc="doc" v-on:open-family="viewDoc" />
                                             <DocumentFamilyChips
                                                 v-if="familyOf(doc).length"

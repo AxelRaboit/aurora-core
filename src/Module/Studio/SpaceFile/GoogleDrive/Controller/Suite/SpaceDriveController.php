@@ -30,16 +30,16 @@ use function preg_replace;
 use function sprintf;
 
 /**
- * Le dossier Drive d'un espace.
+ * A space's Drive folder.
  *
- * **Trois gestes : désigner, lister, servir.** Le dossier appartient au
- * client, qui l'a partagé avec le compte de service ; l'espace ne fait que le
- * nommer. Rien n'est recopié.
+ * **Three actions: designate, list, serve.** The folder belongs to the
+ * client, who shared it with the service account; the space only names it.
+ * Nothing is copied.
  *
- * **Lire demande de voir l'espace, ranger demande de le modifier.** L'onglet
- * se montre à quiconque voit l'espace ; exiger `edit` pour le lire donnait un
- * onglet dont chaque route refusait. Seuls les deux imports écrivent, dans la
- * médiathèque, et gardent `edit`.
+ * **Reading requires seeing the space, filing requires editing it.** The tab
+ * shows to anyone who sees the space; requiring `edit` to read it gave a tab
+ * where every route refused. Only the two imports write, into the media
+ * library, and they keep `edit`.
  */
 #[Route('/workspace/{id}/drive', name: 'workspace_space_drive', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -59,13 +59,12 @@ final class SpaceDriveController extends AbstractController
     ) {}
 
     /**
-     * Les fichiers du dossier.
+     * The folder's files.
      *
-     * Quatre états, et l'écran doit pouvoir les distinguer : l'intégration
-     * n'est pas allumée, l'espace n'a pas de dossier, le dossier ne répond
-     * rien, ou il est vide. Les trois derniers se ressemblent et ne se
-     * réparent pas au même endroit - dans l'espace, dans Drive, ou dans les
-     * réglages.
+     * Four states, and the screen must be able to tell them apart: the
+     * integration is not switched on, the space has no folder, the folder
+     * returns nothing, or it is empty. The last three look alike and are not
+     * fixed in the same place - in the space, in Drive, or in the settings.
      */
     #[Route('', name: '_list', methods: [HttpMethodEnum::Get->value])]
     public function files(CustomerSpace $space): JsonResponse
@@ -106,10 +105,10 @@ final class SpaceDriveController extends AbstractController
     {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
 
-        // **La serrure se vérifie ici et pas seulement à l'écran.** Un onglet
-        // masqué n'a jamais fermé une adresse : sans cette ligne, la liste
-        // complète du dossier partirait à qui appelle la route directement,
-        // et le mot de passe ne protégerait qu'un bouton.
+        // **The lock is checked here and not only on screen.** A hidden tab
+        // has never closed an address: without this line, the folder's full
+        // list would go to whoever calls the route directly, and the password
+        // would only protect a button.
         if ($this->lock->isClosedFor($space)) {
             return $this->jsonSuccess([
                 'configured' => true,
@@ -134,22 +133,22 @@ final class SpaceDriveController extends AbstractController
         return $this->jsonSuccess([
             'configured' => true,
             'folderId' => $folderId,
-            // Une liste vide est ambiguë tant qu'on ne sait pas si l'appel a
-            // abouti. `files()` rend `[]` dans les deux cas, donc l'appel
-            // témoin est le compte lui-même : ce booléen dit seulement que le
-            // dossier est désigné et l'intégration allumée.
+            // An empty list is ambiguous as long as it is unknown whether the
+            // call succeeded. `files()` returns `[]` in both cases, so the
+            // control call is the account itself: this boolean only says the
+            // folder is designated and the integration switched on.
             'reachable' => true,
             'files' => $files,
         ]);
     }
 
     /**
-     * Tout le dossier, en une fois.
+     * The whole folder, in one go.
      *
-     * **`priority` et non l'ordre d'écriture.** Sans elle, `/{fileId}` accepte
-     * « archive » comme identifiant et répond 404 : la route la plus générale
-     * gagnerait selon la position des méthodes dans ce fichier, ce qui est une
-     * dépendance qu'une relecture ne voit pas.
+     * **`priority` and not the order of writing.** Without it, `/{fileId}`
+     * accepts "archive" as an id and answers 404: the most general route
+     * would win depending on the position of the methods in this file, which
+     * is a dependency a review does not see.
      */
     #[Route('/archive', name: '_archive', methods: [HttpMethodEnum::Get->value], priority: 10)]
     public function archive(CustomerSpace $space): Response
@@ -167,11 +166,11 @@ final class SpaceDriveController extends AbstractController
 
         $files = $this->drive->files($account, $folderId);
 
-        // **Un 404 et non un message.** Ce bouton est un lien : le navigateur
-        // navigue vers cette adresse, donc une réponse JSON s'afficherait en
-        // toutes lettres à la place de la page. L'écran connaît le poids du
-        // dossier avant de dessiner le bouton et ne le propose pas dans ce
-        // cas ; une adresse tapée à la main n'a pas à recevoir d'explication.
+        // **A 404 and not a message.** This button is a link: the browser
+        // navigates to this address, so a JSON response would be displayed
+        // verbatim instead of the page. The screen knows the folder's weight
+        // before drawing the button and does not offer it in that case; an
+        // address typed by hand does not need an explanation.
         if ([] === $files || $this->archives->weightOf($files) > DriveArchive::MAX_BYTES) {
             throw $this->createNotFoundException();
         }
@@ -187,13 +186,13 @@ final class SpaceDriveController extends AbstractController
     }
 
     /**
-     * Un fichier du Drive, rangé dans la médiathèque.
+     * A Drive file, filed in the media library.
      *
-     * **Le seul endroit de cette intégration qui recopie.** Une pièce jointe
-     * sur une fiche est une décision prise à un moment, pas une étagère
-     * vivante : elle doit rester ce dont on a parlé même après un ménage dans
-     * le Drive du client. Le document rendu est ensuite accroché comme
-     * n'importe quel autre, par les routes qui existent déjà.
+     * **The only place in this integration that copies.** An attachment on a
+     * record is a decision taken at a given moment, not a living shelf: it
+     * must stay what was discussed even after a clean-up of the client's
+     * Drive. The returned document is then attached like any other, through
+     * the routes that already exist.
      */
     #[Route('/{fileId}/import', name: '_import', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Post->value], priority: 10)]
     #[IsGranted('studio.spaces.edit')]
@@ -220,16 +219,16 @@ final class SpaceDriveController extends AbstractController
     }
 
     /**
-     * Le fichier lui-même, relayé.
+     * The file itself, relayed.
      *
-     * **C'est la raison d'être de cette route.** Le client d'un espace n'a pas
-     * de compte Google : une adresse Drive lui donnerait un mur
-     * d'authentification. Le serveur lit donc le fichier avec le compte de
-     * service et le renvoie sous une adresse d'Aurora.
+     * **This is why this route exists.** A space's client has no Google
+     * account: a Drive address would give them an authentication wall. So the
+     * server reads the file with the service account and sends it back under
+     * an Aurora address.
      *
-     * `?download=1` pour l'emporter plutôt que le regarder. Le relais est
-     * partagé avec la page du client : ce qui change d'un écran à l'autre est
-     * le contrôle qui précède, jamais la façon de servir.
+     * `?download=1` to take it away rather than look at it. The relay is
+     * shared with the client's page: what changes from one screen to the
+     * other is the check before it, never the way of serving.
      */
     #[Route('/{fileId}', name: '_file', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Get->value])]
     public function serve(CustomerSpace $space, string $fileId, Request $request): Response
@@ -248,8 +247,8 @@ final class SpaceDriveController extends AbstractController
         $response = $this->files->serve($account, $folderId, $fileId, $request->query->getBoolean('download'));
 
         if (!$response instanceof Response) {
-            // Retiré du partage, ou supprimé. Un 404 plutôt qu'une erreur : du
-            // point de vue de cet espace, le fichier n'est plus là.
+            // Removed from sharing, or deleted. A 404 rather than an error:
+            // from this space's point of view, the file is no longer there.
             throw $this->createNotFoundException();
         }
 
@@ -257,10 +256,10 @@ final class SpaceDriveController extends AbstractController
     }
 
     /**
-     * Le nom du lot, qui porte celui de l'espace.
+     * The bundle's name, which carries the space's name.
      *
-     * « fichiers.zip » dans un dossier de téléchargements ne dit rien de qui
-     * l'a envoyé, et deux clients en enverraient deux.
+     * "fichiers.zip" in a downloads folder says nothing about who sent it, and
+     * two clients would send two of them.
      */
     private function archiveName(CustomerSpace $space): string
     {

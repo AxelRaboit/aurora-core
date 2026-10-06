@@ -26,18 +26,18 @@ class SpaceResourceSerializer implements SpaceResourceSerializerInterface
     }
 
     /**
-     * Ce qui part vers une page publique.
+     * What goes to a public page.
      *
-     * **Sans `visibleToClient`.** Toutes celles qui arrivent là le sont, donc
-     * le champ ne pourrait dire que « oui » : un drapeau qui n'a qu'une valeur
-     * n'informe personne et fait croire qu'il en a deux. La même règle que les
-     * étapes visibles sur la page d'un client.
+     * **Without `visibleToClient`.** Every one that arrives there is visible, so
+     * the field could only say "yes": a flag that has only one value informs
+     * nobody and makes people believe it has two. The same rule as the visible
+     * steps on a client's page.
      *
-     * **Et sans `position`.** L'ordre est celui de la liste ; un rang qui
-     * voyage à côté est un second ordre, qui finit par ne plus coïncider.
+     * **And without `position`.** The order is that of the list; a rank that
+     * travels alongside is a second order, which ends up no longer matching.
      *
-     * L'identifiant reste : la page en a besoin comme clé de rendu, et il ne
-     * mène à rien - aucune route publique ne prend une ressource.
+     * The identifier stays: the page needs it as a render key, and it leads
+     * nowhere - no public route takes a resource.
      *
      * @return array<string, mixed>
      */

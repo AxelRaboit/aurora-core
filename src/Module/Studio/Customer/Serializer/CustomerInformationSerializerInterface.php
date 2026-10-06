@@ -12,10 +12,10 @@ interface CustomerInformationSerializerInterface
     public function serialize(CustomerInterface $customer): array;
 
     /**
-     * Si la fiche dit quelque chose de plus que le nom.
+     * Whether the sheet says anything more than the name.
      *
-     * Ce que l'onglet du client consulte pour savoir s'il a lieu d'exister :
-     * un nom, le client le connaît déjà, il est en haut de la page.
+     * What the customer's tab checks to know whether it has a reason to exist:
+     * a name, the customer already knows, it is at the top of the page.
      */
     public function hasContent(CustomerInterface $customer): bool;
 }

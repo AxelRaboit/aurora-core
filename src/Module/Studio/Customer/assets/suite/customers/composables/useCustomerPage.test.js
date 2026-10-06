@@ -104,7 +104,7 @@ describe("useCustomerPage", () => {
             landline: "01 23 45 67 89",
             informationNotes: "Lu par le client",
         });
-        // La fiche relue devient l'état enregistré : plus rien n'est en cours.
+        // The sheet read again becomes the saved state: nothing is in progress anymore.
         expect(api.customer.value.siren).toBe("112817044");
         expect(api.dirty.value).toBe(false);
         expect(toast.success).toHaveBeenCalledWith(
@@ -159,7 +159,7 @@ describe("useCustomerPage", () => {
         expect(api.form.value.contractualEmail).toBe(
             "contact@atelier.example.com",
         );
-        // La saisie en cours survit à la conversion.
+        // The input in progress survives the conversion.
         expect(api.form.value.landline).toBe("01 23 45 67 89");
     });
 

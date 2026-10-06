@@ -26,33 +26,32 @@ use function is_array;
 use function is_string;
 
 /**
- * La page d'un livrable, telle que le client la lit.
+ * A deliverable's page, as the client reads it.
  *
- * La grille se résout par le même constructeur que les pages du site, et se
- * dessine par le même gabarit de zones : un bloc posé dans un livrable a
- * exactement l'allure qu'il a sur le site. Autour, le gabarit de lecture : ni
- * menu ni pied de liens, un en-tête qui dit pour qui le document a été
- * préparé.
+ * The grid is resolved by the same builder as the site pages, and drawn by
+ * the same zone template: a block placed in a deliverable looks exactly as it
+ * does on the site. Around it, the reading template: no menu, no footer of
+ * links, a header that says who the document was prepared for.
  *
- * Trois lecteurs, un seul rendu : le client depuis son espace (avec un retour
- * vers l'espace), le destinataire d'un lien de lecture, et le studio qui
- * regarde son travail avant de l'ouvrir.
+ * Three readers, one rendering: the client from their space (with a way back
+ * to the space), the recipient of a reading link, and the studio looking at
+ * its work before opening it.
  */
 final readonly class DeliverablePageRenderer
 {
     /**
-     * Les zones qui n'ont pas leur place dans un document remis à un client.
+     * The zones that have no place in a document handed to a client.
      *
-     * Celles qui ne vivent que sur une page du site : un fil de commentaires,
-     * une recherche, une liste de publications, un formulaire ou une
-     * inscription à la lettre, un sondage, une prise de rendez-vous. Elles
-     * s'accrochent à une publication ou à l'audience du site, qu'un livrable
-     * n'a pas : chacune ne pourrait dessiner qu'un bloc qui échoue.
+     * The ones that only live on a site page: a comment thread, a search, a
+     * publication list, a form or a newsletter sign-up, a poll, an
+     * appointment booking. They hang on a publication or on the site's
+     * audience, which a deliverable does not have: each could only draw a
+     * failing block.
      *
-     * Et celles qui montreraient ce qui n'est pas au client : le bloc partagé
-     * rend le contenu d'une autre publication, brouillon compris, et l'activité
-     * GitHub, le fil Instagram et les avis Google sont les données des
-     * intégrations du studio, pas celles de son client.
+     * And the ones that would show what does not belong to the client: the
+     * shared block renders another publication's content, drafts included,
+     * and the GitHub activity, the Instagram feed and the Google reviews are
+     * the studio's integration data, not its client's.
      */
     public const array HIDDEN_ZONE_TYPES = [
         GridNormalizer::ZONE_COMMENTS,
@@ -74,12 +73,12 @@ final readonly class DeliverablePageRenderer
     ];
 
     /**
-     * La disposition sans les zones masquées, avant qu'aucune ne soit résolue.
+     * The layout without the hidden zones, before any of them is resolved.
      *
-     * C'est ici, sur la disposition, et pas sur la grille construite : une
-     * zone retirée après coup a déjà été résolue, donc déjà lu sa publication
-     * ou son deck. Les aperçus de l'éditeur passent par là eux aussi, pour ne
-     * pas montrer ce que la page du client ne montrera pas.
+     * It happens here, on the layout, and not on the built grid: a zone
+     * removed afterwards has already been resolved, so it has already read
+     * its publication or its deck. The editor previews go through here too,
+     * so as not to show what the client's page will not show.
      *
      * @param array<string, mixed> $layout
      *
@@ -95,10 +94,10 @@ final readonly class DeliverablePageRenderer
     }
 
     /**
-     * Le contenu des seules zones qui restent : le temps de lecture et le
-     * découpage en diapositives ne comptent pas ce que la page ne montre pas.
+     * The content of the remaining zones only: the reading time and the
+     * slide split do not count what the page does not show.
      *
-     * @param array<string, mixed> $layout  la disposition déjà filtrée
+     * @param array<string, mixed> $layout  the already filtered layout
      * @param array<string, mixed> $content
      *
      * @return array<string, mixed>
@@ -158,14 +157,14 @@ final readonly class DeliverablePageRenderer
     ) {}
 
     /**
-     * @param string|null $backUrl          où revient le lecteur, quand il vient d'une page à lui
-     * @param bool        $markPlaceholders les [passages à remplacer] surlignés : l'aperçu de
-     *                                      l'auteur, jamais la page du client
-     * @param bool        $print            la version à imprimer en PDF : en diapositives, une
-     *                                      par page, quel que soit l'affichage choisi
-     * @param string|null $view             la vue que le lecteur a choisie (`?view=`), parmi
-     *                                      {@see DeliverableAppearance::DISPLAYS} ; toute autre
-     *                                      valeur, ou rien, laisse celle de l'auteur
+     * @param string|null $backUrl          where the reader goes back to, when they come from a page of their own
+     * @param bool        $markPlaceholders the [passages to replace] highlighted: the author's
+     *                                      preview, never the client's page
+     * @param bool        $print            the version to print as PDF: as slides, one per
+     *                                      page, whatever display was chosen
+     * @param string|null $view             the view the reader chose (`?view=`), among
+     *                                      {@see DeliverableAppearance::DISPLAYS}; any other
+     *                                      value, or none, keeps the author's
      */
     public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false, bool $print = false, ?string $view = null): Response
     {
@@ -193,16 +192,17 @@ final readonly class DeliverablePageRenderer
     }
 
     /**
-     * La page lue par son destinataire, lien de lecture ou espace du client.
+     * The page read by its recipient, through a reading link or the client's
+     * space.
      *
-     * `?print=1` n'y est suivi que si l'auteur a permis le PDF pour ce
-     * livrable (réglage « Autoriser le PDF au lecteur », éteint par défaut) :
-     * sans cela la demande est ignorée et la page se lit comme d'habitude. Ce
-     * n'est pas un secret gardé, le contenu est déjà à l'écran, mais une
-     * décision de l'auteur : un document qu'on ne veut pas voir circuler en
-     * fichier n'offre pas le bouton.
+     * `?print=1` is only honoured if the author allowed the PDF for this
+     * deliverable (the "Autoriser le PDF au lecteur" setting, off by
+     * default): otherwise the request is ignored and the page reads as usual.
+     * It is not a guarded secret, the content is already on screen, but an
+     * author's decision: a document you do not want circulating as a file
+     * does not offer the button.
      *
-     * @param string|null $backUrl où revient le lecteur, quand il vient d'une page à lui
+     * @param string|null $backUrl where the reader goes back to, when they come from a page of their own
      */
     public function renderForReader(DeliverableInterface $deliverable, bool $printRequested, ?string $backUrl = null, ?string $view = null): Response
     {
@@ -210,30 +210,30 @@ final readonly class DeliverablePageRenderer
     }
 
     /**
-     * La vue demandée par l'adresse, si c'en est une : `page` ou `slides`.
-     * Le reste (vide, faute de frappe, valeur fabriquée) vaut « rien », et
-     * l'affichage choisi par l'auteur s'applique. Lue brute dans l'adresse :
-     * un `?view[]=page` est un tableau, et il vaut « rien » lui aussi au lieu
-     * de faire échouer la page.
+     * The view requested by the address, if it is one: `page` or `slides`.
+     * Anything else (empty, a typo, a forged value) counts as "nothing", and
+     * the display chosen by the author applies. Read raw from the address: a
+     * `?view[]=page` is an array, and it counts as "nothing" too instead of
+     * breaking the page.
      */
     public static function requestedView(mixed $raw): ?string
     {
         return in_array($raw, DeliverableAppearance::DISPLAYS, true) ? $raw : null;
     }
 
-    /** Si l'auteur a permis au lecteur de tirer son PDF. */
+    /** Whether the author allowed the reader to print their own PDF. */
     public static function allowsReaderPdf(DeliverableInterface $deliverable): bool
     {
         return DeliverableAppearance::normalize($deliverable->getAppearance())['readerPdf'];
     }
 
     /**
-     * La page telle que la lira le client, rendue depuis ce que l'éditeur
-     * tient encore sans l'avoir enregistré : l'aperçu posé à côté de la
-     * grille, au thème public près, fond, en-tête et grands titres compris.
-     * Chaque zone y porte son identifiant, pour qu'un clic la sélectionne.
+     * The page as the client will read it, rendered from what the editor
+     * still holds without having saved it: the preview next to the grid, down
+     * to the public theme, background, header and large headings included.
+     * Each zone carries its id there, so that a click selects it.
      *
-     * @param array<string, mixed> $payload ce que l'éditeur envoie
+     * @param array<string, mixed> $payload what the editor sends
      */
     public function editorPreviewPage(array $payload): string
     {
@@ -267,9 +267,9 @@ final readonly class DeliverablePageRenderer
             ? $this->gridViewBuilder->buildForPreview($layout, $content, $locale, null)
             : $this->gridViewBuilder->build($layout, $content, $locale, null);
 
-        // L'éditeur ne les propose pas, et la disposition en est déjà
-        // débarrassée ; ce qui reste à faire est de couper ce que la page
-        // n'a pas : un fil de commentaires.
+        // The editor does not offer them, and the layout is already rid of
+        // them; what is left to do is cut what the page does not have: a
+        // comment thread.
         if (null !== $grid) {
             $grid['zones'] = $this->withoutHiddenZones($grid['zones']);
             $grid['hasComments'] = false;
@@ -277,13 +277,13 @@ final readonly class DeliverablePageRenderer
 
         $appearance = DeliverableAppearance::normalize($source['appearance']);
 
-        // La vue : celle que le lecteur a choisie, sinon celle de l'auteur.
-        // L'aperçu de l'éditeur montre toujours celle de l'auteur.
+        // The view: the one the reader chose, otherwise the author's.
+        // The editor preview always shows the author's.
         $display = ($editorPreview ? null : self::requestedView($view)) ?? $appearance['display'];
 
-        // Les sections du document, une par diapositive : le même découpage
-        // sert aux deux vues, pour qu'on passe de l'une à l'autre au même
-        // endroit (`#diapo-N`).
+        // The document's sections, one per slide: the same split serves both
+        // views, so that switching from one to the other lands at the same
+        // place (`#diapo-N`).
         $sections = null !== $grid ? $this->gridSlides->split($grid['zones'], $content) : [];
 
         // Shown as a presentation: the same grid, cut at each section. Every
@@ -296,15 +296,15 @@ final readonly class DeliverablePageRenderer
                 $sections,
             );
         } elseif (null !== $grid && count($sections) > 1) {
-            // En page, la première zone de chaque section porte son numéro :
-            // une adresse `#diapo-N` y mène, et repasser en présentation sait
-            // où l'on en était.
+            // As a page, the first zone of each section carries its number: a
+            // `#diapo-N` address leads there, and switching back to the
+            // presentation knows where you were.
             $grid['zones'] = $this->markSections($grid['zones'], $sections);
         }
 
-        // Changer de vue, seulement quand il y a plusieurs sections : une
-        // présentation d'une seule diapositive ne montre rien de plus. Ni
-        // dans l'aperçu de l'éditeur, ni sur la version à imprimer.
+        // Switch views, only when there are several sections: a presentation
+        // of a single slide shows nothing more. Neither in the editor preview,
+        // nor on the print version.
         $viewSwitch = !$print && !$editorPreview && count($sections) > 1
             ? ('slides' === $display ? 'page' : 'slides')
             : null;
@@ -325,8 +325,8 @@ final readonly class DeliverablePageRenderer
             'markPlaceholders' => $markPlaceholders,
             'editorPreview' => $editorPreview,
             'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($content) : 0,
-            // Les trois surfaces que le thème sait repeindre, surface par
-            // surface : nul laisse passer la sienne.
+            // The three surfaces the theme can repaint, surface by surface:
+            // null lets the theme's own through.
             'surfaceOverrides' => [
                 'background_color' => $appearance['backgroundColor'],
                 'header_color' => $appearance['headerColor'],
@@ -336,7 +336,7 @@ final readonly class DeliverablePageRenderer
                 ...DeliverableReadingHeader::normalize($source['readingHeader']),
                 'updatedAt' => $source['updatedAt']->format(DateTimeInterface::ATOM),
                 'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, $this->siteTimezone->get())->format($source['updatedAt']),
-                // Une seule langue : le sélecteur ne se dessine pas.
+                // A single language: the selector is not drawn.
                 'localeUrls' => [],
                 'backUrl' => $backUrl,
             ],
@@ -344,8 +344,8 @@ final readonly class DeliverablePageRenderer
     }
 
     /**
-     * Numérote la première zone de chaque section, et lui donne l'ancre
-     * `diapo-N` quand l'auteur ne lui en a pas déjà mis une.
+     * Numbers the first zone of each section, and gives it the `diapo-N`
+     * anchor when the author has not already set one.
      *
      * @param list<array<string, mixed>>       $zones
      * @param list<list<array<string, mixed>>> $sections

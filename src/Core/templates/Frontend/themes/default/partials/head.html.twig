@@ -96,15 +96,15 @@
 {{ vite_entry_script_tags('flash') }}
 <script nonce="{{ csp_nonce() }}">window.__flash__ = {{ app.flashes|json_encode|raw }};</script>
 
-{# Couleurs des surfaces publiques, déduites des couleurs choisies par surface.
-   Rendues AVANT les overrides bruts ci-dessous, et c'est délibéré : l'écran de
-   thème expose les deux mécanismes, la couche curatée qui déduit tout un jeu de
-   jetons d'une seule couleur, et la pose d'une variable `--th-*` à la main. La
-   seconde est l'échappatoire, donc elle gagne. #}
-{# `surfaceOverrides` n'existe que sur les pages rendues à partir d'une
-   publication, qui peut habiller ses trois surfaces pour elle seule. Partout
-   ailleurs le thème répond seul, d'où le défaut vide plutôt qu'un `is defined`
-   à chaque appel. #}
+{# Colors of the public surfaces, derived from the colors chosen per surface.
+   Rendered BEFORE the raw overrides below, and that is deliberate: the theme
+   screen exposes both mechanisms, the curated layer that derives a whole set
+   of tokens from a single color, and setting a `--th-*` variable by hand. The
+   second is the escape hatch, so it wins. #}
+{# `surfaceOverrides` only exists on pages rendered from a publication, which
+   can dress its three surfaces for itself alone. Everywhere else the theme
+   answers alone, hence the empty default rather than an `is defined` on
+   every call. #}
 {% set surfacesCss = themeStyles.frontendSurfacesCss(surfaceOverrides|default({})) %}
 {% if surfacesCss %}
     <style>{{ surfacesCss|raw }}</style>

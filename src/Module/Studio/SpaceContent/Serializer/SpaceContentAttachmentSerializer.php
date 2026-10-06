@@ -73,11 +73,11 @@ class SpaceContentAttachmentSerializer implements SpaceContentAttachmentSerializ
             'attachmentId' => $attachment->getId(),
         ];
 
-        // **Sans `documentId`.** C'est l'identifiant du document dans la
-        // médiathèque, et il ne sert qu'au studio, qui l'ouvre depuis la
-        // fiche. Un invité n'a rien à en faire, et un identifiant interne dans
-        // une page dont l'adresse se transfère n'apprend rien d'utile à qui la
-        // lit de bonne foi.
+        // **Without `documentId`.** It is the document's identifier in the
+        // media library, and only the studio uses it, opening it from the
+        // card. A guest has no use for it, and an internal identifier in a
+        // page whose address gets forwarded teaches nothing useful to whoever
+        // reads it in good faith.
         $shape = $this->shape($attachment);
         unset($shape['documentId']);
 

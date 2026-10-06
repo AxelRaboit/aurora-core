@@ -49,16 +49,16 @@ abstract class AbstractSpaceChatChannelMember implements SpaceChatChannelMemberI
     protected bool $fromClient = false;
 
     /**
-     * Quand cette personne a retiré la conversation de sa liste.
+     * When this person removed the conversation from their list.
      *
-     * **Retirée, pas supprimée, et c'est la différence qui compte.** Ce que
-     * deux personnes se sont dit ne disparaît pas parce que l'une d'elles fait
-     * de la place dans sa liste : les messages restent, l'autre continue de
-     * voir le fil, et rouvrir la conversation avec la même personne la fait
-     * revenir avec tout son historique. C'est ce que fait Messenger, et c'est
-     * ce que les gens attendent du geste.
+     * **Removed, not deleted, and that is the difference that matters.** What
+     * two people said to each other does not disappear because one of them
+     * makes room in their list: the messages stay, the other one still sees
+     * the thread, and reopening the conversation with the same person brings
+     * it back with its whole history. It is what Messenger does, and it is
+     * what people expect from the gesture.
      *
-     * Par personne et non par salon : l'un range, l'autre pas.
+     * Per person and not per room: one puts it away, the other does not.
      */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $hiddenAt = null;
@@ -140,7 +140,7 @@ abstract class AbstractSpaceChatChannelMember implements SpaceChatChannelMemberI
         return $this;
     }
 
-    /** Remise dans la liste, avec ce qui s'y était dit. */
+    /** Put back in the list, with what had been said in it. */
     public function reveal(): static
     {
         $this->hiddenAt = null;

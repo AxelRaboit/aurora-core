@@ -12,12 +12,12 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Une note ou un dossier qu'une personne a épinglé.
+ * A note or a folder a person has pinned.
  *
- * Sur la personne et non sur la ligne : l'épinglage était une date posée sur
- * la note, ce qui convenait tant qu'une note n'avait qu'un lecteur. Dans un
- * espace à plusieurs, épingler une note l'aurait épinglée chez tout le monde.
- * Une ligne par personne et par élément, qui part avec l'un ou l'autre.
+ * On the person and not on the row: pinning was a date set on the note,
+ * which was fine as long as a note had only one reader. In a shared space,
+ * pinning a note would have pinned it for everyone. One row per person and
+ * per item, which goes away with either one.
  */
 #[ORM\MappedSuperclass]
 #[ORM\UniqueConstraint(name: 'uniq_notes_favorite_note', columns: ['user_id', 'note_id'])]

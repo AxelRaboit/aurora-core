@@ -9,11 +9,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Ce filtre est la seule chose entre le HTML qu'un auteur écrit à la main et la
- * page que voient les visiteurs. Une faille ici ne se voit pas : elle s'exécute.
+ * This filter is the only thing between the HTML an author writes by hand and
+ * the page visitors see. A hole here is not seen: it runs.
  *
- * Les cas ci-dessous sont donc écrits comme des tentatives, pas comme des
- * exemples.
+ * The cases below are therefore written as attempts, not as examples.
  */
 final class RawHtmlSanitizerTest extends TestCase
 {
@@ -60,14 +59,14 @@ final class RawHtmlSanitizerTest extends TestCase
 
     public function testTextSurvivesEvenWhenItsTagDoesNot(): void
     {
-        // Un lecteur doit obtenir un mot sans mise en forme, pas un mot manquant.
+        // A reader must get a word without formatting, not a missing word.
         self::assertStringContainsString('important', $this->sanitizer->safe('<marquee>important</marquee>'));
     }
 
     public function testAScriptBodyIsNotUnwrappedIntoThePage(): void
     {
-        // La règle précédente a une exception : déballer un script afficherait
-        // son code au lecteur.
+        // The previous rule has an exception: unwrapping a script would show
+        // its code to the reader.
         self::assertStringNotContainsString('alert', $this->sanitizer->safe('<script>alert(1)</script>'));
     }
 
@@ -100,8 +99,8 @@ final class RawHtmlSanitizerTest extends TestCase
 
     public function testALinkOpeningElsewhereIsGivenItsRel(): void
     {
-        // Sans `rel`, la page ouverte garde une poignée sur celle qui l'ouvre.
-        // On le pose plutôt que de refuser `target`.
+        // Without `rel`, the opened page keeps a handle on the one that opens
+        // it. It is set rather than refusing `target`.
         $out = $this->sanitizer->safe('<a href="https://example.test" target="_blank">x</a>');
 
         self::assertStringContainsString('rel="noopener noreferrer"', $out);
@@ -109,8 +108,8 @@ final class RawHtmlSanitizerTest extends TestCase
 
     public function testATracedIconSurvivesWhole(): void
     {
-        // Le cas qui justifie l'ouverture au SVG : une icone ecrite a la main
-        // dans un bloc source, qui doit garder sa geometrie et sa couleur.
+        // The case that justifies allowing SVG: an icon written by hand in a
+        // source block, which must keep its geometry and its colour.
         $out = $this->sanitizer->safe(
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
             .'<path d="M16 8a6 6 0 0 1 6 6v7h-4"/><rect width="4" height="12" x="2" y="9"/>'
@@ -124,9 +123,9 @@ final class RawHtmlSanitizerTest extends TestCase
 
     public function testTheViewBoxKeepsItsCapital(): void
     {
-        // Le parseur HTML de PHP minuscule les noms d'attributs, ce qui est
-        // correct en HTML et faux en SVG : un `viewbox` est ignore par les
-        // navigateurs et l'icone perd son cadrage, sans erreur nulle part.
+        // PHP's HTML parser lowercases attribute names, which is correct in
+        // HTML and wrong in SVG: a `viewbox` is ignored by browsers and the
+        // icon loses its framing, with no error anywhere.
         $out = $this->sanitizer->safe('<svg viewBox="0 0 24 24"><path d="M1 1"/></svg>');
 
         self::assertStringContainsString('viewBox="0 0 24 24"', $out);
@@ -151,7 +150,7 @@ final class RawHtmlSanitizerTest extends TestCase
 
     public function testAccentedTextIsNotMangled(): void
     {
-        // DOMDocument suppose du latin-1 quand rien ne le detrompe.
+        // DOMDocument assumes latin-1 when nothing tells it otherwise.
         $out = $this->sanitizer->safe('<p>Été à Genève, où l\'on écrit çà et là</p>');
 
         self::assertStringContainsString('Été à Genève', $out);

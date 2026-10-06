@@ -20,7 +20,7 @@ class MarkdownNoteRevisionRepository extends ServiceEntityRepository
         parent::__construct($registry, MarkdownNoteRevision::class);
     }
 
-    /** @return list<MarkdownNoteRevision> les plus récentes d'abord */
+    /** @return list<MarkdownNoteRevision> most recent first */
     public function findForNote(MarkdownNoteInterface $note): array
     {
         return $this->createQueryBuilder('r')
@@ -49,7 +49,7 @@ class MarkdownNoteRevisionRepository extends ServiceEntityRepository
         return $this->findOneBy(['note' => $note, 'id' => $id]);
     }
 
-    /** Ne garde que les `$keep` plus récentes. */
+    /** Keeps only the `$keep` most recent. */
     public function pruneBeyond(MarkdownNoteInterface $note, int $keep): void
     {
         $ids = array_map(

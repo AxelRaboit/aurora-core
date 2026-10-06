@@ -239,9 +239,9 @@ shared:
         apply: Appliquer le recadrage
         cropped: Image recadrée
 
-# Editor.js - clés partagées par tous les modules consommateurs de
-# AppBlockEditor. Les libellés des outils spécifiques à un module,
-# injectés via `extraTools`, restent dans son propre messages.fr.yaml.
+# Editor.js - keys shared by every module that consumes AppBlockEditor.
+# The labels of tools specific to a module, injected through `extraTools`,
+# stay in that module's own messages.fr.yaml.
 suite:
     help:
         storage:

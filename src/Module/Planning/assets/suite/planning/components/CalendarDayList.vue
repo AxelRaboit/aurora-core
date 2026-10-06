@@ -26,11 +26,11 @@ const props = defineProps({
     /**
      * Whether a reminder can be ticked off here.
      *
-     * False on a shared link: a guest reads the day. La case à cocher y serait
-     * un geste qui ne part nulle part, et une case vide se lit comme « pas
-     * encore fait, à vous de jouer ». Un rappel non fait y prend donc la barre
-     * de couleur d'un événement - pour qui lit, c'est quelque chose à vingt
-     * heures - et un rappel fait garde sa coche, qui est un fait.
+     * False on a shared link: a guest reads the day. The checkbox there would be
+     * a gesture that goes nowhere, and an empty box reads as "not done yet, your
+     * turn". A reminder not done therefore takes the colour bar of an event
+     * there - for the reader, it is something at eight in the evening - and a
+     * reminder done keeps its tick, which is a fact.
      */
     canComplete: { type: Boolean, default: true },
 });

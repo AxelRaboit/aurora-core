@@ -19,14 +19,13 @@ use function str_repeat;
 use function uniqid;
 
 /**
- * Le rattrapage des poids déjà enregistrés.
+ * Catching up on the sizes already recorded.
  *
- * Le poids d'un document est relevé à l'arrivée du fichier, et une source
- * JPEG est ré-encodée en place quand ses tailles générées sont fabriquées : le
- * nombre cessait d'être vrai une ligne plus tard. Le manager le relit
- * désormais, donc rien de neuf n'entre faux ; cette commande est pour ce qui
- * est déjà là, et une bibliothèque pleine de poids faux est une bibliothèque
- * dont chaque total est faux.
+ * A document's size is taken when the file arrives, and a JPEG source is
+ * re-encoded in place when its generated sizes are produced: the number
+ * stopped being true one line later. The manager now reads it again, so
+ * nothing new comes in wrong; this command is for what is already there, and
+ * a library full of wrong sizes is a library whose every total is wrong.
  */
 final class RefreshDocumentSizesCommandTest extends IntegrationTestCase
 {
@@ -66,8 +65,8 @@ final class RefreshDocumentSizesCommandTest extends IntegrationTestCase
     }
 
     /**
-     * Un fichier absent n'est pas un poids à corriger, c'est un autre
-     * problème - et l'écraser à zéro le cacherait.
+     * A missing file is not a size to correct, it is another problem - and
+     * overwriting it with zero would hide it.
      */
     public function testADocumentWhoseFileIsGoneKeepsItsRecordedSize(): void
     {

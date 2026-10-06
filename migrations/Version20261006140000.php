@@ -12,64 +12,61 @@ use function mb_strlen;
 use function sprintf;
 
 /**
- * Les présentations de Studio deviennent des livrables au format diaporama.
+ * Studio presentations become deliverables in the slides format.
  *
- * Les deux étapes précédentes ont préparé la place (le format, le modèle, le
- * client, puis les diapositives d'un livrable) ; celle-ci déménage les
- * données et retire les tables des présentations. Écrite à la main, en SQL :
- * une migration ne doit rien devoir aux classes qu'elle rend inutiles.
+ * The two previous steps made room for them (the format, the template, the
+ * customer, then the slides of a deliverable); this one moves the data and
+ * removes the presentation tables. Written by hand, in SQL: a migration must
+ * owe nothing to the classes it makes obsolete.
  *
- * Ce qui part où :
+ * What goes where:
  *
- * 1. **Les présentations** deviennent des livrables de Studio : sans espace,
- *    sans auteur (une présentation n'en avait pas), partagés avec l'équipe,
- *    au format `slides`. La description devient le résumé, le thème et ses
- *    retouches deviennent ceux des diapositives ; titre, modèle, client,
- *    dates et corbeille sont gardés tels quels. La langue est celle du
- *    réglage `default_locale`, ou `fr` s'il n'y en a pas. Les identifiants
- *    viennent de la séquence des livrables, et une table de passage
- *    (`core_studio_deck_merge`) garde la correspondance le temps de la
- *    migration.
- * 2. **Les catégories** rejoignent celles des livrables par leur nom, sans
- *    tenir compte de la casse ni des espaces autour : « Lancement » retrouve
- *    « lancement ». Un nom inconnu crée une catégorie de livrables, rangée
- *    après les autres dans l'ordre où il était.
- * 3. **Les diapositives restent dans leur table**, `core_deck_slides`, avec
- *    leurs identifiants et leur séquence : `deliverable_id` est rempli depuis
- *    la table de passage, puis `deck_id` disparaît et `deliverable_id` devient
- *    obligatoire. C'est le choix le plus simple qui garde les identifiants :
- *    une table neuve aurait demandé une copie et un recalage de séquence pour
- *    le même résultat. Le nom de la table suivra le déménagement des classes
- *    du moteur de diapositives.
- * 4. **Les liens de partage** deviennent des liens de lecture, colonne pour
- *    colonne : le jeton chiffré est recopié octet pour octet (le chiffrement
- *    ne dépend pas de la table), avec son empreinte, son libellé, ses dates,
- *    son compteur et son mot de passe. Une adresse déjà envoyée garde son
- *    jeton ; `/decks/{jeton}` la renvoie vers `/deliverables/{jeton}`.
- * 5. **Les zones « deck » des pages du site** (et de leurs révisions, et des
- *    grilles de livrables qui portent la même clé) gardent leur type mais
- *    nomment désormais un livrable : `deckId` devient `deliverableId`, avec
- *    l'identifiant du livrable qui a pris la place de la présentation. Une
- *    zone qui nommait une présentation disparue ne nomme plus rien.
- * 6. **Les droits** `studio.decks.*` deviennent `studio.deliverables.*`, sans
- *    doublon ; `studio.deck_categories.manage` disparaît (les catégories des
- *    livrables suivent le droit de les modifier).
- * 7. **L'interrupteur des présentations** disparaît, du réglage général comme
- *    des modules coupés de chaque personne. Qui avait les présentations sans
- *    les livrables reçoit les livrables : sans cela, ses présentations
- *    disparaîtraient avec le module qui les portait.
- * 8. **Le menu** : `suite_studio_decks` sort des entrées masquées, de l'ordre
- *    et des alias du menu (même piège que `Version20260912210000` : les clés
- *    des réglages ne changent pas, les noms de route sont dans leur valeur).
- * 9. Les tables et séquences des présentations sont supprimées, ainsi que les
- *    tables de passage et un éventuel message de purge des présentations
- *    encore en file.
+ * 1. **Presentations** become Studio deliverables: no space, no author (a
+ *    presentation had none), shared with the team, in the `slides` format.
+ *    The description becomes the summary, the theme and its tweaks become
+ *    those of the slides; title, template, customer, dates and trash state
+ *    are kept as they are. The locale is the `default_locale` setting, or
+ *    `fr` when there is none. The ids come from the deliverable sequence, and
+ *    a mapping table (`core_studio_deck_merge`) keeps the correspondence for
+ *    the duration of the migration.
+ * 2. **Categories** join the deliverable categories by name, ignoring case
+ *    and surrounding spaces: "Lancement" matches "lancement". An unknown name
+ *    creates a deliverable category, placed after the others in the order it
+ *    had.
+ * 3. **Slides stay in their table**, `core_deck_slides`, with their ids and
+ *    their sequence: `deliverable_id` is filled from the mapping table, then
+ *    `deck_id` goes away and `deliverable_id` becomes required. It is the
+ *    simplest choice that keeps the ids: a new table would have needed a copy
+ *    and a sequence reset for the same result. The table name will follow
+ *    when the slide engine classes move.
+ * 4. **Share links** become reading links, column for column: the encrypted
+ *    token is copied byte for byte (the encryption does not depend on the
+ *    table), with its hash, its label, its dates, its counter and its
+ *    password. An address already sent keeps its token; `/decks/{jeton}`
+ *    redirects it to `/deliverables/{jeton}`.
+ * 5. **The "deck" zones of the site pages** (and of their revisions, and of
+ *    the deliverable grids that carry the same key) keep their type but now
+ *    name a deliverable: `deckId` becomes `deliverableId`, with the id of the
+ *    deliverable that took the presentation's place. A zone that named a
+ *    presentation that no longer exists names nothing.
+ * 6. **Privileges** `studio.decks.*` become `studio.deliverables.*`, without
+ *    duplicates; `studio.deck_categories.manage` goes away (deliverable
+ *    categories follow the right to edit them).
+ * 7. **The presentations toggle** goes away, from the global setting as well
+ *    as from each person's disabled modules. Whoever had presentations
+ *    without deliverables gets deliverables: otherwise their presentations
+ *    would vanish with the module that held them.
+ * 8. **The menu**: `suite_studio_decks` leaves the hidden entries, the order
+ *    and the aliases of the menu (same trap as `Version20260912210000`: the
+ *    setting keys do not change, the route names are in their value).
+ * 9. The presentation tables and sequences are dropped, along with the
+ *    mapping tables and any presentation purge message still queued.
  *
- * Irréversible : les présentations n'existent plus pour y revenir.
+ * Irreversible: the presentations no longer exist to go back to.
  */
 final class Version20261006140000 extends AbstractMigration
 {
-    /** Les droits qui changent de nom, sans le point final. */
+    /** The privileges that get renamed, without the final dot. */
     private const string OLD_PRIVILEGE = 'studio.decks.';
 
     private const string NEW_PRIVILEGE = 'studio.deliverables.';
@@ -96,7 +93,7 @@ final class Version20261006140000 extends AbstractMigration
         throw new IrreversibleMigration('Presentations have become deliverables: there is no deck left to go back to.');
     }
 
-    /** Étapes 1 et 2 : les catégories d'abord, puis les présentations. */
+    /** Steps 1 and 2: categories first, then presentations. */
     private function deliverables(): void
     {
         $this->addSql('CREATE TABLE core_studio_deck_merge (deck_id INT NOT NULL, deliverable_id INT NOT NULL, PRIMARY KEY (deck_id))');
@@ -110,9 +107,9 @@ final class Version20261006140000 extends AbstractMigration
                      WHERE LOWER(TRIM(category.name)) = LOWER(TRIM(deck_category.name)))
               FROM core_deck_categories deck_category
             SQL);
-        // Un seul nouveau nom par nom inconnu, même si deux catégories de
-        // présentations ne différaient que par la casse : la première, dans
-        // l'ordre où elles étaient rangées, donne le nom et la couleur.
+        // A single new name per unknown name, even if two presentation
+        // categories only differed by case: the first, in the order they were
+        // sorted, gives the name and the color.
         $this->addSql(<<<'SQL'
             INSERT INTO core_studio_deliverable_categories (id, name, color, position, created_at, updated_at)
             SELECT nextval('seq_core_deliverable_category_id'),
@@ -155,13 +152,13 @@ final class Version20261006140000 extends AbstractMigration
             SQL);
     }
 
-    /** Étape 3 : les diapositives changent de propriétaire, pas de table. */
+    /** Step 3: slides change owner, not table. */
     private function slides(): void
     {
         $this->addSql('UPDATE core_deck_slides slide SET deliverable_id = deck_map.deliverable_id FROM core_studio_deck_merge deck_map WHERE slide.deck_id = deck_map.deck_id');
-        // Aucune ne devrait rester sans propriétaire : `deck_id` était
-        // obligatoire jusqu'à l'étape précédente, et une diapositive de
-        // livrable a déjà le sien. Dit quand même, avant la contrainte.
+        // None should be left without an owner: `deck_id` was required until
+        // the previous step, and a deliverable slide already has its own.
+        // Stated anyway, before the constraint.
         $this->addSql('DELETE FROM core_deck_slides WHERE deliverable_id IS NULL');
         $this->addSql('ALTER TABLE core_deck_slides DROP CONSTRAINT IF EXISTS FK_5F851CE8111948DC');
         $this->addSql('DROP INDEX IF EXISTS IDX_5F851CE8111948DC');
@@ -169,7 +166,7 @@ final class Version20261006140000 extends AbstractMigration
         $this->addSql('ALTER TABLE core_deck_slides ALTER deliverable_id SET NOT NULL');
     }
 
-    /** Étape 4 : les liens de partage, colonne pour colonne, jeton chiffré compris. */
+    /** Step 4: share links, column for column, encrypted token included. */
     private function links(): void
     {
         $this->addSql(<<<'SQL'
@@ -187,14 +184,14 @@ final class Version20261006140000 extends AbstractMigration
     }
 
     /**
-     * Étape 5 : `deckId` devient `deliverableId` dans les grilles.
+     * Step 5: `deckId` becomes `deliverableId` in the grids.
      *
-     * Le texte du JSON plutôt que ses fonctions : une zone peut être imbriquée
-     * dans une autre (une pile porte des enfants), et la clé est la même à
-     * toutes les profondeurs. D'abord les identifiants connus, un par un ;
-     * puis ceux qui ne nomment plus rien sont vidés, pour ne jamais pointer
-     * par hasard vers le livrable qui porte le même numéro ; enfin la clé des
-     * zones qui n'en avaient pas.
+     * The JSON text rather than the JSON functions: a zone can be nested in
+     * another (a stack carries children), and the key is the same at every
+     * depth. First the known ids, one by one; then the ones that no longer
+     * name anything are emptied, so they never point by chance to the
+     * deliverable that has the same number; finally the key of the zones that
+     * had no id.
      */
     private function grids(): void
     {
@@ -245,8 +242,8 @@ final class Version20261006140000 extends AbstractMigration
     }
 
     /**
-     * Étape 6 : les droits, renommés sans doublon et dans l'ordre où la
-     * personne les avait reçus.
+     * Step 6: privileges, renamed without duplicates and in the order the
+     * person had received them.
      */
     private function privileges(): void
     {
@@ -270,7 +267,7 @@ final class Version20261006140000 extends AbstractMigration
         ));
     }
 
-    /** Étape 7 : l'interrupteur des présentations, général et par personne. */
+    /** Step 7: the presentations toggle, global and per person. */
     private function toggle(): void
     {
         $this->addSql(<<<'SQL'
@@ -280,9 +277,9 @@ final class Version20261006140000 extends AbstractMigration
             SQL);
         $this->addSql("DELETE FROM core_settings WHERE setting_key = 'modules_studio_decks'");
 
-        // Coupé pour la personne : `disabled_modules` liste ce qu'elle n'a
-        // pas. Les présentations allumées et les livrables coupés, elle
-        // reçoit les livrables.
+        // Disabled for the person: `disabled_modules` lists what they do not
+        // have. With presentations on and deliverables off, they get
+        // deliverables.
         $this->addSql(<<<'SQL'
             UPDATE core_users
                SET disabled_modules = (
@@ -295,12 +292,12 @@ final class Version20261006140000 extends AbstractMigration
         $this->withoutRoute('core_users', 'disabled_modules', 'modules_studio_decks');
     }
 
-    /** Étape 8 : l'entrée du menu des présentations, partout où elle est nommée. */
+    /** Step 8: the presentations menu entry, wherever it is named. */
     private function menu(): void
     {
         $this->withoutRoute('core_users', 'hidden_nav_items', 'suite_studio_decks');
 
-        // Section → liste ordonnée de routes : l'entrée sort de chaque liste.
+        // Section → ordered list of routes: the entry leaves every list.
         $this->addSql(<<<'SQL'
             UPDATE core_settings
                SET "value" = (
@@ -313,14 +310,14 @@ final class Version20261006140000 extends AbstractMigration
                      FROM json_each(core_settings."value"::json) AS section)::text
              WHERE setting_key = 'nav_item_order' AND "value" LIKE '%"suite_studio_decks"%'
             SQL);
-        // Route → alias : la clé disparaît.
+        // Route → alias: the key goes away.
         $this->addSql(<<<'SQL'
             UPDATE core_settings SET "value" = ("value"::jsonb - 'suite_studio_decks')::text
              WHERE setting_key = 'nav_item_aliases' AND "value" LIKE '%"suite_studio_decks"%'
             SQL);
     }
 
-    /** Étape 9 : ce qui ne sert plus. */
+    /** Step 9: what is no longer used. */
     private function dropDecks(): void
     {
         $this->addSql(<<<'SQL'
@@ -342,7 +339,7 @@ final class Version20261006140000 extends AbstractMigration
         $this->addSql('DROP TABLE core_studio_deck_category_merge');
     }
 
-    /** Une valeur retirée d'une liste JSON d'une colonne, dans l'ordre des autres. */
+    /** A value removed from a column's JSON list, keeping the order of the others. */
     private function withoutRoute(string $table, string $column, string $value): void
     {
         $this->addSql(sprintf(

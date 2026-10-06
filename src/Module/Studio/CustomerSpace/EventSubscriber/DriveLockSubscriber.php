@@ -15,29 +15,29 @@ use function in_array;
 use function str_starts_with;
 
 /**
- * Un onglet Drive fermé ferme aussi ses adresses.
+ * A locked Drive tab also locks its addresses.
  *
- * **Masquer un onglet n'a jamais fermé une route.** Le mot de passe ne
- * protégerait qu'un bouton si le téléchargement d'un fichier, l'archive ou
- * l'import restaient joignables en tapant l'adresse : la protection doit être
- * du côté qui répond, pas de celui qui dessine.
+ * **Hiding a tab has never closed a route.** The password would only protect
+ * a button if a file download, the archive or the import stayed reachable by
+ * typing the address: the protection must be on the side that answers, not
+ * the side that draws.
  *
- * Posé sur les arguments et reconnu au nom de la route, pour la raison que
- * {@see SpaceVisibilitySubscriber} donne : la prochaine route du Drive sera
- * couverte sans que personne y pense. C'est déjà arrivé trois fois sur ce
- * module, où chaque geste nouveau a ajouté sa route.
+ * Set on the arguments and recognized by route name, for the reason
+ * {@see SpaceVisibilitySubscriber} gives: the next Drive route will be
+ * covered without anyone thinking about it. That has already happened three
+ * times on this module, where each new gesture added its route.
  *
- * **La liste fait exception**, et délibérément : elle répond `locked` pour que
- * l'écran sache demander le mot de passe. Un 404 la rendrait indiscernable
- * d'un espace sans Drive, et l'écran afficherait « aucun dossier » à quelqu'un
- * qui n'a qu'un mot de passe à saisir.
+ * **The list is the exception**, deliberately: it answers `locked` so the
+ * screen knows to ask for the password. A 404 would make it
+ * indistinguishable from a space without a Drive, and the screen would show
+ * "aucun dossier" to someone who only has a password to enter.
  */
 final readonly class DriveLockSubscriber implements EventSubscriberInterface
 {
-    /** Toutes les routes du Drive d'un espace portent ce préfixe. */
+    /** Every route of a space's Drive carries this prefix. */
     private const string ROUTE_PREFIX = 'workspace_space_drive';
 
-    /** Celles qui savent dire « fermé » proprement, et se gardent elles-mêmes. */
+    /** The ones that can say "locked" cleanly, and guard themselves. */
     private const array LISTING_ROUTES = ['workspace_space_drive_list', 'workspace_space_drive_agency_list'];
 
     public function __construct(

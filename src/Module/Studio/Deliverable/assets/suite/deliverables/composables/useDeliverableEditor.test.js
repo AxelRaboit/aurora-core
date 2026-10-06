@@ -13,12 +13,12 @@ vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 vi.mock("vue-sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 /**
- * L'enregistrement d'un livrable, tel que l'éditeur le vit.
+ * Saving a deliverable, as the editor experiences it.
  *
- * Ce qui se casserait sans bruit : un lecteur seul dont Ctrl+S part au
- * serveur pour y recevoir un 403, un enregistrement fondé sur une version
- * périmée qui efface le travail d'un collègue, et un message d'erreur qui
- * dit « n'a pas pu être enregistré » quand la vraie raison est lisible.
+ * What would break silently: a read-only user whose Ctrl+S goes to the server
+ * to get a 403, a save based on a stale version that erases a colleague's
+ * work, and an error message that says "n'a pas pu être enregistré" when the
+ * real reason is readable.
  */
 const DELIVERABLE = {
     id: 1,

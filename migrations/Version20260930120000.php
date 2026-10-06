@@ -8,15 +8,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Un numéro de version sur chaque note.
+ * A version number on every note.
  *
- * L'éditeur enregistre tout seul : à deux sur une même note, le dernier qui
- * tapait écrasait l'autre sans que personne le sache. Le numéro avance à
- * chaque écriture du contenu, et un enregistrement parti d'une version
- * dépassée est refusé au lieu d'écraser. C'est le préalable d'un espace
- * d'équipe où plusieurs personnes écrivent.
+ * The editor saves on its own: with two people on the same note, the last one
+ * typing overwrote the other without anyone knowing. The number goes up on
+ * every write of the content, and a save made from an outdated version is
+ * refused instead of overwriting. This is the prerequisite for a team space
+ * where several people write.
  *
- * Toutes les notes partent de 1 : rien ne change pour qui écrit seul.
+ * Every note starts at 1: nothing changes for someone writing alone.
  */
 final class Version20260930120000 extends AbstractMigration
 {

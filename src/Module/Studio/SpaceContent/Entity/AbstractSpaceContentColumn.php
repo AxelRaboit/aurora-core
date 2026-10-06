@@ -67,24 +67,23 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
     protected ?int $colourSlot = null;
 
     /**
-     * Si le client voit cette étape.
+     * Whether the client sees this stage.
      *
-     * **La colonne est la bonne granularité, pas la fiche.** Un tableau dit
-     * déjà « ce qui est à ce stade » ; « ce stade ne regarde pas le client »
-     * se pose donc naturellement dessus. Marquer fiche par fiche obligerait à
-     * y repenser à chaque carte créée, ce que personne ne fait, et la première
-     * oubliée annulerait la protection.
+     * **The column is the right granularity, not the card.** A board already
+     * says "what is at this stage"; "this stage is none of the client's
+     * business" therefore sits naturally on it. Marking card by card would
+     * mean thinking of it at every card created, which nobody does, and the
+     * first one forgotten would cancel the protection.
      *
-     * **Cachée par défaut**, comme tout ce qu'un espace peut montrer au client
-     * (la règle commune de {@see ClientVisibility}) : une étape ajoutée au
-     * tableau est un stade de travail tant que quelqu'un qui a le droit de
-     * partager ne l'a pas montrée. Le tableau qu'un espace reçoit à sa
-     * naissance fait exception pour deux étapes, la Relecture, où le client
-     * répond, et Publié, ce qui est sorti : voir
+     * **Hidden by default**, like everything a space can show the client (the
+     * common rule of {@see ClientVisibility}): a stage added to the board is a
+     * work stage until somebody with the right to share has shown it. The
+     * board a space receives at birth makes an exception for two stages,
+     * Relecture, where the client answers, and Publié, what has gone out: see
      * {@see SpaceContentColumnManager::seedDefaults()}.
      *
-     * Les étapes d'avant la règle ont gardé leur état : la migration ne change
-     * que le défaut, pour que rien de ce que le client voyait ne disparaisse.
+     * Stages from before the rule kept their state: the migration only
+     * changes the default, so nothing the client saw disappears.
      */
     #[ORM\Column(options: ['default' => false])]
     protected bool $visibleToClient = false;

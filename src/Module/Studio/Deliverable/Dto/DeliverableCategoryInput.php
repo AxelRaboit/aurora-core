@@ -6,7 +6,7 @@ namespace Aurora\Module\Studio\Deliverable\Dto;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** Ce qu'on écrit d'une catégorie de livrables : son nom et sa couleur. */
+/** What gets written for a deliverable category: its name and its colour. */
 class DeliverableCategoryInput
 {
     public function __construct(

@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { lightWhilePrinting, printWhenReady } from "./useNotePrint.js";
 
 /**
- * Ce qui se casserait sans bruit : une note imprimée en thème sombre (texte
- * clair sur papier blanc), le thème de la personne perdu après l'impression,
- * ou un dialogue ouvert avant que les images ne soient là.
+ * What would break silently: a note printed in the dark theme (light text on
+ * white paper), the person's theme lost after printing, or a dialog opened
+ * before the images are there.
  */
 describe("lightWhilePrinting", () => {
     afterEach(() => document.documentElement.classList.remove("dark"));

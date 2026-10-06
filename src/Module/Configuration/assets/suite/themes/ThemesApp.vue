@@ -37,10 +37,10 @@ const { can } = usePrivileges();
 const props = defineProps({
     themes: { type: Array, default: () => [] },
     /**
-     * Les familles qu'un thème peut choisir, telles que ThemeFontEnum::choices()
-     * les décrit : valeur stockée, nom affiché, clé de description et pile CSS.
-     * La pile vient du serveur pour que l'aperçu se compose exactement dans ce
-     * que la page servira, sans seconde liste tenue ici.
+     * The families a theme can choose, as ThemeFontEnum::choices() describes
+     * them: stored value, displayed name, description key and CSS stack.
+     * The stack comes from the server so that the preview is set in exactly
+     * what the page will serve, without a second list kept here.
      */
     fonts: { type: Array, default: () => [] },
     activatePath: { type: String, default: "" },
@@ -66,11 +66,11 @@ const selectedFont = computed(() => props.fonts.find((font) => font.value === fo
 const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.deletePath);
 
 /**
- * Les trois surfaces colorables du site public.
+ * The three colorable surfaces of the public site.
  *
- * Le calcul de contraste affiché ici est un miroir client du service PHP qui
- * décide réellement du rendu. Il n'existe que pour le retour immédiat pendant
- * qu'on déplace le curseur de couleur.
+ * The contrast computation shown here is a client mirror of the PHP service
+ * that actually decides the rendering. It only exists for immediate feedback
+ * while the color slider moves.
  */
 const SURFACES = computed(() => [
     { key: "background_color", label: t("suite.themes.surface_background") },
@@ -79,9 +79,9 @@ const SURFACES = computed(() => [
 ]);
 
 /**
- * Le texte et les traits du site public, posés par-dessus ce que chaque
- * surface en déduit. Sans couleur de surface, aucune règle n'est émise : ils
- * n'agissent donc qu'avec un fond défini.
+ * The text and rules of the public site, applied on top of what each surface
+ * derives from them. Without a surface color, no rule is emitted: so they
+ * only act with a defined background.
  */
 const INKS = computed(() => [
     { key: "text_color", label: t("suite.themes.ink_text"), unset: t("suite.themes.ink_unset") },
@@ -170,8 +170,8 @@ const pageActions = computed(() => {
             <AppPageActions :actions="pageActions" />
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains;
+     folded or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.themes.guide.title')" storage-key="themes">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.themes.guide.step_${step}`) }}</li>
@@ -206,16 +206,15 @@ const pageActions = computed(() => {
                     </div>
                 </div>
 
-                <!-- Le thème actif dit qu'il l'est, il ne propose pas de
-                     l'activer.
-                     Le badge était posé en face du titre, `shrink-0`, donc il
-                     mangeait sa largeur pour de bon : dans une colonne de
-                     grille étroite, la carte active était la seule dont le nom
-                     était coupé, dont l'identifiant passait à la ligne et dont
-                     le résumé se lisait sur une mesure plus courte que celle
-                     de ses voisines. Descendu au pied, il occupe la place d'un
-                     bouton « Activer » désactivé qui, à côté d'un badge
-                     « Actif », ne disait rien de plus. -->
+                <!-- The active theme says it is active, it does not offer
+                     to activate it.
+                     The badge sat across from the title, `shrink-0`, so it
+                     ate its width for good: in a narrow grid column, the
+                     active card was the only one whose name was cut, whose
+                     id wrapped to the next line and whose summary read on a
+                     shorter measure than its neighbours'. Moved down to the
+                     footer, it takes the place of a disabled "Activer" button
+                     which, next to an "Actif" badge, said nothing more. -->
                 <div class="flex items-center gap-2 mt-auto pt-2 border-t border-line">
                     <AppBadge v-if="theme.active" color="emerald" class="flex-1 justify-center">
                         <Check class="w-3 h-3" :stroke-width="2.5" />
@@ -531,11 +530,11 @@ const pageActions = computed(() => {
                         :label="t('suite.themes.watermark_visible')"
                         :hint="t('suite.themes.watermark_visible_hint')"
                     />
-                    <!-- La police de toute l'application. ThemeContext::fontFamilyCss()
-                         la pose sur --th-font-sans dans le <head>, donc le
-                         back-office et le site public suivent le même choix.
-                         L'aperçu se compose dans la pile renvoyée par le
-                         serveur : les cinq familles sont déjà chargées ici. -->
+                    <!-- The font of the whole application. ThemeContext::fontFamilyCss()
+                         puts it on --th-font-sans in the <head>, so the
+                         back office and the public site follow the same choice.
+                         The preview is set in the stack returned by the
+                         server: the five families are already loaded here. -->
                     <div v-if="section.key === 'general' && fontOptions.length" class="space-y-2">
                         <AppSelect
                             v-model="fontFamily"

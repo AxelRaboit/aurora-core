@@ -334,7 +334,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Neither « nobody », nor the previous author, nor the author, depending on the road taken. */
+    /** Neither "nobody", nor the previous author, nor the author, depending on the road taken. */
     public function testASpaceDeliverableBelongsToWhoCreatedOrDuplicatedIt(): void
     {
         $space = $this->givenSpace();
@@ -611,7 +611,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         self::fail(sprintf('Le livrable « %s » n\'est pas revenu dans la liste.', $title));
     }
 
-    /** @return array<string, mixed> ce que l'éditeur enverrait, sans rien changer */
+    /** @return array<string, mixed> what the editor would send, without changing anything */
     private function editorPayload(int $id, ?CustomerSpace $space = null): array
     {
         $entity = $this->find($id);

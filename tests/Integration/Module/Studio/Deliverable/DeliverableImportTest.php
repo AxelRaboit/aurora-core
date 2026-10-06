@@ -28,15 +28,14 @@ use function sprintf;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * Un texte écrit ailleurs, importé en présentation depuis la liste des
- * livrables.
+ * A text written elsewhere, imported as a presentation from the deliverables
+ * list.
  *
- * La règle tient en une phrase : un titre ouvre une diapositive, chaque bloc
- * qui suit en remplit une, et plusieurs blocs sous le même titre font
- * plusieurs diapositives qui le répètent. Vérifiée de bout en bout plutôt que
- * sur le convertisseur seul, parce que les diapositives passent par la liste
- * blanche du gestionnaire : une case que la disposition ne déclare pas serait
- * perdue en route, sans bruit.
+ * The rule fits in one sentence: a heading opens a slide, each block that
+ * follows fills one, and several blocks under the same heading make several
+ * slides that repeat it. Checked end to end rather than on the converter
+ * alone, because the slides go through the manager's whitelist: a slot the
+ * layout does not declare would be lost on the way, silently.
  */
 final class DeliverableImportTest extends IntegrationTestCase
 {
@@ -96,8 +95,8 @@ final class DeliverableImportTest extends IntegrationTestCase
     }
 
     /**
-     * Plusieurs blocs sous un titre font plusieurs diapositives qui le
-     * portent toutes ; un titre sans rien dessous devient un intercalaire.
+     * Several blocks under a heading make several slides that all carry it; a
+     * heading with nothing under it becomes a section divider.
      */
     public function testSeveralBlocksRepeatTheirHeadingAndAnEmptyHeadingIsASection(): void
     {
@@ -120,7 +119,7 @@ final class DeliverableImportTest extends IntegrationTestCase
         self::assertSame(['Le **catalogue** met cinq secondes.', 'Le panier en met trois.'], $slides[3]->getContent()['bullets']);
     }
 
-    /** Un texte dont rien ne se tire est refusé, et aucun livrable vide ne reste derrière. */
+    /** A text nothing can be drawn from is refused, and no empty deliverable is left behind. */
     public function testATextWithNothingUsableIsRefusedWithoutLeavingAnything(): void
     {
         $this->signIn();
@@ -148,7 +147,7 @@ final class DeliverableImportTest extends IntegrationTestCase
         self::assertSame('suite.studio.deliverables.errors.title_required', $this->json()['errors']['title'] ?? null);
     }
 
-    /** Importer, c'est créer : sans le droit de créer, refusé. */
+    /** Importing is creating: without the right to create, refused. */
     public function testImportingNeedsTheRightToCreate(): void
     {
         $reader = new User();

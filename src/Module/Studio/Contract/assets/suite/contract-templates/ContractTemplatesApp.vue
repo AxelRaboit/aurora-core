@@ -43,7 +43,7 @@ const { t } = useI18n();
 const { can } = usePrivileges();
 
 const props = defineProps({
-    /** Les deux onglets de la section : contrats et trames. */
+    /** The section's two tabs: contracts and templates. */
     contractsPath: { type: String, default: "" },
     templatesPath: { type: String, default: "" },
     templates: { type: Array, default: () => [] },
@@ -283,7 +283,7 @@ const pageActions = computed(() => {
         });
     }
 
-    // Ranger la bibliothèque : le droit de modifier une trame, comme sur le serveur.
+    // Arranging the library: the right to edit a template, as on the server.
     if (can("studio.contract_templates.edit") && props.categoryReorderPath) {
         actions.push({
             key: "categories",
@@ -354,8 +354,8 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contract_templates.guide.title')" storage-key="contract-templates-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.contract_templates.guide.step_${step}`) }}</li>
@@ -647,8 +647,8 @@ const pageActions = computed(() => {
                     >
                         {{ t("suite.studio.contract_templates.state_archived") }}
                     </span>
-                    <!-- Les mêmes gestes que la ligne du tableau, derrière le
-                         même bouton « … » (décision d'Axel du 04/10/2026). -->
+                    <!-- The same actions as the table row, behind the same
+                         "…" button (Axel's decision of 04/10/2026). -->
                     <AppRowActions class="shrink-0" :actions="rowActions(template)" :label="template.name" />
                 </div>
 

@@ -7,12 +7,12 @@ namespace Aurora\Module\Studio\Customer\Dto;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Une adresse du client, et le mot qui dit où elle mène.
+ * An address of the customer, and the word that says where it leads.
  *
- * Un objet plutôt qu'un couple de chaînes dans un tableau : c'est ce qui
- * permet de valider chaque ligne pour elle-même et de rendre l'erreur sur la
- * bonne - `links[2].url` plutôt qu'un « un des liens est invalide » que
- * l'écran ne saurait pas placer.
+ * An object rather than a pair of strings in an array: that is what lets
+ * each row be validated on its own and the error be returned on the right
+ * one - `links[2].url` rather than a "one of the links is invalid" that the
+ * screen would not know where to place.
  */
 class CustomerLinkInput
 {
@@ -20,10 +20,10 @@ class CustomerLinkInput
         #[Assert\NotBlank(message: 'suite.studio.customers.errors.link_label_required')]
         #[Assert\Length(max: 120, maxMessage: 'suite.studio.customers.errors.link_label_too_long')]
         public readonly string $label = '',
-        // `Url` et non une simple longueur : ce champ finit dans un `href`, et
-        // une adresse sans schéma s'y lit comme un chemin relatif du site
-        // d'Aurora. Les deux schémas web seulement, pour que `javascript:` ne
-        // soit jamais une adresse que quelqu'un a pu enregistrer.
+        // `Url` and not a mere length: this field ends up in an `href`, and an
+        // address without a scheme reads there as a relative path of Aurora's
+        // site. Only the two web schemes, so that `javascript:` is never an
+        // address someone could have saved.
         #[Assert\NotBlank(message: 'suite.studio.customers.errors.link_url_required')]
         #[Assert\Url(message: 'suite.studio.customers.errors.link_url_invalid', protocols: ['http', 'https'], requireTld: false)]
         #[Assert\Length(max: 2048, maxMessage: 'suite.studio.customers.errors.link_url_too_long')]

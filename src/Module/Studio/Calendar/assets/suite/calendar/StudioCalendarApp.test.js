@@ -101,7 +101,7 @@ describe("the editorial calendar", () => {
         const wrapper = render("?view=list&state=changes_requested");
         await flushPromises();
 
-        // Hors du mode d'emploi, dont les étapes sont aussi des `<li>`.
+        // Outside the how-to guide, whose steps are also `<li>` elements.
         const titles = wrapper
             .findAll("li")
             .filter((row) => !row.element.closest("[data-guide]"))

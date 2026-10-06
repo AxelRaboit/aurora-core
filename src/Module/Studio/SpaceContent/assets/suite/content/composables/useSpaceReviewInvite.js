@@ -4,18 +4,18 @@ import { toast } from "vue-sonner";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
- * Demander au client d'aller relire ce qui attend son avis.
+ * Ask the client to review what is waiting for their opinion.
  *
- * Derrière une confirmation, parce que l'envoi n'est pas seulement un courriel :
- * il émet une adresse neuve pour chaque destinataire et révoque la précédente.
- * Quelqu'un qui clique par erreur casse le lien que son client avait mis en
- * favori, et c'est le genre de conséquence qu'un bouton doit annoncer avant.
+ * Behind a confirmation, because sending is not only an email: it issues a
+ * fresh address for each recipient and revokes the previous one. Somebody who
+ * clicks by mistake breaks the link their client had bookmarked, and that is
+ * the kind of consequence a button must announce beforehand.
  *
- * Le serveur renvoie ce qui attendait et combien de personnes ont été
- * prévenues. Les deux comptent : zéro destinataire sur trois publications en
- * attente veut dire qu'aucun lien de cet espace ne peut répondre, ce qui est un
- * problème de partage et pas d'envoi. Le dire est plus utile qu'un « envoyé »
- * qui laisserait attendre une réponse qui ne viendra pas.
+ * The server returns what was waiting and how many people were notified.
+ * Both matter: zero recipients for three waiting posts means no link of this
+ * space can answer, which is a sharing problem and not a sending one. Saying
+ * so is more useful than a "sent" that would leave people waiting for an
+ * answer that will not come.
  */
 export function useSpaceReviewInvite(reviewPath) {
     const { t } = useI18n();

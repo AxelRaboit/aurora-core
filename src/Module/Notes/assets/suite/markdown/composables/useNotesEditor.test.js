@@ -30,7 +30,7 @@ function editorWith(api) {
     return editor;
 }
 
-/** Une API qui répond, puis échoue, pour rejouer la bascule qui a posé problème. */
+/** An API that answers, then fails, to replay the switch that caused trouble. */
 function apiThatFailsAfterTheFirstLoad() {
     const update = vi.fn().mockResolvedValue({ ok: true, payload: {} });
     let calls = 0;
@@ -85,12 +85,11 @@ describe("useNotesEditor", () => {
     });
 
     /**
-     * L'habillage se sauvegarde comme le texte.
+     * The styling is saved like the text.
      *
-     * Il ne l'a pas fait tout de suite : la détection de modification
-     * comparait le titre, le contenu et les étiquettes, et rien d'autre.
-     * Déplacer le cadrage laissait donc le formulaire « propre », et le
-     * réglage disparaissait au rechargement suivant.
+     * It did not do so right away: change detection compared the title, the
+     * content and the tags, and nothing else. Moving the framing therefore
+     * left the form "clean", and the setting disappeared on the next reload.
      */
     it("écrit le bandeau et l'apparence comme le reste", async () => {
         const api = {
@@ -138,11 +137,11 @@ describe("useNotesEditor", () => {
     });
 
     /**
-     * La carte de la bibliothèque suit le texte enregistré.
+     * The library card follows the saved text.
      *
-     * Elle lisait l'extrait et la date calculés au chargement de la page :
-     * modifier une note laissait sa vignette sur l'ancien texte jusqu'au
-     * rechargement suivant.
+     * It read the excerpt and the date computed when the page loaded:
+     * editing a note left its thumbnail on the old text until the next
+     * reload.
      */
     it("met à jour l'extrait et la date de la carte après l'enregistrement", async () => {
         const api = {
@@ -180,10 +179,10 @@ describe("useNotesEditor", () => {
         expect(card.updatedAt).toBe("2026-09-27T10:00:00+00:00");
     });
 
-    // Le défaut : `selectNote` posait l'identifiant demandé avant d'avoir la
-    // réponse, et sortait sur échec sans toucher au formulaire. L'éditeur
-    // affichait donc la note précédente en face du nouvel identifiant, et la
-    // sauvegarde automatique écrivait l'une par-dessus l'autre.
+    // The defect: `selectNote` set the requested id before having the
+    // response, and returned on failure without touching the form. The
+    // editor therefore showed the previous note facing the new id, and the
+    // autosave wrote one over the other.
     it("n'écrit pas l'ancienne note par-dessus la nouvelle quand le chargement échoue", async () => {
         const api = apiThatFailsAfterTheFirstLoad();
         const editor = editorWith(api);
@@ -193,7 +192,7 @@ describe("useNotesEditor", () => {
 
         await editor.selectNote(2);
 
-        // Le formulaire n'appartient plus à personne tant que rien n'est chargé.
+        // The form belongs to nobody as long as nothing is loaded.
         expect(editor.isDirty.value).toBe(false);
 
         editor.form.value.content = "Une frappe de plus.";
@@ -203,10 +202,9 @@ describe("useNotesEditor", () => {
         expect(api.update).not.toHaveBeenCalled();
     });
 
-    // Le second défaut, celui qui se voyait : l'écran demande deux notes coup
-    // sur coup au chargement, et quand les réponses revenaient dans le
-    // désordre, la première écrasait la seconde. Ouvrir le lien d'une note en
-    // montrait une autre.
+    // The second defect, the visible one: the screen asks for two notes in a
+    // row on load, and when the responses came back out of order, the first
+    // overwrote the second. Opening a note's link showed another one.
     it("ignore la réponse d'une note qu'on a quittée entre-temps", async () => {
         let releaseFirst;
         const firstAnswered = new Promise((resolve) => {
@@ -249,7 +247,7 @@ describe("useNotesEditor", () => {
         const slow = editor.selectNote(1);
         await editor.selectNote(2);
 
-        // La réponse de la note 1 arrive après coup.
+        // Note 1's response arrives afterwards.
         releaseFirst();
         await slow;
 
@@ -332,8 +330,8 @@ describe("à deux sur une même note", () => {
     });
 
     /**
-     * Quelqu'un a écrit entre-temps : l'éditeur s'arrête, sans message
-     * d'erreur ni nouvelle tentative, et attend que la personne choisisse.
+     * Someone wrote in the meantime: the editor stops, without an error
+     * message or a retry, and waits for the person to choose.
      */
     it("stops and waits when the server has a newer version", async () => {
         const { toast } = await import("vue-sonner");

@@ -31,7 +31,7 @@ final readonly class StudioContext
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioContracts);
     }
 
-    /** Les livrables de Studio, ceux qui ne sont rattachés à aucun espace. */
+    /** Studio's deliverables, the ones attached to no space. */
     public function areDeliverablesEnabled(): bool
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioDeliverables);

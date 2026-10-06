@@ -11,8 +11,8 @@ const t = (key) => key;
 
 describe("customerFormModel", () => {
     it("carries every field of the record, the ones a space used to own included", () => {
-        // Le SIREN, le fixe, les liens et les notes ne se saisissaient que
-        // depuis l'onglet d'un espace : la fiche de la page les porte tous.
+        // The SIREN, landline, links and notes could only be entered from a
+        // space's tab: the page's sheet carries them all.
         const form = emptyCustomerForm();
 
         for (const field of [

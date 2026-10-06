@@ -9,23 +9,23 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Un invité n'est plus signé par son adresse.
+ * A guest is no longer signed by their address.
  *
- * **Ce qui était écrit reste lisible par les autres invités.** Le nom d'auteur
- * est figé dans la ligne au moment où elle est écrite - c'est voulu, un message
- * ne doit pas changer de signataire parce qu'un lien a été renommé - donc
- * corriger le code ne corrige que l'avenir. Les fils déjà tenus continueraient
- * d'afficher des adresses, et c'est justement ce qu'on arrête.
+ * **What was written stays readable by the other guests.** The author name is
+ * frozen in the row when it is written - on purpose, a message must not change
+ * signer because a link was renamed - so fixing the code only fixes the
+ * future. Threads already held would keep showing addresses, and that is
+ * exactly what this stops.
  *
- * Les lignes d'invités reprennent donc le libellé de leur lien. Pour un lien
- * émis avant que le libellé soit obligatoire, le nom se dérive de la partie
- * gauche de l'adresse, points et tirets rendus aux espaces - la même règle que
- * {@see SpaceAccessLinkLabel}, écrite
- * une seconde fois parce qu'une migration ne doit rien appeler qui puisse
- * disparaître.
+ * Guest rows therefore take the label of their link. For a link issued before
+ * the label was required, the name is derived from the left part of the
+ * address, dots and hyphens turned into spaces - the same rule as
+ * {@see SpaceAccessLinkLabel}, written
+ * a second time because a migration must call nothing that could
+ * disappear.
  *
- * Le retour en arrière ne rend pas les adresses : elles ne sont plus nulle part
- * dans ces lignes, et les remettre serait refaire la fuite à l'envers.
+ * Rolling back does not restore the addresses: they are no longer anywhere in
+ * these rows, and putting them back would redo the leak in reverse.
  */
 final class Version20260920160000 extends AbstractMigration
 {

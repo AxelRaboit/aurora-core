@@ -22,13 +22,13 @@ class NoteSpaceSerializer implements NoteSpaceSerializerInterface
     {
         return [
             'id' => $space->getId(),
-            // L'espace personnel n'a pas de nom : l'écran écrit « Mon espace »
-            // dans la langue de qui lit.
+            // The personal space has no name: the screen writes "Mon espace"
+            // in the reader's language.
             'name' => $space->getName(),
             'color' => $space->getColor(),
             'personal' => $space->isPersonal(),
-            // Réglé d'ailleurs (l'espace de notes d'un espace client) : son
-            // nom, son accès et ses membres ne se règlent pas d'ici.
+            // Configured elsewhere (the note space of a client space): its
+            // name, access and members are not configured from here.
             'managed' => $space->isManaged(),
             'access' => $space->getAccess()->value,
             'defaultRole' => $space->getDefaultRole()->value,
@@ -36,7 +36,7 @@ class NoteSpaceSerializer implements NoteSpaceSerializerInterface
             'published' => $space->isPublished(),
             'slug' => $space->getSlug(),
             'indexable' => $space->isIndexable(),
-            // L'adresse complète, à copier telle quelle.
+            // The full address, to copy as it is.
             'publicUrl' => $space->isPublished() && null !== $space->getSlug()
                 ? $this->urlGenerator->generate('notes_public_space', ['slug' => $space->getSlug()], UrlGeneratorInterface::ABSOLUTE_URL)
                 : null,

@@ -49,11 +49,10 @@ class CustomerRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les clients dont la raison sociale, le SIRET ou le SIREN contient le
-     * terme.
+     * The customers whose company name, SIRET or SIREN contains the term.
      *
-     * Le numéro est comparé sans ses espaces : il s'écrit souvent par groupes
-     * de trois, et il est enregistré d'un seul tenant.
+     * The number is compared without its spaces: it is often written in groups
+     * of three, and it is stored in one piece.
      *
      * @return list<CustomerInterface>
      */

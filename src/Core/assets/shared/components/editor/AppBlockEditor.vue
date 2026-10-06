@@ -265,7 +265,7 @@ onMounted(async () => {
                 config: { defaultStyle: "unordered" },
             },
 
-            // Médias
+            // Media
             image: {
                 class: Image,
                 config: {
@@ -311,10 +311,9 @@ onMounted(async () => {
                     },
                 },
             },
-            // HTML ecrit a la main, pour ce que les autres blocs ne savent pas
-            // faire. Rendu par RawHtmlSanitizer cote serveur : large, mais ferme
-            // aux scripts, aux gestionnaires d'evenements et aux cadres vers un
-            // hote non liste.
+            // HTML written by hand, for what the other blocks cannot do. Rendered by
+            // RawHtmlSanitizer on the server side: broad, but closed to scripts, event
+            // handlers and frames to an unlisted host.
             raw: {
                 class: Raw,
                 config: {
@@ -382,7 +381,7 @@ onMounted(async () => {
                 },
             },
 
-            // Une pastille au-dessus d'une colonne, le nom d'un concurrent.
+            // A badge above a column, the name of a competitor.
             label: {
                 class: LabelBlock,
                 config: {
@@ -391,7 +390,7 @@ onMounted(async () => {
                     toneLabels:  Object.fromEntries(LABEL_TONES.map((tone) => [tone, t(`suite.editor.label.tones.${tone}`)])),
                 },
             },
-            // Les comptes d'une marque, chacun avec le logo de son réseau.
+            // The accounts of a brand, each with the logo of its network.
             socials: {
                 class: SocialsBlock,
                 config: {

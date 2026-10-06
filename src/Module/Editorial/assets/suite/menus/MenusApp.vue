@@ -87,8 +87,8 @@ function isUnresolved(item) {
     <div v-else class="aurora-stack">
         <!-- No picker column: the side menu lists the menus, one entry per
              record and one address each. -->
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains;
+     collapsed or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.menus.guide.title')" storage-key="menus">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.menus.guide.step_${step}`) }}</li>

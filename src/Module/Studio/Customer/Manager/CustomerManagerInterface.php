@@ -12,19 +12,19 @@ interface CustomerManagerInterface
     public function create(CustomerInputInterface $input): CustomerInterface;
 
     /**
-     * La fiche entiere, depuis la page du client : le seul chemin d'ecriture.
+     * The whole sheet, from the customer's page: the only write path.
      *
-     * L'onglet Informations d'un espace ne l'ecrit plus, il la montre et mene
-     * ici. Une saisie entiere s'applique entiere : un champ absent est vide.
+     * A space's Informations tab no longer writes it, it shows it and leads
+     * here. A whole input applies whole: a missing field is empty.
      */
     public function update(CustomerInterface $customer, CustomerInputInterface $input): void;
 
     /**
-     * Un prospect devient client.
+     * A prospect becomes a customer.
      *
-     * L'adresse est le seul champ demande, parce que c'est le seul que le
-     * statut impose : c'est la que part son contrat. Le reste de l'identite
-     * legale se remplit sur sa fiche, quand on l'a.
+     * The address is the only field asked for, because it is the only one the
+     * status requires: it is where their contract goes. The rest of the legal
+     * identity is filled in on their sheet, when it is known.
      */
     public function convertToClient(CustomerInterface $customer, ?string $contractualEmail): void;
 

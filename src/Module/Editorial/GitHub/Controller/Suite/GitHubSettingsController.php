@@ -19,7 +19,7 @@ use function implode;
 use function is_string;
 
 /**
- * Lit et écrit l'onglet GitHub de l'écran des réglages.
+ * Reads and writes the GitHub tab of the settings screen.
  */
 #[Route('/suite/editorial/github/settings', name: 'suite_editorial_github_settings')]
 #[IsGranted('configuration.settings.manage')]
@@ -48,9 +48,8 @@ final class GitHubSettingsController extends AbstractController
 
         [$logins, $invalid] = GitHubSettings::parse($input);
 
-        // Refusé plutôt que retiré en silence : un identifiant mal recopié
-        // qui disparaîtrait à l'enregistrement laisserait croire que le
-        // compte est affiché.
+        // Refused rather than silently removed: a badly copied identifier that
+        // disappeared on save would suggest that the account is displayed.
         if ([] !== $invalid) {
             return $this->jsonFailure('suite.editorial.github.errors.invalid_login', extra: ['logins' => implode(', ', $invalid)]);
         }

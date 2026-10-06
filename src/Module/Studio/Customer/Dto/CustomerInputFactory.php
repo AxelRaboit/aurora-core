@@ -45,8 +45,8 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
             representativeRole: Str::trimOrNullFromArray($data, 'representativeRole'),
             contractualEmail: Str::emailOrNullFromArray($data, 'contractualEmail'),
             phone: Str::trimOrNullFromArray($data, 'phone'),
-            // Prospect par defaut : une valeur inconnue ou absente decrit une
-            // fiche dont personne n'a encore dit qu'elle s'etait engagee.
+            // Prospect by default: an unknown or missing value describes a
+            // sheet nobody has yet said had committed.
             status: CustomerStatusEnum::tryFrom(Str::trimFromArray($data, 'status'))
                 ?? CustomerStatusEnum::Prospect,
             siren: $this->digitsOrNull($data, 'siren'),
@@ -57,13 +57,13 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
     }
 
     /**
-     * Les lignes de liens, debarrassees de celles que personne n'a remplies.
+     * The link rows, stripped of those nobody filled in.
      *
-     * **Une ligne entierement vide n'est pas une erreur, c'est une ligne qu'on
-     * a ouverte et laissee.** Le bouton « Ajouter un lien » en pose une vide,
-     * et refuser d'enregistrer parce qu'elle est vide obligerait a la retirer
-     * avant de sauver. Une ligne a moitie remplie, elle, est une vraie erreur
-     * et remonte comme telle, sous `links[2].url`.
+     * **An entirely empty row is not an error, it is a row someone opened and
+     * left.** The "Ajouter un lien" button adds an empty one, and refusing to
+     * save because it is empty would force removing it before saving. A
+     * half-filled row, on the other hand, is a real error and comes back as
+     * such, under `links[2].url`.
      *
      * @param array<string, mixed> $data
      *

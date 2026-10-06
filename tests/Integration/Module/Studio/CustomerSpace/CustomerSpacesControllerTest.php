@@ -281,11 +281,11 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     }
 
     /**
-     * **Ouvrir un espace pour quelqu'un dont on n'a pas de fiche.**.
+     * **Opening a space for someone you have no record for.**.
      *
-     * C'est la raison d'etre du prospect : on travaille avec une societe bien
-     * avant d'avoir son SIRET, et aller inventer une identite legale pour
-     * pouvoir creer l'espace est exactement ce que personne ne fait.
+     * That is why the prospect exists: you work with a company well before
+     * you have its SIRET, and making up a legal identity just to be able to
+     * create the space is exactly what nobody does.
      */
     public function testASpaceOpensAProspectWhenNoCustomerIsNamed(): void
     {
@@ -305,21 +305,21 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         self::assertTrue($customer->isProspect());
         self::assertSame('contact@verrerie-lemoine.test', $customer->getContractualEmail());
 
-        // Rien de ce qui fait un client n'est invente au passage : c'est ce
-        // qu'on saisira le jour de la conversion.
+        // Nothing that makes a client is invented along the way: that is what
+        // gets entered on the day of the conversion.
         self::assertNull($customer->getSiret());
 
-        // Et l'espace pointe bien dessus : rien en aval n'a a composer avec un
-        // espace qui n'appartient a personne.
+        // And the space does point to it: nothing downstream has to deal with
+        // a space that belongs to nobody.
         self::assertSame($customer->getId(), $this->payload()['space']['customerId']);
     }
 
     /**
-     * **Un nom suffit, et c'est tout l'interet.**.
+     * **A name is enough, and that is the whole point.**.
      *
-     * On rencontre quelqu'un, on ouvre un espace pour structurer le travail, et
-     * on n'a rien d'autre. Les liens d'acces de l'espace portent leur propre
-     * destinataire, donc rien sur cet ecran ne depend de l'adresse du client.
+     * You meet someone, you open a space to structure the work, and you have
+     * nothing else. The space's access links carry their own recipient, so
+     * nothing on this screen depends on the client's address.
      */
     /**
      * A prospect opened from the space form is a customer record created, so
@@ -383,11 +383,11 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Une societe deja connue reste une societe deja connue.
+     * A company already known stays a company already known.
      *
-     * Le formulaire efface le nom de prospect quand on choisit dans la liste,
-     * mais une requete fabriquee peut porter les deux : l'identifiant gagne, et
-     * aucune fiche en double n'est creee.
+     * The form clears the prospect name when one is picked from the list, but
+     * a crafted request can carry both: the id wins, and no duplicate record
+     * is created.
      */
     public function testANamedCustomerWinsOverAProspectName(): void
     {

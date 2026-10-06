@@ -8,19 +8,18 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * La fiche d'un client, et les ressources d'un espace.
+ * A customer's information sheet, and the resources of a space.
  *
- * **Quatre colonnes sur le client**, parce que la fiche est au client et non
- * au projet : un SIRET appartient à une société, et deux espaces ouverts pour
- * la même ne peuvent pas se contredire. Trois d'entre elles complètent ce que
- * les contrats remplissaient déjà - le SIREN à côté du SIRET, le fixe à côté
- * du portable - et la quatrième garde ce qui n'entre dans aucune case.
+ * **Four columns on the customer**, because the sheet belongs to the customer
+ * and not to the project: a SIRET belongs to a company, and two spaces opened
+ * for the same one cannot contradict each other. Three of them complete what
+ * contracts already filled in - the SIREN next to the SIRET, the landline
+ * next to the mobile - and the fourth keeps whatever fits in no field.
  *
- * **Une table pour les ressources**, qui sont, elles, à l'espace : un lien
- * Canva, un tableau de bord, la personne qui valide. Chacune porte sa propre
- * visibilité, fermée par défaut, parce qu'une liste où l'on range à la fois ce
- * qui se partage et ce qui ne se partage pas n'a de sens que si c'est une case
- * qui décide, ligne par ligne.
+ * **A table for the resources**, which belong to the space: a Canva link, a
+ * dashboard, the person who approves. Each carries its own visibility, closed
+ * by default, because a list holding both what is shared and what is not
+ * only makes sense if a checkbox decides, row by row.
  */
 final class Version20260920200000 extends AbstractMigration
 {
@@ -33,9 +32,9 @@ final class Version20260920200000 extends AbstractMigration
     {
         $this->addSql('ALTER TABLE core_customers ADD siren VARCHAR(9) DEFAULT NULL');
         $this->addSql('ALTER TABLE core_customers ADD landline VARCHAR(30) DEFAULT NULL');
-        // `DEFAULT '[]'` et non nullable : une liste vide est une liste, et
-        // distinguer « aucun lien » de « pas de liens » n'apprend rien à
-        // personne tout en obligeant chaque lecture à tester le null.
+        // `DEFAULT '[]'` and not nullable: an empty list is a list, and
+        // telling "no link" apart from "no links" teaches nobody anything
+        // while forcing every read to test for null.
         $this->addSql("ALTER TABLE core_customers ADD links JSON DEFAULT '[]' NOT NULL");
         $this->addSql('ALTER TABLE core_customers ADD information_notes TEXT DEFAULT NULL');
 

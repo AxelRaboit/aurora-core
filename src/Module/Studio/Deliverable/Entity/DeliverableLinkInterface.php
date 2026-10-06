@@ -42,7 +42,7 @@ interface DeliverableLinkInterface
 
     public function isUsable(DateTimeImmutable $now): bool;
 
-    /** Quand l'auteur l'a masqué de sa liste ; nul, il y figure. */
+    /** When the author hid it from their list; null, it is listed. */
     public function getHiddenAt(): ?DateTimeImmutable;
 
     public function hide(DateTimeImmutable $at): static;

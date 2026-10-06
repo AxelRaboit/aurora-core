@@ -16,15 +16,15 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
 
 /**
- * Un livrable porte des diapositives quand son format est `slides` ; une page
- * n'en a aucune. Tout ce qui écrit, dessine ou compte des diapositives
- * (`SlidesManager`, `DeckAppearance`, `DeckPictures`, `DeckFonts`, le
- * sérialiseur) parle à un livrable : depuis que les présentations en sont
- * devenues, il n'y a plus d'autre propriétaire.
+ * A deliverable carries slides when its format is `slides`; a page has none.
+ * Everything that writes, draws or counts slides (`SlidesManager`,
+ * `DeckAppearance`, `DeckPictures`, `DeckFonts`, the serializer) talks to a
+ * deliverable: since presentations became deliverables, there is no other
+ * owner.
  *
- * Le thème et ses retouches s'appellent `slideTheme`/`slideStyle` parce qu'un
- * livrable a déjà son apparence, celle de la page : les deux ne se confondent
- * pas.
+ * The theme and its adjustments are called `slideTheme`/`slideStyle` because
+ * a deliverable already has its appearance, the page's: the two must not be
+ * confused.
  */
 interface DeliverableInterface
 {
@@ -37,13 +37,13 @@ interface DeliverableInterface
 
     public function removeSlide(SlideInterface $slide): static;
 
-    /** Le thème dans lequel les diapositives sont dessinées. */
+    /** The theme the slides are drawn in. */
     public function getSlideTheme(): DeckThemeEnum;
 
     public function setSlideTheme(DeckThemeEnum $theme): static;
 
     /**
-     * Ce que les diapositives retouchent de leur thème, cf. `DeckStyleNormalizer`.
+     * What the slides adjust in their theme, see `DeckStyleNormalizer`.
      *
      * @return array<string, mixed>
      */
@@ -54,21 +54,21 @@ interface DeliverableInterface
 
     public function getSpace(): ?CustomerSpaceInterface;
 
-    /** Vrai pour un livrable de Studio, rattaché à aucun espace. */
+    /** True for a Studio deliverable, attached to no space. */
     public function isStandalone(): bool;
 
-    /** Une page ou des diapositives, fixé à la création. */
+    /** A page or slides, set at creation. */
     public function getFormat(): DeliverableFormatEnum;
 
-    /** Un diaporama : des diapositives plutôt qu'une grille. */
+    /** A slideshow: slides rather than a grid. */
     public function isSlides(): bool;
 
-    /** Un modèle de Studio, proposé à la création d'un livrable ; jamais dans un espace. */
+    /** A Studio template, offered when creating a deliverable; never in a space. */
     public function isTemplate(): bool;
 
     public function setTemplate(bool $template): static;
 
-    /** Le client pour qui un livrable de Studio a été écrit ; nul dans un espace. */
+    /** The client a Studio deliverable was written for; null in a space. */
     public function getCustomer(): ?CustomerInterface;
 
     public function setCustomer(?CustomerInterface $customer): static;
@@ -135,7 +135,7 @@ interface DeliverableInterface
 
     public function touch(): static;
 
-    /** Quand il a été mis à la corbeille ; nul, il est vivant. */
+    /** When it was moved to the trash; null, it is live. */
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;

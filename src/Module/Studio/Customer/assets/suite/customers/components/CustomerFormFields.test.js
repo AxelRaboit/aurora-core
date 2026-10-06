@@ -24,11 +24,11 @@ function lastEmitted(wrapper) {
 }
 
 /**
- * Le formulaire de toute la fiche.
+ * The form for the whole sheet.
  *
- * Ce qui se casse en silence ici : un champ qui disparaît du composant, et
- * qui ne se saisit alors plus nulle part, puisque la page du client est le
- * seul endroit qui écrit la fiche.
+ * What breaks silently here: a field that disappears from the component, and
+ * then can no longer be entered anywhere, since the customer's page is the
+ * only place that writes the sheet.
  */
 describe("CustomerFormFields", () => {
     it("carries the fields the space tab used to own", () => {

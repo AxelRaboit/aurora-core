@@ -1,21 +1,21 @@
 <script setup>
 /**
- * Une ligne de l'arborescence : un dossier, ou une note rangée dedans.
+ * A tree row: a folder, or a note filed in it.
  *
- * Les deux se ressemblent et ne font pas la même chose. Un dossier se
- * déplie, se remplit, se supprime avec son contenu ; une note s'ouvre, et
- * c'est tout ce qu'elle fait ici - la lire, la renommer, la jeter, cela se
- * passe dans l'éditeur ou dans la bibliothèque.
+ * Both look alike and do not do the same thing. A folder expands, fills up,
+ * is deleted with its content; a note opens, and that is all it does here -
+ * reading it, renaming it, throwing it away happens in the editor or in the
+ * library.
  *
- * **Le dépliage est tenu par le panneau, pas par la ligne.** Un état local
- * repartirait fermé à chaque rendu de l'arbre, c'est-à-dire à chaque note
- * créée ailleurs, et une recherche ne pourrait pas ouvrir les branches où
- * elle a trouvé quelque chose.
+ * **Expansion is held by the panel, not by the row.** A local state would
+ * start closed again on every render of the tree, that is on every note
+ * created elsewhere, and a search could not open the branches where it found
+ * something.
  *
- * **Le dépôt se lit sur la ligne.** Un trait au-dessus ou au-dessous dit
- * « avant » ou « après », un cadre dit « dedans » : c'est ce que montrent
- * Craft, Notion et Obsidian, et c'est ce qui manquait pour ranger à un rang
- * précis plutôt qu'en vrac au fond d'un dossier.
+ * **The drop is read on the row.** A line above or below says "before" or
+ * "after", a frame says "inside": it is what Craft, Notion and Obsidian
+ * show, and it is what was missing to file at a precise rank rather than
+ * loosely at the bottom of a folder.
  */
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -25,22 +25,22 @@ import AppRowActions from '@shared/components/action/AppRowActions.vue';
 
 const props = defineProps({
     node: { type: Object, required: true },
-    /** Le dossier ouvert dans la bibliothèque, ou la note ouverte. */
+    /** The folder open in the library, or the open note. */
     selectedKey: { type: String, default: null },
-    /** Les identifiants des dossiers dépliés, tenus par le panneau. */
+    /** The ids of the expanded folders, held by the panel. */
     expanded: { type: Set, default: () => new Set() },
     draggable: { type: Boolean, default: false },
-    /** Le mode lecture : la ligne mène, elle ne propose rien d'autre. */
+    /** Reading mode: the row leads somewhere, it offers nothing else. */
     readonly: { type: Boolean, default: false },
     /**
-     * Faux dans un espace qu'on lit sans y écrire : la ligne ne propose que
-     * ce qui est à soi - les favoris -, ni renommer, ni ranger, ni jeter.
+     * False in a space one reads without writing in it: the row only offers
+     * what is one's own - favourites -, no rename, no filing, no delete.
      */
     editable: { type: Boolean, default: true },
     draggingKey: { type: String, default: null },
-    /** Où tomberait ce qu'on tient : `{ key, zone }`, zone avant, dedans ou après. */
+    /** Where what is held would land: `{ key, zone }`, zone before, inside or after. */
     dropHint: { type: Object, default: null },
-    /** La clé de la ligne qui porte celle-ci, pour remonter au clavier. */
+    /** The key of the row that holds this one, to go back up by keyboard. */
     parentKey: { type: String, default: null },
     depth: { type: Number, default: 0 },
     /**
@@ -73,16 +73,15 @@ const { t } = useI18n();
 const isFolder = computed(() => 'folder' === props.node.kind);
 
 /**
- * Ce qu'une ligne propose, dossier comme note.
+ * What a row offers, folder or note.
  *
- * Dans une feuille et non en boutons alignés : la règle de la maison veut
- * qu'au-delà de deux gestes on empile, et une ligne d'arbre est trop étroite
- * pour en aligner trois. Le plus d'un dossier reste dehors, c'est celui qu'on
- * répète ; il est aussi dans la feuille, parce que le clic droit n'ouvre
- * qu'elle.
+ * In a sheet and not as lined-up buttons: the house rule says that beyond
+ * two gestures we stack, and a tree row is too narrow to line up three. A
+ * folder's plus stays outside, it is the one that is repeated; it is also in
+ * the sheet, because the right click only opens the sheet.
  */
 const favoriteAction = computed(() => ({
-    // Les favoris sont à soi : on épingle ce qu'on lit, là où on le voit.
+    // Favourites are one's own: one pins what one reads, where one sees it.
     key: 'favorite',
     title: props.node.favoritedAt ? t('notes.markdown.library.unpin') : t('notes.markdown.library.pin'),
     icon: props.node.favoritedAt ? StarOff : Star,
@@ -124,12 +123,12 @@ const isDropInside = computed(() => 'inside' === zone.value);
 const isBeingDragged = computed(() => props.draggingKey === props.node.key);
 
 /**
- * La couleur du dossier, quand il en porte une.
+ * The folder's colour, when it carries one.
  *
- * En style et non en classe : la valeur vient du lecteur, et Tailwind
- * n'écrit que les classes qu'il voit dans le source. Elle passe devant la
- * classe de couleur sauf quand la ligne est choisie ou visée par un
- * glisser : là, c'est l'état qui doit se voir, pas la décoration.
+ * As a style and not a class: the value comes from the reader, and Tailwind
+ * only writes the classes it sees in the source. It takes precedence over
+ * the colour class except when the row is selected or targeted by a drag:
+ * there, the state is what must show, not the decoration.
  */
 const tint = computed(() =>
     isFolder.value && props.node.color && !isSelected.value && !isDropInside.value
@@ -157,8 +156,8 @@ function onRowClick(event) {
     emit('select', props.node);
 }
 
-// Le clic droit ouvre la même feuille que les trois points : un seul menu,
-// deux portes, comme dans n'importe quel explorateur.
+// The right click opens the same sheet as the three dots: a single menu, two
+// doors, as in any file explorer.
 const actionsRef = ref(null);
 
 function onContextMenu(event) {
@@ -169,10 +168,10 @@ function onContextMenu(event) {
 }
 
 /**
- * Double-cliquer le nom renomme ; double-cliquer un bouton de la ligne - la
- * flèche qu'on referme et rouvre, le plus, les trois points - ne fait que ce
- * que fait le bouton. Sans cette garde, replier puis déplier vite ouvrait la
- * modale de renommage.
+ * Double-clicking the name renames; double-clicking a button of the row -
+ * the arrow one closes and reopens, the plus, the three dots - only does
+ * what the button does. Without this guard, folding then quickly expanding
+ * opened the rename modal.
  */
 function onDoubleClick(event) {
     if (props.readonly || !props.editable || event.target?.closest?.('button')) return;
@@ -224,7 +223,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
             v-on:contextmenu="onContextMenu"
             v-on:dblclick="onDoubleClick"
         >
-            <!-- Le trait d'insertion : on range à ce rang-là, pas au fond. -->
+            <!-- The insertion line: we file at that rank, not at the bottom. -->
             <span
                 v-if="'before' === zone || 'after' === zone"
                 aria-hidden="true"
@@ -263,9 +262,9 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
 
                 <span class="flex-1 truncate min-w-0">{{ displayLabel }}</span>
 
-                <!-- Ce qu'un dossier contient, dit une fois, et seulement
-                     quand il est replié : déplié, la réponse est sous les
-                     yeux, et le nombre ne fait plus que du bruit. -->
+                <!-- What a folder holds, said once, and only when it is
+                     folded: expanded, the answer is in view, and the number
+                     is just noise. -->
                 <span
                     v-if="isFolder && !isOpen && node.noteCount"
                     class="shrink-0 text-xs text-muted tabular-nums"
@@ -278,9 +277,9 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                  sits between the title and the hover action buttons. -->
             <slot name="extra-cells" :node="node" />
 
-            <!-- En marges négatives : les boutons gardent leur zone de clic sans
-                 étirer la ligne. Ils la faisaient monter à 42 pixels, une
-                 hauteur de formulaire, là où un explorateur tient en 30. -->
+            <!-- With negative margins: the buttons keep their click area
+                 without stretching the row. They pushed it up to 42 pixels, a
+                 form height, where a file explorer fits in 30. -->
             <div v-if="!readonly" class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
                     v-if="isFolder && editable"
@@ -300,9 +299,8 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
             </div>
         </div>
 
-        <!-- Un filet le long des enfants, comme Obsidian : on voit d'un coup
-             d'œil ce qui appartient à quel dossier, même trois niveaux plus
-             bas. -->
+        <!-- A rule along the children, like Obsidian: one sees at a glance
+             what belongs to which folder, even three levels down. -->
         <div
             v-if="isFolder && hasChildren && isOpen"
             role="group"

@@ -101,8 +101,8 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
     }
 
     /**
-     * La grille d'une page, ou les diapositives et le logo d'un diaporama,
-     * cf. {@see DeckPictures} : la seule liste des cases qui comptent.
+     * A page's grid, or a slideshow's slides and logo, see
+     * {@see DeckPictures}: the one list of slots that count.
      *
      * @return list<int>
      */
@@ -125,8 +125,8 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
     {
         $space = $deliverable->getSpace();
         $readable = $this->access->canRead($deliverable);
-        // À la corbeille, il compte encore (la purge n'a pas eu lieu, la
-        // restauration est possible) : il ne s'ouvre plus, il se retrouve là.
+        // In the trash, it still counts (the purge has not happened, restoring
+        // is possible): it no longer opens, it is found there.
         $trashed = $deliverable->isTrashed();
 
         return [

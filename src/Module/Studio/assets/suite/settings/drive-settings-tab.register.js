@@ -1,6 +1,6 @@
 import { registerSettingsTabComponent } from "@configuration/suite/settings/tabRegistry.js";
 import DriveTab from "./DriveTab.vue";
 
-// Correspond à `componentName: 'drive'` sur l'onglet que le module Studio
-// contribue.
+// Matches `componentName: 'drive'` on the tab the Studio module
+// contributes.
 registerSettingsTabComponent("drive", DriveTab);

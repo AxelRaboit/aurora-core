@@ -17,41 +17,41 @@ use function array_filter;
 use function array_values;
 
 /**
- * Qui lit et qui modifie un livrable : la seule règle, pour tout le module.
+ * Who reads and who edits a deliverable: the one rule, for the whole module.
  *
- * **Dans un espace client**, rien ne change : c'est l'espace qui décide. Il
- * faut le voir (son équipe, ou les rôles qui voient tout) et les droits des
- * espaces : `studio.spaces.view` pour lire, `studio.spaces.edit` pour écrire,
- * `studio.spaces.share` pour donner une adresse de lecture, le même droit que
- * l'accès de l'espace lui-même, puisqu'une adresse ouvre un document client
- * à quiconque la tient. Un espace archivé ne reçoit plus de livrable neuf
- * (création, duplication, copie) ; ceux qu'il garde restent modifiables, car
- * archiver n'est pas supprimer.
+ * **In a client space**, nothing changes: the space decides. You must see it
+ * (its team, or the roles that see everything) and hold the space rights:
+ * `studio.spaces.view` to read, `studio.spaces.edit` to write,
+ * `studio.spaces.share` to give a reading address, the same right as access
+ * to the space itself, since an address opens a client document to whoever
+ * holds it. An archived space receives no new deliverable (creation,
+ * duplication, copy); the ones it keeps stay editable, because archiving is
+ * not deleting.
  *
- * **Sans espace**, deux rayons :
- * - partagé : tous ceux qui ont `studio.deliverables.view` le lisent, ceux
- *   qui ont `studio.deliverables.edit` le modifient, et son auteur aussi ;
- * - perso : son auteur seul, pour peu qu'il ait accès au module, et il le
- *   supprime sans le droit de suppression.
+ * **Without a space**, two shelves:
+ * - shared: everyone with `studio.deliverables.view` reads it, everyone with
+ *   `studio.deliverables.edit` edits it, and its author too;
+ * - personal: its author only, provided they have access to the module, and
+ *   they delete it without the delete right.
  *
- * Un livrable perso dont l'auteur a disparu revient aux administrateurs,
- * comme un espace de notes orphelin : sans quoi plus personne ne pourrait ni
- * le lire ni le supprimer. Hors de ce cas, un administrateur n'ouvre pas le
- * livrable perso d'un autre : le droit de tout voir porte sur les modules,
- * pas sur ce que chacun garde pour soi.
+ * A personal deliverable whose author is gone falls to the administrators,
+ * like an orphaned notes space: otherwise nobody could read or delete it any
+ * more. Outside that case, an administrator does not open someone else's
+ * personal deliverable: the right to see everything covers the modules, not
+ * what each person keeps to themselves.
  *
- * **Dupliquer** est créer : dans Studio, le droit de créer des livrables ;
- * dans un espace, le droit d'y écrire, et pas dans une archive. Les deux
- * contextes ne demandent pas le même droit parce qu'ils n'ont pas le même
- * modèle (les droits du module, ceux de l'espace) : c'est voulu, et chacun
- * suit la règle de ce qu'il crée.
+ * **Duplicating** is creating: in Studio, the right to create deliverables;
+ * in a space, the right to write there, and not in an archive. The two
+ * contexts do not ask for the same right because they do not have the same
+ * model (the module's rights, the space's): this is intended, and each one
+ * follows the rule of what it creates.
  *
- * **Copier un livrable de Studio dans un espace**, c'est écrire dans cet
- * espace : il faut lire l'original, et pouvoir créer un livrable dans
- * l'espace visé, c'est-à-dire le voir avec `studio.spaces.edit`, module des
- * espaces allumé. Un espace archivé n'en reçoit pas. Dans l'autre sens, la
- * copie d'un livrable d'espace arrive dans « Mes livrables » de Studio : il
- * faut lire l'espace et pouvoir créer un livrable de Studio.
+ * **Copying a Studio deliverable into a space** is writing into that space:
+ * you must read the original, and be able to create a deliverable in the
+ * target space, that is see it with `studio.spaces.edit`, with the spaces
+ * module on. An archived space receives none. The other way round, the copy
+ * of a space deliverable lands in Studio's "Mes livrables": you must read the
+ * space and be able to create a Studio deliverable.
  */
 final readonly class DeliverableAccess
 {
@@ -65,7 +65,7 @@ final readonly class DeliverableAccess
 
     public const string SHARE = 'studio.deliverables.share';
 
-    /** Donner une adresse de lecture d'un livrable d'espace : le droit de l'accès à l'espace. */
+    /** Give a reading address for a space deliverable: the right of access to the space. */
     public const string SPACE_SHARE = 'studio.spaces.share';
 
     public function __construct(
@@ -103,20 +103,20 @@ final readonly class DeliverableAccess
             return false;
         }
 
-        // Son auteur garde la main sur un livrable qu'il a partagé : sans quoi
-        // créer dans « Partagés » sans le droit de modifier fermerait
-        // l'éditeur à celui qui vient de l'ouvrir.
+        // Its author keeps control of a deliverable they shared: otherwise
+        // creating in "Partagés" without the edit right would close the
+        // editor to the person who just opened it.
         return DeliverableScopeEnum::Shared === $deliverable->getScope()
             ? $this->security->isGranted(self::EDIT) || $this->isOwner($deliverable)
             : $this->holdsPersonal($deliverable);
     }
 
     /**
-     * Voir, créer ou révoquer les liens de lecture : un envoi hors du
-     * back-office, et la liste porte les adresses elles-mêmes, jetons compris.
+     * See, create or revoke reading links: a send outside the back office,
+     * and the list carries the addresses themselves, tokens included.
      *
-     * Dans un espace, c'est le droit de partager l'espace, sans celui de
-     * modifier : donner une adresse n'est pas écrire dans le document.
+     * In a space, it is the right to share the space, without the right to
+     * edit: giving an address is not writing in the document.
      */
     public function canShare(DeliverableInterface $deliverable): bool
     {
@@ -134,8 +134,8 @@ final readonly class DeliverableAccess
             return $this->canWrite($deliverable);
         }
 
-        // Un brouillon perso se jette par qui le garde, droit ou pas : personne
-        // d'autre ne le voit pour le faire à sa place.
+        // A personal draft is thrown away by whoever keeps it, right or not:
+        // nobody else sees it to do it for them.
         if (DeliverableScopeEnum::Personal === $deliverable->getScope()) {
             return $this->canWrite($deliverable);
         }
@@ -144,11 +144,11 @@ final readonly class DeliverableAccess
     }
 
     /**
-     * Passer de perso à partagé, ou l'inverse : à l'auteur seul.
+     * Move from personal to shared, or the reverse: the author only.
      *
-     * Rendre perso un livrable partagé le retire à toute l'équipe ; ce n'est
-     * pas un geste qu'un autre membre fait pour lui. Un orphelin se décide
-     * par l'administrateur qui l'a recueilli.
+     * Making a shared deliverable personal takes it away from the whole team;
+     * that is not something another member does on the author's behalf. An
+     * orphan is decided by the administrator who took it in.
      */
     public function canChangeScope(DeliverableInterface $deliverable): bool
     {
@@ -158,10 +158,10 @@ final readonly class DeliverableAccess
     }
 
     /**
-     * Créer, renommer, ranger ou supprimer les catégories : c'est réorganiser
-     * la bibliothèque de l'équipe, donc le droit de modifier les livrables.
-     * Ranger son propre livrable dans une catégorie existante, lui, ne demande
-     * que de pouvoir l'écrire.
+     * Create, rename, reorder or delete categories: that is reorganising the
+     * team's library, so the right to edit deliverables. Filing your own
+     * deliverable under an existing category only requires being able to
+     * write it.
      */
     public function canManageCategories(): bool
     {
@@ -169,10 +169,10 @@ final readonly class DeliverableAccess
     }
 
     /**
-     * Nommer le client pour qui un livrable de Studio a été écrit, et voir ce
-     * nom sur la carte : il faut le module des clients allumé, et le droit de
-     * voir leur liste. Le sélecteur porte toute la liste des clients, et un
-     * droit sur les livrables ne la donne pas.
+     * Name the client a Studio deliverable was written for, and see that name
+     * on the card: it takes the clients module on, and the right to see their
+     * list. The selector carries the whole client list, and a right on
+     * deliverables does not grant it.
      */
     public function canPickCustomer(): bool
     {
@@ -185,8 +185,8 @@ final readonly class DeliverableAccess
     }
 
     /**
-     * Les espaces où la personne peut déposer la copie d'un livrable de
-     * Studio : ceux qu'elle voit et où elle écrit, hors archives.
+     * The spaces where the person can drop the copy of a Studio deliverable:
+     * the ones they see and write to, archives excluded.
      *
      * @return list<CustomerSpaceInterface>
      */
@@ -203,24 +203,23 @@ final readonly class DeliverableAccess
     }
 
     /**
-     * Recopier un livrable d'espace dans Studio : c'est créer un livrable de
-     * Studio, module allumé. La copie arrive dans « Mes livrables ».
+     * Copy a space deliverable into Studio: that is creating a Studio
+     * deliverable, with the module on. The copy lands in "Mes livrables".
      */
     public function canCopyToStudio(): bool
     {
         return $this->studioContext->areDeliverablesEnabled() && $this->canCreate();
     }
 
-    /** Voir l'espace, de quoi savoir qu'il existe : sans quoi on n'en dit rien. */
+    /** See the space, enough to know it exists: otherwise nothing is said about it. */
     public function canReadSpace(CustomerSpaceInterface $space): bool
     {
         return $this->studioContext->areSpacesEnabled() && $this->spaceVisibility->canSee($space);
     }
 
     /**
-     * Déposer un livrable de plus dans cet espace : en créer un, en
-     * dupliquer un, y copier un modèle de Studio. Les archives n'en reçoivent
-     * pas.
+     * Add one more deliverable to this space: create one, duplicate one, copy
+     * a Studio template into it. Archives receive none.
      */
     public function canAddTo(CustomerSpaceInterface $space): bool
     {
@@ -242,7 +241,7 @@ final readonly class DeliverableAccess
         return $user instanceof CoreUserInterface && $owner instanceof CoreUserInterface && $owner->getId() === $user->getId();
     }
 
-    /** Ce qui reste d'un compte supprimé revient à qui administre. */
+    /** What is left from a deleted account falls to whoever administers. */
     public function adopts(DeliverableInterface $deliverable): bool
     {
         return !$deliverable->getOwner() instanceof CoreUserInterface && self::isAdmin($this->user());

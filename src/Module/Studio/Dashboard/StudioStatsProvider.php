@@ -29,30 +29,30 @@ use function array_values;
 use function usort;
 
 /**
- * Les chiffres du Studio sur le tableau de bord : ce qui m'attend chez mes
- * clients aujourd'hui.
+ * Studio's numbers on the dashboard: what is waiting for me at my clients'
+ * today.
  *
- * **Les espaces du lecteur, et eux seuls.** Les chiffres comptaient toutes
- * les cartes de tous les espaces, archivés compris, y compris ceux dont le
- * lecteur n'est pas membre : 13 « en attente du client » sur cet écran, 6
- * dans l'espace. Ils viennent maintenant de {@see SpaceWorkload}, sur les
- * espaces que {@see SpaceVisibility} donne pour la portée choisie - les
- * siens d'abord, tous pour qui voit tout et le demande.
+ * **The reader's spaces, and only those.** The numbers used to count every
+ * card of every space, archived ones included, including those the reader
+ * is not a member of: 13 "en attente du client" on this screen, 6 in the
+ * space. They now come from {@see SpaceWorkload}, over the spaces
+ * {@see SpaceVisibility} gives for the chosen scope - their own first, all
+ * of them for whoever sees everything and asks for it.
  *
- * **Une liste plutôt que des répartitions.** Une barre « où en sont les
- * contenus » ne dit pas chez qui aller ; une ligne par espace qui attend
- * quelque chose, la plus urgente en haut, si.
+ * **A list rather than breakdowns.** A "where the content stands" bar does
+ * not say whose place to go to; one row per space waiting on something, the
+ * most urgent at the top, does.
  */
 final readonly class StudioStatsProvider implements DashboardStatsProviderInterface
 {
-    /** Au-delà, la liste cesse d'être une liste qu'on lit en arrivant. */
+    /** Beyond this, the list stops being a list read on arrival. */
     private const int ATTENTION_LIMIT = 8;
 
     /**
-     * Les contrats partis chez le client, qui n'a pas encore répondu.
+     * The contracts sent to the client, who has not answered yet.
      *
-     * Séparés de ceux qui m'attendent : un seul compteur mêlait les deux
-     * attentes, et celle qui demande un geste de ma part s'y perdait.
+     * Separate from those waiting on me: a single counter mixed the two
+     * waits, and the one that needs a gesture from me got lost in it.
      */
     private const array WITH_CUSTOMER = [
         ContractStatusEnum::Sent,
@@ -105,8 +105,8 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'attention' => $this->attention($rows, $spaces),
                 'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
                 'contractsPath' => $this->canSeeContracts() ? $this->urlGenerator->generate('suite_studio_contracts') : null,
-                // Chaque compteur ouvre la liste sur son étape, et non la
-                // liste entière.
+                // Each counter opens the list on its step, and not the whole
+                // list.
                 'contractsWithCustomerPath' => $this->contractsPathFor('with_customer'),
                 'contractsToCountersignPath' => $this->contractsPathFor('to_countersign'),
             ],
@@ -136,9 +136,9 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
     }
 
     /**
-     * Les livrables de Studio que le lecteur ouvre, pages et présentations,
-     * null quand il n'a pas le module sous la main : pas de tuile plutôt qu'un
-     * chiffre sans destination. Ceux des espaces se comptent dans leur espace.
+     * The Studio deliverables the reader opens, pages and presentations, null
+     * when the module is not at hand: no tile rather than a number with no
+     * destination. Those of spaces are counted in their space.
      */
     private function countDeliverables(): ?int
     {
@@ -165,7 +165,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
     }
 
     /**
-     * Les espaces qui attendent quelque chose, le plus urgent en haut.
+     * The spaces waiting on something, the most urgent at the top.
      *
      * @param list<SpaceWorkloadRow>             $rows
      * @param array<int, CustomerSpaceInterface> $spaces
@@ -185,8 +185,8 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'name' => $space->getName(),
                 'customerName' => $space->getCustomer()->getLegalName(),
                 'colourSlot' => $space->getColourSlot(),
-                // Sur l'état le plus urgent, filtré : la ligne dit « 2 relectures
-                // en retard », l'espace s'ouvre sur ces deux-là.
+                // On the most urgent state, filtered: the row says "2 relectures
+                // en retard", the space opens on those two.
                 'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $row->spaceId, 'state' => $this->mostUrgentState($row)]),
                 ...$row->toArray(),
             ];

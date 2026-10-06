@@ -443,13 +443,13 @@ const fitOptions = computed(() => [
 ]);
 
 /**
- * Les cases du sélecteur multiple : celles qui portent une image, plus une vide.
+ * The multiple picker's slots: the ones holding an image, plus an empty one.
  *
- * Le composant de choix d'image existe et sait en prendre une. Plutôt que d'en
- * écrire un second qui en prendrait plusieurs, on le répète : une case par
- * image déjà choisie, et une de plus pour la suivante. Le rang d'une case est
- * sa place dans l'arrangement, donc vider la deuxième resserre les autres
- * plutôt que de laisser un trou.
+ * The image picker component exists and knows how to take one. Rather than
+ * writing a second one that would take several, it is repeated: one slot per
+ * image already chosen, and one more for the next. A slot's rank is its
+ * place in the arrangement, so emptying the second one closes up the others
+ * rather than leaving a gap.
  */
 const pictureRows = computed(() => {
     const ids = selected.value?.content?.mediaIds ?? [];
@@ -477,14 +477,14 @@ function writePictureAt(at, value) {
 
     writeSlot("mediaIds", kept);
 
-    // L'adresse est ecrite a cote de l'identifiant, comme le font deja les deux
-    // autres champs d'image de cet ecran : la slide n'est relue du serveur que
-    // lorsqu'on la quitte, et sans ca la case choisie redevenait vide et
-    // l'apercu restait blanc jusqu'a ce qu'on aille voir ailleurs.
+    // The address is written next to the id, as the two other image fields
+    // on this screen already do: the slide is only reread from the server
+    // when you leave it, and without this the chosen slot went empty again
+    // and the preview stayed blank until you went somewhere else.
     writeSlot("mediaPictures", drawn.slice(0, kept.length));
 }
 
-/** Les trois listes de composition, avec leur valeur d'aujourd'hui en tête. */
+/** The three composition lists, with their current value first. */
 const compositionOptions = (slot, values) =>
     computed(() =>
         values.map((value) => ({
@@ -621,10 +621,10 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="aurora-stack">
-        <!-- Présenter, et le reste derrière un bouton : la page a déjà une
-             colonne de slides à gauche, elle n'a pas besoin d'une rangée de
-             cinq boutons en haut. La barre de tous les écrans : le retour à
-             gauche, les commandes à droite (02/10/2026). -->
+        <!-- Present, and the rest behind a button: the page already has a
+             column of slides on the left, it does not need a row of five
+             buttons at the top. The bar every screen has: back on the left,
+             commands on the right (02/10/2026). -->
         <AppPageBar :back-href="backPath" :back-label="backPath ? t('shared.common.back') : null">
             <AppPageActions
                 :actions="deckActions"
@@ -641,9 +641,9 @@ onBeforeUnmount(() => {
             </AppButton>
         </AppPageBar>
 
-        <!-- Le mode d'emploi de l'écran, replié au départ : ouvert, il
-             pousserait la colonne des slides et la slide sous la ligne de
-             flottaison, et c'est elles qu'on vient modifier. -->
+        <!-- The screen's how-to, collapsed at first: open, it would push the
+             slide column and the slide below the fold, and they are what you
+             came to edit. -->
         <AppGuide :title="t('suite.studio.deliverables.slides.editor_guide.title')" storage-key="deck-editor" :open="false">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.studio.deliverables.slides.editor_guide.step_${step}`) }}</li>
@@ -651,7 +651,7 @@ onBeforeUnmount(() => {
         </AppGuide>
 
         <div class="flex flex-col gap-4" :class="isFree ? '' : 'xl:flex-row xl:items-start'">
-            <!-- Les slides, dans l'ordre où elles seront montrées. -->
+            <!-- The slides, in the order they will be shown. -->
             <aside class="w-full shrink-0" :class="isFree ? '' : 'xl:w-64'">
                 <div class="mb-2 flex items-center justify-between">
                     <h2 class="m-0 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -660,10 +660,10 @@ onBeforeUnmount(() => {
                     <span class="text-xs tabular-nums text-muted">{{ slides.length }}</span>
                 </div>
 
-                <!-- La poignée plutôt que la vignette entière : la vignette est
-                     un bouton qui sélectionne la slide, et un cliquer-glisser
-                     qui commence sur un bouton devient une sélection ratée une
-                     fois sur deux. -->
+                <!-- The handle rather than the whole thumbnail: the thumbnail
+                     is a button that selects the slide, and a click-and-drag
+                     that starts on a button turns into a failed selection one
+                     time out of two. -->
                 <VueDraggable
                     :model-value="slides"
                     handle=".slide-drag-handle"
@@ -686,8 +686,8 @@ onBeforeUnmount(() => {
                             foldable(slide) ? 'border-dashed' : '',
                         ]"
                     >
-                        <!-- Le chevron sur la vignette d'intercalaire : c'est
-                             lui le chapitre, on ne stocke rien de plus. -->
+                        <!-- The chevron on the divider thumbnail: it is the
+                             chapter, nothing more is stored. -->
                         <button
                             v-if="foldable(slide)"
                             type="button"
@@ -702,28 +702,28 @@ onBeforeUnmount(() => {
                             <ChevronRight v-else class="h-3 w-3" :stroke-width="2" />
                             <span class="tabular-nums">{{ sizes[slide.id] }}</span>
                         </button>
-                        <!-- `flex flex-col` plutôt que `block` : le contenu d'un
-                         `<button>` se comporte comme une boîte qui étire ses
-                         enfants, ce qui écrasait le rapport 16/9 de la
-                         vignette et la rendait carrée. -->
+                        <!-- `flex flex-col` rather than `block`: the content of a
+                         `<button>` behaves like a box that stretches its
+                         children, which crushed the thumbnail's 16/9 ratio
+                         and made it square. -->
                         <button
                             type="button"
                             class="flex w-full cursor-pointer flex-col items-stretch border-0 bg-transparent p-0 text-left"
                             :aria-current="slide.id === selectedId ? 'true' : undefined"
                             v-on:click="select(slide.id)"
                         >
-                            <!-- Décalé quand le chevron est là : la pastille
-                                 est posée sur ce coin, et « INTERCALAIRE »
-                                 passait dessous. -->
+                            <!-- Shifted when the chevron is there: the pill
+                                 sits on that corner, and "INTERCALAIRE" went
+                                 under it. -->
                             <span
                                 class="mb-1 block px-1 text-[0.65rem] uppercase tracking-wide text-muted"
                                 :class="foldable(slide) ? 'pl-9' : ''"
                             >
                                 {{ at + 1 }}. {{ t(`suite.studio.deliverables.slides.layouts.${slide.layout}`) }}
                             </span>
-                            <!-- Dans une simple boîte de bloc : élément flex, la
-                             vignette voyait sa hauteur décidée par son contenu
-                             et le rapport 16/9 restait lettre morte. -->
+                            <!-- In a plain block box: as a flex item, the
+                             thumbnail had its height decided by its content
+                             and the 16/9 ratio was ignored. -->
                             <span class="block w-full">
                                 <SlideFrame
                                     :slide="slide"
@@ -738,10 +738,10 @@ onBeforeUnmount(() => {
                             v-if="editable"
                             class="absolute top-1 right-1 flex gap-0.5 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                         >
-                            <!-- Les flèches restent à côté de la poignée : le
-                                 glisser demande une souris et une main, elles
-                                 non, et c'est le seul chemin au clavier vers
-                                 un changement d'ordre. -->
+                            <!-- The arrows stay next to the handle: dragging
+                                 takes a mouse and a hand, they do not, and
+                                 they are the only keyboard path to a change
+                                 of order. -->
                             <AppIconButton
                                 :disabled="at === 0"
                                 :title="t('suite.studio.deliverables.slides.move_up')"
@@ -781,9 +781,9 @@ onBeforeUnmount(() => {
                 </VueDraggable>
 
                 <div v-if="editable" class="mt-3 space-y-1">
-                    <!-- Repliée sous 1280 px : vingt gabarits les uns sous les
-                         autres poussaient la slide hors de l'écran d'un
-                         téléphone. -->
+                    <!-- Collapsed under 1280 px: twenty templates stacked on
+                         top of each other pushed the slide off a phone's
+                         screen. -->
                     <button
                         type="button"
                         class="flex w-full cursor-pointer items-center justify-between rounded-md border-0 bg-transparent px-1 py-1 text-xs text-muted"
@@ -819,8 +819,8 @@ onBeforeUnmount(() => {
                 />
 
                 <template v-else>
-                    <!-- Une slide libre : la barre qui y ajoute, la slide qu'on
-                         prend en main, et à côté ce qui règle ce qui est pris. -->
+                    <!-- A free slide: the bar that adds to it, the slide you
+                         work on, and next to it what adjusts the selection. -->
                     <div v-if="isFree" class="flex flex-col gap-4 xl:flex-row xl:items-start">
                         <div class="min-w-0 flex-1 space-y-2">
                             <FreeInsertBar
@@ -976,9 +976,9 @@ onBeforeUnmount(() => {
                                 :disabled="!editable"
                                 v-on:update:model-value="(value) => writeSlot('mediaShape', value)"
                             />
-                            <!-- Viser ne se fait qu'une fois l'image choisie :
-                                 un cadre de visée vide n'a rien à montrer et
-                                 rien à recevoir. -->
+                            <!-- Aiming only happens once the image is chosen:
+                                 an empty focal frame has nothing to show and
+                                 nothing to receive. -->
                             <AppFocalPointField
                                 v-else-if="slot === 'mediaFocus' && selected.content.mediaUrl"
                                 :src="selected.content.mediaUrl"
@@ -1109,10 +1109,10 @@ onBeforeUnmount(() => {
                                 v-on:update:model-value="writeBackdrop"
                             />
 
-                            <!-- Le curseur n'a de sens qu'avec une image
-                                 derrière : voilé à 40 %, un fond qui n'existe
-                                 pas ne change rien et le réglage n'explique
-                                 rien. -->
+                            <!-- The slider only makes sense with an image
+                                 behind: veiled at 40%, a background that does
+                                 not exist changes nothing and the setting
+                                 explains nothing. -->
                             <div v-if="selected.content.bgMediaUrl" class="flex flex-col gap-1.5">
                                 <span class="text-xs uppercase tracking-wide text-muted">
                                     {{ t("suite.studio.deliverables.slides.backdrop_dim") }}

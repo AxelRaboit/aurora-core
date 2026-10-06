@@ -64,10 +64,10 @@ suite:
                     removed: Tag supprimé
 notes:
     craft:
-        # Craft garde le savoir durable ; une note garde ce qu'on en tire pour
-        # un travail. L'import fait passer de l'un à l'autre, en copie
-        # franche : rien ne revient modifier la note ensuite, sauf une mise à
-        # jour qu'on demande.
+        # Craft keeps lasting knowledge; a note keeps what is drawn from it for
+        # a piece of work. The import moves from one to the other as a plain
+        # copy: nothing comes back to change the note afterwards, except an
+        # update someone asks for.
         settings:
             what_title: Ce que fait cette connexion
             what_body: "Elle permet d'importer un document Craft dans un espace de notes. C'est une copie : le document reste chez Craft, et la note ne change plus toute seule ensuite."
@@ -520,10 +520,10 @@ notes:
             title: Liens
             open: Afficher le plan et les liens
             close: Fermer le panneau
-            # « Backlinks » restait en anglais dans un écran qui dit « Afficher les
-            # liens entrants » deux boutons plus loin, et dans un produit dont la
-            # documentation appelle ça « les notes qui pointent ici ». Le jargon
-            # n'apprend rien à qui prend des notes.
+            # "Backlinks" stayed in English on a screen that says "Afficher les
+            # liens entrants" two buttons further on, and in a product whose
+            # documentation calls it "les notes qui pointent ici". The jargon
+            # teaches nothing to someone taking notes.
             backlinks: Liens entrants
             mentions: Mentions
             loading: Chargement…

@@ -18,7 +18,7 @@ const props = defineProps({
     // component then draws no box and sends no token, and the server accepts
     // the submission as it always did.
     captcha: { type: Object, default: () => ({ enabled: false }) },
-    /** Monté par l'aperçu du back-office : tout marche, sauf l'envoi. */
+    /** Mounted by the back office preview: everything works except sending. */
     preview: { type: Boolean, default: false },
 });
 
@@ -42,42 +42,42 @@ const inputClass =
     "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary";
 
 /**
- * Le même sélecteur de date que le back-office, chargé à la demande.
+ * The same date picker as the back office, loaded on demand.
  *
- * **Le champ natif lisait la date de travers.** Un champ de type date rendu
- * par le navigateur suit la machine du visiteur, pas la langue du site : un
- * formulaire français demandait `mm/dd/yyyy` sur une machine américaine, et
- * une date comprise à l'envers n'est pas une date illisible, c'est une date
- * fausse. C'est déjà le raisonnement qui avait sorti les champs natifs du
- * back-office, et une règle le vérifie - que ce fichier contournait sans le
- * vouloir, en construisant l'attribut au vol plutôt qu'en l'écrivant.
+ * **The native field read the date the wrong way.** A date field rendered by
+ * the browser follows the visitor's machine, not the site's language: a
+ * French form asked for `mm/dd/yyyy` on an American machine, and a date read
+ * backwards is not an unreadable date, it is a wrong date. That is the same
+ * reasoning that took native fields out of the back office, and a rule checks
+ * it - which this file was getting around without meaning to, by building
+ * the attribute on the fly rather than writing it.
  *
- * **Chargé dynamiquement** parce qu'il pèse deux cents kilos-octets à lui seul,
- * son calendrier et ses locales comprises : un formulaire de contact sans date
- * n'a pas à les télécharger. Vite en fait un morceau à part, demandé le jour
- * où un champ date existe.
+ * **Loaded dynamically** because it weighs two hundred kilobytes on its own,
+ * its calendar and locales included: a contact form without a date does not
+ * need to download them. Vite makes it a separate chunk, requested the day a
+ * date field exists.
  */
 const AppDatePicker = defineAsyncComponent(
     () => import("@/shared/components/form/picker/AppDatePicker.vue"),
 );
 
 /**
- * Le sélecteur de la maison, comme partout ailleurs.
+ * The house select, as everywhere else.
  *
- * Le menu natif était gardé ici exprès, pour la roue du téléphone. Il ne
- * suivait ni le thème ni la police du site, seul contrôle de la page à
- * trancher sur le reste, et sur téléphone celui-ci n'ouvre pas de clavier tant
- * que la liste reste courte. Chargé à la demande comme le sélecteur de date :
- * un formulaire sans liste n'a pas à télécharger vue-multiselect.
+ * The native menu was kept here on purpose, for the phone's wheel. It
+ * followed neither the theme nor the site's font, the only control on the
+ * page to clash with the rest, and on a phone this one opens no keyboard as
+ * long as the list stays short. Loaded on demand like the date picker: a form
+ * without a list does not need to download vue-multiselect.
  *
- * Plus de `required` natif : le serveur refuse un choix vide et l'erreur
- * s'affiche sous le champ, comme pour tous les autres.
+ * No native `required` any more: the server refuses an empty choice and the
+ * error shows under the field, as for all the others.
  */
 const AppSelect = defineAsyncComponent(
     () => import("@/shared/components/form/select/AppSelect.vue"),
 );
 
-/** Les choix d'un champ, au format { value, label } qu'attend AppSelect. */
+/** A field's choices, in the { value, label } format AppSelect expects. */
 function choices(field) {
     return (field.options ?? []).map((option) => ({ value: option, label: option }));
 }
@@ -178,11 +178,11 @@ function inputType(type) {
              expires while the visitor is still filling in step three. -->
         <div v-if="captcha.enabled && isLastStep" ref="captchaBox" class="min-h-0" />
 
-        <!-- `flex-1` sous `sm`, taille naturelle au-dessus : à une étape il n'y
-             a qu'un bouton et il prend la ligne, à deux ils se la partagent en
-             deux moitiés. La règle suit ce qui est là plutôt qu'un cas fixe.
-             `items-stretch` parce que « Précédent » porte un filet et son
-             voisin non : centrés, les deux se décalaient d'un pixel. -->
+        <!-- `flex-1` below `sm`, natural size above: with one step there is
+             only one button and it takes the line, with two they share it in
+             two halves. The rule follows what is there rather than a fixed
+             case. `items-stretch` because "Précédent" has a border and its
+             neighbour does not: centred, the two were a pixel apart. -->
         <div class="flex items-stretch gap-2">
             <AppButton
                 v-if="steps?.length && stepIndex > 0"

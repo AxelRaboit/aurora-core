@@ -88,36 +88,36 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     protected ?DateTimeImmutable $scheduledAt = null;
 
     /**
-     * Si la date se lit aussi dans le calendrier.
+     * Whether the date also shows in the calendar.
      *
-     * **Une date et une parution ne sont pas la même chose.** Une carte peut
-     * porter une échéance qui regarde le studio et personne d'autre : une
-     * relance à préparer, un tournage à caler, un envoi à vérifier. Datées,
-     * elles s'invitaient toutes dans le mois et noyaient ce que le calendrier
-     * existe pour montrer, ce qui sort et quand.
+     * **A date and a publication are not the same thing.** A card can carry
+     * a deadline that concerns the studio and nobody else: a reminder to
+     * prepare, a shoot to schedule, a delivery to check. Dated, they all
+     * crowded into the month and drowned what the calendar exists to show,
+     * what goes out and when.
      *
-     * Vrai par défaut, parce que c'est le cas courant et que l'inverse
-     * obligerait à cocher chaque carte pour retrouver le comportement d'avant.
-     * Décochée, la carte garde sa date, la montre sur le tableau, et ne
-     * s'affiche plus dans le mois - ni au studio, ni chez le client.
+     * True by default, because that is the common case and the opposite
+     * would mean ticking every card to get the previous behaviour back.
+     * Unticked, the card keeps its date, shows it on the board, and no longer
+     * appears in the month - neither for the studio nor for the client.
      */
     #[ORM\Column(options: ['default' => true])]
     protected bool $showOnCalendar = true;
 
     /**
-     * La date avant laquelle le client doit avoir répondu.
+     * The date by which the client must have answered.
      *
-     * **Ce n'est pas la date de parution.** Une publication prévue le 30 ne se
-     * valide pas le 30 : il faut le temps de produire, de monter, parfois de
-     * reprendre. `scheduledAt` dit quand ça sort, celle-ci dit quand il faut
-     * avoir tranché, et confondre les deux fait découvrir la veille qu'il
-     * manquait une réponse.
+     * **It is not the publication date.** A post planned for the 30th is not
+     * approved on the 30th: there has to be time to produce, edit, sometimes
+     * redo. `scheduledAt` says when it goes out, this one says when the
+     * decision must have been made, and mixing the two means finding out the
+     * day before that an answer was missing.
      *
-     * Nullable, et c'est le cas courant : la plupart des cartes n'ont pas
-     * d'échéance de relecture, et un champ obligatoire forcerait à inventer une
-     * date à chaque fois. Une date dépassée est une information, jamais une
-     * sanction : rien ne se bloque ni ne se déprogramme tout seul, pour la même
-     * raison qui fait de l'approbation un avis et pas un automate.
+     * Nullable, and that is the common case: most cards have no review
+     * deadline, and a mandatory field would force inventing a date every
+     * time. A date gone by is information, never a sanction: nothing blocks
+     * or unschedules itself, for the same reason that makes approval an
+     * opinion and not an automaton.
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $reviewBy = null;
@@ -158,13 +158,13 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     protected ?SpaceAccessLinkInterface $approvalByLink = null;
 
     /**
-     * Quand le contenu a été mis à la corbeille ; nul, il est vivant.
+     * When the content was put in the trash; null, it is alive.
      *
-     * À la corbeille, il quitte le tableau, la liste, le calendrier, les
-     * comptes et la page du client, et son adresse répond comme une fiche
-     * inconnue. Il garde son étape, son fil et ses fichiers : la restauration
-     * le remet dans son étape, ou dans la première si la sienne a disparu
-     * entre-temps. La purge planifiée le détruit au bout du délai commun.
+     * In the trash, it leaves the board, the list, the calendar, the counts
+     * and the client page, and its address answers like an unknown card. It
+     * keeps its stage, its thread and its files: restoring puts it back in
+     * its stage, or in the first one if its own has gone in the meantime. The
+     * scheduled purge destroys it after the common delay.
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -261,14 +261,14 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     }
 
     /**
-     * L'échéance de relecture est passée et le client n'a rien répondu, sur une
-     * carte qu'il a sous les yeux.
+     * The review deadline has passed and the client has not answered, on a
+     * card they have in front of them.
      *
-     * La règle de `SpaceWorkload`, écrite une fois pour la carte : une carte
-     * validée n'est en retard de rien, une carte sans échéance n'a rien à
-     * dépasser, et une carte que le client ne voit pas - étape interne, hors
-     * calendrier, déjà publiée - ne peut pas l'attendre. Le badge de la carte
-     * disait « en retard » là où les compteurs ne comptaient rien.
+     * The rule of `SpaceWorkload`, written once for the card: an approved
+     * card is late for nothing, a card without a deadline has nothing to go
+     * past, and a card the client does not see - internal stage, off the
+     * calendar, already published - cannot be waiting for them. The card's
+     * badge said "late" where the counters counted nothing.
      */
     public function isLateForReview(DateTimeImmutable $now): bool
     {
@@ -323,11 +323,11 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     }
 
     /**
-     * Ce que le calendrier prend, et lui seul.
+     * What the calendar takes, and only the calendar.
      *
-     * Les deux conditions ensemble, parce que les confondre est l'erreur
-     * qu'on ferait : une carte sans date n'a rien à y faire, et une carte
-     * datée qu'on a décochée non plus.
+     * Both conditions together, because mixing them up is the mistake one
+     * would make: a card without a date has no business there, and neither
+     * does a dated card that was unticked.
      */
     public function appearsOnCalendar(): bool
     {
@@ -335,19 +335,18 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     }
 
     /**
-     * Ce que la page du client montre : une fiche de son calendrier, dans une
-     * étape qui lui est ouverte.
+     * What the client page shows: a card of their calendar, in a stage open
+     * to them.
      *
-     * **Une seule règle pour ce que la page porte et pour ce qu'elle
-     * accepte.** La page ne dessine que son calendrier ; lui envoyer les
-     * autres fiches mettait leurs titres et leurs textes dans sa source, et
-     * les laisser recevoir un avis ou un commentaire ouvrait des gestes sur
-     * du travail que le studio n'avait pas montré.
+     * **A single rule for what the page carries and for what it accepts.**
+     * The page draws only its calendar; sending it the other cards put their
+     * titles and texts in its source, and letting them receive an opinion or
+     * a comment opened actions on work the studio had not shown.
      */
     public function isShownToClient(): bool
     {
-        // Un contenu à la corbeille, ou d'un espace à la corbeille, n'est plus
-        // sur la page du client : ni montré, ni ouvert à une réponse.
+        // A content in the trash, or from a space in the trash, is no longer
+        // on the client page: neither shown nor open to an answer.
         return !$this->isTrashed() && !$this->space->isTrashed() && $this->appearsOnCalendar() && $this->getColumn()->isVisibleToClient();
     }
 

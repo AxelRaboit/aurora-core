@@ -1,34 +1,34 @@
 import { nextTick, ref } from "vue";
 
 /**
- * Un contrôle qui vit replié en icône et se déploie au clic.
+ * A control that lives folded into an icon and unfolds on click.
  *
- * La barre de la bibliothèque porte six choses ; celles dont on se sert par
- * à-coups - chercher, changer de tri - n'ont pas à occuper leur largeur en
- * permanence. C'est le geste de Craft, et il vaut deux fois ici, donc il
- * vit à un seul endroit.
+ * The library's bar carries six things; those used in fits and starts -
+ * searching, changing the sort - do not have to take up their width all the
+ * time. It is Craft's gesture, and it applies twice here, so it lives in a
+ * single place.
  *
- * Le repli reste à l'appelant : une recherche ne se referme pas tant qu'on
- * a tapé dedans, un tri se referme dès qu'on a choisi. Ce qui est commun,
- * c'est l'ouverture et le fait de donner le clavier à ce qui apparaît.
+ * Folding is left to the caller: a search does not close as long as
+ * something has been typed in it, a sort closes as soon as a choice is made.
+ * What is shared is the opening and handing the keyboard to what appears.
  */
 export function useFoldable() {
     const open = ref(false);
     const box = ref(null);
 
     /**
-     * Déploie, puis donne le curseur au champ qui vient d'apparaître.
+     * Unfolds, then gives the cursor to the field that has just appeared.
      *
-     * Le `nextTick` n'est pas décoratif : le champ n'existe pas encore au
-     * moment du clic, et `focus()` sur un élément absent ne fait rien.
+     * The `nextTick` is not decorative: the field does not exist yet at the
+     * time of the click, and `focus()` on a missing element does nothing.
      *
-     * **L'argument peut être un événement, et c'est prévu.** Branchée telle
-     * quelle sur un `@click`, cette fonction reçoit le `PointerEvent` à la
-     * place du sélecteur ; `querySelector` le refuse en levant, la promesse
-     * part en échec, et Vue remonte cet échec jusqu'au `errorCaptured` de la
-     * page, qui remplace alors toute la bibliothèque par son écran d'erreur.
-     * Un clic sur la loupe vidait l'écran pour cette seule raison. Un
-     * sélecteur qui n'est pas une chaîne vaut donc le défaut.
+     * **The argument can be an event, and that is expected.** Wired as is
+     * on a `@click`, this function receives the `PointerEvent` instead of
+     * the selector; `querySelector` refuses it by throwing, the promise
+     * rejects, and Vue bubbles that rejection up to the page's
+     * `errorCaptured`, which then replaces the whole library with its error
+     * screen. A click on the magnifier emptied the screen for that reason
+     * alone. So a selector that is not a string falls back to the default.
      */
     async function reveal(selector = "input") {
         const css = "string" === typeof selector ? selector : "input";

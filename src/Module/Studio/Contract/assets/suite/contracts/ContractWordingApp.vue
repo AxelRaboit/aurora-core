@@ -218,8 +218,8 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
             </AppButton>
         </AppPageBar>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contracts.wording.guide.title')" storage-key="contract-wording">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.contracts.wording.guide.step_${step}`) }}</li>
@@ -288,7 +288,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                     :error="errors.title"
                     :readonly="!canEdit"
                 />
-                <!-- Un jeton long se coupe au lieu de sortir de la carte. -->
+                <!-- A long token breaks instead of spilling out of the card. -->
                 <div class="aurora-card p-3 [overflow-wrap:anywhere]" :class="{ 'opacity-80': !canEdit }">
                     <AppBlockEditor
                         v-model="wording.blocks"

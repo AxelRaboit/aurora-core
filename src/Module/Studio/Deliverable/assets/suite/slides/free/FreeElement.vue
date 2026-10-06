@@ -265,8 +265,8 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
             :target="link ? '_blank' : undefined"
             :rel="link ? 'noopener' : undefined"
         >
-            <!-- Les mots. Le cadre interne est celui qu'on mesure : c'est lui
-                 qui déborde, et lui que l'ajustement rétrécit. -->
+            <!-- The words. The inner box is the one that gets measured: it is
+                 the one that overflows, and the one the fitting shrinks. -->
             <div v-if="type === 'text'" ref="textBox" class="fe-text" :style="text">
                 <div
                     v-if="editing"
@@ -385,8 +385,8 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
             </table>
         </component>
 
-        <!-- Le contour d'une forme dessinée par un chemin : le même chemin,
-             tracé par-dessus, d'une épaisseur qui ne s'étire pas avec elle. -->
+        <!-- The outline of a shape drawn by a path: the same path, stroked on
+             top, with a width that does not stretch with it. -->
         <svg
             v-if="isPathShape && element.stroke"
             class="fe-outline"
@@ -427,8 +427,8 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
 .fe-shape .fe-body,
 .fe-icon .fe-body { overflow: visible; }
 
-/* Les mots se rangent en colonne, et la colonne se cale en haut, au milieu
-   ou en bas de la boîte. */
+/* The words stack in a column, and the column sits at the top, middle or
+   bottom of the box. */
 .fe-text {
     position: absolute;
     inset: 0;
@@ -457,7 +457,7 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
     user-select: none;
 }
 
-/* Le lecteur YouTube reçoit le pointeur, lui : c'est un lecteur. */
+/* The YouTube player does receive the pointer: it is a player. */
 iframe.fe-media { pointer-events: auto; }
 
 .fe-placeholder {
@@ -503,7 +503,7 @@ iframe.fe-media { pointer-events: auto; }
     pointer-events: none;
 }
 
-/* La ligne : une barre centrée, et ses têtes posées à ses bouts. */
+/* The line: a centred bar, with its heads set at its ends. */
 .fe-line {
     position: absolute;
     left: 0;
@@ -535,8 +535,8 @@ iframe.fe-media { pointer-events: auto; }
 .fe-chart-bars > i:nth-child(2) { height: 70%; }
 .fe-chart-bars > i:nth-child(3) { height: 55%; }
 
-/* Le tableau dessiné comme celui du gabarit : en-tête dans la police des
-   titres, filet d'accent dessous, lignes séparées d'un trait discret. */
+/* The table drawn like the template's: header in the heading font, accent
+   rule under it, rows separated by a discreet line. */
 .fe-table {
     width: 100%;
     border-collapse: collapse;
@@ -562,11 +562,11 @@ iframe.fe-media { pointer-events: auto; }
 .fe-table th + th,
 .fe-table td + td { padding-left: 1em; }
 
-/* Une ligne pas encore sortie garde sa place, comme sur une slide à gabarit. */
+/* A line not revealed yet keeps its place, as on a template slide. */
 .fe.is-held { visibility: hidden; }
 
-/* Les entrées. Jouées une fois, quand l'élément paraît, et seulement là où
-   la slide est regardée : le lecteur pose la classe, personne d'autre. */
+/* The entrances. Played once, when the element appears, and only where the
+   slide is being watched: the player sets the class, nobody else. */
 @media (prefers-reduced-motion: no-preference) {
     .fe-enter {
         animation-duration: var(--enter-duration, 600ms);
@@ -585,8 +585,9 @@ iframe.fe-media { pointer-events: auto; }
     .fe-enter-blur { animation-name: fe-blur; }
 }
 
-/* `translate` et `scale` plutôt que `transform` : l'élément porte déjà sa
-   rotation dans `transform`, et l'animation l'écraserait le temps d'entrer. */
+/* `translate` and `scale` rather than `transform`: the element already
+   carries its rotation in `transform`, and the animation would override it
+   while entering. */
 @keyframes fe-fade { from { opacity: 0; } }
 @keyframes fe-rise { from { opacity: 0; translate: 0 4cqw; } }
 @keyframes fe-fall { from { opacity: 0; translate: 0 -4cqw; } }

@@ -84,8 +84,8 @@ const pageActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.ged.categories.guide.title')" storage-key="ged-categories">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.ged.categories.guide.step_${step}`) }}</li>
@@ -112,9 +112,9 @@ const pageActions = computed(() => {
                             <p class="font-medium text-primary text-sm">{{ cat.name }}</p>
                             <p class="text-xs text-muted font-mono mt-0.5">{{ cat.slug }}</p>
                         </div>
-                        <!-- Les gestes derrière le bouton « … », à hauteur du
-                             nom, comme sur toutes les listes (décision d'Axel
-                             du 04/10/2026). -->
+                        <!-- The actions behind the "…" button, level with the
+                             name, as on every list (Axel's decision of
+                             04/10/2026). -->
                         <AppRowActions class="shrink-0" :actions="actionsFor(cat)" :label="cat.name" />
                     </div>
                 </div>

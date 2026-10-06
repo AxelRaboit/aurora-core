@@ -33,9 +33,9 @@ final readonly class DeliverableReadiness
     ) {}
 
     /**
-     * Un diaporama n'a pas de grille : ses images sont celles de ses
-     * diapositives et de son logo, cf. `DeckPictures`, et ses
-     * [passages à remplacer] ne sont pas comptés.
+     * A slideshow has no grid: its images are those of its slides and its
+     * logo, see `DeckPictures`, and its [passages to replace] are not
+     * counted.
      *
      * @return array{placeholders: int, withheldPictures: list<array{id: int, name: string}>}
      */
@@ -48,17 +48,17 @@ final readonly class DeliverableReadiness
     }
 
     /**
-     * Les documents de la médiathèque que la page utilise sans qu'ils soient
-     * publiés : un lecteur hors du back-office ne les verra pas, et mieux vaut
-     * le dire avant d'envoyer l'adresse. L'image du livrable compte aussi : le
-     * client la voit sur la carte de son espace.
+     * The media library documents the page uses without them being published:
+     * a reader outside the back office will not see them, and it is better to
+     * say so before sending the address. The deliverable's image counts too:
+     * the client sees it on their space's card.
      *
      * @return list<array{id: int, name: string}>
      */
     public function withheldPictures(DeliverableInterface $deliverable): array
     {
-        // Seules les zones que la page montre : une image dans une zone que le
-        // client ne verra pas n'a pas à le retarder.
+        // Only the zones the page shows: an image in a zone the client will
+        // not see has no reason to hold it back.
         $layout = DeliverablePageRenderer::withoutHiddenLayoutZones($deliverable->getGridLayout());
         $ids = $deliverable->isSlides() ? $this->deckPictures->idsUsedBy($deliverable) : $this->pictures->idsInGridLayout($layout);
 

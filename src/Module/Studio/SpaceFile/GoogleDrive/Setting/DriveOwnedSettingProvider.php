@@ -7,11 +7,10 @@ namespace Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting;
 use Aurora\Module\Configuration\Setting\Provider\OwnedSettingProviderInterface;
 
 /**
- * Les deux lignes que l'onglet Drive possède, pour que la synchronisation de
- * déploiement les laisse tranquilles.
+ * The two rows the Drive tab owns, so the deployment sync leaves them alone.
  *
- * Sans cela, la clé disparaîtrait à la release suivante et l'intégration
- * s'éteindrait sans que personne comprenne pourquoi.
+ * Without this, the key would disappear at the next release and the
+ * integration would switch off without anyone understanding why.
  */
 final readonly class DriveOwnedSettingProvider implements OwnedSettingProviderInterface
 {

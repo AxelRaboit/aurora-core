@@ -1,9 +1,9 @@
-/* Le sommaire qui suit la lecture (`shared/utils/tocFollow.js`).
+/* The table of contents that follows the reading (`shared/utils/tocFollow.js`).
 
-   La barre vit sous l'en-tête du site, à la hauteur que le script mesure :
-   un thème dont l'en-tête change de taille n'a rien à redéclarer ici. Elle
-   entre en glissant depuis l'en-tête et repart de même ; `visibility` suit
-   l'opacité pour qu'une barre partie ne capte plus les clics. */
+   The bar lives under the site's header, at the height the script measures:
+   a theme whose header changes size has nothing to redeclare here. It slides
+   in from the header and leaves the same way; `visibility` follows the
+   opacity so that a bar that has left no longer catches clicks. */
 .aurora-toc-follow {
     position: fixed;
     inset-inline: 0;
@@ -33,13 +33,13 @@
     pointer-events: auto;
 }
 
-/* La progression : un trait sous la barre, qui s'allonge avec la page. */
+/* The progress: a line under the bar, which grows with the page. */
 .aurora-toc-follow [data-toc-progress] {
     transform: scaleX(var(--aurora-toc-progress, 0));
     transition: transform 120ms linear;
 }
 
-/* La section en cours, dans le sommaire de la page comme dans la barre. */
+/* The current section, in the page's table of contents as in the bar. */
 [data-toc-link][aria-current] {
     background-color: color-mix(in srgb, var(--th-accent-500) 14%, transparent);
 }
@@ -48,8 +48,8 @@
     color: var(--th-accent-400);
 }
 
-/* Un titre rejoint par le sommaire s'arrête sous l'en-tête et sous la barre,
-   pas derrière eux. */
+/* A heading reached from the table of contents stops below the header and
+   the bar, not behind them. */
 .aurora-grid :is(h2, h3)[id^="section-"] {
     scroll-margin-top: 7rem;
 }

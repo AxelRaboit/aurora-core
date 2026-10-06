@@ -13,7 +13,7 @@ const props = defineProps({
     noteId: { type: Number, default: null },
     fetchBacklinks: { type: Function, required: true },
     fetchUnlinkedMentions: { type: Function, required: true },
-    /** Le texte de la note ouverte, d'où se lit son plan. */
+    /** The open note's text, from which its outline is read. */
     content: { type: String, default: '' },
 });
 
@@ -26,8 +26,8 @@ const { tab, items, loading } = useNoteSidePanel({
     fetchUnlinkedMentions: props.fetchUnlinkedMentions,
 });
 
-// Le plan : les titres de la note, et sa longueur en pied. Lu dans le texte,
-// il suit la frappe sans rien demander au serveur.
+// The outline: the note's headings, and its length at the bottom. Read from
+// the text, it follows typing without asking the server anything.
 const outline = computed(() => outlineOf(props.content));
 const words = computed(() => wordCount(props.content));
 const minutes = computed(() => readingMinutes(words.value));
@@ -84,8 +84,8 @@ const topLevel = computed(() => Math.min(...outline.value.map((heading) => headi
             </AppTab>
         </div>
 
-        <!-- Le plan de la note : un titre se clique pour y aller, en retrait
-             selon son niveau. -->
+        <!-- The note's outline: a heading is clicked to go to it, indented
+             according to its level. -->
         <div v-if="tab === 'outline'" class="flex flex-1 flex-col overflow-hidden" data-note-outline>
             <ul v-if="outline.length" class="m-0 flex-1 list-none overflow-auto p-2">
                 <li v-for="heading in outline" :key="heading.line">

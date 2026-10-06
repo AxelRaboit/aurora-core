@@ -11,22 +11,21 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * L'espace de notes d'un espace client, ouvert la première fois qu'on en a
- * besoin.
+ * A client space's notes space, opened the first time it is needed.
  *
- * **À la demande plutôt qu'avec l'espace client**, pour la raison que donne
- * déjà le dossier de la médiathèque : un prospect qu'on ouvre et qu'on
- * referme le lendemain laisserait derrière lui un espace de notes vide dans le
- * panneau de chaque membre de son équipe. On l'ouvre quand quelqu'un écrit sa
- * première note, ou va voir l'onglet pour le faire.
+ * **On demand rather than with the client space**, for the reason the media
+ * library folder already gives: a prospect opened and closed the next day
+ * would leave behind an empty notes space in the panel of every member of its
+ * team. It is opened when someone writes its first note, or goes to the tab to
+ * do so.
  *
- * Un espace de notes que quelqu'un aurait sorti de là (retiré à la main par
- * la base, ou relâché) ne revient pas : le suivant est ouvert à neuf, comme le
- * dossier de la médiathèque après une mise à la corbeille.
+ * A notes space someone took out of there (removed by hand in the database,
+ * or released) does not come back: the next one is opened fresh, like the
+ * media library folder after being moved to the trash.
  */
 final readonly class SpaceNoteSpaceProvider
 {
-    /** Ce que porte `managedBy` sur l'espace de notes d'un espace client. */
+    /** What `managedBy` holds on a client space's notes space. */
     public const string MANAGED_BY = 'studio.customer_space';
 
     public function __construct(
@@ -35,7 +34,7 @@ final readonly class SpaceNoteSpaceProvider
         private EntityManagerInterface $entityManager,
     ) {}
 
-    /** L'espace de notes de cet espace client, s'il en a un en service. */
+    /** This client space's notes space, if it has one in service. */
     public function existing(CustomerSpaceInterface $space): ?NoteSpaceInterface
     {
         $noteSpace = $space->getNoteSpace();

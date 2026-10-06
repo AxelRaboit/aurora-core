@@ -1,22 +1,23 @@
 /**
- * Le plan d'une note : ses titres, dans l'ordre, et sa longueur.
+ * A note's outline: its headings, in order, and its length.
  *
- * Craft et Notion montrent les titres d'une page à côté d'elle, pour s'y
- * repérer et y sauter ; une note longue (un brief, une procédure) se lit mal
- * sans. Les titres se lisent dans le texte Markdown lui-même, sans passer par
- * le rendu : le plan sert aussi en mode écriture, où il n'y a pas d'aperçu.
+ * Craft and Notion show a page's headings next to it, to find one's way and
+ * jump around; a long note (a brief, a procedure) reads badly without them.
+ * The headings are read from the Markdown text itself, without going through
+ * the rendering: the outline also serves in writing mode, where there is no
+ * preview.
  *
- * Ce qui est dans un bloc de code ne compte pas : un `# commentaire` de shell
- * n'est pas un titre, et ses mots ne sont pas ceux qu'on lit.
+ * What is in a code block does not count: a shell `# commentaire` is not a
+ * heading, and its words are not the ones being read.
  */
 
-/** Les mots qu'on lit en une minute, à l'écran. */
+/** The words read in one minute, on screen. */
 const WORDS_PER_MINUTE = 220;
 
 const FENCE = /^\s*(```|~~~)/;
 const HEADING = /^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/;
 
-/** Un titre tel qu'on le lit : sans sa syntaxe de liens, d'emphase ou de code. */
+/** A heading as it is read: without its link, emphasis or code syntax. */
 function readable(text) {
     return text
         .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "$2")
@@ -27,7 +28,7 @@ function readable(text) {
 }
 
 /**
- * Les lignes de texte, hors blocs de code, avec leur numéro.
+ * The text lines, outside code blocks, with their number.
  *
  * @param {string} markdown
  * @returns {Array<{line: number, text: string}>}
@@ -51,7 +52,7 @@ function proseLines(markdown) {
 }
 
 /**
- * Les titres de la note.
+ * The note's headings.
  *
  * @param {string} markdown
  * @returns {Array<{level: number, text: string, line: number}>}
@@ -69,8 +70,8 @@ export function outlineOf(markdown) {
 }
 
 /**
- * Le nombre de mots qu'on lit : la prose, sans la syntaxe Markdown ni le
- * code.
+ * The number of words that are read: the prose, without the Markdown syntax
+ * or the code.
  *
  * @param {string} markdown
  */
@@ -89,7 +90,7 @@ export function wordCount(markdown) {
         .length;
 }
 
-/** Le temps de lecture, en minutes entières, une au moins dès qu'il y a un mot. */
+/** The reading time, in whole minutes, at least one as soon as there is a word. */
 export function readingMinutes(words) {
     return words > 0 ? Math.max(1, Math.round(words / WORDS_PER_MINUTE)) : 0;
 }

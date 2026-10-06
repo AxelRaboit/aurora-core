@@ -245,7 +245,7 @@ function toggleStroke(on) {
 
 <template>
     <div class="flex flex-col gap-4 text-sm">
-        <!-- Rien de choisi : la slide elle-même, sa peinture et son film. -->
+        <!-- Nothing selected: the slide itself, its paint and its film. -->
         <template v-if="!selected.length">
             <p class="m-0 text-xs font-semibold uppercase tracking-wide text-muted">{{ t("suite.studio.deliverables.slides.free.slide") }}</p>
             <FreePaintField
@@ -326,8 +326,8 @@ function toggleStroke(on) {
                 </template>
             </div>
 
-            <!-- Aligner : sur la slide pour un seul élément, sur leur boîte
-                 pour plusieurs. -->
+            <!-- Align: on the slide for a single element, on their box for
+                 several. -->
             <div class="flex flex-wrap items-center gap-0.5">
                 <AppIconButton
                     v-for="align in ALIGNS"
@@ -348,7 +348,7 @@ function toggleStroke(on) {
                 </template>
             </div>
 
-            <!-- Où, combien grand, combien tourné. -->
+            <!-- Where, how big, how rotated. -->
             <div v-if="single" class="grid grid-cols-2 gap-2">
                 <FreeNumberField
                     :model-value="single.x"
@@ -572,7 +572,7 @@ function toggleStroke(on) {
                 <AppToggle :model-value="single.controls === true" :label="t('suite.studio.deliverables.slides.free.controls')" v-on:update:model-value="(value) => set('controls', value || null)" />
             </section>
 
-            <!-- Un lien YouTube ou Vimeo. -->
+            <!-- A YouTube or Vimeo link. -->
             <section v-if="type === 'embed'" class="flex flex-col gap-3 border-t border-line pt-3">
                 <AppInput
                     :model-value="single.url ?? ''"
@@ -595,7 +595,7 @@ function toggleStroke(on) {
                 />
             </section>
 
-            <!-- Une icône. -->
+            <!-- An icon. -->
             <section v-if="type === 'icon'" class="flex flex-col gap-3 border-t border-line pt-3">
                 <AppSelect :model-value="single.icon" :options="iconOptions" :label="t('suite.studio.deliverables.slides.free.icon')" v-on:update:model-value="(value) => set('icon', value)" />
                 <FreeColourField :model-value="single.color ?? 'accent'" :label="t('suite.studio.deliverables.slides.free.colour')" :appearance="appearance" v-on:update:model-value="(value) => set('color', value)" />
@@ -611,7 +611,7 @@ function toggleStroke(on) {
                 </div>
             </section>
 
-            <!-- Un graphique, un tableau. -->
+            <!-- A chart, a table. -->
             <section v-if="type === 'chart'" class="flex flex-col gap-3 border-t border-line pt-3">
                 <AppSelect :model-value="single.chartType ?? 'bar'" :options="chartOptions" :label="t('suite.studio.deliverables.slides.slots.chartType')" v-on:update:model-value="(value) => set('chartType', value)" />
                 <AppTextarea
@@ -649,7 +649,7 @@ function toggleStroke(on) {
                 <FreeColourField :model-value="single.color ?? 'ink'" :label="t('suite.studio.deliverables.slides.free.text_colour')" :appearance="appearance" v-on:update:model-value="(value) => set('color', value === 'ink' ? null : value)" />
             </section>
 
-            <!-- Ce qui habille la boîte : remplissage, contour, coins, ombre. -->
+            <!-- What dresses the box: fill, outline, corners, shadow. -->
             <section v-if="single" class="flex flex-col gap-3 border-t border-line pt-3">
                 <FreePaintField
                     v-if="hasFill"
@@ -713,7 +713,7 @@ function toggleStroke(on) {
                 </template>
             </section>
 
-            <!-- Comment l'élément entre, et où il mène. -->
+            <!-- How the element enters, and where it leads. -->
             <section class="flex flex-col gap-3 border-t border-line pt-3">
                 <div class="grid grid-cols-2 gap-2">
                     <AppSelect

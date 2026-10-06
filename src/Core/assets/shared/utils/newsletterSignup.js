@@ -1,11 +1,11 @@
 /**
- * L'inscription à la lettre d'information - `[data-newsletter]`.
+ * The newsletter signup - `[data-newsletter]`.
  *
- * Envoie l'adresse et le consentement en arrière-plan, puis remplace le
- * formulaire par un mot de remerciement. Le module est indispensable : la
- * route n'accepte que la requête qu'il envoie.
+ * Sends the address and the consent in the background, then replaces the
+ * form with a thank-you note. The module is required: the route only accepts
+ * the request it sends.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_newsletter_signup.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_newsletter_signup.html.twig
  */
 const SELECTOR = "[data-newsletter]";
 

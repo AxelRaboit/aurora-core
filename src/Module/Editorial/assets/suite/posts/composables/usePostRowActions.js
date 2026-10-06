@@ -37,11 +37,11 @@ export function usePostRowActions({
             });
         }
 
-        // Après « Modifier », qui reste le geste courant sur cet écran, et
-        // avant les deux qui écrivent. Aucun droit propre au-delà de voir la
-        // liste : regarder une page telle que le visiteur la voit est ce
-        // qu'un visiteur peut déjà faire, et un lecteur qui ne peut pas
-        // modifier n'avait aucun moyen d'ouvrir une publication d'ici.
+        // After "Modifier", which stays the usual gesture on this screen, and
+        // before the two that write. No right of its own beyond seeing the
+        // list: looking at a page as the visitor sees it is what a visitor
+        // can already do, and a reader who cannot edit had no way to open a
+        // post from here.
         if (canPreview && !post.trashed) {
             actions.push({
                 key: "preview",

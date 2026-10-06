@@ -44,7 +44,7 @@ function render(props = {}) {
 
 /** The file entries, whichever shape the view is drawing. */
 function entries(view) {
-    // Hors du mode d'emploi, dont les étapes sont aussi des `<li>`.
+    // Outside the how-to guide, whose steps are `<li>` too.
     const rows = view
         .findAll("li")
         .filter((row) => !row.element.closest("[data-guide]"));
@@ -52,7 +52,7 @@ function entries(view) {
     return rows.length > 0 ? rows : view.findAll("article");
 }
 
-/** Les deux boutons de forme : les seuls sans texte, cadre et icône. */
+/** The two shape buttons: the only ones without text, frame and icon. */
 function shapeToggle(view) {
     return view.findAll("button").filter((b) => b.text() === "");
 }
@@ -110,9 +110,8 @@ describe("SpaceFilesView", () => {
         const view = render({ attachments: {} });
 
         expect(entries(view)).toHaveLength(0);
-        // Les deux onglets restent, eux : ils disent où chercher l'autre
-        // moitié. Ce qui disparaît, c'est le choix de forme, qui n'a rien à
-        // mettre en forme.
+        // The two tabs stay: they say where to look for the other half. What
+        // goes is the shape choice, which has nothing to shape.
         expect(shapeToggle(view)).toHaveLength(0);
     });
 
@@ -147,11 +146,11 @@ describe("SpaceFilesView", () => {
     });
 
     /**
-     * Ouvrir un fichier montre le fichier, ici, sans quitter la liste.
+     * Opening a file shows the file, here, without leaving the list.
      *
-     * L'assertion porte sur l'adresse rendue et pas sur le composant de
-     * prévisualisation : ce qui casserait en silence, c'est un panneau ouvert
-     * sur le mauvais fichier - deux lignes, un seul `previewed`.
+     * The assertion is on the rendered address and not on the preview
+     * component: what would break silently is a panel opened on the wrong
+     * file - two rows, a single `previewed`.
      */
     it("previews a file in a panel rather than navigating to it", async () => {
         const view = render();
@@ -163,8 +162,8 @@ describe("SpaceFilesView", () => {
             .find((b) => b.text() === "suite.studio.space_content.files_open")
             .trigger("click");
 
-        // Le panneau est téléporté sur le body, comme toutes les fenêtres de
-        // l'application : le chercher dans le composant ne trouverait rien.
+        // The panel is teleported to the body, like every window of the
+        // application: looking for it in the component would find nothing.
         expect(document.body.innerHTML).toContain("/f/11");
 
         view.unmount();

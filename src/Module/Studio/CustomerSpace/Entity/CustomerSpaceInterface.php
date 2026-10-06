@@ -35,7 +35,7 @@ interface CustomerSpaceInterface
 
     public function isArchived(): bool;
 
-    /** Quand l'espace a été mis à la corbeille ; nul tant qu'il est vivant. */
+    /** When the space was moved to the trash; null while it is alive. */
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
@@ -85,7 +85,7 @@ interface CustomerSpaceInterface
 
     public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static;
 
-    /** L'espace de notes où l'équipe prend les notes de cet espace ; null tant que personne n'en a ouvert. */
+    /** The notes space where the team takes this space's notes; null until someone has opened one. */
     public function getNoteSpace(): ?NoteSpaceInterface;
 
     public function setNoteSpace(?NoteSpaceInterface $noteSpace): static;

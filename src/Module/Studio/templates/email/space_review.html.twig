@@ -1,12 +1,12 @@
-{# L'invitation à relire un plan de contenu, envoyée à la main par le studio.
+{# The invitation to review a content plan, sent by hand by the studio.
 
-   Le lien est neuf : le jeton d'un lien n'existe en clair qu'à sa création, donc
-   on ne peut pas renvoyer l'adresse d'un lien déjà émis. Le précédent vient
-   d'être révoqué, et le message le dit plutôt que de laisser quelqu'un se
-   demander pourquoi son ancien favori ne répond plus.
+   The link is new: a link's token only exists in clear text when it is
+   created, so the address of a link already issued cannot be sent again. The
+   previous one has just been revoked, and the message says so rather than
+   leaving someone wondering why their old bookmark no longer answers.
 
-   Le nombre en attente est dans le corps et dans le sujet : c'est ce qui décide
-   si on ouvre maintenant ou ce soir. #}
+   The pending count is in the body and in the subject: it is what decides
+   whether to open it now or tonight. #}
 <p>{{ 'studio.email.space_review.body'|trans({'{space}': space.name, '{count}': awaiting}) }}</p>
 
 <p><a href="{{ url }}">{{ 'studio.email.space_review.cta'|trans }}</a></p>

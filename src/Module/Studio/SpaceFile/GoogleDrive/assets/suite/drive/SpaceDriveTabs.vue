@@ -8,17 +8,16 @@ import AppTab from "@/shared/components/nav/AppTab.vue";
 import SpaceDriveView from "./SpaceDriveView.vue";
 
 /**
- * Deux dossiers Drive dans un espace : celui du client, et celui de l'agence.
+ * Two Drive folders in a space: the client's, and the agency's.
  *
- * **Celui du client** se désigne dans les réglages de son espace, et le client
- * le retrouve dans son propre espace. **Celui de l'agence** est le même pour
- * tous les espaces, choisi une fois dans la configuration du Drive : des
- * modèles, une charte, ce que l'équipe consulte en travaillant pour n'importe
- * quel client. Il n'est jamais montré au client - un fichier oublié dedans
- * serait sinon visible chez tous.
+ * **The client's** is designated in their space's settings, and the client
+ * finds it in their own space. **The agency's** is the same for every space,
+ * chosen once in the Drive configuration: templates, a brand guide, what the
+ * team browses while working for any client. It is never shown to the client
+ * - otherwise a file forgotten in it would be visible to all of them.
  *
- * Les onglets n'apparaissent que si l'agence a un dossier : sans lui, la vue
- * reste ce qu'elle a toujours été. Même vue des deux côtés, même serrure.
+ * The tabs only appear if the agency has a folder: without it, the view stays
+ * what it has always been. Same view on both sides, same lock.
  */
 const props = defineProps({
     folderId: { type: String, default: null },
@@ -51,14 +50,14 @@ const SOURCES = [
 
 <template>
     <div class="space-y-4">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains;
+     collapsed or expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.drive.space.guide.title')" storage-key="space-drive">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.studio.drive.space.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
-        <!-- Le même groupe d'onglets que les sections des réglages d'espace. -->
+        <!-- The same tab group as the space settings sections. -->
         <div
             v-if="hasAgency"
             class="inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border border-line bg-surface-2 p-1"
@@ -79,8 +78,8 @@ const SOURCES = [
             </AppTab>
         </div>
 
-        <!-- Une clé par dossier : passer de l'un à l'autre repart d'une vue
-             neuve, sans garder l'arborescence ni le fichier ouvert de l'autre. -->
+        <!-- One key per folder: switching from one to the other starts from a
+             fresh view, without keeping the other's tree or open file. -->
         <SpaceDriveView
             v-if="'agency' === source"
             key="agency"

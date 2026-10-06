@@ -76,8 +76,8 @@ const tokenGroups = [
                         />
                     </div>
 
-                    <!-- Aperçu peint avec les couleurs du mode, quel que soit
-                     celui dans lequel on regarde l'écran. -->
+                    <!-- Preview painted with the mode's colors, whichever
+                     mode the screen is being viewed in. -->
                     <div
                         class="rounded-lg border p-3 space-y-2"
                         :style="{ backgroundColor: suitePalette.colorOf(mode, 'bg'), borderColor: suitePalette.colorOf(mode, 'line') }"
@@ -164,8 +164,8 @@ const tokenGroups = [
         </div>
 
         <div class="aurora-card p-4 space-y-5">
-            <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+            <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
             <AppGuide :title="t('suite.settings.appearance.guide.title')" storage-key="settings-appearance">
                 <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                     <li v-for="step in 5" :key="step">{{ t(`suite.settings.appearance.guide.step_${step}`) }}</li>

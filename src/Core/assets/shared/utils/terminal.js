@@ -1,16 +1,16 @@
 /**
- * Le terminal qui tape tout seul - `[data-terminal]`.
+ * The terminal that types by itself - `[data-terminal]`.
  *
- * Tout le texte est dans la page dès le départ, lisible et copiable. Quand la
- * fenêtre arrive à l'écran, ce module l'efface et le retape : les commandes
- * caractère par caractère, les sorties d'un coup, comme dans un vrai
- * terminal. Rien ne bouge pour qui a demandé moins d'animations.
+ * All the text is in the page from the start, readable and copyable. When
+ * the window comes on screen, this module erases it and types it again: the
+ * commands character by character, the outputs all at once, as in a real
+ * terminal. Nothing moves for whoever asked for fewer animations.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_terminal.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_terminal.html.twig
  */
 const SELECTOR = "[data-terminal]";
 
-/** Millisecondes par caractère tapé, et pause après une commande. */
+/** Milliseconds per typed character, and pause after a command. */
 const TYPE_MS = 28;
 const PAUSE_MS = 350;
 

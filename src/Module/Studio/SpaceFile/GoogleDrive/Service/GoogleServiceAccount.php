@@ -21,33 +21,32 @@ use const JSON_THROW_ON_ERROR;
 use const OPENSSL_ALGO_SHA256;
 
 /**
- * La clé d'un compte de service Google, et l'assertion qu'elle signe.
+ * A Google service account key, and the assertion it signs.
  *
- * **Un compte de service plutôt qu'OAuth, et ça change tout.** Le chemin
- * habituel vers un Drive demande à une personne d'autoriser l'application dans
- * son navigateur : un écran de consentement, une route de retour, un jeton de
- * rafraîchissement à garder vivant, et une réautorisation le jour où il
- * expire. Un compte de service n'a rien de tout cela - il a une adresse, et le
- * client partage un dossier avec elle depuis son Drive, comme il partagerait
- * avec un collègue.
+ * **A service account rather than OAuth, and that changes everything.** The
+ * usual path to a Drive asks a person to authorise the application in their
+ * browser: a consent screen, a callback route, a refresh token to keep alive,
+ * and a re-authorisation the day it expires. A service account has none of
+ * that - it has an address, and the client shares a folder with it from their
+ * Drive, as they would share with a colleague.
  *
- * C'est la même forme que la connexion Craft, et pour la même raison : **la
- * portée se décide chez le fournisseur**, pas dans Aurora. Ce qui n'est pas
- * partagé n'existe pas pour ce compte, et retirer le partage referme la porte
- * sans toucher à la configuration.
+ * It is the same shape as the Craft connection, and for the same reason:
+ * **the scope is decided at the provider**, not in Aurora. What is not shared
+ * does not exist for this account, and removing the share closes the door
+ * without touching the configuration.
  *
- * **La signature est faite ici plutôt qu'empruntée.** `google/apiclient`
- * ferait le travail, et amènerait des centaines de définitions de services
- * dans un dépôt public livré à des clients pour une assertion de trois champs.
- * Ce que Google demande tient en une phrase : un JWT RS256 portant `iss`,
- * `scope`, `aud`, `iat` et `exp`, échangé contre un jeton d'accès. `openssl`
- * fait le reste.
+ * **The signature is made here rather than borrowed.** `google/apiclient`
+ * would do the job, and would bring hundreds of service definitions into a
+ * public repository shipped to clients for a three-field assertion. What
+ * Google asks for fits in one sentence: an RS256 JWT carrying `iss`,
+ * `scope`, `aud`, `iat` and `exp`, exchanged for an access token.
+ * `openssl` does the rest.
  */
 final readonly class GoogleServiceAccount
 {
     public const string TOKEN_URI = 'https://oauth2.googleapis.com/token';
 
-    /** Une heure au maximum, et Google refuse au-delà. */
+    /** One hour at most, and Google refuses beyond that. */
     private const int LIFETIME_SECONDS = 3600;
 
     private function __construct(
@@ -57,12 +56,12 @@ final readonly class GoogleServiceAccount
     ) {}
 
     /**
-     * Lit la clé telle que Google la livre : un JSON téléchargé une fois, que
-     * personne ne retape.
+     * Reads the key as Google delivers it: a JSON downloaded once, which
+     * nobody retypes.
      *
-     * Null plutôt qu'une exception quand le contenu n'est pas une clé de
-     * compte de service : l'intégration se tait, et l'écran de réglages
-     * redemande le fichier - ce qui est la seule chose qui répare.
+     * Null rather than an exception when the content is not a service account
+     * key: the integration goes quiet, and the settings screen asks for the
+     * file again - which is the only thing that fixes it.
      */
     public static function fromJson(#[SensitiveParameter] string $json): ?self
     {
@@ -84,14 +83,14 @@ final readonly class GoogleServiceAccount
     }
 
     /**
-     * L'assertion signée que Google échange contre un jeton d'accès.
+     * The signed assertion Google exchanges for an access token.
      *
-     * `aud` vaut l'adresse du point d'échange et non celle du Drive : c'est un
-     * détail que la documentation répète, et le confondre donne un refus sans
-     * explication utile.
+     * `aud` is the address of the exchange endpoint and not Drive's: it is a
+     * detail the documentation repeats, and mixing them up gives a refusal
+     * with no useful explanation.
      *
-     * @throws InvalidArgumentException quand la clé ne signe pas - une clé
-     *                                  tronquée au copier-coller, typiquement
+     * @throws InvalidArgumentException when the key does not sign - a key
+     *                                  truncated by copy-paste, typically
      */
     public function assertion(string $scope, ?int $now = null): string
     {
@@ -122,9 +121,9 @@ final readonly class GoogleServiceAccount
     }
 
     /**
-     * Base64 de l'URL, telle que JWT la veut : sans remplissage, et deux
-     * caractères remplacés. Un `+` ou un `/` laissés tels quels font une
-     * assertion que Google rejette une fois sur mille, au gré du contenu.
+     * URL-safe Base64, as JWT wants it: without padding, and two characters
+     * replaced. A `+` or a `/` left as is make an assertion Google rejects
+     * once in a thousand, depending on the content.
      */
     private function base64Url(string $raw): string
     {

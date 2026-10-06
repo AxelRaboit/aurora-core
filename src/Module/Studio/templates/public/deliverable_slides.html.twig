@@ -1,9 +1,9 @@
-{# Une présentation ouverte par une adresse secrète.
+{# A presentation opened by a secret address.
 
-   Sa propre page, sans menu ni compte : celui qui l'ouvre n'en a pas, et c'est
-   la raison d'être de l'adresse. Modelée sur la page publique d'un contrat,
-   avec une différence qui compte ici : ce document se regarde plutôt qu'il ne
-   se lit, donc la page donne la place aux slides et rien d'autre.
+   Its own page, with no menu and no account: whoever opens it has none, and
+   that is the reason for the address. Modelled on a contract's public page,
+   with one difference that matters here: this document is watched rather than
+   read, so the page gives the room to the slides and nothing else.
 
    Opened from the client's space, it leads back there (`backUrl`); opened by
    a reading link, there is nowhere to go back to. #}
@@ -12,9 +12,9 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        {# Rien ici n'est destiné à être trouvé. L'adresse est un secret remis à
-           quelqu'un, et un moteur qui l'indexerait la remettrait à tout le
-           monde, définitivement et hors de portée de toute révocation. #}
+        {# Nothing here is meant to be found. The address is a secret handed to
+           someone, and a search engine that indexed it would hand it to
+           everyone, for good and out of reach of any revocation. #}
         <meta name="robots" content="noindex, nofollow, noarchive">
         <meta name="referrer" content="no-referrer">
         <title>{{ deck.title }}</title>

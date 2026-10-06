@@ -6,15 +6,15 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
 
 /**
- * Les fichiers de l'espace lui-même, et les trois écritures dessus.
+ * The files of the space itself, and the three writes on them.
  *
- * **Déposer, choisir, retirer**, exactement comme sur une fiche : c'est le même
- * geste, sur un autre rattachement. Le sélecteur est celui de la médiathèque,
- * pour que la liste qu'on parcourt ici soit celle qu'on connaît de l'écran des
- * documents plutôt qu'une seconde construite pour cette page.
+ * **Drop, pick, remove**, exactly as on a record: it is the same action, on a
+ * different attachment. The picker is the media library's, so the list
+ * browsed here is the one known from the documents screen rather than a
+ * second one built for this page.
  *
- * Chaque écriture répond par la liste entière : elle est courte, et une page
- * qui rafistolerait sa copie s'écarterait du serveur en trois gestes.
+ * Each write answers with the whole list: it is short, and a page that patched
+ * its own copy would drift from the server in three actions.
  *
  * @param {Array} initial
  * @param {object} paths  uploadPath, attachPath, removePath, visibilityPath
@@ -32,10 +32,10 @@ export function useSpaceOwnFiles(initial, paths, offerOrphaned) {
     }
 
     /**
-     * Dépose un fichier sur l'espace.
+     * Drops a file on the space.
      *
-     * `rawBody` plutôt que du JSON : les octets montent en multipart, et
-     * l'aide de requête laisse le navigateur poser sa propre frontière.
+     * `rawBody` rather than JSON: the bytes go up as multipart, and the
+     * request helper lets the browser set its own boundary.
      */
     async function upload(file) {
         if (!file || loading.value) return;
@@ -58,7 +58,7 @@ export function useSpaceOwnFiles(initial, paths, offerOrphaned) {
         }
     }
 
-    /** Rattache un document déjà dans la médiathèque. */
+    /** Attaches a document already in the media library. */
     async function pick() {
         if (loading.value) return;
 
@@ -85,7 +85,7 @@ export function useSpaceOwnFiles(initial, paths, offerOrphaned) {
         }
     }
 
-    /** Retire le fichier de l'espace. Le document reste dans la médiathèque. */
+    /** Removes the file from the space. The document stays in the media library. */
     async function remove(file) {
         if (!file || loading.value) return;
 
@@ -100,9 +100,9 @@ export function useSpaceOwnFiles(initial, paths, offerOrphaned) {
             apply(data);
             toast.success(t("suite.studio.space_files.removed"));
 
-            // Ce que plus rien n'utilise, proposé plutôt que jeté : le même
-            // contrat que les pièces jointes d'une fiche et les images d'une
-            // note, donc le même composable le lit.
+            // What nothing uses any more, offered rather than thrown away: the
+            // same contract as a record's attachments and a note's images, so
+            // the same composable reads it.
             offerOrphaned(data);
         } finally {
             loading.value = false;
@@ -110,11 +110,11 @@ export function useSpaceOwnFiles(initial, paths, offerOrphaned) {
     }
 
     /**
-     * Montre le fichier au client, ou le lui cache.
+     * Shows the file to the client, or hides it from them.
      *
-     * Le serveur répond par la liste entière, comme aux autres écritures ;
-     * le message dit ce qui vient de se passer, parce que montrer par
-     * inadvertance et montrer sont le même clic.
+     * The server answers with the whole list, as for the other writes; the
+     * message says what just happened, because showing by accident and
+     * showing are the same click.
      */
     async function toggleVisibility(file) {
         if (!file || loading.value || !paths.visibilityPath) return;

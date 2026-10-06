@@ -5,19 +5,19 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
- * Convertir un prospect en client, depuis n'importe lequel des deux écrans.
+ * Convert a prospect into a customer, from either of the two screens.
  *
- * **Une seule adresse est demandée**, parce que c'est le seul champ que le
- * statut impose : c'est là que part le contrat. Le reste de l'identité légale
- * se remplit sur la fiche, le jour où on l'a - et le formulaire complet est à
- * un clic pour ça.
+ * **Only an address is asked for**, because it is the only field the status
+ * requires: it is where the contract goes. The rest of the legal identity is
+ * filled in on the sheet, the day it is known - and the full form is one
+ * click away for that.
  *
- * La liste des clients et celle des espaces l'utilisent toutes les deux, et
- * elles n'ont pas la même chose à rafraîchir ensuite : la première relit la
- * liste que le serveur renvoie, la seconde n'a aucune raison de la demander
- * puisqu'elle affiche des espaces. D'où `applyResult`, qui est leur affaire.
+ * The customers list and the spaces list both use it, and they do not have
+ * the same thing to refresh afterwards: the first reads the list the server
+ * sends back, the second has no reason to ask for it since it shows spaces.
+ * Hence `applyResult`, which is their business.
  *
- * @param {string} convertPath          gabarit d'URL portant `__id__`
+ * @param {string} convertPath          URL template carrying `__id__`
  * @param {(data: object, record: object) => void} applyResult
  */
 export function useProspectConversion(convertPath, applyResult) {
@@ -30,13 +30,13 @@ export function useProspectConversion(convertPath, applyResult) {
     const loading = ref(false);
 
     /**
-     * @param {object} record          la fiche ou l'espace d'où l'on part
+     * @param {object} record          the sheet or the space it starts from
      * @param {{id: number, name: string, email: string}} customer
      */
     function open(record, customer) {
         pending.value = { record, customer };
-        // Pré-rempli quand on l'a déjà : une fiche qui porte une adresse se
-        // convertit alors sans rien saisir.
+        // Prefilled when already known: a sheet that carries an address is
+        // then converted without entering anything.
         email.value = customer.email ?? "";
         error.value = "";
     }

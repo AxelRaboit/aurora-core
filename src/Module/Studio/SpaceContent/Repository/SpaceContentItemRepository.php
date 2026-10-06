@@ -252,13 +252,12 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les cartes dont le titre contient le terme, dans les espaces donnés.
+     * The cards whose title contains the term, in the given spaces.
      *
-     * `$spaceIds` à null veut dire « tous les espaces » ; une liste vide ne
-     * rend rien. L'espace et l'étape viennent avec la carte, parce que la
-     * recherche globale les affiche sous son titre. Les plus récemment
-     * touchées d'abord : une carte se cherche le plus souvent parce qu'on
-     * vient d'y travailler.
+     * `$spaceIds` null means "every space"; an empty list returns nothing.
+     * The space and the stage come with the card, because the global search
+     * shows them under its title. Most recently touched first: a card is
+     * most often searched for because somebody just worked on it.
      *
      * @param list<int>|null $spaceIds
      *
@@ -289,7 +288,7 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
         return $builder->getQuery()->getResult();
     }
 
-    /** Un contenu à la corbeille : ce qu'on restaure ou détruit pour de bon. */
+    /** A content in the trash: what is restored or destroyed for good. */
     public function findTrashed(int $id): ?SpaceContentItemInterface
     {
         return $this->createQueryBuilder('i')
@@ -301,12 +300,12 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les contenus à la corbeille des espaces vivants, le dernier arrivé en
-     * premier, avec leur espace : l'écran de la corbeille le nomme.
+     * The trashed contents of living spaces, latest first, with their space:
+     * the trash screen names it.
      *
-     * Ceux d'un espace lui-même à la corbeille n'y sont pas : les restaurer ne
-     * les rendrait visibles nulle part, et ils reviennent avec leur espace.
-     * L'appelant garde ceux que la personne a le droit de voir.
+     * Those of a space that is itself in the trash are not there: restoring
+     * them would make them visible nowhere, and they come back with their
+     * space. The caller keeps the ones the person may see.
      *
      * @return list<SpaceContentItemInterface>
      */
@@ -324,8 +323,8 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Ceux qui sont à la corbeille depuis avant cette date, quel que soit leur
-     * espace : la purge planifiée les détruit.
+     * Those in the trash since before this date, whatever their space: the
+     * scheduled purge destroys them.
      *
      * @return list<SpaceContentItemInterface>
      */

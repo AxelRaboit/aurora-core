@@ -18,8 +18,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * « Logo seul sur téléphone » : le nom du site ne part que si on l'a demandé,
- * et seulement quand un logo reste pour le remplacer.
+ * "Logo seul sur téléphone": the site name only goes away if it was asked
+ * for, and only when a logo remains to replace it.
  */
 #[AllowMockObjectsWithoutExpectations]
 final class ThemeContextHeaderTextTest extends TestCase

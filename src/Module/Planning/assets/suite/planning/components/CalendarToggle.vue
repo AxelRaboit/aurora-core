@@ -76,18 +76,18 @@ function swatch() {
              Two buttons because they are two jobs. Sharing a calendar is not a
              setting on it - it is handing an address to somebody outside - and it
              was buried in the edit form, where nobody found it. -->
-        <!-- **Au doigt, toujours là ; à la souris, au survol.** Un survol
-             n'existe pas sur un téléphone : cachés derrière lui, partager un
-             calendrier et le renommer y étaient impossibles. Sous `md` les deux
-             boutons restent affichés, avec le compte à côté plutôt qu'à leur
-             place - la ligne a la largeur pour les trois. -->
+        <!-- **With a finger, always there; with a mouse, on hover.** Hover
+             does not exist on a phone: hidden behind it, sharing a calendar
+             and renaming it were impossible there. Below `md` the two
+             buttons stay displayed, with the count next to them rather than
+             in their place - the line has the width for all three. -->
         <div
             v-if="canManage"
             class="flex shrink-0 items-center gap-1.5 md:hidden md:group-hover:flex"
         >
-            <!-- `p-1 -m-1` : la cible passe de quatorze à vingt-deux pixels
-                 sans que la ligne bouge d'un cheveu. Une icône de quatorze se
-                 vise à la souris, pas au pouce. -->
+            <!-- `p-1 -m-1`: the target goes from fourteen to twenty-two
+                 pixels without the line moving a hair. A fourteen-pixel icon
+                 is aimed at with a mouse, not with a thumb. -->
             <button
                 type="button"
                 class="-m-1 cursor-pointer p-1 text-muted hover:text-primary"

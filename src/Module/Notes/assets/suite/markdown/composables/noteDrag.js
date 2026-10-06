@@ -1,25 +1,24 @@
 /**
- * Ce qu'un glisser transporte, dans le carnet.
+ * What a drag carries, in the notebook.
  *
- * Un seul type MIME et un seul format, `kind:id`, parce que deux endroits
- * l'écrivent et un seul le lit : les cartes de la bibliothèque, les lignes du
- * panneau du menu, et le dépôt qui range. Le panneau l'avait oublié un temps
- * et ses lignes se laissaient saisir sans rien transporter : le dépôt
- * recevait une chaîne vide et ne faisait rien, sans le dire.
+ * A single MIME type and a single format, `kind:id`, because two places
+ * write it and one reads it: the library cards, the menu panel rows, and the
+ * drop that files. The panel had forgotten it for a while and its rows could
+ * be grabbed without carrying anything: the drop received an empty string
+ * and did nothing, without saying so.
  *
- * **Deux types de plus, qui ne portent rien.** Pendant le survol, le
- * navigateur ne laisse lire que la liste des types, jamais leur contenu : sans
- * eux, la cible ne sait pas si ce qu'on tient est un dossier qu'on essaie de
- * ranger dans son propre enfant, et elle s'allumait pour un dépôt que le
- * serveur allait refuser. Les types sont mis en minuscules par le navigateur,
- * d'où des noms qui le sont déjà.
+ * **Two more types, which carry nothing.** During the hover, the browser
+ * only lets the list of types be read, never their content: without them,
+ * the target does not know whether what is held is a folder one is trying to
+ * file into its own child, and it lit up for a drop the server was going to
+ * refuse. Types are lowercased by the browser, hence names that already are.
  */
 export const NOTE_DRAG_MIME = "application/x-aurora-note-item";
 
 const KIND_PREFIX = "application/x-aurora-note-kind-";
 const ID_PREFIX = "application/x-aurora-note-id-";
 
-/** Remplit le presse-papier d'un glisser avec ce qui est saisi. */
+/** Fills a drag's clipboard with what is grabbed. */
 export function startNoteDrag(event, kind, id) {
     if (!event.dataTransfer) return;
 
@@ -29,7 +28,7 @@ export function startNoteDrag(event, kind, id) {
     event.dataTransfer.setData(`${ID_PREFIX}${id}`, "");
 }
 
-/** Ce que porte un glisser, ou null quand ce n'en est pas un des nôtres. */
+/** What a drag carries, or null when it is not one of ours. */
 export function readNoteDrag(event) {
     const raw = String(event.dataTransfer?.getData(NOTE_DRAG_MIME) ?? "");
     const [kind, id] = raw.split(":");
@@ -40,11 +39,11 @@ export function readNoteDrag(event) {
 }
 
 /**
- * Ce que porte un glisser, lu pendant le survol.
+ * What a drag carries, read during the hover.
  *
- * Même réponse que `readNoteDrag`, mais tirée des types, seuls lisibles avant
- * le dépôt. Null quand le glisser n'est pas des nôtres - un fichier, un
- * texte - pour que la cible reste éteinte.
+ * Same answer as `readNoteDrag`, but taken from the types, the only thing
+ * readable before the drop. Null when the drag is not one of ours - a file,
+ * a text - so that the target stays off.
  */
 export function peekNoteDrag(event) {
     const types = Array.from(event.dataTransfer?.types ?? []);

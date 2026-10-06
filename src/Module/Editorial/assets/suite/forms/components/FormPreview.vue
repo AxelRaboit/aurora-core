@@ -6,19 +6,18 @@ import AppTab from "@/shared/components/nav/AppTab.vue";
 import FormRender from "../../../frontend/FormRender.vue";
 
 /**
- * Le formulaire tel que le visiteur le verra, pendant qu'on le construit.
+ * The form as the visitor will see it, while it is being built.
  *
- * **Le vrai composant du site, pas une imitation.** Une maquette dessinée à
- * part finirait par mentir sur un détail - un ordre, une condition, une étape
- * - et c'est précisément ce qu'on vient vérifier ici. Il est seulement monté
- * en mode aperçu, qui n'envoie rien.
+ * **The site's real component, not an imitation.** A mockup drawn separately
+ * would end up lying about a detail - an order, a condition, a step - and
+ * that is precisely what one comes here to check. It is only mounted in
+ * preview mode, which sends nothing.
  *
- * La question en cours d'édition y figure déjà telle qu'on la tape : on voit
- * le libellé changer, les choix apparaître, la condition jouer, avant
- * d'enregistrer.
+ * The question being edited already shows in it as it is typed: you see the
+ * label change, the choices appear, the condition apply, before saving.
  */
 const props = defineProps({
-    /** Le formulaire au format du site : une langue, des libellés à plat. */
+    /** The form in the site's format: one language, flat labels. */
     form: { type: Object, required: true },
 });
 
@@ -26,10 +25,10 @@ const { t } = useI18n();
 const { locales, editLocale } = inject("formEditor");
 
 /**
- * Remonté à chaque changement de question. Le composant du site prépare ses
- * réponses à l'ouverture, une case par question : une question ajoutée après
- * coup n'aurait pas la sienne, et des cases à cocher sans liste où ranger
- * leurs choix ne se cochent pas.
+ * Remounted on every question change. The site's component prepares its
+ * answers when it opens, one slot per question: a question added afterwards
+ * would not have its own, and checkboxes without a list to store their
+ * choices cannot be ticked.
  */
 const renderKey = computed(() => JSON.stringify(props.form.fields.map((field) => [field.id, field.type, field.options, field.step])) + JSON.stringify(props.form.steps));
 </script>

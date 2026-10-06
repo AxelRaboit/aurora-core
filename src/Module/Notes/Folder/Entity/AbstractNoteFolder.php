@@ -34,9 +34,9 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     use TimestampableTrait;
 
     /**
-     * L'auteur. Null quand son compte a été supprimé : dans un espace partagé,
-     * ce qu'il a écrit reste à l'équipe. Son espace personnel, lui, part avec
-     * lui, par la cascade de l'espace.
+     * The author. Null when their account has been deleted: in a shared
+     * space, what they wrote stays with the team. Their personal space leaves
+     * with them, through the space's cascade.
      */
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -55,9 +55,8 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     protected ?string $name = null;
 
     /**
-     * `#rrggbb`, ou rien. Sept caractères parce que c'est la forme que le
-     * sélecteur de la maison produit, celle que porte déjà l'étiquette de
-     * document.
+     * `#rrggbb`, or nothing. Seven characters because that is the form the
+     * house picker produces, the one the document label already carries.
      */
     #[ORM\Column(length: 7, nullable: true)]
     protected ?string $color = null;
@@ -66,8 +65,8 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     protected int $position = 0;
 
     /**
-     * L'espace où vit la ligne. Toujours celui de son dossier : c'est lui qui
-     * dit qui la lit et qui l'écrit. Supprimer l'espace emporte ce qu'il range.
+     * The space the row lives in. Always its folder's: it says who reads it
+     * and who writes it. Deleting the space takes what it holds with it.
      */
     #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]

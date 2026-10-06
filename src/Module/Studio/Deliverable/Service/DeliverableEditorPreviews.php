@@ -18,24 +18,24 @@ use function is_string;
 use function max;
 
 /**
- * Les aperçus de l'éditeur d'un livrable, pendant qu'on le compose : la grille,
- * et un bloc d'entête posé dans la grille.
+ * The previews of a deliverable's editor, while it is being composed: the
+ * grid, and a banner block placed in the grid.
  *
- * Le même gabarit de zones que la page, rendu à partir de ce que l'éditeur
- * tient, et pas de ce qui est en base. Partagé par l'éditeur d'un espace et
- * celui de Studio.
+ * The same zone template as the page, rendered from what the editor holds,
+ * and not from what is in the database. Shared by the space editor and the
+ * Studio one.
  */
 final readonly class DeliverableEditorPreviews
 {
-    /** Le sélecteur de l'aperçu du bloc d'entête, cf. PostBannerPanel.vue. */
+    /** The selector of the banner block preview, see PostBannerPanel.vue. */
     private const string BANNER_PREVIEW_SELECTOR = '.aurora-banner-preview[data-theme]';
 
     /**
-     * Les gabarits du thème par défaut, comme la page du client : un livrable
-     * se rend toujours avec eux, quel que soit le thème actif du site, pour
-     * que ce que lit le client ne dépende pas de l'habillage du site. Un
-     * aperçu qui passerait par le thème actif montrerait, le jour où un thème
-     * surcharge la grille, une page que le client ne verra pas.
+     * The default theme's templates, like the client's page: a deliverable
+     * always renders with them, whatever the site's active theme, so that
+     * what the client reads does not depend on the site's skin. A preview
+     * that went through the active theme would show, the day a theme
+     * overrides the grid, a page the client will not see.
      */
     private const string GRID_TEMPLATE = 'Frontend/themes/default/editorial/post/_grid.html.twig';
 
@@ -51,35 +51,35 @@ final readonly class DeliverableEditorPreviews
         private DeliverablePageRenderer $pageRenderer,
     ) {}
 
-    /** @param array<string, mixed> $payload ce que l'éditeur envoie : `{layout, content, locale}` */
+    /** @param array<string, mixed> $payload what the editor sends: `{layout, content, locale}` */
     public function grid(array $payload): string
     {
-        // La page entière, au thème public, pour l'aperçu posé à côté de la
-        // grille ; la grille seule pour la fenêtre d'aperçu.
-        // La langue de l'envoi, validée ici et pour les deux aperçus : celle
-        // d'une requête n'est pas une langue du site pour autant.
+        // The whole page, in the public theme, for the preview next to the
+        // grid; the grid alone for the preview dialog.
+        // The request's language, validated here and for both previews: a
+        // request's language is not a site language for all that.
         $locale = $this->locale($payload['locale'] ?? null);
 
         if (true === ($payload['frame'] ?? false)) {
             return $this->pageRenderer->editorPreviewPage([...$payload, 'locale' => $locale]);
         }
 
-        // Sans les zones que la page du client ne montrera pas : filtrées
-        // avant d'être résolues, car un deck ou une liste de publications
-        // résolus dans l'aperçu auraient déjà montré ce que l'auteur n'a peut-être
-        // pas le droit de voir.
+        // Without the zones the client's page will not show: filtered before
+        // being resolved, because a deck or a publication list resolved in
+        // the preview would already have shown what the author may not be
+        // allowed to see.
         $layout = DeliverablePageRenderer::withoutHiddenLayoutZones(is_array($payload['layout'] ?? null) ? $payload['layout'] : []);
         $content = DeliverablePageRenderer::contentOfShownZones($layout, is_array($payload['content'] ?? null) ? $payload['content'] : []);
 
-        // Les [passages à remplacer] surlignés, comme dans l'aperçu de la page :
-        // c'est l'auteur qui regarde.
+        // The [passages to replace] highlighted, as in the page preview: the
+        // author is the one looking.
         return $this->placeholders->mark($this->twig->render(
             self::GRID_TEMPLATE,
             ['grid' => $this->gridViewBuilder->buildForPreview($layout, $content, $locale), 'locale' => $locale, 'editorPreview' => true],
         ));
     }
 
-    /** @param array<string, mixed> $payload ce que l'éditeur envoie : `{layout, texts, slide}` */
+    /** @param array<string, mixed> $payload what the editor sends: `{layout, texts, slide}` */
     public function banner(array $payload): string
     {
         $layout = is_array($payload['layout'] ?? null) ? $payload['layout'] : [];

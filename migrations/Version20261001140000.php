@@ -8,16 +8,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les liens de lecture d'une publication, et la façon dont leur page se présente.
+ * A post's reading links, and how their page presents itself.
  *
- * Un lien ouvre une publication hors du site, sans compte : un par
- * destinataire, avec un intitulé, une date d'expiration et un mot de passe
- * facultatifs, et le nombre d'ouvertures. Révoquer pose une date, sans jamais
- * supprimer la ligne.
+ * A link opens a post outside the site, without an account: one per
+ * recipient, with an optional label, expiry date and password, and the
+ * number of opens. Revoking sets a date, without ever deleting the row.
  *
- * `reading_page` dit ce que la page de lecture affiche en tête : pour qui le
- * document a été préparé, la date, le logo du site. Vide pour toutes les
- * publications existantes, ce qui donne les valeurs par défaut.
+ * `reading_page` says what the reading page shows at the top: who the
+ * document was prepared for, the date, the site logo. Empty for every
+ * existing post, which gives the default values.
  */
 final class Version20261001140000 extends AbstractMigration
 {

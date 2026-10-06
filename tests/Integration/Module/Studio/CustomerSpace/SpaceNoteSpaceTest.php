@@ -30,14 +30,13 @@ use function random_bytes;
 use function sprintf;
 
 /**
- * Les notes d'un espace client vivent dans un espace de notes, ouvert à son
- * équipe.
+ * A client space's notes live in a notes space, open to its team.
  *
- * Ce qui est tenu ici, c'est le lien entre les deux : l'espace de notes naît
- * à la demande, porte le nom de l'espace client et son équipe (le référent
- * gère, un membre écrit), les suit quand ils changent, et part à la
- * corbeille des notes quand l'espace client disparaît - sans emporter les
- * notes, qu'un administrateur fait revenir.
+ * What is held here is the link between the two: the notes space is created
+ * on demand, carries the client space's name and its team (the lead manages,
+ * a member writes), follows them when they change, and goes to the notes
+ * trash when the client space disappears - without taking the notes with
+ * it, which an administrator brings back.
  */
 final class SpaceNoteSpaceTest extends IntegrationTestCase
 {
@@ -109,7 +108,7 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
             (int) $this->member->getId() => 'editor',
         ], $this->rolesIn((int) $noteSpace->getId()));
 
-        // Une seule fois : la seconde demande retrouve le même.
+        // Only once: the second request finds the same one.
         self::assertSame($noteSpace->getId(), $this->provider()->resolve($this->reloaded($space))->getId());
     }
 
@@ -133,7 +132,7 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         ], $this->rolesIn($noteSpaceId));
     }
 
-    /** L'équipe écrit, et l'espace de notes n'existe pas pour qui n'en est pas. */
+    /** The team writes, and the notes space does not exist for whoever is not on it. */
     public function testTheTeamWritesAndNobodyElseSeesIt(): void
     {
         $space = $this->givenSpace('Boulangerie Martin');
@@ -150,9 +149,9 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
     }
 
     /**
-     * L'espace client part pour de bon, ses notes non : leur espace reste à la
-     * corbeille des notes, ne suit plus rien, et un administrateur le fait
-     * revenir.
+     * The client space goes for good, its notes do not: their space stays in
+     * the notes trash, follows nothing any more, and an administrator brings
+     * it back.
      */
     public function testDeletingTheSpaceSendsItsNoteSpaceToTheTrash(): void
     {
@@ -176,8 +175,8 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
     }
 
     /**
-     * L'onglet ouvre l'espace de notes au premier geste, et liste ensuite ce
-     * que l'équipe y a écrit.
+     * The tab opens the notes space on the first action, and then lists what
+     * the team wrote in it.
      */
     public function testTheTabOpensTheNoteSpaceAndListsItsNotes(): void
     {
@@ -204,8 +203,8 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
     }
 
     /**
-     * Sans le droit d'utiliser les notes, l'onglet n'est pas là, et sa route
-     * ne s'ouvre pas : le droit ne se gagne pas en entrant dans une équipe.
+     * Without the right to use notes, the tab is not there, and its route
+     * does not open: the right is not gained by joining a team.
      */
     public function testTheTabIsHiddenFromWhoCannotUseTheNotes(): void
     {
@@ -224,7 +223,7 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
     }
 
     /**
-     * L'état de l'onglet tel que la page le rend.
+     * The tab's state as the page renders it.
      *
      * @return array<string, mixed>
      */
@@ -244,7 +243,7 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         return static::getContainer()->get(SpaceNoteSpaceProvider::class);
     }
 
-    /** Un espace client mené par `lead`, avec `member` dans l'équipe. */
+    /** A client space led by `lead`, with `member` on the team. */
     private function givenSpace(string $name): CustomerSpace
     {
         $customer = new Customer();

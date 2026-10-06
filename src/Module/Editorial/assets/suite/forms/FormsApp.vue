@@ -1,15 +1,15 @@
 <script setup>
 /**
- * Les formulaires, en liste.
+ * The forms, as a list.
  *
- * **Une liste, et plus une entrée de menu par formulaire.** Le menu grandissait
- * à chaque création et ne disait rien de ce qui compte devant un formulaire :
- * est-il en ligne, combien de questions, est-ce que quelqu'un le remplit. Ce
- * sont les colonnes d'ici, sur le modèle des Présentations : le titre mène au
- * formulaire, le reste des gestes est dans le menu de ligne.
+ * **A list, no longer one menu entry per form.** The menu grew with every
+ * creation and said nothing of what matters about a form: is it online, how
+ * many questions, is anyone filling it in. Those are the columns here,
+ * modelled on Présentations: the title leads to the form, the other gestures
+ * are in the row menu.
  *
- * La création demande un titre et un point de départ, rien d'autre : le reste
- * se règle dans le formulaire, devant ses questions.
+ * Creation asks for a title and a starting point, nothing else: the rest is
+ * set in the form, in front of its questions.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
@@ -73,9 +73,9 @@ function formatDate(value) {
     return value ? d(new Date(value), "short") : null;
 }
 
-// ── Création ────────────────────────────────────────────────────────────────
+// ── Creation ────────────────────────────────────────────────────────────────
 
-/** Une icône par point de départ : on choisit en regardant, pas en lisant. */
+/** One icon per starting point: people choose by looking, not by reading. */
 const TEMPLATE_ICONS = { blank: FilePlus2, contact: Mail, quote: ReceiptText, event: Ticket };
 
 const showCreate = ref(false);
@@ -91,8 +91,8 @@ const {
     body: () => newForm.value,
     onSuccess: (data) => {
         toast.success(t("suite.forms.created"));
-        // Directement dans le formulaire : c'est là que le travail commence,
-        // et revenir à la liste obligerait à le chercher pour l'ouvrir.
+        // Straight into the form: that is where the work starts, and going
+        // back to the list would mean looking for it to open it.
         if (data?.editPath) window.location.assign(data.editPath);
     },
 });
@@ -103,10 +103,10 @@ function openCreate() {
     showCreate.value = true;
 }
 
-/** Le serveur range l'erreur d'un titre vide sous les traductions : c'est ici le seul titre. */
+/** The server files the empty-title error under the translations: here it is the only title. */
 const titleError = computed(() => createErrors.value.translations ?? createErrors.value.title ?? "");
 
-// ── Suppression ─────────────────────────────────────────────────────────────
+// ── Deletion ────────────────────────────────────────────────────────────────
 
 const pendingDelete = ref(null);
 const deleteLoading = ref(false);
@@ -175,8 +175,8 @@ const pageActions = computed(() =>
                 <AppPageActions v-if="pageActions.length" :actions="pageActions" class="w-full sm:w-auto" />
             </template>
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.forms.guide.title')" storage-key="forms-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.forms.guide.step_${step}`) }}</li>
@@ -217,8 +217,8 @@ const pageActions = computed(() =>
                         class="border-b border-line last:border-0 hover:bg-surface-2/50"
                     >
                         <td class="px-4 py-2">
-                            <!-- Le titre est le lien : ouvrir le formulaire est
-                                 le geste qu'on vient faire ici. -->
+                            <!-- The title is the link: opening the form is
+                                 the gesture people come here for. -->
                             <a class="block font-medium text-primary no-underline hover:text-accent" :href="form.editPath">{{ form.title }}</a>
                             <span v-if="form.description" class="block text-xs text-muted line-clamp-1">{{ form.description }}</span>
                         </td>
@@ -252,9 +252,9 @@ const pageActions = computed(() =>
             </table>
         </div>
 
-        <!-- La même ligne, lue de haut en bas, comme sur la liste des
-             Présentations : le titre reste le lien, les gestes sont derrière
-             le bouton « … » à sa hauteur (décision d'Axel du 04/10/2026). -->
+        <!-- The same row, read top to bottom, as on the Présentations list:
+             the title stays the link, the gestures are behind the "…" button
+             level with it (Axel's decision of 04/10/2026). -->
         <div v-else class="space-y-2">
             <article v-for="form in filteredItems" :key="form.id" class="aurora-card space-y-2.5 p-3">
                 <div class="flex items-start justify-between gap-2">
@@ -296,9 +296,9 @@ const pageActions = computed(() =>
                     required
                 />
 
-                <!-- Le point de départ en cartes et pas en liste déroulante :
-                     ce qui les distingue, ce sont les questions qu'elles posent,
-                     et une liste ne montre que des noms. -->
+                <!-- The starting point as cards and not a dropdown: what sets
+                     them apart is the questions they ask, and a list shows
+                     only names. -->
                 <fieldset class="space-y-2">
                     <legend class="mb-2 text-xs uppercase tracking-wide text-secondary">{{ t("suite.forms.templates.title") }}</legend>
                     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" role="radiogroup">

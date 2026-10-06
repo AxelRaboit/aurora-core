@@ -167,15 +167,14 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     }
 
     /**
-     * Le tableau d'un espace neuf.
+     * The board of a new space.
      *
-     * **Deux étapes montrées au client, les autres cachées.** La règle commune
-     * cache tout ce qui est neuf ({@see ClientVisibility}), mais un tableau
-     * dont aucune étape ne se voit ferait d'un lien d'accès une page vide :
-     * la Relecture est l'endroit où le client répond, et Publié ce qui est
-     * sorti. Les idées, la rédaction et la programmation restent du travail
-     * interne tant que quelqu'un qui a le droit de partager n'en décide pas
-     * autrement.
+     * **Two stages shown to the client, the others hidden.** The common rule
+     * hides everything new ({@see ClientVisibility}), but a board with no
+     * visible stage would make an access link an empty page: Relecture is
+     * where the client answers, and Publié what has gone out. Ideas, writing
+     * and scheduling stay internal work until somebody with the right to
+     * share decides otherwise.
      */
     public function seedDefaults(CustomerSpaceInterface $space): void
     {

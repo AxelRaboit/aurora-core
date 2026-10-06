@@ -1,11 +1,11 @@
 /**
- * Les dossiers dépliés, retenus dans le navigateur.
+ * The expanded folders, remembered in the browser.
  *
- * Une habitude de lecture, pas un état du carnet : elle ne regarde que la
- * personne assise là, et le panneau comme le lecteur la partagent, pour qu'on
- * retrouve les mêmes dossiers ouverts d'un espace à l'autre. Un stockage
- * indisponible ou abîmé donne un arbre replié, un défaut d'agrément et pas
- * une panne.
+ * A reading habit, not a state of the notebook: it only concerns the person
+ * sitting there, and the panel and the reader share it, so that the same
+ * folders are found open from one space to the other. An unavailable or
+ * damaged storage gives a folded tree, a minor inconvenience and not an
+ * outage.
  */
 export const EXPANDED_KEY = "aurora.notes.panel.expanded";
 
@@ -27,6 +27,6 @@ export function storeExpanded(ids) {
     try {
         window.localStorage.setItem(EXPANDED_KEY, JSON.stringify([...ids]));
     } catch {
-        // Idem : la session continue sans mémoire.
+        // Same: the session goes on without memory.
     }
 }

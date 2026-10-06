@@ -1,33 +1,32 @@
 <script setup>
 /**
- * Le lien qui remonte d'un écran.
+ * The link that goes up from a screen.
  *
- * Quatre écrans le portaient, sous quatre formes : un bouton fantôme sur
- * l'éditeur de publication, une ancre avec une flèche dans la médiathèque,
- * une ancre avec un chevron et un libellé qui s'efface sur téléphone dans un
- * espace client, et un bouton de texte dans les notes. Le même geste, quatre
- * dessins, dont un seul est juste.
+ * Four screens carried it, in four forms: a ghost button on the publication
+ * editor, an anchor with an arrow in the media library, an anchor with a
+ * chevron and a label that disappears on a phone in a client space, and a
+ * text button in the notes. The same gesture, four drawings, only one of
+ * which is right.
  *
- * **Ce n'est pas une action, c'est une navigation.** Un bouton plein ou
- * fantôme le met au même niveau visuel qu'« Enregistrer », posé à un
- * centimètre de là : sur un téléphone où les deux se retrouvent l'un sous
- * l'autre, l'écran n'a plus de hiérarchie. Un lien discret le dit pour ce
- * qu'il est.
+ * **It is not an action, it is navigation.** A solid or ghost button puts it
+ * at the same visual level as "Save", placed a centimetre away: on a
+ * phone where the two end up one below the other, the screen no longer has
+ * a hierarchy. A discreet link says it for what it is.
  *
- * **Le libellé s'efface sous `sm`, partout, sans exception.** C'est la
- * trouvaille de l'espace client, reprise ici : « Retour à la liste » prend
- * près de la moitié de la barre pour un mot que le chevron dit déjà, et sur
- * un téléphone cette moitié manque ailleurs. Il reste lu par un lecteur
- * d'écran dans les deux cas, parce que `aria-label` le porte.
+ * **The label disappears below `sm`, everywhere, without exception.** It is
+ * the find of the client space, taken up here: "Back to the list" takes
+ * nearly half the bar for a word the chevron already says, and on a phone
+ * that half is missing elsewhere. It is still read by a screen reader in
+ * both cases, because `aria-label` carries it.
  *
- * Pas d'échappatoire pour le garder visible : une option pour faire
- * autrement est une invitation à ce que chaque écran décide, et c'est
- * exactement ce que ce composant vient corriger.
+ * No escape hatch to keep it visible: an option to do otherwise is an
+ * invitation for each screen to decide, and that is exactly what this
+ * component is here to fix.
  */
 import { ChevronLeft } from "lucide-vue-next";
 
 defineProps({
-    /** Une adresse, ou rien : sans elle, le composant émet `back`. */
+    /** An address, or nothing: without it, the component emits `back`. */
     href: { type: String, default: "" },
     label: { type: String, required: true },
 });
@@ -36,15 +35,15 @@ const emit = defineEmits(["back"]);
 </script>
 
 <template>
-    <!-- `inline-flex` et non `flex` : posé hors d'une rangée (fiche d'un
-         contrat), un `flex` prenait toute la largeur et la ligne entière
-         devenait cliquable. Trente-huit pixels sur téléphone, la hauteur des
-         commandes de la barre où il se pose (02/10/2026).
+    <!-- `inline-flex` and not `flex`: placed outside a row (a contract's
+         page), a `flex` took the whole width and the entire line became
+         clickable. Thirty-eight pixels on a phone, the height of the
+         commands of the bar it sits in (02/10/2026).
 
-         Une ancre quand il y a une adresse, un bouton sinon : le carnet de
-         notes revient à sa bibliothèque sans changer de page, et une ancre
-         vide serait un lien qui ne mène nulle part pour qui navigue au
-         clavier. Les deux portent le même dessin. -->
+         An anchor when there is an address, a button otherwise: the
+         notebook goes back to its library without changing page, and an
+         empty anchor would be a link that leads nowhere for someone
+         navigating with the keyboard. Both carry the same look. -->
     <component
         :is="href ? 'a' : 'button'"
         :href="href || undefined"

@@ -55,8 +55,8 @@ const {
 <template>
     <div class="aurora-stack">
         <p class="text-sm text-secondary">{{ t('suite.settings.tabs.navigation_description') }}</p>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.settings.nav_aliases.guide.title')" storage-key="settings-navigation">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.settings.nav_aliases.guide.step_${step}`) }}</li>

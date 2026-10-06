@@ -1,16 +1,16 @@
 <script setup>
 /**
- * Le calendrier éditorial : ce qui sort, chez qui, et quand.
+ * The editorial calendar: what goes out, for whom, and when.
  *
- * Tous les espaces que le lecteur voit sur un seul mois, une couleur par
- * espace. Le tableau de bord dit ce qui attend ; cette page planifie.
+ * Every space the reader can see on a single month, one color per space. The
+ * dashboard says what is waiting; this page plans.
  *
- * **En lecture seule.** Une carte se déplace dans son espace, là où sont son
- * étape et son fil : ici, un clic y mène. La grille est celle du module
- * Calendrier et de la vue d'un espace, pour qu'un mois se lise partout pareil.
+ * **Read-only.** A card is moved in its space, where its step and its thread
+ * are: here, a click leads there. The grid is the one of the Calendar module
+ * and of a space's view, so that a month reads the same everywhere.
  *
- * Le client et l'état se filtrent sur place ; la portée « mes espaces / tous »
- * recharge la page, parce que c'est le serveur qui sait quels espaces on voit.
+ * Customer and state are filtered in place; the "my spaces / all" scope
+ * reloads the page, because the server is what knows which spaces one sees.
  */
 import StudioSectionTabs from "../../../../assets/suite/components/StudioSectionTabs.vue";
 import { computed, onMounted, ref, watch } from "vue";
@@ -31,7 +31,7 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const props = defineProps({
-    /** Les deux onglets de l'entrée « Espaces clients » : la liste et le calendrier. */
+    /** The two tabs of the "Espaces clients" entry: the list and the calendar. */
     spacesPath: { type: String, default: "" },
     calendarPath: { type: String, default: "" },
     scope: { type: String, default: "mine" },
@@ -44,7 +44,7 @@ const { t, d } = useI18n();
 const { request } = useRequest();
 const { container, isNarrow } = useNarrowContainer(560);
 
-/** Les états qu'on filtre, dans l'ordre d'urgence du tableau de bord. */
+/** The states one filters on, in the dashboard's order of urgency. */
 const STATES = [
     { value: "missed", labelKey: "suite.studio.calendar.states.missed" },
     { value: "late_review", labelKey: "suite.studio.calendar.states.late_review" },
@@ -69,7 +69,7 @@ const failed = ref(false);
 
 const spacesById = computed(() => new Map(props.spaces.map((space) => [space.id, space])));
 
-/** Sans option « tous » : c'est le placeholder qui la porte, comme sur les autres listes. */
+/** No "all" option: the placeholder carries it, as on the other lists. */
 const customerOptions = computed(() =>
     [...new Set(props.spaces.map((space) => space.customerName))].sort().map((name) => ({ value: name, label: name })),
 );
@@ -97,13 +97,13 @@ const cells = computed(() => monthGrid(year.value, month.value));
 const monthTitle = computed(() => d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }));
 
 /**
- * Un état demandé en liste : toutes ses cartes, tous mois confondus et datées
- * ou non. C'est ce qu'ouvre une tuile du tableau de bord - « 3 parutions
- * manquées » nomme des cartes des mois passés, que le mois affiché cachait.
+ * A state requested as a list: all its cards, across all months, dated or
+ * not. That is what a dashboard tile opens - "3 parutions manquées" names
+ * cards from past months, which the displayed month hid.
  */
 const acrossMonths = computed(() => "list" === view.value && "" !== state.value);
 
-/** La liste : les cartes du mois affiché jour par jour, ou de tous les mois pour un état. */
+/** The list: the displayed month's cards day by day, or every month's for a state. */
 const byDay = computed(() => {
     const days = new Map();
     const undated = [];
@@ -160,7 +160,7 @@ function goToToday() {
     month.value = today.getMonth();
 }
 
-/** Garde les filtres dans l'adresse, pour qu'un lien du tableau de bord ou un rechargement les retrouve. */
+/** Keeps the filters in the address, so a dashboard link or a reload finds them again. */
 watch([view, customer, state], () => {
     const next = new URLSearchParams(window.location.search);
     for (const [key, value] of [["view", "month" === view.value ? "" : view.value], ["customer", customer.value], ["state", state.value]]) {
@@ -204,8 +204,8 @@ function spaceName(item) {
         />
         <AppLoader :active="loading" />
 
-        <!-- Les onglets de portée, comme ceux de la liste des espaces : la
-             portée change les espaces comptés, donc la page se recharge. -->
+        <!-- The scope tabs, like those of the space list: the scope changes
+             the spaces counted, so the page reloads. -->
         <div
             v-if="hasScopeChoice"
             class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
@@ -224,8 +224,8 @@ function spaceName(item) {
             </a>
         </div>
 
-        <!-- La barre des listes : la recherche, et les filtres à côté d'elle
-             plutôt qu'en champs étiquetés sur une ligne à part. -->
+        <!-- The list bar: the search, and the filters next to it rather than
+             as labelled fields on a separate line. -->
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('suite.studio.calendar.search_placeholder')" />
             <template #inline>
@@ -233,16 +233,16 @@ function spaceName(item) {
                 <AppSelect v-model="state" :options="stateOptions" :placeholder="t('suite.studio.calendar.all_states')" />
             </template>
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.calendar.guide.title')" storage-key="studio-calendar">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.calendar.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- La barre du module Calendrier, à l'identique : un mois se
-             parcourt partout de la même façon. -->
+        <!-- The Calendar module bar, identical: a month is browsed the same
+             way everywhere. -->
         <div class="flex flex-wrap items-center gap-2">
             <template v-if="!acrossMonths">
                 <AppIconButton :title="t('shared.common.previous')" v-on:click="goToMonth(-1)">

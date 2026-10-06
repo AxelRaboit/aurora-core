@@ -271,10 +271,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             $items[] = $this->commentsNavItem();
         }
 
-        // Une seule entrée, et la liste derrière elle. Un formulaire par ligne
-        // de menu poussait le menu à chaque création, et rien n'y disait ce
-        // qu'un formulaire reçoit ni s'il est en ligne : c'est le travail d'une
-        // liste, qui a des colonnes pour ça.
+        // A single entry, and the list behind it. One form per menu line grew
+        // the menu with every creation, and nothing there said what a form
+        // receives or whether it is live: that is the job of a list, which has
+        // columns for it.
         if ($this->editorialContext->isFormsEnabled()) {
             $items[] = $this->formsNavItem();
         }

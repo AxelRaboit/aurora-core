@@ -43,8 +43,8 @@ interface NoteFolderManagerInterface
      *              written in that case.
      */
     /**
-     * Range le dossier sous un autre, ou à la racine d'un espace. Changer
-     * d'espace emporte toute la branche : sous-dossiers et notes.
+     * Places the folder under another one, or at a space's root. Changing
+     * space takes the whole branch along: sub-folders and notes.
      */
     public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent, ?NoteSpaceInterface $space = null): bool;
 

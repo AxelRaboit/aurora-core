@@ -30,17 +30,16 @@ use function sprintf;
 use function sys_get_temp_dir;
 
 /**
- * Ce qu'un lien d'accès ne montre pas.
+ * What an access link does not show.
  *
- * **Le côté qui ne se voit pas depuis le studio.** Un réglage de
- * confidentialité se vérifie en ouvrant la page du client, ce que personne ne
- * fait à chaque déploiement ; une régression y serait donc silencieuse, et
- * découverte par le client lui-même. C'est exactement ce que des tests doivent
- * porter à la place.
+ * **The side that cannot be seen from the studio.** A privacy setting is
+ * checked by opening the client's page, which nobody does on every deploy; a
+ * regression there would therefore be silent, and found by the client
+ * themselves. That is exactly what tests must carry instead.
  *
- * Deux garanties, et l'une des deux a deux moitiés : une étape marquée interne
- * retire **ses cartes** en plus d'elle-même, sans quoi elles resteraient dans
- * le calendrier du client, qui les lit par leur date et non par leur étape.
+ * Two guarantees, and one of them has two halves: a step marked internal
+ * removes **its cards** as well as itself, otherwise they would stay in the
+ * client's calendar, which reads them by their date and not by their step.
  */
 final class SpaceClientVisibilityTest extends IntegrationTestCase
 {
@@ -60,9 +59,9 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
 
         $this->client = static::createClient();
 
-        // Sans cela le noyau redémarre entre deux requêtes, et l'espace créé
-        // par l'écran cesse d'être la même instance que celle de ce test : le
-        // gestionnaire de liens le voit alors comme une entité inconnue.
+        // Without this the kernel reboots between two requests, and the space
+        // created by the screen stops being the same instance as this test's:
+        // the link manager then sees it as an unknown entity.
         $this->client->disableReboot();
 
         $container = static::getContainer();
@@ -73,15 +72,15 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le compteur du limiteur survit au processus : une classe qui écrit
-        // comme un invité dépense un budget horaire partagé, et vire au
-        // rouge au troisième lancement de l'heure - par un 429 sur une
-        // route que le test ne voulait pas éprouver.
+        // The rate limiter's counter outlives the process: a class that writes
+        // as a guest spends a shared hourly budget, and turns red on the
+        // third run within the hour - through a 429 on a route the test did
+        // not mean to exercise.
         $this->resetRateLimiter('space_guest_write');
 
-        // Le navigateur pose cet en-tête sur chaque appel, et les routes
-        // publiques l'exigent : ce qui les protège est un secret dans
-        // l'adresse, et une adresse se transfère.
+        // The browser sets this header on every call, and public routes
+        // require it: what protects them is a secret in the address, and an
+        // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         $this->columns = $container->get(SpaceContentColumnRepository::class);
@@ -102,22 +101,22 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $columns = $this->columns->findForSpace($space);
 
-        // Les deux étapes qu'un espace neuf montre au client : la Relecture
-        // et Publié. Toutes les autres naissent cachées.
+        // The two steps a new space shows the client: Relecture and Publié.
+        // All the others are born hidden.
         $open = $columns[2];
         $internal = $columns[4];
 
         $this->givenItem($space, $open, 'Ce que le client voit');
         $this->givenItem($space, $internal, 'Relecture juridique interne');
 
-        // Un seul lien, relu deux fois : ce que voit le client change parce
-        // que le réglage change, et non parce qu'on lui a donné une autre
-        // adresse. C'est aussi ce qu'on veut prouver.
+        // A single link, read twice: what the client sees changes because the
+        // setting changes, and not because they were given another address.
+        // That is also what this sets out to prove.
         $link = $this->givenLink($space);
 
-        // Le titre dans la page, et rien de plus savant : c'est la garantie
-        // telle qu'un client la constate, et elle ne dépend d'aucune façon
-        // d'écrire les données dans le gabarit.
+        // The title in the page, and nothing cleverer: that is the guarantee
+        // as a client observes it, and it does not depend on any particular
+        // way of writing the data into the template.
         $before = $this->clientPage($link);
         self::assertStringContainsString('Ce que le client voit', $before);
         self::assertStringContainsString('Relecture juridique interne', $before);
@@ -130,26 +129,26 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
 
         $after = $this->clientPage($link);
 
-        // L'étape disparaît, et sa carte avec elle : c'est la moitié qu'on
-        // oublie, et celle qui laisserait la carte dans le calendrier.
+        // The step disappears, and its card with it: that is the half people
+        // forget, and the one that would leave the card in the calendar.
         self::assertStringContainsString('Ce que le client voit', $after);
         self::assertStringNotContainsString('Relecture juridique interne', $after);
         self::assertStringNotContainsString($internal->getName(), $after);
     }
 
     /**
-     * Une étape interne emporte aussi son fil et ses fichiers.
+     * An internal step also takes its thread and its files with it.
      *
-     * **C'est la moitié qui manquait, et la plus grave.** Les fiches
-     * traversaient le tamis des colonnes visibles ; les commentaires et les
-     * pièces jointes non. Le fil d'une étape marquée interne et ses fichiers
-     * partaient donc dans la source de la page du client, avec leurs adresses
-     * de téléchargement - invisibles à l'usage, puisque l'écran ne connaissait
-     * pas la fiche, et entiers pour qui lit le HTML.
+     * **This is the half that was missing, and the most serious.** Items went
+     * through the visible-columns filter; comments and attachments did not.
+     * The thread of a step marked internal and its files therefore went into
+     * the source of the client's page, with their download addresses -
+     * invisible in use, since the screen did not know the item, and whole for
+     * anyone reading the HTML.
      *
-     * Le test ferme les deux moitiés : ce que la page porte, et ce que
-     * l'adresse rend. Filtrer la charge sans fermer la route n'aurait fait que
-     * cacher le lien, et un identifiant de pièce jointe est un petit entier.
+     * The test closes both halves: what the page carries, and what the address
+     * returns. Filtering the payload without closing the route would only have
+     * hidden the link, and an attachment id is a small integer.
      */
     public function testAnInternalStepTakesItsThreadAndItsFilesOutOfTheClientPage(): void
     {
@@ -162,7 +161,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
             ->findOneBy(['title' => 'Relecture juridique interne']);
         self::assertInstanceOf(SpaceContentItem::class, $item);
 
-        // Un fil et un fichier sur cette fiche, posés par le studio.
+        // A thread and a file on this item, added by the studio.
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/comments', $space->getId(), $item->getId()), [
             'body' => 'Attention au nom du dirigeant dans le paragraphe deux.',
         ]);
@@ -182,7 +181,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
 
         $link = $this->givenLink($space);
 
-        // L'étape passe en interne.
+        // The step becomes internal.
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/%d/update', $space->getId(), $internal->getId()), [
             'name' => $internal->getName(),
             'visibleToClient' => false,
@@ -194,7 +193,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         self::assertStringNotContainsString('Attention au nom du dirigeant', $page, 'le fil est dans la page');
         self::assertStringNotContainsString('note-interne.jpg', $page, 'le fichier est dans la page');
 
-        // Et l'adresse, que la page ne montre plus, ne rend plus rien.
+        // And the address, which the page no longer shows, returns nothing.
         $this->client->request('GET', sprintf(
             '/spaces/%s/%s/attachments/%d/file',
             $link->getSelector(),
@@ -206,10 +205,9 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * Une fiche que la page ne montre pas ne se valide pas, ne se commente
-     * pas et ne reçoit pas de fichier. Les trois écritures vérifiaient
-     * l'espace et non l'étape : un numéro de fiche suffisait pour répondre
-     * sur un travail que le studio n'avait pas montré.
+     * An item the page does not show cannot be approved, commented on or
+     * given a file. The three writes checked the space and not the step: an
+     * item number was enough to answer on work the studio had not shown.
      */
     public function testACardOfAnInternalStepCannotBeAnsweredOrCommented(): void
     {
@@ -241,11 +239,11 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * Le droit de voir le Drive, sur les trois routes qui le servent.
+     * The right to see the Drive, on the three routes that serve it.
      *
-     * Le même 404 qu'un lien inconnu, et pas un refus explicite : dire « vous
-     * pouvez lire mais pas ceci » apprend à celui qui tient une adresse fuitée
-     * ce qu'il tient.
+     * The same 404 as an unknown link, and not an explicit refusal: saying
+     * "you may read but not this" tells whoever holds a leaked address what
+     * they are holding.
      */
     public function testALinkWithoutTheDriveRightIsRefusedOnEveryDriveRoute(): void
     {
@@ -279,7 +277,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         }
     }
 
-    /** Et le droit accordé rend bien quelque chose, sinon le test précédent ne prouve rien. */
+    /** And the granted right does return something, otherwise the previous test proves nothing. */
     public function testALinkWithTheDriveRightReachesTheListing(): void
     {
         $space = $this->givenSpace();
@@ -302,12 +300,12 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
             (string) $allowed->getPlainToken(),
         ));
 
-        // 200 même sans intégration branchée : la route répond une liste vide,
-        // ce qui est un état de l'écran et non un refus.
+        // 200 even without the integration connected: the route answers an
+        // empty list, which is a state of the screen and not a refusal.
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
-    /** La page du client, telle qu'elle lui est servie. */
+    /** The client's page, as it is served to them. */
     private function clientPage(SpaceAccessLinkInterface $link): string
     {
         $this->client->request('GET', sprintf(
@@ -322,11 +320,11 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * Un lien, sur l'espace tel que le gestionnaire d'entités le connaît.
+     * A link, on the space as the entity manager knows it.
      *
-     * Rechargé plutôt que réutilisé : les requêtes HTTP qui précèdent vident
-     * le gestionnaire, et l'instance d'avant passe alors pour une entité
-     * inconnue au moment d'émettre le lien.
+     * Reloaded rather than reused: the preceding HTTP requests clear the
+     * manager, and the earlier instance then passes for an unknown entity
+     * when the link is issued.
      */
     private function givenLink(CustomerSpace $space, string $email = 'client@example.test'): SpaceAccessLinkInterface
     {
@@ -336,7 +334,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         return $this->links->issue($fresh, $email, 'Le client', 30, true, true);
     }
 
-    /** Le plus petit fichier que le renifleur appelle un JPEG. */
+    /** The smallest file the sniffer calls a JPEG. */
     private function aJpeg(string $name): UploadedFile
     {
         $path = sys_get_temp_dir().'/'.bin2hex(random_bytes(4)).'-'.$name;
@@ -382,7 +380,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $column->getId(),
-            // Datée : la page du client ne montre que son calendrier.
+            // Dated: the client's page only shows its calendar.
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 

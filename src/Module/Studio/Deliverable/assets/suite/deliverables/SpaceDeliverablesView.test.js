@@ -15,13 +15,13 @@ vi.mock("./composables/useDeliverableRequest.js", () => ({
 const i18n = createTestI18n();
 
 /**
- * Les livrables d'un espace, vus du studio.
+ * A space's deliverables, seen from the studio.
  *
- * Ce qui se casserait sans bruit : les liens de lecture depuis la liste, qui
- * portent les adresses mêmes et ne sont donc proposés qu'avec le droit de
- * partager l'espace ; la création et la duplication dans une archive, qui ne
- * reçoit plus de livrable ; et l'ouverture au client d'un livrable pas fini,
- * que le serveur refuse tant que l'auteur ne confirme pas.
+ * What would break silently: the reading links from the list, which carry
+ * the addresses themselves and so are only offered with the right to share
+ * the space; creation and duplication in an archive, which receives no more
+ * deliverables; and opening an unfinished deliverable to the client, which
+ * the server refuses until the author confirms.
  */
 const PATHS = {
     createPath: "/workspace/1/deliverables/create",

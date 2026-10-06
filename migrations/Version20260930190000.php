@@ -8,14 +8,14 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * La signature garde l'adresse à laquelle son code a été envoyé.
+ * The signature keeps the address its code was sent to.
  *
- * Le PDF signé imprimait l'adresse actuelle du client : changée entre la
- * signature et la contresignature, elle faisait certifier au document un code
- * envoyé à une boîte qui ne l'avait jamais reçu.
+ * The signed PDF printed the client's current address: if it changed between
+ * the signature and the countersignature, the document certified a code sent
+ * to a mailbox that had never received it.
  *
- * Les signatures existantes reprennent l'adresse du dernier code consommé sur
- * le lien par lequel elles ont été données, quand il existe encore.
+ * Existing signatures take the address of the last code consumed on the link
+ * they were given through, when that code still exists.
  */
 final class Version20260930190000 extends AbstractMigration
 {

@@ -8,22 +8,21 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Des notes sur un espace, et la seule chose que le client n'y voit pas.
+ * Notes on a space, and the only thing the client does not see there.
  *
- * Écrite à la main, comme celles qui précèdent : `migrations:diff` sur cette
- * base de développement propose aussi de renommer deux douzaines d'index qu'il
- * n'a pas créés.
+ * Written by hand, like the ones before it: `migrations:diff` on this
+ * development database also offers to rename two dozen indexes it did not
+ * create.
  *
- * Le corps est du `json` et pas du `text` : c'est une structure, et la seule
- * requête qui regarde dedans - quelles notes portent cette image - passe par un
- * `::text` explicite, faute d'opérateur `LIKE` sur `json` côté Postgres.
+ * The body is `json` and not `text`: it is a structure, and the only query
+ * that looks inside - which notes carry this image - goes through an explicit
+ * `::text`, for lack of a `LIKE` operator on `json` in Postgres.
  *
- * L'index composite est celui que l'écran lit : les notes d'un espace, épinglées
- * d'abord. Celui sur `space_id` seul est celui de Doctrine, pour la clé
- * étrangère.
+ * The composite index is the one the screen reads: a space's notes, pinned
+ * first. The one on `space_id` alone is Doctrine's, for the foreign key.
  *
- * `author_id` est `SET NULL` : supprimer un compte ne doit pas supprimer ce
- * qu'il a écrit, et le nom durable voyage dans `author_label`.
+ * `author_id` is `SET NULL`: deleting an account must not delete what it
+ * wrote, and the lasting name travels in `author_label`.
  */
 final class Version20260917140000 extends AbstractMigration
 {

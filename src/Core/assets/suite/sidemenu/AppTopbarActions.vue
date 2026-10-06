@@ -26,11 +26,11 @@ defineProps({
     notificationsDeletePath: { type: String, default: "" },
     notificationsDeleteAllPath: { type: String, default: "" },
     /**
-     * Le compte, qui vivait au pied du menu.
+     * The account, which used to live at the foot of the menu.
      *
-     * Trois lignes et cinq entrées dépliables pour une chose qu'on touche
-     * une fois par jour, dans la colonne qui sert à naviguer : ce n'est pas
-     * de la navigation, et cette place coûtait au menu sa hauteur utile.
+     * Three lines and five expandable entries for something touched once a
+     * day, in the column used to navigate: it is not navigation, and that
+     * spot cost the menu its useful height.
      */
     userName: { type: String, default: "" },
     userEmail: { type: String, default: "" },

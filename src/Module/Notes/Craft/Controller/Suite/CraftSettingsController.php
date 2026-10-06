@@ -19,11 +19,11 @@ use function mb_trim;
 use function str_starts_with;
 
 /**
- * Lit et écrit l'onglet Craft de l'écran des réglages.
+ * Reads and writes the Craft tab of the settings screen.
  *
- * Séparé de l'import, qui vit dans l'écran des notes : celui-ci décide qui a
- * le droit d'allumer l'intégration, et se range donc derrière le privilège des
- * réglages.
+ * Separate from the import, which lives in the notes screen: this one decides
+ * who is allowed to turn the integration on, and so sits behind the settings
+ * privilege.
  */
 #[Route('/suite/notes/craft/settings', name: 'suite_notes_craft_settings')]
 #[IsGranted('configuration.settings.manage')]
@@ -50,18 +50,18 @@ final class CraftSettingsController extends AbstractController
         $enabled = true === ($payload['enabled'] ?? false);
         $endpoint = mb_trim((string) ($payload['endpoint'] ?? ''));
 
-        // Absent veut dire « laisse le jeton enregistré tranquille » ; présent
-        // veut dire remplace-le, y compris par une chaîne vide pour l'oublier.
-        // Le formulaire n'envoie le champ que si quelqu'un y a tapé.
+        // Absent means "leave the saved token alone"; present means replace
+        // it, including with an empty string to forget it.
+        // The form only sends the field if someone typed in it.
         $token = array_key_exists('token', $payload) ? mb_trim((string) $payload['token']) : null;
 
         if ('' !== $endpoint && !str_starts_with($endpoint, 'https://')) {
             return $this->jsonFailure('notes.craft.errors.endpoint_https');
         }
 
-        // Vérifié contre ce qui sera enregistré et non contre ce qui l'est :
-        // allumer l'intégration en ayant vidé le champ du jeton doit échouer,
-        // et l'allumer avant qu'un jeton ait jamais été saisi aussi.
+        // Checked against what will be saved and not against what is saved:
+        // turning the integration on after emptying the token field must fail,
+        // and so must turning it on before a token was ever entered.
         $tokenAfterSave = $token ?? $this->settings->token();
 
         if ($enabled && ('' === $endpoint || '' === $tokenAfterSave)) {

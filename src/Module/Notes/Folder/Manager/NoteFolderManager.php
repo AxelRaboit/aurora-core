@@ -42,8 +42,8 @@ class NoteFolderManager implements NoteFolderManagerInterface
         $folder = $this->createFolder();
         $folder->setUser($user);
 
-        // Un parent impose son espace ; à la racine, c'est celui demandé, et
-        // par défaut son espace personnel.
+        // A parent imposes its space; at the root, it is the one requested,
+        // and by default one's personal space.
         $parent = null === $input->getParentId() ? null : $this->folderRepository->find($input->getParentId());
         $space = null === $input->getSpaceId() ? null : $this->spaceRepository->find($input->getSpaceId());
         $folder->setSpace(match (true) {
@@ -226,11 +226,10 @@ class NoteFolderManager implements NoteFolderManagerInterface
     }
 
     /**
-     * Fait passer un dossier dans un autre espace, avec tout ce qu'il range.
+     * Moves a folder into another space, with everything it holds.
      *
-     * Une note vit toujours dans l'espace de son dossier : laisser la branche
-     * derrière ferait un dossier partagé plein de notes que personne d'autre
-     * ne voit.
+     * A note always lives in its folder's space: leaving the branch behind
+     * would make a shared folder full of notes nobody else sees.
      */
     protected function changeSpace(NoteFolderInterface $folder, NoteSpaceInterface $space): void
     {
@@ -238,8 +237,8 @@ class NoteFolderManager implements NoteFolderManagerInterface
             return;
         }
 
-        // Toute la branche, corbeille comprise : un dossier ou une note jeté
-        // puis restauré doit retrouver son parent dans le même espace.
+        // The whole branch, trash included: a folder or a note thrown away
+        // then restored must find its parent in the same space.
         $branch = [$folder];
         $level = [(int) $folder->getId()];
         $seen = [(int) $folder->getId() => true];
@@ -286,8 +285,8 @@ class NoteFolderManager implements NoteFolderManagerInterface
             $all[(int) $folder->getId()] = $folder;
         }
 
-        // Seulement ce que la personne peut écrire : un dossier d'équipe se
-        // range par ceux qui en ont le droit.
+        // Only what the person can write: a team folder is arranged by those
+        // who have the right.
         $byId = [];
         foreach ($entries as $entry) {
             $id = (int) $entry['id'];
@@ -314,8 +313,8 @@ class NoteFolderManager implements NoteFolderManagerInterface
                 return;
             }
 
-            // Changer d'espace n'est pas l'affaire d'un réordonnancement : la
-            // branche entière doit suivre, et c'est move() qui le fait.
+            // Changing space is not a reorder's business: the whole branch
+            // must follow, and move() does that.
             if (null !== $parentId && $all[(int) $parentId]->getSpace()->getId() !== $byId[$id]->getSpace()->getId()) {
                 return;
             }
@@ -413,7 +412,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
     }
 
     /**
-     * Le parent où un dossier peut être rangé : du même espace. Null sinon.
+     * The parent a folder can be placed under: from the same space. Null otherwise.
      */
     protected function parentFor(NoteFolderInterface $folder, ?int $parentId): ?NoteFolderInterface
     {
@@ -508,8 +507,8 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return [
             'parentId' => $folder->getParent()?->getId(),
             'position' => $folder->getPosition(),
-            // La couleur, elle, peut y figurer : elle ne dit rien de ce que
-            // le dossier contient.
+            // The colour can appear there: it says nothing about what the
+            // folder contains.
             'color' => $folder->getColor(),
         ];
     }

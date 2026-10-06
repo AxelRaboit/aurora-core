@@ -8,13 +8,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une couleur sur un dossier, pour le reconnaître sans le lire.
+ * A colour on a folder, to recognise it without reading it.
  *
- * En clair, contrairement au nom : `#rrggbb` ne dit rien de ce que le
- * dossier contient, et une colonne lisible se trie et se compte en SQL le
- * jour où un écran le demandera. Sept caractères, la forme que produit le
- * sélecteur de couleur de la maison et que porte déjà l'étiquette de
- * document.
+ * In clear, unlike the name: `#rrggbb` says nothing about what the folder
+ * contains, and a readable column can be sorted and counted in SQL the day a
+ * screen asks for it. Seven characters, the form the house colour picker
+ * produces and the document label already carries.
  */
 final class Version20260923080000 extends AbstractMigration
 {

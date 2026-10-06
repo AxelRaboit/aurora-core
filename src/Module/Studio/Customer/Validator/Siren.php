@@ -8,12 +8,12 @@ use Attribute;
 use Symfony\Component\Validator\Constraint;
 
 /**
- * Un SIREN de neuf chiffres, qui passe sa propre clé.
+ * A nine-digit SIREN that passes its own check digit.
  *
- * La même raison que {@see Siret} : ce qui arrive vraiment est un chiffre
- * transposé, qui garde la longueur et change l'entreprise. La clé attrape
- * exactement cela, au moment de la saisie et non une fois le numéro recopié
- * dans un document.
+ * The same reason as {@see Siret}: what really happens is a transposed
+ * digit, which keeps the length and changes the company. The check digit
+ * catches exactly that, at input time and not once the number has been
+ * copied into a document.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class Siren extends Constraint

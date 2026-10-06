@@ -8,12 +8,13 @@ import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 const i18n = createTestI18n();
 
 /**
- * La page Livrables de Studio : deux rayons, et sur chaque carte les seuls
- * gestes que la personne y a.
+ * Studio's Deliverables page: two shelves, and on each card only the actions
+ * the person has on it.
  *
- * Ce qui se casserait sans bruit : un geste proposé à qui le serveur le
- * refusera (changer le rayon d'un livrable dont on n'est pas l'auteur, envoyer
- * un lien sans le droit), ou le mauvais rayon affiché au retour d'un livrable.
+ * What would break silently: an action offered to someone the server will
+ * refuse it to (changing the shelf of a deliverable you did not write,
+ * sending a link without the right), or the wrong shelf shown on coming back
+ * from a deliverable.
  */
 const PATHS = {
     createPath: "/suite/studio/deliverables/create",
@@ -80,7 +81,7 @@ const CATEGORIES = [
     { id: 2, name: "Stratégie", color: null, position: 2 },
 ];
 
-/** Trois livrables perso : un audit, une stratégie, un sans catégorie. */
+/** Three personal deliverables: an audit, a strategy, one without a category. */
 function mountFiled(extra = {}) {
     return mountApp({
         personal: [
@@ -107,7 +108,7 @@ describe("DeliverablesApp", () => {
         expect(titles).toHaveLength(3);
         expect(titles[0]).toContain("Audit");
         expect(titles[1]).toContain("Stratégie");
-        // La dernière section est celle des livrables sans catégorie.
+        // The last section is the one for deliverables without a category.
         expect(titles[2]).toContain("categories.none");
         expect(wrapper.findAll("section").at(-1).text()).toContain(
             "Brouillon libre",
@@ -230,7 +231,7 @@ describe("DeliverablesApp", () => {
         expect(templates.text()).toContain("Audit type");
         expect(templates.text()).not.toContain("Proposition à Fabre");
 
-        // La pastille enfoncée se relâche : tout revient, et l'adresse aussi.
+        // The pressed pill is released: everything comes back, and so does the address.
         const pill = templates
             .findAll("[aria-pressed]")
             .find((tab) => tab.text().includes("template.filter"));
@@ -405,7 +406,7 @@ describe("DeliverablesApp", () => {
             expect.stringContaining("1"),
         ]);
 
-        // Sans format écrit, une ligne est une page.
+        // With no format written, a row is a page.
         await tabs[1].trigger("click");
         await flushPromises();
         expect(window.location.search).toBe("?format=page");

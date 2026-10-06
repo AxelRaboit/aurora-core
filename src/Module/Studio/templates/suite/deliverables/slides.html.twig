@@ -1,8 +1,7 @@
 {% extends '@Core/suite/layout.html.twig' %}
 
-{# Un livrable au format diaporama : l'éditeur de diapositives des
-   présentations, avec les droits, les liens de lecture et les réglages d'un
-   livrable autour. #}
+{# A deliverable in slideshow format: the presentations' slide editor, with a
+   deliverable's rights, reading links and settings around it. #}
 {% block title %}{{ deck.title }} - {{ 'suite.nav.studio_deliverables'|trans }} - {{ parent() }}{% endblock %}
 
 {% block page_header_slot %}

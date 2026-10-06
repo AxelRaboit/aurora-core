@@ -570,9 +570,9 @@ final readonly class ZoneWidgetViews
         $inMonth = array_values(array_filter($entries, static fn (array $entry): bool => str_starts_with($entry['date'], $month)));
         usort($inMonth, static fn (array $a, array $b): int => $a['date'] <=> $b['date']);
 
-        // La légende : chaque couleur du mois avec le mot qui la porte, dans
-        // l'ordre où elle apparaît. Un même format écrit deux fois de deux
-        // façons (« Carrousel », « carrousel ») n'en fait qu'un.
+        // The legend: each colour of the month with the word it carries, in
+        // the order it appears. The same format written twice in two ways
+        // ("Carrousel", "carrousel") counts as one.
         $legend = [];
         foreach ($inMonth as $entry) {
             $key = $entry['tone'].'|'.mb_strtolower($entry['network']);

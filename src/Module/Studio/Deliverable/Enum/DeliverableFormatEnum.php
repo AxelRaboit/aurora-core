@@ -7,18 +7,18 @@ namespace Aurora\Module\Studio\Deliverable\Enum;
 use function is_string;
 
 /**
- * Ce qu'est un livrable : une page qu'on fait défiler, ou des diapositives.
+ * What a deliverable is: a page you scroll, or slides.
  *
- * **Fixé à la création, jamais changé ensuite.** Une page se compose avec la
- * grille des pages du site, un diaporama avec des diapositives : ce ne sont pas
- * deux affichages du même contenu mais deux contenus, et passer de l'un à
- * l'autre perdrait l'un des deux. C'est aussi pourquoi ce n'est pas l'affichage
- * « présentation » de l'apparence d'une page, qui fait seulement passer une
- * page section par section, cf. `DeliverableAppearance::DISPLAYS`.
+ * **Set at creation, never changed afterwards.** A page is composed with the
+ * site pages' grid, a slideshow with slides: they are not two displays of
+ * the same content but two contents, and switching from one to the other
+ * would lose one of them. That is also why this is not the "présentation"
+ * display of a page's appearance, which only steps through a page section by
+ * section, see `DeliverableAppearance::DISPLAYS`.
  *
- * `Slides` est la place des présentations de Studio, qui deviennent des
- * livrables : un diaporama se compose avec l'éditeur de diapositives des
- * présentations, et sa page de lecture montre ses diapositives. It lives in
+ * `Slides` is where Studio presentations go, as they become deliverables: a
+ * slideshow is composed with the presentation slide editor, and its reading
+ * page shows its slides. It lives in
  * Studio as in a client space, where the client reads it once shown to them.
  */
 enum DeliverableFormatEnum: string
@@ -32,16 +32,16 @@ enum DeliverableFormatEnum: string
     }
 
     /**
-     * Ce qu'un formulaire peut créer aujourd'hui : les deux, depuis que
-     * l'éditeur de diapositives est branché sur les livrables. Gardé comme
-     * point d'arrêt pour un format à venir qui n'aurait pas encore d'éditeur.
+     * What a form can create today: both, since the slide editor was wired to
+     * deliverables. Kept as a stopping point for a future format that would
+     * not have an editor yet.
      */
     public function isCreatable(): bool
     {
         return true;
     }
 
-    /** Ce qui arrive d'un formulaire : absent, c'est une page ; inconnu, rien. */
+    /** What comes from a form: absent, it is a page; unknown, nothing. */
     public static function fromInput(mixed $value): ?self
     {
         if (null === $value || '' === $value) {

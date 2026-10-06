@@ -13,21 +13,21 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Créer un compte pour quelqu'un qui arrive plus tard.
+ * Create an account for someone arriving later.
  *
- * Ce qui se vérifie ici est une machine à états, pas un champ : un compte
- * pré-provisionné et un compte désactivé après avoir servi portent le **même**
- * statut `Disabled`, et c'est `invitedAt` qui les distingue. L'ouvrir ne fait
- * donc pas la même chose dans les deux cas - dans le premier il faut envoyer
- * l'invitation, dans le second il ne faut surtout pas.
+ * What is checked here is a state machine, not a field: a pre-provisioned
+ * account and an account disabled after being used carry the **same** status
+ * `Disabled`, and `invitedAt` is what tells them apart. Opening it therefore
+ * does not do the same thing in both cases - in the first the invitation must
+ * be sent, in the second it must definitely not.
  *
- * Sans ces tests, la confusion serait silencieuse : le compte passerait `Active`
- * avec un mot de passe aléatoire que personne ne connaît, donc utilisable pour
- * personne tout en paraissant ouvert dans la liste.
+ * Without these tests, the confusion would be silent: the account would go
+ * `Active` with a random password nobody knows, so usable by nobody while
+ * looking open in the list.
  */
 final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
 {
-    /** Celui de CreatesTestUsers, pour ne pas introduire un littéral de plus. */
+    /** The one from CreatesTestUsers, so as not to introduce one more literal. */
     private const string TEST_PASSWORD = 'verysecure123';
 
     private UserManagerInterface $userManager;
@@ -59,7 +59,7 @@ final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** Le cas ordinaire, pour avoir le point de comparaison. */
+    /** The ordinary case, to have the point of comparison. */
     public function testAnOrdinaryInviteIsInvitedAndStamped(): void
     {
         $user = $this->invite('ordinaire@exemple.com');
@@ -70,10 +70,10 @@ final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
     }
 
     /**
-     * Le cœur : rien n'est émis, rien ne part, et `invitedAt` reste nul.
+     * The core: nothing is issued, nothing is sent, and `invitedAt` stays null.
      *
-     * Ce nul est la seule chose qui dira plus tard « personne n'a jamais été
-     * contacté ». Un jeton émis ici expirerait en 48 heures pour rien.
+     * That null is the only thing that will later say "nobody was ever
+     * contacted". A token issued here would expire in 48 hours for nothing.
      */
     public function testAPreProvisionedAccountEmitsNothing(): void
     {
@@ -86,11 +86,10 @@ final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
     }
 
     /**
-     * L'ouvrir envoie l'invitation et le passe `Invited`, pas `Active`.
+     * Opening it sends the invitation and moves it to `Invited`, not `Active`.
      *
-     * `Active` serait le bug : son mot de passe est un aléa que personne ne
-     * connaît, donc le compte paraîtrait ouvert sans que quiconque puisse s'en
-     * servir.
+     * `Active` would be the bug: its password is a random value nobody knows,
+     * so the account would look open without anyone being able to use it.
      */
     public function testOpeningAPreProvisionedAccountSendsItsInvitation(): void
     {
@@ -105,12 +104,13 @@ final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
     }
 
     /**
-     * Un compte qui a déjà servi retrouve son accès, et rien n'est renvoyé.
+     * An account that has already been used gets its access back, and nothing
+     * is sent again.
      *
-     * C'est l'autre moitié de la distinction : ici `invitedAt` est renseigné, donc
-     * la bascule doit rendre l'accès sans réémettre de jeton - sinon désactiver
-     * puis réactiver quelqu'un lui enverrait un mail d'invitation incompréhensible
-     * et invaliderait le mot de passe qu'il utilise.
+     * It is the other half of the distinction: here `invitedAt` is set, so the
+     * toggle must give access back without issuing a new token - otherwise
+     * disabling then reactivating someone would send them a baffling
+     * invitation email and invalidate the password they use.
      */
     public function testReopeningAnAccountThatHasServedDoesNotReInvite(): void
     {
@@ -125,12 +125,12 @@ final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
 
         self::assertTrue($this->userManager->toggleDisabled($user));
         self::assertSame(UserStatusEnum::Active, $user->getStatus());
-        // Aucun jeton neuf : le mot de passe en place reste le bon.
+        // No new token: the current password stays the right one.
         self::assertNull($user->getInvitationSelector());
         self::assertEquals($invitedAt, $user->getInvitedAt());
     }
 
-    /** Fermer un compte pré-provisionné à peine ouvert le renvoie à `Disabled`. */
+    /** Closing a pre-provisioned account just opened sends it back to `Disabled`. */
     public function testItCanBeClosedAgainAfterBeingOpened(): void
     {
         $user = $this->invite('refermer@exemple.com', disabled: true);
@@ -138,7 +138,7 @@ final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
 
         self::assertFalse($this->userManager->toggleDisabled($user));
         self::assertSame(UserStatusEnum::Disabled, $user->getStatus());
-        // Il a été contacté : le rouvrir ne le réinvitera plus.
+        // It has been contacted: reopening it will not invite it again.
         self::assertInstanceOf(DateTimeImmutable::class, $user->getInvitedAt());
     }
 

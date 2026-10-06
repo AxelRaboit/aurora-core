@@ -7,22 +7,22 @@ namespace Aurora\Module\Studio\Deliverable\Enum;
 use function is_string;
 
 /**
- * À qui appartient un livrable qui n'est rattaché à aucun espace client.
+ * Who owns a deliverable attached to no client space.
  *
- * Deux rayons, comme la demande les a dessinés : ce qu'on prépare pour soi, et
- * ce que l'équipe partage. Pas de membres ni de rôles : un livrable partagé se
- * lit et se modifie par quiconque a les droits du module, un livrable perso
- * par son auteur seul.
+ * Two shelves, as the request drew them: what you prepare for yourself, and
+ * what the team shares. No members or roles: a shared deliverable is read
+ * and edited by anyone with the module rights, a personal one by its author
+ * only.
  *
- * Un livrable d'espace porte `Shared` sans s'en servir : c'est l'espace, et
- * l'appartenance à son équipe, qui décident de qui le voit.
+ * A space deliverable carries `Shared` without using it: the space, and
+ * membership of its team, decide who sees it.
  */
 enum DeliverableScopeEnum: string
 {
     case Personal = 'personal';
     case Shared = 'shared';
 
-    /** Ce qui arrive d'un formulaire ; une valeur inconnue reste perso, le choix prudent. */
+    /** What comes from a form; an unknown value stays personal, the cautious choice. */
     public static function fromInput(mixed $value): self
     {
         return is_string($value) ? (self::tryFrom($value) ?? self::Personal) : self::Personal;

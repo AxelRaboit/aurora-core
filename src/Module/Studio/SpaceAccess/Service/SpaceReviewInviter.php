@@ -17,23 +17,23 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Throwable;
 
 /**
- * Demander à un client d'aller relire son plan de contenu.
+ * Ask a client to go and review their content plan.
  *
- * **Déclenché à la main, et c'est le point.** Le studio prépare une semaine de
- * publications en une fois ; un envoi automatique à chaque carte devenue
- * visible remplirait la boîte du client pendant que le lot se construit
- * encore. Celui qui sait quand le lot est prêt est celui qui l'a préparé.
+ * **Triggered by hand, and that is the point.** The studio prepares a week of
+ * posts in one go; an automatic send for each card that becomes visible would
+ * fill the client's inbox while the batch is still being built. The one who
+ * knows when the batch is ready is the one who prepared it.
  *
- * **Un lien neuf par destinataire, l'ancien révoqué.** Le jeton d'un lien
- * n'existe en clair qu'à sa création : seul son condensé est stocké, pour
- * qu'une base volée n'ouvre pas le plan de contenu d'un client. On ne peut donc
- * pas remettre dans un courriel l'adresse d'un lien déjà émis, et il faut en
- * émettre un. Révoquer le précédent est ce qui évite qu'un client accumule six
- * adresses ouvertes après six invitations : il en a toujours exactement une
- * valide, la dernière reçue.
+ * **A new link per recipient, the old one revoked.** A link's token only
+ * exists in clear text when it is created: only its hash is stored, so that a
+ * stolen database does not open a client's content plan. The address of a
+ * link already issued therefore cannot be put in an email again, and a new
+ * one has to be issued. Revoking the previous one is what keeps a client from
+ * piling up six open addresses after six invitations: they always have
+ * exactly one valid, the last one received.
  *
- * **Rien ne part s'il n'y a rien à relire.** Un courriel annonçant zéro
- * publication en attente est un courriel qui apprend à ignorer les suivants.
+ * **Nothing goes out if there is nothing to review.** An email announcing zero
+ * pending posts is an email that teaches people to ignore the next ones.
  */
 final readonly class SpaceReviewInviter
 {
@@ -47,16 +47,16 @@ final readonly class SpaceReviewInviter
     ) {}
 
     /**
-     * Écrit à tous ceux qui peuvent répondre dans cet espace.
+     * Writes to everyone who may answer in this space.
      *
-     * @return array{awaiting: int, notified: int} ce qui attendait, et combien
-     *                                             de personnes ont été prévenues
+     * @return array{awaiting: int, notified: int} what was waiting, and how
+     *                                             many people were notified
      */
     public function invite(CustomerSpaceInterface $space): array
     {
-        // Comme partout ailleurs : ce que la page du client montre et attend.
-        // Le compte incluait les étapes internes, donc annonçait au client des
-        // contenus qu'il ne trouvait pas en ouvrant sa page.
+        // As everywhere else: what the client's page shows and waits for. The
+        // count included internal steps, so it announced items to the client
+        // that they could not find when opening their page.
         $awaiting = $this->workload->forSpace($space)->withClient;
 
         if (0 === $awaiting) {
@@ -72,12 +72,12 @@ final readonly class SpaceReviewInviter
             try {
                 $this->write($space, $fresh, $awaiting);
             } catch (Throwable $exception) {
-                // **Le courriel d'abord, la révocation ensuite.** Un serveur de
-                // messagerie qui ne répond pas laisserait sinon le client sans
-                // adresse valide et sans le message qui lui en donnait une
-                // neuve, c'est-à-dire dehors et sans le savoir. Ici son
-                // ancienne adresse continue de fonctionner, et c'est la neuve,
-                // que personne n'a reçue, qui est refermée.
+                // **The email first, the revocation after.** A mail server that
+                // does not answer would otherwise leave the client with no
+                // valid address and without the message that gave them a new
+                // one, that is, locked out without knowing it. Here their old
+                // address keeps working, and it is the new one, which nobody
+                // received, that gets closed.
                 $this->linkManager->revoke($fresh);
                 $this->logger->error('Space review invitation could not be sent to {email}: {reason}', [
                     'email' => $previous->getRecipientEmail(),
@@ -95,13 +95,13 @@ final readonly class SpaceReviewInviter
     }
 
     /**
-     * Le même lien, en neuf.
+     * The same link, brand new.
      *
-     * Les droits sont recopiés : l'invitation ne change pas ce que la personne
-     * a le droit de faire, elle lui redonne seulement une adresse. La validité
-     * repart du délai par défaut plutôt que de ce qu'il restait au précédent,
-     * sans quoi une invitation envoyée la veille d'une expiration donnerait un
-     * jour pour répondre.
+     * The rights are copied: the invitation does not change what the person is
+     * allowed to do, it only gives them an address again. The validity starts
+     * again from the default delay rather than from what was left on the
+     * previous one, otherwise an invitation sent the day before an expiry would
+     * give one day to answer.
      */
     private function reissue(SpaceAccessLinkInterface $previous): SpaceAccessLinkInterface
     {
@@ -131,8 +131,8 @@ final readonly class SpaceReviewInviter
                     'public_space_show',
                     [
                         'selector' => $link->getSelector(),
-                        // Lisible une seule fois, à la création : c'est
-                        // exactement pour ce message qu'on vient d'en créer un.
+                        // Readable only once, at creation: this message is
+                        // exactly why one was just created.
                         'token' => $link->getPlainToken(),
                     ],
                     UrlGeneratorInterface::ABSOLUTE_URL,

@@ -1,33 +1,34 @@
 /**
- * Le tiroir de navigation du téléphone - `<details data-nav-drawer>`.
+ * The phone navigation drawer - `<details data-nav-drawer>`.
  *
- * Le `<details>` donne déjà tout le gros oeuvre, et `data-dropdown` y ajoute
- * Échap (voir `detailsDropdown.js`). Ce qui manque tient au voile : un panneau
- * modal pose un rideau par-dessus la page, et ce rideau intercepte justement le
- * clic « au dehors » que l'autre module attendait. Il est donc refermé ici.
+ * The `<details>` already provides all the heavy lifting, and `data-dropdown`
+ * adds Escape to it (see `detailsDropdown.js`). What is missing comes from
+ * the backdrop: a modal panel lays a curtain over the page, and that curtain
+ * intercepts precisely the "outside" click the other module was waiting for.
+ * It is therefore closed here.
  *
- * Deux autres cas ferment le tiroir. Un lien vers une ancre de la page courante
- * ne recharge rien : sans cela le panneau resterait ouvert devant l'endroit où
- * on voulait aller. Et l'écran qui s'élargit au-delà de `md` - une rotation en
- * paysage - rend la barre dépliée, où le tiroir n'a plus de bouton : il
- * réapparaîtrait ouvert au retour en portrait.
+ * Two other cases close the drawer. A link to an anchor of the current page
+ * reloads nothing: without this the panel would stay open in front of the
+ * place you wanted to go. And the screen widening beyond `md` - a rotation
+ * to landscape - brings back the expanded bar, where the drawer no longer
+ * has a button: it would reappear open on returning to portrait.
  *
- * Sans ce fichier le tiroir reste utilisable : le bouton qui l'a ouvert le
- * referme, croix à l'appui, et Échap aussi.
+ * Without this file the drawer stays usable: the button that opened it
+ * closes it, with a cross, and Escape too.
  *
  * Markup: templates/Frontend/themes/default/partials/nav_drawer.html.twig
  */
 
 const DRAWER = "details[data-nav-drawer]";
 
-// La même largeur que le `md:` du gabarit. Tailwind ne l'expose pas au script,
-// donc elle est écrite ici - et les deux doivent bouger ensemble.
+// The same width as the template's `md:`. Tailwind does not expose it to the
+// script, so it is written here - and the two must move together.
 const WIDE = "(min-width: 768px)";
 
 function close(drawer) {
     drawer.open = false;
-    // Rendre la main au bouton plutôt que de laisser le focus sur un élément
-    // qui vient de disparaître.
+    // Hand control back to the button rather than leaving the focus on an
+    // element that has just disappeared.
     drawer.querySelector("summary")?.focus();
 }
 

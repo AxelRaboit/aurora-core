@@ -23,8 +23,8 @@ use function array_map;
 use function array_values;
 
 /**
- * Ce que reçoivent les écrans des livrables de Studio, ceux qui ne sont
- * rattachés à aucun espace : la liste, avec ses deux rayons, et l'éditeur.
+ * What the screens of Studio deliverables receive, the ones attached to no
+ * space: the list, with its two shelves, and the editor.
  */
 final readonly class DeliverablesViewBuilder
 {
@@ -70,8 +70,8 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * Les catégories, et les deux rayons qui les affichent : renommer ou
-     * supprimer une catégorie change les cartes.
+     * The categories, and the two shelves that display them: renaming or
+     * deleting a category changes the cards.
      *
      * @return array{categories: list<array<string, mixed>>, personal: list<array<string, mixed>>, shared: list<array<string, mixed>>}
      */
@@ -90,7 +90,7 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * Les deux rayons, chaque ligne avec les gestes que la personne y a.
+     * The two shelves, each row with the actions the person has on it.
      *
      * @return array{personal: list<array<string, mixed>>, shared: list<array<string, mixed>>}
      */
@@ -105,8 +105,8 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * Une carte, avec les gestes de la personne. Le client n'y est nommé que
-     * pour qui a le droit de voir les clients, module allumé.
+     * A card, with the person's actions. The client is only named on it for
+     * someone with the right to see clients, with the module on.
      *
      * @return array<string, mixed>
      */
@@ -125,7 +125,7 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * L'éditeur d'un livrable de Studio.
+     * A Studio deliverable's editor.
      *
      * @return array<string, mixed>
      */
@@ -157,9 +157,9 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * Les clients que les réglages proposent, par raison sociale : vide sans
-     * le module des clients ou sans le droit d'en voir la liste, et le
-     * sélecteur ne s'affiche pas.
+     * The clients the settings offer, by company name: empty without the
+     * clients module or without the right to see their list, and then the
+     * selector is not shown.
      *
      * @return list<array{id: int|null, legalName: string}>
      */
@@ -176,8 +176,8 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * Les espaces où déposer une copie, pour le sélecteur : vide quand la
-     * personne n'écrit dans aucun, et le geste ne s'affiche pas.
+     * The spaces a copy can be dropped into, for the selector: empty when the
+     * person writes to none, and then the action is not shown.
      *
      * @return list<array{id: int|null, name: string, customer: string}>
      */
@@ -201,7 +201,7 @@ final readonly class DeliverablesViewBuilder
             'canShare' => $this->access->canShare($deliverable),
             'canDelete' => $this->access->canDelete($deliverable),
             'canChangeScope' => $this->access->canChangeScope($deliverable),
-            // Copier, c'est créer : la copie est à qui la fait.
+            // Copying is creating: the copy belongs to whoever makes it.
             'canDuplicate' => $this->access->canCreate(),
         ];
     }

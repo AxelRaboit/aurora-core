@@ -12,7 +12,7 @@ interface SpaceResourceSerializerInterface
     public function serialize(SpaceResourceInterface $resource): array;
 
     /**
-     * La même ressource, telle que le client la reçoit.
+     * The same resource, as the client receives it.
      *
      * @return array<string, mixed>
      */

@@ -5,11 +5,11 @@ import AppGuide from "./AppGuide.vue";
 import { useGuidePreference } from "@/shared/composables/useGuidePreference.js";
 
 /**
- * L'encart « Comment ça marche ».
+ * The "How it works" panel.
  *
- * Ce qui se casserait sans bruit : le choix commun. Replier un encart doit
- * les replier tous, et le choix doit survivre à la visite ; sinon le lecteur
- * qui connaît l'outil referme vingt encarts à la main.
+ * What would break silently: the shared choice. Collapsing one panel must
+ * collapse them all, and the choice must survive the visit; otherwise the
+ * reader who knows the tool closes twenty panels by hand.
  */
 describe("AppGuide", () => {
     beforeEach(() => useGuidePreference().forget());

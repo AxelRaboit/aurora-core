@@ -159,11 +159,10 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
         $category->setName($input->getName());
         $category->setDescription($input->getDescription());
 
-        // Calculé à la création, puis laissé tel quel : d'autres parties de
-        // l'application retrouvent une catégorie par son identifiant
-        // (« medias-editoriaux » pour les images déposées depuis un
-        // formulaire). Le recalculer à chaque renommage la perdait, et la
-        // suivante était recréée sous l'ancien nom.
+        // Computed at creation, then left as is: other parts of the application
+        // find a category by its identifier ("medias-editoriaux" for images
+        // uploaded from a form). Recomputing it on every rename lost it, and the
+        // next one was recreated under the old name.
         if (null === $category->getId()) {
             $category->setSlug($this->uniqueSlug($input->getName(), null));
         }

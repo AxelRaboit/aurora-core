@@ -26,8 +26,8 @@ use function array_unique;
 use function array_values;
 
 /**
- * Ce que reçoivent les écrans des livrables d'un espace : son onglet, et
- * l'éditeur d'un de ses livrables. Les livrables de Studio ont les leurs, cf.
+ * What the screens of a space's deliverables receive: its tab, and the
+ * editor of one of its deliverables. Studio deliverables have their own, see
  * {@see DeliverablesViewBuilder}.
  */
 final readonly class SpaceDeliverablesViewBuilder
@@ -46,7 +46,7 @@ final readonly class SpaceDeliverablesViewBuilder
     ) {}
 
     /**
-     * L'onglet « Livrables » d'un espace.
+     * A space's "Livrables" tab.
      *
      * @return array<string, mixed>
      */
@@ -59,8 +59,8 @@ final readonly class SpaceDeliverablesViewBuilder
             'deliverables' => $this->rows($space),
             'canEditDeliverables' => $this->security->isGranted('studio.spaces.edit'),
             'canShareDeliverables' => $this->security->isGranted(DeliverableAccess::SPACE_SHARE),
-            // Vrai quand l'espace reçoit encore des livrables : une archive n'en
-            // reçoit plus, et la liste n'offre plus d'en créer ou d'en dupliquer.
+            // True when the space still receives deliverables: an archive no
+            // longer does, and the list no longer offers to create or duplicate.
             'canAddDeliverables' => $canAdd,
             'deliverableListPath' => $this->urlGenerator->generate('workspace_space_deliverables_lists', ['id' => $id]),
             'deliverableCreatePath' => $this->urlGenerator->generate('workspace_space_deliverables_create', ['id' => $id]),
@@ -76,8 +76,8 @@ final readonly class SpaceDeliverablesViewBuilder
             // The reading links, from the list as from the editor: creating
             // one for a recipient should not mean opening the document first.
             'deliverableLinksPathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_links', ['id' => $id, 'deliverableId' => '__id__']),
-            // Vide quand la personne ne crée pas de livrable de Studio : le
-            // geste « Copier dans Studio » ne s'affiche pas.
+            // Empty when the person cannot create a Studio deliverable: the
+            // "Copier dans Studio" action is not shown.
             'deliverableCopyToStudioPathTemplate' => $this->access->canCopyToStudio()
                 ? $this->pathTemplates->generate('workspace_space_deliverables_copy_to_studio', ['id' => $id, 'deliverableId' => '__id__'])
                 : '',
@@ -113,8 +113,8 @@ final readonly class SpaceDeliverablesViewBuilder
     }
 
     /**
-     * Les lignes de l'onglet, lues sans le corps des livrables : la page d'un
-     * espace les porte toutes à chaque ouverture, quel que soit l'onglet.
+     * The tab's rows, read without the deliverables' bodies: a space page
+     * carries all of them on every opening, whatever the tab.
      *
      * @return list<array<string, mixed>>
      */
@@ -122,7 +122,7 @@ final readonly class SpaceDeliverablesViewBuilder
     {
         $rows = $this->deliverables->findRowsForSpace($space);
 
-        // Les images de toutes les lignes en une requête, pas une par ligne.
+        // The images of every row in one query, not one per row.
         $ids = array_values(array_unique(array_filter(array_column($rows, 'thumbnailId'))));
         $thumbnails = [];
         foreach ([] === $ids ? [] : $this->documents->findBy(['id' => $ids]) as $document) {
@@ -136,7 +136,7 @@ final readonly class SpaceDeliverablesViewBuilder
     }
 
     /**
-     * L'éditeur d'un livrable d'espace.
+     * A space deliverable's editor.
      *
      * @return array<string, mixed>
      */
@@ -152,21 +152,20 @@ final readonly class SpaceDeliverablesViewBuilder
 
         return [
             'deliverable' => $this->serializer->editor($deliverable),
-            // L'espace entier : la coquille de l'espace de travail en dessine
-            // l'en-tête (pastille, nom, client, passage aux autres espaces).
+            // The whole space: the workspace shell draws its header from it
+            // (pill, name, client, switching to other spaces).
             'space' => $this->spaceSerializer->serialize($space),
             'locales' => $this->localeContext->getActiveLocales(),
             'hiddenZoneTypes' => DeliverablePageRenderer::HIDDEN_ZONE_TYPES,
             'canEdit' => $canEdit,
-            // Donner une adresse de lecture est le droit de partager l'espace,
-            // pas celui de le modifier.
+            // Giving a reading address is the right to share the space, not
+            // the right to edit it.
             'canShare' => $this->security->isGranted(DeliverableAccess::SPACE_SHARE),
             'canDelete' => $canEdit,
-            // Dupliquer, c'est ajouter un livrable à l'espace : pas dans une archive.
+            // Duplicating adds a deliverable to the space: not in an archive.
             'canDuplicate' => $this->access->canAddTo($space),
             'deliverablesPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]).'?view=deliverables',
-            // Ce que la coquille de l'espace attend pour son en-tête et ses
-            // deux onglets.
+            // What the space shell expects for its header and its two tabs.
             'backPath' => $this->urlGenerator->generate('suite_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),

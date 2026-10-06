@@ -32,8 +32,8 @@ function actions(
 
 describe("useCustomerRowActions", () => {
     it("offers converting on a prospect and on nothing else", () => {
-        // Un client est deja converti : une entree grisee sur deux lignes sur
-        // trois est du bruit dans un menu qu'on lit vite.
+        // A customer is already converted: an entry greyed out on two rows in
+        // three is noise in a menu read quickly.
         expect(actions({ id: 1, status: "prospect" })).toEqual([
             "open",
             "convert",
@@ -53,8 +53,8 @@ describe("useCustomerRowActions", () => {
     });
 
     it("opens the customer page as a link, for whoever sees the list", () => {
-        // La fiche ne se modifie plus dans une fenetre de la liste : on va sur
-        // sa page, et un lien peut s'ouvrir dans un autre onglet.
+        // The sheet is no longer edited in a dialog of the list: you go to its
+        // page, and a link can open in another tab.
         const open = build([])({ id: 42, status: "client" }).find(
             (action) => "open" === action.key,
         );

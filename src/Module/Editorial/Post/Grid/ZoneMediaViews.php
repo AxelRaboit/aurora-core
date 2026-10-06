@@ -85,18 +85,17 @@ final readonly class ZoneMediaViews
                 $media->getExif(),
                 array_flip(['camera', 'lens', 'focal', 'aperture', 'shutter', 'iso']),
             ))),
-            // **Ce qui réserve la place avant que l'image arrive.** Sans les
-            // deux, un `<img>` en chargement différé occupe zéro pixel de
-            // haut : la page est courte, puis s'allonge à chaque image qui
-            // se pose, et on voit le contenu descendre par à-coups. Mesuré
-            // sur la page photographie, où trois images font toute la page.
+            // **What reserves the space before the image arrives.** Without
+            // both, a lazy-loaded `<img>` is zero pixels tall: the page is
+            // short, then grows with each image that lands, and the content
+            // is seen moving down in jolts. Measured on the photography
+            // page, where three images make up the whole page.
             //
-            // Ce sont les dimensions du document et l'adresse est celle
-            // d'une taille générée, ce qui est sans importance : le navigateur
-            // n'en tire qu'un rapport, et une taille générée est un
-            // redimensionnement. Vérifié sur la production, où la taille
-            // « large » d'une photo mesure exactement ce que le document
-            // déclare.
+            // These are the document's dimensions while the address is that
+            // of a generated size, which does not matter: the browser only
+            // takes a ratio from them, and a generated size is a resize.
+            // Checked in production, where a photo's "large" size measures
+            // exactly what the document declares.
             'width' => $media->getWidth(),
             'height' => $media->getHeight(),
             // Null for anything we host ourselves. Present, and displayed by

@@ -22,24 +22,24 @@ const props = defineProps({
     /** lower-cased title -> id, for resolving `[[links]]` inside the share. */
     titleIndex: { type: Object, default: () => ({}) },
     /**
-     * Le bandeau de la note : `{url, creditName, creditUrl, position}`.
+     * The note's banner: `{url, creditName, creditUrl, position}`.
      *
-     * L'image reste chez celui qui l'héberge ; on n'en a que l'adresse. Le
-     * crédit l'accompagne parce que la licence le demande, et parce qu'il
-     * n'y a plus de fiche en médiathèque pour le porter.
+     * The image stays with whoever hosts it; we only keep its address. The
+     * credit goes with it because the licence requires it, and because there
+     * is no longer a media library record to carry it.
      */
     cover: { type: Object, default: null },
-    /** {@see NoteAppearanceEnum} - le fond de la note et son encre. */
+    /** {@see NoteAppearanceEnum} - the note's background and its ink. */
     appearance: { type: String, default: "plain" },
-    /** Le chemin du retour vers l'éditeur, quand on lit sa propre note. */
+    /** The way back to the editor, when reading one's own note. */
     backPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
 const { render } = useMarkdownRenderer();
 
-// Le papier est clair : le thème sombre se retire le temps d'imprimer, sur le
-// lecteur comme sur un partage, au bouton comme à Ctrl+P.
+// Paper is light: the dark theme steps aside while printing, on the reader
+// as on a share, from the button as from Ctrl+P.
 let stopPrintTheme = () => {};
 onMounted(() => {
     stopPrintTheme = lightWhilePrinting();
@@ -47,7 +47,7 @@ onMounted(() => {
 onUnmounted(() => stopPrintTheme());
 
 const html = computed(() =>
-    // La page écrit déjà le titre au-dessus du corps.
+    // The page already writes the title above the body.
     shareHtml(render(withoutLeadingTitle(props.content, props.noteTitle)), {
         imagePrefix: props.imagePrefix,
         shareImagePath: props.shareImagePath,
@@ -66,18 +66,18 @@ function titleOf(node) {
 const coverUrl = computed(() => props.cover?.url || "");
 
 /**
- * Où couper la photo, en pourcentage de sa hauteur.
+ * Where to cut the photo, as a percentage of its height.
  *
- * Un bandeau montre une bande d'une image qui n'a pas été cadrée pour ça :
- * sans ce réglage, un portrait montre un front ou un menton.
+ * A banner shows a strip of an image that was not framed for it: without
+ * this setting, a portrait shows a forehead or a chin.
  */
 const coverStyle = computed(() => ({
     objectPosition: `50% ${Number(props.cover?.position ?? 50)}%`,
 }));
 
-// `plain` ne pose aucune classe : une note sans habillage suit le thème
-// clair ou sombre de la personne, et une classe qui la repeindrait en dur
-// lui retirerait ce choix.
+// `plain` sets no class: a note without styling follows the person's light
+// or dark theme, and a class that repainted it in hard colours would take
+// that choice away.
 const lookClass = computed(() =>
     "plain" === props.appearance ? "" : `note-look note-look-${props.appearance}`,
 );
@@ -110,9 +110,9 @@ const lookClass = computed(() =>
             class="note-print-article aurora-card min-w-0 flex-1 overflow-hidden"
             :class="lookClass"
         >
-            <!-- Le bandeau, quand la note en porte un. L'image vit chez celui
-                 qui l'héberge : si elle disparaît de là-bas, le cadre reste
-                 vide et on en choisit une autre. -->
+            <!-- The banner, when the note has one. The image lives with
+                 whoever hosts it: if it disappears from there, the frame
+                 stays empty and another one is picked. -->
             <figure v-if="coverUrl" class="relative m-0">
                 <img
                     :src="coverUrl"
@@ -142,14 +142,14 @@ const lookClass = computed(() =>
                 </h2>
                 <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
                  through DOMPurify before this ever reaches the page. -->
-                <!-- Les mêmes classes que l'aperçu de l'éditeur : sans
-                     `prose`, une liste perdait ses puces et son retrait, et
-                     la note lue en ligne ne ressemblait plus à la note
-                     écrite. Vu à 375 px sur la page partagée. -->
+                <!-- The same classes as the editor preview: without
+                     `prose`, a list lost its bullets and its indent, and
+                     the note read online no longer looked like the note
+                     as written. Seen at 375 px on the shared page. -->
                 <div class="note-preview prose prose-sm dark:prose-invert max-w-none" v-html="html" />
 
-                <!-- Le retour, seulement quand on lit sa propre note : un invité
-                 n'a pas d'éditeur où revenir. -->
+                <!-- The way back, only when reading one's own note: a guest
+                 has no editor to go back to. -->
                 <a
                     v-if="backPath"
                     :href="backPath"

@@ -49,9 +49,9 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly SpaceVisibility $visibility,
         protected readonly Security $security,
         /**
-         * Optionnel, et dernier, pour qu'un projet client qui étend ce
-         * manager avec son propre constructeur continue de démarrer : sans
-         * lui, l'espace de notes ne suit simplement plus l'équipe.
+         * Optional, and last, so that a client project extending this manager
+         * with its own constructor keeps booting: without it, the notes space
+         * simply no longer follows the team.
          */
         protected readonly ?SpaceNoteSpaceSync $noteSpaces = null,
     ) {}
@@ -369,10 +369,10 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
 
         return $this->customerManager->create($this->customerInputFactory->fromArray([
             'legalName' => $name,
-            // Facultative, et c'est tout l'interet : on rencontre quelqu'un, on
-            // ouvre un espace pour structurer le travail, et on n'a que son
-            // nom. Les liens d'acces de l'espace portent leur propre
-            // destinataire, donc rien ici n'en depend.
+            // Optional, and that is the whole point: you meet someone, open a
+            // space to structure the work, and have only their name. The
+            // space's access links carry their own recipient, so nothing here
+            // depends on it.
             'contractualEmail' => $input->getProspectEmail(),
             'status' => CustomerStatusEnum::Prospect->value,
         ]));

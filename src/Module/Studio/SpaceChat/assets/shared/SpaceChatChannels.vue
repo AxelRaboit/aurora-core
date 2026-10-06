@@ -58,17 +58,16 @@ const { t } = useI18n();
 const canArrange = computed(() => !!props.createPath);
 
 /**
- * Deux listes, parce que ce sont deux choses.
+ * Two lists, because they are two things.
  *
- * Un canal est une pièce où l'on entre, une conversation privée est quelqu'un à
- * qui l'on parle. Le mécanisme est le même dessous - un salon à deux - et c'est
- * volontairement invisible ici : personne ne pense « le salon à deux avec
- * Marie ».
+ * A channel is a room one walks into, a private conversation is someone one
+ * talks to. The mechanism underneath is the same - a room for two - and that is
+ * deliberately invisible here: nobody thinks "the room for two with Marie".
  */
 const rooms = computed(() => props.channels.filter((channel) => !channel.isDirect));
 const directs = computed(() => props.channels.filter((channel) => channel.isDirect));
 
-/** Ceux avec qui il n'y a pas déjà une conversation ouverte. */
+/** Those there is not already an open conversation with. */
 const reachable = computed(() => {
     const already = new Set(directs.value.map((channel) => channel.name));
 
@@ -78,9 +77,9 @@ const reachable = computed(() => {
 </script>
 
 <template>
-    <!-- Le voile ne prend la souris que lorsque le tiroir est sorti, et il
-         disparaît complètement à partir de `md` : sans ça il couvrirait une
-         conversation qu'aucun tiroir ne cache. -->
+    <!-- The veil only takes the mouse when the drawer is out, and it
+         disappears entirely from `md`: otherwise it would cover a
+         conversation that no drawer hides. -->
     <div
         v-if="open"
         class="absolute inset-0 z-10 bg-black/50 md:hidden"
@@ -91,16 +90,16 @@ const reachable = computed(() => {
         class="absolute inset-y-0 left-0 z-20 flex w-56 shrink-0 flex-col gap-2 border-r border-line bg-surface p-3 shadow-xl transition-transform duration-200 md:static md:w-52 md:translate-x-0 md:bg-transparent md:shadow-none"
         :class="open ? 'translate-x-0' : '-translate-x-full'"
     >
-        <!-- L'intitulé disparaît sur téléphone : une colonne de gauche a besoin
-             qu'on dise ce qu'elle est, une ligne de pastilles au-dessus de la
-             conversation se lit sans. -->
+        <!-- The heading disappears on a phone: a left column needs to be told
+             what it is, a row of pills above the conversation reads without
+             it. -->
         <span class="px-1 text-[0.65rem] font-medium uppercase tracking-wider text-muted">
             {{ t("shared.space_chat.channels.label") }}
         </span>
 
-        <!-- Une seule ligne qui défile plutôt qu'un pavé qui passe à la ligne :
-             sur un écran de 812 pixels de haut, trois canaux repliés prenaient
-             107 pixels à la conversation, qui est ce qu'on est venu lire. -->
+        <!-- A single scrolling line rather than a block that wraps: on a
+             screen 812 pixels high, three wrapped channels took 107 pixels
+             from the conversation, which is what one came to read. -->
         <div class="flex flex-col gap-0.5 overflow-y-auto">
             <button
                 v-for="channel in rooms"
@@ -117,15 +116,15 @@ const reachable = computed(() => {
                 <Hash class="h-3 w-3 shrink-0" :stroke-width="2" />
                 <span class="truncate">{{ channel.name }}</span>
 
-                <!-- Dit sur la ligne du canal, pas seulement dans ses réglages :
-                     ce qui se tape là ne sort pas de l'agence, et c'est à savoir
-                     avant d'écrire plutôt qu'après.
+                <!-- Said on the channel's line, not only in its settings:
+                     what is typed there does not leave the agency, and that
+                     is worth knowing before writing rather than after.
 
-                     **Les deux états, et non plus un seul.** Seul l'œil barré
-                     était dessiné : un canal ouvert au client se déduisait
-                     d'une absence d'icône, ce qui se confond avec une icône
-                     qu'on n'a pas vue. Une porte ouverte se signale autant
-                     qu'une porte fermée. -->
+                     **Both states, and no longer just one.** Only the
+                     crossed-out eye was drawn: a channel open to the client
+                     was inferred from a missing icon, which is easy to
+                     confuse with an icon one did not see. An open door is
+                     signalled as much as a closed one. -->
                 <component
                     :is="channel.openToClient ? Eye : EyeOff"
                     v-if="canArrange && !channel.isDirect"
@@ -138,9 +137,8 @@ const reachable = computed(() => {
                 />
             </button>
 
-            <!-- Demande, n'ouvre pas : le nom se donne dans une modale, pour
-                 les mêmes raisons que le choix d'une personne juste en
-                 dessous. -->
+            <!-- Asks, does not open: the name is given in a modal, for the
+                 same reasons as picking a person just below. -->
             <button
                 v-if="canArrange"
                 type="button"
@@ -179,13 +177,12 @@ const reachable = computed(() => {
                     <span class="truncate">{{ channel.name }}</span>
                 </button>
 
-                <!-- La question est posée par une modale, pas par le rail.
-                     Une liste de noms qui se dépliait ici poussait les salons
-                     vers le bas, dans deux cents pixels de large, au moment
-                     précis où l'on cherche un nom ; et sur téléphone elle
-                     s'ouvrait dans un tiroir qui couvre déjà la conversation.
-                     Le rail demande, le panneau ouvre, et le tiroir se
-                     referme. -->
+                <!-- The question is asked by a modal, not by the rail. A
+                     list of names unfolding here pushed the rooms down, in
+                     two hundred pixels of width, at the very moment one is
+                     looking for a name; and on a phone it opened inside a
+                     drawer that already covers the conversation. The rail
+                     asks, the panel opens, and the drawer closes. -->
                 <button
                     v-if="reachable.length"
                     type="button"

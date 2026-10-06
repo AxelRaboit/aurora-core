@@ -4,8 +4,8 @@
  * folder, the agency's, and the password that locks the Drive view. The tab
  * around it ({@see SpaceSettingsView}) draws the sections.
  *
- * Le mot de passe n'est jamais relu depuis le serveur, seulement posé ou
- * retiré. L'état se résume donc à un booléen : fermé, ou ouvert.
+ * The password is never read back from the server, only set or removed. The
+ * state therefore comes down to a boolean: locked, or open.
  */
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -23,11 +23,11 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 const props = defineProps({
     settingsPath: { type: String, required: true },
-    /** Le dossier de l'agence, commun à tous les espaces ; nul s'il n'est pas choisi. */
+    /** The agency's folder, shared by every space; null if not chosen. */
     agencyFolderId: { type: String, default: null },
-    /** Où l'enregistrer, pour qui a la main sur la configuration ; nul sinon. */
+    /** Where to save it, for whoever controls the configuration; null otherwise. */
     agencyFolderPath: { type: String, default: null },
-    /** L'adresse avec laquelle partager un dossier, à copier dans la fenêtre. */
+    /** The address to share a folder with, to copy in the dialog. */
     serviceAccountEmail: { type: String, default: null },
 });
 
@@ -37,7 +37,7 @@ const { t } = useI18n();
 const { request } = useRequest();
 const { copy } = useClipboard();
 
-/** Brancher un dossier, dans l'ordre où ça se fait : partager, coller, retrouver. */
+/** Connect a folder, in the order it is done: share, paste, find again. */
 const howtoSteps = ["share", "paste", "find"];
 
 const loading = ref(true);
@@ -51,11 +51,10 @@ const next = ref("");
 const confirm = ref("");
 
 /**
- * Les deux saisies diffèrent.
+ * The two inputs differ.
  *
- * Signalée dès la frappe et pas au refus du serveur : le serveur ne voit
- * qu'un mot de passe, c'est ici qu'on sait qu'il devait y en avoir deux
- * identiques.
+ * Flagged while typing and not on the server's refusal: the server only sees
+ * one password, it is here that we know there had to be two identical ones.
  */
 const mismatch = computed(() => "" !== confirm.value && confirm.value !== next.value);
 
@@ -69,17 +68,18 @@ function apply(settings) {
     next.value = "";
     confirm.value = "";
 
-    // Les deux choses que la barre doit savoir sans rechargement : que la vue
-    // Drive demande le mot de passe, et qu'un dossier existe.
+    // The two things the bar must know without a reload: that the Drive view
+    // asks for the password, and that a folder exists.
     emit("locked-changed", locked.value);
     emit("folder-changed", folder.value);
 }
 
 onMounted(async () => {
     try {
-        // `.settings` et non la réponse entière : `request` rend l'enveloppe,
-        // et `apply` lit le contenu. Passé l'enveloppe, tout est `undefined`
-        // et l'écran annonce une porte ouverte sur un espace fermé.
+        // `.settings` and not the whole response: `request` returns the
+        // envelope, and `apply` reads the content. Given the envelope,
+        // everything is `undefined` and the screen announces an open door on
+        // a locked space.
         const data = await request(props.settingsPath, null, { method: HttpMethod.Get, noGuard: true });
         apply(data?.settings);
     } finally {
@@ -88,12 +88,12 @@ onMounted(async () => {
 });
 
 /**
- * Un envoi, sa réponse, et le refus dit à voix haute.
+ * A submission, its response, and the refusal said out loud.
  *
- * **Le refus est la moitié qui manquait.** `request` rend l'enveloppe d'un
- * 400 sans rien annoncer ; les trois appels n'en lisaient que le succès. Un
- * mot de passe erroné, trop court ou un dossier mal collé ne produisaient
- * alors rien du tout à l'écran, ce qui se lit comme un bouton mort.
+ * **The refusal is the missing half.** `request` returns a 400's envelope
+ * without announcing anything; the three calls only read its success. A
+ * wrong or too short password or a badly pasted folder then produced nothing
+ * at all on screen, which reads as a dead button.
  */
 async function submit(suffix, payload) {
     saving.value = true;
@@ -115,16 +115,16 @@ async function submit(suffix, payload) {
     }
 }
 
-/** L'adresse d'un dossier dans Google Drive, depuis son identifiant. */
+/** A folder's address in Google Drive, from its id. */
 function folderUrl(id) {
     return id ? `https://drive.google.com/drive/folders/${encodeURIComponent(id)}` : "";
 }
 
-// ── Les deux dossiers, réglés par la même fenêtre ───────────────────────────
-// Celui du client appartient à l'espace ; celui de l'agence est commun à tous
-// et vit dans la configuration du Drive, mais se règle d'ici parce que c'est
-// ici qu'on voit qu'il manque. Le même geste, donc la même fenêtre : `null`
-// quand elle est fermée, sinon le dossier qu'elle règle.
+// ── The two folders, set by the same dialog ─────────────────────────────────
+// The client's belongs to the space; the agency's is shared by all and
+// lives in the Drive configuration, but is set from here because this is
+// where you see it is missing. The same gesture, so the same dialog: `null`
+// when it is closed, otherwise the folder it sets.
 const { request: agencyRequest } = useRequest();
 const agencyFolder = ref(props.agencyFolderId);
 const editing = ref(null);
@@ -205,10 +205,10 @@ async function saveAgencyFolder(value) {
     return true;
 }
 
-// ── Le mot de passe ──────────────────────────────────────────────────────────
-// L'état d'abord, le formulaire ensuite : on vient ici le plus souvent pour
-// lire si l'onglet est fermé, rarement pour changer la clé. Le formulaire
-// s'ouvre à la demande, et se referme une fois le geste fait.
+// ── The password ──────────────────────────────────────────────────────────────
+// The state first, the form next: people mostly come here to read whether
+// the tab is locked, rarely to change the key. The form opens on demand, and
+// closes again once the gesture is done.
 const passwordFormOpen = ref(false);
 
 function closePasswordForm() {
@@ -231,9 +231,9 @@ async function savePassword() {
 }
 
 /**
- * Redemander le mot de passe à tout le monde.
+ * Ask everyone for the password again.
  *
- * Aucune saisie, contrairement au retrait : ce geste ne donne accès à rien.
+ * No input, unlike removal: this gesture grants access to nothing.
  */
 async function revokeSessions() {
     const settings = await submit("/drive-revoke", {});
@@ -255,18 +255,18 @@ async function clearPassword() {
     <section class="relative aurora-stack">
         <AppLoader :active="loading" />
 
-        <!-- Deux blocs : ce qui ne vaut que pour cet espace, puis ce qui vaut
-             pour tous. Côte à côte sur un grand écran, où une seule colonne
-             laissait la moitié droite vide ou étirait les explications sur
-             1 200 px ; l'un sous l'autre, sous un filet, ailleurs. -->
+        <!-- Two blocks: what applies only to this space, then what applies
+             to all. Side by side on a large screen, where a single column
+             left the right half empty or stretched the explanations over
+             1 200 px; one under the other, below a rule, elsewhere. -->
         <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-6">
             <section class="flex flex-col gap-3">
                 <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-muted">
                     {{ t("suite.studio.spaces.settings.group_space") }}
                 </h2>
 
-                <!-- Le dossier d'abord : sans lui, le mot de passe ferme une
-                     pièce vide. -->
+                <!-- The folder first: without it, the password locks an empty
+                     room. -->
                 <article class="flex flex-col gap-3 rounded-lg border border-line bg-surface-2 p-3 sm:p-4">
                     <div class="flex flex-col gap-1">
                         <header class="flex flex-wrap items-start justify-between gap-2">
@@ -316,8 +316,8 @@ async function clearPassword() {
                         <p class="m-0 text-xs text-muted">{{ t("suite.studio.spaces.settings.drive_intro") }}</p>
                     </div>
 
-                    <!-- Fermé : refermer partout se fait sans rien saisir, et
-                         reste à portée ; le reste ouvre le formulaire. -->
+                    <!-- Locked: locking again everywhere needs no input, and
+                         stays within reach; the rest opens the form. -->
                     <div v-if="!passwordFormOpen" class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                         <AppButton
                             v-if="locked"
@@ -338,9 +338,9 @@ async function clearPassword() {
                     <p v-if="!passwordFormOpen && locked" class="m-0 text-xs text-muted">{{ t("suite.studio.spaces.settings.drive_revoke_hint") }}</p>
 
                     <div v-if="passwordFormOpen" class="flex flex-col gap-3 border-t border-line/60 pt-3">
-                        <!-- L'ancien mot de passe n'est demandé que s'il y en a
-                             un. Un champ vide obligatoire sur une porte ouverte
-                             n'aurait rien à vérifier. -->
+                        <!-- The old password is only asked for if there is
+                             one. A required empty field on an open door would
+                             have nothing to check. -->
                         <AppInput
                             v-if="locked"
                             :model-value="current"
@@ -361,10 +361,9 @@ async function clearPassword() {
                             v-on:update:model-value="next = $event"
                         />
 
-                        <!-- La confirmation, parce qu'un mot de passe qu'on ne
-                             relit pas se tape de travers une fois sur dix, et
-                             qu'ici la faute de frappe ferme une porte dont
-                             personne n'a la clé. -->
+                        <!-- The confirmation, because a password nobody reads
+                             back is mistyped one time in ten, and here the
+                             typo locks a door nobody has the key to. -->
                         <AppInput
                             :model-value="confirm"
                             type="password"
@@ -375,7 +374,7 @@ async function clearPassword() {
                             v-on:update:model-value="confirm = $event"
                         />
 
-                        <!-- Les deux conséquences qu'on découvrirait sinon trop tard. -->
+                        <!-- The two consequences that would otherwise be found out too late. -->
                         <p class="m-0 text-xs text-muted">{{ t("suite.studio.spaces.settings.drive_closes_now") }}</p>
                         <p class="m-0 text-xs text-muted">{{ t("suite.studio.spaces.settings.drive_recovery") }}</p>
 
@@ -411,9 +410,9 @@ async function clearPassword() {
                 </article>
             </section>
 
-            <!-- Ce qui vaut pour tous les espaces, sous un filet : le régler
-                 ici le change partout, et l'écran doit le dire avant le
-                 bouton plutôt qu'après. -->
+            <!-- What applies to every space, below a rule: setting it here
+                 changes it everywhere, and the screen must say so before the
+                 button rather than after. -->
             <section class="flex flex-col gap-3 border-t border-line pt-8 lg:border-t-0 lg:pt-0">
                 <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-muted">
                     {{ t("suite.studio.spaces.settings.group_all") }}
@@ -463,11 +462,11 @@ async function clearPassword() {
                     <p v-if="!agencyFolderPath" class="m-0 text-xs text-muted">{{ t("suite.studio.spaces.settings.agency_ask_admin") }}</p>
                 </article>
 
-                <!-- Le mode d'emploi, à côté des réglages plutôt que dans une
-                     aide à part : brancher un dossier commence par un partage
-                     côté Google, que rien ici ne fait à la place du client.
-                     L'adresse à donner est sous la main, avec de quoi la
-                     copier, sans ouvrir la fenêtre. -->
+                <!-- The how-to, next to the settings rather than in separate
+                     help: connecting a folder starts with sharing on Google's
+                     side, which nothing here does in the client's place. The
+                     address to give is at hand, with a way to copy it,
+                     without opening the dialog. -->
                 <AppGuide :title="t('suite.studio.spaces.settings.howto_title')" storage-key="space-drive-howto">
                     <ol class="m-0 flex list-none flex-col gap-3 p-0">
                         <li v-for="(step, index) in howtoSteps" :key="step" class="flex gap-3">

@@ -47,15 +47,15 @@ import { ExternalLink, Eye, EyeOff, FileText, FolderOpen, LayoutGrid, List, Tras
 const props = defineProps({
     attachments: { type: Object, default: () => ({}) },
     items: { type: Array, default: () => [] },
-    /** Les fichiers de l'espace lui-même, sur aucune fiche. */
+    /** The files of the space itself, on no card. */
     spaceFiles: { type: Array, default: () => [] },
     editable: { type: Boolean, default: false },
     /**
-     * Montrer ou cacher un fichier de l'espace au client : le droit de
-     * partager l'espace, en plus de celui de le modifier.
+     * Showing a space file to the client or hiding it: the right to share
+     * the space, on top of the right to edit it.
      */
     canShowToClient: { type: Boolean, default: false },
-    /** Si le lecteur peut parcourir la médiathèque que le sélecteur liste. */
+    /** Whether the reader may browse the media library the picker lists. */
     canPick: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
 });
@@ -89,21 +89,21 @@ function open(itemId) {
 }
 
 /**
- * Le fichier montré dans le panneau, ou null.
+ * The file shown in the panel, or null.
  *
- * Le composant partagé sait déjà rendre une image, un PDF et le reste ; il n'y
- * a rien de propre aux espaces dans « à quoi ressemble ce fichier ».
+ * The shared component already knows how to render an image, a PDF and the
+ * rest; there is nothing specific to spaces in "what this file looks like".
  */
 const previewed = ref(null);
 
 /**
- * Deux rattachements, une seule liste dessinée.
+ * Two attachments, a single list drawn.
  *
- * « Sur les fiches » répond à « ce fichier est arrivé la semaine dernière, mais
- * pour quel post » ; « De l'espace » porte ce qui n'illustre rien - la charte,
- * les logos, le brief, un PDF signé. Retenu d'une visite à l'autre, comme les
- * onglets des notes : celui qui range ses chartes à part le fait sur tous ses
- * espaces.
+ * "Sur les fiches" answers "this file arrived last week, but for which post";
+ * "De l'espace" carries what illustrates nothing - the brand guidelines, the
+ * logos, the brief, a signed PDF. Remembered from one visit to the next, like
+ * the notes tabs: whoever files their guidelines apart does it on every
+ * space.
  */
 const { choice: tab } = usePersistedChoice("studio.space_files.tab", "linked", [
     "linked",
@@ -117,7 +117,7 @@ const tabs = computed(() => [
     { key: "space", count: props.spaceFiles.length },
 ]);
 
-/** Le champ de fichier caché : un bouton se dessine, un `input[type=file]` non. */
+/** The hidden file field: a button can be styled, an `input[type=file]` cannot. */
 const fileInput = ref(null);
 
 function chooseFile(event) {
@@ -125,24 +125,24 @@ function chooseFile(event) {
 
     if (file) emit("upload", file);
 
-    // Remis à zéro : sans ça, redéposer deux fois le même fichier n'émet rien,
-    // le champ n'ayant pas changé de valeur.
+    // Reset: without it, uploading the same file twice emits nothing, since
+    // the field's value has not changed.
     event.target.value = "";
 }
 </script>
 
 <template>
     <div ref="container">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; folded or
+     unfolded, the choice holds for every guide. -->
         <AppGuide :title="t('suite.studio.space_files.guide.title')" storage-key="space-files" class="mb-[var(--aurora-page-margin)]">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.space_files.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <!-- Deux rattachements, deux onglets, et le compte sur l'étiquette :
-                 c'est lui qui rend l'autre visible. -->
+            <!-- Two attachments, two tabs, and the count on the label: it is
+                 what makes the other one visible. -->
             <div
                 class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
                 role="group"
@@ -166,15 +166,15 @@ function chooseFile(event) {
                 </button>
             </div>
 
-            <!-- **Les deux gestes prennent la ligne sur téléphone.** Serrés à
-                 côté du sélecteur de vue, « Déposer un fichier » tombait à cent
-                 dix-sept pixels et « Choisir dans la médiathèque » se repliait
-                 sur deux lignes : les gestes de l'écran avaient l'air de la
-                 garniture du sélecteur. -->
+            <!-- **Both actions take the full line on a phone.** Squeezed next
+                 to the view switcher, "Déposer un fichier" shrank to a hundred
+                 and seventeen pixels and "Choisir dans la médiathèque" wrapped
+                 onto two lines: the screen's actions looked like trimming on
+                 the switcher. -->
             <div class="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
-                <!-- Déposer et choisir ne valent que pour les fichiers de
-                     l'espace : sur une fiche, c'est la fiche qui les porte, et
-                     c'est là qu'on les y met. -->
+                <!-- Upload and pick only apply to the space's files: on a
+                     card, the card carries them, and that is where they are
+                     added. -->
                 <template v-if="'space' === tab && editable">
                     <input ref="fileInput" type="file" class="hidden" v-on:change="chooseFile">
                     <AppButton
@@ -225,13 +225,13 @@ function chooseFile(event) {
             :hint="t(`suite.studio.space_files.empty_${tab}_hint`)"
         />
 
-        <!-- **Un fichier par ligne sur téléphone.** Deux colonnes sur trois
-             cent soixante-quinze pixels donnaient des vignettes de cent
-             soixante-treize : une image qu'on devine plutôt qu'on ne la
-             reconnaît, ce qui est tout ce qu'on demande à cette vue. Celle qui
-             reste prend la largeur, et le nom sous elle cesse d'être coupé au
-             troisième mot. Qui veut voir beaucoup de fichiers d'un coup a la
-             liste, juste à côté. -->
+        <!-- **One file per row on a phone.** Two columns on three hundred
+             and seventy-five pixels gave thumbnails of a hundred and
+             seventy-three: a picture you guess rather than recognise, and
+             recognising is all this view is asked for. The one that remains
+             takes the width, and the name below it stops being cut at the
+             third word. Whoever wants to see many files at once has the list,
+             right next to it. -->
         <div
             v-else-if="viewMode === 'grid'"
             class="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
@@ -241,10 +241,10 @@ function chooseFile(event) {
                 :key="file.id"
                 class="aurora-card overflow-hidden transition-colors hover:border-accent-400"
             >
-                <!-- Un carré de trois cent soixante pixels mangerait l'écran
-                     pour une seule vignette ; quatre tiers en laissent voir
-                     deux et demie, et le cadrage est de toute façon décidé par
-                     `object-fit: cover`. -->
+                <!-- A square of three hundred and sixty pixels would eat the
+                     screen for a single thumbnail; four by three shows two and
+                     a half, and the framing is decided by `object-fit: cover`
+                     anyway. -->
                 <button
                     type="button"
                     class="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-surface-2 sm:aspect-square"
@@ -265,10 +265,9 @@ function chooseFile(event) {
                         {{ file.title }}
                     </p>
 
-                    <!-- `py-1.5 -my-1.5` : seize pixels de haut, c'est la
-                         hauteur d'une ligne de texte et non celle d'une cible.
-                         La zone sensible monte à vingt-huit sans que la carte
-                         bouge d'un pixel. -->
+                    <!-- `py-1.5 -my-1.5`: sixteen pixels high is the height of
+                         a line of text, not of a target. The hit area grows to
+                         twenty-eight without the card moving a pixel. -->
                     <button
                         v-if="file.itemId"
                         type="button"
@@ -288,10 +287,10 @@ function chooseFile(event) {
                         {{ t("suite.studio.space_files.sent_by_client") }}
                     </p>
 
-                    <!-- L'état d'un fichier de l'espace, et le geste qui le
-                         change pour qui peut partager l'espace. Un fichier
-                         que le client a envoyé reste visible : il n'y a rien
-                         à lui cacher de ce qu'il a lui-même déposé. -->
+                    <!-- The state of a space file, and the action that changes
+                         it for whoever may share the space. A file the client
+                         sent stays visible: there is nothing to hide from
+                         them in what they uploaded themselves. -->
                     <div v-if="'space' === tab" class="mt-1.5 flex items-center justify-between gap-2">
                         <span class="inline-flex items-center gap-1 text-[0.68rem]" :class="file.visibleToClient ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted'">
                             <component :is="file.visibleToClient ? Eye : EyeOff" class="h-3 w-3" :stroke-width="2" />
@@ -380,10 +379,10 @@ function chooseFile(event) {
                     {{ t("suite.studio.space_content.files_open") }}
                 </button>
 
-                <!-- Montrer ou cacher au client : pour qui peut partager
-                     l'espace, et jamais sur un fichier que le client a
-                     lui-même envoyé. Écrit en toutes lettres sur téléphone,
-                     où aucun survol n'explique une icône. -->
+                <!-- Show to or hide from the client: for whoever may share
+                     the space, and never on a file the client sent
+                     themselves. Spelled out on a phone, where no hover
+                     explains an icon. -->
                 <AppButton
                     v-if="'space' === tab && canShowToClient && !file.fromClient"
                     size="sm"
@@ -398,9 +397,9 @@ function chooseFile(event) {
                     </span>
                 </AppButton>
 
-                <!-- Retirer n'est offert que sur les fichiers de l'espace : sur
-                     une fiche, le fichier se retire depuis la fiche, là où on
-                     voit ce qu'on défait. -->
+                <!-- Remove is offered only on the space's files: on a card,
+                     the file is removed from the card, where you see what you
+                     undo. -->
                 <AppIconButton
                     v-if="'space' === tab && editable"
                     :title="t('suite.studio.space_files.remove')"
@@ -453,9 +452,9 @@ function chooseFile(event) {
 
             <template #footer>
                 <AppModalFooter>
-                    <!-- L'adresse réelle reste offerte : le panneau sert à
-                         regarder, le lien sert à télécharger ou à garder le
-                         fichier ouvert à côté. -->
+                    <!-- The real address stays on offer: the panel is for
+                         looking, the link is for downloading or keeping the
+                         file open alongside. -->
                     <AppButton variant="ghost" size="md" :href="previewed?.url" target="_blank">
                         <ExternalLink class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("suite.studio.space_content.files_open_in_tab") }}

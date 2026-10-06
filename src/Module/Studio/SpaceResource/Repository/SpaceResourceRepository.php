@@ -23,12 +23,12 @@ class SpaceResourceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les ressources d'un espace, dans l'ordre où on les a rangées.
+     * The resources of a space, in the order they were arranged.
      *
-     * `$visibleOnly` n'est pas un filtre d'affichage : c'est ce que la page du
-     * client appelle, et une ressource fermée ne sort alors pas du serveur.
-     * Le studio appelle la même méthode sans le drapeau, donc il n'y a qu'un
-     * seul tri et qu'un seul endroit où se tromper.
+     * `$visibleOnly` is not a display filter: it is what the client's page
+     * calls, and a closed resource then does not leave the server. The studio
+     * calls the same method without the flag, so there is only one sort and
+     * only one place to get it wrong.
      *
      * @return list<SpaceResourceInterface>
      */
@@ -50,12 +50,12 @@ class SpaceResourceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * La place suivante dans la liste d'un espace.
+     * The next place in the list of a space.
      *
-     * Lue plutôt que comptée : compter les lignes donnerait la même valeur à
-     * deux ajouts après une suppression, et deux ressources à la même place se
-     * départageraient alors par leur identifiant, ce qui est un ordre mais pas
-     * celui qu'on a choisi.
+     * Read rather than counted: counting the rows would give the same value to
+     * two additions after a deletion, and two resources in the same place would
+     * then be ordered by their identifier, which is an order but not the one
+     * that was chosen.
      */
     public function nextPosition(CustomerSpaceInterface $space): int
     {

@@ -233,7 +233,7 @@ final class MailServiceTest extends TestCase
         self::assertSame('admin@aurora.test', $this->service->adminEmail());
     }
 
-    /** Le meme service, mais avec un ADMIN_EMAIL renseigne au deploiement. */
+    /** The same service, but with an ADMIN_EMAIL set at deploy time. */
     private function serviceWithDeploymentAdminEmail(string $adminEmail): MailService
     {
         return new MailService(
@@ -250,8 +250,8 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailFallsBackToTheDeploymentAddressWhenTheSettingIsUnset(): void
     {
-        // Personne n'a rempli l'ecran de reglages, mais l'installateur du
-        // serveur a renseigne ADMIN_EMAIL. C'est une adresse qui existe.
+        // Nobody filled in the settings screen, but whoever installed the
+        // server set ADMIN_EMAIL. It is an address that exists.
         $this->settings->method('get')->willReturn(null);
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
@@ -261,8 +261,8 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailIgnoresTheLegacyPlaceholder(): void
     {
-        // Une installation anterieure porte encore `admin@aurora.app` en base.
-        // Le domaine n'existe pas : les notifications rebondissaient en silence.
+        // An older install still carries `admin@aurora.app` in the database.
+        // The domain does not exist: notifications bounced silently.
         $this->settings->method('get')->willReturn('admin@aurora.app');
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
@@ -272,8 +272,8 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailPrefersTheSettingOverTheDeploymentAddress(): void
     {
-        // Un choix explicite d'administrateur gagne : c'est tout l'interet
-        // d'avoir un reglage editable sans redeploiement.
+        // An explicit administrator choice wins: that is the whole point of
+        // having a setting that can be edited without redeploying.
         $this->settings->method('get')->willReturn('editor@aurora.test');
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
