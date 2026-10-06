@@ -85,6 +85,13 @@ class CustomerSpacesController extends AbstractController
     {
         $input = $this->spaceInputFactory->fromArray($this->decodeJson($request));
 
+        // A space opened, or moved, onto somebody unknown creates their
+        // customer record on the way. That is a customer created, so it asks
+        // for the right to create one, as the customer screen does.
+        if (null === $input->getCustomerId() && '' !== (string) $input->getProspectName() && !$this->isGranted('studio.customers.create')) {
+            throw $this->createAccessDeniedException();
+        }
+
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);

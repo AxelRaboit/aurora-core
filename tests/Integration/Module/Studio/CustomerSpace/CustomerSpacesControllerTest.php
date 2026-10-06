@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
@@ -14,6 +15,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 use function json_decode;
+use function bin2hex;
+use function random_bytes;
 use function sprintf;
 
 /**
@@ -311,6 +314,38 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
      * on n'a rien d'autre. Les liens d'acces de l'espace portent leur propre
      * destinataire, donc rien sur cet ecran ne depend de l'adresse du client.
      */
+    /**
+     * A prospect opened from the space form is a customer record created, so
+     * it asks for the right the customer screen asks for. Holding the spaces
+     * is not holding the customers.
+     */
+    public function testOpeningAProspectNeedsTheRightToCreateACustomer(): void
+    {
+        $user = new User();
+        $user
+            ->setEmail('espaces-seuls-'.bin2hex(random_bytes(4)).'@aurora.test')
+            ->setName('Espaces seuls')
+            ->setType(UserTypeEnum::Suite)
+            ->setPassword('x')
+            ->setRoles(['ROLE_USER'])
+            ->setPrivileges(['studio.spaces.view', 'studio.spaces.create']);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $this->client->loginUser($user, 'admin');
+
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
+            'name' => 'Sans droit client',
+            'prospectName' => 'Verrerie Sansdroit',
+            'timezone' => 'Europe/Paris',
+        ]);
+
+        self::assertSame(403, $this->client->getResponse()->getStatusCode());
+        self::assertNull($this->entityManager->getRepository(Customer::class)->findOneBy(['legalName' => 'Verrerie Sansdroit']));
+
+        $this->entityManager->remove($this->entityManager->getRepository(User::class)->find($user->getId()));
+        $this->entityManager->flush();
+    }
+
     public function testAProspectNeedsNothingButItsName(): void
     {
         $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [

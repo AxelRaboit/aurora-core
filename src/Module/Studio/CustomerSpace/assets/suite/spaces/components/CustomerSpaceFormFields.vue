@@ -34,6 +34,11 @@ const props = defineProps({
      * serveur refusant de toute façon.
      */
     canEditTeam: { type: Boolean, default: true },
+    /**
+     * Si « nouveau prospect » est proposé. Il crée une fiche client, donc il
+     * demande le droit d'en créer une ; le serveur refuse sinon.
+     */
+    canCreateCustomer: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -80,7 +85,9 @@ watch(
 );
 
 const customerChoices = computed(() => [
-    { value: NEW_PROSPECT, label: t("suite.studio.spaces.customer_new_prospect") },
+    ...(props.canCreateCustomer
+        ? [{ value: NEW_PROSPECT, label: t("suite.studio.spaces.customer_new_prospect") }]
+        : []),
     ...props.customerOptions,
 ]);
 

@@ -19,6 +19,7 @@ use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterfa
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use DateTimeZone;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class CustomerSpacesViewBuilder
 {
@@ -31,6 +32,7 @@ final readonly class CustomerSpacesViewBuilder
         private StorageUsageProbe $storageUsage,
         private SpaceVisibility $visibility,
         private SpaceWorkload $workload,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {}
 
     /**
@@ -52,6 +54,9 @@ final readonly class CustomerSpacesViewBuilder
             // les espaces un par un, donc ne se répond pas.
             'storage' => $this->storageUsage->bySpace(),
             'customers' => $this->customerOptions(),
+            // Ouvrir un espace pour un inconnu crée sa fiche client : le
+            // formulaire ne propose ce chemin qu'à qui peut créer un client.
+            'canCreateCustomer' => $this->authorizationChecker->isGranted('studio.customers.create'),
             'users' => $this->userOptions(),
             'statuses' => $this->statusOptions(),
             'roles' => $this->roleOptions(),

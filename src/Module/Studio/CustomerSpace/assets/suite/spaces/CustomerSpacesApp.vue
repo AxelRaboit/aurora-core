@@ -63,6 +63,8 @@ const props = defineProps({
     storage: { type: Object, default: () => ({}) },
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
+    /** Ouvrir un espace pour un prospect crée sa fiche : réservé à qui crée des clients. */
+    canCreateCustomer: { type: Boolean, default: false },
     boardPath: { type: String, required: true },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
@@ -459,6 +461,7 @@ const pageActions = computed(() => {
                 <CustomerSpaceFormFields
                     v-model="newSpace"
                     :errors="createErrors"
+                    :can-create-customer="canCreateCustomer"
                     :customer-options="customerOptions"
                     :users="users"
                     :statuses="statuses"
@@ -499,6 +502,7 @@ const pageActions = computed(() => {
                 <CustomerSpaceFormFields
                     v-model="editForm"
                     :errors="editErrors"
+                    :can-create-customer="canCreateCustomer"
                     :customer-options="customerOptions"
                     :users="users"
                     :statuses="statuses"
