@@ -133,6 +133,8 @@ notes:
                 unpublished: 'Space unpublished'
                 badge: 'Published on the web'
             my_space: 'My space'
+            managed_badge: 'Customer space'
+            managed_hint: 'The notes of the customer space of the same name. Its name and team follow the customer space: they are set in Studio.'
             errors:
                 private_owner_only: 'Only the owner can keep the space to themselves.'
                 bad_slug: 'Invalid address: letters, digits and hyphens only.'
@@ -143,6 +145,7 @@ notes:
                 bad_member: 'This person cannot be added.'
                 save_failed: 'Could not save the space.'
                 load_failed: 'Could not load the space.'
+                managed: 'This space follows a Studio customer space: its name and team are set there.'
             name: 'Name'
             name_placeholder: 'Space name'
             label: 'Space'

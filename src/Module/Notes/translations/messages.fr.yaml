@@ -133,6 +133,8 @@ notes:
                 unpublished: 'Espace dépublié'
                 badge: 'Publié sur le web'
             my_space: 'Mon espace'
+            managed_badge: 'Espace client'
+            managed_hint: 'Les notes de l''espace client du même nom. Son nom et son équipe suivent l''espace client : on les règle dans Studio.'
             errors:
                 private_owner_only: 'Seul le propriétaire peut réserver l''espace à lui seul.'
                 bad_slug: 'Adresse invalide : lettres, chiffres et tirets seulement.'
@@ -143,6 +145,7 @@ notes:
                 bad_member: 'Cette personne ne peut pas être inscrite.'
                 save_failed: 'Impossible d''enregistrer l''espace.'
                 load_failed: 'Impossible de charger l''espace.'
+                managed: 'Cet espace suit un espace client de Studio : son nom et son équipe se règlent là-bas.'
             name: 'Nom'
             name_placeholder: 'Nom de l''espace'
             label: 'Espace'

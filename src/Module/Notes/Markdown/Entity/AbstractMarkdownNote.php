@@ -145,6 +145,21 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\Column(nullable: true)]
     protected ?int $trashedWithFolderId = null;
 
+    /**
+     * Le document Craft dont cette note est la copie, quand elle en vient.
+     *
+     * **Gardé pour qu'on puisse la remettre sur la version actuelle du
+     * document.** La note est une copie ponctuelle et non un miroir : rien ne
+     * revient la modifier tout seul. Mais sans cet identifiant, réimporter le
+     * même document créerait une seconde note à côté de la première, et
+     * retrouver la source demanderait de la chercher au titre.
+     *
+     * En clair, comme l'adresse du bandeau : un identifiant de bloc Craft ne
+     * dit rien de ce que la note raconte.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    protected ?string $craftDocumentId = null;
+
     public function getUser(): ?CoreUserInterface
     {
         return $this->user;
@@ -337,6 +352,18 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     public function setTrashedWithFolderId(?int $trashedWithFolderId): static
     {
         $this->trashedWithFolderId = $trashedWithFolderId;
+
+        return $this;
+    }
+
+    public function getCraftDocumentId(): ?string
+    {
+        return $this->craftDocumentId;
+    }
+
+    public function setCraftDocumentId(?string $craftDocumentId): static
+    {
+        $this->craftDocumentId = $craftDocumentId;
 
         return $this;
     }

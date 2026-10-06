@@ -132,6 +132,8 @@ notes:
                 unpublished: 'Espacio despublicado'
                 badge: 'Publicado en la web'
             my_space: 'Mi espacio'
+            managed_badge: 'Espacio de cliente'
+            managed_hint: 'Las notas del espacio de cliente del mismo nombre. Su nombre y su equipo siguen al espacio de cliente: se ajustan en Studio.'
             errors:
                 private_owner_only: 'Solo el propietario puede reservarse el espacio.'
                 bad_slug: 'Dirección no válida: solo letras, cifras y guiones.'
@@ -142,6 +144,7 @@ notes:
                 bad_member: 'Esta persona no se puede añadir.'
                 save_failed: 'No se ha podido guardar el espacio.'
                 load_failed: 'No se ha podido cargar el espacio.'
+                managed: 'Este espacio sigue un espacio de cliente de Studio: su nombre y su equipo se ajustan allí.'
             name: 'Nombre'
             name_placeholder: 'Nombre del espacio'
             label: 'Espacio'

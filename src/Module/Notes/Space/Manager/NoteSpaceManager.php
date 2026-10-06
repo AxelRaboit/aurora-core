@@ -49,6 +49,108 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
         return $space;
     }
 
+    /**
+     * Un espace que quelque chose d'autre règle : sans propriétaire, ouvert à
+     * ses seuls membres, que {@see self::syncManaged()} tient à jour.
+     *
+     * Sans propriétaire, parce que personne n'en est le propriétaire : son
+     * accès suit une équipe définie ailleurs, et le premier membre inscrit
+     * n'a pas à en devenir le maître le jour où il quitte cette équipe.
+     */
+    public function createManaged(string $name, string $managedBy): NoteSpaceInterface
+    {
+        $space = $this->createSpace();
+        $space
+            ->setName($name)
+            ->setManagedBy($managedBy)
+            ->setAccess(NoteSpaceAccessEnum::Members)
+            ->setDefaultRole(NoteSpaceRoleEnum::Reader);
+
+        $this->entityManager->persist($space);
+        $this->entityManager->flush();
+
+        $this->auditCreated($space);
+
+        return $space;
+    }
+
+    /**
+     * Le nom et les membres d'un espace réglé d'ailleurs, remis sur ce qu'on
+     * lui donne.
+     *
+     * Réconcilié plutôt que vidé et reconstruit, comme l'équipe d'un espace
+     * client : une inscription qui reste garde sa ligne, et seul son rôle
+     * bouge. Rien n'est écrit, et rien n'entre au journal, quand rien ne
+     * change - la synchronisation passe à chaque enregistrement de ce qui la
+     * règle.
+     */
+    public function syncManaged(NoteSpaceInterface $space, string $name, array $members): void
+    {
+        $changed = $space->getName() !== $name;
+        $space->setName($name);
+
+        $wanted = [];
+        foreach ($members as $member) {
+            $wanted[(int) $member['user']->getId()] = $member;
+        }
+
+        foreach ($space->getMembers()->toArray() as $membership) {
+            $userId = (int) $membership->getUser()->getId();
+
+            if (!isset($wanted[$userId])) {
+                $space->getMembers()->removeElement($membership);
+                $this->entityManager->remove($membership);
+                $changed = true;
+
+                continue;
+            }
+
+            if ($membership->getRole() !== $wanted[$userId]['role']) {
+                $membership->setRole($wanted[$userId]['role']);
+                $changed = true;
+            }
+
+            unset($wanted[$userId]);
+        }
+
+        foreach ($wanted as $member) {
+            $membership = $this->createMember();
+            $membership->setSpace($space)->setUser($member['user'])->setRole($member['role']);
+            $space->getMembers()->add($membership);
+            $this->entityManager->persist($membership);
+            $changed = true;
+        }
+
+        if (!$changed) {
+            return;
+        }
+
+        $this->entityManager->flush();
+
+        $this->auditUpdated($space);
+    }
+
+    /**
+     * Ce qui réglait l'espace a disparu : il part à la corbeille, et redevient
+     * un espace ordinaire.
+     *
+     * Sans propriétaire, il revient aux administrateurs, qui peuvent le faire
+     * revenir ({@see NoteSpaceAccess::adopts()}). Ses membres restent inscrits :
+     * le restaurer rend l'espace à ceux qui y écrivaient.
+     */
+    public function releaseManaged(NoteSpaceInterface $space): void
+    {
+        $space->setManagedBy(null);
+
+        if (!$space->getDeletedAt() instanceof DateTimeImmutable) {
+            $space->setDeletedAt(new DateTimeImmutable());
+        }
+
+        $this->entityManager->flush();
+
+        $this->auditDeleted($space);
+    }
+
     public function update(NoteSpaceInterface $space, NoteSpaceInputInterface $input): void
     {
         $this->applyInput($space, $input);
@@ -152,7 +254,10 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
             $space->setPosition($input->getPosition());
         }
 
-        if ($space->isPersonal()) {
+        // Un espace réglé d'ailleurs garde son nom et son accès : le
+        // contrôleur refuse déjà, et ceci tient pour un appel qui passerait à
+        // côté de lui.
+        if ($space->isPersonal() || $space->isManaged()) {
             return;
         }
 
@@ -191,6 +296,7 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
             'deleted' => $space->getDeletedAt() instanceof DateTimeImmutable,
             'published' => $space->isPublished(),
             'indexable' => $space->isIndexable(),
+            'managedBy' => $space->getManagedBy(),
         ];
     }
 }

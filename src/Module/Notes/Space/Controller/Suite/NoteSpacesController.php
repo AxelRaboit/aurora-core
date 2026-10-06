@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Space\Controller\Suite;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
@@ -41,6 +42,13 @@ use function preg_match;
  *
  * **Un espace qu'on ne peut pas gérer répond 404**, comme une note qu'on ne
  * peut pas lire : dire « interdit » confirmerait qu'il existe.
+ *
+ * **Un espace réglé d'ailleurs refuse qu'on le règle d'ici** - le renommer,
+ * changer son accès, y inscrire quelqu'un, le publier ou le retirer. Son nom
+ * et son équipe suivent ce qui le règle (l'espace client de Studio dont il
+ * garde les notes), et une modification faite ici serait défaite au prochain
+ * enregistrement de là-bas. Le refus est dit en clair plutôt qu'en 404 : la
+ * personne voit l'espace, il n'y a rien à cacher.
  */
 #[Route('/suite/notes/spaces', name: 'suite_notes_spaces')]
 #[IsGranted('notes.markdown.use')]
@@ -128,6 +136,10 @@ final class NoteSpacesController extends AbstractController
             return $this->jsonNotFound();
         }
 
+        if ($space->isManaged()) {
+            return $this->refuseManaged();
+        }
+
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
         // L'espace personnel ne porte pas de nom : le manager l'ignore, rien
@@ -170,6 +182,10 @@ final class NoteSpacesController extends AbstractController
             return $this->jsonNotFound();
         }
 
+        if ($space->isManaged()) {
+            return $this->refuseManaged();
+        }
+
         $data = $this->decodeJson($request);
 
         if (true !== ($data['published'] ?? false)) {
@@ -204,6 +220,10 @@ final class NoteSpacesController extends AbstractController
         $space = $this->spaceAccess->managedSpace($user, $id);
         if (!$space instanceof NoteSpaceInterface || $space->isPersonal()) {
             return $this->jsonNotFound();
+        }
+
+        if ($space->isManaged()) {
+            return $this->refuseManaged();
         }
 
         $this->manager->delete($space);
@@ -248,6 +268,10 @@ final class NoteSpacesController extends AbstractController
             return $this->jsonNotFound();
         }
 
+        if ($space->isManaged()) {
+            return $this->refuseManaged();
+        }
+
         $data = $this->decodeJson($request);
         $role = NoteSpaceRoleEnum::tryFrom((string) ($data['role'] ?? ''));
         $member = isset($data['userId']) && is_numeric($data['userId']) ? $users->find((int) $data['userId']) : null;
@@ -270,6 +294,10 @@ final class NoteSpacesController extends AbstractController
         $user = $this->getUser();
 
         $space = $this->spaceAccess->managedSpace($user, $id);
+        if ($space instanceof NoteSpaceInterface && $space->isManaged()) {
+            return $this->refuseManaged();
+        }
+
         $member = $users->find($userId);
         if (!$space instanceof NoteSpaceInterface || !$member instanceof CoreUserInterface || !$this->manager->removeMember($space, $member)) {
             return $this->jsonNotFound();
@@ -304,6 +332,12 @@ final class NoteSpacesController extends AbstractController
             static fn (CoreUserInterface $one): ?array => $one->getId() === $user->getId() ? null : ['id' => $one->getId(), 'name' => $one->getName()],
             $people,
         )))]);
+    }
+
+    /** Ce que répond un espace réglé d'ailleurs à qui veut le régler d'ici. */
+    private function refuseManaged(): JsonResponse
+    {
+        return $this->jsonFailure('notes.markdown.spaces.errors.managed', HttpStatusEnum::Conflict->value);
     }
 
     /**

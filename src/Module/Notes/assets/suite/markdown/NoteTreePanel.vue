@@ -1015,6 +1015,14 @@ onUnmounted(() => {
                     >
                         <title>{{ t('notes.markdown.spaces.publication.badge') }}</title>
                     </Globe>
+                    <!-- Réglé depuis Studio : le badge le dit, et les réglages
+                         ne s'ouvrent pas d'ici. -->
+                    <span
+                        v-if="group.space.managed"
+                        data-space-managed
+                        class="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                        :title="t('notes.markdown.spaces.managed_hint')"
+                    >{{ t('notes.markdown.spaces.managed_badge') }}</span>
                     <span
                         v-if="!group.space.canWrite"
                         data-space-readonly
@@ -1030,7 +1038,7 @@ onUnmounted(() => {
                         <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton
-                        v-if="group.space.canManage"
+                        v-if="group.space.canManage && !group.space.managed"
                         class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
                         :title="t('notes.markdown.spaces.settings')"
                         :data-space-settings="group.space.id"

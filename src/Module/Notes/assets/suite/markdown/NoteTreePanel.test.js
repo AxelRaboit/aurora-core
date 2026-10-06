@@ -228,6 +228,31 @@ describe("les espaces du panneau", () => {
 
         expect(handler).toHaveBeenCalledWith({ args: [7] });
     });
+
+    /**
+     * Un espace réglé depuis Studio porte son badge, et ses réglages ne
+     * s'ouvrent pas d'ici, même pour qui le gère.
+     */
+    it("keeps the settings of a managed space closed", async () => {
+        answerWith({
+            spaces: [
+                SPACES[0],
+                {
+                    ...SPACES[1],
+                    canManage: true,
+                    canWrite: true,
+                    managed: true,
+                },
+            ],
+            folders: SPACED_FOLDERS,
+            notes: SPACED_NOTES,
+        });
+
+        const wrapper = await render();
+
+        expect(wrapper.find('[data-space-settings="7"]').exists()).toBe(false);
+        expect(wrapper.find("[data-space-managed]").exists()).toBe(true);
+    });
 });
 
 describe("les étiquettes du panneau", () => {
