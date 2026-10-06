@@ -378,7 +378,7 @@ const headerActions = computed(() => {
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <!-- Sans espace, les étapes qui parlent du client disent son
                      destinataire et sa visibilité à la place. -->
-                <li v-for="step in 6" :key="step">{{ t(`suite.studio.deliverables.editor_guide.step_${step}${!space && [3, 4].includes(step) ? "_studio" : ""}`) }}</li>
+                <li v-for="step in 6" :key="step">{{ t(`suite.studio.deliverables.editor_guide.step_${step}${!space && [3, 4, 6].includes(step) ? "_studio" : ""}`) }}</li>
             </ol>
         </AppGuide>
 

@@ -29,7 +29,7 @@ suite:
     modules:
         studio: Studio
         studio_suite: Studio
-        studio_suite_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los contratos y las presentaciones.'
+        studio_suite_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los espacios donde trabaja con ellos, los contratos, las presentaciones y los entregables.'
         studio_decks: Presentaciones
         studio_decks_description: 'Crear conjuntos de diapositivas, clasificarlos y duplicarlos.'
         studio_deliverables: "Entregables"
@@ -1445,7 +1445,7 @@ suite:
             spaces: 'Sus espacios'
             spaces_description: 'Abre la lista de espacios de esta empresa.'
             status: Estado
-            status_hint: 'Un cliente potencial es una empresa para la que ya se trabaja, sin tener aún su identidad legal. Convertirlo en cliente consiste en introducir el SIRET, la forma jurídica y el domicilio social.'
+            status_hint: 'Un cliente potencial es una empresa para la que ya se trabaja, sin tener aún su identidad legal. Convertirlo en cliente requiere su dirección contractual; el SIRET, la forma jurídica y el domicilio social se completan después en su ficha.'
             statuses:
                 prospect: 'Cliente potencial'
                 prospect_plural: 'Clientes potenciales'
@@ -1464,7 +1464,7 @@ suite:
             updated: 'Cliente actualizado.'
             deleted: 'Cliente eliminado.'
             delete_confirm: '¿Eliminar {name}?'
-            delete_warning: 'Un cliente mencionado en un contrato no se puede eliminar: la eliminación se rechazará mientras quede alguno.'
+            delete_warning: 'Un cliente mencionado en un contrato o en un espacio no se puede eliminar: la eliminación se rechazará mientras quede alguno.'
             linked_account: 'Cuenta: {name}'
             contracts_count: '{count} contrato(s)'
             col_company: Empresa
@@ -1510,7 +1510,7 @@ suite:
             account_hint: 'Opcional. Complételo solo si el cliente inicia sesión en el sitio.'
             row_actions:
                 edit_description: 'Editar la ficha de este cliente'
-                convert_description: 'Abrir la ficha para introducir su identidad legal'
+                convert_description: 'Introducir la dirección a la que irán sus contratos'
                 delete_description: 'Eliminar este cliente'
             errors:
                 legal_name_required: 'La razón social es obligatoria.'
@@ -1678,7 +1678,7 @@ suite:
                 step_4: '«Vista previa» abre la página exactamente como la ve ese destinatario, sin guardar nada en su nombre.'
                 step_5: '«Revocar» corta el enlace y conserva su rastro; «Eliminar» lo borra por completo.'
             tab: 'Acceso del cliente'
-            intro: 'Un enlace abre este espacio en solo lectura, sin cuenta. Es personal, caduca y se puede revocar.'
+            intro: 'Un enlace abre este espacio al cliente, sin cuenta. Lo que puede hacer en él se elige enlace por enlace: validar, comentar, conversar, enviar archivos, ver el Drive. Es personal, caduca y se puede revocar.'
             issue: 'Crear un enlace'
             issued: 'Enlace creado.'
             preview: 'Vista previa'
@@ -1875,7 +1875,7 @@ suite:
         space_notes:
             guide:
                 title: 'Cómo funcionan las notas'
-                step_1: 'Las notas son la única parte del espacio que el cliente nunca ve.'
+                step_1: 'Las notas quedan entre ustedes: el cliente nunca las ve.'
                 step_2: 'Una nota «Compartida con el equipo» la lee todo el equipo del espacio.'
                 step_3: 'Una nota «Personal» solo la lee usted.'
                 step_4: 'Fije una nota para mantenerla arriba, y pase del muro a la lista según prefiera.'
@@ -1978,6 +1978,7 @@ suite:
                 step_3_studio: "«Ajustes» lleva el título, el resumen, el idioma y la cabecera, y su visibilidad: personal o compartido con el equipo."
                 step_4_studio: "Guarde sus cambios y luego «Vista previa», en el menú, abre la página tal como la leerá su destinatario."
                 step_6: "En el menú, «Exportar a PDF» da una página por diapositiva. Los pasajes entre [corchetes] hay que reemplazarlos antes de abrir el entregable al cliente: un contador los sigue."
+                step_6_studio: "En el menú, «Exportar a PDF» da una página por diapositiva. Los pasajes entre [corchetes] hay que reemplazarlos antes de enviarlo: un contador los sigue."
             guide:
                 title: "Cómo funcionan los entregables"
                 step_1: "«Nuevo entregable» crea un documento (auditoría, estrategia, balance) que se compone como una página, con sus colores o los del cliente."

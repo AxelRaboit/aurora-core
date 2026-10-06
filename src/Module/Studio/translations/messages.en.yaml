@@ -29,7 +29,7 @@ suite:
     modules:
         studio: Studio
         studio_suite: Studio
-        studio_suite_description: "What you sell and what you deliver to a client: customers, contracts and presentations."
+        studio_suite_description: "What you sell and what you deliver to a client: customers, the spaces you work in with them, contracts, presentations and deliverables."
         studio_decks: Presentations
         studio_decks_description: Build slide decks, file them and duplicate them.
         studio_deliverables: "Deliverables"
@@ -1445,7 +1445,7 @@ suite:
             spaces: Their spaces
             spaces_description: Opens this company's spaces in the list.
             status: Status
-            status_hint: "A prospect is a company you are already working for, without knowing its legal identity yet. Converting one to a customer is filling in the registration number, the legal form and the registered office."
+            status_hint: "A prospect is a company you are already working for, without knowing its legal identity yet. Converting one to a customer asks for its contractual address; the registration number, the legal form and the registered office are filled in afterwards on its record."
             statuses:
                 prospect: Prospect
                 prospect_plural: Prospects
@@ -1464,7 +1464,7 @@ suite:
             updated: Customer updated.
             deleted: Customer deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: 'A customer a contract names is not deleted: this will be refused for as long as one remains.'
+            delete_warning: 'A customer a contract or a space names is not deleted: this will be refused for as long as one remains.'
             linked_account: 'Account: {name}'
 
             contracts_count: '{count} contract(s)'
@@ -1514,7 +1514,7 @@ suite:
 
             row_actions:
                 edit_description: Edit this customer's record
-                convert_description: Open the record to fill in its legal identity
+                convert_description: Enter the address its contracts will go to
                 delete_description: Delete this customer
 
             errors:
@@ -1690,7 +1690,7 @@ suite:
                 step_4: "“Preview” opens the page exactly as that recipient sees it, without saving anything on their behalf."
                 step_5: "“Revoke” cuts the link and keeps its record; “Delete” erases it completely."
             tab: Client access
-            intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
+            intro: "A link opens this space to the client, with no account. What they can do there is chosen link by link: approve, comment, chat, send files, see the Drive. It is personal, it expires, and it can be revoked."
             issue: Create a link
             issued: Link created.
             preview: Preview
@@ -1894,7 +1894,7 @@ suite:
         space_notes:
             guide:
                 title: "How notes work"
-                step_1: "Notes are the only part of the space the client never sees."
+                step_1: "Notes stay between you: the client never sees them."
                 step_2: "A note “Shared with the team” is read by the whole team of the space."
                 step_3: "A “Personal” note is read by you only."
                 step_4: "Pin a note to keep it on top, and switch between wall and list as you prefer."
@@ -1998,6 +1998,7 @@ suite:
                 step_3_studio: "“Settings” holds the title, the summary, the language and the header, and its visibility: personal, or shared with the team."
                 step_4_studio: "Save your changes, then “Preview”, in the menu, opens the page as its recipient will read it."
                 step_6: "In the menu, “Export as PDF” gives one page per slide. Passages in [brackets] are to be replaced before opening the deliverable to the client: a counter follows them."
+                step_6_studio: "In the menu, “Export as PDF” gives one page per slide. Passages in [brackets] are to be replaced before sending it: a counter follows them."
             guide:
                 title: "How deliverables work"
                 step_1: "“New deliverable” creates a document (audit, strategy, report) built like a page, in your colours or the client's."
