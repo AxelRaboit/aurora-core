@@ -47,6 +47,9 @@ interface SpaceContentItemInterface
 
     public function isLateForReview(DateTimeImmutable $now): bool;
 
+    /** Whether the card sits where the client answers: the Review step, or any visible step on a board without one. */
+    public function isAtClientStep(): bool;
+
     public function isScheduled(): bool;
 
     public function getPosition(): int;
