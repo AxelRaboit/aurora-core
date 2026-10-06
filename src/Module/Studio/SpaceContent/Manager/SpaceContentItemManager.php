@@ -11,6 +11,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
@@ -253,7 +254,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         // Never folded into an earlier one: answering twice is changing one's
         // mind, and the second answer is the one that counts.
-        $this->notifier->clientAnswered($item, $link->getRecipientEmail(), SpaceContentApprovalEnum::Approved === $approval);
+        $this->notifier->clientAnswered($item, SpaceAccessLinkLabel::of($link), SpaceContentApprovalEnum::Approved === $approval);
     }
 
     public function approveMany(array $items, SpaceAccessLinkInterface $link): int
@@ -285,9 +286,9 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         ));
 
         if (1 === count($approved)) {
-            $this->notifier->clientAnswered($approved[0], $link->getRecipientEmail(), true);
+            $this->notifier->clientAnswered($approved[0], SpaceAccessLinkLabel::of($link), true);
         } else {
-            $this->notifier->clientApprovedMany($link->getSpace(), $link->getRecipientEmail(), count($approved));
+            $this->notifier->clientApprovedMany($link->getSpace(), SpaceAccessLinkLabel::of($link), count($approved));
         }
 
         return count($approved);
