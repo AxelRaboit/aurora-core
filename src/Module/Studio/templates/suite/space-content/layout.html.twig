@@ -11,11 +11,11 @@
    choice for the same reason one screen earlier: a page addressed to one
    customer has no side menu to put a customer in.
 
-   **The route stays under `/suite` even so, and that is not a detail.** The
-   admin firewall is `^/(suite|dev)`: outside it no suite identity is
+   **The route lives under `/workspace`, and the firewall knows it.** The admin
+   firewall is `^/(suite|dev|workspace)`: outside it no suite identity is
    restored, so a staff member would arrive as an anonymous visitor on their own
-   client's board. This layout changes what is drawn, never where it lives - the
-   trap that `suite_ged_files` exists to work around, met head-on.
+   client's board. A new prefix for these pages means a new entry in that
+   pattern first - the trap that `suite_ged_files` exists to work around.
 
    The client reads the same space through a page of their own, on a public
    route reached by a signed link, with the layout this one was modelled on:
