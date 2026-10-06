@@ -47,6 +47,14 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * they serve: the editorial calendar is a view of the spaces, reached from
  * their screen, and the contract trames are a tab of the contracts.
  *
+ * The notes of a customer space were brought under the rule in the same
+ * release. They were a wall of their own, in Editor.js blocks, under
+ * `SpaceNote` - a second note-taking tool next to the Notes module. They now
+ * live in a note space of the Notes module, one per customer space, open to
+ * its team and kept in step with it; the space's Notes tab lists them and
+ * leads to the notes editor. What stays here is the link and its upkeep:
+ * `SpaceNoteSpaceProvider` and `SpaceNoteSpaceSync`.
+ *
  * The module has no landing page of its own. Every destination it owns is a
  * real screen, so a row in the menu always leads somewhere that shows
  * something - the shape Notes already uses. A section with a single "Studio"

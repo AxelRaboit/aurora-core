@@ -12,6 +12,9 @@ nommer le même client** : `ManyToOne`, pas `OneToOne`. Un client avec deux
 marques fait tourner deux calendriers.
 
 Son contenu vit dans `SpaceContent/`, son accès client dans `SpaceAccess/`.
+Ses notes ne vivent pas dans Studio : elles sont dans un espace de notes du
+module Notes, que l'onglet Notes ouvre ; voir
+[[decision_space_notes_in_notes_module]].
 
 ## Les trois décisions qui structurent tout
 
