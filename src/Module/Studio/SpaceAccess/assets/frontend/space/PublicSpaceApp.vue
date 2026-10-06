@@ -419,7 +419,15 @@ async function upload(file) {
             { rawBody: form },
         );
 
-        if (!data?.success) return;
+        // A refusal from the policy (too heavy, a type the space does not
+        // take) is said, as on the Files tab: silence read as a success.
+        if (data && !data.success) {
+            toast.error(t(data.errors?.file ?? "studio.public.space.errors.upload_failed"));
+
+            return;
+        }
+
+        if (!data) return;
 
         if (Array.isArray(data.items)) items.value = data.items;
         if (data.comments) comments.value = data.comments;
