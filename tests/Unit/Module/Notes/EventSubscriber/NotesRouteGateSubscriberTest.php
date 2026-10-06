@@ -22,7 +22,7 @@ use function sprintf;
  */
 final class NotesRouteGateSubscriberTest extends TestCase
 {
-    private const array ROUTES = ['suite_notes_markdown', 'suite_notes_markdown_update', 'suite_notes_spaces_create', 'notes_share', 'notes_share_note', 'notes_public_space', 'notes_public_image'];
+    private const array ROUTES = ['suite_notes_markdown', 'suite_notes_markdown_update', 'suite_notes_spaces_create', 'suite_notes_craft_import', 'suite_notes_craft_settings', 'notes_share', 'notes_share_note', 'notes_public_space', 'notes_public_image'];
 
     public function testNotesOffCloseTheirScreensAndWhatTheyPublish(): void
     {

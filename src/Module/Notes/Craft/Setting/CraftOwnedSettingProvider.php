@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Studio\SpaceNote\Craft\Setting;
+namespace Aurora\Module\Notes\Craft\Setting;
 
 use Aurora\Module\Configuration\Setting\Provider\OwnedSettingProviderInterface;
 

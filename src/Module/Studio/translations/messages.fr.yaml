@@ -93,7 +93,6 @@ suite:
                     updated: Note d'espace modifiée
                     pinned: Note d'espace épinglée ou dépinglée
                     deleted: Note d'espace supprimée
-                    imported_from_craft: Note d'espace importée depuis Craft
                 space_chat_channel:
                     created: Canal de discussion ouvert
                     renamed: Canal de discussion renommé
@@ -1105,57 +1104,6 @@ suite:
                 unknown: Ce document est introuvable.
                 duplicate: Ce fichier est déjà sur cet espace.
                 needs_account: Il faut être connecté pour ajouter un fichier.
-        craft:
-            # Craft garde le savoir durable, celui qui survit à un projet ;
-            # les notes d'un espace gardent ce qui est attaché à un travail en
-            # cours et meurt avec lui. L'import fait passer de l'un à l'autre,
-            # en copie franche : rien ne revient modifier la note ensuite.
-            settings:
-                what_title: Ce que fait cette connexion
-                what_body: "Elle permet d'importer un document Craft dans les notes d'un espace client. C'est une copie : le document reste chez Craft, et la note ne change plus toute seule ensuite."
-                how_title: Comment l'ouvrir
-                how_step_connection: "Dans Craft, barre latérale, onglet Connexions : « Ajoutez votre première connexion API », puis « API pour les documents sélectionnés ». Une connexion sur l'espace entier donnerait accès à tout ce qu'il contient, y compris ce qui n'a rien à faire ici."
-                how_step_select: "Choisissez les documents que les espaces clients pourront importer. Craft n'exposera que ceux-là, et la liste se modifie chez lui à tout moment."
-                how_step_mode: "Réglez la connexion en lecture seule et en mode « Clé API ». En mode public, l'adresse seule suffirait à écrire et à supprimer chez vous."
-                how_step_paste: "Copiez l'adresse et la clé, et collez-les ci-dessous. Craft n'affiche la clé qu'une fois."
-                scope_title: "Ce que cette clé peut faire"
-                scope_body: "Lire les documents que vous avez cochés, et rien d'autre. C'est pour cela que le mode « lecture seule » compte : une connexion en écriture laisserait modifier et supprimer vos documents Craft depuis cette application, alors qu'elle ne fait qu'importer."
-                then_title: "Ensuite, espace par espace"
-                then_body: "Le bouton « Importer depuis Craft » apparaît dans l'onglet Notes de chaque espace client. L'import est une copie franche : le document reste chez Craft, et la note ne suivra pas ses modifications."
-                trouble_title: "Quand la liste est vide ou muette"
-                trouble_body: "Une liste vide veut dire que la connexion n'expose aucun document : retournez dans Craft en ajouter. Une absence de réponse veut dire que l'adresse ou la clé ne conviennent plus, souvent parce que la connexion a été recréée chez Craft, qui frappe alors une nouvelle clé."
-                how_link: La marche à suivre chez Craft
-                endpoint_label: Adresse de la connexion
-                endpoint_hint: "Celle que Craft affiche à la création de la connexion. En https, sans quoi la clé voyagerait en clair."
-                token_label: Clé API
-                token_hint: "Celle que Craft affiche une fois la connexion passée en mode « Clé API »."
-                token_stored: Une clé est enregistrée. Laissez le champ vide pour la garder.
-                enabled_label: Activer l'import depuis Craft
-                enabled_hint: Le bouton apparaît dans les notes de chaque espace.
-                enabled_blocked: Renseignez une adresse et une clé pour pouvoir activer.
-            import:
-                action: Importer depuis Craft
-                title: Importer une note Craft
-                intro: "Le document est copié dans cet espace. Il reste chez Craft, et la note ne suivra pas ses modifications."
-                empty: Aucun document dans cette connexion.
-                unreachable: "Craft n'a pas répondu."
-                unreachable_hint: "Vérifiez l'adresse et la clé dans les réglages, onglet Craft."
-                empty_hint: "Retournez dans Craft pour ajouter des documents à la connexion."
-                disabled: "L'import depuis Craft n'est pas activé."
-                disabled_hint: "Il s'ouvre dans les réglages, onglet Craft."
-                imported: Note importée.
-                refresh: Mettre à jour depuis Craft
-                refresh_confirm: "Remettre « {title} » sur la version actuelle du document Craft ?"
-                refresh_warning: "Le corps de la note est remplacé. Ce que vous avez modifié ici sera perdu ; la couleur, l'épingle et la visibilité sont conservées."
-                refresh_submit: Mettre à jour
-                refreshed: Note mise à jour.
-                submit: Importer
-            errors:
-                endpoint_https: "L'adresse de la connexion doit commencer par https://."
-                connection_required: Renseignez une adresse et une clé avant d'activer.
-                document_required: Choisissez un document à importer.
-                unreachable: "Craft n'a rien renvoyé pour ce document."
-                not_imported: Cette note ne vient pas de Craft.
         drive:
             # Le compte de service appartient à l'installation ; le dossier
             # appartient à un client, et c'est lui qui le partage. La portée se

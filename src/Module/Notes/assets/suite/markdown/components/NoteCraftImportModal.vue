@@ -11,7 +11,7 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * Choisir un document Craft, et le déposer dans l'espace.
+ * Choisir un document Craft, et le déposer dans un espace de notes.
  *
  * **La liste est courte, et c'est le réglage qui le veut.** La connexion ne
  * porte que les documents désignés dans Craft : ce qui n'y est pas n'apparaît
@@ -20,11 +20,16 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
  *
  * **Chargée à l'ouverture, pas au montage.** Un appel à Craft coûte une
  * seconde et la plupart des visites de l'écran des notes ne l'ouvrent jamais.
+ *
+ * La note arrive à la racine de l'espace donné, ou dans le dossier donné ; le
+ * serveur vérifie qu'on y écrit.
  */
 const props = defineProps({
     show: { type: Boolean, default: false },
     documentsPath: { type: String, required: true },
     importPath: { type: String, required: true },
+    spaceId: { type: Number, default: null },
+    folderId: { type: Number, default: null },
 });
 
 const emit = defineEmits(["close", "imported"]);
@@ -75,10 +80,12 @@ async function submit() {
         const data = await request(props.importPath, {
             documentId: chosen.value.id,
             title: chosen.value.title,
+            spaceId: props.spaceId,
+            folderId: props.folderId,
         });
 
         if (data) {
-            toast.success(t("suite.studio.craft.import.imported"));
+            toast.success(t("notes.craft.import.imported"));
             emit("imported", data);
             emit("close");
         }
@@ -92,31 +99,31 @@ async function submit() {
     <AppModal
         :show="show"
         max-width="lg"
-        :title="t('suite.studio.craft.import.title')"
+        :title="t('notes.craft.import.title')"
         :icon="FileText"
         v-on:close="emit('close')"
     >
         <div class="relative min-h-32 space-y-3">
             <AppLoader :active="loading" />
 
-            <p class="text-sm text-secondary">{{ t("suite.studio.craft.import.intro") }}</p>
+            <p class="text-sm text-secondary">{{ t("notes.craft.import.intro") }}</p>
 
             <template v-if="!loading">
                 <div v-if="!configured" class="rounded-lg border border-line bg-surface-2 p-4">
-                    <p class="text-sm text-primary">{{ t("suite.studio.craft.import.disabled") }}</p>
-                    <p class="mt-1 text-xs text-muted">{{ t("suite.studio.craft.import.disabled_hint") }}</p>
+                    <p class="text-sm text-primary">{{ t("notes.craft.import.disabled") }}</p>
+                    <p class="mt-1 text-xs text-muted">{{ t("notes.craft.import.disabled_hint") }}</p>
                 </div>
 
                 <!-- Injoignable et vide ne se réparent pas au même endroit :
                      l'un dans les réglages, l'autre dans Craft. -->
                 <div v-else-if="!reachable" class="rounded-lg border border-line bg-surface-2 p-4">
-                    <p class="text-sm text-primary">{{ t("suite.studio.craft.import.unreachable") }}</p>
-                    <p class="mt-1 text-xs text-muted">{{ t("suite.studio.craft.import.unreachable_hint") }}</p>
+                    <p class="text-sm text-primary">{{ t("notes.craft.import.unreachable") }}</p>
+                    <p class="mt-1 text-xs text-muted">{{ t("notes.craft.import.unreachable_hint") }}</p>
                 </div>
 
                 <div v-else-if="!documents.length" class="rounded-lg border border-line bg-surface-2 p-4">
-                    <p class="text-sm text-primary">{{ t("suite.studio.craft.import.empty") }}</p>
-                    <p class="mt-1 text-xs text-muted">{{ t("suite.studio.craft.import.empty_hint") }}</p>
+                    <p class="text-sm text-primary">{{ t("notes.craft.import.empty") }}</p>
+                    <p class="mt-1 text-xs text-muted">{{ t("notes.craft.import.empty_hint") }}</p>
                 </div>
 
                 <!-- Des boutons radio, et non une liste déroulante : ils sont
@@ -156,7 +163,7 @@ async function submit() {
                     v-on:click="submit"
                 >
                     <Download class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t("suite.studio.craft.import.submit") }}
+                    {{ t("notes.craft.import.submit") }}
                 </AppButton>
             </AppModalFooter>
         </template>

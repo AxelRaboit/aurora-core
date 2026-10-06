@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Markdown\View;
 
 use Aurora\Core\Support\Num;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Notes\Craft\Service\CraftClient;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
@@ -34,6 +35,7 @@ final readonly class MarkdownNotesViewBuilder
         private NoteSpaceRepository $spaces,
         private NoteFavoriteManagerInterface $favorites,
         private NoteSpaceSerializerInterface $spaceSerializer,
+        private CraftClient $craft,
     ) {}
 
     /**
@@ -75,6 +77,15 @@ final readonly class MarkdownNotesViewBuilder
             ...$this->notePaths(),
             ...$this->folderPaths(),
             ...$this->spacePaths(),
+            // L'import Craft n'existe à l'écran que si l'installation a
+            // ouvert la connexion : un geste qui mène à une liste vide et à
+            // une explication est un geste qui déçoit chaque fois.
+            'craftEnabled' => $this->craft->isConfigured(),
+            'craftPaths' => [
+                'documents' => $this->urlGenerator->generate('suite_notes_craft_documents'),
+                'import' => $this->urlGenerator->generate('suite_notes_craft_import'),
+                'refresh' => $this->urlGenerator->generate('suite_notes_craft_refresh', ['id' => '__id__']),
+            ],
             'imageMaxEdge' => (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::ImageMaxEdge),
             'imageQuality' => $this->imageQualityRatio(),
         ];

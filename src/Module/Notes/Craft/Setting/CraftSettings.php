@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Studio\SpaceNote\Craft\Setting;
+namespace Aurora\Module\Notes\Craft\Setting;
 
 use Aurora\Core\Encryption\Service\EncryptionServiceInterface;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
@@ -22,7 +22,7 @@ use function str_starts_with;
  * **La connexion ne porte que les documents choisis.** Craft propose les deux :
  * tout l'espace, ou une sélection. Une installation d'Aurora vit sur un serveur
  * loué, et un jeton qui y dort ne doit pas ouvrir l'intégralité d'un savoir
- * personnel pour qu'un brief atterrisse dans un espace client. C'est donc dans
+ * personnel pour qu'un brief atterrisse dans une note. C'est donc dans
  * Craft qu'on désigne ce qu'Aurora a le droit de voir, et l'écran d'import ne
  * montre rien d'autre.
  *

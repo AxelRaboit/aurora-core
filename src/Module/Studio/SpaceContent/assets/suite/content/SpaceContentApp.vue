@@ -59,7 +59,6 @@ import SpaceSectionNav from "./components/SpaceSectionNav.vue";
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
 import SpaceNotesView from "../../../../SpaceNote/assets/suite/notes/SpaceNotesView.vue";
 import SpaceNoteFormModal from "../../../../SpaceNote/assets/suite/notes/SpaceNoteFormModal.vue";
-import SpaceNoteCraftModal from "../../../../SpaceNote/assets/suite/notes/SpaceNoteCraftModal.vue";
 import { useSpaceNotes } from "../../../../SpaceNote/assets/suite/notes/composables/useSpaceNotes.js";
 import { useSpaceOwnFiles } from "../../../../SpaceFile/assets/suite/files/composables/useSpaceOwnFiles.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -95,14 +94,12 @@ import {
     Link2,
     NotebookText,
     Pencil,
-    RefreshCw,
     Save,
     Send,
     Trash2,
     X,
 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
-import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -166,10 +163,6 @@ const props = defineProps({
     noteDeletePath: { type: String, required: true },
     notePinPath: { type: String, required: true },
     noteImagePath: { type: String, required: true },
-    craftEnabled: { type: Boolean, default: false },
-    craftDocumentsPath: { type: String, default: "" },
-    craftImportPath: { type: String, default: "" },
-    craftRefreshPath: { type: String, default: "" },
     spaceFiles: { type: Array, default: () => [] },
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
@@ -470,53 +463,11 @@ const {
     useOrphanedDocumentOffer().offer,
 );
 
-/**
- * L'import d'un document Craft.
- *
- * L'état tient en un booléen : la modale se charge elle-même à l'ouverture et
- * rend le mur entier à l'arrivée, comme toute écriture de cet écran.
- */
-const { request } = useRequest();
-const { offer: offerOrphanedDocuments } = useOrphanedDocumentOffer();
 const {
     confirming: confirmingReview,
     sending: sendingReview,
     send: sendReview,
 } = useSpaceReviewInvite(props.reviewPath);
-
-const craftOpen = ref(false);
-
-/**
- * La note qu'on s'apprête à remettre sur sa version Craft.
- *
- * Confirmée avant, parce que ce qui a été modifié ici disparaît : une note
- * importée est une copie, et la rafraîchir refait la copie.
- */
-const pendingCraftRefresh = ref(null);
-const craftRefreshing = ref(false);
-
-async function refreshFromCraft() {
-    const note = pendingCraftRefresh.value;
-
-    if (!note || craftRefreshing.value) return;
-
-    craftRefreshing.value = true;
-
-    try {
-        const data = await request(props.craftRefreshPath.replace("__id__", note.id));
-
-        if (data) {
-            applyNotes(data);
-            // La même offre que partout : ce que plus personne n'utilise est
-            // proposé, jamais jeté tout seul.
-            offerOrphanedDocuments(data);
-            toast.success(t("suite.studio.craft.import.refreshed"));
-            pendingCraftRefresh.value = null;
-        }
-    } finally {
-        craftRefreshing.value = false;
-    }
-}
 
 /**
  * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
@@ -876,15 +827,12 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                     :view-mode="notesViewMode"
                     :stored-view-mode="notesStoredViewMode"
                     :editable="editable"
-                    :craft-enabled="craftEnabled"
                     v-on:create="openNoteCreate"
                     v-on:open="openNoteEdit"
                     v-on:pin="toggleNotePin"
                     v-on:delete="confirmNoteDelete"
                     v-on:set-view="setNotesViewMode"
                     v-on:set-tab="notesTab = $event"
-                    v-on:import-craft="craftOpen = true"
-                    v-on:refresh-craft="pendingCraftRefresh = $event"
                 />
             </div>
 
@@ -1148,15 +1096,6 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 </template>
             </AppModal>
 
-            <SpaceNoteCraftModal
-                v-if="craftEnabled"
-                :show="craftOpen"
-                :documents-path="craftDocumentsPath"
-                :import-path="craftImportPath"
-                v-on:close="craftOpen = false"
-                v-on:imported="applyNotes"
-            />
-
             <SpaceNoteFormModal
                 :show="showNoteForm"
                 :model-value="noteForm"
@@ -1168,34 +1107,6 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 v-on:close="showNoteForm = false"
                 v-on:submit="submitNote"
             />
-
-            <AppModal
-                :show="!!pendingCraftRefresh"
-                max-width="sm"
-                :closeable="false"
-                :title="t('suite.studio.craft.import.refresh')"
-                :icon="RefreshCw"
-                v-on:close="pendingCraftRefresh = null"
-            >
-                <p class="text-sm text-primary">
-                    {{ t("suite.studio.craft.import.refresh_confirm", { title: pendingCraftRefresh?.title ?? "" }) }}
-                </p>
-                <p class="text-sm text-secondary">
-                    {{ t("suite.studio.craft.import.refresh_warning") }}
-                </p>
-                <template #footer>
-                    <AppModalFooter>
-                        <AppButton variant="ghost" size="md" v-on:click="pendingCraftRefresh = null">
-                            <X class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.cancel") }}
-                        </AppButton>
-                        <AppButton variant="primary" size="md" :loading="craftRefreshing" v-on:click="refreshFromCraft">
-                            <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("suite.studio.craft.import.refresh_submit") }}
-                        </AppButton>
-                    </AppModalFooter>
-                </template>
-            </AppModal>
 
             <AppModal
                 :show="!!pendingNoteDelete"

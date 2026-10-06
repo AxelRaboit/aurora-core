@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Studio\SpaceNote\Craft\Setting;
+namespace Aurora\Module\Notes\Craft\Setting;
 
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 
@@ -17,11 +17,11 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum CraftSettingEnum: string
 {
-    case Enabled = 'suite_studio_craft_enabled';
+    case Enabled = 'suite_notes_craft_enabled';
 
     /** L'adresse que Craft donne à la création d'une connexion. */
-    case Endpoint = 'suite_studio_craft_endpoint';
+    case Endpoint = 'suite_notes_craft_endpoint';
 
     /** Stocké chiffré ; voir {@see CraftSettings}. */
-    case Token = 'suite_studio_craft_token';
+    case Token = 'suite_notes_craft_token';
 }

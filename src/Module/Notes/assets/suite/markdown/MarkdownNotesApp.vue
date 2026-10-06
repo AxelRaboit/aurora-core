@@ -19,6 +19,8 @@ import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue'
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
 import NoteGraph from '@notes/suite/markdown/components/NoteGraph.vue';
 import NoteCreateModal from '@notes/suite/markdown/components/NoteCreateModal.vue';
+import NoteCraftImportModal from '@notes/suite/markdown/components/NoteCraftImportModal.vue';
+import { useRequest } from '@/shared/composables/http/suite/useRequest.js';
 import { folderPath } from '@notes/suite/markdown/composables/noteBreadcrumb.js';
 import AppButton from '@shared/components/action/AppButton.vue';
 import AppSearchInput from '@shared/components/form/input/AppSearchInput.vue';
@@ -29,7 +31,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -93,6 +95,10 @@ const props = defineProps({
     readPath: { type: String, default: '' },
     /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
     coversSearchPath: { type: String, default: '' },
+    /** L'installation a-t-elle ouvert une connexion Craft. */
+    craftEnabled: { type: Boolean, default: false },
+    /** Les routes de l'import Craft : la liste, l'import, la mise à jour. */
+    craftPaths: { type: Object, default: () => ({}) },
     /** Ce que les autres ont ouvert à tout le back-office. */
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
@@ -337,6 +343,61 @@ const openFolderId = ref(props.folderId);
 /** Dans les favoris de qui lit : le menu dit l'inverse de l'état. */
 const isFavorite = computed(() => Boolean(selectedNote.value?.favoritedAt));
 
+/** Peut-on écrire la note ouverte : son espace le dit (`canWrite`). */
+const canEditSelected = computed(() => {
+    const spaceId = selectedNote.value?.spaceId ?? null;
+
+    return Boolean(spaces.value.find((space) => Number(space.id) === Number(spaceId))?.canWrite ?? true);
+});
+
+/**
+ * L'import Craft : l'espace (et le dossier) où la note arrivera, ou rien.
+ *
+ * Ouvert depuis le menu d'un espace, dans le panneau ; la modale se charge
+ * elle-même à l'ouverture.
+ */
+const craftImport = ref(null);
+
+const { request: craftRequest } = useRequest();
+
+/** La note importée s'ouvre aussitôt : c'est elle qu'on venait chercher. */
+async function onCraftImported(payload) {
+    await overlaysSettled();
+    await refreshList();
+    if (payload?.note?.id) await openNote(payload.note.id);
+}
+
+/**
+ * Remettre la note ouverte sur la version actuelle de son document Craft.
+ *
+ * Confirmée avant : le texte est remplacé. L'état d'avant entre dans
+ * l'historique de la note, d'où on le fait revenir.
+ */
+const craftRefreshPending = ref(false);
+const craftRefreshing = ref(false);
+
+async function refreshFromCraft() {
+    const id = selectedId.value;
+
+    if (!id || craftRefreshing.value || !props.craftPaths.refresh) return;
+
+    craftRefreshing.value = true;
+
+    try {
+        const payload = await craftRequest(props.craftPaths.refresh.replace('__id__', String(id)));
+
+        if (payload) {
+            craftRefreshPending.value = false;
+            await overlaysSettled();
+            await refreshList();
+            await openNote(id);
+            toast.success(t('notes.craft.import.refreshed'));
+        }
+    } finally {
+        craftRefreshing.value = false;
+    }
+}
+
 /**
  * Ce que le menu de la note porte : les gestes qu'on fait une fois.
  *
@@ -431,6 +492,20 @@ const noteActions = computed(() => {
                 historyOpen.value = true;
             },
         },
+        // Seulement sur une note copiée d'un document Craft, et pour qui
+        // peut l'écrire : ailleurs, il n'y a rien à reprendre de nulle part.
+        ...(props.craftEnabled && selectedNote.value?.craftDocumentId && canEditSelected.value
+            ? [{
+                key: "craft-refresh",
+                title: t('notes.craft.import.refresh'),
+                icon: RefreshCw,
+                onSelect: async () => {
+                    await flushPendingSave();
+                    await overlaysSettled();
+                    craftRefreshPending.value = true;
+                },
+            }]
+            : []),
         {
             key: "duplicate",
             title: t('notes.markdown.duplicate.action'),
@@ -515,12 +590,6 @@ function outlineOfContent() {
     return outlineOf(form.value.content ?? '');
 }
 
-/** Peut-on écrire la note ouverte : son espace le dit (`canWrite`). */
-const canEditSelected = computed(() => {
-    const spaceId = selectedNote.value?.spaceId ?? null;
-
-    return Boolean(spaces.value.find((space) => Number(space.id) === Number(spaceId))?.canWrite ?? true);
-});
 
 /** Une version vient d'être restaurée : la note se recharge depuis le serveur. */
 async function onRevisionRestored(note) {
@@ -964,6 +1033,9 @@ const PANEL_INTENTS = {
     favorite: ({ kind, id }) => toggleFavorite(kind, id),
     export: (spaceId) => exportAll(spaceId ?? null),
     import: (spaceId) => askForFiles(spaceId ?? null),
+    'craft-import': (spaceId) => {
+        if (props.craftEnabled) craftImport.value = { spaceId: spaceId ?? null, folderId: null };
+    },
     create: (folderId) => createNote(folderId ?? null),
     delete: (note) => requestDelete(note),
     'open-folder': async (id) => {
@@ -1029,6 +1101,7 @@ function announce() {
         folders: folders.value,
         spaces: spaces.value,
         canCreateSpace: props.canCreateSpace,
+        craftEnabled: props.craftEnabled,
         selectedId: selectedId.value,
         folderId: openFolderId.value,
         noteId: selectedId.value,
@@ -1464,6 +1537,45 @@ onUnmounted(() => {
                 v-on:close="tagManagerOpen = false"
                 v-on:changed="onTagsChanged"
             />
+
+            <NoteCraftImportModal
+                v-if="craftEnabled"
+                :show="null !== craftImport"
+                :documents-path="craftPaths.documents ?? ''"
+                :import-path="craftPaths.import ?? ''"
+                :space-id="craftImport?.spaceId ?? null"
+                :folder-id="craftImport?.folderId ?? null"
+                v-on:close="craftImport = null"
+                v-on:imported="onCraftImported"
+            />
+
+            <AppModal
+                :show="craftRefreshPending"
+                max-width="sm"
+                :closeable="false"
+                :title="t('notes.craft.import.refresh')"
+                :icon="RefreshCw"
+                v-on:close="craftRefreshPending = false"
+            >
+                <p class="text-sm text-primary">
+                    {{ t('notes.craft.import.refresh_confirm', { title: form.title ?? '' }) }}
+                </p>
+                <p class="text-sm text-secondary">
+                    {{ t('notes.craft.import.refresh_warning') }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" v-on:click="craftRefreshPending = false">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t('shared.common.cancel') }}
+                        </AppButton>
+                        <AppButton variant="primary" size="md" :loading="craftRefreshing" v-on:click="refreshFromCraft">
+                            <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t('notes.craft.import.refresh_submit') }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
             <NoteRevisionsModal
                 :show="historyOpen && null !== selectedId"

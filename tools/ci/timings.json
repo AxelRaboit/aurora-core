@@ -154,7 +154,7 @@
     "tests/Integration/Module/Studio/CustomerSpace/SpaceDriveLockTest.php": 1.2,
     "tests/Integration/Module/Studio/CustomerSpace/SpaceFilesTest.php": 2.4,
     "tests/Integration/Module/Studio/CustomerSpace/SpaceGuestUploadTest.php": 6.2,
-    "tests/Integration/Module/Studio/CustomerSpace/SpaceNoteCraftImportTest.php": 2,
+    "tests/Integration/Module/Notes/Craft/CraftImportTest.php": 2,
     "tests/Integration/Module/Studio/CustomerSpace/SpaceNotesTest.php": 3.2,
     "tests/Integration/Module/Studio/CustomerSpace/SpaceReviewInviteTest.php": 2.9,
     "tests/Integration/Module/Studio/CustomerSpace/SpaceVisibilityTest.php": 1.5,

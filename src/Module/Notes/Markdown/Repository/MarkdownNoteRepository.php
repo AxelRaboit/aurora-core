@@ -64,7 +64,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         // elle, pas à la note, et une seconde requête les recollerait ligne
         // par ligne.
         $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'n.craftDocumentId', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
             ->leftJoin(NoteFavorite::class, 'fav', Join::WITH, 'fav.note = n AND fav.user = :favoriteViewer')
             ->setParameter('favoriteViewer', $user)
             ->andWhere('n.deletedAt IS NULL')

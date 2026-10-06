@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Tests\Unit\Module\Studio\SpaceNote\Craft\Service;
+namespace Aurora\Tests\Unit\Module\Notes\Craft\Service;
 
 use Aurora\Core\Encryption\Service\EncryptionServiceInterface;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
-use Aurora\Module\Studio\SpaceNote\Craft\Service\CraftClient;
-use Aurora\Module\Studio\SpaceNote\Craft\Setting\CraftSettingEnum;
-use Aurora\Module\Studio\SpaceNote\Craft\Setting\CraftSettings;
+use Aurora\Module\Notes\Craft\Service\CraftClient;
+use Aurora\Module\Notes\Craft\Setting\CraftSettingEnum;
+use Aurora\Module\Notes\Craft\Setting\CraftSettings;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\HttpClient\MockHttpClient;

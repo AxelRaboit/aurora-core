@@ -43,6 +43,7 @@ suite:
                     updated: Space updated
                     deleted: Space removed
                 note:
+                    imported_from_craft: Note imported from Craft
                     trashed: Note moved to trash
                     restored: Note restored
                     created: Note created
@@ -62,6 +63,53 @@ suite:
                     merged: Tags merged
                     removed: Tag removed
 notes:
+    craft:
+        settings:
+            what_title: What this connection does
+            what_body: "It imports a Craft document into a note space. It is a copy: the document stays in Craft, and the note does not change on its own afterwards."
+            how_title: How to open it
+            how_step_connection: "In Craft, sidebar, Connections tab: « Add your first API connection », then « API for selected documents ». A whole-space connection would give access to everything in it, including what has no business here."
+            how_step_select: "Pick the documents the notes will be able to import. Craft exposes only those, and the list can be changed there at any time."
+            how_step_mode: "Set the connection to read-only and to « API key » mode. In public mode, the address alone would be enough to write and delete on your side."
+            how_step_paste: "Copy the address and the key, and paste them below. Craft shows the key only once."
+            scope_title: "What this key can do"
+            scope_body: "Read the documents you ticked, and nothing else. That is why read-only matters: a write connection would let this application modify and delete your Craft documents, when all it does is import."
+            then_title: "Then, space by space"
+            then_body: "« Import from Craft » appears in the menu of every note space, a customer space's included, which its Notes tab opens too. The import is a plain copy: the document stays in Craft, and the note will not follow its changes."
+            trouble_title: "When the list is empty or silent"
+            trouble_body: "An empty list means the connection exposes no document: go back to Craft and add some. No answer at all means the address or the key no longer fit, often because the connection was recreated in Craft, which then mints a new key."
+            how_link: Craft's own instructions
+            endpoint_label: Connection address
+            endpoint_hint: "The one Craft shows when the connection is created. Over https, otherwise the key travels in the clear."
+            token_label: API key
+            token_hint: "The one Craft shows once the connection is in API key mode."
+            token_stored: A key is saved. Leave the field empty to keep it.
+            enabled_label: Enable importing from Craft
+            enabled_hint: The action appears in the menu of every note space.
+            enabled_blocked: Enter an address and a key before enabling.
+        import:
+            action: Import from Craft
+            title: Import a Craft note
+            intro: "The document is copied into this note space. It stays in Craft, and the note will not follow its changes."
+            empty: No document in this connection.
+            unreachable: "Craft did not answer."
+            unreachable_hint: "Check the address and the key in the settings, Craft tab."
+            empty_hint: "Go back to Craft to add documents to the connection."
+            disabled: "Importing from Craft is not enabled."
+            disabled_hint: "It is switched on in the settings, Craft tab."
+            imported: Note imported.
+            refresh: Update from Craft
+            refresh_confirm: "Put \"{title}\" back on the current version of the Craft document?"
+            refresh_warning: "The note's text is replaced; the previous version stays in its history. Its title, folder, tags and cover are kept."
+            refresh_submit: Update
+            refreshed: Note updated.
+            submit: Import
+        errors:
+            endpoint_https: "The connection address must start with https://."
+            connection_required: Enter an address and a key before enabling.
+            document_required: Pick a document to import.
+            unreachable: "Craft returned nothing for that document."
+            not_imported: This note does not come from Craft.
     markdown:
         guide:
             title: "How notes are organised"

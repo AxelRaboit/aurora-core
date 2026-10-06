@@ -27,7 +27,7 @@ defineProps({
     updatePath: { type: String, default: "" },
 });
 
-const SETTINGS_PATH = "/suite/studio/craft/settings";
+const SETTINGS_PATH = "/suite/notes/craft/settings";
 
 const { t } = useI18n();
 const { request } = useRequest();
@@ -102,20 +102,20 @@ defineExpose({ save, apply, canEnable });
 </script>
 
 <template>
-    <IntegrationLayout :summary="t('suite.studio.craft.settings.what_body')" :status="status" :loading="loading">
+    <IntegrationLayout :summary="t('notes.craft.settings.what_body')" :status="status" :loading="loading">
         <!-- Ce que la clé peut faire, dit avant de la demander : une
              connexion Craft en écriture laisserait modifier et supprimer des
              documents depuis ici, ce qui n'est jamais ce qu'on veut pour un
              import. -->
         <p class="m-0 rounded-lg border border-line bg-surface-2 p-3 text-xs text-secondary">
-            <span class="font-medium text-primary">{{ t("suite.studio.craft.settings.scope_title") }}.</span>
-            {{ t("suite.studio.craft.settings.scope_body") }}
+            <span class="font-medium text-primary">{{ t("notes.craft.settings.scope_title") }}.</span>
+            {{ t("notes.craft.settings.scope_body") }}
         </p>
 
         <AppInput
             v-model="endpoint"
-            :label="t('suite.studio.craft.settings.endpoint_label')"
-            :hint="t('suite.studio.craft.settings.endpoint_hint')"
+            :label="t('notes.craft.settings.endpoint_label')"
+            :hint="t('notes.craft.settings.endpoint_hint')"
             placeholder="https://connect.craft.do/..."
         />
 
@@ -123,15 +123,15 @@ defineExpose({ save, apply, canEnable });
             v-model="token"
             type="password"
             :toggleable="true"
-            :label="t('suite.studio.craft.settings.token_label')"
-            :hint="hasToken ? t('suite.studio.craft.settings.token_stored') : t('suite.studio.craft.settings.token_hint')"
+            :label="t('notes.craft.settings.token_label')"
+            :hint="hasToken ? t('notes.craft.settings.token_stored') : t('notes.craft.settings.token_hint')"
             :placeholder="hasToken ? '••••••••••••••••' : ''"
         />
 
         <AppCheckbox
             v-model="enabled"
-            :label="t('suite.studio.craft.settings.enabled_label')"
-            :hint="canEnable ? t('suite.studio.craft.settings.enabled_hint') : t('suite.studio.craft.settings.enabled_blocked')"
+            :label="t('notes.craft.settings.enabled_label')"
+            :hint="canEnable ? t('notes.craft.settings.enabled_hint') : t('notes.craft.settings.enabled_blocked')"
             :disabled="!canEnable"
         />
 
@@ -149,22 +149,22 @@ defineExpose({ save, apply, canEnable });
 
         <template #guide>
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li>{{ t("suite.studio.craft.settings.how_step_connection") }}</li>
-                <li>{{ t("suite.studio.craft.settings.how_step_select") }}</li>
-                <li>{{ t("suite.studio.craft.settings.how_step_mode") }}</li>
-                <li>{{ t("suite.studio.craft.settings.how_step_paste") }}</li>
+                <li>{{ t("notes.craft.settings.how_step_connection") }}</li>
+                <li>{{ t("notes.craft.settings.how_step_select") }}</li>
+                <li>{{ t("notes.craft.settings.how_step_mode") }}</li>
+                <li>{{ t("notes.craft.settings.how_step_paste") }}</li>
             </ol>
             <a href="https://support.craft.do/en/integrate/api" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm text-accent hover:underline">
-                {{ t("suite.studio.craft.settings.how_link") }}
+                {{ t("notes.craft.settings.how_link") }}
                 <ExternalLink class="w-3.5 h-3.5" :stroke-width="2" />
             </a>
             <div class="flex flex-col gap-1 border-t border-line/60 pt-3">
-                <p class="m-0 font-medium text-primary">{{ t("suite.studio.craft.settings.then_title") }}</p>
-                <p class="m-0">{{ t("suite.studio.craft.settings.then_body") }}</p>
+                <p class="m-0 font-medium text-primary">{{ t("notes.craft.settings.then_title") }}</p>
+                <p class="m-0">{{ t("notes.craft.settings.then_body") }}</p>
             </div>
             <div class="flex flex-col gap-1">
-                <p class="m-0 font-medium text-primary">{{ t("suite.studio.craft.settings.trouble_title") }}</p>
-                <p class="m-0">{{ t("suite.studio.craft.settings.trouble_body") }}</p>
+                <p class="m-0 font-medium text-primary">{{ t("notes.craft.settings.trouble_title") }}</p>
+                <p class="m-0">{{ t("notes.craft.settings.trouble_body") }}</p>
             </div>
         </template>
     </IntegrationLayout>

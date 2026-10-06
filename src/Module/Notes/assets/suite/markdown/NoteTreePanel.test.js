@@ -39,6 +39,7 @@ function answerWith({
     ok = true,
     spaces = [],
     canCreate = false,
+    craftEnabled = false,
 } = {}) {
     global.fetch = vi.fn().mockImplementation(async (url) => {
         const path = String(url);
@@ -49,7 +50,7 @@ function answerWith({
               : // Les espaces : aucun par défaut, et le panneau garde alors
                 // son arbre d'un seul tenant.
                 path.includes("/notes/spaces")
-                ? { success: true, spaces, canCreate }
+                ? { success: true, spaces, canCreate, craftEnabled }
                 : { success: true, notes };
 
         return {
@@ -225,6 +226,37 @@ describe("les espaces du panneau", () => {
 
         expect(wrapper.find('[data-space-settings="8"]').exists()).toBe(false);
         await wrapper.find('[data-space-settings="7"]').trigger("click");
+
+        expect(handler).toHaveBeenCalledWith({ args: [7] });
+    });
+
+    /**
+     * L'import Craft est un geste du menu d'un espace où l'on écrit, et
+     * seulement quand la connexion est ouverte.
+     */
+    it("offers the Craft import where one writes, once the connection is open", async () => {
+        const handler = vi.fn();
+        stops.push(onPanelRequest("notes:craft-import", handler));
+        const spaces = [
+            SPACES[0],
+            { ...SPACES[1], canWrite: true },
+            { id: 8, name: "Lu", canWrite: false, canManage: false },
+        ];
+
+        const menuKeys = (wrapper, id) =>
+            wrapper
+                .findAllComponents({ name: "AppRowActions" })
+                .find((menu) => String(menu.attributes("data-space-menu")) === String(id))
+                .props("actions");
+
+        answerWith({ spaces, folders: SPACED_FOLDERS, notes: SPACED_NOTES });
+        const closed = await render();
+        expect(menuKeys(closed, 7).map((action) => action.key)).not.toContain("craft-import");
+
+        answerWith({ spaces, folders: SPACED_FOLDERS, notes: SPACED_NOTES, craftEnabled: true });
+        const open = await render();
+        expect(menuKeys(open, 8).map((action) => action.key)).not.toContain("craft-import");
+        menuKeys(open, 7).find((action) => "craft-import" === action.key).onSelect();
 
         expect(handler).toHaveBeenCalledWith({ args: [7] });
     });

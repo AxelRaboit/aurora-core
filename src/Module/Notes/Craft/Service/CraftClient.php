@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Studio\SpaceNote\Craft\Service;
+namespace Aurora\Module\Notes\Craft\Service;
 
-use Aurora\Module\Studio\SpaceNote\Craft\Setting\CraftSettings;
+use Aurora\Module\Notes\Craft\Setting\CraftSettings;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
@@ -32,8 +32,8 @@ use function usort;
  *
  * **Les échecs deviennent une liste vide plutôt qu'une exception.** Un import
  * qui ne joint pas Craft est un écran qui ne propose rien, ce qui est une
- * déception ; une exception ici serait une erreur 500 au milieu d'un espace
- * client, ce qui est autre chose.
+ * déception ; une exception ici serait une erreur 500 au milieu des notes,
+ * ce qui est autre chose.
  */
 final readonly class CraftClient
 {

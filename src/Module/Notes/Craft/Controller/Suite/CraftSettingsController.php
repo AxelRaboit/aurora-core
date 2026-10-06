@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Studio\SpaceNote\Craft\Controller\Suite;
+namespace Aurora\Module\Notes\Craft\Controller\Suite;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Module\Studio\SpaceNote\Craft\Setting\CraftSettings;
+use Aurora\Module\Notes\Craft\Setting\CraftSettings;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,11 +21,11 @@ use function str_starts_with;
 /**
  * Lit et écrit l'onglet Craft de l'écran des réglages.
  *
- * Séparé de l'écran d'import, qui vit dans un espace : celui-ci décide qui a
+ * Séparé de l'import, qui vit dans l'écran des notes : celui-ci décide qui a
  * le droit d'allumer l'intégration, et se range donc derrière le privilège des
  * réglages.
  */
-#[Route('/suite/studio/craft/settings', name: 'suite_studio_craft_settings')]
+#[Route('/suite/notes/craft/settings', name: 'suite_notes_craft_settings')]
 #[IsGranted('configuration.settings.manage')]
 final class CraftSettingsController extends AbstractController
 {
@@ -56,7 +56,7 @@ final class CraftSettingsController extends AbstractController
         $token = array_key_exists('token', $payload) ? mb_trim((string) $payload['token']) : null;
 
         if ('' !== $endpoint && !str_starts_with($endpoint, 'https://')) {
-            return $this->jsonFailure('suite.studio.craft.errors.endpoint_https');
+            return $this->jsonFailure('notes.craft.errors.endpoint_https');
         }
 
         // Vérifié contre ce qui sera enregistré et non contre ce qui l'est :
@@ -65,7 +65,7 @@ final class CraftSettingsController extends AbstractController
         $tokenAfterSave = $token ?? $this->settings->token();
 
         if ($enabled && ('' === $endpoint || '' === $tokenAfterSave)) {
-            return $this->jsonFailure('suite.studio.craft.errors.connection_required');
+            return $this->jsonFailure('notes.craft.errors.connection_required');
         }
 
         $this->settings->save(enabled: $enabled, endpoint: $endpoint, token: $token);

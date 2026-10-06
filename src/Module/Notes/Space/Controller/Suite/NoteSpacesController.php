@@ -9,6 +9,7 @@ use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Notes\Craft\Service\CraftClient;
 use Aurora\Module\Notes\Space\Dto\NoteSpaceInputFactoryInterface;
 use Aurora\Module\Notes\Space\Dto\NoteSpaceInputInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
@@ -64,6 +65,7 @@ final class NoteSpacesController extends AbstractController
         private readonly NoteSpaceSerializerInterface $serializer,
         private readonly PayloadValidator $payloadValidator,
         private readonly NoteSpaceAccess $spaceAccess,
+        private readonly CraftClient $craft,
     ) {}
 
     /** Les espaces que la personne lit, le sien d'abord, avec son rôle dans chacun. */
@@ -84,6 +86,9 @@ final class NoteSpacesController extends AbstractController
                 $spaces,
             ),
             'canCreate' => $this->spaceAccess->canCreateShared(),
+            // Le panneau propose l'import Craft dans le menu d'un espace,
+            // seulement quand la connexion est ouverte.
+            'craftEnabled' => $this->craft->isConfigured(),
         ]);
     }
 
