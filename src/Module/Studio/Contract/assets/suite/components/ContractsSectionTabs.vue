@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import StudioSectionTabs from "../../../assets/suite/components/StudioSectionTabs.vue";
+import StudioSectionTabs from "../../../../assets/suite/components/StudioSectionTabs.vue";
 
 /**
  * Contrats et trames, deux onglets d'une même entrée du menu.
