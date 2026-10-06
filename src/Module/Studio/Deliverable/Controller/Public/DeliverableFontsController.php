@@ -7,7 +7,7 @@ namespace Aurora\Module\Studio\Deliverable\Controller\Public;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Storage\StorageManager;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Studio\Deck\Service\DeckFonts;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckFonts;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;

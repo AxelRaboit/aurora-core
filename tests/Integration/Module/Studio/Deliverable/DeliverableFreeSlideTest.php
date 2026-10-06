@@ -7,10 +7,10 @@ namespace Aurora\Tests\Integration\Module\Studio\Deliverable;
 use Aurora\Module\Dev\Audit\Entity\AuditLog;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
-use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckPictures;
 use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
@@ -121,7 +121,7 @@ final class DeliverableFreeSlideTest extends IntegrationTestCase
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
-        self::assertSame('suite.studio.decks.free.font_errors.not_a_font', $payload['error']);
+        self::assertSame('suite.studio.deliverables.slides.free.font_errors.not_a_font', $payload['error']);
     }
 
     /**

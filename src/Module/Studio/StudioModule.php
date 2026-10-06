@@ -17,7 +17,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * **The rule that decides what belongs here**, because a module named this
  * broadly has no other defence against becoming a drawer: Studio holds what is
  * sold and what is delivered. Not the tools it is made with. Customers,
- * contracts and presentations belong; notes, documents and the calendar do not,
+ * contracts and deliverables belong; notes, documents and the calendar do not,
  * and each of those has a module of its own.
  *
  * It was called Accounting until 0.9.x, which named one corner of it and
@@ -35,6 +35,17 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * editorial calendar reads across spaces, but the dates also go to Planning
  * rather than a second agenda, and the documents are filed in the GED instead
  * of a second library.
+ *
+ * **Amended again after 2.0.0**, when the presentations became deliverables.
+ * The rule now reads: Studio holds what is sold, what is delivered, and the
+ * surface it is delivered on. What is delivered is a deliverable, written as a
+ * page or composed as slides, and a standalone one belongs as much as one in a
+ * space: a draft or a template kept for oneself before anything is sent is
+ * still a thing being prepared for delivery, not a tool. Presentations stopped
+ * being a destination of their own in that release; the slide engine lives
+ * under `Deliverable/Slides`. Two former menu entries became views of what
+ * they serve: the editorial calendar is a view of the spaces, reached from
+ * their screen, and the contract trames are a tab of the contracts.
  *
  * The module has no landing page of its own. Every destination it owns is a
  * real screen, so a row in the menu always leads somewhere that shows

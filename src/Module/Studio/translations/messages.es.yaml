@@ -765,548 +765,6 @@ suite:
                 contract_amends_rank: 'Número de la adenda'
                 examples_notice: 'Estos valores son ejemplos. El contrato usará los reales: los del cliente elegido y los suyos.'
                 example: 'ej. {value}'
-        decks:
-            editor_guide:
-                title: 'Cómo modificar una presentación'
-                step_1: 'La columna «Diapositivas» las muestra en orden: haga clic en una para modificarla y muévala con su asa o sus flechas.'
-                step_2: '«Añadir una diapositiva» propone las plantillas; con «Diapositiva libre», coloca cada elemento a mano.'
-                step_3: 'Rellene los campos de la plantilla y las notas del orador, que el público nunca ve: todo se guarda solo.'
-                step_4: '«Presentar» pasa a pantalla completa; el menú de al lado abre la vista del presentador, la impresión, el uso compartido y la apariencia.'
-            slides: Diapositivas
-            errors:
-                layout_unknown: 'Este diseño no existe.'
-                theme_unknown: 'Este tema no existe.'
-            share: Compartir
-            share_expires_on: 'Caduca el {date}'
-            share_footer: 'Este enlace es personal. No lo comparta.'
-            present: Presentar
-            print: Imprimir
-            print_hint: 'Use la impresión del navegador y después «Guardar como PDF». Una diapositiva por página, en horizontal.'
-            previous_slide: 'Diapositiva anterior'
-            next_slide: 'Diapositiva siguiente'
-            layout: Diseño
-            add_slide: 'Añadir una diapositiva'
-            slide_added: 'Diapositiva añadida'
-            slide_deleted: 'Diapositiva eliminada'
-            delete_slide: 'Eliminar la diapositiva'
-            delete_slide_confirm: 'Esta diapositiva y su contenido se perderán.'
-            move_up: Subir
-            move_down: Bajar
-            saving: Guardando…
-            saved: Guardado
-            unsaved: 'Cambios sin guardar'
-            no_slide_title: 'Ninguna diapositiva'
-            no_slide_description: 'Elija un diseño a la izquierda para empezar la presentación.'
-            speaker_notes: 'Notas del orador'
-            speaker_notes_hint: 'Nunca se muestran al público.'
-            speaker_notes_placeholder: 'Lo que dirá mientras esta diapositiva esté en pantalla.'
-            prose_placeholder: 'El texto que se muestra en la diapositiva.'
-            image_hint: 'Elegida en la mediateca, o subida desde su equipo.'
-            appearance: Apariencia
-            appearance_saved: 'Apariencia guardada'
-            appearance_preview_hint: 'La vista previa sigue sus elecciones, la presentación solo cambia al guardar.'
-            appearance_sample_title: 'El título de su presentación'
-            appearance_sample_subtitle: 'El subtítulo, en una línea'
-            appearance_overrides_kept: 'Sus colores personalizados siguen aplicándose por encima de este tema.'
-            theme: Tema
-            themes:
-                slate: Pizarra
-                ink: Tinta
-                paper: Papel
-                bold: Intenso
-                midnight: Medianoche
-                clay: Tierra
-                chalk: Tiza
-                duo: 'Dos tonos'
-            colours: Colores
-            colour_background: Fondo
-            colour_ink: Texto
-            colour_accent: Acento
-            colour_inherited: 'Del tema'
-            colour_reset: 'Volver al tema'
-            colour_reset_all: 'Volver todo al tema'
-            gradient_label: Degradado
-            gradient_hint: 'Una aguada del color de acento sobre el fondo, igual en todas las diapositivas.'
-            gradients:
-                none: Ninguno
-                top: 'Desde arriba'
-                bottom: 'Desde abajo'
-                corner: 'En diagonal'
-                halo: 'Halo central'
-                duo: 'Acento hacia tinta'
-            pattern_label: Motivo
-            pattern_hint: 'Una textura sobre el fondo, oculta en las diapositivas con foto.'
-            patterns:
-                none: Ninguno
-                dots: Puntos
-                grid: Cuadrícula
-                diagonals: Rayado
-            margins_label: 'Márgenes del marco'
-            margins:
-                tight: Estrechos
-                normal: Normales
-                wide: Anchos
-            hairline: 'Filete del marco'
-            hairline_hint: 'Un ribete fino en el color de acento, separado de los bordes.'
-            anchors:
-                center: Centrada
-                top: Arriba
-                bottom: Abajo
-            aligns:
-                left: 'A la izquierda'
-                center: Centrado
-                right: 'A la derecha'
-            measures:
-                full: 'Ancho completo'
-                two_thirds: 'Dos tercios'
-                half: Mitad
-            vignette_hint: 'Oscurece ligeramente las esquinas y lleva la mirada al centro.'
-            bg_treatments:
-                none: Ninguno
-                blur: Desenfoque
-                mono: 'Blanco y negro'
-                duotone: 'Duotono con el acento'
-                grain: Grano
-            bg_veils:
-                flat: Uniforme
-                bottom: 'Desde abajo'
-                top: 'Desde arriba'
-            media_frames:
-                none: Ninguno
-                line: 'Filete de acento'
-                shadow: 'Sombra suave'
-            title_case_label: 'Mayúsculas de los títulos'
-            title_cases:
-                normal: Normal
-                upper: Mayúsculas
-            bullets_label: 'Forma de las viñetas'
-            bullet_shapes:
-                disc: Punto
-                dash: Guion
-                arrow: Flecha
-                number: Número
-                check: 'Marca de verificación'
-            media_bleed_hint: 'La imagen sale del margen y toca el borde del marco.'
-            rules: 'Filetes de separación'
-            rules_hint: 'Una línea entre las dos columnas y bajo el antetítulo.'
-            bands:
-                none: Ninguna
-                left: 'Banda a la izquierda'
-                bottom: 'Franja abajo'
-                edge: 'Borde fino'
-            wash_from_theme: 'El del tema'
-            looks_label: 'Partir de un estilo'
-            looks_hint: 'Aplica un tema y sus ajustes de una vez. Todo sigue siendo editable después.'
-            looks:
-                scene: Escena
-                atelier: Taller
-                dossier: Dosier
-                gallery: Galería
-            look_descriptions:
-                scene: 'Para mostrar en una sala. Oscuro, títulos en mayúsculas.'
-                atelier: 'Para argumentar. Claro y cálido, con rayado.'
-                dossier: 'Para leer. Sereno, cuadriculado, márgenes anchos.'
-                gallery: 'Las fotos lo llevan todo. Casi negro, márgenes estrechos.'
-            accent_from_logo: 'Tonos del logotipo'
-            contrast_good: 'Contraste {ratio} sobre 21. Legible en cualquier lugar.'
-            contrast_large: 'Contraste {ratio} sobre 21. Legible en pantalla grande, justo en un documento impreso.'
-            contrast_poor: 'Contraste {ratio} sobre 21. El texto será difícil de leer.'
-            transition_from_deck: 'La de la presentación'
-            slide_transition_hint: 'Solo se aplica a esta diapositiva, y únicamente en pantalla completa.'
-            drift_hint: 'Un desplazamiento muy lento de la foto mientras la diapositiva está en pantalla. Solo en pantalla completa.'
-            title_scales:
-                normal: Normal
-                quiet: Discreto
-                loud: Destacado
-            media_ids_hint: 'El orden es la disposición. Ocho como máximo; vaciar una casilla reagrupa las demás.'
-            ground_hint: 'La diapositiva se apoya en uno de los tres colores de la presentación. El texto se adapta, el acento no cambia.'
-            grounds:
-                normal: 'El fondo'
-                inverted: 'La tinta'
-                accent: 'El acento'
-            reveal_hint: 'En pantalla completa, cada pulsación hace aparecer la línea siguiente antes de pasar a la diapositiva siguiente.'
-            picture_rank: 'Imagen {rank}'
-            fonts_label: Tipografía
-            font_from_theme: 'La del tema'
-            fonts:
-                sans: 'Sin serifa'
-                serif: 'Con serifa'
-                editorial: 'Títulos con serifa, texto sin serifa'
-                technical: 'Títulos monoespaciados, texto sin serifa'
-                report: 'Títulos sin serifa, texto con serifa'
-                soft: Redondeada
-            signature: Firma
-            logo: Logotipo
-            logo_hint: 'Se muestra en pequeño, en una esquina de la diapositiva.'
-            logo_placement: 'Dónde mostrarlo'
-            logo_placements:
-                none: 'En ningún sitio'
-                cover: 'En la portada'
-                every: 'En todas las diapositivas'
-            footer_text: 'Texto del pie de página'
-            footer_text_placeholder: 'Confidencial, no difundir'
-            slide_numbers: 'Numerar las diapositivas'
-            slide_numbers_hint: 'La portada nunca se numera.'
-            common_slots: 'Fondo y antetítulo'
-            kicker_placeholder: 'Auditoría, parte 2, Nuestra propuesta…'
-            backdrop_hint: 'Una foto detrás del texto, en cualquier diseño.'
-            backdrop_dim: Velo
-            backdrop_dim_hint: 'Oscurece la imagen hacia el color de fondo, para que el texto siga siendo legible.'
-            side_left: 'A la izquierda'
-            side_right: 'A la derecha'
-            line_placeholders:
-                series: 'Un dato por línea. Etiqueta | valor'
-                bullets: 'Una viñeta por línea.'
-                items: 'Una ficha por línea. Título | descripción | etiqueta | icono'
-                steps: 'Una etapa por línea. Nombre | detalle | etiqueta | icono'
-                rows: 'Una fila de la tabla por línea, celdas separadas por |. La primera es el encabezado.'
-                figures: 'Una cifra por línea. Valor | lo que cuenta | porcentaje en %'
-                lines: 'Una línea por línea. Dirección, teléfono, sitio web.'
-            emphasis_hint: 'En el texto de una diapositiva: **negrita**, *cursiva*, `code`, ==palabra destacada==.'
-            icons_hint: 'Iconos posibles: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings.'
-            chart_types:
-                bar: Barras
-                line: Línea
-                doughnut: Anillo
-            duplicate_slide: 'Duplicar la diapositiva'
-            slide_duplicated: 'Diapositiva duplicada'
-            drag_hint: 'Arrastrar para mover'
-            presenter: 'Vista del presentador'
-            presenter_now: 'Diapositiva actual'
-            presenter_next: 'Diapositiva siguiente'
-            presenter_end: 'Fin de la presentación.'
-            presenter_no_note: 'Ninguna nota para esta diapositiva.'
-            presenter_linked: 'Vinculada a la pantalla completa'
-            presenter_alone: 'Ninguna ventana de presentación abierta'
-            timer_start: 'Iniciar el temporizador'
-            timer_pause: Pausar
-            timer_reset: 'Poner a cero'
-            media_fit_contain: 'Entera, sin recorte'
-            media_fit_cover: 'Llenar el marco'
-            media_shape_soft: 'Esquinas suaves'
-            media_shape_round: 'Esquinas redondeadas'
-            media_shape_arch: Arco
-            media_shape_circle: Círculo
-            media_focus_hint: 'Haga clic en lo que debe seguir visible cuando la imagen se recorta.'
-            fold_chapter: 'Plegar este capítulo'
-            unfold_chapter: 'Desplegar este capítulo'
-            overview: Índice
-            pointer: Puntero
-            transition: Transición
-            transitions:
-                none: Ninguna
-                fade: Fundido
-                slide: Deslizamiento
-            transition_hint: 'Solo existe en pantalla completa. El papel y el enlace para compartir no la incluyen.'
-            slots:
-                mediaFit: 'Encuadre de la imagen'
-                mediaShape: 'Forma de la imagen'
-                mediaFocus: 'Punto focal'
-                chartType: 'Tipo de gráfico'
-                series: Datos
-                value: 'La cifra'
-                label: 'Lo que mide'
-                text: Texto
-                side: 'Lado de la imagen'
-                items: Fichas
-                steps: Etapas
-                rows: Filas
-                kicker: Antetítulo
-                reveal: 'Líneas una a una'
-                ground: 'Fondo de la diapositiva'
-                mediaIds: 'Las imágenes'
-                titleScale: 'Escala del título'
-                transition: 'Transición hacia esta diapositiva'
-                drift: 'Travelling sobre la foto'
-                role: Cargo
-                current: 'Línea actual'
-                band: 'Bloque de color'
-                mediaBleed: 'Imagen a sangre'
-                leftTitle: 'Título de la izquierda'
-                rightTitle: 'Título de la derecha'
-                figures: 'Las cifras'
-                lines: 'Las líneas'
-                ghost: 'Cifra en marca de agua'
-                bgTreatment: 'Tratamiento de la foto'
-                bgVeil: Velo
-                vignette: Viñeteado
-                mediaFrame: 'Contenedor de la imagen'
-                captionOver: 'Pie sobre la imagen'
-                anchor: 'Posición vertical'
-                align: Alineación
-                measure: 'Ancho del texto'
-                bgMediaId: 'Imagen de fondo'
-                title: Título
-                subtitle: Subtítulo
-                bullets: Viñetas
-                left: 'Columna izquierda'
-                right: 'Columna derecha'
-                quote: Cita
-                attribution: Atribución
-                caption: 'Pie de imagen'
-                mediaId: Imagen
-            free:
-                convert: Convertir en libre
-                converted: "Diapositiva convertida en libre. Cmd+Z para volver a la plantilla."
-                canvas: Diapositiva libre
-                insert: Añadir a la diapositiva
-                insert_title: Título
-                insert_subtitle: Subtítulo
-                insert_body: Texto
-                insert_image: Imagen
-                insert_video: Vídeo
-                insert_embed: YouTube o Vimeo
-                insert_shape: Forma
-                insert_icon: Icono
-                insert_chart: Gráfico
-                insert_table: Tabla
-                text_presets:
-                    title: Su título
-                    subtitle: Un subtítulo
-                    body: Su texto aquí
-                embed_url: Enlace del vídeo
-                embed_placeholder: "https://www.youtube.com/watch?v=..."
-                embed_add: Añadir
-                embed_hint: "YouTube, Vimeo o Dailymotion. El vídeo se reproduce en la diapositiva durante la presentación."
-                icon_search: Buscar un icono
-                undo: Deshacer
-                redo: Rehacer
-                shortcuts: "Doble clic para escribir, Mayús para mantener las proporciones, Alt para ignorar las guías."
-                shortcuts_touch: "Toque un texto seleccionado para escribir, pellizque con dos dedos para ampliar y girar."
-                text_toolbar: Formato del texto
-                bold: Negrita
-                italic: Cursiva
-                underline: Subrayado
-                strike: Tachado
-                word_colour: Color de las palabras
-                word_colour_apply: Aplicar este color
-                highlight: Resaltador
-                highlight_apply: Aplicar este resaltado
-                bullets: Lista con viñetas
-                numbers: Lista numerada
-                clear_format: Borrar el formato
-                slide: Esta diapositiva
-                slide_fill: Fondo de la diapositiva
-                slide_video: Vídeo de fondo
-                slide_video_hint: "Se reproduce en bucle y sin sonido detrás de los elementos. En papel, se imprime su imagen de portada."
-                choose_video: Elegir un vídeo
-                replace: Reemplazar
-                remove: Quitar
-                nothing_selected: "Haga clic en un elemento para ajustarlo, o trace un marco alrededor de varios."
-                duplicate: Duplicar
-                delete: Eliminar
-                lock: Bloquear
-                unlock: Desbloquear
-                bring_front: Traer al frente
-                forward: Avanzar
-                backward: Retroceder
-                send_back: Enviar al fondo
-                group: Agrupar
-                ungroup: Desagrupar
-                flip_x: Voltear horizontalmente
-                flip_y: Voltear verticalmente
-                align:
-                    left: Alinear a la izquierda
-                    center: Centrar horizontalmente
-                    right: Alinear a la derecha
-                    top: Alinear arriba
-                    middle: Centrar verticalmente
-                    bottom: Alinear abajo
-                distribute_x: Distribuir horizontalmente
-                distribute_y: Distribuir verticalmente
-                width: Ancho
-                height: Alto
-                rotation: Rotación
-                opacity: Opacidad
-                font: Fuente
-                font_search: Buscar una fuente
-                font_deck: Fuentes de la presentación
-                font_heading: Fuente de los títulos
-                font_body: Fuente del texto
-                font_uploaded: Sus fuentes
-                font_upload: Importar una fuente
-                font_uploaded_ok: "Fuente {name} añadida."
-                font_errors:
-                    required: Elija un archivo de fuente.
-                    not_a_font: "Este archivo no es una fuente que un navegador pueda leer: woff2, woff, ttf u otf."
-                    refused: No se pudo añadir la fuente.
-                font_categories:
-                    sans: Sin serifa
-                    serif: Con serifa
-                    display: Decorativa
-                    script: Manuscrita
-                    mono: Monoespaciada
-                size: Tamaño
-                weight: Grosor
-                weights:
-                    "100": Muy fina
-                    "200": Extra fina
-                    "300": Fina
-                    "400": Normal
-                    "500": Media
-                    "600": Seminegrita
-                    "700": Negrita
-                    "800": Extranegrita
-                    "900": Black
-                case: Mayúsculas y minúsculas
-                cases:
-                    none: Tal cual
-                    upper: Mayúsculas
-                    lower: Minúsculas
-                    title: Mayúscula en cada palabra
-                spacing: Espaciado entre letras
-                line_height: Interlineado
-                pad_x: Margen interior (lados)
-                pad_y: Margen interior (arriba y abajo)
-                aligns:
-                    left: Izquierda
-                    center: Centro
-                    right: Derecha
-                    justify: Justificado
-                valigns:
-                    top: Arriba
-                    middle: Medio
-                    bottom: Abajo
-                text_colour: Color del texto
-                autofit: Ajustar el texto al cuadro
-                autofit_hint: "El texto se reduce para no salirse nunca de su cuadro."
-                contrast_poor: "Texto poco legible sobre este fondo: contraste de {ratio} a 1, se necesita al menos 3."
-                contrast_large: "Legible solo en grande: contraste de {ratio} a 1, 4,5 para un texto corrido."
-                text_hint: "Haga doble clic en el cuadro para escribir. Seleccione palabras para ponerlas en negrita, en color o en lista."
-                fit: Relleno
-                mask: Recorte
-                masks:
-                    none: Ninguno
-                    circle: Círculo
-                    arch: Arco
-                    triangle: Triángulo
-                    diamond: Rombo
-                    hexagon: Hexágono
-                    star: Estrella
-                    blob: Guijarro
-                zoom: Zoom
-                focus: Punto de encuadre
-                focus_hint: "El punto que permanece visible cuando se recorta la imagen."
-                adjust: Retoques
-                filters:
-                    brightness: Brillo
-                    contrast: Contraste
-                    saturate: Saturación
-                    grayscale: Blanco y negro
-                    sepia: Sepia
-                    hue: Tono
-                    blur: Desenfoque
-                reset_filters: Deshacer los retoques
-                autoplay: Reproducción automática
-                autoplay_hint: "Un vídeo que se inicia solo no tiene sonido: es una regla de los navegadores."
-                loop: En bucle
-                muted: Sin sonido
-                controls: Mostrar los controles
-                shape: Forma
-                shapes:
-                    rect: Rectángulo
-                    ellipse: Elipse
-                    triangle: Triángulo
-                    right_triangle: Triángulo rectángulo
-                    diamond: Rombo
-                    pentagon: Pentágono
-                    hexagon: Hexágono
-                    octagon: Octógono
-                    star: Estrella
-                    star4: Estrella de cuatro puntas
-                    heart: Corazón
-                    cross: Cruz
-                    parallelogram: Paralelogramo
-                    trapezoid: Trapecio
-                    arrow_right: Flecha hacia la derecha
-                    arrow_left: Flecha hacia la izquierda
-                    chevron: Chevrón
-                    speech: Bocadillo
-                    ring: Anillo
-                    line: Línea
-                head: Extremos
-                heads:
-                    none: Sin flecha
-                    end: Flecha al final
-                    both: Flecha en ambos extremos
-                icon: Icono
-                colour: Color
-                line_weight: Grosor del trazo
-                theme_colours:
-                    ink: Color del texto de la presentación
-                    accent: Color de acento de la presentación
-                    background: Color de fondo de la presentación
-                no_colour: Sin color
-                paints:
-                    none: Ninguno
-                    solid: Color
-                    linear: Degradado
-                    radial: Degradado radial
-                angle: Ángulo
-                add_stop: Añadir un color
-                remove_stop: Quitar este color
-                fill: Relleno
-                box_fill: Fondo del cuadro
-                stroke: Contorno
-                text_outline: Contorno de las letras
-                stroke_width: Grosor
-                stroke_style: Estilo
-                stroke_styles:
-                    solid: Continuo
-                    dashed: Guiones
-                    dotted: Puntos
-                radius: Redondeo
-                shadow: Sombra
-                blur: Desenfoque
-                enter: Aparición
-                enters:
-                    none: Ninguna
-                    fade: Fundido
-                    rise: Ascenso
-                    fall: Descenso
-                    left: Desde la izquierda
-                    right: Desde la derecha
-                    zoom: Zoom
-                    pop: Rebote
-                    blur: Enfoque
-                reveal: En la pulsación n.º
-                reveal_hint: "0: el elemento está ahí en cuanto aparece la diapositiva. 1, 2, 3: entra en la 1.ª, 2.ª, 3.ª pulsación durante la presentación."
-                duration: Duración
-                delay: Retardo
-                link: Enlace al hacer clic
-                link_placeholder: "https://..."
-                layers: Capas
-                layers_empty: "Ningún elemento. Añada uno con la barra situada sobre la diapositiva."
-                types:
-                    text: Texto
-                    image: Imagen
-                    video: Vídeo
-                    embed: Vídeo en línea
-                    shape: Forma
-                    icon: Icono
-                    chart: Gráfico
-                    table: Tabla
-            layouts:
-                chart: Gráfico
-                stat: 'Cifra clave'
-                image_text: 'Imagen y texto'
-                cards: Fichas
-                timeline: Cronología
-                table: Tabla
-                title: Título
-                bullets: 'Título y viñetas'
-                image: 'Imagen a página completa'
-                split: 'Dos columnas'
-                quote: Cita
-                section: Separador
-                compare: Comparación
-                figures: Cifras
-                end: Fin
-                agenda: Índice
-                portrait: 'Cita y retrato'
-                logos: 'Cuadrícula de logotipos'
-                mosaic: 'Mosaico de imágenes'
-                free: Diapositiva libre
         customers:
             guide:
                 title: "Cómo funcionan las fichas"
@@ -1985,6 +1443,547 @@ suite:
                 done: "Presentación creada a partir del texto"
             slides:
                 settings: "Ajustes"
+                editor_guide:
+                    title: 'Cómo modificar una presentación'
+                    step_1: 'La columna «Diapositivas» las muestra en orden: haga clic en una para modificarla y muévala con su asa o sus flechas.'
+                    step_2: '«Añadir una diapositiva» propone las plantillas; con «Diapositiva libre», coloca cada elemento a mano.'
+                    step_3: 'Rellene los campos de la plantilla y las notas del orador, que el público nunca ve: todo se guarda solo.'
+                    step_4: '«Presentar» pasa a pantalla completa; el menú de al lado abre la vista del presentador, la impresión, el uso compartido y la apariencia.'
+                slides: Diapositivas
+                errors:
+                    layout_unknown: 'Este diseño no existe.'
+                    theme_unknown: 'Este tema no existe.'
+                share: Compartir
+                share_expires_on: 'Caduca el {date}'
+                share_footer: 'Este enlace es personal. No lo comparta.'
+                present: Presentar
+                print: Imprimir
+                print_hint: 'Use la impresión del navegador y después «Guardar como PDF». Una diapositiva por página, en horizontal.'
+                previous_slide: 'Diapositiva anterior'
+                next_slide: 'Diapositiva siguiente'
+                layout: Diseño
+                add_slide: 'Añadir una diapositiva'
+                slide_added: 'Diapositiva añadida'
+                slide_deleted: 'Diapositiva eliminada'
+                delete_slide: 'Eliminar la diapositiva'
+                delete_slide_confirm: 'Esta diapositiva y su contenido se perderán.'
+                move_up: Subir
+                move_down: Bajar
+                saving: Guardando…
+                saved: Guardado
+                unsaved: 'Cambios sin guardar'
+                no_slide_title: 'Ninguna diapositiva'
+                no_slide_description: 'Elija un diseño a la izquierda para empezar la presentación.'
+                speaker_notes: 'Notas del orador'
+                speaker_notes_hint: 'Nunca se muestran al público.'
+                speaker_notes_placeholder: 'Lo que dirá mientras esta diapositiva esté en pantalla.'
+                prose_placeholder: 'El texto que se muestra en la diapositiva.'
+                image_hint: 'Elegida en la mediateca, o subida desde su equipo.'
+                appearance: Apariencia
+                appearance_saved: 'Apariencia guardada'
+                appearance_preview_hint: 'La vista previa sigue sus elecciones, la presentación solo cambia al guardar.'
+                appearance_sample_title: 'El título de su presentación'
+                appearance_sample_subtitle: 'El subtítulo, en una línea'
+                appearance_overrides_kept: 'Sus colores personalizados siguen aplicándose por encima de este tema.'
+                theme: Tema
+                themes:
+                    slate: Pizarra
+                    ink: Tinta
+                    paper: Papel
+                    bold: Intenso
+                    midnight: Medianoche
+                    clay: Tierra
+                    chalk: Tiza
+                    duo: 'Dos tonos'
+                colours: Colores
+                colour_background: Fondo
+                colour_ink: Texto
+                colour_accent: Acento
+                colour_inherited: 'Del tema'
+                colour_reset: 'Volver al tema'
+                colour_reset_all: 'Volver todo al tema'
+                gradient_label: Degradado
+                gradient_hint: 'Una aguada del color de acento sobre el fondo, igual en todas las diapositivas.'
+                gradients:
+                    none: Ninguno
+                    top: 'Desde arriba'
+                    bottom: 'Desde abajo'
+                    corner: 'En diagonal'
+                    halo: 'Halo central'
+                    duo: 'Acento hacia tinta'
+                pattern_label: Motivo
+                pattern_hint: 'Una textura sobre el fondo, oculta en las diapositivas con foto.'
+                patterns:
+                    none: Ninguno
+                    dots: Puntos
+                    grid: Cuadrícula
+                    diagonals: Rayado
+                margins_label: 'Márgenes del marco'
+                margins:
+                    tight: Estrechos
+                    normal: Normales
+                    wide: Anchos
+                hairline: 'Filete del marco'
+                hairline_hint: 'Un ribete fino en el color de acento, separado de los bordes.'
+                anchors:
+                    center: Centrada
+                    top: Arriba
+                    bottom: Abajo
+                aligns:
+                    left: 'A la izquierda'
+                    center: Centrado
+                    right: 'A la derecha'
+                measures:
+                    full: 'Ancho completo'
+                    two_thirds: 'Dos tercios'
+                    half: Mitad
+                vignette_hint: 'Oscurece ligeramente las esquinas y lleva la mirada al centro.'
+                bg_treatments:
+                    none: Ninguno
+                    blur: Desenfoque
+                    mono: 'Blanco y negro'
+                    duotone: 'Duotono con el acento'
+                    grain: Grano
+                bg_veils:
+                    flat: Uniforme
+                    bottom: 'Desde abajo'
+                    top: 'Desde arriba'
+                media_frames:
+                    none: Ninguno
+                    line: 'Filete de acento'
+                    shadow: 'Sombra suave'
+                title_case_label: 'Mayúsculas de los títulos'
+                title_cases:
+                    normal: Normal
+                    upper: Mayúsculas
+                bullets_label: 'Forma de las viñetas'
+                bullet_shapes:
+                    disc: Punto
+                    dash: Guion
+                    arrow: Flecha
+                    number: Número
+                    check: 'Marca de verificación'
+                media_bleed_hint: 'La imagen sale del margen y toca el borde del marco.'
+                rules: 'Filetes de separación'
+                rules_hint: 'Una línea entre las dos columnas y bajo el antetítulo.'
+                bands:
+                    none: Ninguna
+                    left: 'Banda a la izquierda'
+                    bottom: 'Franja abajo'
+                    edge: 'Borde fino'
+                wash_from_theme: 'El del tema'
+                looks_label: 'Partir de un estilo'
+                looks_hint: 'Aplica un tema y sus ajustes de una vez. Todo sigue siendo editable después.'
+                looks:
+                    scene: Escena
+                    atelier: Taller
+                    dossier: Dosier
+                    gallery: Galería
+                look_descriptions:
+                    scene: 'Para mostrar en una sala. Oscuro, títulos en mayúsculas.'
+                    atelier: 'Para argumentar. Claro y cálido, con rayado.'
+                    dossier: 'Para leer. Sereno, cuadriculado, márgenes anchos.'
+                    gallery: 'Las fotos lo llevan todo. Casi negro, márgenes estrechos.'
+                accent_from_logo: 'Tonos del logotipo'
+                contrast_good: 'Contraste {ratio} sobre 21. Legible en cualquier lugar.'
+                contrast_large: 'Contraste {ratio} sobre 21. Legible en pantalla grande, justo en un documento impreso.'
+                contrast_poor: 'Contraste {ratio} sobre 21. El texto será difícil de leer.'
+                transition_from_deck: 'La de la presentación'
+                slide_transition_hint: 'Solo se aplica a esta diapositiva, y únicamente en pantalla completa.'
+                drift_hint: 'Un desplazamiento muy lento de la foto mientras la diapositiva está en pantalla. Solo en pantalla completa.'
+                title_scales:
+                    normal: Normal
+                    quiet: Discreto
+                    loud: Destacado
+                media_ids_hint: 'El orden es la disposición. Ocho como máximo; vaciar una casilla reagrupa las demás.'
+                ground_hint: 'La diapositiva se apoya en uno de los tres colores de la presentación. El texto se adapta, el acento no cambia.'
+                grounds:
+                    normal: 'El fondo'
+                    inverted: 'La tinta'
+                    accent: 'El acento'
+                reveal_hint: 'En pantalla completa, cada pulsación hace aparecer la línea siguiente antes de pasar a la diapositiva siguiente.'
+                picture_rank: 'Imagen {rank}'
+                fonts_label: Tipografía
+                font_from_theme: 'La del tema'
+                fonts:
+                    sans: 'Sin serifa'
+                    serif: 'Con serifa'
+                    editorial: 'Títulos con serifa, texto sin serifa'
+                    technical: 'Títulos monoespaciados, texto sin serifa'
+                    report: 'Títulos sin serifa, texto con serifa'
+                    soft: Redondeada
+                signature: Firma
+                logo: Logotipo
+                logo_hint: 'Se muestra en pequeño, en una esquina de la diapositiva.'
+                logo_placement: 'Dónde mostrarlo'
+                logo_placements:
+                    none: 'En ningún sitio'
+                    cover: 'En la portada'
+                    every: 'En todas las diapositivas'
+                footer_text: 'Texto del pie de página'
+                footer_text_placeholder: 'Confidencial, no difundir'
+                slide_numbers: 'Numerar las diapositivas'
+                slide_numbers_hint: 'La portada nunca se numera.'
+                common_slots: 'Fondo y antetítulo'
+                kicker_placeholder: 'Auditoría, parte 2, Nuestra propuesta…'
+                backdrop_hint: 'Una foto detrás del texto, en cualquier diseño.'
+                backdrop_dim: Velo
+                backdrop_dim_hint: 'Oscurece la imagen hacia el color de fondo, para que el texto siga siendo legible.'
+                side_left: 'A la izquierda'
+                side_right: 'A la derecha'
+                line_placeholders:
+                    series: 'Un dato por línea. Etiqueta | valor'
+                    bullets: 'Una viñeta por línea.'
+                    items: 'Una ficha por línea. Título | descripción | etiqueta | icono'
+                    steps: 'Una etapa por línea. Nombre | detalle | etiqueta | icono'
+                    rows: 'Una fila de la tabla por línea, celdas separadas por |. La primera es el encabezado.'
+                    figures: 'Una cifra por línea. Valor | lo que cuenta | porcentaje en %'
+                    lines: 'Una línea por línea. Dirección, teléfono, sitio web.'
+                emphasis_hint: 'En el texto de una diapositiva: **negrita**, *cursiva*, `code`, ==palabra destacada==.'
+                icons_hint: 'Iconos posibles: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings.'
+                chart_types:
+                    bar: Barras
+                    line: Línea
+                    doughnut: Anillo
+                duplicate_slide: 'Duplicar la diapositiva'
+                slide_duplicated: 'Diapositiva duplicada'
+                drag_hint: 'Arrastrar para mover'
+                presenter: 'Vista del presentador'
+                presenter_now: 'Diapositiva actual'
+                presenter_next: 'Diapositiva siguiente'
+                presenter_end: 'Fin de la presentación.'
+                presenter_no_note: 'Ninguna nota para esta diapositiva.'
+                presenter_linked: 'Vinculada a la pantalla completa'
+                presenter_alone: 'Ninguna ventana de presentación abierta'
+                timer_start: 'Iniciar el temporizador'
+                timer_pause: Pausar
+                timer_reset: 'Poner a cero'
+                media_fit_contain: 'Entera, sin recorte'
+                media_fit_cover: 'Llenar el marco'
+                media_shape_soft: 'Esquinas suaves'
+                media_shape_round: 'Esquinas redondeadas'
+                media_shape_arch: Arco
+                media_shape_circle: Círculo
+                media_focus_hint: 'Haga clic en lo que debe seguir visible cuando la imagen se recorta.'
+                fold_chapter: 'Plegar este capítulo'
+                unfold_chapter: 'Desplegar este capítulo'
+                overview: Índice
+                pointer: Puntero
+                transition: Transición
+                transitions:
+                    none: Ninguna
+                    fade: Fundido
+                    slide: Deslizamiento
+                transition_hint: 'Solo existe en pantalla completa. El papel y el enlace para compartir no la incluyen.'
+                slots:
+                    mediaFit: 'Encuadre de la imagen'
+                    mediaShape: 'Forma de la imagen'
+                    mediaFocus: 'Punto focal'
+                    chartType: 'Tipo de gráfico'
+                    series: Datos
+                    value: 'La cifra'
+                    label: 'Lo que mide'
+                    text: Texto
+                    side: 'Lado de la imagen'
+                    items: Fichas
+                    steps: Etapas
+                    rows: Filas
+                    kicker: Antetítulo
+                    reveal: 'Líneas una a una'
+                    ground: 'Fondo de la diapositiva'
+                    mediaIds: 'Las imágenes'
+                    titleScale: 'Escala del título'
+                    transition: 'Transición hacia esta diapositiva'
+                    drift: 'Travelling sobre la foto'
+                    role: Cargo
+                    current: 'Línea actual'
+                    band: 'Bloque de color'
+                    mediaBleed: 'Imagen a sangre'
+                    leftTitle: 'Título de la izquierda'
+                    rightTitle: 'Título de la derecha'
+                    figures: 'Las cifras'
+                    lines: 'Las líneas'
+                    ghost: 'Cifra en marca de agua'
+                    bgTreatment: 'Tratamiento de la foto'
+                    bgVeil: Velo
+                    vignette: Viñeteado
+                    mediaFrame: 'Contenedor de la imagen'
+                    captionOver: 'Pie sobre la imagen'
+                    anchor: 'Posición vertical'
+                    align: Alineación
+                    measure: 'Ancho del texto'
+                    bgMediaId: 'Imagen de fondo'
+                    title: Título
+                    subtitle: Subtítulo
+                    bullets: Viñetas
+                    left: 'Columna izquierda'
+                    right: 'Columna derecha'
+                    quote: Cita
+                    attribution: Atribución
+                    caption: 'Pie de imagen'
+                    mediaId: Imagen
+                free:
+                    convert: Convertir en libre
+                    converted: "Diapositiva convertida en libre. Cmd+Z para volver a la plantilla."
+                    canvas: Diapositiva libre
+                    insert: Añadir a la diapositiva
+                    insert_title: Título
+                    insert_subtitle: Subtítulo
+                    insert_body: Texto
+                    insert_image: Imagen
+                    insert_video: Vídeo
+                    insert_embed: YouTube o Vimeo
+                    insert_shape: Forma
+                    insert_icon: Icono
+                    insert_chart: Gráfico
+                    insert_table: Tabla
+                    text_presets:
+                        title: Su título
+                        subtitle: Un subtítulo
+                        body: Su texto aquí
+                    embed_url: Enlace del vídeo
+                    embed_placeholder: "https://www.youtube.com/watch?v=..."
+                    embed_add: Añadir
+                    embed_hint: "YouTube, Vimeo o Dailymotion. El vídeo se reproduce en la diapositiva durante la presentación."
+                    icon_search: Buscar un icono
+                    undo: Deshacer
+                    redo: Rehacer
+                    shortcuts: "Doble clic para escribir, Mayús para mantener las proporciones, Alt para ignorar las guías."
+                    shortcuts_touch: "Toque un texto seleccionado para escribir, pellizque con dos dedos para ampliar y girar."
+                    text_toolbar: Formato del texto
+                    bold: Negrita
+                    italic: Cursiva
+                    underline: Subrayado
+                    strike: Tachado
+                    word_colour: Color de las palabras
+                    word_colour_apply: Aplicar este color
+                    highlight: Resaltador
+                    highlight_apply: Aplicar este resaltado
+                    bullets: Lista con viñetas
+                    numbers: Lista numerada
+                    clear_format: Borrar el formato
+                    slide: Esta diapositiva
+                    slide_fill: Fondo de la diapositiva
+                    slide_video: Vídeo de fondo
+                    slide_video_hint: "Se reproduce en bucle y sin sonido detrás de los elementos. En papel, se imprime su imagen de portada."
+                    choose_video: Elegir un vídeo
+                    replace: Reemplazar
+                    remove: Quitar
+                    nothing_selected: "Haga clic en un elemento para ajustarlo, o trace un marco alrededor de varios."
+                    duplicate: Duplicar
+                    delete: Eliminar
+                    lock: Bloquear
+                    unlock: Desbloquear
+                    bring_front: Traer al frente
+                    forward: Avanzar
+                    backward: Retroceder
+                    send_back: Enviar al fondo
+                    group: Agrupar
+                    ungroup: Desagrupar
+                    flip_x: Voltear horizontalmente
+                    flip_y: Voltear verticalmente
+                    align:
+                        left: Alinear a la izquierda
+                        center: Centrar horizontalmente
+                        right: Alinear a la derecha
+                        top: Alinear arriba
+                        middle: Centrar verticalmente
+                        bottom: Alinear abajo
+                    distribute_x: Distribuir horizontalmente
+                    distribute_y: Distribuir verticalmente
+                    width: Ancho
+                    height: Alto
+                    rotation: Rotación
+                    opacity: Opacidad
+                    font: Fuente
+                    font_search: Buscar una fuente
+                    font_deck: Fuentes de la presentación
+                    font_heading: Fuente de los títulos
+                    font_body: Fuente del texto
+                    font_uploaded: Sus fuentes
+                    font_upload: Importar una fuente
+                    font_uploaded_ok: "Fuente {name} añadida."
+                    font_errors:
+                        required: Elija un archivo de fuente.
+                        not_a_font: "Este archivo no es una fuente que un navegador pueda leer: woff2, woff, ttf u otf."
+                        refused: No se pudo añadir la fuente.
+                    font_categories:
+                        sans: Sin serifa
+                        serif: Con serifa
+                        display: Decorativa
+                        script: Manuscrita
+                        mono: Monoespaciada
+                    size: Tamaño
+                    weight: Grosor
+                    weights:
+                        "100": Muy fina
+                        "200": Extra fina
+                        "300": Fina
+                        "400": Normal
+                        "500": Media
+                        "600": Seminegrita
+                        "700": Negrita
+                        "800": Extranegrita
+                        "900": Black
+                    case: Mayúsculas y minúsculas
+                    cases:
+                        none: Tal cual
+                        upper: Mayúsculas
+                        lower: Minúsculas
+                        title: Mayúscula en cada palabra
+                    spacing: Espaciado entre letras
+                    line_height: Interlineado
+                    pad_x: Margen interior (lados)
+                    pad_y: Margen interior (arriba y abajo)
+                    aligns:
+                        left: Izquierda
+                        center: Centro
+                        right: Derecha
+                        justify: Justificado
+                    valigns:
+                        top: Arriba
+                        middle: Medio
+                        bottom: Abajo
+                    text_colour: Color del texto
+                    autofit: Ajustar el texto al cuadro
+                    autofit_hint: "El texto se reduce para no salirse nunca de su cuadro."
+                    contrast_poor: "Texto poco legible sobre este fondo: contraste de {ratio} a 1, se necesita al menos 3."
+                    contrast_large: "Legible solo en grande: contraste de {ratio} a 1, 4,5 para un texto corrido."
+                    text_hint: "Haga doble clic en el cuadro para escribir. Seleccione palabras para ponerlas en negrita, en color o en lista."
+                    fit: Relleno
+                    mask: Recorte
+                    masks:
+                        none: Ninguno
+                        circle: Círculo
+                        arch: Arco
+                        triangle: Triángulo
+                        diamond: Rombo
+                        hexagon: Hexágono
+                        star: Estrella
+                        blob: Guijarro
+                    zoom: Zoom
+                    focus: Punto de encuadre
+                    focus_hint: "El punto que permanece visible cuando se recorta la imagen."
+                    adjust: Retoques
+                    filters:
+                        brightness: Brillo
+                        contrast: Contraste
+                        saturate: Saturación
+                        grayscale: Blanco y negro
+                        sepia: Sepia
+                        hue: Tono
+                        blur: Desenfoque
+                    reset_filters: Deshacer los retoques
+                    autoplay: Reproducción automática
+                    autoplay_hint: "Un vídeo que se inicia solo no tiene sonido: es una regla de los navegadores."
+                    loop: En bucle
+                    muted: Sin sonido
+                    controls: Mostrar los controles
+                    shape: Forma
+                    shapes:
+                        rect: Rectángulo
+                        ellipse: Elipse
+                        triangle: Triángulo
+                        right_triangle: Triángulo rectángulo
+                        diamond: Rombo
+                        pentagon: Pentágono
+                        hexagon: Hexágono
+                        octagon: Octógono
+                        star: Estrella
+                        star4: Estrella de cuatro puntas
+                        heart: Corazón
+                        cross: Cruz
+                        parallelogram: Paralelogramo
+                        trapezoid: Trapecio
+                        arrow_right: Flecha hacia la derecha
+                        arrow_left: Flecha hacia la izquierda
+                        chevron: Chevrón
+                        speech: Bocadillo
+                        ring: Anillo
+                        line: Línea
+                    head: Extremos
+                    heads:
+                        none: Sin flecha
+                        end: Flecha al final
+                        both: Flecha en ambos extremos
+                    icon: Icono
+                    colour: Color
+                    line_weight: Grosor del trazo
+                    theme_colours:
+                        ink: Color del texto de la presentación
+                        accent: Color de acento de la presentación
+                        background: Color de fondo de la presentación
+                    no_colour: Sin color
+                    paints:
+                        none: Ninguno
+                        solid: Color
+                        linear: Degradado
+                        radial: Degradado radial
+                    angle: Ángulo
+                    add_stop: Añadir un color
+                    remove_stop: Quitar este color
+                    fill: Relleno
+                    box_fill: Fondo del cuadro
+                    stroke: Contorno
+                    text_outline: Contorno de las letras
+                    stroke_width: Grosor
+                    stroke_style: Estilo
+                    stroke_styles:
+                        solid: Continuo
+                        dashed: Guiones
+                        dotted: Puntos
+                    radius: Redondeo
+                    shadow: Sombra
+                    blur: Desenfoque
+                    enter: Aparición
+                    enters:
+                        none: Ninguna
+                        fade: Fundido
+                        rise: Ascenso
+                        fall: Descenso
+                        left: Desde la izquierda
+                        right: Desde la derecha
+                        zoom: Zoom
+                        pop: Rebote
+                        blur: Enfoque
+                    reveal: En la pulsación n.º
+                    reveal_hint: "0: el elemento está ahí en cuanto aparece la diapositiva. 1, 2, 3: entra en la 1.ª, 2.ª, 3.ª pulsación durante la presentación."
+                    duration: Duración
+                    delay: Retardo
+                    link: Enlace al hacer clic
+                    link_placeholder: "https://..."
+                    layers: Capas
+                    layers_empty: "Ningún elemento. Añada uno con la barra situada sobre la diapositiva."
+                    types:
+                        text: Texto
+                        image: Imagen
+                        video: Vídeo
+                        embed: Vídeo en línea
+                        shape: Forma
+                        icon: Icono
+                        chart: Gráfico
+                        table: Tabla
+                layouts:
+                    chart: Gráfico
+                    stat: 'Cifra clave'
+                    image_text: 'Imagen y texto'
+                    cards: Fichas
+                    timeline: Cronología
+                    table: Tabla
+                    title: Título
+                    bullets: 'Título y viñetas'
+                    image: 'Imagen a página completa'
+                    split: 'Dos columnas'
+                    quote: Cita
+                    section: Separador
+                    compare: Comparación
+                    figures: Cifras
+                    end: Fin
+                    agenda: Índice
+                    portrait: 'Cita y retrato'
+                    logos: 'Cuadrícula de logotipos'
+                    mosaic: 'Mosaico de imágenes'
+                    free: Diapositiva libre
             template:
                 badge: "Plantilla"
                 filter: "Plantillas"

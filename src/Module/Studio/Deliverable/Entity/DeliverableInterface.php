@@ -8,10 +8,10 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
-use Aurora\Module\Studio\Deck\Entity\SlideInterface;
-use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
 

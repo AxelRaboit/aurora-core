@@ -317,7 +317,7 @@ ses mappings Doctrine, son namespace Twig, ses paths de traduction et son
 ## 5. Cas 2 - module avec sous-features togglables
 
 Quand un module a plusieurs sous-features indépendamment activables (Studio =
-clients + contrats + présentations + espaces, Editorial = articles + types +
+clients + contrats + livrables + espaces, Editorial = articles + types +
 taxonomies + …), suivre le pattern **`ModuleToggleProviderInterface` + classe
 Context**.
 

@@ -199,6 +199,7 @@ final readonly class ZoneSiteViews
             if (!$link->isUsable($now)) {
                 continue;
             }
+
             if ($link->isLocked()) {
                 continue;
             }

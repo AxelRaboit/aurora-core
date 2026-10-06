@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
-use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
+use Aurora\Module\Studio\Deliverable\Slides\Serializer\SlidesSerializer;
 use Aurora\Module\Studio\Deliverable\Slides\SlideEditorOptions;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -31,7 +31,7 @@ use const DATE_ATOM;
 final readonly class DeliverableSlidesViewBuilder
 {
     public function __construct(
-        private DeckSerializer $deckSerializer,
+        private SlidesSerializer $slidesSerializer,
         private DeliverableAccess $access,
         private SlideEditorOptions $editorOptions,
         private UrlGeneratorInterface $urlGenerator,
@@ -91,7 +91,7 @@ final readonly class DeliverableSlidesViewBuilder
      */
     public function deck(DeliverableInterface $deliverable): array
     {
-        $slideshow = $this->deckSerializer->slideshow($deliverable);
+        $slideshow = $this->slidesSerializer->slideshow($deliverable);
 
         return [
             'id' => $deliverable->getId(),
@@ -139,7 +139,7 @@ final readonly class DeliverableSlidesViewBuilder
         return [
             'theme' => $deliverable->getSlideTheme()->value,
             'style' => $deliverable->getSlideStyle(),
-            'appearance' => $this->deckSerializer->appearanceOf($deliverable),
+            'appearance' => $this->slidesSerializer->appearanceOf($deliverable),
         ];
     }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Slides;
 
-use Aurora\Module\Studio\Deck\Entity\Slide;
-use Aurora\Module\Studio\Deck\Entity\SlideInterface;
-use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
-use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
-use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\Slide;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckStyleNormalizer;
+use Aurora\Module\Studio\Deliverable\Slides\Service\FreeSlideNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 

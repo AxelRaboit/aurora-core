@@ -7,7 +7,7 @@ namespace Aurora\Module\Studio\SpaceContent\Serializer;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
-use Aurora\Module\Studio\Deck\Service\DeckPicture;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckPicture;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;

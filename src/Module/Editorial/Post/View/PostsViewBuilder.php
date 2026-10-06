@@ -163,6 +163,7 @@ final readonly class PostsViewBuilder
             if (null === $id) {
                 continue;
             }
+
             if (!$this->deliverableAccess->canRead($deliverable)) {
                 continue;
             }

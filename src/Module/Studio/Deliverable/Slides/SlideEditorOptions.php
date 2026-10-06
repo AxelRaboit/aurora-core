@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Slides;
 
-use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
-use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
-use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
-use Aurora\Module\Studio\Deck\Enum\DeckLookEnum;
-use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
-use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
-use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
-use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Service\DeckFonts;
-use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
-use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckGradientEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckLookEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckPatternEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckTransitionEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckFonts;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckStyleNormalizer;
+use Aurora\Module\Studio\Deliverable\Slides\Service\FreeSlideNormalizer;
 
 use function array_map;
 

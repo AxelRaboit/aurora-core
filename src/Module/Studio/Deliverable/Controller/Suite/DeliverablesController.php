@@ -12,7 +12,6 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
-use Aurora\Module\Studio\Deck\Import\DeckFromBlocks;
 use Aurora\Module\Studio\Deliverable\Dto\DeliverableCategoryInput;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
@@ -27,6 +26,7 @@ use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Deliverable\Slides\Import\SlidesFromBlocks;
 use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
 use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\DeliverablesViewBuilder;
@@ -86,7 +86,7 @@ final class DeliverablesController extends AbstractController
         private readonly DeliverableCategoryManager $categoryManager,
         private readonly PayloadValidator $payloadValidator,
         private readonly DeliverableSlidesViewBuilder $slidesView,
-        private readonly DeckFromBlocks $fromBlocks,
+        private readonly SlidesFromBlocks $fromBlocks,
         private readonly EntityManagerInterface $entityManager,
     ) {}
 
@@ -185,7 +185,7 @@ final class DeliverablesController extends AbstractController
     /**
      * Un texte écrit ailleurs, collé ou tapé dans la fenêtre, qui devient une
      * présentation : un titre ouvre une diapositive, ce qui suit la remplit,
-     * cf. {@see DeckFromBlocks}.
+     * cf. {@see SlidesFromBlocks}.
      *
      * La conversion est faite ici plutôt que dans le navigateur : chaque
      * diapositive passe par le gestionnaire et sa liste blanche, comme une
@@ -455,7 +455,7 @@ final class DeliverablesController extends AbstractController
         // Un diaporama s'aperçoit comme le lira le destinataire du lien :
         // ses diapositives, sans les notes de l'orateur.
         if ($deliverable->isSlides()) {
-            return $this->privately($this->render('@Studio/public/deck.html.twig', [
+            return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
                 'deck' => $this->slidesView->readerDeck($deliverable),
                 'expiresAt' => null,
             ]));

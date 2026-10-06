@@ -76,7 +76,7 @@ final class DeliverableReadingController extends AbstractController
             $link->touch(new DateTimeImmutable());
             $this->entityManager->flush();
 
-            return $this->privately($this->render('@Studio/public/deck.html.twig', [
+            return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
                 'deck' => $this->slidesView->readerDeck($deliverable),
                 'expiresAt' => $link->getExpiresAt(),
             ]));

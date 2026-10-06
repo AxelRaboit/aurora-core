@@ -16,7 +16,7 @@ import { Save, Settings2, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import DeckEditorApp from "../../../../Deck/assets/suite/decks/DeckEditorApp.vue";
+import DeckEditorApp from "../slides/DeckEditorApp.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 import DeliverableSettingsTab from "./components/DeliverableSettingsTab.vue";
 import { useDeliverableSlidesSettings } from "./composables/useDeliverableSlidesSettings.js";

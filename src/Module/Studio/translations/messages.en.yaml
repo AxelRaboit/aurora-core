@@ -765,548 +765,6 @@ suite:
                 contract_amends_rank: Amendment number
                 examples_notice: 'These values are examples. The contract will use the real ones: the chosen client''s and yours.'
                 example: 'e.g. {value}'
-        decks:
-            editor_guide:
-                title: "How to edit a presentation"
-                step_1: "The “Slides” column shows them in order: click a slide to edit it, and move it by its handle or its arrows."
-                step_2: "“Add a slide” offers the layouts; with “Free slide”, you place each element by hand."
-                step_3: "Fill in the layout's fields and the speaker notes, which the audience never sees: everything saves on its own."
-                step_4: "“Present” goes full screen; the menu beside it opens the presenter view, printing, sharing and the appearance."
-            slides: Slides
-            errors:
-                layout_unknown: That layout does not exist.
-                theme_unknown: That theme does not exist.
-            share: Share
-            share_expires_on: 'Expires on {date}'
-            share_footer: This link is personal to you. Please do not pass it on.
-            present: Present
-            print: Print
-            print_hint: Use the browser's print dialog, then "Save as PDF". One slide per page, landscape.
-            previous_slide: Previous slide
-            next_slide: Next slide
-            layout: Layout
-            add_slide: Add a slide
-            slide_added: Slide added
-            slide_deleted: Slide deleted
-            delete_slide: Delete the slide
-            delete_slide_confirm: This slide and its contents will be lost.
-            move_up: Move up
-            move_down: Move down
-            saving: Saving…
-            saved: Saved
-            unsaved: Unsaved changes
-            no_slide_title: No slide
-            no_slide_description: Pick a layout on the left to start the presentation.
-            speaker_notes: Speaker notes
-            speaker_notes_hint: They are never shown to the audience.
-            speaker_notes_placeholder: What you will say while this slide is on screen.
-            prose_placeholder: The text shown on the slide.
-            image_hint: Picked from the library, or uploaded from your machine.
-            appearance: Appearance
-            appearance_saved: Appearance saved
-            appearance_preview_hint: The preview follows your choices; the deck only changes once you save.
-            appearance_sample_title: Your deck's title
-            appearance_sample_subtitle: The subtitle, on one line
-            appearance_overrides_kept: Your own colours stay applied on top of this theme.
-            theme: Theme
-            themes:
-                slate: Slate
-                ink: Ink
-                paper: Paper
-                bold: Bold
-                midnight: Midnight
-                clay: Clay
-                chalk: Chalk
-                duo: Two tones
-            colours: Colours
-            colour_background: Background
-            colour_ink: Text
-            colour_accent: Accent
-            colour_inherited: From the theme
-            colour_reset: Back to the theme
-            colour_reset_all: All back to the theme
-            gradient_label: Gradient
-            gradient_hint: A wash of the accent colour over the ground, the same on every slide.
-            gradients:
-                none: None
-                top: From the top
-                bottom: From the bottom
-                corner: Diagonal
-                halo: Centre halo
-                duo: Accent into ink
-            pattern_label: Pattern
-            pattern_hint: A texture on the ground, hidden on slides that carry a photo.
-            patterns:
-                none: None
-                dots: Dots
-                grid: Grid
-                diagonals: Hatching
-            margins_label: Frame margins
-            margins:
-                tight: Tight
-                normal: Normal
-                wide: Wide
-            hairline: Frame hairline
-            hairline_hint: A thin rule in the accent colour, set in from the edges.
-            anchors:
-                center: Centred
-                top: Top
-                bottom: Bottom
-            aligns:
-                left: Left
-                center: Centre
-                right: Right
-            measures:
-                full: Full width
-                two_thirds: Two thirds
-                half: Half
-            vignette_hint: Darkens the corners a little and brings the eye back to the middle.
-            bg_treatments:
-                none: None
-                blur: Blur
-                mono: Black and white
-                duotone: Duotone in the accent
-                grain: Grain
-            bg_veils:
-                flat: Even
-                bottom: From the bottom
-                top: From the top
-            media_frames:
-                none: None
-                line: Accent rule
-                shadow: Soft shadow
-            title_case_label: Title case
-            title_cases:
-                normal: Normal
-                upper: Capitals
-            bullets_label: Bullet shape
-            bullet_shapes:
-                disc: Dot
-                dash: Dash
-                arrow: Arrow
-                number: Number
-                check: Check
-            media_bleed_hint: The picture leaves the margin and touches the edge of the frame.
-            rules: Separating rules
-            rules_hint: A line between the two columns and under the kicker.
-            bands:
-                none: None
-                left: Band on the left
-                bottom: Band at the bottom
-                edge: Thin edge
-            wash_from_theme: The theme's
-            looks_label: Start from a look
-            looks_hint: Applies a theme and its settings at once. Everything stays editable afterwards.
-            looks:
-                scene: Stage
-                atelier: Workshop
-                dossier: File
-                gallery: Gallery
-            look_descriptions:
-                scene: Shown in a room. Dark, titles in capitals.
-                atelier: It argues. Light and warm, hatched.
-                dossier: It is read. Quiet, squared, wide margins.
-                gallery: The pictures carry it. Near black, tight margins.
-            accent_from_logo: Tones from the logo
-            contrast_good: "Contrast {ratio} out of 21. Readable anywhere."
-            contrast_large: "Contrast {ratio} out of 21. Fine on a wall, tight on a printed document."
-            contrast_poor: "Contrast {ratio} out of 21. The text will be hard to read."
-            transition_from_deck: The deck's
-            slide_transition_hint: Applies to this slide only, and only in full screen.
-            drift_hint: A very slow travel across the photo while the slide is up. Full screen only.
-            title_scales:
-                normal: Normal
-                quiet: Quiet
-                loud: Loud
-            media_ids_hint: The order is the arrangement. Eight at most; emptying one closes the gap.
-            ground_hint: The slide stands on one of the deck's three colours. The text follows, the accent does not move.
-            grounds:
-                normal: The background
-                inverted: The ink
-                accent: The accent
-            reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
-            picture_rank: "Picture {rank}"
-            fonts_label: Typography
-            font_from_theme: The theme's own
-            fonts:
-                sans: Sans serif
-                serif: Serif
-                editorial: Serif headings, sans text
-                technical: Monospaced headings, sans text
-                report: Sans titles, serif text
-                soft: Rounded
-            signature: Signature
-            logo: Logo
-            logo_hint: Drawn small, in a corner of the slide.
-            logo_placement: Where to show it
-            logo_placements:
-                none: Nowhere
-                cover: On the cover
-                every: On every slide
-            footer_text: Footer line
-            footer_text_placeholder: Confidential, do not circulate
-            slide_numbers: Number the slides
-            slide_numbers_hint: The cover is never numbered.
-            common_slots: Backdrop and kicker
-            kicker_placeholder: Audit, Part two, Our proposal…
-            backdrop_hint: A photograph behind the text, on any layout.
-            backdrop_dim: Veil
-            backdrop_dim_hint: Dims the picture towards the background colour, so the text stays readable.
-            side_left: On the left
-            side_right: On the right
-            line_placeholders:
-                series: "One value per line. Label | figure"
-                bullets: One bullet per line.
-                items: "One card per line. Title | description | badge | icon"
-                steps: "One step per line. Name | detail | badge | icon"
-                rows: "One row per line, cells separated by |. The first row is the header."
-                figures: "One figure per line. Value | what it counts | share in %"
-                lines: One line per line. Address, phone, site.
-            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`, ==accented word==."
-            icons_hint: "Icons available: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
-            chart_types:
-                bar: Bars
-                line: Line
-                doughnut: Doughnut
-            duplicate_slide: Duplicate the slide
-            slide_duplicated: Slide duplicated
-            drag_hint: Drag to move
-            presenter: Presenter view
-            presenter_now: Current slide
-            presenter_next: Next slide
-            presenter_end: End of the deck.
-            presenter_no_note: No note for this slide.
-            presenter_linked: Linked to the full screen
-            presenter_alone: No presentation window open
-            timer_start: Start the timer
-            timer_pause: Pause
-            timer_reset: Reset
-            media_fit_contain: Whole, never cropped
-            media_fit_cover: Fill the frame
-            media_shape_soft: Soft corners
-            media_shape_round: Rounded
-            media_shape_arch: Arch
-            media_shape_circle: Circle
-            media_focus_hint: Click what has to stay visible when the picture is cropped.
-            fold_chapter: Fold this chapter
-            unfold_chapter: Unfold this chapter
-            overview: Overview
-            pointer: Pointer
-            transition: Transition
-            transitions:
-                none: None
-                fade: Fade
-                slide: Slide
-            transition_hint: It only exists in the full screen. Paper and share links carry none.
-            slots:
-                mediaFit: How the picture fills
-                mediaShape: Image shape
-                mediaFocus: Focal point
-                chartType: Chart type
-                series: Data
-                value: The figure
-                label: What it counts
-                text: Text
-                side: Picture side
-                items: Cards
-                steps: Steps
-                rows: Rows
-                kicker: Kicker
-                reveal: Lines one at a time
-                ground: Slide ground
-                mediaIds: The pictures
-                titleScale: Title scale
-                transition: Transition into this slide
-                drift: Travel across the photo
-                role: Role
-                current: Current line
-                band: Colour band
-                mediaBleed: Picture to the edge
-                leftTitle: Left heading
-                rightTitle: Right heading
-                figures: The figures
-                lines: The lines
-                ghost: Watermark figure
-                bgTreatment: Photo treatment
-                bgVeil: Veil
-                vignette: Vignette
-                mediaFrame: Picture frame
-                captionOver: Caption on the picture
-                anchor: Vertical position
-                align: Alignment
-                measure: Text width
-                bgMediaId: Background picture
-                title: Title
-                subtitle: Subtitle
-                bullets: Bullets
-                left: Left column
-                right: Right column
-                quote: Quote
-                attribution: Attribution
-                caption: Caption
-                mediaId: Image
-            free:
-                convert: Make free-form
-                converted: "Slide made free-form. Cmd+Z to go back to the layout."
-                canvas: Free slide
-                insert: Add to slide
-                insert_title: Title
-                insert_subtitle: Subtitle
-                insert_body: Text
-                insert_image: Image
-                insert_video: Video
-                insert_embed: YouTube or Vimeo
-                insert_shape: Shape
-                insert_icon: Icon
-                insert_chart: Chart
-                insert_table: Table
-                text_presets:
-                    title: Your title
-                    subtitle: A subtitle
-                    body: Your text here
-                embed_url: Video link
-                embed_placeholder: "https://www.youtube.com/watch?v=..."
-                embed_add: Add
-                embed_hint: "YouTube, Vimeo or Dailymotion. The video plays inside the slide during the presentation."
-                icon_search: Search for an icon
-                undo: Undo
-                redo: Redo
-                shortcuts: "Double-click to type, Shift to keep proportions, Alt to ignore guides."
-                shortcuts_touch: "Tap a selected text to type, pinch with two fingers to resize and turn."
-                text_toolbar: Text formatting
-                bold: Bold
-                italic: Italic
-                underline: Underline
-                strike: Strikethrough
-                word_colour: Word colour
-                word_colour_apply: Apply this colour
-                highlight: Highlighter
-                highlight_apply: Apply this highlight
-                bullets: Bulleted list
-                numbers: Numbered list
-                clear_format: Clear formatting
-                slide: This slide
-                slide_fill: Slide background
-                slide_video: Background video
-                slide_video_hint: "Loops without sound behind the elements. On paper, its poster image is printed."
-                choose_video: Choose a video
-                replace: Replace
-                remove: Remove
-                nothing_selected: "Click an element to adjust it, or draw a frame around several."
-                duplicate: Duplicate
-                delete: Delete
-                lock: Lock
-                unlock: Unlock
-                bring_front: Bring to front
-                forward: Bring forward
-                backward: Send backward
-                send_back: Send to back
-                group: Group
-                ungroup: Ungroup
-                flip_x: Flip horizontally
-                flip_y: Flip vertically
-                align:
-                    left: Align left
-                    center: Center horizontally
-                    right: Align right
-                    top: Align top
-                    middle: Center vertically
-                    bottom: Align bottom
-                distribute_x: Distribute horizontally
-                distribute_y: Distribute vertically
-                width: Width
-                height: Height
-                rotation: Rotation
-                opacity: Opacity
-                font: Font
-                font_search: Search for a font
-                font_deck: Presentation fonts
-                font_heading: Heading font
-                font_body: Body font
-                font_uploaded: Your fonts
-                font_upload: Upload a font
-                font_uploaded_ok: "Font {name} added."
-                font_errors:
-                    required: Choose a font file.
-                    not_a_font: "This file is not a font a browser can read: woff2, woff, ttf or otf."
-                    refused: The font could not be added.
-                font_categories:
-                    sans: Sans serif
-                    serif: Serif
-                    display: Display
-                    script: Handwritten
-                    mono: Monospace
-                size: Size
-                weight: Weight
-                weights:
-                    "100": Thin
-                    "200": Extra light
-                    "300": Light
-                    "400": Regular
-                    "500": Medium
-                    "600": Semi-bold
-                    "700": Bold
-                    "800": Extra bold
-                    "900": Black
-                case: Case
-                cases:
-                    none: As typed
-                    upper: Uppercase
-                    lower: Lowercase
-                    title: Capitalize each word
-                spacing: Letter spacing
-                line_height: Line height
-                pad_x: Inner margin (sides)
-                pad_y: Inner margin (top and bottom)
-                aligns:
-                    left: Left
-                    center: Center
-                    right: Right
-                    justify: Justified
-                valigns:
-                    top: Top
-                    middle: Middle
-                    bottom: Bottom
-                text_colour: Text colour
-                autofit: Fit text to box
-                autofit_hint: "The text shrinks so it never overflows its box."
-                contrast_poor: "Hard to read on this background: contrast of {ratio} to 1, at least 3 is needed."
-                contrast_large: "Readable only when large: contrast of {ratio} to 1, 4.5 for running text."
-                text_hint: "Double-click inside the box to type. Select words to make them bold, coloured or a list."
-                fit: Fit
-                mask: Crop shape
-                masks:
-                    none: None
-                    circle: Circle
-                    arch: Arch
-                    triangle: Triangle
-                    diamond: Diamond
-                    hexagon: Hexagon
-                    star: Star
-                    blob: Pebble
-                zoom: Zoom
-                focus: Focal point
-                focus_hint: "The point that stays visible when the image is cropped."
-                adjust: Adjustments
-                filters:
-                    brightness: Brightness
-                    contrast: Contrast
-                    saturate: Saturation
-                    grayscale: Black and white
-                    sepia: Sepia
-                    hue: Hue
-                    blur: Blur
-                reset_filters: Reset adjustments
-                autoplay: Autoplay
-                autoplay_hint: "A video that starts on its own is muted. That is a browser rule."
-                loop: Loop
-                muted: Muted
-                controls: Show controls
-                shape: Shape
-                shapes:
-                    rect: Rectangle
-                    ellipse: Ellipse
-                    triangle: Triangle
-                    right_triangle: Right triangle
-                    diamond: Diamond
-                    pentagon: Pentagon
-                    hexagon: Hexagon
-                    octagon: Octagon
-                    star: Star
-                    star4: Four-point star
-                    heart: Heart
-                    cross: Cross
-                    parallelogram: Parallelogram
-                    trapezoid: Trapezoid
-                    arrow_right: Right arrow
-                    arrow_left: Left arrow
-                    chevron: Chevron
-                    speech: Speech bubble
-                    ring: Ring
-                    line: Line
-                head: Line ends
-                heads:
-                    none: No arrow
-                    end: Arrow at end
-                    both: Arrows at both ends
-                icon: Icon
-                colour: Colour
-                line_weight: Line thickness
-                theme_colours:
-                    ink: Presentation text colour
-                    accent: Presentation accent colour
-                    background: Presentation background colour
-                no_colour: No colour
-                paints:
-                    none: None
-                    solid: Colour
-                    linear: Gradient
-                    radial: Radial gradient
-                angle: Angle
-                add_stop: Add a colour
-                remove_stop: Remove this colour
-                fill: Fill
-                box_fill: Box background
-                stroke: Outline
-                text_outline: Letter outline
-                stroke_width: Thickness
-                stroke_style: Style
-                stroke_styles:
-                    solid: Solid
-                    dashed: Dashed
-                    dotted: Dotted
-                radius: Corner radius
-                shadow: Shadow
-                blur: Blur
-                enter: Entrance
-                enters:
-                    none: None
-                    fade: Fade
-                    rise: Rise
-                    fall: Drop
-                    left: From the left
-                    right: From the right
-                    zoom: Zoom
-                    pop: Pop
-                    blur: Focus in
-                reveal: On press no.
-                reveal_hint: "0: the element is there as soon as the slide appears. 1, 2, 3: it enters on the 1st, 2nd, 3rd press during the presentation."
-                duration: Duration
-                delay: Delay
-                link: Link on click
-                link_placeholder: "https://..."
-                layers: Layers
-                layers_empty: "No elements. Add one with the bar above the slide."
-                types:
-                    text: Text
-                    image: Image
-                    video: Video
-                    embed: Online video
-                    shape: Shape
-                    icon: Icon
-                    chart: Chart
-                    table: Table
-            layouts:
-                chart: Chart
-                stat: Key figure
-                image_text: Picture and text
-                cards: Cards
-                timeline: Timeline
-                table: Table
-                title: Title
-                bullets: Title and bullets
-                image: Full-page image
-                split: Two columns
-                quote: Quote
-                section: Section divider
-                compare: Comparison
-                figures: Figures
-                end: Closing
-                agenda: Agenda
-                portrait: Quote and portrait
-                logos: Logo grid
-                mosaic: Picture mosaic
-                free: Free slide
         customers:
             guide:
                 title: "How records work"
@@ -2005,6 +1463,547 @@ suite:
                 done: "Presentation created from the text"
             slides:
                 settings: "Settings"
+                editor_guide:
+                    title: "How to edit a presentation"
+                    step_1: "The “Slides” column shows them in order: click a slide to edit it, and move it by its handle or its arrows."
+                    step_2: "“Add a slide” offers the layouts; with “Free slide”, you place each element by hand."
+                    step_3: "Fill in the layout's fields and the speaker notes, which the audience never sees: everything saves on its own."
+                    step_4: "“Present” goes full screen; the menu beside it opens the presenter view, printing, sharing and the appearance."
+                slides: Slides
+                errors:
+                    layout_unknown: That layout does not exist.
+                    theme_unknown: That theme does not exist.
+                share: Share
+                share_expires_on: 'Expires on {date}'
+                share_footer: This link is personal to you. Please do not pass it on.
+                present: Present
+                print: Print
+                print_hint: Use the browser's print dialog, then "Save as PDF". One slide per page, landscape.
+                previous_slide: Previous slide
+                next_slide: Next slide
+                layout: Layout
+                add_slide: Add a slide
+                slide_added: Slide added
+                slide_deleted: Slide deleted
+                delete_slide: Delete the slide
+                delete_slide_confirm: This slide and its contents will be lost.
+                move_up: Move up
+                move_down: Move down
+                saving: Saving…
+                saved: Saved
+                unsaved: Unsaved changes
+                no_slide_title: No slide
+                no_slide_description: Pick a layout on the left to start the presentation.
+                speaker_notes: Speaker notes
+                speaker_notes_hint: They are never shown to the audience.
+                speaker_notes_placeholder: What you will say while this slide is on screen.
+                prose_placeholder: The text shown on the slide.
+                image_hint: Picked from the library, or uploaded from your machine.
+                appearance: Appearance
+                appearance_saved: Appearance saved
+                appearance_preview_hint: The preview follows your choices; the deck only changes once you save.
+                appearance_sample_title: Your deck's title
+                appearance_sample_subtitle: The subtitle, on one line
+                appearance_overrides_kept: Your own colours stay applied on top of this theme.
+                theme: Theme
+                themes:
+                    slate: Slate
+                    ink: Ink
+                    paper: Paper
+                    bold: Bold
+                    midnight: Midnight
+                    clay: Clay
+                    chalk: Chalk
+                    duo: Two tones
+                colours: Colours
+                colour_background: Background
+                colour_ink: Text
+                colour_accent: Accent
+                colour_inherited: From the theme
+                colour_reset: Back to the theme
+                colour_reset_all: All back to the theme
+                gradient_label: Gradient
+                gradient_hint: A wash of the accent colour over the ground, the same on every slide.
+                gradients:
+                    none: None
+                    top: From the top
+                    bottom: From the bottom
+                    corner: Diagonal
+                    halo: Centre halo
+                    duo: Accent into ink
+                pattern_label: Pattern
+                pattern_hint: A texture on the ground, hidden on slides that carry a photo.
+                patterns:
+                    none: None
+                    dots: Dots
+                    grid: Grid
+                    diagonals: Hatching
+                margins_label: Frame margins
+                margins:
+                    tight: Tight
+                    normal: Normal
+                    wide: Wide
+                hairline: Frame hairline
+                hairline_hint: A thin rule in the accent colour, set in from the edges.
+                anchors:
+                    center: Centred
+                    top: Top
+                    bottom: Bottom
+                aligns:
+                    left: Left
+                    center: Centre
+                    right: Right
+                measures:
+                    full: Full width
+                    two_thirds: Two thirds
+                    half: Half
+                vignette_hint: Darkens the corners a little and brings the eye back to the middle.
+                bg_treatments:
+                    none: None
+                    blur: Blur
+                    mono: Black and white
+                    duotone: Duotone in the accent
+                    grain: Grain
+                bg_veils:
+                    flat: Even
+                    bottom: From the bottom
+                    top: From the top
+                media_frames:
+                    none: None
+                    line: Accent rule
+                    shadow: Soft shadow
+                title_case_label: Title case
+                title_cases:
+                    normal: Normal
+                    upper: Capitals
+                bullets_label: Bullet shape
+                bullet_shapes:
+                    disc: Dot
+                    dash: Dash
+                    arrow: Arrow
+                    number: Number
+                    check: Check
+                media_bleed_hint: The picture leaves the margin and touches the edge of the frame.
+                rules: Separating rules
+                rules_hint: A line between the two columns and under the kicker.
+                bands:
+                    none: None
+                    left: Band on the left
+                    bottom: Band at the bottom
+                    edge: Thin edge
+                wash_from_theme: The theme's
+                looks_label: Start from a look
+                looks_hint: Applies a theme and its settings at once. Everything stays editable afterwards.
+                looks:
+                    scene: Stage
+                    atelier: Workshop
+                    dossier: File
+                    gallery: Gallery
+                look_descriptions:
+                    scene: Shown in a room. Dark, titles in capitals.
+                    atelier: It argues. Light and warm, hatched.
+                    dossier: It is read. Quiet, squared, wide margins.
+                    gallery: The pictures carry it. Near black, tight margins.
+                accent_from_logo: Tones from the logo
+                contrast_good: "Contrast {ratio} out of 21. Readable anywhere."
+                contrast_large: "Contrast {ratio} out of 21. Fine on a wall, tight on a printed document."
+                contrast_poor: "Contrast {ratio} out of 21. The text will be hard to read."
+                transition_from_deck: The deck's
+                slide_transition_hint: Applies to this slide only, and only in full screen.
+                drift_hint: A very slow travel across the photo while the slide is up. Full screen only.
+                title_scales:
+                    normal: Normal
+                    quiet: Quiet
+                    loud: Loud
+                media_ids_hint: The order is the arrangement. Eight at most; emptying one closes the gap.
+                ground_hint: The slide stands on one of the deck's three colours. The text follows, the accent does not move.
+                grounds:
+                    normal: The background
+                    inverted: The ink
+                    accent: The accent
+                reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
+                picture_rank: "Picture {rank}"
+                fonts_label: Typography
+                font_from_theme: The theme's own
+                fonts:
+                    sans: Sans serif
+                    serif: Serif
+                    editorial: Serif headings, sans text
+                    technical: Monospaced headings, sans text
+                    report: Sans titles, serif text
+                    soft: Rounded
+                signature: Signature
+                logo: Logo
+                logo_hint: Drawn small, in a corner of the slide.
+                logo_placement: Where to show it
+                logo_placements:
+                    none: Nowhere
+                    cover: On the cover
+                    every: On every slide
+                footer_text: Footer line
+                footer_text_placeholder: Confidential, do not circulate
+                slide_numbers: Number the slides
+                slide_numbers_hint: The cover is never numbered.
+                common_slots: Backdrop and kicker
+                kicker_placeholder: Audit, Part two, Our proposal…
+                backdrop_hint: A photograph behind the text, on any layout.
+                backdrop_dim: Veil
+                backdrop_dim_hint: Dims the picture towards the background colour, so the text stays readable.
+                side_left: On the left
+                side_right: On the right
+                line_placeholders:
+                    series: "One value per line. Label | figure"
+                    bullets: One bullet per line.
+                    items: "One card per line. Title | description | badge | icon"
+                    steps: "One step per line. Name | detail | badge | icon"
+                    rows: "One row per line, cells separated by |. The first row is the header."
+                    figures: "One figure per line. Value | what it counts | share in %"
+                    lines: One line per line. Address, phone, site.
+                emphasis_hint: "In a slide's text: **bold**, *italic*, `code`, ==accented word==."
+                icons_hint: "Icons available: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
+                chart_types:
+                    bar: Bars
+                    line: Line
+                    doughnut: Doughnut
+                duplicate_slide: Duplicate the slide
+                slide_duplicated: Slide duplicated
+                drag_hint: Drag to move
+                presenter: Presenter view
+                presenter_now: Current slide
+                presenter_next: Next slide
+                presenter_end: End of the deck.
+                presenter_no_note: No note for this slide.
+                presenter_linked: Linked to the full screen
+                presenter_alone: No presentation window open
+                timer_start: Start the timer
+                timer_pause: Pause
+                timer_reset: Reset
+                media_fit_contain: Whole, never cropped
+                media_fit_cover: Fill the frame
+                media_shape_soft: Soft corners
+                media_shape_round: Rounded
+                media_shape_arch: Arch
+                media_shape_circle: Circle
+                media_focus_hint: Click what has to stay visible when the picture is cropped.
+                fold_chapter: Fold this chapter
+                unfold_chapter: Unfold this chapter
+                overview: Overview
+                pointer: Pointer
+                transition: Transition
+                transitions:
+                    none: None
+                    fade: Fade
+                    slide: Slide
+                transition_hint: It only exists in the full screen. Paper and share links carry none.
+                slots:
+                    mediaFit: How the picture fills
+                    mediaShape: Image shape
+                    mediaFocus: Focal point
+                    chartType: Chart type
+                    series: Data
+                    value: The figure
+                    label: What it counts
+                    text: Text
+                    side: Picture side
+                    items: Cards
+                    steps: Steps
+                    rows: Rows
+                    kicker: Kicker
+                    reveal: Lines one at a time
+                    ground: Slide ground
+                    mediaIds: The pictures
+                    titleScale: Title scale
+                    transition: Transition into this slide
+                    drift: Travel across the photo
+                    role: Role
+                    current: Current line
+                    band: Colour band
+                    mediaBleed: Picture to the edge
+                    leftTitle: Left heading
+                    rightTitle: Right heading
+                    figures: The figures
+                    lines: The lines
+                    ghost: Watermark figure
+                    bgTreatment: Photo treatment
+                    bgVeil: Veil
+                    vignette: Vignette
+                    mediaFrame: Picture frame
+                    captionOver: Caption on the picture
+                    anchor: Vertical position
+                    align: Alignment
+                    measure: Text width
+                    bgMediaId: Background picture
+                    title: Title
+                    subtitle: Subtitle
+                    bullets: Bullets
+                    left: Left column
+                    right: Right column
+                    quote: Quote
+                    attribution: Attribution
+                    caption: Caption
+                    mediaId: Image
+                free:
+                    convert: Make free-form
+                    converted: "Slide made free-form. Cmd+Z to go back to the layout."
+                    canvas: Free slide
+                    insert: Add to slide
+                    insert_title: Title
+                    insert_subtitle: Subtitle
+                    insert_body: Text
+                    insert_image: Image
+                    insert_video: Video
+                    insert_embed: YouTube or Vimeo
+                    insert_shape: Shape
+                    insert_icon: Icon
+                    insert_chart: Chart
+                    insert_table: Table
+                    text_presets:
+                        title: Your title
+                        subtitle: A subtitle
+                        body: Your text here
+                    embed_url: Video link
+                    embed_placeholder: "https://www.youtube.com/watch?v=..."
+                    embed_add: Add
+                    embed_hint: "YouTube, Vimeo or Dailymotion. The video plays inside the slide during the presentation."
+                    icon_search: Search for an icon
+                    undo: Undo
+                    redo: Redo
+                    shortcuts: "Double-click to type, Shift to keep proportions, Alt to ignore guides."
+                    shortcuts_touch: "Tap a selected text to type, pinch with two fingers to resize and turn."
+                    text_toolbar: Text formatting
+                    bold: Bold
+                    italic: Italic
+                    underline: Underline
+                    strike: Strikethrough
+                    word_colour: Word colour
+                    word_colour_apply: Apply this colour
+                    highlight: Highlighter
+                    highlight_apply: Apply this highlight
+                    bullets: Bulleted list
+                    numbers: Numbered list
+                    clear_format: Clear formatting
+                    slide: This slide
+                    slide_fill: Slide background
+                    slide_video: Background video
+                    slide_video_hint: "Loops without sound behind the elements. On paper, its poster image is printed."
+                    choose_video: Choose a video
+                    replace: Replace
+                    remove: Remove
+                    nothing_selected: "Click an element to adjust it, or draw a frame around several."
+                    duplicate: Duplicate
+                    delete: Delete
+                    lock: Lock
+                    unlock: Unlock
+                    bring_front: Bring to front
+                    forward: Bring forward
+                    backward: Send backward
+                    send_back: Send to back
+                    group: Group
+                    ungroup: Ungroup
+                    flip_x: Flip horizontally
+                    flip_y: Flip vertically
+                    align:
+                        left: Align left
+                        center: Center horizontally
+                        right: Align right
+                        top: Align top
+                        middle: Center vertically
+                        bottom: Align bottom
+                    distribute_x: Distribute horizontally
+                    distribute_y: Distribute vertically
+                    width: Width
+                    height: Height
+                    rotation: Rotation
+                    opacity: Opacity
+                    font: Font
+                    font_search: Search for a font
+                    font_deck: Presentation fonts
+                    font_heading: Heading font
+                    font_body: Body font
+                    font_uploaded: Your fonts
+                    font_upload: Upload a font
+                    font_uploaded_ok: "Font {name} added."
+                    font_errors:
+                        required: Choose a font file.
+                        not_a_font: "This file is not a font a browser can read: woff2, woff, ttf or otf."
+                        refused: The font could not be added.
+                    font_categories:
+                        sans: Sans serif
+                        serif: Serif
+                        display: Display
+                        script: Handwritten
+                        mono: Monospace
+                    size: Size
+                    weight: Weight
+                    weights:
+                        "100": Thin
+                        "200": Extra light
+                        "300": Light
+                        "400": Regular
+                        "500": Medium
+                        "600": Semi-bold
+                        "700": Bold
+                        "800": Extra bold
+                        "900": Black
+                    case: Case
+                    cases:
+                        none: As typed
+                        upper: Uppercase
+                        lower: Lowercase
+                        title: Capitalize each word
+                    spacing: Letter spacing
+                    line_height: Line height
+                    pad_x: Inner margin (sides)
+                    pad_y: Inner margin (top and bottom)
+                    aligns:
+                        left: Left
+                        center: Center
+                        right: Right
+                        justify: Justified
+                    valigns:
+                        top: Top
+                        middle: Middle
+                        bottom: Bottom
+                    text_colour: Text colour
+                    autofit: Fit text to box
+                    autofit_hint: "The text shrinks so it never overflows its box."
+                    contrast_poor: "Hard to read on this background: contrast of {ratio} to 1, at least 3 is needed."
+                    contrast_large: "Readable only when large: contrast of {ratio} to 1, 4.5 for running text."
+                    text_hint: "Double-click inside the box to type. Select words to make them bold, coloured or a list."
+                    fit: Fit
+                    mask: Crop shape
+                    masks:
+                        none: None
+                        circle: Circle
+                        arch: Arch
+                        triangle: Triangle
+                        diamond: Diamond
+                        hexagon: Hexagon
+                        star: Star
+                        blob: Pebble
+                    zoom: Zoom
+                    focus: Focal point
+                    focus_hint: "The point that stays visible when the image is cropped."
+                    adjust: Adjustments
+                    filters:
+                        brightness: Brightness
+                        contrast: Contrast
+                        saturate: Saturation
+                        grayscale: Black and white
+                        sepia: Sepia
+                        hue: Hue
+                        blur: Blur
+                    reset_filters: Reset adjustments
+                    autoplay: Autoplay
+                    autoplay_hint: "A video that starts on its own is muted. That is a browser rule."
+                    loop: Loop
+                    muted: Muted
+                    controls: Show controls
+                    shape: Shape
+                    shapes:
+                        rect: Rectangle
+                        ellipse: Ellipse
+                        triangle: Triangle
+                        right_triangle: Right triangle
+                        diamond: Diamond
+                        pentagon: Pentagon
+                        hexagon: Hexagon
+                        octagon: Octagon
+                        star: Star
+                        star4: Four-point star
+                        heart: Heart
+                        cross: Cross
+                        parallelogram: Parallelogram
+                        trapezoid: Trapezoid
+                        arrow_right: Right arrow
+                        arrow_left: Left arrow
+                        chevron: Chevron
+                        speech: Speech bubble
+                        ring: Ring
+                        line: Line
+                    head: Line ends
+                    heads:
+                        none: No arrow
+                        end: Arrow at end
+                        both: Arrows at both ends
+                    icon: Icon
+                    colour: Colour
+                    line_weight: Line thickness
+                    theme_colours:
+                        ink: Presentation text colour
+                        accent: Presentation accent colour
+                        background: Presentation background colour
+                    no_colour: No colour
+                    paints:
+                        none: None
+                        solid: Colour
+                        linear: Gradient
+                        radial: Radial gradient
+                    angle: Angle
+                    add_stop: Add a colour
+                    remove_stop: Remove this colour
+                    fill: Fill
+                    box_fill: Box background
+                    stroke: Outline
+                    text_outline: Letter outline
+                    stroke_width: Thickness
+                    stroke_style: Style
+                    stroke_styles:
+                        solid: Solid
+                        dashed: Dashed
+                        dotted: Dotted
+                    radius: Corner radius
+                    shadow: Shadow
+                    blur: Blur
+                    enter: Entrance
+                    enters:
+                        none: None
+                        fade: Fade
+                        rise: Rise
+                        fall: Drop
+                        left: From the left
+                        right: From the right
+                        zoom: Zoom
+                        pop: Pop
+                        blur: Focus in
+                    reveal: On press no.
+                    reveal_hint: "0: the element is there as soon as the slide appears. 1, 2, 3: it enters on the 1st, 2nd, 3rd press during the presentation."
+                    duration: Duration
+                    delay: Delay
+                    link: Link on click
+                    link_placeholder: "https://..."
+                    layers: Layers
+                    layers_empty: "No elements. Add one with the bar above the slide."
+                    types:
+                        text: Text
+                        image: Image
+                        video: Video
+                        embed: Online video
+                        shape: Shape
+                        icon: Icon
+                        chart: Chart
+                        table: Table
+                layouts:
+                    chart: Chart
+                    stat: Key figure
+                    image_text: Picture and text
+                    cards: Cards
+                    timeline: Timeline
+                    table: Table
+                    title: Title
+                    bullets: Title and bullets
+                    image: Full-page image
+                    split: Two columns
+                    quote: Quote
+                    section: Section divider
+                    compare: Comparison
+                    figures: Figures
+                    end: Closing
+                    agenda: Agenda
+                    portrait: Quote and portrait
+                    logos: Logo grid
+                    mosaic: Picture mosaic
+                    free: Free slide
             template:
                 badge: "Template"
                 filter: "Templates"

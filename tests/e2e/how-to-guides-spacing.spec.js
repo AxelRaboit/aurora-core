@@ -36,7 +36,7 @@ const SCREENS = [
     "/suite/studio/contracts",
     "/suite/studio/contract-templates",
     "/suite/studio/customers",
-    "/suite/studio/decks",
+    "/suite/studio/deliverables",
     "/suite/studio/spaces/calendar",
     "/suite/platform/users",
     "/suite/configuration/themes",

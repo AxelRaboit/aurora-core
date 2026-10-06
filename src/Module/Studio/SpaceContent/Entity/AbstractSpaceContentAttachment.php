@@ -6,7 +6,7 @@ namespace Aurora\Module\Studio\SpaceContent\Entity;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Studio\Deck\Service\DeckPicture;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckPicture;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use DateTimeImmutable;

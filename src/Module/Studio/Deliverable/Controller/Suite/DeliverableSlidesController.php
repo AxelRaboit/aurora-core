@@ -11,14 +11,14 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Module\Ged\Document\Service\InlineImageUploader;
-use Aurora\Module\Studio\Deck\Entity\SlideInterface;
-use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
-use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
-use Aurora\Module\Studio\Deck\Service\DeckFonts;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Serializer\SlidesSerializer;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckFonts;
 use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Doctrine\ORM\EntityManagerInterface;
@@ -64,7 +64,7 @@ final class DeliverableSlidesController extends AbstractController
         private readonly DeliverableRepository $deliverables,
         private readonly DeliverableAccess $access,
         private readonly SlidesManager $slides,
-        private readonly DeckSerializer $deckSerializer,
+        private readonly SlidesSerializer $slidesSerializer,
         private readonly DeliverableSlidesViewBuilder $viewBuilder,
         private readonly EntityManagerInterface $entityManager,
         private readonly DeckFonts $fonts,
@@ -81,7 +81,7 @@ final class DeliverableSlidesController extends AbstractController
     #[Route('/presenter', name: '_presenter', methods: [HttpMethodEnum::Get->value])]
     public function presenter(int $id): Response
     {
-        return $this->privately($this->render('@Studio/suite/decks/presenter.html.twig', [
+        return $this->privately($this->render('@Studio/suite/deliverables/slides_presenter.html.twig', [
             'deck' => $this->viewBuilder->deck($this->readable($id)),
         ]));
     }
@@ -90,7 +90,7 @@ final class DeliverableSlidesController extends AbstractController
     #[Route('/print', name: '_print', methods: [HttpMethodEnum::Get->value])]
     public function print(int $id, Request $request): Response
     {
-        return $this->privately($this->render('@Studio/suite/decks/print.html.twig', [
+        return $this->privately($this->render('@Studio/suite/deliverables/slides_print.html.twig', [
             'deck' => $this->viewBuilder->deck($this->readable($id)),
             'autoPrint' => $request->query->getBoolean('print'),
         ]));
@@ -105,7 +105,7 @@ final class DeliverableSlidesController extends AbstractController
 
         $theme = DeckThemeEnum::tryFrom(is_string($payload['theme'] ?? null) ? $payload['theme'] : '');
         if (null === $theme) {
-            return $this->jsonInvalidInput(['theme' => 'suite.studio.decks.errors.theme_unknown']);
+            return $this->jsonInvalidInput(['theme' => 'suite.studio.deliverables.slides.errors.theme_unknown']);
         }
 
         $this->slides->writeAppearance($deliverable, $theme, is_array($payload['style'] ?? null) ? $payload['style'] : []);
@@ -123,14 +123,14 @@ final class DeliverableSlidesController extends AbstractController
 
         $layout = SlideLayoutEnum::tryFrom(is_string($payload['layout'] ?? null) ? $payload['layout'] : '');
         if (null === $layout) {
-            return $this->jsonInvalidInput(['layout' => 'suite.studio.decks.errors.layout_unknown']);
+            return $this->jsonInvalidInput(['layout' => 'suite.studio.deliverables.slides.errors.layout_unknown']);
         }
 
         $slide = $this->slides->addSlide($deliverable, $layout);
         $deliverable->touch();
         $this->entityManager->flush();
 
-        return $this->jsonSuccess(['slide' => $this->deckSerializer->slide($slide)]);
+        return $this->jsonSuccess(['slide' => $this->slidesSerializer->slide($slide)]);
     }
 
     /**
@@ -158,7 +158,7 @@ final class DeliverableSlidesController extends AbstractController
         $deliverable->touch();
         $this->entityManager->flush();
 
-        return $this->jsonSuccess(['slide' => $this->deckSerializer->slide($slide)]);
+        return $this->jsonSuccess(['slide' => $this->slidesSerializer->slide($slide)]);
     }
 
     /** Une copie de la diapositive, posée juste après elle. */
@@ -175,7 +175,7 @@ final class DeliverableSlidesController extends AbstractController
         $deliverable->touch();
         $this->entityManager->flush();
 
-        return $this->jsonSuccess(['slide' => $this->deckSerializer->slide($copy)]);
+        return $this->jsonSuccess(['slide' => $this->slidesSerializer->slide($copy)]);
     }
 
     #[Route('/slides/{slideId}/delete', name: '_delete', requirements: ['slideId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
@@ -223,15 +223,15 @@ final class DeliverableSlidesController extends AbstractController
 
         $file = $request->files->get('file');
         if (!$file instanceof UploadedFile) {
-            return $this->jsonFailure('suite.studio.decks.free.font_errors.required');
+            return $this->jsonFailure('suite.studio.deliverables.slides.free.font_errors.required');
         }
 
         if (!$this->fonts->isFontFile($file, $file->getClientOriginalName())) {
-            return $this->jsonFailure('suite.studio.decks.free.font_errors.not_a_font');
+            return $this->jsonFailure('suite.studio.deliverables.slides.free.font_errors.not_a_font');
         }
 
         if ($this->uploadPolicies->forStaffDocuments()->refusalFor($file) instanceof UploadRefusalEnum) {
-            return $this->jsonFailure('suite.studio.decks.free.font_errors.refused');
+            return $this->jsonFailure('suite.studio.deliverables.slides.free.font_errors.refused');
         }
 
         return $this->jsonSuccess(['font' => $this->fonts->describe($this->uploader->upload($file))]);

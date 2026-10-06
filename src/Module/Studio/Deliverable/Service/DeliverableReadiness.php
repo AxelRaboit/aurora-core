@@ -7,8 +7,8 @@ namespace Aurora\Module\Studio\Deliverable\Service;
 use Aurora\Module\Editorial\Post\Service\PostPictures;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
-use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckPictures;
 
 use function array_unique;
 use function array_values;

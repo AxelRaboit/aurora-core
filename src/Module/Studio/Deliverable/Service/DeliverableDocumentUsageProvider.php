@@ -8,11 +8,11 @@ use Aurora\Module\Editorial\Post\Service\PostPictures;
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
 use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
-use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckPictures;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_fill_keys;
