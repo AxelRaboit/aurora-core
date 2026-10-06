@@ -19,7 +19,8 @@ le module Notes**, avec l'import Craft (sections 7 et 8).
 > `Version20261006150000` (table des diapositives), `Version20261006160000` à
 > `Version20261006180000` (colonnes des notes, clés des réglages Craft, lien
 > de l'espace client vers son espace de notes) et `Version20261006190000`
-> (notes d'espace déplacées dans Notes, irréversible). Ce qui suit concerne
+> (notes d'espace déplacées dans Notes, irréversible), puis
+> `Version20261006200000` (visibilité par le client, section 9). Ce qui suit concerne
 > **le code du projet client** : ce qu'il étend, appelle ou configure.
 >
 > `Version20261006190000` chiffre ce qu'elle écrit : **`AURORA_ENCRYPTION_KEY`
@@ -215,3 +216,45 @@ notes.
 - `MarkdownNoteInterface` gagne `getCraftDocumentId()` / `setCraftDocumentId()`
   (colonne `craft_document_id`) et `MarkdownNoteManagerInterface`
   `markImportedFromCraft()` : une implémentation maison les ajoute.
+
+## 9. Une seule règle de visibilité par le client
+
+Tout ce qu'un espace client peut montrer au client naît **caché**, et le
+montrer ou le cacher demande le droit `studio.spaces.share` (celui des liens
+d'accès) **en plus** de `studio.spaces.edit`. La règle a un nom :
+`Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility`
+(`PRIVILEGE`, `canShowOrHide()`, `allowsChange()`).
+
+| Élément | Avant | Après |
+|---|---|---|
+| Étape du tableau | visible par défaut, droit `edit` | cachée par défaut ; un espace neuf montre ses étapes Relecture et Publié ; droit `share` |
+| Ressource | cachée par défaut, droit `edit` | cachée par défaut, droit `share` |
+| Livrable d'espace | caché par défaut, droit `edit` | caché par défaut, droit `share` (bouton de la liste et case de l'éditeur) |
+| Canal de discussion | interne par défaut, droit `edit` | interne par défaut (« Général » reste montré), droit `share` |
+| Fichier d'espace | toujours visible | `visibleToClient`, caché par défaut ; un fichier envoyé par le client reste visible |
+
+- **Données** : `Version20261006200000` passe le défaut de
+  `core_studio_space_content_columns.visible_to_client` à `false` (les étapes
+  existantes gardent leur état) et ajoute
+  `core_studio_space_files.visible_to_client`, écrit `true` sur les lignes
+  existantes puis `false` par défaut. Rien de ce que le client voyait ne
+  disparaît.
+- **Routes** : la visibilité d'une ressource, d'un livrable d'espace, d'un
+  canal (`_channel_audience`) et d'un fichier (nouvelle route
+  `workspace_space_files_visibility`, `POST {visible: bool}`) répond 403 sans
+  `studio.spaces.share`. Créer une étape, une ressource ou un canal déjà
+  montré, ou changer la visibilité par le formulaire d'une étape, d'une
+  ressource ou par l'éditeur d'un livrable, répond 403 de la même façon ;
+  un enregistrement qui ne change pas la visibilité passe avec `edit`.
+- **Valeur par défaut des DTO** : `SpaceContentColumnInput::$visibleToClient`
+  vaut `false`, et la fabrique ne lit `true` que d'un vrai booléen. Un appel
+  maison qui créait une étape sans le champ obtenait une étape visible ; il
+  obtient une étape cachée.
+- **Interfaces** : `SpaceFileInterface` gagne `isVisibleToClient()`,
+  `setVisibleToClient()` et `isShownToClient()` ;
+  `SpaceFileManagerInterface` gagne `setVisibleToClient()`. Une implémentation
+  maison les ajoute. `SpaceFileRepository::findShownForSpace()` est ce que lit
+  la page du client.
+- **Projet client** : un rôle qui modifiait les espaces sans `share` ne montre
+  plus rien au client ; donner `studio.spaces.share` à qui doit le faire.
+

@@ -61,8 +61,13 @@ Notes, on écrit toujours « espace de notes ».
 | Une adresse qui ouvre un livrable sans compte | lien de lecture (bouton « Partager ») | reading link (« Share ») | enlace de lectura (« Compartir ») | lien de partage |
 | Une adresse qui ouvre un espace au client | lien d'accès | access link | enlace de acceso | |
 
-**Visibilité.** Un élément neuf est caché au client ; le montrer demande le
-droit « partager » de l'espace, le même que donner un lien d'accès.
+**Visibilité.** Un élément neuf est caché au client ; le montrer (ou le
+cacher) demande le droit « partager » de l'espace, le même que donner un lien
+d'accès. Vaut pour les étapes, les ressources, les livrables, les canaux et les
+fichiers d'un espace (règle dans `ClientVisibility`). Trois exceptions,
+voulues : un espace neuf montre ses étapes Relecture et Publié, le canal
+« Général » est toujours montré, et un fichier envoyé par le client reste
+visible pour lui. Les notes ne sont jamais montrées.
 
 ## Les boutons de création
 
