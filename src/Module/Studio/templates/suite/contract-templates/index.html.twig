@@ -1,12 +1,13 @@
 {% extends '@Core/suite/layout.html.twig' %}
 
-{% block title %}{{ 'suite.nav.studio_contract_templates'|trans }} - {{ parent() }}{% endblock %}
+{% block title %}{{ 'suite.studio.contract_templates.tab'|trans }} - {{ 'suite.nav.studio_contracts'|trans }} - {{ parent() }}{% endblock %}
 
 {% block page_header_slot %}
     {{ include('@Shared/components/page_header.html.twig', {
         crumbs: [
             {label: 'suite.nav.sections.studio'|trans},
-            {label: 'suite.nav.studio_contract_templates'|trans},
+            {label: 'suite.nav.studio_contracts'|trans, href: path('suite_studio_contracts')},
+            {label: 'suite.studio.contract_templates.tab'|trans},
         ],
     }) }}
 {% endblock %}
@@ -16,6 +17,8 @@
     templates: templates,
     kinds: kinds,
     categories: categories,
+    contractsPath: contractsPath,
+    templatesPath: templatesPath,
     categoryCreatePath: categoryCreatePath,
     categoryUpdatePath: categoryUpdatePath,
     categoryDeletePath: categoryDeletePath,

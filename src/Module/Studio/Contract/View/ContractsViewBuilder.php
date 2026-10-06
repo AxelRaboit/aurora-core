@@ -136,6 +136,8 @@ final readonly class ContractsViewBuilder
             // non-amendment contracts, so the picker cannot offer a choice the
             // manager would refuse a second later.
             'amendable' => $this->amendable($all),
+            'contractsPath' => $this->urlGenerator->generate('suite_studio_contracts'),
+            'templatesPath' => $this->urlGenerator->generate('suite_studio_contract_templates'),
             // Quoted by the guide; the setting decides it, not the wording.
             'linkDays' => $this->linkLifetime->days(),
         ];

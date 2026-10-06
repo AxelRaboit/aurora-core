@@ -33,8 +33,6 @@ suite:
     nav:
         sections:
             studio: Studio
-        studio_contract_templates: Contract templates
-        studio_contract_templates_description: The model documents contracts are built from, and their versions.
         studio_customers: Customers
         studio_customers_description: The companies you contract with, and their legal identity block.
         studio_calendar: Editorial calendar
@@ -609,6 +607,8 @@ suite:
                 provider_settings_missing: 'These provider details are not set in the settings, and the trame prints them: {fields}'
                 custom_field_too_long: A complement cannot exceed 500 characters.
         contract_templates:
+            tab: "Templates"
+            tabs_label: "Contracts and templates"
             editor_guide:
                 title: "How to write a template"
                 step_1: "Write the title and the text language by language, in their tabs; a green dot marks each written language."

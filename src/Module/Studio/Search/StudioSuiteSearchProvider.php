@@ -103,9 +103,8 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                     $sections['contracts'] = $this->section(fn (): array => $this->contractRows($query));
                 }
 
-                // The templates screen has its own privilege and its own menu
-                // entry, but shares the contracts switch: no trame without
-                // contracts to build from it.
+                // The templates screen has its own privilege, and is a tab of
+                // the contracts entry: it shares their switch.
                 if ($this->security->isGranted('studio.contract_templates.view')) {
                     $sections['contract_templates'] = $this->section(fn (): array => $this->templateRows($query));
                 }

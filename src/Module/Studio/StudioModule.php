@@ -107,10 +107,9 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
         }
 
         if ($this->studioContext->areContractsEnabled()) {
-            // Contracts before the trames they are built from: the list read
-            // every week comes before the documents edited twice a year.
+            // One entry: the trames are a tab of it, the documents contracts
+            // are drawn from rather than a destination of their own.
             $items[] = $this->contractsNavItem();
-            $items[] = $this->contractTemplatesNavItem();
         }
 
         if ($this->studioContext->areDecksEnabled()) {
@@ -137,7 +136,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             $this->calendarNavItem(),
             $this->customersNavItem(),
             $this->contractsNavItem(),
-            $this->contractTemplatesNavItem(),
             $this->decksNavItem(),
             $this->deliverablesNavItem(),
         ], priority: 45)];
@@ -162,18 +160,10 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             'suite.nav.studio_contracts',
             'file-signature',
             requiredPrivilege: 'studio.contracts.view',
+            // Lit aussi les pages des trames, son second onglet : sans ce
+            // préfixe, ouvrir une trame éteignait l'entrée.
+            activeRoutePrefix: 'suite_studio_contract',
             descriptionKey: 'suite.nav.studio_contracts_description',
-        );
-    }
-
-    private function contractTemplatesNavItem(): NavItem
-    {
-        return new NavItem(
-            'suite_studio_contract_templates',
-            'suite.nav.studio_contract_templates',
-            'scroll-text',
-            requiredPrivilege: 'studio.contract_templates.view',
-            descriptionKey: 'suite.nav.studio_contract_templates_description',
         );
     }
 

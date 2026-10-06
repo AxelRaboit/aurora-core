@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import ContractsSectionTabs from "../components/ContractsSectionTabs.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -42,6 +43,9 @@ const { t } = useI18n();
 const { can } = usePrivileges();
 
 const props = defineProps({
+    /** Les deux onglets de la section : contrats et trames. */
+    contractsPath: { type: String, default: "" },
+    templatesPath: { type: String, default: "" },
     templates: { type: Array, default: () => [] },
     kinds: { type: Array, default: () => [] },
     categories: { type: Array, default: () => [] },
@@ -309,6 +313,12 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
+        <ContractsSectionTabs
+            v-if="contractsPath && templatesPath"
+            current="templates"
+            :contracts-path="contractsPath"
+            :templates-path="templatesPath"
+        />
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"

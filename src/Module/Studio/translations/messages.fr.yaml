@@ -33,8 +33,6 @@ suite:
     nav:
         sections:
             studio: Studio
-        studio_contract_templates: Trames de contrat
-        studio_contract_templates_description: Les documents types dont partent les contrats, et leurs versions.
         studio_customers: Clients
         studio_customers_description: Les sociétés avec qui vous contractez, et leur bloc d'identité légale.
         studio_calendar: Calendrier éditorial
@@ -609,6 +607,8 @@ suite:
                 provider_settings_missing: 'Ces informations du prestataire ne sont pas renseignées dans les réglages, et la trame les imprime : {fields}'
                 custom_field_too_long: Un complément ne peut pas dépasser 500 caractères.
         contract_templates:
+            tab: "Trames"
+            tabs_label: "Contrats et trames"
             editor_guide:
                 title: "Comment rédiger une trame"
                 step_1: "Écrivez le titre et le texte langue par langue, dans leurs onglets ; un point vert marque chaque langue rédigée."

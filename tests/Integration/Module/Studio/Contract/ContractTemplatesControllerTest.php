@@ -8,11 +8,13 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategory;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
+use Aurora\Module\Studio\StudioModule;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 use function array_column;
+use function array_map;
 use function json_decode;
 use function sprintf;
 
@@ -342,6 +344,31 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $this->client->request('GET', '/suite/studio/contract-templates');
         self::assertNull($this->rowFromIndex($templateId)['category']);
+    }
+
+    /**
+     * The trames are a tab of Contracts, not an entry of their own: the menu
+     * has one row for both, and each screen carries the way to the other.
+     */
+    public function testTheTramesAreATabOfContracts(): void
+    {
+        $navItems = static::getContainer()->get(StudioModule::class)->getNavSections()[0]->items;
+        $routes = array_map(static fn ($item): string => $item->route, $navItems);
+
+        self::assertContains('suite_studio_contracts', $routes);
+        self::assertNotContains('suite_studio_contract_templates', $routes);
+
+        foreach (['/suite/studio/contracts' => 'ContractsApp', '/suite/studio/contract-templates' => 'ContractTemplatesApp'] as $url => $app) {
+            $this->client->request('GET', $url);
+            self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+            $props = json_decode((string) $this->client->getCrawler()
+                ->filter(sprintf('[data-symfony--ux-vue--vue-component-value$="/%s"]', $app))
+                ->attr('data-symfony--ux-vue--vue-props-value'), true);
+
+            self::assertSame('/suite/studio/contracts', $props['contractsPath'], $app);
+            self::assertSame('/suite/studio/contract-templates', $props['templatesPath'], $app);
+        }
     }
 
     /** A copy is a document for the same business, so the trade travels with it. */

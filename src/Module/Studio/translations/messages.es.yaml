@@ -33,8 +33,6 @@ suite:
     nav:
         sections:
             studio: Studio
-        studio_contract_templates: 'Plantillas de contrato'
-        studio_contract_templates_description: 'Los documentos tipo de los que parten los contratos, y sus versiones.'
         studio_customers: Clientes
         studio_customers_description: 'Las empresas con las que contrata, y su bloque de identidad legal.'
         studio_calendar: 'Calendario editorial'
@@ -609,6 +607,8 @@ suite:
                 provider_settings_missing: 'Estos datos del prestador no están indicados en los ajustes, y la plantilla los imprime: {fields}'
                 custom_field_too_long: 'Un complemento no puede superar los 500 caracteres.'
         contract_templates:
+            tab: "Plantillas"
+            tabs_label: "Contratos y plantillas"
             editor_guide:
                 title: 'Cómo redactar una plantilla'
                 step_1: 'Escriba el título y el texto idioma por idioma, en sus pestañas; un punto verde marca cada idioma redactado.'

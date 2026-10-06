@@ -35,8 +35,12 @@ import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import ContractsSectionTabs from "../components/ContractsSectionTabs.vue";
 
 const props = defineProps({
+    /** Les deux onglets de la section : contrats et trames. */
+    contractsPath: { type: String, default: "" },
+    templatesPath: { type: String, default: "" },
     /** How long a signing address stays valid, from the setting. */
     linkDays: { type: Number, default: 30 },
     contracts: { type: Array, default: () => [] },
@@ -193,6 +197,12 @@ const pageActions = computed(() =>
 
 <template>
     <div class="aurora-stack">
+        <ContractsSectionTabs
+            v-if="contractsPath && templatesPath"
+            current="contracts"
+            :contracts-path="contractsPath"
+            :templates-path="templatesPath"
+        />
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t(`${F}.list.search`)" />
             <template #inline>
