@@ -2708,7 +2708,7 @@ studio:
             hash: 'Document hash'
             observed: 'Signed on {at}, from {ip}'
             code_verified: 'Confirmation code verified on {at}, sent to {email}'
-            authenticated: 'Signed from an authenticated suite account'
+            authenticated: "Signed from the Provider's authenticated account"
             notice: 'This hash identifies the signed wording. Any change to the document would produce a different one.'
     email:
         space_review:

@@ -982,7 +982,7 @@ suite:
             zone_document_label: 'Texto del enlace'
             zone_document_label_placeholder: 'Nuestro folleto 2026'
             terms_taxonomy: Taxonomía
-            terms_taxonomy_hint: 'Se muestran todos sus términos, en el orden dla suite, cada uno hacia su página. Un término añadido después aparece solo.'
+            terms_taxonomy_hint: 'Se muestran todos sus términos, en el orden de la suite, cada uno hacia su página. Un término añadido después aparece solo.'
             terms_taxonomy_none: 'Elegir una taxonomía…'
             terms_caption: 'Título encima'
             terms_caption_placeholder: 'Nuestros ámbitos'

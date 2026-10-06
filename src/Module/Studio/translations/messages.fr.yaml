@@ -2719,7 +2719,7 @@ studio:
             hash: 'Empreinte du document'
             observed: 'Signé le {at}, depuis {ip}'
             code_verified: 'Code de confirmation vérifié le {at}, envoyé à {email}'
-            authenticated: 'Signé depuis un compte authentifié de la suite'
+            authenticated: 'Signé depuis le compte authentifié du Prestataire'
             notice: 'Cette empreinte identifie le texte signé. Toute modification du document produirait une empreinte différente.'
     email:
         space_review:

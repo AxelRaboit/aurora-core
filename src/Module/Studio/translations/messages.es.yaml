@@ -2676,7 +2676,7 @@ studio:
             hash: 'Huella del documento'
             observed: 'Firmado el {at}, desde {ip}'
             code_verified: 'Código de confirmación verificado el {at}, enviado a {email}'
-            authenticated: 'Firmado desde una cuenta autenticada dla suite'
+            authenticated: 'Firmado desde la cuenta autenticada del Prestador'
             notice: 'Esta huella identifica el texto firmado. Cualquier modificación del documento produciría una huella diferente.'
     email:
         space_review:
