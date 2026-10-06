@@ -883,7 +883,7 @@ suite:
             updated: Espace mis à jour.
             deleted: Espace supprimé.
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: "L'espace disparaît avec tout ce qu'il contient : ses contenus, leurs fils et leurs pièces jointes, ses discussions, ses notes, ses livrables avec leurs liens de lecture, et ses liens d'accès. Ses dates quittent le calendrier. Le client, ses contrats et les documents de la médiathèque ne bougent pas."
+            delete_warning: "L'espace disparaît avec tout ce qu'il contient : ses contenus, leurs fils et leurs pièces jointes, ses discussions, ses livrables avec leurs liens de lecture, et ses liens d'accès. Ses dates quittent le calendrier. Son espace de notes part à la corbeille des notes, d'où un administrateur peut le faire revenir. Le client, ses contrats et les documents de la médiathèque ne bougent pas."
             show_archived: Afficher les espaces archivés
             sort_by_urgency: Trier par urgence
             archived_badge: Archivé

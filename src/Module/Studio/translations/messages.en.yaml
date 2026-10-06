@@ -883,7 +883,7 @@ suite:
             updated: Space updated.
             deleted: Space deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its notes, its deliverables with their reading links, and its access links. Its dates leave the calendar. The client, their contracts and the media library's documents stay."
+            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its deliverables with their reading links, and its access links. Its dates leave the calendar. Its note space goes to the notes' trash, where an administrator can bring it back from. The client, their contracts and the media library's documents stay."
             show_archived: Show archived spaces
             sort_by_urgency: Sort by urgency
             archived_badge: Archived

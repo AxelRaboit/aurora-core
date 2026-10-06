@@ -878,7 +878,7 @@ suite:
             updated: 'Espacio actualizado.'
             deleted: 'Espacio eliminado.'
             delete_confirm: '¿Eliminar {name}?'
-            delete_warning: 'El espacio desaparece con todo lo que contiene: sus contenidos, sus hilos y sus archivos adjuntos, sus conversaciones, sus notas, sus entregables con sus enlaces de lectura, y sus enlaces de acceso. Sus fechas salen del calendario. El cliente, sus contratos y los documentos de la mediateca no cambian.'
+            delete_warning: 'El espacio desaparece con todo lo que contiene: sus contenidos, sus hilos y sus archivos adjuntos, sus conversaciones, sus entregables con sus enlaces de lectura, y sus enlaces de acceso. Sus fechas salen del calendario. Su espacio de notas va a la papelera de las notas, de donde un administrador puede recuperarlo. El cliente, sus contratos y los documentos de la mediateca no cambian.'
             show_archived: 'Mostrar los espacios archivados'
             sort_by_urgency: 'Ordenar por urgencia'
             archived_badge: Archivado

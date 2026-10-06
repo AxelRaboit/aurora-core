@@ -24,6 +24,7 @@ use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceSync;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -46,6 +47,12 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly SpaceContentItemManagerInterface $contentItems,
         protected readonly SpaceVisibility $visibility,
         protected readonly Security $security,
+        /**
+         * Optionnel, et dernier, pour qu'un projet client qui étend ce
+         * manager avec son propre constructeur continue de démarrer : sans
+         * lui, l'espace de notes ne suit simplement plus l'équipe.
+         */
+        protected readonly ?SpaceNoteSpaceSync $noteSpaces = null,
     ) {}
 
     public function create(CustomerSpaceInputInterface $input): CustomerSpaceInterface
@@ -85,21 +92,29 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         // is archived: they follow it rather than keep the old version.
         $this->contentItems->announceSpace($space);
 
+        // Its note space carries its name and its team, for the same reason.
+        $this->noteSpaces?->sync($space);
+
         $this->auditUpdated($space);
     }
 
     /**
      * Deleting a space takes everything in it: its cards, their threads and
-     * attachments, its conversations, notes, deliverables and access links go
+     * attachments, its conversations, deliverables and access links go
      * by cascade.
      * The documents those attachments point at stay in the media library,
      * and the space's dates are taken off the calendar first, since no
      * cascade announces anything.
+     *
+     * Its notes are not in it: they live in a note space of the Notes module,
+     * which goes to the notes' trash, out of the team's hands and back into
+     * the administrators', who can bring it back.
      */
     public function delete(CustomerSpaceInterface $space): void
     {
         $this->auditDeleted($space);
         $this->contentItems->unscheduleSpace($space);
+        $this->noteSpaces?->release($space);
 
         $this->entityManager->remove($space);
         $this->entityManager->flush();

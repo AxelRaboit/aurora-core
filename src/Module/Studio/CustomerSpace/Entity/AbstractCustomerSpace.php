@@ -7,11 +7,14 @@ namespace Aurora\Module\Studio\CustomerSpace\Entity;
 use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceDocumentFolderProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceSync;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -92,6 +95,29 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\ManyToOne(targetEntity: DocumentFolderInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentFolderInterface $documentFolder = null;
+
+    /**
+     * L'espace de notes où l'équipe garde ce qu'elle sait de ce client.
+     *
+     * **Les notes d'un espace client vivent dans le module Notes**, et non
+     * plus ici : un espace de notes par espace client, ouvert à son équipe,
+     * que {@see SpaceNoteSpaceProvider} ouvre la première fois qu'on en a
+     * besoin et que {@see SpaceNoteSpaceSync} tient à jour (son nom, ses
+     * membres). C'est ce qui donne à ces notes tout ce que le module sait
+     * faire - dossiers, liens entre notes, historique, recherche, partage
+     * d'une note - sans le refaire dans Studio.
+     *
+     * **Un sens seulement.** L'espace de notes ne connaît pas Studio : il
+     * porte un marqueur (`managedBy`) qui dit seulement que son nom, son accès
+     * et ses membres viennent d'ailleurs.
+     *
+     * **Nullable, et `SET NULL`**, comme le dossier de la médiathèque : créé
+     * à la demande, et un espace de notes que quelqu'un retirerait ne doit pas
+     * être une suppression que la base refuse.
+     */
+    #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
+    #[ORM\JoinColumn(unique: true, nullable: true, onDelete: 'SET NULL')]
+    protected ?NoteSpaceInterface $noteSpace = null;
 
     #[ORM\Column(length: 20, enumType: CustomerSpaceStatusEnum::class, options: ['default' => 'active'])]
     protected CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active;
@@ -358,6 +384,18 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static
     {
         $this->documentFolder = $documentFolder;
+
+        return $this;
+    }
+
+    public function getNoteSpace(): ?NoteSpaceInterface
+    {
+        return $this->noteSpace;
+    }
+
+    public function setNoteSpace(?NoteSpaceInterface $noteSpace): static
+    {
+        $this->noteSpace = $noteSpace;
 
         return $this;
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Entity;
 
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -76,4 +77,9 @@ interface CustomerSpaceInterface
     public function getDocumentFolder(): ?DocumentFolderInterface;
 
     public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static;
+
+    /** L'espace de notes où l'équipe prend les notes de cet espace ; null tant que personne n'en a ouvert. */
+    public function getNoteSpace(): ?NoteSpaceInterface;
+
+    public function setNoteSpace(?NoteSpaceInterface $noteSpace): static;
 }
