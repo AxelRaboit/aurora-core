@@ -247,7 +247,33 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
             && $this->reviewBy < $now
             && !$this->approval->isAnswered()
             && $this->isShownToClient()
+            && $this->isAtClientStep()
             && SpaceContentColumnRoleEnum::Published !== $this->getColumn()->getRole();
+    }
+
+    /**
+     * Whether this card sits where the client answers.
+     *
+     * The step with the Review role when the board has one; any step the
+     * client can see when it has none, which is how every board read before
+     * the role decided anything. The counts of the dashboard and the editorial
+     * calendar apply the same rule in SQL ({@see SpaceContentItemRepository}).
+     */
+    public function isAtClientStep(): bool
+    {
+        $column = $this->getColumn();
+
+        if (!$column->isVisibleToClient()) {
+            return false;
+        }
+
+        foreach ($this->getSpace()->getContentColumns() as $step) {
+            if (SpaceContentColumnRoleEnum::Review === $step->getRole()) {
+                return SpaceContentColumnRoleEnum::Review === $column->getRole();
+            }
+        }
+
+        return true;
     }
 
     public function isScheduled(): bool

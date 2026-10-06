@@ -87,13 +87,22 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
         }
 
         $onCalendar = 'i.showOnCalendar = true AND i.scheduledAt IS NOT NULL AND (c.role IS NULL OR c.role <> :published)';
-        $withClient = $onCalendar.' AND c.visibleToClient = true AND i.approval = :pending';
+        // « Chez le client » : the Review step when the board has one, any step
+        // the client sees when it has none. The card applies the same rule,
+        // see AbstractSpaceContentItem::isAtClientStep().
+        // One alias per use: the condition is read by two of the sums below,
+        // and a subquery alias may appear only once in a statement.
+        $withClient = fn (string $alias): string => $onCalendar.sprintf(
+            ' AND c.visibleToClient = true AND i.approval = :pending AND (c.role = :review OR NOT EXISTS (SELECT %1$s.id FROM %2$s %1$s WHERE %1$s.space = i.space AND %1$s.role = :review))',
+            $alias,
+            SpaceContentColumnInterface::class,
+        );
 
         $rows = $this->createQueryBuilder('i')
             ->select('IDENTITY(i.space) AS space')
             ->addSelect(sprintf('SUM(CASE WHEN %s AND i.scheduledAt >= :now AND i.scheduledAt < :horizon THEN 1 ELSE 0 END) AS upcoming', $onCalendar))
-            ->addSelect(sprintf('SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS withClient', $withClient))
-            ->addSelect(sprintf('SUM(CASE WHEN %s AND i.reviewBy IS NOT NULL AND i.reviewBy < :now THEN 1 ELSE 0 END) AS lateReview', $withClient))
+            ->addSelect(sprintf('SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS withClient', $withClient('rc_with')))
+            ->addSelect(sprintf('SUM(CASE WHEN %s AND i.reviewBy IS NOT NULL AND i.reviewBy < :now THEN 1 ELSE 0 END) AS lateReview', $withClient('rc_late')))
             ->addSelect('SUM(CASE WHEN i.approval = :changes AND (c.role IS NULL OR c.role <> :published) THEN 1 ELSE 0 END) AS changesRequested')
             ->addSelect(sprintf('SUM(CASE WHEN %s AND i.scheduledAt < :now THEN 1 ELSE 0 END) AS missed', $onCalendar))
             ->addSelect(sprintf('MIN(CASE WHEN %s AND i.scheduledAt >= :now THEN i.scheduledAt ELSE :none END) AS nextPublication', $onCalendar))
@@ -104,6 +113,7 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->setParameter('now', $now)
             ->setParameter('horizon', $horizon)
             ->setParameter('published', SpaceContentColumnRoleEnum::Published)
+            ->setParameter('review', SpaceContentColumnRoleEnum::Review)
             ->setParameter('pending', SpaceContentApprovalEnum::Pending)
             ->setParameter('changes', SpaceContentApprovalEnum::ChangesRequested)
             ->setParameter('none', null)

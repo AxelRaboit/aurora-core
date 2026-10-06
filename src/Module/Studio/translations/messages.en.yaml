@@ -2468,13 +2468,10 @@ suite:
             delete_column_warning: A step is only deleted when it is empty.
 
             column_role: Step role
-            column_role_hint: Optional. Says which common stage this step stands for, so the dashboard and the editorial calendar can count it.
+            column_role_hint: "Optional. “Review” marks the step where the client approves: only the cards waiting there count as “with the client”. “Published” marks what is out."
             column_role_none: None
             column_roles:
-                idea: Idea
-                production: Production
                 review: Review
-                scheduled: Scheduled
                 published: Published
             default_columns:
                 idea: Ideas

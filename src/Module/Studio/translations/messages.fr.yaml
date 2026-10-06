@@ -2479,13 +2479,10 @@ suite:
             delete_column_warning: Une étape ne se supprime que si elle est vide.
 
             column_role: Rôle de l'étape
-            column_role_hint: Facultatif. Dit quelle étape commune celle-ci représente, pour que les compteurs du tableau de bord et du calendrier éditorial la reconnaissent.
+            column_role_hint: "Facultatif. « Relecture » marque l'étape où le client valide : seules les cartes qui y attendent comptent comme « chez le client ». « Publié » marque ce qui est sorti."
             column_role_none: Aucun
             column_roles:
-                idea: Idée
-                production: Production
                 review: Relecture
-                scheduled: Programmé
                 published: Publié
             default_columns:
                 idea: Idées

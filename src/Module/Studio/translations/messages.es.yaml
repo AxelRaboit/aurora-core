@@ -2442,13 +2442,10 @@ suite:
             delete_column_confirm: '¿Eliminar la etapa {name}?'
             delete_column_warning: 'Una etapa solo se puede eliminar si está vacía.'
             column_role: 'Rol de la etapa'
-            column_role_hint: 'Opcional. Indica qué etapa común representa esta, para que los contadores del panel y del calendario editorial la reconozcan.'
+            column_role_hint: 'Opcional. «Revisión» marca la etapa en la que el cliente valida: solo las tarjetas que esperan allí cuentan como «con el cliente». «Publicado» marca lo que ha salido.'
             column_role_none: Ninguno
             column_roles:
-                idea: Idea
-                production: Producción
                 review: Revisión
-                scheduled: Programado
                 published: Publicado
             default_columns:
                 idea: Ideas

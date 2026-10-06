@@ -39,10 +39,10 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * has to tell apart at a glance.
      */
     protected const array DEFAULT_COLUMNS = [
-        ['suite.studio.space_content.default_columns.idea', null, SpaceContentColumnRoleEnum::Idea],
-        ['suite.studio.space_content.default_columns.writing', 1, SpaceContentColumnRoleEnum::Production],
+        ['suite.studio.space_content.default_columns.idea', null, null],
+        ['suite.studio.space_content.default_columns.writing', 1, null],
         ['suite.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review],
-        ['suite.studio.space_content.default_columns.scheduled', 3, SpaceContentColumnRoleEnum::Scheduled],
+        ['suite.studio.space_content.default_columns.scheduled', 3, null],
         ['suite.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published],
     ];
 

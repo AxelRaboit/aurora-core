@@ -75,7 +75,7 @@ final class SpaceWorkloadTest extends IntegrationTestCase
         $space = $this->givenSpace('Atelier');
         $review = $this->column($space, SpaceContentColumnRoleEnum::Review);
         $published = $this->column($space, SpaceContentColumnRoleEnum::Published);
-        $idea = $this->column($space, SpaceContentColumnRoleEnum::Idea);
+        $idea = $this->column($space, null);
         $idea->setVisibleToClient(false);
 
         $in = static fn (string $when): DateTimeImmutable => new DateTimeImmutable($when);
@@ -103,6 +103,42 @@ final class SpaceWorkloadTest extends IntegrationTestCase
         self::assertSame(1, $row->missed, 'missed');
         self::assertSame(3, $row->upcoming, 'upcoming within a week');
         self::assertSame($in('+2 days')->format('Y-m-d'), $row->nextPublication?->format('Y-m-d'));
+    }
+
+    /**
+     * The Review step decides what is « chez le client ». Another step the
+     * client can see holds cards they read, not cards waiting on their answer;
+     * a board with no Review step falls back to every step the client sees.
+     */
+    public function testTheReviewStepDecidesWhatIsWithTheClient(): void
+    {
+        $space = $this->givenSpace('Atelier');
+        $review = $this->column($space, SpaceContentColumnRoleEnum::Review);
+        $other = $this->column($space, null);
+        $other->setVisibleToClient(true);
+        $review->setVisibleToClient(true);
+
+        $in = static fn (string $when): DateTimeImmutable => new DateTimeImmutable($when);
+
+        $this->item($space, $review, $in('+2 days'));
+        $this->item($space, $other, $in('+3 days'), reviewBy: $in('-1 day'));
+        $this->entityManager->flush();
+
+        $workload = static::getContainer()->get(SpaceWorkload::class);
+        $row = $workload->forSpace($this->reload($space));
+
+        self::assertSame(1, $row->withClient, 'only the Review step');
+        self::assertSame(0, $row->lateReview, 'a visible step that is not Review asks nothing of the client');
+
+        // No Review step any more: every step the client sees counts again.
+        $review->setRole(null);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $row = $workload->forSpace($this->reload($space));
+
+        self::assertSame(2, $row->withClient, 'every visible step, without a Review one');
+        self::assertSame(1, $row->lateReview);
     }
 
     /** Without a step marked « published », nothing can say a date was missed. */
