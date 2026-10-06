@@ -184,8 +184,12 @@
                        lives in a tab and another in a switch. #}
                     {% set tabs = [
                         {label: 'suite.studio.space_content.tab'|trans, url: boardPath, key: 'content'},
-                        {label: 'suite.studio.space_access.tab'|trans, url: accessPath, key: 'access'},
                     ] %}
+                    {# The access page lists who the space is open to: the
+                       same right that gives an access shows them. #}
+                    {% if is_granted('studio.spaces.share') %}
+                        {% set tabs = tabs|merge([{label: 'suite.studio.space_access.tab'|trans, url: accessPath, key: 'access'}]) %}
+                    {% endif %}
                     {% for tab in tabs %}
                         {% if tab.key == activeTab|default('content') %}
                             <span class="flex-1 rounded-md bg-surface-2 px-2.5 py-1 text-center text-sm font-medium text-primary sm:flex-none sm:text-left" aria-current="page">
