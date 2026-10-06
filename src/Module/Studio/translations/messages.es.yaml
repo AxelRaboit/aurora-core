@@ -2306,6 +2306,7 @@ suite:
             delete_column_warning: 'Una etapa solo se puede eliminar si está vacía.'
             column_role: 'Rol de la etapa'
             column_role_hint: "Opcional. «Revisión» marca la etapa en la que el cliente valida: solo los contenidos que esperan allí cuentan como «con el cliente». «Publicado» marca lo que ha salido."
+            step_hidden_from_client: "Oculta para el cliente"
             column_role_none: Ninguno
             column_roles:
                 review: Revisión

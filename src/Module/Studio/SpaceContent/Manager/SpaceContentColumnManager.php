@@ -40,11 +40,14 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * has to tell apart at a glance.
      */
     protected const array DEFAULT_COLUMNS = [
-        ['suite.studio.space_content.default_columns.idea', null, null],
-        ['suite.studio.space_content.default_columns.writing', 1, null],
-        ['suite.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review],
-        ['suite.studio.space_content.default_columns.scheduled', 3, null],
-        ['suite.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published],
+        // The last item says whether the client sees the step. The review, the
+        // schedule and what is out: a card the client approved must not vanish
+        // from their calendar between « À valider » and « Publié ».
+        ['suite.studio.space_content.default_columns.idea', null, null, false],
+        ['suite.studio.space_content.default_columns.writing', 1, null, false],
+        ['suite.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review, true],
+        ['suite.studio.space_content.default_columns.scheduled', 3, null, true],
+        ['suite.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published, true],
     ];
 
     public function __construct(
@@ -166,14 +169,14 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     {
         $position = 0;
 
-        foreach (static::DEFAULT_COLUMNS as [$key, $colourSlot, $role]) {
+        foreach (static::DEFAULT_COLUMNS as [$key, $colourSlot, $role, $visible]) {
             $column = $this->createColumn();
             $column
                 ->setSpace($space)
                 ->setName($this->translator->trans($key))
                 ->setColourSlot($colourSlot)
                 ->setRole($role)
-                ->setVisibleToClient(SpaceContentColumnRoleEnum::Review === $role || SpaceContentColumnRoleEnum::Published === $role)
+                ->setVisibleToClient($visible)
                 ->setPosition($position);
 
             $this->entityManager->persist($column);

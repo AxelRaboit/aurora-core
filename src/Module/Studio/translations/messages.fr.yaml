@@ -2338,6 +2338,7 @@ suite:
 
             column_role: Rôle de l'étape
             column_role_hint: "Facultatif. « Relecture » marque l'étape où le client valide : seuls les contenus qui y attendent comptent comme « chez le client ». « Publié » marque ce qui est sorti."
+            step_hidden_from_client: "Cachée au client"
             column_role_none: Aucun
             column_roles:
                 review: Relecture

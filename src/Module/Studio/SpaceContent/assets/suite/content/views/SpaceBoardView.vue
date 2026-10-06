@@ -10,7 +10,7 @@ import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
 import SpaceContentCard from "../components/SpaceContentCard.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import { GripVertical, Pencil, Plus, Trash2 } from "lucide-vue-next";
+import { EyeOff, GripVertical, Pencil, Plus, Trash2 } from "lucide-vue-next";
 
 defineProps({
     grouped: { type: Array, default: () => [] },
@@ -79,6 +79,17 @@ const { t } = useI18n();
                         <h3 class="min-w-0 flex-1 truncate text-sm font-medium text-primary">
                             {{ group.column.name }}
                         </h3>
+                        <!-- Une étape neuve est cachée au client : le dire sur
+                             l'en-tête évite d'ouvrir son formulaire pour le savoir. -->
+                        <span
+                            v-if="!group.column.visibleToClient"
+                            class="shrink-0 text-muted"
+                            role="img"
+                            :title="t('suite.studio.space_content.step_hidden_from_client')"
+                            :aria-label="t('suite.studio.space_content.step_hidden_from_client')"
+                        >
+                            <EyeOff class="h-3.5 w-3.5" :stroke-width="2" aria-hidden="true" />
+                        </span>
                         <span class="text-xs tabular-nums text-muted">
                             {{ group.cards.length }}
                         </span>

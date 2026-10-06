@@ -123,7 +123,9 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
 
         self::assertTrue($visible[SpaceContentColumnRoleEnum::Review->value]);
         self::assertTrue($visible[SpaceContentColumnRoleEnum::Published->value]);
-        self::assertCount(3, array_filter($visible, static fn (bool $shown): bool => !$shown), 'the three other default steps are hidden');
+        // Le calendrier du client garde ce qu'il a validé jusqu'à sa sortie :
+        // l'étape programmée est montrée, les deux étapes de travail cachées.
+        self::assertCount(2, array_filter($visible, static fn (bool $shown): bool => !$shown), 'the two working steps are hidden');
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/create', $space->getId()), ['name' => 'Relecture juridique']);
         self::assertResponseIsSuccessful();

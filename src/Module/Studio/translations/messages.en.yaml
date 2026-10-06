@@ -2331,6 +2331,7 @@ suite:
 
             column_role: Step role
             column_role_hint: "Optional. “Review” marks the step where the client approves: only the content items waiting there count as “with the client”. “Published” marks what is out."
+            step_hidden_from_client: "Hidden from the client"
             column_role_none: None
             column_roles:
                 review: Review

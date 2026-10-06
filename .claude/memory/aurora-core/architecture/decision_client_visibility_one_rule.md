@@ -15,8 +15,9 @@ de `studio.spaces.edit`. La règle vit dans
 pour un formulaire qui enregistre tout (403 seulement si la visibilité change).
 Côté écran, `can("studio.spaces.share")` cache le geste et laisse lire l'état.
 
-Exceptions voulues : un espace neuf montre ses étapes Relecture et Publié
-(`seedDefaults`), le canal « Général » est toujours montré, un fichier envoyé
+Exceptions voulues : un espace neuf montre ses étapes Relecture, « Programmé »
+et Publié (`seedDefaults` ; « Programmé » pour qu'un contenu validé ne
+disparaisse pas du calendrier du client avant sa sortie), le canal « Général » est toujours montré, un fichier envoyé
 par le client reste visible (`addedByClient` pose `true`, le Manager refuse de
 le cacher). Les notes ne sont jamais montrées.
 

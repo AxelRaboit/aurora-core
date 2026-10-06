@@ -227,7 +227,7 @@ d'accès) **en plus** de `studio.spaces.edit`. La règle a un nom :
 
 | Élément | Avant | Après |
 |---|---|---|
-| Étape du tableau | visible par défaut, droit `edit` | cachée par défaut ; un espace neuf montre ses étapes Relecture et Publié ; droit `share` |
+| Étape du tableau | visible par défaut, droit `edit` | cachée par défaut ; un espace neuf montre ses étapes « À valider » (Relecture), « Programmé » et « Publié » ; droit `share` |
 | Ressource | cachée par défaut, droit `edit` | cachée par défaut, droit `share` |
 | Livrable d'espace | caché par défaut, droit `edit` | caché par défaut, droit `share` (bouton de la liste et case de l'éditeur) |
 | Canal de discussion | interne par défaut, droit `edit` | interne par défaut (« Général » reste montré), droit `share` |
