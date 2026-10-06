@@ -909,13 +909,12 @@ suite:
                 step_2: "“New space” asks for a name, an existing customer or a new prospect, and the team working on it."
                 step_3: "The Clients and Prospects tabs separate what you work on from what you are trying to win."
                 step_4: "“To handle” counts missed publications, late reviews, content items with changes requested and what waits for the client."
-                step_5: "Archiving a space takes it out of the list without losing anything; deleting it moves it to the trash, from where it comes back as it was until it is deleted for good. The client and their contracts stay."
+                step_5: "Archiving a space, from its Settings tab, takes it out of the list without losing anything; deleting it moves it to the trash, from where it comes back as it was until it is deleted for good. The client and their contracts stay."
             usage_detail: 'Space {space}'
             usage_detail_trashed: 'Space {space}, in the trash'
             title: Client spaces
             add: "New space"
             create: New space
-            edit: 'Edit {name}'
             empty: No space yet.
             empty_hint: "A client space holds the work done for one client. Create one per service, not one per customer."
             search_placeholder: "Search by space name or customer…"
@@ -981,6 +980,11 @@ suite:
 
             settings:
                 section_drive: Google Drive
+                section_general: "Space"
+                section_team: "Team"
+                general_intro: "What the space is: its name, customer, colour, timezone and status. An archived space leaves the calendar and takes no new deliverable."
+                team_intro: "Who works on this space, and each person's role. Only the lead and the administrators change the team."
+                saved: "Space settings saved"
                 howto_title: Linking a folder
                 howto_share: "The client shares their Google Drive folder, read only, with the service account's address:"
                 howto_share_unknown: "The client shares their Google Drive folder, read only, with the Drive service account's address (Configuration > Google Drive)."
@@ -1052,7 +1056,7 @@ suite:
             row_actions:
                 view_description: Open this space's board
                 convert_description: This space's customer has signed
-                edit_description: Edit this space
+                edit_description: "Open the space's settings"
                 delete_description: Move this space to the trash
 
             errors:

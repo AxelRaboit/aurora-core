@@ -53,6 +53,26 @@ final readonly class CustomerSpacesViewBuilder
             // chiffre, « quel client remplit mon disque » se répond en ouvrant
             // les espaces un par un, donc ne se répond pas.
             'storage' => $this->storageUsage->bySpace(),
+            ...$this->formOptions(),
+            'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
+            'createPath' => $this->urlGenerator->generate('suite_studio_spaces_create'),
+            'spacesPath' => $this->urlGenerator->generate('suite_studio_spaces'),
+            'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
+            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplates->generate('suite_studio_spaces_delete', ['id' => '__id__']),
+        ];
+    }
+
+    /**
+     * What the space form offers, for the creation modal of the list and the
+     * Settings tab of a space: the customers, the accounts, the statuses, the
+     * roles and the timezones.
+     *
+     * @return array{customers: list<array{id: int, name: string}>, canCreateCustomer: bool, users: list<array{id: int, name: string, email: string}>, statuses: list<array{value: string, labelKey: string}>, roles: list<array{value: string, labelKey: string}>, timezones: list<string>}
+     */
+    public function formOptions(): array
+    {
+        return [
             'customers' => $this->customerOptions(),
             // Ouvrir un espace pour un inconnu crée sa fiche client : le
             // formulaire ne propose ce chemin qu'à qui peut créer un client.
@@ -63,14 +83,37 @@ final readonly class CustomerSpacesViewBuilder
             // The whole list, as the calendar's own screen does it: a
             // shortlist would be right until the first client abroad.
             'timezones' => DateTimeZone::listIdentifiers(),
-            'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
-            'createPath' => $this->urlGenerator->generate('suite_studio_spaces_create'),
-            'spacesPath' => $this->urlGenerator->generate('suite_studio_spaces'),
-            'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
-            'updatePath' => $this->pathTemplates->generate('suite_studio_spaces_update', ['id' => '__id__']),
-            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('suite_studio_spaces_delete', ['id' => '__id__']),
         ];
+    }
+
+    /**
+     * The Settings tab of a space: the space as the form edits it, the form's
+     * options, and where to save it.
+     *
+     * Null for a reader without `studio.spaces.edit`: the tab then only shows
+     * to the lead for the Drive, and the account and customer lists are not
+     * read on every opening of a space for nothing. `canConfigure` says
+     * whether the team and roles (and the Drive) are the reader's to change,
+     * the same rule `CustomerSpaceManager::refuseTeamChangeUnlessLead()`
+     * enforces on save.
+     *
+     * Saved through `suite_studio_spaces_update`, the route the list's modal
+     * used: the same input, validation, rights and manager path.
+     *
+     * @return array{spaceSettings: array<string, mixed>|null}
+     */
+    public function settingsView(CustomerSpaceInterface $space): array
+    {
+        if (!$this->authorizationChecker->isGranted('studio.spaces.edit')) {
+            return ['spaceSettings' => null];
+        }
+
+        return ['spaceSettings' => [
+            'space' => $this->spaceSerializer->serialize($space),
+            'canConfigure' => $this->visibility->canConfigure($space),
+            ...$this->formOptions(),
+            'updatePath' => $this->urlGenerator->generate('suite_studio_spaces_update', ['id' => $space->getId()]),
+        ]];
     }
 
     /** @return list<array<string, mixed>> */

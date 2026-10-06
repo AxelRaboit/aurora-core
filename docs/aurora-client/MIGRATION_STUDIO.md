@@ -474,3 +474,52 @@ la lui montre (même règle de visibilité que le reste, section 9).
 - **Traductions** : `studio.public.space.document_presentation` ajoutée ;
   `suite.studio.deliverables.guide.step_1`, `intro` et `empty_hint` réécrites.
   Une surcharge côté client de ces clés est à relire.
+
+## 13. Un espace se règle dans son onglet Réglages
+
+Le nom, la description, le client, la couleur, le fuseau, le statut, l'équipe
+et les rôles d'un espace se modifiaient dans une fenêtre de la liste des
+espaces ; l'onglet Réglages de l'espace ne portait que le Drive, et seulement
+pour le référent. **L'onglet Réglages rassemble tout** : une section
+« Espace » (nom, description, client, couleur, fuseau, statut) pour qui a
+`studio.spaces.edit` sur l'espace, une section « Équipe » et la section
+« Google Drive » pour le référent et les administrateurs seulement
+(`SpaceVisibility::canConfigure()`, la règle d'avant). L'enregistrement passe
+par la même route qu'avant, `suite_studio_spaces_update`, donc par
+`CustomerSpaceInputFactory`, le validateur, `CustomerSpaceManager::update()`
+(équipe refusée à qui n'est pas référent, `SpaceNoteSpaceSync` qui renomme
+l'espace de notes) et les mêmes droits. La liste garde « Modifier », devenu un
+lien vers `/workspace/{id}?view=settings`, et sa fenêtre ne sert plus qu'à
+créer.
+
+- **Vue, ajout** : `CustomerSpacesViewBuilder::settingsView($space)` rend
+  `spaceSettings` (espace sérialisé, `canConfigure`, options du formulaire,
+  `updatePath`), `null` sans `studio.spaces.edit` ;
+  `CustomerSpacesViewBuilder::formOptions()` rend les options du formulaire
+  (clients, comptes, statuts, rôles, fuseaux, `canCreateCustomer`) pour la
+  liste et l'onglet.
+- **Vue, rupture** : `CustomerSpacesViewBuilder::indexView()` ne rend plus
+  `updatePath`, et le gabarit `@Studio/suite/spaces/index.html.twig` ne le
+  passe plus. Un gabarit surchargé côté client retire la ligne.
+- **Contrôleur** : `SpaceContentController` prend un dernier argument
+  optionnel `?CustomerSpacesViewBuilder $spacesViewBuilder = null` ; un projet
+  qui l'étend avec son propre constructeur le transmet à
+  `parent::__construct()`, sinon l'onglet ne porte que le Drive, comme avant.
+  La page de l'espace reçoit `spaceSettings`.
+- **Vue.js** : l'ancien `CustomerSpace/assets/suite/settings/SpaceSettingsView.vue`
+  (le Drive) devient `SpaceDriveSettings.vue`, sans barre de sous-onglets ; le
+  nouveau `SpaceSettingsView` porte les sous-onglets (Espace, Équipe, Google
+  Drive) et prend `spaceSettings` et `canConfigure`. Nouveau composable
+  `useSpaceSettingsForm` (la page se recharge après un enregistrement : l'en-tête
+  de l'espace est rendu par le serveur). `CustomerSpaceFormFields` gagne
+  `withIdentity` et `withTeam`. `useCustomerSpacesForm(spaces, customers, users,
+  createPath, deletePath)` perd `updatePath` et tout l'état de modification
+  (`showEdit`, `editForm`, `openEdit`, `submitEdit`…) ; il exporte `formFrom()`
+  et `spaceFormRules()`. `useSpaceRowActions` prend `settingsHref` au lieu de
+  `openEdit` (l'entrée `edit` est un lien). `CustomerSpacesApp` perd la propriété
+  `updatePath`. `SpaceContentApp` gagne `spaceSettings` et montre l'onglet
+  Réglages à qui modifie l'espace ou le configure.
+- **Traductions** : ajoutées sous `suite.studio.spaces.settings.*`
+  (`section_general`, `section_team`, `general_intro`, `team_intro`, `saved`) ;
+  `suite.studio.spaces.row_actions.edit_description` réécrite ;
+  `suite.studio.spaces.edit` (titre de la fenêtre retirée) supprimée.

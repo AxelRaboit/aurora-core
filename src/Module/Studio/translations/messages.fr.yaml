@@ -909,13 +909,12 @@ suite:
                 step_2: "« Nouvel espace » demande un nom, un client existant ou un nouveau prospect, et l'équipe qui y travaille."
                 step_3: "Les onglets Clients et Prospects séparent ce sur quoi vous travaillez de ce que vous cherchez à décrocher."
                 step_4: "« À traiter » compte les parutions manquées, les relectures en retard, les contenus à revoir et ceux qui attendent le client."
-                step_5: "Archiver un espace le retire de la liste sans rien perdre ; le supprimer le met à la corbeille, d'où il revient tel qu'il était jusqu'à sa suppression définitive. Le client et ses contrats ne bougent pas."
+                step_5: "Archiver un espace, depuis son onglet Réglages, le retire de la liste sans rien perdre ; le supprimer le met à la corbeille, d'où il revient tel qu'il était jusqu'à sa suppression définitive. Le client et ses contrats ne bougent pas."
             usage_detail: 'Espace {space}'
             usage_detail_trashed: 'Espace {space}, à la corbeille'
             title: Espaces clients
             add: "Nouvel espace"
             create: Nouvel espace
-            edit: 'Modifier {name}'
             empty: Aucun espace pour le moment.
             empty_hint: "Un espace client regroupe le travail mené pour un client. Créez-en un par prestation, pas un par client."
             search_placeholder: "Rechercher par nom d'espace ou par client…"
@@ -981,6 +980,11 @@ suite:
 
             settings:
                 section_drive: Google Drive
+                section_general: "Espace"
+                section_team: "Équipe"
+                general_intro: "Ce qu'est l'espace : son nom, son client, sa couleur, son fuseau horaire et son statut. Un espace archivé sort du calendrier et ne reçoit plus de livrable."
+                team_intro: "Qui travaille sur cet espace, et le rôle de chacun. Seuls le référent et les administrateurs changent l'équipe."
+                saved: "Réglages de l'espace enregistrés"
                 howto_title: Brancher un dossier
                 howto_share: "Le client partage son dossier Google Drive, en lecture, avec l'adresse du compte de service :"
                 howto_share_unknown: "Le client partage son dossier Google Drive, en lecture, avec l'adresse du compte de service du Drive (Configuration > Google Drive)."
@@ -1052,7 +1056,7 @@ suite:
             row_actions:
                 view_description: Ouvrir le tableau de cet espace
                 convert_description: Le client de cet espace a signé
-                edit_description: Modifier cet espace
+                edit_description: "Ouvrir les réglages de l'espace"
                 delete_description: Mettre cet espace à la corbeille
 
             errors:

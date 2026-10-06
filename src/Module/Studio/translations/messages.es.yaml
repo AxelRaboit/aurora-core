@@ -901,13 +901,12 @@ suite:
                 step_2: "«Nuevo espacio» pide un nombre, un cliente existente o un nuevo cliente potencial, y el equipo que trabaja en él."
                 step_3: "Las pestañas Clientes y Clientes potenciales separan aquello en lo que trabaja de lo que intenta conseguir."
                 step_4: "«Por tratar» cuenta las publicaciones perdidas, las revisiones con retraso, los contenidos por revisar y los que esperan al cliente."
-                step_5: 'Archivar un espacio lo retira de la lista sin perder nada; eliminarlo lo envía a la papelera, de donde vuelve tal como estaba hasta su eliminación definitiva. El cliente y sus contratos no cambian.'
+                step_5: 'Archivar un espacio, desde su pestaña Ajustes, lo retira de la lista sin perder nada; eliminarlo lo envía a la papelera, de donde vuelve tal como estaba hasta su eliminación definitiva. El cliente y sus contratos no cambian.'
             usage_detail: 'Espacio {space}'
             usage_detail_trashed: 'Espacio {space}, en la papelera'
             title: 'Espacios de cliente'
             add: "Nuevo espacio"
             create: 'Nuevo espacio'
-            edit: 'Editar {name}'
             empty: 'Ningún espacio por el momento.'
             empty_hint: "Un espacio de cliente agrupa el trabajo realizado para un cliente. Cree uno por servicio, no uno por cliente."
             search_placeholder: "Buscar por nombre de espacio o por cliente…"
@@ -968,6 +967,11 @@ suite:
                 archived: Archivado
             settings:
                 section_drive: 'Google Drive'
+                section_general: "Espacio"
+                section_team: "Equipo"
+                general_intro: "Lo que es el espacio: su nombre, su cliente, su color, su zona horaria y su estado. Un espacio archivado sale del calendario y ya no recibe entregables."
+                team_intro: "Quién trabaja en este espacio y el rol de cada uno. Solo el referente y los administradores cambian el equipo."
+                saved: "Ajustes del espacio guardados"
                 howto_title: 'Conectar una carpeta'
                 howto_share: 'El cliente comparte su carpeta de Google Drive, en modo lectura, con la dirección de la cuenta de servicio:'
                 howto_share_unknown: 'El cliente comparte su carpeta de Google Drive, en modo lectura, con la dirección de la cuenta de servicio de Drive (Configuración > Google Drive).'
@@ -1038,7 +1042,7 @@ suite:
             row_actions:
                 view_description: 'Abrir el tablero de este espacio'
                 convert_description: 'El cliente de este espacio ha firmado'
-                edit_description: 'Editar este espacio'
+                edit_description: "Abrir los ajustes del espacio"
                 delete_description: 'Enviar este espacio a la papelera'
             errors:
                 name_required: 'El nombre del espacio es obligatorio.'

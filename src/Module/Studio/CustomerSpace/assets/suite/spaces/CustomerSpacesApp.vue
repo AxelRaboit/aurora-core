@@ -33,7 +33,7 @@ import CustomerSpaceTeamCell from "./components/CustomerSpaceTeamCell.vue";
 import SpaceWorkloadBadges from "../../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
-import { PanelsTopLeft, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
+import { PanelsTopLeft, Plus, Save, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { container, isNarrow } = useNarrowContainer();
@@ -71,7 +71,6 @@ const props = defineProps({
     canCreateCustomer: { type: Boolean, default: false },
     boardPath: { type: String, required: true },
     createPath: { type: String, required: true },
-    updatePath: { type: String, required: true },
     convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
 });
@@ -93,13 +92,6 @@ const {
     createLoading,
     openCreate,
     submitCreate,
-    showEdit,
-    editingSpace,
-    editForm,
-    editErrors,
-    editLoading,
-    openEdit,
-    submitEdit,
     pendingDelete,
     deleteLoading,
     confirmDelete,
@@ -109,7 +101,6 @@ const {
     props.customers,
     props.users,
     props.createPath,
-    props.updatePath,
     props.deletePath,
 );
 
@@ -138,7 +129,9 @@ const {
 const actionsFor = useSpaceRowActions({
     can,
     boardHref,
-    openEdit,
+    // Editing a space happens on its Settings tab, where everything about
+    // it is gathered; the list keeps only the creation modal.
+    settingsHref: (space) => `${boardHref(space)}?view=settings`,
     convertToClient: (space) =>
         openConversion(space, {
             id: space.customerId,
@@ -506,48 +499,6 @@ const pageActions = computed(() => {
                         size="md"
                         :loading="createLoading"
                         v-on:click="submitCreate"
-                    >
-                        <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="showEdit"
-            max-width="2xl"
-            :title="
-                t('suite.studio.spaces.edit', { name: editingSpace?.name ?? '' })
-            "
-            :icon="Pencil"
-            :closeable="false"
-            v-on:close="showEdit = false"
-        >
-            <form v-on:submit.prevent="submitEdit">
-                <CustomerSpaceFormFields
-                    v-model="editForm"
-                    :errors="editErrors"
-                    :can-create-customer="canCreateCustomer"
-                    :customer-options="customerOptions"
-                    :users="users"
-                    :statuses="statuses"
-                    :roles="roles"
-                    :timezones="timezones"
-                    :can-edit-team="editingSpace?.canConfigure ?? false"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showEdit = false">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="editLoading"
-                        v-on:click="submitEdit"
                     >
                         <Save class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.save") }}

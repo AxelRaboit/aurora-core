@@ -21,6 +21,7 @@ use Aurora\Module\Studio\Customer\View\SpaceInformationViewBuilder;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
+use Aurora\Module\Studio\CustomerSpace\View\CustomerSpacesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
@@ -101,6 +102,10 @@ class SpaceContentController extends AbstractController
         protected readonly StoredFileResponder $responder,
         protected readonly UploadPolicyProvider $uploadPolicies,
         protected readonly ClientVisibility $clientVisibility,
+        // Optional and last, so a client project extending this controller
+        // with its own constructor keeps booting: without it the Settings tab
+        // only carries the Drive, as before.
+        protected readonly ?CustomerSpacesViewBuilder $spacesViewBuilder = null,
     ) {}
 
     /**
@@ -137,6 +142,7 @@ class SpaceContentController extends AbstractController
             ...$this->informationViewBuilder->view($space),
             ...$this->resourcesViewBuilder->view($space),
             ...$this->deliverablesViewBuilder->view($space),
+            ...($this->spacesViewBuilder?->settingsView($space) ?? ['spaceSettings' => null]),
         ]);
 
         // **Being signed in is not being authorised at the hub.** The hub has

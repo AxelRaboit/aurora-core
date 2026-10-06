@@ -180,6 +180,11 @@ const props = defineProps({
     /** Vrai pour le référent de l'espace, l'administrateur et le développeur. */
     canConfigure: { type: Boolean, default: false },
     settingsPath: { type: String, default: "" },
+    /**
+     * The space form of the Settings tab and its options; null without the
+     * right to edit the space. See `CustomerSpacesViewBuilder::settingsView()`.
+     */
+    spaceSettings: { type: Object, default: null },
     driveAgencyFolderPath: { type: String, default: null },
     driveServiceAccountEmail: { type: String, default: null },
     driveUnlockPath: { type: String, default: "" },
@@ -230,8 +235,9 @@ const VIEWS = [
     // qu'on les consulte et qu'on ne les règle pas.
     { key: "information", labelKey: "suite.studio.space_content.view_information", icon: IdCard },
     { key: "resources", labelKey: "suite.studio.space_content.view_resources", icon: Link2 },
-    // En dernier, et seulement pour qui peut configurer : une entrée de barre
-    // qui répondrait 404 à la moitié de l'équipe se lit comme une panne.
+    // Last, and only for whoever may edit the space (its form) or configure it
+    // (team and Drive): an entry that showed nothing to half the team would
+    // read as a failure.
     { key: "settings", labelKey: "suite.studio.space_content.view_settings", icon: Settings },
 ];
 
@@ -245,7 +251,7 @@ const VIEWS = [
 const views = computed(() =>
     VIEWS.filter((entry) => {
         if ("drive" === entry.key) return props.driveEnabled;
-        if ("settings" === entry.key) return props.canConfigure;
+        if ("settings" === entry.key) return props.canConfigure || !!props.spaceSettings;
         // Les notes vivent dans le module Notes : sans lui, ou sans le droit
         // de s'en servir, l'onglet mènerait à des écrans fermés.
         if ("notes" === entry.key) return true === props.spaceNotes?.enabled;
@@ -713,12 +719,14 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :resource-reorder-path="resourceReorderPath"
             />
 
-            <!-- En dernier dans la barre, et seulement pour qui peut configurer.
-             La serrure remonte d'ici vers la vue Drive : c'est le même écran
-             qui la pose et celui qui la subit, et ils doivent s'accorder sans
-             rechargement. -->
+            <!-- Last in the bar: the space form for its editors, the team and
+             the Drive for its lead. The Drive lock goes up from here to the
+             Drive view: the screen that sets it and the one that suffers it
+             must agree without a reload. -->
             <SpaceSettingsView
-                v-else-if="view === 'settings' && canConfigure"
+                v-else-if="view === 'settings' && (canConfigure || spaceSettings)"
+                :space-settings="spaceSettings"
+                :can-configure="canConfigure"
                 :settings-path="settingsPath"
                 :agency-folder-id="driveAgencyFolderNow"
                 :agency-folder-path="driveAgencyFolderPath"

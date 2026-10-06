@@ -13,7 +13,8 @@ function actions(granted) {
                 build: useSpaceRowActions({
                     can: (permission) => granted.includes(permission),
                     boardHref: (space) => `/workspace/${space.id}`,
-                    openEdit: vi.fn(),
+                    settingsHref: (space) =>
+                        `/workspace/${space.id}?view=settings`,
                     confirmDelete: vi.fn(),
                 }),
             };
@@ -55,5 +56,14 @@ describe("useSpaceRowActions", () => {
         const built = actions(["studio.spaces.edit", "studio.spaces.delete"]);
 
         expect(built.at(-1).key).toBe("delete");
+    });
+
+    it("leads « Modifier » to the space's Settings tab", () => {
+        const edit = actions(["studio.spaces.edit"]).find(
+            (action) => "edit" === action.key,
+        );
+
+        expect(edit.href).toBe("/workspace/7?view=settings");
+        expect(edit.onSelect).toBeUndefined();
     });
 });
