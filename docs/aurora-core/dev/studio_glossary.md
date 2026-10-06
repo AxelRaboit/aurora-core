@@ -32,6 +32,8 @@ plus écrire.
 | Une copie de départ pour un livrable | modèle | template | modelo | |
 | Le document type d'un contrat, versionné | trame | contract template | plantilla de contrato | modèle, document type |
 | La société avec qui on contracte | client (prospect avant conversion) | customer (prospect) | cliente (cliente potencial) | société, entreprise (comme nom d'objet) |
+| Ce qu'on sait d'un client (identité, contact, liens, notes) | fiche | record | ficha | dossier, informations (pour l'ensemble) |
+| L'écran où la fiche se lit et se modifie, seul endroit où elle s'écrit | page du client | customer page | página del cliente | |
 
 Le mot « espace » seul désigne un espace client dans Studio. Dans le module
 Notes, on écrit toujours « espace de notes ».

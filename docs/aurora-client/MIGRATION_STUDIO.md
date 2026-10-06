@@ -21,7 +21,9 @@ le module Notes**, avec l'import Craft (sections 7 et 8).
 > de l'espace client vers son espace de notes) et `Version20261006190000`
 > (notes d'espace déplacées dans Notes, irréversible), puis
 > `Version20261006200000` (visibilité par le client, section 9), puis
-> `Version20261006210000` (corbeille des espaces et des contenus, section 10). Ce qui suit concerne
+> `Version20261006210000` (corbeille des espaces et des contenus, section 10),
+> puis `Version20261006220000` (compte utilisateur d'un client retiré,
+> section 11). Ce qui suit concerne
 > **le code du projet client** : ce qu'il étend, appelle ou configure.
 >
 > `Version20261006190000` chiffre ce qu'elle écrit : **`AURORA_ENCRYPTION_KEY`
@@ -317,3 +319,91 @@ Clients, trames, contrats et ressources ne changent pas.
   `suite.studio.spaces.trash_action`, `suite.studio.space_content.trash_action`,
   `suite.nav.studio_space_contents`). Une surcharge côté client de ces clés
   est à relire.
+
+## 11. Une page par client, seul endroit où sa fiche s'écrit
+
+La fiche d'un client avait **deux formulaires** qui ne portaient pas les mêmes
+champs : la fenêtre de l'écran Clients (forme juridique, capital, RCS, TVA,
+secteur, représentant, compte) et l'onglet Informations d'un espace (SIREN,
+fixe, liens, notes). Le SIREN, le fixe, les liens et les notes ne se
+saisissaient donc que depuis un espace. Elle a maintenant **sa page**,
+`/suite/studio/customers/{id}` (route `suite_studio_customers_show`, droit
+`studio.customers.view`), qui porte tous les champs dans un seul formulaire et
+enregistre par `suite_studio_customers_update` (droit `studio.customers.edit`),
+avec les mêmes règles qu'avant (email contractuel d'un client signé, SIRET
+libre et valide, SIREN valide et accordé au SIRET, liens web). À droite, ses
+espaces, ses contrats (avec leur statut) et ses livrables de Studio, selon les
+droits du lecteur. On y convertit un prospect et on y supprime la fiche, avec
+la garde existante. La liste y mène (nom cliquable, entrée « Ouvrir ») et ne
+modifie plus ; la recherche de la suite aussi.
+
+L'onglet Informations d'un espace devient **en lecture** : il montre la fiche
+telle que le client la voit (rien ne change sur la page du client) et mène à la
+page du client par « Modifier la fiche » à qui a `studio.customers.view` et
+`studio.customers.edit`.
+
+Le champ **« Compte utilisateur »** (`Customer.user`) est retiré : il
+s'affichait et s'enregistrait, et rien ne le lisait.
+
+- **Données** : `Version20261006220000` retire `core_customers.user_id`, son
+  index et sa clé étrangère. Aucun compte n'est touché. Irréversible pour la
+  donnée (le `down` recrée la colonne, vide).
+- **Route retirée** : `workspace_space_information_save`
+  (`POST /workspace/{id}/information/save`) répond 404, et son contrôleur
+  `SpaceInformationController` n'existe plus. Un appel maison passe par
+  `suite_studio_customers_update`.
+- **Route ajoutée** : `suite_studio_customers_show` (`GET`). Le gabarit
+  `@Studio/suite/customers/show.html.twig` monte
+  `studio/suite/customers/CustomerPageApp`.
+- **Réponse de `suite_studio_customers_update`** : `{success, customer}`
+  seulement (elle portait aussi `customers`, la liste entière, que plus rien ne
+  lisait depuis que la liste ne modifie plus). `_create` ne change pas.
+- **DTO, rupture** : `CustomerInformationInput`, son interface, sa fabrique et
+  l'interface de sa fabrique sont supprimés. `CustomerInputInterface` gagne
+  `getSiren()`, `getLandline()`, `getLinks()` et `getInformationNotes()`, et
+  perd `getUserId()` ; `CustomerInput` porte les contraintes (dont
+  `validateNumbersAgree()`). Une saisie étendue côté client ajoute les quatre
+  méthodes et retire la cinquième. Clés lues par la fabrique : `siren`,
+  `landline`, `links` (`[{label, url}]`, une ligne vide tombe),
+  `informationNotes` ; `userId` n'est plus lue.
+- **Manager, rupture** : `CustomerManagerInterface::updateInformation()` est
+  retirée (et l'action d'audit `customer.information_updated` n'est plus
+  écrite ; son libellé reste pour l'historique). `applyInput()` écrit aussi le
+  SIREN, le fixe, les liens et les notes. `CustomerManager::resolveUser()` est
+  retirée et le constructeur ne reçoit plus `UserRepository` : une sous-classe
+  qui le surchargeait l'adapte.
+- **Entité, rupture** : `CustomerInterface::getUser()` / `setUser()` et la
+  propriété `AbstractCustomer::$user` sont retirées.
+- **Sérialiseur** : `CustomerSerializer` ne rend plus `userId`, `userName`,
+  `userEmail`, et rend `links` et `informationNotes`.
+  `CustomerInformationSerializer` (ce que lit le client) ne change pas.
+- **Vues** : `CustomersViewBuilder::indexView()` ne rend plus `users` ni
+  `updatePath`, mais `showPath` ; `showView()` et `showPayload()` sont
+  ajoutées, et le constructeur ne reçoit plus `UserRepository` mais
+  `CustomerRelatedViewBuilder`. `SpaceInformationViewBuilder::view()` rend
+  `customerPath` (null sans les deux droits) au lieu de `informationSavePath`,
+  et `payload()` est retirée. Ce qui entoure un client (contrats, livrables de
+  Studio, espaces, chacun `null` quand le lecteur ne peut pas l'ouvrir) se
+  calcule dans `CustomerRelatedViewBuilder::related($customer, $exceptSpace)`.
+- **Vue.js** : `CustomersApp` perd les propriétés `users` et `updatePath` et
+  gagne `showPath` ; la fenêtre de modification est retirée. `CustomerFormFields`
+  perd `userOptions` et porte tous les champs ; `useCustomersForm(customers,
+  createPath, deletePath)` ne gère plus la modification ;
+  `useCustomerRowActions` prend `showPath` et non plus `openEdit` (entrée
+  `open` au lieu de `edit`). `SpaceInformationView` prend `customerPath` au
+  lieu de `savePath` et n'émet plus `saved`. Nouveaux : `CustomerPageApp`,
+  `useCustomerPage`, `customerFormModel.js`, `CustomerDeleteModal`,
+  `CustomerRelatedLists`.
+- **Traductions** : clés ajoutées sous `suite.studio.customers.*` (`open`,
+  `siren*`, `landline*`, `group_links*`, `links*`, `link_*`, `notes*`,
+  `page_guide.*`, `group_related`, `related.*`, `read_only`,
+  `row_actions.open_description`, et les erreurs `siren_invalid`,
+  `siren_mismatch`, `phone_too_long`, `notes_too_long`, `links_too_many`,
+  `link_*`). Retirées : `suite.studio.customers.edit`, `linked_account`,
+  `account`, `account_none`, `account_hint`,
+  `row_actions.edit_description`, et sous `suite.studio.space_information.*`
+  tout sauf `scope` (réécrite), `what_the_client_sees`, `group_card`,
+  `group_related` et `edit`. Les messages d'erreur de `Siren` et de
+  `CustomerLinkInput` passent de `space_information.errors.*` à
+  `customers.errors.*`. Une surcharge côté client de ces clés est à déplacer.
+

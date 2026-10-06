@@ -129,6 +129,8 @@ l'onglet Fichiers adossé à la GED, puis le miroir Google Drive.
 
 - [[decision_client_visibility_one_rule]] - ce que le client voit dans son
   espace : tout naît caché, montrer demande le droit de partager.
+- [[decision_customer_page_single_write_path]] - l'onglet Informations est en
+  lecture ; la fiche du client s'écrit sur sa page.
 - [[architecture_module_parameter_enum]] - corrigée pendant le lot 1 : elle
   décrivait des enums par module qui n'existent plus.
 - [[project_planning_share_link_write_access]] - les deux prérequis à une
