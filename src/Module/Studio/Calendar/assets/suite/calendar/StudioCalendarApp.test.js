@@ -28,7 +28,11 @@ const PROPS = {
 const mounted = [];
 
 function render(search) {
-    window.history.replaceState(null, "", `/suite/studio/spaces/calendar${search}`);
+    window.history.replaceState(
+        null,
+        "",
+        `/suite/studio/spaces/calendar${search}`,
+    );
     const wrapper = mount(StudioCalendarApp, {
         props: PROPS,
         global: { plugins: [i18n] },
