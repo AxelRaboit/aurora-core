@@ -8,6 +8,9 @@
  * as presenting it - but the presenting gesture is one click away for the
  * reader who would rather have it.
  *
+ * Opened from the client's space, it leads back there (`backUrl`); opened
+ * by a reading link, there is nowhere to go back to and the link is absent.
+ *
  * The speaker notes never reach this page. The controller strips them from the
  * payload rather than trusting this template to leave them out, which is the
  * right place for that decision: a template is edited far more often than a
@@ -15,7 +18,7 @@
  */
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Play } from "lucide-vue-next";
+import { ArrowLeft, Play } from "lucide-vue-next";
 import SlideFrame from "./components/SlideFrame.vue";
 import DeckPlayer from "./components/DeckPlayer.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -24,6 +27,8 @@ const props = defineProps({
     deck: { type: Object, required: true },
     /** ISO 8601, or null when the link lives until it is revoked. */
     expiresAt: { type: String, default: null },
+    /** The client's space, when the deck was opened from it. */
+    backUrl: { type: String, default: null },
 });
 
 const { t, d } = useI18n();
@@ -34,6 +39,15 @@ const slides = props.deck.slides ?? [];
 
 <template>
     <div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-5 px-2 py-2 sm:p-8">
+        <a
+            v-if="backUrl"
+            :href="backUrl"
+            class="inline-flex min-h-[38px] items-center gap-1.5 self-start text-sm text-secondary no-underline hover:text-primary"
+        >
+            <ArrowLeft class="h-4 w-4" :stroke-width="2" />
+            {{ t("frontend.reading.back") }}
+        </a>
+
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
                 <h1 class="m-0 text-xl font-semibold text-primary">{{ deck.title }}</h1>

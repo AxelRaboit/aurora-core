@@ -25,7 +25,6 @@ use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
 use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use LogicException;
 use Throwable;
 
 use function array_key_exists;
@@ -280,8 +279,11 @@ readonly class DeliverableManager
      * Un livrable de Studio recopié dans l'espace d'un client : le modèle
      * d'audit ou de stratégie qu'on remplit pour lui.
      *
-     * La copie vit désormais dans l'espace, avec ses droits ; l'original
-     * reste dans Studio, intact. Elle arrive fermée au client, comme toute
+     * A page or a presentation: a presentation takes its slides, their
+     * notes, its theme and style along, see {@see self::persistCopy()}. It is
+     * also what « Partir d'un modèle » does from a space's Deliverables tab.
+     * The copy then lives in the space, under its rights; the original stays
+     * in Studio, untouched. Elle arrive fermée au client, comme toute
      * copie, et « Préparé pour » prend le nom du client de l'espace.
      *
      * Ni modèle ni client à elle : dans un espace, c'est l'espace qui dit les
@@ -289,13 +291,6 @@ readonly class DeliverableManager
      */
     public function copyToSpace(DeliverableInterface $source, CustomerSpaceInterface $space, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
-        // Un diaporama reste dans Studio pour l'instant : l'espace du client,
-        // son onglet et sa page de lecture ne savent montrer que des pages.
-        // Le contrôleur le refuse avant ; ceci garde tout autre appelant.
-        if ($source->isSlides()) {
-            throw new LogicException('a slides deliverable cannot be copied into a customer space yet');
-        }
-
         $copy = $this->instantiate($space, $title, $source->getLocale(), $source->getFormat());
         $copy
             ->setOwner($author)

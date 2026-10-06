@@ -9,6 +9,10 @@
  * de lecture du livrable quand on veut partager, et ajoute
  * la fenêtre des réglages (titre, résumé, image, catégorie, client, modèle,
  * rayon) qu'une page règle dans son onglet.
+ *
+ * In a client space (`space`), the settings are a space deliverable's: no
+ * shelf, category or template, but the « Visible par le client » toggle,
+ * under the right to share the space, as for a page.
  */
 import { computed, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -26,6 +30,8 @@ const props = defineProps({
     deck: { type: Object, required: true },
     /** Le livrable tel que l'enregistre la route des livrables. */
     deliverable: { type: Object, required: true },
+    /** The client space that holds it; null for a Studio presentation. */
+    space: { type: Object, default: null },
     backPath: { type: String, default: null },
     canEdit: { type: Boolean, default: false },
     canShare: { type: Boolean, default: false },
@@ -81,7 +87,7 @@ const { form, open, saving, errors, openSettings, save } = useDeliverableSlidesS
 const showLinks = ref(false);
 
 /** Ce que l'éditeur reçoit tel quel : tout sauf ce qui n'est qu'au livrable. */
-const OWN = ["deck", "deliverable", "updatePath", "linksPath", "locales", "categories", "customers", "canPickCustomer", "canChangeScope"];
+const OWN = ["deck", "deliverable", "space", "updatePath", "linksPath", "locales", "categories", "customers", "canPickCustomer", "canChangeScope"];
 
 const editorProps = computed(() => Object.fromEntries(Object.entries(props).filter(([key]) => !OWN.includes(key))));
 </script>
@@ -115,9 +121,12 @@ const editorProps = computed(() => Object.fromEntries(Object.entries(props).filt
                 v-model:template="form.template"
                 v-model:customer-id="form.customerId"
                 v-model:thumbnail="form.thumbnail"
+                v-model:visible-to-client="form.visibleToClient"
                 :locales="locales"
                 :errors="errors"
-                :with-client="false"
+                :customer-name="space?.customerName ?? ''"
+                :with-client="!!space"
+                :can-show-to-client="canShare"
                 :with-reading-header="false"
                 :can-change-scope="canChangeScope"
                 :categories="categories"

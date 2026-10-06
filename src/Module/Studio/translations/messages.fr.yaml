@@ -1283,16 +1283,16 @@ suite:
                 step_6_studio: "Dans le menu, « Exporter en PDF » donne une page par diapo. Les passages entre [crochets] sont à remplacer avant de l'envoyer : un compteur les suit."
             guide:
                 title: "Comment fonctionnent les livrables"
-                step_1: "« Nouveau livrable » crée un livrable (audit, stratégie, bilan) qui se compose comme une page, à vos couleurs ou à celles du client."
+                step_1: "« Nouveau livrable » crée une page (audit, stratégie, bilan) ou une présentation, de zéro ou à partir d'un modèle de Studio, à vos couleurs ou à celles du client."
                 step_2: "Il reste caché au client tant que quelqu'un qui peut partager l'espace ne clique pas sur « Montrer au client »."
                 step_3: "« Partager », dans le menu ⋯ d'un livrable ou dans son éditeur, donne à quelqu'un un lien de lecture, une adresse secrète qui ouvre ce seul livrable, sans l'espace."
                 step_4: "Un lien peut avoir un mot de passe et une expiration, et se révoque un par un ; cacher le livrable ne coupe pas ses liens."
                 step_5: "« Dupliquer » crée une copie cachée au client, pratique pour repartir du bilan du mois dernier."
                 step_6: "« Copier dans Studio » garde ce livrable comme modèle. Les passages entre [crochets] sont à remplacer avant de le montrer au client : la liste vous le redemande s'il en reste. Les liens de lecture demandent le droit de partager l'espace."
-            intro: "Les livrables écrits pour ce client : audits, stratégies, bilans. Chacun se compose comme une page, à ses couleurs, et le client le lit dans son espace dès que vous le lui montrez."
+            intro: "Les livrables écrits pour ce client : audits, stratégies, bilans. Chacun est une page ou une présentation, à ses couleurs, et le client le lit dans son espace dès que vous le lui montrez."
             add: "Nouveau livrable"
             empty: "Aucun livrable pour ce client."
-            empty_hint: "Commencez un audit, une stratégie ou un bilan : il se compose avec la grille des pages, et reste caché au client tant que vous ne le lui montrez pas."
+            empty_hint: "Commencez un audit, une stratégie, un bilan ou une présentation : il reste caché au client tant que vous ne le lui montrez pas."
             create_title: "Nouveau livrable"
             create: "Créer et ouvrir"
             title: "Titre"
@@ -2131,7 +2131,6 @@ suite:
                 format_invalid: "Ce format n'existe pas : choisissez une page ou une présentation."
                 format_unavailable: "Ce format ne se crée pas encore : choisissez une page."
                 import_empty: "Ce texte ne contient rien dont on puisse faire une diapo."
-                slides_not_in_space: "Une présentation reste dans Studio pour l'instant : elle ne se copie pas dans un espace client."
                 conflict: "Un collègue a enregistré ce livrable entre-temps. Rechargez la page pour voir sa version, ou enregistrez quand même pour la remplacer."
         space_resources:
             guide:
@@ -2534,6 +2533,7 @@ studio:
             tab_documents: 'Livrables'
             document_untitled: "Livrable sans titre"
             document_updated_on: 'Mis à jour le {date}'
+            document_presentation: 'Présentation'
             tab_information: Informations
             files_title: Les fichiers de cet espace
             files_open: Ouvrir

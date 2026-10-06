@@ -363,7 +363,7 @@ describe("DeliverablesApp", () => {
         vi.doUnmock("./composables/useDeliverableRequest.js");
     });
 
-    it("never offers to copy a presentation into a client space, and badges it", () => {
+    it("offers to copy a presentation into a client space, and badges it", () => {
         const wrapper = mountApp({
             personal: [row(1, "Lancement", { format: "slides" })],
             copyToSpacePathTemplate:
@@ -377,7 +377,8 @@ describe("DeliverablesApp", () => {
             ],
         });
 
-        expect(actionKeys(wrapper)).not.toContain("copy-to-space");
+        // A presentation lives in a space too: its slides travel with it.
+        expect(actionKeys(wrapper)).toContain("copy-to-space");
         expect(wrapper.text()).toContain("format.badge_slides");
     });
 

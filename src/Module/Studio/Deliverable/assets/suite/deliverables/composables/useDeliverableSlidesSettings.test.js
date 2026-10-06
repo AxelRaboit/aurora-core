@@ -74,7 +74,10 @@ describe("settingsPayload", () => {
             template: true,
             thumbnailId: 12,
         });
-        expect(payload.visibleToClient).toBe(false);
+        // What it is: in a space, sending false would hide from the client a
+        // presentation they read, or be refused to whoever may not show it.
+        expect(payload.visibleToClient).toBe(true);
+        expect(settingsPayload(DELIVERABLE).visibleToClient).toBe(false);
     });
 });
 

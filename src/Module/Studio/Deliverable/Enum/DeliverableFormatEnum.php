@@ -18,8 +18,8 @@ use function is_string;
  *
  * `Slides` est la place des présentations de Studio, qui deviennent des
  * livrables : un diaporama se compose avec l'éditeur de diapositives des
- * présentations, et sa page de lecture montre ses diapositives. Il reste dans
- * Studio pour l'instant : la copie vers un espace client le refuse.
+ * présentations, et sa page de lecture montre ses diapositives. It lives in
+ * Studio as in a client space, where the client reads it once shown to them.
  */
 enum DeliverableFormatEnum: string
 {

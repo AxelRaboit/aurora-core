@@ -1254,16 +1254,16 @@ suite:
                 step_6_studio: "En el menú, «Exportar a PDF» da una página por diapositiva. Los pasajes entre [corchetes] hay que reemplazarlos antes de enviarlo: un contador los sigue."
             guide:
                 title: "Cómo funcionan los entregables"
-                step_1: "«Nuevo entregable» crea un entregable (auditoría, estrategia, balance) que se compone como una página, con sus colores o los del cliente."
+                step_1: "«Nuevo entregable» crea una página (auditoría, estrategia, balance) o una presentación, desde cero o a partir de un modelo de Studio, con sus colores o los del cliente."
                 step_2: "Permanece oculto al cliente mientras alguien que puede compartir el espacio no haga clic en «Mostrar al cliente»."
                 step_3: "«Compartir», en el menú ⋯ de un entregable o en su editor, da a alguien un enlace de lectura, una dirección secreta que abre solo este entregable, sin el espacio."
                 step_4: "Un enlace puede tener contraseña y caducidad, y se revoca uno por uno; ocultar el entregable no corta sus enlaces."
                 step_5: "«Duplicar» crea una copia oculta al cliente, práctica para partir del balance del mes pasado."
                 step_6: "«Copiar a Studio» guarda este entregable como modelo. Los pasajes entre [corchetes] hay que reemplazarlos antes de mostrarlo al cliente: la lista se lo pregunta de nuevo si queda alguno. Los enlaces de lectura requieren el derecho de compartir el espacio."
-            intro: "Los entregables escritos para este cliente: auditorías, estrategias, balances. Cada uno se compone como una página, con sus colores, y el cliente lo lee en su espacio en cuanto usted se lo muestra."
+            intro: "Los entregables escritos para este cliente: auditorías, estrategias, balances. Cada uno es una página o una presentación, con sus colores, y el cliente lo lee en su espacio en cuanto usted se lo muestra."
             add: "Nuevo entregable"
             empty: "Ningún entregable para este cliente."
-            empty_hint: "Empiece una auditoría, una estrategia o un balance: se compone con la cuadrícula de las páginas y queda oculto al cliente hasta que usted se lo muestre."
+            empty_hint: "Empiece una auditoría, una estrategia, un balance o una presentación: queda oculto al cliente hasta que usted se lo muestre."
             create_title: "Nuevo entregable"
             create: "Crear y abrir"
             title: "Título"
@@ -2102,7 +2102,6 @@ suite:
                 format_invalid: "Ese formato no existe: elija una página o una presentación."
                 format_unavailable: "Este formato todavía no se puede crear: elija una página."
                 import_empty: "Este texto no contiene nada con lo que hacer una diapositiva."
-                slides_not_in_space: "Una presentación se queda en Studio por ahora: no se copia en un espacio de cliente."
                 conflict: "Un compañero guardó este entregable mientras tanto. Recargue la página para ver su versión, o guarde igualmente para reemplazarla."
         space_resources:
             guide:
@@ -2493,6 +2492,7 @@ studio:
             tab_documents: 'Entregables'
             document_untitled: "Entregable sin título"
             document_updated_on: 'Actualizado el {date}'
+            document_presentation: 'Presentación'
             tab_information: Información
             files_title: 'Los archivos de este espacio'
             files_open: Abrir

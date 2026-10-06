@@ -333,6 +333,7 @@ final class DeliverablesController extends AbstractController
     /**
      * Une copie déposée dans l'espace d'un client : le modèle qu'on remplit
      * pour lui. On arrive dans l'éditeur de la copie, dans son espace.
+     * A presentation travels with its slides, notes, theme and style.
      *
      * Un espace inconnu, invisible ou archivé répond 404, comme un livrable
      * qu'on ne lit pas ; un espace qu'on voit sans pouvoir y écrire, 403.
@@ -341,13 +342,6 @@ final class DeliverablesController extends AbstractController
     public function copyToSpace(int $id, Request $request): JsonResponse
     {
         $source = $this->readable($id);
-
-        // Un diaporama reste dans Studio pour l'instant : l'espace du client
-        // ne sait lire que des pages.
-        if ($source->isSlides()) {
-            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.slides_not_in_space']);
-        }
-
         $payload = $this->decodeJson($request);
 
         $spaceId = $payload['spaceId'] ?? null;

@@ -72,6 +72,9 @@ function mountApp(extra = {}) {
                     props: {
                         withReadingHeader: { type: Boolean, default: true },
                         withClient: Boolean,
+                        canShowToClient: Boolean,
+                        customerName: String,
+                        visibleToClient: Boolean,
                     },
                     template: "<div />",
                 },
@@ -136,5 +139,46 @@ describe("DeliverableSlidesEditorApp", () => {
                 .findComponent({ name: "DeliverableSettingsTab" })
                 .props("withClient"),
         ).toBe(false);
+    });
+
+    it("settles a presentation of a client space like a deliverable of that space", async () => {
+        const wrapper = mountApp({
+            space: {
+                id: 9,
+                name: "Atelier Dupont",
+                customerName: "Atelier Dupont SARL",
+            },
+            deliverable: {
+                id: 4,
+                title: "Lancement",
+                summary: "",
+                locale: "fr",
+                scope: null,
+                visibleToClient: true,
+                thumbnail: { id: null, url: null },
+                readingHeader: {},
+            },
+            canShare: false,
+            updatePath: "/workspace/9/deliverables/4/update",
+        });
+
+        // The space is the page's, not the editor's.
+        expect(
+            wrapper
+                .findComponent({ name: "DeckEditorApp" })
+                .attributes("space"),
+        ).toBeUndefined();
+
+        wrapper.findComponent({ name: "DeckEditorApp" }).vm.$emit("settings");
+        await nextTick();
+
+        const settings = wrapper.findComponent({
+            name: "DeliverableSettingsTab",
+        });
+        expect(settings.props("withClient")).toBe(true);
+        expect(settings.props("customerName")).toBe("Atelier Dupont SARL");
+        // Showing it to the client is the right to share the space.
+        expect(settings.props("canShowToClient")).toBe(false);
+        expect(settings.props("visibleToClient")).toBe(true);
     });
 });

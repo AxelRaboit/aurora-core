@@ -32,8 +32,9 @@ use function flush;
  * n'est pas un secret. Ce qui n'est pas une police n'est jamais servi, quel
  * que soit l'identifiant demandé.
  *
- * Nommée `public_deliverable_font`, elle s'éteint avec le module Livrables,
- * qui porte les présentations, cf. `StudioRouteGateSubscriber`.
+ * Named `public_deliverable_font`, it goes dark when neither the
+ * Deliverables module nor the client spaces, which hold the presentations,
+ * are switched on, see `StudioRouteGateSubscriber`.
  */
 final class DeliverableFontsController extends AbstractController
 {

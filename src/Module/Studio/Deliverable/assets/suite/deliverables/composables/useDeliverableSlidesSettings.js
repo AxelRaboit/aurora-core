@@ -25,7 +25,10 @@ export function settingsPayload(form) {
         gridContent: form.gridContent ?? {},
         appearance: form.appearance ?? {},
         readingHeader: form.readingHeader ?? {},
-        visibleToClient: false,
+        // What it is, or what the toggle just decided: in a space, sending
+        // `false` would hide a presentation the client reads, or be refused to
+        // whoever may not show it. Studio ignores it, having no client.
+        visibleToClient: true === form.visibleToClient,
         thumbnailId: form.thumbnail?.id ?? null,
         scope: form.scope,
         categoryId: form.categoryId ?? null,

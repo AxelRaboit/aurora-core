@@ -22,7 +22,6 @@ use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableDocumentUsageProvider;
 use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -48,9 +47,9 @@ use const PHP_URL_PATH;
  *
  * Ce qui se casserait sans bruit : une diapositive d'un autre livrable écrite
  * par l'adresse de celui-ci, les notes de l'orateur sur la page d'un lecteur,
- * une copie qui perdrait ses diapositives ou son thème, un diaporama déposé
- * dans un espace qui ne sait pas le lire, ou une image de diapositive que la
- * médiathèque croirait inutilisée.
+ * une copie qui perdrait ses diapositives ou son thème, ou une image de
+ * diapositive que la médiathèque croirait inutilisée. Presentations kept in a
+ * client space are covered by SpaceSlidesTest.
  */
 final class DeliverableSlidesTest extends IntegrationTestCase
 {
@@ -340,22 +339,6 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         self::assertCount(0, $page->getSlides());
     }
 
-    /** Un diaporama reste dans Studio : la copie vers un espace le refuse. */
-    public function testASlidesDeliverableIsNotCopiedIntoASpace(): void
-    {
-        $id = $this->createSlides('Pas pour un espace');
-        $space = $this->givenSpace();
-
-        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
-        self::assertResponseStatusCodeSame(422);
-        self::assertSame('suite.studio.deliverables.errors.slides_not_in_space', $this->json()['errors']['format'] ?? null);
-        self::assertSame(0, (int) $this->entityManager->createQuery(sprintf('SELECT COUNT(d.id) FROM %s d WHERE d.space IS NOT NULL', Deliverable::class))->getSingleScalarResult());
-
-        $this->client->request('GET', '/suite/studio/deliverables/'.$id);
-        self::assertResponseIsSuccessful();
-        self::assertStringNotContainsString('copy-to-space', (string) $this->client->getResponse()->getContent(), 'the slides editor offers no copy into a space');
-    }
-
     /**
      * Une image posée sur une diapositive, ou le logo des diapositives, est
      * comptée par la médiathèque, et nommée au moment de donner un lien quand
@@ -387,7 +370,8 @@ final class DeliverableSlidesTest extends IntegrationTestCase
 
     /**
      * Une police déposée depuis un diaporama se sert sous les livrables, sans
-     * compte, et s'éteint avec eux.
+     * compte. It goes dark only when neither Studio deliverables nor client
+     * spaces, which both hold presentations, are on.
      */
     public function testAnUploadedFontIsServedUnderTheDeliverables(): void
     {
@@ -412,12 +396,19 @@ final class DeliverableSlidesTest extends IntegrationTestCase
             self::assertResponseIsSuccessful();
             self::assertSame('font/woff2', $this->client->getResponse()->headers->get('Content-Type'));
 
+            // A space presentation still needs it with the Deliverables module off.
             $settings->set(ModuleParameterEnum::StudioDeliverables->value, '0');
+            $checker->reset();
+            $this->client->request('GET', (string) $font['url']);
+            self::assertResponseIsSuccessful();
+
+            $settings->set(ModuleParameterEnum::StudioSpaces->value, '0');
             $checker->reset();
             $this->client->request('GET', (string) $font['url']);
             self::assertResponseStatusCodeSame(404);
         } finally {
             $settings->set(ModuleParameterEnum::StudioDeliverables->value, '1');
+            $settings->set(ModuleParameterEnum::StudioSpaces->value, '1');
             $checker->reset();
         }
     }
@@ -525,25 +516,5 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         $this->documents[] = (int) $document->getId();
 
         return (int) $document->getId();
-    }
-
-    private function givenSpace(): CustomerSpace
-    {
-        $customer = new Customer();
-        $customer->setLegalName('Client diaporama')->setContractualEmail(bin2hex(random_bytes(4)).'@example.test');
-        $this->entityManager->persist($customer);
-        $this->entityManager->flush();
-
-        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
-            'name' => 'Espace diaporama '.(new DateTimeImmutable())->format('His'),
-            'customerId' => $customer->getId(),
-            'timezone' => 'Europe/Paris',
-        ]);
-        self::assertResponseIsSuccessful();
-
-        $space = $this->entityManager->getRepository(CustomerSpace::class)->find($this->json()['space']['id']);
-        self::assertInstanceOf(CustomerSpace::class, $space);
-
-        return $space;
     }
 }

@@ -82,6 +82,10 @@ use const PASSWORD_DEFAULT;
  * bilan à la corbeille. Les trois dernières étaient les présentations de
  * Studio avant qu'elles deviennent des livrables.
  *
+ * And one presentation inside a client space: Atelier Dupont's October
+ * check-in, shown to the client, so their page lists a presentation and opens
+ * it in the slide reader (the speaker notes stay on the studio's side).
+ *
  * En français seulement : un livrable a une langue, celle de son client.
  *
  * Rejouable : `make fixtures` charge tous les groupes, `make demo` recharge
@@ -133,6 +137,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $this->deliverable($manager, $dupont, ...$this->monthlyReport());
         $this->deliverable($manager, $dupont, ...$this->strategy());
         $this->deliverable($manager, $fabre, ...$this->proposal());
+        $this->spacePresentation($manager, $dupont);
 
         // Les catégories des livrables de Studio, dans l'ordre où l'équipe les
         // range : chaque modèle ci-dessous en reçoit une.
@@ -600,6 +605,40 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $this->slide($deliverable, SlideLayoutEnum::Title, ['title' => 'Bilan du trimestre', 'subtitle' => '{client}'], null);
             $deliverable->setDeletedAt(new DateTimeImmutable('-5 days'));
         }
+    }
+
+    /**
+     * A presentation kept in a client space and shown to the client: a short
+     * monthly check-in with speaker notes the client never sees. Laid once:
+     * a reload finds it by its title in that space.
+     */
+    private function spacePresentation(ObjectManager $manager, CustomerSpaceInterface $space): void
+    {
+        $title = 'Point d\'étape, octobre';
+        if (null !== $this->deliverables->findOneBy(['space' => $space, 'title' => $title])) {
+            return;
+        }
+
+        $deliverable = new Deliverable($space, $title, 'fr', DeliverableFormatEnum::Slides);
+        $deliverable
+            ->setSummary('Le point du mois en cinq diapos : ce qui a marché, ce qui change, ce qu\'on attend de vous.')
+            ->setOwner($this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]))
+            ->setVisibleToClient(true)
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space->getCustomer()->getLegalName()]))
+            ->setAppearance(DeliverableAppearance::normalize([]));
+        $manager->persist($deliverable);
+
+        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => $space->getCustomer()->getLegalName()]);
+
+        $this->slide($deliverable, SlideLayoutEnum::Title, ['title' => 'Point d\'étape', 'subtitle' => 'Octobre, réseaux sociaux'], "Rappeler l'objectif du trimestre avant les chiffres.");
+        $this->slide($deliverable, SlideLayoutEnum::Bullets, ['title' => 'Ce qui a marché', 'bullets' => ['Les coulisses de l\'atelier, trois fois plus partagées', "Deux demandes de devis venues d'Instagram", 'Un rythme tenu : douze publications sur douze']], "Insister sur les devis : c'est ce qui compte pour eux.");
+        $this->slide($deliverable, SlideLayoutEnum::Split, [
+            'title' => 'Ce qui change en novembre',
+            'left' => 'Moins de visuels produits seuls, plus de mains au travail.',
+            'right' => 'Une vidéo courte par semaine, tournée le mardi à l\'atelier.',
+        ], null);
+        $this->slide($deliverable, SlideLayoutEnum::Bullets, ['title' => "Ce qu'on attend de vous", 'bullets' => ['Vos retours sur le calendrier avant le 25', 'Dix photos de la nouvelle collection', 'Un créneau pour le tournage']], 'Proposer deux dates de tournage, pas une.');
+        $this->slide($deliverable, SlideLayoutEnum::End, ['title' => 'Merci', 'subtitle' => 'Prochain point début décembre'], null);
     }
 
     /**

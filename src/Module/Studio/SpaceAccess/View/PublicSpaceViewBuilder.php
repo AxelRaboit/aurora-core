@@ -70,7 +70,7 @@ final readonly class PublicSpaceViewBuilder
      * médiathèque : le client n'est pas connecté, et une image privée ne
      * s'afficherait pas chez lui. Elle n'est alors simplement pas envoyée.
      *
-     * @return list<array{id: int, title: string, description: ?string, updatedAt: string, url: string, thumbnailUrl: ?string, thumbnailPosition: ?string}>
+     * @return list<array{id: int, title: string, description: ?string, format: string, updatedAt: string, url: string, thumbnailUrl: ?string, thumbnailPosition: ?string}>
      */
     private function documents(SpaceAccessLinkInterface $link, string $token): array
     {
@@ -83,6 +83,8 @@ final readonly class PublicSpaceViewBuilder
                 'id' => (int) $deliverable->getId(),
                 'title' => $deliverable->getTitle(),
                 'description' => $deliverable->getSummary(),
+                // A page or a presentation: the card says so before it opens.
+                'format' => $deliverable->getFormat()->value,
                 'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
                 'url' => $this->urlGenerator->generate('public_space_deliverable', [
                     'selector' => $link->getSelector(),

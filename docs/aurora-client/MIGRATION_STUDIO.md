@@ -407,3 +407,70 @@ s'affichait et s'enregistrait, et rien ne le lisait.
   `CustomerLinkInput` passent de `space_information.errors.*` à
   `customers.errors.*`. Une surcharge côté client de ces clés est à déplacer.
 
+
+## 12. Les présentations entrent dans les espaces clients
+
+Une présentation (livrable au format `slides`) n'était qu'un livrable de
+Studio : la créer dans un espace était impossible et la copie vers un espace
+répondait `errors.slides_not_in_space`. Elle vit maintenant aussi dans un
+espace, avec les droits de l'espace, et le client la lit sur sa page quand on
+la lui montre (même règle de visibilité que le reste, section 9).
+
+- **Création dans un espace** : `workspace_space_deliverables_create` lit
+  `format` (`page` par défaut, `slides`) et `fromTemplateId` (un modèle de
+  Studio vivant, lisible, du même format, module Livrables allumé ; sinon le
+  livrable part de zéro, sans refus). Partir d'un modèle passe par
+  `DeliverableManager::copyToSpace()`. Nouvelle route
+  `workspace_space_deliverables_import` (`POST {title, blocks}`), « Importer un
+  texte » dans l'espace, même conversion que Studio (`SlidesFromBlocks`).
+- **Copies** : `suite_studio_deliverables_copy_to_space` accepte une
+  présentation (diapositives, notes de l'orateur, thème et style copiés), comme
+  `workspace_space_deliverables_copy_to_studio` dans l'autre sens. La clé
+  `suite.studio.deliverables.errors.slides_not_in_space` est retirée (fr, en,
+  es), et `DeliverableManager::copyToSpace()` ne lève plus de `LogicException`
+  pour une présentation.
+- **Éditeur** : `workspace_space_deliverables_edit` d'une présentation rend
+  `@Studio/suite/space-deliverables/slides.html.twig` (l'éditeur de
+  diapositives dans la coquille de l'espace), avec
+  `DeliverableSlidesViewBuilder::spaceEditorView()`. Les gestes vivent sous
+  `/workspace/{id}/deliverables/{deliverableId}/…`, routes
+  `workspace_space_deliverables_slides_{presenter,print,appearance,create,update,duplicate,delete,reorder,font_upload}`
+  (nouveau `SpaceDeliverableSlidesController`) : `studio.spaces.view` pour lire,
+  présenter et imprimer, `studio.spaces.edit` pour écrire, l'espace vu
+  (`DeliverableAccess`). Les routes `suite_studio_deliverables_slides_*`
+  restent réservées aux présentations de Studio (404 pour une présentation
+  d'espace, et réciproquement).
+- **Contrôleurs, rupture** : `DeliverableSlidesController` étend désormais
+  `AbstractDeliverableSlidesController`, qui porte les gestes communs ; son
+  constructeur change (dépôt et règle d'accès d'abord, puis les dépendances du
+  parent). `SpaceDeliverablesController` reçoit `DeliverableSlidesViewBuilder`,
+  `SlidesFromBlocks`, `EntityManagerInterface` et `StudioContext`, et
+  `DeliverableSlidesViewBuilder` reçoit `SpaceDeliverablesViewBuilder`.
+- **Aperçu** : `workspace_space_deliverables_preview` d'une présentation rend
+  le lecteur de diapositives, sans les notes.
+- **Page du client** : `public_space_deliverable` d'une présentation montrée
+  rend `@Studio/public/deliverable_slides.html.twig` (sans les notes, avec un
+  retour vers l'espace, variable `backUrl` et propriété `backUrl` de
+  `PublicDeckApp`) ; une présentation cachée répond 404 comme une page. Les
+  lignes `documents` de `PublicSpaceViewBuilder` portent `format`.
+- **Liens de lecture** : inchangés, ils servaient déjà le lecteur de
+  diapositives quel que soit l'endroit du livrable.
+- **Onglet Livrables d'un espace** : `SpaceDeliverablesViewBuilder::view()`
+  rend `deliverableImportPath` et `deliverableTemplates` (vide pour qui ne
+  peut pas créer dans l'espace ou ne lit pas les livrables de Studio) ;
+  `SpaceDeliverablesViewBuilder::templates()` et
+  `DeliverableRepository::findLiveStandaloneTemplates()` sont ajoutées.
+- **Polices** : `public_deliverable_font` répond tant que le module Livrables
+  **ou** les espaces clients sont allumés (avant : le module Livrables seul).
+- **Médiathèque** : `DeliverableDocumentUsageProvider` comptait déjà les
+  images des diapositives, espace compris ; l'usage d'une présentation d'espace
+  mène à son éditeur dans l'espace.
+- **Vue.js** : nouveaux `DeliverableFormatFields` (format et modèle, partagé par
+  les deux fenêtres de création) et `DeliverableImportModal` ;
+  `SpaceDeliverablesView` gagne `importPath` et `templates` ;
+  `DeliverableSlidesEditorApp` gagne `space` (réglages d'un livrable d'espace,
+  case « Visible par le client » sous le droit de partager) ;
+  `settingsPayload()` envoie la visibilité du formulaire au lieu de `false`.
+- **Traductions** : `studio.public.space.document_presentation` ajoutée ;
+  `suite.studio.deliverables.guide.step_1`, `intro` et `empty_hint` réécrites.
+  Une surcharge côté client de ces clés est à relire.

@@ -34,7 +34,7 @@ ces deux atouts partout ailleurs.
 - **Polices** : catalogue `@fontsource` chargé à la demande (`free/fonts.js`),
   jamais Google ; polices importées = documents GED servis par
   `DeliverableFontsController` (`/deliverables/fonts/{id}`, route
-  `public_deliverable_font`, éteinte avec le module Livrables) depuis la fusion
+  `public_deliverable_font`, éteinte quand ni le module Livrables ni les espaces clients ne sont allumés) depuis la fusion
   des présentations dans les livrables, jamais par `/uploads` (la CSP
   `font-src` refuse une redirection vers R2).
 - **Lecteur** : le 16:9 du lecteur plein écran tient par `aspect-ratio` ; le

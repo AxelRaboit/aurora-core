@@ -35,10 +35,8 @@ import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { queueFlash } from "@/shared/utils/flash.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
-import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
-import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -54,6 +52,8 @@ import AppTab from "@/shared/components/nav/AppTab.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
 import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
+import DeliverableFormatFields from "./components/DeliverableFormatFields.vue";
+import DeliverableImportModal from "./components/DeliverableImportModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 import DeliverableScopePicker from "./components/DeliverableScopePicker.vue";
 import { categoryOptions } from "./composables/categoryOptions.js";
@@ -266,37 +266,14 @@ const newTemplate = ref("");
 const newFormat = ref("page");
 const errors = ref({});
 
-const formatOptions = computed(() =>
-    ["page", "slides"].map((value) => ({ value, label: t(`suite.studio.deliverables.formats.${value}`) })),
-);
-
 /**
- * Les modèles des deux rayons, du format choisi : on part d'un modèle partagé
- * comme d'un des siens, mais pas d'une page pour écrire une présentation.
+ * Both shelves, where the modal looks for templates: one starts from a shared
+ * template as from one of one's own, see `DeliverableFormatFields`.
  */
-const templateSelectOptions = computed(() => templateOptions([...lists.value.personal, ...lists.value.shared], newFormat.value));
+const templateRows = computed(() => [...lists.value.personal, ...lists.value.shared]);
 
-/** Ce qu'est le format choisi, et qu'il ne changera plus. */
-const formatHint = computed(() =>
-    [
-        "slides" === newFormat.value
-            ? t("suite.studio.deliverables.format.slides_hint")
-            : t("suite.studio.deliverables.format.page_hint"),
-        t("suite.studio.deliverables.format.fixed_hint"),
-    ].join(" "),
-);
-
-/** Sans modèle, on part de rien : une page blanche ou une présentation vide. */
-const templatePlaceholder = computed(() =>
-    "slides" === newFormat.value
-        ? t("suite.studio.deliverables.template.from_nothing_slides")
-        : t("suite.studio.deliverables.template.from_nothing"),
-);
-
-// Changer de format oublie un modèle de l'autre format.
-watch(newFormat, () => {
-    if (!templateSelectOptions.value.some((option) => String(option.value) === String(newTemplate.value))) newTemplate.value = "";
-});
+/** The templates of the chosen format, to take over the category of the one picked. */
+const templateSelectOptions = computed(() => templateOptions(templateRows.value, newFormat.value));
 
 // Choisir un modèle range le nouveau livrable dans sa catégorie : c'est ce
 // qu'il en reprend, et le sélecteur reste là pour en changer.
@@ -349,11 +326,7 @@ const importSaving = ref(false);
 const importTitle = ref("");
 const importScope = ref("personal");
 const importCategory = ref("");
-/**
- * Le texte vit dans la fenêtre et n'est jamais enregistré : ce qui reste, ce
- * sont les diapositives qu'il donne. Un brouillon gardé à côté serait une
- * seconde version du même texte.
- */
+/** The pasted text, which only lives in the modal, see `DeliverableImportModal`. */
 const importBlocks = ref([]);
 const importErrors = ref({});
 
@@ -527,8 +500,8 @@ function actionsFor(deliverable) {
         });
     }
 
-    // Une présentation reste dans Studio pour l'instant : pas de copie vers un espace.
-    if (props.copyTargets.length && props.copyToSpacePathTemplate && "slides" !== deliverable.format) {
+    // A page or a presentation: the copy takes the body, slides included.
+    if (props.copyTargets.length && props.copyToSpacePathTemplate) {
         actions.push({
             key: "copy-to-space",
             icon: FolderInput,
@@ -786,23 +759,11 @@ function actionsFor(deliverable) {
             v-on:close="creating = false"
         >
             <form class="space-y-4" v-on:submit.prevent="create">
-                <!-- Le format d'abord, puis le modèle : ce sont les deux
-                     questions qui décident de tout ce qui suit, et les modèles
-                     proposés sont ceux du format choisi. -->
-                <AppChoiceRow
-                    v-model="newFormat"
-                    :label="t('suite.studio.deliverables.format.label')"
-                    :hint="formatHint"
-                    :options="formatOptions"
-                />
-                <p v-if="errors.format" class="m-0 text-xs text-red-500">{{ t(errors.format) }}</p>
-                <AppSelect
-                    v-if="templateSelectOptions.length"
-                    v-model="newTemplate"
-                    :label="t('suite.studio.deliverables.template.from')"
-                    :placeholder="templatePlaceholder"
-                    :hint="newTemplate ? t('suite.studio.deliverables.template.from_hint') : ''"
-                    :options="templateSelectOptions"
+                <DeliverableFormatFields
+                    v-model:format="newFormat"
+                    v-model:template="newTemplate"
+                    :rows="templateRows"
+                    :error="errors.format ?? ''"
                 />
                 <AppInput
                     v-model="title"
@@ -837,55 +798,28 @@ function actionsFor(deliverable) {
             </template>
         </AppModal>
 
-        <AppModal
+        <DeliverableImportModal
             v-if="importPath"
+            v-model:title="importTitle"
+            v-model:blocks="importBlocks"
             :show="importing"
-            max-width="4xl"
-            :closeable="false"
-            :title="t('suite.studio.deliverables.import.title')"
-            :icon="FileInput"
+            :saving="importSaving"
+            :errors="importErrors"
             v-on:close="importing = false"
+            v-on:submit="submitImport"
         >
-            <form class="space-y-4" v-on:submit.prevent="submitImport">
-                <p class="m-0 text-sm text-secondary">{{ t("suite.studio.deliverables.import.intro") }}</p>
-                <AppInput
-                    v-model="importTitle"
-                    :label="t('suite.studio.deliverables.title')"
-                    :placeholder="t('suite.studio.deliverables.import.title_placeholder')"
-                    :error="importErrors.title ?? ''"
-                />
-                <AppSelect
-                    v-if="categories.length"
-                    v-model="importCategory"
-                    :label="t('suite.studio.deliverables.categories.label')"
-                    :placeholder="t('suite.studio.deliverables.categories.none')"
-                    :options="categorySelectOptions"
-                />
-                <fieldset class="m-0 space-y-2 border-0 p-0">
-                    <legend class="mb-1.5 text-sm font-medium text-primary">{{ t("suite.studio.deliverables.scope.label") }}</legend>
-                    <DeliverableScopePicker v-model="importScope" />
-                </fieldset>
-                <div class="space-y-1.5">
-                    <span class="text-xs uppercase tracking-wide text-muted">{{ t("suite.studio.deliverables.import.document") }}</span>
-                    <div class="max-h-96 overflow-y-auto rounded-lg border border-line bg-surface-2 p-2">
-                        <AppBlockEditor v-model="importBlocks" :placeholder="t('suite.studio.deliverables.import.placeholder')" />
-                    </div>
-                    <p class="m-0 text-xs text-muted">{{ t("suite.studio.deliverables.import.hint") }}</p>
-                    <p v-if="importErrors.blocks" class="m-0 text-xs text-rose-400">{{ t(importErrors.blocks) }}</p>
-                </div>
-            </form>
-
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="importing = false">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton variant="primary" size="md" :loading="importSaving" v-on:click="submitImport">
-                        <FileInput class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("suite.studio.deliverables.import.submit") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            <AppSelect
+                v-if="categories.length"
+                v-model="importCategory"
+                :label="t('suite.studio.deliverables.categories.label')"
+                :placeholder="t('suite.studio.deliverables.categories.none')"
+                :options="categorySelectOptions"
+            />
+            <fieldset class="m-0 space-y-2 border-0 p-0">
+                <legend class="mb-1.5 text-sm font-medium text-primary">{{ t("suite.studio.deliverables.scope.label") }}</legend>
+                <DeliverableScopePicker v-model="importScope" />
+            </fieldset>
+        </DeliverableImportModal>
 
         <DeliverableDeleteModal
             :show="!!pendingDelete"

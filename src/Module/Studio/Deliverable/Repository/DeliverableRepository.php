@@ -384,6 +384,29 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * The live Studio templates, from both shelves, by title: what « Partir
+     * d'un modèle » offers in a space's Deliverables tab. The caller filters
+     * by what the reader may read, a colleague's personal template included.
+     *
+     * @return list<DeliverableInterface>
+     */
+    public function findLiveStandaloneTemplates(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.owner', 'o')
+            ->addSelect('o')
+            ->leftJoin('d.category', 'c')
+            ->addSelect('c')
+            ->where('d.space IS NULL')
+            ->andWhere('d.template = true')
+            ->andWhere('d.deletedAt IS NULL')
+            ->orderBy('d.title', Order::Ascending->value)
+            ->addOrderBy('d.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** Un livrable sans espace : ceux d'un espace ne s'ouvrent que par lui. */
     public function findStandalone(int $id): ?DeliverableInterface
     {

@@ -10,12 +10,17 @@
  *
  * Même gabarit que les ressources voisines : l'intro et le bouton en tête, des
  * cartes en liste, les gestes écrits en toutes lettres sur téléphone.
+ *
+ * A page or a presentation, as in Studio: the create modal asks the same two
+ * questions (the format, the Studio template to start from), and « Importer
+ * un texte » turns a pasted text into a presentation. A presentation wears
+ * its badge on its card.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { AlertTriangle, Copy, Eye, EyeOff, ExternalLink, FolderOutput, Link2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
+import { AlertTriangle, Copy, Eye, EyeOff, ExternalLink, FileInput, FolderOutput, Link2, Pencil, Plus, Presentation, Trash2, X } from "lucide-vue-next";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { queueFlash } from "@/shared/utils/flash.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
@@ -26,6 +31,8 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
+import DeliverableFormatFields from "./components/DeliverableFormatFields.vue";
+import DeliverableImportModal from "./components/DeliverableImportModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 import { useDeliverableRequest } from "./composables/useDeliverableRequest.js";
 
@@ -42,6 +49,14 @@ const props = defineProps({
     /** La route qui rend les lignes à jour, pour une liste devenue périmée. */
     listPath: { type: String, default: "" },
     createPath: { type: String, required: true },
+    /** A pasted text that becomes a presentation; empty, the gesture is not offered. */
+    importPath: { type: String, default: "" },
+    /**
+     * The Studio templates to start from, pages and presentations:
+     * `{ id, title, format, template, category }`. Empty without the right to
+     * read Studio deliverables, and the picker is not drawn.
+     */
+    templates: { type: Array, default: () => [] },
     visibilityPathTemplate: { type: String, required: true },
     duplicatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
@@ -72,10 +87,15 @@ const { send } = useDeliverableRequest({
 const creating = ref(false);
 const saving = ref(false);
 const title = ref("");
+/** A page or a presentation, and the template to start from: see `DeliverableFormatFields`. */
+const newFormat = ref("page");
+const newTemplate = ref("");
 const errors = ref({});
 
 function openCreate() {
     title.value = "";
+    newFormat.value = "page";
+    newTemplate.value = "";
     errors.value = {};
     creating.value = true;
 }
@@ -85,7 +105,11 @@ async function create() {
 
     saving.value = true;
     try {
-        const data = await send(props.createPath, { title: title.value });
+        const data = await send(props.createPath, {
+            title: title.value,
+            format: newFormat.value,
+            fromTemplateId: newTemplate.value ? Number(newTemplate.value) : null,
+        });
 
         if (!data?.success) {
             errors.value = data?.errors ?? {};
@@ -97,6 +121,40 @@ async function create() {
         window.location.href = data.editPath;
     } finally {
         saving.value = false;
+    }
+}
+
+// ── Importer un texte ───────────────────────────────────────────────────────
+
+const importing = ref(false);
+const importSaving = ref(false);
+const importTitle = ref("");
+const importBlocks = ref([]);
+const importErrors = ref({});
+
+function openImport() {
+    importTitle.value = "";
+    importBlocks.value = [];
+    importErrors.value = {};
+    importing.value = true;
+}
+
+async function submitImport() {
+    if (importSaving.value) return;
+
+    importSaving.value = true;
+    try {
+        const data = await send(props.importPath, { title: importTitle.value, blocks: importBlocks.value });
+        if (!data?.success) {
+            importErrors.value = data?.errors ?? {};
+
+            return;
+        }
+
+        queueFlash("success", t("suite.studio.deliverables.import.done"));
+        window.location.href = data.editPath;
+    } finally {
+        importSaving.value = false;
     }
 }
 
@@ -289,16 +347,27 @@ function actionsFor(deliverable) {
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p class="m-0 text-xs text-muted sm:max-w-lg">{{ t("suite.studio.deliverables.intro") }}</p>
 
-            <AppButton
-                v-if="canEdit && canAdd"
-                variant="ghost"
-                size="sm"
-                class="w-full justify-center sm:w-auto"
-                v-on:click="openCreate"
-            >
-                <Plus class="h-3.5 w-3.5" :stroke-width="2" />
-                {{ t("suite.studio.deliverables.add") }}
-            </AppButton>
+            <div v-if="canEdit && canAdd" class="flex flex-col gap-2 sm:flex-row">
+                <AppButton
+                    v-if="importPath"
+                    variant="ghost"
+                    size="sm"
+                    class="w-full justify-center sm:w-auto"
+                    v-on:click="openImport"
+                >
+                    <FileInput class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("suite.studio.deliverables.import.action") }}
+                </AppButton>
+                <AppButton
+                    variant="ghost"
+                    size="sm"
+                    class="w-full justify-center sm:w-auto"
+                    v-on:click="openCreate"
+                >
+                    <Plus class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("suite.studio.deliverables.add") }}
+                </AppButton>
+            </div>
         </div>
 
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
@@ -320,6 +389,10 @@ function actionsFor(deliverable) {
 
         <DeliverableCards v-else :deliverables="rows" :actions-for="actionsFor">
             <template #meta="{ deliverable }">
+                <AppBadge v-if="'slides' === deliverable.format" color="emerald">
+                    <Presentation class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                    {{ t("suite.studio.deliverables.format.badge_slides") }}
+                </AppBadge>
                 <AppBadge :color="deliverable.visibleToClient ? 'emerald' : 'gray'">
                     {{ t(deliverable.visibleToClient
                         ? "suite.studio.deliverables.visible_badge"
@@ -342,6 +415,12 @@ function actionsFor(deliverable) {
             v-on:close="creating = false"
         >
             <form class="space-y-4" v-on:submit.prevent="create">
+                <DeliverableFormatFields
+                    v-model:format="newFormat"
+                    v-model:template="newTemplate"
+                    :rows="templates"
+                    :error="errors.format ?? ''"
+                />
                 <AppInput
                     v-model="title"
                     autofocus
@@ -363,6 +442,17 @@ function actionsFor(deliverable) {
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <DeliverableImportModal
+            v-if="importPath"
+            v-model:title="importTitle"
+            v-model:blocks="importBlocks"
+            :show="importing"
+            :saving="importSaving"
+            :errors="importErrors"
+            v-on:close="importing = false"
+            v-on:submit="submitImport"
+        />
 
         <!-- Ouvrir au client un document qui n'est pas fini : on le dit, on
              ne le refuse pas, l'auteur sait ce qu'il fait. -->

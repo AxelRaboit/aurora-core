@@ -203,6 +203,9 @@ const props = defineProps({
     canAddDeliverables: { type: Boolean, default: false },
     deliverableListPath: { type: String, default: "" },
     deliverableCreatePath: { type: String, default: "" },
+    deliverableImportPath: { type: String, default: "" },
+    /** The Studio templates a deliverable of this space may start from. */
+    deliverableTemplates: { type: Array, default: () => [] },
     deliverableVisibilityPathTemplate: { type: String, default: "" },
     deliverableDuplicatePathTemplate: { type: String, default: "" },
     deliverableDeletePathTemplate: { type: String, default: "" },
@@ -691,6 +694,8 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :can-add="canAddDeliverables"
                 :list-path="deliverableListPath"
                 :create-path="deliverableCreatePath"
+                :import-path="deliverableImportPath"
+                :templates="deliverableTemplates"
                 :visibility-path-template="deliverableVisibilityPathTemplate"
                 :duplicate-path-template="deliverableDuplicatePathTemplate"
                 :delete-path-template="deliverableDeletePathTemplate"

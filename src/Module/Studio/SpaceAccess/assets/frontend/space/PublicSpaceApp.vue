@@ -52,6 +52,7 @@ import {
     FileText,
     Package,
     MessageSquare,
+    Presentation,
 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -945,6 +946,7 @@ function isLate(event) {
                                 class="h-full w-full object-cover"
                                 :style="{ objectPosition: document.thumbnailPosition || '50% 50%' }"
                             >
+                            <Presentation v-else-if="'slides' === document.format" class="h-5 w-5 text-muted" :stroke-width="1.75" />
                             <FileText v-else class="h-5 w-5 text-muted" :stroke-width="1.75" />
                         </span>
                         <span class="flex min-w-0 flex-1 flex-col gap-1">
@@ -953,7 +955,9 @@ function isLate(event) {
                             </span>
                             <span v-if="document.description" class="text-xs text-secondary">{{ document.description }}</span>
                             <span class="text-xs text-muted">
-                                {{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
+                                <!-- A presentation says so before it opens: it is watched
+                                     slide by slide, not read like a page. -->
+                                <template v-if="'slides' === document.format">{{ t("studio.public.space.document_presentation") }} · </template>{{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
                             </span>
                         </span>
                     </a>

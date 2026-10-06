@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
+import { nextTick } from "vue";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import SpaceDeliverablesView from "./SpaceDeliverablesView.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
@@ -206,5 +207,99 @@ describe("SpaceDeliverablesView", () => {
         expect(wrapper.text()).toContain("visible_badge");
 
         wrapper.unmount();
+    });
+
+    it("creates a presentation from a Studio template of that format", async () => {
+        send.mockResolvedValueOnce({ success: false, errors: {} });
+        const wrapper = mount(SpaceDeliverablesView, {
+            props: {
+                deliverables: [],
+                canEdit: true,
+                canAdd: true,
+                ...PATHS,
+                templates: [
+                    {
+                        id: 3,
+                        title: "Audit type",
+                        format: "page",
+                        template: true,
+                        category: null,
+                    },
+                    {
+                        id: 4,
+                        title: "Lancement type",
+                        format: "slides",
+                        template: true,
+                        category: null,
+                    },
+                ],
+            },
+            global: {
+                plugins: [i18n],
+                stubs: {
+                    DeliverableLinksModal: true,
+                    AppModal: {
+                        template: "<div><slot /><slot name='footer' /></div>",
+                    },
+                },
+            },
+        });
+
+        const templateLabels = () =>
+            wrapper
+                .findAllComponents({ name: "AppSelect" })
+                .find(
+                    (select) =>
+                        "suite.studio.deliverables.template.from" ===
+                        select.props("label"),
+                )
+                .props("options")
+                .map((option) => option.label);
+        expect(templateLabels()).toEqual(["Audit type"]);
+
+        wrapper
+            .findComponent({ name: "AppChoiceRow" })
+            .vm.$emit("update:modelValue", "slides");
+        await nextTick();
+        expect(templateLabels()).toEqual(["Lancement type"]);
+        wrapper
+            .findAllComponents({ name: "AppSelect" })
+            .find(
+                (select) =>
+                    "suite.studio.deliverables.template.from" ===
+                    select.props("label"),
+            )
+            .vm.$emit("update:modelValue", 4);
+        await nextTick();
+
+        await wrapper.find("form").trigger("submit");
+        await flushPromises();
+
+        expect(send).toHaveBeenCalledWith(
+            PATHS.createPath,
+            expect.objectContaining({ format: "slides", fromTemplateId: 4 }),
+        );
+    });
+
+    it("offers to import a text only with the route, and badges a presentation", () => {
+        const withImport = mountView({
+            canAdd: true,
+            importPath: "/workspace/1/deliverables/import",
+            deliverables: [{ ...AUDIT, format: "slides" }],
+        });
+        expect(
+            withImport
+                .findAll("button")
+                .some((button) => button.text().includes("import.action")),
+        ).toBe(true);
+        expect(withImport.text()).toContain("format.badge_slides");
+
+        const withoutImport = mountView({ canAdd: true });
+        expect(
+            withoutImport
+                .findAll("button")
+                .some((button) => button.text().includes("import.action")),
+        ).toBe(false);
+        expect(withoutImport.text()).not.toContain("format.badge_slides");
     });
 });

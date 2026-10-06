@@ -1276,16 +1276,16 @@ suite:
                 step_6_studio: "In the menu, “Export as PDF” gives one page per slide. Passages in [brackets] are to be replaced before sending it: a counter follows them."
             guide:
                 title: "How deliverables work"
-                step_1: "“New deliverable” creates a deliverable (audit, strategy, report) built like a page, in your colours or the client's."
+                step_1: "“New deliverable” creates a page (audit, strategy, report) or a presentation, from scratch or from a Studio template, in your colours or the client's."
                 step_2: "It stays hidden from the client until someone who can share the space clicks “Show to the client”."
                 step_3: "“Share”, in a deliverable's ⋯ menu or in its editor, gives someone a reading link, a secret address that opens this deliverable only, without the space."
                 step_4: "A link can have a password and an expiry, and is revoked one by one; hiding the deliverable does not cut its links."
                 step_5: "“Duplicate” creates a copy hidden from the client, handy to start again from last month's report."
                 step_6: "“Copy to Studio” keeps this deliverable as a template. Passages in [brackets] are to be replaced before showing it to the client: the list asks again if any are left. Reading links need the right to share the space."
-            intro: "The deliverables written for this client: audits, strategies, reports. Each one is built like a page, in its own colours, and the client reads it in their space as soon as you show it to them."
+            intro: "The deliverables written for this client: audits, strategies, reports. Each one is a page or a presentation, in its own colours, and the client reads it in their space as soon as you show it to them."
             add: "New deliverable"
             empty: "No deliverables for this client."
-            empty_hint: "Start an audit, a strategy or a report: it is built with the page grid, and stays hidden from the client until you show it to them."
+            empty_hint: "Start an audit, a strategy, a report or a presentation: it stays hidden from the client until you show it to them."
             create_title: "New deliverable"
             create: "Create and open"
             title: "Title"
@@ -2124,7 +2124,6 @@ suite:
                 format_invalid: "That format does not exist: choose a page or a presentation."
                 format_unavailable: "This format cannot be created yet: choose a page."
                 import_empty: "This text holds nothing a slide can be made from."
-                slides_not_in_space: "A presentation stays in Studio for now: it cannot be copied into a client space."
                 conflict: "A colleague saved this deliverable in the meantime. Reload the page to see their version, or save anyway to replace it."
         space_resources:
             guide:
@@ -2527,6 +2526,7 @@ studio:
             tab_documents: 'Deliverables'
             document_untitled: "Untitled deliverable"
             document_updated_on: 'Updated on {date}'
+            document_presentation: 'Presentation'
             tab_information: Information
             files_title: This space's files
             files_open: Open

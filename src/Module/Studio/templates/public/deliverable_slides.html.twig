@@ -3,7 +3,10 @@
    Sa propre page, sans menu ni compte : celui qui l'ouvre n'en a pas, et c'est
    la raison d'être de l'adresse. Modelée sur la page publique d'un contrat,
    avec une différence qui compte ici : ce document se regarde plutôt qu'il ne
-   se lit, donc la page donne la place aux slides et rien d'autre. #}
+   se lit, donc la page donne la place aux slides et rien d'autre.
+
+   Opened from the client's space, it leads back there (`backUrl`); opened by
+   a reading link, there is nowhere to go back to. #}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
     <head>
@@ -26,6 +29,7 @@
         <div {{ vue_component('studio/suite/slides/PublicDeckApp', {
             deck: deck,
             expiresAt: expiresAt ? expiresAt|date('c') : null,
+            backUrl: backUrl|default(null),
         }) }} class="min-h-screen"></div>
     </body>
 </html>
