@@ -11,9 +11,10 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
  * the few that matter. The removal happens; the offer arrives beside it and is
  * ignored by doing nothing.
  *
- * **Because three gestures leave the same leftover.** Detaching, deleting the
- * card and deleting the space all remove the join and leave the document: a
- * draft in the space's folder that nothing points at. Nothing surfaces it
+ * **Because the gestures leave the same leftover.** Detaching a file and
+ * removing one from the space remove the join and leave the document: a
+ * draft in the space's folder that nothing points at. Putting a card in the
+ * trash does not: it keeps its files for a restore, so nothing is offered. Nothing surfaces it
  * either - the library's picker lists published documents only - so it is
  * found by browsing the folder or not at all.
  *
@@ -38,7 +39,7 @@ export function useOrphanedDocumentOffer() {
     }
 
     /**
-     * @param {object} data the answer of a detach or a card deletion
+     * @param {object} data the answer of a detach or of a file removed from the space
      */
     function offer(data) {
         const documents = data?.orphanedDocuments ?? [];

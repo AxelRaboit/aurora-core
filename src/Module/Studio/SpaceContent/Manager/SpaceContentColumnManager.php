@@ -96,6 +96,11 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * the deletion is legitimate, so a restriction there would refuse both. The
      * count is in the message because "move them first" is only actionable when
      * the reader knows how many there are.
+     *
+     * Only the live cards count. Those in the trash are not on the board, so
+     * nobody could move them first: they go to the first remaining step, which
+     * is where a restore then puts them, rather than being destroyed by the
+     * cascade along with the step.
      */
     public function delete(SpaceContentColumnInterface $column): void
     {
@@ -104,9 +109,16 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
             throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_not_empty', ['{count}' => (string) $items]));
         }
 
-        if (1 === count($this->columnRepository->findForSpace($column->getSpace()))) {
+        $others = array_values(array_filter(
+            $this->columnRepository->findForSpace($column->getSpace()),
+            static fn (SpaceContentColumnInterface $other): bool => $other->getId() !== $column->getId(),
+        ));
+
+        if ([] === $others) {
             throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_last'));
         }
+
+        $this->columnRepository->moveTrashedItems($column, $others[0]);
 
         $this->auditDeleted($column);
 

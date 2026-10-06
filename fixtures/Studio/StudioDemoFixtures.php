@@ -283,6 +283,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // `DeliverableDemoFixtures`.
         $this->seedSpaces($marie, $jean, $sophie);
         $this->seedApprovals();
+        $this->seedTrash($jean);
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -596,6 +597,47 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             status: CustomerSpaceStatusEnum::Archived,
             timezone: 'Europe/Madrid',
         );
+    }
+
+    /**
+     * Un contenu et un espace à la corbeille, pour que l'écran de la corbeille
+     * montre les deux onglets de Studio remplis.
+     *
+     * Hors de `seedSpaces()`, qui ne tourne qu'une fois : retrouvés par leur
+     * titre et leur nom, ils s'ajoutent à une démonstration déjà en place sans
+     * rien toucher d'autre, et ne se doublent pas au passage suivant. Mis à la
+     * corbeille par les managers, comme le ferait l'écran, puis datés de
+     * quelques jours : une corbeille dont tout est arrivé à l'instant ne dit
+     * pas combien de temps il reste avant la purge.
+     */
+    private function seedTrash(CustomerInterface $jean): void
+    {
+        $social = $this->spaceRepository->findOneBy(['name' => 'Atelier Dupont - Réseaux sociaux']);
+        $columns = $social instanceof CustomerSpaceInterface ? $this->contentColumns->findForSpace($social) : [];
+
+        if ($social instanceof CustomerSpaceInterface && [] !== $columns
+            && null === $this->entityManager->getRepository(SpaceContentItem::class)->findOneBy(['space' => $social, 'title' => 'Promo de printemps'])) {
+            $item = $this->contentItems->create($social, new SpaceContentItemInput(
+                title: 'Promo de printemps',
+                body: "Remise sur les tables en chêne. Abandonnée : l'atelier préfère ne pas annoncer de prix.",
+                columnId: $columns[0]->getId(),
+            ));
+            $this->contentItems->trash($item);
+            $item->setDeletedAt(new DateTimeImmutable('-2 days'));
+            $this->entityManager->flush();
+        }
+
+        if (null === $this->spaceRepository->findOneBy(['name' => 'Martin Documents - Salon 2025'])) {
+            $salon = $this->space(
+                name: 'Martin Documents - Salon 2025',
+                description: "Les publications autour du salon de l'archivage. Ouvert en double par erreur.",
+                customer: $jean,
+                members: [$this->suiteUser('jean.martin@aurora.app') => 'lead'],
+            );
+            $this->spaces->trash($salon);
+            $salon->setDeletedAt(new DateTimeImmutable('-6 days'));
+            $this->entityManager->flush();
+        }
     }
 
     /**

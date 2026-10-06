@@ -40,6 +40,8 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
             'suite_studio_deliverables' => $this->studioContext->areDeliverablesEnabled(),
             // The editorial calendar included: it lives under the spaces now.
             'suite_studio_spaces' => $this->studioContext->areSpacesEnabled(),
+            // La corbeille des contenus, qui ne vit pas sous l'adresse d'un espace.
+            'suite_studio_space_contents' => $this->studioContext->areSpacesEnabled(),
             'workspace_' => $suite && $this->studioContext->areSpacesEnabled(),
             'public_space' => $suite && $this->studioContext->areSpacesEnabled(),
             'public_contract' => $suite && $this->studioContext->areContractsEnabled(),

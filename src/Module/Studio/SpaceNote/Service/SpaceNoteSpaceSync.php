@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
 use Aurora\Module\Notes\Space\Manager\NoteSpaceManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
+use DateTimeImmutable;
 
 /**
  * Tient l'espace de notes d'un espace client dans le pas de son équipe.
@@ -54,9 +55,42 @@ final readonly class SpaceNoteSpaceSync
     }
 
     /**
-     * L'espace client s'en va : son espace de notes part à la corbeille,
-     * redevenu un espace ordinaire que les administrateurs peuvent faire
-     * revenir. Les notes ne partent pas avec un client.
+     * L'espace client part à la corbeille : son espace de notes l'y suit,
+     * toujours réglé par lui. Personne ne le règle ni ne le restaure depuis
+     * l'écran des notes ; il revient quand l'espace client revient.
+     */
+    public function trash(CustomerSpaceInterface $space): void
+    {
+        $noteSpace = $space->getNoteSpace();
+
+        if (!$noteSpace instanceof NoteSpaceInterface || !$noteSpace->isManaged() || $noteSpace->getDeletedAt() instanceof DateTimeImmutable) {
+            return;
+        }
+
+        $this->noteSpaces->delete($noteSpace);
+    }
+
+    /**
+     * L'espace client sort de la corbeille : son espace de notes en sort
+     * aussi, s'il y est encore et toujours le sien, et retrouve son équipe.
+     */
+    public function restore(CustomerSpaceInterface $space): void
+    {
+        $noteSpace = $space->getNoteSpace();
+
+        if (!$noteSpace instanceof NoteSpaceInterface || !$noteSpace->isManaged() || !$noteSpace->getDeletedAt() instanceof DateTimeImmutable) {
+            return;
+        }
+
+        $this->noteSpaces->restore($noteSpace);
+        $this->sync($space);
+    }
+
+    /**
+     * L'espace client est détruit pour de bon : son espace de notes reste à
+     * la corbeille (ou y part), redevenu un espace ordinaire que les
+     * administrateurs peuvent faire revenir. Les notes ne partent pas avec un
+     * client.
      */
     public function release(CustomerSpaceInterface $space): void
     {

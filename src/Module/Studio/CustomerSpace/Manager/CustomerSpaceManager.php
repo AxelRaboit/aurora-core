@@ -25,6 +25,7 @@ use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceSync;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -99,18 +100,64 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     }
 
     /**
-     * Deleting a space takes everything in it: its cards, their threads and
-     * attachments, its conversations, deliverables and access links go
-     * by cascade.
+     * Puts the space in the trash: it leaves the lists, the search, the
+     * counts, the editorial calendar and Planning, and its screens, its client
+     * page and its access links answer like an unknown address. Nothing is
+     * destroyed, so a restore brings everything back as it was.
+     *
+     * Its dates are taken off the calendar, and its note space follows it to
+     * the notes' trash, still managed by it: it comes back with it.
+     */
+    public function trash(CustomerSpaceInterface $space): void
+    {
+        if ($space->isTrashed()) {
+            return;
+        }
+
+        $space->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->contentItems->unscheduleSpace($space);
+        $this->noteSpaces?->trash($space);
+
+        $this->auditTrashed($space);
+    }
+
+    /**
+     * Takes the space out of the trash: its cards go back on the calendar,
+     * its links answer again, and its note space comes back if it is still
+     * there and still its own.
+     */
+    public function restore(CustomerSpaceInterface $space): void
+    {
+        if (!$space->isTrashed()) {
+            return;
+        }
+
+        $space->setDeletedAt(null);
+        $this->entityManager->flush();
+
+        $this->contentItems->announceSpace($space);
+        $this->noteSpaces?->restore($space);
+
+        $this->auditRestored($space);
+    }
+
+    /**
+     * Destroys a space for good, with everything in it: its cards, their
+     * threads and attachments, its conversations, deliverables and access
+     * links go by cascade. The « Supprimer définitivement » button of the
+     * trash and the scheduled purge go through here.
+     *
      * The documents those attachments point at stay in the media library,
      * and the space's dates are taken off the calendar first, since no
      * cascade announces anything.
      *
      * Its notes are not in it: they live in a note space of the Notes module,
-     * which goes to the notes' trash, out of the team's hands and back into
-     * the administrators', who can bring it back.
+     * which is released to the notes' trash, out of the team's hands and back
+     * into the administrators', who can bring it back.
      */
-    public function delete(CustomerSpaceInterface $space): void
+    public function forceDelete(CustomerSpaceInterface $space): void
     {
         $this->auditDeleted($space);
         $this->contentItems->unscheduleSpace($space);
@@ -118,6 +165,17 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
 
         $this->entityManager->remove($space);
         $this->entityManager->flush();
+    }
+
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
+    {
+        $purged = 0;
+        foreach ($this->spaceRepository->findTrashedBefore($cutoff) as $space) {
+            $this->forceDelete($space);
+            ++$purged;
+        }
+
+        return $purged;
     }
 
     /**
@@ -375,6 +433,16 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     protected function auditUpdated(CustomerSpaceInterface $space): void
     {
         $this->auditLogger->log('studio', 'customer_space.updated', 'CustomerSpace', $space->getId(), $this->auditPayload($space));
+    }
+
+    protected function auditTrashed(CustomerSpaceInterface $space): void
+    {
+        $this->auditLogger->log('studio', 'customer_space.trashed', 'CustomerSpace', $space->getId(), $this->auditPayload($space));
+    }
+
+    protected function auditRestored(CustomerSpaceInterface $space): void
+    {
+        $this->auditLogger->log('studio', 'customer_space.restored', 'CustomerSpace', $space->getId(), $this->auditPayload($space));
     }
 
     protected function auditDeleted(CustomerSpaceInterface $space): void

@@ -15,6 +15,13 @@ interface SpaceContentItemInterface
 
     public function getSpace(): CustomerSpaceInterface;
 
+    /** Quand le contenu a été mis à la corbeille ; nul tant qu'il est vivant. */
+    public function getDeletedAt(): ?DateTimeImmutable;
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
+
+    public function isTrashed(): bool;
+
     public function setSpace(CustomerSpaceInterface $space): static;
 
     public function getColumn(): SpaceContentColumnInterface;

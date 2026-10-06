@@ -986,7 +986,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :show="!!pendingItemDelete"
                 max-width="sm"
                 :closeable="false"
-                :title="t('shared.common.delete')"
+                :title="t('suite.studio.space_content.trash_action')"
                 :icon="Trash2"
                 v-on:close="pendingItemDelete = null"
             >
@@ -1013,7 +1013,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                             v-on:click="deleteItem"
                         >
                             <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.delete") }}
+                            {{ t("suite.studio.space_content.trash_action") }}
                         </AppButton>
                     </AppModalFooter>
                 </template>

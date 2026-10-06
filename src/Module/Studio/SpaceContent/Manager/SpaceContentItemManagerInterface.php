@@ -9,6 +9,7 @@ use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
+use DateTimeImmutable;
 
 interface SpaceContentItemManagerInterface
 {
@@ -16,12 +17,25 @@ interface SpaceContentItemManagerInterface
 
     public function update(SpaceContentItemInterface $item, SpaceContentItemInputInterface $input): void;
 
-    public function delete(SpaceContentItemInterface $item): void;
+    /**
+     * Puts the card in the trash: off the board, the calendar, the counts and
+     * the client's page, with its thread and files kept for a restore.
+     */
+    public function trash(SpaceContentItemInterface $item): void;
 
-    /** Re-announces every card of the space, after its name, colour or status changed. */
+    /** Takes the card out of the trash, at the bottom of its step. */
+    public function restore(SpaceContentItemInterface $item): void;
+
+    /** Destroys the card for good, with its thread and attachments; the documents stay in the library. */
+    public function forceDelete(SpaceContentItemInterface $item): void;
+
+    /** Destroys what has been in the trash since before this date, and says how many. */
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
+
+    /** Re-announces every card of the space, after its name, colour or status changed, or it left the trash. */
     public function announceSpace(CustomerSpaceInterface $space): void;
 
-    /** Takes every card of the space off the calendar, before the space is deleted. */
+    /** Takes every card of the space off the calendar, when the space goes to the trash or is deleted. */
     public function unscheduleSpace(CustomerSpaceInterface $space): void;
 
     /**

@@ -239,6 +239,10 @@ final class NoteSpacesController extends AbstractController
     /**
      * Le retour d'un espace retiré : par son propriétaire seul, puisqu'un
      * espace retiré n'a plus de rôle pour personne.
+     *
+     * Un espace réglé d'ailleurs ne revient pas d'ici : celui d'un espace
+     * client à la corbeille revient avec lui, et le faire revenir seul
+     * rouvrirait les notes d'un client que le studio a retiré.
      */
     #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function restore(int $id): JsonResponse
@@ -249,6 +253,10 @@ final class NoteSpacesController extends AbstractController
         $space = $this->repository->find($id);
         if (!$space instanceof NoteSpaceInterface || !$space->getDeletedAt() instanceof DateTimeImmutable || (!$this->spaceAccess->isOwner($user, $space) && !$this->spaceAccess->adopts($user, $space))) {
             return $this->jsonNotFound();
+        }
+
+        if ($space->isManaged()) {
+            return $this->refuseManaged();
         }
 
         $this->manager->restore($space);

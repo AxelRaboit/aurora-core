@@ -15,6 +15,7 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
 use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceSync;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -191,6 +192,24 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\Column(length: 32, nullable: true)]
     protected ?string $driveLockGeneration = null;
 
+    /**
+     * Quand l'espace a été mis à la corbeille ; nul, il est vivant.
+     *
+     * Une suppression douce, comme celle des livrables : un espace porte des
+     * mois de travail d'un client, et le supprimer par erreur emportait tout,
+     * sans retour. À la corbeille, il sort des listes, de la recherche, des
+     * comptes, du calendrier éditorial et du Planning ; ses écrans, sa page
+     * client et ses liens d'accès répondent comme une adresse inconnue. Rien
+     * n'est détruit : la restauration remet tout comme c'était, et seules la
+     * suppression définitive et la purge planifiée font ce que faisait la
+     * suppression d'avant.
+     *
+     * Un espace à la corbeille compte toujours pour son client : la fiche ne
+     * se supprime pas tant qu'il n'est pas détruit pour de bon.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $deletedAt = null;
+
     /** @var Collection<int, CustomerSpaceMemberInterface> */
     #[ORM\OneToMany(targetEntity: CustomerSpaceMemberInterface::class, mappedBy: 'space', cascade: ['persist', 'remove'], orphanRemoval: true)]
     protected Collection $members;
@@ -272,6 +291,23 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function isArchived(): bool
     {
         return CustomerSpaceStatusEnum::Archived === $this->status;
+    }
+
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isTrashed(): bool
+    {
+        return $this->deletedAt instanceof DateTimeImmutable;
     }
 
     public function getColourSlot(): int

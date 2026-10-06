@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,6 +38,9 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
      * list shows the company's name and the team's faces, and both are one
      * query here and one per space without it.
      *
+     * A space in the trash is not in it: it is waiting to be restored or
+     * destroyed, and nothing but the trash screen lists it.
+     *
      * @return list<CustomerSpaceInterface>
      */
     public function findAllOrdered(): array
@@ -46,6 +50,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->join('s.customer', 'c')
             ->leftJoin('s.members', 'm')
             ->leftJoin('m.user', 'u')
+            ->where('s.deletedAt IS NULL')
             ->orderBy('s.status', Order::Ascending->value)
             ->addOrderBy('s.name', Order::Ascending->value)
             ->getQuery()
@@ -79,6 +84,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->select('s.id')
             ->join('s.members', 'm')
             ->where('m.user = :user')
+            ->andWhere('s.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleColumnResult();
@@ -137,6 +143,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     {
         $rows = $this->createQueryBuilder('s')
             ->select('s.status AS status, COUNT(s.id) AS total')
+            ->where('s.deletedAt IS NULL')
             ->groupBy('s.status')
             ->getQuery()
             ->getScalarResult();
@@ -151,13 +158,6 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
-    /**
-     * How many spaces name this customer.
-     *
-     * Asked before a customer is deleted, so the refusal can say how many
-     * spaces stand in the way instead of letting the foreign key answer with a
-     * driver exception.
-     */
     /**
      * A space's team and each member's account, filled in place, unless they
      * are loaded already.
@@ -184,6 +184,15 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * How many spaces name this customer, those in the trash included.
+     *
+     * Asked before a customer is deleted, so the refusal can say how many
+     * spaces stand in the way instead of letting the foreign key answer with a
+     * driver exception. A space in the trash still names its customer, and
+     * still holds the work a restore would bring back: it stands in the way
+     * until it is destroyed for good.
+     */
     public function countForCustomer(CustomerInterface $customer): int
     {
         return (int) $this->createQueryBuilder('s')
@@ -247,6 +256,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->select('s.id')
             ->join('s.members', 'm')
             ->where('m.user = :user')
+            ->andWhere('s.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleColumnResult());
@@ -273,6 +283,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->addSelect('c')
             ->join('s.customer', 'c')
             ->where('LOWER(s.name) LIKE :term OR LOWER(c.legalName) LIKE :term')
+            ->andWhere('s.deletedAt IS NULL')
             ->setParameter('term', LikePattern::contains($term))
             ->orderBy('s.status', Order::Ascending->value)
             ->addOrderBy('s.name', Order::Ascending->value)
@@ -283,5 +294,53 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
         }
 
         return $builder->getQuery()->getResult();
+    }
+
+    /** Un espace à la corbeille : ce qu'on restaure ou détruit pour de bon. */
+    public function findTrashed(int $id): ?CustomerSpaceInterface
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.id = :id')
+            ->andWhere('s.deletedAt IS NOT NULL')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Tout ce que la corbeille des espaces contient, le dernier arrivé en
+     * premier, avec le client et l'équipe : l'écran nomme le client, et
+     * l'appelant garde ceux que la personne a le droit de voir.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function findAllTrashed(): array
+    {
+        return $this->createQueryBuilder('s')
+            ->addSelect('c', 'm', 'u')
+            ->join('s.customer', 'c')
+            ->leftJoin('s.members', 'm')
+            ->leftJoin('m.user', 'u')
+            ->where('s.deletedAt IS NOT NULL')
+            ->orderBy('s.deletedAt', Order::Descending->value)
+            ->addOrderBy('s.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Ceux qui sont à la corbeille depuis avant cette date : la purge
+     * planifiée les détruit.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function findTrashedBefore(DateTimeImmutable $cutoff): array
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.deletedAt IS NOT NULL')
+            ->andWhere('s.deletedAt < :cutoff')
+            ->setParameter('cutoff', $cutoff)
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -151,15 +151,20 @@ final class DeliverableReadingController extends AbstractController
     /**
      * La partie de Studio dont le livrable dépend est-elle allumée ?
      *
-     * Un livrable d'espace s'éteint avec les espaces, un livrable de Studio
-     * avec le module Livrables : le même 404 qu'un lien inconnu, plutôt
+     * Un livrable d'espace s'éteint avec les espaces, ou avec son espace mis à
+     * la corbeille, un livrable de Studio avec le module Livrables : le même 404 qu'un lien inconnu, plutôt
      * qu'une page servie par une partie que l'administrateur a coupée.
      */
     private function isServed(DeliverableLinkInterface $link): bool
     {
-        return $link->getDeliverable()->isStandalone()
-            ? $this->studioContext->areDeliverablesEnabled()
-            : $this->studioContext->areSpacesEnabled();
+        $deliverable = $link->getDeliverable();
+
+        if ($deliverable->isStandalone()) {
+            return $this->studioContext->areDeliverablesEnabled();
+        }
+
+        // Et un espace à la corbeille emporte la lecture de ses livrables.
+        return $this->studioContext->areSpacesEnabled() && true !== $deliverable->getSpace()?->isTrashed();
     }
 
     private function isUnlocked(Request $request, string $token): bool

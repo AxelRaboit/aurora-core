@@ -39,6 +39,7 @@ suite:
         studio_contracts: Contracts
         studio_contracts_description: Contracts prepared, sealed and signed.
         studio_deliverables: "Deliverables"
+        studio_space_contents: "Content items"
         studio_deliverables_description: "The pages and presentations you write, personal or shared."
     audit:
         actions:
@@ -52,12 +53,16 @@ suite:
                 customer_space:
                     created: Client space created
                     updated: Client space updated
-                    deleted: Client space deleted
+                    trashed: Client space moved to the trash
+                    restored: Client space restored from the trash
+                    deleted: Client space deleted for good
                 space_content_item:
                     created: Content created
                     answered: Content answered by the client
                     updated: Content updated
-                    deleted: Content deleted
+                    trashed: Content moved to the trash
+                    restored: Content restored from the trash
+                    deleted: Content deleted for good
                 space_resource:
                     created: "Resource pinned in a space"
                     updated: "Space resource updated"
@@ -767,7 +772,7 @@ suite:
                 step_2: "“Convert to a customer” asks for the contractual email, where signing links will be sent."
                 step_3: "Then fill in the SIRET, the legal form, the registered office and the representative: contracts use them."
                 step_4: "The record belongs to the client, not to a space: editing it from a space changes it in all their spaces."
-                step_5: "A record with contracts or open spaces cannot be deleted."
+                step_5: "A record with contracts or spaces, even in the trash, cannot be deleted."
             title: Customers
             spaces: Their spaces
             spaces_description: "Opens this customer's spaces in the list."
@@ -791,7 +796,7 @@ suite:
             updated: Customer updated.
             deleted: Customer deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: 'A customer a contract or a space names is not deleted: this will be refused for as long as one remains.'
+            delete_warning: 'A customer a contract or a space names, even one in the trash, is not deleted: this will be refused for as long as one remains.'
             linked_account: 'Account: {name}'
 
             contracts_count: '{count} contract(s)'
@@ -853,7 +858,7 @@ suite:
                 siret_invalid: 'This registration number is invalid: fourteen digits with a correct checksum are expected.'
                 has_contracts: '{count} contract(s) name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom.'
                 siret_taken: 'This registration number is already recorded for {name}.'
-                has_spaces: 'This client still has {count} open space(s). Delete or archive their work before deleting the record.'
+                has_spaces: 'This client still has {count} space(s), the trash included. Delete them for good before deleting the record.'
         spaces:
             guide:
                 title: "How spaces work"
@@ -861,8 +866,9 @@ suite:
                 step_2: "“New space” asks for a name, an existing customer or a new prospect, and the team working on it."
                 step_3: "The Clients and Prospects tabs separate what you work on from what you are trying to win."
                 step_4: "“To handle” counts missed publications, late reviews, content items with changes requested and what waits for the client."
-                step_5: "Archiving a space takes it out of the list without losing anything; deleting it erases its content, but keeps the client and their contracts."
+                step_5: "Archiving a space takes it out of the list without losing anything; deleting it moves it to the trash, from where it comes back as it was until it is deleted for good. The client and their contracts stay."
             usage_detail: 'Space {space}'
+            usage_detail_trashed: 'Space {space}, in the trash'
             title: Client spaces
             add: "New space"
             create: New space
@@ -877,9 +883,10 @@ suite:
             customer_filter_clear: 'All spaces'
             created: Space created.
             updated: Space updated.
-            deleted: Space deleted.
-            delete_confirm: 'Delete {name}?'
-            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its deliverables with their reading links, and its access links. Its dates leave the calendar. Its note space goes to the notes' trash, where an administrator can bring it back from. The client, their contracts and the media library's documents stay."
+            deleted: Space moved to the trash.
+            trash_action: "Move to the trash"
+            delete_confirm: 'Move {name} to the trash?'
+            delete_warning: "The space leaves the lists, the search, the counts and the calendars, and its client page and access links stop answering. Nothing is erased: its content items, conversations, files, deliverables and note space wait for it in the trash, from where it comes back as it was. After the trash delay, or once deleted for good, it goes with everything in it. While it is in the trash, its customer cannot be deleted."
             show_archived: Show archived spaces
             sort_by_urgency: Sort by urgency
             archived_badge: Archived
@@ -1003,7 +1010,7 @@ suite:
                 view_description: Open this space's board
                 convert_description: This space's customer has signed
                 edit_description: Edit this space
-                delete_description: Delete this space
+                delete_description: Move this space to the trash
 
             errors:
                 name_required: The space name is required.
@@ -1084,6 +1091,7 @@ suite:
                 step_5: "The client also sees the files of the content items shown to them; removing a file from the space keeps it in the media library."
             # A space's own files, on no card.
             usage_detail: A file of the space
+            usage_detail_trashed: A file of a space in the trash
             label: Attachment
             tabs:
                 linked: "On content items"
@@ -2254,7 +2262,7 @@ suite:
             row_actions:
                 edit_description: Edit this content
                 view_description: Read this content, its files and its thread
-                delete_description: Delete this content
+                delete_description: Move this content item to the trash
             calendar_name: Client content
             back_to_spaces: Back to spaces
             switch_space: "Switch space"
@@ -2264,9 +2272,10 @@ suite:
             view_item: 'View {title}'
             item_created: Content created.
             item_updated: Content updated.
-            item_deleted: Content deleted.
-            delete_item_confirm: 'Delete {title}?'
-            delete_item_warning: "The content item and its text go. The other content items stay where they are."
+            item_deleted: Content item moved to the trash.
+            trash_action: "Move to the trash"
+            delete_item_confirm: 'Move {title} to the trash?'
+            delete_item_warning: "It leaves the board, the list, the calendar and the client's page. Its thread and files stay with it in the trash, from where it comes back to its step until it is deleted for good."
             empty_column: Nothing here yet.
             empty_board: No content in this space. Add one to get started.
             unscheduled: No date
@@ -2327,7 +2336,7 @@ suite:
             column_updated: Step renamed.
             column_deleted: Step deleted.
             delete_column_confirm: 'Delete the step {name}?'
-            delete_column_warning: A step is only deleted when it is empty.
+            delete_column_warning: "A step is only deleted when it is empty. The content items in the trash that were on it move to the first step."
 
             column_role: Step role
             column_role_hint: "Optional. “Review” marks the step where the client approves: only the content items waiting there count as “with the client”. “Published” marks what is out."

@@ -39,6 +39,7 @@ suite:
         studio_contracts: Contratos
         studio_contracts_description: 'Los contratos preparados, sellados y firmados.'
         studio_deliverables: "Entregables"
+        studio_space_contents: "Contenidos"
         studio_deliverables_description: "Las páginas y presentaciones que escribe, personales o compartidas."
     audit:
         actions:
@@ -52,12 +53,16 @@ suite:
                 customer_space:
                     created: 'Espacio de cliente creado'
                     updated: 'Espacio de cliente modificado'
-                    deleted: 'Espacio de cliente eliminado'
+                    trashed: 'Espacio de cliente enviado a la papelera'
+                    restored: 'Espacio de cliente recuperado de la papelera'
+                    deleted: 'Espacio de cliente eliminado definitivamente'
                 space_content_item:
                     created: 'Contenido creado'
                     answered: 'Contenido validado o devuelto por el cliente'
                     updated: 'Contenido modificado'
-                    deleted: 'Contenido eliminado'
+                    trashed: 'Contenido enviado a la papelera'
+                    restored: 'Contenido recuperado de la papelera'
+                    deleted: 'Contenido eliminado definitivamente'
                 space_resource:
                     created: "Recurso anclado en un espacio"
                     updated: "Recurso de espacio modificado"
@@ -767,7 +772,7 @@ suite:
                 step_2: "«Convertir en cliente» pide el email contractual, al que se enviarán los enlaces de firma."
                 step_3: "Complete después el SIRET, la forma jurídica, el domicilio social y el representante: los contratos los retoman."
                 step_4: "La ficha pertenece al cliente, no a un espacio: modificarla desde un espacio la modifica en todos sus espacios."
-                step_5: "Una ficha con contratos o espacios abiertos no se puede eliminar."
+                step_5: "Una ficha con contratos o espacios, aunque estén en la papelera, no se puede eliminar."
             title: Clientes
             spaces: 'Sus espacios'
             spaces_description: "Abre la lista de espacios de este cliente."
@@ -791,7 +796,7 @@ suite:
             updated: 'Cliente actualizado.'
             deleted: 'Cliente eliminado.'
             delete_confirm: '¿Eliminar {name}?'
-            delete_warning: 'Un cliente mencionado en un contrato o en un espacio no se puede eliminar: la eliminación se rechazará mientras quede alguno.'
+            delete_warning: 'Un cliente mencionado en un contrato o en un espacio, aunque esté en la papelera, no se puede eliminar: la eliminación se rechazará mientras quede alguno.'
             linked_account: 'Cuenta: {name}'
             contracts_count: '{count} contrato(s)'
             col_company: "Razón social"
@@ -848,7 +853,7 @@ suite:
                 siret_invalid: 'Este SIRET no es válido: se esperan catorce cifras y un dígito de control correcto.'
                 has_contracts: 'Este cliente figura en {count} contrato(s). Un cliente vinculado a un contrato no se puede eliminar: los contratos prueban lo que se acordó, y con quién.'
                 siret_taken: 'Este SIRET ya está registrado para {name}.'
-                has_spaces: 'Este cliente aún tiene {count} espacio(s) abierto(s). Elimine o archive su trabajo antes de eliminar la ficha.'
+                has_spaces: 'Este cliente aún tiene {count} espacio(s), papelera incluida. Elimínelos definitivamente antes de eliminar la ficha.'
         spaces:
             guide:
                 title: 'Cómo funcionan los espacios'
@@ -856,8 +861,9 @@ suite:
                 step_2: "«Nuevo espacio» pide un nombre, un cliente existente o un nuevo cliente potencial, y el equipo que trabaja en él."
                 step_3: "Las pestañas Clientes y Clientes potenciales separan aquello en lo que trabaja de lo que intenta conseguir."
                 step_4: "«Por tratar» cuenta las publicaciones perdidas, las revisiones con retraso, los contenidos por revisar y los que esperan al cliente."
-                step_5: 'Archivar un espacio lo retira de la lista sin perder nada; eliminarlo borra su contenido, pero conserva el cliente y sus contratos.'
+                step_5: 'Archivar un espacio lo retira de la lista sin perder nada; eliminarlo lo envía a la papelera, de donde vuelve tal como estaba hasta su eliminación definitiva. El cliente y sus contratos no cambian.'
             usage_detail: 'Espacio {space}'
+            usage_detail_trashed: 'Espacio {space}, en la papelera'
             title: 'Espacios de cliente'
             add: "Nuevo espacio"
             create: 'Nuevo espacio'
@@ -872,9 +878,10 @@ suite:
             customer_filter_clear: 'Todos los espacios'
             created: 'Espacio creado.'
             updated: 'Espacio actualizado.'
-            deleted: 'Espacio eliminado.'
-            delete_confirm: '¿Eliminar {name}?'
-            delete_warning: 'El espacio desaparece con todo lo que contiene: sus contenidos, sus hilos y sus archivos adjuntos, sus conversaciones, sus entregables con sus enlaces de lectura, y sus enlaces de acceso. Sus fechas salen del calendario. Su espacio de notas va a la papelera de las notas, de donde un administrador puede recuperarlo. El cliente, sus contratos y los documentos de la mediateca no cambian.'
+            deleted: 'Espacio enviado a la papelera.'
+            trash_action: "Enviar a la papelera"
+            delete_confirm: '¿Enviar {name} a la papelera?'
+            delete_warning: 'El espacio sale de las listas, de la búsqueda, de los recuentos y de los calendarios, y su página de cliente y sus enlaces de acceso dejan de responder. No se borra nada: sus contenidos, sus conversaciones, sus archivos, sus entregables y su espacio de notas lo esperan en la papelera, de donde vuelve tal como estaba. Pasado el plazo de la papelera, o eliminado definitivamente, desaparece con todo lo que contiene. Mientras está en la papelera, su cliente no se puede eliminar.'
             show_archived: 'Mostrar los espacios archivados'
             sort_by_urgency: 'Ordenar por urgencia'
             archived_badge: Archivado
@@ -992,7 +999,7 @@ suite:
                 view_description: 'Abrir el tablero de este espacio'
                 convert_description: 'El cliente de este espacio ha firmado'
                 edit_description: 'Editar este espacio'
-                delete_description: 'Eliminar este espacio'
+                delete_description: 'Enviar este espacio a la papelera'
             errors:
                 name_required: 'El nombre del espacio es obligatorio.'
                 name_too_long: 'El nombre no puede superar los 150 caracteres.'
@@ -1065,6 +1072,7 @@ suite:
                 step_4: "Un archivo del espacio nace oculto al cliente; «Mostrar al cliente» se lo abre, con el derecho de compartir el espacio. Lo que envía el cliente sigue siendo visible para él."
                 step_5: "El cliente también ve los archivos de los contenidos que se le muestran; quitar un archivo del espacio lo conserva en la mediateca."
             usage_detail: 'Archivo del espacio'
+            usage_detail_trashed: 'Archivo de un espacio en la papelera'
             label: Vinculación
             tabs:
                 linked: "En los contenidos"
@@ -2232,7 +2240,7 @@ suite:
             row_actions:
                 edit_description: 'Editar este contenido'
                 view_description: 'Leer este contenido, sus archivos y sus conversaciones'
-                delete_description: 'Eliminar este contenido'
+                delete_description: 'Enviar este contenido a la papelera'
             calendar_name: 'Contenidos de clientes'
             back_to_spaces: 'Volver a los espacios'
             switch_space: 'Cambiar de espacio'
@@ -2242,9 +2250,10 @@ suite:
             view_item: 'Ver {title}'
             item_created: 'Contenido creado.'
             item_updated: 'Contenido actualizado.'
-            item_deleted: 'Contenido eliminado.'
-            delete_item_confirm: '¿Eliminar {title}?'
-            delete_item_warning: "El contenido y su texto desaparecen. Los demás contenidos no cambian."
+            item_deleted: 'Contenido enviado a la papelera.'
+            trash_action: "Enviar a la papelera"
+            delete_item_confirm: '¿Enviar {title} a la papelera?'
+            delete_item_warning: "Sale del tablero, de la lista, del calendario y de la página del cliente. Su hilo y sus archivos se quedan con él en la papelera, de donde vuelve a su etapa hasta su eliminación definitiva."
             empty_column: 'Nada aquí por el momento.'
             empty_board: 'No hay contenidos en este espacio. Añada uno para empezar.'
             unscheduled: 'Sin fecha'
@@ -2303,7 +2312,7 @@ suite:
             column_updated: 'Etapa renombrada.'
             column_deleted: 'Etapa eliminada.'
             delete_column_confirm: '¿Eliminar la etapa {name}?'
-            delete_column_warning: 'Una etapa solo se puede eliminar si está vacía.'
+            delete_column_warning: 'Una etapa solo se puede eliminar si está vacía. Los contenidos en la papelera que estaban en ella pasan a la primera etapa.'
             column_role: 'Rol de la etapa'
             column_role_hint: "Opcional. «Revisión» marca la etapa en la que el cliente valida: solo los contenidos que esperan allí cuentan como «con el cliente». «Publicado» marca lo que ha salido."
             step_hidden_from_client: "Oculta para el cliente"

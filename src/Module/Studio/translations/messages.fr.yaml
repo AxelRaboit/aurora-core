@@ -39,6 +39,7 @@ suite:
         studio_contracts: Contrats
         studio_contracts_description: Les contrats préparés, scellés et signés.
         studio_deliverables: "Livrables"
+        studio_space_contents: "Contenus"
         studio_deliverables_description: "Les pages et les présentations que vous écrivez, perso ou partagées."
     audit:
         actions:
@@ -52,12 +53,16 @@ suite:
                 customer_space:
                     created: Espace client créé
                     updated: Espace client modifié
-                    deleted: Espace client supprimé
+                    trashed: Espace client mis à la corbeille
+                    restored: Espace client sorti de la corbeille
+                    deleted: Espace client supprimé définitivement
                 space_content_item:
                     created: Contenu créé
                     answered: Contenu validé ou renvoyé par le client
                     updated: Contenu modifié
-                    deleted: Contenu supprimé
+                    trashed: Contenu mis à la corbeille
+                    restored: Contenu sorti de la corbeille
+                    deleted: Contenu supprimé définitivement
                 space_resource:
                     created: "Ressource épinglée dans un espace"
                     updated: "Ressource d'espace modifiée"
@@ -767,7 +772,7 @@ suite:
                 step_2: "« Convertir en client » demande l'email contractuel, celui où partiront les liens de signature."
                 step_3: "Complétez ensuite le SIRET, la forme juridique, le siège social et le représentant : les contrats les reprennent."
                 step_4: "La fiche appartient au client, pas à un espace : la modifier depuis un espace la modifie dans tous ses espaces."
-                step_5: "Une fiche qui a des contrats ou des espaces ouverts ne peut pas être supprimée."
+                step_5: "Une fiche qui a des contrats ou des espaces, même à la corbeille, ne peut pas être supprimée."
             title: Clients
             spaces: Ses espaces
             spaces_description: "Ouvre la liste des espaces de ce client."
@@ -791,7 +796,7 @@ suite:
             updated: Client mis à jour.
             deleted: Client supprimé.
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: 'Un client nommé par un contrat ou par un espace ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
+            delete_warning: 'Un client nommé par un contrat ou par un espace, même à la corbeille, ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
             linked_account: 'Compte : {name}'
 
             contracts_count: '{count} contrat(s)'
@@ -853,7 +858,7 @@ suite:
                 siret_invalid: 'Ce SIRET est invalide : quatorze chiffres et une clé de contrôle correcte sont attendus.'
                 has_contracts: 'Ce client est nommé par {count} contrat(s). Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui.'
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
-                has_spaces: 'Ce client a encore {count} espace(s) ouvert(s). Supprimez ou archivez son travail avant de supprimer la fiche.'
+                has_spaces: 'Ce client a encore {count} espace(s), corbeille comprise. Supprimez-les définitivement avant de supprimer la fiche.'
         spaces:
             guide:
                 title: "Comment fonctionnent les espaces"
@@ -861,8 +866,9 @@ suite:
                 step_2: "« Nouvel espace » demande un nom, un client existant ou un nouveau prospect, et l'équipe qui y travaille."
                 step_3: "Les onglets Clients et Prospects séparent ce sur quoi vous travaillez de ce que vous cherchez à décrocher."
                 step_4: "« À traiter » compte les parutions manquées, les relectures en retard, les contenus à revoir et ceux qui attendent le client."
-                step_5: "Archiver un espace le retire de la liste sans rien perdre ; le supprimer efface son contenu, mais garde le client et ses contrats."
+                step_5: "Archiver un espace le retire de la liste sans rien perdre ; le supprimer le met à la corbeille, d'où il revient tel qu'il était jusqu'à sa suppression définitive. Le client et ses contrats ne bougent pas."
             usage_detail: 'Espace {space}'
+            usage_detail_trashed: 'Espace {space}, à la corbeille'
             title: Espaces clients
             add: "Nouvel espace"
             create: Nouvel espace
@@ -877,9 +883,10 @@ suite:
             customer_filter_clear: 'Tous les espaces'
             created: Espace créé.
             updated: Espace mis à jour.
-            deleted: Espace supprimé.
-            delete_confirm: 'Supprimer {name} ?'
-            delete_warning: "L'espace disparaît avec tout ce qu'il contient : ses contenus, leurs fils et leurs pièces jointes, ses discussions, ses livrables avec leurs liens de lecture, et ses liens d'accès. Ses dates quittent le calendrier. Son espace de notes part à la corbeille des notes, d'où un administrateur peut le faire revenir. Le client, ses contrats et les documents de la médiathèque ne bougent pas."
+            deleted: Espace mis à la corbeille.
+            trash_action: "Mettre à la corbeille"
+            delete_confirm: 'Mettre {name} à la corbeille ?'
+            delete_warning: "L'espace quitte les listes, la recherche, les comptes et les calendriers, et sa page client et ses liens d'accès cessent de répondre. Rien n'est effacé : ses contenus, ses discussions, ses fichiers, ses livrables et son espace de notes l'attendent dans la corbeille, d'où il revient tel qu'il était. Passé le délai de la corbeille, ou supprimé définitivement, il disparaît avec tout ce qu'il contient. Tant qu'il est dans la corbeille, son client ne peut pas être supprimé."
             show_archived: Afficher les espaces archivés
             sort_by_urgency: Trier par urgence
             archived_badge: Archivé
@@ -1003,7 +1010,7 @@ suite:
                 view_description: Ouvrir le tableau de cet espace
                 convert_description: Le client de cet espace a signé
                 edit_description: Modifier cet espace
-                delete_description: Supprimer cet espace
+                delete_description: Mettre cet espace à la corbeille
 
             errors:
                 name_required: Le nom de l'espace est obligatoire.
@@ -1086,6 +1093,7 @@ suite:
             # les logos, le brief. Chacun naît caché au client, comme tout ce
             # qu'un espace peut lui montrer ; ce qu'il envoie reste visible pour lui.
             usage_detail: Fichier de l'espace
+            usage_detail_trashed: "Fichier d'un espace à la corbeille"
             label: Rattachement
             tabs:
                 linked: "Sur les contenus"
@@ -2261,7 +2269,7 @@ suite:
             row_actions:
                 edit_description: Modifier ce contenu
                 view_description: Lire ce contenu, ses fichiers et ses échanges
-                delete_description: Supprimer ce contenu
+                delete_description: Mettre ce contenu à la corbeille
             calendar_name: Contenus clients
             back_to_spaces: Retour aux espaces
             switch_space: "Changer d'espace"
@@ -2271,9 +2279,10 @@ suite:
             view_item: 'Voir {title}'
             item_created: Contenu créé.
             item_updated: Contenu mis à jour.
-            item_deleted: Contenu supprimé.
-            delete_item_confirm: 'Supprimer {title} ?'
-            delete_item_warning: "Le contenu et son texte disparaissent. Les autres contenus ne bougent pas."
+            item_deleted: Contenu mis à la corbeille.
+            trash_action: "Mettre à la corbeille"
+            delete_item_confirm: 'Mettre {title} à la corbeille ?'
+            delete_item_warning: "Il quitte le tableau, la liste, le calendrier et la page du client. Son fil et ses fichiers restent avec lui dans la corbeille, d'où il revient dans son étape jusqu'à sa suppression définitive."
             empty_column: Rien ici pour le moment.
             empty_board: Aucun contenu dans cet espace. Ajoutez-en un pour commencer.
             unscheduled: Sans date
@@ -2334,7 +2343,7 @@ suite:
             column_updated: Étape renommée.
             column_deleted: Étape supprimée.
             delete_column_confirm: 'Supprimer l''étape {name} ?'
-            delete_column_warning: Une étape ne se supprime que si elle est vide.
+            delete_column_warning: "Une étape ne se supprime que si elle est vide. Les contenus à la corbeille qui y étaient passent dans la première étape."
 
             column_role: Rôle de l'étape
             column_role_hint: "Facultatif. « Relecture » marque l'étape où le client valide : seuls les contenus qui y attendent comptent comme « chez le client ». « Publié » marque ce qui est sorti."

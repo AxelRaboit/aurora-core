@@ -12,7 +12,10 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInputFactoryInterface;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInputInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
+use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\CustomerSpace\View\CustomerSpacesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,6 +36,8 @@ class CustomerSpacesController extends AbstractController
         protected readonly CustomerSpaceInputFactoryInterface $spaceInputFactory,
         protected readonly CustomerSpacesViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
+        protected readonly CustomerSpaceRepository $spaces,
+        protected readonly SpaceVisibility $visibility,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -61,17 +66,70 @@ class CustomerSpacesController extends AbstractController
         });
     }
 
+    /**
+     * À la corbeille, pas détruit : il y reste le délai commun à toutes les
+     * corbeilles, et tout revient s'il en sort.
+     */
     #[Route('/{id}/delete', name: '_delete', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.delete')]
     public function delete(CustomerSpace $space): JsonResponse
     {
-        try {
-            $this->spaceManager->delete($space);
-        } catch (FieldException $fieldException) {
-            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
-        }
+        $this->spaceManager->trash($space);
 
         return $this->jsonSuccess($this->viewBuilder->listPayload());
+    }
+
+    /**
+     * Sortir un espace de la corbeille : c'est ce que l'écran de la corbeille
+     * appelle. Le droit qui l'y a mis, sur un espace de son équipe ; un
+     * espace qu'on ne verrait pas répond 404.
+     */
+    #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.delete')]
+    public function restore(int $id): JsonResponse
+    {
+        $this->spaceManager->restore($this->trashed($id));
+
+        return $this->jsonSuccess();
+    }
+
+    /** Détruire pour de bon un espace de la corbeille, avec tout ce qu'il contient. */
+    #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.delete')]
+    public function forceDelete(int $id): JsonResponse
+    {
+        $this->spaceManager->forceDelete($this->trashed($id));
+
+        return $this->jsonSuccess();
+    }
+
+    /** Vider la corbeille des espaces : seulement ceux que la personne y voit. */
+    #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.delete')]
+    public function emptyTrash(): JsonResponse
+    {
+        $deleted = 0;
+        foreach ($this->spaces->findAllTrashed() as $space) {
+            if (!$this->visibility->reaches($space)) {
+                continue;
+            }
+
+            $this->spaceManager->forceDelete($space);
+            ++$deleted;
+        }
+
+        return $this->jsonSuccess(['deleted' => $deleted]);
+    }
+
+    /** Un espace à la corbeille que la personne peut voir, ou 404. */
+    private function trashed(int $id): CustomerSpaceInterface
+    {
+        $space = $this->spaces->findTrashed($id);
+        if (!$space instanceof CustomerSpaceInterface || !$this->visibility->reaches($space)) {
+            throw $this->createNotFoundException();
+        }
+
+        return $space;
     }
 
     /**

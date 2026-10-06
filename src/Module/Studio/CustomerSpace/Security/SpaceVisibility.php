@@ -100,7 +100,26 @@ final readonly class SpaceVisibility
         return $this->seesAll() && $user instanceof CoreUserInterface && [] !== $this->spaces->findVisibleTo($user, false);
     }
 
+    /**
+     * Voit-elle cet espace ?
+     *
+     * Un espace à la corbeille n'est vu par personne : ses écrans, ses
+     * livrables et sa recherche répondent comme pour un espace inconnu. Seul
+     * l'écran de la corbeille le montre, par {@see self::reaches()}.
+     */
     public function canSee(CustomerSpaceInterface $space): bool
+    {
+        return !$space->isTrashed() && $this->reaches($space);
+    }
+
+    /**
+     * Est-il des siens, qu'il soit vivant ou à la corbeille ?
+     *
+     * La moitié « appartenance » de {@see self::canSee()} : la corbeille montre
+     * à chacun les espaces de son équipe qu'on y a mis, et à qui voit tout,
+     * tous.
+     */
+    public function reaches(CustomerSpaceInterface $space): bool
     {
         if ($this->seesAll()) {
             return true;

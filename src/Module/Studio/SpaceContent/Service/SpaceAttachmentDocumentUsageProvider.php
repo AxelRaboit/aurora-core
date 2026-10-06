@@ -43,6 +43,10 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocume
 
         foreach ($this->attachments->findUsingDocument($documentId) as $attachment) {
             $item = $attachment->getItem();
+            // A card in the trash, or in a space in the trash, still holds its
+            // files: a restore must find them. It is said, and not linked to,
+            // since its address answers like an unknown one until then.
+            $trashed = $item->isTrashed() || $item->getSpace()->isTrashed();
 
             $usages[] = [
                 'type' => $this->usageType(),
@@ -51,10 +55,10 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocume
                 // repeat across spaces ("Devis", "Photos"), and what the
                 // person deleting needs to know is whose space it is.
                 'detail' => $this->translator->trans(
-                    'suite.studio.spaces.usage_detail',
+                    $trashed ? 'suite.studio.spaces.usage_detail_trashed' : 'suite.studio.spaces.usage_detail',
                     ['{space}' => $item->getSpace()->getName()],
                 ),
-                'href' => $this->urlGenerator->generate(
+                'href' => $trashed ? null : $this->urlGenerator->generate(
                     'workspace_space_content',
                     ['id' => $item->getSpace()->getId(), 'item' => $item->getId()],
                 ),

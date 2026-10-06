@@ -248,6 +248,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         self::assertCount(1, $payload['spaces']);
     }
 
+    /** Deleting goes to the trash; the trash's own button destroys it with its team. */
     public function testASpaceIsDeletedWithItsMembers(): void
     {
         $customer = $this->givenCustomer('Client éphémère', '41231234500019');
@@ -263,6 +264,12 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/delete', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertNotNull($this->spaces->findTrashed($id));
+
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/force-delete', $id));
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $this->entityManager->clear();
         self::assertNull($this->spaces->find($id));
     }
 

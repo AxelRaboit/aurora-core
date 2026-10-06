@@ -54,10 +54,10 @@ final readonly class SpaceActivityDigestHandler
         $recipient = $this->users->find($message->recipientId);
         $space = $this->spaces->find($message->spaceId);
 
-        // An account deleted, or a space deleted, between the dispatch and
-        // here. Neither is an error: there is simply nobody to tell, or
-        // nothing to tell them about.
-        if (!$recipient instanceof User || null === $space) {
+        // An account deleted, or a space deleted or put in the trash, between
+        // the dispatch and here. Neither is an error: there is simply nobody
+        // to tell, or nothing to tell them about.
+        if (!$recipient instanceof User || null === $space || $space->isTrashed()) {
             return;
         }
 

@@ -35,6 +35,13 @@ interface CustomerSpaceInterface
 
     public function isArchived(): bool;
 
+    /** Quand l'espace a été mis à la corbeille ; nul tant qu'il est vivant. */
+    public function getDeletedAt(): ?DateTimeImmutable;
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
+
+    public function isTrashed(): bool;
+
     public function getColourSlot(): int;
 
     public function setColourSlot(int $colourSlot): static;

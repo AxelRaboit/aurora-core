@@ -150,8 +150,9 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
     }
 
     /**
-     * L'espace client part, ses notes non : leur espace passe à la corbeille
-     * des notes, ne suit plus rien, et un administrateur le fait revenir.
+     * L'espace client part pour de bon, ses notes non : leur espace reste à la
+     * corbeille des notes, ne suit plus rien, et un administrateur le fait
+     * revenir.
      */
     public function testDeletingTheSpaceSendsItsNoteSpaceToTheTrash(): void
     {
@@ -160,6 +161,8 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         $this->noteSpaces[] = $noteSpaceId;
 
         $this->post(sprintf('/suite/studio/spaces/%d/delete', $space->getId()), []);
+        self::assertResponseIsSuccessful();
+        $this->post(sprintf('/suite/studio/spaces/%d/force-delete', $space->getId()), []);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();

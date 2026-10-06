@@ -560,7 +560,7 @@ const pageActions = computed(() => {
             :show="!!pendingDelete"
             max-width="sm"
             :closeable="false"
-            :title="t('shared.common.delete')"
+            :title="t('suite.studio.spaces.trash_action')"
             :icon="Trash2"
             v-on:close="pendingDelete = null"
         >
@@ -587,7 +587,7 @@ const pageActions = computed(() => {
                         v-on:click="doDelete"
                     >
                         <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
+                        {{ t("suite.studio.spaces.trash_action") }}
                     </AppButton>
                 </AppModalFooter>
             </template>

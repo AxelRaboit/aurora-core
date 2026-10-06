@@ -34,7 +34,6 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInter
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
-use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
@@ -89,7 +88,6 @@ class SpaceContentController extends AbstractController
         protected readonly DocumentRepository $documents,
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
-        protected readonly SpaceContentAttachmentRepository $attachmentRepository,
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
@@ -240,18 +238,12 @@ class SpaceContentController extends AbstractController
     ): JsonResponse {
         $this->assertOwned($space, $item->getSpace()->getId());
 
-        $documents = [];
+        // À la corbeille, pas détruit : son fil et ses fichiers restent
+        // attachés pour une restauration, donc aucun fichier n'est laissé sans
+        // usage et il n'y a rien à proposer de jeter.
+        $this->itemManager->trash($item);
 
-        foreach ($this->attachmentRepository->findForItem($item) as $attachment) {
-            $documents[] = $attachment->getDocument();
-        }
-
-        $this->itemManager->delete($item);
-
-        return $this->jsonSuccess(
-            $this->viewBuilder->boardPayload($space)
-            + $this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
-        );
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
     }
 
     #[Route('/content/reorder', name: '_item_reorder', methods: [HttpMethodEnum::Post->value])]
