@@ -91,6 +91,18 @@ suite:
                     revoked: "Enlace de lectura de un entregable revocado"
                     deleted: "Enlace de lectura de un entregable eliminado"
                     hidden: "Enlace de lectura de un entregable oculto"
+                deck:
+                    created: "Presentación creada"
+                    updated: "Presentación modificada"
+                    duplicated: "Presentación duplicada"
+                    trashed: "Presentación enviada a la papelera"
+                    restored: "Presentación sacada de la papelera"
+                    deleted: "Presentación eliminada"
+                deck_link:
+                    issued: "Enlace para compartir una presentación creado"
+                    revoked: "Enlace para compartir una presentación revocado"
+                    hidden: "Enlace para compartir una presentación ocultado"
+                    deleted: "Enlace para compartir una presentación eliminado"
                 space_access_link:
                     issued: 'Enlace de acceso de cliente creado'
                     revoked: 'Enlace de acceso de cliente revocado'

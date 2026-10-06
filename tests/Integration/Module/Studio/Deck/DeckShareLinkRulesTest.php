@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\Deck;
 
+use Aurora\Module\Dev\Audit\Entity\AuditLog;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Deck\Entity\Deck;
@@ -14,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 use function array_column;
+use function array_map;
 use function json_decode;
 use function json_encode;
 use function sprintf;
@@ -46,10 +48,31 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
+        $this->entityManager->createQuery(sprintf("DELETE FROM %s a WHERE a.entityType IN ('Deck', 'DeckShareLink')", AuditLog::class))->execute();
         $this->entityManager->createQuery(sprintf('DELETE FROM %s', DeckShareLink::class))->execute();
         $this->entityManager->createQuery(sprintf('DELETE FROM %s', Deck::class))->execute();
 
         parent::tearDown();
+    }
+
+    /**
+     * A deck keeps a journal, as a deliverable does: who made it, and who
+     * handed out an address to it.
+     */
+    public function testCreatingSharingAndTrashingADeckAreWrittenToTheAuditLog(): void
+    {
+        $deck = $this->deck('Journal');
+        $this->post(sprintf('/suite/studio/decks/%d/share/create', $deck), ['label' => 'Pour le client']);
+        self::assertResponseIsSuccessful();
+        $this->post(sprintf('/suite/studio/decks/%d/delete', $deck));
+        self::assertResponseIsSuccessful();
+
+        $actions = array_map(
+            static fn (AuditLog $log): string => $log->getAction(),
+            $this->entityManager->getRepository(AuditLog::class)->findBy(['module' => 'studio', 'entityType' => ['Deck', 'DeckShareLink']], ['id' => 'ASC']),
+        );
+
+        self::assertSame(['deck.created', 'deck_link.issued', 'deck.trashed'], $actions);
     }
 
     public function testADurationOrAPasswordTheRulesRefuseCreatesNothing(): void

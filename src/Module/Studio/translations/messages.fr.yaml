@@ -91,6 +91,18 @@ suite:
                     revoked: "Lien de lecture d'un livrable révoqué"
                     deleted: "Lien de lecture d'un livrable supprimé"
                     hidden: "Lien de lecture d'un livrable masqué"
+                deck:
+                    created: "Présentation créée"
+                    updated: "Présentation modifiée"
+                    duplicated: "Présentation dupliquée"
+                    trashed: "Présentation mise à la corbeille"
+                    restored: "Présentation sortie de la corbeille"
+                    deleted: "Présentation supprimée"
+                deck_link:
+                    issued: "Lien de partage d'une présentation créé"
+                    revoked: "Lien de partage d'une présentation révoqué"
+                    hidden: "Lien de partage d'une présentation masqué"
+                    deleted: "Lien de partage d'une présentation supprimé"
                 space_access_link:
                     issued: Lien d'accès client créé
                     revoked: Lien d'accès client révoqué

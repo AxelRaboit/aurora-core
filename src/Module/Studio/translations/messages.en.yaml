@@ -91,6 +91,18 @@ suite:
                     revoked: "Deliverable reading link revoked"
                     deleted: "Deliverable reading link deleted"
                     hidden: "Deliverable reading link hidden"
+                deck:
+                    created: "Presentation created"
+                    updated: "Presentation edited"
+                    duplicated: "Presentation duplicated"
+                    trashed: "Presentation moved to the trash"
+                    restored: "Presentation taken out of the trash"
+                    deleted: "Presentation deleted"
+                deck_link:
+                    issued: "Presentation share link created"
+                    revoked: "Presentation share link revoked"
+                    hidden: "Presentation share link hidden"
+                    deleted: "Presentation share link deleted"
                 space_access_link:
                     issued: Client access link created
                     revoked: Client access link revoked

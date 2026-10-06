@@ -272,6 +272,7 @@ class SlidesController extends AbstractController
 
         $this->entityManager->persist($link);
         $this->entityManager->flush();
+        $this->deckManager->recordShareLink('issued', $link);
 
         return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));
     }
@@ -297,6 +298,7 @@ class SlidesController extends AbstractController
 
         $link->revoke(new DateTimeImmutable());
         $this->entityManager->flush();
+        $this->deckManager->recordShareLink('revoked', $link);
 
         return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));
     }
@@ -323,6 +325,7 @@ class SlidesController extends AbstractController
 
         $link->hide($now);
         $this->entityManager->flush();
+        $this->deckManager->recordShareLink('hidden', $link);
 
         return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));
     }
@@ -346,8 +349,10 @@ class SlidesController extends AbstractController
             return $this->jsonInvalidInput(['link' => 'suite.studio.sharing.errors.link_opened'], HttpStatusEnum::Conflict->value);
         }
 
+        $linkId = $link->getId();
         $this->entityManager->remove($link);
         $this->entityManager->flush();
+        $this->deckManager->recordShareLink('deleted', $link, $linkId);
 
         return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));
     }

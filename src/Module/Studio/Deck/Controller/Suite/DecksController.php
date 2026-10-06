@@ -96,6 +96,7 @@ class DecksController extends AbstractController
         }
 
         $this->entityManager->flush();
+        $this->deckManager->recordCreated($deck);
 
         return $this->jsonSuccess($this->viewBuilder->deckPayload($deck));
     }
@@ -134,6 +135,7 @@ class DecksController extends AbstractController
         }
 
         $this->entityManager->flush();
+        $this->deckManager->recordCreated($deck);
 
         return $this->jsonSuccess($this->viewBuilder->deckPayload($deck));
     }
@@ -152,6 +154,7 @@ class DecksController extends AbstractController
         $deck->setTitle($input->title);
         $this->applyInput($deck, $input);
         $this->entityManager->flush();
+        $this->deckManager->recordUpdated($deck);
 
         return $this->jsonSuccess($this->viewBuilder->deckPayload($deck));
     }
@@ -226,6 +229,7 @@ class DecksController extends AbstractController
     {
         $copy = $this->deckDuplicator->duplicate($deck);
         $this->entityManager->flush();
+        $this->deckManager->recordDuplicated($copy, $deck);
 
         return $this->jsonSuccess($this->viewBuilder->deckPayload($copy));
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deck\Manager;
 
+use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Entity\Slide;
@@ -12,6 +13,7 @@ use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
+use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
@@ -40,6 +42,7 @@ class DeckManager
         protected readonly EntityManagerInterface $entityManager,
         protected readonly DeckStyleNormalizer $styleNormalizer,
         protected readonly FreeSlideNormalizer $freeNormalizer,
+        protected readonly AuditLogger $auditLogger,
     ) {}
 
     /**
@@ -56,6 +59,8 @@ class DeckManager
 
         $deck->setDeletedAt(new DateTimeImmutable());
         $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'deck.trashed', 'Deck', $deck->getId(), $this->auditPayload($deck));
     }
 
     /** Takes the deck out of the trash: its share links answer again, as they were. */
@@ -67,6 +72,8 @@ class DeckManager
 
         $deck->setDeletedAt(null);
         $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'deck.restored', 'Deck', $deck->getId(), $this->auditPayload($deck));
     }
 
     /**
@@ -76,8 +83,70 @@ class DeckManager
      */
     public function forceDelete(DeckInterface $deck): void
     {
+        $id = $deck->getId();
+        $payload = $this->auditPayload($deck);
+
         $this->entityManager->remove($deck);
         $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'deck.deleted', 'Deck', $id, $payload);
+    }
+
+    /**
+     * The journal of a deck, as the deliverables keep theirs.
+     *
+     * Creating, filing, copying and sharing a deck left no trace: a link
+     * handed out to a stranger could not be traced back to who made it. These
+     * are called once the write is flushed, so the row has its id.
+     */
+    public function recordCreated(DeckInterface $deck): void
+    {
+        $this->auditLogger->log('studio', 'deck.created', 'Deck', $deck->getId(), $this->auditPayload($deck));
+    }
+
+    public function recordUpdated(DeckInterface $deck): void
+    {
+        $this->auditLogger->log('studio', 'deck.updated', 'Deck', $deck->getId(), $this->auditPayload($deck));
+    }
+
+    public function recordDuplicated(DeckInterface $copy, DeckInterface $source): void
+    {
+        $this->auditLogger->log('studio', 'deck.duplicated', 'Deck', $copy->getId(), $this->auditPayload($copy, ['source' => $source->getId()]));
+    }
+
+    /** @param 'issued'|'revoked'|'hidden'|'deleted' $what */
+    public function recordShareLink(string $what, DeckShareLinkInterface $link, ?int $linkId = null): void
+    {
+        $id = $linkId ?? $link->getId();
+        $payload = $this->auditPayload($link->getDeck(), [
+            'label' => $link->getLabel(),
+            'expires' => $link->getExpiresAt() instanceof DateTimeImmutable,
+            'locked' => $link->isLocked(),
+        ]);
+
+        // One literal call per action: the label test reads the action names
+        // from the source, and a built string is one it cannot see.
+        match ($what) {
+            'issued' => $this->auditLogger->log('studio', 'deck_link.issued', 'DeckShareLink', $id, $payload),
+            'revoked' => $this->auditLogger->log('studio', 'deck_link.revoked', 'DeckShareLink', $id, $payload),
+            'hidden' => $this->auditLogger->log('studio', 'deck_link.hidden', 'DeckShareLink', $id, $payload),
+            'deleted' => $this->auditLogger->log('studio', 'deck_link.deleted', 'DeckShareLink', $id, $payload),
+        };
+    }
+
+    /**
+     * @param array<string, mixed> $extra
+     *
+     * @return array<string, mixed>
+     */
+    protected function auditPayload(DeckInterface $deck, array $extra = []): array
+    {
+        return [
+            'title' => $deck->getTitle(),
+            'customer' => $deck->getCustomer()?->getId(),
+            'template' => $deck->isTemplate(),
+            ...$extra,
+        ];
     }
 
     public function create(string $title): DeckInterface

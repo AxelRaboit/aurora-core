@@ -7,6 +7,7 @@ namespace Aurora\Tests\Unit\Module\Studio\Deck;
 use Aurora\Core\Content\VideoEmbedResolver;
 use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
+use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
@@ -471,6 +472,7 @@ final class SlideContentWhitelistTest extends TestCase
             $this->createStub(EntityManagerInterface::class),
             new DeckStyleNormalizer(),
             new FreeSlideNormalizer(new FreeTextSanitizer(), new VideoEmbedResolver()),
+            $this->createStub(AuditLogger::class),
         );
     }
 }
