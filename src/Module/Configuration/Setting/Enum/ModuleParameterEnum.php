@@ -94,7 +94,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::StudioSuite => 'suite.modules.studio_suite',
             self::StudioCustomers => 'suite.nav.studio_customers',
             self::StudioSpaces => 'suite.nav.studio_spaces',
-            self::StudioContracts => 'suite.nav.studio_contract_templates',
+            self::StudioContracts => 'suite.nav.studio_contracts',
             self::StudioDecks => 'suite.nav.studio_decks',
             self::StudioDeliverables => 'suite.nav.studio_deliverables',
         };
@@ -132,7 +132,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::StudioSuite => 'suite.modules.studio_suite_description',
             self::StudioCustomers => 'suite.nav.studio_customers_description',
             self::StudioSpaces => 'suite.nav.studio_spaces_description',
-            self::StudioContracts => 'suite.nav.studio_contract_templates_description',
+            self::StudioContracts => 'suite.nav.studio_contracts_description',
             self::StudioDecks => 'suite.nav.studio_decks_description',
             self::StudioDeliverables => 'suite.nav.studio_deliverables_description',
         };
