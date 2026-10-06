@@ -34,9 +34,9 @@ class UserRepository extends ResolveTargetEntityRepository
 
         if ($search) {
             $condition = 'LOWER(u.name) LIKE :search OR LOWER(u.email) LIKE :search';
-            $param = '%'.mb_strtolower($search).'%';
-            $queryBuilder->andWhere($condition)->setParameter('search', $param);
-            $countQueryBuilder->andWhere($condition)->setParameter('search', $param);
+            $searchPattern = '%'.mb_strtolower($search).'%';
+            $queryBuilder->andWhere($condition)->setParameter('search', $searchPattern);
+            $countQueryBuilder->andWhere($condition)->setParameter('search', $searchPattern);
         }
 
         return $this->paginate($queryBuilder, $countQueryBuilder, $page, $limit);
@@ -56,9 +56,9 @@ class UserRepository extends ResolveTargetEntityRepository
 
         if (null !== $search && '' !== $search) {
             $condition = 'LOWER(u.name) LIKE :search OR LOWER(u.email) LIKE :search';
-            $param = '%'.mb_strtolower($search).'%';
-            $queryBuilder->andWhere($condition)->setParameter('search', $param);
-            $countQueryBuilder->andWhere($condition)->setParameter('search', $param);
+            $searchPattern = '%'.mb_strtolower($search).'%';
+            $queryBuilder->andWhere($condition)->setParameter('search', $searchPattern);
+            $countQueryBuilder->andWhere($condition)->setParameter('search', $searchPattern);
         }
 
         if (null !== $role && '' !== $role) {

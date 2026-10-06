@@ -71,7 +71,7 @@ rm migrations/Version<YYYYMMDD>_<X>_*.php
 #    - config/packages/doctrine.yaml      (resolve_target_entities)
 #    - config/packages/twig.yaml          (namespace @X)
 #    - config/packages/framework.yaml     (translator.paths)
-#    - config/services.yaml               (DumpJsTranslationsCommand $extraSourceDirs)
+#    - config/services.yaml               (DumpJsTranslationsCommand $extraSourceDirectories)
 #    - jsconfig.json                      (@x alias)
 #    - src/locales/{en,fr}.js             (labels du module)
 

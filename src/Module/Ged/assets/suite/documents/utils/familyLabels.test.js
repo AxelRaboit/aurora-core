@@ -40,7 +40,7 @@ describe("familyMembers", () => {
             ],
         });
 
-        expect(members.map((m) => m.id)).toEqual([1, 2]);
+        expect(members.map((member) => member.id)).toEqual([1, 2]);
         expect(members[0].original).toBe(true);
         expect(members[1].label).toBe("jaune");
     });

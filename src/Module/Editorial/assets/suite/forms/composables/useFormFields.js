@@ -83,7 +83,9 @@ export function useFormFields(props, form, upsert) {
     const { request } = useRequest();
 
     const fields = computed(() =>
-        [...(form.value?.fields ?? [])].sort((a, b) => a.position - b.position),
+        [...(form.value?.fields ?? [])].sort(
+            (left, right) => left.position - right.position,
+        ),
     );
 
     const hasSteps = computed(() => (form.value?.steps?.length ?? 0) > 0);
@@ -117,8 +119,9 @@ export function useFormFields(props, form, upsert) {
     const conditionSources = computed(() => {
         const ordered = hasSteps.value
             ? [...fields.value].sort(
-                  (a, b) =>
-                      (a.step ?? 1) - (b.step ?? 1) || a.position - b.position,
+                  (left, right) =>
+                      (left.step ?? 1) - (right.step ?? 1) ||
+                      left.position - right.position,
               )
             : fields.value;
 

@@ -93,7 +93,10 @@ async function openNoteMenu(wrapper) {
     const trigger = wrapper
         .findAll("button")
         // The bar's "Actions" button (AppPageActions since 02/10/2026).
-        .find((b) => "shared.actions.plain_title" === b.attributes("title"));
+        .find(
+            (button) =>
+                "shared.actions.plain_title" === button.attributes("title"),
+        );
 
     await trigger.trigger("click");
     await flushPromises();
@@ -185,7 +188,9 @@ describe("le chemin de retour", () => {
 
         const back = wrapper
             .findAll("button")
-            .find((b) => b.text().includes("notes.markdown.library.title"));
+            .find((button) =>
+                button.text().includes("notes.markdown.library.title"),
+            );
 
         expect(back, "le lien de retour est là").toBeTruthy();
         expect(
@@ -280,8 +285,8 @@ describe("le partage", () => {
         const failures = [];
         const spy = vi
             .spyOn(console, "error")
-            .mockImplementation((...args) =>
-                failures.push(args.map(String).join(" ")),
+            .mockImplementation((...consoleArguments) =>
+                failures.push(consoleArguments.map(String).join(" ")),
             );
 
         const wrapper = render();
@@ -346,7 +351,7 @@ describe("what the page tells the panel", () => {
             },
         };
 
-        for (const [intent, args] of [
+        for (const [intent, intentArguments] of [
             ["select", [note.id]],
             ["create", [null]],
             ["delete", [note]],
@@ -355,7 +360,9 @@ describe("what the page tells the panel", () => {
             ["delete-folder", [FOLDERS[0]]],
             ["drop", [FOLDERS[0], event]],
         ]) {
-            expect(askPage(`notes:${intent}`, { args })).toBe(true);
+            expect(askPage(`notes:${intent}`, { args: intentArguments })).toBe(
+                true,
+            );
         }
     });
 });
@@ -504,7 +511,7 @@ describe("deleting a note the panel asked to delete", () => {
         expect(document.body.textContent).toContain("notes.markdown.delete");
 
         const confirm = [...document.body.querySelectorAll("button")].find(
-            (b) => /delete|confirm/.test(b.textContent),
+            (button) => /delete|confirm/.test(button.textContent),
         );
         expect(confirm, "the confirmation button is on screen").toBeTruthy();
 

@@ -72,7 +72,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
         );
 
         $sections = $registry->getNavSections();
-        $crmSection = array_values(array_filter($sections, static fn (array $s): bool => 'crm' === $s['id']))[0];
+        $crmSection = array_values(array_filter($sections, static fn (array $section): bool => 'crm' === $section['id']))[0];
 
         self::assertSame(
             ['suite_crm_deals', 'suite_crm_companies', 'suite_crm_contacts'],
@@ -88,7 +88,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
         );
 
         $sections = $registry->getNavSections();
-        $crmSection = array_values(array_filter($sections, static fn (array $s): bool => 'crm' === $s['id']))[0];
+        $crmSection = array_values(array_filter($sections, static fn (array $section): bool => 'crm' === $section['id']))[0];
 
         // suite_crm_deals lands first (the only known route in the override),
         // then the rest in their natural order.
@@ -128,8 +128,8 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
 
     private function makeRegistry(string $sectionOrder, string $itemOrder): ModuleRegistry
     {
-        $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
-        $authChecker->method('isGranted')->willReturn(true);
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->method('isGranted')->willReturn(true);
 
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $urlGenerator->method('generate')->willReturnCallback(static fn (string $route): string => '/'.$route);
@@ -148,7 +148,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
 
         return new ModuleRegistry(
             modules: $this->makeModules(),
-            navItemResolver: new NavItemResolver($authChecker, $urlGenerator),
+            navItemResolver: new NavItemResolver($authorizationChecker, $urlGenerator),
             userSecurity: $security,
             settingRepository: $settingRepository,
         );

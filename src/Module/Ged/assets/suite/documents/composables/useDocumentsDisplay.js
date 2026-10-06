@@ -10,7 +10,7 @@ import { useListSort } from "@/shared/composables/list/useListSort.js";
  * Pass the raw items list reactively; consumers get a `displayedItems`
  * computed they iterate directly. The sort itself is the server's: sorting
  * here only ever reordered the twenty rows of the page on screen, and it
- * pulled a family apart that the server keeps together. `sortParams()`
+ * pulled a family apart that the server keeps together. `sortParameters()`
  * hands the choice to the listing request.
  */
 export const DOCUMENT_SORT_FIELDS = [
@@ -24,7 +24,11 @@ export function useDocumentsDisplay(items) {
     // screen, so a link to this list carries them.
     const { viewMode, setViewMode, storedViewMode, container, isNarrow } =
         useListViewMode(["grid", "list"], "list");
-    const { sortBy, sortDir, setSort } = useListSort("date", "desc", {
+    const {
+        sortBy,
+        sortDir: sortDirection,
+        setSort,
+    } = useListSort("date", "desc", {
         // Named after the columns rather than the module: nothing else on this
         // page competes for them, and ?sort=date reads better than
         // ?gedSort=date in a link someone is meant to click.
@@ -34,9 +38,9 @@ export function useDocumentsDisplay(items) {
 
     const displayedItems = computed(() => items.value);
 
-    const sortParams = () => ({
+    const sortParameters = () => ({
         sort: sortBy.value,
-        direction: sortDir.value,
+        direction: sortDirection.value,
     });
 
     return {
@@ -46,9 +50,9 @@ export function useDocumentsDisplay(items) {
         container,
         isNarrow,
         sortBy,
-        sortDir,
+        sortDirection,
         setSort,
-        sortParams,
+        sortParameters,
         displayedItems,
     };
 }

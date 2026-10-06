@@ -58,10 +58,10 @@ function byCategory(options) {
 
     return [...options]
         .sort(
-            (a, b) =>
-                rank(a) - rank(b) ||
-                (a.category ?? "").localeCompare(b.category ?? "") ||
-                a.label.localeCompare(b.label),
+            (left, right) =>
+                rank(left) - rank(right) ||
+                (left.category ?? "").localeCompare(right.category ?? "") ||
+                left.label.localeCompare(right.label),
         )
         .map((option) => ({
             value: option.value,

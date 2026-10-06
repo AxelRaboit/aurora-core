@@ -10,7 +10,7 @@ vi.mock("@/shared/composables/http/suite/useRequest.js", () => ({
     useRequest: () => ({ request, loading: ref(false) }),
 }));
 vi.mock("@/shared/utils/flash.js", () => ({
-    queueFlash: (...args) => queueFlash(...args),
+    queueFlash: (...flashArguments) => queueFlash(...flashArguments),
 }));
 
 const { useSpaceSettingsForm } = await import("./useSpaceSettingsForm.js");

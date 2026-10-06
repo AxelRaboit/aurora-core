@@ -31,7 +31,9 @@ describe("AppIconButton", () => {
 
     it("applies rose color classes when color='rose'", () => {
         const wrapper = mount(AppIconButton, { props: { color: "rose" } });
-        expect(wrapper.classes().some((c) => c.includes("rose"))).toBe(true);
+        expect(
+            wrapper.classes().some((className) => className.includes("rose")),
+        ).toBe(true);
     });
 
     /**

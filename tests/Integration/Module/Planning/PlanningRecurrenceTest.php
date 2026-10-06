@@ -333,15 +333,15 @@ final class PlanningRecurrenceTest extends IntegrationTestCase
 
     /**
      * @param array<string, mixed> $payload
-     * @param array<string, mixed> $params
+     * @param array<string, mixed> $parameters
      *
      * @return array<string, mixed>
      */
-    private function post(string $route, array $payload = [], array $params = []): array
+    private function post(string $route, array $payload = [], array $parameters = []): array
     {
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate($route, $params),
+            $this->urlGenerator->generate($route, $parameters),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode($payload, JSON_THROW_ON_ERROR),
         );

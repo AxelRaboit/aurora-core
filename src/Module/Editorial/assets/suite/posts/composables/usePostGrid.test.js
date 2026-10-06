@@ -380,7 +380,7 @@ describe("usePostGrid", () => {
     it("offers every fraction on a whole number of columns", () => {
         const { widthOptions } = make().api;
 
-        expect(widthOptions.value.map((o) => o.value)).toEqual([
+        expect(widthOptions.value.map((option) => option.value)).toEqual([
             12, 16, 24, 32, 36, 48,
         ]);
     });
@@ -431,21 +431,18 @@ describe("usePostGrid", () => {
     });
 
     it("offers every shape the normaliser accepts", () => {
-        expect(make().api.ratioOptions.value.map((o) => o.value)).toEqual([
-            "natural",
-            "16x9",
-            "4x3",
-            "1x1",
-            "3x4",
-            "fill",
-        ]);
+        expect(
+            make().api.ratioOptions.value.map((option) => option.value),
+        ).toEqual(["natural", "16x9", "4x3", "1x1", "3x4", "fill"]);
     });
 
     it("offers the three steps and the forty-four zone types", () => {
         const { snapOptions, typeOptions } = make().api;
 
-        expect(snapOptions.value.map((o) => o.value)).toEqual([4, 2, 1]);
-        expect(typeOptions.value.map((o) => o.value)).toEqual([
+        expect(snapOptions.value.map((option) => option.value)).toEqual([
+            4, 2, 1,
+        ]);
+        expect(typeOptions.value.map((option) => option.value)).toEqual([
             "text",
             "media",
             "post",
@@ -496,7 +493,9 @@ describe("usePostGrid", () => {
 
     /** Depth stops at one, and the editor must not offer what the server drops. */
     it("does not offer a stack inside a stack", () => {
-        expect(make().api.leafTypeOptions.value.map((o) => o.value)).toEqual([
+        expect(
+            make().api.leafTypeOptions.value.map((option) => option.value),
+        ).toEqual([
             "text",
             "media",
             "post",
@@ -555,16 +554,16 @@ describe("usePostGrid", () => {
 
         const children = layout.value.zones[0].children;
 
-        expect(children.map((c) => c.type)).toEqual(["media", "media"]);
-        expect(children.map((c) => c.span.lg)).toEqual(
+        expect(children.map((child) => child.type)).toEqual(["media", "media"]);
+        expect(children.map((child) => child.span.lg)).toEqual(
             [24, 24],
             "two zones, half the height each - and they sum to 48 so the fraction row can say so",
         );
 
         api.addChild(0, "text");
-        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
-            16, 16, 16,
-        ]);
+        expect(
+            layout.value.zones[0].children.map((child) => child.span.lg),
+        ).toEqual([16, 16, 16]);
     });
 
     it("re-shares the height when a zone leaves the stack", () => {
@@ -578,9 +577,9 @@ describe("usePostGrid", () => {
         const goneId = layout.value.zones[0].children[1].id;
         api.removeChild(0, 1);
 
-        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
-            24, 24,
-        ]);
+        expect(
+            layout.value.zones[0].children.map((child) => child.span.lg),
+        ).toEqual([24, 24]);
         expect(content.value.zones[goneId]).toBeUndefined();
     });
 
@@ -592,10 +591,9 @@ describe("usePostGrid", () => {
         api.addChild(0, "media");
         api.moveChild(0, 0, 1);
 
-        expect(layout.value.zones[0].children.map((c) => c.type)).toEqual([
-            "media",
-            "text",
-        ]);
+        expect(
+            layout.value.zones[0].children.map((child) => child.type),
+        ).toEqual(["media", "text"]);
     });
 
     it("reaches a stacked zone's own fields", () => {
@@ -646,9 +644,9 @@ describe("usePostGrid", () => {
 
         api.zoneFields(0, 0).width.value = 32;
 
-        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
-            32, 16,
-        ]);
+        expect(
+            layout.value.zones[0].children.map((child) => child.span.lg),
+        ).toEqual([32, 16]);
         expect(api.childShare(0, 0)).toBe(67);
         expect(api.childShare(0, 1)).toBe(33);
     });
@@ -670,8 +668,10 @@ describe("usePostGrid", () => {
         api.zoneFields(0, 0).width.value = 24;
 
         // 24 left for two that stood 16 to 24 - two fifths and three fifths.
-        expect(children.map((c) => c.span.lg)).toEqual([24, 10, 14]);
-        expect(children.reduce((sum, c) => sum + c.span.lg, 0)).toBe(48);
+        expect(children.map((child) => child.span.lg)).toEqual([24, 10, 14]);
+        expect(children.reduce((sum, child) => sum + child.span.lg, 0)).toBe(
+            48,
+        );
     });
 
     it("never reduces another zone of the stack to nothing", () => {
@@ -695,8 +695,10 @@ describe("usePostGrid", () => {
     it("does not offer the full height as a share", () => {
         const { widthOptions, shareOptions } = make().api;
 
-        expect(widthOptions.value.map((o) => o.value)).toContain(48);
-        expect(shareOptions.value.map((o) => o.value)).not.toContain(48);
+        expect(widthOptions.value.map((option) => option.value)).toContain(48);
+        expect(shareOptions.value.map((option) => option.value)).not.toContain(
+            48,
+        );
     });
 
     // ── Moving an existing zone into a stack ──────────────────────────────
@@ -714,10 +716,9 @@ describe("usePostGrid", () => {
         expect(api.moveZoneIntoStack(0, 1, 0)).toBe(true);
 
         expect(layout.value.zones).toHaveLength(1);
-        expect(layout.value.zones[0].children.map((c) => c.id)).toEqual([
-            movedId,
-            expect.any(String),
-        ]);
+        expect(layout.value.zones[0].children.map((child) => child.id)).toEqual(
+            [movedId, expect.any(String)],
+        );
         // Content is keyed by id and the id travelled, so nothing had to move.
         expect(content.value.zones[movedId].alt).toBe("Vue depuis la treille");
     });
@@ -730,9 +731,9 @@ describe("usePostGrid", () => {
         api.addChild(1, "text");
         api.moveZoneIntoStack(0, 1, 1);
 
-        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
-            24, 24,
-        ]);
+        expect(
+            layout.value.zones[0].children.map((child) => child.span.lg),
+        ).toEqual([24, 24]);
     });
 
     /**
@@ -848,9 +849,9 @@ describe("usePostGrid", () => {
 
         api.moveZoneOutOfStack(0, 0, 0);
 
-        expect(layout.value.zones[1].children.map((c) => c.span.lg)).toEqual([
-            24, 24,
-        ]);
+        expect(
+            layout.value.zones[1].children.map((child) => child.span.lg),
+        ).toEqual([24, 24]);
     });
 
     it("ignores a move out of a zone that holds nothing", () => {
@@ -1044,9 +1045,9 @@ describe("placeZones", () => {
     const at = (...zones) =>
         placeZones(zones).map((place) => [place.row, place.column]);
 
-    const widths = (...lg) =>
+    const widths = (...largeSpans) =>
         at(
-            ...lg.map((columns) => ({
+            ...largeSpans.map((columns) => ({
                 span: { base: 48, md: null, lg: columns },
             })),
         );

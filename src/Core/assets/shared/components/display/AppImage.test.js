@@ -34,8 +34,8 @@ describe("AppImage", () => {
                 focalPoint: "30% 70%",
             },
         });
-        const img = wrapper.find("img");
-        expect(img.attributes("style")).toContain("object-position: 30% 70%");
+        const image = wrapper.find("img");
+        expect(image.attributes("style")).toContain("object-position: 30% 70%");
     });
 
     it("applies rounded class to outer div", () => {

@@ -57,8 +57,8 @@ const FALLBACK_THEME = makeTheme("accent");
  * time - keep all references intact (no dynamic concat with the
  * colour name) so PurgeCSS doesn't drop them.
  */
-function makeTheme(c) {
-    switch (c) {
+function makeTheme(colorName) {
+    switch (colorName) {
         case "slate":
             return {
                 headerBg: "bg-slate-500/10",

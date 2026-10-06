@@ -117,7 +117,7 @@ final class MenuRenderer
             }
         }
 
-        usort($tree, static fn (array $a, array $b): int => $a['_position'] <=> $b['_position']);
+        usort($tree, static fn (array $left, array $right): int => $left['_position'] <=> $right['_position']);
         $this->stripPositions($tree);
 
         return $this->rendered[$key] = $tree;
@@ -147,7 +147,7 @@ final class MenuRenderer
             }
         }
 
-        usort($children, static fn (array $a, array $b): int => $a['_position'] <=> $b['_position']);
+        usort($children, static fn (array $left, array $right): int => $left['_position'] <=> $right['_position']);
         $this->stripPositions($children);
 
         $url = $this->resolveUrl($item, $locale);

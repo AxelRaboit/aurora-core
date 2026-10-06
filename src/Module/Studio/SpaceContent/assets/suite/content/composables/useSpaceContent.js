@@ -106,7 +106,7 @@ export function useSpaceContent(initial, paths) {
             column,
             cards: shown.value
                 .filter((item) => item.columnId === column.id)
-                .sort((a, b) => a.position - b.position),
+                .sort((left, right) => left.position - right.position),
         })),
     );
 

@@ -16,15 +16,15 @@ export function useDocumentNavigation(props, reload, clearSelection) {
     const folders = ref([...(props.folders ?? [])]);
 
     const initialUrl = new URL(window.location.href);
-    const initialFolderParam = initialUrl.searchParams.get("folderId");
+    const initialFolderParameter = initialUrl.searchParams.get("folderId");
     const initialAll = initialUrl.searchParams.get("all") === "1";
     const initialRoot = initialUrl.searchParams.get("rootOnly") === "1";
 
     const currentFolderId = ref(
-        initialFolderParam ? Number(initialFolderParam) || null : null,
+        initialFolderParameter ? Number(initialFolderParameter) || null : null,
     );
     const allDocumentsView = ref(
-        initialAll || (!initialRoot && !initialFolderParam),
+        initialAll || (!initialRoot && !initialFolderParameter),
     );
     const rootOnly = ref(initialRoot);
 

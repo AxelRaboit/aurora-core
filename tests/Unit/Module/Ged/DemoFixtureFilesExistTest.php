@@ -67,10 +67,10 @@ final class DemoFixtureFilesExistTest extends TestCase
 
         // The folder the fixture counts from, not a relative path: `dirname`
         // does not resolve the `..` it is given.
-        $fixtureDir = dirname(__DIR__, 4).'/fixtures/Ged';
+        $fixtureDirectory = dirname(__DIR__, 4).'/fixtures/Ged';
 
         foreach ($matches[1] as $levels) {
-            $root = dirname($fixtureDir, (int) $levels);
+            $root = dirname($fixtureDirectory, (int) $levels);
 
             if (!is_dir($root.'/test_files')) {
                 $wrong[] = sprintf('dirname(__DIR__, %s) -> %s', $levels, $root);

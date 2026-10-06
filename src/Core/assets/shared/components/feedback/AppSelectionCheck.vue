@@ -11,7 +11,7 @@ import { Check } from "lucide-vue-next";
  */
 defineProps({
     active: { type: Boolean, default: false },
-    size: { type: String, default: "sm", validator: (v) => ["xs", "sm", "md"].includes(v) },
+    size: { type: String, default: "sm", validator: (size) => ["xs", "sm", "md"].includes(size) },
 });
 
 const sizes = {

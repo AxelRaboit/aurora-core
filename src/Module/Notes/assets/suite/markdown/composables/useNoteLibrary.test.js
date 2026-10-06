@@ -95,13 +95,17 @@ describe("useNoteLibrary", () => {
     it("shows what the current folder holds, and nothing else", () => {
         const root = build();
 
-        expect(root.folders.value.map((f) => f.id).sort()).toEqual([1, 3]);
-        expect(root.notes.value.map((n) => n.id).sort()).toEqual([11, 12]);
+        expect(root.folders.value.map((folder) => folder.id).sort()).toEqual([
+            1, 3,
+        ]);
+        expect(root.notes.value.map((note) => note.id).sort()).toEqual([
+            11, 12,
+        ]);
 
         const inside = build(1);
 
-        expect(inside.folders.value.map((f) => f.id)).toEqual([2]);
-        expect(inside.notes.value.map((n) => n.id)).toEqual([13]);
+        expect(inside.folders.value.map((folder) => folder.id)).toEqual([2]);
+        expect(inside.notes.value.map((note) => note.id)).toEqual([13]);
     });
 
     it("sorts by name, in both directions", () => {
@@ -111,18 +115,18 @@ describe("useNoteLibrary", () => {
         library.toggleDirection(); // desc by default, so asc here
 
         expect(library.direction.value).toBe("asc");
-        expect(library.folders.value.map((f) => f.name)).toEqual([
+        expect(library.folders.value.map((folder) => folder.name)).toEqual([
             "Archives",
             "Clients",
         ]);
-        expect(library.notes.value.map((n) => n.title)).toEqual([
+        expect(library.notes.value.map((note) => note.title)).toEqual([
             "Abricot",
             "Zèbre",
         ]);
 
         library.toggleDirection();
 
-        expect(library.notes.value.map((n) => n.title)).toEqual([
+        expect(library.notes.value.map((note) => note.title)).toEqual([
             "Zèbre",
             "Abricot",
         ]);
@@ -133,7 +137,7 @@ describe("useNoteLibrary", () => {
 
         expect(library.sort.value).toBe("updated");
         expect(library.direction.value).toBe("desc");
-        expect(library.notes.value.map((n) => n.id)).toEqual([11, 12]);
+        expect(library.notes.value.map((note) => note.id)).toEqual([11, 12]);
     });
 
     /**
@@ -190,7 +194,7 @@ describe("useNoteLibrary", () => {
         library.setSort("manual");
         library.toggleDirection();
 
-        expect(library.notes.value.map((n) => n.id)).toEqual([11, 12]);
+        expect(library.notes.value.map((note) => note.id)).toEqual([11, 12]);
     });
 
     /**
@@ -204,7 +208,7 @@ describe("useNoteLibrary", () => {
 
             expect(library.flat.value).toBe(true);
             expect(library.folders.value).toEqual([]);
-            expect(library.notes.value.map((n) => n.id).sort()).toEqual([
+            expect(library.notes.value.map((note) => note.id).sort()).toEqual([
                 11, 12, 13, 14,
             ]);
         });
@@ -216,7 +220,7 @@ describe("useNoteLibrary", () => {
 
             // 13 is in "Clients", 14 in "Studio Lumen" which is inside it;
             // 11 and 12 are at the root and stay out.
-            expect(library.notes.value.map((n) => n.id).sort()).toEqual([
+            expect(library.notes.value.map((note) => note.id).sort()).toEqual([
                 13, 14,
             ]);
         });
@@ -267,7 +271,7 @@ describe("useNoteLibrary", () => {
 
             library.toggleFlat();
 
-            expect(library.notes.value.map((n) => n.id)).toEqual([31]);
+            expect(library.notes.value.map((note) => note.id)).toEqual([31]);
         });
     });
 
@@ -306,7 +310,7 @@ describe("useNoteLibrary", () => {
 
             library.setTag("photo");
 
-            expect(library.notes.value.map((n) => n.id).sort()).toEqual([
+            expect(library.notes.value.map((note) => note.id).sort()).toEqual([
                 41, 42,
             ]);
             expect(library.folders.value).toEqual([]);
@@ -319,8 +323,10 @@ describe("useNoteLibrary", () => {
             library.setTag(null);
 
             expect(library.currentFolderId.value).toBe(1);
-            expect(library.notes.value.map((n) => n.id)).toEqual([43]);
-            expect(library.folders.value.map((f) => f.id)).toEqual([2]);
+            expect(library.notes.value.map((note) => note.id)).toEqual([43]);
+            expect(library.folders.value.map((folder) => folder.id)).toEqual([
+                2,
+            ]);
         });
 
         it("reads an empty string as no tag at all", () => {

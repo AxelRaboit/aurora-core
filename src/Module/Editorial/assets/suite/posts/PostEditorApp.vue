@@ -37,7 +37,7 @@ import { siteZone } from "@/shared/utils/format/zonedTime.js";
 // not at the time of the laptop that typed it.
 const timeZone = siteZone() ?? "";
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 // The page's own choice first, then the theme's modes - the same list the
 // theme screen offers, from the one place that mirrors the server's.
 const highlightOptions = computed(() => [
@@ -491,7 +491,7 @@ function termLabel(term) {
             <p v-if="post?.reviewedByName" class="mt-1.5 text-2xs text-muted">
                 {{ post.reviewedByName }}
                 <template v-if="post.reviewedAt">
-                    &middot; {{ d(new Date(post.reviewedAt), { dateStyle: "medium", timeStyle: "short" }) }}
+                    &middot; {{ formatDate(new Date(post.reviewedAt), { dateStyle: "medium", timeStyle: "short" }) }}
                 </template>
             </p>
         </div>

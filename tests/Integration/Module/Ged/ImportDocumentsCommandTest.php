@@ -23,20 +23,20 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final class ImportDocumentsCommandTest extends IntegrationTestCase
 {
-    private string $sourceDir;
+    private string $sourceDirectory;
 
     protected function setUp(): void
     {
         parent::setUp();
         static::createClient();
 
-        $this->sourceDir = sys_get_temp_dir().'/aurora_import_'.uniqid();
-        mkdir($this->sourceDir, 0o777, true);
+        $this->sourceDirectory = sys_get_temp_dir().'/aurora_import_'.uniqid();
+        mkdir($this->sourceDirectory, 0o777, true);
     }
 
     protected function tearDown(): void
     {
-        new Filesystem()->remove($this->sourceDir);
+        new Filesystem()->remove($this->sourceDirectory);
 
         parent::tearDown();
     }
@@ -45,7 +45,7 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
     {
         $this->writeImage('AXL00594-Modifier.png');
 
-        $tester = $this->runImport([$this->sourceDir]);
+        $tester = $this->runImport([$this->sourceDirectory]);
         $tester->assertCommandIsSuccessful();
 
         $document = $this->lastDocument();
@@ -61,15 +61,15 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
         self::assertSame(24, $document->getWidth());
         self::assertSame(16, $document->getHeight());
 
-        $uploadDir = (string) static::getContainer()->getParameter('app.upload_dir');
-        self::assertFileExists($uploadDir.'/'.$document->getFilePath());
+        $uploadDirectory = (string) static::getContainer()->getParameter('app.upload_dir');
+        self::assertFileExists($uploadDirectory.'/'.$document->getFilePath());
     }
 
     public function testNoAltTextIsInvented(): void
     {
         $this->writeImage('a-black-cab-in-london.png');
 
-        $this->runImport([$this->sourceDir])->assertCommandIsSuccessful();
+        $this->runImport([$this->sourceDirectory])->assertCommandIsSuccessful();
 
         // A filename is a passable title and a bad description. A wrong alt is
         // worse than none, because it is read out with confidence.
@@ -81,7 +81,7 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
         $this->writeImage('b-second.png');
         $this->writeImage('a-first.png');
 
-        $tester = $this->runImport([$this->sourceDir]);
+        $tester = $this->runImport([$this->sourceDirectory]);
         $tester->assertCommandIsSuccessful();
 
         $display = $tester->getDisplay();
@@ -98,7 +98,7 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
         $this->writeImage('not-imported.png');
 
         $before = $this->documentCount();
-        $this->runImport([$this->sourceDir], ['--dry-run' => true])->assertCommandIsSuccessful();
+        $this->runImport([$this->sourceDirectory], ['--dry-run' => true])->assertCommandIsSuccessful();
 
         self::assertSame($before, $this->documentCount());
     }
@@ -107,7 +107,7 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
     {
         $this->writeImage('whatever.png');
 
-        $tester = $this->runImport([$this->sourceDir], ['--status' => 'live']);
+        $tester = $this->runImport([$this->sourceDirectory], ['--status' => 'live']);
 
         self::assertSame(CommandTester::class, $tester::class);
         self::assertNotSame(0, $tester->getStatusCode());
@@ -118,12 +118,12 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
     public function testAnAlternateIsImportedIntoItsFamily(): void
     {
         $this->writeImage('vert.png');
-        $this->runImport([$this->sourceDir.'/vert.png'])->assertCommandIsSuccessful();
+        $this->runImport([$this->sourceDirectory.'/vert.png'])->assertCommandIsSuccessful();
         $original = $this->lastDocument();
         self::assertNotNull($original);
 
         $this->writeImage('jaune.png');
-        $this->runImport([$this->sourceDir.'/jaune.png'], [
+        $this->runImport([$this->sourceDirectory.'/jaune.png'], [
             '--original' => (string) $original->getId(),
             '--label' => 'jaune',
             '--kept' => true,
@@ -140,18 +140,18 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
     public function testAnAlternateIsRefusedAsAnOriginalBeforeAnythingIsStored(): void
     {
         $this->writeImage('vert.png');
-        $this->runImport([$this->sourceDir.'/vert.png'])->assertCommandIsSuccessful();
+        $this->runImport([$this->sourceDirectory.'/vert.png'])->assertCommandIsSuccessful();
         $original = $this->lastDocument();
         self::assertNotNull($original);
 
         $this->writeImage('jaune.png');
-        $this->runImport([$this->sourceDir.'/jaune.png'], ['--original' => (string) $original->getId()])->assertCommandIsSuccessful();
+        $this->runImport([$this->sourceDirectory.'/jaune.png'], ['--original' => (string) $original->getId()])->assertCommandIsSuccessful();
         $alternate = $this->lastDocument();
         self::assertNotNull($alternate);
 
         $this->writeImage('orange.png');
         $before = $this->documentCount();
-        $tester = $this->runImport([$this->sourceDir.'/orange.png'], ['--original' => (string) $alternate->getId()]);
+        $tester = $this->runImport([$this->sourceDirectory.'/orange.png'], ['--original' => (string) $alternate->getId()]);
 
         self::assertNotSame(0, $tester->getStatusCode());
         self::assertSame($before, $this->documentCount());
@@ -161,13 +161,13 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
     public function testALabelTooLongIsRefusedBeforeAnythingIsStored(): void
     {
         $this->writeImage('vert.png');
-        $this->runImport([$this->sourceDir.'/vert.png'])->assertCommandIsSuccessful();
+        $this->runImport([$this->sourceDirectory.'/vert.png'])->assertCommandIsSuccessful();
         $original = $this->lastDocument();
         self::assertNotNull($original);
 
         $this->writeImage('long.png');
         $before = $this->documentCount();
-        $tester = $this->runImport([$this->sourceDir.'/long.png'], ['--original' => (string) $original->getId(), '--label' => str_repeat('x', 41)]);
+        $tester = $this->runImport([$this->sourceDirectory.'/long.png'], ['--original' => (string) $original->getId(), '--label' => str_repeat('x', 41)]);
 
         self::assertSame(Command::INVALID, $tester->getStatusCode());
         self::assertSame($before, $this->documentCount());
@@ -177,8 +177,8 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
     {
         $this->writeImage('seul.png');
 
-        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--label' => 'jaune'])->getStatusCode());
-        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--original' => 'abc'])->getStatusCode());
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDirectory], ['--label' => 'jaune'])->getStatusCode());
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDirectory], ['--original' => 'abc'])->getStatusCode());
     }
 
     /**
@@ -187,14 +187,14 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
      */
     public function testACategoryIsSetOnTheWayIn(): void
     {
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $category = new DocumentCategory();
         $category->setName('Captures')->setSlug('captures-'.uniqid());
-        $em->persist($category);
-        $em->flush();
+        $entityManager->persist($category);
+        $entityManager->flush();
 
         $this->writeImage('rangee.png');
-        $this->runImport([$this->sourceDir], ['--category' => (string) $category->getId()])->assertCommandIsSuccessful();
+        $this->runImport([$this->sourceDirectory], ['--category' => (string) $category->getId()])->assertCommandIsSuccessful();
 
         self::assertSame($category->getId(), $this->lastDocument()?->getCategory()?->getId());
     }
@@ -205,8 +205,8 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
         $this->writeImage('perdue.png');
         $before = $this->documentCount();
 
-        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--category' => '999999'])->getStatusCode());
-        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--category' => 'tour'])->getStatusCode());
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDirectory], ['--category' => '999999'])->getStatusCode());
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDirectory], ['--category' => 'tour'])->getStatusCode());
         self::assertSame($before, $this->documentCount());
     }
 
@@ -226,7 +226,7 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
     private function writeImage(string $name): void
     {
         $image = imagecreatetruecolor(24, 16);
-        imagepng($image, $this->sourceDir.'/'.$name);
+        imagepng($image, $this->sourceDirectory.'/'.$name);
         imagedestroy($image);
     }
 

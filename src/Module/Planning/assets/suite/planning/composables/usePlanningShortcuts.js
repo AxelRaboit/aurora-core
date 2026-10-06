@@ -17,7 +17,7 @@ import { useKeyboardShortcut } from "@/shared/composables/useKeyboardShortcut.js
 export function usePlanningShortcuts({
     isBusy,
     setView,
-    go,
+    go: pageBy,
     goToToday,
     createEvent,
     createReminder,
@@ -49,19 +49,19 @@ export function usePlanningShortcuts({
 
     useKeyboardShortcut(
         { key: "n" },
-        unless(() => go(1)),
+        unless(() => pageBy(1)),
     );
     useKeyboardShortcut(
         { key: "j" },
-        unless(() => go(1)),
+        unless(() => pageBy(1)),
     );
     useKeyboardShortcut(
         { key: "p" },
-        unless(() => go(-1)),
+        unless(() => pageBy(-1)),
     );
     useKeyboardShortcut(
         { key: "k" },
-        unless(() => go(-1)),
+        unless(() => pageBy(-1)),
     );
 
     useKeyboardShortcut({ key: "c" }, unless(createEvent));

@@ -87,9 +87,9 @@ final class GitHubActivityViewTest extends TestCase
     private function view(string $start, int $weeks, string $logins = 'AxelRaboit'): GitHubActivityView
     {
         $cells = '';
-        for ($col = 0; $col < $weeks; ++$col) {
-            $date = (new DateTimeImmutable($start))->modify(sprintf('+%d weeks', $col))->format('Y-m-d');
-            $cells .= sprintf('<td data-date="%s" id="contribution-day-component-0-%d" data-level="1"></td>', $date, $col);
+        for ($column = 0; $column < $weeks; ++$column) {
+            $date = (new DateTimeImmutable($start))->modify(sprintf('+%d weeks', $column))->format('Y-m-d');
+            $cells .= sprintf('<td data-date="%s" id="contribution-day-component-0-%d" data-level="1"></td>', $date, $column);
         }
 
         $store = [GitHubSettingEnum::Enabled->value => '1', GitHubSettingEnum::Logins->value => $logins];

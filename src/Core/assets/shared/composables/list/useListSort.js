@@ -15,19 +15,22 @@ import { useQueryState } from "@/shared/composables/useQueryState.js";
  * address.
  *
  * @param {string}       [defaultField="name"]
- * @param {"asc"|"desc"} [defaultDir="asc"]
+ * @param {"asc"|"desc"} [defaultDirection="asc"]
  * @param {object}       [options]
  * @param {string}       [options.fieldParam="sort"] Query parameter for the field.
  * @param {string}       [options.dirParam="dir"]    Query parameter for the direction.
  */
 export function useListSort(
     defaultField = "name",
-    defaultDir = "asc",
-    { fieldParam = "sort", dirParam = "dir" } = {},
+    defaultDirection = "asc",
+    {
+        fieldParam: fieldParameter = "sort",
+        dirParam: directionParameter = "dir",
+    } = {},
 ) {
-    const field = useQueryState(fieldParam, { defaultValue: defaultField });
-    const direction = useQueryState(dirParam, {
-        defaultValue: defaultDir,
+    const field = useQueryState(fieldParameter, { defaultValue: defaultField });
+    const direction = useQueryState(directionParameter, {
+        defaultValue: defaultDirection,
         valid: ["asc", "desc"],
     });
 

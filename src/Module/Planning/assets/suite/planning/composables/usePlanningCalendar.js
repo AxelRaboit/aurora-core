@@ -65,10 +65,12 @@ export function usePlanningCalendar(
             ? useDisplayZone()
             : { zone: ref(fixedZone), setZone: () => {} };
 
-    const params = new URLSearchParams(window.location.search);
-    const anchor = ref(readDateFromUrl(params) ?? new Date());
+    const urlParameters = new URLSearchParams(window.location.search);
+    const anchor = ref(readDateFromUrl(urlParameters) ?? new Date());
     const view = ref(
-        VIEWS.includes(params.get("view")) ? params.get("view") : "month",
+        VIEWS.includes(urlParameters.get("view"))
+            ? urlParameters.get("view")
+            : "month",
     );
 
     /**
@@ -86,19 +88,19 @@ export function usePlanningCalendar(
             return null;
         }
 
-        const [, y, m, day] = match.map(Number);
-        const date = new Date(y, m - 1, day);
+        const [, linkYear, linkMonth, day] = match.map(Number);
+        const date = new Date(linkYear, linkMonth - 1, day);
 
         // A URL somebody typed can say 2026-13-40. `new Date` rolls that into a
         // real date silently, so it is compared back rather than trusted.
-        return date.getMonth() === m - 1 && date.getDate() === day
+        return date.getMonth() === linkMonth - 1 && date.getDate() === day
             ? date
             : null;
     }
 
     function writeStateToUrl() {
         const url = new URL(window.location.href);
-        const pad = (n) => String(n).padStart(2, "0");
+        const pad = (value) => String(value).padStart(2, "0");
         const date = anchor.value;
 
         url.searchParams.set("view", view.value);
@@ -277,8 +279,8 @@ export function usePlanningCalendar(
         );
 
         if (-1 === at) {
-            calendars.value = [...calendars.value, calendar].sort((a, b) =>
-                a.name.localeCompare(b.name),
+            calendars.value = [...calendars.value, calendar].sort(
+                (left, right) => left.name.localeCompare(right.name),
             );
 
             return;

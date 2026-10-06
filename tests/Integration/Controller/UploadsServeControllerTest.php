@@ -26,7 +26,7 @@ final class UploadsServeControllerTest extends IntegrationTestCase
 {
     private KernelBrowser $client;
     private UrlGeneratorInterface $urlGenerator;
-    private string $uploadDir;
+    private string $uploadDirectory;
     private string $fixtureRelativePath = 'tests-fixtures/sample.txt';
     private string $fixtureAbsolutePath;
     private Filesystem $filesystem;
@@ -36,10 +36,10 @@ final class UploadsServeControllerTest extends IntegrationTestCase
         parent::setUp();
         $this->client = static::createClient();
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
-        $this->uploadDir = static::getContainer()->getParameter('app.upload_dir');
+        $this->uploadDirectory = static::getContainer()->getParameter('app.upload_dir');
 
         $this->filesystem = new Filesystem();
-        $this->fixtureAbsolutePath = Path::join($this->uploadDir, $this->fixtureRelativePath);
+        $this->fixtureAbsolutePath = Path::join($this->uploadDirectory, $this->fixtureRelativePath);
         $this->filesystem->mkdir(dirname($this->fixtureAbsolutePath));
         file_put_contents($this->fixtureAbsolutePath, 'hello-from-uploads');
     }

@@ -93,14 +93,14 @@ twig:
 > client n'a pas cette auto-discovery. **Chaque module client doit déclarer
 > son namespace Twig** ici (sinon `@Tracking/...` ne se résout pas).
 
-### 2.3 `config/services.yaml` - `DumpJsTranslationsCommand` `$extraSourceDirs`
+### 2.3 `config/services.yaml` - `DumpJsTranslationsCommand` `$extraSourceDirectories`
 
 ```yaml
 services:
     Aurora\Module\Configuration\Setting\Command\DumpJsTranslationsCommand:
         arguments:
-            $auroraDir: '%kernel.project_dir%/vendor/axelraboit/aurora'
-            $extraSourceDirs:
+            $auroraDirectory: '%kernel.project_dir%/vendor/axelraboit/aurora'
+            $extraSourceDirectories:
                 - '%kernel.project_dir%/src/Module/Tracking/translations'
                 # ajouter une ligne par module client
 ```
@@ -109,7 +109,7 @@ services:
 > mais uniquement dans son propre arbre. Côté client, déclarer chaque dossier
 > de traduction module.
 > Nom de classe **exact** : `Aurora\Module\Configuration\Setting\Command\DumpJsTranslationsCommand`
-> (pas `App\Core\Command\...`). Paramètre nommé `$extraSourceDirs`.
+> (pas `App\Core\Command\...`). Paramètre nommé `$extraSourceDirectories`.
 
 ---
 
@@ -168,7 +168,7 @@ auto-découvrir les modules client (son glob ne voit que
 |---|---|---|
 | `config/packages/twig.yaml` | `'%kernel.project_dir%/src/Module/<X>/templates': '<X>'` sous `twig.paths` | namespace Twig `@<X>` (sans ça : `LoaderError: No registered paths for namespace "<X>"`) |
 | `config/packages/framework.yaml` | `- '%kernel.project_dir%/src/Module/<X>/translations'` sous `framework.translator.paths` | Symfony Translator (utilisé par Twig `\|trans`) - sans ça : `suite.nav.<x>` rendu en clé brute |
-| `config/services.yaml` | même chemin sous `DumpJsTranslationsCommand.$extraSourceDirs` | vue-i18n côté JS (cf. section 2.3) |
+| `config/services.yaml` | même chemin sous `DumpJsTranslationsCommand.$extraSourceDirectories` | vue-i18n côté JS (cf. section 2.3) |
 
 > ✓ Ces 3 entrées sont les sections 2.2, 2.3 + un nouveau patch pour Symfony
 > Translator (qui manquait à Tracking jusqu'à 0.5). Les blocs YAML en section
@@ -370,7 +370,7 @@ Puis :
 make translation
 ```
 
-> N'oublie pas d'ajouter le dossier dans `$extraSourceDirs` (cf. §2.3).
+> N'oublie pas d'ajouter le dossier dans `$extraSourceDirectories` (cf. §2.3).
 
 ---
 
@@ -774,9 +774,9 @@ class ProjectRepository extends ResolveTargetEntityRepository
 
     public function findPaginated(int $page, int $limit = 20, ?string $search = null): array
     {
-        $qb = $this->createQueryBuilder('p')->orderBy('p.createdAt', 'DESC');
+        $queryBuilder = $this->createQueryBuilder('p')->orderBy('p.createdAt', 'DESC');
         // ... build query
-        return $this->paginate($qb, $page, $limit);
+        return $this->paginate($queryBuilder, $page, $limit);
     }
 }
 ```
@@ -1069,5 +1069,5 @@ le plus complet, comme le module d'exemple `Tracking`) :
   Twig "namespace not registered". Toujours ajouter la ligne dans
   `config/packages/twig.yaml`.
 - **Traductions manquantes côté JS** : ajouter le dossier dans
-  `$extraSourceDirs` du `DumpJsTranslationsCommand` et lancer `make translation`,
+  `$extraSourceDirectories` du `DumpJsTranslationsCommand` et lancer `make translation`,
   sinon les composants Vue n'ont pas accès aux clés.

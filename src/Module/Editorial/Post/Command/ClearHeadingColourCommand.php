@@ -40,7 +40,7 @@ final class ClearHeadingColourCommand extends Command
 {
     public function __construct(
         private readonly PostRepository $posts,
-        private readonly EntityManagerInterface $em,
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
@@ -96,7 +96,7 @@ final class ClearHeadingColourCommand extends Command
             return Command::SUCCESS;
         }
 
-        $this->em->flush();
+        $this->entityManager->flush();
         $io->success(sprintf('%d heading(s) now follow the theme heading colour.', $total));
 
         return Command::SUCCESS;

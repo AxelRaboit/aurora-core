@@ -51,7 +51,7 @@ export function useDriveTree(files) {
 
         return [...names]
             .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .sort((left, right) => left.name.localeCompare(right.name));
     });
 
     /** The files placed directly in the open folder. */

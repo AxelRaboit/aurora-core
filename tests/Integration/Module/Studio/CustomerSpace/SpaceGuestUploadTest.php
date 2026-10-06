@@ -63,7 +63,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
     private DocumentRepository $documents;
 
-    private string $workDir;
+    private string $workDirectory;
 
     private User $admin;
 
@@ -94,17 +94,17 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         // the test never meant to exercise.
         $this->resetRateLimiter('space_guest_upload');
 
-        $this->workDir = sys_get_temp_dir().'/aurora-guest-upload-'.bin2hex(random_bytes(4));
-        mkdir($this->workDir);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-guest-upload-'.bin2hex(random_bytes(4));
+        mkdir($this->workDirectory);
     }
 
     protected function tearDown(): void
     {
-        foreach (glob($this->workDir.'/*') ?: [] as $file) {
+        foreach (glob($this->workDirectory.'/*') ?: [] as $file) {
             unlink($file);
         }
-        if (is_dir($this->workDir)) {
-            rmdir($this->workDir);
+        if (is_dir($this->workDirectory)) {
+            rmdir($this->workDirectory);
         }
 
         foreach ([
@@ -170,7 +170,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canUpload: true);
         $item = $this->givenItem($space);
 
-        $svg = $this->workDir.'/innocent.jpg';
+        $svg = $this->workDirectory.'/innocent.jpg';
         file_put_contents($svg, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
 
         $this->upload($url, $item['id'], new UploadedFile($svg, 'innocent.jpg', 'image/jpeg', null, true));
@@ -196,7 +196,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canUpload: true);
         $item = $this->givenItem($space);
 
-        $big = $this->workDir.'/big.jpg';
+        $big = $this->workDirectory.'/big.jpg';
         file_put_contents($big, $this->jpegBytes().str_repeat("\0", static::getContainer()->get(UploadPolicyProvider::class)->forSpaceGuests()->maxBytes));
 
         $this->upload($url, $item['id'], new UploadedFile($big, 'big.jpg', 'image/jpeg', null, true));
@@ -389,7 +389,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
     private function aFile(string $name): UploadedFile
     {
-        $path = $this->workDir.'/'.$name;
+        $path = $this->workDirectory.'/'.$name;
         file_put_contents($path, $this->jpegBytes());
 
         return new UploadedFile($path, $name, 'image/jpeg', null, true);

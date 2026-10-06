@@ -43,7 +43,7 @@ const { query, items, page, totalPages, total, loading, onSearch, goToPage } = u
             <p class="text-xs text-muted">{{ t('ged.frontend.documents.result_count', { count: total }) }}</p>
 
             <ul class="space-y-2">
-                <DocumentItem v-for="doc in items" :key="doc.id" :doc="doc" />
+                <DocumentItem v-for="gedDocument in items" :key="gedDocument.id" :doc="gedDocument" />
             </ul>
 
             <AppPagination :page="page" :total-pages="totalPages" v-on:change="goToPage" />

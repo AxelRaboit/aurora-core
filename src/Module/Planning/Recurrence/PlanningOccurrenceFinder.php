@@ -44,7 +44,7 @@ final readonly class PlanningOccurrenceFinder
 
         usort(
             $occurrences,
-            static fn (PlanningOccurrence $a, PlanningOccurrence $b): int => $a->startAt <=> $b->startAt,
+            static fn (PlanningOccurrence $left, PlanningOccurrence $right): int => $left->startAt <=> $right->startAt,
         );
 
         return $occurrences;

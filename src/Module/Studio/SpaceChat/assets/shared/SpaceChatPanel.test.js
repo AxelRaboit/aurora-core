@@ -43,7 +43,9 @@ function render(props = {}) {
 
 /** The message bubbles, ignoring the day separators between them. */
 function bodies(panel) {
-    return panel.findAll("p.whitespace-pre-line").map((p) => p.text());
+    return panel
+        .findAll("p.whitespace-pre-line")
+        .map((paragraph) => paragraph.text());
 }
 
 beforeEach(() => {
@@ -159,7 +161,7 @@ describe("SpaceChatPanel", () => {
             class {
                 constructor() {
                     Object.defineProperty(this, "onmessage", {
-                        set: (fn) => (listeners.message = fn),
+                        set: (handler) => (listeners.message = handler),
                     });
                     Object.defineProperty(this, "onopen", { set: () => {} });
                     Object.defineProperty(this, "onerror", { set: () => {} });
@@ -187,9 +189,9 @@ describe("SpaceChatPanel", () => {
 
         // The same message down two roads - the hub and a reload - is one row.
         // That is the whole reason the server sends one shape down both.
-        expect(bodies(panel).filter((b) => "Une question." === b)).toHaveLength(
-            1,
-        );
+        expect(
+            bodies(panel).filter((body) => "Une question." === body),
+        ).toHaveLength(1);
     });
 
     it("removes a message the studio deleted", async () => {
@@ -199,7 +201,7 @@ describe("SpaceChatPanel", () => {
             class {
                 constructor() {
                     Object.defineProperty(this, "onmessage", {
-                        set: (fn) => (listeners.message = fn),
+                        set: (handler) => (listeners.message = handler),
                     });
                     Object.defineProperty(this, "onopen", { set: () => {} });
                     Object.defineProperty(this, "onerror", { set: () => {} });

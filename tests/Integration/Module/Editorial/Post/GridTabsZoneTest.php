@@ -116,8 +116,8 @@ final class GridTabsZoneTest extends IntegrationTestCase
     public function testThePanelsAreCapped(): void
     {
         $panels = [];
-        for ($i = 1; $i <= 9; ++$i) {
-            $panels[] = ['id' => 'p'.$i, 'label' => 'Onglet '.$i, 'text' => 'Texte.'];
+        for ($panelNumber = 1; $panelNumber <= 9; ++$panelNumber) {
+            $panels[] = ['id' => 'p'.$panelNumber, 'label' => 'Onglet '.$panelNumber, 'text' => 'Texte.'];
         }
 
         self::assertSame(6, mb_substr_count($this->render($panels), 'data-tabs-panel'));

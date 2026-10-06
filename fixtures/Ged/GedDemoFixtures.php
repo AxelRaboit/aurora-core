@@ -42,13 +42,13 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
     public function __construct(
         #[Autowire(param: 'app.upload_dir')]
-        private readonly string $uploadDir,
+        private readonly string $uploadDirectory,
         private readonly PdfThumbnailGenerator $pdfThumbnailGenerator,
         private readonly ImageRenditionGenerator $renditions,
         private readonly StorageManager $storageManager,
         private readonly SettingsService $settingsManager,
         private readonly DocumentColorAlternateCreator $colorAlternates,
-        private readonly Filesystem $fs = new Filesystem(),
+        private readonly Filesystem $filesystem = new Filesystem(),
     ) {}
 
     public static function getGroups(): array
@@ -67,8 +67,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         $media = $this->createMedia($manager);
 
-        foreach ($media as $i => $document) {
-            $this->addReference(self::mediaRef($i), $document);
+        foreach ($media as $index => $document) {
+            $this->addReference(self::mediaRef($index), $document);
         }
 
         $this->createGed($manager, $media);
@@ -93,11 +93,11 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $manager->flush();
     }
 
-    private function createMedia(EntityManagerInterface $em): array
+    private function createMedia(EntityManagerInterface $entityManager): array
     {
         $month = new DateTimeImmutable()->format('Y/m');
-        $destDir = $this->uploadDir.'/ged/'.$month;
-        $this->fs->mkdir($destDir);
+        $destinationDirectory = $this->uploadDirectory.'/ged/'.$month;
+        $this->filesystem->mkdir($destinationDirectory);
 
         // Two levels up, which is the repository root: `fixtures/Ged` sits
         // two deep. It said four, so it looked for `test_files/` two levels
@@ -115,8 +115,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // The first four keep their long-standing title: it is the key that
         // makes `make demo` replayable. The following ones are added after the
         // video and the document, so no reference shifts.
-        $sourceDir = dirname(__DIR__, 2).'/test_files';
-        $defs = [
+        $sourceDirectory = dirname(__DIR__, 2).'/test_files';
+        $mediaDefinitions = [
             ['src' => 'images/pexels/pexels-4348298.jpg',  'name' => 'hero-banner.jpg',   'original' => 'hero-banner.jpg',   'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [4348298, 'Antoni Shkraba'], 'alt' => 'Un atelier lumineux, des tables de travail et des plantes'],
             ['src' => 'images/pexels/pexels-36103492.jpg', 'name' => 'landscape.jpg',     'original' => 'landscape.jpg',     'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [36103492, 'gang liang'], 'alt' => 'Un lac de montagne sous un ciel bleu'],
             ['src' => 'images/pexels/pexels-9697663.jpg',  'name' => 'portrait-team.jpg', 'original' => 'portrait-team.jpg', 'mime' => 'image/jpeg', 'w' => 1280, 'h' => 1920, 'pexels' => [9697663, 'Daria Nekipelova'], 'alt' => 'Portrait d\'une femme dans la lumière du soleil'],
@@ -140,9 +140,9 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         ];
 
         $media = [];
-        foreach ($defs as $def) {
-            $src = $sourceDir.'/'.$def['src'];
-            $dest = $destDir.'/'.$def['name'];
+        foreach ($mediaDefinitions as $definition) {
+            $source = $sourceDirectory.'/'.$definition['src'];
+            $destination = $destinationDirectory.'/'.$definition['name'];
 
             // `test_files/` sits beside the repository and is not shipped with
             // it, so on a fresh clone none of these exist. Skipping them was
@@ -155,27 +155,27 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             // So a picture that has no source is drawn instead. It is plainly
             // a placeholder rather than a photograph pretending to be one, and
             // `make demo` works on any machine.
-            if (!file_exists($src)) {
-                $this->drawPlaceholder($dest, $def);
+            if (!file_exists($source)) {
+                $this->drawPlaceholder($destination, $definition);
             } else {
-                $this->fs->copy($src, $dest, true);
+                $this->filesystem->copy($source, $destination, true);
             }
 
             // Anything that cannot be drawn - the video - keeps its row and
             // loses its file, which the library already knows how to show: a
             // document with nothing attached is exactly what the upload flow
             // is tested against.
-            if (!file_exists($dest)) {
-                $document = $em->getRepository(Document::class)
-                    ->findOneBy(['title' => $def['original']])
+            if (!file_exists($destination)) {
+                $document = $entityManager->getRepository(Document::class)
+                    ->findOneBy(['title' => $definition['original']])
                     ?? new Document();
 
-                $document->setTitle($def['original'])
-                    ->setOriginalName($def['original'])
+                $document->setTitle($definition['original'])
+                    ->setOriginalName($definition['original'])
                     ->setStatus(DocumentStatusEnum::Published)
                     ->setRenditions([]);
 
-                $em->persist($document);
+                $entityManager->persist($document);
                 $media[] = $document;
 
                 continue;
@@ -190,38 +190,38 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             // carries the month it was written in: run the fixtures in
             // September against a library seeded in August and every lookup
             // missed, which is the same duplication by another route.
-            $document = $em->getRepository(Document::class)
-                ->findOneBy(['title' => $def['original']])
+            $document = $entityManager->getRepository(Document::class)
+                ->findOneBy(['title' => $definition['original']])
                 ?? new Document();
 
-            $document->setTitle($def['original'])
-                ->setFileName($def['name'])
-                ->setOriginalName($def['original'])
-                ->setMimeType($def['mime'])
-                ->setSize((int) filesize($dest))
-                ->setFilePath('ged/'.$month.'/'.$def['name'])
+            $document->setTitle($definition['original'])
+                ->setFileName($definition['name'])
+                ->setOriginalName($definition['original'])
+                ->setMimeType($definition['mime'])
+                ->setSize((int) filesize($destination))
+                ->setFilePath('ged/'.$month.'/'.$definition['name'])
                 ->setStatus(DocumentStatusEnum::Published)
                 // The sizes an upload through the interface would have made.
                 // Left empty, every demo page served the full-size original
                 // to a phone - and the one claim the library makes about
                 // itself was the one thing the demo did not do.
-                ->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$month.'/'.$def['name'], $def['mime']));
+                ->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$month.'/'.$definition['name'], $definition['mime']));
 
-            if ($def['w'] > 0) {
-                $document->setWidth($def['w'])->setHeight($def['h']);
+            if ($definition['w'] > 0) {
+                $document->setWidth($definition['w'])->setHeight($definition['h']);
             }
 
             // Credited as a Pexels import would have done: it is what shows
             // the photographer's name under the image on the site.
-            if (isset($def['pexels'])) {
-                [$pexelsId, $photographer] = $def['pexels'];
+            if (isset($definition['pexels'])) {
+                [$pexelsId, $photographer] = $definition['pexels'];
                 $document->setSourceUrl(sprintf('https://www.pexels.com/photo/%d/', $pexelsId))
                     ->setAttributionName($photographer)
                     ->setAttributionUrl('https://www.pexels.com')
-                    ->setAlt($def['alt']);
+                    ->setAlt($definition['alt']);
             }
 
-            $em->persist($document);
+            $entityManager->persist($document);
             $media[] = $document;
         }
 
@@ -241,9 +241,9 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
      * Only the image formats GD writes. A missing video or PDF is left to the
      * caller, which keeps the row and drops the file.
      *
-     * @param array{name: string, mime: string, w: int, h: int} $def
+     * @param array{name: string, mime: string, w: int, h: int} $definition
      */
-    private function drawPlaceholder(string $dest, array $def): void
+    private function drawPlaceholder(string $destination, array $definition): void
     {
         $writers = [
             'image/jpeg' => static fn ($image, string $path): bool => imagejpeg($image, $path, 82),
@@ -251,27 +251,27 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             'image/webp' => static fn ($image, string $path): bool => imagewebp($image, $path, 82),
         ];
 
-        $write = $writers[$def['mime']] ?? null;
+        $write = $writers[$definition['mime']] ?? null;
         if (null === $write || !function_exists('imagecreatetruecolor')) {
             return;
         }
 
-        $width = $def['w'] > 0 ? $def['w'] : 1200;
-        $height = $def['h'] > 0 ? $def['h'] : 800;
+        $width = $definition['w'] > 0 ? $definition['w'] : 1200;
+        $height = $definition['h'] > 0 ? $definition['h'] : 800;
 
         $image = imagecreatetruecolor($width, $height);
 
         // The name decides the hue, so "portrait-team.jpg" is the same colour
         // every time it is regenerated and never the colour of its neighbour.
-        $hue = crc32($def['name']) % 360;
+        $hue = crc32($definition['name']) % 360;
 
-        [$r, $g, $b] = $this->hueToRgb($hue, 0.45, 0.42);
-        imagefilledrectangle($image, 0, 0, $width, $height, imagecolorallocate($image, $r, $g, $b));
+        [$red, $green, $blue] = $this->hueToRgb($hue, 0.45, 0.42);
+        imagefilledrectangle($image, 0, 0, $width, $height, imagecolorallocate($image, $red, $green, $blue));
 
         $label = imagecolorallocate($image, 255, 255, 255);
-        imagestring($image, 5, 24, $height - 40, $def['name'], $label);
+        imagestring($image, 5, 24, $height - 40, $definition['name'], $label);
 
-        $write($image, $dest);
+        $write($image, $destination);
         imagedestroy($image);
     }
 
@@ -282,29 +282,29 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
      */
     private function hueToRgb(int $hue, float $saturation, float $lightness): array
     {
-        $c = (1 - abs(2 * $lightness - 1)) * $saturation;
-        $x = $c * (1 - abs(fmod($hue / 60, 2) - 1));
-        $m = $lightness - $c / 2;
+        $chroma = (1 - abs(2 * $lightness - 1)) * $saturation;
+        $x = $chroma * (1 - abs(fmod($hue / 60, 2) - 1));
+        $offset = $lightness - $chroma / 2;
 
         $channels = match (intdiv($hue, 60)) {
-            0 => [$c, $x, 0.0],
-            1 => [$x, $c, 0.0],
-            2 => [0.0, $c, $x],
-            3 => [0.0, $x, $c],
-            4 => [$x, 0.0, $c],
-            default => [$c, 0.0, $x],
+            0 => [$chroma, $x, 0.0],
+            1 => [$x, $chroma, 0.0],
+            2 => [0.0, $chroma, $x],
+            3 => [0.0, $x, $chroma],
+            4 => [$x, 0.0, $chroma],
+            default => [$chroma, 0.0, $x],
         };
 
         return array_map(
-            static fn (float $channel): int => (int) round(255 * ($channel + $m)),
+            static fn (float $channel): int => (int) round(255 * ($channel + $offset)),
             $channels,
         );
     }
 
-    private function createGed(EntityManagerInterface $em, array $media): void
+    private function createGed(EntityManagerInterface $entityManager, array $media): void
     {
         // ── Tags ──────────────────────────────────────────────────────────────
-        $tagDefs = [
+        $tagDefinitions = [
             ['name' => 'Confidentiel',  'color' => '#ef4444'],
             ['name' => 'À valider',     'color' => '#f59e0b'],
             ['name' => 'Signé',         'color' => '#10b981'],
@@ -313,24 +313,24 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['name' => 'ISO 27001',     'color' => '#8b5cf6'],
         ];
         $tags = [];
-        $tagRepository = $em->getRepository(DocumentTag::class);
-        foreach ($tagDefs as $def) {
+        $tagRepository = $entityManager->getRepository(DocumentTag::class);
+        foreach ($tagDefinitions as $definition) {
             // Reused when the name is already taken, like the documents just
             // above. Without this a second `make demo` created a second set of
             // six tags and linked the documents to those too, so every row in
             // the library grew another pair of badges - five runs, five
             // "Confidentiel" on the same contract, and nothing in the
             // interface to explain why.
-            $tag = $tagRepository->findOneBy(['name' => $def['name']]) ?? new DocumentTag();
-            $tag->setName($def['name'])->setColor($def['color']);
-            $em->persist($tag);
+            $tag = $tagRepository->findOneBy(['name' => $definition['name']]) ?? new DocumentTag();
+            $tag->setName($definition['name'])->setColor($definition['color']);
+            $entityManager->persist($tag);
             $tags[] = $tag;
         }
 
         // aliases: 0=Confidentiel, 1=À valider, 2=Signé, 3=Archivé, 4=RGPD, 5=ISO 27001
 
         // ── Folders ───────────────────────────────────────────────────────────
-        $folderDefs = [
+        $folderDefinitions = [
             ['name' => 'Aurora Tech',    'parent' => null, 'position' => 0],
             ['name' => 'Clients',        'parent' => null, 'position' => 1],
             ['name' => 'Internes',       'parent' => null, 'position' => 2],
@@ -345,26 +345,26 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['name' => 'Anciens devis',  'parent' => 1,    'position' => 2, 'trashed' => '-8 days'],
         ];
         $folders = [];
-        $folderRepository = $em->getRepository(DocumentFolder::class);
-        foreach ($folderDefs as $def) {
+        $folderRepository = $entityManager->getRepository(DocumentFolder::class);
+        foreach ($folderDefinitions as $definition) {
             // Same reason as the tags: the tree was rebuilt whole at each run,
             // and the library ended up with three "Clients" folders holding
             // nothing.
-            $folder = $folderRepository->findOneBy(['name' => $def['name']]) ?? new DocumentFolder();
-            $folder->setName($def['name'])->setPosition($def['position'])
-                ->setDeletedAt(isset($def['trashed']) ? new DateTimeImmutable($def['trashed']) : null);
-            if (null !== $def['parent']) {
-                $folder->setParent($folders[$def['parent']]);
+            $folder = $folderRepository->findOneBy(['name' => $definition['name']]) ?? new DocumentFolder();
+            $folder->setName($definition['name'])->setPosition($definition['position'])
+                ->setDeletedAt(isset($definition['trashed']) ? new DateTimeImmutable($definition['trashed']) : null);
+            if (null !== $definition['parent']) {
+                $folder->setParent($folders[$definition['parent']]);
             }
 
-            $em->persist($folder);
+            $entityManager->persist($folder);
             $folders[] = $folder;
         }
 
         // aliases: 0=Aurora Tech, 1=Clients, 2=Internes, 3=Contrats, 4=Présentations, 5=RH, 6=Finance
 
         // ── Categories ────────────────────────────────────────────────────────
-        $catDefs = [
+        $categoryDefinitions = [
             ['name' => 'Contrats Clients',         'slug' => 'contrats-clients',       'desc' => 'Contrats signés avec nos clients et partenaires commerciaux.'],
             ['name' => 'Documentation Technique',  'slug' => 'doc-technique',          'desc' => 'Guides d\'installation, spécifications et manuels techniques.'],
             ['name' => 'Ressources Marketing',     'slug' => 'ressources-marketing',   'desc' => 'Visuels, présentations et supports de communication.'],
@@ -380,19 +380,19 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // `DocumentCategory` for the association, with an error that names two
         // classes and no reason. `getClassName()` gives back whichever one this
         // installation actually resolved to.
-        $categoryRepository = $em->getRepository(DocumentCategoryInterface::class);
+        $categoryRepository = $entityManager->getRepository(DocumentCategoryInterface::class);
         $categoryClass = $categoryRepository->getClassName();
 
-        foreach ($catDefs as $def) {
+        foreach ($categoryDefinitions as $definition) {
             // Reused when the slug is already taken, so `make demo` can run on
             // a database that already has demo data. It used to always insert
             // and die on the unique slug - after the target had purged
             // var/uploads, which left the pictures gone and the rows unchanged.
-            $c = $categoryRepository->findOneBy(['slug' => $def['slug']]) ?? new $categoryClass();
-            $c->setName($def['name'])->setSlug($def['slug'])->setDescription($def['desc'])
-                ->setDeletedAt(isset($def['trashed']) ? new DateTimeImmutable($def['trashed']) : null);
-            $em->persist($c);
-            $categories[] = $c;
+            $category = $categoryRepository->findOneBy(['slug' => $definition['slug']]) ?? new $categoryClass();
+            $category->setName($definition['name'])->setSlug($definition['slug'])->setDescription($definition['desc'])
+                ->setDeletedAt(isset($definition['trashed']) ? new DateTimeImmutable($definition['trashed']) : null);
+            $entityManager->persist($category);
+            $categories[] = $category;
         }
 
         // ── Documents (cat, folder, tags) ─────────────────────────────────────
@@ -403,7 +403,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // file-less so users have something to test the editor's upload
         // flow with.
         $samplePdf = 'files/pdfs/pdfform_sample.pdf';
-        $docDefs = [
+        $documentDefinitions = [
             ['title' => 'Contrat Tech Innovation SARL 2025',           'cat' => 0, 'folder' => 3, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Contrat de prestation de services signé le 15 janvier 2025. Durée : 12 mois renouvelable.', 'file' => $samplePdf],
             ['title' => 'Contrat BioMed France - Maintenance 2025',    'cat' => 0, 'folder' => 3, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Contrat de maintenance et support niveau 2 pour la suite Aurora.', 'file' => $samplePdf],
             ['title' => 'Avenant Contrat Retail Connect - Jan 2025',   'cat' => 0, 'folder' => 3, 'tags' => [0, 1],    'status' => DocumentStatusEnum::Draft,     'desc' => 'Avenant tarifaire en cours de négociation pour le renouvellement 2025.', 'file' => null],
@@ -446,10 +446,10 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // half of the list.
         $testFilesRoot = dirname(__DIR__, 2).'/test_files';
         $gedMonth = new DateTimeImmutable()->format('Y/m');
-        $gedDir = $this->uploadDir.'/ged/'.$gedMonth;
-        $this->fs->mkdir($gedDir);
+        $gedDirectory = $this->uploadDirectory.'/ged/'.$gedMonth;
+        $this->filesystem->mkdir($gedDirectory);
 
-        $mimeByExt = [
+        $mimeByExtension = [
             'pdf' => 'application/pdf',
             'webp' => 'image/webp',
             'jpg' => 'image/jpeg',
@@ -457,38 +457,38 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             'png' => 'image/png',
         ];
 
-        $documentRepository = $em->getRepository(Document::class);
+        $documentRepository = $entityManager->getRepository(Document::class);
 
-        foreach ($docDefs as $idx => $def) {
+        foreach ($documentDefinitions as $index => $definition) {
             // Keyed on the title: some of these carry no file at all - on
             // purpose, so there is something to test the upload flow against -
             // so the path cannot be the key. The titles are distinct across the
             // set, which is what makes them one.
-            $d = $documentRepository->findOneBy(['title' => $def['title']]) ?? new Document();
-            $d->setTitle($def['title'])
-              ->setDescription($def['desc'])
-              ->setStatus($def['status'])
-              ->setCategory($categories[$def['cat']])
-              ->setFolder($folders[$def['folder']])
-              ->setDeletedAt(isset($def['trashed']) ? new DateTimeImmutable($def['trashed']) : null);
+            $document = $documentRepository->findOneBy(['title' => $definition['title']]) ?? new Document();
+            $document->setTitle($definition['title'])
+              ->setDescription($definition['desc'])
+              ->setStatus($definition['status'])
+              ->setCategory($categories[$definition['cat']])
+              ->setFolder($folders[$definition['folder']])
+              ->setDeletedAt(isset($definition['trashed']) ? new DateTimeImmutable($definition['trashed']) : null);
             // Emptied first, so the set of badges is the one written here and
             // not the sum of every run: a document reused by title keeps the
             // links it already had, and the definition is the authority.
-            $d->clearTags();
-            foreach ($def['tags'] as $tagIndex) {
-                $d->addTag($tags[$tagIndex]);
+            $document->clearTags();
+            foreach ($definition['tags'] as $tagIndex) {
+                $document->addTag($tags[$tagIndex]);
             }
 
-            if (null !== $def['file']) {
-                $src = $testFilesRoot.'/'.$def['file'];
-                $ext = mb_strtolower(pathinfo($def['file'], PATHINFO_EXTENSION));
-                $mimeType = $mimeByExt[$ext] ?? 'application/octet-stream';
-                $fileName = sprintf('demo-doc-%02d.%s', $idx, $ext);
-                $destFile = $gedDir.'/'.$fileName;
+            if (null !== $definition['file']) {
+                $source = $testFilesRoot.'/'.$definition['file'];
+                $extension = mb_strtolower(pathinfo($definition['file'], PATHINFO_EXTENSION));
+                $mimeType = $mimeByExtension[$extension] ?? 'application/octet-stream';
+                $fileName = sprintf('demo-doc-%02d.%s', $index, $extension);
+                $destinationFile = $gedDirectory.'/'.$fileName;
 
-                if (file_exists($src)) {
-                    $this->fs->copy($src, $destFile, true);
-                } elseif (isset($def['w'])) {
+                if (file_exists($source)) {
+                    $this->filesystem->copy($source, $destinationFile, true);
+                } elseif (isset($definition['w'])) {
                     // The flat colour from above, and it is a choice, not a
                     // fallback: these documents have no source in
                     // `test_files/` because a drawn flat colour is better than
@@ -503,32 +503,32 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     // A PDF has no such fallback: without `w`, a source that
                     // cannot be found leaves a row without a file, and the
                     // test next door refuses that case.
-                    $this->drawPlaceholder($destFile, [
+                    $this->drawPlaceholder($destinationFile, [
                         'name' => $fileName,
                         'mime' => $mimeType,
-                        'w' => $def['w'],
-                        'h' => $def['h'],
+                        'w' => $definition['w'],
+                        'h' => $definition['h'],
                     ]);
                 }
 
-                if (file_exists($destFile)) {
-                    $d->setFilePath('ged/'.$gedMonth.'/'.$fileName)
+                if (file_exists($destinationFile)) {
+                    $document->setFilePath('ged/'.$gedMonth.'/'.$fileName)
                       ->setFileName($fileName)
-                      ->setOriginalName($def['title'].'.'.$ext)
+                      ->setOriginalName($definition['title'].'.'.$extension)
                       ->setMimeType($mimeType)
-                      ->setSize((int) filesize($destFile));
+                      ->setSize((int) filesize($destinationFile));
 
                     if (MimeTypeEnum::Pdf->value === $mimeType) {
-                        $thumbDir = 'ged/thumbnails/'.$gedMonth;
+                        $thumbDirectory = 'ged/thumbnails/'.$gedMonth;
                         $thumbBasename = pathinfo($fileName, PATHINFO_FILENAME);
                         $thumbnailPath = $this->pdfThumbnailGenerator->generate(
                             $this->storageManager->active(),
                             'ged/'.$gedMonth.'/'.$fileName,
-                            $thumbDir,
+                            $thumbDirectory,
                             $thumbBasename,
                         );
                         if (null !== $thumbnailPath) {
-                            $d->setThumbnailPath($thumbnailPath);
+                            $document->setThumbnailPath($thumbnailPath);
                         }
                     }
 
@@ -536,16 +536,16 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     // the dimensions the screen prints, and the sizes it
                     // serves. Without them a demo picture is a file on disk
                     // that the library cannot say anything about.
-                    $dimensions = @getimagesize($destFile);
+                    $dimensions = @getimagesize($destinationFile);
                     if (false !== $dimensions) {
-                        $d->setWidth($dimensions[0])->setHeight($dimensions[1]);
+                        $document->setWidth($dimensions[0])->setHeight($dimensions[1]);
                     }
 
-                    $d->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$gedMonth.'/'.$fileName, $mimeType));
+                    $document->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$gedMonth.'/'.$fileName, $mimeType));
                 }
             }
 
-            $em->persist($d);
+            $entityManager->persist($document);
         }
     }
 
@@ -561,16 +561,16 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
      * The two earlier files are written to disk: a version can be downloaded,
      * and a row pointing to nothing would only have shown half the screen.
      */
-    private function createVersionHistory(EntityManagerInterface $em): void
+    private function createVersionHistory(EntityManagerInterface $entityManager): void
     {
-        $document = $em->getRepository(Document::class)
+        $document = $entityManager->getRepository(Document::class)
             ->findOneBy(['title' => 'Visuel de campagne - Automne 2025']);
 
         if (!$document instanceof Document || null === $document->getFilePath()) {
             return;
         }
 
-        $versionRepository = $em->getRepository(DocumentVersion::class);
+        $versionRepository = $entityManager->getRepository(DocumentVersion::class);
 
         // The demo is replayed: without this guard, each `make demo` added
         // three more rows to the same document.
@@ -579,8 +579,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         }
 
         $month = new DateTimeImmutable()->format('Y/m');
-        $dir = $this->uploadDir.'/ged/'.$month;
-        $this->fs->mkdir($dir);
+        $directory = $this->uploadDirectory.'/ged/'.$month;
+        $this->filesystem->mkdir($directory);
 
         // The most recent version is the current file: that is what the
         // product writes, as it snapshots the document's state on every save.
@@ -598,10 +598,10 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             $path = $state['own'] ? 'ged/'.$month.'/'.$state['file'] : $document->getFilePath();
 
             if ($state['own']) {
-                $dest = $dir.'/'.$state['file'];
+                $destination = $directory.'/'.$state['file'];
 
-                if (!file_exists($dest)) {
-                    $this->drawPlaceholder($dest, [
+                if (!file_exists($destination)) {
+                    $this->drawPlaceholder($destination, [
                         'name' => $state['file'],
                         'mime' => 'image/jpeg',
                         'w' => 1600,
@@ -609,7 +609,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     ]);
                 }
 
-                if (!file_exists($dest)) {
+                if (!file_exists($destination)) {
                     continue;
                 }
             }
@@ -620,22 +620,22 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 ->setFileName($state['file'])
                 ->setOriginalName('visuel-campagne-automne.jpg')
                 ->setMimeType('image/jpeg')
-                ->setSize(@filesize($this->uploadDir.'/'.$path) ?: 0)
+                ->setSize(@filesize($this->uploadDirectory.'/'.$path) ?: 0)
                 ->setVersionNumber($number + 1);
 
-            $em->persist($version);
+            $entityManager->persist($version);
             $ids[] = [$version, $state['days']];
         }
 
-        $em->flush();
+        $entityManager->flush();
 
         // The creation date is set in the constructor, and the product has no
         // reason to move it. Three versions born in the same second would not
         // show what the column is there to read, so the demo moves them back
         // in the database rather than opening an entry point nobody would use
         // elsewhere.
-        $table = $em->getClassMetadata(DocumentVersion::class)->getTableName();
-        $connection = $em->getConnection();
+        $table = $entityManager->getClassMetadata(DocumentVersion::class)->getTableName();
+        $connection = $entityManager->getConnection();
 
         foreach ($ids as [$version, $days]) {
             if (0 === $days) {
@@ -666,9 +666,9 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
      * trashing a folder must catch ("Emporter aussi la variante rangée
      * ailleurs"), and it only shows up with it.
      */
-    private function createColorFamily(EntityManagerInterface $em): void
+    private function createColorFamily(EntityManagerInterface $entityManager): void
     {
-        $documentRepository = $em->getRepository(Document::class);
+        $documentRepository = $entityManager->getRepository(Document::class);
         $original = $documentRepository->findOneBy(['title' => 'Visuel de campagne - Automne 2025']);
 
         if (!$original instanceof Document || null === $original->getFilePath()) {
@@ -680,7 +680,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             return;
         }
 
-        $elsewhere = $em->getRepository(DocumentFolder::class)->findOneBy(['name' => 'Aurora Tech']);
+        $elsewhere = $entityManager->getRepository(DocumentFolder::class)->findOneBy(['name' => 'Aurora Tech']);
 
         foreach ([['#ef4444', 'rouge', false], ['#3b82f6', 'bleu', true]] as [$color, $label, $fileElsewhere]) {
             $alternate = $this->colorAlternates->create($original, new ColorAlternateInput(color: $color, label: $label));
@@ -690,6 +690,6 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             }
         }
 
-        $em->flush();
+        $entityManager->flush();
     }
 }

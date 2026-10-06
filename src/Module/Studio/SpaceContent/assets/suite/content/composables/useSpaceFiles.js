@@ -13,7 +13,7 @@ import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
  * @param {import('vue').Ref|import('vue').ComputedRef} items       the cards, for their titles
  */
 export function useSpaceFiles(attachments, items) {
-    const { t, n } = useI18n();
+    const { t, n: formatNumber } = useI18n();
 
     // Its own parameter rather than the shared `view`: the space's own switcher
     // already owns that word on this page, and `?files=grid` says which of the
@@ -40,7 +40,10 @@ export function useSpaceFiles(attachments, items) {
                     itemId: Number(itemId),
                 })),
             )
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+            .sort(
+                (left, right) =>
+                    new Date(right.createdAt) - new Date(left.createdAt),
+            ),
     );
 
     function itemOf(itemId) {
@@ -58,7 +61,7 @@ export function useSpaceFiles(attachments, items) {
     function weightOf(file) {
         if (!file.size) return null;
 
-        return `${n(Math.max(1, Math.round(file.size / 1024)))} ko`;
+        return `${formatNumber(Math.max(1, Math.round(file.size / 1024)))} ko`;
     }
 
     return {

@@ -23,7 +23,10 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         // boundary being the only place that counts.
         type: "suite",
         ...Object.fromEntries(
-            Object.entries(extraFields).map(([key, def]) => [key, def.default]),
+            Object.entries(extraFields).map(([key, definition]) => [
+                key,
+                definition.default,
+            ]),
         ),
     });
 
@@ -35,8 +38,8 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         inviteForm.message = "";
         inviteForm.disabled = false;
         inviteForm.type = "suite";
-        for (const [key, def] of Object.entries(extraFields)) {
-            inviteForm[key] = def.default;
+        for (const [key, definition] of Object.entries(extraFields)) {
+            inviteForm[key] = definition.default;
         }
         inviteModal.open = true;
     }

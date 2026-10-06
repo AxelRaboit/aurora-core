@@ -32,7 +32,7 @@ const props = defineProps({
 const emit = defineEmits(["close", "cropped"]);
 
 const SNAP_THRESHOLD = 12;
-const imageEl = ref(null);
+const imageElement = ref(null);
 let cropper = null;
 
 watch(
@@ -44,9 +44,9 @@ watch(
             return;
         }
         await nextTick();
-        if (!imageEl.value) return;
+        if (!imageElement.value) return;
         cropper?.destroy();
-        cropper = new Cropper(imageEl.value, {
+        cropper = new Cropper(imageElement.value, {
             viewMode: 1,
             autoCropArea: 0.9,
             movable: true,
@@ -59,14 +59,14 @@ watch(
 
 function snapToEdges() {
     if (!cropper) return;
-    const d = cropper.getData(true);
-    const img = cropper.getImageData();
-    let { x, y, width, height } = d;
+    const cropBox = cropper.getData(true);
+    const imageData = cropper.getImageData();
+    let { x, y, width, height } = cropBox;
     let changed = false;
     if (x < SNAP_THRESHOLD) { x = 0; changed = true; }
     if (y < SNAP_THRESHOLD) { y = 0; changed = true; }
-    if (x + width > img.naturalWidth - SNAP_THRESHOLD) { width = img.naturalWidth - x; changed = true; }
-    if (y + height > img.naturalHeight - SNAP_THRESHOLD) { height = img.naturalHeight - y; changed = true; }
+    if (x + width > imageData.naturalWidth - SNAP_THRESHOLD) { width = imageData.naturalWidth - x; changed = true; }
+    if (y + height > imageData.naturalHeight - SNAP_THRESHOLD) { height = imageData.naturalHeight - y; changed = true; }
     if (changed) cropper.setData({ x, y, width, height });
 }
 
@@ -78,9 +78,9 @@ function close() {
 
 async function save() {
     if (!cropper || !props.item) return;
-    const d = cropper.getData(true);
+    const cropBox = cropper.getData(true);
     const url = buildPath(props.cropPath, { id: props.item.id });
-    const data = await request(url, { x: d.x, y: d.y, width: d.width, height: d.height });
+    const data = await request(url, { x: cropBox.x, y: cropBox.y, width: cropBox.width, height: cropBox.height });
     if (!data || !data.success) return;
     emit("cropped", data[props.entityKey]);
     toast.success(t("shared.image_cropper.cropped"));
@@ -96,7 +96,7 @@ async function save() {
         <div style="height: 65vh; width: 100%; overflow: hidden;">
             <img
                 v-if="item"
-                ref="imageEl"
+                ref="imageElement"
                 :src="src"
                 :alt="alt"
                 style="display: block; max-width: 100%;"

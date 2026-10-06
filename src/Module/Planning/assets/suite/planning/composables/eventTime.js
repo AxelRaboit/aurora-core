@@ -27,8 +27,8 @@ const WALL_CLOCK_PARTS = {
     hour12: false,
 };
 
-function pad(n) {
-    return String(n).padStart(2, "0");
+function pad(value) {
+    return String(value).padStart(2, "0");
 }
 
 /**
@@ -75,14 +75,14 @@ function partsIn(instant, zone) {
  * is the offset that applied.
  */
 function offsetAt(instant, zone) {
-    const p = partsIn(instant, zone);
+    const parts = partsIn(instant, zone);
     const asUtc = Date.UTC(
-        p.year,
-        p.month - 1,
-        p.day,
-        p.hour,
-        p.minute,
-        p.second,
+        parts.year,
+        parts.month - 1,
+        parts.day,
+        parts.hour,
+        parts.minute,
+        parts.second,
     );
 
     return asUtc - instant.getTime();
@@ -142,9 +142,9 @@ export function toPickerValue(iso, zone) {
         );
     }
 
-    const p = partsIn(date, zone);
+    const parts = partsIn(date, zone);
 
-    return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
+    return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}T${pad(parts.hour)}:${pad(parts.minute)}`;
 }
 
 /**

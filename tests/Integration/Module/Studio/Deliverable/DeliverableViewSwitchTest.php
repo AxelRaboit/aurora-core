@@ -169,13 +169,13 @@ final class DeliverableViewSwitchTest extends IntegrationTestCase
 
         $zones = [];
         $content = [];
-        for ($i = 1; $i <= $sections; ++$i) {
-            $zone = ['id' => 'z'.$i, 'type' => 'text', 'span' => self::FULL];
-            if (null !== $anchor && 2 === $i) {
+        for ($sectionNumber = 1; $sectionNumber <= $sections; ++$sectionNumber) {
+            $zone = ['id' => 'z'.$sectionNumber, 'type' => 'text', 'span' => self::FULL];
+            if (null !== $anchor && 2 === $sectionNumber) {
                 $zone['anchor'] = $anchor;
             }
             $zones[] = $zone;
-            $content['z'.$i] = ['blocks' => [['type' => 'header', 'data' => ['text' => 'Section '.$i, 'level' => 2]], ['type' => 'paragraph', 'data' => ['text' => 'Texte '.$i]]]];
+            $content['z'.$sectionNumber] = ['blocks' => [['type' => 'header', 'data' => ['text' => 'Section '.$sectionNumber, 'level' => 2]], ['type' => 'paragraph', 'data' => ['text' => 'Texte '.$sectionNumber]]]];
         }
 
         $this->entityManager->clear();

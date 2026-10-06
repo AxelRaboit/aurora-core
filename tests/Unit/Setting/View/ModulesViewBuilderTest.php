@@ -128,18 +128,18 @@ final class ModulesViewBuilderTest extends TestCase
         $builder = $this->makeBuilder($this->stubRepository(), $this->stubTranslator());
         $payload = $builder->modulesPayload();
 
-        $gedParam = null;
+        $gedParameter = null;
         foreach ($payload['parameters'] as $parameter) {
             if ($parameter['key'] === ModuleParameterEnum::GedSuite->value) {
-                $gedParam = $parameter;
+                $gedParameter = $parameter;
                 break;
             }
         }
 
-        self::assertNotNull($gedParam);
-        self::assertIsArray($gedParam['subModules']);
+        self::assertNotNull($gedParameter);
+        self::assertIsArray($gedParameter['subModules']);
 
-        $subKeys = array_column($gedParam['subModules'], 'key');
+        $subKeys = array_column($gedParameter['subModules'], 'key');
         self::assertContains(ModuleParameterEnum::GedDocuments->value, $subKeys);
         self::assertContains(ModuleParameterEnum::GedCategories->value, $subKeys);
         self::assertContains(ModuleParameterEnum::GedTags->value, $subKeys);
@@ -168,18 +168,18 @@ final class ModulesViewBuilderTest extends TestCase
         $builder = $this->makeBuilder($this->stubRepository(), $this->stubTranslator());
         $payload = $builder->modulesPayload();
 
-        $gedParam = null;
+        $gedParameter = null;
         foreach ($payload['parameters'] as $parameter) {
             if ($parameter['key'] === ModuleParameterEnum::GedSuite->value) {
-                $gedParam = $parameter;
+                $gedParameter = $parameter;
                 break;
             }
         }
 
-        self::assertNotNull($gedParam);
+        self::assertNotNull($gedParameter);
 
         $documentsSub = null;
-        foreach ($gedParam['subModules'] as $sub) {
+        foreach ($gedParameter['subModules'] as $sub) {
             if ($sub['key'] === ModuleParameterEnum::GedDocuments->value) {
                 $documentsSub = $sub;
                 break;

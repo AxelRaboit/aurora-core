@@ -74,11 +74,11 @@ export function useNoteGraph({
         const dpr = window.devicePixelRatio || 1;
         canvas.width = Math.round(cssWidth * dpr);
         canvas.height = Math.round(cssHeight * dpr);
-        const ctx = canvas.getContext("2d");
+        const context = canvas.getContext("2d");
         // Reset any prior transform before re-applying the DPR scale,
         // otherwise repeated resizes compound it.
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(dpr, dpr);
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.scale(dpr, dpr);
         return true;
     }
 
@@ -123,25 +123,32 @@ export function useNoteGraph({
         const canvas = canvasRef.value;
         if (!canvas) return;
         const { width, height } = canvasCssSize();
-        const nodeMap = Object.fromEntries(nodes.map((n) => [n.id, n]));
+        const nodeMap = Object.fromEntries(
+            nodes.map((node) => [node.id, node]),
+        );
 
         // Pairwise repulsion - O(n²) but fine for our note counts (a
         // user with >1000 wiki-linked notes is rare). Magnitude scales
         // with 1/d² so close nodes push hard, far ones barely matter.
-        for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-                const a = nodes[i];
-                const b = nodes[j];
-                let dx = a.x - b.x;
-                let dy = a.y - b.y;
-                const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+        for (let firstIndex = 0; firstIndex < nodes.length; firstIndex++) {
+            for (
+                let secondIndex = firstIndex + 1;
+                secondIndex < nodes.length;
+                secondIndex++
+            ) {
+                const firstNode = nodes[firstIndex];
+                const secondNode = nodes[secondIndex];
+                let deltaX = firstNode.x - secondNode.x;
+                let deltaY = firstNode.y - secondNode.y;
+                const distance =
+                    Math.sqrt(deltaX * deltaX + deltaY * deltaY) || 1;
                 const force = 800 / (distance * distance);
-                dx = (dx / distance) * force;
-                dy = (dy / distance) * force;
-                a.vx += dx;
-                a.vy += dy;
-                b.vx -= dx;
-                b.vy -= dy;
+                deltaX = (deltaX / distance) * force;
+                deltaY = (deltaY / distance) * force;
+                firstNode.vx += deltaX;
+                firstNode.vy += deltaY;
+                secondNode.vx -= deltaX;
+                secondNode.vy -= deltaY;
             }
         }
 
@@ -151,16 +158,16 @@ export function useNoteGraph({
             const source = nodeMap[edge.source];
             const target = nodeMap[edge.target];
             if (!source || !target) return;
-            const dx = target.x - source.x;
-            const dy = target.y - source.y;
-            const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+            const deltaX = target.x - source.x;
+            const deltaY = target.y - source.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY) || 1;
             const force = (distance - 100) * 0.01;
-            const fx = (dx / distance) * force;
-            const fy = (dy / distance) * force;
-            source.vx += fx;
-            source.vy += fy;
-            target.vx -= fx;
-            target.vy -= fy;
+            const forceX = (deltaX / distance) * force;
+            const forceY = (deltaY / distance) * force;
+            source.vx += forceX;
+            source.vy += forceY;
+            target.vx -= forceX;
+            target.vy -= forceY;
         });
 
         // Center gravity keeps orphan nodes anchored near the middle.
@@ -184,40 +191,44 @@ export function useNoteGraph({
 
     function draw() {
         const canvas = canvasRef.value;
-        const ctx = canvas?.getContext("2d");
-        if (!ctx || !canvas) return;
+        const context = canvas?.getContext("2d");
+        if (!context || !canvas) return;
         const { width, height } = canvasCssSize();
-        const nodeMap = Object.fromEntries(nodes.map((n) => [n.id, n]));
+        const nodeMap = Object.fromEntries(
+            nodes.map((node) => [node.id, node]),
+        );
 
-        ctx.clearRect(0, 0, width, height);
+        context.clearRect(0, 0, width, height);
 
         // Edges - thin, low-opacity indigo. Match Onyx exactly.
-        ctx.strokeStyle = "rgba(129, 140, 248, 0.25)";
-        ctx.lineWidth = 1;
+        context.strokeStyle = "rgba(129, 140, 248, 0.25)";
+        context.lineWidth = 1;
         edges.forEach((edge) => {
             const source = nodeMap[edge.source];
             const target = nodeMap[edge.target];
             if (!source || !target) return;
-            ctx.beginPath();
-            ctx.moveTo(source.x, source.y);
-            ctx.lineTo(target.x, target.y);
-            ctx.stroke();
+            context.beginPath();
+            context.moveTo(source.x, source.y);
+            context.lineTo(target.x, target.y);
+            context.stroke();
         });
 
         nodes.forEach((node) => {
             const hasEdges = edges.some(
-                (e) => e.source === node.id || e.target === node.id,
+                (edge) => edge.source === node.id || edge.target === node.id,
             );
 
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, hasEdges ? 6 : 4, 0, Math.PI * 2);
-            ctx.fillStyle = hasEdges ? "#818cf8" : "rgba(129, 140, 248, 0.4)";
-            ctx.fill();
+            context.beginPath();
+            context.arc(node.x, node.y, hasEdges ? 6 : 4, 0, Math.PI * 2);
+            context.fillStyle = hasEdges
+                ? "#818cf8"
+                : "rgba(129, 140, 248, 0.4)";
+            context.fill();
 
-            ctx.font = "10px system-ui, sans-serif";
-            ctx.fillStyle = "rgba(107, 114, 128, 1)";
-            ctx.textAlign = "center";
-            ctx.fillText(
+            context.font = "10px system-ui, sans-serif";
+            context.fillStyle = "rgba(107, 114, 128, 1)";
+            context.textAlign = "center";
+            context.fillText(
                 truncate(node.title || untitledLabel, 20),
                 node.x,
                 node.y + 16,
@@ -232,9 +243,9 @@ export function useNoteGraph({
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
         return nodes.find((node) => {
-            const dx = node.x - mouseX;
-            const dy = node.y - mouseY;
-            return dx * dx + dy * dy < 100; // ~10px hit radius
+            const deltaX = node.x - mouseX;
+            const deltaY = node.y - mouseY;
+            return deltaX * deltaX + deltaY * deltaY < 100; // ~10px hit radius
         });
     }
 
@@ -349,9 +360,9 @@ export function useNoteGraph({
             if (!resizeCanvas()) return;
             const { width, height } = canvasCssSize();
 
-            nodes = raw.map((n) => ({
-                id: n.id,
-                title: n.title,
+            nodes = raw.map((rawNode) => ({
+                id: rawNode.id,
+                title: rawNode.title,
                 x: Math.random() * (width - 80) + 40,
                 y: Math.random() * (height - 80) + 40,
                 vx: 0,
@@ -379,10 +390,10 @@ export function useNoteGraph({
         // instead of flashing the previous graph during the modal
         // re-entry transition.
         const canvas = canvasRef.value;
-        const ctx = canvas?.getContext("2d");
-        if (ctx && canvas) {
+        const context = canvas?.getContext("2d");
+        if (context && canvas) {
             const { width, height } = canvasCssSize();
-            ctx.clearRect(0, 0, width, height);
+            context.clearRect(0, 0, width, height);
         }
     }
 

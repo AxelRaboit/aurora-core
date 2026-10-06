@@ -53,7 +53,7 @@ final class TrashOverviewServiceTest extends TestCase
             $this->checkerGranting(true),
         );
 
-        $keys = array_map(static fn (TrashSummary $s): string => $s->key, $service->getSummaries(['ged']));
+        $keys = array_map(static fn (TrashSummary $summary): string => $summary->key, $service->getSummaries(['ged']));
 
         self::assertSame(['big', 'small', 'empty_one'], $keys);
     }

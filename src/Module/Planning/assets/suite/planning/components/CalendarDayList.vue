@@ -37,16 +37,16 @@ const props = defineProps({
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const items = computed(() => itemsOn(props.date, props.events, props.reminders));
 
 const heading = computed(() =>
-    d(props.date, { weekday: "long", day: "numeric", month: "long" }),
+    formatDate(props.date, { weekday: "long", day: "numeric", month: "long" }),
 );
 
 function timeOf(at) {
-    return d(at, { hour: "2-digit", minute: "2-digit" });
+    return formatDate(at, { hour: "2-digit", minute: "2-digit" });
 }
 </script>
 

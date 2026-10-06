@@ -52,7 +52,7 @@ const props = defineProps({
 
 const emit = defineEmits(["post", "delete"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const draft = ref("");
 
@@ -79,7 +79,7 @@ const entries = computed(() => {
         });
     }
 
-    return stream.sort((a, b) => new Date(a.at) - new Date(b.at));
+    return stream.sort((left, right) => new Date(left.at) - new Date(right.at));
 });
 
 function post() {
@@ -125,7 +125,7 @@ function post() {
                     <span class="text-primary">
                         {{ t(`shared.thread.verdict.${verdict}`, { who: verdictBy }) }}
                     </span>
-                    <span class="text-muted">{{ d(new Date(entry.at), "short") }}</span>
+                    <span class="text-muted">{{ formatDate(new Date(entry.at), "short") }}</span>
                 </div>
 
                 <div
@@ -142,7 +142,7 @@ function post() {
                             {{ entry.comment.author }}
                         </span>
                         <span class="text-xs text-muted">
-                            {{ d(new Date(entry.comment.createdAt), "short") }}
+                            {{ formatDate(new Date(entry.comment.createdAt), "short") }}
                         </span>
                         <span
                             v-if="entry.comment.fromClient"

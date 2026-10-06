@@ -139,7 +139,7 @@ final readonly class SpaceReviewInviter
                 ),
                 'expiresAt' => $link->getExpiresAt(),
             ],
-            subjectParams: ['{space}' => $space->getName(), '{count}' => (string) $awaiting],
+            subjectParameters: ['{space}' => $space->getName(), '{count}' => (string) $awaiting],
         );
     }
 }

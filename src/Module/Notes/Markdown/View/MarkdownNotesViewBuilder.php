@@ -364,7 +364,7 @@ final readonly class MarkdownNotesViewBuilder
         }
 
         foreach ($childrenOf as &$children) {
-            usort($children, static fn (array $a, array $b): int => $a <=> $b);
+            usort($children, static fn (array $left, array $right): int => $left <=> $right);
         }
 
         unset($children);

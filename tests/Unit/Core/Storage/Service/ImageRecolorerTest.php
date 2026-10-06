@@ -34,38 +34,38 @@ final class ImageRecolorerTest extends TestCase
 {
     private const int SIZE = 240;
 
-    private string $workDir;
+    private string $workDirectory;
 
     private ImageRecolorer $recolorer;
 
     protected function setUp(): void
     {
-        $this->workDir = sys_get_temp_dir().'/aurora-recolorer-'.uniqid();
-        mkdir($this->workDir, 0o777, true);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-recolorer-'.uniqid();
+        mkdir($this->workDirectory, 0o777, true);
         $this->recolorer = new ImageRecolorer(new Filesystem());
     }
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove($this->workDir);
+        (new Filesystem())->remove($this->workDirectory);
     }
 
     public function testTheVisualsHueMovesAndItsLightnessStays(): void
     {
         $source = $this->visual();
-        $result = $this->workDir.'/red.png';
+        $result = $this->workDirectory.'/red.png';
 
         self::assertSame([self::SIZE, self::SIZE], $this->recolorer->recolor($source, $result, 'image/png', '#bd4a55'));
 
-        [$r, $g, $b] = $this->pixel($result, 10, 10);
-        self::assertGreaterThan($g, $r, 'the green background turned red');
-        self::assertEqualsWithDelta($this->lightness(...$this->pixel($source, 10, 10)), $this->lightness($r, $g, $b), 0.02, 'with the same lightness');
+        [$red, $green, $blue] = $this->pixel($result, 10, 10);
+        self::assertGreaterThan($green, $red, 'the green background turned red');
+        self::assertEqualsWithDelta($this->lightness(...$this->pixel($source, 10, 10)), $this->lightness($red, $green, $blue), 0.02, 'with the same lightness');
     }
 
     public function testAPhotoLaidOnTheVisualKeepsItsColours(): void
     {
         $source = $this->visual(withPhoto: true);
-        $result = $this->workDir.'/red.png';
+        $result = $this->workDirectory.'/red.png';
 
         $this->recolorer->recolor($source, $result, 'image/png', '#bd4a55');
 
@@ -77,7 +77,7 @@ final class ImageRecolorerTest extends TestCase
     public function testUnprotectedThePhotoMovesToo(): void
     {
         $source = $this->visual(withPhoto: true);
-        $result = $this->workDir.'/red.png';
+        $result = $this->workDirectory.'/red.png';
 
         $this->recolorer->recolor($source, $result, 'image/png', '#bd4a55', protectDetail: false);
 
@@ -87,7 +87,7 @@ final class ImageRecolorerTest extends TestCase
     public function testASparedColourIsLeftAlone(): void
     {
         $source = $this->visual();
-        $result = $this->workDir.'/red.png';
+        $result = $this->workDirectory.'/red.png';
 
         $this->recolorer->recolor($source, $result, 'image/png', '#bd4a55', spare: ['#10b981']);
 
@@ -97,7 +97,7 @@ final class ImageRecolorerTest extends TestCase
     public function testAGivenSourceColourIsTheOneReplaced(): void
     {
         $source = $this->visual();
-        $result = $this->workDir.'/blue.png';
+        $result = $this->workDirectory.'/blue.png';
 
         // Asked to replace red, of which there is none: nothing moves.
         $this->recolorer->recolor($source, $result, 'image/png', '#0093ed', sourceHex: '#ff0000');
@@ -111,15 +111,15 @@ final class ImageRecolorerTest extends TestCase
         imagefilledrectangle($grey, 0, 0, 19, 19, imagecolorallocate($grey, 120, 120, 120));
         $source = $this->save($grey, 'grey.png');
 
-        self::assertNull($this->recolorer->recolor($source, $this->workDir.'/out.png', 'image/png', '#bd4a55'));
+        self::assertNull($this->recolorer->recolor($source, $this->workDirectory.'/out.png', 'image/png', '#bd4a55'));
     }
 
     public function testAnAnimationOrANonImageIsRefused(): void
     {
         $source = $this->visual();
 
-        self::assertNull($this->recolorer->recolor($source, $this->workDir.'/out.gif', 'image/gif', '#bd4a55'));
-        self::assertNull($this->recolorer->recolor($source, $this->workDir.'/out.pdf', 'application/pdf', '#bd4a55'));
+        self::assertNull($this->recolorer->recolor($source, $this->workDirectory.'/out.gif', 'image/gif', '#bd4a55'));
+        self::assertNull($this->recolorer->recolor($source, $this->workDirectory.'/out.pdf', 'application/pdf', '#bd4a55'));
     }
 
     public function testTransparencySurvives(): void
@@ -130,7 +130,7 @@ final class ImageRecolorerTest extends TestCase
         imagefilledrectangle($image, 0, 0, 39, 39, imagecolorallocatealpha($image, 6, 90, 68, 0));
         imagefilledrectangle($image, 0, 0, 9, 9, imagecolorallocatealpha($image, 6, 90, 68, 127));
         $source = $this->save($image, 'alpha.png');
-        $result = $this->workDir.'/alpha-red.png';
+        $result = $this->workDirectory.'/alpha-red.png';
 
         $this->recolorer->recolor($source, $result, 'image/png', '#bd4a55');
 
@@ -170,7 +170,7 @@ final class ImageRecolorerTest extends TestCase
 
     private function save(GdImage $image, string $name): string
     {
-        $path = $this->workDir.'/'.$name;
+        $path = $this->workDirectory.'/'.$name;
         imagepng($image, $path);
 
         return $path;
@@ -189,15 +189,15 @@ final class ImageRecolorerTest extends TestCase
     {
         $image = imagecreatefrompng($path);
         $pixels = [];
-        for ($i = 80; $i < 160; $i += 7) {
-            $pixels[] = imagecolorat($image, $i, $i);
+        for ($position = 80; $position < 160; $position += 7) {
+            $pixels[] = imagecolorat($image, $position, $position);
         }
 
         return $pixels;
     }
 
-    private function lightness(int $r, int $g, int $b): float
+    private function lightness(int $red, int $green, int $blue): float
     {
-        return (max($r, $g, $b) + min($r, $g, $b)) / 510;
+        return (max($red, $green, $blue) + min($red, $green, $blue)) / 510;
     }
 }

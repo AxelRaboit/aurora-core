@@ -77,22 +77,22 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
         // its Fixture base class is absent in prod. The module's own
         // services.php excludes DataFixtures to avoid a double registration.
         $env = (string) $builder->getParameter('kernel.environment');
-        $fixturesDir = $this->moduleDir().'/DataFixtures';
+        $fixturesDirectory = $this->moduleDir().'/DataFixtures';
         if (in_array($env, ['dev', 'test'], true)
-            && is_dir($fixturesDir)
+            && is_dir($fixturesDirectory)
             && class_exists(Fixture::class)
         ) {
             $container->services()
                 ->defaults()->autowire()->autoconfigure()
-                ->load('Aurora\\Module\\'.$this->moduleName().'\\DataFixtures\\', $fixturesDir.'/');
+                ->load('Aurora\\Module\\'.$this->moduleName().'\\DataFixtures\\', $fixturesDirectory.'/');
         }
     }
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $name = $this->moduleName();
-        $moduleDir = $this->moduleDir();
-        $projectDir = (string) $builder->getParameter('kernel.project_dir');
+        $moduleDirectory = $this->moduleDir();
+        $projectDirectory = (string) $builder->getParameter('kernel.project_dir');
 
         // ── Doctrine: one mapping + this module's resolve_target_entities ──
         $builder->prependExtensionConfig('doctrine', [
@@ -102,7 +102,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
                     'Aurora'.$name => [
                         'type' => 'attribute',
                         'is_bundle' => false,
-                        'dir' => $moduleDir,
+                        'dir' => $moduleDirectory,
                         'prefix' => 'Aurora\\Module\\'.$name,
                         'alias' => 'Aurora'.$name,
                     ],
@@ -112,9 +112,9 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
 
         // ── Twig: client overrides first (co-located + legacy), bundle last ──
         $twigPaths = [];
-        $clientColocated = $projectDir.'/src/Module/'.$name.'/templates';
-        $clientLegacy = $projectDir.'/templates/Module/'.$name;
-        if ($clientColocated !== $moduleDir.'/templates' && is_dir($clientColocated)) {
+        $clientColocated = $projectDirectory.'/src/Module/'.$name.'/templates';
+        $clientLegacy = $projectDirectory.'/templates/Module/'.$name;
+        if ($clientColocated !== $moduleDirectory.'/templates' && is_dir($clientColocated)) {
             $twigPaths[$clientColocated] = $name;
         }
 
@@ -122,7 +122,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
             $twigPaths[$clientLegacy] = $name;
         }
 
-        $bundleTemplates = $moduleDir.'/templates';
+        $bundleTemplates = $moduleDirectory.'/templates';
         if (is_dir($bundleTemplates)) {
             $twigPaths[$bundleTemplates] = $name;
         }
@@ -139,7 +139,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
         // silently shadow any Core template it happened to share a path with.
         // Shadowing a file here still needs `{% extends '@AuroraTheme/...' %}`
         // rather than the file's own logical name, which would recurse.
-        $themeOverride = $moduleDir.'/templates/_theme';
+        $themeOverride = $moduleDirectory.'/templates/_theme';
         if (is_dir($themeOverride)) {
             $twigPaths[$themeOverride] = null;
         }
@@ -151,8 +151,8 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
         // ── Translations: module/translations + module/<sub>/translations ──
         $translationPaths = array_values(array_filter(
             array_merge(
-                [$moduleDir.'/translations'],
-                glob($moduleDir.'/*/translations', GLOB_ONLYDIR) ?: [],
+                [$moduleDirectory.'/translations'],
+                glob($moduleDirectory.'/*/translations', GLOB_ONLYDIR) ?: [],
             ),
             is_dir(...),
         ));

@@ -23,7 +23,7 @@ class ThemeManager implements ThemeManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly ThemeRepository $themeRepository,
-        protected readonly string $projectDir,
+        protected readonly string $projectDirectory,
         protected readonly AuditLogger $auditLogger,
     ) {}
 
@@ -86,17 +86,17 @@ class ThemeManager implements ThemeManagerInterface
         // Custom themes live at <project>/templates/Frontend/themes/<slug>/;
         // the bundled 'default' theme ships under src/Core/templates/Frontend/themes/default/.
         $candidates = [
-            Path::join($this->projectDir, 'templates/Frontend/themes', $slug),
-            Path::join($this->projectDir, 'src/Core/templates/Frontend/themes', $slug),
+            Path::join($this->projectDirectory, 'templates/Frontend/themes', $slug),
+            Path::join($this->projectDirectory, 'src/Core/templates/Frontend/themes', $slug),
         ];
-        $dir = array_find($candidates, fn ($candidate): bool => is_dir($candidate));
+        $themeDirectory = array_find($candidates, fn ($candidate): bool => is_dir($candidate));
 
-        if (null === $dir) {
+        if (null === $themeDirectory) {
             return 0;
         }
 
         $count = 0;
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir)) as $file) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($themeDirectory)) as $file) {
             if ($file->isFile() && str_ends_with((string) $file->getFilename(), '.html.twig')) {
                 ++$count;
             }

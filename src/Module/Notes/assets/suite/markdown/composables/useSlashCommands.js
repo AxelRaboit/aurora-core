@@ -140,7 +140,7 @@ const COMMANDS = [
 
 /** The blank table inserted when no size follows the command. */
 export const DEFAULT_TABLE_SIZE = { cols: 3, rows: 3 };
-const MAX_TABLE_COLS = 10;
+const MAX_TABLE_COLUMNS = 10;
 const MAX_TABLE_ROWS = 50;
 
 /**
@@ -154,12 +154,15 @@ const MAX_TABLE_ROWS = 50;
 export function parseSlashQuery(query) {
     const match = query.match(/^(\S*)(?: (\d{0,2})(?:[x×](\d{0,2}))?)?$/i);
     if (!match) return null;
-    const [, word, cols, rows] = match;
+    const [, word, columns, rows] = match;
     const hasSizePart = query.includes(" ");
     const size =
-        cols && rows
+        columns && rows
             ? {
-                  cols: Math.min(Math.max(Number(cols), 1), MAX_TABLE_COLS),
+                  cols: Math.min(
+                      Math.max(Number(columns), 1),
+                      MAX_TABLE_COLUMNS,
+                  ),
                   rows: Math.min(Math.max(Number(rows), 1), MAX_TABLE_ROWS),
               }
             : null;
@@ -171,14 +174,16 @@ export function parseSlashQuery(query) {
  * cells, and the range of the first header so the caller can select it -
  * typing replaces "Column 1" straight away.
  */
-export function buildTable({ cols, rows }, columnLabel) {
-    const header = Array.from({ length: cols }, (_, i) => columnLabel(i + 1));
+export function buildTable({ cols: columns, rows }, columnLabel) {
+    const header = Array.from({ length: columns }, (_, columnIndex) =>
+        columnLabel(columnIndex + 1),
+    );
     const lines = [
         `| ${header.join(" | ")} |`,
-        `| ${Array(cols).fill("---").join(" | ")} |`,
+        `| ${Array(columns).fill("---").join(" | ")} |`,
         ...Array.from(
             { length: rows },
-            () => `| ${Array(cols).fill("").join(" | ")} |`,
+            () => `| ${Array(columns).fill("").join(" | ")} |`,
         ),
     ];
     return {
@@ -247,13 +252,13 @@ export function useSlashCommands({ t }) {
         const text = textarea.value;
         const before = text.slice(0, caret);
 
-        const slashIdx = before.lastIndexOf("/");
-        if (slashIdx === -1) {
+        const slashOffset = before.lastIndexOf("/");
+        if (slashOffset === -1) {
             closeSlash();
             return;
         }
 
-        const charBefore = slashIdx === 0 ? "" : before[slashIdx - 1];
+        const charBefore = slashOffset === 0 ? "" : before[slashOffset - 1];
         const atBoundary =
             charBefore === "" || charBefore === "\n" || /\s/.test(charBefore);
         if (!atBoundary) {
@@ -261,7 +266,7 @@ export function useSlashCommands({ t }) {
             return;
         }
 
-        const query = before.slice(slashIdx + 1);
+        const query = before.slice(slashOffset + 1);
         // A space ends the command, except the one that introduces a table
         // size (`/tableau 3x4`): the palette stays open while it is typed.
         const parsed = /\s/.test(query) ? parseSlashQuery(query) : null;
@@ -281,11 +286,11 @@ export function useSlashCommands({ t }) {
             return;
         }
 
-        slashStart.value = slashIdx;
+        slashStart.value = slashOffset;
         slashQuery.value = query;
         slashIndex.value = 0;
         showSlash.value = true;
-        positionDropdown(textarea, slashIdx);
+        positionDropdown(textarea, slashOffset);
     }
 
     function positionDropdown(textarea, startIndex) {
@@ -335,8 +340,8 @@ export function useSlashCommands({ t }) {
 
         if (command.sizable) {
             const size = parsedQuery.value?.size ?? DEFAULT_TABLE_SIZE;
-            const table = buildTable(size, (n) =>
-                t("notes.markdown.slash.table_column", { n }),
+            const table = buildTable(size, (columnNumber) =>
+                t("notes.markdown.slash.table_column", { n: columnNumber }),
             );
             closeSlash();
             return {

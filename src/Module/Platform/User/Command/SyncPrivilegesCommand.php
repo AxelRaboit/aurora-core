@@ -60,7 +60,7 @@ final class SyncPrivilegesCommand extends Command
                 continue;
             }
 
-            $valid = array_values(array_filter($current, static fn (string $p): bool => isset($registeredSet[$p])));
+            $valid = array_values(array_filter($current, static fn (string $privilege): bool => isset($registeredSet[$privilege])));
             $removed = array_diff($current, $valid);
 
             if ([] !== $removed) {

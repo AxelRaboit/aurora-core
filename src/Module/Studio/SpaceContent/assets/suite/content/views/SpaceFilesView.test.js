@@ -54,12 +54,12 @@ function entries(view) {
 
 /** The two shape buttons: the only ones without text, frame and icon. */
 function shapeToggle(view) {
-    return view.findAll("button").filter((b) => b.text() === "");
+    return view.findAll("button").filter((button) => button.text() === "");
 }
 
 /** The button that opens a card, found by its label rather than its position. */
 function cardLink(view, title) {
-    return view.findAll("button").find((b) => b.text() === title);
+    return view.findAll("button").find((button) => button.text() === title);
 }
 
 describe("SpaceFilesView", () => {
@@ -159,7 +159,10 @@ describe("SpaceFilesView", () => {
 
         await view
             .findAll("button")
-            .find((b) => b.text() === "suite.studio.space_content.files_open")
+            .find(
+                (button) =>
+                    button.text() === "suite.studio.space_content.files_open",
+            )
             .trigger("click");
 
         // The panel is teleported to the body, like every window of the
@@ -201,8 +204,10 @@ describe("SpaceFilesView", () => {
             });
             await view
                 .findAll("button")
-                .find((b) =>
-                    b.text().includes("suite.studio.space_files.tabs.space"),
+                .find((button) =>
+                    button
+                        .text()
+                        .includes("suite.studio.space_files.tabs.space"),
                 )
                 .trigger("click");
 

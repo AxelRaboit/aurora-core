@@ -8,8 +8,8 @@ const SIZE_UNITS = {
 };
 
 function getUnits(locale) {
-    const lang = (locale ?? "en").split("-")[0].toLowerCase();
-    return SIZE_UNITS[lang] ?? SIZE_UNITS.en;
+    const language = (locale ?? "en").split("-")[0].toLowerCase();
+    return SIZE_UNITS[language] ?? SIZE_UNITS.en;
 }
 
 export function useFileSize() {

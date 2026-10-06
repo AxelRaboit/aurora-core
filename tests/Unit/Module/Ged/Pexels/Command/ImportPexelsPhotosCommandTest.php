@@ -57,21 +57,21 @@ final class ImportPexelsPhotosCommandTest extends TestCase
     /** A 1x1 PNG - the smallest thing GD will agree is an image. */
     private const string PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
-    private string $workDir;
+    private string $workDirectory;
 
     /** @var list<array<string, mixed>> */
     private array $created = [];
 
     protected function setUp(): void
     {
-        $this->workDir = sys_get_temp_dir().'/aurora-pexels-cmd-'.uniqid();
-        (new Filesystem())->mkdir($this->workDir);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-pexels-cmd-'.uniqid();
+        (new Filesystem())->mkdir($this->workDirectory);
         $this->created = [];
     }
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove($this->workDir);
+        (new Filesystem())->remove($this->workDirectory);
     }
 
     public function testASwitchedOffIntegrationIsReportedAndNothingIsAttempted(): void
@@ -231,7 +231,7 @@ final class ImportPexelsPhotosCommandTest extends TestCase
             new VideoPosterGenerator($workspace),
             new ImageCropper($filesystem),
             new StorageManager(
-                [new LocalStorageAdapter($filesystem, $this->workDir)],
+                [new LocalStorageAdapter($filesystem, $this->workDirectory)],
                 new class implements ActiveStorageDiskProviderInterface {
                     public function activeDisk(): StorageDiskEnum
                     {

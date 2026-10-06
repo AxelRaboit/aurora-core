@@ -66,7 +66,7 @@ export function useMarkdownRenderer() {
     function resolveWikiLink(targetTitle, noteTitles) {
         const needle = String(targetTitle ?? "").toLowerCase();
         const match = noteTitles.find(
-            (n) => (n.title ?? "").toLowerCase() === needle,
+            (note) => (note.title ?? "").toLowerCase() === needle,
         );
         return match?.id ?? null;
     }

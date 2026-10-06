@@ -99,14 +99,14 @@ final readonly class DeckFonts
     {
         $alias = 'document';
         $builder = $this->documents->createQueryBuilder($alias);
-        $or = $builder->expr()->orX();
+        $extensionConditions = $builder->expr()->orX();
 
         foreach (array_keys(self::EXTENSIONS) as $extension) {
-            $or->add($builder->expr()->like(sprintf('LOWER(%s.originalName)', $alias), $builder->expr()->literal('%.'.$extension)));
+            $extensionConditions->add($builder->expr()->like(sprintf('LOWER(%s.originalName)', $alias), $builder->expr()->literal('%.'.$extension)));
         }
 
         /** @var list<DocumentInterface> $fonts */
-        $fonts = $builder->where($or)->orderBy($alias.'.originalName', 'ASC')->getQuery()->getResult();
+        $fonts = $builder->where($extensionConditions)->orderBy($alias.'.originalName', 'ASC')->getQuery()->getResult();
 
         return array_map($this->describe(...), $fonts);
     }

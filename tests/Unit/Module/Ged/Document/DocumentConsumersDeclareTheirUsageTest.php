@@ -50,19 +50,19 @@ final class DocumentConsumersDeclareTheirUsageTest extends TestCase
     {
         $root = dirname(__DIR__, 5).'/src/Module';
 
-        foreach (glob($root.'/*', GLOB_ONLYDIR) ?: [] as $moduleDir) {
-            $module = basename($moduleDir);
+        foreach (glob($root.'/*', GLOB_ONLYDIR) ?: [] as $moduleDirectory) {
+            $module = basename($moduleDirectory);
 
             // The GED owns the entity; it does not reference somebody else's.
             if ('Ged' === $module) {
                 continue;
             }
 
-            foreach (self::phpFilesIn($moduleDir) as $file) {
+            foreach (self::phpFilesIn($moduleDirectory) as $file) {
                 $source = file_get_contents($file);
 
                 if (is_string($source) && str_contains($source, 'targetEntity: DocumentInterface::class')) {
-                    yield $module => [$module, $moduleDir];
+                    yield $module => [$module, $moduleDirectory];
 
                     continue 2;
                 }
@@ -71,11 +71,11 @@ final class DocumentConsumersDeclareTheirUsageTest extends TestCase
     }
 
     #[DataProvider('modulesHoldingDocuments')]
-    public function testItProvidesAUsageProvider(string $module, string $moduleDir): void
+    public function testItProvidesAUsageProvider(string $module, string $moduleDirectory): void
     {
         $providers = [];
 
-        foreach (self::phpFilesIn($moduleDir) as $file) {
+        foreach (self::phpFilesIn($moduleDirectory) as $file) {
             $source = file_get_contents($file);
 
             // Either interface answers the rule: the batch one extends the
@@ -113,15 +113,15 @@ final class DocumentConsumersDeclareTheirUsageTest extends TestCase
     /**
      * @return list<string>
      */
-    private static function phpFilesIn(string $dir): array
+    private static function phpFilesIn(string $directory): array
     {
         $files = [];
 
-        foreach (glob($dir.'/*.php') ?: [] as $file) {
+        foreach (glob($directory.'/*.php') ?: [] as $file) {
             $files[] = $file;
         }
 
-        foreach (glob($dir.'/*', GLOB_ONLYDIR) ?: [] as $sub) {
+        foreach (glob($directory.'/*', GLOB_ONLYDIR) ?: [] as $sub) {
             foreach (self::phpFilesIn($sub) as $file) {
                 $files[] = $file;
             }

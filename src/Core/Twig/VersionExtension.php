@@ -11,11 +11,11 @@ use Twig\Extension\GlobalsInterface;
 
 final class VersionExtension extends AbstractExtension implements GlobalsInterface
 {
-    public function __construct(private readonly string $projectDir) {}
+    public function __construct(private readonly string $projectDirectory) {}
 
     public function getGlobals(): array
     {
-        $versionFile = Path::join($this->projectDir, 'VERSION');
+        $versionFile = Path::join($this->projectDirectory, 'VERSION');
 
         return [
             'appVersion' => file_exists($versionFile) ? mb_trim(file_get_contents($versionFile)) : AppVersionEnum::Dev->value,

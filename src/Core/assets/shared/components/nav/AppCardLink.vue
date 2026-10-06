@@ -15,7 +15,7 @@ defineProps({
     color: {
         type: String,
         default: "accent",
-        validator: (v) => ["accent", "emerald", "amber", "rose"].includes(v),
+        validator: (color) => ["accent", "emerald", "amber", "rose"].includes(color),
     },
     /** Hide the trailing chevron - useful for non-navigational uses. */
     hideChevron: { type: Boolean, default: false },

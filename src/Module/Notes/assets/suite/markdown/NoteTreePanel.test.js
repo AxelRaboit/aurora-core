@@ -90,9 +90,9 @@ const folderLinks = (wrapper) =>
     wrapper
         .findAll("a")
         .filter(
-            (a) =>
-                a.attributes("href")?.includes("/folder/") &&
-                undefined === a.attributes("data-favorite-row"),
+            (link) =>
+                link.attributes("href")?.includes("/folder/") &&
+                undefined === link.attributes("data-favorite-row"),
         );
 
 beforeEach(() => answerWith());
@@ -307,9 +307,11 @@ describe("les étiquettes du panneau", () => {
         return wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title")?.includes(`library.tag.filter`) &&
-                    b.text().includes(name),
+                (button) =>
+                    button
+                        .attributes("title")
+                        ?.includes(`library.tag.filter`) &&
+                    button.text().includes(name),
             );
     }
 
@@ -328,7 +330,9 @@ describe("les étiquettes du panneau", () => {
     it("asks the page to show a tag rather than navigating", async () => {
         const asked = [];
         stops.push(
-            onPanelRequest("notes:filter-tag", ({ args }) => asked.push(args)),
+            onPanelRequest("notes:filter-tag", ({ args: tagArguments }) =>
+                asked.push(tagArguments),
+            ),
         );
 
         const wrapper = await render();
@@ -346,7 +350,9 @@ describe("les étiquettes du panneau", () => {
 
         const pin = wrapper
             .findAll("button")
-            .find((b) => b.attributes("title")?.includes("library.tag.pin"));
+            .find((button) =>
+                button.attributes("title")?.includes("library.tag.pin"),
+            );
 
         await pin.trigger("click");
 
@@ -404,7 +410,7 @@ describe("the folders panel", () => {
     it("points every row at the folder's own address", async () => {
         const hrefs = folderLinks(
             await render("/suite/notes/markdown", { expanded: [1] }),
-        ).map((a) => a.attributes("href"));
+        ).map((link) => link.attributes("href"));
 
         expect(hrefs).toEqual([
             "/suite/notes/markdown/folder/1",
@@ -483,7 +489,10 @@ describe("the folders panel", () => {
         const wrapper = await render();
         const plus = wrapper
             .findAll("button")
-            .find((b) => b.attributes("title") === "notes.markdown.add.title");
+            .find(
+                (button) =>
+                    button.attributes("title") === "notes.markdown.add.title",
+            );
         await plus.trigger("click");
 
         expect(handler).toHaveBeenCalledWith({ args: [null] });
@@ -527,8 +536,9 @@ describe("the folders panel", () => {
             .find('[data-folder-row="3"]')
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") === "notes.markdown.create_in_folder",
+                (button) =>
+                    button.attributes("title") ===
+                    "notes.markdown.create_in_folder",
             );
         await plus.trigger("click");
 
@@ -541,7 +551,9 @@ describe("the folders panel", () => {
         await wrapper.find("input").setValue("recett");
         await flushPromises();
 
-        expect(folderLinks(wrapper).map((a) => a.text())).toEqual(["Recettes"]);
+        expect(folderLinks(wrapper).map((link) => link.text())).toEqual([
+            "Recettes",
+        ]);
     });
 
     /**
@@ -633,7 +645,7 @@ describe("what the panel kept from the aside", () => {
     it("garde le plus dehors et passe le reste dans la feuille", async () => {
         const titles = (await render())
             .findAll("button")
-            .map((b) => b.attributes("title"))
+            .map((button) => button.attributes("title"))
             .filter(Boolean);
 
         expect(titles.some((t) => t.includes("create_in_folder"))).toBe(true);
@@ -720,7 +732,9 @@ describe("what the panel kept from the aside", () => {
         });
         await flushPromises();
 
-        expect(folderLinks(wrapper).map((a) => a.text())).toContain("Neuf");
+        expect(folderLinks(wrapper).map((link) => link.text())).toContain(
+            "Neuf",
+        );
     });
 });
 
@@ -865,7 +879,7 @@ describe("le confort de l'arbre", () => {
         const wrapper = await render();
 
         await folderLinks(wrapper)
-            .find((a) => a.text().includes("Journal"))
+            .find((link) => link.text().includes("Journal"))
             .trigger("click");
 
         expect(wrapper.text()).toContain("Lundi");
@@ -880,7 +894,9 @@ describe("le confort de l'arbre", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) => b.attributes("title") === "notes.markdown.collapse_all",
+                (button) =>
+                    button.attributes("title") ===
+                    "notes.markdown.collapse_all",
             )
             .trigger("click");
 

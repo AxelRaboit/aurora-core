@@ -43,13 +43,13 @@
         </summary>
 
         <div class="absolute right-0 top-full z-20 mt-1 flex min-w-40 flex-col rounded-lg border border-line bg-bg p-1 shadow-lg">
-            {% for loc in locales %}
-                {% set isCurrent = loc.code == current %}
-                {% set flag = locale_flag(loc.code) %}
+            {% for switchLocale in locales %}
+                {% set isCurrent = switchLocale.code == current %}
+                {% set flag = locale_flag(switchLocale.code) %}
                 <a
-                    href="{{ urls[loc.code] }}"
-                    hreflang="{{ loc.code }}"
-                    lang="{{ loc.code }}"
+                    href="{{ urls[switchLocale.code] }}"
+                    hreflang="{{ switchLocale.code }}"
+                    lang="{{ switchLocale.code }}"
                     {{ isCurrent ? 'aria-current="true"' : '' }}
                     class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors {{ isCurrent
                         ? 'bg-surface-2 text-primary font-semibold'
@@ -58,7 +58,7 @@
                     {% if flag %}
                         <span class="fi fi-{{ flag }} rounded-[2px] shrink-0" aria-hidden="true"></span>
                     {% endif %}
-                    <span class="flex-1 whitespace-nowrap">{{ locale_name(loc.code) ?? loc.code|upper }}</span>
+                    <span class="flex-1 whitespace-nowrap">{{ locale_name(switchLocale.code) ?? switchLocale.code|upper }}</span>
                     {% if isCurrent %}
                         {{ include('@Shared/components/icon.html.twig', {name: 'check', class: 'w-3.5 h-3.5 shrink-0', size: 14}) }}
                     {% endif %}

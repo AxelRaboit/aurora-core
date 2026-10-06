@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO_ROOT, sourcesEndingWith } from "@/tests/helpers/phpSources.js";
+import {
+    REPOSITORY_ROOT,
+    sourcesEndingWith,
+} from "@/tests/helpers/phpSources.js";
 
 /**
  * « + Ajouter… » is grey, everywhere.
@@ -15,9 +18,9 @@ import { REPO_ROOT, sourcesEndingWith } from "@/tests/helpers/phpSources.js";
  */
 
 /** The opening tag of the button each `<Plus` sits in, by line. */
-function plusButtons(src) {
+function plusButtons(source) {
     const found = [];
-    const lines = src.split("\n");
+    const lines = source.split("\n");
 
     lines.forEach((line, index) => {
         if (!/<Plus\b/.test(line)) return;
@@ -53,7 +56,10 @@ describe("add buttons", () => {
         const offenders = sourcesEndingWith([".vue"]).flatMap((file) =>
             plusButtons(fs.readFileSync(file, "utf8"))
                 .filter(({ tag }) => offends(tag))
-                .map(({ line }) => `${path.relative(REPO_ROOT, file)}:${line}`),
+                .map(
+                    ({ line }) =>
+                        `${path.relative(REPOSITORY_ROOT, file)}:${line}`,
+                ),
         );
 
         expect(offenders).toEqual([]);

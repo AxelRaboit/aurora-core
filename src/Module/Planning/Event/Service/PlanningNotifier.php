@@ -197,7 +197,7 @@ readonly class PlanningNotifier
                 'description' => $event->getDescription(),
                 'url' => $this->dayUrl($event->getStartAt()->format('Y-m-d')),
             ],
-            subjectParams: ['%title%' => $event->getTitle()],
+            subjectParameters: ['%title%' => $event->getTitle()],
         );
     }
 
@@ -213,7 +213,7 @@ readonly class PlanningNotifier
                 'notes' => $reminder->getNotes(),
                 'url' => $this->dayUrl($reminder->getDueAt()->format('Y-m-d')),
             ],
-            subjectParams: ['%title%' => $reminder->getTitle()],
+            subjectParameters: ['%title%' => $reminder->getTitle()],
         );
     }
 

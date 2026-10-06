@@ -23,7 +23,9 @@ describe("AppToggle", () => {
         const button = wrapper.find("button");
         const track = wrapper.find("[data-track]");
 
-        expect(button.classes().some((c) => c.startsWith("bg-"))).toBe(false);
+        expect(
+            button.classes().some((className) => className.startsWith("bg-")),
+        ).toBe(false);
         expect(track.classes()).toEqual(
             expect.arrayContaining(["h-5", "w-9", "rounded-full"]),
         );

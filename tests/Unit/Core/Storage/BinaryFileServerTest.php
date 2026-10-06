@@ -14,8 +14,8 @@ use const DIRECTORY_SEPARATOR;
 
 final class BinaryFileServerTest extends TestCase
 {
-    private string $rootDir;
-    private string $intruderDir;
+    private string $rootDirectory;
+    private string $intruderDirectory;
     private BinaryFileServer $server;
     private Filesystem $filesystem;
 
@@ -23,22 +23,22 @@ final class BinaryFileServerTest extends TestCase
     {
         $this->filesystem = new Filesystem();
         $base = sys_get_temp_dir().'/aurora-binary-server-'.bin2hex(random_bytes(4));
-        $this->rootDir = $base.'/uploads';
-        $this->intruderDir = $base.'/intruder';
-        $this->filesystem->mkdir([$this->rootDir, $this->intruderDir]);
+        $this->rootDirectory = $base.'/uploads';
+        $this->intruderDirectory = $base.'/intruder';
+        $this->filesystem->mkdir([$this->rootDirectory, $this->intruderDirectory]);
 
-        file_put_contents($this->rootDir.'/sample.txt', 'hello');
-        file_put_contents($this->rootDir.'/logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+        file_put_contents($this->rootDirectory.'/sample.txt', 'hello');
+        file_put_contents($this->rootDirectory.'/logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
         // A one-pixel GIF: small, and unambiguously an image to the guesser.
-        file_put_contents($this->rootDir.'/photo.gif', base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', true));
-        file_put_contents($this->intruderDir.'/secret.txt', 'forbidden');
+        file_put_contents($this->rootDirectory.'/photo.gif', base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', true));
+        file_put_contents($this->intruderDirectory.'/secret.txt', 'forbidden');
 
         $this->server = new BinaryFileServer();
     }
 
     protected function tearDown(): void
     {
-        $base = dirname($this->rootDir);
+        $base = dirname($this->rootDirectory);
         if (is_dir($base)) {
             $this->filesystem->remove($base);
         }
@@ -46,7 +46,7 @@ final class BinaryFileServerTest extends TestCase
 
     public function testServeReturnsBinaryResponseForFileInsideRoot(): void
     {
-        $response = $this->server->serve($this->rootDir.'/sample.txt', $this->rootDir);
+        $response = $this->server->serve($this->rootDirectory.'/sample.txt', $this->rootDirectory);
 
         self::assertSame(200, $response->getStatusCode());
         // Symfony normalises Cache-Control directive order alphabetically.
@@ -57,7 +57,7 @@ final class BinaryFileServerTest extends TestCase
 
     public function testServePublicUsesPublicCacheControl(): void
     {
-        $response = $this->server->servePublic($this->rootDir.'/sample.txt', $this->rootDir);
+        $response = $this->server->servePublic($this->rootDirectory.'/sample.txt', $this->rootDirectory);
 
         self::assertStringContainsString('public', (string) $response->headers->get('Cache-Control'));
         self::assertStringContainsString('immutable', (string) $response->headers->get('Cache-Control'));
@@ -71,7 +71,7 @@ final class BinaryFileServerTest extends TestCase
      */
     public function testServePublicOptsOutOfTheSessionCacheDowngrade(): void
     {
-        $response = $this->server->servePublic($this->rootDir.'/sample.txt', $this->rootDir);
+        $response = $this->server->servePublic($this->rootDirectory.'/sample.txt', $this->rootDirectory);
 
         self::assertTrue($response->headers->has(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER));
     }
@@ -83,7 +83,7 @@ final class BinaryFileServerTest extends TestCase
      */
     public function testServeDoesNotOptOut(): void
     {
-        $response = $this->server->serve($this->rootDir.'/sample.txt', $this->rootDir);
+        $response = $this->server->serve($this->rootDirectory.'/sample.txt', $this->rootDirectory);
 
         self::assertFalse($response->headers->has(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER));
         self::assertStringContainsString('private', (string) $response->headers->get('Cache-Control'));
@@ -93,33 +93,33 @@ final class BinaryFileServerTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         // Try to read the intruder file via a traversal-style path.
-        $traversal = $this->rootDir.'/../intruder/secret.txt';
-        $this->server->serve($traversal, $this->rootDir);
+        $traversal = $this->rootDirectory.'/../intruder/secret.txt';
+        $this->server->serve($traversal, $this->rootDirectory);
     }
 
     public function testServeRefusesPrefixSiblingDirectory(): void
     {
         // Sibling root that *prefix-matches* the allowed one - must be rejected
         // (the normalised root comparison uses a trailing separator).
-        $sibling = $this->rootDir.'-twin';
+        $sibling = $this->rootDirectory.'-twin';
         $this->filesystem->mkdir($sibling);
         file_put_contents($sibling.'/x.txt', 'nope');
 
         $this->expectException(RuntimeException::class);
-        $this->server->serve($sibling.'/x.txt', $this->rootDir);
+        $this->server->serve($sibling.'/x.txt', $this->rootDirectory);
     }
 
     public function testServeRefusesMissingFile(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->server->serve($this->rootDir.'/does-not-exist.txt', $this->rootDir);
+        $this->server->serve($this->rootDirectory.'/does-not-exist.txt', $this->rootDirectory);
     }
 
     public function testServeAttachesContentDispositionWhenDownloadNameProvided(): void
     {
         $response = $this->server->serve(
-            $this->rootDir.'/sample.txt',
-            $this->rootDir,
+            $this->rootDirectory.'/sample.txt',
+            $this->rootDirectory,
             'private, max-age=60',
             'pretty-name.txt',
         );
@@ -132,8 +132,8 @@ final class BinaryFileServerTest extends TestCase
     public function testPathJoinsRootAndRelative(): void
     {
         self::assertSame(
-            $this->rootDir.DIRECTORY_SEPARATOR.'foo/bar.png',
-            $this->server->path($this->rootDir, 'foo/bar.png'),
+            $this->rootDirectory.DIRECTORY_SEPARATOR.'foo/bar.png',
+            $this->server->path($this->rootDirectory, 'foo/bar.png'),
         );
     }
 
@@ -147,7 +147,7 @@ final class BinaryFileServerTest extends TestCase
      */
     public function testEveryResponseRefusesContentSniffing(): void
     {
-        $response = $this->server->serve($this->rootDir.'/sample.txt', $this->rootDir);
+        $response = $this->server->serve($this->rootDirectory.'/sample.txt', $this->rootDirectory);
 
         self::assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
     }
@@ -162,7 +162,7 @@ final class BinaryFileServerTest extends TestCase
      */
     public function testAnExecutableTypeIsHandedOverAsADownload(): void
     {
-        $response = $this->server->serve($this->rootDir.'/logo.svg', $this->rootDir);
+        $response = $this->server->serve($this->rootDirectory.'/logo.svg', $this->rootDirectory);
 
         self::assertStringStartsWith('attachment', (string) $response->headers->get('Content-Disposition'));
     }
@@ -175,7 +175,7 @@ final class BinaryFileServerTest extends TestCase
      */
     public function testAPictureIsStillShownInline(): void
     {
-        $response = $this->server->serve($this->rootDir.'/photo.gif', $this->rootDir);
+        $response = $this->server->serve($this->rootDirectory.'/photo.gif', $this->rootDirectory);
 
         self::assertNull($response->headers->get('Content-Disposition'));
     }

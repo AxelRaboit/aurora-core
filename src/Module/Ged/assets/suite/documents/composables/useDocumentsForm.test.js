@@ -25,9 +25,9 @@ function formOf() {
     return { form, wrapper };
 }
 
-async function sentOnSave(doc) {
+async function sentOnSave(gedDocument) {
     const { form, wrapper } = formOf();
-    form.openEdit(doc);
+    form.openEdit(gedDocument);
     await form.submitEdit();
     await flushPromises();
     wrapper.unmount();
@@ -49,7 +49,7 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-const DOC = {
+const DOCUMENT = {
     id: 12,
     title: "Entête accueil",
     status: "published",
@@ -68,14 +68,14 @@ describe("saving a document from the edit form", () => {
      * page that crops it.
      */
     it("sends the focal point back as it was", async () => {
-        const body = await sentOnSave(DOC);
+        const body = await sentOnSave(DOCUMENT);
 
         expect(body.focalX).toBe(0.72);
         expect(body.focalY).toBe(0.31);
     });
 
     it("sends back whether it is kept, and whose variant it is", async () => {
-        const body = await sentOnSave(DOC);
+        const body = await sentOnSave(DOCUMENT);
 
         expect(body.kept).toBe(true);
         expect(body.originalId).toBe(4);

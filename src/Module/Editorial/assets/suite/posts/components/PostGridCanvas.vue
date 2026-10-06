@@ -63,7 +63,7 @@ const emit = defineEmits(["update:selectedIndex", "resize", "resizeStart", "add"
 
 const { t } = useI18n();
 
-const gridEl = ref(null);
+const gridRef = ref(null);
 
 const zones = computed(() => props.zones);
 const snap = computed(() => props.snap);
@@ -80,7 +80,7 @@ const {
     onPointerUp,
     onKeydown,
     onStartKeydown,
-} = usePostGridResize({ gridEl, snap, widthOf, startOf, emit });
+} = usePostGridResize({ gridRef, snap, widthOf, startOf, emit });
 
 const {
     draggingFrom,
@@ -96,7 +96,7 @@ const {
     onSliceDrop,
     onGridOver,
     onGridDrop,
-} = usePostGridDrop({ zones, gridEl, emit });
+} = usePostGridDrop({ zones, gridRef, emit });
 
 /**
  * A picture dropped from the desktop onto a box: it is told apart from a box
@@ -215,7 +215,7 @@ const fillTypes = computed(() =>
                  reads this file and fails the build for `gap-*` or `gap-x-*`,
                  while allowing `gap-y-*` for exactly this reason. -->
                 <div
-                    ref="gridEl"
+                    ref="gridRef"
                     class="aurora-grid gap-y-2"
                     style="--aurora-gutter: 0.25rem"
                     v-on:dragover="onGridOver"

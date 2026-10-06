@@ -117,7 +117,7 @@ final readonly class CraftClient
             }
         }
 
-        usort($documents, static fn (array $a, array $b): int => $a['title'] <=> $b['title']);
+        usort($documents, static fn (array $left, array $right): int => $left['title'] <=> $right['title']);
 
         return $documents;
     }

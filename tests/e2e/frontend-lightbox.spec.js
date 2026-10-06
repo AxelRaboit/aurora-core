@@ -53,17 +53,17 @@ for (const [name, shape] of Object.entries(SHAPES)) {
             test.setTimeout(120000);
             await page.setViewportSize(viewport);
 
-            const img = await openLightbox(page);
+            const lightboxImage = await openLightbox(page);
 
             // The source is swapped rather than fixtured: what is being tested
             // is how the overlay handles a shape, not which file it holds.
-            await img.evaluate((element, src) => {
-                element.src = src;
+            await lightboxImage.evaluate((element, pictureSource) => {
+                element.src = pictureSource;
                 element.removeAttribute("srcset");
             }, picture(shape));
             await page.waitForTimeout(800);
 
-            const box = await img.boundingBox();
+            const box = await lightboxImage.boundingBox();
 
             expect(box.y).toBeGreaterThanOrEqual(-1);
             expect(box.x).toBeGreaterThanOrEqual(-1);

@@ -30,7 +30,7 @@ const props = defineProps({
 
 const emit = defineEmits(["create", "revoke"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { copy } = useClipboard();
 
 const MODES = ["web", "ics"];
@@ -48,7 +48,7 @@ const modeOptions = computed(() =>
  * when", and hiding it turns the list into something that only ever grows.
  */
 const ordered = computed(() =>
-    [...props.links].sort((a, b) => Number(b.usable) - Number(a.usable)),
+    [...props.links].sort((left, right) => Number(right.usable) - Number(left.usable)),
 );
 
 function submit() {
@@ -72,7 +72,7 @@ defineExpose({ reset });
 function expiryLabel(link) {
     if (null !== link.revokedAt) {
         return t("suite.plannings.links.revoked_on", {
-            date: d(new Date(link.revokedAt), { dateStyle: "medium" }),
+            date: formatDate(new Date(link.revokedAt), { dateStyle: "medium" }),
         });
     }
 
@@ -81,7 +81,7 @@ function expiryLabel(link) {
     }
 
     return t(link.usable ? "suite.plannings.links.expires_on" : "suite.plannings.links.expired_on", {
-        date: d(new Date(link.expiresAt), { dateStyle: "medium", timeStyle: "short" }),
+        date: formatDate(new Date(link.expiresAt), { dateStyle: "medium", timeStyle: "short" }),
     });
 }
 </script>
@@ -119,7 +119,7 @@ function expiryLabel(link) {
                                 &middot;
                                 {{ link.lastUsedAt
                                     ? t("suite.plannings.links.last_used", {
-                                        date: d(new Date(link.lastUsedAt), { dateStyle: "medium" }),
+                                        date: formatDate(new Date(link.lastUsedAt), { dateStyle: "medium" }),
                                     })
                                     : t("suite.plannings.links.never_used") }}
                             </template>

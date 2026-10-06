@@ -10,25 +10,25 @@ use Symfony\Component\Filesystem\Filesystem;
 
 final class ImageCropperTest extends TestCase
 {
-    private string $workDir;
+    private string $workDirectory;
     private ImageCropper $cropper;
 
     protected function setUp(): void
     {
-        $this->workDir = sys_get_temp_dir().'/aurora-cropper-'.uniqid();
-        mkdir($this->workDir, 0o777, true);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-cropper-'.uniqid();
+        mkdir($this->workDirectory, 0o777, true);
         $this->cropper = new ImageCropper(new Filesystem());
     }
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove($this->workDir);
+        (new Filesystem())->remove($this->workDirectory);
     }
 
     public function testCropReturnsRequestedDimensions(): void
     {
         $source = $this->writePng('source.png', 20, 20);
-        $destination = $this->workDir.'/cropped.png';
+        $destination = $this->workDirectory.'/cropped.png';
 
         $dimensions = $this->cropper->crop($source, $destination, 'image/png', 2, 3, 8, 6);
 
@@ -54,7 +54,7 @@ final class ImageCropperTest extends TestCase
     public function testCropClampsRectangleToImageBounds(): void
     {
         $source = $this->writePng('clamp.png', 16, 16);
-        $destination = $this->workDir.'/clamped.png';
+        $destination = $this->workDirectory.'/clamped.png';
 
         // Requested width/height exceed the image - must clamp to what's left.
         $dimensions = $this->cropper->crop($source, $destination, 'image/png', 10, 10, 100, 100);
@@ -64,11 +64,11 @@ final class ImageCropperTest extends TestCase
 
     public function testCropHandlesJpeg(): void
     {
-        $source = $this->workDir.'/photo.jpg';
+        $source = $this->workDirectory.'/photo.jpg';
         $image = imagecreatetruecolor(40, 40);
         imagejpeg($image, $source, 85);
         imagedestroy($image);
-        $destination = $this->workDir.'/photo-cropped.jpg';
+        $destination = $this->workDirectory.'/photo-cropped.jpg';
 
         $dimensions = $this->cropper->crop($source, $destination, 'image/jpeg', 5, 5, 20, 20);
 
@@ -77,20 +77,20 @@ final class ImageCropperTest extends TestCase
 
     public function testCropReturnsNullForNonRasterMime(): void
     {
-        $source = $this->workDir.'/doc.pdf';
+        $source = $this->workDirectory.'/doc.pdf';
         file_put_contents($source, '%PDF-1.4');
 
-        self::assertNull($this->cropper->crop($source, $this->workDir.'/out.pdf', 'application/pdf', 0, 0, 10, 10));
+        self::assertNull($this->cropper->crop($source, $this->workDirectory.'/out.pdf', 'application/pdf', 0, 0, 10, 10));
     }
 
     public function testCropReturnsNullForMissingSource(): void
     {
-        self::assertNull($this->cropper->crop($this->workDir.'/missing.png', $this->workDir.'/out.png', 'image/png', 0, 0, 10, 10));
+        self::assertNull($this->cropper->crop($this->workDirectory.'/missing.png', $this->workDirectory.'/out.png', 'image/png', 0, 0, 10, 10));
     }
 
     private function writePng(string $name, int $width, int $height): string
     {
-        $path = $this->workDir.'/'.$name;
+        $path = $this->workDirectory.'/'.$name;
         $image = imagecreatetruecolor($width, $height);
         imagepng($image, $path);
         imagedestroy($image);

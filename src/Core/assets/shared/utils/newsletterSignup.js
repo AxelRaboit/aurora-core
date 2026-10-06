@@ -38,9 +38,11 @@ function wire(form) {
             const data = await response.json();
 
             if (data?.success) {
-                form.querySelectorAll("input, button, label").forEach((el) => {
-                    el.hidden = true;
-                });
+                form.querySelectorAll("input, button, label").forEach(
+                    (control) => {
+                        control.hidden = true;
+                    },
+                );
                 success.classList.remove("hidden");
             } else {
                 error.classList.remove("hidden");

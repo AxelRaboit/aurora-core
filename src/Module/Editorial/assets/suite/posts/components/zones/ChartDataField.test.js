@@ -16,7 +16,11 @@ function field(modelValue) {
 function button(wrapper, key) {
     return wrapper
         .findAll("button")
-        .find((b) => b.text().includes(key) || b.attributes("title") === key);
+        .find(
+            (candidate) =>
+                candidate.text().includes(key) ||
+                candidate.attributes("title") === key,
+        );
 }
 
 describe("ChartDataField", () => {

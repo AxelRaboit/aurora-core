@@ -11,7 +11,7 @@
 | Validation / parsing | ❌ | ✅ |
 | Provider externe (HTTP client wrapper, etc.) | ❌ | ✅ |
 
-**Heuristique rapide** : si la classe appelle `$em->persist()`, `$em->flush()`,
+**Heuristique rapide** : si la classe appelle `$entityManager->persist()`, `$entityManager->flush()`,
 ou émet des audit logs CRUD → `Manager/`. Si elle prend des données et
 retourne un calcul / parse / format sans toucher la base → `Service/`.
 
@@ -125,7 +125,7 @@ un Service ou un Builder.
 ## Anti-patterns
 
 - ❌ Un "ServiceManager" qui mélange persist + helper stateless. Splitter.
-- ❌ Un Service qui fait `$em->flush()` quelque part. C'est un Manager
+- ❌ Un Service qui fait `$entityManager->flush()` quelque part. C'est un Manager
   caché - refactoriser.
 - ❌ Un Manager qui ne persiste rien (juste des calculs). Renommer en
   Service.

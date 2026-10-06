@@ -107,46 +107,46 @@ export default class CalloutBlock {
     }
 
     #createIconButton(value, label, svg) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = `callout-block__icon${this.#data.icon === value ? " callout-block__icon--active" : ""}`;
-        btn.title = label;
-        btn.setAttribute("aria-label", label);
-        btn.setAttribute(
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `callout-block__icon${this.#data.icon === value ? " callout-block__icon--active" : ""}`;
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        button.setAttribute(
             "aria-pressed",
             this.#data.icon === value ? "true" : "false",
         );
-        btn.innerHTML = svg || '<span aria-hidden="true">&#8856;</span>';
-        btn.addEventListener("click", () => {
+        button.innerHTML = svg || '<span aria-hidden="true">&#8856;</span>';
+        button.addEventListener("click", () => {
             this.#data.icon = value;
             this.#rebuild();
         });
-        return btn;
+        return button;
     }
 
     #createTab(value, label) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = `callout-block__tab callout-block__tab--${value}${this.#data.type === value ? " callout-block__tab--active" : ""}`;
-        btn.title = label;
-        btn.addEventListener("click", () => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `callout-block__tab callout-block__tab--${value}${this.#data.type === value ? " callout-block__tab--active" : ""}`;
+        button.title = label;
+        button.addEventListener("click", () => {
             this.#data.type = value;
             this.#rebuild();
         });
-        return btn;
+        return button;
     }
 
     #createEditable(className, placeholder, dataKey) {
-        const el = document.createElement("div");
-        el.contentEditable = "true";
-        el.className = className;
-        el.dataset.placeholder = placeholder;
-        el.innerHTML = this.#data[dataKey];
-        el.addEventListener("input", () => {
-            this.#data[dataKey] = el.innerHTML;
+        const editable = document.createElement("div");
+        editable.contentEditable = "true";
+        editable.className = className;
+        editable.dataset.placeholder = placeholder;
+        editable.innerHTML = this.#data[dataKey];
+        editable.addEventListener("input", () => {
+            this.#data[dataKey] = editable.innerHTML;
         });
-        el.addEventListener("paste", handlePlainTextPaste);
-        return el;
+        editable.addEventListener("paste", handlePlainTextPaste);
+        return editable;
     }
 
     save() {

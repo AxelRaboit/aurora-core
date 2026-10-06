@@ -62,7 +62,7 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
     private User $admin;
 
     /** @var list<string> */
-    private array $tempFiles = [];
+    private array $temporaryFiles = [];
 
     protected function setUp(): void
     {
@@ -83,7 +83,7 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        foreach ($this->tempFiles as $file) {
+        foreach ($this->temporaryFiles as $file) {
             @unlink($file);
         }
 
@@ -406,7 +406,7 @@ final class SpaceClientVisibilityRuleTest extends IntegrationTestCase
             .'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
             true,
         ));
-        $this->tempFiles[] = $path;
+        $this->temporaryFiles[] = $path;
 
         $this->client->request(
             'POST',

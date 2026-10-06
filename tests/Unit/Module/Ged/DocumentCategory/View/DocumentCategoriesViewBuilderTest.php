@@ -16,8 +16,8 @@ final class DocumentCategoriesViewBuilderTest extends TestCase
 {
     public function testIndexViewReturnsCategoriesAndPaths(): void
     {
-        $repo = $this->createStub(DocumentCategoryRepository::class);
-        $repo->method('findPaginated')->willReturn([
+        $repository = $this->createStub(DocumentCategoryRepository::class);
+        $repository->method('findPaginated')->willReturn([
             'items' => [new DocumentCategory()],
             'total' => 1,
             'page' => 1,
@@ -31,7 +31,7 @@ final class DocumentCategoriesViewBuilderTest extends TestCase
         $urlGenerator->method('generate')->willReturnArgument(0);
 
         $pagination = new PaginationRequest(1, 20, 'legal');
-        $view = (new DocumentCategoriesViewBuilder($repo, $serializer, $urlGenerator))->indexView($pagination);
+        $view = (new DocumentCategoriesViewBuilder($repository, $serializer, $urlGenerator))->indexView($pagination);
 
         self::assertArrayHasKey('categories', $view);
         self::assertSame('legal', $view['search']);
@@ -40,8 +40,8 @@ final class DocumentCategoriesViewBuilderTest extends TestCase
 
     public function testBuildListPayloadReturnsPaginated(): void
     {
-        $repo = $this->createStub(DocumentCategoryRepository::class);
-        $repo->method('findPaginated')->willReturn([
+        $repository = $this->createStub(DocumentCategoryRepository::class);
+        $repository->method('findPaginated')->willReturn([
             'items' => [new DocumentCategory(), new DocumentCategory()],
             'total' => 2,
             'page' => 1,
@@ -53,7 +53,7 @@ final class DocumentCategoriesViewBuilderTest extends TestCase
 
         $urlGenerator = $this->createStub(UrlGeneratorInterface::class);
 
-        $payload = (new DocumentCategoriesViewBuilder($repo, $serializer, $urlGenerator))
+        $payload = (new DocumentCategoriesViewBuilder($repository, $serializer, $urlGenerator))
             ->buildListPayload(new PaginationRequest(1, 20, null));
 
         self::assertTrue($payload['success']);

@@ -33,7 +33,7 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import { Ban, Copy, Eye, Link2, Trash2, X } from "lucide-vue-next";
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { can } = usePrivileges();
 const { request } = useRequest();
 const { copy } = useClipboard();
@@ -192,7 +192,7 @@ function openedLabel(link) {
     }
 
     return t("suite.studio.space_access.opened_on", {
-        date: d(new Date(link.firstOpenedAt), "short"),
+        date: formatDate(new Date(link.firstOpenedAt), "short"),
     });
 }
 </script>
@@ -284,7 +284,7 @@ function openedLabel(link) {
                         ·
                         {{
                             t("suite.studio.space_access.expires_on", {
-                                date: d(new Date(link.expiresAt), "short"),
+                                date: formatDate(new Date(link.expiresAt), "short"),
                             })
                         }}
                         <template v-if="!link.canApprove">

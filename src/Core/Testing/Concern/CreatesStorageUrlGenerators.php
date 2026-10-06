@@ -48,7 +48,7 @@ trait CreatesStorageUrlGenerators
     {
         $urlGenerator = $this->createStub(UrlGeneratorInterface::class);
         $urlGenerator->method('generate')->willReturnCallback(
-            static fn (string $name, array $params = []): string => '/uploads/'.($params['path'] ?? ''),
+            static fn (string $name, array $parameters = []): string => '/uploads/'.($parameters['path'] ?? ''),
         );
 
         return $urlGenerator;

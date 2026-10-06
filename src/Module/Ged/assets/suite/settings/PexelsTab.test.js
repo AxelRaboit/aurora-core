@@ -24,13 +24,13 @@ const MESSAGES = {
     },
 };
 
-const OFF = {
+const DISABLED = {
     enabled: false,
     hasKey: false,
     acceptedAt: null,
     acceptedBy: null,
 };
-const ON = {
+const ENABLED = {
     enabled: true,
     hasKey: true,
     acceptedAt: "2026-09-06T12:00:00+00:00",
@@ -52,7 +52,7 @@ beforeEach(() => {
 
 describe("PexelsTab", () => {
     it("starts from what the server says, off by default", async () => {
-        request.mockResolvedValue(OFF);
+        request.mockResolvedValue(DISABLED);
 
         const wrapper = mountTab();
         await flushPromises();
@@ -65,18 +65,21 @@ describe("PexelsTab", () => {
      * whose terms they have not accepted.
      */
     it("cannot be enabled without both an acceptance and a key", async () => {
-        request.mockResolvedValue(OFF);
+        request.mockResolvedValue(DISABLED);
 
         const wrapper = mountTab();
         await flushPromises();
 
-        wrapper.vm.apply({ ...OFF, acceptedAt: "2026-09-06T12:00:00+00:00" });
+        wrapper.vm.apply({
+            ...DISABLED,
+            acceptedAt: "2026-09-06T12:00:00+00:00",
+        });
         expect(wrapper.vm.canEnable).toBe(false);
 
-        wrapper.vm.apply({ ...OFF, hasKey: true });
+        wrapper.vm.apply({ ...DISABLED, hasKey: true });
         expect(wrapper.vm.canEnable).toBe(false);
 
-        wrapper.vm.apply(ON);
+        wrapper.vm.apply(ENABLED);
         expect(wrapper.vm.canEnable).toBe(true);
     });
 
@@ -86,12 +89,12 @@ describe("PexelsTab", () => {
      * the tab.
      */
     it("never sends a key it was not given", async () => {
-        request.mockResolvedValue(ON);
+        request.mockResolvedValue(ENABLED);
 
         const wrapper = mountTab();
         await flushPromises();
         request.mockClear();
-        request.mockResolvedValue(ON);
+        request.mockResolvedValue(ENABLED);
 
         await wrapper.vm.save();
 
@@ -100,7 +103,7 @@ describe("PexelsTab", () => {
     });
 
     it("shows when the terms were accepted and by whom", async () => {
-        request.mockResolvedValue(ON);
+        request.mockResolvedValue(ENABLED);
 
         const wrapper = mountTab();
         await flushPromises();

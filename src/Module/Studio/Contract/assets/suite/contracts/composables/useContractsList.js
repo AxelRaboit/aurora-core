@@ -117,10 +117,10 @@ export function useContractsList(props) {
                 // Newest activity first, then newest contract: two rows with the
                 // same day used to come in whatever order the query returned.
                 .sort(
-                    (a, b) =>
-                        String(b.lastActivityAt ?? "").localeCompare(
-                            String(a.lastActivityAt ?? ""),
-                        ) || (b.id ?? 0) - (a.id ?? 0),
+                    (left, right) =>
+                        String(right.lastActivityAt ?? "").localeCompare(
+                            String(left.lastActivityAt ?? ""),
+                        ) || (right.id ?? 0) - (left.id ?? 0),
                 )
         );
     });

@@ -47,8 +47,8 @@ export function useModules(
     const { request: patchRequest } = useRequest();
     const { request: verifyRequest } = useRequest();
 
-    function init(params) {
-        for (const parameter of params) {
+    function init(parameterList) {
+        for (const parameter of parameterList) {
             const value = parameter.value ?? "0";
             fieldValues[parameter.key] = value;
             initialValues[parameter.key] = value;
@@ -104,9 +104,9 @@ export function useModules(
 
     function allParameters() {
         const all = [];
-        for (const param of parameters.value) {
-            all.push(param);
-            for (const sub of param.subModules ?? []) {
+        for (const parameter of parameters.value) {
+            all.push(parameter);
+            for (const sub of parameter.subModules ?? []) {
                 all.push(sub);
             }
         }
@@ -122,7 +122,10 @@ export function useModules(
                 (parameter) =>
                     fieldValues[parameter.key] !== initialValues[parameter.key],
             )
-            .sort((a, b) => (a.requires ? 1 : 0) - (b.requires ? 1 : 0));
+            .sort(
+                (left, right) =>
+                    (left.requires ? 1 : 0) - (right.requires ? 1 : 0),
+            );
 
         try {
             for (const parameter of changed) {

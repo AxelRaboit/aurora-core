@@ -22,7 +22,7 @@ final class NotesModuleNavViewTest extends TestCase
     {
         $checker = $this->createStub(ModuleAccessChecker::class);
         $checker->method('isEnabled')->willReturnCallback(
-            static fn (ModuleParameterEnum $param): bool => match ($param) {
+            static fn (ModuleParameterEnum $parameter): bool => match ($parameter) {
                 ModuleParameterEnum::NotesSuite => $suite,
                 ModuleParameterEnum::NotesMarkdown => $markdown,
                 default => false,

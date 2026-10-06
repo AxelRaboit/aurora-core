@@ -261,7 +261,7 @@ final readonly class DriveClient
      */
     private function newestFirst(array $files): array
     {
-        usort($files, static fn (array $a, array $b): int => ($b['modifiedAt'] ?? '') <=> ($a['modifiedAt'] ?? ''));
+        usort($files, static fn (array $left, array $right): int => ($right['modifiedAt'] ?? '') <=> ($left['modifiedAt'] ?? ''));
 
         return $files;
     }

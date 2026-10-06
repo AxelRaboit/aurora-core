@@ -254,7 +254,7 @@ const recent = computed(() => {
     }
 
     return [...props.notes]
-        .sort((a, b) => Date.parse(b.updatedAt ?? 0) - Date.parse(a.updatedAt ?? 0))
+        .sort((left, right) => Date.parse(right.updatedAt ?? 0) - Date.parse(left.updatedAt ?? 0))
         .slice(0, 4);
 });
 
@@ -680,7 +680,7 @@ const moveTargets = computed(() => {
                 value: String(folder.id),
                 label: pathLabel(folder),
             }))
-            .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true })),
+            .sort((left, right) => left.label.localeCompare(right.label, undefined, { numeric: true })),
     ];
 });
 

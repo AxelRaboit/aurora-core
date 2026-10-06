@@ -62,7 +62,7 @@ const props = defineProps({
 
 const emit = defineEmits(["open-item", "upload", "pick", "remove", "toggle-visibility"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const {
     viewMode,
@@ -354,7 +354,7 @@ function chooseFile(event) {
                         </template>
 
                         <span aria-hidden="true">·</span>
-                        <span>{{ d(new Date(file.createdAt), "short") }}</span>
+                        <span>{{ formatDate(new Date(file.createdAt), "short") }}</span>
 
                         <template v-if="weightOf(file)">
                             <span aria-hidden="true">·</span>
@@ -441,7 +441,7 @@ function chooseFile(event) {
                     </span>
 
                     <span aria-hidden="true">·</span>
-                    <span>{{ previewed ? d(new Date(previewed.createdAt), "short") : "" }}</span>
+                    <span>{{ previewed ? formatDate(new Date(previewed.createdAt), "short") : "" }}</span>
 
                     <template v-if="previewed && weightOf(previewed)">
                         <span aria-hidden="true">·</span>

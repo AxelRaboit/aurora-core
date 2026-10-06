@@ -42,7 +42,7 @@ final class ContractSignatureChallengeTest extends TestCase
      */
     public function testACodeIsAlwaysSixCharactersLong(): void
     {
-        for ($i = 0; $i < 200; ++$i) {
+        for ($draw = 0; $draw < 200; ++$draw) {
             $code = new ContractSignatureChallenge()->mint();
 
             self::assertSame(6, mb_strlen($code));
@@ -70,7 +70,7 @@ final class ContractSignatureChallengeTest extends TestCase
         $challenge = new ContractSignatureChallenge();
         $challenge->mint();
 
-        for ($i = 0; $i < AbstractContractSignatureChallenge::MAX_ATTEMPTS - 1; ++$i) {
+        for ($attempt = 0; $attempt < AbstractContractSignatureChallenge::MAX_ATTEMPTS - 1; ++$attempt) {
             $challenge->recordFailedAttempt();
             self::assertTrue($challenge->hasAttemptsLeft());
         }
@@ -121,7 +121,7 @@ final class ContractSignatureChallengeTest extends TestCase
     {
         $codes = [];
 
-        for ($i = 0; $i < 50; ++$i) {
+        for ($draw = 0; $draw < 50; ++$draw) {
             $codes[] = new ContractSignatureChallenge()->mint();
         }
 

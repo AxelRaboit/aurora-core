@@ -81,11 +81,11 @@ final readonly class PhotoExifReader
         $values = [
             'camera' => $camera,
             'lens' => self::text($exif['UndefinedTag:0xA434'] ?? $exif['LensModel'] ?? null),
-            'aperture' => null === ($f = self::ratio($exif['FNumber'] ?? null)) ? '' : sprintf('f/%s', self::decimal($f)),
+            'aperture' => null === ($fNumber = self::ratio($exif['FNumber'] ?? null)) ? '' : sprintf('f/%s', self::decimal($fNumber)),
             'shutter' => self::shutter($exif['ExposureTime'] ?? null),
             'iso' => is_numeric($iso = is_array($exif['ISOSpeedRatings'] ?? null) ? ($exif['ISOSpeedRatings'][0] ?? null) : ($exif['ISOSpeedRatings'] ?? null)) ? sprintf('ISO %d', (int) $iso) : '',
             'focal' => null === ($focal = self::ratio($exif['FocalLength'] ?? null)) ? '' : sprintf('%s mm', self::decimal($focal)),
-            'takenAt' => 1 === preg_match('/^(\d{4}):(\d{2}):(\d{2})/', self::text($exif['DateTimeOriginal'] ?? null), $m) ? sprintf('%s-%s-%s', $m[1], $m[2], $m[3]) : '',
+            'takenAt' => 1 === preg_match('/^(\d{4}):(\d{2}):(\d{2})/', self::text($exif['DateTimeOriginal'] ?? null), $dateMatches) ? sprintf('%s-%s-%s', $dateMatches[1], $dateMatches[2], $dateMatches[3]) : '',
         ];
 
         return array_filter($values, static fn (string $value): bool => '' !== $value);

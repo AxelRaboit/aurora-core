@@ -44,15 +44,15 @@ export function useQueryState(key, { defaultValue = "", valid = null } = {}) {
     function write() {
         if ("undefined" === typeof window) return;
 
-        const params = new URLSearchParams(window.location.search);
+        const searchParameters = new URLSearchParams(window.location.search);
 
         if (value.value === defaultValue || "" === value.value) {
-            params.delete(key);
+            searchParameters.delete(key);
         } else {
-            params.set(key, value.value);
+            searchParameters.set(key, value.value);
         }
 
-        const query = params.toString();
+        const query = searchParameters.toString();
 
         window.history.replaceState(
             window.history.state,

@@ -78,21 +78,21 @@ export default class LabelBlock {
         bar.className = "label-block__tones";
 
         LABEL_TONES.forEach((tone) => {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = `label-block__tone label-pill--${tone}${this.#data.tone === tone ? " label-block__tone--active" : ""}`;
-            btn.title = this.#toneLabels[tone] ?? tone;
-            btn.setAttribute("aria-label", btn.title);
-            btn.setAttribute(
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `label-block__tone label-pill--${tone}${this.#data.tone === tone ? " label-block__tone--active" : ""}`;
+            button.title = this.#toneLabels[tone] ?? tone;
+            button.setAttribute("aria-label", button.title);
+            button.setAttribute(
                 "aria-pressed",
                 this.#data.tone === tone ? "true" : "false",
             );
-            btn.addEventListener("click", () => {
+            button.addEventListener("click", () => {
                 this.#keepText();
                 this.#data.tone = tone;
                 this.#rebuild();
             });
-            bar.appendChild(btn);
+            bar.appendChild(button);
         });
 
         const tilt = document.createElement("button");

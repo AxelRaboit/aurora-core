@@ -142,11 +142,11 @@ final class MenuSectionHighlightTest extends IntegrationTestCase
         $this->created[] = $entity;
     }
 
-    /** @param array<string, string> $routeParams */
-    private function standOn(string $path, array $routeParams): void
+    /** @param array<string, string> $routeParameters */
+    private function standOn(string $path, array $routeParameters): void
     {
         $request = Request::create('https://example.test'.$path);
-        $request->attributes->set('_route_params', $routeParams);
+        $request->attributes->set('_route_params', $routeParameters);
 
         $this->requestStack->push($request);
     }

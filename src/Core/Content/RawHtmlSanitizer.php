@@ -237,9 +237,9 @@ final class RawHtmlSanitizer
         }
     }
 
-    private function allowedFrame(string $src): bool
+    private function allowedFrame(string $source): bool
     {
-        $host = parse_url($src, PHP_URL_HOST);
+        $host = parse_url($source, PHP_URL_HOST);
 
         return is_string($host) && in_array(mb_strtolower($host), self::IFRAME_HOSTS, true);
     }

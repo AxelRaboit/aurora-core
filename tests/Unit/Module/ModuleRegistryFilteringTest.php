@@ -92,8 +92,8 @@ final class ModuleRegistryFilteringTest extends TestCase
 
     private function makeRegistry(?CoreUserInterface $user): ModuleRegistry
     {
-        $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
-        $authChecker->method('isGranted')->willReturn(true);
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->method('isGranted')->willReturn(true);
 
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $urlGenerator->method('generate')->willReturnCallback(static fn (string $route): string => '/'.$route);
@@ -109,7 +109,7 @@ final class ModuleRegistryFilteringTest extends TestCase
 
         return new ModuleRegistry(
             modules: [new StubNavModule()],
-            navItemResolver: new NavItemResolver($authChecker, $urlGenerator),
+            navItemResolver: new NavItemResolver($authorizationChecker, $urlGenerator),
             userSecurity: $security,
             settingRepository: $settingRepository,
         );

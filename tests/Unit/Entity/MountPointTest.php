@@ -18,72 +18,72 @@ final class MountPointTest extends TestCase
 
     public function testDefaultValues(): void
     {
-        $mp = new MountPoint();
+        $mountPoint = new MountPoint();
 
-        self::assertNull($mp->getPort());
-        self::assertNull($mp->getUsername());
-        self::assertNull($mp->getPassword());
-        self::assertNull($mp->getDatabase());
-        self::assertNull($mp->getSshPublicKey());
-        self::assertNull($mp->getSshPrivateKey());
-        self::assertSame([], $mp->getConfig());
-        self::assertNull($mp->getLastTestedAt());
-        self::assertNull($mp->isLastTestSuccessful());
+        self::assertNull($mountPoint->getPort());
+        self::assertNull($mountPoint->getUsername());
+        self::assertNull($mountPoint->getPassword());
+        self::assertNull($mountPoint->getDatabase());
+        self::assertNull($mountPoint->getSshPublicKey());
+        self::assertNull($mountPoint->getSshPrivateKey());
+        self::assertSame([], $mountPoint->getConfig());
+        self::assertNull($mountPoint->getLastTestedAt());
+        self::assertNull($mountPoint->isLastTestSuccessful());
     }
 
     public function testNameAndTypeAndHost(): void
     {
-        $mp = (new MountPoint())
+        $mountPoint = (new MountPoint())
             ->setName('Production DB')
             ->setType(MountPointTypeEnum::Database)
             ->setHost('db.example.com');
 
-        self::assertSame('Production DB', $mp->getName());
-        self::assertSame(MountPointTypeEnum::Database, $mp->getType());
-        self::assertSame('db.example.com', $mp->getHost());
+        self::assertSame('Production DB', $mountPoint->getName());
+        self::assertSame(MountPointTypeEnum::Database, $mountPoint->getType());
+        self::assertSame('db.example.com', $mountPoint->getHost());
     }
 
     public function testCredentialsGettersAndSetters(): void
     {
-        $mp = (new MountPoint())
+        $mountPoint = (new MountPoint())
             ->setPort(5432)
             ->setUsername('admin')
             ->setPassword('secret')
             ->setDatabase('mydb');
 
-        self::assertSame(5432, $mp->getPort());
-        self::assertSame('admin', $mp->getUsername());
-        self::assertSame('secret', $mp->getPassword());
-        self::assertSame('mydb', $mp->getDatabase());
+        self::assertSame(5432, $mountPoint->getPort());
+        self::assertSame('admin', $mountPoint->getUsername());
+        self::assertSame('secret', $mountPoint->getPassword());
+        self::assertSame('mydb', $mountPoint->getDatabase());
     }
 
     public function testSshKeysGettersAndSetters(): void
     {
-        $mp = (new MountPoint())
+        $mountPoint = (new MountPoint())
             ->setSshPublicKey('ssh-rsa AAAA...')
             ->setSshPrivateKey('-----BEGIN PRIVATE KEY-----');
 
-        self::assertSame('ssh-rsa AAAA...', $mp->getSshPublicKey());
-        self::assertSame('-----BEGIN PRIVATE KEY-----', $mp->getSshPrivateKey());
+        self::assertSame('ssh-rsa AAAA...', $mountPoint->getSshPublicKey());
+        self::assertSame('-----BEGIN PRIVATE KEY-----', $mountPoint->getSshPrivateKey());
     }
 
     public function testConfigGetterAndSetter(): void
     {
         $config = ['timeout' => 30, 'ssl' => true];
-        $mp = (new MountPoint())->setConfig($config);
+        $mountPoint = (new MountPoint())->setConfig($config);
 
-        self::assertSame($config, $mp->getConfig());
+        self::assertSame($config, $mountPoint->getConfig());
     }
 
     public function testLastTestedAtAndSuccessful(): void
     {
         $date = new DateTimeImmutable('2026-01-15');
-        $mp = (new MountPoint())->setLastTestedAt($date)->setLastTestSuccessful(true);
+        $mountPoint = (new MountPoint())->setLastTestedAt($date)->setLastTestSuccessful(true);
 
-        self::assertSame($date, $mp->getLastTestedAt());
-        self::assertTrue($mp->isLastTestSuccessful());
+        self::assertSame($date, $mountPoint->getLastTestedAt());
+        self::assertTrue($mountPoint->isLastTestSuccessful());
 
-        $mp->setLastTestSuccessful(false);
-        self::assertFalse($mp->isLastTestSuccessful());
+        $mountPoint->setLastTestSuccessful(false);
+        self::assertFalse($mountPoint->isLastTestSuccessful());
     }
 }

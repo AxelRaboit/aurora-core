@@ -28,17 +28,17 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final class StoredFileLocatorTest extends TestCase
 {
-    private string $workDir;
+    private string $workDirectory;
 
     protected function setUp(): void
     {
-        $this->workDir = sys_get_temp_dir().'/aurora-locator-'.uniqid();
-        mkdir($this->workDir.'/local', 0o777, true);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-locator-'.uniqid();
+        mkdir($this->workDirectory.'/local', 0o777, true);
     }
 
     protected function tearDown(): void
     {
-        new Filesystem()->remove($this->workDir);
+        new Filesystem()->remove($this->workDirectory);
     }
 
     public function testAFilePresentLocallyIsServedLocally(): void
@@ -173,7 +173,7 @@ final class StoredFileLocatorTest extends TestCase
 
     private function local(): LocalStorageAdapter
     {
-        return new LocalStorageAdapter(new Filesystem(), $this->workDir.'/local');
+        return new LocalStorageAdapter(new Filesystem(), $this->workDirectory.'/local');
     }
 
     private function remote(): InMemoryStorageAdapter

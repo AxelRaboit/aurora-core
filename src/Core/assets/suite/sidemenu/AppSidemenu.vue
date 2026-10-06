@@ -101,7 +101,7 @@ const props = defineProps({
     moduleNavView: { type: Object, default: null },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
 const { mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
@@ -122,7 +122,7 @@ const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: res
     defaultValue: 480,
     min: 200,
     max: 480,
-    onChange: (px) => { document.documentElement.style.setProperty("--sidemenu-width", `${px}px`); },
+    onChange: (widthPx) => { document.documentElement.style.setProperty("--sidemenu-width", `${widthPx}px`); },
 });
 
 watch(sidemenuDragging, (dragging) => {
@@ -560,10 +560,10 @@ function openSearchFromMobile() {
 
                         <!-- Result sections -->
                         <div
-                            v-for="(section, idx) in sections"
+                            v-for="(section, sectionIndex) in sections"
                             :key="section.kind"
                             class="px-2 py-2 space-y-1"
-                            :class="{ 'border-t border-line': idx > 0 }"
+                            :class="{ 'border-t border-line': sectionIndex > 0 }"
                         >
                             <p class="px-2 py-1 text-xs uppercase tracking-wide text-muted font-semibold flex items-center gap-1.5">
                                 <component
@@ -633,7 +633,7 @@ function openSearchFromMobile() {
                                             v-html="highlightMatch(item.title ?? '-', searchQuery)"
                                         />
                                         <div class="text-xs text-muted">
-                                            {{ item.calendar }} · {{ d(new Date(item.at), item.allDay ? "long" : "short") }}
+                                            {{ item.calendar }} · {{ formatDate(new Date(item.at), item.allDay ? "long" : "short") }}
                                         </div>
                                     </div>
                                 </template>

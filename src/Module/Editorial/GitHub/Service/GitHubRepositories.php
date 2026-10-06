@@ -56,10 +56,10 @@ final readonly class GitHubRepositories
     /**
      * @return array{name: string, fullName: string, url: string, description: string, language: string, stars: int, forks: int, pushedAt: string}|null
      */
-    public function repository(string $repo): ?array
+    public function repository(string $repositoryName): ?array
     {
-        return $this->cached('repo.'.$repo, function () use ($repo): ?array {
-            $data = $this->get(sprintf(self::API, $repo));
+        return $this->cached('repo.'.$repositoryName, function () use ($repositoryName): ?array {
+            $data = $this->get(sprintf(self::API, $repositoryName));
 
             if (!is_array($data) || !is_string($data['full_name'] ?? null)) {
                 return null;
@@ -68,7 +68,7 @@ final readonly class GitHubRepositories
             return [
                 'name' => (string) ($data['name'] ?? ''),
                 'fullName' => $data['full_name'],
-                'url' => is_string($data['html_url'] ?? null) ? $data['html_url'] : sprintf('https://github.com/%s', $repo),
+                'url' => is_string($data['html_url'] ?? null) ? $data['html_url'] : sprintf('https://github.com/%s', $repositoryName),
                 'description' => is_string($data['description'] ?? null) ? $data['description'] : '',
                 'language' => is_string($data['language'] ?? null) ? $data['language'] : '',
                 'stars' => is_int($data['stargazers_count'] ?? null) ? $data['stargazers_count'] : 0,
@@ -81,10 +81,10 @@ final readonly class GitHubRepositories
     /**
      * @return list<array{tag: string, name: string, url: string, publishedAt: string, summary: string}>|null
      */
-    public function releases(string $repo): ?array
+    public function releases(string $repositoryName): ?array
     {
-        return $this->cached('releases.'.$repo, function () use ($repo): ?array {
-            $data = $this->get(sprintf(self::API.'/releases?per_page=%d', $repo, self::RELEASES_PER_REPO));
+        return $this->cached('releases.'.$repositoryName, function () use ($repositoryName): ?array {
+            $data = $this->get(sprintf(self::API.'/releases?per_page=%d', $repositoryName, self::RELEASES_PER_REPO));
 
             if (!is_array($data)) {
                 return null;

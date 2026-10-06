@@ -7,21 +7,21 @@
  * paper and the ink, not the brand.
  */
 
-function toHex(r, g, b) {
-    return `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+function toHex(red, green, blue) {
+    return `#${[red, green, blue].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 }
 
-function hue(r, g, b) {
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
+function hue(red, green, blue) {
+    const max = Math.max(red, green, blue);
+    const min = Math.min(red, green, blue);
     if (max === min) return 0;
-    const d = max - min;
-    let h;
-    if (max === r) h = ((g - b) / d) % 6;
-    else if (max === g) h = (b - r) / d + 2;
-    else h = (r - g) / d + 4;
+    const chroma = max - min;
+    let sector;
+    if (max === red) sector = ((green - blue) / chroma) % 6;
+    else if (max === green) sector = (blue - red) / chroma + 2;
+    else sector = (red - green) / chroma + 4;
 
-    return (h * 60 + 360) % 360;
+    return (sector * 60 + 360) % 360;
 }
 
 /**
@@ -31,40 +31,52 @@ function hue(r, g, b) {
 export function paletteFromPixels(data, count = 2) {
     const buckets = new Map();
 
-    for (let i = 0; i < data.length; i += 4) {
-        const [r, g, b, a] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
-        if (a < 128) continue;
+    for (let offset = 0; offset < data.length; offset += 4) {
+        const [red, green, blue, alpha] = [
+            data[offset],
+            data[offset + 1],
+            data[offset + 2],
+            data[offset + 3],
+        ];
+        if (alpha < 128) continue;
 
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
+        const max = Math.max(red, green, blue);
+        const min = Math.min(red, green, blue);
         if (max > 240 && min > 240) continue;
         if (max < 25) continue;
         if (max - min < 30) continue;
 
-        const key = [r, g, b]
+        const key = [red, green, blue]
             .map((value) => Math.round(value / 24) * 24)
             .join(",");
-        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, n: 0 };
-        bucket.r += r;
-        bucket.g += g;
-        bucket.b += b;
-        bucket.n += 1;
+        const bucket = buckets.get(key) ?? {
+            red: 0,
+            green: 0,
+            blue: 0,
+            pixels: 0,
+        };
+        bucket.red += red;
+        bucket.green += green;
+        bucket.blue += blue;
+        bucket.pixels += 1;
         buckets.set(key, bucket);
     }
 
     const colours = [...buckets.values()]
-        .sort((a, b) => b.n - a.n)
-        .map(({ r, g, b, n }) => ({
-            r: Math.round(r / n),
-            g: Math.round(g / n),
-            b: Math.round(b / n),
+        .sort((left, right) => right.pixels - left.pixels)
+        .map(({ red, green, blue, pixels }) => ({
+            red: Math.round(red / pixels),
+            green: Math.round(green / pixels),
+            blue: Math.round(blue / pixels),
         }));
 
     const kept = [];
     for (const colour of colours) {
-        const h = hue(colour.r, colour.g, colour.b);
+        const colourHue = hue(colour.red, colour.green, colour.blue);
         const near = kept.some((other) => {
-            const delta = Math.abs(h - hue(other.r, other.g, other.b));
+            const delta = Math.abs(
+                colourHue - hue(other.red, other.green, other.blue),
+            );
 
             return Math.min(delta, 360 - delta) < 30;
         });
@@ -72,7 +84,7 @@ export function paletteFromPixels(data, count = 2) {
         if (kept.length === count) break;
     }
 
-    return kept.map(({ r, g, b }) => toHex(r, g, b));
+    return kept.map(({ red, green, blue }) => toHex(red, green, blue));
 }
 
 /** The brand colours of the picture at `url`, or [] when it cannot be read. */

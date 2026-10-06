@@ -52,16 +52,16 @@ function addDays(date, days) {
  * @returns {string}
  */
 export function dayKey(date) {
-    const pad = (n) => String(n).padStart(2, "0");
+    const pad = (number) => String(number).padStart(2, "0");
 
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-export function sameDay(a, b) {
+export function sameDay(left, right) {
     return (
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth() &&
-        a.getDate() === b.getDate()
+        left.getFullYear() === right.getFullYear() &&
+        left.getMonth() === right.getMonth() &&
+        left.getDate() === right.getDate()
     );
 }
 
@@ -181,7 +181,10 @@ export function layOutWeek(weekStart, events) {
                 length: end - start,
             };
         })
-        .sort((a, b) => a.from - b.from || b.length - a.length);
+        .sort(
+            (left, right) =>
+                left.from - right.from || right.length - left.length,
+        );
 
     const laneEnds = [];
     const placed = [];
@@ -258,7 +261,9 @@ export function timedEventsOn(date, events) {
             (event) =>
                 !spansDays(event) && sameDay(new Date(event.startAt), date),
         )
-        .sort((a, b) => new Date(a.startAt) - new Date(b.startAt));
+        .sort(
+            (left, right) => new Date(left.startAt) - new Date(right.startAt),
+        );
 }
 
 /**
@@ -307,12 +312,12 @@ export function itemsOn(date, events, reminders) {
             })),
     ];
 
-    return items.sort((a, b) => {
-        if (a.whole !== b.whole) {
-            return a.whole ? -1 : 1;
+    return items.sort((left, right) => {
+        if (left.whole !== right.whole) {
+            return left.whole ? -1 : 1;
         }
 
-        return a.at - b.at;
+        return left.at - right.at;
     });
 }
 

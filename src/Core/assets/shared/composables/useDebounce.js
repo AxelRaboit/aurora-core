@@ -9,8 +9,8 @@ export function useDebounce(callback, delay = 300) {
 
     onUnmounted(() => clearTimeout(timer));
 
-    return function (...args) {
+    return function (...callArguments) {
         clearTimeout(timer);
-        timer = setTimeout(() => callback(...args), delay);
+        timer = setTimeout(() => callback(...callArguments), delay);
     };
 }

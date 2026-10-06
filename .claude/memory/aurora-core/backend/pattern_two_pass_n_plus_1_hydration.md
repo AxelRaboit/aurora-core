@@ -20,7 +20,7 @@ hydratée).
 public function findVisibleByCategoryIdsPaginated(array $categoryIds, int $page, int $pageSize): array
 {
     // 1) Page query : pagination + ToOne joins uniquement
-    $qb = $this->createQueryBuilder('l')
+    $queryBuilder = $this->createQueryBuilder('l')
         ->leftJoin('l.product', 'p')->addSelect('p')           // ToOne OK
         ->innerJoin('l.categories', 'c')
         ->where('c.id IN (:ids)')->setParameter('ids', $categoryIds)
@@ -28,7 +28,7 @@ public function findVisibleByCategoryIdsPaginated(array $categoryIds, int $page,
         ->setFirstResult(($page - 1) * $pageSize)
         ->setMaxResults($pageSize);
 
-    $listings = $qb->getQuery()->getResult();
+    $listings = $queryBuilder->getQuery()->getResult();
     if ([] === $listings) {
         return [];
     }

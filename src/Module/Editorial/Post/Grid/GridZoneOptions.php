@@ -415,7 +415,7 @@ final class GridZoneOptions
                 }
             }
 
-            usort($ranges, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
+            usort($ranges, static fn (array $left, array $right): int => $left[0] <=> $right[0]);
             $week[$weekday] = array_slice($ranges, 0, self::MAX_RANGES_PER_DAY);
         }
 
@@ -461,7 +461,7 @@ final class GridZoneOptions
 
     private static function repos(mixed $value): array
     {
-        $repos = [];
+        $repositoryNames = [];
         $seen = [];
 
         foreach (is_array($value) ? $value : [] as $entry) {
@@ -469,21 +469,21 @@ final class GridZoneOptions
                 continue;
             }
 
-            $repo = mb_trim($entry);
+            $repositoryName = mb_trim($entry);
 
-            if (1 !== preg_match('#^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}/[A-Za-z0-9._-]{1,100}$#', $repo)) {
+            if (1 !== preg_match('#^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}/[A-Za-z0-9._-]{1,100}$#', $repositoryName)) {
                 continue;
             }
 
-            $key = mb_strtolower($repo);
+            $key = mb_strtolower($repositoryName);
 
             // A name that starts with a dot is a path trick, not a repository.
-            if (!array_key_exists($key, $seen) && !str_starts_with(explode('/', $repo)[1], '.')) {
+            if (!array_key_exists($key, $seen) && !str_starts_with(explode('/', $repositoryName)[1], '.')) {
                 $seen[$key] = true;
-                $repos[] = $repo;
+                $repositoryNames[] = $repositoryName;
             }
         }
 
-        return array_slice($repos, 0, self::MAX_GITHUB_REPOS);
+        return array_slice($repositoryNames, 0, self::MAX_GITHUB_REPOS);
     }
 }

@@ -3,7 +3,7 @@
 **Règle.** Dans une fixture de test, attacher un enfant par **les deux côtés**
 (`$parent->addChild($child)`), pas seulement par le setter propriétaire
 (`$child->setParent($parent)`). Sinon, rafraîchir le parent
-(`$em->refresh($parent)` ou `$em->clear()`) avant d'exercer du code qui lit la
+(`$entityManager->refresh($parent)` ou `$entityManager->clear()`) avant d'exercer du code qui lit la
 collection.
 
 ```php

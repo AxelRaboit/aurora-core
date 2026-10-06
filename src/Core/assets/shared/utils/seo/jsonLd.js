@@ -11,8 +11,8 @@ export function parseJsonLd(raw) {
             return { value: null, error: "not-object", empty: false };
         }
         return { value: parsed, error: null, empty: false };
-    } catch (err) {
-        return { value: null, error: err.message, empty: false };
+    } catch (error) {
+        return { value: null, error: error.message, empty: false };
     }
 }
 

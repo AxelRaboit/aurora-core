@@ -42,7 +42,7 @@ final readonly class BootstrapRunner
         $providers = iterator_to_array($this->providers, false);
         usort(
             $providers,
-            static fn (BootstrapProviderInterface $a, BootstrapProviderInterface $b): int => $b->getPriority() <=> $a->getPriority(),
+            static fn (BootstrapProviderInterface $left, BootstrapProviderInterface $right): int => $right->getPriority() <=> $left->getPriority(),
         );
 
         foreach ($providers as $provider) {
@@ -50,10 +50,10 @@ final readonly class BootstrapRunner
                 foreach ($provider->bootstrap() as $label) {
                     yield BootstrapResult::created((string) $label);
                 }
-            } catch (Throwable $e) {
+            } catch (Throwable $exception) {
                 yield BootstrapResult::failed(
                     new ReflectionClass($provider)->getShortName(),
-                    $e->getMessage(),
+                    $exception->getMessage(),
                 );
             }
         }

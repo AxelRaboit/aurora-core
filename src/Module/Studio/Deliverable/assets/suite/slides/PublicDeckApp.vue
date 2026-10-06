@@ -31,7 +31,7 @@ const props = defineProps({
     backUrl: { type: String, default: null },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const playing = ref(false);
 const slides = props.deck.slides ?? [];
@@ -81,7 +81,7 @@ const slides = props.deck.slides ?? [];
 
         <footer class="mt-auto border-t border-line pt-3 text-xs text-muted">
             <p v-if="expiresAt" class="m-0">
-                {{ t("suite.studio.deliverables.slides.share_expires_on", { date: d(new Date(expiresAt), "short") }) }}
+                {{ t("suite.studio.deliverables.slides.share_expires_on", { date: formatDate(new Date(expiresAt), "short") }) }}
             </p>
             <p class="m-0">{{ t("suite.studio.deliverables.slides.share_footer") }}</p>
         </footer>

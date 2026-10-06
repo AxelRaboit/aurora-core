@@ -126,7 +126,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     ]);
 
     const ALL_CSS_VARS = computed(() =>
-        CSS_SECTIONS.value.flatMap((s) => s.vars),
+        CSS_SECTIONS.value.flatMap((section) => section.vars),
     );
 
     const editModal = reactive({
@@ -140,11 +140,16 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         name: "",
         description: "",
         ...Object.fromEntries(
-            Object.entries(extraFields).map(([key, def]) => [key, def.default]),
+            Object.entries(extraFields).map(([key, definition]) => [
+                key,
+                definition.default,
+            ]),
         ),
     });
     const colorFields = reactive(
-        Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, ""])),
+        Object.fromEntries(
+            Object.keys(DEFAULTS).map((cssVariable) => [cssVariable, ""]),
+        ),
     );
     const footerText = ref("");
     // Picked in the library like every other image of the back-office, not
@@ -195,7 +200,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         "figure_color",
     ];
     const surfaceColors = reactive(
-        Object.fromEntries(SURFACE_KEYS.map((k) => [k, ""])),
+        Object.fromEntries(SURFACE_KEYS.map((surfaceKey) => [surfaceKey, ""])),
     );
     const calloutColors = reactive(
         Object.fromEntries(
@@ -261,10 +266,10 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         editModal.advanced = false;
         editForm.name = theme.name;
         editForm.description = theme.description ?? "";
-        for (const [key, def] of Object.entries(extraFields)) {
-            editForm[key] = def.fromEntity
-                ? def.fromEntity(theme)
-                : (theme[key] ?? def.default);
+        for (const [key, definition] of Object.entries(extraFields)) {
+            editForm[key] = definition.fromEntity
+                ? definition.fromEntity(theme)
+                : (theme[key] ?? definition.default);
         }
         for (const { key } of ALL_CSS_VARS.value) {
             colorFields[key] = theme.config?.[key] ?? DEFAULTS[key];

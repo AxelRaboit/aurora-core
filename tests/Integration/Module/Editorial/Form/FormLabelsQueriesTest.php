@@ -98,10 +98,10 @@ final class FormLabelsQueriesTest extends IntegrationTestCase
         $this->entityManager->flush();
         $this->formId = (int) $form->getId();
 
-        for ($i = 0; $i < 4; ++$i) {
+        for ($submissionIndex = 0; $submissionIndex < 4; ++$submissionIndex) {
             $data = [];
             foreach ($fields as $field) {
-                $data[(string) $field->getId()] = 'Réponse '.$i;
+                $data[(string) $field->getId()] = 'Réponse '.$submissionIndex;
             }
             $submission = new FormSubmission();
             $submission->setForm($form)->setData($data)->setLocale('fr');

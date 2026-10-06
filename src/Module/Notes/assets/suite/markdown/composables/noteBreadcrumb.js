@@ -13,7 +13,7 @@
 export function folderPath(folders, folderId) {
     if (null == folderId) return [];
 
-    const byId = new Map(folders.map((f) => [Number(f.id), f]));
+    const byId = new Map(folders.map((folder) => [Number(folder.id), folder]));
     const path = [];
     const seen = new Set();
 

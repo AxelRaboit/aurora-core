@@ -75,9 +75,9 @@ export function luminance(hex) {
 
     if (!rgb) return null;
 
-    const [r, g, b] = rgb.map(linear);
+    const [red, green, blue] = rgb.map(linear);
 
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
 }
 
 /**
@@ -168,21 +168,26 @@ export function tonesFrom(image, wanted = 4) {
     for (let at = 0; at < pixels.length; at += 4) {
         if (pixels[at + 3] < 200) continue;
 
-        const [r, g, b] = [pixels[at], pixels[at + 1], pixels[at + 2]];
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
+        const [red, green, blue] = [pixels[at], pixels[at + 1], pixels[at + 2]];
+        const max = Math.max(red, green, blue);
+        const min = Math.min(red, green, blue);
 
         if (max < 40 || min > 215 || max - min < 30) continue;
 
-        const key = [r, g, b]
+        const key = [red, green, blue]
             .map((channel) => Math.round(channel / 24) * 24)
             .join(",");
-        const bucket = buckets.get(key) ?? { count: 0, r: 0, g: 0, b: 0 };
+        const bucket = buckets.get(key) ?? {
+            count: 0,
+            red: 0,
+            green: 0,
+            blue: 0,
+        };
 
         bucket.count += 1;
-        bucket.r += r;
-        bucket.g += g;
-        bucket.b += b;
+        bucket.red += red;
+        bucket.green += green;
+        bucket.blue += blue;
         buckets.set(key, bucket);
     }
 
@@ -190,9 +195,9 @@ export function tonesFrom(image, wanted = 4) {
         .sort((one, two) => two.count - one.count)
         .slice(0, wanted)
         .map(
-            ({ count, r, g, b }) =>
+            ({ count, red, green, blue }) =>
                 "#" +
-                [r, g, b]
+                [red, green, blue]
                     .map((total) =>
                         Math.round(total / count)
                             .toString(16)

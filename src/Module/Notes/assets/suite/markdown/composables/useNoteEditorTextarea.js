@@ -100,13 +100,17 @@ export function useNoteEditorTextarea({
      * content, then restore the caret / selection on the next tick.
      * Used by Ctrl+B / Ctrl+I etc. via `handleMarkdownShortcut`.
      */
-    async function applyShortcut({ newContent, cursorPos, cursorEnd }) {
+    async function applyShortcut({
+        newContent,
+        cursorPos: cursorPosition,
+        cursorEnd,
+    }) {
         emitUpdate(newContent);
         const textarea = textareaRef.value;
         if (!textarea) return;
         await nextTick();
         textarea.focus();
-        textarea.setSelectionRange(cursorPos, cursorEnd ?? cursorPos);
+        textarea.setSelectionRange(cursorPosition, cursorEnd ?? cursorPosition);
     }
 
     /**
@@ -114,8 +118,8 @@ export function useNoteEditorTextarea({
      * want to inject content + restore the caret without knowing how
      * the textarea is wired internally.
      */
-    function applyInsert(newContent, caretPos) {
-        return applyShortcut({ newContent, cursorPos: caretPos });
+    function applyInsert(newContent, caretPosition) {
+        return applyShortcut({ newContent, cursorPos: caretPosition });
     }
 
     /**

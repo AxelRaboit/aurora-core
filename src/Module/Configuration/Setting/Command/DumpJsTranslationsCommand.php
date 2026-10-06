@@ -21,13 +21,13 @@ use Symfony\Component\Yaml\Yaml;
  * - Scans messages.{locale}.yaml in every aurora module translations directory and deep-merges them.
  * - Also scans any extra source dirs supplied by client projects (custom modules).
  * - Converts Symfony-style `%var%` placeholders to vue-i18n-style `{var}`.
- * - Writes {auroraDir}/src/Core/assets/locales/generated/{locale}.json (gitignored).
+ * - Writes {auroraDirectory}/src/Core/assets/locales/generated/{locale}.json (gitignored).
  *
  * `src/Core/assets/i18n.js` deep-merges these generated catalogues with manual JS source files
  * (src/Core/assets/locales/source/{locale}.js), with YAML winning on conflicts.
  *
- * Standalone aurora-core: $auroraDir = $projectDir, $extraSourceDirs = [].
- * Aurora-client project:  $auroraDir = vendor/axelraboit/aurora, $extraSourceDirs = client module translations.
+ * Standalone aurora-core: $auroraDirectory = $projectDirectory, $extraSourceDirectories = [].
+ * Aurora-client project:  $auroraDirectory = vendor/axelraboit/aurora, $extraSourceDirectories = client module translations.
  */
 #[AsCommand(name: 'app:translations:dump-js', description: 'Dump Symfony YAML translations as JSON for vue-i18n')]
 final class DumpJsTranslationsCommand extends Command
@@ -35,11 +35,11 @@ final class DumpJsTranslationsCommand extends Command
     private const string OUTPUT_DIR = 'src/Core/assets/locales/generated';
 
     /**
-     * @param list<string> $extraSourceDirs absolute paths to additional translation dirs
+     * @param list<string> $extraSourceDirectories absolute paths to additional translation dirs
      */
     public function __construct(
-        private readonly string $auroraDir,
-        private readonly array $extraSourceDirs = [],
+        private readonly string $auroraDirectory,
+        private readonly array $extraSourceDirectories = [],
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
         parent::__construct();
@@ -48,12 +48,12 @@ final class DumpJsTranslationsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $outputDir = Path::join($this->auroraDir, self::OUTPUT_DIR);
+        $outputDirectory = Path::join($this->auroraDirectory, self::OUTPUT_DIR);
 
         try {
-            $this->filesystem->mkdir($outputDir);
+            $this->filesystem->mkdir($outputDirectory);
         } catch (IOException) {
-            $io->error('Cannot create output directory: '.$outputDir);
+            $io->error('Cannot create output directory: '.$outputDirectory);
 
             return Command::FAILURE;
         }
@@ -62,15 +62,15 @@ final class DumpJsTranslationsCommand extends Command
             $merged = [];
             $sourcesFound = 0;
 
-            foreach ($this->discoverAuroraSourceDirs() as $relativeDir) {
-                $sourcePath = Path::join($this->auroraDir, $relativeDir, sprintf('messages.%s.yaml', $locale));
+            foreach ($this->discoverAuroraSourceDirs() as $relativeDirectory) {
+                $sourcePath = Path::join($this->auroraDirectory, $relativeDirectory, sprintf('messages.%s.yaml', $locale));
                 if ($this->mergeIfExists($sourcePath, $merged)) {
                     ++$sourcesFound;
                 }
             }
 
-            foreach ($this->extraSourceDirs as $absoluteDir) {
-                $sourcePath = Path::join($absoluteDir, sprintf('messages.%s.yaml', $locale));
+            foreach ($this->extraSourceDirectories as $absoluteDirectory) {
+                $sourcePath = Path::join($absoluteDirectory, sprintf('messages.%s.yaml', $locale));
                 if ($this->mergeIfExists($sourcePath, $merged)) {
                     ++$sourcesFound;
                 }
@@ -83,7 +83,7 @@ final class DumpJsTranslationsCommand extends Command
 
             $converted = $this->convertPlaceholders($merged);
 
-            $outPath = Path::join($outputDir, sprintf('%s.json', $locale));
+            $outPath = Path::join($outputDirectory, sprintf('%s.json', $locale));
             $this->filesystem->dumpFile(
                 $outPath,
                 json_encode($converted, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n",
@@ -99,50 +99,50 @@ final class DumpJsTranslationsCommand extends Command
     /**
      * Discovers translation source dirs at runtime: Core + all module translation dirs.
      *
-     * @return list<string> relative paths from $auroraDir
+     * @return list<string> relative paths from $auroraDirectory
      */
     private function discoverAuroraSourceDirs(): array
     {
-        $dirs = [];
+        $directories = [];
 
-        if (is_dir(Path::join($this->auroraDir, 'src/Core/translations'))) {
-            $dirs[] = 'src/Core/translations';
+        if (is_dir(Path::join($this->auroraDirectory, 'src/Core/translations'))) {
+            $directories[] = 'src/Core/translations';
         }
 
         $found = array_merge(
-            glob(Path::join($this->auroraDir, 'src/Core/*/translations'), GLOB_ONLYDIR) ?: [],
-            glob(Path::join($this->auroraDir, 'src/Core/*/*/translations'), GLOB_ONLYDIR) ?: [],
+            glob(Path::join($this->auroraDirectory, 'src/Core/*/translations'), GLOB_ONLYDIR) ?: [],
+            glob(Path::join($this->auroraDirectory, 'src/Core/*/*/translations'), GLOB_ONLYDIR) ?: [],
         );
         foreach ($found as $absolutePath) {
-            $dirs[] = Path::makeRelative($absolutePath, $this->auroraDir);
+            $directories[] = Path::makeRelative($absolutePath, $this->auroraDirectory);
         }
 
         $found = array_merge(
-            glob(Path::join($this->auroraDir, 'src/Module/*/translations'), GLOB_ONLYDIR) ?: [],
-            glob(Path::join($this->auroraDir, 'src/Module/*/*/translations'), GLOB_ONLYDIR) ?: [],
+            glob(Path::join($this->auroraDirectory, 'src/Module/*/translations'), GLOB_ONLYDIR) ?: [],
+            glob(Path::join($this->auroraDirectory, 'src/Module/*/*/translations'), GLOB_ONLYDIR) ?: [],
         );
         foreach ($found as $absolutePath) {
-            $dirs[] = Path::makeRelative($absolutePath, $this->auroraDir);
+            $directories[] = Path::makeRelative($absolutePath, $this->auroraDirectory);
         }
 
         // À-la-carte install: extracted modules ship as sibling Composer
         // packages (vendor/axelraboit/aurora-<module>), so their translations
-        // live OUTSIDE $auroraDir. Discover them when $auroraDir is itself a
+        // live OUTSIDE $auroraDirectory. Discover them when $auroraDirectory is itself a
         // vendored package (its parent is the `axelraboit` vendor dir) - the
         // gate keeps standalone aurora-core (modules under src/Module) from
         // globbing unrelated sibling projects.
-        if ('axelraboit' === basename(dirname($this->auroraDir))) {
-            $vendorNamespaceDir = dirname($this->auroraDir);
+        if ('axelraboit' === basename(dirname($this->auroraDirectory))) {
+            $vendorNamespaceDirectory = dirname($this->auroraDirectory);
             $siblings = array_merge(
-                glob(Path::join($vendorNamespaceDir, 'aurora-*/translations'), GLOB_ONLYDIR) ?: [],
-                glob(Path::join($vendorNamespaceDir, 'aurora-*/*/translations'), GLOB_ONLYDIR) ?: [],
+                glob(Path::join($vendorNamespaceDirectory, 'aurora-*/translations'), GLOB_ONLYDIR) ?: [],
+                glob(Path::join($vendorNamespaceDirectory, 'aurora-*/*/translations'), GLOB_ONLYDIR) ?: [],
             );
             foreach ($siblings as $absolutePath) {
-                $dirs[] = Path::makeRelative($absolutePath, $this->auroraDir);
+                $directories[] = Path::makeRelative($absolutePath, $this->auroraDirectory);
             }
         }
 
-        return $dirs;
+        return $directories;
     }
 
     /**
@@ -192,8 +192,8 @@ final class DumpJsTranslationsCommand extends Command
 
         if (is_array($value)) {
             $out = [];
-            foreach ($value as $k => $v) {
-                $out[$k] = $this->convertPlaceholders($v);
+            foreach ($value as $key => $item) {
+                $out[$key] = $this->convertPlaceholders($item);
             }
 
             return $out;
@@ -236,8 +236,8 @@ final class DumpJsTranslationsCommand extends Command
     private function countLeaves(array $tree): int
     {
         $count = 0;
-        foreach ($tree as $v) {
-            $count += is_array($v) ? $this->countLeaves($v) : 1;
+        foreach ($tree as $node) {
+            $count += is_array($node) ? $this->countLeaves($node) : 1;
         }
 
         return $count;

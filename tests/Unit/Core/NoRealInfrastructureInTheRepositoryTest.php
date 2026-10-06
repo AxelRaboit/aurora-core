@@ -57,8 +57,8 @@ final class NoRealInfrastructureInTheRepositoryTest extends TestCase
         $found = [];
         $root = dirname(__DIR__, 3);
 
-        foreach (self::SCANNED as $dir) {
-            foreach ($this->filesIn($root.'/'.$dir) as $file) {
+        foreach (self::SCANNED as $scannedDirectory) {
+            foreach ($this->filesIn($root.'/'.$scannedDirectory) as $file) {
                 $source = (string) file_get_contents($file->getPathname());
 
                 // A Drive identifier as Google mints them: at least
@@ -81,11 +81,11 @@ final class NoRealInfrastructureInTheRepositoryTest extends TestCase
     }
 
     /** @return list<SplFileInfo> */
-    private function filesIn(string $dir): array
+    private function filesIn(string $directory): array
     {
         $found = [];
 
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir)) as $file) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory)) as $file) {
             if (!$file instanceof SplFileInfo || !in_array($file->getExtension(), ['php', 'mjs', 'js'], true)) {
                 continue;
             }

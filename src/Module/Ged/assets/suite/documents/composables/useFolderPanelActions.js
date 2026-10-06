@@ -22,7 +22,7 @@ const FOLDER_MOVE = "/suite/ged/folders/__id__/move";
 const FOLDER_REORDER = "/suite/ged/folders/reorder";
 const DOCUMENT_BULK_MOVE = "/suite/ged/documents/bulk-move";
 
-const DOC_MIME = "application/x-aurora-document";
+const DOCUMENT_MIME = "application/x-aurora-document";
 const FOLDER_MIME = "application/x-aurora-document-folder";
 
 /**
@@ -166,7 +166,9 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
 
             if (Array.isArray(data.folders)) adoptFolders(data.folders);
             else
-                folders.value = folders.value.filter((f) => f.id !== folder.id);
+                folders.value = folders.value.filter(
+                    (existingFolder) => existingFolder.id !== folder.id,
+                );
 
             toast.success(t("shared.common.deleted"));
             onChanged?.({
@@ -194,7 +196,7 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
         addDescendants(folderModal.editing.id);
 
         return withDepthLabel(
-            allFlatFolders.value.filter((f) => !forbidden.has(f.id)),
+            allFlatFolders.value.filter((folder) => !forbidden.has(folder.id)),
         );
     });
 
@@ -260,7 +262,7 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
 
         // A document has no rank among folders: it can only go *into* one, so
         // the edges are not offered for it.
-        if (types.includes(DOC_MIME)) {
+        if (types.includes(DOCUMENT_MIME)) {
             event.preventDefault();
             dropTarget.value = { id: folder.id, zone: "into" };
 
@@ -392,14 +394,15 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
 
     async function onFolderDrop(event, target) {
         const types = dragTypes(event);
-        if (!types.includes(DOC_MIME) && !types.includes(FOLDER_MIME)) return;
+        if (!types.includes(DOCUMENT_MIME) && !types.includes(FOLDER_MIME))
+            return;
 
         event.preventDefault();
 
         // Read the zone off the drop itself: a dragleave race can have cleared
         // the hover state a moment before the pointer was released.
-        const zone = types.includes(DOC_MIME) ? "into" : zoneAt(event);
-        const documentId = event.dataTransfer.getData(DOC_MIME);
+        const zone = types.includes(DOCUMENT_MIME) ? "into" : zoneAt(event);
+        const documentId = event.dataTransfer.getData(DOCUMENT_MIME);
         const folderId = Number(event.dataTransfer.getData(FOLDER_MIME));
 
         dropTarget.value = null;

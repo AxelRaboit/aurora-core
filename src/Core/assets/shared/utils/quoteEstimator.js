@@ -24,13 +24,18 @@ export function summarise(base, checked, currency) {
 }
 
 function nextForm(quote) {
-    let el = quote.nextElementSibling;
+    let sibling = quote.nextElementSibling;
 
-    while (el) {
-        if (el.matches("form, [data-form]") || el.querySelector?.("form")) {
-            return el.matches("form") ? el : el.querySelector("form");
+    while (sibling) {
+        if (
+            sibling.matches("form, [data-form]") ||
+            sibling.querySelector?.("form")
+        ) {
+            return sibling.matches("form")
+                ? sibling
+                : sibling.querySelector("form");
         }
-        el = el.nextElementSibling;
+        sibling = sibling.nextElementSibling;
     }
 
     return null;

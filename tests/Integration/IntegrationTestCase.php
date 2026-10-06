@@ -47,9 +47,9 @@ abstract class IntegrationTestCase extends WebTestCase
         // braces: the first attempt at this put the override in
         // `config/packages/test/`, where `config/services.yaml` overwrites it,
         // so the very first run of this line erased the real `var/uploads`.
-        $uploadDir = (string) $container->getParameter('app.upload_dir');
-        self::assertStringEndsWith('/var/test-uploads', $uploadDir, 'Refusing to purge: the test environment is not using its own upload directory.');
-        (new Filesystem())->remove($uploadDir);
+        $uploadDirectory = (string) $container->getParameter('app.upload_dir');
+        self::assertStringEndsWith('/var/test-uploads', $uploadDirectory, 'Refusing to purge: the test environment is not using its own upload directory.');
+        (new Filesystem())->remove($uploadDirectory);
 
         // Purge first, then seed the mandatory rows, then the dev accounts.
         // The bootstrap providers run here rather than being duplicated into a

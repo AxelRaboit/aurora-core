@@ -93,10 +93,10 @@ final readonly class SurfaceContrast
      */
     public function ratio(string $hexA, string $hexB): float
     {
-        $a = $this->relativeLuminance($hexA);
-        $b = $this->relativeLuminance($hexB);
+        $luminanceA = $this->relativeLuminance($hexA);
+        $luminanceB = $this->relativeLuminance($hexB);
 
-        [$lighter, $darker] = $a > $b ? [$a, $b] : [$b, $a];
+        [$lighter, $darker] = $luminanceA > $luminanceB ? [$luminanceA, $luminanceB] : [$luminanceB, $luminanceA];
 
         return ($lighter + 0.05) / ($darker + 0.05);
     }
@@ -190,8 +190,8 @@ final readonly class SurfaceContrast
             [$lightness, $chroma, $hue] = $this->palette->toOklch($textHex);
             $steps = -1.0 === $towardBackground ? self::DARK_TEXT_STEPS : self::LIGHT_TEXT_STEPS;
             $tokens['--th-primary'] = $textHex;
-            foreach (['--th-secondary', '--th-muted', '--th-subtle'] as $i => $token) {
-                $tokens[$token] = $this->oklch($lightness + $towardBackground * $steps[$i], $chroma, $hue);
+            foreach (['--th-secondary', '--th-muted', '--th-subtle'] as $stepIndex => $token) {
+                $tokens[$token] = $this->oklch($lightness + $towardBackground * $steps[$stepIndex], $chroma, $hue);
             }
         }
 
@@ -299,11 +299,11 @@ final readonly class SurfaceContrast
     /** WCAG relative luminance, 0 for black, 1 for white. */
     private function relativeLuminance(string $hex): float
     {
-        [$r, $g, $b] = $this->hexToRgb($hex);
+        [$red, $green, $blue] = $this->hexToRgb($hex);
 
-        return 0.2126 * $this->toLinear($r / 255)
-             + 0.7152 * $this->toLinear($g / 255)
-             + 0.0722 * $this->toLinear($b / 255);
+        return 0.2126 * $this->toLinear($red / 255)
+             + 0.7152 * $this->toLinear($green / 255)
+             + 0.0722 * $this->toLinear($blue / 255);
     }
 
     private function toLinear(float $channel): float

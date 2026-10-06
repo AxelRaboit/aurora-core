@@ -175,7 +175,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
     private function attention(array $rows, array $spaces): array
     {
         $waiting = array_values(array_filter($rows, static fn (SpaceWorkloadRow $row): bool => $row->needsAttention()));
-        usort($waiting, static fn (SpaceWorkloadRow $a, SpaceWorkloadRow $b): int => $b->urgency() <=> $a->urgency());
+        usort($waiting, static fn (SpaceWorkloadRow $left, SpaceWorkloadRow $right): int => $right->urgency() <=> $left->urgency());
 
         return array_map(function (SpaceWorkloadRow $row) use ($spaces): array {
             $space = $spaces[$row->spaceId];

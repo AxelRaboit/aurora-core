@@ -106,7 +106,7 @@ final class ContextTest extends TestCase
             $this->makeUrlGenerator(),
         );
 
-        $codes = array_map(static fn (LocaleInterface $l) => $l->getCode(), $context->activeLocales());
+        $codes = array_map(static fn (LocaleInterface $locale) => $locale->getCode(), $context->activeLocales());
         self::assertSame(['fr'], $codes);
     }
 

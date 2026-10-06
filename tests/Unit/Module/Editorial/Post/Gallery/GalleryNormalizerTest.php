@@ -96,8 +96,8 @@ final class GalleryNormalizerTest extends TestCase
     public function testTheItemCountIsCapped(): void
     {
         $items = [];
-        for ($i = 0; $i < GalleryNormalizer::MAX_ITEMS + 20; ++$i) {
-            $items[] = ['id' => 'i'.$i, 'mediaId' => $i + 1];
+        for ($itemIndex = 0; $itemIndex < GalleryNormalizer::MAX_ITEMS + 20; ++$itemIndex) {
+            $items[] = ['id' => 'i'.$itemIndex, 'mediaId' => $itemIndex + 1];
         }
 
         self::assertCount(

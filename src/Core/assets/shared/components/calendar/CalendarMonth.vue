@@ -40,14 +40,14 @@ const props = defineProps({
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "select-day", "move-event"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const today = new Date();
 
 /** Monday first, from the locale rather than written out. */
 const weekdays = computed(() =>
     Array.from({ length: 7 }, (_, index) =>
-        d(new Date(2026, 5, 1 + index), { weekday: "short" }),
+        formatDate(new Date(2026, 5, 1 + index), { weekday: "short" }),
     ),
 );
 
@@ -116,11 +116,11 @@ function timedOn(date) {
 function remindersOn(date) {
     return props.reminders
         .filter((reminder) => sameDay(new Date(reminder.dueAt), date))
-        .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+        .sort((left, right) => new Date(left.dueAt) - new Date(right.dueAt));
 }
 
 function timeOf(event) {
-    return d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
+    return formatDate(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
 }
 
 /**

@@ -29,7 +29,7 @@ const props = defineProps({
 
 const emit = defineEmits(["open-event", "move-event", "add-on", "open-item"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const today = new Date();
 const year = ref(today.getFullYear());
@@ -52,11 +52,11 @@ const { container, isNarrow } = useNarrowContainer(560);
 /** The day the list shows. Today until somebody picks one. */
 const selectedDay = ref(new Date());
 
-function sameDay(a, b) {
+function sameDay(first, second) {
     return (
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth() &&
-        a.getDate() === b.getDate()
+        first.getFullYear() === second.getFullYear() &&
+        first.getMonth() === second.getMonth() &&
+        first.getDate() === second.getDate()
     );
 }
 
@@ -72,17 +72,17 @@ function sameDay(a, b) {
 const dayItems = computed(() =>
     props.events
         .filter((event) => sameDay(new Date(event.startAt), selectedDay.value))
-        .sort((a, b) => new Date(a.startAt) - new Date(b.startAt)),
+        .sort((left, right) => new Date(left.startAt) - new Date(right.startAt)),
 );
 
 const dayTitle = computed(() =>
-    d(selectedDay.value, { weekday: "long", day: "numeric", month: "long" }),
+    formatDate(selectedDay.value, { weekday: "long", day: "numeric", month: "long" }),
 );
 
 const cells = computed(() => props.cellsFor(year.value, month.value));
 
 const monthTitle = computed(() =>
-    d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
+    formatDate(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
 );
 
 function goToMonth(delta) {
@@ -165,7 +165,7 @@ function goToToday() {
                                 v-on:click="emit('open-event', event)"
                             >
                                 <span class="shrink-0 text-xs tabular-nums text-muted">
-                                    {{ d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
+                                    {{ formatDate(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
                                 </span>
                                 <span class="min-w-0 flex-1 truncate text-sm text-primary">
                                     {{ event.title }}

@@ -53,7 +53,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
 
     private User $admin;
 
-    private string $workDir;
+    private string $workDirectory;
 
     protected function setUp(): void
     {
@@ -73,18 +73,18 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
         // The upload limiter counts per hour and outlives the process.
         $this->resetRateLimiter('space_guest_upload');
 
-        $this->workDir = sys_get_temp_dir().'/aurora-client-file-'.bin2hex(random_bytes(4));
-        mkdir($this->workDir);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-client-file-'.bin2hex(random_bytes(4));
+        mkdir($this->workDirectory);
     }
 
     protected function tearDown(): void
     {
-        foreach (glob($this->workDir.'/*') ?: [] as $file) {
+        foreach (glob($this->workDirectory.'/*') ?: [] as $file) {
             unlink($file);
         }
 
-        if (is_dir($this->workDir)) {
-            rmdir($this->workDir);
+        if (is_dir($this->workDirectory)) {
+            rmdir($this->workDirectory);
         }
 
         $this->entityManager->createQuery(sprintf('DELETE FROM %s n WHERE n.type LIKE :prefix', Notification::class))
@@ -224,7 +224,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
     {
         [$space, $url] = $this->givenLinkedSpace(canUpload: true);
 
-        $svg = $this->workDir.'/innocent.jpg';
+        $svg = $this->workDirectory.'/innocent.jpg';
         file_put_contents($svg, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
 
         $this->send($url, new UploadedFile($svg, 'innocent.jpg', 'image/jpeg', null, true));
@@ -263,7 +263,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
 
     private function aFile(string $name): UploadedFile
     {
-        $path = $this->workDir.'/'.$name;
+        $path = $this->workDirectory.'/'.$name;
         file_put_contents($path, base64_decode(
             '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
             .'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'

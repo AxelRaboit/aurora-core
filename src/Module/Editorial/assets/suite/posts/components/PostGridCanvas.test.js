@@ -7,8 +7,13 @@ vi.mock("vue-i18n", () => ({
     useI18n: () => ({ t: (key) => key }),
 }));
 
-function zone(id, lg, overrides = {}) {
-    return { id, type: "text", span: { base: 48, md: null, lg }, ...overrides };
+function zone(id, largeSpan, overrides = {}) {
+    return {
+        id,
+        type: "text",
+        span: { base: 48, md: null, lg: largeSpan },
+        ...overrides,
+    };
 }
 
 /**
@@ -86,7 +91,9 @@ describe("PostGridCanvas", () => {
         const grid = mountCanvas([zone("a", 24)]).find(".aurora-grid");
 
         expect(
-            [...grid.element.classList].filter((c) => /^p[xytrbl]?-/.test(c)),
+            [...grid.element.classList].filter((className) =>
+                /^p[xytrbl]?-/.test(className),
+            ),
         ).toEqual([]);
     });
 
@@ -99,7 +106,10 @@ describe("PostGridCanvas", () => {
         });
 
         const buttons = wrapper.findAll("button");
-        expect(buttons.map((b) => b.text())).toEqual(["Texte", "Image"]);
+        expect(buttons.map((button) => button.text())).toEqual([
+            "Texte",
+            "Image",
+        ]);
 
         await buttons[1].trigger("click");
         expect(wrapper.emitted("add")[0]).toEqual(["media"]);
@@ -689,11 +699,11 @@ describe("PostGridCanvas", () => {
 
     // ── Stacks ────────────────────────────────────────────────────────────
 
-    function stack(id, lg, children) {
+    function stack(id, largeSpan, children) {
         return {
-            ...zone(id, lg, { type: "stack" }),
-            children: children.map((child, i) =>
-                zone(`${id}-${i}`, child.lg, { type: child.type }),
+            ...zone(id, largeSpan, { type: "stack" }),
+            children: children.map((child, childIndex) =>
+                zone(`${id}-${childIndex}`, child.lg, { type: child.type }),
             ),
         };
     }

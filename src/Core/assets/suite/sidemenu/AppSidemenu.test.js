@@ -75,7 +75,7 @@ function render(moduleNavView = GED_VIEW) {
 }
 
 const buttonSaying = (wrapper, text) =>
-    wrapper.findAll("button").find((b) => b.text().includes(text));
+    wrapper.findAll("button").find((button) => button.text().includes(text));
 
 beforeEach(() => {
     localStorage.clear();

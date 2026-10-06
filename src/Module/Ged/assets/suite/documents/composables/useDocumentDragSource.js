@@ -9,12 +9,12 @@
  * The MIME type is the contract between the two Vue applications, and it costs
  * nothing to cross: `dataTransfer` belongs to the browser, not to either app.
  */
-const DOC_MIME = "application/x-aurora-document";
+const DOCUMENT_MIME = "application/x-aurora-document";
 
 export function useDocumentDragSource() {
-    function onDocumentDragStart(event, doc) {
+    function onDocumentDragStart(event, gedDocument) {
         event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData(DOC_MIME, String(doc.id));
+        event.dataTransfer.setData(DOCUMENT_MIME, String(gedDocument.id));
     }
 
     return { onDocumentDragStart };

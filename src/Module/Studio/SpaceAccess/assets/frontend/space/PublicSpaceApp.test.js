@@ -88,7 +88,7 @@ function monter(props = {}) {
 function onglets(wrapper) {
     return wrapper
         .findAll("[role='group'] button")
-        .map((b) => b.attributes("title"));
+        .map((button) => button.attributes("title"));
 }
 
 describe("PublicSpaceApp", () => {
@@ -259,7 +259,7 @@ describe("PublicSpaceApp", () => {
 
         const filtre = wrapper
             .findAll("button")
-            .find((b) => b.text().includes("awaiting_you"));
+            .find((button) => button.text().includes("awaiting_you"));
         expect(filtre.attributes("aria-pressed")).toBe("false");
 
         await filtre.trigger("click");
@@ -286,8 +286,8 @@ describe("PublicSpaceApp", () => {
     function etapes(wrapper) {
         return wrapper
             .findAll("[data-guide] li")
-            .map((li) =>
-                li.text().replace("studio.public.space.guide.step_", ""),
+            .map((item) =>
+                item.text().replace("studio.public.space.guide.step_", ""),
             );
     }
 

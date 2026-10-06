@@ -59,14 +59,14 @@ final readonly class GitHubActivityView
         }
 
         $mode = $options['githubMode'] ?? 'activity';
-        $repos = $options['githubRepos'] ?? [];
+        $repositoryNames = $options['githubRepos'] ?? [];
 
         if ('repos' === $mode) {
-            return $this->repositoryCards($repos, $locale);
+            return $this->repositoryCards($repositoryNames, $locale);
         }
 
         if ('releases' === $mode) {
-            return $this->releaseList($repos, $locale);
+            return $this->releaseList($repositoryNames, $locale);
         }
 
         // A zone may name some of the site's accounts, so that two zones can
@@ -96,18 +96,18 @@ final readonly class GitHubActivityView
     /**
      * One card per repository named on the zone, in its order.
      *
-     * @param list<string> $repos
+     * @param list<string> $repositoryNames
      *
      * @return array<string, mixed>|null
      */
-    private function repositoryCards(array $repos, string $locale): ?array
+    private function repositoryCards(array $repositoryNames, string $locale): ?array
     {
         $numbers = new NumberFormatter($locale, NumberFormatter::DECIMAL);
         $dates = new IntlDateFormatter($locale, IntlDateFormatter::MEDIUM, IntlDateFormatter::NONE, 'UTC');
         $cards = [];
 
-        foreach ($repos as $repo) {
-            $card = $this->repositories->repository($repo);
+        foreach ($repositoryNames as $repositoryName) {
+            $card = $this->repositories->repository($repositoryName);
 
             if (null === $card) {
                 continue;
@@ -129,28 +129,28 @@ final readonly class GitHubActivityView
     /**
      * The latest releases of every repository named, newest first.
      *
-     * @param list<string> $repos
+     * @param list<string> $repositoryNames
      *
      * @return array<string, mixed>|null
      */
-    private function releaseList(array $repos, string $locale): ?array
+    private function releaseList(array $repositoryNames, string $locale): ?array
     {
         $dates = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, 'UTC');
         $releases = [];
 
-        foreach ($repos as $repo) {
-            foreach ($this->repositories->releases($repo) ?? [] as $release) {
+        foreach ($repositoryNames as $repositoryName) {
+            foreach ($this->repositories->releases($repositoryName) ?? [] as $release) {
                 $releases[] = [
                     ...$release,
-                    'repo' => $repo,
+                    'repo' => $repositoryName,
                     'dateLabel' => '' === $release['publishedAt'] ? '' : (string) $dates->format(new DateTimeImmutable($release['publishedAt'])),
                 ];
             }
         }
 
-        usort($releases, static fn (array $a, array $b): int => $b['publishedAt'] <=> $a['publishedAt']);
+        usort($releases, static fn (array $left, array $right): int => $right['publishedAt'] <=> $left['publishedAt']);
 
-        return [] === $releases ? null : ['mode' => 'releases', 'releases' => array_slice($releases, 0, 6), 'multiple' => count($repos) > 1];
+        return [] === $releases ? null : ['mode' => 'releases', 'releases' => array_slice($releases, 0, 6), 'multiple' => count($repositoryNames) > 1];
     }
 
     /**

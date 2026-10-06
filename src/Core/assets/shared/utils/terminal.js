@@ -14,7 +14,8 @@ const SELECTOR = "[data-terminal]";
 const TYPE_MS = 28;
 const PAUSE_MS = 350;
 
-const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+const wait = (delayMs) =>
+    new Promise((resolve) => window.setTimeout(resolve, delayMs));
 
 async function play(terminal) {
     const lines = [

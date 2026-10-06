@@ -40,15 +40,19 @@ beforeAll(() => {
         addEventListener() {},
         removeEventListener() {},
     });
-    window.requestIdleCallback ||= (cb) =>
-        setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 50 }), 0);
+    window.requestIdleCallback ||= (callback) =>
+        setTimeout(
+            () => callback({ didTimeout: false, timeRemaining: () => 50 }),
+            0,
+        );
     window.cancelIdleCallback ||= (id) => clearTimeout(id);
     document.execCommand ||= () => true;
     document.queryCommandSupported ||= () => false;
 });
 
 /** Editor.js boots asynchronously and lays out blocks on an idle callback. */
-const settle = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
+const settle = (delayMs = 400) =>
+    new Promise((resolve) => setTimeout(resolve, delayMs));
 
 function mountEditor(modelValue) {
     // The registry the parent provides. `render` takes nothing: each instance

@@ -151,7 +151,9 @@ export function useMountPoints(
         }
 
         mountPoints.value.push(data.mountPoint);
-        mountPoints.value.sort((a, b) => a.name.localeCompare(b.name));
+        mountPoints.value.sort((left, right) =>
+            left.name.localeCompare(right.name),
+        );
         showCreateModal.value = false;
         toast.success(t("shared.common.saved"));
     }
@@ -212,7 +214,9 @@ export function useMountPoints(
             (mountPoint) => mountPoint.id === data.mountPoint.id,
         );
         if (index !== -1) mountPoints.value[index] = data.mountPoint;
-        mountPoints.value.sort((a, b) => a.name.localeCompare(b.name));
+        mountPoints.value.sort((left, right) =>
+            left.name.localeCompare(right.name),
+        );
         showEditModal.value = false;
         editingMountPoint.value = null;
         toast.success(t("shared.common.saved"));
@@ -303,7 +307,8 @@ export function useMountPoints(
 
             if (data.success && data.mountPoint) {
                 const index = mountPoints.value.findIndex(
-                    (mp) => mp.id === data.mountPoint.id,
+                    (listedMountPoint) =>
+                        listedMountPoint.id === data.mountPoint.id,
                 );
                 if (index !== -1) mountPoints.value[index] = data.mountPoint;
             }

@@ -33,11 +33,11 @@ export function createCalloutExtension() {
     return {
         name: "callout",
         level: "block",
-        start(src) {
-            return src.match(/^>\s*\[!/)?.index;
+        start(source) {
+            return source.match(/^>\s*\[!/)?.index;
         },
-        tokenizer(src) {
-            const match = src.match(
+        tokenizer(source) {
+            const match = source.match(
                 /^(?:>\s*\[!(\w+)\]\s*(.*)\n)((?:>.*(?:\n|$))*)/,
             );
             if (!match) return undefined;
@@ -64,17 +64,17 @@ export function createCalloutExtension() {
             };
         },
         renderer(token) {
-            const def = CALLOUT_DEFINITIONS[token.calloutType] ?? {
+            const definition = CALLOUT_DEFINITIONS[token.calloutType] ?? {
                 label: token.calloutType,
                 icon: "info",
             };
-            const title = token.title || def.label;
+            const title = token.title || definition.label;
             const body = token.tokens?.length
                 ? this.parser.parse(token.tokens)
                 : "";
 
             return (
-                `<div class="callout callout-${token.calloutType}" data-icon="${def.icon}">` +
+                `<div class="callout callout-${token.calloutType}" data-icon="${definition.icon}">` +
                 `<div class="callout-header"><span class="callout-title">${esc(title)}</span></div>` +
                 (body ? `<div class="callout-body">${body}</div>` : "") +
                 `</div>\n`
@@ -83,8 +83,8 @@ export function createCalloutExtension() {
     };
 }
 
-function esc(str) {
-    return String(str)
+function esc(text) {
+    return String(text)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");

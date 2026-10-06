@@ -40,7 +40,7 @@ const props = defineProps({
     deletePathTemplate: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatLocalizedDate } = useI18n();
 const { can } = usePrivileges();
 const { request } = useRequest();
 const { container, isNarrow } = useNarrowContainer();
@@ -70,7 +70,7 @@ const filteredItems = computed(() => {
 });
 
 function formatDate(value) {
-    return value ? d(new Date(value), "short") : null;
+    return value ? formatLocalizedDate(new Date(value), "short") : null;
 }
 
 // ── Creation ────────────────────────────────────────────────────────────────

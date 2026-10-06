@@ -37,10 +37,10 @@ export function withoutLeadingTitle(markdown, title) {
 }
 
 /** A reader's comparison: neither case nor spaces count. */
-function same(a, b) {
+function same(left, right) {
     return (
-        "" !== String(b ?? "").trim() &&
-        String(a).trim().toLocaleLowerCase() ===
-            String(b).trim().toLocaleLowerCase()
+        "" !== String(right ?? "").trim() &&
+        String(left).trim().toLocaleLowerCase() ===
+            String(right).trim().toLocaleLowerCase()
     );
 }

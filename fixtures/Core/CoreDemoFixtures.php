@@ -62,8 +62,8 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
 
         $users = $this->createUsers($manager);
 
-        foreach ($users as $i => $user) {
-            $this->addReference(self::userRef($i), $user);
+        foreach ($users as $userIndex => $user) {
+            $this->addReference(self::userRef($userIndex), $user);
         }
 
         $this->createThemes($manager);
@@ -88,20 +88,20 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
      *
      * Idempotent on the title, per recipient.
      */
-    private function createNotifications(EntityManagerInterface $em): void
+    private function createNotifications(EntityManagerInterface $entityManager): void
     {
         // The account being looked at, not the first in the list.
         // Notifications are personal: filed elsewhere, the bell opens empty
         // for whoever takes the screenshot, which is exactly what happened
         // the first time.
-        $recipient = $em->getRepository(User::class)
+        $recipient = $entityManager->getRepository(User::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
 
         if (!$recipient instanceof User) {
             return;
         }
 
-        $repository = $em->getRepository(Notification::class);
+        $repository = $entityManager->getRepository(Notification::class);
         $now = new DateTimeImmutable();
 
         $entries = [
@@ -149,10 +149,10 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                 $notification->markAsRead();
             }
 
-            $em->persist($notification);
+            $entityManager->persist($notification);
         }
 
-        $em->flush();
+        $entityManager->flush();
     }
 
     /**
@@ -177,12 +177,12 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
      *
      * Idempotent on the requester's address.
      */
-    private function createAccessRequests(EntityManagerInterface $em): void
+    private function createAccessRequests(EntityManagerInterface $entityManager): void
     {
-        $repository = $em->getRepository(AccessRequest::class);
+        $repository = $entityManager->getRepository(AccessRequest::class);
         $now = new DateTimeImmutable();
 
-        $defs = [
+        $definitions = [
             [
                 'email' => 'camille.perrot@atelier-dupont.test',
                 'name' => 'Camille Perrot',
@@ -206,25 +206,25 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
             ],
         ];
 
-        foreach ($defs as $def) {
-            if (null !== $repository->findOneBy(['requesterEmail' => $def['email']])) {
+        foreach ($definitions as $definition) {
+            if (null !== $repository->findOneBy(['requesterEmail' => $definition['email']])) {
                 continue;
             }
 
-            $request = new AccessRequest($def['email'], $now->modify($def['expires']));
-            $request->setRequesterName($def['name'])
-                ->setMessage($def['message'])
-                ->setStatus($def['status']);
+            $request = new AccessRequest($definition['email'], $now->modify($definition['expires']));
+            $request->setRequesterName($definition['name'])
+                ->setMessage($definition['message'])
+                ->setStatus($definition['status']);
 
-            $em->persist($request);
+            $entityManager->persist($request);
         }
 
-        $em->flush();
+        $entityManager->flush();
     }
 
-    private function createThemes(EntityManagerInterface $em): void
+    private function createThemes(EntityManagerInterface $entityManager): void
     {
-        $defs = [
+        $definitions = [
             [
                 'slug' => 'nuit-emeraude',
                 'name' => 'Nuit émeraude',
@@ -260,24 +260,24 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
             ],
         ];
 
-        $repository = $em->getRepository(Theme::class);
+        $repository = $entityManager->getRepository(Theme::class);
 
-        foreach ($defs as $def) {
+        foreach ($definitions as $definition) {
             // Reused by slug, like the users above: `make demo` runs twice.
-            $theme = $repository->findOneBy(['slug' => $def['slug']]) ?? new Theme();
+            $theme = $repository->findOneBy(['slug' => $definition['slug']]) ?? new Theme();
 
-            $theme->setSlug($def['slug'])
-                ->setName($def['name'])
-                ->setDescription($def['description'])
-                ->setConfig($def['config']);
+            $theme->setSlug($definition['slug'])
+                ->setName($definition['name'])
+                ->setDescription($definition['description'])
+                ->setConfig($definition['config']);
 
             if (null === $theme->getId()) {
                 $theme->setActive(false);
-                $em->persist($theme);
+                $entityManager->persist($theme);
             }
         }
 
-        $em->flush();
+        $entityManager->flush();
 
         // The install seeds `default` with a name and no palette, so a demo
         // opened straight after `make demo` served the stylesheet's own
@@ -300,11 +300,11 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
     }
 
     /** @return User[] */
-    private function createUsers(EntityManagerInterface $em): array
+    private function createUsers(EntityManagerInterface $entityManager): array
     {
         $users = [];
 
-        $defs = [
+        $definitions = [
             [
                 'email' => 'marie.dupont@aurora.app',
                 'name' => 'Marie Dupont',
@@ -333,22 +333,22 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
             ],
         ];
 
-        $repository = $em->getRepository(User::class);
+        $repository = $entityManager->getRepository(User::class);
 
-        foreach ($defs as $def) {
+        foreach ($definitions as $definition) {
             // Reused when it is already there, so `make demo` can be run twice.
             // It used to always insert, and the second run died on the unique
             // (email, type) - after purging var/uploads, which is the first
             // thing that target does. A reload that half-runs is worse than one
             // that refuses.
-            $user = $repository->findOneBy(['email' => $def['email']]) ?? new User();
+            $user = $repository->findOneBy(['email' => $definition['email']]) ?? new User();
             $fresh = null === $user->getId();
 
-            $user->setEmail($def['email'])
-                 ->setName($def['name'])
-                 ->setRoles([$def['role']->value])
-                 ->setPrivileges($def['privileges'])
-                 ->setMoodMessage($def['mood'])
+            $user->setEmail($definition['email'])
+                 ->setName($definition['name'])
+                 ->setRoles([$definition['role']->value])
+                 ->setPrivileges($definition['privileges'])
+                 ->setMoodMessage($definition['mood'])
                  ->setLocale(LocaleEnum::French);
 
             // Only on creation: a reload refreshes what the demo describes -
@@ -356,7 +356,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
             // changed in the meantime.
             if ($fresh) {
                 $user->setPassword($this->hasher->hashPassword($user, 'password'));
-                $em->persist($user);
+                $entityManager->persist($user);
             }
 
             $users[] = $user;

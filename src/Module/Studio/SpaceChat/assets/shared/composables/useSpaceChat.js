@@ -87,8 +87,9 @@ export function useSpaceChat(initial, paths, channelId = null) {
 
     function sorted(list) {
         return [...list].sort(
-            (a, b) =>
-                new Date(a.createdAt) - new Date(b.createdAt) || a.id - b.id,
+            (left, right) =>
+                new Date(left.createdAt) - new Date(right.createdAt) ||
+                left.id - right.id,
         );
     }
 

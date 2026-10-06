@@ -64,13 +64,13 @@ final readonly class VideoPosterGenerator
      * image, and its own type decides the extension, so a JPEG never ends up
      * served as `.webp` because the browser fell back silently.
      *
-     * @param string $thumbDirKey key prefix the output is stored under
-     * @param string $basename    output filename without extension
+     * @param string $thumbDirectoryKey key prefix the output is stored under
+     * @param string $basename          output filename without extension
      */
     public function fromCapture(
         StorageAdapterInterface $adapter,
         UploadedFile $poster,
-        string $thumbDirKey,
+        string $thumbDirectoryKey,
         string $basename,
     ): ?string {
         $mime = MimeTypeEnum::tryFrom((string) $poster->getMimeType());
@@ -89,7 +89,7 @@ final readonly class VideoPosterGenerator
             return null;
         }
 
-        $posterKey = Path::join($thumbDirKey, sprintf('%s.%s', $basename, $mime->extension()));
+        $posterKey = Path::join($thumbDirectoryKey, sprintf('%s.%s', $basename, $mime->extension()));
         $adapter->writeFromLocalFile($posterKey, $poster->getPathname());
 
         return $posterKey;
@@ -115,14 +115,14 @@ final readonly class VideoPosterGenerator
      * the poster's dimensions are the video's dimensions, which is what
      * callers read them back for.
      *
-     * @param string $sourceKey   key of the film to read
-     * @param string $thumbDirKey key prefix the output is stored under
-     * @param string $basename    output filename without extension
+     * @param string $sourceKey         key of the film to read
+     * @param string $thumbDirectoryKey key prefix the output is stored under
+     * @param string $basename          output filename without extension
      */
     public function fromSource(
         StorageAdapterInterface $adapter,
         string $sourceKey,
-        string $thumbDirKey,
+        string $thumbDirectoryKey,
         string $basename,
     ): ?string {
         if (!$adapter->exists($sourceKey)) {
@@ -139,7 +139,7 @@ final readonly class VideoPosterGenerator
             return null;
         }
 
-        $posterKey = Path::join($thumbDirKey, sprintf('%s.%s', $basename, MimeTypeEnum::Jpeg->extension()));
+        $posterKey = Path::join($thumbDirectoryKey, sprintf('%s.%s', $basename, MimeTypeEnum::Jpeg->extension()));
 
         $rendered = $this->workspace->readable(
             $adapter,

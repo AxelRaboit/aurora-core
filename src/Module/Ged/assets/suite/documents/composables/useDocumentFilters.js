@@ -61,7 +61,7 @@ export function useDocumentFilters(reload) {
             ),
     );
 
-    const extraParams = () => ({
+    const extraParameters = () => ({
         categoryId: filterCategoryId.value || undefined,
         tagId: filterTagId.value || undefined,
         folderId: filterFolderId.value || undefined,
@@ -111,7 +111,7 @@ export function useDocumentFilters(reload) {
         filterWeight,
         moreFiltersCount,
         hasActiveFilter,
-        extraParams,
+        extraParameters,
         applyFilter,
         resetFilters,
     };

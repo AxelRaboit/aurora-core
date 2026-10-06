@@ -22,14 +22,14 @@ final class TestUploadsAreIsolatedTest extends IntegrationTestCase
         static::createClient();
         $container = static::getContainer();
 
-        $uploadDir = (string) $container->getParameter('app.upload_dir');
-        $projectDir = (string) $container->getParameter('kernel.project_dir');
+        $uploadDirectory = (string) $container->getParameter('app.upload_dir');
+        $projectDirectory = (string) $container->getParameter('kernel.project_dir');
 
         self::assertNotSame(
-            $projectDir.'/var/uploads',
-            $uploadDir,
+            $projectDirectory.'/var/uploads',
+            $uploadDirectory,
             'The test environment must override app.upload_dir; see config/packages/test/storage.yaml.',
         );
-        self::assertStringStartsWith($projectDir.'/var/', $uploadDir);
+        self::assertStringStartsWith($projectDirectory.'/var/', $uploadDirectory);
     }
 }

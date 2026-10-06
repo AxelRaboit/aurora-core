@@ -23,39 +23,41 @@ export function useDocumentRelocation(props, items) {
     const relocatingId = ref(null);
 
     function patch(id, changes) {
-        const index = items.value.findIndex((doc) => doc.id === id);
+        const index = items.value.findIndex(
+            (gedDocument) => gedDocument.id === id,
+        );
         if (index !== -1) {
             items.value[index] = { ...items.value[index], ...changes };
         }
     }
 
-    async function relocate(doc, disk) {
-        if (!props.storagePath || relocatingId.value === doc.id) return;
+    async function relocate(gedDocument, disk) {
+        if (!props.storagePath || relocatingId.value === gedDocument.id) return;
 
-        relocatingId.value = doc.id;
+        relocatingId.value = gedDocument.id;
         try {
-            const res = await request(
-                props.storagePath.replace("__id__", doc.id),
+            const response = await request(
+                props.storagePath.replace("__id__", gedDocument.id),
                 { disk },
             );
-            if (!res) return;
+            if (!response) return;
 
-            if (res.queued) {
-                patch(doc.id, { storageTransferState: "pending" });
+            if (response.queued) {
+                patch(gedDocument.id, { storageTransferState: "pending" });
                 toast.success(t("suite.ged.documents.relocation.queued"));
 
                 return;
             }
 
-            patch(doc.id, {
-                storageDisk: res.disk,
-                storageTransferState: res.state,
+            patch(gedDocument.id, {
+                storageDisk: response.disk,
+                storageTransferState: response.state,
                 storageTransferError: null,
             });
 
             toast.success(
                 t(
-                    res.alreadyThere
+                    response.alreadyThere
                         ? "suite.ged.documents.relocation.already_there"
                         : "suite.ged.documents.relocation.done",
                 ),

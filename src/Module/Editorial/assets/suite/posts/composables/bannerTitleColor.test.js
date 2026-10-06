@@ -8,8 +8,9 @@ import {
 
 function select(root, text) {
     const node =
-        [...root.childNodes].find((n) => n.textContent.includes(text)) ??
-        root.firstChild;
+        [...root.childNodes].find((child) =>
+            child.textContent.includes(text),
+        ) ?? root.firstChild;
     const target = node.nodeType === Node.TEXT_NODE ? node : node.firstChild;
     const start = target.textContent.indexOf(text);
     const range = document.createRange();

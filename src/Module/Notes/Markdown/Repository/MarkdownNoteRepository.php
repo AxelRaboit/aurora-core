@@ -85,31 +85,31 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * What a person can read: the notes of the spaces open to them,
      * according to the single rule of {@see NoteSpaceRepository::readableSubquery()}.
      */
-    private function visibleTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    private function visibleTo(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
+        $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
 
-        return NoteSpaceRepository::bindViewer($qb, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
     }
 
     /** What a person can write: the spaces where they are editor or above. */
-    private function writableTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    private function writableTo(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
+        $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
 
-        return NoteSpaceRepository::bindViewer($qb, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
     }
 
     /** The trash a person manages: that of the spaces where they write. */
-    private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    private function trashOf(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        return $this->writableTo($qb, $alias, $user);
+        return $this->writableTo($queryBuilder, $alias, $user);
     }
 
     /** The root of a space. */
-    private function rootOf(QueryBuilder $qb, string $alias, NoteSpaceInterface $space): void
+    private function rootOf(QueryBuilder $queryBuilder, string $alias, NoteSpaceInterface $space): void
     {
-        $qb->andWhere(sprintf('%s.space = :rootSpace', $alias))->setParameter('rootSpace', $space);
+        $queryBuilder->andWhere(sprintf('%s.space = :rootSpace', $alias))->setParameter('rootSpace', $space);
     }
 
     /** A date from array hydration, made readable by a browser. */
@@ -458,7 +458,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      */
     public function findLivingInFolder(NoteSpaceInterface $space, ?int $folderId): array
     {
-        $qb = $this->createQueryBuilder('n')
+        $queryBuilder = $this->createQueryBuilder('n')
             ->where('n.deletedAt IS NULL')
             ->orderBy('n.position', Order::Ascending->value)
             ->addOrderBy('n.id', Order::Ascending->value);
@@ -466,14 +466,14 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         // A folder says on its own where it is; the root, though, belongs to
         // nobody: a notebook's, or the team's.
         if (null === $folderId) {
-            $this->rootOf($qb, 'n', $space);
-            $qb->andWhere('n.folder IS NULL');
+            $this->rootOf($queryBuilder, 'n', $space);
+            $queryBuilder->andWhere('n.folder IS NULL');
         } else {
-            $qb->andWhere('IDENTITY(n.folder) = :folderId')
+            $queryBuilder->andWhere('IDENTITY(n.folder) = :folderId')
                 ->setParameter('folderId', $folderId);
         }
 
-        return $qb->getQuery()->getResult();
+        return $queryBuilder->getQuery()->getResult();
     }
 
     public function countTrashedForUser(CoreUserInterface $user): int
@@ -524,35 +524,35 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      */
     public function shiftAfter(NoteSpaceInterface $space, ?int $folderId, int $position): void
     {
-        $qb = $this->createQueryBuilder('n')
+        $queryBuilder = $this->createQueryBuilder('n')
             ->update()
             ->set('n.position', 'n.position + 1')
             ->where('n.position > :position')
             ->setParameter('position', $position);
 
         if (null === $folderId) {
-            $qb->andWhere('n.space = :space')->andWhere('n.folder IS NULL')->setParameter('space', $space);
+            $queryBuilder->andWhere('n.space = :space')->andWhere('n.folder IS NULL')->setParameter('space', $space);
         } else {
-            $qb->andWhere('IDENTITY(n.folder) = :folderId')->setParameter('folderId', $folderId);
+            $queryBuilder->andWhere('IDENTITY(n.folder) = :folderId')->setParameter('folderId', $folderId);
         }
 
-        $qb->getQuery()->execute();
+        $queryBuilder->getQuery()->execute();
     }
 
     public function findMaxPositionForUserAndFolder(NoteSpaceInterface $space, ?int $folderId): ?int
     {
-        $qb = $this->createQueryBuilder('n')
+        $queryBuilder = $this->createQueryBuilder('n')
             ->select('MAX(n.position)');
 
         if (null === $folderId) {
-            $this->rootOf($qb, 'n', $space);
-            $qb->andWhere('n.folder IS NULL');
+            $this->rootOf($queryBuilder, 'n', $space);
+            $queryBuilder->andWhere('n.folder IS NULL');
         } else {
-            $qb->andWhere('IDENTITY(n.folder) = :folderId')
+            $queryBuilder->andWhere('IDENTITY(n.folder) = :folderId')
                 ->setParameter('folderId', $folderId);
         }
 
-        $result = $qb->getQuery()->getSingleScalarResult();
+        $result = $queryBuilder->getQuery()->getSingleScalarResult();
 
         return null === $result ? null : (int) $result;
     }

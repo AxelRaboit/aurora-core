@@ -18,8 +18,8 @@ export function useNoteTagFilter(notesRef) {
                 }
             }
         }
-        return Array.from(set).sort((a, b) =>
-            a.localeCompare(b, undefined, { sensitivity: "base" }),
+        return Array.from(set).sort((left, right) =>
+            left.localeCompare(right, undefined, { sensitivity: "base" }),
         );
     });
 
@@ -44,7 +44,7 @@ export function useNoteTagFilter(notesRef) {
     function pruneMissingTags() {
         if (selectedTags.value.length === 0) return;
         const existing = new Set(
-            (notesRef.value ?? []).flatMap((n) => n.tags ?? []),
+            (notesRef.value ?? []).flatMap((note) => note.tags ?? []),
         );
         selectedTags.value = selectedTags.value.filter((tag) =>
             existing.has(tag),

@@ -86,8 +86,8 @@ final class NoteZipImportQueriesTest extends IntegrationTestCase
         $this->zips[] = $path;
         $zip = new ZipArchive();
         $zip->open($path, ZipArchive::CREATE);
-        for ($i = 1; $i <= $notes; ++$i) {
-            $zip->addFromString(sprintf('%s/Note %d.md', $folder, $i), sprintf("Le contenu %d.\n", $i));
+        for ($noteNumber = 1; $noteNumber <= $notes; ++$noteNumber) {
+            $zip->addFromString(sprintf('%s/Note %d.md', $folder, $noteNumber), sprintf("Le contenu %d.\n", $noteNumber));
         }
         $zip->close();
 

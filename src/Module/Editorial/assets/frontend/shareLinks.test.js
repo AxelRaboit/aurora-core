@@ -13,8 +13,8 @@ describe("shareLinks", () => {
     it("draws the default row for a page nobody configured", () => {
         const links = resolveShareLinks(null, URL, TITLE);
 
-        expect(links.map((l) => l.type)).toEqual(
-            DEFAULT_SHARE_LINKS.map((l) => l.type),
+        expect(links.map((link) => link.type)).toEqual(
+            DEFAULT_SHARE_LINKS.map((link) => link.type),
         );
         expect(links[1].href).toBe(
             `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(URL)}`,
@@ -59,7 +59,9 @@ describe("shareLinks", () => {
             TITLE,
         );
 
-        expect(links.map((l) => l.href)).toEqual(["mailto:hello@example.com"]);
+        expect(links.map((link) => link.href)).toEqual([
+            "mailto:hello@example.com",
+        ]);
     });
 
     it("keeps the order, the label and the colour it was given", () => {
@@ -72,7 +74,9 @@ describe("shareLinks", () => {
             TITLE,
         );
 
-        expect(links.map((l) => [l.type, l.label, l.color])).toEqual([
+        expect(
+            links.map((link) => [link.type, link.label, link.color]),
+        ).toEqual([
             ["whatsapp", "Envoyer", "#25d366"],
             ["copy", null, null],
         ]);

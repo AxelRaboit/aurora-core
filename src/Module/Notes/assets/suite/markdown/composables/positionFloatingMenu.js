@@ -22,15 +22,15 @@
  *
  * @param {HTMLTextAreaElement} textarea
  * @param {number} startIndex - caret offset to anchor the menu to
- * @param {object} [opts]
- * @param {number} [opts.menuWidth=224]  - matches `min-w-56` (14rem)
- * @param {number} [opts.menuHeight=256] - matches `max-h-64` (16rem)
- * @param {number} [opts.gap=8]          - space between caret line and menu
- * @param {number} [opts.margin=8]       - viewport edge breathing room
+ * @param {object} [options]
+ * @param {number} [options.menuWidth=224]  - matches `min-w-56` (14rem)
+ * @param {number} [options.menuHeight=256] - matches `max-h-64` (16rem)
+ * @param {number} [options.gap=8]          - space between caret line and menu
+ * @param {number} [options.margin=8]       - viewport edge breathing room
  * @returns {{ top: number, left: number, maxHeight: number }}
  */
-export function positionFloatingMenu(textarea, startIndex, opts = {}) {
-    const { menuWidth = 224, menuHeight = 256, gap = 8, margin = 8 } = opts;
+export function positionFloatingMenu(textarea, startIndex, options = {}) {
+    const { menuWidth = 224, menuHeight = 256, gap = 8, margin = 8 } = options;
 
     const text = textarea.value.substring(0, startIndex);
     const mirror = document.createElement("div");

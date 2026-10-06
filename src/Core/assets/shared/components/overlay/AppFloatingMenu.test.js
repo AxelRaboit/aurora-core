@@ -40,7 +40,7 @@ describe("AppFloatingMenu", () => {
 
     it("forwards the scoped slot for each item's content", () => {
         const wrapper = renderMenu();
-        const text = wrapper.findAll("button").map((b) => b.text());
+        const text = wrapper.findAll("button").map((button) => button.text());
         expect(text).toEqual(["Alpha", "Bravo", "Charlie"]);
     });
 

@@ -77,7 +77,9 @@ describe("SpaceResourcesView", () => {
         const wrapper = monter({ resources: [OUVERT, FERME] });
         await flushPromises();
 
-        const titres = wrapper.findAll("section h3").map((h) => h.text());
+        const titres = wrapper
+            .findAll("section h3")
+            .map((heading) => heading.text());
         expect(titres).toHaveLength(2);
         expect(titres[0]).toContain("group_shown");
         expect(titres[1]).toContain("group_hidden");
@@ -116,7 +118,9 @@ describe("SpaceResourcesView", () => {
 
         // A "what the client sees" heading above an empty list would announce a
         // publication that did not happen.
-        const titres = wrapper.findAll("section h3").map((h) => h.text());
+        const titres = wrapper
+            .findAll("section h3")
+            .map((heading) => heading.text());
         expect(titres).toHaveLength(1);
         expect(titres[0]).toContain("group_hidden");
     });

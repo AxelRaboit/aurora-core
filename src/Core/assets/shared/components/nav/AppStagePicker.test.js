@@ -3,16 +3,16 @@ import { mount } from "@vue/test-utils";
 import AppStagePicker from "./AppStagePicker.vue";
 
 const stages = ["draft", "active", "closed"];
-const labelFn = (s) => s.toUpperCase();
-const badgeFn = (s) => `badge-${s}`;
+const stageLabel = (stage) => stage.toUpperCase();
+const stageBadgeClass = (stage) => `badge-${stage}`;
 
 function mountPicker(props = {}) {
     return mount(AppStagePicker, {
         props: {
             modelValue: "draft",
             stages,
-            labelFn,
-            badgeFn,
+            labelFn: stageLabel,
+            badgeFn: stageBadgeClass,
             ...props,
         },
     });
@@ -47,8 +47,8 @@ describe("AppStagePicker", () => {
     it("disables all buttons when disabled prop is true", () => {
         const wrapper = mountPicker({ disabled: true });
         const buttons = wrapper.findAll("button");
-        buttons.forEach((btn) => {
-            expect(btn.attributes("disabled")).toBeDefined();
+        buttons.forEach((button) => {
+            expect(button.attributes("disabled")).toBeDefined();
         });
     });
 });

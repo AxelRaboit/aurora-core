@@ -28,8 +28,8 @@ function render(props = {}) {
 }
 
 const byText = (text) =>
-    [...document.body.querySelectorAll("button")].find((b) =>
-        b.textContent.includes(text),
+    [...document.body.querySelectorAll("button")].find((button) =>
+        button.textContent.includes(text),
     );
 
 afterEach(() => {

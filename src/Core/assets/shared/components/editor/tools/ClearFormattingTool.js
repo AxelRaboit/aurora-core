@@ -39,16 +39,17 @@ export class ClearFormattingTool {
     }
 
     _clear() {
-        const sel = window.getSelection();
-        if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount || selection.isCollapsed)
+            return;
 
         // 1. Browser-level cleanup (handles bold, italic, color, font, etc.)
         document.execCommand("removeFormat");
 
         // 2. Manual cleanup for tags removeFormat may not handle (custom spans, u, s, mark, ...)
-        const sel2 = window.getSelection();
-        if (!sel2 || !sel2.rangeCount) return;
-        const range = sel2.getRangeAt(0);
+        const cleanedSelection = window.getSelection();
+        if (!cleanedSelection || !cleanedSelection.rangeCount) return;
+        const range = cleanedSelection.getRangeAt(0);
 
         const root =
             range.commonAncestorContainer.nodeType === Node.TEXT_NODE
@@ -57,14 +58,17 @@ export class ClearFormattingTool {
         if (!root || !root.querySelectorAll) return;
 
         const candidates = Array.from(root.querySelectorAll("*")).filter(
-            (el) => INLINE_TAGS.has(el.tagName) && range.intersectsNode(el),
+            (element) =>
+                INLINE_TAGS.has(element.tagName) &&
+                range.intersectsNode(element),
         );
 
-        candidates.forEach((el) => {
-            const parent = el.parentNode;
+        candidates.forEach((inlineElement) => {
+            const parent = inlineElement.parentNode;
             if (!parent) return;
-            while (el.firstChild) parent.insertBefore(el.firstChild, el);
-            parent.removeChild(el);
+            while (inlineElement.firstChild)
+                parent.insertBefore(inlineElement.firstChild, inlineElement);
+            parent.removeChild(inlineElement);
         });
 
         if (root.normalize) root.normalize();

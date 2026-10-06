@@ -9,8 +9,8 @@ vi.mock("vue", async () => {
     return { ...actual, onBeforeUnmount: () => {} };
 });
 
-function wait(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+function wait(delayMs) {
+    return new Promise((resolve) => setTimeout(resolve, delayMs));
 }
 
 describe("useAutoSave", () => {

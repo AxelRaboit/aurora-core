@@ -86,7 +86,9 @@ function apis() {
 function rowMenu(card) {
     return card
         .findAll("button")
-        .find((b) => b.attributes("title")?.startsWith("shared.actions.open"));
+        .find((button) =>
+            button.attributes("title")?.startsWith("shared.actions.open"),
+        );
 }
 
 const mounted = [];
@@ -168,7 +170,7 @@ describe("the library", () => {
     it("points a note card at the note's own address", () => {
         const hrefs = render()
             .findAll("a")
-            .map((a) => a.attributes("href"));
+            .map((link) => link.attributes("href"));
 
         expect(hrefs).toContain("/suite/notes/markdown/11");
     });
@@ -178,7 +180,10 @@ describe("the library", () => {
 
         await wrapper
             .findAll("a")
-            .find((a) => a.attributes("href") === "/suite/notes/markdown/11")
+            .find(
+                (link) =>
+                    link.attributes("href") === "/suite/notes/markdown/11",
+            )
             .trigger("click");
 
         expect(wrapper.emitted("open-note")?.[0]).toEqual([11]);
@@ -192,8 +197,9 @@ describe("the library", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") === "notes.markdown.library.new_note",
+                (button) =>
+                    button.attributes("title") ===
+                    "notes.markdown.library.new_note",
             )
             .trigger("click");
 
@@ -267,8 +273,8 @@ describe("the library", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") ===
+                (button) =>
+                    button.attributes("title") ===
                     "notes.markdown.library.view.cards",
             )
             .trigger("click");
@@ -318,12 +324,12 @@ describe("the library", () => {
         await rowMenu(first).trigger("click");
         await flushPromises();
 
-        const up = [...document.body.querySelectorAll("button")].find((b) =>
-            b.textContent.includes("sort.move_up"),
+        const moveUpButton = [...document.body.querySelectorAll("button")].find(
+            (button) => button.textContent.includes("sort.move_up"),
         );
-        expect(up, "l'action monter est proposée").toBeTruthy();
+        expect(moveUpButton, "l'action monter est proposée").toBeTruthy();
 
-        up.click();
+        moveUpButton.click();
         await flushPromises();
 
         // Moving up one step in descending order means taking the highest
@@ -386,7 +392,7 @@ describe("the library", () => {
         await flushPromises();
 
         [...document.body.querySelectorAll("button")]
-            .find((b) => b.textContent.includes("sort.move_up"))
+            .find((button) => button.textContent.includes("sort.move_up"))
             .click();
         await flushPromises();
 
@@ -425,8 +431,8 @@ describe("the library", () => {
         await rowMenu(wrapper.findAll("article")[0]).trigger("click");
         await flushPromises();
 
-        const remove = [...document.body.querySelectorAll("button")].find((b) =>
-            b.textContent.includes("markdown.delete"),
+        const remove = [...document.body.querySelectorAll("button")].find(
+            (button) => button.textContent.includes("markdown.delete"),
         );
         expect(remove, "l'action supprimer est proposée").toBeTruthy();
         remove.click();
@@ -435,7 +441,7 @@ describe("the library", () => {
         // The action sheet and the confirmation carry the same label; the one
         // that just appeared is the last in the document.
         const confirm = [...document.body.querySelectorAll("button")]
-            .filter((b) => b.textContent.includes("markdown.delete"))
+            .filter((button) => button.textContent.includes("markdown.delete"))
             .at(-1);
         expect(confirm, "la confirmation est à l'écran").toBeTruthy();
         confirm.click();
@@ -473,12 +479,12 @@ describe("the library", () => {
 
         await wrapper
             .findAll("button")
-            .find((b) => b.text().includes("folders.move_to"))
+            .find((button) => button.text().includes("folders.move_to"))
             .trigger("click");
         await flushPromises();
 
         const confirm = [...document.body.querySelectorAll("button")]
-            .filter((b) => b.textContent.includes("folders.move_to"))
+            .filter((button) => button.textContent.includes("folders.move_to"))
             .at(-1);
         confirm.click();
         await flushPromises();
@@ -595,8 +601,8 @@ describe("the library", () => {
         await rowMenu(wrapper.findAll("article")[0]).trigger("click");
         await flushPromises();
 
-        const pin = [...document.body.querySelectorAll("button")].find((b) =>
-            b.textContent.includes("library.pin"),
+        const pin = [...document.body.querySelectorAll("button")].find(
+            (button) => button.textContent.includes("library.pin"),
         );
         expect(pin, "l'action épingler est proposée").toBeTruthy();
         pin.click();
@@ -719,10 +725,10 @@ describe("the library", () => {
             wrapper
                 .findAll("input")
                 .map(
-                    (i) =>
-                        i.attributes("type") +
+                    (input) =>
+                        input.attributes("type") +
                         "/" +
-                        (i.attributes("placeholder") ?? ""),
+                        (input.attributes("placeholder") ?? ""),
                 )
                 .join(" | "),
         );
@@ -731,8 +737,8 @@ describe("the library", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") ===
+                (button) =>
+                    button.attributes("title") ===
                     "notes.markdown.library.search_placeholder",
             )
             .trigger("click");
@@ -747,8 +753,8 @@ describe("the library", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") ===
+                (button) =>
+                    button.attributes("title") ===
                     "notes.markdown.library.search_placeholder",
             )
             .trigger("click");
@@ -768,8 +774,8 @@ describe("the library", () => {
 
         const trigger = wrapper
             .findAll("button")
-            .find((b) =>
-                b
+            .find((button) =>
+                button
                     .attributes("title")
                     ?.startsWith("notes.markdown.library.sort.label"),
             );
@@ -797,8 +803,8 @@ describe("the library", () => {
         const trigger = () =>
             wrapper
                 .findAll("button")
-                .find((b) =>
-                    b
+                .find((button) =>
+                    button
                         .attributes("title")
                         ?.startsWith("notes.markdown.library.sort.label"),
                 );
@@ -826,8 +832,8 @@ describe("the library", () => {
         function scopeButton(wrapper) {
             return wrapper
                 .findAll("button")
-                .find((b) =>
-                    b
+                .find((button) =>
+                    button
                         .attributes("title")
                         ?.startsWith("notes.markdown.library.scope"),
                 );
@@ -863,8 +869,8 @@ describe("the library", () => {
 
             const chip = wrapper
                 .findAll("button")
-                .find((b) =>
-                    b
+                .find((button) =>
+                    button
                         .attributes("title")
                         ?.startsWith(
                             "notes.markdown.library.scope.open_folder",
@@ -883,7 +889,7 @@ describe("the library", () => {
         it("keeps the folder name to itself when the list is filed", () => {
             const titles = render()
                 .findAll("button")
-                .map((b) => b.attributes("title") ?? "");
+                .map((button) => button.attributes("title") ?? "");
 
             expect(
                 titles.some((title) => title.includes("scope.open_folder")),
@@ -976,7 +982,9 @@ describe("the library", () => {
 
         const badge = wrapper
             .findAll("button")
-            .find((b) => b.attributes("title")?.includes("library.tag.filter"));
+            .find((button) =>
+                button.attributes("title")?.includes("library.tag.filter"),
+            );
 
         expect(badge, "l'étiquette se clique").toBeTruthy();
 
@@ -1010,8 +1018,8 @@ describe("the library", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") ===
+                (button) =>
+                    button.attributes("title") ===
                     "notes.markdown.library.view.list",
             )
             .trigger("click");
@@ -1030,8 +1038,8 @@ describe("the library", () => {
          * which is higher in the document.
          */
         function filtre(wrapper) {
-            return wrapper.findAll("button").find((b) => {
-                const titre = b.attributes("title") ?? "";
+            return wrapper.findAll("button").find((button) => {
+                const titre = button.attributes("title") ?? "";
 
                 return (
                     titre.includes("library.visibility") &&
@@ -1104,8 +1112,8 @@ describe("the library", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") ===
+                (button) =>
+                    button.attributes("title") ===
                     "notes.markdown.library.view.list",
             )
             .trigger("click");
@@ -1120,8 +1128,8 @@ describe("the library", () => {
         await wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") ===
+                (button) =>
+                    button.attributes("title") ===
                     "notes.markdown.library.search_placeholder",
             )
             .trigger("click");

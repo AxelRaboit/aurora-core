@@ -555,7 +555,7 @@ function jumpToHeading(heading) {
 
     const preview = previewPaneRef.value;
     if (preview && 'edit' !== viewMode.value) {
-        const matches = [...preview.querySelectorAll('h1, h2, h3, h4, h5, h6')].filter((el) => normalise(el.textContent) === normalise(heading.text));
+        const matches = [...preview.querySelectorAll('h1, h2, h3, h4, h5, h6')].filter((headingElement) => normalise(headingElement.textContent) === normalise(heading.text));
         const target = matches[before] ?? null;
 
         // Only the pane scrolls: `scrollIntoView` also took the page along,
@@ -1104,7 +1104,7 @@ function announce() {
 onMounted(() => {
     for (const [intent, run] of Object.entries(PANEL_INTENTS)) {
         stopListening.push(
-            onPanelRequest(`notes:${intent}`, ({ args = [] }) => run(...args)),
+            onPanelRequest(`notes:${intent}`, ({ args: intentArguments = [] }) => run(...intentArguments)),
         );
     }
 

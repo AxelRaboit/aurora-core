@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import LabelBlock, { LABEL_TONES } from "./LabelBlock.js";
-import { REPO_ROOT } from "@/tests/helpers/phpSources.js";
+import { REPOSITORY_ROOT } from "@/tests/helpers/phpSources.js";
 
 function tool(data = {}) {
     const block = new LabelBlock({ data, config: {} });
@@ -14,7 +14,7 @@ describe("LabelBlock", () => {
     /** Mirrors BlocksRenderer::LABEL_TONES: a colour the page cannot draw is a lie in the picker. */
     it("offers the tones the page knows how to draw", () => {
         const php = fs.readFileSync(
-            `${REPO_ROOT}/src/Module/Editorial/Post/Service/BlocksRenderer.php`,
+            `${REPOSITORY_ROOT}/src/Module/Editorial/Post/Service/BlocksRenderer.php`,
             "utf8",
         );
         const declared = php

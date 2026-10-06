@@ -37,7 +37,7 @@ final class StoredFileNameTest extends TestCase
     {
         $names = [];
 
-        for ($i = 0; $i < 200; ++$i) {
+        for ($attempt = 0; $attempt < 200; ++$attempt) {
             $names[] = StoredFileName::bare();
         }
 

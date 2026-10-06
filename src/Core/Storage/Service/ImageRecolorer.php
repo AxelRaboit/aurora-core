@@ -142,13 +142,13 @@ final readonly class ImageRecolorer
                     continue;
                 }
 
-                $r = ($colour >> 16) & 255;
-                $g = ($colour >> 8) & 255;
-                $b = $colour & 255;
+                $red = ($colour >> 16) & 255;
+                $green = ($colour >> 8) & 255;
+                $blue = $colour & 255;
                 imagesetpixel($image, $x, $y, ($pixel & 0x7F000000)
-                    | ((int) round($r + (((($move >> 16) & 255) - $r) * $weight)) << 16)
-                    | ((int) round($g + (((($move >> 8) & 255) - $g) * $weight)) << 8)
-                    | (int) round($b + ((($move & 255) - $b) * $weight)));
+                    | ((int) round($red + (((($move >> 16) & 255) - $red) * $weight)) << 16)
+                    | ((int) round($green + (((($move >> 8) & 255) - $green) * $weight)) << 8)
+                    | (int) round($blue + ((($move & 255) - $blue) * $weight)));
             }
         }
 
@@ -185,25 +185,25 @@ final readonly class ImageRecolorer
                     continue;
                 }
 
-                [$h, $s, $l] = $this->hsl(($pixel >> 16) & 255, ($pixel >> 8) & 255, $pixel & 255);
-                if ($s < 0.15) {
+                [$sampleHue, $sampleSaturation, $sampleLightness] = $this->hsl(($pixel >> 16) & 255, ($pixel >> 8) & 255, $pixel & 255);
+                if ($sampleSaturation < 0.15) {
                     continue;
                 }
 
-                if ($l < 0.04) {
+                if ($sampleLightness < 0.04) {
                     continue;
                 }
 
-                if ($l > 0.92) {
+                if ($sampleLightness > 0.92) {
                     continue;
                 }
 
                 // By saturation, not by vividness: the large dark gradient of
                 // a background is what the visual is "in", more than a small
                 // bright sky in an inlaid photo.
-                $weight = $s;
-                $bins[(int) ($h / 10) % 36] += $weight;
-                $samples[] = [$h, $s, $weight];
+                $weight = $sampleSaturation;
+                $bins[(int) ($sampleHue / 10) % 36] += $weight;
+                $samples[] = [$sampleHue, $sampleSaturation, $weight];
             }
         }
 
@@ -217,15 +217,15 @@ final readonly class ImageRecolorer
         $cos = 0.0;
         $saturation = 0.0;
         $total = 0.0;
-        foreach ($samples as [$h, $s, $weight]) {
-            $bin = (int) ($h / 10) % 36;
+        foreach ($samples as [$sampleHue, $sampleSaturation, $weight]) {
+            $bin = (int) ($sampleHue / 10) % 36;
             if (min(abs($bin - $peak), 36 - abs($bin - $peak)) > 1) {
                 continue;
             }
 
-            $sin += sin(deg2rad($h)) * $weight;
-            $cos += cos(deg2rad($h)) * $weight;
-            $saturation += $s * $weight;
+            $sin += sin(deg2rad($sampleHue)) * $weight;
+            $cos += cos(deg2rad($sampleHue)) * $weight;
+            $saturation += $sampleSaturation * $weight;
             $total += $weight;
         }
 
@@ -237,21 +237,21 @@ final readonly class ImageRecolorer
     /** @param list<array{0: int, 1: int, 2: int}> $spared */
     private function move(int $colour, float $fromHue, float $toHue, float $saturationScale, array $spared): int
     {
-        $r = ($colour >> 16) & 255;
-        $g = ($colour >> 8) & 255;
-        $b = $colour & 255;
+        $red = ($colour >> 16) & 255;
+        $green = ($colour >> 8) & 255;
+        $blue = $colour & 255;
 
-        [$h, $s, $l] = $this->hsl($r, $g, $b);
+        [$hue, $saturation, $lightness] = $this->hsl($red, $green, $blue);
 
-        $distance = abs(fmod($h - $fromHue + 540, 360) - 180);
+        $distance = abs(fmod($hue - $fromHue + 540, 360) - 180);
         $weight = min(1.0, max(0.0, (self::CORE_DEGREES + self::FADE_DEGREES - $distance) / self::FADE_DEGREES));
 
-        foreach ($spared as [$sr, $sg, $sb]) {
+        foreach ($spared as [$sparedRed, $sparedGreen, $sparedBlue]) {
             if (0.0 === $weight) {
                 break;
             }
 
-            $gap = sqrt(($r - $sr) ** 2 + ($g - $sg) ** 2 + ($b - $sb) ** 2);
+            $gap = sqrt(($red - $sparedRed) ** 2 + ($green - $sparedGreen) ** 2 + ($blue - $sparedBlue) ** 2);
             $weight *= min(1.0, max(0.0, ($gap - self::SPARE_CORE) / self::SPARE_FADE));
         }
 
@@ -259,9 +259,9 @@ final readonly class ImageRecolorer
             return 0;
         }
 
-        [$nr, $ng, $nb] = $this->rgbFromHsl($toHue, min(1.0, $s * $saturationScale), $l);
+        [$newRed, $newGreen, $newBlue] = $this->rgbFromHsl($toHue, min(1.0, $saturation * $saturationScale), $lightness);
 
-        return ((int) round($weight * 127) << 24) | ((int) round($nr) << 16) | ((int) round($ng) << 8) | (int) round($nb);
+        return ((int) round($weight * 127) << 24) | ((int) round($newRed) << 16) | ((int) round($newGreen) << 8) | (int) round($newBlue);
     }
 
     /**
@@ -284,13 +284,13 @@ final readonly class ImageRecolorer
         $columns = intdiv($width - 1, $block) + 1;
 
         $detail = [];
-        for ($by = 0; $by < $rows; ++$by) {
-            for ($bx = 0; $bx < $columns; ++$bx) {
+        for ($blockRow = 0; $blockRow < $rows; ++$blockRow) {
+            for ($blockColumn = 0; $blockColumn < $columns; ++$blockColumn) {
                 $sum = 0.0;
                 $squares = 0.0;
                 $count = 0;
-                for ($y = $by * $block; $y < min($height, ($by + 1) * $block); $y += 2) {
-                    for ($x = $bx * $block; $x < min($width, ($bx + 1) * $block); $x += 2) {
+                for ($y = $blockRow * $block; $y < min($height, ($blockRow + 1) * $block); $y += 2) {
+                    for ($x = $blockColumn * $block; $x < min($width, ($blockColumn + 1) * $block); $x += 2) {
                         $pixel = imagecolorat($image, $x, $y);
                         $luma = (0.299 * (($pixel >> 16) & 255) + 0.587 * (($pixel >> 8) & 255) + 0.114 * ($pixel & 255)) / 255;
                         $sum += $luma;
@@ -300,7 +300,7 @@ final readonly class ImageRecolorer
                 }
 
                 $mean = $sum / $count;
-                $detail[$by][$bx] = sqrt(max(0.0, $squares / $count - $mean * $mean)) > self::DETAIL_SPREAD ? 1.0 : 0.0;
+                $detail[$blockRow][$blockColumn] = sqrt(max(0.0, $squares / $count - $mean * $mean)) > self::DETAIL_SPREAD ? 1.0 : 0.0;
             }
         }
 
@@ -317,20 +317,20 @@ final readonly class ImageRecolorer
 
         // A block's worth of softness, so no seam is drawn at the border.
         $shield = [];
-        for ($by = 0; $by < $rows; ++$by) {
-            for ($bx = 0; $bx < $columns; ++$bx) {
+        for ($blockRow = 0; $blockRow < $rows; ++$blockRow) {
+            for ($blockColumn = 0; $blockColumn < $columns; ++$blockColumn) {
                 $total = 0.0;
                 $count = 0;
-                for ($dy = -1; $dy <= 1; ++$dy) {
-                    for ($dx = -1; $dx <= 1; ++$dx) {
-                        if (isset($closed[$by + $dy][$bx + $dx])) {
-                            $total += $closed[$by + $dy][$bx + $dx];
+                for ($deltaY = -1; $deltaY <= 1; ++$deltaY) {
+                    for ($deltaX = -1; $deltaX <= 1; ++$deltaX) {
+                        if (isset($closed[$blockRow + $deltaY][$blockColumn + $deltaX])) {
+                            $total += $closed[$blockRow + $deltaY][$blockColumn + $deltaX];
                             ++$count;
                         }
                     }
                 }
 
-                $shield[$by][$bx] = $total / $count;
+                $shield[$blockRow][$blockColumn] = $total / $count;
             }
         }
 
@@ -347,26 +347,26 @@ final readonly class ImageRecolorer
     private function withoutSmallPatches(array $mask, int $rows, int $columns, int $minimum): array
     {
         $seen = [];
-        for ($by = 0; $by < $rows; ++$by) {
-            for ($bx = 0; $bx < $columns; ++$bx) {
-                if (1.0 !== $mask[$by][$bx]) {
+        for ($blockRow = 0; $blockRow < $rows; ++$blockRow) {
+            for ($blockColumn = 0; $blockColumn < $columns; ++$blockColumn) {
+                if (1.0 !== $mask[$blockRow][$blockColumn]) {
                     continue;
                 }
 
-                if (isset($seen[$by][$bx])) {
+                if (isset($seen[$blockRow][$blockColumn])) {
                     continue;
                 }
 
                 $patch = [];
-                $queue = [[$by, $bx]];
-                $seen[$by][$bx] = true;
+                $queue = [[$blockRow, $blockColumn]];
+                $seen[$blockRow][$blockColumn] = true;
                 while ([] !== $queue) {
                     [$y, $x] = array_pop($queue);
                     $patch[] = [$y, $x];
-                    foreach ([[-1, 0], [1, 0], [0, -1], [0, 1]] as [$dy, $dx]) {
-                        if (1.0 === ($mask[$y + $dy][$x + $dx] ?? 0.0) && !isset($seen[$y + $dy][$x + $dx])) {
-                            $seen[$y + $dy][$x + $dx] = true;
-                            $queue[] = [$y + $dy, $x + $dx];
+                    foreach ([[-1, 0], [1, 0], [0, -1], [0, 1]] as [$deltaY, $deltaX]) {
+                        if (1.0 === ($mask[$y + $deltaY][$x + $deltaX] ?? 0.0) && !isset($seen[$y + $deltaY][$x + $deltaX])) {
+                            $seen[$y + $deltaY][$x + $deltaX] = true;
+                            $queue[] = [$y + $deltaY, $x + $deltaX];
                         }
                     }
                 }
@@ -394,30 +394,30 @@ final readonly class ImageRecolorer
     {
         $outside = [];
         $queue = [];
-        for ($by = 0; $by < $rows; ++$by) {
-            for ($bx = 0; $bx < $columns; ++$bx) {
-                $edge = 0 === $by || 0 === $bx || $rows - 1 === $by || $columns - 1 === $bx;
-                if ($edge && 0.0 === $mask[$by][$bx]) {
-                    $outside[$by][$bx] = true;
-                    $queue[] = [$by, $bx];
+        for ($blockRow = 0; $blockRow < $rows; ++$blockRow) {
+            for ($blockColumn = 0; $blockColumn < $columns; ++$blockColumn) {
+                $edge = 0 === $blockRow || 0 === $blockColumn || $rows - 1 === $blockRow || $columns - 1 === $blockColumn;
+                if ($edge && 0.0 === $mask[$blockRow][$blockColumn]) {
+                    $outside[$blockRow][$blockColumn] = true;
+                    $queue[] = [$blockRow, $blockColumn];
                 }
             }
         }
 
         while ([] !== $queue) {
             [$y, $x] = array_pop($queue);
-            foreach ([[-1, 0], [1, 0], [0, -1], [0, 1]] as [$dy, $dx]) {
-                if (0.0 === ($mask[$y + $dy][$x + $dx] ?? 1.0) && !isset($outside[$y + $dy][$x + $dx])) {
-                    $outside[$y + $dy][$x + $dx] = true;
-                    $queue[] = [$y + $dy, $x + $dx];
+            foreach ([[-1, 0], [1, 0], [0, -1], [0, 1]] as [$deltaY, $deltaX]) {
+                if (0.0 === ($mask[$y + $deltaY][$x + $deltaX] ?? 1.0) && !isset($outside[$y + $deltaY][$x + $deltaX])) {
+                    $outside[$y + $deltaY][$x + $deltaX] = true;
+                    $queue[] = [$y + $deltaY, $x + $deltaX];
                 }
             }
         }
 
-        for ($by = 0; $by < $rows; ++$by) {
-            for ($bx = 0; $bx < $columns; ++$bx) {
-                if (!isset($outside[$by][$bx])) {
-                    $mask[$by][$bx] = 1.0;
+        for ($blockRow = 0; $blockRow < $rows; ++$blockRow) {
+            for ($blockColumn = 0; $blockColumn < $columns; ++$blockColumn) {
+                if (!isset($outside[$blockRow][$blockColumn])) {
+                    $mask[$blockRow][$blockColumn] = 1.0;
                 }
             }
         }
@@ -436,14 +436,14 @@ final readonly class ImageRecolorer
     {
         $want = $grow ? 1.0 : 0.0;
         $out = [];
-        for ($by = 0; $by < $rows; ++$by) {
-            for ($bx = 0; $bx < $columns; ++$bx) {
+        for ($blockRow = 0; $blockRow < $rows; ++$blockRow) {
+            for ($blockColumn = 0; $blockColumn < $columns; ++$blockColumn) {
                 $value = 1.0 - $want;
-                for ($dy = -$radius; $dy <= $radius && $value !== $want; ++$dy) {
-                    for ($dx = -$radius; $dx <= $radius; ++$dx) {
+                for ($deltaY = -$radius; $deltaY <= $radius && $value !== $want; ++$deltaY) {
+                    for ($deltaX = -$radius; $deltaX <= $radius; ++$deltaX) {
                         // Off the image counts as empty when growing and as
                         // filled when shrinking, so a photo at the edge keeps it.
-                        if (($mask[$by + $dy][$bx + $dx] ?? (1.0 - $want)) === $want) {
+                        if (($mask[$blockRow + $deltaY][$blockColumn + $deltaX] ?? (1.0 - $want)) === $want) {
                             $value = $want;
 
                             break;
@@ -451,7 +451,7 @@ final readonly class ImageRecolorer
                     }
                 }
 
-                $out[$by][$bx] = $value;
+                $out[$blockRow][$blockColumn] = $value;
             }
         }
 
@@ -465,47 +465,47 @@ final readonly class ImageRecolorer
     }
 
     /** @return array{0: float, 1: float, 2: float} hue in degrees, saturation and lightness in [0, 1] */
-    private function hsl(int $r, int $g, int $b): array
+    private function hsl(int $red, int $green, int $blue): array
     {
-        $r /= 255.0;
-        $g /= 255.0;
-        $b /= 255.0;
-        $max = max($r, $g, $b);
-        $min = min($r, $g, $b);
-        $l = ($max + $min) / 2;
-        $d = $max - $min;
+        $red /= 255.0;
+        $green /= 255.0;
+        $blue /= 255.0;
+        $max = max($red, $green, $blue);
+        $min = min($red, $green, $blue);
+        $lightness = ($max + $min) / 2;
+        $chroma = $max - $min;
 
-        if ($d <= 0.0) {
-            return [0.0, 0.0, $l];
+        if ($chroma <= 0.0) {
+            return [0.0, 0.0, $lightness];
         }
 
-        $s = $l > 0.5 ? $d / (2 - $max - $min) : $d / ($max + $min);
-        $h = match ($max) {
-            $r => fmod(($g - $b) / $d + 6, 6),
-            $g => ($b - $r) / $d + 2,
-            default => ($r - $g) / $d + 4,
+        $saturation = $lightness > 0.5 ? $chroma / (2 - $max - $min) : $chroma / ($max + $min);
+        $hue = match ($max) {
+            $red => fmod(($green - $blue) / $chroma + 6, 6),
+            $green => ($blue - $red) / $chroma + 2,
+            default => ($red - $green) / $chroma + 4,
         };
 
-        return [$h * 60, $s, $l];
+        return [$hue * 60, $saturation, $lightness];
     }
 
     /** @return array{0: float, 1: float, 2: float} channels in [0, 255] */
-    private function rgbFromHsl(float $h, float $s, float $l): array
+    private function rgbFromHsl(float $hue, float $saturation, float $lightness): array
     {
-        $c = (1 - abs(2 * $l - 1)) * $s;
-        $x = $c * (1 - abs(fmod($h / 60, 2) - 1));
-        $m = $l - $c / 2;
+        $chroma = (1 - abs(2 * $lightness - 1)) * $saturation;
+        $intermediate = $chroma * (1 - abs(fmod($hue / 60, 2) - 1));
+        $lightnessOffset = $lightness - $chroma / 2;
 
-        [$r, $g, $b] = match ((int) ($h / 60) % 6) {
-            0 => [$c, $x, 0.0],
-            1 => [$x, $c, 0.0],
-            2 => [0.0, $c, $x],
-            3 => [0.0, $x, $c],
-            4 => [$x, 0.0, $c],
-            default => [$c, 0.0, $x],
+        [$red, $green, $blue] = match ((int) ($hue / 60) % 6) {
+            0 => [$chroma, $intermediate, 0.0],
+            1 => [$intermediate, $chroma, 0.0],
+            2 => [0.0, $chroma, $intermediate],
+            3 => [0.0, $intermediate, $chroma],
+            4 => [$intermediate, 0.0, $chroma],
+            default => [$chroma, 0.0, $intermediate],
         };
 
-        return [($r + $m) * 255, ($g + $m) * 255, ($b + $m) * 255];
+        return [($red + $lightnessOffset) * 255, ($green + $lightnessOffset) * 255, ($blue + $lightnessOffset) * 255];
     }
 
     private function load(string $path, MimeTypeEnum $mime): ?GdImage

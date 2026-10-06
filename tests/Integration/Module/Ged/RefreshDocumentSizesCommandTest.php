@@ -29,7 +29,7 @@ use function uniqid;
  */
 final class RefreshDocumentSizesCommandTest extends IntegrationTestCase
 {
-    private string $uploadDir;
+    private string $uploadDirectory;
 
     private EntityManagerInterface $entityManager;
 
@@ -37,7 +37,7 @@ final class RefreshDocumentSizesCommandTest extends IntegrationTestCase
     {
         parent::setUp();
         static::createClient();
-        $this->uploadDir = (string) static::getContainer()->getParameter('app.upload_dir');
+        $this->uploadDirectory = (string) static::getContainer()->getParameter('app.upload_dir');
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
     }
 
@@ -83,7 +83,7 @@ final class RefreshDocumentSizesCommandTest extends IntegrationTestCase
         $relative = 'ged/9991/01/size-'.uniqid().'.bin';
 
         if (null !== $stored) {
-            $absolute = $this->uploadDir.'/'.$relative;
+            $absolute = $this->uploadDirectory.'/'.$relative;
 
             if (!is_dir(dirname($absolute))) {
                 mkdir(dirname($absolute), 0o777, true);

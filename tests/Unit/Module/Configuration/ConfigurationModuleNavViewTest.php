@@ -40,7 +40,7 @@ final class ConfigurationModuleNavViewTest extends TestCase
         $settings = $this->group($view->groups, 'settings');
         self::assertSame(
             ['general', 'seo', 'navigation'],
-            array_map(static fn (NavItem $item): string => (string) $item->routeParams['tab'], $settings->items),
+            array_map(static fn (NavItem $item): string => (string) $item->routeParameters['tab'], $settings->items),
         );
     }
 

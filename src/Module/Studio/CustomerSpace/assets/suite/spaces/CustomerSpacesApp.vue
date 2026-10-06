@@ -165,18 +165,18 @@ const { formatDate } = useDateFormat();
 const byUrgency = ref(false);
 
 function urgencyOf(space) {
-    const w = space.workload ?? {};
+    const workload = space.workload ?? {};
 
-    return [w.missed ?? 0, w.lateReview ?? 0, w.changesRequested ?? 0, w.withClient ?? 0];
+    return [workload.missed ?? 0, workload.lateReview ?? 0, workload.changesRequested ?? 0, workload.withClient ?? 0];
 }
 
 const rows = computed(() => {
     if (!byUrgency.value) return visibleItems.value;
 
-    return [...visibleItems.value].sort((a, b) => {
-        const [x, y] = [urgencyOf(a), urgencyOf(b)];
-        for (let i = 0; i < x.length; i += 1) {
-            if (x[i] !== y[i]) return y[i] - x[i];
+    return [...visibleItems.value].sort((left, right) => {
+        const [leftUrgency, rightUrgency] = [urgencyOf(left), urgencyOf(right)];
+        for (let level = 0; level < leftUrgency.length; level += 1) {
+            if (leftUrgency[level] !== rightUrgency[level]) return rightUrgency[level] - leftUrgency[level];
         }
 
         return 0;

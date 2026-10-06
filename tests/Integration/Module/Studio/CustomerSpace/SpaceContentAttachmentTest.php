@@ -59,7 +59,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
     private SpaceContentAttachmentRepository $attachments;
 
     /** @var list<string> */
-    private array $tempFiles = [];
+    private array $temporaryFiles = [];
 
     protected function setUp(): void
     {
@@ -93,13 +93,13 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
-        foreach ($this->tempFiles as $path) {
+        foreach ($this->temporaryFiles as $path) {
             if (is_file($path)) {
                 unlink($path);
             }
         }
 
-        $this->tempFiles = [];
+        $this->temporaryFiles = [];
 
         parent::tearDown();
     }
@@ -509,7 +509,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
     {
         $path = sys_get_temp_dir().'/aurora-space-upload-'.bin2hex(random_bytes(4)).'-'.$name;
         file_put_contents($path, $this->jpegBytes());
-        $this->tempFiles[] = $path;
+        $this->temporaryFiles[] = $path;
 
         $this->client->request(
             'POST',

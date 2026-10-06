@@ -54,7 +54,7 @@ final readonly class DeliverableSlidesViewBuilder
      */
     public function editorView(DeliverableInterface $deliverable): array
     {
-        $params = ['id' => $deliverable->getId()];
+        $parameters = ['id' => $deliverable->getId()];
         $canWrite = $this->access->canWrite($deliverable);
 
         return [
@@ -63,7 +63,7 @@ final readonly class DeliverableSlidesViewBuilder
             // client, shelf): the editor's "Réglages" dialog writes them
             // through a deliverable save, like a page's tab.
             ...$this->deliverablesView->editorView($deliverable),
-            ...$this->slidePaths('suite_studio_deliverables_slides_', $params, $canWrite),
+            ...$this->slidePaths('suite_studio_deliverables_slides_', $parameters, $canWrite),
             'backPath' => $this->urlGenerator->generate('suite_studio_deliverables').'?scope='.$deliverable->getScope()->value,
         ];
     }
@@ -117,14 +117,14 @@ final readonly class DeliverableSlidesViewBuilder
      * The editor's addresses and the options it offers, under the routes of
      * its place: Studio's or a space's.
      *
-     * @param array<string, int|null> $params
+     * @param array<string, int|null> $parameters
      *
      * @return array<string, mixed>
      */
-    private function slidePaths(string $prefix, array $params, bool $canWrite): array
+    private function slidePaths(string $prefix, array $parameters, bool $canWrite): array
     {
-        $route = fn (string $action): string => $this->urlGenerator->generate($prefix.$action, $params);
-        $slide = fn (string $action): string => $this->pathTemplates->generate($prefix.$action, [...$params, 'slideId' => '__slideId__']);
+        $route = fn (string $action): string => $this->urlGenerator->generate($prefix.$action, $parameters);
+        $slide = fn (string $action): string => $this->pathTemplates->generate($prefix.$action, [...$parameters, 'slideId' => '__slideId__']);
 
         return [
             ...$this->editorOptions->all(),

@@ -33,7 +33,7 @@ final class AssetBuildStamp
 
     public function __construct(
         #[Autowire(param: 'kernel.project_dir')]
-        private readonly string $projectDir,
+        private readonly string $projectDirectory,
     ) {}
 
     /** Null when there is no built manifest, which is the dev-server case. */
@@ -45,7 +45,7 @@ final class AssetBuildStamp
 
         $this->resolved = true;
 
-        $manifest = $this->projectDir.self::MANIFEST;
+        $manifest = $this->projectDirectory.self::MANIFEST;
         $modifiedAt = is_file($manifest) ? filemtime($manifest) : false;
 
         if (false !== $modifiedAt) {

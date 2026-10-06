@@ -52,8 +52,8 @@ const props = defineProps({
 });
 
 const visible = ref(false);
-const triggerEl = ref(null);
-const tooltipEl = ref(null);
+const triggerElement = ref(null);
+const tooltipElement = ref(null);
 const tooltipStyle = ref({});
 const resolvedPlacement = ref(props.placement);
 
@@ -86,12 +86,12 @@ function hide() {
 }
 
 function position() {
-    if (!triggerEl.value || !tooltipEl.value) return;
+    if (!triggerElement.value || !tooltipElement.value) return;
     // The wrapper uses `display: contents` so it has no layout box of its own -
     // measure the first real child element instead (the actual nav button/link).
-    const anchor = triggerEl.value.firstElementChild ?? triggerEl.value;
+    const anchor = triggerElement.value.firstElementChild ?? triggerElement.value;
     const triggerRect = anchor.getBoundingClientRect();
-    const tooltipRect = tooltipEl.value.getBoundingClientRect();
+    const tooltipRect = tooltipElement.value.getBoundingClientRect();
     const gap = 8;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -117,26 +117,26 @@ function position() {
     };
 
     const opposite = { right: "left", left: "right", top: "bottom", bottom: "top" };
-    const fitsViewport = (pos) =>
-        pos.left >= 0 &&
-        pos.top >= 0 &&
-        pos.left + tooltipRect.width <= viewportWidth &&
-        pos.top + tooltipRect.height <= viewportHeight;
+    const fitsViewport = (coordinates) =>
+        coordinates.left >= 0 &&
+        coordinates.top >= 0 &&
+        coordinates.left + tooltipRect.width <= viewportWidth &&
+        coordinates.top + tooltipRect.height <= viewportHeight;
 
     let chosen = props.placement;
-    let pos = placements[chosen]();
-    if (!fitsViewport(pos)) {
+    let coordinates = placements[chosen]();
+    if (!fitsViewport(coordinates)) {
         const flipped = opposite[chosen];
-        const flippedPos = placements[flipped]();
-        if (fitsViewport(flippedPos)) {
+        const flippedCoordinates = placements[flipped]();
+        if (fitsViewport(flippedCoordinates)) {
             chosen = flipped;
-            pos = flippedPos;
+            coordinates = flippedCoordinates;
         }
     }
 
     // Final clamp inside the viewport so a too-tall or too-wide tooltip stays visible.
-    const left = Math.max(4, Math.min(pos.left, viewportWidth - tooltipRect.width - 4));
-    const top = Math.max(4, Math.min(pos.top, viewportHeight - tooltipRect.height - 4));
+    const left = Math.max(4, Math.min(coordinates.left, viewportWidth - tooltipRect.width - 4));
+    const top = Math.max(4, Math.min(coordinates.top, viewportHeight - tooltipRect.height - 4));
 
     resolvedPlacement.value = chosen;
     tooltipStyle.value = { left: `${left}px`, top: `${top}px` };
@@ -147,7 +147,7 @@ onBeforeUnmount(() => clearShowTimer());
 
 <template>
     <div
-        ref="triggerEl"
+        ref="triggerElement"
         class="contents"
         v-on:mouseenter="show"
         v-on:mouseleave="hide"
@@ -168,7 +168,7 @@ onBeforeUnmount(() => clearShowTimer());
         >
             <div
                 v-if="visible"
-                ref="tooltipEl"
+                ref="tooltipElement"
                 role="tooltip"
                 class="fixed pointer-events-none z-100 px-3 py-2 max-w-xs rounded-lg bg-surface-3 border border-line shadow-xl text-sm"
                 :style="tooltipStyle"

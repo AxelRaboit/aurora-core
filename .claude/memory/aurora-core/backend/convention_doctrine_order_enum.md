@@ -10,12 +10,12 @@ Dans les Repositories Doctrine, utiliser **toujours** l'enum
 use Doctrine\Common\Collections\Order;
 
 // ✅ BON
-$qb->orderBy('a.name', Order::Ascending->value);
-$qb->orderBy('a.createdAt', Order::Descending->value);
+$queryBuilder->orderBy('a.name', Order::Ascending->value);
+$queryBuilder->orderBy('a.createdAt', Order::Descending->value);
 
 // ❌ MAUVAIS
-$qb->orderBy('a.name', 'ASC');
-$qb->orderBy('a.createdAt', 'DESC');
+$queryBuilder->orderBy('a.name', 'ASC');
+$queryBuilder->orderBy('a.createdAt', 'DESC');
 ```
 
 ## Pourquoi
@@ -74,7 +74,7 @@ public function findPaginated(int $page, string $direction = 'asc'): array
 ### Avec `findBy()` aussi
 
 ```php
-$repo->findBy(['status' => 'active'], ['createdAt' => Order::Descending->value]);
+$repository->findBy(['status' => 'active'], ['createdAt' => Order::Descending->value]);
 ```
 
 ## Exception : DQL inline avec ordre dans la string

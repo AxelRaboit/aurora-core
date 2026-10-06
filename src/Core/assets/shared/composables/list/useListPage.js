@@ -11,31 +11,31 @@ import { useUrlSearchSync } from "@/shared/composables/list/useUrlSearchSync.js"
  * Returns { items, loading, page, totalPages, total, search, onSearch, goToPage, reload, load }.
  *
  * @param {string|(()=>string)} listPath        - list endpoint URL or factory
- * @param {object}              opts            - { initialSearch, initialData, extraParams, searchParam, onData }
- * @param {string}              opts.initialSearch       Default search value (typically `props.search`)
- * @param {object|null}         opts.initialData         SSR-rendered first page payload (skip first XHR)
- * @param {() => object}        opts.extraParams         Extra URL params (filters, etc.)
- * @param {string}              opts.searchParam         URL query param name (default: "search")
- * @param {(data) => void}      opts.onData              Callback for extra payload fields
+ * @param {object}              options         - { initialSearch, initialData, extraParams, searchParam, onData }
+ * @param {string}              options.initialSearch    Default search value (typically `props.search`)
+ * @param {object|null}         options.initialData      SSR-rendered first page payload (skip first XHR)
+ * @param {() => object}        options.extraParams      Extra URL params (filters, etc.)
+ * @param {string}              options.searchParam      URL query param name (default: "search")
+ * @param {(data) => void}      options.onData           Callback for extra payload fields
  */
-export function useListPage(listPath, opts = {}) {
+export function useListPage(listPath, options = {}) {
     const {
         initialSearch = "",
         initialData = null,
-        extraParams = () => ({}),
-        searchParam = "search",
+        extraParams: extraParameters = () => ({}),
+        searchParam: searchParameter = "search",
         onData = null,
-    } = opts;
+    } = options;
 
     const search = ref(initialSearch);
-    const syncSearchUrl = useUrlSearchSync(searchParam);
+    const syncSearchUrl = useUrlSearchSync(searchParameter);
 
     const { items, loading, page, totalPages, total, load, goToPage, reset } =
         usePaginatedFetch(
             listPath,
             () => ({
-                ...extraParams(),
-                [searchParam]: search.value || undefined,
+                ...extraParameters(),
+                [searchParameter]: search.value || undefined,
             }),
             onData,
             initialData,

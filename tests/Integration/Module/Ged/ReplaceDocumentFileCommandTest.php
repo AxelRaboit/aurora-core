@@ -24,20 +24,20 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
 {
-    private string $sourceDir;
+    private string $sourceDirectory;
 
     protected function setUp(): void
     {
         parent::setUp();
         static::createClient();
 
-        $this->sourceDir = sys_get_temp_dir().'/aurora_replace_'.uniqid();
-        mkdir($this->sourceDir, 0o777, true);
+        $this->sourceDirectory = sys_get_temp_dir().'/aurora_replace_'.uniqid();
+        mkdir($this->sourceDirectory, 0o777, true);
     }
 
     protected function tearDown(): void
     {
-        new Filesystem()->remove($this->sourceDir);
+        new Filesystem()->remove($this->sourceDirectory);
 
         parent::tearDown();
     }
@@ -54,7 +54,7 @@ final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
         $this->entityManager()->flush();
 
         $this->writeImage('apres.png', 48, 32);
-        $this->runReplace($id, $this->sourceDir.'/apres.png')->assertCommandIsSuccessful();
+        $this->runReplace($id, $this->sourceDirectory.'/apres.png')->assertCommandIsSuccessful();
 
         $this->entityManager()->clear();
         $fresh = $this->entityManager()->find(Document::class, $id);
@@ -69,7 +69,7 @@ final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
 
         $versions = $this->entityManager()->getRepository(DocumentVersion::class)
             ->findBy(['document' => $fresh]);
-        $paths = array_map(static fn (DocumentVersion $v): string => $v->getFilePath(), $versions);
+        $paths = array_map(static fn (DocumentVersion $version): string => $version->getFilePath(), $versions);
 
         self::assertContains($before, $paths, 'The file it used to carry is kept as a version.');
     }
@@ -78,7 +78,7 @@ final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
     {
         $this->writeImage('orpheline.png', 8, 8);
 
-        $tester = $this->runReplace(987654321, $this->sourceDir.'/orpheline.png');
+        $tester = $this->runReplace(987654321, $this->sourceDirectory.'/orpheline.png');
 
         self::assertNotSame(0, $tester->getStatusCode());
     }
@@ -90,7 +90,7 @@ final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
         $before = (string) $document->getFilePath();
 
         $this->writeImage('ignoree.png', 48, 32);
-        $this->runReplace($id, $this->sourceDir.'/ignoree.png', ['--dry-run' => true])
+        $this->runReplace($id, $this->sourceDirectory.'/ignoree.png', ['--dry-run' => true])
             ->assertCommandIsSuccessful();
 
         $this->entityManager()->clear();
@@ -115,7 +115,7 @@ final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
 
         $application = new Application(static::$kernel);
         new CommandTester($application->find('aurora:ged:import'))
-            ->execute(['paths' => [$this->sourceDir.'/'.$name]]);
+            ->execute(['paths' => [$this->sourceDirectory.'/'.$name]]);
 
         $document = $this->entityManager()->getRepository(Document::class)
             ->findOneBy([], ['id' => 'DESC']);
@@ -128,7 +128,7 @@ final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
     private function writeImage(string $name, int $width, int $height): void
     {
         $image = imagecreatetruecolor($width, $height);
-        imagepng($image, $this->sourceDir.'/'.$name);
+        imagepng($image, $this->sourceDirectory.'/'.$name);
         imagedestroy($image);
     }
 

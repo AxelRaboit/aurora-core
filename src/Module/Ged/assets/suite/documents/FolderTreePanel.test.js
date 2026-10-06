@@ -37,7 +37,7 @@ async function render(url = "/suite/ged/tags") {
 }
 
 const folderLinks = (wrapper) =>
-    wrapper.findAll("[data-folder-depth] a").map((a) => a);
+    wrapper.findAll("[data-folder-depth] a").map((link) => link);
 
 const stops = [];
 
@@ -70,7 +70,9 @@ describe("the GED folder panel", () => {
      */
     it("points every row at a real address", async () => {
         const wrapper = await render();
-        const hrefs = wrapper.findAll("a").map((a) => a.attributes("href"));
+        const hrefs = wrapper
+            .findAll("a")
+            .map((link) => link.attributes("href"));
 
         expect(hrefs).toEqual([
             "/suite/ged/documents",
@@ -95,7 +97,7 @@ describe("the GED folder panel", () => {
     it("nests a child under its parent", async () => {
         const rows = (await render()).findAll("[data-folder-depth]");
 
-        expect(rows.map((r) => r.attributes("data-folder-depth"))).toEqual([
+        expect(rows.map((row) => row.attributes("data-folder-depth"))).toEqual([
             "0",
             "1",
             "0",
@@ -107,9 +109,9 @@ describe("the GED folder panel", () => {
 
         await wrapper.find("[data-folder-depth] button").trigger("click");
 
-        const names = folderLinks(wrapper).map((a) => a.text());
-        expect(names.some((n) => n.includes("2026"))).toBe(false);
-        expect(names.some((n) => n.includes("Contrats"))).toBe(true);
+        const names = folderLinks(wrapper).map((link) => link.text());
+        expect(names.some((name) => name.includes("2026"))).toBe(false);
+        expect(names.some((name) => name.includes("Contrats"))).toBe(true);
     });
 
     it("reads the fold state the documents page persisted", async () => {
@@ -118,9 +120,9 @@ describe("the GED folder panel", () => {
             JSON.stringify([1]),
         );
 
-        const names = folderLinks(await render()).map((a) => a.text());
+        const names = folderLinks(await render()).map((link) => link.text());
 
-        expect(names.some((n) => n.includes("2026"))).toBe(false);
+        expect(names.some((name) => name.includes("2026"))).toBe(false);
     });
 
     /**
@@ -173,12 +175,14 @@ describe("the GED folder panel", () => {
         );
 
         const wrapper = await render();
-        const hrefs = wrapper.findAll("a").map((a) => a.attributes("href"));
+        const hrefs = wrapper
+            .findAll("a")
+            .map((link) => link.attributes("href"));
 
         // Once as a favourite, once in the tree at its own depth. The
         // shortcut sits above the two scopes, where the aside kept it.
         expect(
-            hrefs.filter((h) => h === "/suite/ged/documents?folderId=3"),
+            hrefs.filter((href) => href === "/suite/ged/documents?folderId=3"),
         ).toHaveLength(2);
         expect(hrefs[0]).toBe("/suite/ged/documents?folderId=3");
         expect(hrefs[1]).toBe("/suite/ged/documents");
@@ -192,7 +196,7 @@ describe("the GED folder panel", () => {
         ).toBe("true");
         const titles = wrapper
             .findAll("button")
-            .map((b) => b.attributes("title"));
+            .map((button) => button.attributes("title"));
         expect(titles).toContain("suite.ged.documents.new_folder");
         expect(titles).toContain("suite.ged.documents.edit_folder");
     });
@@ -227,8 +231,9 @@ describe("the panel on an installation with no folder yet", () => {
         const plus = wrapper
             .findAll("button")
             .find(
-                (b) =>
-                    b.attributes("title") === "suite.ged.documents.new_folder",
+                (button) =>
+                    button.attributes("title") ===
+                    "suite.ged.documents.new_folder",
             );
         expect(plus).toBeTruthy();
 
@@ -247,7 +252,7 @@ describe("the panel on an installation with no folder yet", () => {
     it("still offers the two scopes", async () => {
         const hrefs = (await render())
             .findAll("a")
-            .map((a) => a.attributes("href"));
+            .map((link) => link.attributes("href"));
 
         expect(hrefs).toEqual([
             "/suite/ged/documents",
@@ -330,13 +335,13 @@ describe("dragging a folder onto another", () => {
     /** A document has no rank among folders: only the middle applies to it. */
     it("files a document into the folder wherever it lands on the row", async () => {
         const wrapper = await render();
-        const DOC_MIME = "application/x-aurora-document";
+        const DOCUMENT_MIME = "application/x-aurora-document";
 
         await rowAt(wrapper, 2).trigger("drop", {
             clientY: 5,
             dataTransfer: {
-                types: [DOC_MIME],
-                getData: (t) => (t === DOC_MIME ? "42" : ""),
+                types: [DOCUMENT_MIME],
+                getData: (type) => (type === DOCUMENT_MIME ? "42" : ""),
             },
         });
 
@@ -381,7 +386,7 @@ describe("the order the reader dragged into place", () => {
 
         const names = (await render())
             .findAll("[data-folder-depth] a")
-            .map((a) => a.text());
+            .map((link) => link.text());
 
         expect(names).toEqual(["Zèbres", "Abeilles"]);
     });
@@ -409,7 +414,7 @@ describe("the order the reader dragged into place", () => {
 
         const names = (await render())
             .findAll("[data-folder-depth] a")
-            .map((a) => a.text());
+            .map((link) => link.text());
 
         expect(names).toEqual(["Abeilles", "Zèbres"]);
     });
@@ -517,9 +522,10 @@ describe("trashing a folder with its families", () => {
 
     async function confirm() {
         const button = [...document.body.querySelectorAll("button")].find(
-            (b) =>
-                b.textContent.includes(i18n.global.t("shared.common.delete")) &&
-                !b.title,
+            (candidate) =>
+                candidate.textContent.includes(
+                    i18n.global.t("shared.common.delete"),
+                ) && !candidate.title,
         );
         button.click();
         await flushPromises();

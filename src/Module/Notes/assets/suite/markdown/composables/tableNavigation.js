@@ -28,8 +28,9 @@ function splitLines(content) {
 /** Positions of the unescaped pipes of a row, relative to the line. */
 function pipes(text) {
     const positions = [];
-    for (let i = 0; i < text.length; i++) {
-        if (text[i] === "|" && text[i - 1] !== "\\") positions.push(i);
+    for (let charIndex = 0; charIndex < text.length; charIndex++) {
+        if (text[charIndex] === "|" && text[charIndex - 1] !== "\\")
+            positions.push(charIndex);
     }
     return positions;
 }
@@ -42,13 +43,13 @@ function pipes(text) {
 function cells(line) {
     const bars = pipes(line.text);
     const result = [];
-    for (let i = 0; i < bars.length - 1; i++) {
-        const inner = line.text.slice(bars[i] + 1, bars[i + 1]);
+    for (let barIndex = 0; barIndex < bars.length - 1; barIndex++) {
+        const inner = line.text.slice(bars[barIndex] + 1, bars[barIndex + 1]);
         const lead = inner.length - inner.trimStart().length;
         const content = inner.trim();
         const from =
             line.start +
-            bars[i] +
+            bars[barIndex] +
             1 +
             (content === "" ? Math.min(1, inner.length) : lead);
         result.push({ start: from, end: from + content.length });
@@ -78,8 +79,8 @@ export function navigateTableCell(content, caret, backwards = false) {
     if (own.length === 0) return null;
     // The cell holding the caret: the last one that starts at or before it.
     let current = 0;
-    own.forEach((cell, i) => {
-        if (caret >= cell.start - 1) current = i;
+    own.forEach((cell, cellIndex) => {
+        if (caret >= cell.start - 1) current = cellIndex;
     });
 
     const select = (cell, text = content) => ({
@@ -90,8 +91,13 @@ export function navigateTableCell(content, caret, backwards = false) {
 
     if (!backwards) {
         if (current < own.length - 1) return select(own[current + 1]);
-        for (let i = index + 1; inTable(lines[i]); i++) {
-            if (isRow(lines[i])) return select(cells(lines[i])[0]);
+        for (
+            let lineIndex = index + 1;
+            inTable(lines[lineIndex]);
+            lineIndex++
+        ) {
+            if (isRow(lines[lineIndex]))
+                return select(cells(lines[lineIndex])[0]);
         }
         // Last cell of the table: a new empty row of the same width.
         const insertAt = line.start + line.text.length;
@@ -103,9 +109,9 @@ export function navigateTableCell(content, caret, backwards = false) {
     }
 
     if (current > 0) return select(own[current - 1]);
-    for (let i = index - 1; inTable(lines[i]); i--) {
-        if (isRow(lines[i])) {
-            const previous = cells(lines[i]);
+    for (let lineIndex = index - 1; inTable(lines[lineIndex]); lineIndex--) {
+        if (isRow(lines[lineIndex])) {
+            const previous = cells(lines[lineIndex]);
             return select(previous[previous.length - 1]);
         }
     }

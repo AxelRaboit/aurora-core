@@ -56,8 +56,8 @@ class ApplicationParameterCommand extends Command
         $enumKeys = array_map(fn (ApplicationParameterEnumInterface $enumCase): string => $enumCase->getKey(), $enumCases);
         $existing = [];
 
-        foreach ($this->repository->findAll() as $param) {
-            $existing[$param->getKey()] = $param;
+        foreach ($this->repository->findAll() as $parameter) {
+            $existing[$parameter->getKey()] = $parameter;
         }
 
         $created = $this->createMissing($enumCases, $existing, $symfonyStyle, $dryRun);
@@ -121,30 +121,30 @@ class ApplicationParameterCommand extends Command
         $synced = 0;
 
         foreach ($enumCases as $case) {
-            $param = $existing[$case->getKey()] ?? null;
-            if (!$param instanceof SettingInterface) {
+            $parameter = $existing[$case->getKey()] ?? null;
+            if (!$parameter instanceof SettingInterface) {
                 continue;
             }
 
             $changed = false;
-            if ($param->getDescription() !== $case->getDescription()) {
+            if ($parameter->getDescription() !== $case->getDescription()) {
                 $changed = true;
                 if (!$dryRun) {
-                    $param->setDescription($case->getDescription());
+                    $parameter->setDescription($case->getDescription());
                 }
             }
 
-            if ($param->getType() !== $case->getType()) {
+            if ($parameter->getType() !== $case->getType()) {
                 $changed = true;
                 if (!$dryRun) {
-                    $param->setType($case->getType());
+                    $parameter->setType($case->getType());
                 }
             }
 
-            if ($param->getGroup() !== $case->getGroup()) {
+            if ($parameter->getGroup() !== $case->getGroup()) {
                 $changed = true;
                 if (!$dryRun) {
-                    $param->setGroup($case->getGroup());
+                    $parameter->setGroup($case->getGroup());
                 }
             }
 
@@ -202,7 +202,7 @@ class ApplicationParameterCommand extends Command
     {
         $deleted = 0;
 
-        foreach ($existing as $key => $param) {
+        foreach ($existing as $key => $parameter) {
             if (in_array($key, $enumKeys, true)) {
                 continue;
             }
@@ -211,7 +211,7 @@ class ApplicationParameterCommand extends Command
             ++$deleted;
 
             if (!$dryRun) {
-                $this->entityManager->remove($param);
+                $this->entityManager->remove($parameter);
             }
         }
 

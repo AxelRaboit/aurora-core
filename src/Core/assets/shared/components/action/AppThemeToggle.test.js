@@ -14,9 +14,9 @@ import AppThemeToggle from "./AppThemeToggle.vue";
 describe("AppThemeToggle", () => {
     it("renders a button with type=button", () => {
         const wrapper = mount(AppThemeToggle);
-        const btn = wrapper.find("button");
-        expect(btn.exists()).toBe(true);
-        expect(btn.attributes("type")).toBe("button");
+        const button = wrapper.find("button");
+        expect(button.exists()).toBe(true);
+        expect(button.attributes("type")).toBe("button");
     });
 
     it("renders one svg icon", () => {

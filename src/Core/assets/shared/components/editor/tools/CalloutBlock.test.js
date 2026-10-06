@@ -61,14 +61,16 @@ describe("CalloutBlock", () => {
         expect(buttons).toHaveLength(CALLOUT_ICONS.length + 1);
         expect(buttons[0].getAttribute("aria-label")).toBe("Sans icône");
         expect(
-            buttons.find((b) => b.getAttribute("aria-label") === "Calendrier"),
+            buttons.find(
+                (button) => button.getAttribute("aria-label") === "Calendrier",
+            ),
         ).toBeTruthy();
     });
 
     it("picks an icon on click and marks it as the chosen one", () => {
         const { block, element } = tool({ title: "T" });
         const star = [...element.querySelectorAll(".callout-block__icon")].find(
-            (b) => b.getAttribute("aria-label") === "star",
+            (button) => button.getAttribute("aria-label") === "star",
         );
 
         star.click();

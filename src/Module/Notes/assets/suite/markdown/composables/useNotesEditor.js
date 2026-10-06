@@ -108,7 +108,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     let forceNextSave = false;
 
     const selectedNote = computed(
-        () => notes.value.find((n) => n.id === selectedId.value) ?? null,
+        () => notes.value.find((note) => note.id === selectedId.value) ?? null,
     );
 
     /**
@@ -129,11 +129,11 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         if (conflict.value) return false;
         if (loadedSnapshot.value.title !== form.value.title) return true;
         if (loadedSnapshot.value.content !== form.value.content) return true;
-        const a = loadedSnapshot.value.tags;
-        const b = form.value.tags ?? [];
-        if (a.length !== b.length) return true;
-        for (let i = 0; i < a.length; i++) {
-            if (a[i] !== b[i]) return true;
+        const savedTags = loadedSnapshot.value.tags;
+        const currentTags = form.value.tags ?? [];
+        if (savedTags.length !== currentTags.length) return true;
+        for (let tagIndex = 0; tagIndex < savedTags.length; tagIndex++) {
+            if (savedTags[tagIndex] !== currentTags[tagIndex]) return true;
         }
         for (const key of extraKeys) {
             if (loadedSnapshot.value[key] !== form.value[key]) return true;
@@ -198,7 +198,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         // above all the banner that disappeared then came back, a hundred and
         // sixty pixel jump each time one went from one note with a banner to
         // another. Only the text waits for the response.
-        const connue = notes.value.find((n) => n.id === id);
+        const connue = notes.value.find((note) => note.id === id);
         if (connue) {
             form.value.title = connue.title ?? "";
             Object.assign(form.value, pickLook(connue));
@@ -307,7 +307,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
             // new excerpt and date: without them a card kept showing the
             // text as it was when the page loaded.
             const saved = payload?.note ?? null;
-            const index = notes.value.findIndex((n) => n.id === noteId);
+            const index = notes.value.findIndex((note) => note.id === noteId);
             if (index !== -1) {
                 notes.value[index] = {
                     ...notes.value[index],
@@ -453,10 +453,10 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
      * the markdown source and lets the auto-save watcher debounce the
      * persistence - same flow as a normal edit.
      */
-    function onImageResize({ src, width }) {
+    function onImageResize({ src: imageSource, width }) {
         const next = updateImageDimensionInContent(
             form.value.content,
-            src,
+            imageSource,
             width,
         );
         if (next !== form.value.content) {

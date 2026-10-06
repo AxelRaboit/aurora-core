@@ -163,8 +163,11 @@ export function useSidemenuNav(
      */
     const navItems = computed(() => {
         const flatten = (sections) =>
-            sections.flatMap((s) =>
-                s.items.flatMap((i) => [i, ...(i.children ?? [])]),
+            sections.flatMap((section) =>
+                section.items.flatMap((item) => [
+                    item,
+                    ...(item.children ?? []),
+                ]),
             );
 
         return [
@@ -181,17 +184,17 @@ export function useSidemenuNav(
      * itself; the palette is what searches everywhere, and it says so.
      */
     const displayedSections = computed(() => {
-        const q = navFilter.value.trim().toLowerCase();
-        if (!q) return activeSections.value;
+        const needle = navFilter.value.trim().toLowerCase();
+        if (!needle) return activeSections.value;
         const results = [];
         for (const section of activeSections.value) {
             const matchingItems = [];
             for (const item of section.items) {
-                if (item.label.toLowerCase().includes(q)) {
+                if (item.label.toLowerCase().includes(needle)) {
                     matchingItems.push(item);
                 } else if (item.children?.length) {
-                    const matchingChildren = item.children.filter((c) =>
-                        c.label.toLowerCase().includes(q),
+                    const matchingChildren = item.children.filter((child) =>
+                        child.label.toLowerCase().includes(needle),
                     );
                     matchingItems.push(...matchingChildren);
                 }
@@ -276,7 +279,7 @@ export function useSidemenuNav(
                 if (
                     item.children?.length &&
                     getGroupRaw(item.route) === undefined &&
-                    item.children.some((c) => itemIsCurrent(c))
+                    item.children.some((child) => itemIsCurrent(child))
                 ) {
                     setGroup(item.route, true);
                 }

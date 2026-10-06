@@ -17,13 +17,13 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 final class PruneOrphanFilesCommandTest extends IntegrationTestCase
 {
-    private string $uploadDir;
+    private string $uploadDirectory;
 
     protected function setUp(): void
     {
         parent::setUp();
         static::createClient();
-        $this->uploadDir = (string) static::getContainer()->getParameter('app.upload_dir');
+        $this->uploadDirectory = (string) static::getContainer()->getParameter('app.upload_dir');
     }
 
     public function testAnOldUnreferencedFileIsReportedThenDeleted(): void
@@ -99,7 +99,7 @@ final class PruneOrphanFilesCommandTest extends IntegrationTestCase
 
     private function writeFile(string $relativePath, bool $ancient): string
     {
-        $absolute = $this->uploadDir.'/'.$relativePath;
+        $absolute = $this->uploadDirectory.'/'.$relativePath;
         if (!is_dir(dirname($absolute))) {
             mkdir(dirname($absolute), 0o777, true);
         }

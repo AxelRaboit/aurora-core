@@ -86,9 +86,9 @@ const lockedOnly = computed(() => selected.value.length > 0 && selected.value.ev
 function pointOf(event) {
     const rect = root.value.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const s = ((event.clientY - rect.top) / rect.width) * 100;
+    const squareY = ((event.clientY - rect.top) / rect.width) * 100;
 
-    return { x, y: s / RATIO, s };
+    return { x, y: squareY / RATIO, s: squareY };
 }
 
 const outlineStyle = (element) => ({
@@ -351,20 +351,20 @@ function onPointerMove(event) {
 }
 
 function moveTo(point, event) {
-    let dx = point.x - gesture.start.x;
-    let dy = point.y - gesture.start.y;
+    let deltaX = point.x - gesture.start.x;
+    let deltaY = point.y - gesture.start.y;
 
-    if (!gesture.moved && Math.hypot(dx, dy * RATIO) < 0.25) return;
+    if (!gesture.moved && Math.hypot(deltaX, deltaY * RATIO) < 0.25) return;
 
     startRecording();
 
     // Shift holds the drag to one axis, as everywhere.
     if (event.shiftKey) {
-        if (Math.abs(dx) > Math.abs(dy * RATIO)) dy = 0;
-        else dx = 0;
+        if (Math.abs(deltaX) > Math.abs(deltaY * RATIO)) deltaY = 0;
+        else deltaX = 0;
     }
 
-    const moved = [...gesture.originals.values()].map((element) => ({ ...element, x: element.x + dx, y: element.y + dy }));
+    const moved = [...gesture.originals.values()].map((element) => ({ ...element, x: element.x + deltaX, y: element.y + deltaY }));
     let snap = { dx: 0, dy: 0, guides: [] };
 
     // Alt lets go of the guides, for the one placement that sits between them.
@@ -377,7 +377,7 @@ function moveTo(point, event) {
         (element) => {
             const original = gesture.originals.get(element.id);
 
-            return { ...element, x: round(original.x + dx + snap.dx), y: round(original.y + dy + snap.dy) };
+            return { ...element, x: round(original.x + deltaX + snap.dx), y: round(original.y + deltaY + snap.dy) };
         },
         { record: false },
     );
@@ -408,9 +408,9 @@ function resizeTo(point, event) {
     const anchor = { x: centre.x + local.x * cos - local.y * sin, s: centre.s + local.x * sin + local.y * cos };
 
     // The pointer, seen from the anchor along the element's own axes.
-    const vx = point.x - anchor.x;
-    const vy = point.s - anchor.s;
-    const along = { x: vx * cos + vy * sin, y: -vx * sin + vy * cos };
+    const pointerX = point.x - anchor.x;
+    const pointerY = point.s - anchor.s;
+    const along = { x: pointerX * cos + pointerY * sin, y: -pointerX * sin + pointerY * cos };
 
     let newWidth = handle.x !== 0 ? Math.max(0.5, handle.x * along.x) : width;
     let newHeight = handle.y !== 0 ? Math.max(0.5 * RATIO, handle.y * along.y) : height;
@@ -534,15 +534,15 @@ function rotateTo(point, event) {
             if (single) return { ...element, rotate: round(target, 2) || null };
 
             // Several turn around the middle of their box, each with it.
-            const cx = original.x + original.w / 2 - centre.x;
-            const cs = original.y * RATIO + (original.h * RATIO) / 2 - centre.s;
-            const x = centre.x + cx * Math.cos(turn) - cs * Math.sin(turn);
-            const s = centre.s + cx * Math.sin(turn) + cs * Math.cos(turn);
+            const offsetX = original.x + original.w / 2 - centre.x;
+            const offsetSquareY = original.y * RATIO + (original.h * RATIO) / 2 - centre.s;
+            const x = centre.x + offsetX * Math.cos(turn) - offsetSquareY * Math.sin(turn);
+            const turnedSquareY = centre.s + offsetX * Math.sin(turn) + offsetSquareY * Math.cos(turn);
 
             return {
                 ...element,
                 x: round(x - original.w / 2),
-                y: round((s - (original.h * RATIO) / 2) / RATIO),
+                y: round((turnedSquareY - (original.h * RATIO) / 2) / RATIO),
                 rotate: round(target, 2) || null,
             };
         },

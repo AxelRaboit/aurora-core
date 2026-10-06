@@ -15,10 +15,10 @@ const props = defineProps({
     item: { type: Object, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const due = computed(() =>
-    "pending" === props.item.approval && props.item.reviewBy ? d(new Date(props.item.reviewBy), "short") : null,
+    "pending" === props.item.approval && props.item.reviewBy ? formatDate(new Date(props.item.reviewBy), "short") : null,
 );
 </script>
 

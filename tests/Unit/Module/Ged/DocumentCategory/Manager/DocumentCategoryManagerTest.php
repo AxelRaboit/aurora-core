@@ -54,14 +54,14 @@ final class DocumentCategoryManagerTest extends TestCase
         $query = $this->createMock(Query::class);
         $query->method('getSingleScalarResult')->willReturn($count);
 
-        $qb = $this->createMock(QueryBuilder::class);
-        $qb->method('select')->willReturnSelf();
-        $qb->method('where')->willReturnSelf();
-        $qb->method('setParameter')->willReturnSelf();
-        $qb->method('andWhere')->willReturnSelf();
-        $qb->method('getQuery')->willReturn($query);
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder->method('select')->willReturnSelf();
+        $queryBuilder->method('where')->willReturnSelf();
+        $queryBuilder->method('setParameter')->willReturnSelf();
+        $queryBuilder->method('andWhere')->willReturnSelf();
+        $queryBuilder->method('getQuery')->willReturn($query);
 
-        $this->categoryRepository->method('createQueryBuilder')->willReturn($qb);
+        $this->categoryRepository->method('createQueryBuilder')->willReturn($queryBuilder);
     }
 
     private function captureCategory(mixed &$captured): void
