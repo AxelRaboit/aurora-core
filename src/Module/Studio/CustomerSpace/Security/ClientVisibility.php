@@ -21,6 +21,13 @@ use Symfony\Bundle\SecurityBundle\Security;
  * donc le même droit. Un équipier qui écrit dans l'espace sans pouvoir le
  * partager prépare, et quelqu'un qui le peut montre.
  *
+ * **Three deliberate exceptions**, which this class does not decide because
+ * nobody chooses them: a new space shows its review and published steps, the
+ * main chat room is always open to the client, and a file the client sent is
+ * always visible to them (`AbstractSpaceFile::addedByClient()`, whether it
+ * came on a content item or through « Send a file » on their page; the file
+ * Manager refuses to hide it).
+ *
  * Deux usages, et c'est pourquoi la règle a un nom : `PRIVILEGE` dans un
  * `#[IsGranted]` pour une route qui ne fait que montrer ou cacher, et
  * {@see canShowOrHide()} pour un formulaire qui enregistre tout, visibilité

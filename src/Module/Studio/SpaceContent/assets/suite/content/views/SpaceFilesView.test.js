@@ -71,6 +71,18 @@ describe("SpaceFilesView", () => {
         expect(found[1].text()).toContain("Vieille photo");
     });
 
+    it("says in words which files the client sent, and only those", () => {
+        const found = entries(render());
+
+        // Newest first: the client's photo, then the studio's.
+        expect(found[0].text()).toContain(
+            "suite.studio.space_files.sent_by_client",
+        );
+        expect(found[1].text()).not.toContain(
+            "suite.studio.space_files.sent_by_client",
+        );
+    });
+
     it("names the card each file sits on", () => {
         const text = render().text();
 

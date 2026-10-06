@@ -566,3 +566,52 @@ Aucune migration.
 - **Traductions** : `suite.search.sections.space_resources`,
   `.space_files`, `.space_messages` et `suite.studio.space_files.sent_by_client`
   (fr, en, es).
+
+## 15. Le client envoie des fichiers à son espace
+
+Le droit « envoyer des fichiers » d'un lien d'accès (`canUpload`) ne servait
+qu'aux fichiers posés sur un contenu. Il ouvre maintenant aussi, sur la page
+du client, **« Envoyer un fichier » dans l'onglet Fichiers** : le fichier va à
+l'espace lui-même, signé du libellé du lien, rangé comme un dépôt du studio
+(brouillon dans le dossier de l'espace de la médiathèque, par le support de
+stockage), visible dans l'onglet Fichiers du studio avec la mention « Envoyé
+par le client » et **toujours visible du client** (la règle de
+`SpaceFileInterface::isShownToClient()`, que le studio ne peut pas défaire).
+L'équipe de l'espace reçoit la notification des autres gestes du client et le
+journal garde l'envoi. Aucune migration : la colonne `from_client`, la
+relation `author_link` et le drapeau `visible_to_client` existaient.
+
+- **Route** : `public_space_file_upload`, `POST /spaces/{selector}/{token}/files`
+  (multipart, champ `file`). Mêmes murs que l'envoi sur un contenu : limiteur
+  `space_guest_upload` par adresse, en-tête `X-Requested-With` exigé
+  (`assertFromThisPage()`), puis 404 pour un lien inconnu, révoqué, expiré, sans
+  `canUpload` **ou d'aperçu** (un aperçu recopie le droit pour montrer la même
+  page, et n'envoie jamais rien), puis `UploadPolicy::forSpaceGuests()` sur les
+  octets (422 avec `studio.public.space.errors.upload_*`). La réponse est
+  `{success, spaceFiles}`, la liste telle que la page du client la lit.
+- **Vue de la page** : `PublicSpaceViewBuilder::view()` rend
+  `spaceFileUploadPath`, `null` sans `canUpload` (pas de bouton). Le gabarit
+  `@Studio/public/space.html.twig` le passe à `PublicSpaceApp` ; un gabarit
+  surchargé côté client ajoute la ligne. `PublicSpaceApp` gagne la propriété
+  `spaceFileUploadPath`, montre l'onglet Fichiers dès qu'il est posé (même
+  vide), désactive le bouton dans un aperçu, dit l'erreur de la politique et
+  « Envoyé par {auteur} » sous un fichier venu du client ; le mode d'emploi
+  gagne l'étape `files_upload`.
+- **Manager, ajout** : `SpaceFileManagerInterface::uploadAsClient(SpaceAccessLinkInterface, UploadedFile)`.
+  Une implémentation maison l'ajoute. `SpaceFileManager` prend un dernier
+  argument optionnel `?SpaceActivityNotifier $notifier = null` ; un projet qui
+  l'étend avec son propre constructeur le transmet à `parent::__construct()`,
+  sinon le fichier est rangé et journalisé sans prévenir personne. Hook
+  d'audit `auditSentByClient()`, action `space_file.sent_by_client`.
+- **Notification** : `SpaceActivityNotifier::clientSentFile($space, $auteur, $titre)`,
+  type `studio.space.upload` (celui des envois sur un contenu), lien
+  `/workspace/{id}?view=files`, regroupée tant qu'elle n'est pas lue.
+- **Entité** : `AbstractSpaceFile::addedByClient()` signe du libellé du lien
+  (`SpaceAccessLinkLabel::of()`) et non plus de son adresse, comme les
+  messages et les fichiers d'un contenu.
+- **Écran du studio** : `SpaceFilesView` écrit « Envoyé par le client » à côté
+  de l'auteur d'un fichier venu du client.
+- **Traductions** : `suite.studio.space_notifications.space_upload`,
+  `suite.audit.actions.studio.space_file.sent_by_client`,
+  `studio.public.space.files_upload`, `.files_uploaded`, `.files_sent_by`,
+  `.files_empty`, `studio.public.space.guide.step_files_upload` (fr, en, es).

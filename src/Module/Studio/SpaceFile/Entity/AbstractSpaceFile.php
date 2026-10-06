@@ -9,6 +9,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Entity\AbstractSpaceContentAttachment;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
@@ -170,23 +171,22 @@ abstract class AbstractSpaceFile implements SpaceFileInterface
     }
 
     /**
-     * Signe le dépôt comme le client, l'adresse du lien pour seul nom.
+     * Signs the file as the client's, under the link's label.
      *
-     * **Aucune route publique n'y mène aujourd'hui** : le client lit les
-     * fichiers de l'espace, il n'en dépose pas. Ce qui est gardé ici est la
-     * capacité, avec sa colonne et sa relation, parce que le jour où un lien
-     * pourra déposer, ce sera une route à écrire et pas une migration à
-     * passer. Les pièces jointes d'une fiche, elles, empruntent déjà ce
-     * chemin.
+     * The route that leads here is the client page's « Send a file », behind
+     * the link's `canUpload` right (`public_space_file_upload`). The label and
+     * never the address, for the reason {@see SpaceAccessLinkLabel} gives: a
+     * space can have several links out, and every guest reads the others'
+     * signatures.
      */
     public function addedByClient(SpaceAccessLinkInterface $link): static
     {
         $this->authorLink = $link;
         $this->authorUser = null;
-        $this->authorLabel = $link->getRecipientEmail();
+        $this->authorLabel = SpaceAccessLinkLabel::of($link);
         $this->fromClient = true;
-        // Ce que le client a envoyé, il le lit : caché, son propre fichier
-        // disparaîtrait de sa page à l'instant où il l'y dépose.
+        // What the client sent, the client reads: hidden, their own file would
+        // vanish from their page the moment they put it there.
         $this->visibleToClient = true;
 
         return $this;

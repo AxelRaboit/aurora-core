@@ -39,6 +39,7 @@ use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFileServer;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
+use Aurora\Module\Studio\SpaceFile\Manager\SpaceFileManagerInterface;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -113,6 +114,7 @@ final class PublicSpaceController extends AbstractController
         private readonly DriveClient $drive,
         private readonly DriveFileServer $driveRelay,
         private readonly DriveArchive $driveArchives,
+        private readonly SpaceFileManagerInterface $spaceFileManager,
     ) {}
 
     /**
@@ -406,6 +408,63 @@ final class PublicSpaceController extends AbstractController
         $this->links->markOpened($link);
 
         return $this->jsonSuccess($this->viewBuilder->threadPayload($link, $token));
+    }
+
+    /**
+     * A file from the client, onto the space itself rather than a card.
+     *
+     * The same three walls as {@see self::attach()}, in the same order and for
+     * the same reasons: the upload limiter by address, the link's `canUpload`
+     * (answered like a stranger without it, and for a preview whatever it
+     * copied, since a preview never sends anything in the client's name), then
+     * {@see UploadPolicy::forSpaceGuests()} on the sniffed bytes, refused with
+     * a sentence the client can act on. The header guard of the other public
+     * writes comes first: a multipart form is exactly what another site could
+     * make the client's browser post.
+     *
+     * The answer is the space's files as this page lists them, so the page
+     * replaces its list rather than guessing what its own write did.
+     */
+    #[Route(
+        '/{selector}/{token}/files',
+        name: '_file_upload',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function uploadFile(string $selector, string $token, Request $request): JsonResponse
+    {
+        if (!$this->spaceGuestUploadLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $this->assertFromThisPage($request);
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canUpload()) {
+            throw $this->createNotFoundException();
+        }
+
+        $file = $request->files->get('file');
+
+        if (!$file instanceof UploadedFile) {
+            return $this->jsonInvalidInput(['file' => 'studio.public.space.errors.upload_required']);
+        }
+
+        $refusal = $this->uploadPolicies->forSpaceGuests()->refusalFor($file);
+
+        if ($refusal instanceof UploadRefusalEnum) {
+            return $this->jsonInvalidInput(['file' => match ($refusal) {
+                UploadRefusalEnum::TooLarge => 'studio.public.space.errors.upload_too_large',
+                UploadRefusalEnum::TypeRefused => 'studio.public.space.errors.upload_type_refused',
+                UploadRefusalEnum::Broken => 'studio.public.space.errors.upload_failed',
+            }]);
+        }
+
+        $this->spaceFileManager->uploadAsClient($link, $file);
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess($this->filesViewBuilder->publicView($link, $token));
     }
 
     /**

@@ -198,6 +198,15 @@ final readonly class PublicSpaceViewBuilder
                     'itemId' => '__id__',
                 ])
                 : null,
+            // Sending a file to the space itself, from the Files tab. Handed to
+            // a preview too, so the studio sees the page the client gets; the
+            // page disables the button there and the route refuses a preview.
+            'spaceFileUploadPath' => $link->canUpload()
+                ? $this->urlGenerator->generate('public_space_file_upload', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                ])
+                : null,
             // Le dossier Drive, s'il y en a un. Les adresses sont posées même
             // quand le dossier est vide : l'écran décide de se montrer sur ce
             // que la liste rend, et non sur ce que le serveur suppose.

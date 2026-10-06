@@ -95,6 +95,7 @@ suite:
                     opened: 'Espacio abierto por un cliente'
                 space_file:
                     added: 'Archivo añadido a un espacio'
+                    sent_by_client: Archivo enviado por el cliente a un espacio
                     removed: 'Archivo retirado de un espacio'
                     shown: "Archivo del espacio mostrado al cliente"
                     hidden: "Archivo del espacio oculto al cliente"
@@ -2172,6 +2173,7 @@ suite:
             chat: '%who% le ha escrito'
             comment: '%who% ha comentado «%item%»'
             upload: '%who% ha enviado un archivo en «%item%»'
+            space_upload: '%who% ha enviado «%file%» a los archivos del espacio'
             approved: '%who% ha validado «%item%»'
             approved_many: '%who% ha validado %count% contenidos'
             changes_requested: "%who% respondió «Por revisar» en «%item%»"
@@ -2468,6 +2470,7 @@ studio:
                 step_comment_upload: "Debajo de cada contenido, escriba a su proveedor o adjunte una imagen, un PDF o un vídeo de 25 MB como máximo."
                 step_comment: "Debajo de cada contenido, escriba a su proveedor para hacer una pregunta o decir lo que hay que revisar."
                 step_upload: "Puede adjuntar a un contenido una imagen, un PDF o un vídeo de 25 MB como máximo."
+                step_files_upload: "En la pestaña «Archivos», «Enviar un archivo» transmite a su proveedor una imagen, un PDF o un vídeo de 25 MB como máximo, sin vincularlo a un contenido."
                 step_chat: "La pestaña «Conversación» sirve para hablar con su proveedor fuera de los contenidos."
                 step_chat_read: 'La pestaña «Conversación» muestra sus intercambios con su proveedor, solo en lectura.'
                 step_tabs: 'Las demás pestañas, en la parte superior de la página, reúnen lo que su proveedor comparte con usted, como archivos o entregables.'
@@ -2505,6 +2508,10 @@ studio:
             files_title: 'Los archivos de este espacio'
             files_open: Abrir
             upload_notice: 'Imágenes, PDF y vídeos habituales, 25 MB como máximo. Lo que envíe aquí lo ve su proveedor.'
+            files_upload: Enviar un archivo
+            files_uploaded: "Archivo enviado. Su proveedor lo encuentra en su espacio."
+            files_sent_by: 'Enviado por {author}'
+            files_empty: "Todavía no hay ningún archivo. Envíe aquí lo que su proveedor espera de usted: logotipo, fotos, documentos."
             approve: Validado
             request_changes: "Por revisar"
             answer_hint: "Para responder «Por revisar», diga qué no funciona en los intercambios de arriba."

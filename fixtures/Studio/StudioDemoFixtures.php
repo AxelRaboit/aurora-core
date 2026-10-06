@@ -284,6 +284,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seedSpaces($marie, $jean, $sophie);
         $this->seedApprovals();
         $this->seedTrash($jean);
+        $this->seedClientFile();
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -638,6 +639,42 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $salon->setDeletedAt(new DateTimeImmutable('-6 days'));
             $this->entityManager->flush();
         }
+    }
+
+    /**
+     * One file the client sent to the space itself, from their page.
+     *
+     * Outside `seedSpaces()`, like the trash above, so an existing demo gains
+     * it on the next `make demo` and keeps a single copy afterwards. Sent by
+     * the photographer's link, the one that holds the right to send files, and
+     * dated two days back: the Files tab then shows the three states side by
+     * side - shown to the client, hidden from them, and sent by them.
+     */
+    private function seedClientFile(): void
+    {
+        $social = $this->spaceRepository->findOneBy(['name' => 'Atelier Dupont - Réseaux sociaux']);
+        $document = $this->documents->findOneBy(['title' => "Photo d'équipe - Séminaire 2025"]);
+
+        if (!$social instanceof CustomerSpaceInterface || !$document instanceof Document) {
+            return;
+        }
+
+        $link = $this->existingLinkFor($social, 'studio@lumiere-photo.test');
+
+        if (!$link instanceof SpaceAccessLinkInterface
+            || null !== $this->entityManager->getRepository(SpaceFile::class)->findOneBy(['space' => $social, 'document' => $document])) {
+            return;
+        }
+
+        $file = new SpaceFile();
+        $file->setSpace($social)->setDocument($document)->addedByClient($link);
+        $this->entityManager->persist($file);
+        $this->entityManager->flush();
+
+        $this->entityManager->createQuery('UPDATE '.SpaceFile::class.' f SET f.createdAt = :at WHERE f.id = :id')
+            ->setParameter('at', new DateTimeImmutable('-2 days 16:20'))
+            ->setParameter('id', $file->getId())
+            ->execute();
     }
 
     /**

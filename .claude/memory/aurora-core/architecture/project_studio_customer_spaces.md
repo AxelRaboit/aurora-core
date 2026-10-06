@@ -72,7 +72,10 @@ arrivé **avec** l'écriture qu'il gouverne. Une colonne représentant une
 permission que personne n'applique est un interrupteur qui ne fait rien
 (cf. [[project_planning_share_link_write_access]]). La route est limitée en débit
 par `space_guest_write`, **déclaré dans les deux dépôts**
-(cf. [[pitfall_rate_limiter_client_config]]).
+(cf. [[pitfall_rate_limiter_client_config]]). Les droits sont depuis cinq
+(`canChat`, `canUpload`, `canSeeDrive` en plus) ; `canUpload` ouvre l'envoi
+sur un contenu et à l'espace lui-même, sous `space_guest_upload`
+(cf. [[decision_client_sends_space_files]]).
 
 ## Verdict et mots : deux durées de vie
 

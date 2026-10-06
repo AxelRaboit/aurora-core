@@ -19,7 +19,8 @@ Exceptions voulues : un espace neuf montre ses étapes Relecture, « Programmé 
 et Publié (`seedDefaults` ; « Programmé » pour qu'un contenu validé ne
 disparaisse pas du calendrier du client avant sa sortie), le canal « Général » est toujours montré, un fichier envoyé
 par le client reste visible (`addedByClient` pose `true`, le Manager refuse de
-le cacher). Les notes ne sont jamais montrées.
+le cacher ; il arrive par une fiche ou par « Envoyer un fichier » de l'onglet
+Fichiers, cf. [[decision_client_sends_space_files]]). Les notes ne sont jamais montrées.
 
 ## Pourquoi
 

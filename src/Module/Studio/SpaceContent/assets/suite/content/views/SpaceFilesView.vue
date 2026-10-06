@@ -282,6 +282,11 @@ function chooseFile(event) {
                         <UserRound v-if="file.fromClient" class="h-3 w-3" :stroke-width="2" />
                         <span class="truncate">{{ file.author }}</span>
                     </p>
+                    <!-- Said in words: the icon alone does not tell a colleague
+                         that this file came from the client's page. -->
+                    <p v-if="file.fromClient" class="mt-0.5 text-[0.68rem] text-accent-500">
+                        {{ t("suite.studio.space_files.sent_by_client") }}
+                    </p>
 
                     <!-- L'état d'un fichier de l'espace, et le geste qui le
                          change pour qui peut partager l'espace. Un fichier
@@ -343,6 +348,11 @@ function chooseFile(event) {
                             <UserRound v-if="file.fromClient" class="h-3 w-3" :stroke-width="2" />
                             {{ file.author }}
                         </span>
+
+                        <template v-if="file.fromClient">
+                            <span aria-hidden="true">·</span>
+                            <span class="text-accent-500">{{ t("suite.studio.space_files.sent_by_client") }}</span>
+                        </template>
 
                         <span aria-hidden="true">·</span>
                         <span>{{ d(new Date(file.createdAt), "short") }}</span>

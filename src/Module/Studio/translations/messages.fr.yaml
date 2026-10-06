@@ -95,6 +95,7 @@ suite:
                     opened: Espace ouvert par un client
                 space_file:
                     added: Fichier ajouté à un espace
+                    sent_by_client: Fichier envoyé par le client dans un espace
                     removed: Fichier retiré d'un espace
                     shown: "Fichier d'espace montré au client"
                     hidden: "Fichier d'espace caché au client"
@@ -2203,6 +2204,7 @@ suite:
             chat: '%who% vous a écrit'
             comment: '%who% a commenté « %item% »'
             upload: '%who% a envoyé un fichier sur « %item% »'
+            space_upload: '%who% a envoyé « %file% » dans les fichiers de l''espace'
             approved: '%who% a validé « %item% »'
             approved_many: '%who% a validé %count% contenus'
             changes_requested: "%who% a répondu « À revoir » sur « %item% »"
@@ -2509,6 +2511,7 @@ studio:
                 step_comment_upload: "Sous chaque contenu, écrivez à votre prestataire ou joignez une image, un PDF ou une vidéo de 25 Mo au plus."
                 step_comment: "Sous chaque contenu, écrivez à votre prestataire pour poser une question ou dire ce qui est à revoir."
                 step_upload: "Vous pouvez joindre à un contenu une image, un PDF ou une vidéo de 25 Mo au plus."
+                step_files_upload: "Dans l'onglet « Fichiers », « Envoyer un fichier » transmet à votre prestataire une image, un PDF ou une vidéo de 25 Mo au plus, sans le rattacher à un contenu."
                 step_chat: "L'onglet « Discussion » sert à échanger avec votre prestataire en dehors des contenus."
                 step_chat_read: "L'onglet « Discussion » montre vos échanges avec votre prestataire, en lecture seule."
                 step_tabs: "Les autres onglets, en haut de la page, réunissent ce que votre prestataire partage avec vous, comme des fichiers ou des livrables."
@@ -2546,6 +2549,10 @@ studio:
             files_title: Les fichiers de cet espace
             files_open: Ouvrir
             upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."
+            files_upload: Envoyer un fichier
+            files_uploaded: "Fichier envoyé. Votre prestataire le retrouve dans votre espace."
+            files_sent_by: 'Envoyé par {author}'
+            files_empty: "Aucun fichier pour l'instant. Envoyez ici ce que votre prestataire attend de vous : logo, photos, documents."
             approve: Validé
             request_changes: À revoir
             answer_hint: "Pour répondre « À revoir », dites ce qui ne va pas dans les échanges ci-dessus."

@@ -95,6 +95,7 @@ suite:
                     opened: Space opened by a client
                 space_file:
                     added: File added to a space
+                    sent_by_client: File sent by the client to a space
                     removed: File removed from a space
                     shown: "Space file shown to the client"
                     hidden: "Space file hidden from the client"
@@ -2196,6 +2197,7 @@ suite:
             chat: '%who% wrote to you'
             comment: '%who% commented on "%item%"'
             upload: '%who% sent a file on "%item%"'
+            space_upload: '%who% sent "%file%" to the space files'
             approved: '%who% approved "%item%"'
             approved_many: "%who% approved %count% content items"
             changes_requested: "%who% answered “Changes requested” on \"%item%\""
@@ -2502,6 +2504,7 @@ studio:
                 step_comment_upload: "Under each content item, write to your provider or attach an image, a PDF or a video of up to 25 MB."
                 step_comment: "Under each content item, write to your provider to ask a question or say what needs changes."
                 step_upload: "You can attach an image, a PDF or a video of up to 25 MB to a content item."
+                step_files_upload: "In the “Files” tab, “Send a file” passes an image, a PDF or a video of up to 25 MB to your agency, without attaching it to a content item."
                 step_chat: "The “Conversation” tab is for talking with your provider outside the content items."
                 step_chat_read: "The “Conversation” tab shows your exchanges with your provider, read only."
                 step_tabs: "The other tabs, at the top of the page, gather what your provider shares with you, such as files or deliverables."
@@ -2539,6 +2542,10 @@ studio:
             files_title: This space's files
             files_open: Open
             upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."
+            files_upload: Send a file
+            files_uploaded: "File sent. Your agency finds it in your space."
+            files_sent_by: 'Sent by {author}'
+            files_empty: "No file yet. Send here what your agency expects from you: logo, photos, documents."
             approve: Approved
             request_changes: "Changes requested"
             answer_hint: "To answer “Changes requested”, say what is wrong in the discussion above."
