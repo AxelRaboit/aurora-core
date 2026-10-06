@@ -9,6 +9,7 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
@@ -143,6 +144,33 @@ final class SpaceInformationTest extends IntegrationTestCase
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertArrayHasKey('siren', $payload['errors']);
         self::assertArrayNotHasKey('siret', $payload['errors']);
+    }
+
+    /**
+     * L'écran Clients refuse de vider l'adresse d'un client signé ; la fiche
+     * d'un espace ne doit pas être le chemin qui passe à côté.
+     */
+    public function testASignedClientKeepsTheAddressTheirContractsGoTo(): void
+    {
+        $customer = $this->givenCustomer();
+        $customer->setStatus(CustomerStatusEnum::Client);
+        $this->entityManager->flush();
+
+        $space = $this->givenSpace($customer, 'Premier projet');
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), [
+            'legalName' => 'Atelier Temoin',
+            'email' => '',
+        ]);
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertArrayHasKey('email', $payload['errors']);
+
+        $this->entityManager->clear();
+        $stored = $this->entityManager->getRepository(Customer::class)->find($customer->getId());
+        self::assertSame('temoin@example.test', $stored?->getContractualEmail());
     }
 
     /** Une clé de contrôle fausse est un numéro faux, pas un numéro court. */

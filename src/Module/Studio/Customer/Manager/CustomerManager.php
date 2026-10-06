@@ -73,6 +73,13 @@ class CustomerManager implements CustomerManagerInterface
     {
         $this->assertSiretIsFree($input->getSiret(), $customer->getId());
 
+        // The same rule as the customer screen: a signed client keeps an
+        // address their contracts can go to. Without it, the space's form was
+        // the way round the check, and the next contract had nowhere to go.
+        if (!$customer->getStatus()->isProspect() && (null === $input->getEmail() || '' === $input->getEmail())) {
+            throw new FieldException('email', $this->translator->trans('suite.studio.customers.errors.contractual_email_required'));
+        }
+
         $customer
             ->setLegalName($input->getLegalName())
             ->setSiret($input->getSiret())
