@@ -38,7 +38,9 @@ exécutions d'affilée sans un échec.
    corriger de façon fiable. Le reset explicite, si.
 
 **Limiteurs existants** : `form_submission` (10/h), `contract_signature`
-(10/h), `contract_signature_code` (15/h), `deck_share_password` (20/h). Seuls
+(10/h), `contract_signature_code` (15/h), `post_reading_password` et
+`deliverable_password` (20/h ; `deck_share_password` a disparu avec les
+présentations le 06/10/2026). Seuls
 les tests de formulaire dépassaient ; les autres frappent leur route trop
 rarement, vérifié à quatre exécutions d'affilée.
 

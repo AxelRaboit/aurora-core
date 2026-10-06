@@ -15,6 +15,26 @@ interface NoteSpaceManagerInterface
     /** Un espace partagé, dont la personne qui le crée est propriétaire. */
     public function create(CoreUserInterface $owner, NoteSpaceInputInterface $input): NoteSpaceInterface;
 
+    /**
+     * Un espace partagé que quelque chose d'autre règle (`$managedBy`) : sans
+     * propriétaire, ouvert à ses seuls membres.
+     */
+    public function createManaged(string $name, string $managedBy): NoteSpaceInterface;
+
+    /**
+     * Remet le nom et les membres d'un espace réglé d'ailleurs sur ceux
+     * donnés : qui n'y est plus est désinscrit, qui y arrive est inscrit.
+     *
+     * @param list<array{user: CoreUserInterface, role: NoteSpaceRoleEnum}> $members
+     */
+    public function syncManaged(NoteSpaceInterface $space, string $name, array $members): void;
+
+    /**
+     * Ce qui réglait l'espace a disparu : il passe à la corbeille et
+     * redevient un espace ordinaire, que les administrateurs reprennent.
+     */
+    public function releaseManaged(NoteSpaceInterface $space): void;
+
     public function update(NoteSpaceInterface $space, NoteSpaceInputInterface $input): void;
 
     /**

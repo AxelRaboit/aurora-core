@@ -1,5 +1,11 @@
 import { useI18n } from "vue-i18n";
-import { BadgeCheck, LayoutDashboard, Pencil, Trash2 } from "lucide-vue-next";
+import {
+    BadgeCheck,
+    Building2,
+    LayoutDashboard,
+    Trash2,
+} from "lucide-vue-next";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 /**
  * What the menu on a customer row offers.
@@ -19,25 +25,43 @@ import { BadgeCheck, LayoutDashboard, Pencil, Trash2 } from "lucide-vue-next";
  * espaces et retaper le nom. L'entrée le tape pour vous : elle ouvre la liste
  * filtrée sur la société.
  *
+ * **Et d'abord sa page.** La fiche ne se modifie plus dans une fenêtre de la
+ * liste : « Ouvrir » mène à la page du client, où elle tient entière, avec ce
+ * qui l'entoure. Offert à quiconque voit la liste, puisque la page se lit avec
+ * le même droit.
+ *
  * @param {object} deps
+ * @param {string} deps.showPath L'adresse de la page d'un client, avec `__id__`.
  * @param {string} [deps.spacesPath] L'adresse de la liste des espaces.
  * @param {(permission: string) => boolean} deps.can
- * @param {(record: object) => void} deps.openEdit
  * @param {(record: object) => void} deps.convertToClient
  * @param {(record: object) => void} deps.confirmDelete
  */
 export function useCustomerRowActions({
+    showPath,
     spacesPath = "",
     can,
-    openEdit,
     convertToClient,
     confirmDelete,
 }) {
     const { t } = useI18n();
 
     return function actionsFor(record) {
-        const actions = [];
         const editable = can("studio.customers.edit");
+        const actions = [
+            {
+                key: "open",
+                color: "accent",
+                icon: Building2,
+                title: t("suite.studio.customers.open"),
+                description: t(
+                    "suite.studio.customers.row_actions.open_description",
+                ),
+                // Un lien et non un geste : il doit pouvoir s'ouvrir dans un
+                // autre onglet.
+                href: buildPath(showPath, { id: record.id }),
+            },
+        ];
 
         if (spacesPath && can("studio.spaces.view")) {
             actions.push({
@@ -47,20 +71,9 @@ export function useCustomerRowActions({
                 description: t("suite.studio.customers.spaces_description"),
                 // Un lien et non un geste : c'est une navigation, elle doit
                 // pouvoir s'ouvrir dans un autre onglet.
-                href: `${spacesPath}?search=${encodeURIComponent(record.legalName ?? "")}`,
-            });
-        }
-
-        if (editable) {
-            actions.push({
-                key: "edit",
-                color: "accent",
-                icon: Pencil,
-                title: t("shared.common.edit"),
-                description: t(
-                    "suite.studio.customers.row_actions.edit_description",
-                ),
-                onSelect: () => openEdit(record),
+                // Par identifiant : la raison sociale en recherche ramenait
+                // aussi les sociétés dont le nom la contient.
+                href: `${spacesPath}?customer=${encodeURIComponent(record.id)}`,
             });
         }
 

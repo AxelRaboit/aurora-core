@@ -342,7 +342,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
     }
 
     /**
-     * Deleting a card takes its attachments and leaves the documents.
+     * Destroying a card takes its attachments and leaves the documents.
      *
      * The row is a join, and the join is what the card owns: `onDelete:
      * CASCADE` on the item side removes it with the card. The document is not
@@ -351,7 +351,8 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
      * tidies the board.
      *
      * Pinned rather than assumed, because the two relations read alike in the
-     * mapping and only one of them destroys anything.
+     * mapping and only one of them destroys anything. Putting the card in the
+     * trash keeps even the join: a restore must find its files.
      */
     public function testDeletingACardKeepsTheFilesItCarried(): void
     {
@@ -364,6 +365,10 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $documentId = $this->attachments->findForSpaceByItem($space)[$item['id']][0]->getDocument()->getId();
 
         $this->client->request('POST', sprintf('/workspace/%d/content/%d/delete', $space->getId(), $item['id']));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame(1, $this->attachments->count([]), 'in the trash, the card keeps its files');
+
+        $this->client->request('POST', sprintf('/suite/studio/space-contents/%d/force-delete', $item['id']));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
@@ -443,8 +448,12 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         self::assertSame([], $this->payload()['orphanedDocuments']);
     }
 
-    /** Deleting the card offers the same thing, for the files it carried. */
-    public function testDeletingACardOffersToBinWhatItLeftBehind(): void
+    /**
+     * Putting a card in the trash offers nothing: it keeps its files there,
+     * still attached, for a restore. Offering to bin them would take from the
+     * card what the trash promises to give back.
+     */
+    public function testTrashingACardOffersNothingToBin(): void
     {
         $space = $this->givenSpace();
         $item = $this->givenItem($space, 'Un contenu à supprimer');
@@ -453,7 +462,8 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
 
         $this->client->request('POST', sprintf('/workspace/%d/content/%d/delete', $space->getId(), $item['id']));
 
-        self::assertCount(1, $this->payload()['orphanedDocuments']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertArrayNotHasKey('orphanedDocuments', $this->payload());
     }
 
     /**

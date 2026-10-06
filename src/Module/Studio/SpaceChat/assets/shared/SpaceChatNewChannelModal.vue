@@ -31,6 +31,11 @@ import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 
 const props = defineProps({
     show: { type: Boolean, default: false },
+    /**
+     * Montrer le canal au client dès sa création : le droit de partager
+     * l'espace. Sans lui, la case n'est pas offerte et le canal naît interne.
+     */
+    canShowToClient: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["close", "create"]);
@@ -53,7 +58,7 @@ function submit() {
     const clean = name.value.trim();
     if ("" === clean) return;
 
-    emit("create", { name: clean, openToClient: openToClient.value });
+    emit("create", { name: clean, openToClient: props.canShowToClient && openToClient.value });
     emit("close");
 }
 </script>
@@ -83,6 +88,7 @@ function submit() {
                  le lira » est ce qu'on veut savoir avant de nommer une pièce,
                  pas après l'avoir remplie. -->
             <AppCheckbox
+                v-if="canShowToClient"
                 v-model="openToClient"
                 :label="t('shared.space_chat.channels.new_open_to_client')"
                 :hint="t(openToClient

@@ -188,7 +188,7 @@ final readonly class DocumentsViewBuilder
      *
      * **One question for the whole page.** Asked row by row, a page of fifty
      * would cost fifty lookups in each of the five modules, and the three that
-     * walk their source - posts, decks, space notes - would walk it fifty
+     * walk their source - posts, deliverables, space notes - would walk it fifty
      * times over. {@see DocumentUsageService::countUsagesFor()} takes the page
      * at once, and the providers that can answer in bulk do it in one query or
      * one pass.
@@ -223,7 +223,7 @@ final readonly class DocumentsViewBuilder
         }
 
         // By kind of source, so the card can say where each member is used
-        // - "two pages, one deck" - and not only whether.
+        // - "two pages, one deliverable" - and not only whether.
         $byType = $this->usageService->countUsagesByTypeFor([...$ids, ...$alternateIds]);
         $counts = array_map(array_sum(...), $byType);
         // Trashed alternates count here: the family rule refuses to make an

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Configuration\Theme\Enum;
 
-use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckFontPairEnum;
 
 /**
  * La famille dans laquelle un thème compose toute l'application.

@@ -11,7 +11,6 @@ use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\SpaceScopeEnum;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
@@ -64,7 +63,6 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         private SpaceVisibility $visibility,
         private SpaceWorkload $workload,
         private ContractRepository $contractRepository,
-        private DeckRepository $deckRepository,
         private DeliverableRepository $deliverableRepository,
         private StudioContext $studioContext,
         private Security $security,
@@ -102,12 +100,11 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'upcomingDays' => SpaceWorkload::HORIZON_DAYS,
                 'awaitingSignature' => $this->countContracts(self::WITH_CUSTOMER),
                 'awaitingCountersignature' => $this->countContracts([ContractStatusEnum::SignedByCustomer]),
-                'decks' => $this->authorizationChecker->isGranted('studio.decks.view') ? $this->deckRepository->countLive() : null,
                 'deliverables' => $this->countDeliverables(),
                 'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),
-                'calendarPath' => $this->urlGenerator->generate('suite_studio_calendar'),
-                'contractsPath' => $this->authorizationChecker->isGranted('studio.contracts.view') ? $this->urlGenerator->generate('suite_studio_contracts') : null,
+                'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
+                'contractsPath' => $this->canSeeContracts() ? $this->urlGenerator->generate('suite_studio_contracts') : null,
                 // Chaque compteur ouvre la liste sur son étape, et non la
                 // liste entière.
                 'contractsWithCustomerPath' => $this->contractsPathFor('with_customer'),
@@ -124,7 +121,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
      */
     private function countContracts(array $statuses): ?int
     {
-        if (!$this->authorizationChecker->isGranted('studio.contracts.view')) {
+        if (!$this->canSeeContracts()) {
             return null;
         }
 
@@ -133,10 +130,15 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, $statuses));
     }
 
+    private function canSeeContracts(): bool
+    {
+        return $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view');
+    }
+
     /**
-     * Les livrables de Studio que le lecteur ouvre, null quand il n'a pas le
-     * module sous la main : pas de tuile plutôt qu'un chiffre sans destination.
-     * Ceux des espaces se comptent dans leur espace.
+     * Les livrables de Studio que le lecteur ouvre, pages et présentations,
+     * null quand il n'a pas le module sous la main : pas de tuile plutôt qu'un
+     * chiffre sans destination. Ceux des espaces se comptent dans leur espace.
      */
     private function countDeliverables(): ?int
     {
@@ -157,7 +159,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
 
     private function contractsPathFor(string $step): ?string
     {
-        return $this->authorizationChecker->isGranted('studio.contracts.view')
+        return $this->canSeeContracts()
             ? $this->urlGenerator->generate('suite_studio_contracts', ['step' => $step])
             : null;
     }

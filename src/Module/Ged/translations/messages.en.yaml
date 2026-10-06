@@ -101,7 +101,7 @@ suite:
                 title: "How the media library is organised"
                 step_1: "An uploaded file becomes a document, filed in a folder, with one category (its nature) and as many tags as you like."
                 step_2: "A variant (another colour, a text-free version) is attached to its original and forms a family; “Colour variant” creates one from an image."
-                step_3: "The “Unused” badge marks a document no page, presentation or space shows; “Keep” keeps it anyway."
+                step_3: "The “Unused” badge marks a document no page, deliverable or space shows; “Keep” keeps it anyway."
                 step_4: "Deleting sends the document to the trash, where it can be restored until the automatic purge."
                 step_5: "Search also reads the file name, the texts and the tags; “More filters” narrows by date, shape or weight."
             row_actions:
@@ -216,7 +216,7 @@ suite:
             select_mode: Select
             stop_selecting: Stop selecting
             usage_unused_badge: Unused
-            usage_unused_hint: No page, deck or space is drawing it
+            usage_unused_hint: No page, deliverable or space is drawing it
             kept_badge: Keep
             kept_hint: Unused on purpose, do not delete
             alternates_badge: "No variant | 1 variant | {count} variants"
@@ -253,8 +253,7 @@ suite:
                 usage_types:
                     other: "{count} use | {count} use | {count} uses"
                     editorial_post: "{count} post | {count} post | {count} posts"
-                    studio_deck: "{count} deck | {count} deck | {count} decks"
-                    studio_space_note: "{count} space note | {count} space note | {count} space notes"
+                    studio_deliverable: "{count} deliverable | {count} deliverable | {count} deliverables"
                     studio_space_file: "{count} space file | {count} space file | {count} space files"
                     studio_space_attachment: "{count} attachment | {count} attachment | {count} attachments"
                     configuration_setting: "{count} site setting | {count} site setting | {count} site settings"

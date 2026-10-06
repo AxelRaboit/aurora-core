@@ -17,7 +17,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * **The rule that decides what belongs here**, because a module named this
  * broadly has no other defence against becoming a drawer: Studio holds what is
  * sold and what is delivered. Not the tools it is made with. Customers,
- * contracts and presentations belong; notes, documents and the calendar do not,
+ * contracts and deliverables belong; notes, documents and the calendar do not,
  * and each of those has a module of its own.
  *
  * It was called Accounting until 0.9.x, which named one corner of it and
@@ -35,6 +35,25 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * editorial calendar reads across spaces, but the dates also go to Planning
  * rather than a second agenda, and the documents are filed in the GED instead
  * of a second library.
+ *
+ * **Amended again after 2.0.0**, when the presentations became deliverables.
+ * The rule now reads: Studio holds what is sold, what is delivered, and the
+ * surface it is delivered on. What is delivered is a deliverable, written as a
+ * page or composed as slides, and a standalone one belongs as much as one in a
+ * space: a draft or a template kept for oneself before anything is sent is
+ * still a thing being prepared for delivery, not a tool. Presentations stopped
+ * being a destination of their own in that release; the slide engine lives
+ * under `Deliverable/Slides`. Two former menu entries became views of what
+ * they serve: the editorial calendar is a view of the spaces, reached from
+ * their screen, and the contract trames are a tab of the contracts.
+ *
+ * The notes of a customer space were brought under the rule in the same
+ * release. They were a wall of their own, in Editor.js blocks, under
+ * `SpaceNote` - a second note-taking tool next to the Notes module. They now
+ * live in a note space of the Notes module, one per customer space, open to
+ * its team and kept in step with it; the space's Notes tab lists them and
+ * leads to the notes editor. What stays here is the link and its upkeep:
+ * `SpaceNoteSpaceProvider` and `SpaceNoteSpaceSync`.
  *
  * The module has no landing page of its own. Every destination it owns is a
  * real screen, so a row in the menu always leads somewhere that shows
@@ -68,12 +87,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             new NavPermission('studio.contracts.delete'),
             new NavPermission('studio.contracts.send'),
             new NavPermission('studio.contracts.countersign'),
-            new NavPermission('studio.decks.view'),
-            new NavPermission('studio.decks.create'),
-            new NavPermission('studio.decks.edit'),
-            new NavPermission('studio.decks.delete'),
-            new NavPermission('studio.decks.share'),
-            new NavPermission('studio.deck_categories.manage'),
             new NavPermission('studio.deliverables.view'),
             new NavPermission('studio.deliverables.create'),
             new NavPermission('studio.deliverables.edit'),
@@ -98,8 +111,9 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
         if ($this->studioContext->areSpacesEnabled()) {
             // Before the customer list, and not alphabetically: a space is
             // opened every day and a legal identity block is filled in once.
+            // The editorial calendar is a view of the spaces, reached from
+            // their screen: one entry, not two.
             $items[] = $this->spacesNavItem();
-            $items[] = $this->calendarNavItem();
         }
 
         if ($this->studioContext->areCustomersEnabled()) {
@@ -107,18 +121,13 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
         }
 
         if ($this->studioContext->areContractsEnabled()) {
-            // Contracts before the trames they are built from: the list read
-            // every week comes before the documents edited twice a year.
+            // One entry: the trames are a tab of it, the documents contracts
+            // are drawn from rather than a destination of their own.
             $items[] = $this->contractsNavItem();
-            $items[] = $this->contractTemplatesNavItem();
         }
 
-        if ($this->studioContext->areDecksEnabled()) {
-            $items[] = $this->decksNavItem();
-        }
-
-        // Après les présentations : l'autre document qu'on écrit pour
-        // quelqu'un, celui qu'on lui envoie à lire plutôt qu'on lui montre.
+        // Les documents qu'on écrit pour quelqu'un, pages et présentations :
+        // une seule entrée depuis que les présentations sont des livrables.
         if ($this->studioContext->areDeliverablesEnabled()) {
             $items[] = $this->deliverablesNavItem();
         }
@@ -134,11 +143,8 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
     {
         return [new NavSection('studio', [
             $this->spacesNavItem(),
-            $this->calendarNavItem(),
             $this->customersNavItem(),
             $this->contractsNavItem(),
-            $this->contractTemplatesNavItem(),
-            $this->decksNavItem(),
             $this->deliverablesNavItem(),
         ], priority: 45)];
     }
@@ -149,7 +155,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             ModuleParameterEnum::StudioSuite->toToggle(),
             ModuleParameterEnum::StudioCustomers->toToggle(),
             ModuleParameterEnum::StudioContracts->toToggle(),
-            ModuleParameterEnum::StudioDecks->toToggle(),
             ModuleParameterEnum::StudioDeliverables->toToggle(),
             ModuleParameterEnum::StudioSpaces->toToggle(),
         ];
@@ -162,42 +167,20 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             'suite.nav.studio_contracts',
             'file-signature',
             requiredPrivilege: 'studio.contracts.view',
+            // Lit aussi les pages des trames, son second onglet : sans ce
+            // préfixe, ouvrir une trame éteignait l'entrée.
+            activeRoutePrefix: 'suite_studio_contract',
             descriptionKey: 'suite.nav.studio_contracts_description',
         );
     }
 
-    private function contractTemplatesNavItem(): NavItem
-    {
-        return new NavItem(
-            'suite_studio_contract_templates',
-            'suite.nav.studio_contract_templates',
-            'scroll-text',
-            requiredPrivilege: 'studio.contract_templates.view',
-            descriptionKey: 'suite.nav.studio_contract_templates_description',
-        );
-    }
-
-    private function decksNavItem(): NavItem
-    {
-        return new NavItem(
-            'suite_studio_decks',
-            'suite.nav.studio_decks',
-            'presentation',
-            requiredPrivilege: 'studio.decks.view',
-            // Les pages d'une présentation s'appellent `suite_studio_deck`,
-            // au singulier : l'éditeur, le mode présentateur, l'impression.
-            // Sans ce préfixe, ouvrir une présentation éteignait le menu.
-            activeRoutePrefix: 'suite_studio_deck',
-            descriptionKey: 'suite.nav.studio_decks_description',
-        );
-    }
-
+    /** The icon every other screen gives a deliverable: dashboard, search, trash, and the tab of a space. */
     private function deliverablesNavItem(): NavItem
     {
         return new NavItem(
             'suite_studio_deliverables',
             'suite.nav.studio_deliverables',
-            'file-check',
+            'notebook-text',
             requiredPrivilege: 'studio.deliverables.view',
             descriptionKey: 'suite.nav.studio_deliverables_description',
         );
@@ -211,18 +194,6 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             'panels-top-left',
             requiredPrivilege: 'studio.spaces.view',
             descriptionKey: 'suite.nav.studio_spaces_description',
-        );
-    }
-
-    /** Next to the spaces it reads from: the same work, laid on one month. */
-    private function calendarNavItem(): NavItem
-    {
-        return new NavItem(
-            'suite_studio_calendar',
-            'suite.nav.studio_calendar',
-            'calendar-range',
-            requiredPrivilege: 'studio.spaces.view',
-            descriptionKey: 'suite.nav.studio_calendar_description',
         );
     }
 

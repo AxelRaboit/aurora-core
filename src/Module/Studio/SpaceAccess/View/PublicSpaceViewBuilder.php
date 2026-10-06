@@ -70,7 +70,7 @@ final readonly class PublicSpaceViewBuilder
      * médiathèque : le client n'est pas connecté, et une image privée ne
      * s'afficherait pas chez lui. Elle n'est alors simplement pas envoyée.
      *
-     * @return list<array{id: int, title: string, description: ?string, updatedAt: string, url: string, thumbnailUrl: ?string, thumbnailPosition: ?string}>
+     * @return list<array{id: int, title: string, description: ?string, format: string, updatedAt: string, url: string, thumbnailUrl: ?string, thumbnailPosition: ?string}>
      */
     private function documents(SpaceAccessLinkInterface $link, string $token): array
     {
@@ -83,6 +83,8 @@ final readonly class PublicSpaceViewBuilder
                 'id' => (int) $deliverable->getId(),
                 'title' => $deliverable->getTitle(),
                 'description' => $deliverable->getSummary(),
+                // A page or a presentation: the card says so before it opens.
+                'format' => $deliverable->getFormat()->value,
                 'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
                 'url' => $this->urlGenerator->generate('public_space_deliverable', [
                     'selector' => $link->getSelector(),
@@ -194,6 +196,15 @@ final readonly class PublicSpaceViewBuilder
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'itemId' => '__id__',
+                ])
+                : null,
+            // Sending a file to the space itself, from the Files tab. Handed to
+            // a preview too, so the studio sees the page the client gets; the
+            // page disables the button there and the route refuses a preview.
+            'spaceFileUploadPath' => $link->canUpload()
+                ? $this->urlGenerator->generate('public_space_file_upload', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
                 ])
                 : null,
             // Le dossier Drive, s'il y en a un. Les adresses sont posées même

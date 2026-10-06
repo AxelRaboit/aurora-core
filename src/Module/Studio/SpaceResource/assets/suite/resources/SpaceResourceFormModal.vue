@@ -10,7 +10,9 @@
  *
  * **La visibilité est dans la modale, pas après coup.** C'est une décision qui
  * appartient au moment où l'on range : refermer la modale puis chercher un
- * interrupteur dans la liste est ce qui fait qu'on oublie. Fermée par défaut.
+ * interrupteur dans la liste est ce qui fait qu'on oublie. Fermée par défaut,
+ * et offerte seulement à qui peut partager l'espace : les autres préparent la
+ * ressource, quelqu'un qui le peut la montre.
  *
  * Le genre ne peut plus changer à la reprise : ce qui a été enregistré comme
  * un contact et deviendrait un texte laisserait derrière une adresse et un
@@ -32,6 +34,8 @@ const props = defineProps({
     resource: { type: Object, default: null },
     saving: { type: Boolean, default: false },
     errors: { type: Object, default: () => ({}) },
+    /** Montrer ou cacher au client : le droit de partager l'espace. */
+    canShowToClient: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["close", "submit"]);
@@ -162,6 +166,7 @@ function error(field) {
             />
 
             <AppToggle
+                v-if="canShowToClient"
                 v-model="form.visibleToClient"
                 :label="t('suite.studio.space_resources.visible_to_client')"
                 :hint="t(form.visibleToClient ? 'suite.studio.space_resources.visible_hint_on' : 'suite.studio.space_resources.visible_hint_off')"

@@ -7,11 +7,15 @@ namespace Aurora\Module\Studio\CustomerSpace\Entity;
 use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceDocumentFolderProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceSync;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -93,6 +97,29 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentFolderInterface $documentFolder = null;
 
+    /**
+     * L'espace de notes où l'équipe garde ce qu'elle sait de ce client.
+     *
+     * **Les notes d'un espace client vivent dans le module Notes**, et non
+     * plus ici : un espace de notes par espace client, ouvert à son équipe,
+     * que {@see SpaceNoteSpaceProvider} ouvre la première fois qu'on en a
+     * besoin et que {@see SpaceNoteSpaceSync} tient à jour (son nom, ses
+     * membres). C'est ce qui donne à ces notes tout ce que le module sait
+     * faire - dossiers, liens entre notes, historique, recherche, partage
+     * d'une note - sans le refaire dans Studio.
+     *
+     * **Un sens seulement.** L'espace de notes ne connaît pas Studio : il
+     * porte un marqueur (`managedBy`) qui dit seulement que son nom, son accès
+     * et ses membres viennent d'ailleurs.
+     *
+     * **Nullable, et `SET NULL`**, comme le dossier de la médiathèque : créé
+     * à la demande, et un espace de notes que quelqu'un retirerait ne doit pas
+     * être une suppression que la base refuse.
+     */
+    #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
+    #[ORM\JoinColumn(unique: true, nullable: true, onDelete: 'SET NULL')]
+    protected ?NoteSpaceInterface $noteSpace = null;
+
     #[ORM\Column(length: 20, enumType: CustomerSpaceStatusEnum::class, options: ['default' => 'active'])]
     protected CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active;
 
@@ -164,6 +191,24 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
      */
     #[ORM\Column(length: 32, nullable: true)]
     protected ?string $driveLockGeneration = null;
+
+    /**
+     * Quand l'espace a été mis à la corbeille ; nul, il est vivant.
+     *
+     * Une suppression douce, comme celle des livrables : un espace porte des
+     * mois de travail d'un client, et le supprimer par erreur emportait tout,
+     * sans retour. À la corbeille, il sort des listes, de la recherche, des
+     * comptes, du calendrier éditorial et du Planning ; ses écrans, sa page
+     * client et ses liens d'accès répondent comme une adresse inconnue. Rien
+     * n'est détruit : la restauration remet tout comme c'était, et seules la
+     * suppression définitive et la purge planifiée font ce que faisait la
+     * suppression d'avant.
+     *
+     * Un espace à la corbeille compte toujours pour son client : la fiche ne
+     * se supprime pas tant qu'il n'est pas détruit pour de bon.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $deletedAt = null;
 
     /** @var Collection<int, CustomerSpaceMemberInterface> */
     #[ORM\OneToMany(targetEntity: CustomerSpaceMemberInterface::class, mappedBy: 'space', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -246,6 +291,23 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function isArchived(): bool
     {
         return CustomerSpaceStatusEnum::Archived === $this->status;
+    }
+
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isTrashed(): bool
+    {
+        return $this->deletedAt instanceof DateTimeImmutable;
     }
 
     public function getColourSlot(): int
@@ -358,6 +420,18 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static
     {
         $this->documentFolder = $documentFolder;
+
+        return $this;
+    }
+
+    public function getNoteSpace(): ?NoteSpaceInterface
+    {
+        return $this->noteSpace;
+    }
+
+    public function setNoteSpace(?NoteSpaceInterface $noteSpace): static
+    {
+        $this->noteSpace = $noteSpace;
 
         return $this;
     }

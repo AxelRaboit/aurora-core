@@ -530,6 +530,9 @@ suite:
         studio_contract_reminder_max:
             label: Maximum number of reminders
             description: 'Past that, the contract is left alone. Silence is an answer too.'
+        studio_contract_link_days:
+            label: Signing link validity (days)
+            description: "How many days the address sent to the client stays open. Between 1 and 365; a new send hands out a fresh one."
         nav_section_aliases:
             label: Navigation section aliases
             description: JSON map of section aliases (managed via the UI).

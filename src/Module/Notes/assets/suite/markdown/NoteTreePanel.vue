@@ -28,7 +28,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Globe, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
+import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileInput, FileText, Folder, Globe, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
@@ -297,6 +297,8 @@ const favorites = computed(() => {
 const fetchedSpaces = ref(null);
 const announcedSpaces = ref(null);
 const canCreateSpace = ref(false);
+/** La connexion Craft est-elle ouverte : le menu d'un espace propose alors l'import. */
+const craftEnabled = ref(false);
 
 const spaces = computed(() => sortSpaces(announcedSpaces.value ?? fetchedSpaces.value ?? []));
 
@@ -309,6 +311,7 @@ onMounted(async () => {
     if (payload) {
         fetchedSpaces.value = payload.spaces ?? [];
         canCreateSpace.value = Boolean(payload.canCreate);
+        craftEnabled.value = Boolean(payload.craftEnabled);
     }
 });
 
@@ -399,6 +402,15 @@ function spaceActions(space) {
                 title: t("notes.markdown.spaces.import_here"),
                 icon: Upload,
                 onSelect: () => forward("import", Number(space.id)),
+            }]
+            : []),
+        // Seulement quand l'installation a ouvert la connexion Craft.
+        ...(space.canWrite && craftEnabled.value
+            ? [{
+                key: "craft-import",
+                title: t("notes.craft.import.action"),
+                icon: FileInput,
+                onSelect: () => forward("craft-import", Number(space.id)),
             }]
             : []),
         {
@@ -832,6 +844,7 @@ onMounted(() => {
             }
             if (Array.isArray(detail?.spaces)) announcedSpaces.value = detail.spaces;
             if ("canCreateSpace" in (detail ?? {})) canCreateSpace.value = Boolean(detail.canCreateSpace);
+            if ("craftEnabled" in (detail ?? {})) craftEnabled.value = Boolean(detail.craftEnabled);
 
             // La page dit ce qu'elle montre : un dossier, une note, ou la
             // racine. La ligne correspondante s'allume, et son dossier
@@ -1015,6 +1028,14 @@ onUnmounted(() => {
                     >
                         <title>{{ t('notes.markdown.spaces.publication.badge') }}</title>
                     </Globe>
+                    <!-- Réglé depuis Studio : le badge le dit, et les réglages
+                         ne s'ouvrent pas d'ici. -->
+                    <span
+                        v-if="group.space.managed"
+                        data-space-managed
+                        class="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                        :title="t('notes.markdown.spaces.managed_hint')"
+                    >{{ t('notes.markdown.spaces.managed_badge') }}</span>
                     <span
                         v-if="!group.space.canWrite"
                         data-space-readonly
@@ -1030,7 +1051,7 @@ onUnmounted(() => {
                         <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton
-                        v-if="group.space.canManage"
+                        v-if="group.space.canManage && !group.space.managed"
                         class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
                         :title="t('notes.markdown.spaces.settings')"
                         :data-space-settings="group.space.id"

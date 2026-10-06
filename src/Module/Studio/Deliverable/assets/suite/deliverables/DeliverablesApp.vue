@@ -15,11 +15,22 @@
  * un filtre à côté des rayons, comme celui des métiers sur les trames, et un
  * affichage par catégorie, en sections, ou en simple liste. Le filtre et
  * l'affichage vont dans l'adresse, comme le rayon : un lien rouvre la même vue.
+ *
+ * Un livrable peut être un modèle : un badge sur sa carte, le filtre
+ * « Modèles » à côté des catégories, et « Partir d'un modèle » dans la fenêtre
+ * de création. Le client pour qui il a été écrit, quand il en a un, se lit sur
+ * la carte.
+ *
+ * Pages et présentations sont une seule liste : un badge sur la carte d'une
+ * présentation, et un filtre de format (Tous, Pages, Présentations) à côté des
+ * autres, dans l'adresse comme eux. « Importer un texte » fait d'un texte
+ * collé une présentation : un titre ouvre une diapositive, ce qui suit la
+ * remplit.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, FolderInput, Layers, Link2, List, Lock, Pencil, Plus, Tags, Trash2, Users, X } from "lucide-vue-next";
+import { Copy, ExternalLink, FileInput, FileText, FolderInput, Layers, LayoutTemplate, Link2, List, Lock, Pencil, Plus, Presentation, Tags, Trash2, Users, X } from "lucide-vue-next";
 import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { queueFlash } from "@/shared/utils/flash.js";
@@ -41,9 +52,12 @@ import AppTab from "@/shared/components/nav/AppTab.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
 import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
+import DeliverableFormatFields from "./components/DeliverableFormatFields.vue";
+import DeliverableImportModal from "./components/DeliverableImportModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 import DeliverableScopePicker from "./components/DeliverableScopePicker.vue";
 import { categoryOptions } from "./composables/categoryOptions.js";
+import { templateOptions } from "./composables/templateOptions.js";
 import { useDeliverableRequest } from "./composables/useDeliverableRequest.js";
 
 const props = defineProps({
@@ -54,6 +68,8 @@ const props = defineProps({
     /** La route qui rend les deux rayons à jour, pour une liste devenue périmée. */
     listsPath: { type: String, default: "" },
     createPath: { type: String, required: true },
+    /** Un texte collé qui devient une présentation ; vide, le geste ne s'affiche pas. */
+    importPath: { type: String, default: "" },
     scopePathTemplate: { type: String, required: true },
     duplicatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
@@ -129,13 +145,59 @@ function setCategoryFilter(value) {
     setCategory(null === value || undefined === value ? "" : String(value));
 }
 
-/** La recherche porte sur le titre et le résumé, dans le rayon ouvert. */
-const searched = computed(() => {
-    const needle = search.value.trim().toLocaleLowerCase();
+/**
+ * Pages, présentations, ou les deux : dans l'adresse comme les autres filtres.
+ * Le format par défaut, « Tous », n'y est pas écrit.
+ */
+const FORMATS = ["page", "slides"];
+// « Tous » est la chaîne vide : elle doit être valide, sans quoi `set("")`
+// serait ignoré et le filtre ne s'éteindrait plus.
+const { value: formatQuery, set: setFormatQuery } = useQueryState("format", { defaultValue: "", valid: ["", ...FORMATS] });
+const formatFilter = computed(() => (FORMATS.includes(formatQuery.value) ? formatQuery.value : ""));
+
+/** Un livrable sans format dit est une page : c'est ce que le serveur crée par défaut. */
+function formatOf(row) {
+    return "slides" === row.format ? "slides" : "page";
+}
+
+/** Le rayon ouvert, au format choisi : ce que comptent et filtrent les autres filtres. */
+const scoped = computed(() =>
+    "" === formatFilter.value ? lists.value[scope.value] : lists.value[scope.value].filter((row) => formatOf(row) === formatFilter.value),
+);
+
+/** Combien de chaque format dans le rayon ouvert, pour les pastilles. */
+const formatCounts = computed(() => {
     const rows = lists.value[scope.value];
 
+    return {
+        "": rows.length,
+        page: rows.filter((row) => "page" === formatOf(row)).length,
+        slides: rows.filter((row) => "slides" === formatOf(row)).length,
+    };
+});
+
+const formatFilters = computed(() =>
+    ["", ...FORMATS].map((value) => ({ value, label: t(`suite.studio.deliverables.format.filter_${value || "all"}`) })),
+);
+
+/** Les modèles seuls, ou tout : dans l'adresse comme les autres filtres. */
+const { value: templatesQuery, set: setTemplatesQuery } = useQueryState("templates", { defaultValue: "", valid: ["", "1"] });
+const templatesOnly = computed(() => "1" === templatesQuery.value);
+
+function toggleTemplatesOnly() {
+    setTemplatesQuery(templatesOnly.value ? "" : "1");
+}
+
+/** Combien de modèles dans le rayon ouvert, pour le compte du filtre. */
+const templateCount = computed(() => scoped.value.filter((row) => row.template).length);
+
+/** La recherche porte sur le titre, le résumé et le client, dans le rayon ouvert. */
+const searched = computed(() => {
+    const needle = search.value.trim().toLocaleLowerCase();
+    const rows = templatesOnly.value ? scoped.value.filter((row) => row.template) : scoped.value;
+
     return needle
-        ? rows.filter((row) => `${row.title} ${row.summary ?? ""}`.toLocaleLowerCase().includes(needle))
+        ? rows.filter((row) => `${row.title} ${row.summary ?? ""} ${row.customer?.legalName ?? ""}`.toLocaleLowerCase().includes(needle))
         : rows;
 });
 
@@ -199,10 +261,31 @@ const saving = ref(false);
 const title = ref("");
 const newScope = ref("personal");
 const newCategory = ref("");
+const newTemplate = ref("");
+/** Une page ou une présentation : décidé ici, une fois pour toutes. */
+const newFormat = ref("page");
 const errors = ref({});
+
+/**
+ * Both shelves, where the modal looks for templates: one starts from a shared
+ * template as from one of one's own, see `DeliverableFormatFields`.
+ */
+const templateRows = computed(() => [...lists.value.personal, ...lists.value.shared]);
+
+/** The templates of the chosen format, to take over the category of the one picked. */
+const templateSelectOptions = computed(() => templateOptions(templateRows.value, newFormat.value));
+
+// Choisir un modèle range le nouveau livrable dans sa catégorie : c'est ce
+// qu'il en reprend, et le sélecteur reste là pour en changer.
+watch(newTemplate, (value) => {
+    const chosen = templateSelectOptions.value.find((option) => String(option.value) === String(value));
+    if (chosen) newCategory.value = null === chosen.categoryId ? "" : chosen.categoryId;
+});
 
 function openCreate() {
     title.value = "";
+    newTemplate.value = "";
+    newFormat.value = "page";
     // Dans le rayon qu'on regarde : on crée là où l'on cherchait.
     newScope.value = scope.value;
     // La catégorie qu'on filtre, si c'en est une : on crée là où l'on regardait.
@@ -219,7 +302,9 @@ async function create() {
         const data = await send(props.createPath, {
             title: title.value,
             scope: newScope.value,
+            format: newFormat.value,
             categoryId: newCategory.value ? Number(newCategory.value) : null,
+            fromTemplateId: newTemplate.value ? Number(newTemplate.value) : null,
         });
         if (!data?.success) {
             errors.value = data?.errors ?? {};
@@ -234,10 +319,63 @@ async function create() {
     }
 }
 
+// ── Importer un texte ───────────────────────────────────────────────────────
+
+const importing = ref(false);
+const importSaving = ref(false);
+const importTitle = ref("");
+const importScope = ref("personal");
+const importCategory = ref("");
+/** The pasted text, which only lives in the modal, see `DeliverableImportModal`. */
+const importBlocks = ref([]);
+const importErrors = ref({});
+
+function openImport() {
+    importTitle.value = "";
+    importBlocks.value = [];
+    importScope.value = scope.value;
+    importCategory.value = "" !== categoryFilter.value && NO_CATEGORY !== categoryFilter.value ? categoryFilter.value : "";
+    importErrors.value = {};
+    importing.value = true;
+}
+
+async function submitImport() {
+    if (importSaving.value) return;
+
+    importSaving.value = true;
+    try {
+        const data = await send(props.importPath, {
+            title: importTitle.value,
+            scope: importScope.value,
+            categoryId: importCategory.value ? Number(importCategory.value) : null,
+            blocks: importBlocks.value,
+        });
+        if (!data?.success) {
+            importErrors.value = data?.errors ?? {};
+
+            return;
+        }
+
+        queueFlash("success", t("suite.studio.deliverables.import.done"));
+        window.location.href = data.editPath;
+    } finally {
+        importSaving.value = false;
+    }
+}
+
 const pageActions = computed(() => {
     const actions = [];
     if (props.canCreate) {
         actions.push({ key: "create", color: "accent", icon: Plus, title: t("suite.studio.deliverables.add"), onSelect: openCreate });
+        if (props.importPath) {
+            actions.push({
+                key: "import",
+                icon: FileInput,
+                title: t("suite.studio.deliverables.import.action"),
+                description: t("suite.studio.deliverables.import.action_hint"),
+                onSelect: openImport,
+            });
+        }
     }
     if (props.canManageCategories) {
         actions.push({
@@ -333,7 +471,7 @@ function actionsFor(deliverable) {
         actions.push({
             key: "links",
             icon: Link2,
-            title: t("suite.studio.deliverables.links.title"),
+            title: t("suite.studio.deliverables.share"),
             description: t("suite.studio.deliverables.links_hint"),
             onSelect: () => (linksFor.value = deliverable),
         });
@@ -362,6 +500,7 @@ function actionsFor(deliverable) {
         });
     }
 
+    // A page or a presentation: the copy takes the body, slides included.
     if (props.copyTargets.length && props.copyToSpacePathTemplate) {
         actions.push({
             key: "copy-to-space",
@@ -472,6 +611,59 @@ function actionsFor(deliverable) {
                     class="w-full sm:w-auto sm:min-w-48"
                     v-on:update:model-value="setCategoryFilter"
                 />
+
+                <!-- Pages, présentations, ou les deux : des pastilles avec leur
+                     compte, comme les rayons ; « Tous » n'est pas écrit dans
+                     l'adresse. -->
+                <div
+                    class="flex w-full p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:self-start"
+                    role="group"
+                    :aria-label="t('suite.studio.deliverables.format.filter_label')"
+                >
+                    <AppTab
+                        v-for="option in formatFilters"
+                        :key="option.value || 'all'"
+                        size="sm"
+                        class="flex-1 justify-between sm:flex-none sm:justify-start"
+                        :active="formatFilter === option.value"
+                        :aria-pressed="formatFilter === option.value ? 'true' : 'false'"
+                        active-class="bg-surface text-primary shadow-sm"
+                        inactive-class="text-secondary hover:text-primary"
+                        v-on:click="setFormatQuery(option.value)"
+                    >
+                        <span class="inline-flex items-center gap-1.5">
+                            <Presentation v-if="'slides' === option.value" class="h-3.5 w-3.5" :stroke-width="2" />
+                            <FileText v-else-if="'page' === option.value" class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ option.label }}
+                        </span>
+                        <span class="ml-1 text-xs text-muted">{{ formatCounts[option.value] }}</span>
+                    </AppTab>
+                </div>
+
+                <!-- Les modèles seuls : une pastille qu'on enfonce, avec son
+                     compte, comme les rayons. Visible même à zéro quand le
+                     filtre est allumé, pour pouvoir l'éteindre. -->
+                <div
+                    v-if="templateCount || templatesOnly"
+                    class="flex w-full p-1 bg-surface-2 border border-line rounded-lg sm:inline-flex sm:w-auto sm:self-start"
+                >
+                    <AppTab
+                        size="sm"
+                        class="flex-1 justify-between sm:flex-none sm:justify-start"
+                        :active="templatesOnly"
+                        :aria-pressed="templatesOnly ? 'true' : 'false'"
+                        :title="t('suite.studio.deliverables.template.filter_hint')"
+                        active-class="bg-surface text-primary shadow-sm"
+                        inactive-class="text-secondary hover:text-primary"
+                        v-on:click="toggleTemplatesOnly"
+                    >
+                        <span class="inline-flex items-center gap-1.5">
+                            <LayoutTemplate class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("suite.studio.deliverables.template.filter") }}
+                        </span>
+                        <span class="ml-1 text-xs text-muted">{{ templateCount }}</span>
+                    </AppTab>
+                </div>
             </div>
 
             <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`suite.studio.deliverables.scope.intro_${scope}`) }}</p>
@@ -506,6 +698,17 @@ function actionsFor(deliverable) {
                                 :style="deliverable.category.color ? { backgroundColor: deliverable.category.color } : {}"
                             />
                             {{ deliverable.category.name }}
+                        </span>
+                        <AppBadge v-if="'slides' === deliverable.format" color="emerald">
+                            <Presentation class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                            {{ t("suite.studio.deliverables.format.badge_slides") }}
+                        </AppBadge>
+                        <AppBadge v-if="deliverable.template" color="violet">
+                            <LayoutTemplate class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                            {{ t("suite.studio.deliverables.template.badge") }}
+                        </AppBadge>
+                        <span v-if="deliverable.customer" class="text-xs text-secondary">
+                            {{ t("suite.studio.deliverables.for_customer", { name: deliverable.customer.legalName }) }}
                         </span>
                         <AppBadge v-if="'shared' === deliverable.scope" color="sky">
                             {{ deliverable.ownerName
@@ -556,6 +759,12 @@ function actionsFor(deliverable) {
             v-on:close="creating = false"
         >
             <form class="space-y-4" v-on:submit.prevent="create">
+                <DeliverableFormatFields
+                    v-model:format="newFormat"
+                    v-model:template="newTemplate"
+                    :rows="templateRows"
+                    :error="errors.format ?? ''"
+                />
                 <AppInput
                     v-model="title"
                     autofocus
@@ -588,6 +797,29 @@ function actionsFor(deliverable) {
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <DeliverableImportModal
+            v-if="importPath"
+            v-model:title="importTitle"
+            v-model:blocks="importBlocks"
+            :show="importing"
+            :saving="importSaving"
+            :errors="importErrors"
+            v-on:close="importing = false"
+            v-on:submit="submitImport"
+        >
+            <AppSelect
+                v-if="categories.length"
+                v-model="importCategory"
+                :label="t('suite.studio.deliverables.categories.label')"
+                :placeholder="t('suite.studio.deliverables.categories.none')"
+                :options="categorySelectOptions"
+            />
+            <fieldset class="m-0 space-y-2 border-0 p-0">
+                <legend class="mb-1.5 text-sm font-medium text-primary">{{ t("suite.studio.deliverables.scope.label") }}</legend>
+                <DeliverableScopePicker v-model="importScope" />
+            </fieldset>
+        </DeliverableImportModal>
 
         <DeliverableDeleteModal
             :show="!!pendingDelete"

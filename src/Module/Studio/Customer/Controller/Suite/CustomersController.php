@@ -42,6 +42,19 @@ class CustomersController extends AbstractController
         return $this->render('@Studio/suite/customers/index.html.twig', $this->viewBuilder->indexView());
     }
 
+    /**
+     * La page d'un client : toute sa fiche, et ce qui l'entoure.
+     *
+     * Lisible avec le droit de voir les clients ; le formulaire ne s'ouvre en
+     * écriture qu'à qui peut les modifier, et l'enregistrement le vérifie de
+     * son côté.
+     */
+    #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function show(Customer $customer): Response
+    {
+        return $this->render('@Studio/suite/customers/show.html.twig', $this->viewBuilder->showView($customer));
+    }
+
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.customers.create')]
     public function create(Request $request): JsonResponse
@@ -51,14 +64,17 @@ class CustomersController extends AbstractController
         ));
     }
 
-    #[Route('/{id}/update', name: '_update', methods: [HttpMethodEnum::Post->value])]
+    /**
+     * La fiche entière, depuis la page du client : le seul chemin qui l'écrit.
+     */
+    #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.customers.edit')]
     public function update(Customer $customer, Request $request): JsonResponse
     {
         return $this->withInput($request, function ($input) use ($customer): JsonResponse {
             $this->customerManager->update($customer, $input);
 
-            return $this->jsonSuccess($this->viewBuilder->customerPayload($customer));
+            return $this->jsonSuccess($this->viewBuilder->showPayload($customer));
         });
     }
 
@@ -69,8 +85,9 @@ class CustomersController extends AbstractController
      * connait qu'un champ, et passer par la mise a jour aurait demande de
      * renvoyer la raison sociale et le reste pour changer une colonne.
      *
-     * Repond avec la liste entiere : le rang change d'onglet, et les deux
-     * ecrans qui offrent ce bouton comptent les leurs.
+     * Repond avec la liste entiere : le rang change d'onglet, et les ecrans
+     * qui offrent ce bouton (la liste, celle des espaces, la page du client)
+     * y relisent chacun ce qui les concerne.
      */
     #[Route('/{id}/convert', name: '_convert', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.customers.edit')]

@@ -320,7 +320,7 @@ final readonly class GridViewBuilder
                     ? $this->siteViews->commentsView($currentPostId, $locale)
                     : null,
                 'deck' => GridNormalizer::ZONE_DECK === $zone['type']
-                    ? $this->siteViews->deckView($zone['deckId'])
+                    ? $this->siteViews->deckView($zone['deliverableId'])
                     : null,
                 'shared' => GridNormalizer::ZONE_SHARED === $zone['type']
                     ? $this->sharedView($posts[$zone['postId']] ?? null, $locale, $depth)

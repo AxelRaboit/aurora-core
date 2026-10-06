@@ -9,6 +9,8 @@ import { useProspectConversion } from "./composables/useProspectConversion.js";
 import ConvertProspectModal from "./components/ConvertProspectModal.vue";
 import { useCustomersForm } from "./composables/useCustomersForm.js";
 import CustomerFormFields from "./components/CustomerFormFields.vue";
+import CustomerDeleteModal from "./components/CustomerDeleteModal.vue";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
@@ -17,7 +19,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import { Building2, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
+import { Building2, Plus, Save, X } from "lucide-vue-next";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const { t } = useI18n();
@@ -26,10 +28,10 @@ const { can } = usePrivileges();
 
 const props = defineProps({
     customers: { type: Array, default: () => [] },
-    users: { type: Array, default: () => [] },
     currencies: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
-    updatePath: { type: String, required: true },
+    /** La page d'un client, avec `__id__` : la fiche se modifie là. */
+    showPath: { type: String, required: true },
     convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
     /** La liste des espaces, où l'on va depuis un client. */
@@ -40,31 +42,17 @@ const {
     search,
     filteredItems,
     applyUpdatedList,
-    userOptions,
     showCreate,
     newCustomer,
     createErrors,
     createLoading,
     openCreate,
     submitCreate,
-    showEdit,
-    editingCustomer,
-    editForm,
-    editErrors,
-    editLoading,
-    openEdit,
-    submitEdit,
     pendingDelete,
     deleteLoading,
     confirmDelete,
     doDelete,
-} = useCustomersForm(
-    props.customers,
-    props.users,
-    props.createPath,
-    props.updatePath,
-    props.deletePath,
-);
+} = useCustomersForm(props.customers, props.createPath, props.deletePath);
 
 // Its own rather than the shared edit/delete pair: a prospect has a third
 // thing to offer. See the composable.
@@ -79,9 +67,9 @@ const {
 } = useProspectConversion(props.convertPath, (data) => applyUpdatedList(data));
 
 const actionsFor = useCustomerRowActions({
+    showPath: props.showPath,
     spacesPath: props.spacesPath,
     can,
-    openEdit,
     convertToClient: (customer) =>
         openConversion(customer, {
             id: customer.id,
@@ -115,6 +103,11 @@ const tabs = computed(() =>
             .length,
     })),
 );
+
+/** La page du client : le nom y mène, sur la liste comme sur les cartes. */
+function pageOf(customer) {
+    return buildPath(props.showPath, { id: customer.id });
+}
 
 /**
  * A SIRET is read back in the groups it is printed in, not as fourteen run-on
@@ -234,7 +227,7 @@ const pageActions = computed(() => {
                 <div class="flex items-start gap-3 px-4 py-3">
                     <div class="min-w-0 flex-1 space-y-1">
                         <p class="font-medium text-primary text-sm">
-                            {{ customer.legalName }}
+                            <a :href="pageOf(customer)" class="text-primary hover:underline">{{ customer.legalName }}</a>
                             <span v-if="customer.legalForm" class="text-muted font-normal">
                                 · {{ customer.legalForm }}
                             </span>
@@ -300,9 +293,11 @@ const pageActions = computed(() => {
                         class="group hover:bg-surface-2/40 transition-colors"
                     >
                         <td class="px-4 py-2">
-                            <div class="font-medium text-primary">
+                            <!-- Le nom mène à sa page, où toute la fiche se lit et
+                                 se modifie. -->
+                            <a :href="pageOf(customer)" class="font-medium text-primary hover:underline">
                                 {{ customer.legalName }}
-                            </div>
+                            </a>
                             <div class="text-xs text-muted">
                                 <span v-if="customer.legalForm">{{ customer.legalForm }}</span>
                                 <span v-if="customer.legalForm && formatCapital(customer)">
@@ -352,13 +347,6 @@ const pageActions = computed(() => {
                             <div class="text-primary whitespace-nowrap">
                                 {{ customer.contractualEmail }}
                             </div>
-                            <div v-if="customer.userName" class="text-xs text-muted">
-                                {{
-                                    t("suite.studio.customers.linked_account", {
-                                        name: customer.userName,
-                                    })
-                                }}
-                            </div>
                         </td>
                         <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <div class="flex items-center justify-end gap-0.5">
@@ -392,7 +380,6 @@ const pageActions = computed(() => {
                 <CustomerFormFields
                     v-model="newCustomer"
                     :errors="createErrors"
-                    :user-options="userOptions"
                     :currencies="currencies"
                 />
             </form>
@@ -415,81 +402,13 @@ const pageActions = computed(() => {
             </template>
         </AppModal>
 
-        <AppModal
-            :show="showEdit"
-            max-width="2xl"
-            :title="
-                t('suite.studio.customers.edit', {
-                    name: editingCustomer?.legalName ?? '',
-                })
-            "
-            :icon="Pencil"
-            :closeable="false"
-            v-on:close="showEdit = false"
-        >
-            <form v-on:submit.prevent="submitEdit">
-                <CustomerFormFields
-                    v-model="editForm"
-                    :errors="editErrors"
-                    :user-options="userOptions"
-                    :currencies="currencies"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showEdit = false">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="editLoading"
-                        v-on:click="submitEdit"
-                    >
-                        <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
+        <CustomerDeleteModal
             :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("suite.studio.customers.delete_confirm", {
-                        name: pendingDelete?.legalName ?? "",
-                    })
-                }}
-            </p>
-            <p class="text-sm text-secondary">
-                {{ t("suite.studio.customers.delete_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="danger"
-                        size="md"
-                        :loading="deleteLoading"
-                        v-on:click="doDelete"
-                    >
-                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            :name="pendingDelete?.legalName ?? ''"
+            :loading="deleteLoading"
+            v-on:cancel="pendingDelete = null"
+            v-on:confirm="doDelete"
+        />
 
         <ConvertProspectModal
             :show="!!converting"

@@ -53,6 +53,8 @@ import AppSignaturePad from "@/shared/components/form/input/AppSignaturePad.vue"
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 
 const props = defineProps({
+    /** How long a signing address stays valid, from the setting. */
+    linkDays: { type: Number, default: 30 },
     contract: { type: Object, required: true },
     indexPath: { type: String, required: true },
     updatePath: { type: String, required: true },
@@ -84,7 +86,7 @@ const props = defineProps({
 const { t } = useI18n();
 const { request } = useRequest();
 const { formatDateNumeric, formatDateTimeNumeric } = useDateFormat();
-const { flowOf, summaryOf } = useContractFlow();
+const { flowOf, summaryOf } = useContractFlow({ linkDays: props.linkDays });
 
 const P = "suite.studio.contracts";
 const F = `${P}.flow`;
@@ -434,7 +436,7 @@ const confirmText = computed(() => {
         return t(`${P}.freeze_confirm`, { name: contract.value.customerName });
     case "send":
     case "resend":
-        return email ? t(`${F}.confirm.send`, { email }) : t(`${F}.confirm.send_no_address`);
+        return email ? t(`${F}.confirm.send`, { email, days: props.linkDays }) : t(`${F}.confirm.send_no_address`);
     case "remind":
         return t(`${F}.confirm.remind`, { email });
     default:

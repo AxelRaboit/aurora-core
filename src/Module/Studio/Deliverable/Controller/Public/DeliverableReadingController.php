@@ -10,6 +10,7 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Sharing\ShareToken;
 use Aurora\Module\Studio\StudioContext;
 use DateTimeImmutable;
@@ -50,6 +51,7 @@ final class DeliverableReadingController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly RateLimiterFactoryInterface $deliverablePasswordLimiter,
         private readonly StudioContext $studioContext,
+        private readonly DeliverableSlidesViewBuilder $slidesView,
     ) {}
 
     #[Route('/{token}', name: '', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Get->value])]
@@ -66,6 +68,19 @@ final class DeliverableReadingController extends AbstractController
 
         $deliverable = $link->getDeliverable();
         $request->setLocale($deliverable->getLocale());
+
+        // Un diaporama se lit diapositive par diapositive, comme une
+        // présentation partagée : jamais par le gabarit des pages, et jamais
+        // avec les notes de l'orateur, retirées avant le gabarit.
+        if ($deliverable->isSlides()) {
+            $link->touch(new DateTimeImmutable());
+            $this->entityManager->flush();
+
+            return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
+                'deck' => $this->slidesView->readerDeck($deliverable),
+                'expiresAt' => $link->getExpiresAt(),
+            ]));
+        }
 
         // Changer de vue (présentation, page) n'est pas ouvrir de nouveau le
         // lien : le compteur de l'auteur dit combien de fois on est venu, pas
@@ -136,15 +151,20 @@ final class DeliverableReadingController extends AbstractController
     /**
      * La partie de Studio dont le livrable dépend est-elle allumée ?
      *
-     * Un livrable d'espace s'éteint avec les espaces, un livrable de Studio
-     * avec le module Livrables : le même 404 qu'un lien inconnu, plutôt
+     * Un livrable d'espace s'éteint avec les espaces, ou avec son espace mis à
+     * la corbeille, un livrable de Studio avec le module Livrables : le même 404 qu'un lien inconnu, plutôt
      * qu'une page servie par une partie que l'administrateur a coupée.
      */
     private function isServed(DeliverableLinkInterface $link): bool
     {
-        return $link->getDeliverable()->isStandalone()
-            ? $this->studioContext->areDeliverablesEnabled()
-            : $this->studioContext->areSpacesEnabled();
+        $deliverable = $link->getDeliverable();
+
+        if ($deliverable->isStandalone()) {
+            return $this->studioContext->areDeliverablesEnabled();
+        }
+
+        // Et un espace à la corbeille emporte la lecture de ses livrables.
+        return $this->studioContext->areSpacesEnabled() && true !== $deliverable->getSpace()?->isTrashed();
     }
 
     private function isUnlocked(Request $request, string $token): bool

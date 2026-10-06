@@ -64,7 +64,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         // elle, pas à la note, et une seconde requête les recollerait ligne
         // par ligne.
         $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'n.craftDocumentId', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
             ->leftJoin(NoteFavorite::class, 'fav', Join::WITH, 'fav.note = n AND fav.user = :favoriteViewer')
             ->setParameter('favoriteViewer', $user)
             ->andWhere('n.deletedAt IS NULL')
@@ -250,6 +250,39 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             'position' => (int) $row['position'],
             'folderId' => null === $row['folderId'] ? null : (int) $row['folderId'],
             'spaceId' => (int) $row['spaceId'],
+        ], $rows);
+    }
+
+    /**
+     * Les notes vivantes d'un espace, les plus récemment touchées d'abord,
+     * sans leur texte.
+     *
+     * Pour un écran qui les liste hors du module - l'onglet Notes d'un espace
+     * client - et n'a besoin que de quoi les reconnaître et les ouvrir. Le
+     * texte est chiffré : ne pas le choisir est ce qui garde la liste légère.
+     *
+     * @return list<array{id: int, title: ?string, folderId: ?int, updatedAt: ?string, authorName: ?string}>
+     */
+    public function findListInSpace(NoteSpaceInterface $space): array
+    {
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $this->createQueryBuilder('n')
+            ->select('n.id', 'n.title', 'n.updatedAt', 'IDENTITY(n.folder) AS folderId', 'author.name AS authorName')
+            ->leftJoin('n.user', 'author')
+            ->where('n.space = :space')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('space', $space)
+            ->orderBy('n.updatedAt', Order::Descending->value)
+            ->addOrderBy('n.id', Order::Descending->value)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'title' => $row['title'],
+            'folderId' => null === $row['folderId'] ? null : (int) $row['folderId'],
+            'updatedAt' => self::asAtom($row['updatedAt'] ?? null),
+            'authorName' => $row['authorName'],
         ], $rows);
     }
 

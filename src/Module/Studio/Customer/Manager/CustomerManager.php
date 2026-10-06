@@ -6,10 +6,7 @@ namespace Aurora\Module\Studio\Customer\Manager;
 
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
-use Aurora\Module\Studio\Customer\Dto\CustomerInformationInputInterface;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
@@ -32,7 +29,6 @@ class CustomerManager implements CustomerManagerInterface
         protected readonly CustomerRepository $customerRepository,
         protected readonly ContractRepository $contractRepository,
         protected readonly CustomerSpaceRepository $spaceRepository,
-        protected readonly UserRepository $userRepository,
         protected readonly TranslatorInterface $translator,
     ) {}
 
@@ -55,38 +51,6 @@ class CustomerManager implements CustomerManagerInterface
         $this->entityManager->flush();
 
         $this->auditUpdated($customer);
-    }
-
-    /**
-     * La fiche telle qu'on la remplit depuis un espace.
-     *
-     * **Sa propre écriture, et non `update` avec moins de champs.** Celle-là
-     * applique une saisie entière : les colonnes qu'elle ne reçoit pas, elle
-     * les vide. Le capital, le RCS, la TVA et le représentant ne sont pas sur
-     * cet écran, et les lui passer aurait effacé l'identité contractuelle du
-     * client au premier enregistrement depuis un projet.
-     *
-     * Le SIRET est vérifié libre ici aussi : c'est une colonne unique, et une
-     * collision non posée remonterait en erreur SQL au milieu d'une requête.
-     */
-    public function updateInformation(CustomerInterface $customer, CustomerInformationInputInterface $input): void
-    {
-        $this->assertSiretIsFree($input->getSiret(), $customer->getId());
-
-        $customer
-            ->setLegalName($input->getLegalName())
-            ->setSiret($input->getSiret())
-            ->setSiren($input->getSiren())
-            ->setPhone($input->getPhone())
-            ->setLandline($input->getLandline())
-            ->setContractualEmail($input->getEmail())
-            ->setRegisteredOffice($input->getPostalAddress())
-            ->setLinks($input->getLinks())
-            ->setInformationNotes($input->getNotes());
-
-        $this->entityManager->flush();
-
-        $this->auditLogger->log('studio', 'customer.information_updated', 'Customer', $customer->getId(), $this->auditPayload($customer));
     }
 
     /**
@@ -214,21 +178,10 @@ class CustomerManager implements CustomerManagerInterface
             ->setRepresentativeRole($input->getRepresentativeRole())
             ->setContractualEmail($input->getContractualEmail())
             ->setPhone($input->getPhone())
-            ->setUser($this->resolveUser($input));
-    }
-
-    /**
-     * The account to attach, or null.
-     *
-     * An id that no longer resolves lands as null rather than as an error: the
-     * picker is fed from the account list, so the only way to send an unknown
-     * one is to have edited the payload.
-     */
-    protected function resolveUser(CustomerInputInterface $input): ?CoreUserInterface
-    {
-        $userId = $input->getUserId();
-
-        return null === $userId ? null : $this->userRepository->find($userId);
+            ->setSiren($input->getSiren())
+            ->setLandline($input->getLandline())
+            ->setLinks($input->getLinks())
+            ->setInformationNotes($input->getInformationNotes());
     }
 
     /**

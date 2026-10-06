@@ -14,6 +14,7 @@ use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
+use Aurora\Module\Notes\Space\Manager\NoteSpaceManagerInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -431,6 +432,80 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
         $this->post('suite_notes_spaces_restore', [], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
+    }
+
+    /**
+     * Un espace réglé d'ailleurs : ses membres y écrivent, mais personne ne le
+     * règle d'ici - ni son nom, ni son accès, ni ses membres, ni sa
+     * publication, ni son retrait. Son équipe suit ce qu'on lui donne, et
+     * quand ce qui le réglait disparaît il part à la corbeille, d'où un
+     * administrateur le fait revenir.
+     */
+    public function testAManagedSpaceIsSetFromElsewhere(): void
+    {
+        $manager = static::getContainer()->get(NoteSpaceManagerInterface::class);
+        $space = $manager->createManaged('Boulangerie Martin', 'studio.customer_space');
+        $manager->syncManaged($space, 'Boulangerie Martin', [
+            ['user' => $this->managed($this->owner), 'role' => NoteSpaceRoleEnum::Manager],
+            ['user' => $this->managed($this->editor), 'role' => NoteSpaceRoleEnum::Editor],
+        ]);
+        $spaceId = (int) $space->getId();
+
+        $this->client->loginUser($this->managed($this->editor), 'admin');
+        $this->post('suite_notes_markdown_create', ['title' => 'Brief', 'spaceId' => $spaceId]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->loginUser($this->managed($this->owner), 'admin');
+        foreach ([
+            ['suite_notes_spaces_update', ['name' => 'Renommé', 'access' => 'backoffice'], ['id' => $spaceId]],
+            ['suite_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'reader'], ['id' => $spaceId]],
+            ['suite_notes_spaces_members_remove', [], ['id' => $spaceId, 'userId' => $this->editor->getId()]],
+            ['suite_notes_spaces_delete', [], ['id' => $spaceId]],
+        ] as [$route, $payload, $params]) {
+            $body = $this->post($route, $payload, $params);
+            self::assertResponseStatusCodeSame(409, $route);
+            self::assertSame('notes.markdown.spaces.errors.managed', $body['error'] ?? null, $route);
+        }
+
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_list'));
+        $listed = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['spaces'];
+        $row = array_values(array_filter($listed, static fn (array $one): bool => $spaceId === (int) $one['id']))[0] ?? [];
+        self::assertTrue($row['managed'] ?? false);
+        self::assertSame('manager', $row['role'] ?? null);
+
+        // L'équipe change là-bas : le rédacteur part, le dehors arrive.
+        $this->entityManager->clear();
+        $manager->syncManaged($this->entityManager->find(NoteSpace::class, $spaceId), 'Boulangerie Martin - Instagram', [
+            ['user' => $this->managed($this->owner), 'role' => NoteSpaceRoleEnum::Manager],
+            ['user' => $this->managed($this->outsider), 'role' => NoteSpaceRoleEnum::Editor],
+        ]);
+        $this->entityManager->clear();
+        $synced = $this->entityManager->find(NoteSpace::class, $spaceId);
+        self::assertSame('Boulangerie Martin - Instagram', $synced?->getName());
+        $members = $this->entityManager->getRepository(NoteSpaceMember::class)->findBy(['space' => $spaceId]);
+        self::assertEqualsCanonicalizing(
+            [$this->owner->getId(), $this->outsider->getId()],
+            array_map(static fn (NoteSpaceMember $member): ?int => $member->getUser()->getId(), $members),
+        );
+
+        // Ce qui le réglait disparaît : à la corbeille, et plus réglé d'ailleurs.
+        self::assertInstanceOf(NoteSpace::class, $synced);
+        $manager->releaseManaged($synced);
+        $this->entityManager->clear();
+        $released = $this->entityManager->find(NoteSpace::class, $spaceId);
+        self::assertFalse($released?->isManaged());
+        self::assertNotNull($released?->getDeletedAt());
+
+        $admin = $this->user('admin');
+        $this->managed($admin)->setRoles([UserRoleEnum::Admin->value]);
+        $this->entityManager->flush();
+        $this->client->loginUser($this->managed($admin), 'admin');
+        $this->post('suite_notes_spaces_restore', [], ['id' => $spaceId]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $this->entityManager->remove($this->entityManager->getReference(NoteSpace::class, $spaceId));
+        $this->entityManager->flush();
     }
 
     /** Un gestionnaire ne ferme pas l'espace à « moi seul » : il s'en fermerait la porte. */

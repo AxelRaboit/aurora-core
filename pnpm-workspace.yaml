@@ -7,6 +7,10 @@ allowBuilds:
 # test : l'override est moins couteux qu'attendre que happy-dom bouge.
 overrides:
   ws: '>=8.21.0'
+  # GHSA-68fv-2mgg-jv7q: source-map-js < 1.2.2 lets indexed source-map section
+  # offsets block the event loop. Pulled in by vue, vue-i18n and tailwind, none
+  # of which asks for the fixed version yet. Remove once they do.
+  source-map-js: '>=1.2.2'
   # GHSA-vfj7-8cjw-p6xm : braces <= 3.0.3 epuise la pile sur des accolades
   # imbriquees par milliers (sous sa limite de longueur), et aucune version
   # corrigee n'existe. Copie de 3.0.3 avec une limite de profondeur

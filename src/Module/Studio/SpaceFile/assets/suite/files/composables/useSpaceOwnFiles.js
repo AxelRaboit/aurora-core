@@ -17,7 +17,7 @@ import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
  * qui rafistolerait sa copie s'écarterait du serveur en trois gestes.
  *
  * @param {Array} initial
- * @param {object} paths  uploadPath, attachPath, removePath
+ * @param {object} paths  uploadPath, attachPath, removePath, visibilityPath
  * @param {(data: object) => void} offerOrphaned
  */
 export function useSpaceOwnFiles(initial, paths, offerOrphaned) {
@@ -109,5 +109,43 @@ export function useSpaceOwnFiles(initial, paths, offerOrphaned) {
         }
     }
 
-    return { files, loading, upload, pick, remove };
+    /**
+     * Montre le fichier au client, ou le lui cache.
+     *
+     * Le serveur répond par la liste entière, comme aux autres écritures ;
+     * le message dit ce qui vient de se passer, parce que montrer par
+     * inadvertance et montrer sont le même clic.
+     */
+    async function toggleVisibility(file) {
+        if (!file || loading.value || !paths.visibilityPath) return;
+
+        const visible = !file.visibleToClient;
+
+        loading.value = true;
+        try {
+            const data = await request(
+                buildPath(paths.visibilityPath, { id: file.id }),
+                { visible },
+            );
+
+            if (!data?.success) {
+                if (data?.errors) toast.error(Object.values(data.errors)[0]);
+
+                return;
+            }
+
+            apply(data);
+            toast.success(
+                t(
+                    visible
+                        ? "suite.studio.space_files.now_visible"
+                        : "suite.studio.space_files.now_hidden",
+                ),
+            );
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    return { files, loading, upload, pick, remove, toggleVisibility };
 }

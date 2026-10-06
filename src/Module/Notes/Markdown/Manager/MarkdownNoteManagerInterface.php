@@ -27,6 +27,9 @@ interface MarkdownNoteManagerInterface
 
     public function update(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void;
 
+    /** Retient le document Craft dont la note vient d'être copiée. */
+    public function markImportedFromCraft(MarkdownNoteInterface $note, string $craftDocumentId): void;
+
     /** Moves a note to the trash. */
     public function delete(MarkdownNoteInterface $note): void;
 

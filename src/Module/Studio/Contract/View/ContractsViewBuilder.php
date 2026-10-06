@@ -17,6 +17,7 @@ use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Serializer\ContractSerializerInterface;
 use Aurora\Module\Studio\Contract\Service\ContractCustomFieldScanner;
+use Aurora\Module\Studio\Contract\Service\ContractLinkLifetime;
 use Aurora\Module\Studio\Contract\Service\ContractVariableCatalogue;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
@@ -34,6 +35,7 @@ final readonly class ContractsViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private ContractCustomFieldScanner $customFields,
         private ContractVariableCatalogue $variables,
+        private ContractLinkLifetime $linkLifetime,
     ) {}
 
     /**
@@ -134,6 +136,10 @@ final readonly class ContractsViewBuilder
             // non-amendment contracts, so the picker cannot offer a choice the
             // manager would refuse a second later.
             'amendable' => $this->amendable($all),
+            'contractsPath' => $this->urlGenerator->generate('suite_studio_contracts'),
+            'templatesPath' => $this->urlGenerator->generate('suite_studio_contract_templates'),
+            // Quoted by the guide; the setting decides it, not the wording.
+            'linkDays' => $this->linkLifetime->days(),
         ];
     }
 
@@ -162,6 +168,9 @@ final readonly class ContractsViewBuilder
             'exportPath' => $path('suite_studio_contracts_export'),
             'terminatePath' => $path('suite_studio_contracts_terminate'),
             'terminationOrigins' => $this->terminationOrigins(),
+            // How long the address a send hands out stays valid, as the
+            // buttons and the confirmation say it.
+            'linkDays' => $this->linkLifetime->days(),
             // Where an amendment starts from: the list, with this contract
             // already chosen. One screen creates contracts, and an amendment
             // is a contract.
@@ -265,12 +274,12 @@ final readonly class ContractsViewBuilder
             fn (ContractTemplateInterface $template): array => [
                 'value' => (string) $template->getId(),
                 'label' => $template->getName(),
-                // Carried, not filtered on. The form narrows the list by trade
+                // Carried, not filtered on. The form sorts the list by category
                 // to make a library of twenty readable, but every trame stays
                 // reachable: a body written for one activity is sometimes the
                 // right starting point for another, and a picker that hides it
                 // would be helping in a way that costs an hour.
-                'category' => $template->getCategory()?->value,
+                'category' => $template->getCategory()?->getName(),
                 // The blanks this trame will ask for, so the form can put them
                 // on screen the moment it is chosen rather than at the freeze,
                 // where a refusal means going back and starting again.

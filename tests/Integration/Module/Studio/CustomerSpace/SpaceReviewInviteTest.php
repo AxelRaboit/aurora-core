@@ -11,8 +11,10 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -251,7 +253,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->reviewStep($space)->getId(),
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -271,7 +273,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $id), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->reviewStep($space)->getId(),
             'scheduledAt' => '2026-12-01T09:00',
             'showOnCalendar' => true,
         ]);
@@ -311,5 +313,17 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         }
 
         return $messages;
+    }
+
+    /** The step where the client answers: the one cards awaiting a review sit on. */
+    private function reviewStep(CustomerSpace $space): SpaceContentColumnInterface
+    {
+        foreach ($this->columns->findForSpace($space) as $column) {
+            if (SpaceContentColumnRoleEnum::Review === $column->getRole()) {
+                return $column;
+            }
+        }
+
+        self::fail('The default board has a Review step.');
     }
 }

@@ -44,6 +44,9 @@ class SpaceContentAttachmentRepository extends ResolveTargetEntityRepository
             ->join('a.item', 'i')
             ->join('a.document', 'd')
             ->where('i.space = :space')
+            // Pas les fils des contenus à la corbeille : ils restent en base,
+            // et reviennent avec leur contenu.
+            ->andWhere('i.deletedAt IS NULL')
             ->setParameter('space', $space)
             ->orderBy('a.position', Order::Ascending->value)
             ->addOrderBy('a.id', Order::Ascending->value)

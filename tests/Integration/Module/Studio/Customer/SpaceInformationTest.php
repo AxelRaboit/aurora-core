@@ -19,30 +19,26 @@ use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_column;
 use function bin2hex;
 use function json_decode;
 use function random_bytes;
 use function sprintf;
 
+use const JSON_THROW_ON_ERROR;
+
 /**
- * La fiche d'un client, remplie depuis son espace.
+ * La fiche d'un client, vue depuis son espace.
  *
- * Trois garanties, et aucune ne se voit sur l'écran qui les produit :
+ * **En lecture.** L'onglet Informations avait son propre formulaire et sa
+ * propre route d'écriture, avec d'autres champs que l'écran des clients. La
+ * fiche s'écrit maintenant sur la page du client, et seulement là : la route
+ * de l'onglet n'existe plus, et l'onglet mène à la page pour qui a le droit de
+ * la modifier.
  *
- * **Elle appartient au client.** Deux espaces ouverts pour la même société
- * montrent la même fiche. Une copie par espace se serait contredite dès le
- * deuxième projet, et personne ne l'aurait su avant de comparer.
- *
- * **Elle ne touche pas à l'identité contractuelle.** L'écran ne montre ni le
- * capital, ni le RCS, ni la TVA, ni le représentant ; les lui faire porter
- * aurait effacé tout cela au premier enregistrement depuis un projet, et le
- * contrat suivant serait parti incomplet.
- *
- * **Les deux numéros doivent s'accorder.** Un SIRET commence par son SIREN ;
- * deux numéros qui se contredisent sur la même ligne donnent une fiche qui
- * porte deux identités.
+ * Ce qui ne change pas : la fiche appartient au client (deux espaces montrent
+ * la même), et la page que lit le client montre ce qu'elle montrait.
  */
 final class SpaceInformationTest extends IntegrationTestCase
 {
@@ -81,125 +77,99 @@ final class SpaceInformationTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    public function testTheContractualIdentitySurvivesASaveFromASpace(): void
+    /**
+     * La route d'écriture de l'onglet n'existe plus.
+     *
+     * **La moitié positive d'abord** : le même compte enregistre bien la fiche
+     * par la page du client. Un 404 seul ne prouverait rien, il serait le même
+     * si l'espace n'existait pas.
+     */
+    public function testTheTabNoLongerWritesTheRecord(): void
     {
         $customer = $this->givenCustomer();
         $space = $this->givenSpace($customer, 'Premier projet');
 
-        $this->save($space, [
-            'legalName' => 'Atelier Temoin',
-            'siret' => '11281704400004',
-            'siren' => '112817044',
-            'phone' => '06 11 22 33 44',
-            'postalAddress' => '1 rue Neuve, 38000 Grenoble',
+        $this->saveOnTheCustomerPage($customer, ['phone' => '06 11 22 33 44']);
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), [
+            'legalName' => 'Renomme depuis un espace',
         ]);
 
+        self::assertSame(404, $this->client->getResponse()->getStatusCode());
+
         $this->entityManager->clear();
-        $reloaded = $this->entityManager->getRepository(Customer::class)->find($customer->getId());
-        self::assertInstanceOf(Customer::class, $reloaded);
-
-        // Ce que l'écran a écrit.
-        self::assertSame('112817044', $reloaded->getSiren());
-        self::assertSame('06 11 22 33 44', $reloaded->getPhone());
-
-        // Ce qu'il n'a pas touché, et qui n'était sur aucun de ses champs.
-        self::assertSame(1_000_000, $reloaded->getShareCapitalCents());
-        self::assertSame(CurrencyEnum::EUR, $reloaded->getShareCapitalCurrency());
-        self::assertSame('Lyon B 123 456 789', $reloaded->getTradeRegister());
-        self::assertSame('FR12345678901', $reloaded->getVatNumber());
-        self::assertSame('Gerante', $reloaded->getRepresentativeRole());
+        $stored = $this->entityManager->getRepository(Customer::class)->find($customer->getId());
+        self::assertSame('Atelier Temoin', $stored?->getLegalName());
+        self::assertSame('06 11 22 33 44', $stored?->getPhone());
     }
 
-    public function testTwoSpacesOfTheSameCustomerShowTheSameSheet(): void
+    /** L'onglet reçoit la fiche à lire, et plus d'adresse où l'enregistrer. */
+    public function testTheTabReceivesTheRecordToReadAndNoSavePath(): void
+    {
+        $customer = $this->givenCustomer();
+        $space = $this->givenSpace($customer, 'Premier projet');
+
+        $props = $this->spaceProps($space);
+
+        self::assertSame('Atelier Temoin', $props['information']['legalName']);
+        self::assertArrayNotHasKey('informationSavePath', $props);
+        self::assertSame(sprintf('/suite/studio/customers/%d', $customer->getId()), $props['customerPath']);
+    }
+
+    /**
+     * « Modifier la fiche » ne mène à la page que pour qui peut l'y modifier.
+     *
+     * Un lien vers un formulaire en lecture seule serait une promesse que la
+     * page ne tient pas ; quelqu'un qui tient le tableau d'un espace sans
+     * toucher aux fiches clients n'a pas de lien du tout.
+     */
+    public function testTheLinkToTheCustomerPageFollowsTheEditPrivilege(): void
+    {
+        $customer = $this->givenCustomer();
+        $space = $this->givenSpace($customer, 'Premier projet');
+
+        $reader = $this->account(['studio.spaces.view', 'studio.customers.view']);
+        $this->joinSpace($space, $reader);
+        $this->client->loginUser($reader, 'admin');
+        self::assertNull($this->spaceProps($space)['customerPath']);
+
+        $production = $this->account(['studio.spaces.view', 'studio.spaces.edit']);
+        $this->joinSpace($space, $production);
+        $this->client->loginUser($production, 'admin');
+        self::assertNull($this->spaceProps($space)['customerPath']);
+
+        $editor = $this->account(['studio.spaces.view', 'studio.customers.view', 'studio.customers.edit']);
+        $this->joinSpace($space, $editor);
+        $this->client->loginUser($editor, 'admin');
+        self::assertSame(sprintf('/suite/studio/customers/%d', $customer->getId()), $this->spaceProps($space)['customerPath']);
+    }
+
+    /** La fiche est au client : modifiée sur sa page, ses deux espaces montrent la même. */
+    public function testTwoSpacesOfTheSameCustomerShowTheSameRecord(): void
     {
         $customer = $this->givenCustomer();
         $first = $this->givenSpace($customer, 'Premier projet');
         $second = $this->givenSpace($customer, 'Second projet');
 
-        $this->save($first, ['legalName' => 'Atelier Temoin', 'phone' => '06 55 44 33 22']);
+        $this->saveOnTheCustomerPage($customer, ['phone' => '06 55 44 33 22', 'siren' => '112817044']);
 
-        $payload = $this->save($second, ['legalName' => 'Atelier Temoin', 'phone' => '06 55 44 33 22']);
-        self::assertSame('06 55 44 33 22', $payload['information']['phone']);
+        self::assertSame('06 55 44 33 22', $this->spaceProps($first)['information']['phone']);
+        self::assertSame('112817044', $this->spaceProps($second)['information']['siren']);
+    }
+
+    /** Autour du client, depuis un espace : les autres espaces, pas celui où l'on est. */
+    public function testTheRelatedSpacesLeaveOutTheCurrentOne(): void
+    {
+        $customer = $this->givenCustomer();
+        $first = $this->givenSpace($customer, 'Premier projet');
+        $this->givenSpace($customer, 'Second projet');
+
+        self::assertSame(['Second projet'], array_column($this->spaceProps($first)['related']['spaces'], 'label'));
     }
 
     /**
-     * Un SIREN qui ne correspond pas au SIRET est refusé, sur son champ.
-     *
-     * L'erreur se pose sur le SIREN et non sur le SIRET : c'est le champ qu'on
-     * vient d'ajouter à l'écran, donc celui qu'on vient de taper.
-     */
-    public function testTwoNumbersThatDisagreeAreRefusedOnTheSirenField(): void
-    {
-        $space = $this->givenSpace($this->givenCustomer(), 'Premier projet');
-
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), [
-            'legalName' => 'Atelier Temoin',
-            'siret' => '11281704400004',
-            'siren' => '732456306',
-        ]);
-
-        self::assertSame(422, $this->client->getResponse()->getStatusCode());
-
-        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
-        self::assertArrayHasKey('siren', $payload['errors']);
-        self::assertArrayNotHasKey('siret', $payload['errors']);
-    }
-
-    /** Une clé de contrôle fausse est un numéro faux, pas un numéro court. */
-    public function testASirenWithABadCheckDigitIsRefused(): void
-    {
-        $space = $this->givenSpace($this->givenCustomer(), 'Premier projet');
-
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), [
-            'legalName' => 'Atelier Temoin',
-            'siren' => '112817040',
-        ]);
-
-        self::assertSame(422, $this->client->getResponse()->getStatusCode());
-
-        // The screen translates the key it is given: the constraint named one
-        // that did not exist, and the field showed it raw.
-        $key = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['errors']['siren'];
-        self::assertNotSame($key, static::getContainer()->get(TranslatorInterface::class)->trans($key));
-    }
-
-    /**
-     * Une ligne de liens ouverte puis laissée vide n'empêche pas d'enregistrer.
-     *
-     * Le bouton « ajouter » en pose une vide ; refuser à cause d'elle
-     * obligerait à la retirer avant de sauver, ce que personne ne comprend.
-     * Une ligne à moitié remplie, elle, est une vraie erreur.
-     */
-    public function testAnEmptyLinkRowIsDroppedAndAHalfFilledOneIsReported(): void
-    {
-        $space = $this->givenSpace($this->givenCustomer(), 'Premier projet');
-
-        $payload = $this->save($space, [
-            'legalName' => 'Atelier Temoin',
-            'links' => [
-                ['label' => 'Site web', 'url' => 'https://atelier.example.com'],
-                ['label' => '', 'url' => ''],
-            ],
-        ]);
-
-        self::assertCount(1, $payload['information']['links']);
-
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), [
-            'legalName' => 'Atelier Temoin',
-            'links' => [['label' => 'Site web', 'url' => '']],
-        ]);
-
-        self::assertSame(422, $this->client->getResponse()->getStatusCode());
-
-        $errors = json_decode((string) $this->client->getResponse()->getContent(), true)['errors'];
-        self::assertArrayHasKey('links[0].url', $errors);
-    }
-
-    /**
-     * L'onglet du client n'existe pas tant que la fiche ne dit rien.
-     *
-     * Une société connaît son propre nom : un onglet qui ne lui apprendrait
-     * que celui-là est un onglet qu'on ouvre une fois.
+     * Ce que lit le client ne change pas : l'onglet de sa page n'existe pas
+     * tant que la fiche ne dit rien, et montre ce qu'elle dit ensuite.
      */
     public function testTheClientTabAppearsOnlyOnceTheSheetSaysSomething(): void
     {
@@ -216,76 +186,48 @@ final class SpaceInformationTest extends IntegrationTestCase
         // échappés : c'est bien ce HTML-là que le client reçoit.
         self::assertStringContainsString('information&quot;:null', $this->clientPage($link));
 
-        $this->save($space, ['legalName' => 'Societe Sans Fiche', 'phone' => '06 00 11 22 33']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/update', $customer->getId()), [
+            'legalName' => 'Societe Sans Fiche',
+            'phone' => '06 00 11 22 33',
+            'links' => [['label' => 'Site web', 'url' => 'https://societe.example.com']],
+            'informationNotes' => 'Ouvert le samedi',
+        ]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        self::assertStringContainsString('06 00 11 22 33', $this->clientPage($link));
+        $page = $this->clientPage($link);
+        self::assertStringContainsString('06 00 11 22 33', $page);
+        self::assertStringContainsString('https:\\/\\/societe.example.com', $page);
+        self::assertStringContainsString('Ouvert le samedi', $page);
+        // Rien de contractuel ne voyage vers le client.
+        self::assertStringNotContainsString('shareCapitalCents', $page);
     }
 
     /**
-     * Tenir le tableau d'un espace n'autorise pas à changer la société.
+     * Enregistrer la fiche, par le seul chemin qui l'écrit : la page du client.
      *
-     * **La porte d'à côté n'est pas une autorisation.** L'écran s'ouvre depuis
-     * un projet, mais ce qu'il modifie est l'identité d'un client, et celle-ci
-     * apparaît sur ses contrats. Quelqu'un à qui on a confié la production
-     * d'un espace, et à qui on n'a pas confié les fiches clients, ne doit pas
-     * y arriver par ce chemin.
+     * @param array<string, mixed> $payload
      */
-    public function testHoldingASpaceDoesNotOpenTheCustomerSheet(): void
+    private function saveOnTheCustomerPage(Customer $customer, array $payload): void
     {
-        $space = $this->givenSpace($this->givenCustomer(), 'Premier projet');
-
-        // Tout ce qu'il faut pour travailler dans l'espace, et rien sur les
-        // clients : c'est exactement le compte que la garde vise.
-        // Membre de l'espace, sans quoi l'espace lui-même n'existerait pas
-        // pour lui et le refus serait un 404 dont on n'apprendrait rien.
-        $account = $this->account(['studio.spaces.view', 'studio.spaces.edit']);
-        $this->joinSpace($space, $account);
-        $this->client->loginUser($account, 'admin');
-
-        // **La moitié positive d'abord.** Un 403 tout seul ne prouve rien : il
-        // serait le même si le compte n'était pas connecté, ou si la route
-        // n'existait pas. Ce compte travaille réellement dans l'espace.
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/resources/create', $space->getId()), [
-            'kind' => 'text',
-            'label' => 'Une note de production',
-            'body' => 'Ecrite par quelqu un qui tient cet espace.',
-        ]);
-
-        self::assertSame(200, $this->client->getResponse()->getStatusCode());
-
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), [
-            'legalName' => 'Renomme par quelqu un d autre',
-        ]);
-
-        self::assertSame(403, $this->client->getResponse()->getStatusCode());
-
-        // Et la fiche n'a pas bougé.
-        $this->entityManager->clear();
-        $customers = $this->entityManager->getRepository(Customer::class)->findAll();
-        self::assertSame('Atelier Temoin', $customers[0]->getLegalName());
-    }
-
-    /** Ce qui n'est pas web n'est pas une adresse qu'on enregistre. */
-    public function testALinkThatIsNotWebIsRefused(): void
-    {
-        $space = $this->givenSpace($this->givenCustomer(), 'Premier projet');
-
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/update', $customer->getId()), [
             'legalName' => 'Atelier Temoin',
-            'links' => [['label' => 'Piege', 'url' => 'javascript:alert(1)']],
+            'contractualEmail' => 'temoin@example.test',
+            ...$payload,
         ]);
 
-        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
-    /** @param array<string, mixed> $payload */
-    private function save(CustomerSpace $space, array $payload): array
+    /** @return array<string, mixed> */
+    private function spaceProps(CustomerSpace $space): array
     {
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/information/save', $space->getId()), $payload);
-
+        $this->client->request('GET', sprintf('/workspace/%d', $space->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        return json_decode((string) $this->client->getResponse()->getContent(), true);
+        $node = $this->client->getCrawler()->filter('[data-symfony--ux-vue--vue-component-value="studio/suite/content/SpaceContentApp"]');
+        self::assertSame(1, $node->count());
+
+        return json_decode((string) $node->attr('data-symfony--ux-vue--vue-props-value'), true, flags: JSON_THROW_ON_ERROR);
     }
 
     private function clientPage(SpaceAccessLinkInterface $link): string
@@ -307,6 +249,12 @@ final class SpaceInformationTest extends IntegrationTestCase
 
     private function joinSpace(CustomerSpace $space, User $user): void
     {
+        // Relus : une requête passée entre-temps a pu vider l'unité de travail.
+        $space = $this->entityManager->find(CustomerSpace::class, $space->getId());
+        $user = $this->entityManager->find(User::class, $user->getId());
+        self::assertInstanceOf(CustomerSpace::class, $space);
+        self::assertInstanceOf(User::class, $user);
+
         $member = new CustomerSpaceMember();
         $member->setSpace($space)->setUser($user)->setRole(CustomerSpaceMemberRoleEnum::Member);
 

@@ -15,6 +15,7 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Manager\SpaceFileManagerInterface;
@@ -33,10 +34,10 @@ use function is_numeric;
 /**
  * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
  *
- * **Partagés avec le client, comme le reste de l'espace.** La charte, les
- * logos, le brief, un PDF signé : ce qu'on tend à quelqu'un sans l'épingler à
- * une publication. La surface privée du studio, ce sont les notes, et elles
- * n'ont aucune route publique.
+ * **Cachés au client tant qu'on ne les lui montre pas**, comme tout ce qu'un
+ * espace peut lui montrer. La charte, les logos, le brief, un PDF signé : on y
+ * range ce qu'on lui tend et ce dont on travaille, et montrer l'un ou l'autre
+ * demande le droit de partager l'espace.
  *
  * Chaque route nomme l'espace et vérifie que ce qu'on lui a donné lui
  * appartient : le fichier arrive par son identifiant, donc rien n'empêche une
@@ -160,6 +161,32 @@ class SpaceFilesController extends AbstractController
             ...$this->viewBuilder->payload($space),
             ...$this->orphanedOffer->payload($space, [$document], $this->isGranted('ged.documents.delete')),
         ]);
+    }
+
+    /**
+     * Montre le fichier au client, ou le lui cache.
+     *
+     * Sous le droit de partager l'espace, en plus de celui de le modifier :
+     * montrer un fichier au client, c'est le lui envoyer.
+     */
+    #[Route('/{fileId}/visibility', name: '_visibility', requirements: ['fileId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
+    public function visibility(
+        CustomerSpace $space,
+        #[MapEntity(id: 'fileId')]
+        SpaceFile $file,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $file->getSpace()->getId());
+
+        try {
+            $this->files->setVisibleToClient($file, true === ($this->decodeJson($request)['visible'] ?? false));
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->payload($space));
     }
 
     /**

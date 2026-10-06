@@ -35,11 +35,10 @@ use function str_contains;
  * decrypted by Doctrine, and compares there. This does the same, over the same
  * rows, and adds the title.
  *
- * **Only the reader's own notes**, which is also what the notebook's search box
- * covers. Notes other people opened to the back-office are readable, but they
- * live on a read-only screen of their own, and answering them here would mean
- * decrypting every shared note of the house on each keystroke of anybody's
- * search. The owner's edit screen is where these rows lead.
+ * **Every note the reader may open**: their own, and those of every note space
+ * they belong to, the spaces a client space opens for its team included
+ * (`visibleTo` in the repository is the one rule). The cost is the decryption
+ * of those notes on each search, bounded by what the reader can already read.
  *
  * Title matches first: somebody typing a note's name wants that note, not the
  * ten others that mention it.

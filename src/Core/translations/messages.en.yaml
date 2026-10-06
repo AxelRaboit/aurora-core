@@ -18,18 +18,18 @@ shared:
         from_client: client
         verdict:
             approved: '{who} approved'
-            changes_requested: '{who} asked for changes'
+            changes_requested: "{who} answered “Changes requested”"
     space_information:
         siret: SIRET
         siren: SIREN
         phone: Mobile
         landline: Landline
-        email: Email
-        postal_address: Postal address
+        email: "Contractual email"
+        registered_office: "Registered office"
         links: Links
         notes: Notes
         empty: This sheet is still empty.
-        empty_hint: There is nothing to read here beyond the company name.
+        empty_hint: "There is nothing to read here beyond the legal name."
     space_resources:
         kinds:
             link: Link
@@ -37,7 +37,7 @@ shared:
             contact: Contact
     space_chat:
         title: Chat
-        empty: "No messages yet. This is where everything that does not belong on one card gets said: the month's brief, a campaign moving, a quick question."
+        empty: "No messages yet. This is where everything that does not belong on one content item gets said: the month's brief, a campaign moving, a quick question."
         placeholder: Write a message…
         shortcut_hint: "Enter to send, Shift+Enter for a new line"
         send: Send
@@ -49,7 +49,7 @@ shared:
             label: Channels
             new: New channel
             new_hint: "A channel has a name and an audience. Both can be changed later from its settings."
-            new_open_to_client: Open this channel to the client
+            new_open_to_client: "Show this channel to the client"
             new_open_to_client_hint: "Anyone holding an access link to this space will read this channel."
             new_internal_hint: "The channel stays between you. The client does not see it, and knows neither its name nor that it exists."
             name_placeholder: Channel name
@@ -61,8 +61,8 @@ shared:
             delete_confirm: "Delete this channel? Its messages go with it."
             internal: internal
             client_reads: read by the client
-            open_to_client: Open to the client
-            close_to_client: Close to the client
+            open_to_client: "Show to the client"
+            close_to_client: "Hide from the client"
             invite: Add somebody
             notice_internal: "An internal channel: the client does not read it."
             notice_direct: "A private conversation: nobody else reads it."
@@ -88,11 +88,11 @@ shared:
         title: Files
         empty: No file yet.
         add: Add a file
-        pick: Choose from GED
+        pick: "Choose from the media library"
         pick_drive: From the Drive
         drop: Drop a file here
-        remove: Remove from the card
-        remove_confirm: Remove this file from the card? It stays in GED.
+        remove: "Remove from the content item"
+        remove_confirm: "Remove this file from the content item? It stays in the media library."
         open: Open the file
         count: 'No file | 1 file | {count} files'
     palette:

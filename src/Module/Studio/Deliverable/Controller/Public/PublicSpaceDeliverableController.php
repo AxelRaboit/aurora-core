@@ -9,6 +9,7 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,9 @@ use Symfony\Component\Routing\Attribute\Route;
  * du client : pas de second lien, pas de mot de passe. Le livrable doit
  * appartenir à l'espace que le lien ouvre, et être ouvert au client ; un
  * livrable fermé répond le même 404 qu'un livrable qui n'existe pas.
+ *
+ * A page reads through the page template, a presentation through the slide
+ * reader, never with the speaker notes.
  */
 #[Route('/spaces', name: 'public_space')]
 final class PublicSpaceDeliverableController extends AbstractController
@@ -33,6 +37,7 @@ final class PublicSpaceDeliverableController extends AbstractController
         private readonly SpaceAccessLinkManagerInterface $links,
         private readonly DeliverableRepository $deliverables,
         private readonly DeliverablePageRenderer $renderer,
+        private readonly DeliverableSlidesViewBuilder $slidesView,
     ) {}
 
     #[Route(
@@ -56,6 +61,20 @@ final class PublicSpaceDeliverableController extends AbstractController
         }
 
         $request->setLocale($deliverable->getLocale());
+        $spaceUrl = $this->generateUrl('public_space_show', ['selector' => $selector, 'token' => $token]);
+
+        // A presentation reads slide by slide, as through a reading link: never
+        // with the speaker notes, stripped before the template. Opening it
+        // counts as opening the space.
+        if ($deliverable->isSlides()) {
+            $this->links->markOpened($link);
+
+            return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
+                'deck' => $this->slidesView->readerDeck($deliverable),
+                'expiresAt' => null,
+                'backUrl' => $spaceUrl,
+            ]));
+        }
 
         // Lire un livrable, c'est lire l'espace : le lien note son ouverture,
         // comme la page de l'espace le fait. Changer de vue ne la compte pas.
@@ -67,7 +86,7 @@ final class PublicSpaceDeliverableController extends AbstractController
         return $this->privately($this->renderer->renderForReader(
             $deliverable,
             $request->query->getBoolean('print'),
-            $this->generateUrl('public_space_show', ['selector' => $selector, 'token' => $token]),
+            $spaceUrl,
             $view,
         ));
     }

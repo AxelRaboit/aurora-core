@@ -501,9 +501,11 @@ const governingLabel = computed(
                                 }}
                                 <span class="text-xs text-muted">
                                     {{
-                                        each.isPublished
-                                            ? t("suite.studio.contract_templates.state_published")
-                                            : t("suite.studio.contract_templates.state_draft")
+                                        !each.isPublished
+                                            ? t("suite.studio.contract_templates.state_draft")
+                                            : each.id === inForceVersionId
+                                                ? t("suite.studio.contract_templates.state_in_force")
+                                                : t("suite.studio.contract_templates.state_replaced")
                                     }}
                                 </span>
                             </a>

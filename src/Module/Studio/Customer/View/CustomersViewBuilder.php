@@ -6,9 +6,6 @@ namespace Aurora\Module\Studio\Customer\View;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Routing\PathTemplateGenerator;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Platform\User\Entity\User;
-use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
@@ -23,13 +20,13 @@ final readonly class CustomersViewBuilder
     public function __construct(
         private CustomerRepository $customerRepository,
         private CustomerSerializerInterface $customerSerializer,
-        private UserRepository $userRepository,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private SpaceVisibility $visibility,
         private StudioContext $studioContext,
         private ContractRepository $contractRepository,
         private AuthorizationCheckerInterface $authorizationChecker,
+        private CustomerRelatedViewBuilder $relatedViewBuilder,
     ) {}
 
     /**
@@ -47,10 +44,10 @@ final readonly class CustomersViewBuilder
     {
         return [
             'customers' => $this->customers(),
-            'users' => $this->userOptions(),
             'currencies' => $this->currencyOptions(),
             'createPath' => $this->urlGenerator->generate('suite_studio_customers_create'),
-            'updatePath' => $this->pathTemplates->generate('suite_studio_customers_update', ['id' => '__id__']),
+            // La page de chaque client : la liste ne modifie plus, elle y mène.
+            'showPath' => $this->pathTemplates->generate('suite_studio_customers_show', ['id' => '__id__']),
             'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
         ];
@@ -89,27 +86,6 @@ final readonly class CustomersViewBuilder
         );
     }
 
-    /**
-     * The accounts a customer can be attached to.
-     *
-     * Id, name and email only. The picker has to let someone tell two people
-     * called Martin apart, and nothing else about an account belongs on a page
-     * about companies.
-     *
-     * @return list<array{id: int, name: string, email: string}>
-     */
-    private function userOptions(): array
-    {
-        return array_map(
-            static fn (CoreUserInterface $user): array => [
-                'id' => (int) $user->getId(),
-                'name' => $user instanceof User ? $user->getName() : $user->getUserIdentifier(),
-                'email' => $user->getUserIdentifier(),
-            ],
-            $this->userRepository->findAllFrontUsersAlphabetical(),
-        );
-    }
-
     /** @return list<array{value: string, symbol: string}> */
     private function currencyOptions(): array
     {
@@ -128,11 +104,61 @@ final readonly class CustomersViewBuilder
         return ['success' => true, 'customers' => $this->customers()];
     }
 
+    /** @return array<string, mixed> */
     public function customerPayload(CustomerInterface $customer): array
     {
         return [
             'customer' => $this->customerSerializer->serialize($customer),
             'customers' => $this->customers(),
         ];
+    }
+
+    /**
+     * La page d'un client : toute sa fiche dans un formulaire, et ce qui
+     * l'entoure (ses espaces, ses contrats, ses livrables de Studio) en
+     * lecture.
+     *
+     * **Le seul endroit où la fiche s'écrit.** Elle avait deux formulaires qui
+     * ne portaient pas les mêmes champs, celui de la liste et celui de
+     * l'onglet Informations d'un espace ; ce dernier ne fait plus que la
+     * montrer et mener ici.
+     *
+     * @return array<string, mixed>
+     */
+    public function showView(CustomerInterface $customer): array
+    {
+        $id = $customer->getId();
+
+        return [
+            'customer' => $this->customerSerializer->serialize($customer),
+            'related' => $this->relatedViewBuilder->related($customer),
+            'currencies' => $this->currencyOptions(),
+            'indexPath' => $this->urlGenerator->generate('suite_studio_customers'),
+            'updatePath' => $this->urlGenerator->generate('suite_studio_customers_update', ['id' => $id]),
+            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
+            // La liste des espaces filtrée sur lui, et celle des contrats :
+            // ses listes complètes, au-delà de ce que la page résume.
+            'spacesPath' => $this->studioContext->areSpacesEnabled() && $this->authorizationChecker->isGranted('studio.spaces.view')
+                ? $this->urlGenerator->generate('suite_studio_spaces', ['customer' => $id])
+                : null,
+            'contractsPath' => $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view')
+                ? $this->urlGenerator->generate('suite_studio_contracts', ['customer' => $id])
+                : null,
+        ];
+    }
+
+    /**
+     * Ce que répond l'enregistrement depuis la page : la fiche relue.
+     *
+     * Relue plutôt que renvoyée depuis la saisie : les chiffres d'un SIRET
+     * sont normalisés en chemin, et un écran qui garderait ce qui a été tapé
+     * afficherait des espaces que la base n'a pas.
+     *
+     * @return array<string, mixed>
+     */
+    public function showPayload(CustomerInterface $customer): array
+    {
+        return ['customer' => $this->customerSerializer->serialize($customer)];
     }
 }

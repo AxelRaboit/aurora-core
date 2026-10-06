@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * The headers a page reached by a secret address sends on every answer.
  *
- * Shared by every public page whose address is the whole secret: a deck's
+ * Shared by every public page whose address is the whole secret: a deliverable's
  * link, a customer space's, a contract's, a publication's reading link. They
  * used to carry three identical copies of this, and a fourth page is how two
  * of them would come to differ in how thoroughly they keep the secret.

@@ -14,6 +14,7 @@ use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\StudioContext;
 use LogicException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -41,6 +42,7 @@ final readonly class SpaceDeliverablesViewBuilder
         private CustomerSpaceSerializerInterface $spaceSerializer,
         private DeliverableAccess $access,
         private DocumentRepository $documents,
+        private StudioContext $studioContext,
     ) {}
 
     /**
@@ -51,6 +53,7 @@ final readonly class SpaceDeliverablesViewBuilder
     public function view(CustomerSpaceInterface $space): array
     {
         $id = $space->getId();
+        $canAdd = $this->security->isGranted('studio.spaces.edit') && !$space->isArchived();
 
         return [
             'deliverables' => $this->rows($space),
@@ -58,9 +61,15 @@ final readonly class SpaceDeliverablesViewBuilder
             'canShareDeliverables' => $this->security->isGranted(DeliverableAccess::SPACE_SHARE),
             // Vrai quand l'espace reçoit encore des livrables : une archive n'en
             // reçoit plus, et la liste n'offre plus d'en créer ou d'en dupliquer.
-            'canAddDeliverables' => $this->security->isGranted('studio.spaces.edit') && !$space->isArchived(),
+            'canAddDeliverables' => $canAdd,
             'deliverableListPath' => $this->urlGenerator->generate('workspace_space_deliverables_lists', ['id' => $id]),
             'deliverableCreatePath' => $this->urlGenerator->generate('workspace_space_deliverables_create', ['id' => $id]),
+            // A pasted text that becomes a presentation, as in Studio.
+            'deliverableImportPath' => $this->urlGenerator->generate('workspace_space_deliverables_import', ['id' => $id]),
+            // « Partir d'un modèle »: the Studio templates the reader may read,
+            // pages and presentations; the modal filters by format. Only read
+            // for whoever may create here: a space page loads on every tab.
+            'deliverableTemplates' => $canAdd ? $this->templates() : [],
             'deliverableVisibilityPathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_visibility', ['id' => $id, 'deliverableId' => '__id__']),
             'deliverableDuplicatePathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_duplicate', ['id' => $id, 'deliverableId' => '__id__']),
             'deliverableDeletePathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_delete', ['id' => $id, 'deliverableId' => '__id__']),
@@ -73,6 +82,34 @@ final readonly class SpaceDeliverablesViewBuilder
                 ? $this->pathTemplates->generate('workspace_space_deliverables_copy_to_studio', ['id' => $id, 'deliverableId' => '__id__'])
                 : '',
         ];
+    }
+
+    /**
+     * The Studio templates a space deliverable may start from: those the
+     * reader may read (a colleague's personal template is not one), with the
+     * Deliverables module on. Empty otherwise, and the create modal offers
+     * none: one starts from a blank page or an empty presentation.
+     *
+     * The shape of a list row, cut down to what the picker reads.
+     *
+     * @return list<array{id: int|null, title: string, format: string, template: true, category: array<string, mixed>|null}>
+     */
+    public function templates(): array
+    {
+        if (!$this->studioContext->areDeliverablesEnabled() || !$this->security->isGranted(DeliverableAccess::VIEW)) {
+            return [];
+        }
+
+        return array_values(array_map(
+            fn (DeliverableInterface $template): array => [
+                'id' => $template->getId(),
+                'title' => $template->getTitle(),
+                'format' => $template->getFormat()->value,
+                'template' => true,
+                'category' => $this->serializer->category($template->getCategory()),
+            ],
+            array_filter($this->deliverables->findLiveStandaloneTemplates(), $this->access->canRead(...)),
+        ));
     }
 
     /**

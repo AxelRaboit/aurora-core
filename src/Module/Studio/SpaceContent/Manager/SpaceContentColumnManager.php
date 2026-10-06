@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceContent\Manager;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -39,11 +40,14 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * has to tell apart at a glance.
      */
     protected const array DEFAULT_COLUMNS = [
-        ['suite.studio.space_content.default_columns.idea', null, SpaceContentColumnRoleEnum::Idea],
-        ['suite.studio.space_content.default_columns.writing', 1, SpaceContentColumnRoleEnum::Production],
-        ['suite.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review],
-        ['suite.studio.space_content.default_columns.scheduled', 3, SpaceContentColumnRoleEnum::Scheduled],
-        ['suite.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published],
+        // The last item says whether the client sees the step. The review, the
+        // schedule and what is out: a card the client approved must not vanish
+        // from their calendar between « À valider » and « Publié ».
+        ['suite.studio.space_content.default_columns.idea', null, null, false],
+        ['suite.studio.space_content.default_columns.writing', 1, null, false],
+        ['suite.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review, true],
+        ['suite.studio.space_content.default_columns.scheduled', 3, null, true],
+        ['suite.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published, true],
     ];
 
     public function __construct(
@@ -92,6 +96,11 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * the deletion is legitimate, so a restriction there would refuse both. The
      * count is in the message because "move them first" is only actionable when
      * the reader knows how many there are.
+     *
+     * Only the live cards count. Those in the trash are not on the board, so
+     * nobody could move them first: they go to the first remaining step, which
+     * is where a restore then puts them, rather than being destroyed by the
+     * cascade along with the step.
      */
     public function delete(SpaceContentColumnInterface $column): void
     {
@@ -100,9 +109,16 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
             throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_not_empty', ['{count}' => (string) $items]));
         }
 
-        if (1 === count($this->columnRepository->findForSpace($column->getSpace()))) {
+        $others = array_values(array_filter(
+            $this->columnRepository->findForSpace($column->getSpace()),
+            static fn (SpaceContentColumnInterface $other): bool => $other->getId() !== $column->getId(),
+        ));
+
+        if ([] === $others) {
             throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_last'));
         }
+
+        $this->columnRepository->moveTrashedItems($column, $others[0]);
 
         $this->auditDeleted($column);
 
@@ -150,17 +166,29 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
         $this->entityManager->flush();
     }
 
+    /**
+     * Le tableau d'un espace neuf.
+     *
+     * **Deux étapes montrées au client, les autres cachées.** La règle commune
+     * cache tout ce qui est neuf ({@see ClientVisibility}), mais un tableau
+     * dont aucune étape ne se voit ferait d'un lien d'accès une page vide :
+     * la Relecture est l'endroit où le client répond, et Publié ce qui est
+     * sorti. Les idées, la rédaction et la programmation restent du travail
+     * interne tant que quelqu'un qui a le droit de partager n'en décide pas
+     * autrement.
+     */
     public function seedDefaults(CustomerSpaceInterface $space): void
     {
         $position = 0;
 
-        foreach (static::DEFAULT_COLUMNS as [$key, $colourSlot, $role]) {
+        foreach (static::DEFAULT_COLUMNS as [$key, $colourSlot, $role, $visible]) {
             $column = $this->createColumn();
             $column
                 ->setSpace($space)
                 ->setName($this->translator->trans($key))
                 ->setColourSlot($colourSlot)
                 ->setRole($role)
+                ->setVisibleToClient($visible)
                 ->setPosition($position);
 
             $this->entityManager->persist($column);

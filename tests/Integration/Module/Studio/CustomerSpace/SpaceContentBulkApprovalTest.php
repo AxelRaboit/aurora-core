@@ -13,8 +13,10 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
@@ -348,7 +350,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->reviewStep($space)->getId(),
             // Datée : la page du client ne montre que son calendrier, et
             // n'accepte d'avis que sur ce qu'elle montre.
             'scheduledAt' => '2026-12-01T10:00',
@@ -371,7 +373,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $itemId), [
             'title' => $this->items->find($itemId)->getTitle(),
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->reviewStep($space)->getId(),
             'scheduledAt' => $scheduledAt,
             'reviewBy' => $reviewBy,
             'showOnCalendar' => true,
@@ -384,5 +386,17 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
     private function payload(): array
     {
         return json_decode((string) $this->client->getResponse()->getContent(), true);
+    }
+
+    /** The step where the client answers: the one cards awaiting a review sit on. */
+    private function reviewStep(CustomerSpace $space): SpaceContentColumnInterface
+    {
+        foreach ($this->columns->findForSpace($space) as $column) {
+            if (SpaceContentColumnRoleEnum::Review === $column->getRole()) {
+                return $column;
+            }
+        }
+
+        self::fail('The default board has a Review step.');
     }
 }

@@ -14,8 +14,8 @@ const STATS = {
     withClient: 5,
     upcoming: 3,
     awaitingSignature: 4,
-    decks: null,
-    calendarPath: "/suite/studio/calendar",
+    deliverables: null,
+    calendarPath: "/suite/studio/spaces/calendar",
     contractsPath: "/suite/studio/contracts",
     awaitingCountersignature: 1,
     contractsWithCustomerPath: "/suite/studio/contracts?step=with_customer",
@@ -59,10 +59,10 @@ describe("the Studio panel", () => {
             .map((link) => link.attributes("href"));
 
         expect(hrefs).toContain(
-            "/suite/studio/calendar?scope=mine&view=list&state=missed",
+            "/suite/studio/spaces/calendar?scope=mine&view=list&state=missed",
         );
         expect(hrefs).toContain(
-            "/suite/studio/calendar?scope=mine&view=list&state=late_review",
+            "/suite/studio/spaces/calendar?scope=mine&view=list&state=late_review",
         );
         // Each contract tile opens the list on its own step: one counter used
         // to mix what waits for the customer with what waits for the
@@ -73,7 +73,9 @@ describe("the Studio panel", () => {
 
     /** A figure the reader may not open is not drawn at all. */
     it("leaves out a tile the server sent as null", () => {
-        expect(render().text()).not.toContain("suite.stats.studio.decks");
+        expect(render().text()).not.toContain(
+            "suite.stats.studio.deliverables",
+        );
     });
 
     it("lists what waits, space by space, each opening its space", () => {

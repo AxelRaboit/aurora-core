@@ -66,6 +66,9 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'coverCreditUrl' => $note->getCoverCreditUrl(),
             'coverPosition' => $note->getCoverPosition(),
             'appearance' => $note->getAppearance()->value,
+            // D'où elle a été copiée, pour proposer de la remettre sur la
+            // version actuelle du document.
+            'craftDocumentId' => $note->getCraftDocumentId(),
         ];
     }
 

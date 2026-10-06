@@ -362,7 +362,9 @@ final class SpaceChatTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
         $this->givenMember($space);
 
-        $column = static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space)[0];
+        // La Relecture (troisième étape) : un espace neuf ne montre au client
+        // que la Relecture et Publié, et cette fiche doit être sur sa page.
+        $column = static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space)[2];
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Visuel de rentrée',
             'columnId' => $column->getId(),

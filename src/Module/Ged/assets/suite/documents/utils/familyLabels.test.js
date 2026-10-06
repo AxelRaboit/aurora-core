@@ -59,7 +59,7 @@ describe("familyUsage", () => {
                 original: false,
                 label: "rouge",
                 usageCount: 3,
-                usageByType: { "editorial.post": 2, "studio.deck": 1 },
+                usageByType: { "editorial.post": 2, "studio.deliverable": 1 },
             },
         ]);
 
@@ -67,7 +67,7 @@ describe("familyUsage", () => {
         expect(used[0].member.id).toBe(2);
         expect(used[0].parts).toEqual([
             { type: "editorial.post", count: 2 },
-            { type: "studio.deck", count: 1 },
+            { type: "studio.deliverable", count: 1 },
         ]);
     });
 

@@ -325,4 +325,119 @@ describe("PublicSpaceApp", () => {
         expect(etapes(wrapper)).toContain("chat_read");
         expect(etapes(wrapper)).not.toContain("chat");
     });
+
+    describe("envoyer un fichier à l'espace", () => {
+        const PATH = "/spaces/a/b/files";
+
+        /** Opens the Files tab, the last one when only calendar and files exist. */
+        async function ouvrirFichiers(wrapper) {
+            await wrapper
+                .findAll("[role='group'] button")
+                .at(-1)
+                .trigger("click");
+            await flushPromises();
+        }
+
+        it("ne dessine ni bouton ni onglet sans le droit d'envoyer", async () => {
+            const wrapper = monter();
+            await flushPromises();
+
+            expect(
+                wrapper.find("[data-test='space-file-upload']").exists(),
+            ).toBe(false);
+            expect(onglets(wrapper)).toEqual([]);
+        });
+
+        it("ouvre l'onglet Fichiers pour envoyer le premier, même vide", async () => {
+            const wrapper = monter({ spaceFileUploadPath: PATH });
+            await flushPromises();
+
+            expect(onglets(wrapper).join(" ")).toContain("tab_files");
+
+            await ouvrirFichiers(wrapper);
+
+            expect(
+                wrapper.find("[data-test='space-file-upload']").exists(),
+            ).toBe(true);
+            expect(wrapper.text()).toContain("studio.public.space.files_empty");
+        });
+
+        it("envoie le fichier choisi et remplace la liste par la réponse", async () => {
+            const sent = { ...FILE, id: 9, title: "Logo", fromClient: true };
+            const fetchMock = vi.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json: () =>
+                        Promise.resolve({
+                            success: true,
+                            spaceFiles: [sent, FILE],
+                        }),
+                }),
+            );
+            vi.stubGlobal("fetch", fetchMock);
+
+            const wrapper = monter({
+                spaceFileUploadPath: PATH,
+                spaceFiles: [FILE],
+            });
+            await flushPromises();
+            await ouvrirFichiers(wrapper);
+
+            const input = wrapper.find("[data-test='space-file-input']");
+            Object.defineProperty(input.element, "files", {
+                value: [new File(["x"], "logo.png", { type: "image/png" })],
+                configurable: true,
+            });
+            await input.trigger("change");
+            await flushPromises();
+
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            expect(fetchMock.mock.calls[0][0]).toBe(PATH);
+            expect(fetchMock.mock.calls[0][1].body).toBeInstanceOf(FormData);
+            expect(fetchMock.mock.calls[0][1].headers["X-Requested-With"]).toBe(
+                "XMLHttpRequest",
+            );
+            expect(wrapper.text()).toContain("Logo");
+            // Who sent it, said on the client side too.
+            expect(wrapper.text()).toContain(
+                "studio.public.space.files_sent_by",
+            );
+        });
+
+        it("ne peut pas envoyer depuis un aperçu", async () => {
+            const fetchMock = vi.fn();
+            vi.stubGlobal("fetch", fetchMock);
+
+            const wrapper = monter({
+                spaceFileUploadPath: PATH,
+                preview: true,
+            });
+            await flushPromises();
+            await ouvrirFichiers(wrapper);
+
+            expect(
+                wrapper
+                    .find("[data-test='space-file-upload']")
+                    .attributes("disabled"),
+            ).toBeDefined();
+
+            const input = wrapper.find("[data-test='space-file-input']");
+            Object.defineProperty(input.element, "files", {
+                value: [new File(["x"], "logo.png", { type: "image/png" })],
+                configurable: true,
+            });
+            await input.trigger("change");
+            await flushPromises();
+
+            expect(fetchMock).not.toHaveBeenCalled();
+        });
+
+        it("ajoute l'étape d'envoi au mode d'emploi", async () => {
+            const wrapper = monter({ spaceFileUploadPath: PATH });
+            await flushPromises();
+
+            expect(etapes(wrapper)).toContain("files_upload");
+        });
+    });
 });

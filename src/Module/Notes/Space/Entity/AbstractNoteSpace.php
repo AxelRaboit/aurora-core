@@ -72,6 +72,25 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
 
+    /**
+     * Ce qui règle l'espace à la place de ses gestionnaires, quand quelque
+     * chose le fait : `studio.customer_space` pour l'espace de notes d'un
+     * espace client.
+     *
+     * **Un marqueur et non une relation.** Le module Notes ne connaît pas
+     * Studio : c'est Studio qui pointe vers l'espace de notes, et celui-ci dit
+     * seulement « mon nom, mon accès et mes membres viennent d'ailleurs ».
+     * L'écran des notes refuse donc de les régler (renommer, ouvrir, inscrire,
+     * publier, retirer), et c'est la seule conséquence. On y écrit, on y range
+     * et on partage une note par un lien comme dans n'importe quel espace.
+     *
+     * Remis à null quand ce qui le réglait disparaît : l'espace redevient un
+     * espace partagé ordinaire, sans propriétaire, que les administrateurs
+     * reprennent.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    protected ?string $managedBy = null;
+
     public function getPersonalUser(): ?CoreUserInterface
     {
         return $this->personalUser;
@@ -212,5 +231,22 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
         $this->deletedAt = $at;
 
         return $this;
+    }
+
+    public function getManagedBy(): ?string
+    {
+        return $this->managedBy;
+    }
+
+    public function setManagedBy(?string $managedBy): static
+    {
+        $this->managedBy = $managedBy;
+
+        return $this;
+    }
+
+    public function isManaged(): bool
+    {
+        return null !== $this->managedBy;
     }
 }

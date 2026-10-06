@@ -39,6 +39,9 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
      * day it stops fitting, the answer is a window on `scheduledAt` rather than a
      * page number, because a board is read by period and not by page.
      *
+     * The live ones only: a card in the trash is on no board, list or
+     * calendar until it is restored.
+     *
      * @return list<SpaceContentItemInterface>
      */
     public function findForSpace(CustomerSpaceInterface $space): array
@@ -47,6 +50,7 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->addSelect('c')
             ->join('i.column', 'c')
             ->where('i.space = :space')
+            ->andWhere('i.deletedAt IS NULL')
             ->setParameter('space', $space)
             ->orderBy('c.position', Order::Ascending->value)
             ->addOrderBy('i.position', Order::Ascending->value)
@@ -87,23 +91,34 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
         }
 
         $onCalendar = 'i.showOnCalendar = true AND i.scheduledAt IS NOT NULL AND (c.role IS NULL OR c.role <> :published)';
-        $withClient = $onCalendar.' AND c.visibleToClient = true AND i.approval = :pending';
+        // « Chez le client » : the Review step when the board has one, any step
+        // the client sees when it has none. The card applies the same rule,
+        // see AbstractSpaceContentItem::isAtClientStep().
+        // One alias per use: the condition is read by two of the sums below,
+        // and a subquery alias may appear only once in a statement.
+        $withClient = fn (string $alias): string => $onCalendar.sprintf(
+            ' AND c.visibleToClient = true AND i.approval = :pending AND (c.role = :review OR NOT EXISTS (SELECT %1$s.id FROM %2$s %1$s WHERE %1$s.space = i.space AND %1$s.role = :review))',
+            $alias,
+            SpaceContentColumnInterface::class,
+        );
 
         $rows = $this->createQueryBuilder('i')
             ->select('IDENTITY(i.space) AS space')
             ->addSelect(sprintf('SUM(CASE WHEN %s AND i.scheduledAt >= :now AND i.scheduledAt < :horizon THEN 1 ELSE 0 END) AS upcoming', $onCalendar))
-            ->addSelect(sprintf('SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS withClient', $withClient))
-            ->addSelect(sprintf('SUM(CASE WHEN %s AND i.reviewBy IS NOT NULL AND i.reviewBy < :now THEN 1 ELSE 0 END) AS lateReview', $withClient))
+            ->addSelect(sprintf('SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS withClient', $withClient('rc_with')))
+            ->addSelect(sprintf('SUM(CASE WHEN %s AND i.reviewBy IS NOT NULL AND i.reviewBy < :now THEN 1 ELSE 0 END) AS lateReview', $withClient('rc_late')))
             ->addSelect('SUM(CASE WHEN i.approval = :changes AND (c.role IS NULL OR c.role <> :published) THEN 1 ELSE 0 END) AS changesRequested')
             ->addSelect(sprintf('SUM(CASE WHEN %s AND i.scheduledAt < :now THEN 1 ELSE 0 END) AS missed', $onCalendar))
             ->addSelect(sprintf('MIN(CASE WHEN %s AND i.scheduledAt >= :now THEN i.scheduledAt ELSE :none END) AS nextPublication', $onCalendar))
             ->join('i.column', 'c')
             ->where('i.space IN (:spaces)')
+            ->andWhere('i.deletedAt IS NULL')
             ->groupBy('i.space')
             ->setParameter('spaces', $spaceIds)
             ->setParameter('now', $now)
             ->setParameter('horizon', $horizon)
             ->setParameter('published', SpaceContentColumnRoleEnum::Published)
+            ->setParameter('review', SpaceContentColumnRoleEnum::Review)
             ->setParameter('pending', SpaceContentApprovalEnum::Pending)
             ->setParameter('changes', SpaceContentApprovalEnum::ChangesRequested)
             ->setParameter('none', null)
@@ -158,6 +173,7 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->join('i.column', 'c')
             ->join('i.space', 's')
             ->where('i.space IN (:spaces)')
+            ->andWhere('i.deletedAt IS NULL')
             ->andWhere('i.showOnCalendar = true')
             ->andWhere('i.scheduledAt >= :from')
             ->andWhere('i.scheduledAt < :to')
@@ -190,6 +206,7 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->join('i.column', 'c')
             ->join('i.space', 's')
             ->where('i.space IN (:spaces)')
+            ->andWhere('i.deletedAt IS NULL')
             ->setParameter('spaces', $spaceIds)
             ->orderBy('i.scheduledAt', Order::Ascending->value)
             ->getQuery()
@@ -216,6 +233,7 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->select('i.id')
             ->where('i.id IN (:items)')
             ->andWhere('i.space IN (:spaces)')
+            ->andWhere('i.deletedAt IS NULL')
             ->setParameter('items', $itemIds)
             ->setParameter('spaces', $spaceIds)
             ->getQuery()
@@ -227,6 +245,7 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
         return (int) $this->createQueryBuilder('i')
             ->select('COUNT(i.id)')
             ->where('i.space = :space')
+            ->andWhere('i.deletedAt IS NULL')
             ->setParameter('space', $space)
             ->getQuery()
             ->getSingleScalarResult();
@@ -256,6 +275,8 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->join('i.space', 's')
             ->join('i.column', 'col')
             ->where('LOWER(i.title) LIKE :term')
+            ->andWhere('i.deletedAt IS NULL')
+            ->andWhere('s.deletedAt IS NULL')
             ->setParameter('term', LikePattern::contains($term))
             ->orderBy('i.updatedAt', Order::Descending->value)
             ->addOrderBy('i.id', Order::Descending->value)
@@ -266,5 +287,55 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
         }
 
         return $builder->getQuery()->getResult();
+    }
+
+    /** Un contenu à la corbeille : ce qu'on restaure ou détruit pour de bon. */
+    public function findTrashed(int $id): ?SpaceContentItemInterface
+    {
+        return $this->createQueryBuilder('i')
+            ->where('i.id = :id')
+            ->andWhere('i.deletedAt IS NOT NULL')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Les contenus à la corbeille des espaces vivants, le dernier arrivé en
+     * premier, avec leur espace : l'écran de la corbeille le nomme.
+     *
+     * Ceux d'un espace lui-même à la corbeille n'y sont pas : les restaurer ne
+     * les rendrait visibles nulle part, et ils reviennent avec leur espace.
+     * L'appelant garde ceux que la personne a le droit de voir.
+     *
+     * @return list<SpaceContentItemInterface>
+     */
+    public function findAllTrashed(): array
+    {
+        return $this->createQueryBuilder('i')
+            ->addSelect('s')
+            ->join('i.space', 's')
+            ->where('i.deletedAt IS NOT NULL')
+            ->andWhere('s.deletedAt IS NULL')
+            ->orderBy('i.deletedAt', Order::Descending->value)
+            ->addOrderBy('i.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Ceux qui sont à la corbeille depuis avant cette date, quel que soit leur
+     * espace : la purge planifiée les détruit.
+     *
+     * @return list<SpaceContentItemInterface>
+     */
+    public function findTrashedBefore(DateTimeImmutable $cutoff): array
+    {
+        return $this->createQueryBuilder('i')
+            ->where('i.deletedAt IS NOT NULL')
+            ->andWhere('i.deletedAt < :cutoff')
+            ->setParameter('cutoff', $cutoff)
+            ->getQuery()
+            ->getResult();
     }
 }

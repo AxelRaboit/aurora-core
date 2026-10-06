@@ -89,4 +89,9 @@ interface MarkdownNoteInterface extends TimestampableInterface
     public function getSpace(): NoteSpaceInterface;
 
     public function setSpace(NoteSpaceInterface $space): static;
+
+    /** Le document Craft dont la note est la copie, quand elle en vient. */
+    public function getCraftDocumentId(): ?string;
+
+    public function setCraftDocumentId(?string $craftDocumentId): static;
 }

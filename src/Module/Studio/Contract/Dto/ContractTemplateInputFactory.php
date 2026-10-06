@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Dto;
 
 use Aurora\Core\Support\Str;
-use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use function ctype_digit;
 
 #[AsAlias(ContractTemplateInputFactoryInterface::class)]
 class ContractTemplateInputFactory implements ContractTemplateInputFactoryInterface
@@ -25,8 +26,8 @@ class ContractTemplateInputFactory implements ContractTemplateInputFactoryInterf
             // An unreadable category falls back to none, which is the honest
             // answer: the value said nothing usable, so nothing is claimed.
             // Unlike the kind, there is no safer of two to assume here -
-            // picking a trade at random is exactly what must not happen.
-            category: ContractTemplateCategoryEnum::tryFrom(Str::trimFromArray($data, 'category')),
+            // picking a category at random is exactly what must not happen.
+            categoryId: ctype_digit($category = Str::trimFromArray($data, 'category')) && '0' !== $category ? (int) $category : null,
         );
     }
 }

@@ -12,7 +12,9 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\EventSubscriber\SpaceVisibilitySubscriber;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
@@ -21,8 +23,12 @@ use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadiness;
+use Aurora\Module\Studio\Deliverable\Slides\Import\SlidesFromBlocks;
 use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
+use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
+use Aurora\Module\Studio\StudioContext;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +37,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_values;
+use function is_array;
+use function is_int;
+use function is_numeric;
 use function is_string;
 use function mb_strlen;
 use function mb_substr;
@@ -66,6 +76,11 @@ final class SpaceDeliverablesController extends AbstractController
         private readonly DeliverableAccess $access,
         private readonly DeliverableSerializer $serializer,
         private readonly DeliverableReadiness $readiness,
+        private readonly ClientVisibility $clientVisibility,
+        private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly SlidesFromBlocks $fromBlocks,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly StudioContext $studioContext,
     ) {}
 
     /** Les lignes de l'onglet telles qu'elles sont maintenant, pour rafraîchir une liste périmée. */
@@ -75,30 +90,86 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess(['deliverables' => $this->viewBuilder->rows($space)]);
     }
 
-    /** Un titre, et on arrive dans l'éditeur. */
+    /**
+     * A title and a format, and one lands in the editor: a page or a
+     * presentation, as in Studio.
+     *
+     * Started from a Studio template (`fromTemplateId`), the deliverable is a
+     * copy of it dropped here: its grid, or its slides with their notes, theme
+     * and style, see {@see DeliverableManager::copyToSpace()}. A template one
+     * cannot read, that is no longer one, or of another format than the one
+     * asked gives an empty deliverable rather than a refusal, for the reason
+     * Studio's creation gives: the only way to send a stale id is a template
+     * withdrawn between opening the modal and sending it, and a refusal would
+     * lose the typed title.
+     */
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
     public function create(CustomerSpace $space, Request $request): JsonResponse
     {
-        // Les archives n'en reçoivent plus, comme elles ne reçoivent plus de copie.
+        // An archive takes no new deliverable, as it takes no copy.
         if (!$this->access->canAddTo($space)) {
             return $this->jsonForbidden();
         }
 
         $payload = $this->decodeJson($request);
-        $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
-
-        if ('' === $title) {
-            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_required']);
+        $title = $this->title($payload);
+        if (is_string($title)) {
+            return $this->jsonInvalidInput(['title' => $title]);
         }
 
-        if (mb_strlen($title) > DeliverableManager::TITLE_MAX) {
-            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_too_long']);
+        $format = DeliverableFormatEnum::fromInput($payload['format'] ?? null);
+        if (!$format instanceof DeliverableFormatEnum) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_invalid']);
         }
 
-        // À qui le crée, comme la copie d'un modèle : un livrable d'espace n'a
-        // plus un auteur nul, un auteur copié et l'ancien auteur selon la voie.
-        $deliverable = $this->manager->create($space, $title, $this->access->user());
+        if (!$format->isCreatable()) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_unavailable']);
+        }
+
+        $template = $this->template($payload['fromTemplateId'] ?? null, $format);
+        $name = mb_trim((string) $payload['title']);
+
+        // Owned by whoever creates it, whichever way it was made.
+        $deliverable = $template instanceof DeliverableInterface
+            ? $this->manager->copyToSpace($template, $space, $name, $this->access->user())
+            : $this->manager->create($space, $name, $this->access->user(), format: $format);
+
+        return $this->jsonSuccess([
+            'editPath' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
+            'deliverables' => $this->viewBuilder->rows($space),
+        ]);
+    }
+
+    /**
+     * A text written elsewhere that becomes a presentation of this space: a
+     * heading opens a slide, what follows fills it, see
+     * {@see SlidesFromBlocks}. The same conversion as in Studio, under the
+     * space's rights; a text nothing can be drawn from is refused before the
+     * deliverable exists.
+     */
+    #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function import(CustomerSpace $space, Request $request): JsonResponse
+    {
+        if (!$this->access->canAddTo($space)) {
+            return $this->jsonForbidden();
+        }
+
+        $payload = $this->decodeJson($request);
+        $title = $this->title($payload);
+        if (is_string($title)) {
+            return $this->jsonInvalidInput(['title' => $title]);
+        }
+
+        $plan = $this->fromBlocks->plan(is_array($payload['blocks'] ?? null) ? array_values($payload['blocks']) : []);
+        if ([] === $plan) {
+            return $this->jsonInvalidInput(['blocks' => 'suite.studio.deliverables.errors.import_empty']);
+        }
+
+        $deliverable = $this->manager->create($space, mb_trim((string) $payload['title']), $this->access->user(), format: DeliverableFormatEnum::Slides);
+        $this->fromBlocks->apply($deliverable, $plan);
+        $this->entityManager->flush();
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
@@ -112,6 +183,12 @@ final class SpaceDeliverablesController extends AbstractController
         int $deliverableId,
     ): Response {
         $deliverable = $this->owned($space, $deliverableId);
+
+        // A presentation is composed in the slide editor, inside the space
+        // shell like a page.
+        if ($deliverable->isSlides()) {
+            return $this->render('@Studio/suite/space-deliverables/slides.html.twig', $this->slidesView->spaceEditorView($deliverable));
+        }
 
         return $this->render('@Studio/suite/space-deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
     }
@@ -130,6 +207,13 @@ final class SpaceDeliverablesController extends AbstractController
             return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true]);
         }
 
+        // L'éditeur enregistre tout d'un coup, la case « Visible par le
+        // client » comprise : la changer demande le droit de partager
+        // l'espace, celui du bouton de la liste.
+        if (!$this->clientVisibility->allowsChange($deliverable->isVisibleToClient(), true === ($payload['visibleToClient'] ?? false))) {
+            return $this->jsonForbidden();
+        }
+
         $errors = $this->manager->update($deliverable, $payload);
 
         if ([] !== $errors) {
@@ -139,9 +223,10 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess(['deliverable' => $this->viewBuilder->editorView($deliverable)['deliverable']]);
     }
 
-    /** Ouvert ou fermé au client, depuis la liste. */
+    /** Montré ou caché au client, depuis la liste : le droit de partager l'espace. */
     #[Route('/{deliverableId}/visibility', name: '_visibility', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
     public function visibility(
         CustomerSpace $space,
         int $deliverableId,
@@ -237,6 +322,16 @@ final class SpaceDeliverablesController extends AbstractController
         Request $request,
     ): Response {
         $deliverable = $this->owned($space, $deliverableId);
+
+        // A presentation previews as the client will read it: its slides,
+        // without the speaker notes.
+        if ($deliverable->isSlides()) {
+            return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
+                'deck' => $this->slidesView->readerDeck($deliverable),
+                'expiresAt' => null,
+            ]));
+        }
+
         $print = $request->query->getBoolean('print');
 
         return $this->privately($this->renderer->render(
@@ -364,6 +459,44 @@ final class SpaceDeliverablesController extends AbstractController
         }
 
         return $this->jsonSuccess($this->linksView->payload($deliverable));
+    }
+
+    /**
+     * The error key refusing the title sent, or null when it is fine.
+     *
+     * @param array<string, mixed> $payload
+     */
+    private function title(array $payload): ?string
+    {
+        $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
+
+        if ('' === $title) {
+            return 'suite.studio.deliverables.errors.title_required';
+        }
+
+        return mb_strlen($title) > DeliverableManager::TITLE_MAX ? 'suite.studio.deliverables.errors.title_too_long' : null;
+    }
+
+    /**
+     * The Studio template a space deliverable starts from: live, readable,
+     * still a template, of the format asked, with the Deliverables module on.
+     * Otherwise nothing, and the deliverable starts from scratch.
+     */
+    private function template(mixed $id, DeliverableFormatEnum $format): ?DeliverableInterface
+    {
+        $id = is_int($id) || (is_string($id) && is_numeric($id)) ? (int) $id : null;
+        if (null === $id || !$this->studioContext->areDeliverablesEnabled()) {
+            return null;
+        }
+
+        $template = $this->deliverables->findStandalone($id);
+
+        return $template instanceof DeliverableInterface
+            && $template->isTemplate()
+            && $template->getFormat() === $format
+            && $this->access->canRead($template)
+            ? $template
+            : null;
     }
 
     /**

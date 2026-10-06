@@ -15,6 +15,7 @@ use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Dto\DeliverableCategoryInput;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableCategoryManager;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
@@ -25,8 +26,11 @@ use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Deliverable\Slides\Import\SlidesFromBlocks;
 use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
+use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\DeliverablesViewBuilder;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +41,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_filter;
+use function array_key_exists;
 use function array_values;
 use function is_array;
 use function is_int;
@@ -80,6 +85,9 @@ final class DeliverablesController extends AbstractController
         private readonly DeliverableCategoryRepository $categories,
         private readonly DeliverableCategoryManager $categoryManager,
         private readonly PayloadValidator $payloadValidator,
+        private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly SlidesFromBlocks $fromBlocks,
+        private readonly EntityManagerInterface $entityManager,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -102,7 +110,21 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->lists());
     }
 
-    /** Un titre et un rayon, et on arrive dans l'éditeur. */
+    /**
+     * Un titre et un rayon, et on arrive dans l'éditeur.
+     *
+     * Le format se choisit ici et nulle part ailleurs : absent, c'est une
+     * page ; `slides`, un diaporama, cf. {@see DeliverableFormatEnum}.
+     *
+     * Parti d'un modèle (`fromTemplateId`), le livrable en reprend le corps
+     * (la grille d'une page, les diapositives d'un diaporama) ; la catégorie
+     * aussi, sauf si l'envoi en nomme une. Un modèle qu'on ne lit pas, qui
+     * n'en est plus un, ou qui n'est pas du format demandé, donne un livrable
+     * vide plutôt qu'un refus : le sélecteur vient de la liste, filtrée par
+     * format, et la seule façon d'envoyer un identifiant périmé est un modèle
+     * retiré entre l'ouverture de la page et la création, qui ferait perdre
+     * le titre tapé.
+     */
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     public function create(Request $request): JsonResponse
     {
@@ -120,13 +142,39 @@ final class DeliverablesController extends AbstractController
             return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_too_long']);
         }
 
-        $deliverable = $this->manager->create(
-            null,
-            $title,
-            $this->access->user(),
-            DeliverableScopeEnum::fromInput($payload['scope'] ?? null),
-            $this->manager->category($payload['categoryId'] ?? null),
-        );
+        $format = DeliverableFormatEnum::fromInput($payload['format'] ?? null);
+        if (!$format instanceof DeliverableFormatEnum) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_invalid']);
+        }
+
+        if (!$format->isCreatable()) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_unavailable']);
+        }
+
+        $scope = DeliverableScopeEnum::fromInput($payload['scope'] ?? null);
+        $template = $this->template($payload['fromTemplateId'] ?? null);
+        // Sans format envoyé, c'est le modèle qui le dit ; avec, un modèle de
+        // l'autre format ne compte pas.
+        if ($template instanceof DeliverableInterface && array_key_exists('format', $payload) && $template->getFormat() !== $format) {
+            $template = null;
+        }
+
+        $deliverable = $template instanceof DeliverableInterface
+            ? $this->manager->createFromTemplate(
+                $template,
+                $title,
+                $this->access->user(),
+                $scope,
+                array_key_exists('categoryId', $payload) ? $this->manager->category($payload['categoryId']) : $template->getCategory(),
+            )
+            : $this->manager->create(
+                null,
+                $title,
+                $this->access->user(),
+                $scope,
+                $this->manager->category($payload['categoryId'] ?? null),
+                $format,
+            );
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('suite_studio_deliverables_edit', ['id' => $deliverable->getId()]),
@@ -134,10 +182,70 @@ final class DeliverablesController extends AbstractController
         ]);
     }
 
+    /**
+     * Un texte écrit ailleurs, collé ou tapé dans la fenêtre, qui devient une
+     * présentation : un titre ouvre une diapositive, ce qui suit la remplit,
+     * cf. {@see SlidesFromBlocks}.
+     *
+     * La conversion est faite ici plutôt que dans le navigateur : chaque
+     * diapositive passe par le gestionnaire et sa liste blanche, comme une
+     * diapositive tapée dans l'éditeur. Un texte dont rien ne se tire est
+     * refusé avant que le livrable existe : on ne laisse pas une présentation
+     * vide derrière un import raté.
+     */
+    #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
+    public function import(Request $request): JsonResponse
+    {
+        if (!$this->access->canCreate()) {
+            return $this->jsonForbidden();
+        }
+
+        $payload = $this->decodeJson($request);
+        $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
+        if ('' === $title) {
+            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_required']);
+        }
+
+        if (mb_strlen($title) > DeliverableManager::TITLE_MAX) {
+            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_too_long']);
+        }
+
+        $plan = $this->fromBlocks->plan(is_array($payload['blocks'] ?? null) ? array_values($payload['blocks']) : []);
+        if ([] === $plan) {
+            return $this->jsonInvalidInput(['blocks' => 'suite.studio.deliverables.errors.import_empty']);
+        }
+
+        $deliverable = $this->manager->create(
+            null,
+            $title,
+            $this->access->user(),
+            DeliverableScopeEnum::fromInput($payload['scope'] ?? null),
+            $this->manager->category($payload['categoryId'] ?? null),
+            DeliverableFormatEnum::Slides,
+        );
+        $this->fromBlocks->apply($deliverable, $plan);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess([
+            'editPath' => $this->generateUrl('suite_studio_deliverables_edit', ['id' => $deliverable->getId()]),
+            ...$this->viewBuilder->lists(),
+        ]);
+    }
+
+    /**
+     * L'éditeur du livrable : la grille d'une page, ou les diapositives d'un
+     * diaporama, dans l'éditeur des présentations.
+     */
     #[Route('/{id}', name: '_edit', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function edit(int $id): Response
     {
-        return $this->render('@Studio/suite/deliverables/edit.html.twig', $this->viewBuilder->editorView($this->readable($id)));
+        $deliverable = $this->readable($id);
+
+        if ($deliverable->isSlides()) {
+            return $this->render('@Studio/suite/deliverables/slides.html.twig', $this->slidesView->editorView($deliverable));
+        }
+
+        return $this->render('@Studio/suite/deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
     }
 
     #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
@@ -149,6 +257,12 @@ final class DeliverablesController extends AbstractController
         }
 
         $payload = $this->decodeJson($request);
+
+        // Le client ne se nomme qu'avec le droit de voir les clients : sans
+        // lui, l'éditeur renvoie celui qu'il a reçu, et il ne compte pas.
+        if (!$this->access->canPickCustomer()) {
+            unset($payload['customerId']);
+        }
 
         // Avant la validation : dire que le titre est invalide quand la vraie
         // réponse est qu'un collègue a enregistré entre-temps serait faux.
@@ -219,6 +333,7 @@ final class DeliverablesController extends AbstractController
     /**
      * Une copie déposée dans l'espace d'un client : le modèle qu'on remplit
      * pour lui. On arrive dans l'éditeur de la copie, dans son espace.
+     * A presentation travels with its slides, notes, theme and style.
      *
      * Un espace inconnu, invisible ou archivé répond 404, comme un livrable
      * qu'on ne lit pas ; un espace qu'on voit sans pouvoir y écrire, 403.
@@ -330,6 +445,16 @@ final class DeliverablesController extends AbstractController
     public function preview(int $id, Request $request): Response
     {
         $deliverable = $this->readable($id);
+
+        // Un diaporama s'aperçoit comme le lira le destinataire du lien :
+        // ses diapositives, sans les notes de l'orateur.
+        if ($deliverable->isSlides()) {
+            return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
+                'deck' => $this->slidesView->readerDeck($deliverable),
+                'expiresAt' => null,
+            ]));
+        }
+
         $print = $request->query->getBoolean('print');
 
         return $this->privately($this->renderer->render(
@@ -521,6 +646,15 @@ final class DeliverablesController extends AbstractController
         $color = is_string($payload['color'] ?? null) && '' !== $payload['color'] ? $payload['color'] : null;
 
         return new DeliverableCategoryInput(is_string($payload['name'] ?? null) ? mb_trim($payload['name']) : '', $color);
+    }
+
+    /** Le modèle dont part un livrable neuf : un livrable de Studio vivant, lisible, et toujours un modèle. */
+    private function template(mixed $id): ?DeliverableInterface
+    {
+        $id = is_int($id) || (is_string($id) && is_numeric($id)) ? (int) $id : null;
+        $template = null === $id ? null : $this->deliverables->findStandalone($id);
+
+        return $template instanceof DeliverableInterface && $template->isTemplate() && $this->access->canRead($template) ? $template : null;
     }
 
     /** Un livrable à la corbeille que la personne peut lire, ou 404. */

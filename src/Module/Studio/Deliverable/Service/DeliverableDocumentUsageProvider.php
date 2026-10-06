@@ -12,6 +12,7 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckPictures;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_fill_keys;
@@ -27,9 +28,10 @@ use function in_array;
  * "Inutilisé", and its trash purged it on schedule: the thumbnail vanished
  * quietly and a client opened a document with holes in it.
  *
- * **Scanned rather than joined**, like the decks' provider and for the same
- * reason; {@see PostPictures} is the one list of slots that count, so a new
- * picture slot is covered here the day it is declared there.
+ * **Scanned rather than joined**: the ids live in JSON, the grid's for a page
+ * and the slides' for a presentation. {@see PostPictures} and `DeckPictures`
+ * are the one list of slots that count, so a new picture slot is covered here
+ * the day it is declared there.
  *
  * **A trashed deliverable still counts**: its pictures are not released until
  * the purge, and a restore must find them. It is listed as being in the trash.
@@ -47,6 +49,7 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
         private DeliverableAccess $access,
         private DeliverableSerializer $serializer,
         private TranslatorInterface $translator,
+        private DeckPictures $deckPictures,
     ) {}
 
     public function usageType(): string
@@ -97,10 +100,17 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
         return $counts;
     }
 
-    /** @return list<int> */
+    /**
+     * La grille d'une page, ou les diapositives et le logo d'un diaporama,
+     * cf. {@see DeckPictures} : la seule liste des cases qui comptent.
+     *
+     * @return list<int>
+     */
     private function idsUsedBy(DeliverableInterface $deliverable): array
     {
-        $ids = $this->pictures->idsInGridLayout($deliverable->getGridLayout());
+        $ids = $deliverable->isSlides()
+            ? $this->deckPictures->idsUsedBy($deliverable)
+            : $this->pictures->idsInGridLayout($deliverable->getGridLayout());
 
         $thumbnail = $deliverable->getThumbnail()?->getId();
         if (null !== $thumbnail) {

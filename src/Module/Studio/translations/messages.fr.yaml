@@ -3,23 +3,24 @@ suite:
         sections:
             spaces: Espaces clients
             space_contents: Contenus des espaces
+            space_resources: Ressources des espaces
+            space_files: Fichiers des espaces
+            space_messages: Discussions des espaces
             deliverables: Livrables
             customers: Clients
             contracts: Contrats
             contract_templates: Trames de contrat
-            decks: Présentations
     stats:
         studio:
             spaces: Espaces actifs
             missed: Parutions manquées
             late_review: Relectures en retard
-            changes_requested: À reprendre
+            changes_requested: "À revoir"
             with_client: Chez le client
             upcoming: "À paraître sous 7 jours"
             awaiting_countersignature: Contrats à contresigner
             awaiting_signature: Contrats chez le client
             deliverables: Livrables
-            decks: Présentations
             scope_label: Espaces comptés
             scopes:
                 mine: Mes espaces
@@ -29,28 +30,20 @@ suite:
     modules:
         studio: Studio
         studio_suite: Studio
-        studio_suite_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les contrats, et les présentations."
-        studio_decks: Présentations
-        studio_decks_description: Construire des jeux de slides, les classer et les dupliquer.
-        studio_deliverables: "Livrables"
-        studio_deliverables_description: "Écrire des documents hors espace client, perso ou partagés avec l'équipe."
+        studio_suite_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les espaces où vous travaillez avec eux, les contrats et les livrables, pages et présentations."
     nav:
         sections:
             studio: Studio
-        studio_contract_templates: Trames de contrat
-        studio_contract_templates_description: Les documents types dont partent les contrats, et leurs versions.
         studio_customers: Clients
-        studio_customers_description: Les sociétés avec qui vous contractez, et leur bloc d'identité légale.
+        studio_customers_description: "Les prospects et les clients avec qui vous contractez, et leur identité légale."
         studio_calendar: Calendrier éditorial
-        studio_calendar_description: Ce qui sort chez tous vos clients, sur un seul mois.
         studio_spaces: Espaces clients
-        studio_spaces_description: Un espace par chantier client, avec son équipe, son tableau et son calendrier.
+        studio_spaces_description: "Un espace client par prestation, avec son équipe, son tableau et son calendrier."
         studio_contracts: Contrats
         studio_contracts_description: Les contrats préparés, scellés et signés.
-        studio_decks: Présentations
-        studio_decks_description: Les jeux de slides que vous montrez, classés et réutilisables.
         studio_deliverables: "Livrables"
-        studio_deliverables_description: "Les documents que vous écrivez, pour vous ou pour l'équipe."
+        studio_space_contents: "Contenus"
+        studio_deliverables_description: "Les pages et les présentations que vous écrivez, perso ou partagées."
     audit:
         actions:
             studio:
@@ -63,18 +56,22 @@ suite:
                 customer_space:
                     created: Espace client créé
                     updated: Espace client modifié
-                    deleted: Espace client supprimé
+                    trashed: Espace client mis à la corbeille
+                    restored: Espace client sorti de la corbeille
+                    deleted: Espace client supprimé définitivement
                 space_content_item:
                     created: Contenu créé
                     answered: Contenu validé ou renvoyé par le client
                     updated: Contenu modifié
-                    deleted: Contenu supprimé
+                    trashed: Contenu mis à la corbeille
+                    restored: Contenu sorti de la corbeille
+                    deleted: Contenu supprimé définitivement
                 space_resource:
-                    created: Élément épinglé dans un espace
-                    updated: Élément d'espace modifié
-                    shown: Élément d'espace ouvert au client
-                    hidden: Élément d'espace retiré au client
-                    deleted: Élément d'espace supprimé
+                    created: "Ressource épinglée dans un espace"
+                    updated: "Ressource d'espace modifiée"
+                    shown: "Ressource montrée au client"
+                    hidden: "Ressource cachée au client"
+                    deleted: "Ressource d'espace supprimée"
                 deliverable:
                     trashed: "Livrable mis à la corbeille"
                     restored: "Livrable sorti de la corbeille"
@@ -84,8 +81,8 @@ suite:
                     copied_to_studio: "Livrable d'espace copié dans Studio"
                     deleted: "Livrable supprimé"
                     scope_changed: "Livrable passé de perso à partagé, ou l'inverse"
-                    shown_to_client: "Livrable ouvert au client"
-                    hidden_from_client: "Livrable retiré au client"
+                    shown_to_client: "Livrable montré au client"
+                    hidden_from_client: "Livrable caché au client"
                 deliverable_link:
                     issued: "Lien de lecture d'un livrable créé"
                     revoked: "Lien de lecture d'un livrable révoqué"
@@ -98,13 +95,10 @@ suite:
                     opened: Espace ouvert par un client
                 space_file:
                     added: Fichier ajouté à un espace
+                    sent_by_client: Fichier envoyé par le client dans un espace
                     removed: Fichier retiré d'un espace
-                space_note:
-                    created: Note d'espace créée
-                    updated: Note d'espace modifiée
-                    pinned: Note d'espace épinglée ou dépinglée
-                    deleted: Note d'espace supprimée
-                    imported_from_craft: Note d'espace importée depuis Craft
+                    shown: "Fichier d'espace montré au client"
+                    hidden: "Fichier d'espace caché au client"
                 space_chat_channel:
                     created: Canal de discussion ouvert
                     renamed: Canal de discussion renommé
@@ -136,7 +130,7 @@ suite:
                 contract_template_version:
                     opened: Version de trame ouverte
                     updated: Version de trame modifiée
-                    published: Version de trame publiée
+                    published: "Version de trame mise en vigueur"
                     discarded: Brouillon de trame abandonné
                 contract:
                     created: Contrat créé
@@ -168,7 +162,7 @@ suite:
                     create: Créer un espace client
                     edit: Modifier un espace client
                     delete: Supprimer un espace client
-                    share: Voir et donner les accès client d'un espace
+                    share: "Voir et donner les liens d'accès d'un espace"
                 contract_templates:
                     view: Consulter les trames de contrat
                     create: Créer une trame de contrat
@@ -181,14 +175,6 @@ suite:
                     delete: Supprimer un contrat
                     send: 'Envoyer un contrat au client'
                     countersign: 'Contresigner un contrat'
-                decks:
-                    view: Consulter les présentations
-                    create: Créer une présentation
-                    edit: Modifier une présentation
-                    delete: Supprimer une présentation
-                    share: Voir et donner les liens de lecture d'une présentation
-                deck_categories:
-                    manage: Gérer les catégories de présentation
                 deliverables:
                     view: "Consulter les livrables"
                     create: "Créer un livrable"
@@ -201,21 +187,21 @@ suite:
             badges:
                 missed: "Aucune parution manquée | 1 parution manquée | {count} parutions manquées"
                 late_review: "Aucune relecture en retard | 1 relecture en retard | {count} relectures en retard"
-                changes_requested: "Rien à reprendre | 1 à reprendre | {count} à reprendre"
+                changes_requested: "Rien à revoir | 1 à revoir | {count} à revoir"
                 with_client: "Rien chez le client | 1 chez le client | {count} chez le client"
         calendar:
             guide:
                 title: "Comment lire le calendrier"
-                step_1: "Il réunit sur un même mois les publications de tous vos espaces actifs, une couleur par espace."
+                step_1: "Il réunit sur un même mois les contenus de tous vos espaces actifs, une couleur par espace."
                 step_2: "« Mes espaces » ou « Tous les espaces » choisit ce qui est affiché ; les espaces archivés n'y sont pas."
-                step_3: "Filtrez par client ou par état : parution manquée, relecture en retard, à reprendre, chez le client, à paraître (sept jours), publié."
-                step_4: "En liste, avec un état choisi, toutes les dates sont réunies et les fiches sans date viennent à la fin."
-                step_5: "Le calendrier se lit seulement : cliquez sur une fiche pour la modifier dans son espace."
+                step_3: "Filtrez par client ou par état : parution manquée, relecture en retard, à revoir, chez le client, à paraître (sept jours), publié."
+                step_4: "En liste, avec un état choisi, toutes les dates sont réunies et les contenus sans date viennent à la fin."
+                step_5: "Le calendrier se lit seulement : cliquez sur un contenu pour le modifier dans son espace."
             scope_label: Espaces affichés
             scopes:
                 mine: Mes espaces
                 all: Tous les espaces
-            search_placeholder: Rechercher une publication…
+            search_placeholder: "Rechercher un contenu…"
             all_customers: Tous les clients
             all_states: Tous les états
             view_label: Affichage
@@ -225,13 +211,13 @@ suite:
             today: Aujourd'hui
             no_spaces: Aucun espace à afficher.
             empty_month: Rien de programmé ce mois-ci.
-            empty_state: "Aucune fiche dans cet état."
+            empty_state: "Aucun contenu dans cet état."
             undated: "Sans date"
             all_months: "Tous les mois"
             states:
                 missed: Parution manquée
                 late_review: Relecture en retard
-                changes_requested: À reprendre
+                changes_requested: "À revoir"
                 with_client: Chez le client
                 upcoming: À paraître
                 published: Publié
@@ -254,8 +240,8 @@ suite:
                 title: "Comment se déroule un contrat"
                 step_1: "Préparez-le en brouillon : le client, la trame, le montant, les dates et les compléments que la trame demande."
                 step_2: "Scellez-le : le texte est figé, le contrat reçoit sa référence et ne se modifie plus."
-                step_3: "Envoyez-le : le client reçoit par courriel un lien de signature personnel, valable trente jours. Un nouvel envoi annule le lien précédent."
-                step_4: "Le client lit, renseigne son identité, signe, puis confirme avec un code reçu par courriel ; il peut aussi refuser."
+                step_3: "Envoyez-le : le client reçoit par email un lien de signature personnel, valable {days} jours. Un nouvel envoi annule le lien précédent."
+                step_4: "Le client lit, renseigne son identité, signe, puis confirme avec un code reçu par email ; il peut aussi refuser."
                 step_5: "Contresignez : le contrat est conclu et chacun reçoit le PDF signé. Refusé, expiré ou révoqué, il revient « À envoyer »."
             wording:
                 guide:
@@ -300,7 +286,7 @@ suite:
                     title_too_long: 'Le titre ne peut pas dépasser {max} caractères.'
                     empty: Le texte est vide.
             title: Contrats
-            add: Préparer un contrat
+            add: "Nouveau contrat"
             create: Nouveau contrat
             edit: 'Modifier le contrat de {name}'
             created: Contrat créé.
@@ -309,13 +295,11 @@ suite:
             empty: Aucun contrat pour le moment.
             search_placeholder: Rechercher par référence ou par client…
             draft_title: Brouillon de contrat
-            in_preparation: En préparation
-            sealed: Scellés
             customer: Client
             customer_placeholder: Choisir un client
             body: Corps du contrat
             body_placeholder: Choisir une trame
-            body_hint: La version publiée du jour est figée sur le contrat dès sa création.
+            body_hint: "La version en vigueur ce jour-là est figée sur le contrat dès sa création."
             annex: Annexe
             annex_none: Aucune annexe
             annex_hint: Facultative. C'est elle qui porte ce qui varie d'une offre à l'autre.
@@ -333,17 +317,9 @@ suite:
             locale_hint: La langue dans laquelle il sera rédigé, lu et signé.
             version_label: 'version {number}'
             with_annex: 'Avec l''annexe {name}'
-            outdated_version: Une version plus récente de la trame a été publiée depuis. Ce contrat reste sur celle qui a été choisie.
-            freeze: Sceller
+            outdated_version: "Une version plus récente de la trame est entrée en vigueur depuis. Ce contrat reste sur celle qui a été choisie."
             freeze_confirm: 'Sceller le contrat de {name} ?'
-            freeze_warning: 'Le document devient définitif : son texte, ses montants et son hash ne pourront plus changer. C''est ce qui rend la signature défendable, et c''est irréversible.'
             delete_confirm: 'Supprimer le contrat de {name} ?'
-            col_reference: Référence
-            col_customer: Client
-            col_status: Statut
-            col_sealed_at: Scellé le
-            col_link: Lien
-            read_document: Lire le document
             preview: Aperçu
             preview_notice: "Le document tel que le client le lira, avec les vraies données de ce contrat. La référence et les mentions de signature apparaissent entre crochets : elles sont écrites au scellement et à la signature."
             preview_unknown_tokens: 'Variables inconnues, elles bloqueront le scellement : {tokens}'
@@ -356,12 +332,9 @@ suite:
             countersigned: 'Contrat conclu.'
             send: Envoyer au client
             send_confirm: 'Envoyer le contrat à {email} ?'
-            send_warning: 'Un lien secret part par email. Tout lien envoyé auparavant est révoqué : il n''y a jamais qu''une seule adresse valide.'
             sent_to: 'Envoyé à {email}'
-            revoke_link: Révoquer le lien
             revoke_link_confirm: 'Révoquer le lien envoyé à {email} ? L''adresse cessera de fonctionner immédiatement.'
             link_expires: 'Valide jusqu''au {date}'
-            link_never_opened: Jamais ouvert
             link_opened_at: 'Ouvert le {date}'
             no_link: Aucun lien actif
             amends: 'Avenant au contrat'
@@ -369,9 +342,8 @@ suite:
             amends_hint: 'Un avenant est un document à part, signé lui aussi. Le contrat d''origine garde son texte scellé.'
             amends_short: 'avenant à {reference}'
             amends_long: 'Cet avenant modifie le contrat {reference}.'
-            amend: 'Créer un avenant'
+            amend: "Nouvel avenant"
             chain: 'Avenants'
-            chain_leaf: 'Aucun avenant sur ce contrat.'
             customer_from_amended: 'Repris du contrat {reference} : le client d''un avenant est celui du contrat modifié.'
             terminate: 'Résilier'
             terminated: Résiliation enregistrée.
@@ -398,19 +370,9 @@ suite:
             refusal_no_reason: 'Aucun motif indiqué'
             refused_from: 'Refus reçu depuis {ip}'
             retained_until: 'Conservé jusqu''au'
-            retention_hint: 'Un contrat scellé ne peut pas être supprimé avant cette date : c''est la preuve de ce qui a été signé.'
             reminders: 'Relances'
             reminders_none: 'Aucune relance'
             reminders_count: '{count} relance(s), dernière le {date}'
-            row_actions:
-                edit_description: Modifie le brouillon. Rien n'est scellé tant qu'on ne le demande pas.
-                freeze_description: Fige le texte, tire la référence et rend le contrat envoyable. Définitif.
-                delete_description: Supprime le brouillon. Rien n'a encore été envoyé au client.
-                send_description: 'Envoie au client un lien de signature, valable trente jours.'
-                revoke_description: Coupe le lien en cours. Ses codes de vérification tombent avec lui.
-                preview_description: Montre le document tel que le client le lira, avant scellement.
-                document_description: Ouvre le document scellé et son bloc de preuve.
-                export_description: "Sort le contrat en PDF. Le document signé s'il existe, une copie de travail marquée comme telle sinon."
             not_sealed_yet: Ce contrat n'est pas encore scellé. Son texte sera figé au moment du scellement.
             seal_intact: Le sceau est intact
             seal_intact_hint: Le document stocké correspond exactement au hash pris lors du scellement.
@@ -482,10 +444,10 @@ suite:
                         description: 'Fige le texte et tire la référence. Définitif.'
                     send:
                         title: Envoyer au client
-                        description: 'Un lien de signature, valable trente jours.'
+                        description: 'Un lien de signature, valable {days} jours.'
                     resend:
                         title: Renvoyer au client
-                        description: 'Un nouveau lien, valable trente jours. L''ancien cesse de fonctionner.'
+                        description: 'Un nouveau lien, valable {days} jours. L''ancien cesse de fonctionner.'
                     remind:
                         title: Relancer
                         description: 'Un rappel avec un nouveau lien. L''ancien cesse de fonctionner.'
@@ -502,7 +464,7 @@ suite:
                         title: Exporter en PDF
                         description: 'Une copie de travail, marquée comme telle.'
                     amend:
-                        title: Créer un avenant
+                        title: "Nouvel avenant"
                         description: 'Un document à part, signé lui aussi. Ce contrat garde son texte.'
                     terminate:
                         title: Résilier
@@ -520,8 +482,8 @@ suite:
                         title: Supprimer
                         description: 'Définitif. Un brouillon à tout moment, un contrat scellé après sa durée de conservation.'
                 confirm:
-                    send: 'Envoyer le contrat à {email} ? Il recevra un lien de signature valable trente jours.'
-                    send_no_address: 'Ce client n''a pas d''adresse contractuelle : ajoutez-la sur sa fiche avant d''envoyer.'
+                    send: 'Envoyer le contrat à {email} ? Il recevra un lien de signature valable {days} jours.'
+                    send_no_address: "Ce client n'a pas d'email contractuel : ajoutez-le sur sa fiche avant d'envoyer."
                     remind: 'Relancer {email} ? Il recevra un nouveau lien ; l''ancien cessera de fonctionner.'
                     revoke: 'Révoquer le lien ? Le client ne pourra plus ouvrir le contrat, qui passera en « Révoqué ». Vous pourrez le renvoyer.'
                     cancel: 'Annuler ce contrat ? Il n''aura plus d''effet et ne pourra plus être envoyé. Sa référence reste dans la liste.'
@@ -579,7 +541,7 @@ suite:
             errors:
                 preview_sealed: "Ce contrat est déjà scellé : son document stocké est la référence, il ne se rejoue pas."
                 body_required: Un contrat a besoin d'un corps de contrat.
-                version_not_published: 'La version {number} de « {template} » n''est pas publiée. Un brouillon ne peut pas être envoyé.'
+                version_not_published: "La version {number} de « {template} » est encore un brouillon : elle ne peut pas être envoyée."
                 locale_missing: '« {template} » n''a pas de texte en {locale}.'
                 unknown_tokens: 'Ces variables ne correspondent à rien et arriveraient telles quelles chez le client : {tokens}'
                 customer_required: Un contrat a besoin d'un client.
@@ -587,14 +549,14 @@ suite:
                 amount_invalid: Le montant ne peut pas être négatif.
                 effective_date_invalid: Cette date n'est pas valide.
                 template_not_found: Cette trame n'existe pas, ou n'est pas du type attendu.
-                template_never_published: '« {template} » n''a aucune version publiée.'
+                template_never_published: "« {template} » n'a encore aucune version en vigueur."
                 already_frozen: 'Ce contrat est scellé : il ne peut plus être modifié.'
-                customer_has_no_address: "Ce client n'a pas d'adresse contractuelle. Renseignez-la sur sa fiche avant d'envoyer."
+                customer_has_no_address: "Ce client n'a pas d'email contractuel. Renseignez-le sur sa fiche avant d'envoyer."
                 seal_before_sending: Scellez le contrat avant de l'envoyer.
                 already_engaged: Ce contrat est déjà signé. Il ne peut plus être renvoyé.
                 cannot_cancel: 'Seul un contrat scellé que personne n''a signé peut être annulé.'
                 nothing_to_remind: 'Seul un contrat envoyé, et pas encore signé, peut être relancé.'
-                mail_failed: 'Le mail n''a pas pu partir. Rien n''a changé : réessayez dans un instant.'
+                mail_failed: "L'email n'a pas pu partir. Rien n'a changé : réessayez dans un instant."
                 no_active_link: Aucun lien actif à révoquer.
                 seal_before_signing: 'Scellez le contrat avant de le faire signer.'
                 already_concluded: 'Ce contrat est déjà signé par les deux parties.'
@@ -625,6 +587,8 @@ suite:
                 provider_settings_missing: 'Ces informations du prestataire ne sont pas renseignées dans les réglages, et la trame les imprime : {fields}'
                 custom_field_too_long: Un complément ne peut pas dépasser 500 caractères.
         contract_templates:
+            tab: "Trames"
+            tabs_label: "Contrats et trames"
             editor_guide:
                 title: "Comment rédiger une trame"
                 step_1: "Écrivez le titre et le texte langue par langue, dans leurs onglets ; un point vert marque chaque langue rédigée."
@@ -644,17 +608,22 @@ suite:
             kind:
                 body: Corps de contrat
                 annex: Annexe
-            category:
-                community_management: CM
-                photography: Photographie
-                development: Développement web
+            categories:
+                manage: "Gérer les catégories"
+                manage_hint: "Créer, renommer, colorer et ranger les catégories des trames."
+                manage_title: "Catégories des trames"
+                manage_intro: "Elles rangent les trames, pour toute l'équipe : une offre, un métier, ce que vous vendez. Supprimer une catégorie ne supprime aucune trame : elles restent, sans catégorie."
+                errors:
+                    name_required: "Donnez un nom à la catégorie."
+                    name_too_long: "Le nom ne peut pas dépasser 100 caractères."
+                    color_invalid: "La couleur doit être au format hexadécimal, par exemple #6366f1."
             errors:
                 name_required: Le nom de la trame est obligatoire.
                 name_too_long: Le nom de la trame ne peut pas dépasser 180 caractères.
                 translations_required: Une version doit contenir au moins une langue.
                 draft_already_open: 'Un brouillon est déjà ouvert sur cette trame (version {number}). Terminez-le ou abandonnez-le avant d''en ouvrir un autre.'
                 nothing_to_publish: Cette version n'a aucun texte à publier.
-                already_published: 'Cette version est publiée : son texte ne peut plus être modifié. Ouvrez une nouvelle version.'
+                already_published: "Cette version n'est plus un brouillon : son texte ne peut plus être modifié. Ouvrez une nouvelle version."
                 used_by_contracts: '{count} contrat(s), brouillons compris, partent de cette trame : elle ne peut pas être supprimée. Archivez-la, elle ne sera plus proposée et ces contrats gardent leur texte.'
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
@@ -669,9 +638,9 @@ suite:
             name_placeholder: Contrat de prestation de services, formule mensuelle
             kind_label: Type
             category_label: Catégorie
-            category_hint: Le métier auquel cette trame se rapporte. Peut rester vide.
+            category_hint: Ce qui range cette trame dans la bibliothèque. Peut rester vide.
             category_none: Sans catégorie
-            category_none_hint: Le métier n'a pas encore été précisé. La trame reste utilisable.
+            category_none_hint: La catégorie n'a pas encore été choisie. La trame reste utilisable.
             category_all: Toutes les catégories
             preview: Aperçu
             preview_notice: 'Le texte en couleur vient des variables.'
@@ -683,7 +652,7 @@ suite:
             preview_unknown_tokens: 'Variables inconnues, elles empêcheront la publication : {tokens}'
             filter_category: 'Catégorie : {name}'
             kind_hint: Un corps se signe seul. Une annexe complète un corps.
-            add: Ajouter une trame
+            add: "Nouvelle trame"
             create: Nouvelle trame
             edit: 'Modifier {name}'
             updated: Trame mise à jour.
@@ -691,13 +660,13 @@ suite:
             restored: Trame réactivée.
             deleted: Trame supprimée.
             saved: Brouillon enregistré.
-            published: Version publiée.
+            published: "Version publiée : elle est maintenant en vigueur."
             empty: Aucune trame de contrat pour le moment.
             search_placeholder: Rechercher une trame…
             delete_confirm: 'Supprimer {name} ?'
             delete_warning: 'Définitif. Une trame dont part un contrat, même en brouillon, ne peut pas être supprimée : archivez-la plutôt.'
             in_force: En vigueur
-            never_published: Jamais publiée
+            never_published: "Aucune version en vigueur"
             no_draft: Aucun brouillon
             view: Consulter
             open_draft: Ouvrir un brouillon
@@ -721,13 +690,12 @@ suite:
                 continue_draft_description: 'Reprend le texte en cours de rédaction.'
                 view_description: Ouvre la version en vigueur, en lecture seule.
                 open_draft_description: Ouvre une nouvelle version modifiable, à partir du texte en vigueur.
-                discard_description: Supprime le brouillon et laisse la trame telle qu'elle est publiée.
+                discard_description: "Supprime le brouillon et laisse la trame telle qu'elle est en vigueur."
                 duplicate_description: Crée une autre trame, en brouillon, avec le même texte.
                 rename_description: Change le nom et le type de la trame, sans toucher au texte.
                 archive_description: La retire des listes de choix. Les contrats déjà signés ne bougent pas.
                 restore_description: La remet dans les listes de choix.
                 delete_description: 'Définitif, et seulement pour une trame dont aucun contrat ne part.'
-            state_published: Publiée
             state_draft: Brouillon
             state_archived: Archivée
             state_in_force: En vigueur
@@ -750,7 +718,7 @@ suite:
             publish: Publier
             publish_confirm: 'Publier la version {number} ?'
             publish_warning: 'Une version publiée devient définitive : son texte ne pourra plus être modifié. Pour le changer ensuite, il faudra ouvrir une nouvelle version.'
-            published_notice: 'La version {number} est publiée. Son texte est définitif et ne peut plus être modifié.'
+            published_notice: "La version {number} est en vigueur. Son texte est définitif et ne peut plus être modifié."
             discard: Abandonner
             discard_confirm: 'Abandonner le brouillon de la version {number} ? Son texte sera perdu.'
             discard_hint: 'La version en vigueur ne change pas et aucun contrat n''est touché. Le numéro {number} reste consommé : le prochain brouillon sera la version {next}.'
@@ -778,7 +746,7 @@ suite:
                 customer_representative_full_name: Représentant
                 customer_representative_role: Qualité du représentant
                 customer_contractual_email: Email contractuel
-                customer_phone: Téléphone
+                customer_phone: "Téléphone portable"
                 provider_name: Dénomination
                 provider_representative: Représentant
                 provider_address: Adresse professionnelle
@@ -801,651 +769,20 @@ suite:
                 contract_amends_rank: Rang de l'avenant
                 examples_notice: 'Ces valeurs sont des exemples. Le contrat utilisera les vraies : celles du client choisi et les vôtres.'
                 example: 'ex. {value}'
-        decks:
-            editor_guide:
-                title: "Comment modifier une présentation"
-                step_1: "La colonne « Slides » les montre dans l'ordre : cliquez sur une slide pour la modifier, et déplacez-la par sa poignée ou ses flèches."
-                step_2: "« Ajouter une slide » propose les gabarits ; avec « Diapo libre », vous placez chaque élément à la main."
-                step_3: "Remplissez les champs du gabarit et les notes d'orateur, que le public ne voit jamais : tout s'enregistre seul."
-                step_4: "« Présenter » passe en plein écran ; le menu à côté ouvre la vue présentateur, l'impression, le partage et l'apparence."
-            guide:
-                title: "Comment fonctionnent les présentations"
-                step_1: "Créez une présentation de zéro, à partir d'un modèle, ou en important un document où chaque titre ouvre une slide."
-                step_2: "Dans l'éditeur, ajoutez des slides, réordonnez-les et écrivez vos notes d'orateur ; tout s'enregistre seul."
-                step_3: "« Présenter » passe en plein écran ; la vue présentateur s'ouvre à côté avec les notes, la slide suivante et un minuteur."
-                step_4: "« Partager » crée une adresse secrète qui s'ouvre sans compte, avec une expiration et un mot de passe facultatif."
-                step_5: "Les notes d'orateur ne sont jamais montrées par un lien, et un lien se révoque à tout moment."
-            create: Créer une présentation
-            created: Présentation créée
-            updated: Présentation mise à jour
-            deleted: "Présentation mise à la corbeille"
-            duplicated: Présentation dupliquée
-            duplicate: Dupliquer
-            duplicate_hint: Copie les slides, sans le client.
-            edit_hint: Le titre, la catégorie et le client.
-            delete_hint: "La met à la corbeille : elle sort des listes et ses liens de partage cessent de répondre, jusqu'à sa restauration."
-            trash_action: "Mettre à la corbeille"
-            copy_of: '%title% (copie)'
-            title_column: Titre
-            title_placeholder: Réunion de lancement, octobre
-            description_placeholder: Une ligne, lue dans la liste.
-            description: Description
-            category: Catégorie
-            customer: Client
-            slides: Slides
-            uncategorised: Sans catégorie
-            no_customer: Aucun client
-            all_categories: Toutes les catégories
-            filter_by_category: Filtrer par catégorie
-            search_placeholder: Rechercher une présentation…
-            empty_title: Aucune présentation
-            empty_description: Une présentation est un jeu de slides que vous montrez à quelqu'un. Créez la première.
-            delete_confirm: "Mettre « {title} » à la corbeille ? Elle sort des listes et ses liens de partage cessent de répondre. Vous la retrouvez dans la corbeille, d'où vous pouvez la restaurer, jusqu'à sa suppression définitive."
-            errors:
-                title_required: Le titre est obligatoire.
-                title_too_long: Le titre est trop long.
-                layout_unknown: Ce gabarit n'existe pas.
-                theme_unknown: Ce thème n'existe pas.
-                import_empty: Ce document ne contient rien dont on puisse faire une slide.
-            share: Partager
-            share_intro: Une adresse secrète qui ouvre cette présentation sans compte. Les notes d'orateur n'y sont jamais.
-            share_label: Intitulé
-            share_label_placeholder: Envoyé à Marie, le 12 septembre
-            share_expiry: Expiration
-            share_no_expiry: Sans expiration
-            share_days: '{count} jours'
-            share_create: Créer le lien
-            share_created: Lien créé
-            share_none: Aucun lien pour l'instant.
-            share_untitled: Lien sans intitulé
-            share_copy: Copier l'adresse
-            share_copied: Adresse copiée
-            share_copy_manually: Copiez l'adresse affichée, le navigateur a refusé le presse-papiers.
-            share_revoke: Révoquer
-            share_revoked: Révoqué
-            share_revoked_toast: Lien révoqué
-            share_delete: Supprimer ce lien
-            share_deleted_toast: Lien supprimé
-            share_hide: "Masquer ce lien"
-            share_hidden_toast: "Lien masqué"
-            share_show_hidden: "Afficher les liens masqués ({count})"
-            share_hide_hidden: "Cacher les liens masqués"
-            share_hidden: "Masqué"
-            share_expires_on: 'Expire le {date}'
-            share_last_used: 'Ouvert le {date}'
-            share_never_opened: Jamais ouvert
-            share_footer: Ce lien vous est personnel. Ne le transmettez pas.
-            present: Présenter
-            print: Imprimer
-            print_hint: Utilisez l'impression du navigateur, puis « Enregistrer en PDF ». Une slide par page, en paysage.
-            previous_slide: Slide précédente
-            next_slide: Slide suivante
-            layout: Gabarit
-            add_slide: Ajouter une slide
-            slide_added: Slide ajoutée
-            slide_deleted: Slide supprimée
-            delete_slide: Supprimer la slide
-            delete_slide_confirm: Cette slide et son contenu seront perdus.
-            move_up: Monter
-            move_down: Descendre
-            saving: Enregistrement…
-            saved: Enregistré
-            unsaved: Modifications non enregistrées
-            no_slide_title: Aucune slide
-            no_slide_description: Choisissez un gabarit à gauche pour commencer la présentation.
-            speaker_notes: Notes d'orateur
-            speaker_notes_hint: Elles ne sont jamais montrées au public.
-            speaker_notes_placeholder: Ce que vous direz pendant que cette slide est à l'écran.
-            bullets_placeholder: Une puce par ligne.
-            prose_placeholder: Le texte affiché sur la slide.
-            image_hint: Choisie dans la médiathèque, ou déposée depuis votre machine.
-            appearance: Apparence
-            appearance_saved: Apparence enregistrée
-            appearance_preview_hint: L'aperçu suit vos choix, la présentation ne change qu'à l'enregistrement.
-            appearance_sample_title: Le titre de votre présentation
-            appearance_sample_subtitle: Le sous-titre, sur une ligne
-            appearance_overrides_kept: Vos couleurs personnalisées restent appliquées par-dessus ce thème.
-            theme: Thème
-            themes:
-                slate: Ardoise
-                ink: Encre
-                paper: Papier
-                bold: Affirmé
-                midnight: Minuit
-                clay: Terre
-                chalk: Craie
-                duo: Deux tons
-            colours: Couleurs
-            colour_background: Fond
-            colour_ink: Texte
-            colour_accent: Accent
-            colour_inherited: Du thème
-            colour_reset: Revenir au thème
-            colour_reset_all: Tout revenir au thème
-            gradient_label: Dégradé
-            gradient_hint: Un lavis de la couleur d'accent sur le fond, le même sur toutes les slides.
-            gradients:
-                none: Aucun
-                top: Depuis le haut
-                bottom: Depuis le bas
-                corner: En diagonale
-                halo: Halo central
-                duo: Accent vers encre
-            pattern_label: Motif
-            pattern_hint: Une texture sur le fond, cachée sur les slides à photo.
-            patterns:
-                none: Aucun
-                dots: Pointillés
-                grid: Quadrillage
-                diagonals: Hachures
-            margins_label: Marges du cadre
-            margins:
-                tight: Serrées
-                normal: Normales
-                wide: Larges
-            hairline: Filet de cadre
-            hairline_hint: Un liseré fin dans la couleur d'accent, en retrait des bords.
-            anchors:
-                center: Centrée
-                top: En haut
-                bottom: En bas
-            aligns:
-                left: À gauche
-                center: Centré
-                right: À droite
-            measures:
-                full: Pleine largeur
-                two_thirds: Deux tiers
-                half: Moitié
-            vignette_hint: Assombrit légèrement les angles et ramène l'oeil au centre.
-            bg_treatments:
-                none: Aucun
-                blur: Flou
-                mono: Noir et blanc
-                duotone: Duotone à l'accent
-                grain: Grain
-            bg_veils:
-                flat: Uniforme
-                bottom: Depuis le bas
-                top: Depuis le haut
-            media_frames:
-                none: Aucun
-                line: Filet d'accent
-                shadow: Ombre douce
-            title_case_label: Casse des titres
-            title_cases:
-                normal: Normale
-                upper: Capitales
-            bullets_label: Forme des puces
-            bullet_shapes:
-                disc: Point
-                dash: Tiret
-                arrow: Flèche
-                number: Numéro
-                check: Coche
-            media_bleed_hint: L'image sort de la marge et touche le bord du cadre.
-            rules: Filets de séparation
-            rules_hint: Une ligne entre les deux colonnes et sous le sur-titre.
-            bands:
-                none: Aucun
-                left: Bande à gauche
-                bottom: Bandeau en bas
-                edge: Bord fin
-            wash_from_theme: Celui du thème
-            looks_label: Partir d'un look
-            looks_hint: Applique un thème et ses réglages d'un coup. Tout reste modifiable ensuite.
-            looks:
-                scene: Scène
-                atelier: Atelier
-                dossier: Dossier
-                gallery: Galerie
-            look_descriptions:
-                scene: Montré dans une salle. Sombre, titres en capitales.
-                atelier: Il argumente. Clair et chaud, hachuré.
-                dossier: Il se lit. Calme, quadrillé, marges larges.
-                gallery: Les photos portent tout. Presque noir, marges serrées.
-            accent_from_logo: Teintes du logo
-            contrast_good: "Contraste {ratio} sur 21. Lisible partout."
-            contrast_large: "Contraste {ratio} sur 21. Lisible au mur, juste sur un document imprimé."
-            contrast_poor: "Contraste {ratio} sur 21. Le texte sera difficile à lire."
-            transition_from_deck: Celle du deck
-            slide_transition_hint: Ne vaut que pour cette slide, et seulement au plein écran.
-            drift_hint: Un déplacement très lent de la photo pendant que la slide est à l'écran. Plein écran seulement.
-            title_scales:
-                normal: Normale
-                quiet: Discrète
-                loud: Affichée
-            media_ids_hint: L'ordre est l'arrangement. Huit au maximum ; vider une case resserre les autres.
-            ground_hint: La slide se pose sur une des trois couleurs du deck. Le texte suit, l'accent ne bouge pas.
-            grounds:
-                normal: Le fond
-                inverted: L'encre
-                accent: L'accent
-            reveal_hint: Au plein écran, chaque pression fait apparaître la ligne suivante avant de passer à la slide d'après.
-            picture_rank: "Image {rank}"
-            fonts_label: Typographie
-            font_from_theme: Celle du thème
-            fonts:
-                sans: Sans empattement
-                serif: Avec empattements
-                editorial: Titres serif, texte sans
-                technical: Titres chasse fixe, texte sans
-                report: Titres sans, texte serif
-                soft: Arrondie
-            signature: Signature
-            logo: Logo
-            logo_hint: Affiché en petit, dans un coin de la slide.
-            logo_placement: Où l'afficher
-            logo_placements:
-                none: Nulle part
-                cover: Sur la couverture
-                every: Sur toutes les slides
-            footer_text: Mention de pied de page
-            footer_text_placeholder: Confidentiel, ne pas diffuser
-            slide_numbers: Numéroter les slides
-            slide_numbers_hint: La couverture n'est jamais numérotée.
-            common_slots: Fond et sur-titre
-            kicker_placeholder: Audit, partie 2, Notre proposition…
-            backdrop_hint: Une photo derrière le texte, sur n'importe quel gabarit.
-            backdrop_dim: Voile
-            backdrop_dim_hint: Assombrit l'image vers la couleur de fond, pour que le texte reste lisible.
-            side_left: À gauche
-            side_right: À droite
-            line_placeholders:
-                series: "Une donnée par ligne. Étiquette | valeur"
-                bullets: Une puce par ligne.
-                items: "Une carte par ligne. Titre | description | étiquette | icône"
-                steps: "Une étape par ligne. Nom | précision | étiquette | icône"
-                rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
-                figures: "Un chiffre par ligne. Valeur | ce qu'il compte | part en %"
-                lines: Une ligne par ligne. Adresse, téléphone, site.
-            emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`, ==mot en accent==."
-            icons_hint: "Icônes possibles : check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
-            chart_types:
-                bar: Barres
-                line: Courbe
-                doughnut: Anneau
-            duplicate_slide: Dupliquer la slide
-            slide_duplicated: Slide dupliquée
-            drag_hint: Glisser pour déplacer
-            presenter: Vue présentateur
-            presenter_now: Slide en cours
-            presenter_next: Slide suivante
-            presenter_end: Fin de la présentation.
-            presenter_no_note: Aucune note pour cette slide.
-            presenter_linked: Reliée au plein écran
-            presenter_alone: Aucune fenêtre de présentation ouverte
-            timer_start: Démarrer le minuteur
-            timer_pause: Mettre en pause
-            timer_reset: Remettre à zéro
-            media_fit_contain: Entière, sans rognage
-            media_fit_cover: Remplir le cadre
-            media_shape_soft: Coins légers
-            media_shape_round: Coins arrondis
-            media_shape_arch: Arche
-            media_shape_circle: Cercle
-            media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
-            import: Importer un document
-            import_submit: Créer les slides
-            imported: Présentation créée à partir du document
-            import_intro: Écrivez ou collez votre document. Un titre ouvre une slide, et ce qui suit la remplit.
-            import_document: Le document
-            import_placeholder: Collez ici, ou écrivez…
-            import_hint: Les listes deviennent des slides à puces, les citations des citations, les tableaux des tableaux. Plusieurs blocs sous un même titre font plusieurs slides qui le répètent.
-            is_template: C'est un modèle
-            is_template_hint: Les modèles sont proposés au moment de créer une présentation.
-            template_badge: Modèle
-            from_template: Partir d'un modèle
-            from_nothing: Partir de rien
-            fold_chapter: Replier ce chapitre
-            unfold_chapter: Déplier ce chapitre
-            share_password: Mot de passe
-            share_password_placeholder: Laisser vide pour un lien sans mot de passe
-            share_password_hint: Communiquez-le autrement que par le message qui porte le lien.
-            share_locked: Protégé par mot de passe
-            share_opened: 'Ouvert {count} fois'
-            share_opened_once: Ouvert une fois
-            overview: Sommaire
-            pointer: Pointeur
-            transition: Transition
-            transitions:
-                none: Aucune
-                fade: Fondu
-                slide: Glissement
-            transition_hint: Elle n'existe qu'au plein écran. Le papier et le lien de partage n'en portent pas.
-            withheld_title: "Une image de cette présentation n'est pas publiée | {count} images de cette présentation ne sont pas publiées"
-            withheld_hint: Le destinataire d'un lien ne les verra pas. Publiez-les dans la médiathèque pour qu'elles apparaissent.
-            usage_detail: Présentation
-            slots:
-                mediaFit: Cadrage de l'image
-                mediaShape: Forme de l'image
-                mediaFocus: Point de visée
-                chartType: Type de graphique
-                series: Données
-                value: Le chiffre
-                label: Ce qu'il compte
-                text: Texte
-                side: Côté de l'image
-                items: Cartes
-                steps: Étapes
-                rows: Lignes
-                kicker: Sur-titre
-                reveal: Lignes une à une
-                ground: Sol de la slide
-                mediaIds: Les images
-                titleScale: Échelle du titre
-                transition: Transition vers cette slide
-                drift: Travelling sur la photo
-                role: Fonction
-                current: Ligne en cours
-                band: Aplat de couleur
-                mediaBleed: Image jusqu'au bord
-                leftTitle: Titre de gauche
-                rightTitle: Titre de droite
-                figures: Les chiffres
-                lines: Les lignes
-                ghost: Chiffre en filigrane
-                bgTreatment: Traitement de la photo
-                bgVeil: Voile
-                vignette: Vignettage
-                mediaFrame: Contenant de l'image
-                captionOver: Légende sur l'image
-                anchor: Position verticale
-                align: Alignement
-                measure: Largeur du texte
-                bgMediaId: Image de fond
-                title: Titre
-                subtitle: Sous-titre
-                bullets: Puces
-                left: Colonne de gauche
-                right: Colonne de droite
-                quote: Citation
-                attribution: Attribution
-                caption: Légende
-                mediaId: Image
-            free:
-                convert: Rendre libre
-                converted: "Diapo rendue libre. Cmd+Z pour revenir au gabarit."
-                canvas: Diapo libre
-                insert: Ajouter à la diapo
-                insert_title: Titre
-                insert_subtitle: Sous-titre
-                insert_body: Texte
-                insert_image: Image
-                insert_video: Vidéo
-                insert_embed: YouTube ou Vimeo
-                insert_shape: Forme
-                insert_icon: Icône
-                insert_chart: Graphique
-                insert_table: Tableau
-                text_presets:
-                    title: Votre titre
-                    subtitle: Un sous-titre
-                    body: Votre texte ici
-                embed_url: Lien de la vidéo
-                embed_placeholder: "https://www.youtube.com/watch?v=..."
-                embed_add: Ajouter
-                embed_hint: "YouTube, Vimeo ou Dailymotion. La vidéo se lit dans la diapo pendant la présentation."
-                icon_search: Chercher une icône
-                undo: Annuler
-                redo: Rétablir
-                shortcuts: "Double-clic pour écrire, Maj pour garder les proportions, Alt pour ignorer les guides."
-                shortcuts_touch: "Touchez un texte choisi pour écrire, pincez à deux doigts pour agrandir et tourner."
-                text_toolbar: Mise en forme du texte
-                bold: Gras
-                italic: Italique
-                underline: Souligné
-                strike: Barré
-                word_colour: Couleur des mots
-                word_colour_apply: Appliquer cette couleur
-                highlight: Surligneur
-                highlight_apply: Appliquer ce surlignage
-                bullets: Liste à puces
-                numbers: Liste numérotée
-                clear_format: Effacer la mise en forme
-                slide: Cette diapo
-                slide_fill: Fond de la diapo
-                slide_video: Vidéo en fond
-                slide_video_hint: "Lue en boucle et sans le son derrière les éléments. Sur papier, c'est son image d'affiche qui s'imprime."
-                choose_video: Choisir une vidéo
-                replace: Remplacer
-                remove: Retirer
-                nothing_selected: "Cliquez sur un élément pour le régler, ou tracez un cadre autour de plusieurs."
-                duplicate: Dupliquer
-                delete: Supprimer
-                lock: Verrouiller
-                unlock: Déverrouiller
-                bring_front: Mettre au premier plan
-                forward: Avancer
-                backward: Reculer
-                send_back: Mettre à l'arrière-plan
-                group: Grouper
-                ungroup: Dégrouper
-                flip_x: Retourner horizontalement
-                flip_y: Retourner verticalement
-                align:
-                    left: Aligner à gauche
-                    center: Centrer horizontalement
-                    right: Aligner à droite
-                    top: Aligner en haut
-                    middle: Centrer verticalement
-                    bottom: Aligner en bas
-                distribute_x: Répartir horizontalement
-                distribute_y: Répartir verticalement
-                width: Largeur
-                height: Hauteur
-                rotation: Rotation
-                opacity: Opacité
-                font: Police
-                font_search: Chercher une police
-                font_deck: Polices de la présentation
-                font_heading: Police des titres
-                font_body: Police du texte
-                font_uploaded: Vos polices
-                font_upload: Importer une police
-                font_uploaded_ok: "Police {name} ajoutée."
-                font_errors:
-                    required: Choisissez un fichier de police.
-                    not_a_font: "Ce fichier n'est pas une police lisible par un navigateur : woff2, woff, ttf ou otf."
-                    refused: "La police n'a pas pu être ajoutée."
-                font_categories:
-                    sans: Sans empattement
-                    serif: Avec empattement
-                    display: Affiche
-                    script: Manuscrite
-                    mono: Chasse fixe
-                size: Taille
-                weight: Graisse
-                weights:
-                    "100": Très fine
-                    "200": Extra fine
-                    "300": Fine
-                    "400": Normale
-                    "500": Moyenne
-                    "600": Demi-grasse
-                    "700": Grasse
-                    "800": Extra grasse
-                    "900": Noire
-                case: Casse
-                cases:
-                    none: Telle quelle
-                    upper: Majuscules
-                    lower: Minuscules
-                    title: Majuscule à chaque mot
-                spacing: Interlettrage
-                line_height: Interligne
-                pad_x: Marge intérieure (côtés)
-                pad_y: Marge intérieure (haut et bas)
-                aligns:
-                    left: Gauche
-                    center: Centre
-                    right: Droite
-                    justify: Justifié
-                valigns:
-                    top: Haut
-                    middle: Milieu
-                    bottom: Bas
-                text_colour: Couleur du texte
-                autofit: Ajuster le texte à la boîte
-                autofit_hint: "Le texte rétrécit pour ne jamais sortir de sa boîte."
-                contrast_poor: "Texte peu lisible sur ce fond : contraste de {ratio} pour 1, il en faut au moins 3."
-                contrast_large: "Lisible en grand seulement : contraste de {ratio} pour 1, 4,5 pour un texte courant."
-                text_hint: "Double-cliquez dans la boîte pour écrire. Sélectionnez des mots pour les mettre en gras, en couleur ou en liste."
-                fit: Remplissage
-                mask: Découpe
-                masks:
-                    none: Aucune
-                    circle: Cercle
-                    arch: Arche
-                    triangle: Triangle
-                    diamond: Losange
-                    hexagon: Hexagone
-                    star: Étoile
-                    blob: Galet
-                zoom: Zoom
-                focus: Point de cadrage
-                focus_hint: "Le point qui reste visible quand l'image est recadrée."
-                adjust: Retouches
-                filters:
-                    brightness: Luminosité
-                    contrast: Contraste
-                    saturate: Saturation
-                    grayscale: Noir et blanc
-                    sepia: Sépia
-                    hue: Teinte
-                    blur: Flou
-                reset_filters: Annuler les retouches
-                autoplay: Lecture automatique
-                autoplay_hint: "Une vidéo qui démarre seule est muette : c'est la règle des navigateurs."
-                loop: En boucle
-                muted: Sans le son
-                controls: Afficher les commandes
-                shape: Forme
-                shapes:
-                    rect: Rectangle
-                    ellipse: Ellipse
-                    triangle: Triangle
-                    right_triangle: Triangle rectangle
-                    diamond: Losange
-                    pentagon: Pentagone
-                    hexagon: Hexagone
-                    octagon: Octogone
-                    star: Étoile
-                    star4: Étoile à quatre branches
-                    heart: Cœur
-                    cross: Croix
-                    parallelogram: Parallélogramme
-                    trapezoid: Trapèze
-                    arrow_right: Flèche vers la droite
-                    arrow_left: Flèche vers la gauche
-                    chevron: Chevron
-                    speech: Bulle
-                    ring: Anneau
-                    line: Ligne
-                head: Extrémités
-                heads:
-                    none: Aucune flèche
-                    end: Flèche au bout
-                    both: Flèche aux deux bouts
-                icon: Icône
-                colour: Couleur
-                line_weight: Épaisseur du trait
-                theme_colours:
-                    ink: Couleur du texte de la présentation
-                    accent: Couleur d'accent de la présentation
-                    background: Couleur de fond de la présentation
-                no_colour: Sans couleur
-                paints:
-                    none: Aucun
-                    solid: Couleur
-                    linear: Dégradé
-                    radial: Dégradé radial
-                angle: Angle
-                add_stop: Ajouter une couleur
-                remove_stop: Retirer cette couleur
-                fill: Remplissage
-                box_fill: Fond de la boîte
-                stroke: Contour
-                text_outline: Contour des lettres
-                stroke_width: Épaisseur
-                stroke_style: Style
-                stroke_styles:
-                    solid: Plein
-                    dashed: Tirets
-                    dotted: Pointillés
-                radius: Arrondi
-                shadow: Ombre
-                blur: Flou
-                enter: Apparition
-                enters:
-                    none: Aucune
-                    fade: Fondu
-                    rise: Montée
-                    fall: Descente
-                    left: Depuis la gauche
-                    right: Depuis la droite
-                    zoom: Zoom
-                    pop: Rebond
-                    blur: Mise au point
-                reveal: À la pression n°
-                reveal_hint: "0 : l'élément est là dès que la diapo s'affiche. 1, 2, 3 : il entre à la 1re, 2e, 3e pression pendant la présentation."
-                duration: Durée
-                delay: Délai
-                link: Lien au clic
-                link_placeholder: "https://..."
-                layers: Calques
-                layers_empty: "Aucun élément. Ajoutez-en un avec la barre au-dessus de la diapo."
-                types:
-                    text: Texte
-                    image: Image
-                    video: Vidéo
-                    embed: Vidéo en ligne
-                    shape: Forme
-                    icon: Icône
-                    chart: Graphique
-                    table: Tableau
-            layouts:
-                chart: Graphique
-                stat: Chiffre clé
-                image_text: Image et texte
-                cards: Cartes
-                timeline: Frise
-                table: Tableau
-                title: Titre
-                bullets: Titre et puces
-                image: Image pleine page
-                split: Deux colonnes
-                quote: Citation
-                section: Intercalaire
-                compare: Comparaison
-                figures: Chiffres
-                end: Fin
-                agenda: Sommaire
-                portrait: Citation et portrait
-                logos: Grille de logos
-                mosaic: Mosaïque d'images
-                free: Diapo libre
-            categories:
-                manage: "Gérer les catégories"
-                manage_hint: "Créer, renommer, colorer et ranger les catégories des présentations."
-                manage_title: "Catégories des présentations"
-                manage_intro: "Elles rangent les présentations, pour toute l'équipe. Supprimer une catégorie ne supprime aucune présentation : elles restent, sans catégorie."
-                errors:
-                    name_required: Le nom est obligatoire.
-                    color_invalid: La couleur doit être au format hexadécimal, par exemple #6366f1.
         customers:
             guide:
-                title: "Comment fonctionnent les fiches"
-                step_1: "Une fiche commence en prospect : une société avec qui vous échangez, sans encore son identité légale."
-                step_2: "« Convertir en client » demande l'adresse contractuelle, celle où partiront les liens de signature."
-                step_3: "Complétez ensuite le SIRET, la forme juridique, le siège et le représentant : les contrats les reprennent."
-                step_4: "La fiche appartient au client, pas à un espace : la modifier depuis un espace la modifie dans tous ses espaces."
-                step_5: "Une fiche qui a des contrats ou des espaces ouverts ne peut pas être supprimée."
+                title: "Comment fonctionnent les fiches client"
+                step_1: "Une fiche commence en prospect : un client potentiel avec qui vous échangez, sans encore son identité légale."
+                step_2: "« Convertir en client » demande l'email contractuel, celui où partiront les liens de signature."
+                step_3: "Complétez ensuite le SIRET, la forme juridique, le siège social et le représentant : les contrats les reprennent."
+                step_4: "Ouvrez une fiche pour la compléter : identité légale, représentant, contact, liens et notes. Elle appartient au client, pas à un espace : chacun de ses espaces la montre telle quelle."
+                step_5: "Une fiche qui a des contrats ou des espaces, même à la corbeille, ne peut pas être supprimée."
             title: Clients
             spaces: Ses espaces
-            spaces_description: Ouvre la liste des espaces de cette société.
+            spaces_description: "Ouvre la liste des espaces de ce client."
+            open: Ouvrir
             status: Statut
-            status_hint: "Un prospect est une société pour laquelle on travaille déjà, sans avoir encore son identité légale. La convertir en client, c'est saisir le SIRET, la forme juridique et le siège."
+            status_hint: "Un prospect est un client potentiel pour qui on travaille déjà, sans avoir encore son identité légale. Le convertir en client demande son email contractuel ; le SIRET, la forme juridique et le siège social se complètent ensuite sur sa fiche."
             statuses:
                 prospect: Prospect
                 prospect_plural: Prospects
@@ -1453,32 +790,30 @@ suite:
                 client: Client
             convert: Convertir en client
             convert_title: 'Convertir {name} en client'
-            convert_hint: "C'est là que partira son contrat. Le SIRET, la forme juridique et le siège se remplissent ensuite sur sa fiche."
+            convert_hint: "C'est là que partira son contrat. Le SIRET, la forme juridique et le siège social se remplissent ensuite sur sa fiche."
             converted: Prospect converti en client.
-            add: Ajouter un client
+            add: "Nouveau client"
             create: Nouveau client
-            edit: 'Modifier {name}'
             empty: Aucun client pour le moment.
             search_placeholder: Rechercher par raison sociale, SIRET, représentant…
             created: Client créé.
             updated: Client mis à jour.
             deleted: Client supprimé.
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: 'Un client nommé par un contrat ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
-            linked_account: 'Compte : {name}'
+            delete_warning: 'Un client nommé par un contrat ou par un espace, même à la corbeille, ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
 
             contracts_count: '{count} contrat(s)'
-            col_company: Société
+            col_company: "Raison sociale"
             col_representative: Représentant
             col_siret: SIRET
             col_contact: Contact
 
-            group_identity: Identité de la société
+            group_identity: "Identité légale"
             group_representative: Représentant légal
-            group_contact: Contact et accès
+            group_contact: Contact
 
             legal_name: Raison sociale
-            legal_name_placeholder: Nom de la société
+            legal_name_placeholder: "Atelier Dupont"
             legal_form: Forme juridique
             legal_form_placeholder: SARL, SAS, EI, association…
             share_capital: Capital social
@@ -1506,15 +841,49 @@ suite:
             contractual_email: Email contractuel
             contractual_email_placeholder: contact@societe.fr
             contractual_email_hint: C'est à cette adresse que partira le lien de signature.
-            phone: Téléphone
+            phone: "Téléphone portable"
             phone_placeholder: 06 12 34 56 78
-            account: Compte utilisateur
-            account_none: Aucun compte rattaché
-            account_hint: Facultatif. À renseigner seulement si le client se connecte au site.
+
+            siren: SIREN
+            siren_placeholder: 123 456 789
+            siren_hint: "Neuf chiffres. Ce sont les neuf premiers du SIRET : si les deux sont remplis, ils doivent s'accorder."
+            landline: "Téléphone fixe"
+            landline_placeholder: 01 23 45 67 89
+
+            group_links: Liens et notes
+            group_links_hint: "Le client lit ces deux rubriques dans l'onglet Informations de ses espaces."
+            links: Liens
+            links_hint: "Son site, ses réseaux, ce qu'il publie. Pour les liens de travail - une maquette, un accès - l'onglet Ressources d'un espace est fait pour ça."
+            link_label_placeholder: 'ex. : Site web'
+            link_url_placeholder: https://
+            link_add: Ajouter un lien
+            link_remove: Retirer
+            notes: Notes
+            notes_placeholder: Ce qui n'entre dans aucune case.
+            notes_hint: Le client lit ce champ. Ce qui ne doit pas sortir de l'équipe va dans une note d'espace.
+
+            page_guide:
+                title: "Comment fonctionne la page d'un client"
+                step_1: "Toute la fiche se modifie ici : identité légale, représentant, contact, liens et notes. Enregistrez en haut à droite."
+                step_2: "C'est le seul endroit où elle se modifie. L'onglet Informations de chacun de ses espaces la montre telle quelle, et c'est ce que le client y lit."
+                step_3: "À droite, ce qui l'entoure : ses espaces, ses contrats et les livrables de Studio écrits pour lui, d'un clic."
+                step_4: "Un prospect se convertit en client depuis le bouton « … » : son email contractuel est alors demandé."
+            group_related: Autour de ce client
+            related:
+                contracts: "Contrats de ce client"
+                deliverables: "Livrables de ce client"
+                spaces: "Espaces de ce client"
+                other_spaces: "Autres espaces de ce client"
+                empty: "Aucun contrat, aucun livrable ni aucun espace pour ce client pour l'instant."
+                empty_other: "Aucun contrat, aucun livrable ni aucun autre espace pour ce client pour l'instant."
+                draft_contract: "Brouillon"
+                all_spaces: Tous ses espaces
+                all_contracts: Tous ses contrats
+            read_only: "Vous pouvez lire cette fiche, pas la modifier."
 
             row_actions:
-                edit_description: Modifier la fiche de ce client
-                convert_description: Ouvrir la fiche pour saisir son identité légale
+                open_description: "Ouvrir la page de ce client : sa fiche, ses espaces, ses contrats"
+                convert_description: "Saisir l'email contractuel où partiront ses contrats"
                 delete_description: Supprimer ce client
 
             errors:
@@ -1526,28 +895,44 @@ suite:
                 siret_invalid: 'Ce SIRET est invalide : quatorze chiffres et une clé de contrôle correcte sont attendus.'
                 has_contracts: 'Ce client est nommé par {count} contrat(s). Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui.'
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
-                has_spaces: 'Ce client a encore {count} espace(s) ouvert(s). Supprimez ou archivez son travail avant de supprimer la fiche.'
+                has_spaces: 'Ce client a encore {count} espace(s), corbeille comprise. Supprimez-les définitivement avant de supprimer la fiche.'
+                siren_invalid: 'Ce SIREN est invalide : neuf chiffres et une clé de contrôle correcte sont attendus.'
+                siren_mismatch: "Ce SIREN ne correspond pas au SIRET saisi. Les neuf premiers chiffres d'un SIRET sont son SIREN."
+                phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
+                notes_too_long: Ce champ ne peut pas dépasser 5000 caractères.
+                links_too_many: Une fiche ne porte pas plus de 30 liens.
+                link_label_required: Ce lien n'a pas de nom.
+                link_label_too_long: Le nom d'un lien ne peut pas dépasser 120 caractères.
+                link_url_required: Ce lien n'a pas d'adresse.
+                link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
+                link_url_too_long: Cette adresse est trop longue.
         spaces:
             guide:
                 title: "Comment fonctionnent les espaces"
-                step_1: "Un espace regroupe le travail mené pour un client : créez-en un par mission, pas un par société."
-                step_2: "« Ajouter un espace » demande un nom, un client existant ou un nouveau prospect, et l'équipe qui y travaille."
+                step_1: "Un espace client regroupe le travail mené pour un client : créez-en un par prestation, pas un par client."
+                step_2: "« Nouvel espace » demande un nom, un client existant ou un nouveau prospect, et l'équipe qui y travaille."
                 step_3: "Les onglets Clients et Prospects séparent ce sur quoi vous travaillez de ce que vous cherchez à décrocher."
-                step_4: "« À traiter » compte les parutions manquées, les relectures en retard, les contenus à reprendre et ceux qui attendent le client."
-                step_5: "Archiver un espace le retire de la liste sans rien perdre ; le supprimer efface son contenu, mais garde le client et ses contrats."
+                step_4: "« À traiter » compte les parutions manquées, les relectures en retard, les contenus à revoir et ceux qui attendent le client."
+                step_5: "Archiver un espace, depuis son onglet Réglages, le retire de la liste sans rien perdre ; le supprimer le met à la corbeille, d'où il revient tel qu'il était jusqu'à sa suppression définitive. Le client et ses contrats ne bougent pas."
             usage_detail: 'Espace {space}'
+            usage_detail_trashed: 'Espace {space}, à la corbeille'
             title: Espaces clients
-            add: Ajouter un espace
+            add: "Nouvel espace"
             create: Nouvel espace
-            edit: 'Modifier {name}'
             empty: Aucun espace pour le moment.
-            empty_hint: Un espace regroupe le travail mené pour un client. Créez-en un par chantier, pas un par société.
-            search_placeholder: Rechercher par nom d'espace ou par société…
+            empty_hint: "Un espace client regroupe le travail mené pour un client. Créez-en un par prestation, pas un par client."
+            search_placeholder: "Rechercher par nom d'espace ou par client…"
+            tab_list: "Les espaces"
+            tab_calendar: "Calendrier éditorial"
+            tabs_label: "Espaces et calendrier"
+            customer_filter: 'Espaces de {name}'
+            customer_filter_clear: 'Tous les espaces'
             created: Espace créé.
             updated: Espace mis à jour.
-            deleted: Espace supprimé.
-            delete_confirm: 'Supprimer {name} ?'
-            delete_warning: "L'espace disparaît avec tout ce qu'il contient : ses contenus, leurs fils et leurs pièces jointes, ses discussions, ses notes, ses livrables avec leurs liens de lecture, et ses liens d'accès. Ses dates quittent le calendrier. Le client, ses contrats et les documents de la médiathèque ne bougent pas."
+            deleted: Espace mis à la corbeille.
+            trash_action: "Mettre à la corbeille"
+            delete_confirm: 'Mettre {name} à la corbeille ?'
+            delete_warning: "L'espace quitte les listes, la recherche, les comptes et les calendriers, et sa page client et ses liens d'accès cessent de répondre. Rien n'est effacé : ses contenus, ses discussions, ses fichiers, ses livrables et son espace de notes l'attendent dans la corbeille, d'où il revient tel qu'il était. Passé le délai de la corbeille, ou supprimé définitivement, il disparaît avec tout ce qu'il contient. Tant qu'il est dans la corbeille, son client ne peut pas être supprimé."
             show_archived: Afficher les espaces archivés
             sort_by_urgency: Trier par urgence
             archived_badge: Archivé
@@ -1575,11 +960,11 @@ suite:
             customer: Client
             customer_none: Choisir un client
             customer_new_prospect: "+ Nouveau prospect"
-            prospect_name: Nom de la société
+            prospect_name: "Raison sociale"
             prospect_name_placeholder: Atelier Dupont
-            prospect_email: Email de contact
+            prospect_email: "Email contractuel"
             prospect_email_hint: "C'est à cette adresse que partira son lien d'accès."
-            customer_hint: La société pour qui ce travail est mené. Un même client peut avoir plusieurs espaces.
+            customer_hint: "Le client pour qui ce travail est mené. Un même client peut avoir plusieurs espaces."
             status: Statut
             status_hint: Un espace archivé sort de la liste sans rien perdre de son contenu.
             colour: Couleur
@@ -1599,6 +984,11 @@ suite:
 
             settings:
                 section_drive: Google Drive
+                section_general: "Espace"
+                section_team: "Équipe"
+                general_intro: "Ce qu'est l'espace : son nom, son client, sa couleur, son fuseau horaire et son statut. Un espace archivé sort du calendrier et ne reçoit plus de livrable."
+                team_intro: "Qui travaille sur cet espace, et le rôle de chacun. Seuls le référent et les administrateurs changent l'équipe."
+                saved: "Réglages de l'espace enregistrés"
                 howto_title: Brancher un dossier
                 howto_share: "Le client partage son dossier Google Drive, en lecture, avec l'adresse du compte de service :"
                 howto_share_unknown: "Le client partage son dossier Google Drive, en lecture, avec l'adresse du compte de service du Drive (Configuration > Google Drive)."
@@ -1639,7 +1029,7 @@ suite:
                 folder_cleared: Dossier débranché.
                 drive_closes_now: "Enregistrer ferme l'onglet immédiatement, y compris pour vous : il faudra saisir le mot de passe pour l'ouvrir."
                 drive_title: Mot de passe de l'onglet Drive
-                drive_intro: "Ferme l'onglet Drive de cet espace. Il vaut pour tout le monde, vous compris : un mot de passe qu'on contourne ne protège personne."
+                drive_intro: "Ferme l'onglet Drive de cet espace pour toute l'équipe, vous compris : un mot de passe qu'on contourne ne protège personne. Le client garde ce que son lien d'accès lui montre."
                 current_password: Mot de passe actuel
                 new_password: Nouveau mot de passe
                 password: Mot de passe
@@ -1670,26 +1060,27 @@ suite:
             row_actions:
                 view_description: Ouvrir le tableau de cet espace
                 convert_description: Le client de cet espace a signé
-                edit_description: Modifier cet espace
-                delete_description: Supprimer cet espace
+                edit_description: "Ouvrir les réglages de l'espace"
+                delete_description: Mettre cet espace à la corbeille
 
             errors:
                 name_required: Le nom de l'espace est obligatoire.
                 name_too_long: Le nom ne peut pas dépasser 150 caractères.
                 customer_required: Choisissez le client à qui cet espace appartient.
                 timezone_invalid: Ce fuseau horaire n'est pas reconnu.
-                team_lead_only: Seul le chef de l'espace peut changer son équipe et ses rôles.
+                team_lead_only: "Seul le référent de l'espace peut changer son équipe et ses rôles."
         space_access:
             guide:
                 title: "Comment fonctionnent les liens d'accès"
-                step_1: "« Créer un lien » produit une adresse personnelle pour un destinataire, qui ouvre l'espace sans compte."
+                step_1: "« Nouveau lien d'accès » produit une adresse personnelle pour un destinataire, qui ouvre l'espace sans compte."
                 step_2: "Copiez-la tout de suite et envoyez-la vous-même : elle ne sera plus jamais affichée, et l'application ne l'envoie pas."
                 step_3: "Le lien expire après 90 jours par défaut ; ses cases règlent ce que le client peut faire : valider, commenter, écrire dans la discussion, envoyer des fichiers, voir le Drive."
                 step_4: "« Aperçu » ouvre la page exactement comme ce destinataire la voit, sans rien enregistrer en son nom."
                 step_5: "« Révoquer » coupe le lien en gardant sa trace ; « Supprimer » l'efface complètement."
             tab: Accès client
-            intro: Un lien ouvre cet espace en lecture seule, sans compte. Il est personnel, il expire, et il se révoque.
-            issue: Créer un lien
+            intro: "Un lien ouvre cet espace au client, sans compte. Ce qu'il peut y faire se choisit lien par lien : valider, commenter, discuter, envoyer des fichiers, voir le Drive. Il est personnel, il expire, et il se révoque."
+            issue: "Nouveau lien d'accès"
+            issue_submit: "Créer le lien"
             issued: Lien créé.
             preview: Aperçu
             revoke: Révoquer
@@ -1708,17 +1099,17 @@ suite:
             label_placeholder: 'Camille, responsable marketing'
             label_hint: Facultatif. Utile quand un même client a plusieurs liens.
             valid_for_days: Validité
-            valid_for_days_hint: 'En jours, {max} au maximum. Un accès qui survit à la mission est un accès que personne ne pense à fermer.'
+            valid_for_days_hint: "En jours, {max} au maximum. Un accès qui survit à la prestation est un accès que personne ne pense à fermer."
             can_approve: Peut valider
             can_approve_hint: Décoché, le lien montre le plan sans permettre de répondre. Pour un lecteur qui regarde mais ne décide pas.
             read_only: lecture seule
             can_comment: "Peut commenter les contenus"
-            can_comment_hint: "Le fil d'une fiche : ce qu'on dit à propos d'une publication précise, et qui reste avec elle."
+            can_comment_hint: "Le fil d'un contenu : ce qu'on dit à propos de ce contenu précis, et qui reste avec lui."
             can_chat: "Peut écrire dans la discussion"
-            can_chat_hint: "Le fil de la relation, hors de toute fiche. Vous pouvez vouloir l'un sans l'autre : une agence partenaire annote un plan sans parler dans le salon du client."
+            can_chat_hint: "Le fil de la relation, hors de tout contenu. Vous pouvez vouloir l'un sans l'autre : une agence partenaire annote un plan sans parler dans le salon du client."
             no_chat: "sans la discussion"
             can_upload: Peut envoyer des fichiers
-            can_upload_hint: "Décoché par défaut. Coché, le client peut déposer ses propres photos et documents sur les contenus. Images, PDF et vidéos courantes, 25 Mo maximum."
+            can_upload_hint: "Décoché par défaut. Coché, le client peut déposer ses propres photos et fichiers sur les contenus. Images, PDF et vidéos courantes, 25 Mo maximum."
             can_see_drive: Voir le dossier Drive
             can_see_drive_hint: "Décochée, cette personne ne voit ni le dossier partagé ni son téléchargement. Utile pour un second lecteur à qui le dossier du client ne s'adresse pas."
             no_drive: sans le Drive
@@ -1739,86 +1130,47 @@ suite:
             errors:
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
+        client_visibility:
+            share_needed: "Seule une personne qui peut partager l'espace le montre au client ou le lui cache."
         space_files:
             guide:
                 title: "Comment sont rangés les fichiers"
-                step_1: "« Sur les fiches » liste les fichiers déposés sur les contenus, par vous ou par le client, du plus récent au plus ancien."
-                step_2: "« De l'espace » rassemble ce qui sert à la mission sans illustrer une publication : la charte, les logos, le brief."
-                step_3: "Un fichier d'espace s'ajoute ici ; un fichier pour une publication s'ajoute depuis sa fiche."
-                step_4: "Le client voit les deux sortes de fichiers ; retirer un fichier de l'espace le garde dans la médiathèque."
+                step_1: "« Sur les contenus » liste les fichiers déposés sur les contenus, par vous ou par le client, du plus récent au plus ancien."
+                step_2: "« De l'espace » rassemble ce qui sert à l'espace sans illustrer un contenu : la charte, les logos, le brief."
+                step_3: "Un fichier d'espace s'ajoute ici ; un fichier pour un contenu s'ajoute depuis ce contenu."
+                step_4: "Un fichier de l'espace naît caché au client ; « Montrer au client » le lui ouvre, avec le droit de partager l'espace. Ce que le client envoie reste visible pour lui."
+                step_5: "Le client voit aussi les fichiers des contenus qui lui sont montrés ; retirer un fichier de l'espace le garde dans la médiathèque."
             # Les fichiers de l'espace lui-même, sur aucune fiche : la charte,
-            # les logos, le brief. Le client les voit, comme le reste de
-            # l'espace ; ce que le studio garde pour lui, ce sont les notes.
+            # les logos, le brief. Chacun naît caché au client, comme tout ce
+            # qu'un espace peut lui montrer ; ce qu'il envoie reste visible pour lui.
             usage_detail: Fichier de l'espace
+            usage_detail_trashed: "Fichier d'un espace à la corbeille"
             label: Rattachement
             tabs:
-                linked: Sur les fiches
+                linked: "Sur les contenus"
                 space: De l'espace
             upload: Déposer un fichier
             pick: Choisir dans la médiathèque
             remove: Retirer de l'espace
             added: Fichier ajouté à l'espace.
             removed: "Fichier retiré de l'espace. Il reste dans la médiathèque."
-            empty_linked: Aucun fichier sur les fiches de cet espace
+            visible: "Visible par le client"
+            hidden: "Caché au client"
+            show: "Montrer au client"
+            hide: "Cacher au client"
+            now_visible: "Le client voit maintenant ce fichier."
+            sent_by_client: "Envoyé par le client"
+            now_hidden: "Ce fichier est caché au client."
+            empty_linked: "Aucun fichier sur les contenus de cet espace"
             empty_linked_hint: "Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien."
             empty_space: Aucun fichier sur cet espace
-            empty_space_hint: "La charte, les logos, le brief, un contrat signé : ce qui appartient à la mission sans illustrer une publication. Le client les voit."
+            empty_space_hint: "La charte, les logos, le brief, un contrat signé : ce qui appartient à l'espace sans illustrer un contenu. Chacun reste caché au client tant que vous ne le lui montrez pas."
             errors:
                 required: Choisissez un fichier.
-                unknown: Ce document est introuvable.
+                unknown: "Ce fichier est introuvable."
                 duplicate: Ce fichier est déjà sur cet espace.
                 needs_account: Il faut être connecté pour ajouter un fichier.
-        craft:
-            # Craft garde le savoir durable, celui qui survit à un projet ;
-            # les notes d'un espace gardent ce qui est attaché à un travail en
-            # cours et meurt avec lui. L'import fait passer de l'un à l'autre,
-            # en copie franche : rien ne revient modifier la note ensuite.
-            settings:
-                what_title: Ce que fait cette connexion
-                what_body: "Elle permet d'importer un document Craft dans les notes d'un espace client. C'est une copie : le document reste chez Craft, et la note ne change plus toute seule ensuite."
-                how_title: Comment l'ouvrir
-                how_step_connection: "Dans Craft, barre latérale, onglet Connexions : « Ajoutez votre première connexion API », puis « API pour les documents sélectionnés ». Une connexion sur l'espace entier donnerait accès à tout ce qu'il contient, y compris ce qui n'a rien à faire ici."
-                how_step_select: "Choisissez les documents que les espaces clients pourront importer. Craft n'exposera que ceux-là, et la liste se modifie chez lui à tout moment."
-                how_step_mode: "Réglez la connexion en lecture seule et en mode « Clé API ». En mode public, l'adresse seule suffirait à écrire et à supprimer chez vous."
-                how_step_paste: "Copiez l'adresse et la clé, et collez-les ci-dessous. Craft n'affiche la clé qu'une fois."
-                scope_title: "Ce que cette clé peut faire"
-                scope_body: "Lire les documents que vous avez cochés, et rien d'autre. C'est pour cela que le mode « lecture seule » compte : une connexion en écriture laisserait modifier et supprimer vos documents Craft depuis cette application, alors qu'elle ne fait qu'importer."
-                then_title: "Ensuite, espace par espace"
-                then_body: "Le bouton « Importer depuis Craft » apparaît dans l'onglet Notes de chaque espace client. L'import est une copie franche : le document reste chez Craft, et la note ne suivra pas ses modifications."
-                trouble_title: "Quand la liste est vide ou muette"
-                trouble_body: "Une liste vide veut dire que la connexion n'expose aucun document : retournez dans Craft en ajouter. Une absence de réponse veut dire que l'adresse ou la clé ne conviennent plus, souvent parce que la connexion a été recréée chez Craft, qui frappe alors une nouvelle clé."
-                how_link: La marche à suivre chez Craft
-                endpoint_label: Adresse de la connexion
-                endpoint_hint: "Celle que Craft affiche à la création de la connexion. En https, sans quoi la clé voyagerait en clair."
-                token_label: Clé API
-                token_hint: "Celle que Craft affiche une fois la connexion passée en mode « Clé API »."
-                token_stored: Une clé est enregistrée. Laissez le champ vide pour la garder.
-                enabled_label: Activer l'import depuis Craft
-                enabled_hint: Le bouton apparaît dans les notes de chaque espace.
-                enabled_blocked: Renseignez une adresse et une clé pour pouvoir activer.
-            import:
-                action: Importer depuis Craft
-                title: Importer une note Craft
-                intro: "Le document est copié dans cet espace. Il reste chez Craft, et la note ne suivra pas ses modifications."
-                empty: Aucun document dans cette connexion.
-                unreachable: "Craft n'a pas répondu."
-                unreachable_hint: "Vérifiez l'adresse et la clé dans les réglages, onglet Craft."
-                empty_hint: "Retournez dans Craft pour ajouter des documents à la connexion."
-                disabled: "L'import depuis Craft n'est pas activé."
-                disabled_hint: "Il s'ouvre dans les réglages, onglet Craft."
-                imported: Note importée.
-                refresh: Mettre à jour depuis Craft
-                refresh_confirm: "Remettre « {title} » sur la version actuelle du document Craft ?"
-                refresh_warning: "Le corps de la note est remplacé. Ce que vous avez modifié ici sera perdu ; la couleur, l'épingle et la visibilité sont conservées."
-                refresh_submit: Mettre à jour
-                refreshed: Note mise à jour.
-                submit: Importer
-            errors:
-                endpoint_https: "L'adresse de la connexion doit commencer par https://."
-                connection_required: Renseignez une adresse et une clé avant d'activer.
-                document_required: Choisissez un document à importer.
-                unreachable: "Craft n'a rien renvoyé pour ce document."
-                not_imported: Cette note ne vient pas de Craft.
+                client_file_stays_visible: "Ce fichier vient du client : il reste visible pour lui."
         drive:
             # Le compte de service appartient à l'installation ; le dossier
             # appartient à un client, et c'est lui qui le partage. La portée se
@@ -1856,7 +1208,7 @@ suite:
                     step_1: "Le dossier du client se branche dans les Réglages de l'espace, une fois qu'il l'a partagé en lecture avec le compte de service."
                     step_2: "Ses fichiers restent chez lui : rien n'est recopié, et le client les voit sans compte Google."
                     step_3: "Le dossier de l'agence est le même dans tous les espaces, et le client ne le voit jamais."
-                    step_4: "Accrocher un fichier du Drive à une fiche en fait une copie dans la médiathèque, qui ne suit plus les changements du Drive."
+                    step_4: "Accrocher un fichier du Drive à un contenu en fait une copie dans la médiathèque, qui ne suit plus les changements du Drive."
                 title: Dossier Google Drive
                 intro: "Les fichiers restent chez le client : rien n'est recopié, et ils s'affichent dans son espace sans qu'il ait besoin d'un compte Google."
                 folder_label: Dossier partagé
@@ -1882,16 +1234,16 @@ suite:
                 archive_weight: "Le dossier pèse {weight}."
                 archive_too_large: "Le dossier pèse {weight} : c'est trop pour une archive en une fois. Téléchargez les fichiers un par un, ou allégez le dossier partagé."
                 import: Ranger dans la médiathèque
-                imported: "Fichier rangé dans la médiathèque. Il est maintenant disponible dans les notes, les fiches et les galeries."
+                imported: "Fichier rangé dans la médiathèque. Il est maintenant disponible dans les notes, les contenus et les galeries."
                 path_label: Chemin dans le dossier
                 root: Dossier partagé
                 items: "1 fichier | {count} fichiers"
                 open: Ouvrir le fichier
             picker:
                 title: Choisir un fichier du Drive
-                intro: "Le fichier est recopié dans la médiathèque de cet espace, puis accroché à la fiche."
+                intro: "Le fichier est recopié dans la médiathèque de cet espace, puis accroché au contenu."
                 copy_notice: "Une copie : elle ne suivra plus les modifications du Drive du client, et elle survit à son retrait du partage."
-                submit: Accrocher à la fiche
+                submit: "Accrocher au contenu"
             errors:
                 key_invalid: "Ce n'est pas une clé de compte de service. Vérifiez d'avoir copié le fichier JSON en entier."
                 agency_folder_invalid: "Le dossier de l'agence n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
@@ -1899,97 +1251,27 @@ suite:
                 folder_invalid: "Ce n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
                 import_failed: "Ce fichier n'a pas pu être recopié. Les documents Google n'ont pas de fichier à télécharger."
         space_notes:
+            # Les notes d'un espace client vivent dans le module Notes, dans
+            # l'espace de notes de ce client : l'onglet en est la porte.
             guide:
                 title: "Comment fonctionnent les notes"
-                step_1: "Les notes sont la seule partie de l'espace que le client ne voit jamais."
-                step_2: "Une note « Partagée avec l'équipe » est lue par toute l'équipe de l'espace."
-                step_3: "Une note « Personnelle » n'est lue que par vous."
-                step_4: "Épinglez une note pour la garder en haut, et passez du mur à la liste selon votre préférence."
-            # Les notes d'un espace : la seule surface qu'un client ne voit pas.
-            # Le fil d'une fiche et la discussion sont partagés ; une note est
-            # ce qu'on écrit pour soi.
+                step_1: "Les notes restent entre vous : le client ne les voit jamais."
+                step_2: "Elles vivent dans le module Notes, dans l'espace de notes de ce client, ouvert à l'équipe de l'espace : le référent le gère, les membres y écrivent."
+                step_3: "Une note s'ouvre dans l'éditeur des notes, avec ses dossiers, ses liens entre notes, son historique et sa recherche."
+                step_4: "Une note pour vous seul se prend dans votre espace de notes personnel."
             add: Nouvelle note
-            create: Nouvelle note
-            edit: Modifier la note
-            title: Titre
-            title_placeholder: "Brief du 12 mars"
-            body_placeholder: "Ce qui a été dit, ce qu'il reste à faire…"
-            colour: Couleur
-            colour_hint: "Pour repérer une note sur le mur. Laissée vide, elle n'en porte pas - un mur où tout est coloré ne distingue plus rien."
-            pinned: Épingler en haut
-            pin: Épingler
-            unpin: Ne plus épingler
-            view_label: Vue
-            view_grid: Mur
-            view_list: Liste
-            visibility: Qui la lit
-            visibility_hint_shared: "Toute l'équipe de l'espace. Le client, lui, ne voit aucune note."
-            visibility_hint_personal: "Vous seul. Elle ne remonte à personne d'autre, pas même à l'équipe de l'espace."
-            visibilities:
-                shared: Partagée avec l'équipe
-                personal: Personnelle
-                shared_plural: Partagées
-                personal_plural: Personnelles
-            someone_elses: La note personnelle de quelqu'un
-            empty_shared: Aucune note partagée sur cet espace
-            empty_shared_hint: "Ce que l'équipe doit savoir sur ce client et qu'aucune fiche ne porte. Le client ne voit pas les notes."
-            empty_personal: Aucune note personnelle sur cet espace
-            empty_personal_hint: "Le brief pris au téléphone, une idée pas encore présentable, ce qui a mal tourné le mois dernier. Personne d'autre ne les lit."
-            created: Note créée.
-            updated: Note enregistrée.
-            deleted: Note supprimée.
-            delete_confirm: "Supprimer « {title} » ?"
-            delete_warning: "Les images qu'elle contient restent dans la médiathèque. Celles que plus rien n'utilise vous seront proposées."
-            errors:
-                title_required: Le titre est obligatoire.
-                title_too_long: Le titre ne peut pas dépasser 180 caractères.
-                needs_account: Il faut être connecté pour prendre une note.
+            untitled: Note sans titre
+            open_in_notes: Ouvrir dans Notes
+            empty: Aucune note sur cet espace
+            empty_hint: "Ce que l'équipe doit savoir sur ce client et qu'aucun contenu ne porte. Le client ne voit pas les notes."
+            closed: Ces notes ne vous sont pas ouvertes
+            closed_hint: "L'espace de notes de ce client est ouvert à son équipe. Le référent de l'espace peut vous y ajouter."
         space_information:
-            scope: "Cette fiche appartient au client, pas à ce projet. La modifier ici la modifie dans tous ses espaces, et c'est voulu : un SIRET est celui d'une société."
+            scope: "Cette fiche appartient au client, pas à cet espace : tous ses espaces montrent la même. Elle se modifie sur la page du client."
             what_the_client_sees: Ce que le client voit
             group_card: La fiche
             group_related: Autour de ce client
             edit: Modifier la fiche
-            edit_title: Modifier la fiche du client
-            related_empty: "Aucun contrat, aucune présentation ni aucun autre espace pour ce client pour l'instant."
-            related_contracts: "Contrats de ce client"
-            related_decks: "Présentations de ce client"
-            related_spaces: "Autres espaces de ce client"
-            draft_contract: "Brouillon"
-            saved: Fiche enregistrée.
-            legal_name: Nom de l'entreprise
-            legal_name_placeholder: 'ex. : Atelier Dupont'
-            siret_placeholder: 123 456 789 00012
-            siret_hint: Quatorze chiffres. Les espaces sont ignorés, la clé de contrôle est vérifiée.
-            siren_placeholder: 123 456 789
-            siren_hint: "Neuf chiffres. Ce sont les neuf premiers du SIRET : si les deux sont remplis, ils doivent s'accorder."
-            phone_placeholder: 06 12 34 56 78
-            landline_placeholder: 01 23 45 67 89
-            email_placeholder: contact@societe.test
-            email_hint: "La même adresse que celle des contrats : c'est là que part un lien de signature."
-            postal_address_placeholder: Adresse complète, telle qu'elle apparaîtra au contrat
-            links_hint: "Son site, ses réseaux, ce qu'il publie. Pour les liens de travail - une maquette, un accès - l'onglet Liens est fait pour ça."
-            link_label_placeholder: 'ex. : Site web'
-            link_url_placeholder: https://
-            link_add: Ajouter un lien
-            link_remove: Retirer
-            notes_placeholder: Ce qui n'entre dans aucune case.
-            notes_hint: Le client lit ce champ. Ce qui ne doit pas sortir de l'équipe va dans une note d'espace.
-            errors:
-                legal_name_required: Le nom de l'entreprise est obligatoire.
-                legal_name_too_long: Le nom ne peut pas dépasser 180 caractères.
-                siren_invalid: 'Ce SIREN est invalide : neuf chiffres et une clé de contrôle correcte sont attendus.'
-                siren_mismatch: "Ce SIREN ne correspond pas au SIRET saisi. Les neuf premiers chiffres d'un SIRET sont son SIREN."
-                phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
-                email_invalid: Cet email n'est pas valide.
-                email_too_long: L'email ne peut pas dépasser 180 caractères.
-                notes_too_long: Ce champ ne peut pas dépasser 5000 caractères.
-                links_too_many: Une fiche ne porte pas plus de 30 liens.
-                link_label_required: Ce lien n'a pas de nom.
-                link_label_too_long: Le nom d'un lien ne peut pas dépasser 120 caractères.
-                link_url_required: Ce lien n'a pas d'adresse.
-                link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
-                link_url_too_long: Cette adresse est trop longue.
         sharing:
             errors:
                 expiry_invalid: "La durée d'un lien va de 1 à 365 jours."
@@ -2000,37 +1282,38 @@ suite:
             editor_guide:
                 title: "Comment composer un livrable"
                 step_1: "« Contenu » se compose avec la grille des pages du site : ajoutez des zones et remplissez-les."
-                step_2: "« Apparence » règle les couleurs de la page et du contenu pour ce document seul, aux couleurs du client si vous voulez."
-                step_3: "« Réglages » porte le titre, le résumé, la langue et l'en-tête ; cochez « Visible par le client » pour qu'il le lise dans son espace."
+                step_2: "« Apparence » règle les couleurs de la page et du contenu pour ce livrable seul, aux couleurs du client si vous voulez."
+                step_3: "« Réglages » porte le titre, le résumé, la langue et l'en-tête ; cochez « Visible par le client » pour qu'il le lise dans son espace, avec le droit de partager l'espace."
                 step_4: "Enregistrez vos modifications, puis « Aperçu », dans le menu, ouvre la page telle que le client la lira."
-                step_5: "« Liens de lecture » crée une adresse secrète qui ouvre ce seul document sans compte, avec un mot de passe et une expiration facultatifs."
-                step_3_studio: "« Réglages » porte le titre, le résumé, la langue et l'en-tête, et sa visibilité : perso, ou partagé avec l'équipe."
+                step_5: "« Partager » crée un lien de lecture, une adresse secrète qui ouvre ce seul livrable sans compte, avec un mot de passe et une expiration facultatifs."
+                step_3_studio: "« Réglages » porte le titre, le résumé, la langue et l'en-tête, et sa visibilité : perso ou partagé."
                 step_4_studio: "Enregistrez vos modifications, puis « Aperçu », dans le menu, ouvre la page telle que la lira son destinataire."
-                step_6: "Dans le menu, « Exporter en PDF » donne une page par diapositive. Les passages entre [crochets] sont à remplacer avant d'ouvrir le livrable au client : un compteur les suit."
+                step_6: "Dans le menu, « Exporter en PDF » donne une page par diapo. Les passages entre [crochets] sont à remplacer avant de montrer le livrable au client : un compteur les suit."
+                step_6_studio: "Dans le menu, « Exporter en PDF » donne une page par diapo. Les passages entre [crochets] sont à remplacer avant de l'envoyer : un compteur les suit."
             guide:
                 title: "Comment fonctionnent les livrables"
-                step_1: "« Nouveau livrable » crée un document (audit, stratégie, bilan) qui se compose comme une page, à vos couleurs ou à celles du client."
-                step_2: "Il reste caché au client tant que vous ne cliquez pas sur « Montrer au client »."
-                step_3: "« Liens de lecture », dans le menu ⋯ d'un livrable ou dans son éditeur, donne à quelqu'un une adresse secrète qui ouvre ce seul document, sans l'espace."
+                step_1: "« Nouveau livrable » crée une page (audit, stratégie, bilan) ou une présentation, de zéro ou à partir d'un modèle de Studio, à vos couleurs ou à celles du client."
+                step_2: "Il reste caché au client tant que quelqu'un qui peut partager l'espace ne clique pas sur « Montrer au client »."
+                step_3: "« Partager », dans le menu ⋯ d'un livrable ou dans son éditeur, donne à quelqu'un un lien de lecture, une adresse secrète qui ouvre ce seul livrable, sans l'espace."
                 step_4: "Un lien peut avoir un mot de passe et une expiration, et se révoque un par un ; cacher le livrable ne coupe pas ses liens."
                 step_5: "« Dupliquer » crée une copie cachée au client, pratique pour repartir du bilan du mois dernier."
-                step_6: "« Copier dans Studio » garde ce livrable comme modèle. Les passages entre [crochets] sont à remplacer avant de l'ouvrir au client : la liste vous le redemande s'il en reste. Les liens de lecture demandent le droit de partager l'espace."
-            intro: "Les documents écrits pour ce client : audits, stratégies, bilans. Chacun se compose comme une page, à ses couleurs, et le client le lit dans son espace dès que vous l'ouvrez."
+                step_6: "« Copier dans Studio » garde ce livrable comme modèle. Les passages entre [crochets] sont à remplacer avant de le montrer au client : la liste vous le redemande s'il en reste. Les liens de lecture demandent le droit de partager l'espace."
+            intro: "Les livrables écrits pour ce client : audits, stratégies, bilans. Chacun est une page ou une présentation, à ses couleurs, et le client le lit dans son espace dès que vous le lui montrez."
             add: "Nouveau livrable"
             empty: "Aucun livrable pour ce client."
-            empty_hint: "Commencez un audit, une stratégie ou un bilan : il se compose avec la grille des pages, et reste fermé au client tant que vous ne l'ouvrez pas."
+            empty_hint: "Commencez un audit, une stratégie, un bilan ou une présentation : il reste caché au client tant que vous ne le lui montrez pas."
             create_title: "Nouveau livrable"
             create: "Créer et ouvrir"
             title: "Titre"
             title_placeholder: "Audit de présence en ligne"
-            title_hint: "Ce que le client lit dans la liste de son espace et en tête du document."
+            title_hint: "Ce que le client lit dans la liste de son espace et en tête du livrable."
             updated_on: "Modifié le {date} à {time}"
             open: "Ouvrir"
-            open_hint: "Composer le document, régler ses couleurs et ce que voit le client."
+            open_hint: "Composer le livrable, régler ses couleurs et ce que voit le client."
             preview: "Aperçu"
             preview_hint: "La page telle que le client la lira, dans un nouvel onglet."
             export_pdf: "Exporter en PDF"
-            export_pdf_hint: "Ouvre le livrable en diapositives, une par page, et la fenêtre d'impression : choisissez « Enregistrer en PDF »."
+            export_pdf_hint: "Ouvre le livrable en diapos, une par page, et la fenêtre d'impression : choisissez « Enregistrer en PDF »."
             show: "Montrer au client"
             show_hint: "Il apparaît dans l'espace du client, qui peut le lire."
             hide: "Cacher au client"
@@ -2041,7 +1324,7 @@ suite:
             hidden_badge: "Caché au client"
             placeholders_badge: "à remplacer"
             duplicate: "Dupliquer"
-            duplicate_hint: "Une copie à reprendre, cachée au client : le bilan du mois dernier pour écrire celui-ci."
+            duplicate_hint: "Une copie à retravailler, cachée au client : le bilan du mois dernier pour écrire celui-ci."
             duplicated: "Copie créée."
             copy_title: "%title% (copie)"
             usage_detail: "Livrable"
@@ -2075,7 +1358,7 @@ suite:
                     color_invalid: "La couleur n'est pas valide."
             copy_to_studio:
                 action: "Copier dans Studio"
-                action_hint: "Une copie dans « Mes livrables » de Studio, pour en faire un modèle. Celui-ci reste dans l'espace."
+                action_hint: "Une copie dans les livrables perso de Studio, pour en faire un modèle. Celui-ci reste dans l'espace."
                 done: "Copie créée dans Studio."
             delete_hint: "Le met à la corbeille : il sort des listes et ses liens de lecture cessent de répondre, jusqu'à sa restauration."
             trash_action: "Mettre à la corbeille"
@@ -2088,12 +1371,12 @@ suite:
             save_failed: "Le livrable n'a pas pu être enregistré."
             archived_hint: "Cet espace est archivé : il ne reçoit plus de livrable. Ceux qu'il garde restent modifiables."
             show_confirm:
-                title: "Ouvrir ce livrable au client ?"
+                title: "Montrer ce livrable au client ?"
                 intro: "« {title} » n'est peut-être pas prêt : le client le lira dès maintenant."
                 placeholders: "{count} passage entre crochets reste à remplacer | {count} passages entre crochets restent à remplacer"
                 pictures: "Une image n'est pas publiée dans la médiathèque, le client ne la verra pas | {count} images ne sont pas publiées dans la médiathèque, le client ne les verra pas"
-                keep_hidden: "Le garder fermé"
-                confirm: "L'ouvrir quand même"
+                keep_hidden: "Le garder caché"
+                confirm: "Le montrer quand même"
             gone: "Ce livrable n'existe plus : la liste vient d'être actualisée."
             not_allowed: "Vous n'avez plus le droit de faire cela sur ce livrable : la liste vient d'être actualisée."
             read_only: "Lecture seule"
@@ -2105,42 +1388,624 @@ suite:
                 reload: "Recharger sa version"
                 overwrite: "Enregistrer quand même"
             unsaved: "Modifications non enregistrées"
-            links_hint: "Une adresse secrète par destinataire, pour transmettre le document sans ouvrir l'espace."
+            links_hint: "Un lien de lecture par destinataire, pour transmettre le livrable sans ouvrir l'espace."
+            share: "Partager"
             back_to_list: "Livrables"
             search_placeholder: "Rechercher un livrable"
             no_match: "Aucun livrable ne correspond à la recherche."
-            studio_title_hint: "Le titre en tête du document, et dans la liste."
+            studio_title_hint: "Le titre en tête du livrable, et dans la liste."
+            formats:
+                page: "Page"
+                slides: "Présentation"
+            format:
+                label: "Format"
+                page_hint: "Se compose avec la grille des pages du site, et se lit en faisant défiler."
+                slides_hint: "Se compose diapo par diapo, se présente en plein écran avec ses notes, et s'imprime."
+                fixed_hint: "Le format ne change plus ensuite."
+                badge_slides: "Présentation"
+                filter_label: "Format"
+                filter_all: "Tous"
+                filter_page: "Pages"
+                filter_slides: "Présentations"
+            import:
+                action: "Importer un texte"
+                action_hint: "Collez un texte : chaque titre ouvre une diapo, et vous arrivez dans la présentation."
+                title: "Importer un texte"
+                intro: "Écrivez ou collez votre texte. Un titre ouvre une diapo, et ce qui suit la remplit."
+                title_placeholder: "Ex. Réunion de lancement"
+                document: "Le texte"
+                placeholder: "Collez ici, ou écrivez…"
+                hint: "Les listes deviennent des diapos à puces, les citations des citations, les tableaux des tableaux. Plusieurs blocs sous un même titre font plusieurs diapos qui le répètent."
+                submit: "Importer"
+                done: "Présentation créée à partir du texte"
+            slides:
+                settings: "Réglages"
+                editor_guide:
+                    title: "Comment modifier une présentation"
+                    step_1: "La colonne « Diapos » les montre dans l'ordre : cliquez sur une diapo pour la modifier, et déplacez-la par sa poignée ou ses flèches."
+                    step_2: "« Nouvelle diapo » propose les gabarits ; avec « Diapo libre », vous placez chaque élément à la main."
+                    step_3: "Remplissez les champs du gabarit et les notes d'orateur, que le public ne voit jamais : tout s'enregistre seul."
+                    step_4: "« Présenter » passe en plein écran ; le menu à côté ouvre la vue présentateur, l'impression, le partage et l'apparence."
+                slides: "Diapos"
+                errors:
+                    layout_unknown: Ce gabarit n'existe pas.
+                    theme_unknown: Ce thème n'existe pas.
+                share: Partager
+                share_expires_on: 'Expire le {date}'
+                share_footer: Ce lien vous est personnel. Ne le transmettez pas.
+                present: Présenter
+                print: Imprimer
+                print_hint: "Utilisez l'impression du navigateur, puis « Enregistrer en PDF ». Une diapo par page, en paysage."
+                previous_slide: "Diapo précédente"
+                next_slide: "Diapo suivante"
+                layout: Gabarit
+                add_slide: "Nouvelle diapo"
+                slide_added: "Diapo ajoutée"
+                slide_deleted: "Diapo supprimée"
+                delete_slide: "Supprimer la diapo"
+                delete_slide_confirm: "Cette diapo et son contenu seront perdus."
+                move_up: Monter
+                move_down: Descendre
+                saving: Enregistrement…
+                saved: Enregistré
+                unsaved: Modifications non enregistrées
+                no_slide_title: "Aucune diapo"
+                no_slide_description: Choisissez un gabarit à gauche pour commencer la présentation.
+                speaker_notes: Notes d'orateur
+                speaker_notes_hint: Elles ne sont jamais montrées au public.
+                speaker_notes_placeholder: "Ce que vous direz pendant que cette diapo est à l'écran."
+                prose_placeholder: "Le texte affiché sur la diapo."
+                image_hint: Choisie dans la médiathèque, ou déposée depuis votre machine.
+                appearance: Apparence
+                appearance_saved: Apparence enregistrée
+                appearance_preview_hint: L'aperçu suit vos choix, la présentation ne change qu'à l'enregistrement.
+                appearance_sample_title: Le titre de votre présentation
+                appearance_sample_subtitle: Le sous-titre, sur une ligne
+                appearance_overrides_kept: Vos couleurs personnalisées restent appliquées par-dessus ce thème.
+                theme: Thème
+                themes:
+                    slate: Ardoise
+                    ink: Encre
+                    paper: Papier
+                    bold: Affirmé
+                    midnight: Minuit
+                    clay: Terre
+                    chalk: Craie
+                    duo: Deux tons
+                colours: Couleurs
+                colour_background: Fond
+                colour_ink: Texte
+                colour_accent: Accent
+                colour_inherited: Du thème
+                colour_reset: Revenir au thème
+                colour_reset_all: Tout revenir au thème
+                gradient_label: Dégradé
+                gradient_hint: "Un lavis de la couleur d'accent sur le fond, le même sur toutes les diapos."
+                gradients:
+                    none: Aucun
+                    top: Depuis le haut
+                    bottom: Depuis le bas
+                    corner: En diagonale
+                    halo: Halo central
+                    duo: Accent vers encre
+                pattern_label: Motif
+                pattern_hint: "Une texture sur le fond, cachée sur les diapos à photo."
+                patterns:
+                    none: Aucun
+                    dots: Pointillés
+                    grid: Quadrillage
+                    diagonals: Hachures
+                margins_label: Marges du cadre
+                margins:
+                    tight: Serrées
+                    normal: Normales
+                    wide: Larges
+                hairline: Filet de cadre
+                hairline_hint: Un liseré fin dans la couleur d'accent, en retrait des bords.
+                anchors:
+                    center: Centrée
+                    top: En haut
+                    bottom: En bas
+                aligns:
+                    left: À gauche
+                    center: Centré
+                    right: À droite
+                measures:
+                    full: Pleine largeur
+                    two_thirds: Deux tiers
+                    half: Moitié
+                vignette_hint: Assombrit légèrement les angles et ramène l'oeil au centre.
+                bg_treatments:
+                    none: Aucun
+                    blur: Flou
+                    mono: Noir et blanc
+                    duotone: Duotone à l'accent
+                    grain: Grain
+                bg_veils:
+                    flat: Uniforme
+                    bottom: Depuis le bas
+                    top: Depuis le haut
+                media_frames:
+                    none: Aucun
+                    line: Filet d'accent
+                    shadow: Ombre douce
+                title_case_label: Casse des titres
+                title_cases:
+                    normal: Normale
+                    upper: Capitales
+                bullets_label: Forme des puces
+                bullet_shapes:
+                    disc: Point
+                    dash: Tiret
+                    arrow: Flèche
+                    number: Numéro
+                    check: Coche
+                media_bleed_hint: L'image sort de la marge et touche le bord du cadre.
+                rules: Filets de séparation
+                rules_hint: Une ligne entre les deux colonnes et sous le sur-titre.
+                bands:
+                    none: Aucun
+                    left: Bande à gauche
+                    bottom: Bandeau en bas
+                    edge: Bord fin
+                wash_from_theme: Celui du thème
+                looks_label: Partir d'un look
+                looks_hint: Applique un thème et ses réglages d'un coup. Tout reste modifiable ensuite.
+                looks:
+                    scene: Scène
+                    atelier: Atelier
+                    dossier: Dossier
+                    gallery: Galerie
+                look_descriptions:
+                    scene: Montré dans une salle. Sombre, titres en capitales.
+                    atelier: Il argumente. Clair et chaud, hachuré.
+                    dossier: Il se lit. Calme, quadrillé, marges larges.
+                    gallery: Les photos portent tout. Presque noir, marges serrées.
+                accent_from_logo: Teintes du logo
+                contrast_good: "Contraste {ratio} sur 21. Lisible partout."
+                contrast_large: "Contraste {ratio} sur 21. Lisible au mur, juste sur un document imprimé."
+                contrast_poor: "Contraste {ratio} sur 21. Le texte sera difficile à lire."
+                transition_from_deck: "Celle de la présentation"
+                slide_transition_hint: "Ne vaut que pour cette diapo, et seulement au plein écran."
+                drift_hint: "Un déplacement très lent de la photo pendant que la diapo est à l'écran. Plein écran seulement."
+                title_scales:
+                    normal: Normale
+                    quiet: Discrète
+                    loud: Affichée
+                media_ids_hint: L'ordre est l'arrangement. Huit au maximum ; vider une case resserre les autres.
+                ground_hint: "La diapo se pose sur une des trois couleurs de la présentation. Le texte suit, l'accent ne bouge pas."
+                grounds:
+                    normal: Le fond
+                    inverted: L'encre
+                    accent: L'accent
+                reveal_hint: "Au plein écran, chaque pression fait apparaître la ligne suivante avant de passer à la diapo d'après."
+                picture_rank: "Image {rank}"
+                fonts_label: Typographie
+                font_from_theme: Celle du thème
+                fonts:
+                    sans: Sans empattement
+                    serif: Avec empattements
+                    editorial: Titres serif, texte sans
+                    technical: Titres chasse fixe, texte sans
+                    report: Titres sans, texte serif
+                    soft: Arrondie
+                signature: Signature
+                logo: Logo
+                logo_hint: "Affiché en petit, dans un coin de la diapo."
+                logo_placement: Où l'afficher
+                logo_placements:
+                    none: Nulle part
+                    cover: Sur la couverture
+                    every: "Sur toutes les diapos"
+                footer_text: Mention de pied de page
+                footer_text_placeholder: Confidentiel, ne pas diffuser
+                slide_numbers: "Numéroter les diapos"
+                slide_numbers_hint: La couverture n'est jamais numérotée.
+                common_slots: Fond et sur-titre
+                kicker_placeholder: Audit, partie 2, Notre proposition…
+                backdrop_hint: Une photo derrière le texte, sur n'importe quel gabarit.
+                backdrop_dim: Voile
+                backdrop_dim_hint: Assombrit l'image vers la couleur de fond, pour que le texte reste lisible.
+                side_left: À gauche
+                side_right: À droite
+                line_placeholders:
+                    series: "Une donnée par ligne. Étiquette | valeur"
+                    bullets: Une puce par ligne.
+                    items: "Une carte par ligne. Titre | description | étiquette | icône"
+                    steps: "Une étape par ligne. Nom | précision | étiquette | icône"
+                    rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
+                    figures: "Un chiffre par ligne. Valeur | ce qu'il compte | part en %"
+                    lines: Une ligne par ligne. Adresse, téléphone, site.
+                emphasis_hint: "Dans le texte d'une diapo : **gras**, *italique*, `code`, ==mot en accent==."
+                icons_hint: "Icônes possibles : check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
+                chart_types:
+                    bar: Barres
+                    line: Courbe
+                    doughnut: Anneau
+                duplicate_slide: "Dupliquer la diapo"
+                slide_duplicated: "Diapo dupliquée"
+                drag_hint: Glisser pour déplacer
+                presenter: Vue présentateur
+                presenter_now: "Diapo en cours"
+                presenter_next: "Diapo suivante"
+                presenter_end: Fin de la présentation.
+                presenter_no_note: "Aucune note pour cette diapo."
+                presenter_linked: Reliée au plein écran
+                presenter_alone: Aucune fenêtre de présentation ouverte
+                timer_start: Démarrer le minuteur
+                timer_pause: Mettre en pause
+                timer_reset: Remettre à zéro
+                media_fit_contain: Entière, sans rognage
+                media_fit_cover: Remplir le cadre
+                media_shape_soft: Coins légers
+                media_shape_round: Coins arrondis
+                media_shape_arch: Arche
+                media_shape_circle: Cercle
+                media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
+                fold_chapter: Replier ce chapitre
+                unfold_chapter: Déplier ce chapitre
+                overview: Sommaire
+                pointer: Pointeur
+                transition: Transition
+                transitions:
+                    none: Aucune
+                    fade: Fondu
+                    slide: Glissement
+                transition_hint: "Elle n'existe qu'au plein écran. Le papier et le lien de lecture n'en portent pas."
+                slots:
+                    mediaFit: Cadrage de l'image
+                    mediaShape: Forme de l'image
+                    mediaFocus: Point de visée
+                    chartType: Type de graphique
+                    series: Données
+                    value: Le chiffre
+                    label: Ce qu'il compte
+                    text: Texte
+                    side: Côté de l'image
+                    items: Cartes
+                    steps: Étapes
+                    rows: Lignes
+                    kicker: Sur-titre
+                    reveal: Lignes une à une
+                    ground: "Sol de la diapo"
+                    mediaIds: Les images
+                    titleScale: Échelle du titre
+                    transition: "Transition vers cette diapo"
+                    drift: Travelling sur la photo
+                    role: Fonction
+                    current: Ligne en cours
+                    band: Aplat de couleur
+                    mediaBleed: Image jusqu'au bord
+                    leftTitle: Titre de gauche
+                    rightTitle: Titre de droite
+                    figures: Les chiffres
+                    lines: Les lignes
+                    ghost: Chiffre en filigrane
+                    bgTreatment: Traitement de la photo
+                    bgVeil: Voile
+                    vignette: Vignettage
+                    mediaFrame: Contenant de l'image
+                    captionOver: Légende sur l'image
+                    anchor: Position verticale
+                    align: Alignement
+                    measure: Largeur du texte
+                    bgMediaId: Image de fond
+                    title: Titre
+                    subtitle: Sous-titre
+                    bullets: Puces
+                    left: Colonne de gauche
+                    right: Colonne de droite
+                    quote: Citation
+                    attribution: Attribution
+                    caption: Légende
+                    mediaId: Image
+                free:
+                    convert: Rendre libre
+                    converted: "Diapo rendue libre. Cmd+Z pour revenir au gabarit."
+                    canvas: Diapo libre
+                    insert: Ajouter à la diapo
+                    insert_title: Titre
+                    insert_subtitle: Sous-titre
+                    insert_body: Texte
+                    insert_image: Image
+                    insert_video: Vidéo
+                    insert_embed: YouTube ou Vimeo
+                    insert_shape: Forme
+                    insert_icon: Icône
+                    insert_chart: Graphique
+                    insert_table: Tableau
+                    text_presets:
+                        title: Votre titre
+                        subtitle: Un sous-titre
+                        body: Votre texte ici
+                    embed_url: Lien de la vidéo
+                    embed_placeholder: "https://www.youtube.com/watch?v=..."
+                    embed_add: Ajouter
+                    embed_hint: "YouTube, Vimeo ou Dailymotion. La vidéo se lit dans la diapo pendant la présentation."
+                    icon_search: Chercher une icône
+                    undo: Annuler
+                    redo: Rétablir
+                    shortcuts: "Double-clic pour écrire, Maj pour garder les proportions, Alt pour ignorer les guides."
+                    shortcuts_touch: "Touchez un texte choisi pour écrire, pincez à deux doigts pour agrandir et tourner."
+                    text_toolbar: Mise en forme du texte
+                    bold: Gras
+                    italic: Italique
+                    underline: Souligné
+                    strike: Barré
+                    word_colour: Couleur des mots
+                    word_colour_apply: Appliquer cette couleur
+                    highlight: Surligneur
+                    highlight_apply: Appliquer ce surlignage
+                    bullets: Liste à puces
+                    numbers: Liste numérotée
+                    clear_format: Effacer la mise en forme
+                    slide: Cette diapo
+                    slide_fill: Fond de la diapo
+                    slide_video: Vidéo en fond
+                    slide_video_hint: "Lue en boucle et sans le son derrière les éléments. Sur papier, c'est son image d'affiche qui s'imprime."
+                    choose_video: Choisir une vidéo
+                    replace: Remplacer
+                    remove: Retirer
+                    nothing_selected: "Cliquez sur un élément pour le régler, ou tracez un cadre autour de plusieurs."
+                    duplicate: Dupliquer
+                    delete: Supprimer
+                    lock: Verrouiller
+                    unlock: Déverrouiller
+                    bring_front: Mettre au premier plan
+                    forward: Avancer
+                    backward: Reculer
+                    send_back: Mettre à l'arrière-plan
+                    group: Grouper
+                    ungroup: Dégrouper
+                    flip_x: Retourner horizontalement
+                    flip_y: Retourner verticalement
+                    align:
+                        left: Aligner à gauche
+                        center: Centrer horizontalement
+                        right: Aligner à droite
+                        top: Aligner en haut
+                        middle: Centrer verticalement
+                        bottom: Aligner en bas
+                    distribute_x: Répartir horizontalement
+                    distribute_y: Répartir verticalement
+                    width: Largeur
+                    height: Hauteur
+                    rotation: Rotation
+                    opacity: Opacité
+                    font: Police
+                    font_search: Chercher une police
+                    font_deck: Polices de la présentation
+                    font_heading: Police des titres
+                    font_body: Police du texte
+                    font_uploaded: Vos polices
+                    font_upload: Importer une police
+                    font_uploaded_ok: "Police {name} ajoutée."
+                    font_errors:
+                        required: Choisissez un fichier de police.
+                        not_a_font: "Ce fichier n'est pas une police lisible par un navigateur : woff2, woff, ttf ou otf."
+                        refused: "La police n'a pas pu être ajoutée."
+                    font_categories:
+                        sans: Sans empattement
+                        serif: Avec empattement
+                        display: Affiche
+                        script: Manuscrite
+                        mono: Chasse fixe
+                    size: Taille
+                    weight: Graisse
+                    weights:
+                        "100": Très fine
+                        "200": Extra fine
+                        "300": Fine
+                        "400": Normale
+                        "500": Moyenne
+                        "600": Demi-grasse
+                        "700": Grasse
+                        "800": Extra grasse
+                        "900": Noire
+                    case: Casse
+                    cases:
+                        none: Telle quelle
+                        upper: Majuscules
+                        lower: Minuscules
+                        title: Majuscule à chaque mot
+                    spacing: Interlettrage
+                    line_height: Interligne
+                    pad_x: Marge intérieure (côtés)
+                    pad_y: Marge intérieure (haut et bas)
+                    aligns:
+                        left: Gauche
+                        center: Centre
+                        right: Droite
+                        justify: Justifié
+                    valigns:
+                        top: Haut
+                        middle: Milieu
+                        bottom: Bas
+                    text_colour: Couleur du texte
+                    autofit: Ajuster le texte à la boîte
+                    autofit_hint: "Le texte rétrécit pour ne jamais sortir de sa boîte."
+                    contrast_poor: "Texte peu lisible sur ce fond : contraste de {ratio} pour 1, il en faut au moins 3."
+                    contrast_large: "Lisible en grand seulement : contraste de {ratio} pour 1, 4,5 pour un texte courant."
+                    text_hint: "Double-cliquez dans la boîte pour écrire. Sélectionnez des mots pour les mettre en gras, en couleur ou en liste."
+                    fit: Remplissage
+                    mask: Découpe
+                    masks:
+                        none: Aucune
+                        circle: Cercle
+                        arch: Arche
+                        triangle: Triangle
+                        diamond: Losange
+                        hexagon: Hexagone
+                        star: Étoile
+                        blob: Galet
+                    zoom: Zoom
+                    focus: Point de cadrage
+                    focus_hint: "Le point qui reste visible quand l'image est recadrée."
+                    adjust: Retouches
+                    filters:
+                        brightness: Luminosité
+                        contrast: Contraste
+                        saturate: Saturation
+                        grayscale: Noir et blanc
+                        sepia: Sépia
+                        hue: Teinte
+                        blur: Flou
+                    reset_filters: Annuler les retouches
+                    autoplay: Lecture automatique
+                    autoplay_hint: "Une vidéo qui démarre seule est muette : c'est la règle des navigateurs."
+                    loop: En boucle
+                    muted: Sans le son
+                    controls: Afficher les commandes
+                    shape: Forme
+                    shapes:
+                        rect: Rectangle
+                        ellipse: Ellipse
+                        triangle: Triangle
+                        right_triangle: Triangle rectangle
+                        diamond: Losange
+                        pentagon: Pentagone
+                        hexagon: Hexagone
+                        octagon: Octogone
+                        star: Étoile
+                        star4: Étoile à quatre branches
+                        heart: Cœur
+                        cross: Croix
+                        parallelogram: Parallélogramme
+                        trapezoid: Trapèze
+                        arrow_right: Flèche vers la droite
+                        arrow_left: Flèche vers la gauche
+                        chevron: Chevron
+                        speech: Bulle
+                        ring: Anneau
+                        line: Ligne
+                    head: Extrémités
+                    heads:
+                        none: Aucune flèche
+                        end: Flèche au bout
+                        both: Flèche aux deux bouts
+                    icon: Icône
+                    colour: Couleur
+                    line_weight: Épaisseur du trait
+                    theme_colours:
+                        ink: Couleur du texte de la présentation
+                        accent: Couleur d'accent de la présentation
+                        background: Couleur de fond de la présentation
+                    no_colour: Sans couleur
+                    paints:
+                        none: Aucun
+                        solid: Couleur
+                        linear: Dégradé
+                        radial: Dégradé radial
+                    angle: Angle
+                    add_stop: Ajouter une couleur
+                    remove_stop: Retirer cette couleur
+                    fill: Remplissage
+                    box_fill: Fond de la boîte
+                    stroke: Contour
+                    text_outline: Contour des lettres
+                    stroke_width: Épaisseur
+                    stroke_style: Style
+                    stroke_styles:
+                        solid: Plein
+                        dashed: Tirets
+                        dotted: Pointillés
+                    radius: Arrondi
+                    shadow: Ombre
+                    blur: Flou
+                    enter: Apparition
+                    enters:
+                        none: Aucune
+                        fade: Fondu
+                        rise: Montée
+                        fall: Descente
+                        left: Depuis la gauche
+                        right: Depuis la droite
+                        zoom: Zoom
+                        pop: Rebond
+                        blur: Mise au point
+                    reveal: À la pression n°
+                    reveal_hint: "0 : l'élément est là dès que la diapo s'affiche. 1, 2, 3 : il entre à la 1re, 2e, 3e pression pendant la présentation."
+                    duration: Durée
+                    delay: Délai
+                    link: Lien au clic
+                    link_placeholder: "https://..."
+                    layers: Calques
+                    layers_empty: "Aucun élément. Ajoutez-en un avec la barre au-dessus de la diapo."
+                    types:
+                        text: Texte
+                        image: Image
+                        video: Vidéo
+                        embed: Vidéo en ligne
+                        shape: Forme
+                        icon: Icône
+                        chart: Graphique
+                        table: Tableau
+                layouts:
+                    chart: Graphique
+                    stat: Chiffre clé
+                    image_text: Image et texte
+                    cards: Cartes
+                    timeline: Frise
+                    table: Tableau
+                    title: Titre
+                    bullets: Titre et puces
+                    image: Image pleine page
+                    split: Deux colonnes
+                    quote: Citation
+                    section: Intercalaire
+                    compare: Comparaison
+                    figures: Chiffres
+                    end: Fin
+                    agenda: Sommaire
+                    portrait: Citation et portrait
+                    logos: Grille de logos
+                    mosaic: Mosaïque d'images
+                    free: Diapo libre
+            template:
+                badge: "Modèle"
+                filter: "Modèles"
+                filter_hint: "N'afficher que les modèles"
+                toggle: "C'est un modèle"
+                toggle_hint: "Il est proposé dans « Partir d'un modèle » quand on crée un livrable. Ce qu'on en tire, copie ou livrable neuf, n'en est pas un."
+                from: "Partir d'un modèle"
+                from_nothing: "Page blanche"
+                from_nothing_slides: "Présentation vide"
+                from_hint: "Le nouveau livrable en reprend le contenu, l'apparence, l'image et la catégorie, sous le titre ci-dessous."
+            customer:
+                label: "Client"
+                none: "Aucun client"
+                hint: "Pour qui ce livrable est écrit, avant que le client ait un espace : une proposition à un prospect. Copié dans un espace, il prend le client de l'espace."
             studio_guide:
                 title: "Comment fonctionnent les livrables"
-                step_1: "Un livrable est un document écrit pour être lu : un audit, une stratégie, une proposition. Il se compose avec la grille des pages, sans jamais être sur le site."
-                step_2: "« Mes livrables » ne se voit que par vous. « Partagés » se lit par toute l'équipe qui a accès aux livrables ; il se modifie par ceux qui en ont le droit, et par son auteur, même sans ce droit."
+                step_1: "Un livrable s'écrit pour être lu ou présenté : un audit, une stratégie, une proposition. Une page se compose avec la grille des pages, sans jamais être sur le site ; une présentation, diapo par diapo, ou depuis un texte collé avec « Importer un texte »."
+                step_2: "« Perso » ne se voit que par vous. « Partagés » se lit par toute l'équipe qui a accès aux livrables ; il se modifie par ceux qui en ont le droit, et par son auteur, même sans ce droit."
                 step_3: "Un livrable se crée dans l'onglet ouvert ; ensuite, seul son auteur le fait passer de perso à partagé, ou l'inverse, depuis son menu ou ses réglages."
-                step_4: "Un lien de lecture l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client. Voir les liens et en donner demande le droit de partager."
+                step_4: "« Partager » crée un lien de lecture qui l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client. Voir les liens et en donner demande le droit de partager."
                 step_5: "Les livrables d'un client se préparent dans son espace, onglet Livrables : c'est là qu'il les lit."
-                step_6: "Rangez-les par catégorie (audit, stratégie, proposition…) : filtrez la liste ou affichez-la par catégorie. Un modèle se copie dans l'espace d'un client, et un livrable d'espace revient ici par « Copier dans Studio »."
+                step_6: "Rangez-les par catégorie (audit, stratégie, proposition…) : filtrez la liste ou affichez-la par catégorie. Cochez « C'est un modèle » dans les réglages d'un livrable : il est proposé à la création, et se copie dans l'espace d'un client. Un livrable d'espace revient ici par « Copier dans Studio »."
             scope:
                 label: "Visibilité"
                 personal: "Perso"
                 shared: "Partagé"
                 personal_hint: "Vous seul le voyez dans Studio. Un lien de lecture donné reste valable."
                 shared_hint: "Toute l'équipe le lit, et le modifie avec le droit."
-                tab_personal: "Mes livrables"
+                tab_personal: "Perso"
                 tab_shared: "Partagés"
-                intro_personal: "Ce que vous préparez pour vous : personne d'autre ne le voit, tant que vous ne le partagez pas."
+                intro_personal: "Ce que vous préparez pour vous : personne d'autre ne le voit, tant qu'il reste perso."
                 intro_shared: "Les livrables de l'équipe : chacun les lit, et les modifie s'il en a le droit."
                 empty_personal: "Aucun livrable perso."
-                empty_personal_hint: "Commencez une proposition, une stratégie ou un brouillon : il reste à vous tant que vous ne le partagez pas."
+                empty_personal_hint: "Commencez une proposition, une stratégie ou un brouillon : il reste à vous tant qu'il est perso."
                 empty_shared: "Aucun livrable partagé."
-                empty_shared_hint: "Un livrable perso se partage depuis son menu, ou depuis ses réglages."
+                empty_shared_hint: "Un livrable perso passe en partagé depuis son menu, ou depuis ses réglages."
                 by: "Par {name}"
                 no_owner: "Auteur supprimé"
                 orphan: "Sans auteur"
-                move_shared: "Partager avec l'équipe"
+                move_shared: "Passer en partagé"
                 move_shared_hint: "Il passe dans « Partagés » : toute l'équipe le lit, et le modifie avec le droit."
-                move_personal: "Garder pour moi"
-                move_personal_hint: "Il revient dans « Mes livrables » : plus personne d'autre ne le voit dans Studio. Les liens de lecture déjà donnés restent valables ; révoquez-les dans « Liens de lecture » pour les retirer."
-                moved_shared: "Livrable partagé avec l'équipe."
-                moved_personal: "Livrable gardé pour vous."
+                move_personal: "Passer en perso"
+                move_personal_hint: "Il revient dans « Perso » : plus personne d'autre ne le voit dans Studio. Les liens de lecture déjà donnés restent valables ; révoquez-les depuis « Partager » pour les retirer."
+                moved_shared: "Livrable passé en partagé."
+                moved_personal: "Livrable passé en perso."
                 settings_hint: "Qui voit ce livrable. Seul son auteur change ce choix."
                 owner_only: "Seul l'auteur du livrable change ce choix."
             tabs:
@@ -2158,13 +2023,13 @@ suite:
                 page_title: "Couleurs de la page"
                 page_hint: "Le fond, l'en-tête et le pied. Vide : la couleur du thème. Le texte posé dessus s'accorde tout seul pour rester lisible."
                 background: "Fond"
-                background_hint: "Derrière tout le document."
+                background_hint: "Derrière tout le livrable."
                 header: "En-tête"
                 header_hint: "La bande du haut : logo, « préparé pour », date."
                 footer: "Pied de page"
                 footer_hint: "La bande du bas."
                 content_title: "Couleurs du contenu"
-                content_hint: "Par-dessus celles du thème, pour ce document seulement : aux couleurs du client si vous voulez."
+                content_hint: "Par-dessus celles du thème, pour ce livrable seulement : aux couleurs du client si vous voulez."
                 accent: "Accent"
                 accent_hint: "Boutons, liens et repères."
                 heading: "Titres"
@@ -2176,19 +2041,19 @@ suite:
                 highlight_color: "Couleur des survols"
                 title_section: "Titre"
                 title_visible: "Afficher le titre et le résumé en tête de page"
-                title_visible_hint: "Décochez-le si le document s'ouvre sur un bloc d'entête qui porte déjà son titre. Le titre reste lisible par les lecteurs d'écran."
+                title_visible_hint: "Décochez-le si le livrable s'ouvre sur un bloc d'entête qui porte déjà son titre. Le titre reste lisible par les lecteurs d'écran."
                 heading_style: "Grands titres"
                 heading_style_hint: "Les titres de section des zones de texte. « Capitales grasses » leur donne l'allure d'un titre de page de rapport."
                 heading_styles:
                     theme: "Comme le thème"
                     display: "Capitales grasses"
-                display: "Affichage"
-                display_hint: "« Page web » se lit en faisant défiler. « Présentation » se fait passer section par section, comme un diaporama : une diapositive par grand titre posé en pleine largeur."
+                display: "Lecture"
+                display_hint: "« Lire en page » se fait défiler. « Lire en diaporama » passe cette même page section par section, une diapo par grand titre posé en pleine largeur. Pour composer des diapos une à une, choisissez plutôt le format Présentation."
                 reader_pdf: "Autoriser le PDF au lecteur"
-                reader_pdf_hint: "Ajoute « Télécharger en PDF » en haut de la page que reçoit le client, sur un lien comme dans l'espace. Éteint par défaut : un document qu'on ne veut pas voir circuler en fichier ne l'offre pas."
+                reader_pdf_hint: "Ajoute « Télécharger en PDF » en haut de la page que reçoit le client, sur un lien comme dans l'espace. Éteint par défaut : un livrable qu'on ne veut pas voir circuler en fichier ne l'offre pas."
                 displays:
-                    page: "Page web"
-                    slides: "Présentation"
+                    page: "Lire en page"
+                    slides: "Lire en diaporama"
                 presets:
                     title: "Ambiances"
                     hint: "Une allure complète en un clic. Les couleurs ci-dessous restent réglables ensuite."
@@ -2200,7 +2065,7 @@ suite:
                     logo_applied: "Couleurs du logo appliquées : l'accent et les chiffres, puis les titres."
             settings:
                 prepared_for_placeholder: "Le destinataire"
-                document_title: "Le document"
+                document_title: "Le livrable"
                 summary: "Résumé"
                 summary_placeholder: "Où en est votre présence en ligne, et ce que nous proposons pour les trois prochains mois."
                 summary_hint: "Sous le titre, dans la liste du client et en tête de la page."
@@ -2208,7 +2073,7 @@ suite:
                 thumbnail: "Image"
                 thumbnail_hint: "La vignette du livrable dans les listes, pour le repérer d'un coup d'œil. Choisie dans la médiathèque ou téléversée."
                 locale: "Langue"
-                locale_hint: "Celle du document : elle règle les dates et les libellés de la page."
+                locale_hint: "Celle du livrable : elle règle les dates et les libellés de la page."
                 client_title: "Ce que voit le client"
                 visible: "Visible par le client"
                 visible_hint: "Coché, le livrable apparaît dans l'espace du client. Décoché, il reste en cours chez vous ; un lien de lecture l'ouvre quand même."
@@ -2255,7 +2120,7 @@ suite:
                 placeholders_hint: "Le destinataire du lien les lira tels quels. Remplacez-les avant de donner l'adresse."
                 create_failed: "Le lien n'a pas pu être créé."
                 revoke_failed: "Le lien n'a pas pu être révoqué."
-                revoke_confirm: "Révoquer ce lien ? Celui qui le tient n'ouvrira plus le document, et le lien ne se rétablit pas."
+                revoke_confirm: "Révoquer ce lien ? Celui qui le tient n'ouvrira plus le livrable, et le lien ne se rétablit pas."
                 delete: "Supprimer"
                 delete_confirm: "Supprimer ce lien ? Personne ne l'a jamais ouvert : il disparaît de la liste."
                 delete_failed: "Impossible de supprimer ce lien."
@@ -2272,28 +2137,31 @@ suite:
                 locale_invalid: "Cette langue n'est pas active sur le site."
                 grid_invalid: "La grille envoyée est illisible."
                 scope_invalid: "Cette visibilité n'existe pas : choisissez perso ou partagé."
+                format_invalid: "Ce format n'existe pas : choisissez une page ou une présentation."
+                format_unavailable: "Ce format ne se crée pas encore : choisissez une page."
+                import_empty: "Ce texte ne contient rien dont on puisse faire une diapo."
                 conflict: "Un collègue a enregistré ce livrable entre-temps. Rechargez la page pour voir sa version, ou enregistrez quand même pour la remplacer."
         space_resources:
             guide:
                 title: "Comment fonctionnent les ressources"
-                step_1: "« Ajouter » épingle un lien (une maquette, un accès), un texte (des consignes) ou un contact (la personne qui valide)."
-                step_2: "Un nouvel élément est réservé au studio et se range sous « Pour vous seulement »."
-                step_3: "« Montrer au client » le fait passer dans « Ce que le client voit », lisible par toute personne qui a un lien d'accès."
-                step_4: "Ne mettez jamais un mot de passe dans un élément visible ; les flèches règlent l'ordre d'affichage."
-            intro: "Ce qui vit ailleurs et qu'on cherche à chaque fois : une maquette, un accès, la personne qui valide. Chaque élément se montre ou se cache au client, un par un."
-            add: Ajouter
+                step_1: "« Nouvelle ressource » épingle un lien (une maquette, un accès), un texte (des consignes) ou un contact (la personne qui valide)."
+                step_2: "Une nouvelle ressource est cachée au client et se range sous « Pour vous seulement »."
+                step_3: "« Montrer au client » le fait passer dans « Ce que le client voit », lisible par toute personne qui a un lien d'accès ; il faut le droit de partager l'espace."
+                step_4: "Ne mettez jamais un mot de passe dans une ressource visible par le client ; les flèches règlent l'ordre d'affichage."
+            intro: "Ce qui vit ailleurs et qu'on cherche à chaque fois : une maquette, un accès, la personne qui valide. Chaque ressource se montre ou se cache au client, une par une."
+            add: "Nouvelle ressource"
             add_confirm: Ajouter
-            edit: Reprendre
-            delete: Supprimer cet élément
+            edit: "Modifier"
+            delete: "Supprimer cette ressource"
             delete_confirm: 'Supprimer « {label} » ?'
             empty: Rien n'est encore épinglé sur cet espace.
             empty_hint: "Un lien Canva, l'accès à l'hébergeur, le nom de la personne qui valide : ce qu'on retrouve ici plutôt que dans ses favoris."
             group_shown: Ce que le client voit
             group_hidden: Pour vous seulement
             show: Montrer au client
-            hide: Retirer au client
-            now_visible: Le client voit cet élément.
-            now_hidden: Le client ne voit plus cet élément.
+            hide: "Cacher au client"
+            now_visible: "Le client voit cette ressource."
+            now_hidden: "Le client ne voit plus cette ressource."
             move_up: Monter
             move_down: Descendre
             kind: De quoi s'agit-il ?
@@ -2315,9 +2183,9 @@ suite:
             body_hint_link: Facultatif. Ce qu'il faut savoir avant d'ouvrir ce lien.
             body_hint_text: Ce que vous voulez garder ici.
             body_hint_contact: Facultatif. Son rôle, ses horaires, ce qu'il faut savoir.
-            visible_to_client: Le client peut voir cet élément
+            visible_to_client: "Visible par le client"
             visible_hint_on: Toute personne qui détient un lien d'accès à cet espace le verra.
-            visible_hint_off: L'élément reste entre vous. Le client n'en connaît ni le nom ni l'existence.
+            visible_hint_off: "La ressource reste entre vous. Le client n'en connaît ni le nom ni l'existence."
             errors:
                 label_required: Le nom est obligatoire.
                 label_too_long: Le nom ne peut pas dépasser 180 caractères.
@@ -2336,22 +2204,23 @@ suite:
             chat: '%who% vous a écrit'
             comment: '%who% a commenté « %item% »'
             upload: '%who% a envoyé un fichier sur « %item% »'
+            space_upload: '%who% a envoyé « %file% » dans les fichiers de l''espace'
             approved: '%who% a validé « %item% »'
             approved_many: '%who% a validé %count% contenus'
-            changes_requested: '%who% demande une reprise sur « %item% »'
+            changes_requested: "%who% a répondu « À revoir » sur « %item% »"
             late_review: '{1}Une relecture en retard|]1,Inf[%count% relectures en retard'
         space_chat:
             guide:
                 title: "Comment fonctionne la discussion"
-                step_1: "La discussion sert à ce qui ne concerne pas une fiche précise ; ce qui porte sur une publication va dans le fil de sa fiche."
-                step_2: "Le canal « Général » est toujours ouvert au client : il le lit et peut y répondre."
-                step_3: "Un nouveau canal reste interne ; « Ouvrir au client » le rend lisible par toute personne qui a un lien d'accès."
+                step_1: "La discussion sert à ce qui ne concerne pas un contenu précis ; ce qui porte sur un contenu va dans son propre fil."
+                step_2: "Le canal « Général » est toujours visible par le client : il le lit et peut y répondre."
+                step_3: "Un nouveau canal reste interne ; « Montrer au client », avec le droit de partager l'espace, le rend lisible par toute personne qui a un lien d'accès."
                 step_4: "Les messages privés se tiennent à deux, entre membres de l'équipe, et personne d'autre ne les lit."
             channels:
                 main_name: Général
                 notice_internal: "Ce canal est interne : le client ne le lit pas."
             errors:
-                main_stays_open: "Le canal principal reste ouvert au client : c'est la conversation de l'espace."
+                main_stays_open: "Le canal principal reste visible par le client : c'est la conversation de l'espace."
                 direct_has_no_audience: Une conversation privée n'a pas de public à régler.
                 channel_not_deletable: Seuls les canaux ouverts ici se suppriment.
                 direct_keeps_both: Une conversation privée garde ses deux personnes.
@@ -2367,22 +2236,23 @@ suite:
         space_content:
             guide:
                 title: "Comment fonctionne le tableau"
-                step_1: "Chaque colonne est une étape (Idées, En rédaction, À valider, Programmé, Publié) : faites glisser une fiche pour la faire avancer."
-                step_2: "Une fiche datée, dans une étape visible par le client et pas encore publiée, attend son avis."
-                step_3: "« Envoyer à relire » envoie un courriel à chaque destinataire qui peut valider, avec un lien neuf pour répondre « Validé » ou « À revoir »."
-                step_4: "La réponse du client ne déplace pas la fiche : c'est vous qui la faites avancer après l'avoir lue."
-                step_5: "Modifier le texte ou les fichiers d'une fiche efface la réponse du client : elle est à faire relire de nouveau."
+                step_1: "Chaque colonne est une étape (Idées, En rédaction, À valider, Programmé, Publié) : faites glisser un contenu pour le faire avancer."
+                step_2: "Un contenu daté, dans une étape visible par le client et pas encore publié, attend son avis."
+                step_3: "« Envoyer à relire » envoie un email à chaque destinataire qui peut valider, avec un lien neuf pour répondre « Validé » ou « À revoir »."
+                step_4: "La réponse du client ne déplace pas le contenu : c'est vous qui le faites avancer après l'avoir lue."
+                step_5: "Modifier le texte ou les fichiers d'un contenu efface la réponse du client : il est à faire relire de nouveau."
+                step_6: "Une étape neuve est cachée au client ; un nouvel espace ne lui montre que « À valider » et « Publié ». Montrer ou cacher une étape demande le droit de partager l'espace."
             tab: Espace de travail
             view_label: Vue
             nav_open: Changer de section
             nav_title: Sections de l'espace
             nav_groups:
                 work: Travail
-                documents: Documents
+                documents: "Fichiers et livrables"
                 client: Client
                 other: Autres
             view_content: Contenus
-            shape_board: Kanban
+            shape_board: "Tableau"
             shape_list: Liste
             calendar_day_empty: Rien de prévu ce jour-là.
             view_calendar: Calendrier
@@ -2394,7 +2264,6 @@ suite:
             view_resources: Ressources
             view_deliverables: 'Livrables'
             view_settings: Réglages
-            files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
             files_open: Ouvrir
@@ -2405,8 +2274,6 @@ suite:
             orphaned_trashed: "Envoyé à la corbeille de la médiathèque. | {count} fichiers envoyés à la corbeille de la médiathèque."
             files_as_cards: Afficher en cartes
             files_as_rows: Afficher en liste
-            board: Tableau
-            calendar: Calendrier
             today: Aujourd'hui
             unscheduled_rail: Sans date
             unscheduled_rail_empty: Tout est programmé.
@@ -2414,19 +2281,20 @@ suite:
             row_actions:
                 edit_description: Modifier ce contenu
                 view_description: Lire ce contenu, ses fichiers et ses échanges
-                delete_description: Supprimer ce contenu
+                delete_description: Mettre ce contenu à la corbeille
             calendar_name: Contenus clients
             back_to_spaces: Retour aux espaces
             switch_space: "Changer d'espace"
-            add_item: Ajouter un contenu
+            add_item: "Nouveau contenu"
             create_item: Nouveau contenu
             edit_item: 'Modifier {title}'
             view_item: 'Voir {title}'
             item_created: Contenu créé.
             item_updated: Contenu mis à jour.
-            item_deleted: Contenu supprimé.
-            delete_item_confirm: 'Supprimer {title} ?'
-            delete_item_warning: Le contenu et son texte disparaissent. Les autres cartes ne bougent pas.
+            item_deleted: Contenu mis à la corbeille.
+            trash_action: "Mettre à la corbeille"
+            delete_item_confirm: 'Mettre {title} à la corbeille ?'
+            delete_item_warning: "Il quitte le tableau, la liste, le calendrier et la page du client. Son fil et ses fichiers restent avec lui dans la corbeille, d'où il revient dans son étape jusqu'à sa suppression définitive."
             empty_column: Rien ici pour le moment.
             empty_board: Aucun contenu dans cet espace. Ajoutez-en un pour commencer.
             unscheduled: Sans date
@@ -2434,7 +2302,7 @@ suite:
             comment_posted: Message envoyé.
             comment_deleted: Message supprimé.
             attachment_added: Fichier ajouté.
-            attachment_removed: Fichier retiré de la fiche.
+            attachment_removed: "Fichier retiré du contenu."
             approval_reset_warning: 'Modifier le titre ou le texte efface cette réponse : elle portait sur ce qui a été montré.'
             approvals:
                 pending: En attente
@@ -2443,7 +2311,7 @@ suite:
             scheduled_for: 'Le {date}'
 
             title: Titre
-            title_placeholder: 'Ce que dit la publication, en une ligne'
+            title_placeholder: "Ce que dit le contenu, en une ligne"
             body: Texte
             body_placeholder: Le contenu tel qu'il partira.
             column: Étape
@@ -2452,26 +2320,26 @@ suite:
             review_by: Réponse attendue avant le
             review_by_hint: "Facultatif. La date à laquelle il vous faut l'avis du client pour tenir la parution. Rien ne se bloque à l'échéance : elle s'affiche, c'est tout."
             review:
-                banner_title: "Rien n'attend l'avis du client | 1 publication attend l'avis du client | {count} publications attendent l'avis du client"
-                banner_body: "Envoyez-les-lui à relire : il reçoit un courriel avec un lien pour les valider ou demander des changements, sans compte à créer."
+                banner_title: "Rien n'attend l'avis du client | 1 contenu attend l'avis du client | {count} contenus attendent l'avis du client"
+                banner_body: "Envoyez-les-lui à relire : il reçoit un email avec un lien pour les valider ou répondre « À revoir », sans compte à créer."
                 banner_action: Envoyer à relire
                 banner_hide: Masquer ce bandeau
                 confirm_title: Envoyer à relire ?
-                confirm_body: "{count} publication(s) attendent une réponse. Chaque destinataire pouvant valider recevra un courriel avec une adresse neuve, et son adresse précédente cessera de fonctionner."
+                confirm_body: "{count} contenu(s) attendent une réponse. Chaque destinataire pouvant valider recevra un email avec une adresse neuve, et son adresse précédente cessera de fonctionner."
                 confirm_send: Envoyer
                 sent: 'Envoyé à {count} destinataire(s).'
                 nothing_awaiting: Rien n'attend de réponse pour le moment.
-                nobody_to_write_to: "Aucun lien de cet espace ne peut répondre. Émettez un accès avec le droit de valider depuis l'onglet Accès."
+                nobody_to_write_to: "Aucun lien de cet espace ne peut répondre. Émettez un lien d'accès avec le droit de valider depuis l'onglet Accès client."
                 late: '{count} en retard'
-                late_hint: "Ces publications ont dépassé la date à laquelle vous attendiez une réponse. Rien n'est bloqué pour autant."
+                late_hint: "Ces contenus ont dépassé la date à laquelle vous attendiez une réponse. Rien n'est bloqué pour autant."
                 due: "Réponse avant le {date}"
                 late_since: "Réponse attendue le {date}"
             show_on_calendar: Afficher dans le calendrier
-            show_on_calendar_hint: "Décochée, la carte garde sa date et reste sur le tableau, mais ne paraît ni dans votre calendrier ni dans celui du client."
+            show_on_calendar_hint: "Décochée, le contenu garde sa date et reste sur le tableau, mais ne paraît ni dans votre calendrier ni dans celui du client."
             scheduled_at_placeholder: '22/09/2026 09:00'
             timezone_notice: 'Les heures sont celles du fuseau de l''espace, {timezone}.'
 
-            add_column: Ajouter une étape
+            add_column: "Nouvelle étape"
             create_column: Nouvelle étape
             edit_column: Renommer l'étape
             move_column: "Déplacer l'étape"
@@ -2481,20 +2349,20 @@ suite:
             column_colour_hint: Facultative. Elle distingue l'étape sur le tableau, et colore ses contenus au calendrier.
             column_visible: Visible par le client
             column_visible_hint: "Décochée, cette étape et ses contenus n'apparaissent pas dans l'espace que le client ouvre par son lien. Ils restent sur votre tableau."
+            column_state_visible: "Cette étape est visible par le client."
+            column_state_hidden: "Cette étape est cachée au client."
             column_created: Étape ajoutée.
             column_updated: Étape renommée.
             column_deleted: Étape supprimée.
             delete_column_confirm: 'Supprimer l''étape {name} ?'
-            delete_column_warning: Une étape ne se supprime que si elle est vide.
+            delete_column_warning: "Une étape ne se supprime que si elle est vide. Les contenus à la corbeille qui y étaient passent dans la première étape."
 
             column_role: Rôle de l'étape
-            column_role_hint: Facultatif. Dit quelle étape commune celle-ci représente, pour que les compteurs du tableau de bord et du calendrier éditorial la reconnaissent.
+            column_role_hint: "Facultatif. « Relecture » marque l'étape où le client valide : seuls les contenus qui y attendent comptent comme « chez le client ». « Publié » marque ce qui est sorti."
+            step_hidden_from_client: "Cachée au client"
             column_role_none: Aucun
             column_roles:
-                idea: Idée
-                production: Production
                 review: Relecture
-                scheduled: Programmé
                 published: Publié
             default_columns:
                 idea: Idées
@@ -2518,8 +2386,8 @@ suite:
                 comment_from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a demandé.
                 not_in_space: Ce contenu n'appartient pas à cet espace.
                 attachment_required: Choisissez un fichier.
-                attachment_unknown: Ce document n'existe pas ou plus.
-                attachment_duplicate: Ce fichier est déjà sur cette fiche.
+                attachment_unknown: "Ce fichier n'existe pas ou plus."
+                attachment_duplicate: "Ce fichier est déjà sur ce contenu."
                 attachment_needs_account: Il faut être connecté pour ajouter un fichier.
 
             attachments:
@@ -2638,12 +2506,13 @@ studio:
         space:
             guide:
                 title: "Comment utiliser votre espace"
-                step_calendar: "Le calendrier montre, mois par mois, ce qui est prévu pour vous : cliquez sur une publication pour la lire avec ses fichiers."
-                step_answer: "Dans une publication, répondez « Validé » ou « À revoir » ; celles qui attendent votre avis se retrouvent d'un clic au-dessus du calendrier."
-                step_comment_upload: "Sous chaque publication, écrivez à votre prestataire ou joignez une image, un PDF ou une vidéo de 25 Mo au plus."
-                step_comment: "Sous chaque publication, écrivez à votre prestataire pour poser une question ou dire ce qui est à reprendre."
-                step_upload: "Vous pouvez joindre à une publication une image, un PDF ou une vidéo de 25 Mo au plus."
-                step_chat: "L'onglet « Discussion » sert à échanger avec votre prestataire en dehors des publications."
+                step_calendar: "Le calendrier montre, mois par mois, ce qui est prévu pour vous : cliquez sur un contenu pour le lire avec ses fichiers."
+                step_answer: "Dans un contenu, répondez « Validé » ou « À revoir » ; ceux qui attendent votre avis se retrouvent d'un clic au-dessus du calendrier."
+                step_comment_upload: "Sous chaque contenu, écrivez à votre prestataire ou joignez une image, un PDF ou une vidéo de 25 Mo au plus."
+                step_comment: "Sous chaque contenu, écrivez à votre prestataire pour poser une question ou dire ce qui est à revoir."
+                step_upload: "Vous pouvez joindre à un contenu une image, un PDF ou une vidéo de 25 Mo au plus."
+                step_files_upload: "Dans l'onglet « Fichiers », « Envoyer un fichier » transmet à votre prestataire une image, un PDF ou une vidéo de 25 Mo au plus, sans le rattacher à un contenu."
+                step_chat: "L'onglet « Discussion » sert à échanger avec votre prestataire en dehors des contenus."
                 step_chat_read: "L'onglet « Discussion » montre vos échanges avec votre prestataire, en lecture seule."
                 step_tabs: "Les autres onglets, en haut de la page, réunissent ce que votre prestataire partage avec vous, comme des fichiers ou des livrables."
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
@@ -2653,13 +2522,13 @@ studio:
             nothing_awaiting: Vous avez répondu sur tout ce qui était en attente.
             select_all: Tout sélectionner
             approve_selected: 'Valider la sélection ({count})'
-            approved_many: '{count} publication(s) validée(s).'
+            approved_many: "{count} contenu(s) validé(s)."
             review_by: 'à relire avant le {date}'
             approval:
                 approved: Validé
-                changes_requested: Modification demandée
+                changes_requested: "À revoir"
             preview_notice: "Aperçu : voici ce que voit le destinataire de ce lien. Rien de ce que vous cliquez ici ne lui est envoyé, et cette adresse expire dans quelques minutes."
-            drive_title: Documents partagés
+            drive_title: "Fichiers du Drive"
             drive_download: Télécharger le fichier
             drive_archive: Tout télécharger (.zip)
             footer: Cette adresse vous est personnelle, ne la transmettez pas.
@@ -2670,24 +2539,29 @@ studio:
             tabs_label: Ce que vous voulez voir
             tab_calendar: Calendrier
             tab_chat: Discussion
-            tab_files: Documents
-            tab_resources: Liens
+            tab_files: "Fichiers"
+            tab_resources: "Ressources"
             tab_documents: 'Livrables'
-            document_untitled: 'Document sans titre'
+            document_untitled: "Livrable sans titre"
             document_updated_on: 'Mis à jour le {date}'
+            document_presentation: 'Présentation'
             tab_information: Informations
             files_title: Les fichiers de cet espace
             files_open: Ouvrir
             upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."
+            files_upload: Envoyer un fichier
+            files_uploaded: "Fichier envoyé. Votre prestataire le retrouve dans votre espace."
+            files_sent_by: 'Envoyé par {author}'
+            files_empty: "Aucun fichier pour l'instant. Envoyez ici ce que votre prestataire attend de vous : logo, photos, documents."
             approve: Validé
             request_changes: À revoir
-            answer_hint: 'Pour demander une reprise, dites ce qui ne va pas dans les échanges ci-dessus.'
+            answer_hint: "Pour répondre « À revoir », dites ce qui ne va pas dans les échanges ci-dessus."
             answer_recorded: Votre réponse est enregistrée.
             already_approved: 'Vous avez validé ce contenu le {date}.'
-            already_changes_requested: 'Vous avez demandé une reprise le {date}.'
+            already_changes_requested: "Vous avez répondu « À revoir » le {date}."
             errors:
                 approval_invalid: Réponse non reconnue.
-                nothing_selected: Sélectionnez au moins une publication.
+                nothing_selected: "Sélectionnez au moins un contenu."
                 comment_required: Le message ne peut pas être vide.
                 too_many_requests: Trop de réponses envoyées coup sur coup. Réessayez dans quelques minutes.
                 upload_required: Choisissez un fichier à envoyer.
@@ -2719,12 +2593,12 @@ studio:
             hash: 'Empreinte du document'
             observed: 'Signé le {at}, depuis {ip}'
             code_verified: 'Code de confirmation vérifié le {at}, envoyé à {email}'
-            authenticated: 'Signé depuis un compte authentifié de la suite'
+            authenticated: 'Signé depuis le compte authentifié du Prestataire'
             notice: 'Cette empreinte identifie le texte signé. Toute modification du document produirait une empreinte différente.'
     email:
         space_review:
             subject: 'Votre avis est attendu sur {space}'
-            body: "{count} publication(s) attendent votre avis dans l'espace {space}. Vous pouvez les valider ou demander une modification, et commenter chacune d'elles."
+            body: "{count} contenu(s) attendent votre avis dans l'espace {space}. Vous pouvez les valider ou répondre « À revoir », et commenter chacun d'eux."
             cta: Ouvrir mon espace
             replaces: "Cette adresse remplace la précédente, qui ne fonctionne plus. Elle est personnelle, ne la transmettez pas."
             expires: 'Elle reste valable jusqu''au {date}.'

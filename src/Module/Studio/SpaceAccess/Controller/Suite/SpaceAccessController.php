@@ -64,7 +64,13 @@ class SpaceAccessController extends AbstractController
         return $this->jsonSuccess($this->reviewInviter->invite($space));
     }
 
+    /**
+     * Sous `studio.spaces.share`, comme tout le reste de la page : elle liste
+     * les adresses e-mail à qui l'espace est ouvert, et le droit s'intitule
+     * « Voir et donner les accès client ». Le simple `view` l'ouvrait.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
+    #[IsGranted('studio.spaces.share')]
     public function index(CustomerSpace $space): Response
     {
         return $this->render('@Studio/suite/space-content/access.html.twig', $this->viewBuilder->accessView($space));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceResource\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResourceInterface;
@@ -66,5 +67,41 @@ class SpaceResourceRepository extends ResolveTargetEntityRepository
             ->getSingleScalarResult();
 
         return null === $highest ? 0 : ((int) $highest) + 1;
+    }
+
+    /**
+     * The resources whose label, body or address contains the term, for the
+     * global search.
+     *
+     * `$spaceIds` null means every space (a reader who sees all of them); a
+     * list narrows the search to those spaces, and an empty list finds nothing.
+     * A space in the trash is never searched, like its screens. The space comes
+     * along with each row: the result names it.
+     *
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<SpaceResourceInterface>
+     */
+    public function search(string $term, ?array $spaceIds, int $limit): array
+    {
+        if ('' === mb_trim($term) || [] === $spaceIds) {
+            return [];
+        }
+
+        $builder = $this->createQueryBuilder('r')
+            ->addSelect('s')
+            ->join('r.space', 's')
+            ->where('LOWER(r.label) LIKE :term OR LOWER(r.body) LIKE :term OR LOWER(r.url) LIKE :term')
+            ->andWhere('s.deletedAt IS NULL')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('r.updatedAt', Order::Descending->value)
+            ->addOrderBy('r.id', Order::Descending->value)
+            ->setMaxResults($limit);
+
+        if (null !== $spaceIds) {
+            $builder->andWhere('s.id IN (:ids)')->setParameter('ids', $spaceIds);
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }

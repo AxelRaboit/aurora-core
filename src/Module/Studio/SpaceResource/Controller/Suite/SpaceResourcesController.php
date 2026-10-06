@@ -10,6 +10,7 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceResource\Dto\SpaceResourceInputFactoryInterface;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Module\Studio\SpaceResource\Manager\SpaceResourceManagerInterface;
@@ -50,6 +51,7 @@ class SpaceResourcesController extends AbstractController
         protected readonly SpaceResourceInputFactoryInterface $inputFactory,
         protected readonly SpaceResourcesViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
+        protected readonly ClientVisibility $clientVisibility,
     ) {}
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
@@ -62,6 +64,12 @@ class SpaceResourcesController extends AbstractController
 
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
+        }
+
+        // Créer une ressource déjà montrée, c'est la montrer : le droit de
+        // partager l'espace, comme le bouton de la liste.
+        if (!$this->clientVisibility->allowsChange(false, $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
         }
 
         $this->resources->create($space, $input);
@@ -87,6 +95,10 @@ class SpaceResourcesController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
+        if (!$this->clientVisibility->allowsChange($resource->isVisibleToClient(), $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
+        }
+
         $this->resources->update($resource, $input);
 
         return $this->jsonSuccess($this->viewBuilder->payload($space));
@@ -94,6 +106,7 @@ class SpaceResourcesController extends AbstractController
 
     #[Route('/{resourceId}/visibility', name: '_visibility', requirements: ['resourceId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
     public function visibility(
         CustomerSpace $space,
         #[MapEntity(id: 'resourceId')]

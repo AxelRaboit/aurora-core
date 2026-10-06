@@ -8,10 +8,17 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckStyleNormalizer;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -48,6 +55,19 @@ use Doctrine\ORM\Mapping as ORM;
  * alors un auteur et une portée, perso ou partagée, cf.
  * {@see DeliverableScopeEnum}. La case « visible par le client » n'a de sens
  * que dans un espace.
+ *
+ * **Ce qui n'a de sens que sans espace** : la case
+ * « modèle », qui le propose au moment d'en créer un autre, et le client pour
+ * qui il a été écrit avant qu'un espace existe. Les deux se taisent dans un
+ * espace : l'entité les refuse, et une copie déposée chez un client ne les
+ * emporte pas.
+ *
+ * **Une page ou des diapositives**, cf. {@see DeliverableFormatEnum}. Un
+ * diaporama n'a pas de grille : il a ses diapositives, ordonnées, et leur
+ * propre apparence (`slideTheme`, `slideStyle`), distincte de celle de la
+ * page, parce qu'une diapositive se dessine avec le thème des présentations
+ * et non avec les couleurs du site. Une page n'en a aucune, et ces deux
+ * colonnes y restent vides.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -110,6 +130,54 @@ abstract class AbstractDeliverable implements DeliverableInterface
     #[ORM\Column(length: 16, enumType: DeliverableScopeEnum::class, options: ['default' => 'shared'])]
     protected DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared;
 
+    /**
+     * Un modèle : un livrable de Studio qui existe pour être recopié, proposé
+     * au moment d'en créer un. Un drapeau et pas une table, parce qu'un modèle
+     * *est* un livrable : il se compose, s'aperçoit et s'envoie comme les
+     * autres. Jamais dans un espace : ce qu'on y dépose est écrit pour un
+     * client, pas pour être repris.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $template = false;
+
+    /**
+     * Le client pour qui il a été écrit, quand il n'a pas encore d'espace :
+     * la proposition faite à un prospect. Dans un espace, c'est l'espace qui
+     * dit son client, et ce champ reste vide.
+     *
+     * `SET NULL` et pas une cascade : supprimer la fiche d'un client ne
+     * supprime pas ce qu'on lui a écrit.
+     */
+    #[ORM\ManyToOne(targetEntity: CustomerInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?CustomerInterface $customer = null;
+
+    /**
+     * Les diapositives d'un diaporama, dans l'ordre ; une page n'en a pas.
+     * Elles n'ont pas de vie hors du livrable : supprimé, il les emporte.
+     *
+     * @var Collection<int, SlideInterface>
+     */
+    #[ORM\OneToMany(targetEntity: SlideInterface::class, mappedBy: 'deliverable', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    protected Collection $slides;
+
+    /**
+     * Le thème des diapositives ; nul pour une page, et lu « ardoise »
+     * (le thème par défaut des présentations) tant qu'on n'en a pas choisi.
+     */
+    #[ORM\Column(length: 20, nullable: true, enumType: DeckThemeEnum::class)]
+    protected ?DeckThemeEnum $slideTheme = null;
+
+    /**
+     * Ce que les diapositives retouchent de leur thème, passé au crible de
+     * {@see DeckStyleNormalizer} à l'écriture.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $slideStyle = [];
+
     public function __construct(
         /** L'espace client qui le reçoit ; nul pour un livrable de Studio. */
         #[ORM\ManyToOne(targetEntity: CustomerSpaceInterface::class)]
@@ -119,8 +187,98 @@ abstract class AbstractDeliverable implements DeliverableInterface
         protected string $title,
         /** La langue dans laquelle il est écrit : celle des dates et des libellés de la page. */
         #[ORM\Column(length: 8)]
-        protected string $locale
-    ) {}
+        protected string $locale,
+        /** Une page ou des diapositives : fixé ici, sans setter, cf. {@see DeliverableFormatEnum}. */
+        #[ORM\Column(length: 16, enumType: DeliverableFormatEnum::class, options: ['default' => 'page'])]
+        protected DeliverableFormatEnum $format = DeliverableFormatEnum::Page,
+    ) {
+        $this->slides = new ArrayCollection();
+    }
+
+    /** @return Collection<int, SlideInterface> */
+    public function getSlides(): Collection
+    {
+        return $this->slides;
+    }
+
+    public function addSlide(SlideInterface $slide): static
+    {
+        if (!$this->slides->contains($slide)) {
+            $this->slides->add($slide);
+            $slide->setDeliverable($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSlide(SlideInterface $slide): static
+    {
+        $this->slides->removeElement($slide);
+
+        return $this;
+    }
+
+    public function getSlideTheme(): DeckThemeEnum
+    {
+        return $this->slideTheme ?? DeckThemeEnum::Slate;
+    }
+
+    public function setSlideTheme(DeckThemeEnum $theme): static
+    {
+        $this->slideTheme = $theme;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getSlideStyle(): array
+    {
+        return $this->slideStyle;
+    }
+
+    /** @param array<string, mixed> $style */
+    public function setSlideStyle(array $style): static
+    {
+        $this->slideStyle = $style;
+
+        return $this;
+    }
+
+    public function isSlides(): bool
+    {
+        return DeliverableFormatEnum::Slides === $this->format;
+    }
+
+    public function getFormat(): DeliverableFormatEnum
+    {
+        return $this->format;
+    }
+
+    public function isTemplate(): bool
+    {
+        return $this->template;
+    }
+
+    /** Sans effet dans un espace : un livrable d'espace n'est jamais un modèle. */
+    public function setTemplate(bool $template): static
+    {
+        $this->template = $template && $this->isStandalone();
+
+        return $this;
+    }
+
+    public function getCustomer(): ?CustomerInterface
+    {
+        return $this->customer;
+    }
+
+    /** Sans effet dans un espace : c'est l'espace qui dit son client. */
+    public function setCustomer(?CustomerInterface $customer): static
+    {
+        $this->customer = $this->isStandalone() ? $customer : null;
+
+        return $this;
+    }
 
     public function getSpace(): ?CustomerSpaceInterface
     {

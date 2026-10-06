@@ -117,6 +117,8 @@ use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategory;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategoryInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersion;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
@@ -133,20 +135,14 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
 use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
-use Aurora\Module\Studio\Deck\Entity\Deck;
-use Aurora\Module\Studio\Deck\Entity\DeckCategory;
-use Aurora\Module\Studio\Deck\Entity\DeckCategoryInterface;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Entity\Slide;
-use Aurora\Module\Studio\Deck\Entity\SlideInterface;
-use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
-use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\Slide;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
@@ -165,8 +161,6 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResourceInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
@@ -313,17 +307,14 @@ class AuroraBundle extends AbstractBundle
                     SpaceChatMessageInterface::class => SpaceChatMessage::class,
                     SpaceChatChannelInterface::class => SpaceChatChannel::class,
                     SpaceChatChannelMemberInterface::class => SpaceChatChannelMember::class,
-                    SpaceNoteInterface::class => SpaceNote::class,
                     SpaceFileInterface::class => SpaceFile::class,
                     SpaceResourceInterface::class => SpaceResource::class,
                     DeliverableInterface::class => Deliverable::class,
                     DeliverableLinkInterface::class => DeliverableLink::class,
                     DeliverableCategoryInterface::class => DeliverableCategory::class,
                     GridSectionInterface::class => GridSection::class,
-                    DeckInterface::class => Deck::class,
-                    DeckCategoryInterface::class => DeckCategory::class,
+                    ContractTemplateCategoryInterface::class => ContractTemplateCategory::class,
                     SlideInterface::class => Slide::class,
-                    DeckShareLinkInterface::class => DeckShareLink::class,
                     ContractInterface::class => Contract::class,
                     ContractAccessLinkInterface::class => ContractAccessLink::class,
                     ContractSignatureInterface::class => ContractSignature::class,
@@ -575,8 +566,6 @@ class AuroraBundle extends AbstractBundle
                 // La signature d'un contrat par quelqu'un qui tient un lien.
                 'contract_signature' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 'contract_signature_code' => ['policy' => 'sliding_window', 'limit' => 15, 'interval' => '1 hour'],
-                // Le mot de passe d'un lien de présentation.
-                'deck_share_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
                 // Le mot de passe d'un lien de lecture d'une publication.
                 'post_reading_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
                 // Le mot de passe d'un lien de lecture d'un livrable.

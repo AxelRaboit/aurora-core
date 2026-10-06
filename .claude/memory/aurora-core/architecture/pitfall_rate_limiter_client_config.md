@@ -20,7 +20,9 @@ target one of "form_submission", "contract_signature", …
 
 L'erreur tombe pendant `make aurora-update`, c'est-à-dire **après** que le tag
 de core soit publié : on ne peut plus l'éviter, seulement la réparer côté
-client. Constaté le 13/09/2026 en livrant la 0.9.166 (`deck_share_password`).
+client. Constaté le 13/09/2026 en livrant la 0.9.166 (`deck_share_password`,
+retiré depuis avec les présentations : un client qui le redéclarait doit
+retirer sa clé, sans quoi il configure un limiteur que plus rien n'utilise).
 
 **Comment l'appliquer.**
 

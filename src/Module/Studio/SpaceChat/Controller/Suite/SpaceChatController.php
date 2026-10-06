@@ -13,6 +13,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
@@ -63,6 +64,7 @@ class SpaceChatController extends AbstractController
         protected readonly SpaceChatViewBuilder $viewBuilder,
         protected readonly UserRepository $users,
         protected readonly Security $security,
+        protected readonly ClientVisibility $clientVisibility,
     ) {}
 
     /**
@@ -198,9 +200,16 @@ class SpaceChatController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $name = Str::trimFromArray($payload, 'name');
+        $openToClient = true === ($payload['openToClient'] ?? false);
+
+        // Un canal naît interne ; le créer montré au client, c'est le lui
+        // montrer, et cela demande le droit de partager l'espace.
+        if (!$this->clientVisibility->allowsChange(false, $openToClient)) {
+            return $this->jsonForbidden();
+        }
 
         try {
-            $channel = $this->channels->create($space, $name, (bool) ($payload['openToClient'] ?? false));
+            $channel = $this->channels->create($space, $name, $openToClient);
 
             // Whoever opened the room is in it. Without this the room would
             // vanish from its author's own list, which reads as a room that
@@ -237,9 +246,14 @@ class SpaceChatController extends AbstractController
         return $this->jsonSuccess($this->channelsPayload($space));
     }
 
-    /** Whether the client reads this room. The one setting that lets something out of the studio. */
+    /**
+     * Whether the client reads this room: shown to the client or hidden from
+     * them, under the right to share the space like everything else a space
+     * can show.
+     */
     #[Route('/channels/{channelId}/audience', name: '_channel_audience', requirements: ['channelId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
     public function channelAudience(
         CustomerSpace $space,
         #[MapEntity(id: 'channelId')]
@@ -250,7 +264,7 @@ class SpaceChatController extends AbstractController
         $this->assertInRoom($channel);
 
         try {
-            $this->channels->setOpenToClient($channel, (bool) ($this->decodeJson($request)['openToClient'] ?? false));
+            $this->channels->setOpenToClient($channel, true === ($this->decodeJson($request)['openToClient'] ?? false));
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }

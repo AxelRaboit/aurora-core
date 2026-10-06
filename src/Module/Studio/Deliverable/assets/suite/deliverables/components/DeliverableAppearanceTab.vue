@@ -26,6 +26,8 @@ const appearance = defineModel("appearance", { type: Object, required: true });
 defineProps({
     title: { type: String, default: "" },
     summary: { type: String, default: "" },
+    /** Le format du livrable : la lecture en diaporama n'a de sens que pour une page. */
+    format: { type: String, default: "page" },
 });
 
 const { t } = useI18n();
@@ -323,7 +325,11 @@ const swatch = computed(() => ({
                 :label="t('suite.studio.deliverables.appearance.title_visible')"
                 :hint="t('suite.studio.deliverables.appearance.title_visible_hint')"
             />
+            <!-- Lire une page en diaporama, section par section : rien à voir
+                 avec un livrable au format diaporama, qui a ses diapositives
+                 et ne passe jamais par cet onglet. -->
             <AppChoiceRow
+                v-if="'slides' !== format"
                 v-model="display"
                 :label="t('suite.studio.deliverables.appearance.display')"
                 :hint="t('suite.studio.deliverables.appearance.display_hint')"

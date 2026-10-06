@@ -1,7 +1,6 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { useClientFilteredList } from "@/shared/composables/list/useClientFilteredList.js";
@@ -11,11 +10,24 @@ import { COLOUR_SLOTS } from "@/shared/composables/chart/paletteSlots.js";
 import { siteZone } from "@/shared/utils/format/zonedTime.js";
 
 /**
- * One form shape for create and edit, because the fields are the same either
+ * One form shape for create (the list's modal) and edit (the space's Settings
+ * tab, see `useSpaceSettingsForm`), because the fields are the same either
  * way. `colourSlot` is the exception and it is empty on purpose when creating:
  * an empty slot is what tells the server to spread the new space across the
  * palette instead of handing every space the colour of the first one.
  */
+function initialCustomerFilter() {
+    try {
+        const id = Number(
+            new URL(window.location.href).searchParams.get("customer"),
+        );
+
+        return Number.isInteger(id) && id > 0 ? id : null;
+    } catch {
+        return null;
+    }
+}
+
 function emptyForm() {
     return {
         name: "",
@@ -32,7 +44,32 @@ function emptyForm() {
     };
 }
 
-function formFrom(space) {
+/**
+ * The rules the space form checks before sending, for the creation modal and
+ * the Settings tab alike.
+ *
+ * @param {import("vue").Ref<object>} form
+ * @param {Function} t
+ */
+export function spaceFormRules(form, t) {
+    return {
+        name: () =>
+            required(t("suite.studio.spaces.errors.name_required"))(
+                form.value.name,
+            ),
+        // L'un ou l'autre : une societe deja connue, ou le nom d'un
+        // prospect qu'on ouvre en meme temps que l'espace. La regle porte
+        // sur la paire, donc elle est signalee sous le selecteur - c'est
+        // la que le lecteur choisit entre les deux.
+        customerId: () =>
+            form.value.customerId || form.value.prospectName
+                ? null
+                : t("suite.studio.spaces.errors.customer_required"),
+    };
+}
+
+/** The form for an existing space, as its serializer hands it over. */
+export function formFrom(space) {
     return {
         name: space.name ?? "",
         description: space.description ?? "",
@@ -42,9 +79,9 @@ function formFrom(space) {
         status: space.status ?? "active",
         colourSlot: space.colourSlot ?? "",
         timezone: space.timezone ?? siteZone() ?? "Europe/Paris",
-        // Copied rather than referenced: the form is edited before it is sent,
-        // and mutating the row in the list would move the table under the
-        // reader while a modal is open over it.
+        // Copied rather than referenced: the form is edited before it is
+        // sent, and mutating the space it came from would change the screen
+        // before anything is saved.
         members: (space.members ?? []).map((member) => ({
             userId: member.userId,
             role: member.role,
@@ -59,7 +96,6 @@ export function useCustomerSpacesForm(
     initialCustomers,
     initialUsers,
     createPath,
-    updatePath,
     deletePath,
 ) {
     const { t } = useI18n();
@@ -111,9 +147,59 @@ export function useCustomerSpacesForm(
         "prospect",
     ]);
 
-    /** Les deux filtres se composent : l'onglet, puis les archives. */
+    /**
+     * Les espaces d'une seule société, quand on arrive de sa fiche.
+     *
+     * Par identifiant et non par la recherche : chercher sa raison sociale
+     * ramenait aussi toutes celles qui la contiennent. Et l'onglet suit la
+     * société, sans quoi un prospect ouvert depuis l'onglet « clients » retenu
+     * tombait sur une liste vide.
+     */
+    const customerFilter = ref(initialCustomerFilter());
+    const filteredCustomer = computed(() =>
+        null === customerFilter.value
+            ? null
+            : (customers.value.find(
+                  (customer) => customer.id === customerFilter.value,
+              ) ??
+              (items.value ?? [])
+                  .map((space) => ({
+                      id: space.customerId,
+                      name: space.customerName,
+                  }))
+                  .find((customer) => customer.id === customerFilter.value) ??
+              null),
+    );
+
+    if (null !== customerFilter.value) {
+        const first = (items.value ?? []).find(
+            (space) => space.customerId === customerFilter.value,
+        );
+        if (first) tab.value = first.customerStatus ?? "client";
+    }
+
+    function clearCustomerFilter() {
+        customerFilter.value = null;
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("customer");
+            window.history.replaceState(window.history.state, "", url);
+        } catch {
+            // L'adresse reste telle quelle : le filtre est levé dans la page.
+        }
+    }
+
+    const ofCustomer = computed(() =>
+        null === customerFilter.value
+            ? filteredItems.value
+            : filteredItems.value.filter(
+                  (space) => space.customerId === customerFilter.value,
+              ),
+    );
+
+    /** Les filtres se composent : la société, l'onglet, puis les archives. */
     const ofTab = computed(() =>
-        filteredItems.value.filter(
+        ofCustomer.value.filter(
             (space) => (space.customerStatus ?? "client") === tab.value,
         ),
     );
@@ -130,7 +216,7 @@ export function useCustomerSpacesForm(
             // Le compte ignore les archives, comme l'etiquette qu'il porte :
             // il dit combien il y a de choses derriere cet onglet, pas combien
             // on en montre.
-            count: filteredItems.value.filter(
+            count: ofCustomer.value.filter(
                 (space) => (space.customerStatus ?? "client") === key,
             ).length,
         })),
@@ -144,22 +230,7 @@ export function useCustomerSpacesForm(
         if (Array.isArray(data?.spaces)) items.value = data.spaces;
     }
 
-    function rulesFor(form) {
-        return {
-            name: () =>
-                required(t("suite.studio.spaces.errors.name_required"))(
-                    form.value.name,
-                ),
-            // L'un ou l'autre : une societe deja connue, ou le nom d'un
-            // prospect qu'on ouvre en meme temps que l'espace. La regle porte
-            // sur la paire, donc elle est signalee sous le selecteur - c'est
-            // la que le lecteur choisit entre les deux.
-            customerId: () =>
-                form.value.customerId || form.value.prospectName
-                    ? null
-                    : t("suite.studio.spaces.errors.customer_required"),
-        };
-    }
+    const rulesFor = (form) => spaceFormRules(form, t);
 
     const showCreate = ref(false);
     const newSpace = ref(emptyForm());
@@ -186,33 +257,6 @@ export function useCustomerSpacesForm(
         showCreate.value = true;
     }
 
-    const showEdit = ref(false);
-    const editingSpace = ref(null);
-    const editForm = ref(emptyForm());
-
-    const {
-        errors: editErrors,
-        loading: editLoading,
-        submit: submitEdit,
-        clearErrors: clearEdit,
-    } = useFormAction({
-        rules: () => rulesFor(editForm),
-        url: () => buildPath(updatePath, { id: editingSpace.value.id }),
-        body: () => editForm.value,
-        onSuccess: (data) => {
-            showEdit.value = false;
-            toast.success(t("suite.studio.spaces.updated"));
-            applyUpdatedList(data);
-        },
-    });
-
-    function openEdit(space) {
-        editingSpace.value = space;
-        editForm.value = formFrom(space);
-        clearEdit();
-        showEdit.value = true;
-    }
-
     const {
         pendingDelete,
         loading: deleteLoading,
@@ -229,6 +273,8 @@ export function useCustomerSpacesForm(
     return {
         items,
         search,
+        filteredCustomer,
+        clearCustomerFilter,
         visibleItems,
         tab,
         tabs,
@@ -243,13 +289,6 @@ export function useCustomerSpacesForm(
         createLoading,
         openCreate,
         submitCreate,
-        showEdit,
-        editingSpace,
-        editForm,
-        editErrors,
-        editLoading,
-        openEdit,
-        submitEdit,
         pendingDelete,
         deleteLoading,
         confirmDelete,

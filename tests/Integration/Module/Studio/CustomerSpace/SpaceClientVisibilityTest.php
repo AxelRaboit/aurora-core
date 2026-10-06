@@ -102,8 +102,10 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $columns = $this->columns->findForSpace($space);
 
-        $open = $columns[0];
-        $internal = $columns[1];
+        // Les deux étapes qu'un espace neuf montre au client : la Relecture
+        // et Publié. Toutes les autres naissent cachées.
+        $open = $columns[2];
+        $internal = $columns[4];
 
         $this->givenItem($space, $open, 'Ce que le client voit');
         $this->givenItem($space, $internal, 'Relecture juridique interne');

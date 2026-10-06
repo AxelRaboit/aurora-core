@@ -157,7 +157,36 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?SpaceAccessLinkInterface $approvalByLink = null;
 
+    /**
+     * Quand le contenu a été mis à la corbeille ; nul, il est vivant.
+     *
+     * À la corbeille, il quitte le tableau, la liste, le calendrier, les
+     * comptes et la page du client, et son adresse répond comme une fiche
+     * inconnue. Il garde son étape, son fil et ses fichiers : la restauration
+     * le remet dans son étape, ou dans la première si la sienne a disparu
+     * entre-temps. La purge planifiée le détruit au bout du délai commun.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $deletedAt = null;
+
     abstract public function getId(): ?int;
+
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isTrashed(): bool
+    {
+        return $this->deletedAt instanceof DateTimeImmutable;
+    }
 
     public function getSpace(): CustomerSpaceInterface
     {
@@ -247,7 +276,33 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
             && $this->reviewBy < $now
             && !$this->approval->isAnswered()
             && $this->isShownToClient()
+            && $this->isAtClientStep()
             && SpaceContentColumnRoleEnum::Published !== $this->getColumn()->getRole();
+    }
+
+    /**
+     * Whether this card sits where the client answers.
+     *
+     * The step with the Review role when the board has one; any step the
+     * client can see when it has none, which is how every board read before
+     * the role decided anything. The counts of the dashboard and the editorial
+     * calendar apply the same rule in SQL ({@see SpaceContentItemRepository}).
+     */
+    public function isAtClientStep(): bool
+    {
+        $column = $this->getColumn();
+
+        if (!$column->isVisibleToClient()) {
+            return false;
+        }
+
+        foreach ($this->getSpace()->getContentColumns() as $step) {
+            if (SpaceContentColumnRoleEnum::Review === $step->getRole()) {
+                return SpaceContentColumnRoleEnum::Review === $column->getRole();
+            }
+        }
+
+        return true;
     }
 
     public function isScheduled(): bool
@@ -291,7 +346,9 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
      */
     public function isShownToClient(): bool
     {
-        return $this->appearsOnCalendar() && $this->getColumn()->isVisibleToClient();
+        // Un contenu à la corbeille, ou d'un espace à la corbeille, n'est plus
+        // sur la page du client : ni montré, ni ouvert à une réponse.
+        return !$this->isTrashed() && !$this->space->isTrashed() && $this->appearsOnCalendar() && $this->getColumn()->isVisibleToClient();
     }
 
     public function getPosition(): int

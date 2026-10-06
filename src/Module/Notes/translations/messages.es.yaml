@@ -36,12 +36,13 @@ suite:
         actions:
             notes_markdown:
                 space:
-                    published: 'Espacio publicado'
-                    unpublished: 'Espacio despublicado'
-                    created: Espacio creado
-                    updated: Espacio modificado
-                    deleted: Espacio retirado
+                    published: "Espacio de notas publicado"
+                    unpublished: "Espacio de notas despublicado"
+                    created: "Espacio de notas creado"
+                    updated: "Espacio de notas modificado"
+                    deleted: "Espacio de notas retirado"
                 note:
+                    imported_from_craft: 'Nota importada desde Craft'
                     trashed: 'Nota enviada a la papelera'
                     restored: 'Nota restaurada'
                     created: 'Nota creada'
@@ -61,11 +62,58 @@ suite:
                     merged: 'Etiquetas fusionadas'
                     removed: 'Etiqueta eliminada'
 notes:
+    craft:
+        settings:
+            what_title: 'Lo que hace esta conexión'
+            what_body: 'Permite importar un documento de Craft a un espacio de notas. Es una copia: el documento permanece en Craft, y la nota ya no cambia por sí sola después.'
+            how_title: 'Cómo abrirla'
+            how_step_connection: 'En Craft, barra lateral, pestaña Conexiones: «Añada su primera conexión API», y luego «API para los documentos seleccionados». Una conexión sobre el espacio entero daría acceso a todo lo que contiene, incluido lo que no tiene nada que hacer aquí.'
+            how_step_select: 'Elija los documentos que las notas podrán importar. Craft solo expondrá esos, y la lista se puede modificar en Craft en cualquier momento.'
+            how_step_mode: 'Configure la conexión en solo lectura y en modo «Clave API». En modo público, bastaría la dirección para escribir y eliminar en su cuenta.'
+            how_step_paste: 'Copie la dirección y la clave, y péguelas a continuación. Craft solo muestra la clave una vez.'
+            scope_title: 'Lo que puede hacer esta clave'
+            scope_body: 'Leer los documentos que ha marcado, y nada más. Por eso importa el modo «solo lectura»: una conexión con escritura permitiría editar y eliminar sus documentos de Craft desde esta aplicación, cuando esta solo importa.'
+            then_title: "Después, espacio de notas por espacio de notas"
+            then_body: '«Importar desde Craft» aparece en el menú de cada espacio de notas, incluido el de un espacio de cliente, que su pestaña Notas también abre. La importación es una copia pura: el documento permanece en Craft, y la nota no seguirá sus cambios.'
+            trouble_title: 'Cuando la lista está vacía o no responde'
+            trouble_body: 'Una lista vacía significa que la conexión no expone ningún documento: vuelva a Craft para añadirlos. Una falta de respuesta significa que la dirección o la clave ya no son válidas, a menudo porque la conexión se ha vuelto a crear en Craft, que entonces genera una nueva clave.'
+            how_link: 'Los pasos a seguir en Craft'
+            endpoint_label: 'Dirección de la conexión'
+            endpoint_hint: 'La que Craft muestra al crear la conexión. En https, de lo contrario la clave viajaría sin cifrar.'
+            token_label: 'Clave API'
+            token_hint: 'La que Craft muestra una vez que la conexión pasa al modo «Clave API».'
+            token_stored: 'Hay una clave guardada. Deje el campo vacío para conservarla.'
+            enabled_label: 'Activar la importación desde Craft'
+            enabled_hint: 'La acción aparece en el menú de cada espacio de notas.'
+            enabled_blocked: 'Indique una dirección y una clave para poder activarla.'
+        import:
+            action: 'Importar desde Craft'
+            title: 'Importar una nota de Craft'
+            intro: 'El documento se copia en este espacio de notas. Permanece en Craft, y la nota no seguirá sus cambios.'
+            empty: 'Ningún documento en esta conexión.'
+            unreachable: 'Craft no ha respondido.'
+            unreachable_hint: 'Compruebe la dirección y la clave en los ajustes, pestaña Craft.'
+            empty_hint: 'Vuelva a Craft para añadir documentos a la conexión.'
+            disabled: 'La importación desde Craft no está activada.'
+            disabled_hint: 'Se activa en los ajustes, pestaña Craft.'
+            imported: 'Nota importada.'
+            refresh: 'Actualizar desde Craft'
+            refresh_confirm: '¿Restablecer «{title}» a la versión actual del documento de Craft?'
+            refresh_warning: 'El texto de la nota se sustituye; la versión anterior queda en su historial. Su título, su carpeta, sus etiquetas y su portada se conservan.'
+            refresh_submit: Actualizar
+            refreshed: 'Nota actualizada.'
+            submit: Importar
+        errors:
+            endpoint_https: 'La dirección de la conexión debe empezar por https://.'
+            connection_required: 'Indique una dirección y una clave antes de activar.'
+            document_required: 'Elija un documento para importar.'
+            unreachable: 'Craft no ha devuelto nada para este documento.'
+            not_imported: 'Esta nota no procede de Craft.'
     markdown:
         guide:
             title: "Cómo se organizan las notas"
-            step_1: "Cada nota pertenece a un espacio: el suyo, siempre privado, o un espacio compartido."
-            step_2: "Un espacio compartido se abre solo a usted, a algunas personas o a toda la suite, cada una con lectura, escritura o gestión."
+            step_1: "Cada nota pertenece a un espacio de notas: el suyo, siempre privado, o un espacio de notas compartido."
+            step_2: "Un espacio de notas compartido se abre solo a usted, a algunas personas o a toda la suite, cada una con lectura, escritura o gestión."
             step_3: "Enlace las notas con [[Título]]: el grafo muestra esos enlaces entre todas las notas que puede leer."
             step_4: "Las etiquetas filtran la biblioteca, y «Gestionar etiquetas» las renombra o fusiona en todas sus notas."
             step_5: "Una nota también se comparte con un enlace de solo lectura; ni siquiera un administrador lee sus notas privadas."
@@ -114,11 +162,11 @@ notes:
                 expires: 'Este enlace caduca el %date%.'
                 read_only: 'Puede leer esta nota, pero no editarla.'
         spaces:
-            import_here: 'Importar en este espacio'
-            export: 'Exportar este espacio'
+            import_here: "Importar en este espacio de notas"
+            export: "Exportar este espacio de notas"
             publication:
                 title: 'Publicación en la web'
-                hint: 'El espacio se puede leer entonces sin cuenta, en su dirección. No se puede escribir en él.'
+                hint: "El espacio de notas se puede leer entonces sin cuenta, en su dirección. No se puede escribir en él."
                 slug: 'Dirección'
                 slug_placeholder: 'Se toma del nombre si está vacía'
                 indexable: 'Dejar que los buscadores lo indexen'
@@ -128,27 +176,30 @@ notes:
                 publish: 'Publicar'
                 update: 'Actualizar'
                 unpublish: 'Despublicar'
-                published: 'Espacio publicado'
-                unpublished: 'Espacio despublicado'
+                published: "Espacio de notas publicado"
+                unpublished: "Espacio de notas despublicado"
                 badge: 'Publicado en la web'
-            my_space: 'Mi espacio'
+            my_space: "Mi espacio de notas"
+            managed_badge: 'Espacio de cliente'
+            managed_hint: 'Las notas del espacio de cliente del mismo nombre. Su nombre y su equipo siguen al espacio de cliente: se ajustan en Studio.'
             errors:
-                private_owner_only: 'Solo el propietario puede reservarse el espacio.'
+                private_owner_only: "Solo el propietario puede reservarse el espacio de notas."
                 bad_slug: 'Dirección no válida: solo letras, cifras y guiones.'
                 slug_taken: 'Esta dirección ya está ocupada.'
-                name_required: 'Pon un nombre al espacio.'
+                name_required: "Pon un nombre al espacio de notas."
                 bad_access: 'Acceso desconocido.'
                 bad_role: 'Rol desconocido.'
                 bad_member: 'Esta persona no se puede añadir.'
-                save_failed: 'No se ha podido guardar el espacio.'
-                load_failed: 'No se ha podido cargar el espacio.'
+                save_failed: "No se ha podido guardar el espacio de notas."
+                load_failed: "No se ha podido cargar el espacio de notas."
+                managed: "Este espacio de notas sigue un espacio de cliente de Studio: su nombre y su equipo se ajustan allí."
             name: 'Nombre'
-            name_placeholder: 'Nombre del espacio'
-            label: 'Espacio'
+            name_placeholder: "Nombre del espacio de notas"
+            label: "Espacio de notas"
             loading: 'Cargando…'
-            personal_hint: 'Tu espacio personal sigue siendo privado: nadie más lo ve. Solo se puede ajustar su color.'
+            personal_hint: "Tu espacio de notas personal sigue siendo privado: nadie más lo ve. Solo se puede ajustar su color."
             owner: 'Propietario: {name}'
-            settings: 'Ajustes del espacio'
+            settings: "Ajustes del espacio de notas"
             members: 'Miembros'
             members_hint: 'Solo entran las personas que añades, cada una con su rol.'
             members_hint_backoffice: 'Toda la suite entra con el rol por defecto; añadir a alguien puede darle más.'
@@ -156,13 +207,13 @@ notes:
             pick_person: 'Elegir una persona'
             add_member: 'Añadir'
             remove_member: 'Quitar a {name}'
-            delete: 'Retirar el espacio'
+            delete: "Retirar el espacio de notas"
             delete_confirm: 'Confirmar la retirada'
-            confirm_delete: 'El espacio {name} y todo lo que contiene desaparecerán para todos. Su propietario podrá recuperarlo.'
+            confirm_delete: "El espacio de notas {name} y todo lo que contiene desaparecerán para todos. Su propietario podrá recuperarlo."
             save: 'Guardar'
-            created: 'Espacio creado'
-            updated: 'Espacio guardado'
-            deleted: 'Espacio retirado'
+            created: "Espacio de notas creado"
+            updated: "Espacio de notas guardado"
+            deleted: "Espacio de notas retirado"
             read_only: 'Lectura'
             add_here: 'Añadir en {name}'
             empty: 'Nada aquí por ahora.'
@@ -218,13 +269,13 @@ notes:
             pin_failed: No se han podido actualizar los favoritos.
             shared:
                 section: 'Visible para mí'
-                badge: En un espacio compartido
+                badge: "En un espacio de notas compartido"
                 by: 'Por {name}'
                 read_only: 'Solo lectura'
             visibility:
                 all: 'Filtrar: todo'
-                shared: 'Filtro: espacios compartidos'
-                private: 'Filtro: mi espacio'
+                shared: "Filtro: espacios de notas compartidos"
+                private: "Filtro: mi espacio de notas"
                 clear: 'Quitar el filtro'
             selected: '{count} seleccionado(s)'
             select: Seleccionar
@@ -383,8 +434,8 @@ notes:
             hint: '{marker} se convierte en la fecha de hoy.'
             failed: 'No se ha podido crear la nota a partir de esta plantilla.'
         add:
-            space: 'Espacio'
-            create_space: 'Crear el espacio'
+            space: "Espacio de notas"
+            create_space: "Crear el espacio de notas"
             title: 'Añadir'
             kind: 'Añadir una nota o una carpeta'
             note: 'Nota'

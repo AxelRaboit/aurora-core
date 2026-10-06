@@ -11,11 +11,11 @@
    choice for the same reason one screen earlier: a page addressed to one
    customer has no side menu to put a customer in.
 
-   **The route stays under `/suite` even so, and that is not a detail.** The
-   admin firewall is `^/(suite|dev)`: outside it no suite identity is
+   **The route lives under `/workspace`, and the firewall knows it.** The admin
+   firewall is `^/(suite|dev|workspace)`: outside it no suite identity is
    restored, so a staff member would arrive as an anonymous visitor on their own
-   client's board. This layout changes what is drawn, never where it lives - the
-   trap that `suite_ged_files` exists to work around, met head-on.
+   client's board. A new prefix for these pages means a new entry in that
+   pattern first - the trap that `suite_ged_files` exists to work around.
 
    The client reads the same space through a page of their own, on a public
    route reached by a signed link, with the layout this one was modelled on:
@@ -184,8 +184,12 @@
                        lives in a tab and another in a switch. #}
                     {% set tabs = [
                         {label: 'suite.studio.space_content.tab'|trans, url: boardPath, key: 'content'},
-                        {label: 'suite.studio.space_access.tab'|trans, url: accessPath, key: 'access'},
                     ] %}
+                    {# The access page lists who the space is open to: the
+                       same right that gives an access shows them. #}
+                    {% if is_granted('studio.spaces.share') %}
+                        {% set tabs = tabs|merge([{label: 'suite.studio.space_access.tab'|trans, url: accessPath, key: 'access'}]) %}
+                    {% endif %}
                     {% for tab in tabs %}
                         {% if tab.key == activeTab|default('content') %}
                             <span class="flex-1 rounded-md bg-surface-2 px-2.5 py-1 text-center text-sm font-medium text-primary sm:flex-none sm:text-left" aria-current="page">

@@ -34,6 +34,18 @@ const props = defineProps({
      * serveur refusant de toute façon.
      */
     canEditTeam: { type: Boolean, default: true },
+    /**
+     * Si « nouveau prospect » est proposé. Il crée une fiche client, donc il
+     * demande le droit d'en créer une ; le serveur refuse sinon.
+     */
+    canCreateCustomer: { type: Boolean, default: false },
+    /**
+     * Which of the two groups to draw. The Settings tab of a space draws them
+     * as two sections, and the team only for its lead; the creation modal
+     * draws both.
+     */
+    withIdentity: { type: Boolean, default: true },
+    withTeam: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -80,7 +92,9 @@ watch(
 );
 
 const customerChoices = computed(() => [
-    { value: NEW_PROSPECT, label: t("suite.studio.spaces.customer_new_prospect") },
+    ...(props.canCreateCustomer
+        ? [{ value: NEW_PROSPECT, label: t("suite.studio.spaces.customer_new_prospect") }]
+        : []),
     ...props.customerOptions,
 ]);
 
@@ -192,7 +206,7 @@ function removeMember(userId) {
 
 <template>
     <div class="space-y-5">
-        <section class="space-y-4">
+        <section v-if="withIdentity" class="space-y-4">
             <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
                 {{ t("suite.studio.spaces.group_identity") }}
             </h3>
@@ -305,7 +319,7 @@ function removeMember(userId) {
             </div>
         </section>
 
-        <section class="space-y-4">
+        <section v-if="withTeam" class="space-y-4">
             <div>
                 <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
                     {{ t("suite.studio.spaces.group_team") }}

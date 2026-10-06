@@ -11,6 +11,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -89,7 +90,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
 
         $saved = $this->save($attachment);
 
-        $this->notifier->clientUploaded($item, $link->getRecipientEmail());
+        $this->notifier->clientUploaded($item, SpaceAccessLinkLabel::of($link));
 
         return $saved;
     }

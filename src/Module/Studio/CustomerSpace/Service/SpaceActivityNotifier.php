@@ -88,6 +88,21 @@ final readonly class SpaceActivityNotifier
     }
 
     /**
+     * A file the client sent to the space itself, on no card.
+     *
+     * The link opens the space on its Files tab, where the file is marked as
+     * the client's. Folded like a card upload while unread: five photos sent
+     * in a row are one thing to go and look at.
+     */
+    public function clientSentFile(CustomerSpaceInterface $space, string $author, string $file): void
+    {
+        $this->announce($space, 'studio.space.upload', 'suite.studio.space_notifications.space_upload', [
+            '%who%' => $author,
+            '%file%' => $file,
+        ], query: ['view' => 'files']);
+    }
+
+    /**
      * A verdict, which is never folded into an earlier one.
      *
      * Two answers on the same card are a client changing their mind, and the

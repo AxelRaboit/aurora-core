@@ -24,7 +24,7 @@
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip } from "lucide-vue-next";
+import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip, Upload } from "lucide-vue-next";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -52,6 +52,7 @@ import {
     FileText,
     Package,
     MessageSquare,
+    Presentation,
 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -74,6 +75,11 @@ const props = defineProps({
     uploadPath: { type: String, default: null },
     /** Les fichiers de l'espace, ceux qui ne sont sur aucune fiche. */
     spaceFiles: { type: Array, default: () => [] },
+    /**
+     * Where a file for the space itself is sent, from the Files tab. Null
+     * without the link's right to send files, so there is no button at all.
+     */
+    spaceFileUploadPath: { type: String, default: null },
     /** Le dossier Drive du prestataire, quand il en a branché un. */
     drivePath: { type: String, default: null },
     driveFilePath: { type: String, default: null },
@@ -205,6 +211,9 @@ const { container, isNarrow } = useNarrowContainer(560);
  */
 const driveFiles = ref([]);
 
+/** The space's own files, replaced by what the server answers after a send. */
+const spaceFileList = ref(props.spaceFiles ?? []);
+
 onMounted(async () => {
     if (!props.drivePath) return;
 
@@ -252,7 +261,11 @@ const VIEWS = [
 ];
 
 const hasChat = computed(() => props.chatChannels.length > 0);
-const hasFiles = computed(() => props.spaceFiles.length > 0 || driveFiles.value.length > 0);
+// The tab also exists to send the first file: a link that may send files has
+// somewhere to do it even before anything was shared.
+const hasFiles = computed(
+    () => spaceFileList.value.length > 0 || driveFiles.value.length > 0 || !!props.spaceFileUploadPath,
+);
 const hasResources = computed(() => props.resources.length > 0);
 const hasDocuments = computed(() => props.documents.length > 0);
 const hasInformation = computed(() => null !== props.information);
@@ -285,6 +298,8 @@ const guideSteps = computed(() => {
     if (props.canComment && props.canUpload) steps.push("comment_upload");
     else if (props.canComment) steps.push("comment");
     else if (props.canUpload) steps.push("upload");
+
+    if (props.spaceFileUploadPath) steps.push("files_upload");
 
     if (hasChat.value) steps.push(props.chatPostPath ? "chat" : "chat_read");
 
@@ -404,13 +419,64 @@ async function upload(file) {
             { rawBody: form },
         );
 
-        if (!data?.success) return;
+        // A refusal from the policy (too heavy, a type the space does not
+        // take) is said, as on the Files tab: silence read as a success.
+        if (data && !data.success) {
+            toast.error(t(data.errors?.file ?? "studio.public.space.errors.upload_failed"));
+
+            return;
+        }
+
+        if (!data) return;
 
         if (Array.isArray(data.items)) items.value = data.items;
         if (data.comments) comments.value = data.comments;
         if (data.attachments) attachments.value = data.attachments;
     } finally {
         uploading.value = false;
+    }
+}
+
+/** The hidden file field behind « Send a file »: a button is drawn, an `input[type=file]` is not. */
+const spaceFileInput = ref(null);
+const sendingSpaceFile = ref(false);
+
+/**
+ * Sends one file to the space itself, from the Files tab.
+ *
+ * The same rules as a file on a card: multipart, one request per file, and
+ * what may be sent is decided by the server from the bytes. Never from a
+ * preview, whose button is disabled and whose route refuses anyway.
+ */
+async function sendSpaceFile(event) {
+    const file = event.target.files?.[0];
+
+    // Reset, or choosing the same file twice in a row would emit nothing.
+    event.target.value = "";
+
+    if (!file || !props.spaceFileUploadPath || props.preview || sendingSpaceFile.value) return;
+
+    const form = new FormData();
+    form.append("file", file);
+
+    sendingSpaceFile.value = true;
+    try {
+        const data = await request(props.spaceFileUploadPath, null, { rawBody: form });
+
+        // A refusal from the policy is a sentence the client acts on (a
+        // lighter file, another type), so it is said rather than swallowed.
+        if (data && !data.success) {
+            toast.error(t(data.errors?.file ?? "studio.public.space.errors.upload_failed"));
+
+            return;
+        }
+
+        if (!data) return;
+
+        if (Array.isArray(data.spaceFiles)) spaceFileList.value = data.spaceFiles;
+        toast.success(t("studio.public.space.files_uploaded"));
+    } finally {
+        sendingSpaceFile.value = false;
     }
 }
 
@@ -817,6 +883,36 @@ function isLate(event) {
              partagé qu'avec le compte de service, donc une adresse Drive
              donnerait à ce lecteur un mur d'authentification. -->
         <template v-if="'files' === view">
+            <!-- The tab's action, above what it adds to: the client's way to
+                 hand a file over without attaching it to a content item. The
+                 notice says what is accepted and who reads it. -->
+            <div
+                v-if="spaceFileUploadPath"
+                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <p class="text-xs text-muted">{{ t("studio.public.space.upload_notice") }}</p>
+
+                <input
+                    ref="spaceFileInput"
+                    type="file"
+                    class="hidden"
+                    data-test="space-file-input"
+                    v-on:change="sendSpaceFile"
+                >
+                <AppButton
+                    class="w-full shrink-0 sm:w-auto"
+                    variant="primary"
+                    size="sm"
+                    data-test="space-file-upload"
+                    :loading="sendingSpaceFile"
+                    :disabled="preview"
+                    v-on:click="spaceFileInput?.click()"
+                >
+                    <Upload class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("studio.public.space.files_upload") }}
+                </AppButton>
+            </div>
+
             <section v-if="driveFiles.length" class="space-y-3">
                 <!-- « Je prends tout » est la question que se pose un client à qui
                  on partage trente visuels. Le titre et le lot sur la même
@@ -875,18 +971,22 @@ function isLate(event) {
                 </ul>
             </section>
 
-            <section v-if="spaceFiles.length" class="space-y-3">
+            <section v-if="spaceFileList.length || spaceFileUploadPath" class="space-y-3">
                 <h2 class="text-sm font-medium text-primary">
                     {{ t("studio.public.space.files_title") }}
                 </h2>
 
-                <ul class="divide-y divide-line/40 rounded-lg border border-line">
+                <p v-if="!spaceFileList.length" class="text-sm text-muted">
+                    {{ t("studio.public.space.files_empty") }}
+                </p>
+
+                <ul v-else class="divide-y divide-line/40 rounded-lg border border-line">
                     <!-- En colonne sur téléphone, en ligne au-delà. Trois
                          choses sur une ligne de trois cent soixante-quinze
                          pixels tronquent toujours la même : le nom du fichier,
                          qui est la seule qu'on lit. -->
                     <li
-                        v-for="file in spaceFiles"
+                        v-for="file in spaceFileList"
                         :key="file.id"
                         class="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3"
                     >
@@ -907,7 +1007,14 @@ function isLate(event) {
 
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm text-primary sm:truncate">{{ file.title }}</p>
-                                <p class="text-xs text-muted">{{ d(new Date(file.createdAt), "short") }}</p>
+                                <p class="text-xs text-muted">
+                                    {{ d(new Date(file.createdAt), "short") }}
+                                    <!-- Who sent it, when it came from the client side: a
+                                         space can have several links out. -->
+                                    <template v-if="file.fromClient">
+                                        · {{ t("studio.public.space.files_sent_by", { author: file.author }) }}
+                                    </template>
+                                </p>
                             </div>
                         </div>
 
@@ -945,6 +1052,7 @@ function isLate(event) {
                                 class="h-full w-full object-cover"
                                 :style="{ objectPosition: document.thumbnailPosition || '50% 50%' }"
                             >
+                            <Presentation v-else-if="'slides' === document.format" class="h-5 w-5 text-muted" :stroke-width="1.75" />
                             <FileText v-else class="h-5 w-5 text-muted" :stroke-width="1.75" />
                         </span>
                         <span class="flex min-w-0 flex-1 flex-col gap-1">
@@ -953,7 +1061,9 @@ function isLate(event) {
                             </span>
                             <span v-if="document.description" class="text-xs text-secondary">{{ document.description }}</span>
                             <span class="text-xs text-muted">
-                                {{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
+                                <!-- A presentation says so before it opens: it is watched
+                                     slide by slide, not read like a page. -->
+                                <template v-if="'slides' === document.format">{{ t("studio.public.space.document_presentation") }} · </template>{{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
                             </span>
                         </span>
                     </a>

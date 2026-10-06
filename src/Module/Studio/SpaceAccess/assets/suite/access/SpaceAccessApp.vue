@@ -415,7 +415,7 @@ function openedLabel(link) {
                         v-on:click="submitIssue"
                     >
                         <Link2 class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("suite.studio.space_access.issue") }}
+                        {{ t("suite.studio.space_access.issue_submit") }}
                     </AppButton>
                 </AppModalFooter>
             </template>

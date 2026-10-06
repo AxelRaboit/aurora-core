@@ -27,6 +27,9 @@ class NoteSpaceSerializer implements NoteSpaceSerializerInterface
             'name' => $space->getName(),
             'color' => $space->getColor(),
             'personal' => $space->isPersonal(),
+            // Réglé d'ailleurs (l'espace de notes d'un espace client) : son
+            // nom, son accès et ses membres ne se règlent pas d'ici.
+            'managed' => $space->isManaged(),
             'access' => $space->getAccess()->value,
             'defaultRole' => $space->getDefaultRole()->value,
             'position' => $space->getPosition(),

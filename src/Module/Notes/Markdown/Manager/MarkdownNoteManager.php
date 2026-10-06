@@ -141,6 +141,22 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
+     * Pas un champ du formulaire : l'identifiant ne vient que de l'import, et
+     * le laisser passer par l'enregistrement ordinaire laisserait n'importe
+     * quel appel rattacher une note à un document Craft qui n'est pas le sien.
+     */
+    public function markImportedFromCraft(MarkdownNoteInterface $note, string $craftDocumentId): void
+    {
+        $note->setCraftDocumentId($craftDocumentId);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('notes_markdown', 'note.imported_from_craft', 'MarkdownNote', $note->getId(), [
+            ...$this->auditPayload($note),
+            'craftDocumentId' => $craftDocumentId,
+        ]);
+    }
+
+    /**
      * Moves a note to the trash.
      *
      * One note, nothing else: a note has no sub-notes any more, and a folder

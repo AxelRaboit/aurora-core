@@ -168,6 +168,17 @@ final readonly class DeliverableAccess
         return $this->security->isGranted(self::VIEW) && $this->security->isGranted(self::EDIT);
     }
 
+    /**
+     * Nommer le client pour qui un livrable de Studio a été écrit, et voir ce
+     * nom sur la carte : il faut le module des clients allumé, et le droit de
+     * voir leur liste. Le sélecteur porte toute la liste des clients, et un
+     * droit sur les livrables ne la donne pas.
+     */
+    public function canPickCustomer(): bool
+    {
+        return $this->studioContext->areCustomersEnabled() && $this->security->isGranted('studio.customers.view');
+    }
+
     public function canCreate(): bool
     {
         return $this->security->isGranted(self::VIEW) && $this->security->isGranted(self::CREATE);

@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Constraint;
 final class Siren extends Constraint
 {
     public function __construct(
-        public string $message = 'suite.studio.space_information.errors.siren_invalid',
+        public string $message = 'suite.studio.customers.errors.siren_invalid',
         mixed $options = null,
         ?array $groups = null,
         mixed $payload = null,

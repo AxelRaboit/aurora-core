@@ -12,6 +12,7 @@
  * Le client et l'état se filtrent sur place ; la portée « mes espaces / tous »
  * recharge la page, parce que c'est le serveur qui sait quels espaces on voit.
  */
+import StudioSectionTabs from "../../../../assets/suite/components/StudioSectionTabs.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-vue-next";
@@ -30,6 +31,9 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const props = defineProps({
+    /** Les deux onglets de l'entrée « Espaces clients » : la liste et le calendrier. */
+    spacesPath: { type: String, default: "" },
+    calendarPath: { type: String, default: "" },
     scope: { type: String, default: "mine" },
     hasScopeChoice: { type: Boolean, default: false },
     spaces: { type: Array, default: () => [] },
@@ -190,6 +194,14 @@ function spaceName(item) {
 
 <template>
     <div ref="container" class="relative aurora-stack">
+        <StudioSectionTabs
+            current="calendar"
+            :tabs="[
+                { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
+                { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
+            ]"
+            :label="t('suite.studio.spaces.tabs_label')"
+        />
         <AppLoader :active="loading" />
 
         <!-- Les onglets de portée, comme ceux de la liste des espaces : la

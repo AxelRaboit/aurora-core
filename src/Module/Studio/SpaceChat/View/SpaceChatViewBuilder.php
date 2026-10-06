@@ -82,11 +82,17 @@ final readonly class SpaceChatViewBuilder
         return $this->channels->findForLink($link->getSpace(), $link);
     }
 
-    /** @param list<SpaceChatChannelInterface>|null $rooms from roomsForUser(), when the caller has them */
-    public function view(CustomerSpaceInterface $space, CoreUserInterface $user, ?array $rooms = null): array
+    /**
+     * @param list<SpaceChatChannelInterface>|null $rooms     from roomsForUser(), when the caller has them
+     * @param int|null                             $channelId the room the address names (`?channel=`, from a
+     *                                                        search result); ignored unless it is one of
+     *                                                        `$rooms`, so an address cannot open a room
+     *                                                        the reader does not have
+     */
+    public function view(CustomerSpaceInterface $space, CoreUserInterface $user, ?array $rooms = null, ?int $channelId = null): array
     {
         $rooms ??= $this->roomsForUser($space, $user);
-        $open = $rooms[0] ?? null;
+        $open = $this->named($rooms, $channelId) ?? $rooms[0] ?? null;
 
         return [
             'chatChannels' => $this->channels($rooms, $user, null),
@@ -319,5 +325,25 @@ final readonly class SpaceChatViewBuilder
             'id' => $space->getId(),
             'channelId' => '__channel__',
         ]);
+    }
+
+    /**
+     * The room the address names, when the reader has it.
+     *
+     * @param list<SpaceChatChannelInterface> $rooms
+     */
+    private function named(array $rooms, ?int $channelId): ?SpaceChatChannelInterface
+    {
+        if (null === $channelId) {
+            return null;
+        }
+
+        foreach ($rooms as $room) {
+            if ($room->getId() === $channelId) {
+                return $room;
+            }
+        }
+
+        return null;
     }
 }

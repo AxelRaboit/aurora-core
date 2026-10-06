@@ -18,18 +18,18 @@ shared:
         from_client: client
         verdict:
             approved: '{who} a validé'
-            changes_requested: '{who} a demandé une reprise'
+            changes_requested: "{who} a répondu « À revoir »"
     space_information:
         siret: SIRET
         siren: SIREN
         phone: Téléphone portable
         landline: Téléphone fixe
-        email: Email
-        postal_address: Adresse postale
+        email: "Email contractuel"
+        registered_office: "Siège social"
         links: Liens
         notes: Informations diverses
         empty: Cette fiche est encore vide.
-        empty_hint: "Il n'y a rien d'autre à y lire que le nom de la société."
+        empty_hint: "Il n'y a rien d'autre à y lire que la raison sociale."
     space_resources:
         kinds:
             link: Lien
@@ -37,7 +37,7 @@ shared:
             contact: Contact
     space_chat:
         title: Discussion
-        empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur une fiche : le brief du mois, une campagne qui bouge, une question rapide."
+        empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur un contenu : le brief du mois, une campagne qui bouge, une question rapide."
         placeholder: Écrire un message…
         shortcut_hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne"
         send: Envoyer
@@ -49,7 +49,7 @@ shared:
             label: Canaux
             new: Nouveau canal
             new_hint: "Un canal porte un nom et une audience. Les deux se changent ensuite depuis ses réglages."
-            new_open_to_client: Ouvrir ce canal au client
+            new_open_to_client: "Montrer ce canal au client"
             new_open_to_client_hint: "Toute personne qui détient un lien d'accès à cet espace lira ce canal."
             new_internal_hint: "Le canal reste entre vous. Le client ne le voit pas, et n'en connaît ni le nom ni l'existence."
             name_placeholder: Nom du canal
@@ -61,8 +61,8 @@ shared:
             delete_confirm: "Supprimer ce canal ? Ses messages partent avec lui."
             internal: interne
             client_reads: lu par le client
-            open_to_client: Ouvrir au client
-            close_to_client: Fermer au client
+            open_to_client: "Montrer au client"
+            close_to_client: "Cacher au client"
             invite: Ajouter quelqu'un
             notice_internal: "Canal interne : le client ne le lit pas."
             notice_direct: "Conversation privée : personne d'autre ne la lit."
@@ -88,11 +88,11 @@ shared:
         title: Fichiers
         empty: Aucun fichier pour le moment.
         add: Ajouter un fichier
-        pick: Choisir dans la GED
+        pick: "Choisir dans la médiathèque"
         pick_drive: Depuis le Drive
         drop: Déposez un fichier ici
-        remove: Retirer de la fiche
-        remove_confirm: Retirer ce fichier de la fiche ? Il reste dans la GED.
+        remove: "Retirer du contenu"
+        remove_confirm: "Retirer ce fichier du contenu ? Il reste dans la médiathèque."
         open: Ouvrir le fichier
         count: 'Aucun fichier | 1 fichier | {count} fichiers'
     palette:
@@ -249,7 +249,7 @@ suite:
                 title: Comment les fichiers sont servis
                 intro: "Ce choix ne change pas où vos fichiers sont stockés, seulement le chemin qu'ils empruntent pour arriver au visiteur."
                 address_title: L'adresse ne change jamais
-                address_body: "Quel que soit le mode, l'adresse d'un document reste la même. Un lien collé dans un article, un courriel ou un autre site continue de fonctionner si vous changez d'avis plus tard."
+                address_body: "Quel que soit le mode, l'adresse d'un document reste la même. Un lien collé dans un article, un email ou un autre site continue de fonctionner si vous changez d'avis plus tard."
                 proxy_title: Par l'application
                 proxy_body: "Les octets passent par votre serveur avant d'atteindre le visiteur. C'est le plus simple, et vos règles d'accès continuent de s'appliquer : un document en brouillon reste invisible. En contrepartie, votre serveur fait le travail à chaque téléchargement."
                 presigned_title: Par lien signé temporaire

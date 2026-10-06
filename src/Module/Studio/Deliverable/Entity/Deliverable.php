@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_deliverable_category', columns: ['category_id'])]
 #[ORM\Index(name: 'idx_deliverable_thumbnail', columns: ['thumbnail_id'])]
 #[ORM\Index(name: 'idx_deliverable_deleted_at', columns: ['deleted_at'])]
+#[ORM\Index(name: 'idx_deliverable_customer', columns: ['customer_id'])]
 #[ORM\HasLifecycleCallbacks]
 class Deliverable extends AbstractDeliverable
 {

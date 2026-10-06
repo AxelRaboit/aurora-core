@@ -1,0 +1,35 @@
+{# Une présentation ouverte par une adresse secrète.
+
+   Sa propre page, sans menu ni compte : celui qui l'ouvre n'en a pas, et c'est
+   la raison d'être de l'adresse. Modelée sur la page publique d'un contrat,
+   avec une différence qui compte ici : ce document se regarde plutôt qu'il ne
+   se lit, donc la page donne la place aux slides et rien d'autre.
+
+   Opened from the client's space, it leads back there (`backUrl`); opened by
+   a reading link, there is nowhere to go back to. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {# Rien ici n'est destiné à être trouvé. L'adresse est un secret remis à
+           quelqu'un, et un moteur qui l'indexerait la remettrait à tout le
+           monde, définitivement et hors de portée de toute révocation. #}
+        <meta name="robots" content="noindex, nofollow, noarchive">
+        <meta name="referrer" content="no-referrer">
+        <title>{{ deck.title }}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+    </head>
+    <body class="min-h-screen bg-body transition-colors duration-200">
+        <div {{ vue_component('studio/suite/slides/PublicDeckApp', {
+            deck: deck,
+            expiresAt: expiresAt ? expiresAt|date('c') : null,
+            backUrl: backUrl|default(null),
+        }) }} class="min-h-screen"></div>
+    </body>
+</html>

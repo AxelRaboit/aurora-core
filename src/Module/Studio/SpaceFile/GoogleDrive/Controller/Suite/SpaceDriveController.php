@@ -35,9 +35,14 @@ use function sprintf;
  * **Trois gestes : désigner, lister, servir.** Le dossier appartient au
  * client, qui l'a partagé avec le compte de service ; l'espace ne fait que le
  * nommer. Rien n'est recopié.
+ *
+ * **Lire demande de voir l'espace, ranger demande de le modifier.** L'onglet
+ * se montre à quiconque voit l'espace ; exiger `edit` pour le lire donnait un
+ * onglet dont chaque route refusait. Seuls les deux imports écrivent, dans la
+ * médiathèque, et gardent `edit`.
  */
 #[Route('/workspace/{id}/drive', name: 'workspace_space_drive', requirements: ['id' => '\d+'])]
-#[IsGranted('studio.spaces.edit')]
+#[IsGranted('studio.spaces.view')]
 final class SpaceDriveController extends AbstractController
 {
     use JsonRequestTrait;
@@ -85,6 +90,7 @@ final class SpaceDriveController extends AbstractController
     }
 
     #[Route('/agency/{fileId}/import', name: '_agency_import', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Post->value], priority: 20)]
+    #[IsGranted('studio.spaces.edit')]
     public function agencyImport(CustomerSpace $space, string $fileId): JsonResponse
     {
         return $this->importFrom($space, $fileId, $this->settings->agencyFolderId());
@@ -190,6 +196,7 @@ final class SpaceDriveController extends AbstractController
      * n'importe quel autre, par les routes qui existent déjà.
      */
     #[Route('/{fileId}/import', name: '_import', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Post->value], priority: 10)]
+    #[IsGranted('studio.spaces.edit')]
     public function import(CustomerSpace $space, string $fileId): JsonResponse
     {
         return $this->importFrom($space, $fileId, $space->getDriveFolderId());

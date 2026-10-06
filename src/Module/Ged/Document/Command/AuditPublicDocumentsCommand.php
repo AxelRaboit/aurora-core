@@ -49,7 +49,7 @@ use function str_ends_with;
  * **What it does not**: a client module's own surfaces. It has no way to know
  * them. The document usage registry (`aurora.document_usage_provider`) is
  * what would tell it, and since 2026-09-16 that registry is answered - by
- * Studio decks, Studio space attachments and Editorial posts - so wiring this
+ * Studio deliverables, Studio space attachments and Editorial posts - so wiring this
  * command to it rather than to the hand-written list above is now possible
  * and would cover a client's own modules for free. Left as it is until
  * somebody needs it, but no longer for want of implementations.

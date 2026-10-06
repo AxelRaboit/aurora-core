@@ -4,7 +4,6 @@ import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
-import { useOrphanedDocumentOffer } from "./useOrphanedDocumentOffer.js";
 import { required } from "@/shared/utils/validation/validators.js";
 
 /**
@@ -47,8 +46,6 @@ function formFrom(item) {
 }
 
 export function useSpaceContentItemForm(paths, applyBoard, removeLocally) {
-    const { offer } = useOrphanedDocumentOffer();
-
     const { t } = useI18n();
 
     const showItemForm = ref(false);
@@ -110,9 +107,10 @@ export function useSpaceContentItemForm(paths, applyBoard, removeLocally) {
         showItemForm.value = true;
     }
 
-    // Removed locally rather than from the answer: deleting a card leaves the
-    // others' positions alone, so dropping it from the list is exactly what the
-    // server did.
+    // Removed locally rather than from the answer: putting a card in the
+    // trash leaves the others' positions alone, so dropping it from the list
+    // is exactly what the server did. Nothing is offered for binning: the
+    // card keeps its files in the trash, ready for a restore.
     const {
         pendingDelete: pendingItemDelete,
         loading: itemDeleteLoading,
@@ -120,13 +118,7 @@ export function useSpaceContentItemForm(paths, applyBoard, removeLocally) {
         submit: deleteItem,
     } = useDelete(
         paths.itemDeletePath,
-        // The answer as well as the id: a card taken off the board can leave
-        // files behind that nothing points at any more, and the offer to bin
-        // them only exists because the server said which ones.
-        (id, data) => {
-            removeLocally(id);
-            offer(data);
-        },
+        (id) => removeLocally(id),
         "suite.studio.space_content.item_deleted",
     );
 

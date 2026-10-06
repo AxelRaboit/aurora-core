@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
-use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -48,14 +47,16 @@ abstract class AbstractContractTemplate implements ContractTemplateInterface
     protected ContractTemplateKindEnum $kind = ContractTemplateKindEnum::Body;
 
     /**
-     * Which trade this template serves, or null while nobody has said.
+     * What this template is filed under, or null while nobody has said.
      *
-     * Nullable on purpose: see {@see ContractTemplateCategoryEnum}. An
-     * unclassified template is a question, a template defaulted into a trade is
-     * a wrong answer.
+     * Nullable on purpose: see {@see AbstractContractTemplateCategory}. An
+     * unclassified template is a question, a template defaulted into a
+     * category is a wrong answer. Deleting a category leaves its templates
+     * unfiled rather than taking them with it.
      */
-    #[ORM\Column(length: 32, nullable: true, enumType: ContractTemplateCategoryEnum::class)]
-    protected ?ContractTemplateCategoryEnum $category = null;
+    #[ORM\ManyToOne(targetEntity: ContractTemplateCategoryInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?ContractTemplateCategoryInterface $category = null;
 
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $archivedAt = null;
@@ -122,12 +123,12 @@ abstract class AbstractContractTemplate implements ContractTemplateInterface
         return $this;
     }
 
-    public function getCategory(): ?ContractTemplateCategoryEnum
+    public function getCategory(): ?ContractTemplateCategoryInterface
     {
         return $this->category;
     }
 
-    public function setCategory(?ContractTemplateCategoryEnum $category): static
+    public function setCategory(?ContractTemplateCategoryInterface $category): static
     {
         $this->category = $category;
 

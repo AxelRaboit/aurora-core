@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CustomerSpaceRepository::class)]
 #[ORM\Table(name: 'core_studio_customer_spaces')]
+#[ORM\Index(name: 'idx_customer_space_deleted_at', columns: ['deleted_at'])]
 class CustomerSpace extends AbstractCustomerSpace
 {
     #[ORM\Id]

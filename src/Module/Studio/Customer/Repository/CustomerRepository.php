@@ -32,11 +32,6 @@ class CustomerRepository extends ResolveTargetEntityRepository
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('c')
-            // The account is joined now rather than looked up per row: the list
-            // shows whether a customer has a login, which is one query here and
-            // one per customer without it.
-            ->addSelect('u')
-            ->leftJoin('c.user', 'u')
             ->orderBy('c.legalName', Order::Ascending->value)
             ->getQuery()
             ->getResult();

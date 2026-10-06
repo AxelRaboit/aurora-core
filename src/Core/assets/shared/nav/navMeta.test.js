@@ -14,14 +14,17 @@ function navItemBodies(src) {
         const start = opener.lastIndex;
         let i = start;
         let depth = 1;
-        while (depth > 0) {
+        // Bounded by the source: a stray quote (an apostrophe in a comment)
+        // must fail the test, not spin it for ever.
+        while (depth > 0 && i < src.length) {
             const c = src[i];
             if ("([{".includes(c)) depth += 1;
             else if (")]}".includes(c)) depth -= 1;
             else if ("'\"".includes(c)) {
                 const quote = c;
                 i += 1;
-                while (src[i] !== quote) i += src[i] === "\\" ? 2 : 1;
+                while (i < src.length && src[i] !== quote)
+                    i += src[i] === "\\" ? 2 : 1;
             }
             i += 1;
         }
@@ -44,7 +47,7 @@ function splitArgs(body) {
             const quote = c;
             current += c;
             i += 1;
-            while (body[i] !== quote) {
+            while (i < body.length && body[i] !== quote) {
                 current += body[i];
                 if (body[i] === "\\") {
                     i += 1;

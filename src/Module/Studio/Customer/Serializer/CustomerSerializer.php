@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\Serializer;
 
-use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
@@ -16,8 +15,6 @@ class CustomerSerializer implements CustomerSerializerInterface
     /** @return array<string, mixed> */
     public function serialize(CustomerInterface $customer): array
     {
-        $user = $customer->getUser();
-
         return [
             'id' => $customer->getId(),
             'legalName' => $customer->getLegalName(),
@@ -42,12 +39,8 @@ class CustomerSerializer implements CustomerSerializerInterface
             'phone' => $customer->getPhone(),
             'landline' => $customer->getLandline(),
             'siren' => $customer->getSiren(),
-            'userId' => $user?->getId(),
-            // The account's name is here so the list can say who it is rather
-            // than showing an id, and nothing more of the account travels: this
-            // payload reaches a page about companies, not about people.
-            'userName' => $user instanceof User ? $user->getName() : null,
-            'userEmail' => $user?->getUserIdentifier(),
+            'links' => $customer->getLinks(),
+            'informationNotes' => $customer->getInformationNotes(),
             'createdAt' => $customer->getCreatedAt()->format(DATE_ATOM),
         ];
     }

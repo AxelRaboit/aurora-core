@@ -21,14 +21,14 @@ import { BadgeCheck, Eye, Pencil, Trash2 } from "lucide-vue-next";
  * @param {object} deps
  * @param {(permission: string) => boolean} deps.can
  * @param {(record: object) => string} deps.boardHref where the space opens
- * @param {(record: object) => void} deps.openEdit
+ * @param {(record: object) => string} deps.settingsHref where its Settings tab opens
  * @param {(record: object) => void} deps.convertToClient
  * @param {(record: object) => void} deps.confirmDelete
  */
 export function useSpaceRowActions({
     can,
     boardHref,
-    openEdit,
+    settingsHref,
     convertToClient,
     confirmDelete,
 }) {
@@ -70,6 +70,8 @@ export function useSpaceRowActions({
             });
         }
 
+        // A link to the space's Settings tab, where everything about the
+        // space is edited: the list no longer carries its own form for it.
         if (can("studio.spaces.edit")) {
             actions.push({
                 key: "edit",
@@ -79,7 +81,7 @@ export function useSpaceRowActions({
                 description: t(
                     "suite.studio.spaces.row_actions.edit_description",
                 ),
-                onSelect: () => openEdit(record),
+                href: settingsHref(record),
             });
         }
 

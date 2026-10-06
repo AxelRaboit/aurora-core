@@ -20,6 +20,8 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\View\SpaceInformationViewBuilder;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
+use Aurora\Module\Studio\CustomerSpace\View\CustomerSpacesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
@@ -33,7 +35,6 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInter
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
-use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
@@ -88,7 +89,6 @@ class SpaceContentController extends AbstractController
         protected readonly DocumentRepository $documents,
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
-        protected readonly SpaceContentAttachmentRepository $attachmentRepository,
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
@@ -101,6 +101,11 @@ class SpaceContentController extends AbstractController
         protected readonly PayloadValidator $payloadValidator,
         protected readonly StoredFileResponder $responder,
         protected readonly UploadPolicyProvider $uploadPolicies,
+        protected readonly ClientVisibility $clientVisibility,
+        // Optional and last, so a client project extending this controller
+        // with its own constructor keeps booting: without it the Settings tab
+        // only carries the Drive, as before.
+        protected readonly ?CustomerSpacesViewBuilder $spacesViewBuilder = null,
     ) {}
 
     /**
@@ -131,12 +136,15 @@ class SpaceContentController extends AbstractController
 
         $response = $this->render('@Studio/suite/space-content/content.html.twig', [
             ...$this->viewBuilder->contentView($space),
-            ...$this->chatViewBuilder->view($space, $reader, $rooms),
+            // `?channel=` opens the conversation on the room a search result
+            // points at; the builder keeps it only if the reader has that room.
+            ...$this->chatViewBuilder->view($space, $reader, $rooms, $request->query->getInt('channel') ?: null),
             ...$this->notesViewBuilder->view($space),
             ...$this->filesViewBuilder->view($space),
             ...$this->informationViewBuilder->view($space),
             ...$this->resourcesViewBuilder->view($space),
             ...$this->deliverablesViewBuilder->view($space),
+            ...($this->spacesViewBuilder?->settingsView($space) ?? ['spaceSettings' => null]),
         ]);
 
         // **Being signed in is not being authorised at the hub.** The hub has
@@ -238,18 +246,12 @@ class SpaceContentController extends AbstractController
     ): JsonResponse {
         $this->assertOwned($space, $item->getSpace()->getId());
 
-        $documents = [];
+        // À la corbeille, pas détruit : son fil et ses fichiers restent
+        // attachés pour une restauration, donc aucun fichier n'est laissé sans
+        // usage et il n'y a rien à proposer de jeter.
+        $this->itemManager->trash($item);
 
-        foreach ($this->attachmentRepository->findForItem($item) as $attachment) {
-            $documents[] = $attachment->getDocument();
-        }
-
-        $this->itemManager->delete($item);
-
-        return $this->jsonSuccess(
-            $this->viewBuilder->boardPayload($space)
-            + $this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
-        );
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
     }
 
     #[Route('/content/reorder', name: '_item_reorder', methods: [HttpMethodEnum::Post->value])]
@@ -497,6 +499,12 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
+        // Une étape naît cachée au client ; la créer montrée, c'est la
+        // montrer, et cela demande le droit de partager l'espace.
+        if (!$this->clientVisibility->allowsChange(false, $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
+        }
+
         $this->columnManager->create($space, $input);
 
         return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
@@ -517,6 +525,13 @@ class SpaceContentController extends AbstractController
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
+        }
+
+        // Renommer ou recolorer reste au droit de modifier ; montrer ou
+        // cacher l'étape demande celui de partager, même glissé dans le même
+        // enregistrement.
+        if (!$this->clientVisibility->allowsChange($column->isVisibleToClient(), $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
         }
 
         $this->columnManager->update($column, $input);

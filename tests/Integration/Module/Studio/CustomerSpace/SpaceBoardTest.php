@@ -272,11 +272,12 @@ final class SpaceBoardTest extends IntegrationTestCase
     }
 
     /**
-     * A space deleted while its board is full.
+     * A space destroyed for good while its board is full.
      *
      * The case the foreign keys are arranged for: the cascade reaches the steps
      * and the cards at once, and a `RESTRICT` between them would have refused a
-     * deletion the user is entitled to.
+     * deletion the user is entitled to. Deleting puts it in the trash first;
+     * the cascade is the trash's « delete for good ».
      */
     public function testASpaceIsDeletedWithItsWholeBoard(): void
     {
@@ -285,6 +286,8 @@ final class SpaceBoardTest extends IntegrationTestCase
         $this->givenItem($space, $column, 'Emportée');
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/delete', $space->getId()));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/force-delete', $space->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertSame([], $this->columns->findForSpace($space));

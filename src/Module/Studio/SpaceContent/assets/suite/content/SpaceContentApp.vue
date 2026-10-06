@@ -57,10 +57,7 @@ import SpaceSectionNav from "./components/SpaceSectionNav.vue";
 // Same module, another sub-domain: a relative path rather than an alias,
 // the way the public page already reaches the shared thread.
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
-import SpaceNotesView from "../../../../SpaceNote/assets/suite/notes/SpaceNotesView.vue";
-import SpaceNoteFormModal from "../../../../SpaceNote/assets/suite/notes/SpaceNoteFormModal.vue";
-import SpaceNoteCraftModal from "../../../../SpaceNote/assets/suite/notes/SpaceNoteCraftModal.vue";
-import { useSpaceNotes } from "../../../../SpaceNote/assets/suite/notes/composables/useSpaceNotes.js";
+import SpaceNoteSpaceView from "../../../../SpaceNote/assets/suite/notes/SpaceNoteSpaceView.vue";
 import { useSpaceOwnFiles } from "../../../../SpaceFile/assets/suite/files/composables/useSpaceOwnFiles.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
@@ -95,14 +92,12 @@ import {
     Link2,
     NotebookText,
     Pencil,
-    RefreshCw,
     Save,
     Send,
     Trash2,
     X,
 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
-import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -160,20 +155,16 @@ const props = defineProps({
     chatOlderPath: { type: String, default: null },
     chatHidePath: { type: String, default: null },
     chatPeople: { type: Array, default: () => [] },
-    notes: { type: Array, default: () => [] },
-    noteCreatePath: { type: String, required: true },
-    noteUpdatePath: { type: String, required: true },
-    noteDeletePath: { type: String, required: true },
-    notePinPath: { type: String, required: true },
-    noteImagePath: { type: String, required: true },
-    craftEnabled: { type: Boolean, default: false },
-    craftDocumentsPath: { type: String, default: "" },
-    craftImportPath: { type: String, default: "" },
-    craftRefreshPath: { type: String, default: "" },
+    /**
+     * L'onglet Notes : l'espace de notes de cet espace client, dans le module
+     * Notes. `enabled` faux pour qui n'a pas les notes, et l'onglet disparaît.
+     */
+    spaceNotes: { type: Object, default: () => ({ enabled: false }) },
     spaceFiles: { type: Array, default: () => [] },
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
     spaceFileRemovePath: { type: String, required: true },
+    spaceFileVisibilityPath: { type: String, default: "" },
     driveEnabled: { type: Boolean, default: false },
     driveFolderId: { type: String, default: null },
     driveListPath: { type: String, default: "" },
@@ -189,13 +180,19 @@ const props = defineProps({
     /** Vrai pour le référent de l'espace, l'administrateur et le développeur. */
     canConfigure: { type: Boolean, default: false },
     settingsPath: { type: String, default: "" },
+    /**
+     * The space form of the Settings tab and its options; null without the
+     * right to edit the space. See `CustomerSpacesViewBuilder::settingsView()`.
+     */
+    spaceSettings: { type: Object, default: null },
     driveAgencyFolderPath: { type: String, default: null },
     driveServiceAccountEmail: { type: String, default: null },
     driveUnlockPath: { type: String, default: "" },
     driveLocked: { type: Boolean, default: false },
-    /** La fiche du client, portée par la société et non par ce projet. */
+    /** La fiche du client, portée par la société et non par ce projet ; en lecture ici. */
     information: { type: Object, default: () => ({}) },
-    informationSavePath: { type: String, default: "" },
+    /** La page du client, où la fiche se modifie ; null sans le droit de la modifier. */
+    customerPath: { type: String, default: null },
     resources: { type: Array, default: () => [] },
     resourceCreatePath: { type: String, default: "" },
     resourceUpdatePath: { type: String, default: "" },
@@ -211,21 +208,15 @@ const props = defineProps({
     canAddDeliverables: { type: Boolean, default: false },
     deliverableListPath: { type: String, default: "" },
     deliverableCreatePath: { type: String, default: "" },
+    deliverableImportPath: { type: String, default: "" },
+    /** The Studio templates a deliverable of this space may start from. */
+    deliverableTemplates: { type: Array, default: () => [] },
     deliverableVisibilityPathTemplate: { type: String, default: "" },
     deliverableDuplicatePathTemplate: { type: String, default: "" },
     deliverableDeletePathTemplate: { type: String, default: "" },
     deliverableLinksPathTemplate: { type: String, default: "" },
     deliverableCopyToStudioPathTemplate: { type: String, default: "" },
 });
-
-/**
- * La fiche telle qu'elle est en base, rafraîchie sans recharger la page.
- *
- * La propriété est ce que le serveur a rendu au chargement ; l'onglet la
- * réécrit en enregistrant, et le récapitulatif doit suivre. Une copie locale
- * est ce qui permet les deux sans que l'onglet modifie une propriété.
- */
-const informationNow = ref(props.information);
 
 const VIEWS = [
     { key: "content", labelKey: "suite.studio.space_content.view_content", icon: FileStack },
@@ -244,8 +235,9 @@ const VIEWS = [
     // qu'on les consulte et qu'on ne les règle pas.
     { key: "information", labelKey: "suite.studio.space_content.view_information", icon: IdCard },
     { key: "resources", labelKey: "suite.studio.space_content.view_resources", icon: Link2 },
-    // En dernier, et seulement pour qui peut configurer : une entrée de barre
-    // qui répondrait 404 à la moitié de l'équipe se lit comme une panne.
+    // Last, and only for whoever may edit the space (its form) or configure it
+    // (team and Drive): an entry that showed nothing to half the team would
+    // read as a failure.
     { key: "settings", labelKey: "suite.studio.space_content.view_settings", icon: Settings },
 ];
 
@@ -259,7 +251,10 @@ const VIEWS = [
 const views = computed(() =>
     VIEWS.filter((entry) => {
         if ("drive" === entry.key) return props.driveEnabled;
-        if ("settings" === entry.key) return props.canConfigure;
+        if ("settings" === entry.key) return props.canConfigure || !!props.spaceSettings;
+        // Les notes vivent dans le module Notes : sans lui, ou sans le droit
+        // de s'en servir, l'onglet mènerait à des écrans fermés.
+        if ("notes" === entry.key) return true === props.spaceNotes?.enabled;
 
         return true;
     }),
@@ -299,6 +294,10 @@ const itemInUrl = useQueryState("item");
 
 // Read from the address as it is: see `viewFromAddress`.
 const viewAtLoad = viewFromAddress(window.location.search, VIEWS.map((entry) => entry.key));
+
+// The message a search result points at, scrolled to in the room the server
+// opened (`?channel=`). Read once: it names where the page lands, not a state.
+const chatFocusMessageId = Number(new URLSearchParams(window.location.search).get("message")) || null;
 if (viewAtLoad) view.value = viewAtLoad;
 
 /**
@@ -428,95 +427,15 @@ async function attachFromDrive(file) {
 }
 
 const editable = computed(() => can("studio.spaces.edit"));
+// Montrer ou cacher au client, une étape, un canal ou un fichier : le droit de
+// partager l'espace, en plus de celui de le modifier.
+const canShowToClient = computed(() => editable.value && can("studio.spaces.share"));
 
-/**
- * Les notes de l'espace, la seule surface que le client ne voit pas.
- *
- * Elles réutilisent l'offre de nettoyage des fiches : supprimer une note ne
- * supprime pas ses images, et ce qui n'est plus utilisé nulle part est proposé
- * plutôt que jeté.
- */
-const {
-    notes: spaceNotes,
-    tab: notesTab,
-    tabs: notesTabs,
-    viewMode: notesViewMode,
-    storedViewMode: notesStoredViewMode,
-    setViewMode: setNotesViewMode,
-    container: notesContainer,
-    showForm: showNoteForm,
-    editing: editingNote,
-    form: noteForm,
-    errors: noteErrors,
-    loading: noteLoading,
-    openCreate: openNoteCreate,
-    openEdit: openNoteEdit,
-    submit: submitNote,
-    togglePin: toggleNotePin,
-    pendingDelete: pendingNoteDelete,
-    confirmDelete: confirmNoteDelete,
-    doDelete: deleteNote,
-    apply: applyNotes,
-} = useSpaceNotes(
-    props.notes,
-    {
-        createPath: props.noteCreatePath,
-        updatePath: props.noteUpdatePath,
-        deletePath: props.noteDeletePath,
-        pinPath: props.notePinPath,
-    },
-    // La même offre que les fichiers d'une fiche : un seul contrat, un seul
-    // composable pour le lire.
-    useOrphanedDocumentOffer().offer,
-);
-
-/**
- * L'import d'un document Craft.
- *
- * L'état tient en un booléen : la modale se charge elle-même à l'ouverture et
- * rend le mur entier à l'arrivée, comme toute écriture de cet écran.
- */
-const { request } = useRequest();
-const { offer: offerOrphanedDocuments } = useOrphanedDocumentOffer();
 const {
     confirming: confirmingReview,
     sending: sendingReview,
     send: sendReview,
 } = useSpaceReviewInvite(props.reviewPath);
-
-const craftOpen = ref(false);
-
-/**
- * La note qu'on s'apprête à remettre sur sa version Craft.
- *
- * Confirmée avant, parce que ce qui a été modifié ici disparaît : une note
- * importée est une copie, et la rafraîchir refait la copie.
- */
-const pendingCraftRefresh = ref(null);
-const craftRefreshing = ref(false);
-
-async function refreshFromCraft() {
-    const note = pendingCraftRefresh.value;
-
-    if (!note || craftRefreshing.value) return;
-
-    craftRefreshing.value = true;
-
-    try {
-        const data = await request(props.craftRefreshPath.replace("__id__", note.id));
-
-        if (data) {
-            applyNotes(data);
-            // La même offre que partout : ce que plus personne n'utilise est
-            // proposé, jamais jeté tout seul.
-            offerOrphanedDocuments(data);
-            toast.success(t("suite.studio.craft.import.refreshed"));
-            pendingCraftRefresh.value = null;
-        }
-    } finally {
-        craftRefreshing.value = false;
-    }
-}
 
 /**
  * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
@@ -530,12 +449,14 @@ const {
     upload: uploadOwnFile,
     pick: pickOwnFile,
     remove: removeOwnFile,
+    toggleVisibility: toggleOwnFileVisibility,
 } = useSpaceOwnFiles(
     props.spaceFiles,
     {
         uploadPath: props.spaceFileUploadPath,
         attachPath: props.spaceFileAttachPath,
         removePath: props.spaceFileRemovePath,
+        visibilityPath: props.spaceFileVisibilityPath,
     },
     useOrphanedDocumentOffer().offer,
 );
@@ -699,7 +620,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                  replié ou déplié, le choix vaut pour tous les encarts. -->
                 <AppGuide :title="t('suite.studio.space_content.guide.title')" storage-key="space-content" class="mb-[var(--aurora-page-margin)]">
                     <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                        <li v-for="step in 5" :key="step">{{ t(`suite.studio.space_content.guide.step_${step}`) }}</li>
+                        <li v-for="step in 6" :key="step">{{ t(`suite.studio.space_content.guide.step_${step}`) }}</li>
                     </ol>
                 </AppGuide>
                 <!-- Filtrées, les colonnes n'ont plus toutes leurs cartes : un
@@ -738,12 +659,14 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :items="liveItems"
                 :space-files="ownFiles"
                 :editable="editable"
+                :can-show-to-client="canShowToClient"
                 :can-pick="can('ged.documents.view')"
                 :loading="ownFilesLoading"
                 v-on:open-item="openItemEdit"
                 v-on:upload="uploadOwnFile"
                 v-on:pick="pickOwnFile"
                 v-on:remove="removeOwnFile"
+                v-on:toggle-visibility="toggleOwnFileVisibility"
             />
 
             <!-- Sa propre vue, à côté de Fichiers. La barre sépare déjà par
@@ -768,10 +691,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 
             <SpaceInformationView
                 v-else-if="view === 'information'"
-                :information="informationNow"
-                :save-path="informationSavePath"
+                :information="information"
                 :related="related"
-                v-on:saved="informationNow = $event"
+                :customer-path="customerPath"
             />
 
             <SpaceDeliverablesView
@@ -782,6 +704,8 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :can-add="canAddDeliverables"
                 :list-path="deliverableListPath"
                 :create-path="deliverableCreatePath"
+                :import-path="deliverableImportPath"
+                :templates="deliverableTemplates"
                 :visibility-path-template="deliverableVisibilityPathTemplate"
                 :duplicate-path-template="deliverableDuplicatePathTemplate"
                 :delete-path-template="deliverableDeletePathTemplate"
@@ -799,12 +723,14 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :resource-reorder-path="resourceReorderPath"
             />
 
-            <!-- En dernier dans la barre, et seulement pour qui peut configurer.
-             La serrure remonte d'ici vers la vue Drive : c'est le même écran
-             qui la pose et celui qui la subit, et ils doivent s'accorder sans
-             rechargement. -->
+            <!-- Last in the bar: the space form for its editors, the team and
+             the Drive for its lead. The Drive lock goes up from here to the
+             Drive view: the screen that sets it and the one that suffers it
+             must agree without a reload. -->
             <SpaceSettingsView
-                v-else-if="view === 'settings' && canConfigure"
+                v-else-if="view === 'settings' && (canConfigure || spaceSettings)"
+                :space-settings="spaceSettings"
+                :can-configure="canConfigure"
                 :settings-path="settingsPath"
                 :agency-folder-id="driveAgencyFolderNow"
                 :agency-folder-path="driveAgencyFolderPath"
@@ -852,10 +778,11 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                     :delete-path="editable ? chatDeletePath : null"
                     :channels="chatChannels"
                     :channel-id="chatChannelId"
+                    :focus-message-id="chatFocusMessageId"
                     :team="chatTeam"
                     :channel-create-path="editable ? chatChannelCreatePath : null"
                     :channel-rename-path="editable ? chatChannelRenamePath : null"
-                    :channel-audience-path="editable ? chatChannelAudiencePath : null"
+                    :channel-audience-path="canShowToClient ? chatChannelAudiencePath : null"
                     :channel-delete-path="editable ? chatChannelDeletePath : null"
                     :channel-invite-path="editable ? chatChannelInvitePath : null"
                     :channel-uninvite-path="editable ? chatChannelUninvitePath : null"
@@ -866,27 +793,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 />
             </div>
 
-            <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
-             décide de la forme, pas la fenêtre. -->
-            <div v-else-if="view === 'notes'" ref="notesContainer">
-                <SpaceNotesView
-                    :notes="spaceNotes"
-                    :tab="notesTab"
-                    :tabs="notesTabs"
-                    :view-mode="notesViewMode"
-                    :stored-view-mode="notesStoredViewMode"
-                    :editable="editable"
-                    :craft-enabled="craftEnabled"
-                    v-on:create="openNoteCreate"
-                    v-on:open="openNoteEdit"
-                    v-on:pin="toggleNotePin"
-                    v-on:delete="confirmNoteDelete"
-                    v-on:set-view="setNotesViewMode"
-                    v-on:set-tab="notesTab = $event"
-                    v-on:import-craft="craftOpen = true"
-                    v-on:refresh-craft="pendingCraftRefresh = $event"
-                />
-            </div>
+            <!-- La porte de l'espace de notes : les notes s'écrivent dans
+                 le module Notes. -->
+            <SpaceNoteSpaceView v-else-if="view === 'notes'" :state="spaceNotes" />
 
             <SpaceCalendarView
                 v-else
@@ -1049,11 +958,19 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                      obligerait à y repenser à chaque création, et la première
                      oubliée annulerait la protection. -->
                     <AppCheckbox
-                        :model-value="false !== columnForm.visibleToClient"
+                        v-if="canShowToClient"
+                        :model-value="true === columnForm.visibleToClient"
                         :label="t('suite.studio.space_content.column_visible')"
                         :hint="t('suite.studio.space_content.column_visible_hint')"
                         v-on:update:model-value="columnForm = { ...columnForm, visibleToClient: $event }"
                     />
+                    <!-- Sans le droit de partager, l'état se lit et ne se
+                         change pas : montrer une étape au client est le même
+                         geste que lui donner un lien d'accès. -->
+                    <p v-else class="m-0 text-xs text-muted">
+                        {{ t(true === columnForm.visibleToClient ? "suite.studio.space_content.column_state_visible" : "suite.studio.space_content.column_state_hidden") }}
+                        {{ t("suite.studio.client_visibility.share_needed") }}
+                    </p>
                 </form>
                 <template #footer>
                     <AppModalFooter>
@@ -1078,7 +995,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :show="!!pendingItemDelete"
                 max-width="sm"
                 :closeable="false"
-                :title="t('shared.common.delete')"
+                :title="t('suite.studio.space_content.trash_action')"
                 :icon="Trash2"
                 v-on:close="pendingItemDelete = null"
             >
@@ -1105,7 +1022,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                             v-on:click="deleteItem"
                         >
                             <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.delete") }}
+                            {{ t("suite.studio.space_content.trash_action") }}
                         </AppButton>
                     </AppModalFooter>
                 </template>
@@ -1141,83 +1058,6 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                             :loading="columnDeleteLoading"
                             v-on:click="deleteColumn"
                         >
-                            <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.delete") }}
-                        </AppButton>
-                    </AppModalFooter>
-                </template>
-            </AppModal>
-
-            <SpaceNoteCraftModal
-                v-if="craftEnabled"
-                :show="craftOpen"
-                :documents-path="craftDocumentsPath"
-                :import-path="craftImportPath"
-                v-on:close="craftOpen = false"
-                v-on:imported="applyNotes"
-            />
-
-            <SpaceNoteFormModal
-                :show="showNoteForm"
-                :model-value="noteForm"
-                :errors="noteErrors"
-                :loading="noteLoading"
-                :editing="!!editingNote"
-                :upload-url="noteImagePath"
-                v-on:update:model-value="noteForm = $event"
-                v-on:close="showNoteForm = false"
-                v-on:submit="submitNote"
-            />
-
-            <AppModal
-                :show="!!pendingCraftRefresh"
-                max-width="sm"
-                :closeable="false"
-                :title="t('suite.studio.craft.import.refresh')"
-                :icon="RefreshCw"
-                v-on:close="pendingCraftRefresh = null"
-            >
-                <p class="text-sm text-primary">
-                    {{ t("suite.studio.craft.import.refresh_confirm", { title: pendingCraftRefresh?.title ?? "" }) }}
-                </p>
-                <p class="text-sm text-secondary">
-                    {{ t("suite.studio.craft.import.refresh_warning") }}
-                </p>
-                <template #footer>
-                    <AppModalFooter>
-                        <AppButton variant="ghost" size="md" v-on:click="pendingCraftRefresh = null">
-                            <X class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.cancel") }}
-                        </AppButton>
-                        <AppButton variant="primary" size="md" :loading="craftRefreshing" v-on:click="refreshFromCraft">
-                            <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("suite.studio.craft.import.refresh_submit") }}
-                        </AppButton>
-                    </AppModalFooter>
-                </template>
-            </AppModal>
-
-            <AppModal
-                :show="!!pendingNoteDelete"
-                max-width="sm"
-                :closeable="false"
-                :title="t('shared.common.delete')"
-                :icon="Trash2"
-                v-on:close="pendingNoteDelete = null"
-            >
-                <p class="text-sm text-primary">
-                    {{ t("suite.studio.space_notes.delete_confirm", { title: pendingNoteDelete?.title ?? "" }) }}
-                </p>
-                <p class="text-sm text-secondary">
-                    {{ t("suite.studio.space_notes.delete_warning") }}
-                </p>
-                <template #footer>
-                    <AppModalFooter>
-                        <AppButton variant="ghost" size="md" v-on:click="pendingNoteDelete = null">
-                            <X class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("shared.common.cancel") }}
-                        </AppButton>
-                        <AppButton variant="danger" size="md" :loading="noteLoading" v-on:click="deleteNote">
                             <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
                             {{ t("shared.common.delete") }}
                         </AppButton>

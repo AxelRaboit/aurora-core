@@ -167,6 +167,12 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             return null;
         }
 
+        // Un espace à la corbeille ne répond plus à ses liens, comme un lien
+        // inconnu ; ils reprennent tels quels s'il est restauré.
+        if ($link->getSpace()->isTrashed()) {
+            return null;
+        }
+
         return $link;
     }
 

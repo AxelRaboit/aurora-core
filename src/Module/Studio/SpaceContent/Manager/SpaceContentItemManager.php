@@ -11,6 +11,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
@@ -84,8 +85,55 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->announceSchedule($item);
     }
 
-    public function delete(SpaceContentItemInterface $item): void
+    /**
+     * Met le contenu à la corbeille : il quitte le tableau, la liste, le
+     * calendrier, les comptes et la page du client, et sa date quitte le
+     * Planning. Rien n'est détruit : son étape, son fil, ses fichiers et la
+     * réponse du client restent en base, et la restauration remet tout comme
+     * c'était.
+     */
+    public function trash(SpaceContentItemInterface $item): void
     {
+        if ($item->isTrashed()) {
+            return;
+        }
+
+        $item->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->auditTrashed($item);
+        $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, (int) $item->getId()));
+    }
+
+    /**
+     * Sort le contenu de la corbeille, en bas de son étape : celle qu'il avait,
+     * ou la première du tableau si la sienne a été supprimée entre-temps
+     * ({@see SpaceContentColumnManager::delete()} l'y a déjà rangé). Sa date
+     * revient au calendrier et au Planning.
+     */
+    public function restore(SpaceContentItemInterface $item): void
+    {
+        if (!$item->isTrashed()) {
+            return;
+        }
+
+        $item->setDeletedAt(null);
+        $item->setPosition($this->itemRepository->nextPosition($item->getColumn()));
+
+        $this->entityManager->flush();
+
+        $this->auditRestored($item);
+        $this->announceSchedule($item);
+    }
+
+    /**
+     * Détruit le contenu pour de bon, avec son fil et ses fichiers attachés
+     * (les documents restent dans la médiathèque). Le bouton « Supprimer
+     * définitivement » de la corbeille et la purge planifiée y passent.
+     */
+    public function forceDelete(SpaceContentItemInterface $item): void
+    {
+        // Journalisé avant d'être retiré : après, il n'a plus d'identifiant.
         $this->auditDeleted($item);
 
         $id = (int) $item->getId();
@@ -96,6 +144,17 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         // After the row is gone, not before: an announcement that fails must
         // not leave a card deleted from the calendar and present on the board.
         $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
+    }
+
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
+    {
+        $purged = 0;
+        foreach ($this->itemRepository->findTrashedBefore($cutoff) as $item) {
+            $this->forceDelete($item);
+            ++$purged;
+        }
+
+        return $purged;
     }
 
     /**
@@ -195,7 +254,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         // Never folded into an earlier one: answering twice is changing one's
         // mind, and the second answer is the one that counts.
-        $this->notifier->clientAnswered($item, $link->getRecipientEmail(), SpaceContentApprovalEnum::Approved === $approval);
+        $this->notifier->clientAnswered($item, SpaceAccessLinkLabel::of($link), SpaceContentApprovalEnum::Approved === $approval);
     }
 
     public function approveMany(array $items, SpaceAccessLinkInterface $link): int
@@ -227,9 +286,9 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         ));
 
         if (1 === count($approved)) {
-            $this->notifier->clientAnswered($approved[0], $link->getRecipientEmail(), true);
+            $this->notifier->clientAnswered($approved[0], SpaceAccessLinkLabel::of($link), true);
         } else {
-            $this->notifier->clientApprovedMany($link->getSpace(), $link->getRecipientEmail(), count($approved));
+            $this->notifier->clientApprovedMany($link->getSpace(), SpaceAccessLinkLabel::of($link), count($approved));
         }
 
         return count($approved);
@@ -293,7 +352,8 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         // c'est le seul endroit où cette règle peut être dite une fois.
         // Et une carte d'un espace archivé non plus : son travail est fini, et
         // elle encombrerait l'agenda de ceux qui s'occupent des autres.
-        if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar() || $space->isArchived()) {
+        // Ni une carte à la corbeille, ni celle d'un espace à la corbeille.
+        if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar() || $space->isArchived() || $item->isTrashed() || $space->isTrashed()) {
             $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
 
             return;
@@ -408,6 +468,16 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             // and the email the link was sent to is the only name there is.
             'answeredBy' => $item->getApprovalByLink()?->getRecipientEmail(),
         ];
+    }
+
+    protected function auditTrashed(SpaceContentItemInterface $item): void
+    {
+        $this->auditLogger->log('studio', 'space_content_item.trashed', 'SpaceContentItem', $item->getId(), $this->auditPayload($item));
+    }
+
+    protected function auditRestored(SpaceContentItemInterface $item): void
+    {
+        $this->auditLogger->log('studio', 'space_content_item.restored', 'SpaceContentItem', $item->getId(), $this->auditPayload($item));
     }
 
     protected function auditDeleted(SpaceContentItemInterface $item): void

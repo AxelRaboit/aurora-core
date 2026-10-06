@@ -7,6 +7,7 @@
  * that has to go in it. Shipping the shell first would have been a click that
  * leads to an empty screen.
  */
+import StudioSectionTabs from "../../../../assets/suite/components/StudioSectionTabs.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,7 +33,7 @@ import CustomerSpaceTeamCell from "./components/CustomerSpaceTeamCell.vue";
 import SpaceWorkloadBadges from "../../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
-import { PanelsTopLeft, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
+import { PanelsTopLeft, Plus, Save, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { container, isNarrow } = useNarrowContainer();
@@ -49,6 +50,9 @@ function weigh(bytes) {
 const { can } = usePrivileges();
 
 const props = defineProps({
+    /** Les deux onglets de l'entrée « Espaces clients » : la liste et le calendrier. */
+    spacesPath: { type: String, default: "" },
+    calendarPath: { type: String, default: "" },
     spaces: { type: Array, default: () => [] },
     customers: { type: Array, default: () => [] },
     users: { type: Array, default: () => [] },
@@ -63,15 +67,18 @@ const props = defineProps({
     storage: { type: Object, default: () => ({}) },
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
+    /** Ouvrir un espace pour un prospect crée sa fiche : réservé à qui crée des clients. */
+    canCreateCustomer: { type: Boolean, default: false },
     boardPath: { type: String, required: true },
     createPath: { type: String, required: true },
-    updatePath: { type: String, required: true },
     convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
 });
 
 const {
     search,
+    filteredCustomer,
+    clearCustomerFilter,
     items,
     visibleItems,
     tab,
@@ -85,13 +92,6 @@ const {
     createLoading,
     openCreate,
     submitCreate,
-    showEdit,
-    editingSpace,
-    editForm,
-    editErrors,
-    editLoading,
-    openEdit,
-    submitEdit,
     pendingDelete,
     deleteLoading,
     confirmDelete,
@@ -101,7 +101,6 @@ const {
     props.customers,
     props.users,
     props.createPath,
-    props.updatePath,
     props.deletePath,
 );
 
@@ -130,7 +129,9 @@ const {
 const actionsFor = useSpaceRowActions({
     can,
     boardHref,
-    openEdit,
+    // Editing a space happens on its Settings tab, where everything about
+    // it is gathered; the list keeps only the creation modal.
+    settingsHref: (space) => `${boardHref(space)}?view=settings`,
     convertToClient: (space) =>
         openConversion(space, {
             id: space.customerId,
@@ -202,6 +203,14 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
+        <StudioSectionTabs
+            current="spaces"
+            :tabs="[
+                { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
+                { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
+            ]"
+            :label="t('suite.studio.spaces.tabs_label')"
+        />
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -215,6 +224,18 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
+        <!-- Arrivé depuis la fiche d'une société : on le dit, et on se défait
+             du filtre d'un geste, plutôt qu'une liste mystérieusement courte. -->
+        <div
+            v-if="filteredCustomer"
+            class="flex flex-wrap items-center gap-2 text-sm text-secondary"
+        >
+            <span>{{ t("suite.studio.spaces.customer_filter", { name: filteredCustomer.name }) }}</span>
+            <AppButton variant="ghost" size="sm" v-on:click="clearCustomerFilter">
+                <X class="w-3.5 h-3.5" :stroke-width="2" />
+                {{ t("suite.studio.spaces.customer_filter_clear") }}
+            </AppButton>
+        </div>
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
              replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('suite.studio.spaces.guide.title')" storage-key="spaces-list">
@@ -459,6 +480,7 @@ const pageActions = computed(() => {
                 <CustomerSpaceFormFields
                     v-model="newSpace"
                     :errors="createErrors"
+                    :can-create-customer="canCreateCustomer"
                     :customer-options="customerOptions"
                     :users="users"
                     :statuses="statuses"
@@ -486,51 +508,10 @@ const pageActions = computed(() => {
         </AppModal>
 
         <AppModal
-            :show="showEdit"
-            max-width="2xl"
-            :title="
-                t('suite.studio.spaces.edit', { name: editingSpace?.name ?? '' })
-            "
-            :icon="Pencil"
-            :closeable="false"
-            v-on:close="showEdit = false"
-        >
-            <form v-on:submit.prevent="submitEdit">
-                <CustomerSpaceFormFields
-                    v-model="editForm"
-                    :errors="editErrors"
-                    :customer-options="customerOptions"
-                    :users="users"
-                    :statuses="statuses"
-                    :roles="roles"
-                    :timezones="timezones"
-                    :can-edit-team="editingSpace?.canConfigure ?? false"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showEdit = false">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="editLoading"
-                        v-on:click="submitEdit"
-                    >
-                        <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
             :show="!!pendingDelete"
             max-width="sm"
             :closeable="false"
-            :title="t('shared.common.delete')"
+            :title="t('suite.studio.spaces.trash_action')"
             :icon="Trash2"
             v-on:close="pendingDelete = null"
         >
@@ -557,7 +538,7 @@ const pageActions = computed(() => {
                         v-on:click="doDelete"
                     >
                         <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
+                        {{ t("suite.studio.spaces.trash_action") }}
                     </AppButton>
                 </AppModalFooter>
             </template>

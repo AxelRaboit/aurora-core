@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpaceContentItemRepository::class)]
 #[ORM\Table(name: 'core_studio_space_content_items')]
+#[ORM\Index(name: 'idx_space_content_item_deleted_at', columns: ['deleted_at'])]
 class SpaceContentItem extends AbstractSpaceContentItem
 {
     #[ORM\Id]

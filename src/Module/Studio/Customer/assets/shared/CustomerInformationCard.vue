@@ -42,7 +42,7 @@ const ROWS = [
     { key: "phone", labelKey: "shared.space_information.phone", icon: Smartphone, href: (v) => `tel:${v.replace(/\s/g, "")}` },
     { key: "landline", labelKey: "shared.space_information.landline", icon: Phone, href: (v) => `tel:${v.replace(/\s/g, "")}` },
     { key: "email", labelKey: "shared.space_information.email", icon: AtSign, href: (v) => `mailto:${v}` },
-    { key: "postalAddress", labelKey: "shared.space_information.postal_address", icon: MapPin, multiline: true },
+    { key: "postalAddress", labelKey: "shared.space_information.registered_office", icon: MapPin, multiline: true },
 ];
 
 const rows = computed(() => ROWS.filter((row) => {

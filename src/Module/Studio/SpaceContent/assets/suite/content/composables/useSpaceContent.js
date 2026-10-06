@@ -247,7 +247,9 @@ export function useSpaceContent(initial, paths) {
     const columnForm = ref({
         name: "",
         colourSlot: null,
-        visibleToClient: true,
+        // Cachée au client tant que quelqu'un qui peut partager l'espace
+        // ne la montre pas : la règle de tout l'espace.
+        visibleToClient: false,
         role: "",
     });
 
@@ -288,7 +290,7 @@ export function useSpaceContent(initial, paths) {
         columnForm.value = {
             name: "",
             colourSlot: null,
-            visibleToClient: true,
+            visibleToClient: false,
             role: "",
         };
         clearColumnErrors();
@@ -300,7 +302,7 @@ export function useSpaceContent(initial, paths) {
         columnForm.value = {
             name: column.name,
             colourSlot: column.colourSlot ?? null,
-            visibleToClient: false !== column.visibleToClient,
+            visibleToClient: true === column.visibleToClient,
             role: column.role ?? "",
         };
         clearColumnErrors();

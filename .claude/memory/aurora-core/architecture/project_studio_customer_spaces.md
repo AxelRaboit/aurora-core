@@ -12,6 +12,9 @@ nommer le même client** : `ManyToOne`, pas `OneToOne`. Un client avec deux
 marques fait tourner deux calendriers.
 
 Son contenu vit dans `SpaceContent/`, son accès client dans `SpaceAccess/`.
+Ses notes ne vivent pas dans Studio : elles sont dans un espace de notes du
+module Notes, que l'onglet Notes ouvre ; voir
+[[decision_space_notes_in_notes_module]].
 
 ## Les trois décisions qui structurent tout
 
@@ -69,7 +72,10 @@ arrivé **avec** l'écriture qu'il gouverne. Une colonne représentant une
 permission que personne n'applique est un interrupteur qui ne fait rien
 (cf. [[project_planning_share_link_write_access]]). La route est limitée en débit
 par `space_guest_write`, **déclaré dans les deux dépôts**
-(cf. [[pitfall_rate_limiter_client_config]]).
+(cf. [[pitfall_rate_limiter_client_config]]). Les droits sont depuis cinq
+(`canChat`, `canUpload`, `canSeeDrive` en plus) ; `canUpload` ouvre l'envoi
+sur un contenu et à l'espace lui-même, sous `space_guest_upload`
+(cf. [[decision_client_sends_space_files]]).
 
 ## Verdict et mots : deux durées de vie
 
@@ -124,6 +130,10 @@ l'onglet Fichiers adossé à la GED, puis le miroir Google Drive.
 
 ## Liens
 
+- [[decision_client_visibility_one_rule]] - ce que le client voit dans son
+  espace : tout naît caché, montrer demande le droit de partager.
+- [[decision_customer_page_single_write_path]] - l'onglet Informations est en
+  lecture ; la fiche du client s'écrit sur sa page.
 - [[architecture_module_parameter_enum]] - corrigée pendant le lot 1 : elle
   décrivait des enums par module qui n'existent plus.
 - [[project_planning_share_link_write_access]] - les deux prérequis à une

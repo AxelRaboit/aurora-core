@@ -426,7 +426,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertSame([], $this->entityManager->getRepository(DeliverableLink::class)->findBy(['deliverable' => $copy]));
     }
 
-    /** Un livrable n'a de sens que pour son client : il part avec l'espace. */
+    /** Un livrable n'a de sens que pour son client : il part avec l'espace détruit pour de bon. */
     public function testDeletingTheSpaceDeletesItsDeliverables(): void
     {
         $space = $this->givenSpace();
@@ -435,7 +435,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
 
         $live = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
         self::assertInstanceOf(CustomerSpace::class, $live);
-        self::getContainer()->get(CustomerSpaceManagerInterface::class)->delete($live);
+        self::getContainer()->get(CustomerSpaceManagerInterface::class)->forceDelete($live);
 
         $this->entityManager->clear();
         self::assertNull($this->entityManager->find(Deliverable::class, $deliverable));

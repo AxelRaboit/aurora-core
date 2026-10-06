@@ -22,13 +22,17 @@ const PROPS = {
             colourSlot: 2,
         },
     ],
-    itemsPath: "/suite/studio/calendar/items",
+    itemsPath: "/suite/studio/spaces/calendar/items",
 };
 
 const mounted = [];
 
 function render(search) {
-    window.history.replaceState(null, "", `/suite/studio/calendar${search}`);
+    window.history.replaceState(
+        null,
+        "",
+        `/suite/studio/spaces/calendar${search}`,
+    );
     const wrapper = mount(StudioCalendarApp, {
         props: PROPS,
         global: { plugins: [i18n] },

@@ -67,6 +67,14 @@ interface NoteSpaceInterface extends TimestampableInterface
 
     public function setDeletedAt(?DateTimeImmutable $at): static;
 
+    /** Ce qui règle l'espace à la place de ses gestionnaires ; null pour un espace ordinaire. */
+    public function getManagedBy(): ?string;
+
+    public function setManagedBy(?string $managedBy): static;
+
+    /** Son nom, son accès et ses membres viennent d'ailleurs : l'écran des notes ne les règle pas. */
+    public function isManaged(): bool;
+
     /** @return Collection<int, NoteSpaceMemberInterface> */
     public function getMembers(): Collection;
 }
