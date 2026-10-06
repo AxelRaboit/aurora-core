@@ -184,9 +184,10 @@ const props = defineProps({
     driveServiceAccountEmail: { type: String, default: null },
     driveUnlockPath: { type: String, default: "" },
     driveLocked: { type: Boolean, default: false },
-    /** La fiche du client, portée par la société et non par ce projet. */
+    /** La fiche du client, portée par la société et non par ce projet ; en lecture ici. */
     information: { type: Object, default: () => ({}) },
-    informationSavePath: { type: String, default: "" },
+    /** La page du client, où la fiche se modifie ; null sans le droit de la modifier. */
+    customerPath: { type: String, default: null },
     resources: { type: Array, default: () => [] },
     resourceCreatePath: { type: String, default: "" },
     resourceUpdatePath: { type: String, default: "" },
@@ -208,15 +209,6 @@ const props = defineProps({
     deliverableLinksPathTemplate: { type: String, default: "" },
     deliverableCopyToStudioPathTemplate: { type: String, default: "" },
 });
-
-/**
- * La fiche telle qu'elle est en base, rafraîchie sans recharger la page.
- *
- * La propriété est ce que le serveur a rendu au chargement ; l'onglet la
- * réécrit en enregistrant, et le récapitulatif doit suivre. Une copie locale
- * est ce qui permet les deux sans que l'onglet modifie une propriété.
- */
-const informationNow = ref(props.information);
 
 const VIEWS = [
     { key: "content", labelKey: "suite.studio.space_content.view_content", icon: FileStack },
@@ -686,10 +678,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 
             <SpaceInformationView
                 v-else-if="view === 'information'"
-                :information="informationNow"
-                :save-path="informationSavePath"
+                :information="information"
                 :related="related"
-                v-on:saved="informationNow = $event"
+                :customer-path="customerPath"
             />
 
             <SpaceDeliverablesView

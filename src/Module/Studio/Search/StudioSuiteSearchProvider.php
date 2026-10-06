@@ -201,9 +201,8 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                     $this->translator->trans($customer->getStatus()->getLabelKey()),
                     $customer->getSiret(),
                 ]),
-                // The list has no page per customer; it reads `?search=` on
-                // load, so the link lands on the list filtered to this one.
-                'path' => $this->urlGenerator->generate('suite_studio_customers', ['search' => $customer->getLegalName()]),
+                // Sa page, où toute la fiche se lit et se modifie.
+                'path' => $this->urlGenerator->generate('suite_studio_customers_show', ['id' => $customer->getId()]),
             ],
             $this->customers->searchByNameOrNumber($query, self::LIMIT),
         );

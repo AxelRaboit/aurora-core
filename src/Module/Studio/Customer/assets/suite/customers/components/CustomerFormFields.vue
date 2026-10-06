@@ -1,17 +1,22 @@
 <script setup>
 /**
- * The identity block of a customer, as one component.
+ * The whole record of a customer, as one component.
  *
  * Create and edit ask for exactly the same fields, so they share these rather
- * than each carrying their own copy - two copies of a fifteen-field form drift
- * the first time one field is added to only one of them.
+ * than each carrying their own copy - two copies of a form drift the first time
+ * one field is added to only one of them. That is not a hypothetical: the
+ * Information tab of a space had its own form, with the SIREN, the landline,
+ * the links and the notes that this one lacked. It is read-only now, and every
+ * field lives here.
  *
  * The grouping is the one the contracts use: who the company is, who signs for
- * it, how to reach it. Reading the form and reading the contract's opening
- * page should feel like the same document.
+ * it, how to reach it. Then what the client reads on their own page: links and
+ * notes.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { Plus, Trash2 } from "lucide-vue-next";
+import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -19,7 +24,6 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 const props = defineProps({
     modelValue: { type: Object, required: true },
     errors: { type: Object, default: () => ({}) },
-    userOptions: { type: Array, default: () => [] },
     currencies: { type: Array, default: () => [] },
 });
 
@@ -43,6 +47,35 @@ const form = computed(() => props.modelValue);
 
 function set(field, value) {
     emit("update:modelValue", { ...props.modelValue, [field]: value });
+}
+
+const links = computed(() => (Array.isArray(form.value.links) ? form.value.links : []));
+
+function setLink(index, field, value) {
+    set(
+        "links",
+        links.value.map((link, at) => (at === index ? { ...link, [field]: value } : link)),
+    );
+}
+
+function addLink() {
+    set("links", [...links.value, { label: "", url: "" }]);
+}
+
+function removeLink(index) {
+    set(
+        "links",
+        links.value.filter((_link, at) => at !== index),
+    );
+}
+
+/**
+ * L'erreur d'une ligne de liens. Le serveur les rend sous `links[2].url`, ce
+ * qui permet de la poser sous le bon champ plutôt que d'annoncer qu'« un des
+ * liens » est invalide.
+ */
+function linkError(index, field) {
+    return props.errors[`links[${index}].${field}`] ?? "";
 }
 
 const currencyOptions = computed(() =>
@@ -128,7 +161,7 @@ const currencyOptions = computed(() =>
                 v-on:update:model-value="set('registeredOffice', $event)"
             />
 
-            <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid gap-4 sm:grid-cols-2">
                 <AppInput
                     :model-value="form.siret"
                     :label="t('suite.studio.customers.siret')"
@@ -137,6 +170,17 @@ const currencyOptions = computed(() =>
                     :hint="t('suite.studio.customers.siret_hint')"
                     v-on:update:model-value="set('siret', $event)"
                 />
+                <AppInput
+                    :model-value="form.siren"
+                    :label="t('suite.studio.customers.siren')"
+                    :placeholder="t('suite.studio.customers.siren_placeholder')"
+                    :error="errors.siren"
+                    :hint="t('suite.studio.customers.siren_hint')"
+                    v-on:update:model-value="set('siren', $event)"
+                />
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
                 <AppInput
                     :model-value="form.tradeRegister"
                     :label="t('suite.studio.customers.trade_register')"
@@ -189,17 +233,18 @@ const currencyOptions = computed(() =>
                 {{ t("suite.studio.customers.group_contact") }}
             </h3>
 
+            <AppInput
+                :model-value="form.contractualEmail"
+                :label="t('suite.studio.customers.contractual_email')"
+                :placeholder="t('suite.studio.customers.contractual_email_placeholder')"
+                :error="errors.contractualEmail"
+                :hint="t('suite.studio.customers.contractual_email_hint')"
+                type="email"
+                :required="'prospect' !== form.status"
+                v-on:update:model-value="set('contractualEmail', $event)"
+            />
+
             <div class="grid gap-4 sm:grid-cols-2">
-                <AppInput
-                    :model-value="form.contractualEmail"
-                    :label="t('suite.studio.customers.contractual_email')"
-                    :placeholder="t('suite.studio.customers.contractual_email_placeholder')"
-                    :error="errors.contractualEmail"
-                    :hint="t('suite.studio.customers.contractual_email_hint')"
-                    type="email"
-                    :required="'prospect' !== form.status"
-                    v-on:update:model-value="set('contractualEmail', $event)"
-                />
                 <AppInput
                     :model-value="form.phone"
                     :label="t('suite.studio.customers.phone')"
@@ -207,16 +252,85 @@ const currencyOptions = computed(() =>
                     :error="errors.phone"
                     v-on:update:model-value="set('phone', $event)"
                 />
+                <AppInput
+                    :model-value="form.landline"
+                    :label="t('suite.studio.customers.landline')"
+                    :placeholder="t('suite.studio.customers.landline_placeholder')"
+                    :error="errors.landline"
+                    v-on:update:model-value="set('landline', $event)"
+                />
+            </div>
+        </section>
+
+        <!-- Ce que le client lit dans l'onglet Informations de ses espaces :
+             le dire ici, puisque c'est ici qu'on l'écrit. -->
+        <section class="space-y-4">
+            <div class="space-y-0.5">
+                <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
+                    {{ t("suite.studio.customers.group_links") }}
+                </h3>
+                <p class="m-0 text-xs text-muted">{{ t("suite.studio.customers.group_links_hint") }}</p>
             </div>
 
-            <AppSelect
-                :model-value="String(form.userId ?? '')"
-                :label="t('suite.studio.customers.account')"
-                :placeholder="t('suite.studio.customers.account_none')"
-                :options="userOptions"
-                :hint="t('suite.studio.customers.account_hint')"
-                :error="errors.userId"
-                v-on:update:model-value="set('userId', $event)"
+            <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-0.5">
+                    <p class="m-0 text-sm font-medium text-primary">{{ t("suite.studio.customers.links") }}</p>
+                    <p class="m-0 text-xs text-muted">{{ t("suite.studio.customers.links_hint") }}</p>
+                </div>
+
+                <div
+                    v-for="(link, index) in links"
+                    :key="index"
+                    class="flex flex-col gap-2 sm:flex-row sm:items-start"
+                    data-customer-link
+                >
+                    <AppInput
+                        :model-value="link.label"
+                        class="sm:w-1/3"
+                        :placeholder="t('suite.studio.customers.link_label_placeholder')"
+                        :error="linkError(index, 'label')"
+                        v-on:update:model-value="setLink(index, 'label', $event)"
+                    />
+                    <AppInput
+                        :model-value="link.url"
+                        class="sm:flex-1"
+                        :placeholder="t('suite.studio.customers.link_url_placeholder')"
+                        :error="linkError(index, 'url')"
+                        v-on:update:model-value="setLink(index, 'url', $event)"
+                    />
+                    <!-- Le geste est écrit en toutes lettres sur téléphone :
+                         une icône seule dans une ligne de champs ne dit pas
+                         laquelle des deux lignes elle retire. -->
+                    <AppButton
+                        variant="ghost"
+                        size="sm"
+                        class="w-full justify-center sm:w-auto"
+                        v-on:click="removeLink(index)"
+                    >
+                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                        <span>{{ t("suite.studio.customers.link_remove") }}</span>
+                    </AppButton>
+                </div>
+
+                <AppButton
+                    variant="ghost"
+                    size="sm"
+                    class="w-full justify-center sm:w-auto sm:self-start"
+                    v-on:click="addLink"
+                >
+                    <Plus class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("suite.studio.customers.link_add") }}
+                </AppButton>
+            </div>
+
+            <AppTextarea
+                :model-value="form.informationNotes"
+                :label="t('suite.studio.customers.notes')"
+                :placeholder="t('suite.studio.customers.notes_placeholder')"
+                :hint="t('suite.studio.customers.notes_hint')"
+                :error="errors.informationNotes"
+                :rows="5"
+                v-on:update:model-value="set('informationNotes', $event)"
             />
         </section>
     </div>

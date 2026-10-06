@@ -39,5 +39,12 @@ interface CustomerInputInterface
 
     public function getPhone(): ?string;
 
-    public function getUserId(): ?int;
+    public function getSiren(): ?string;
+
+    public function getLandline(): ?string;
+
+    /** @return list<array{label: string, url: string}> */
+    public function getLinks(): array;
+
+    public function getInformationNotes(): ?string;
 }

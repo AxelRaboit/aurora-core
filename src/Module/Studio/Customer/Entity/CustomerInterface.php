@@ -6,7 +6,6 @@ namespace Aurora\Module\Studio\Customer\Entity;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableInterface;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 
 interface CustomerInterface extends TimestampableInterface
@@ -92,10 +91,6 @@ interface CustomerInterface extends TimestampableInterface
     public function getInformationNotes(): ?string;
 
     public function setInformationNotes(?string $informationNotes): static;
-
-    public function getUser(): ?CoreUserInterface;
-
-    public function setUser(?CoreUserInterface $user): static;
 
     /**
      * The representative's full name, or null when neither half is known.

@@ -93,7 +93,32 @@ final class CustomersControllerTest extends IntegrationTestCase
         self::assertSame('73282932000074', $customer['siret']);
         self::assertSame('contact@durand.fr', $customer['contractualEmail']);
         self::assertSame('Camille Durand', $customer['representativeFullName']);
-        self::assertNull($customer['userId']);
+    }
+
+    /**
+     * Le « compte utilisateur » d'un client est parti : affiché, enregistré,
+     * et lu par rien. Ni la réponse, ni la table ne le portent plus, et un
+     * `userId` envoyé quand même est ignoré.
+     */
+    public function testACustomerNoLongerHasAUserAccount(): void
+    {
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
+            'legalName' => 'Sans compte',
+            'userId' => 1,
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $customer = json_decode((string) $this->client->getResponse()->getContent(), true)['customer'];
+        self::assertArrayNotHasKey('userId', $customer);
+        self::assertArrayNotHasKey('userName', $customer);
+        self::assertArrayNotHasKey('userEmail', $customer);
+
+        $columns = $this->entityManager->getConnection()->fetchFirstColumn(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'core_customers'",
+        );
+        self::assertContains('legal_name', $columns, 'the query reads the right table');
+        self::assertNotContains('user_id', $columns);
     }
 
     public function testTheSameSiretCannotBeRecordedTwice(): void

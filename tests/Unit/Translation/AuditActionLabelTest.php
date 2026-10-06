@@ -37,7 +37,8 @@ final class AuditActionLabelTest extends TestCase
     private const array LABEL_EXCEPTIONS = [];
 
     /**
-     * Labels this package owns for actions emitted from elsewhere.
+     * Labels this package owns for actions emitted from elsewhere, or from
+     * before: a label outlives its emitter while audit rows still name it.
      *
      * Editorial's MenuManager logs under the 'core' module rather than
      * 'editorial' - Menu used to live in Core, and the value was kept so the
@@ -53,6 +54,11 @@ final class AuditActionLabelTest extends TestCase
         'core.menu.item.created',
         'core.menu.item.updated',
         'core.menu.item.deleted',
+        // The Information tab of a client space wrote the customer record
+        // until the customer page became its only writer (06/10/2026). Nothing
+        // emits it any more, but the audit rows already in the database keep
+        // resolving to a sentence rather than to the raw key.
+        'studio.customer.information_updated',
     ];
 
     /** @return list<array{string}> */

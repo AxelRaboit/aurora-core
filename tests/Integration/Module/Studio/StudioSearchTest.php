@@ -152,7 +152,8 @@ final class StudioSearchTest extends IntegrationTestCase
         self::assertSame(sprintf('/workspace/%d?item=%d', $space->getId(), $item->getId()), $results['space_contents'][0]['path']);
 
         self::assertSame(['Boulangerie '.$this->needle], array_column($results['customers'], 'title'));
-        self::assertStringStartsWith('/suite/studio/customers?search=', $results['customers'][0]['path']);
+        // Sa page, et non plus la liste filtrée sur son nom.
+        self::assertSame(sprintf('/suite/studio/customers/%d', $results['customers'][0]['id']), $results['customers'][0]['path']);
 
         self::assertSame(['CT-'.$this->needle], array_column($results['contracts'], 'title'));
         self::assertSame(sprintf('/suite/studio/contracts/%d', $contract->getId()), $results['contracts'][0]['path']);

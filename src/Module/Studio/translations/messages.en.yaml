@@ -771,11 +771,12 @@ suite:
                 step_1: "A record starts as a prospect: a potential customer you talk to, without its legal identity yet."
                 step_2: "“Convert to a customer” asks for the contractual email, where signing links will be sent."
                 step_3: "Then fill in the SIRET, the legal form, the registered office and the representative: contracts use them."
-                step_4: "The record belongs to the client, not to a space: editing it from a space changes it in all their spaces."
+                step_4: "Open a record to complete it: legal identity, representative, contact, links and notes. It belongs to the client, not to a space: each of their spaces shows it as it is."
                 step_5: "A record with contracts or spaces, even in the trash, cannot be deleted."
             title: Customers
             spaces: Their spaces
             spaces_description: "Opens this customer's spaces in the list."
+            open: Open
             status: Status
             status_hint: "A prospect is a potential customer you are already working for, without knowing its legal identity yet. Converting one to a customer asks for its contractual email; the registration number, the legal form and the registered office are filled in afterwards on its record."
             statuses:
@@ -789,7 +790,6 @@ suite:
             converted: Prospect converted to a customer.
             add: "New customer"
             create: New customer
-            edit: 'Edit {name}'
             empty: No customers yet.
             search_placeholder: "Search by legal name, registration number, representative…"
             created: Customer created.
@@ -797,7 +797,6 @@ suite:
             deleted: Customer deleted.
             delete_confirm: 'Delete {name}?'
             delete_warning: 'A customer a contract or a space names, even one in the trash, is not deleted: this will be refused for as long as one remains.'
-            linked_account: 'Account: {name}'
 
             contracts_count: '{count} contract(s)'
             col_company: "Legal name"
@@ -807,7 +806,7 @@ suite:
 
             group_identity: "Legal identity"
             group_representative: Legal representative
-            group_contact: Contact and access
+            group_contact: Contact
 
             legal_name: "Legal name"
             legal_name_placeholder: "Atelier Dupont"
@@ -840,12 +839,46 @@ suite:
             contractual_email_hint: This is where the signing link will be sent.
             phone: "Mobile"
             phone_placeholder: +33 6 12 34 56 78
-            account: User account
-            account_none: No account linked
-            account_hint: Optional. Only needed if this customer signs in to the site.
+
+            siren: SIREN
+            siren_placeholder: 123 456 789
+            siren_hint: "Nine digits. They are the first nine of the SIRET: when both are filled in, they have to agree."
+            landline: "Landline"
+            landline_placeholder: 01 23 45 67 89
+
+            group_links: Links and notes
+            group_links_hint: "The client reads both in the Information tab of their spaces."
+            links: Links
+            links_hint: "Their site, their socials, what they publish. For working links - a mockup, an access - a space's Resources tab is the place."
+            link_label_placeholder: 'e.g. Website'
+            link_url_placeholder: https://
+            link_add: Add a link
+            link_remove: Remove
+            notes: Notes
+            notes_placeholder: Whatever fits in no other field.
+            notes_hint: The client reads this field. What must stay within the team belongs in a space note.
+
+            page_guide:
+                title: "How a customer page works"
+                step_1: "The whole record is edited here: legal identity, representative, contact, links and notes. Save at the top right."
+                step_2: "This is the only place it is edited. The Information tab of each of their spaces shows it as it is, and that is what the client reads there."
+                step_3: "On the right, what surrounds them: their spaces, their contracts and the Studio deliverables written for them, one click away."
+                step_4: "A prospect is converted to a customer from the « … » button, which asks for their contractual email."
+            group_related: Around this client
+            related:
+                contracts: "This client's contracts"
+                deliverables: "This client's deliverables"
+                spaces: "This client's spaces"
+                other_spaces: "This client's other spaces"
+                empty: "No contract, deliverable or space for this client yet."
+                empty_other: "No contract, deliverable or other space for this client yet."
+                draft_contract: "Draft"
+                all_spaces: All their spaces
+                all_contracts: All their contracts
+            read_only: "You can read this record, not edit it."
 
             row_actions:
-                edit_description: Edit this customer's record
+                open_description: "Open this customer's page: their record, their spaces, their contracts"
                 convert_description: "Enter the contractual email its contracts will go to"
                 delete_description: Delete this customer
 
@@ -859,6 +892,16 @@ suite:
                 has_contracts: '{count} contract(s) name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom.'
                 siret_taken: 'This registration number is already recorded for {name}.'
                 has_spaces: 'This client still has {count} space(s), the trash included. Delete them for good before deleting the record.'
+                siren_invalid: 'This SIREN is invalid: nine digits and a correct check digit are expected.'
+                siren_mismatch: "This SIREN does not match the SIRET. The first nine digits of a SIRET are its SIREN."
+                phone_too_long: This number cannot exceed 30 characters.
+                notes_too_long: This field cannot exceed 5000 characters.
+                links_too_many: A record holds no more than 30 links.
+                link_label_required: This link has no name.
+                link_label_too_long: A link name cannot exceed 120 characters.
+                link_url_required: This link has no address.
+                link_url_invalid: "This address is not valid. It has to start with http:// or https://."
+                link_url_too_long: This address is too long.
         spaces:
             guide:
                 title: "How spaces work"
@@ -1208,51 +1251,11 @@ suite:
             closed: These notes are not open to you
             closed_hint: "This client's note space is open to its team. The space's lead can add you to it."
         space_information:
-            scope: "This record belongs to the customer, not to this space. Editing it here edits it in every space of theirs, deliberately: a SIRET belongs to a customer, not to a space."
+            scope: "This record belongs to the client, not to this space: all their spaces show the same one. It is edited on the customer's page."
             what_the_client_sees: What the client sees
             group_card: The record
             group_related: Around this client
             edit: Edit the record
-            edit_title: Edit the client's record
-            related_empty: "No contract, deliverable or other space for this client yet."
-            related_contracts: "This client's contracts"
-            related_deliverables: "This client's deliverables"
-            related_spaces: "This client's other spaces"
-            draft_contract: "Draft"
-            saved: Sheet saved.
-            legal_name: "Legal name"
-            legal_name_placeholder: 'e.g. Atelier Dupont'
-            siret_placeholder: 123 456 789 00012
-            siret_hint: Fourteen digits. Spaces are ignored, the check digit is verified.
-            siren_placeholder: 123 456 789
-            siren_hint: "Nine digits. They are the first nine of the SIRET: when both are filled in, they have to agree."
-            phone_placeholder: 06 12 34 56 78
-            landline_placeholder: 01 23 45 67 89
-            email_placeholder: contact@company.test
-            email_hint: "The same address the contracts use: this is where a signing link goes."
-            registered_office_placeholder: Full address, as it will appear on the contract
-            links_hint: "Their site, their socials, what they publish. For working links - a mockup, an access - the Resources tab is the place."
-            link_label_placeholder: 'e.g. Website'
-            link_url_placeholder: https://
-            link_add: Add a link
-            link_remove: Remove
-            notes_placeholder: Whatever fits in no other field.
-            notes_hint: The client reads this field. What must stay within the team belongs in a space note.
-            errors:
-                legal_name_required: "The legal name is required."
-                legal_name_too_long: "The legal name cannot exceed 180 characters."
-                siren_invalid: 'This SIREN is invalid: nine digits and a correct check digit are expected.'
-                siren_mismatch: "This SIREN does not match the SIRET. The first nine digits of a SIRET are its SIREN."
-                phone_too_long: This number cannot exceed 30 characters.
-                email_invalid: This email is not valid.
-                email_too_long: The email cannot exceed 180 characters.
-                notes_too_long: This field cannot exceed 5000 characters.
-                links_too_many: A sheet holds no more than 30 links.
-                link_label_required: This link has no name.
-                link_label_too_long: A link name cannot exceed 120 characters.
-                link_url_required: This link has no address.
-                link_url_invalid: "This address is not valid. It has to start with http:// or https://."
-                link_url_too_long: This address is too long.
         sharing:
             errors:
                 expiry_invalid: "A link lasts from 1 to 365 days."

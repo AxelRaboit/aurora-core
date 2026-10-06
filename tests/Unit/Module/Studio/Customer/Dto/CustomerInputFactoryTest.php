@@ -108,10 +108,44 @@ final class CustomerInputFactoryTest extends TestCase
         self::assertSame('contact@societe.fr', $input->getContractualEmail());
     }
 
-    public function testAnAbsentAccountIsNull(): void
+    /** Le SIREN se tape par groupes de trois, comme il s'imprime ; il se range d'un seul tenant. */
+    public function testTheSirenKeepsOnlyItsDigits(): void
     {
-        self::assertNull($this->factory->fromArray([])->getUserId());
-        self::assertNull($this->factory->fromArray(['userId' => ''])->getUserId());
-        self::assertSame(7, $this->factory->fromArray(['userId' => '7'])->getUserId());
+        self::assertSame('112817044', $this->factory->fromArray(['siren' => ' 112 817 044 '])->getSiren());
+        self::assertNull($this->factory->fromArray(['siren' => '  '])->getSiren());
+    }
+
+    /**
+     * Une ligne de liens laissée vide tombe ; une ligne à moitié remplie reste,
+     * pour que la contrainte la signale sur sa ligne.
+     */
+    public function testAnEmptyLinkRowIsDroppedAndAHalfFilledOneKept(): void
+    {
+        $input = $this->factory->fromArray(['links' => [
+            ['label' => ' Site web ', 'url' => ' https://atelier.example.com '],
+            ['label' => '', 'url' => ''],
+            ['label' => 'Sans adresse', 'url' => ''],
+            'pas une ligne',
+        ]]);
+
+        self::assertSame([
+            ['label' => 'Site web', 'url' => 'https://atelier.example.com'],
+            ['label' => 'Sans adresse', 'url' => ''],
+        ], $input->getLinks());
+        self::assertSame([], $this->factory->fromArray(['links' => 'pas une liste'])->getLinks());
+    }
+
+    public function testTheLandlineAndTheNotesAreRead(): void
+    {
+        $input = $this->factory->fromArray(['landline' => ' 04 76 00 00 00 ', 'informationNotes' => " Ouvert le samedi \n"]);
+
+        self::assertSame('04 76 00 00 00', $input->getLandline());
+        self::assertSame('Ouvert le samedi', $input->getInformationNotes());
+    }
+
+    /** Le compte utilisateur est parti : un `userId` envoyé quand même n'est lu par rien. */
+    public function testAnAccountIsNoLongerRead(): void
+    {
+        self::assertFalse(method_exists($this->factory->fromArray(['userId' => '7']), 'getUserId'));
     }
 }

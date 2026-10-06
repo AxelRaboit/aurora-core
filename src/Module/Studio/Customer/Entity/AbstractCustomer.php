@@ -6,7 +6,6 @@ namespace Aurora\Module\Studio\Customer\Entity;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableTrait;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -191,22 +190,6 @@ abstract class AbstractCustomer implements CustomerInterface
      */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $informationNotes = null;
-
-    /**
-     * The account this customer signs in with, when they have one.
-     *
-     * Nullable because most never will: signing a contract needs no account
-     * (that is the whole point of the link), and a customer that exists only
-     * as a name on a contract is the normal case. The relation is here for the
-     * ones who do get a login later, so their sessions and their contracts
-     * are known to be the same company.
-     *
-     * `SET NULL` on delete: removing an account must not remove the company's
-     * accounting history with it.
-     */
-    #[ORM\ManyToOne(targetEntity: CoreUserInterface::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    protected ?CoreUserInterface $user = null;
 
     abstract public function getId(): ?int;
 
@@ -441,18 +424,6 @@ abstract class AbstractCustomer implements CustomerInterface
     public function setInformationNotes(?string $informationNotes): static
     {
         $this->informationNotes = $informationNotes;
-
-        return $this;
-    }
-
-    public function getUser(): ?CoreUserInterface
-    {
-        return $this->user;
-    }
-
-    public function setUser(?CoreUserInterface $user): static
-    {
-        $this->user = $user;
 
         return $this;
     }

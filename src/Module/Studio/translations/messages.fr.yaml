@@ -771,11 +771,12 @@ suite:
                 step_1: "Une fiche commence en prospect : un client potentiel avec qui vous échangez, sans encore son identité légale."
                 step_2: "« Convertir en client » demande l'email contractuel, celui où partiront les liens de signature."
                 step_3: "Complétez ensuite le SIRET, la forme juridique, le siège social et le représentant : les contrats les reprennent."
-                step_4: "La fiche appartient au client, pas à un espace : la modifier depuis un espace la modifie dans tous ses espaces."
+                step_4: "Ouvrez une fiche pour la compléter : identité légale, représentant, contact, liens et notes. Elle appartient au client, pas à un espace : chacun de ses espaces la montre telle quelle."
                 step_5: "Une fiche qui a des contrats ou des espaces, même à la corbeille, ne peut pas être supprimée."
             title: Clients
             spaces: Ses espaces
             spaces_description: "Ouvre la liste des espaces de ce client."
+            open: Ouvrir
             status: Statut
             status_hint: "Un prospect est un client potentiel pour qui on travaille déjà, sans avoir encore son identité légale. Le convertir en client demande son email contractuel ; le SIRET, la forme juridique et le siège social se complètent ensuite sur sa fiche."
             statuses:
@@ -789,7 +790,6 @@ suite:
             converted: Prospect converti en client.
             add: "Nouveau client"
             create: Nouveau client
-            edit: 'Modifier {name}'
             empty: Aucun client pour le moment.
             search_placeholder: Rechercher par raison sociale, SIRET, représentant…
             created: Client créé.
@@ -797,7 +797,6 @@ suite:
             deleted: Client supprimé.
             delete_confirm: 'Supprimer {name} ?'
             delete_warning: 'Un client nommé par un contrat ou par un espace, même à la corbeille, ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
-            linked_account: 'Compte : {name}'
 
             contracts_count: '{count} contrat(s)'
             col_company: "Raison sociale"
@@ -807,7 +806,7 @@ suite:
 
             group_identity: "Identité légale"
             group_representative: Représentant légal
-            group_contact: Contact et accès
+            group_contact: Contact
 
             legal_name: Raison sociale
             legal_name_placeholder: "Atelier Dupont"
@@ -840,12 +839,46 @@ suite:
             contractual_email_hint: C'est à cette adresse que partira le lien de signature.
             phone: "Téléphone portable"
             phone_placeholder: 06 12 34 56 78
-            account: Compte utilisateur
-            account_none: Aucun compte rattaché
-            account_hint: Facultatif. À renseigner seulement si le client se connecte au site.
+
+            siren: SIREN
+            siren_placeholder: 123 456 789
+            siren_hint: "Neuf chiffres. Ce sont les neuf premiers du SIRET : si les deux sont remplis, ils doivent s'accorder."
+            landline: "Téléphone fixe"
+            landline_placeholder: 01 23 45 67 89
+
+            group_links: Liens et notes
+            group_links_hint: "Le client lit ces deux rubriques dans l'onglet Informations de ses espaces."
+            links: Liens
+            links_hint: "Son site, ses réseaux, ce qu'il publie. Pour les liens de travail - une maquette, un accès - l'onglet Ressources d'un espace est fait pour ça."
+            link_label_placeholder: 'ex. : Site web'
+            link_url_placeholder: https://
+            link_add: Ajouter un lien
+            link_remove: Retirer
+            notes: Notes
+            notes_placeholder: Ce qui n'entre dans aucune case.
+            notes_hint: Le client lit ce champ. Ce qui ne doit pas sortir de l'équipe va dans une note d'espace.
+
+            page_guide:
+                title: "Comment fonctionne la page d'un client"
+                step_1: "Toute la fiche se modifie ici : identité légale, représentant, contact, liens et notes. Enregistrez en haut à droite."
+                step_2: "C'est le seul endroit où elle se modifie. L'onglet Informations de chacun de ses espaces la montre telle quelle, et c'est ce que le client y lit."
+                step_3: "À droite, ce qui l'entoure : ses espaces, ses contrats et les livrables de Studio écrits pour lui, d'un clic."
+                step_4: "Un prospect se convertit en client depuis le bouton « … » : son email contractuel est alors demandé."
+            group_related: Autour de ce client
+            related:
+                contracts: "Contrats de ce client"
+                deliverables: "Livrables de ce client"
+                spaces: "Espaces de ce client"
+                other_spaces: "Autres espaces de ce client"
+                empty: "Aucun contrat, aucun livrable ni aucun espace pour ce client pour l'instant."
+                empty_other: "Aucun contrat, aucun livrable ni aucun autre espace pour ce client pour l'instant."
+                draft_contract: "Brouillon"
+                all_spaces: Tous ses espaces
+                all_contracts: Tous ses contrats
+            read_only: "Vous pouvez lire cette fiche, pas la modifier."
 
             row_actions:
-                edit_description: Modifier la fiche de ce client
+                open_description: "Ouvrir la page de ce client : sa fiche, ses espaces, ses contrats"
                 convert_description: "Saisir l'email contractuel où partiront ses contrats"
                 delete_description: Supprimer ce client
 
@@ -859,6 +892,16 @@ suite:
                 has_contracts: 'Ce client est nommé par {count} contrat(s). Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui.'
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
                 has_spaces: 'Ce client a encore {count} espace(s), corbeille comprise. Supprimez-les définitivement avant de supprimer la fiche.'
+                siren_invalid: 'Ce SIREN est invalide : neuf chiffres et une clé de contrôle correcte sont attendus.'
+                siren_mismatch: "Ce SIREN ne correspond pas au SIRET saisi. Les neuf premiers chiffres d'un SIRET sont son SIREN."
+                phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
+                notes_too_long: Ce champ ne peut pas dépasser 5000 caractères.
+                links_too_many: Une fiche ne porte pas plus de 30 liens.
+                link_label_required: Ce lien n'a pas de nom.
+                link_label_too_long: Le nom d'un lien ne peut pas dépasser 120 caractères.
+                link_url_required: Ce lien n'a pas d'adresse.
+                link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
+                link_url_too_long: Cette adresse est trop longue.
         spaces:
             guide:
                 title: "Comment fonctionnent les espaces"
@@ -1215,51 +1258,11 @@ suite:
             closed: Ces notes ne vous sont pas ouvertes
             closed_hint: "L'espace de notes de ce client est ouvert à son équipe. Le référent de l'espace peut vous y ajouter."
         space_information:
-            scope: "Cette fiche appartient au client, pas à cet espace. La modifier ici la modifie dans tous ses espaces, et c'est voulu : un SIRET est celui d'un client, pas d'un espace."
+            scope: "Cette fiche appartient au client, pas à cet espace : tous ses espaces montrent la même. Elle se modifie sur la page du client."
             what_the_client_sees: Ce que le client voit
             group_card: La fiche
             group_related: Autour de ce client
             edit: Modifier la fiche
-            edit_title: Modifier la fiche du client
-            related_empty: "Aucun contrat, aucun livrable ni aucun autre espace pour ce client pour l'instant."
-            related_contracts: "Contrats de ce client"
-            related_deliverables: "Livrables de ce client"
-            related_spaces: "Autres espaces de ce client"
-            draft_contract: "Brouillon"
-            saved: Fiche enregistrée.
-            legal_name: "Raison sociale"
-            legal_name_placeholder: 'ex. : Atelier Dupont'
-            siret_placeholder: 123 456 789 00012
-            siret_hint: Quatorze chiffres. Les espaces sont ignorés, la clé de contrôle est vérifiée.
-            siren_placeholder: 123 456 789
-            siren_hint: "Neuf chiffres. Ce sont les neuf premiers du SIRET : si les deux sont remplis, ils doivent s'accorder."
-            phone_placeholder: 06 12 34 56 78
-            landline_placeholder: 01 23 45 67 89
-            email_placeholder: contact@societe.test
-            email_hint: "La même adresse que celle des contrats : c'est là que part un lien de signature."
-            registered_office_placeholder: Adresse complète, telle qu'elle apparaîtra au contrat
-            links_hint: "Son site, ses réseaux, ce qu'il publie. Pour les liens de travail - une maquette, un accès - l'onglet Ressources est fait pour ça."
-            link_label_placeholder: 'ex. : Site web'
-            link_url_placeholder: https://
-            link_add: Ajouter un lien
-            link_remove: Retirer
-            notes_placeholder: Ce qui n'entre dans aucune case.
-            notes_hint: Le client lit ce champ. Ce qui ne doit pas sortir de l'équipe va dans une note d'espace.
-            errors:
-                legal_name_required: "La raison sociale est obligatoire."
-                legal_name_too_long: "La raison sociale ne peut pas dépasser 180 caractères."
-                siren_invalid: 'Ce SIREN est invalide : neuf chiffres et une clé de contrôle correcte sont attendus.'
-                siren_mismatch: "Ce SIREN ne correspond pas au SIRET saisi. Les neuf premiers chiffres d'un SIRET sont son SIREN."
-                phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
-                email_invalid: Cet email n'est pas valide.
-                email_too_long: L'email ne peut pas dépasser 180 caractères.
-                notes_too_long: Ce champ ne peut pas dépasser 5000 caractères.
-                links_too_many: Une fiche ne porte pas plus de 30 liens.
-                link_label_required: Ce lien n'a pas de nom.
-                link_label_too_long: Le nom d'un lien ne peut pas dépasser 120 caractères.
-                link_url_required: Ce lien n'a pas d'adresse.
-                link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
-                link_url_too_long: Cette adresse est trop longue.
         sharing:
             errors:
                 expiry_invalid: "La durée d'un lien va de 1 à 365 jours."

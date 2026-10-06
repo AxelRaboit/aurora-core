@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\Manager;
 
-use Aurora\Module\Studio\Customer\Dto\CustomerInformationInputInterface;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 
@@ -12,15 +11,13 @@ interface CustomerManagerInterface
 {
     public function create(CustomerInputInterface $input): CustomerInterface;
 
-    public function update(CustomerInterface $customer, CustomerInputInterface $input): void;
-
     /**
-     * La fiche du client, telle que son espace la remplit.
+     * La fiche entiere, depuis la page du client : le seul chemin d'ecriture.
      *
-     * Les colonnes que cet écran ne montre pas ne sont pas touchées : elles
-     * portent l'identité contractuelle, qui se remplit sur la fiche client.
+     * L'onglet Informations d'un espace ne l'ecrit plus, il la montre et mene
+     * ici. Une saisie entiere s'applique entiere : un champ absent est vide.
      */
-    public function updateInformation(CustomerInterface $customer, CustomerInformationInputInterface $input): void;
+    public function update(CustomerInterface $customer, CustomerInputInterface $input): void;
 
     /**
      * Un prospect devient client.
