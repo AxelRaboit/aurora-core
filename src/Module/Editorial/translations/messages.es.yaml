@@ -707,7 +707,7 @@ suite:
                 qrCode: 'Código QR'
                 chart: Gráfico
                 videoWall: 'Muro de vídeos'
-                editorialCalendar: 'Calendario editorial'
+                editorialCalendar: 'Calendario de publicación'
                 activityFeed: 'Última actividad'
                 priceList: 'Carta y tarifas'
                 poll: Encuesta
