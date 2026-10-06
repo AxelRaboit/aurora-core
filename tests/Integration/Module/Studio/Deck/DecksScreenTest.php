@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\Deck;
 
+use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
@@ -13,7 +15,10 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
+use function bin2hex;
 use function json_decode;
+use function random_bytes;
+use function sprintf;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -42,6 +47,44 @@ final class DecksScreenTest extends IntegrationTestCase
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('DecksApp', (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * The customer picker is the customer list. Somebody who works on decks
+     * without seeing customers gets an empty one, as when the module is off.
+     */
+    public function testTheCustomerPickerStaysEmptyWithoutTheRightToSeeCustomers(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $customer = new Customer();
+        $customer->setLegalName('Societe Discrete');
+        $entityManager->persist($customer);
+
+        $user = new User();
+        $user
+            ->setEmail('decks-seuls-'.bin2hex(random_bytes(4)).'@aurora.test')
+            ->setName('Decks seuls')
+            ->setType(UserTypeEnum::Suite)
+            ->setPassword('x')
+            ->setRoles(['ROLE_USER'])
+            ->setPrivileges(['studio.decks.view', 'studio.decks.edit']);
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        try {
+            $this->client->loginUser($user, 'admin');
+            $this->client->request('GET', '/suite/studio/decks');
+
+            self::assertResponseIsSuccessful();
+            self::assertStringNotContainsString('Societe Discrete', (string) $this->client->getResponse()->getContent());
+        } finally {
+            $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+            $entityManager->createQuery(sprintf('DELETE FROM %s c WHERE c.legalName = :name', Customer::class))
+                ->setParameter('name', 'Societe Discrete')->execute();
+            $entityManager->createQuery(sprintf('DELETE FROM %s u WHERE u.id = :id', User::class))
+                ->setParameter('id', $user->getId())->execute();
+        }
     }
 
     public function testADeckIsCreatedWithItsCategory(): void

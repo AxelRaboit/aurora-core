@@ -27,6 +27,7 @@ use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Module\Studio\StudioContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 use const DATE_ATOM;
 
@@ -43,6 +44,7 @@ final readonly class DecksViewBuilder
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private DeckFonts $fonts,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {}
 
     /**
@@ -201,7 +203,8 @@ final readonly class DecksViewBuilder
     }
 
     /**
-     * The customers a deck can name, or an empty list when the module is off.
+     * The customers a deck can name, or an empty list when the module is off
+     * or the reader may not see the customer list.
      *
      * Empty rather than absent: the page draws the picker either way and an
      * empty one reads as "nobody to pick", which is the truth when customers
@@ -213,6 +216,13 @@ final readonly class DecksViewBuilder
     private function customerOptions(): array
     {
         if (!$this->studioContext->areCustomersEnabled()) {
+            return [];
+        }
+
+        // The whole customer list is the customer screen's to show. Somebody
+        // who may edit decks but not see customers was handed every company
+        // name through this picker.
+        if (!$this->authorizationChecker->isGranted('studio.customers.view')) {
             return [];
         }
 
