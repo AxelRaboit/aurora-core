@@ -30,10 +30,6 @@ suite:
         studio: Studio
         studio_suite: Studio
         studio_suite_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les espaces où vous travaillez avec eux, les contrats, les présentations et les livrables."
-        studio_decks: Présentations
-        studio_decks_description: Construire des jeux de slides, les classer et les dupliquer.
-        studio_deliverables: "Livrables"
-        studio_deliverables_description: "Écrire des documents hors espace client, perso ou partagés avec l'équipe."
     nav:
         sections:
             studio: Studio
@@ -321,8 +317,6 @@ suite:
             empty: Aucun contrat pour le moment.
             search_placeholder: Rechercher par référence ou par client…
             draft_title: Brouillon de contrat
-            in_preparation: En préparation
-            sealed: Scellés
             customer: Client
             customer_placeholder: Choisir un client
             body: Corps du contrat
@@ -346,16 +340,8 @@ suite:
             version_label: 'version {number}'
             with_annex: 'Avec l''annexe {name}'
             outdated_version: Une version plus récente de la trame a été publiée depuis. Ce contrat reste sur celle qui a été choisie.
-            freeze: Sceller
             freeze_confirm: 'Sceller le contrat de {name} ?'
-            freeze_warning: 'Le document devient définitif : son texte, ses montants et son hash ne pourront plus changer. C''est ce qui rend la signature défendable, et c''est irréversible.'
             delete_confirm: 'Supprimer le contrat de {name} ?'
-            col_reference: Référence
-            col_customer: Client
-            col_status: Statut
-            col_sealed_at: Scellé le
-            col_link: Lien
-            read_document: Lire le document
             preview: Aperçu
             preview_notice: "Le document tel que le client le lira, avec les vraies données de ce contrat. La référence et les mentions de signature apparaissent entre crochets : elles sont écrites au scellement et à la signature."
             preview_unknown_tokens: 'Variables inconnues, elles bloqueront le scellement : {tokens}'
@@ -368,12 +354,9 @@ suite:
             countersigned: 'Contrat conclu.'
             send: Envoyer au client
             send_confirm: 'Envoyer le contrat à {email} ?'
-            send_warning: 'Un lien secret part par email. Tout lien envoyé auparavant est révoqué : il n''y a jamais qu''une seule adresse valide.'
             sent_to: 'Envoyé à {email}'
-            revoke_link: Révoquer le lien
             revoke_link_confirm: 'Révoquer le lien envoyé à {email} ? L''adresse cessera de fonctionner immédiatement.'
             link_expires: 'Valide jusqu''au {date}'
-            link_never_opened: Jamais ouvert
             link_opened_at: 'Ouvert le {date}'
             no_link: Aucun lien actif
             amends: 'Avenant au contrat'
@@ -383,7 +366,6 @@ suite:
             amends_long: 'Cet avenant modifie le contrat {reference}.'
             amend: 'Créer un avenant'
             chain: 'Avenants'
-            chain_leaf: 'Aucun avenant sur ce contrat.'
             customer_from_amended: 'Repris du contrat {reference} : le client d''un avenant est celui du contrat modifié.'
             terminate: 'Résilier'
             terminated: Résiliation enregistrée.
@@ -410,19 +392,9 @@ suite:
             refusal_no_reason: 'Aucun motif indiqué'
             refused_from: 'Refus reçu depuis {ip}'
             retained_until: 'Conservé jusqu''au'
-            retention_hint: 'Un contrat scellé ne peut pas être supprimé avant cette date : c''est la preuve de ce qui a été signé.'
             reminders: 'Relances'
             reminders_none: 'Aucune relance'
             reminders_count: '{count} relance(s), dernière le {date}'
-            row_actions:
-                edit_description: Modifie le brouillon. Rien n'est scellé tant qu'on ne le demande pas.
-                freeze_description: Fige le texte, tire la référence et rend le contrat envoyable. Définitif.
-                delete_description: Supprime le brouillon. Rien n'a encore été envoyé au client.
-                send_description: 'Envoie au client un lien de signature, valable {days} jours.'
-                revoke_description: Coupe le lien en cours. Ses codes de vérification tombent avec lui.
-                preview_description: Montre le document tel que le client le lira, avant scellement.
-                document_description: Ouvre le document scellé et son bloc de preuve.
-                export_description: "Sort le contrat en PDF. Le document signé s'il existe, une copie de travail marquée comme telle sinon."
             not_sealed_yet: Ce contrat n'est pas encore scellé. Son texte sera figé au moment du scellement.
             seal_intact: Le sceau est intact
             seal_intact_hint: Le document stocké correspond exactement au hash pris lors du scellement.
@@ -2409,7 +2381,6 @@ suite:
             view_resources: Ressources
             view_deliverables: 'Livrables'
             view_settings: Réglages
-            files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
             files_open: Ouvrir
@@ -2420,8 +2391,6 @@ suite:
             orphaned_trashed: "Envoyé à la corbeille de la médiathèque. | {count} fichiers envoyés à la corbeille de la médiathèque."
             files_as_cards: Afficher en cartes
             files_as_rows: Afficher en liste
-            board: Tableau
-            calendar: Calendrier
             today: Aujourd'hui
             unscheduled_rail: Sans date
             unscheduled_rail_empty: Tout est programmé.

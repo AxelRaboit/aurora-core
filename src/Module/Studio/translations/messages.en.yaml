@@ -30,10 +30,6 @@ suite:
         studio: Studio
         studio_suite: Studio
         studio_suite_description: "What you sell and what you deliver to a client: customers, the spaces you work in with them, contracts, presentations and deliverables."
-        studio_decks: Presentations
-        studio_decks_description: Build slide decks, file them and duplicate them.
-        studio_deliverables: "Deliverables"
-        studio_deliverables_description: "Write documents outside a client space, personal or shared with the team."
     nav:
         sections:
             studio: Studio
@@ -321,8 +317,6 @@ suite:
             empty: No contracts yet.
             search_placeholder: Search by reference or customer…
             draft_title: Draft contract
-            in_preparation: In preparation
-            sealed: Sealed
             customer: Customer
             customer_placeholder: Pick a customer
             body: Contract body
@@ -346,16 +340,8 @@ suite:
             version_label: 'version {number}'
             with_annex: 'With the {name} annex'
             outdated_version: A newer version of the template has been published since. This contract stays on the one that was chosen.
-            freeze: Seal
             freeze_confirm: 'Seal the contract of {name}?'
-            freeze_warning: 'The document becomes final: its wording, its amounts and its hash can no longer change. That is what makes the signature defensible, and it cannot be undone.'
             delete_confirm: 'Delete the contract of {name}?'
-            col_reference: Reference
-            col_customer: Customer
-            col_status: Status
-            col_sealed_at: Sealed on
-            col_link: Link
-            read_document: Read the document
             preview: Preview
             preview_notice: "The document as the client will read it, with this contract's real data. The reference and the signature mentions show in square brackets: they are written at the seal and at the signature."
             preview_unknown_tokens: 'Unknown variables, they will stop the seal: {tokens}'
@@ -368,12 +354,9 @@ suite:
             countersigned: 'Contract concluded.'
             send: Send to the customer
             send_confirm: 'Send the contract to {email}?'
-            send_warning: 'A secret link goes out by email. Any link sent before is revoked: there is never more than one valid address.'
             sent_to: 'Sent to {email}'
-            revoke_link: Revoke the link
             revoke_link_confirm: 'Revoke the link sent to {email}? The address stops working immediately.'
             link_expires: 'Valid until {date}'
-            link_never_opened: Never opened
             link_opened_at: 'Opened on {date}'
             no_link: No active link
             amends: 'Amendment to contract'
@@ -383,7 +366,6 @@ suite:
             amends_long: 'This amendment modifies contract {reference}.'
             amend: 'Create an amendment'
             chain: 'Amendments'
-            chain_leaf: 'No amendment on this contract.'
             customer_from_amended: 'Taken from contract {reference}: the customer of an amendment is the customer of what it amends.'
             terminate: 'Terminate'
             terminated: Termination recorded.
@@ -410,19 +392,9 @@ suite:
             refusal_no_reason: 'No reason given'
             refused_from: 'Refusal received from {ip}'
             retained_until: 'Kept until'
-            retention_hint: 'A sealed contract cannot be deleted before this date: it is the evidence of what was signed.'
             reminders: 'Reminders'
             reminders_none: 'No reminder'
             reminders_count: '{count} reminder(s), last on {date}'
-            row_actions:
-                edit_description: Edits the draft. Nothing is sealed until you ask for it.
-                freeze_description: Freezes the text, mints the reference and makes it sendable. Permanent.
-                delete_description: Deletes the draft. Nothing has been sent to the customer yet.
-                send_description: 'Sends the customer a signing link, valid for {days} days.'
-                revoke_description: Kills the current link. Its verification codes go with it.
-                preview_description: Shows the document as the client will read it, before sealing.
-                document_description: Opens the sealed document and its proof block.
-                export_description: Outputs the contract as a PDF. The signed document if there is one, a working copy marked as such otherwise.
             not_sealed_yet: This contract is not sealed yet. Its wording is frozen at the moment of sealing.
             seal_intact: The seal is intact
             seal_intact_hint: The stored document matches exactly the hash taken when it was sealed.
@@ -2398,7 +2370,6 @@ suite:
             view_resources: Resources
             view_deliverables: 'Deliverables'
             view_settings: Settings
-            files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
             files_unknown_card: Deleted content
             files_open: Open
@@ -2409,8 +2380,6 @@ suite:
             orphaned_trashed: "Moved to the library's trash. | {count} files moved to the library's trash."
             files_as_cards: Show as cards
             files_as_rows: Show as a list
-            board: Board
-            calendar: Calendar
             today: Today
             unscheduled_rail: No date
             unscheduled_rail_empty: Everything is scheduled.

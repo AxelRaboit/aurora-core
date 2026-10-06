@@ -30,10 +30,6 @@ suite:
         studio: Studio
         studio_suite: Studio
         studio_suite_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los espacios donde trabaja con ellos, los contratos, las presentaciones y los entregables.'
-        studio_decks: Presentaciones
-        studio_decks_description: 'Crear conjuntos de diapositivas, clasificarlos y duplicarlos.'
-        studio_deliverables: "Entregables"
-        studio_deliverables_description: "Escribir documentos fuera de un espacio de cliente, personales o compartidos con el equipo."
     nav:
         sections:
             studio: Studio
@@ -321,8 +317,6 @@ suite:
             empty: 'Todavía no hay ningún contrato.'
             search_placeholder: 'Buscar por referencia o por cliente…'
             draft_title: 'Borrador de contrato'
-            in_preparation: 'En preparación'
-            sealed: Sellados
             customer: Cliente
             customer_placeholder: 'Elegir un cliente'
             body: 'Cuerpo del contrato'
@@ -346,16 +340,8 @@ suite:
             version_label: 'versión {number}'
             with_annex: 'Con el anexo {name}'
             outdated_version: 'Desde entonces se ha publicado una versión más reciente de la plantilla. Este contrato se mantiene en la que se eligió.'
-            freeze: Sellar
             freeze_confirm: '¿Sellar el contrato de {name}?'
-            freeze_warning: 'El documento pasa a ser definitivo: su texto, sus importes y su hash ya no podrán cambiar. Es lo que hace que la firma sea defendible, y es irreversible.'
             delete_confirm: '¿Eliminar el contrato de {name}?'
-            col_reference: Referencia
-            col_customer: Cliente
-            col_status: Estado
-            col_sealed_at: 'Sellado el'
-            col_link: Enlace
-            read_document: 'Leer el documento'
             preview: 'Vista previa'
             preview_notice: 'El documento tal como lo leerá el cliente, con los datos reales de este contrato. La referencia y las menciones de firma aparecen entre corchetes: se escriben en el sellado y en la firma.'
             preview_unknown_tokens: 'Variables desconocidas, bloquearán el sellado: {tokens}'
@@ -368,12 +354,9 @@ suite:
             countersigned: 'Contrato concluido.'
             send: 'Enviar al cliente'
             send_confirm: '¿Enviar el contrato a {email}?'
-            send_warning: 'Se envía un enlace secreto por correo electrónico. Cualquier enlace enviado anteriormente queda revocado: nunca hay más de una dirección válida.'
             sent_to: 'Enviado a {email}'
-            revoke_link: 'Revocar el enlace'
             revoke_link_confirm: '¿Revocar el enlace enviado a {email}? La dirección dejará de funcionar de inmediato.'
             link_expires: 'Válido hasta el {date}'
-            link_never_opened: 'Nunca abierto'
             link_opened_at: 'Abierto el {date}'
             no_link: 'Ningún enlace activo'
             amends: 'Adenda al contrato'
@@ -383,7 +366,6 @@ suite:
             amends_long: 'Esta adenda modifica el contrato {reference}.'
             amend: 'Crear una adenda'
             chain: Adendas
-            chain_leaf: 'Ninguna adenda en este contrato.'
             customer_from_amended: 'Tomado del contrato {reference}: el cliente de una adenda es el del contrato modificado.'
             terminate: Rescindir
             terminated: 'Rescisión registrada.'
@@ -410,19 +392,9 @@ suite:
             refusal_no_reason: 'No se indicó ningún motivo'
             refused_from: 'Rechazo recibido desde {ip}'
             retained_until: 'Conservado hasta el'
-            retention_hint: 'Un contrato sellado no puede eliminarse antes de esta fecha: es la prueba de lo que se firmó.'
             reminders: Recordatorios
             reminders_none: 'Ningún recordatorio'
             reminders_count: '{count} recordatorio(s), el último el {date}'
-            row_actions:
-                edit_description: 'Edita el borrador. No se sella nada hasta que se solicite.'
-                freeze_description: 'Fija el texto, asigna la referencia y deja el contrato listo para enviar. Definitivo.'
-                delete_description: 'Elimina el borrador. Todavía no se ha enviado nada al cliente.'
-                send_description: 'Envía al cliente un enlace de firma, válido durante {days} días.'
-                revoke_description: 'Corta el enlace en curso. Sus códigos de verificación quedan anulados con él.'
-                preview_description: 'Muestra el documento tal como lo leerá el cliente, antes del sellado.'
-                document_description: 'Abre el documento sellado y su bloque de prueba.'
-                export_description: 'Exporta el contrato a PDF. El documento firmado si existe; si no, una copia de trabajo marcada como tal.'
             not_sealed_yet: 'Este contrato aún no está sellado. Su texto quedará fijado en el momento del sellado.'
             seal_intact: 'El sello está intacto'
             seal_intact_hint: 'El documento almacenado corresponde exactamente al hash tomado durante el sellado.'
@@ -2376,7 +2348,6 @@ suite:
             view_resources: Recursos
             view_deliverables: 'Entregables'
             view_settings: Ajustes
-            files_empty: 'No hay archivos en este espacio'
             files_empty_hint: 'Los archivos subidos a los contenidos, por usted o por el cliente, aparecen aquí del más reciente al más antiguo.'
             files_unknown_card: 'Contenido eliminado'
             files_open: Abrir
@@ -2387,8 +2358,6 @@ suite:
             orphaned_trashed: 'Enviado a la papelera de la mediateca. | {count} archivos enviados a la papelera de la mediateca.'
             files_as_cards: 'Mostrar como fichas'
             files_as_rows: 'Mostrar como lista'
-            board: Tablero
-            calendar: Calendario
             today: Hoy
             unscheduled_rail: 'Sin fecha'
             unscheduled_rail_empty: 'Todo está programado.'
