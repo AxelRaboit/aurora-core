@@ -197,7 +197,9 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
         return new NavItem(
             'suite_studio_deliverables',
             'suite.nav.studio_deliverables',
-            'file-check',
+            // The icon every other screen gives a deliverable: the dashboard,
+            // the search, the trash and the space's own tab.
+            'notebook-text',
             requiredPrivilege: 'studio.deliverables.view',
             descriptionKey: 'suite.nav.studio_deliverables_description',
         );
