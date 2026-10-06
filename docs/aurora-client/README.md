@@ -25,6 +25,7 @@ la procédure d'installation de référence.
 | [dev/database.md](dev/database.md) | Migrations, fixtures, séquences |
 | [dev/assets_vue.md](dev/assets_vue.md) | Composants Vue côté client |
 | [dev/update_aurora.md](dev/update_aurora.md) | Mettre à jour aurora-core (`make aurora-update`) |
+| [MIGRATION_STUDIO_DELIVERABLES.md](MIGRATION_STUDIO_DELIVERABLES.md) | Après la 2.0.0 : présentations fusionnées dans les livrables, ce que le projet client répercute |
 
 ## 🔧 Étendre Aurora
 
