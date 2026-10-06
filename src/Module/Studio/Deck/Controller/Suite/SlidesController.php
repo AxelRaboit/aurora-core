@@ -272,6 +272,7 @@ class SlidesController extends AbstractController
 
         $this->entityManager->persist($link);
         $this->entityManager->flush();
+
         $this->deckManager->recordShareLink('issued', $link);
 
         return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));
@@ -352,6 +353,7 @@ class SlidesController extends AbstractController
         $linkId = $link->getId();
         $this->entityManager->remove($link);
         $this->entityManager->flush();
+
         $this->deckManager->recordShareLink('deleted', $link, $linkId);
 
         return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));

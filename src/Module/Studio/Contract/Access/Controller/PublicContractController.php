@@ -340,7 +340,7 @@ final class PublicContractController extends AbstractController
         $parts = $contract->getContentSnapshot()['parts'] ?? null;
         $title = is_array($parts) && is_array($parts[0] ?? null) ? ($parts[0]['title'] ?? null) : null;
 
-        if (!is_string($title) || '' === trim($title)) {
+        if (!is_string($title) || '' === mb_trim($title)) {
             return null;
         }
 

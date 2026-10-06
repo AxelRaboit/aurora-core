@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\Dashboard;
 
+use Aurora\Core\Module\Service\ModuleAccessChecker;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
-use Aurora\Core\Module\Service\ModuleAccessChecker;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Dashboard\StudioStatsProvider;
 use Aurora\Tests\Integration\IntegrationTestCase;

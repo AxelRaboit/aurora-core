@@ -18,7 +18,9 @@ import { siteZone } from "@/shared/utils/format/zonedTime.js";
  */
 function initialCustomerFilter() {
     try {
-        const id = Number(new URL(window.location.href).searchParams.get("customer"));
+        const id = Number(
+            new URL(window.location.href).searchParams.get("customer"),
+        );
 
         return Number.isInteger(id) && id > 0 ? id : null;
     } catch {
@@ -133,14 +135,22 @@ export function useCustomerSpacesForm(
     const filteredCustomer = computed(() =>
         null === customerFilter.value
             ? null
-            : (customers.value.find((customer) => customer.id === customerFilter.value) ??
-              (items.value ?? []).map((space) => ({ id: space.customerId, name: space.customerName }))
+            : (customers.value.find(
+                  (customer) => customer.id === customerFilter.value,
+              ) ??
+              (items.value ?? [])
+                  .map((space) => ({
+                      id: space.customerId,
+                      name: space.customerName,
+                  }))
                   .find((customer) => customer.id === customerFilter.value) ??
               null),
     );
 
     if (null !== customerFilter.value) {
-        const first = (items.value ?? []).find((space) => space.customerId === customerFilter.value);
+        const first = (items.value ?? []).find(
+            (space) => space.customerId === customerFilter.value,
+        );
         if (first) tab.value = first.customerStatus ?? "client";
     }
 
@@ -158,7 +168,9 @@ export function useCustomerSpacesForm(
     const ofCustomer = computed(() =>
         null === customerFilter.value
             ? filteredItems.value
-            : filteredItems.value.filter((space) => space.customerId === customerFilter.value),
+            : filteredItems.value.filter(
+                  (space) => space.customerId === customerFilter.value,
+              ),
     );
 
     /** Les filtres se composent : la société, l'onglet, puis les archives. */

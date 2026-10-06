@@ -74,7 +74,9 @@ export function useContractFlow({ linkDays = 30 } = {}) {
             key,
             title: t(`${PREFIX}.actions.${key}.title`),
             // `days` for the two that hand out an address; ignored by the rest.
-            description: t(`${PREFIX}.actions.${key}.description`, { days: linkDays }),
+            description: t(`${PREFIX}.actions.${key}.description`, {
+                days: linkDays,
+            }),
             icon: ICONS[key],
             color: COLORS[key],
         };

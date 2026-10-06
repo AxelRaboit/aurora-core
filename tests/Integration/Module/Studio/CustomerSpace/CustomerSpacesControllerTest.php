@@ -14,8 +14,8 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
-use function json_decode;
 use function bin2hex;
+use function json_decode;
 use function random_bytes;
 use function sprintf;
 

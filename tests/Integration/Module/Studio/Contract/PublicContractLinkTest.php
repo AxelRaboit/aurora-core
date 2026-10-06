@@ -114,7 +114,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $header = $crawler->filter('header')->first();
 
         // The trame's own title, not a heading every contract shares.
-        self::assertSame('CONTRAT DE PRESTATION DE SERVICES', trim($header->filter('h1')->text()));
+        self::assertSame('CONTRAT DE PRESTATION DE SERVICES', mb_trim($header->filter('h1')->text()));
         // Sent on behalf of the provider: the customer reading it is not the
         // one addressing it.
         self::assertStringNotContainsString('Boulangerie Durand', $header->filter('p')->last()->text());

@@ -63,7 +63,8 @@ describe("useCustomerRowActions", () => {
             template: "<i />",
         });
 
-        const spaces = wrapper.vm.build({ id: 7, status: "client", legalName: "Atelier Dupont" })
+        const spaces = wrapper.vm
+            .build({ id: 7, status: "client", legalName: "Atelier Dupont" })
             .find((action) => "spaces" === action.key);
 
         expect(spaces.href).toBe("/suite/studio/spaces?customer=7");
