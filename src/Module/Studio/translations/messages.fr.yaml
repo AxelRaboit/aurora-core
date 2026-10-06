@@ -2104,6 +2104,22 @@ suite:
             search_placeholder: "Rechercher un livrable"
             no_match: "Aucun livrable ne correspond à la recherche."
             studio_title_hint: "Le titre en tête du document, et dans la liste."
+            formats:
+                page: "Page"
+                slides: "Diaporama"
+            template:
+                badge: "Modèle"
+                filter: "Modèles"
+                filter_hint: "N'afficher que les modèles"
+                toggle: "C'est un modèle"
+                toggle_hint: "Il est proposé dans « Partir d'un modèle » quand on crée un livrable. Ce qu'on en tire, copie ou livrable neuf, n'en est pas un."
+                from: "Partir d'un modèle"
+                from_nothing: "Page blanche"
+                from_hint: "Le nouveau livrable en reprend le contenu, l'apparence, l'image et la catégorie, sous le titre ci-dessous."
+            customer:
+                label: "Client"
+                none: "Aucun client"
+                hint: "Pour qui ce livrable est écrit, avant que le client ait un espace : une proposition à un prospect. Copié dans un espace, il prend le client de l'espace."
             studio_guide:
                 title: "Comment fonctionnent les livrables"
                 step_1: "Un livrable est un document écrit pour être lu : un audit, une stratégie, une proposition. Il se compose avec la grille des pages, sans jamais être sur le site."
@@ -2111,7 +2127,7 @@ suite:
                 step_3: "Un livrable se crée dans l'onglet ouvert ; ensuite, seul son auteur le fait passer de perso à partagé, ou l'inverse, depuis son menu ou ses réglages."
                 step_4: "Un lien de lecture l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client. Voir les liens et en donner demande le droit de partager."
                 step_5: "Les livrables d'un client se préparent dans son espace, onglet Livrables : c'est là qu'il les lit."
-                step_6: "Rangez-les par catégorie (audit, stratégie, proposition…) : filtrez la liste ou affichez-la par catégorie. Un modèle se copie dans l'espace d'un client, et un livrable d'espace revient ici par « Copier dans Studio »."
+                step_6: "Rangez-les par catégorie (audit, stratégie, proposition…) : filtrez la liste ou affichez-la par catégorie. Cochez « C'est un modèle » dans les réglages d'un livrable : il est proposé à la création, et se copie dans l'espace d'un client. Un livrable d'espace revient ici par « Copier dans Studio »."
             scope:
                 label: "Visibilité"
                 personal: "Perso"
@@ -2266,6 +2282,8 @@ suite:
                 locale_invalid: "Cette langue n'est pas active sur le site."
                 grid_invalid: "La grille envoyée est illisible."
                 scope_invalid: "Cette visibilité n'existe pas : choisissez perso ou partagé."
+                format_invalid: "Ce format n'existe pas : choisissez une page ou un diaporama."
+                format_unavailable: "Un livrable en diaporama ne se crée pas encore : choisissez une page."
                 conflict: "Un collègue a enregistré ce livrable entre-temps. Rechargez la page pour voir sa version, ou enregistrez quand même pour la remplacer."
         space_resources:
             guide:

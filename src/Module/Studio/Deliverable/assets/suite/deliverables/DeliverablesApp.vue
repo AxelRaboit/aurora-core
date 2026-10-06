@@ -15,11 +15,16 @@
  * un filtre à côté des rayons, comme celui des métiers sur les trames, et un
  * affichage par catégorie, en sections, ou en simple liste. Le filtre et
  * l'affichage vont dans l'adresse, comme le rayon : un lien rouvre la même vue.
+ *
+ * Un livrable peut être un modèle : un badge sur sa carte, le filtre
+ * « Modèles » à côté des catégories, et « Partir d'un modèle » dans la fenêtre
+ * de création. Le client pour qui il a été écrit, quand il en a un, se lit sur
+ * la carte.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, FolderInput, Layers, Link2, List, Lock, Pencil, Plus, Tags, Trash2, Users, X } from "lucide-vue-next";
+import { Copy, ExternalLink, FolderInput, Layers, LayoutTemplate, Link2, List, Lock, Pencil, Plus, Tags, Trash2, Users, X } from "lucide-vue-next";
 import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { queueFlash } from "@/shared/utils/flash.js";
@@ -44,6 +49,7 @@ import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 import DeliverableScopePicker from "./components/DeliverableScopePicker.vue";
 import { categoryOptions } from "./composables/categoryOptions.js";
+import { templateOptions } from "./composables/templateOptions.js";
 import { useDeliverableRequest } from "./composables/useDeliverableRequest.js";
 
 const props = defineProps({
@@ -129,13 +135,24 @@ function setCategoryFilter(value) {
     setCategory(null === value || undefined === value ? "" : String(value));
 }
 
-/** La recherche porte sur le titre et le résumé, dans le rayon ouvert. */
+/** Les modèles seuls, ou tout : dans l'adresse comme les autres filtres. */
+const { value: templatesQuery, set: setTemplatesQuery } = useQueryState("templates", { defaultValue: "", valid: ["1"] });
+const templatesOnly = computed(() => "1" === templatesQuery.value);
+
+function toggleTemplatesOnly() {
+    setTemplatesQuery(templatesOnly.value ? "" : "1");
+}
+
+/** Combien de modèles dans le rayon ouvert, pour le compte du filtre. */
+const templateCount = computed(() => lists.value[scope.value].filter((row) => row.template).length);
+
+/** La recherche porte sur le titre, le résumé et le client, dans le rayon ouvert. */
 const searched = computed(() => {
     const needle = search.value.trim().toLocaleLowerCase();
-    const rows = lists.value[scope.value];
+    const rows = templatesOnly.value ? lists.value[scope.value].filter((row) => row.template) : lists.value[scope.value];
 
     return needle
-        ? rows.filter((row) => `${row.title} ${row.summary ?? ""}`.toLocaleLowerCase().includes(needle))
+        ? rows.filter((row) => `${row.title} ${row.summary ?? ""} ${row.customer?.legalName ?? ""}`.toLocaleLowerCase().includes(needle))
         : rows;
 });
 
@@ -199,10 +216,22 @@ const saving = ref(false);
 const title = ref("");
 const newScope = ref("personal");
 const newCategory = ref("");
+const newTemplate = ref("");
 const errors = ref({});
+
+/** Les modèles des deux rayons : on part d'un modèle partagé comme d'un des siens. */
+const templateSelectOptions = computed(() => templateOptions([...lists.value.personal, ...lists.value.shared]));
+
+// Choisir un modèle range le nouveau livrable dans sa catégorie : c'est ce
+// qu'il en reprend, et le sélecteur reste là pour en changer.
+watch(newTemplate, (value) => {
+    const chosen = templateSelectOptions.value.find((option) => String(option.value) === String(value));
+    if (chosen) newCategory.value = null === chosen.categoryId ? "" : chosen.categoryId;
+});
 
 function openCreate() {
     title.value = "";
+    newTemplate.value = "";
     // Dans le rayon qu'on regarde : on crée là où l'on cherchait.
     newScope.value = scope.value;
     // La catégorie qu'on filtre, si c'en est une : on crée là où l'on regardait.
@@ -220,6 +249,7 @@ async function create() {
             title: title.value,
             scope: newScope.value,
             categoryId: newCategory.value ? Number(newCategory.value) : null,
+            fromTemplateId: newTemplate.value ? Number(newTemplate.value) : null,
         });
         if (!data?.success) {
             errors.value = data?.errors ?? {};
@@ -472,6 +502,31 @@ function actionsFor(deliverable) {
                     class="w-full sm:w-auto sm:min-w-48"
                     v-on:update:model-value="setCategoryFilter"
                 />
+
+                <!-- Les modèles seuls : une pastille qu'on enfonce, avec son
+                     compte, comme les rayons. Visible même à zéro quand le
+                     filtre est allumé, pour pouvoir l'éteindre. -->
+                <div
+                    v-if="templateCount || templatesOnly"
+                    class="flex w-full p-1 bg-surface-2 border border-line rounded-lg sm:inline-flex sm:w-auto sm:self-start"
+                >
+                    <AppTab
+                        size="sm"
+                        class="flex-1 justify-between sm:flex-none sm:justify-start"
+                        :active="templatesOnly"
+                        :aria-pressed="templatesOnly ? 'true' : 'false'"
+                        :title="t('suite.studio.deliverables.template.filter_hint')"
+                        active-class="bg-surface text-primary shadow-sm"
+                        inactive-class="text-secondary hover:text-primary"
+                        v-on:click="toggleTemplatesOnly"
+                    >
+                        <span class="inline-flex items-center gap-1.5">
+                            <LayoutTemplate class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("suite.studio.deliverables.template.filter") }}
+                        </span>
+                        <span class="ml-1 text-xs text-muted">{{ templateCount }}</span>
+                    </AppTab>
+                </div>
             </div>
 
             <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`suite.studio.deliverables.scope.intro_${scope}`) }}</p>
@@ -506,6 +561,13 @@ function actionsFor(deliverable) {
                                 :style="deliverable.category.color ? { backgroundColor: deliverable.category.color } : {}"
                             />
                             {{ deliverable.category.name }}
+                        </span>
+                        <AppBadge v-if="deliverable.template" color="violet">
+                            <LayoutTemplate class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                            {{ t("suite.studio.deliverables.template.badge") }}
+                        </AppBadge>
+                        <span v-if="deliverable.customer" class="text-xs text-secondary">
+                            {{ t("suite.studio.deliverables.for_customer", { name: deliverable.customer.legalName }) }}
                         </span>
                         <AppBadge v-if="'shared' === deliverable.scope" color="sky">
                             {{ deliverable.ownerName
@@ -556,6 +618,16 @@ function actionsFor(deliverable) {
             v-on:close="creating = false"
         >
             <form class="space-y-4" v-on:submit.prevent="create">
+                <!-- Le modèle en premier : c'est la question qui décide de
+                     tout ce qui suit, comme pour une présentation. -->
+                <AppSelect
+                    v-if="templateSelectOptions.length"
+                    v-model="newTemplate"
+                    :label="t('suite.studio.deliverables.template.from')"
+                    :placeholder="t('suite.studio.deliverables.template.from_nothing')"
+                    :hint="newTemplate ? t('suite.studio.deliverables.template.from_hint') : ''"
+                    :options="templateSelectOptions"
+                />
                 <AppInput
                     v-model="title"
                     autofocus

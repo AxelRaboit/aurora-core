@@ -6,7 +6,9 @@ namespace Aurora\Module\Studio\Deliverable\Entity;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use DateTimeImmutable;
 
@@ -18,6 +20,19 @@ interface DeliverableInterface
 
     /** Vrai pour un livrable de Studio, rattaché à aucun espace. */
     public function isStandalone(): bool;
+
+    /** Une page ou des diapositives, fixé à la création. */
+    public function getFormat(): DeliverableFormatEnum;
+
+    /** Un modèle de Studio, proposé à la création d'un livrable ; jamais dans un espace. */
+    public function isTemplate(): bool;
+
+    public function setTemplate(bool $template): static;
+
+    /** Le client pour qui un livrable de Studio a été écrit ; nul dans un espace. */
+    public function getCustomer(): ?CustomerInterface;
+
+    public function setCustomer(?CustomerInterface $customer): static;
 
     public function getOwner(): ?CoreUserInterface;
 

@@ -20,7 +20,9 @@ import { categoryOptions } from "../composables/categoryOptions.js";
  * visible ou non : c'est un envoi décidé à part.
  *
  * Sans espace, pas de client : la section laisse la place au rayon du
- * livrable, perso ou partagé, que seul son auteur change.
+ * livrable, perso ou partagé, que seul son auteur change. Un livrable de
+ * Studio peut aussi être un modèle, et nommer le client pour qui il est écrit
+ * (le sélecteur ne s'affiche qu'avec le droit de voir les clients).
  */
 const title = defineModel("title", { type: String, required: true });
 const summary = defineModel("summary", { type: String, default: "" });
@@ -29,6 +31,10 @@ const readingHeader = defineModel("readingHeader", { type: Object, required: tru
 const visibleToClient = defineModel("visibleToClient", { type: Boolean, default: false });
 const scope = defineModel("scope", { type: String, default: null });
 const categoryId = defineModel("categoryId", { type: [Number, null], default: null });
+/** Studio seulement : proposé à la création d'un livrable. */
+const template = defineModel("template", { type: Boolean, default: false });
+/** Studio seulement : le client pour qui il est écrit, avant son espace. */
+const customerId = defineModel("customerId", { type: [Number, null], default: null });
 /** L'image de la carte : `{ id, url }`, prise dans la médiathèque. */
 const thumbnail = defineModel("thumbnail", { type: Object, default: () => ({ id: null, url: null }) });
 
@@ -41,6 +47,9 @@ const props = defineProps({
     canChangeScope: { type: Boolean, default: false },
     /** Les catégories des livrables de Studio : `{ id, name, color }`. */
     categories: { type: Array, default: () => [] },
+    /** Les clients à nommer, `{ id, legalName }` ; vide sans le droit de les voir. */
+    customers: { type: Array, default: () => [] },
+    canPickCustomer: { type: Boolean, default: false },
     /** The [blanks] still in the document: a client should not read one. */
     placeholders: { type: Number, default: 0 },
 });
@@ -68,6 +77,15 @@ const categorySelectOptions = computed(() => categoryOptions(props.categories));
 const categoryValue = computed({
     get: () => (null === categoryId.value || undefined === categoryId.value ? "" : String(categoryId.value)),
     set: (value) => (categoryId.value = value ? Number(value) : null),
+});
+
+const customerSelectOptions = computed(() =>
+    props.customers.map((customer) => ({ value: customer.id, label: customer.legalName })),
+);
+
+const customerValue = computed({
+    get: () => (null === customerId.value || undefined === customerId.value ? "" : String(customerId.value)),
+    set: (value) => (customerId.value = value ? Number(value) : null),
 });
 
 function setHeader(key, value) {
@@ -132,6 +150,22 @@ const showLogo = computed({
                 :placeholder="t('suite.studio.deliverables.categories.none')"
                 :hint="t(categories.length ? 'suite.studio.deliverables.categories.settings_hint' : 'suite.studio.deliverables.categories.settings_empty_hint')"
                 :options="categorySelectOptions"
+            />
+            <!-- Studio seulement, et avec le droit de voir les clients : la
+                 liste entière des clients est derrière ce sélecteur. -->
+            <AppSelect
+                v-if="!withClient && scope && canPickCustomer"
+                v-model="customerValue"
+                :label="t('suite.studio.deliverables.customer.label')"
+                :placeholder="t('suite.studio.deliverables.customer.none')"
+                :hint="t('suite.studio.deliverables.customer.hint')"
+                :options="customerSelectOptions"
+            />
+            <AppToggle
+                v-if="!withClient && scope"
+                v-model="template"
+                :label="t('suite.studio.deliverables.template.toggle')"
+                :hint="t('suite.studio.deliverables.template.toggle_hint')"
             />
         </section>
 

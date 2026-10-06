@@ -1,5 +1,6 @@
-import { afterEach, describe, it, expect } from "vitest";
-import { mount } from "@vue/test-utils";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { nextTick } from "vue";
+import { flushPromises, mount } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import DeliverablesApp from "./DeliverablesApp.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
@@ -209,6 +210,83 @@ describe("DeliverablesApp", () => {
 
         expect(keys).not.toContain("scope");
         expect(keys).not.toContain("links");
+    });
+
+    it("marks a template, names the client, and filters on templates from the address", async () => {
+        const personal = [
+            row(1, "Audit type", { template: true }),
+            row(2, "Proposition à Fabre", {
+                customer: { id: 4, legalName: "Menuiserie Fabre" },
+            }),
+        ];
+
+        const all = mountApp({ personal });
+        expect(all.text()).toContain("template.badge");
+        expect(all.text()).toContain("deliverables.for_customer");
+        expect(all.text()).toContain("Proposition à Fabre");
+
+        window.history.replaceState(null, "", "/?templates=1");
+        const templates = mountApp({ personal });
+        expect(templates.text()).toContain("Audit type");
+        expect(templates.text()).not.toContain("Proposition à Fabre");
+    });
+
+    it("starts a new deliverable from a template, in its category", async () => {
+        const send = vi.fn().mockResolvedValue({ success: false, errors: {} });
+        vi.doMock("./composables/useDeliverableRequest.js", () => ({
+            useDeliverableRequest: () => ({ send }),
+        }));
+        vi.resetModules();
+        const { default: App } = await import("./DeliverablesApp.vue");
+
+        const wrapper = mount(App, {
+            props: {
+                personal: [row(1, "Brouillon")],
+                shared: [
+                    row(2, "Audit type", {
+                        scope: "shared",
+                        template: true,
+                        category: CATEGORIES[0],
+                    }),
+                ],
+                categories: CATEGORIES,
+                canCreate: true,
+                ...PATHS,
+            },
+            global: {
+                plugins: [i18n],
+                stubs: {
+                    DeliverableLinksModal: true,
+                    DeliverableCopyToSpaceModal: true,
+                    AppCategoriesModal: true,
+                    AppModal: {
+                        template: "<div><slot /><slot name='footer' /></div>",
+                    },
+                },
+            },
+        });
+
+        const templateSelect = wrapper
+            .findAllComponents({ name: "AppSelect" })
+            .find(
+                (select) =>
+                    "suite.studio.deliverables.template.from" ===
+                    select.props("label"),
+            );
+        expect(templateSelect.props("options")).toEqual([
+            { value: 2, label: "Audit type", categoryId: 1 },
+        ]);
+
+        templateSelect.vm.$emit("update:modelValue", 2);
+        await nextTick();
+        await wrapper.find("form").trigger("submit");
+        await flushPromises();
+
+        expect(send).toHaveBeenCalledWith(
+            PATHS.createPath,
+            expect.objectContaining({ fromTemplateId: 2, categoryId: 1 }),
+        );
+        vi.doUnmock("./composables/useDeliverableRequest.js");
     });
 
     it("hides the create button without the right", () => {

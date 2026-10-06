@@ -7,9 +7,11 @@ namespace Aurora\Module\Studio\Deliverable\Repository;
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use DateTimeImmutable;
@@ -66,12 +68,12 @@ class DeliverableRepository extends ResolveTargetEntityRepository
      * qui n'est même pas celui des livrables. Le même tri que
      * {@see self::findForSpace()}.
      *
-     * @return list<array{id: int, title: string, summary: ?string, visibleToClient: bool, updatedAt: DateTimeImmutable, thumbnailId: ?int}>
+     * @return list<array{id: int, title: string, summary: ?string, format: string, visibleToClient: bool, updatedAt: DateTimeImmutable, thumbnailId: ?int}>
      */
     public function findRowsForSpace(CustomerSpaceInterface $space, bool $visibleOnly = false): array
     {
         $builder = $this->createQueryBuilder('d')
-            ->select('d.id AS id, d.title AS title, d.summary AS summary, d.visibleToClient AS visibleToClient, d.updatedAt AS updatedAt, IDENTITY(d.thumbnail) AS thumbnailId')
+            ->select('d.id AS id, d.title AS title, d.summary AS summary, d.format AS format, d.visibleToClient AS visibleToClient, d.updatedAt AS updatedAt, IDENTITY(d.thumbnail) AS thumbnailId')
             ->where('d.space = :space')
             ->andWhere('d.deletedAt IS NULL')
             ->setParameter('space', $space)
@@ -86,6 +88,7 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             'id' => (int) $row['id'],
             'title' => (string) $row['title'],
             'summary' => null === $row['summary'] ? null : (string) $row['summary'],
+            'format' => $row['format'] instanceof DeliverableFormatEnum ? $row['format']->value : (string) $row['format'],
             'visibleToClient' => (bool) $row['visibleToClient'],
             'updatedAt' => $row['updatedAt'],
             'thumbnailId' => null === $row['thumbnailId'] ? null : (int) $row['thumbnailId'],
@@ -265,6 +268,31 @@ class DeliverableRepository extends ResolveTargetEntityRepository
         return (int) $builder->getQuery()->getSingleScalarResult();
     }
 
+    /**
+     * Les livrables de Studio écrits pour ce client, vivants, le dernier
+     * touché en premier : la proposition faite avant que son espace existe.
+     * Ceux de son espace ne comptent pas ici, l'espace les liste lui-même.
+     *
+     * Tous rayons confondus : l'appelant garde ce que la personne a le droit
+     * de lire, ce que le SQL ne sait pas dire.
+     *
+     * @return list<DeliverableInterface>
+     */
+    public function findLiveStandaloneForCustomer(CustomerInterface $customer): array
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.owner', 'o')
+            ->addSelect('o')
+            ->where('d.space IS NULL')
+            ->andWhere('d.customer = :customer')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('customer', $customer)
+            ->orderBy('d.updatedAt', Order::Descending->value)
+            ->addOrderBy('d.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** Un livrable sans espace : ceux d'un espace ne s'ouvrent que par lui. */
     public function findStandalone(int $id): ?DeliverableInterface
     {
@@ -282,9 +310,11 @@ class DeliverableRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('d')
             ->leftJoin('d.owner', 'o')
             ->addSelect('o')
-            // La catégorie et l'image de chaque carte, dans la même requête.
+            // La catégorie, le client et l'image de chaque carte, dans la même requête.
             ->leftJoin('d.category', 'c')
             ->addSelect('c')
+            ->leftJoin('d.customer', 'cu')
+            ->addSelect('cu')
             ->leftJoin('d.thumbnail', 't')
             ->addSelect('t')
             ->where('d.space IS NULL')

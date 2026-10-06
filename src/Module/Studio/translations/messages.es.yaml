@@ -2073,6 +2073,22 @@ suite:
             search_placeholder: "Buscar un entregable"
             no_match: "Ningún entregable coincide con la búsqueda."
             studio_title_hint: "El título en la cabecera del documento y en la lista."
+            formats:
+                page: "Página"
+                slides: "Diapositivas"
+            template:
+                badge: "Plantilla"
+                filter: "Plantillas"
+                filter_hint: "Mostrar solo las plantillas"
+                toggle: "Es una plantilla"
+                toggle_hint: "Se ofrece en «Partir de una plantilla» al crear un entregable. Lo que sale de ella, copia o entregable nuevo, no lo es."
+                from: "Partir de una plantilla"
+                from_nothing: "Página en blanco"
+                from_hint: "El nuevo entregable retoma su contenido, su apariencia, su imagen y su categoría, con el título de abajo."
+            customer:
+                label: "Cliente"
+                none: "Ningún cliente"
+                hint: "Para quién se escribe este entregable, antes de que el cliente tenga un espacio: una propuesta a un cliente potencial. Copiado en un espacio, toma el cliente del espacio."
             studio_guide:
                 title: "Cómo funcionan los entregables"
                 step_1: "Un entregable es un documento escrito para leerse: una auditoría, una estrategia, una propuesta. Se compone con la cuadrícula de las páginas, sin aparecer nunca en el sitio."
@@ -2080,7 +2096,7 @@ suite:
                 step_3: "Un entregable se crea en la pestaña abierta; después, solo su autor lo pasa de personal a compartido, o al revés, desde su menú o sus ajustes."
                 step_4: "Un enlace de lectura lo envía a quien quiera, con caducidad y contraseña a su elección, sin cuenta ni espacio de cliente. Ver los enlaces y dar alguno requiere el derecho de compartir."
                 step_5: "Los entregables de un cliente se preparan en su espacio, pestaña Entregables: allí es donde los lee."
-                step_6: "Ordénelos por categoría (auditoría, estrategia, propuesta…): filtre la lista o muéstrela por categoría. Una plantilla se copia en el espacio de un cliente, y un entregable de espacio vuelve aquí con «Copiar en Studio»."
+                step_6: "Ordénelos por categoría (auditoría, estrategia, propuesta…): filtre la lista o muéstrela por categoría. Marque «Es una plantilla» en los ajustes de un entregable: se ofrece al crear uno, y se copia en el espacio de un cliente. Un entregable de espacio vuelve aquí con «Copiar en Studio»."
             scope:
                 label: "Visibilidad"
                 personal: "Personal"
@@ -2235,6 +2251,8 @@ suite:
                 locale_invalid: "Este idioma no está activo en el sitio."
                 grid_invalid: "La cuadrícula enviada es ilegible."
                 scope_invalid: "Esa visibilidad no existe: elija personal o compartido."
+                format_invalid: "Ese formato no existe: elija una página o diapositivas."
+                format_unavailable: "Todavía no se puede crear un entregable en diapositivas: elija una página."
                 conflict: "Un compañero guardó este entregable mientras tanto. Recargue la página para ver su versión, o guarde igualmente para reemplazarla."
         space_resources:
             guide:

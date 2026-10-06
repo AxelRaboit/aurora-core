@@ -7,6 +7,8 @@ namespace Aurora\Module\Studio\Deliverable\View;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
@@ -34,6 +36,7 @@ final readonly class DeliverablesViewBuilder
         private PathTemplateGenerator $pathTemplates,
         private LocaleContextInterface $localeContext,
         private DeliverableCategoryRepository $categories,
+        private CustomerRepository $customers,
     ) {}
 
     /**
@@ -100,13 +103,24 @@ final readonly class DeliverablesViewBuilder
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Une carte, avec les gestes de la personne. Le client n'y est nommé que
+     * pour qui a le droit de voir les clients, module allumé.
+     *
+     * @return array<string, mixed>
+     */
     public function row(DeliverableInterface $deliverable): array
     {
-        return [
+        $row = [
             ...$this->serializer->row($deliverable),
             ...$this->permissions($deliverable),
         ];
+
+        if (!$this->access->canPickCustomer()) {
+            $row['customer'] = null;
+        }
+
+        return $row;
     }
 
     /**
@@ -136,7 +150,28 @@ final readonly class DeliverablesViewBuilder
             'copyToSpacePath' => $route('copy_to_space'),
             'copyTargets' => $this->copyTargets(),
             'categories' => $this->categoryList(),
+            'canPickCustomer' => $this->access->canPickCustomer(),
+            'customers' => $this->customerOptions(),
         ];
+    }
+
+    /**
+     * Les clients que les réglages proposent, par raison sociale : vide sans
+     * le module des clients ou sans le droit d'en voir la liste, et le
+     * sélecteur ne s'affiche pas.
+     *
+     * @return list<array{id: int|null, legalName: string}>
+     */
+    private function customerOptions(): array
+    {
+        if (!$this->access->canPickCustomer()) {
+            return [];
+        }
+
+        return array_map(
+            static fn (CustomerInterface $customer): array => ['id' => $customer->getId(), 'legalName' => $customer->getLegalName()],
+            $this->customers->findAllOrdered(),
+        );
     }
 
     /**

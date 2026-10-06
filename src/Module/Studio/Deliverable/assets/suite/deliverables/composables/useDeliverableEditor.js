@@ -18,10 +18,15 @@ function snapshot(form) {
         readingHeader: form.readingHeader,
         visibleToClient: form.visibleToClient,
         thumbnailId: form.thumbnail?.id ?? null,
-        // Le rayon et la catégorie d'un livrable de Studio ; absents pour un
-        // livrable d'espace.
+        // Le rayon, la catégorie, la case « modèle » et le client d'un
+        // livrable de Studio ; absents pour un livrable d'espace.
         ...(form.scope
-            ? { scope: form.scope, categoryId: form.categoryId ?? null }
+            ? {
+                  scope: form.scope,
+                  categoryId: form.categoryId ?? null,
+                  template: !!form.template,
+                  customerId: form.customerId ?? null,
+              }
             : {}),
     });
 }

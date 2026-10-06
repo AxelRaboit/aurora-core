@@ -89,6 +89,37 @@ describe("useDeliverableEditor", () => {
         wrapper.unmount();
     });
 
+    it("sends the template flag and the client of a Studio deliverable, and counts them as changes", async () => {
+        request.mockResolvedValue({ success: true, deliverable: {} });
+        const wrapper = mountEditor();
+
+        editor.form.value.template = true;
+        await nextTick();
+        expect(editor.dirty.value).toBe(true);
+        editor.form.value.customerId = 12;
+        await editor.save();
+
+        const sent = request.mock.calls[0][1];
+        expect(sent.template).toBe(true);
+        expect(sent.customerId).toBe(12);
+        wrapper.unmount();
+    });
+
+    it("sends neither for a space deliverable: its space says both", async () => {
+        request.mockResolvedValue({ success: true, deliverable: {} });
+        const wrapper = mountEditor({
+            deliverable: { ...DELIVERABLE, scope: null },
+        });
+
+        editor.form.value.title = "Audit du client";
+        await editor.save();
+
+        const sent = request.mock.calls[0][1];
+        expect(sent).not.toHaveProperty("template");
+        expect(sent).not.toHaveProperty("customerId");
+        wrapper.unmount();
+    });
+
     it("reports a version conflict as such instead of a failure", async () => {
         request.mockResolvedValue({ success: false, conflict: true });
         const wrapper = mountEditor();

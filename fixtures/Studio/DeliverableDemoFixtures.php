@@ -12,6 +12,7 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
@@ -63,7 +64,10 @@ use const PASSWORD_DEFAULT;
  * l'équipe duplique pour chaque client : l'un en page continue, l'autre en
  * présentation aux couleurs du site. Quinze sections, des cartes colorées, un
  * camembert, des [passages à remplacer] : le plus complet de ce que la grille
- * sait faire pour un livrable. Leur grille est dans `data/*.json`, les images
+ * sait faire pour un livrable. Eux, la stratégie qui les suit, le modèle
+ * d'audit de l'équipe et la proposition type sont marqués « modèle » : ce sont
+ * eux que propose « Partir d'un modèle », dans les deux rayons. La ligne
+ * éditoriale écrite pour un menuisier nomme son client, la Menuiserie Fabre. Leur grille est dans `data/*.json`, les images
  * désignées par leur nom (`@doc:`) puisque les identifiants changent à chaque
  * chargement.
  *
@@ -142,6 +146,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $author instanceof CoreUserInterface ? $author : null,
             DeliverableScopeEnum::Personal,
             $proposals,
+            template: true,
         );
         [, , , $auditLook, $auditZones, $auditContent] = $this->audit();
         $this->deliverable(
@@ -156,6 +161,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $author instanceof CoreUserInterface ? $author : null,
             DeliverableScopeEnum::Shared,
             $audits,
+            template: true,
         );
 
         // Un partagé écrit par une collègue, et un second brouillon perso :
@@ -175,6 +181,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $colleague instanceof CoreUserInterface ? $colleague : null,
             DeliverableScopeEnum::Shared,
             $strategies,
+            customer: $fabre->getCustomer(),
         );
         [, , , $reportLook, $reportZones, $reportContent] = $this->monthlyReport();
         $this->deliverable(
@@ -293,10 +300,12 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         ?CoreUserInterface $owner = null,
         DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
         ?DeliverableCategoryInterface $category = null,
+        bool $template = false,
+        ?CustomerInterface $customer = null,
     ): ?Deliverable {
         $existing = $this->deliverables->findOneBy(['space' => $space, 'title' => $title]);
         if (null !== $existing) {
-            $this->fileIfUnfiled($existing, $category);
+            $this->catchUp($existing, $category, $template, $customer);
 
             return null;
         }
@@ -313,7 +322,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space?->getCustomer()->getLegalName() ?? '']))
             ->setOwner($owner)
             ->setScope($scope)
-            ->setCategory($category);
+            ->setCategory($category)
+            ->setTemplate($template)
+            ->setCustomer($customer);
 
         $manager->persist($deliverable);
 
@@ -321,17 +332,30 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Range un livrable déjà là dans sa catégorie, s'il n'en a pas encore.
+     * Met un livrable déjà là au niveau de la démo : sa catégorie, sa case
+     * « modèle » et son client, s'il ne les a pas encore.
      *
-     * Les fixtures s'arrêtaient à « existe déjà » : une catégorie ajoutée après
-     * le premier chargement ne rangeait jamais les livrables chargés avant.
-     * Seulement quand il n'en a pas : un rangement fait à la main n'est pas
-     * défait par un rechargement.
+     * Les fixtures s'arrêtaient à « existe déjà » : une catégorie, un modèle ou
+     * un client ajoutés après le premier chargement n'arrivaient jamais sur les
+     * livrables chargés avant. Seulement ce qui manque : un rangement ou un
+     * client choisis à la main ne sont pas défaits par un rechargement.
      */
-    private function fileIfUnfiled(object $deliverable, ?DeliverableCategoryInterface $category): void
+    private function catchUp(object $deliverable, ?DeliverableCategoryInterface $category, bool $template = false, ?CustomerInterface $customer = null): void
     {
-        if ($deliverable instanceof Deliverable && $category instanceof DeliverableCategoryInterface && $deliverable->isStandalone() && !$deliverable->getCategory() instanceof DeliverableCategoryInterface) {
+        if (!$deliverable instanceof Deliverable || !$deliverable->isStandalone()) {
+            return;
+        }
+
+        if ($category instanceof DeliverableCategoryInterface && !$deliverable->getCategory() instanceof DeliverableCategoryInterface) {
             $deliverable->setCategory($category);
+        }
+
+        if ($template) {
+            $deliverable->setTemplate(true);
+        }
+
+        if ($customer instanceof CustomerInterface && !$deliverable->getCustomer() instanceof CustomerInterface) {
+            $deliverable->setCustomer($customer);
         }
     }
 
@@ -346,7 +370,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
         $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $model['title']]);
         if (null !== $existing) {
-            $this->fileIfUnfiled($existing, $category);
+            $this->catchUp($existing, $category, template: true);
 
             return;
         }
@@ -362,7 +386,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => '']))
             ->setOwner($owner)
             ->setScope(DeliverableScopeEnum::Shared)
-            ->setCategory($category);
+            ->setCategory($category)
+            ->setTemplate(true);
 
         $manager->persist($deliverable);
     }

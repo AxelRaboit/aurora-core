@@ -2093,6 +2093,22 @@ suite:
             search_placeholder: "Search deliverables"
             no_match: "No deliverable matches the search."
             studio_title_hint: "The title at the top of the document, and in the list."
+            formats:
+                page: "Page"
+                slides: "Slideshow"
+            template:
+                badge: "Template"
+                filter: "Templates"
+                filter_hint: "Show templates only"
+                toggle: "This is a template"
+                toggle_hint: "It is offered under “Start from a template” when creating a deliverable. What comes out of it, a copy or a new deliverable, is not one."
+                from: "Start from a template"
+                from_nothing: "Blank page"
+                from_hint: "The new deliverable takes its content, appearance, image and category, under the title below."
+            customer:
+                label: "Client"
+                none: "No client"
+                hint: "Who this deliverable is written for, before the client has a space: a proposal to a prospect. Copied into a space, it takes the space's client."
             studio_guide:
                 title: "How deliverables work"
                 step_1: "A deliverable is a document written to be read: an audit, a strategy, a proposal. It is built with the page grid, and never appears on the site."
@@ -2100,7 +2116,7 @@ suite:
                 step_3: "A deliverable is created in the open tab; after that, only its author moves it between personal and shared, from its menu or its settings."
                 step_4: "A reading link sends it to whoever you want, with an expiry and a password if you like, no account or client space needed. Seeing the links and giving some needs the right to share."
                 step_5: "A client's deliverables are prepared in their space, Deliverables tab: that is where they read them."
-                step_6: "File them by category (audit, strategy, proposal…): filter the list or show it by category. A template is copied into a client's space, and a space deliverable comes back here with “Copy to Studio”."
+                step_6: "File them by category (audit, strategy, proposal…): filter the list or show it by category. Tick “This is a template” in a deliverable's settings: it is offered when creating one, and is copied into a client's space. A space deliverable comes back here with “Copy to Studio”."
             scope:
                 label: "Visibility"
                 personal: "Personal"
@@ -2255,6 +2271,8 @@ suite:
                 locale_invalid: "This language is not active on the site."
                 grid_invalid: "The grid sent is unreadable."
                 scope_invalid: "That visibility does not exist: choose personal or shared."
+                format_invalid: "That format does not exist: choose a page or a slideshow."
+                format_unavailable: "A slideshow deliverable cannot be created yet: choose a page."
                 conflict: "A colleague saved this deliverable in the meantime. Reload the page to see their version, or save anyway to replace it."
         space_resources:
             guide:

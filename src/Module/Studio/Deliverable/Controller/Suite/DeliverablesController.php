@@ -15,6 +15,7 @@ use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Dto\DeliverableCategoryInput;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableCategoryManager;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
@@ -37,6 +38,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_filter;
+use function array_key_exists;
 use function array_values;
 use function is_array;
 use function is_int;
@@ -102,7 +104,21 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->lists());
     }
 
-    /** Un titre et un rayon, et on arrive dans l'éditeur. */
+    /**
+     * Un titre et un rayon, et on arrive dans l'éditeur.
+     *
+     * Le format se choisit ici et nulle part ailleurs : absent, c'est une
+     * page. Un diaporama est refusé tant que son éditeur n'est pas branché
+     * sur les livrables, cf. {@see DeliverableFormatEnum::isCreatable()} ;
+     * la fenêtre de création ne le propose pas encore.
+     *
+     * Parti d'un modèle (`fromTemplateId`), le livrable en reprend le corps
+     * et le format ; la catégorie aussi, sauf si l'envoi en nomme une. Un
+     * modèle qu'on ne lit pas, ou qui n'en est plus un, donne un livrable
+     * vide plutôt qu'un refus : le sélecteur vient de la liste, et la seule
+     * façon d'envoyer un identifiant périmé est un modèle retiré entre
+     * l'ouverture de la page et la création, qui ferait perdre le titre tapé.
+     */
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     public function create(Request $request): JsonResponse
     {
@@ -120,13 +136,34 @@ final class DeliverablesController extends AbstractController
             return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_too_long']);
         }
 
-        $deliverable = $this->manager->create(
-            null,
-            $title,
-            $this->access->user(),
-            DeliverableScopeEnum::fromInput($payload['scope'] ?? null),
-            $this->manager->category($payload['categoryId'] ?? null),
-        );
+        $format = DeliverableFormatEnum::fromInput($payload['format'] ?? null);
+        if (!$format instanceof DeliverableFormatEnum) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_invalid']);
+        }
+
+        if (!$format->isCreatable()) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_unavailable']);
+        }
+
+        $scope = DeliverableScopeEnum::fromInput($payload['scope'] ?? null);
+        $template = $this->template($payload['fromTemplateId'] ?? null);
+
+        $deliverable = $template instanceof DeliverableInterface
+            ? $this->manager->createFromTemplate(
+                $template,
+                $title,
+                $this->access->user(),
+                $scope,
+                array_key_exists('categoryId', $payload) ? $this->manager->category($payload['categoryId']) : $template->getCategory(),
+            )
+            : $this->manager->create(
+                null,
+                $title,
+                $this->access->user(),
+                $scope,
+                $this->manager->category($payload['categoryId'] ?? null),
+                $format,
+            );
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('suite_studio_deliverables_edit', ['id' => $deliverable->getId()]),
@@ -149,6 +186,12 @@ final class DeliverablesController extends AbstractController
         }
 
         $payload = $this->decodeJson($request);
+
+        // Le client ne se nomme qu'avec le droit de voir les clients : sans
+        // lui, l'éditeur renvoie celui qu'il a reçu, et il ne compte pas.
+        if (!$this->access->canPickCustomer()) {
+            unset($payload['customerId']);
+        }
 
         // Avant la validation : dire que le titre est invalide quand la vraie
         // réponse est qu'un collègue a enregistré entre-temps serait faux.
@@ -521,6 +564,15 @@ final class DeliverablesController extends AbstractController
         $color = is_string($payload['color'] ?? null) && '' !== $payload['color'] ? $payload['color'] : null;
 
         return new DeliverableCategoryInput(is_string($payload['name'] ?? null) ? mb_trim($payload['name']) : '', $color);
+    }
+
+    /** Le modèle dont part un livrable neuf : un livrable de Studio vivant, lisible, et toujours un modèle. */
+    private function template(mixed $id): ?DeliverableInterface
+    {
+        $id = is_int($id) || (is_string($id) && is_numeric($id)) ? (int) $id : null;
+        $template = null === $id ? null : $this->deliverables->findStandalone($id);
+
+        return $template instanceof DeliverableInterface && $template->isTemplate() && $this->access->canRead($template) ? $template : null;
     }
 
     /** Un livrable à la corbeille que la personne peut lire, ou 404. */

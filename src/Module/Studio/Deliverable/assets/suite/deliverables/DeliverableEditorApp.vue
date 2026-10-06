@@ -17,7 +17,7 @@
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, Link2, Lock, RefreshCw, Save, Trash2, Users } from "lucide-vue-next";
+import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, LayoutTemplate, Link2, Lock, RefreshCw, Save, Trash2, Users } from "lucide-vue-next";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -66,6 +66,9 @@ const props = defineProps({
     copyToStudioPath: { type: String, default: "" },
     /** Les catégories des livrables de Studio. */
     categories: { type: Array, default: () => [] },
+    /** Studio : les clients à nommer, vides sans le droit de les voir. */
+    customers: { type: Array, default: () => [] },
+    canPickCustomer: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -345,6 +348,10 @@ const headerActions = computed(() => {
                     <component :is="'shared' === form.scope ? Users : Lock" class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
                     {{ t(`suite.studio.deliverables.scope.${form.scope}`) }}
                 </AppBadge>
+                <AppBadge v-if="!space && form.template" color="violet">
+                    <LayoutTemplate class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                    {{ t("suite.studio.deliverables.template.badge") }}
+                </AppBadge>
                 <AppBadge v-else :color="form.visibleToClient ? 'emerald' : 'gray'">
                     {{ t(form.visibleToClient
                         ? "suite.studio.deliverables.visible_badge"
@@ -434,6 +441,8 @@ const headerActions = computed(() => {
             v-model:visible-to-client="form.visibleToClient"
             v-model:scope="form.scope"
             v-model:category-id="form.categoryId"
+            v-model:template="form.template"
+            v-model:customer-id="form.customerId"
             v-model:thumbnail="form.thumbnail"
             :inert="inertWhenReadOnly"
             :locales="locales"
@@ -442,6 +451,8 @@ const headerActions = computed(() => {
             :with-client="!!space"
             :can-change-scope="canChangeScope"
             :categories="categories"
+            :customers="customers"
+            :can-pick-customer="canPickCustomer"
             :placeholders="placeholders"
         />
 
