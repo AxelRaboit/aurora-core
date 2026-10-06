@@ -62,6 +62,18 @@ final class StudioRouteGateSubscriberTest extends TestCase
         $this->assertGate('suite_studio_decks', $off, false);
     }
 
+    /**
+     * The fonts of a presentation follow the deliverables, which hold the
+     * presentations now: switching the decks off must not leave a reading
+     * link drawn in its fallback face.
+     */
+    public function testTheFontsFollowTheDeliverablesNotTheDecks(): void
+    {
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioDecks->value], false);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioDeliverables->value], true);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioSuite->value], true);
+    }
+
     public function testRoutesOfAnotherModuleAreNotItsBusiness(): void
     {
         $this->assertGate('suite_planning_calendar', [ModuleParameterEnum::StudioSuite->value], false);

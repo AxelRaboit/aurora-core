@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Import;
 
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Manager\DeckManager;
+use Aurora\Module\Studio\Deliverable\Slides\SlideOwnerInterface;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 
 use function array_filter;
 use function array_map;
 use function array_values;
+use function count;
 use function implode;
 use function in_array;
 use function is_array;
@@ -49,21 +50,56 @@ use const PHP_URL_PATH;
 final readonly class DeckFromBlocks
 {
     public function __construct(
-        private DeckManager $deckManager,
+        private SlidesManager $slides,
         private DocumentRepository $documents,
         private BlockText $text,
     ) {}
 
     /**
-     * Fill a deck from Editor.js blocks. Returns how many slides were written.
+     * Fill a slide owner from Editor.js blocks. Returns how many slides were
+     * written.
+     *
+     * @param list<mixed> $blocks
+     */
+    public function fill(SlideOwnerInterface $owner, array $blocks): int
+    {
+        $plan = $this->plan($blocks);
+        $this->apply($owner, $plan);
+
+        return count($plan);
+    }
+
+    /**
+     * Write slides planned by {@see self::plan()}, in order, through the
+     * slides manager like every other slide.
+     *
+     * @param list<array{layout: SlideLayoutEnum, content: array<string, mixed>}> $plan
+     */
+    public function apply(SlideOwnerInterface $owner, array $plan): void
+    {
+        foreach ($plan as $slide) {
+            $written = $this->slides->addSlide($owner, $slide['layout']);
+            $this->slides->writeContent($written, $slide['content']);
+        }
+    }
+
+    /**
+     * The slides Editor.js blocks would make, without writing any.
+     *
+     * Separate from the writing so that a caller can refuse a document that
+     * yields nothing before it creates anything to hold the slides: a
+     * deliverable is persisted the moment it is created, and an import that
+     * produced no slide must not leave an empty one behind.
      *
      * `list<mixed>` and not `list<array>`: these blocks arrive as a decoded
      * request body, so nothing has promised that each one is even an array.
      * The loop says so rather than the docblock claiming it.
      *
      * @param list<mixed> $blocks
+     *
+     * @return list<array{layout: SlideLayoutEnum, content: array<string, mixed>}>
      */
-    public function fill(DeckInterface $deck, array $blocks): int
+    public function plan(array $blocks): array
     {
         $cursor = new ImportCursor();
 
@@ -76,12 +112,12 @@ final readonly class DeckFromBlocks
             $data = is_array($block['data'] ?? null) ? $block['data'] : [];
 
             if ('header' === $type) {
-                $this->flushParagraphs($deck, $cursor);
+                $this->flushParagraphs($cursor);
 
                 // A heading with nothing under it is a divider announcing what
                 // follows, which is exactly what the section layout is for.
                 if (!$cursor->filled && '' !== $cursor->title) {
-                    $this->write($deck, $cursor, SlideLayoutEnum::Section, ['title' => $cursor->title]);
+                    $this->write($cursor, SlideLayoutEnum::Section, ['title' => $cursor->title]);
                 }
 
                 $cursor->title = $this->text->plain($data['text'] ?? null);
@@ -100,28 +136,28 @@ final readonly class DeckFromBlocks
                 continue;
             }
 
-            $this->flushParagraphs($deck, $cursor);
+            $this->flushParagraphs($cursor);
 
             match ($type) {
-                'list' => $this->writeList($deck, $cursor, $data),
-                'quote' => $this->writeQuote($deck, $cursor, $data),
-                'table' => $this->writeTable($deck, $cursor, $data),
-                'image' => $this->writeImage($deck, $cursor, $data),
+                'list' => $this->writeList($cursor, $data),
+                'quote' => $this->writeQuote($cursor, $data),
+                'table' => $this->writeTable($cursor, $data),
+                'image' => $this->writeImage($cursor, $data),
                 default => null,
             };
         }
 
-        $this->flushParagraphs($deck, $cursor);
+        $this->flushParagraphs($cursor);
 
         if (!$cursor->filled && '' !== $cursor->title) {
-            $this->write($deck, $cursor, SlideLayoutEnum::Section, ['title' => $cursor->title]);
+            $this->write($cursor, SlideLayoutEnum::Section, ['title' => $cursor->title]);
         }
 
-        return $cursor->count;
+        return $cursor->plan;
     }
 
     /** @param array<string, mixed> $data */
-    private function writeList(DeckInterface $deck, ImportCursor $cursor, array $data): void
+    private function writeList(ImportCursor $cursor, array $data): void
     {
         $items = $this->listItems($data['items'] ?? null);
 
@@ -129,11 +165,11 @@ final readonly class DeckFromBlocks
             return;
         }
 
-        $this->write($deck, $cursor, SlideLayoutEnum::Bullets, ['title' => $cursor->title, 'bullets' => $items]);
+        $this->write($cursor, SlideLayoutEnum::Bullets, ['title' => $cursor->title, 'bullets' => $items]);
     }
 
     /** @param array<string, mixed> $data */
-    private function writeQuote(DeckInterface $deck, ImportCursor $cursor, array $data): void
+    private function writeQuote(ImportCursor $cursor, array $data): void
     {
         $quote = $this->text->plain($data['text'] ?? null);
 
@@ -141,7 +177,7 @@ final readonly class DeckFromBlocks
             return;
         }
 
-        $this->write($deck, $cursor, SlideLayoutEnum::Quote, [
+        $this->write($cursor, SlideLayoutEnum::Quote, [
             'quote' => $quote,
             'attribution' => $this->text->plain($data['caption'] ?? null),
         ]);
@@ -150,7 +186,7 @@ final readonly class DeckFromBlocks
     /**
      * @param array<string, mixed> $data
      */
-    private function writeTable(DeckInterface $deck, ImportCursor $cursor, array $data): void
+    private function writeTable(ImportCursor $cursor, array $data): void
     {
         $content = is_array($data['content'] ?? null) ? $data['content'] : [];
         $rows = [];
@@ -175,11 +211,11 @@ final readonly class DeckFromBlocks
             return;
         }
 
-        $this->write($deck, $cursor, SlideLayoutEnum::Table, ['title' => $cursor->title, 'rows' => $rows]);
+        $this->write($cursor, SlideLayoutEnum::Table, ['title' => $cursor->title, 'rows' => $rows]);
     }
 
     /** @param array<string, mixed> $data */
-    private function writeImage(DeckInterface $deck, ImportCursor $cursor, array $data): void
+    private function writeImage(ImportCursor $cursor, array $data): void
     {
         $file = is_array($data['file'] ?? null) ? $data['file'] : [];
         $document = $this->documentByUrl(is_string($file['url'] ?? null) ? $file['url'] : '');
@@ -193,19 +229,19 @@ final readonly class DeckFromBlocks
 
             if ('' !== $caption) {
                 $cursor->paragraphs[] = $caption;
-                $this->flushParagraphs($deck, $cursor);
+                $this->flushParagraphs($cursor);
             }
 
             return;
         }
 
-        $this->write($deck, $cursor, SlideLayoutEnum::Image, [
+        $this->write($cursor, SlideLayoutEnum::Image, [
             'mediaId' => (int) $document->getId(),
             'caption' => $this->text->plain($data['caption'] ?? null),
         ]);
     }
 
-    private function flushParagraphs(DeckInterface $deck, ImportCursor $cursor): void
+    private function flushParagraphs(ImportCursor $cursor): void
     {
         if ([] === $cursor->paragraphs) {
             return;
@@ -214,11 +250,12 @@ final readonly class DeckFromBlocks
         $bullets = $cursor->paragraphs;
         $cursor->paragraphs = [];
 
-        $this->write($deck, $cursor, SlideLayoutEnum::Bullets, ['title' => $cursor->title, 'bullets' => $bullets]);
+        $this->write($cursor, SlideLayoutEnum::Bullets, ['title' => $cursor->title, 'bullets' => $bullets]);
     }
 
     /**
-     * One slide, written through the manager like every other.
+     * One slide, planned; {@see self::apply()} writes it through the manager
+     * like every other.
      *
      * **A heading is never lost because its slide has no room for one.** A
      * quote and a full-page image carry no title slot, so a heading followed by
@@ -227,17 +264,17 @@ final readonly class DeckFromBlocks
      *
      * @param array<string, mixed> $content
      */
-    private function write(DeckInterface $deck, ImportCursor $cursor, SlideLayoutEnum $layout, array $content): void
+    private function write(ImportCursor $cursor, SlideLayoutEnum $layout, array $content): void
     {
         if ('' !== $cursor->title && !in_array('title', $layout->slots(), true)) {
             $content['kicker'] ??= $cursor->title;
         }
 
-        $slide = $this->deckManager->addSlide($deck, $layout);
-        $this->deckManager->writeContent($slide, array_filter($content, static fn (mixed $value): bool => '' !== $value && null !== $value));
-
+        $cursor->plan[] = [
+            'layout' => $layout,
+            'content' => array_filter($content, static fn (mixed $value): bool => '' !== $value && null !== $value),
+        ];
         $cursor->filled = true;
-        ++$cursor->count;
     }
 
     /**

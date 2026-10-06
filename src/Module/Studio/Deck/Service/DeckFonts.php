@@ -34,7 +34,7 @@ use const PATHINFO_FILENAME;
  * is the reading of it as a family: the key a text box stores (`upload-<id>`),
  * the name the picker shows, and the address the slide loads it from.
  *
- * **Served from the application's own origin** by `DeckFontsController`, never
+ * **Served from the application's own origin** by `DeliverableFontsController`, never
  * through `/uploads`. The content security policy lets a page load fonts from
  * itself alone, and a library kept on object storage answers `/uploads` with a
  * redirect to another host - which `font-src` refuses without a word, leaving
@@ -161,7 +161,7 @@ final readonly class DeckFonts
         return [
             'key' => sprintf('upload-%d', (int) $document->getId()),
             'name' => '' !== $name ? $name : $document->getTitle(),
-            'url' => $this->urlGenerator->generate('public_deck_font', ['id' => $document->getId()]),
+            'url' => $this->urlGenerator->generate('public_deliverable_font', ['id' => $document->getId()]),
         ];
     }
 

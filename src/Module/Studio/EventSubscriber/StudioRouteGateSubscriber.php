@@ -47,6 +47,10 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
             // Un lien de lecture sert un livrable d'espace ou de Studio : le
             // contrôleur juge lequel, cf. DeliverableReadingController.
             'public_deliverable' => $suite,
+            // Les polices ne servent que les présentations, qui sont des
+            // livrables de Studio : elles suivent le module Livrables, jamais
+            // celui des présentations.
+            'public_deliverable_font' => $suite && $this->studioContext->areDeliverablesEnabled(),
         ];
     }
 }

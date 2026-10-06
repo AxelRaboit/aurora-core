@@ -2113,6 +2113,21 @@ suite:
                 slides_hint: "Se compose diapositive par diapositive, se présente en plein écran avec ses notes, et s'imprime."
                 fixed_hint: "Le format ne change plus ensuite."
                 badge_slides: "Présentation"
+                filter_label: "Format"
+                filter_all: "Tous"
+                filter_page: "Pages"
+                filter_slides: "Présentations"
+            import:
+                action: "Importer un texte"
+                action_hint: "Collez un texte : chaque titre ouvre une diapositive, et vous arrivez dans la présentation."
+                title: "Importer un texte"
+                intro: "Écrivez ou collez votre texte. Un titre ouvre une diapositive, et ce qui suit la remplit."
+                title_placeholder: "Ex. Réunion de lancement"
+                document: "Le texte"
+                placeholder: "Collez ici, ou écrivez…"
+                hint: "Les listes deviennent des diapositives à puces, les citations des citations, les tableaux des tableaux. Plusieurs blocs sous un même titre font plusieurs diapositives qui le répètent."
+                submit: "Créer la présentation"
+                done: "Présentation créée à partir du texte"
             slides:
                 settings: "Réglages"
             template:
@@ -2131,7 +2146,7 @@ suite:
                 hint: "Pour qui ce livrable est écrit, avant que le client ait un espace : une proposition à un prospect. Copié dans un espace, il prend le client de l'espace."
             studio_guide:
                 title: "Comment fonctionnent les livrables"
-                step_1: "Un livrable est un document écrit pour être lu : un audit, une stratégie, une proposition. Il se compose avec la grille des pages, sans jamais être sur le site."
+                step_1: "Un livrable est un document écrit pour être lu ou présenté : un audit, une stratégie, une proposition. Une page se compose avec la grille des pages, sans jamais être sur le site ; une présentation, diapositive par diapositive, ou depuis un texte collé avec « Importer un texte »."
                 step_2: "« Mes livrables » ne se voit que par vous. « Partagés » se lit par toute l'équipe qui a accès aux livrables ; il se modifie par ceux qui en ont le droit, et par son auteur, même sans ce droit."
                 step_3: "Un livrable se crée dans l'onglet ouvert ; ensuite, seul son auteur le fait passer de perso à partagé, ou l'inverse, depuis son menu ou ses réglages."
                 step_4: "Un lien de lecture l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client. Voir les liens et en donner demande le droit de partager."
@@ -2293,6 +2308,7 @@ suite:
                 scope_invalid: "Cette visibilité n'existe pas : choisissez perso ou partagé."
                 format_invalid: "Ce format n'existe pas : choisissez une page ou une présentation."
                 format_unavailable: "Ce format ne se crée pas encore : choisissez une page."
+                import_empty: "Ce texte ne contient rien dont on puisse faire une diapositive."
                 slides_not_in_space: "Une présentation reste dans Studio pour l'instant : elle ne se copie pas dans un espace client."
                 conflict: "Un collègue a enregistré ce livrable entre-temps. Rechargez la page pour voir sa version, ou enregistrez quand même pour la remplacer."
         space_resources:

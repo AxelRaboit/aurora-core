@@ -53,6 +53,7 @@ final readonly class DeliverablesViewBuilder
             'canCreate' => $this->access->canCreate(),
             'listsPath' => $this->urlGenerator->generate('suite_studio_deliverables_lists'),
             'createPath' => $this->urlGenerator->generate('suite_studio_deliverables_create'),
+            'importPath' => $this->urlGenerator->generate('suite_studio_deliverables_import'),
             'scopePathTemplate' => $template('scope'),
             'duplicatePathTemplate' => $template('duplicate'),
             'deletePathTemplate' => $template('delete'),

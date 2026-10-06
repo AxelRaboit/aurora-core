@@ -2082,6 +2082,21 @@ suite:
                 slides_hint: "Se compone diapositiva por diapositiva, se presenta a pantalla completa con sus notas y se imprime."
                 fixed_hint: "El formato ya no cambia después."
                 badge_slides: "Presentación"
+                filter_label: "Formato"
+                filter_all: "Todos"
+                filter_page: "Páginas"
+                filter_slides: "Presentaciones"
+            import:
+                action: "Importar un texto"
+                action_hint: "Pegue un texto: cada título abre una diapositiva, y llega a la presentación."
+                title: "Importar un texto"
+                intro: "Escriba o pegue su texto. Un título abre una diapositiva, y lo que sigue la llena."
+                title_placeholder: "Ej. Reunión de lanzamiento"
+                document: "El texto"
+                placeholder: "Pegue aquí, o escriba…"
+                hint: "Las listas se convierten en diapositivas con viñetas, las citas en citas, las tablas en tablas. Varios bloques bajo un mismo título dan varias diapositivas que lo repiten."
+                submit: "Crear la presentación"
+                done: "Presentación creada a partir del texto"
             slides:
                 settings: "Ajustes"
             template:
@@ -2100,7 +2115,7 @@ suite:
                 hint: "Para quién se escribe este entregable, antes de que el cliente tenga un espacio: una propuesta a un cliente potencial. Copiado en un espacio, toma el cliente del espacio."
             studio_guide:
                 title: "Cómo funcionan los entregables"
-                step_1: "Un entregable es un documento escrito para leerse: una auditoría, una estrategia, una propuesta. Se compone con la cuadrícula de las páginas, sin aparecer nunca en el sitio."
+                step_1: "Un entregable es un documento escrito para leerse o presentarse: una auditoría, una estrategia, una propuesta. Una página se compone con la cuadrícula de las páginas, sin aparecer nunca en el sitio; una presentación, diapositiva por diapositiva, o a partir de un texto pegado con «Importar un texto»."
                 step_2: "«Mis entregables» solo lo ve usted. «Compartidos» lo lee todo el equipo con acceso a los entregables; lo modifican quienes tienen el derecho, y su autor, aunque no lo tenga."
                 step_3: "Un entregable se crea en la pestaña abierta; después, solo su autor lo pasa de personal a compartido, o al revés, desde su menú o sus ajustes."
                 step_4: "Un enlace de lectura lo envía a quien quiera, con caducidad y contraseña a su elección, sin cuenta ni espacio de cliente. Ver los enlaces y dar alguno requiere el derecho de compartir."
@@ -2262,6 +2277,7 @@ suite:
                 scope_invalid: "Esa visibilidad no existe: elija personal o compartido."
                 format_invalid: "Ese formato no existe: elija una página o una presentación."
                 format_unavailable: "Este formato todavía no se puede crear: elija una página."
+                import_empty: "Este texto no contiene nada con lo que hacer una diapositiva."
                 slides_not_in_space: "Una presentación se queda en Studio por ahora: no se copia en un espacio de cliente."
                 conflict: "Un compañero guardó este entregable mientras tanto. Recargue la página para ver su versión, o guarde igualmente para reemplazarla."
         space_resources:

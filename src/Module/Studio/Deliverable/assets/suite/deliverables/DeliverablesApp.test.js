@@ -229,6 +229,15 @@ describe("DeliverablesApp", () => {
         const templates = mountApp({ personal });
         expect(templates.text()).toContain("Audit type");
         expect(templates.text()).not.toContain("Proposition à Fabre");
+
+        // La pastille enfoncée se relâche : tout revient, et l'adresse aussi.
+        const pill = templates
+            .findAll("[aria-pressed]")
+            .find((tab) => tab.text().includes("template.filter"));
+        await pill.trigger("click");
+        await flushPromises();
+        expect(window.location.search).toBe("");
+        expect(templates.text()).toContain("Proposition à Fabre");
     });
 
     it("starts a new deliverable from a template, in its category", async () => {
@@ -370,6 +379,143 @@ describe("DeliverablesApp", () => {
 
         expect(actionKeys(wrapper)).not.toContain("copy-to-space");
         expect(wrapper.text()).toContain("format.badge_slides");
+    });
+
+    it("filters on the format the address asks for, and counts each", async () => {
+        const personal = [
+            row(1, "Bilan trimestriel", { format: "page" }),
+            row(2, "Réunion de lancement", { format: "slides" }),
+            row(3, "Ancienne note"),
+        ];
+
+        window.history.replaceState(null, "", "/?format=slides");
+        const wrapper = mountApp({ personal });
+        expect(wrapper.text()).toContain("Réunion de lancement");
+        expect(wrapper.text()).not.toContain("Bilan trimestriel");
+
+        const tabs = wrapper
+            .findAll("[aria-pressed]")
+            .filter((tab) => tab.text().includes("format.filter_"));
+        expect(
+            tabs.map((tab) => tab.text().replace(/\s+/g, " ").trim()),
+        ).toEqual([
+            expect.stringContaining("3"),
+            expect.stringContaining("2"),
+            expect.stringContaining("1"),
+        ]);
+
+        // Sans format écrit, une ligne est une page.
+        await tabs[1].trigger("click");
+        await flushPromises();
+        expect(window.location.search).toBe("?format=page");
+        expect(wrapper.text()).toContain("Bilan trimestriel");
+        expect(wrapper.text()).toContain("Ancienne note");
+        expect(wrapper.text()).not.toContain("Réunion de lancement");
+
+        await tabs[0].trigger("click");
+        await flushPromises();
+        expect(window.location.search).toBe("");
+        expect(wrapper.text()).toContain("Réunion de lancement");
+    });
+
+    it("falls back to every format when the address names an unknown one", () => {
+        window.history.replaceState(null, "", "/?format=video");
+        const wrapper = mountApp({
+            personal: [
+                row(1, "Bilan", { format: "page" }),
+                row(2, "Lancement", { format: "slides" }),
+            ],
+        });
+
+        expect(wrapper.text()).toContain("Bilan");
+        expect(wrapper.text()).toContain("Lancement");
+    });
+
+    it("imports a text into a presentation, and says why when nothing comes of it", async () => {
+        const send = vi.fn().mockResolvedValue({
+            success: false,
+            errors: { blocks: "suite.studio.deliverables.errors.import_empty" },
+        });
+        vi.doMock("./composables/useDeliverableRequest.js", () => ({
+            useDeliverableRequest: () => ({ send }),
+        }));
+        vi.resetModules();
+        const { default: App } = await import("./DeliverablesApp.vue");
+
+        const wrapper = mount(App, {
+            props: {
+                personal: [],
+                shared: [],
+                canCreate: true,
+                ...PATHS,
+                importPath: "/suite/studio/deliverables/import",
+            },
+            global: {
+                plugins: [i18n],
+                stubs: {
+                    DeliverableLinksModal: true,
+                    DeliverableCopyToSpaceModal: true,
+                    AppCategoriesModal: true,
+                    AppBlockEditor: {
+                        name: "AppBlockEditor",
+                        props: ["modelValue", "placeholder"],
+                        emits: ["update:modelValue"],
+                        template: "<div />",
+                    },
+                    AppModal: {
+                        template: "<div><slot /><slot name='footer' /></div>",
+                    },
+                },
+            },
+        });
+
+        const actions = wrapper
+            .findComponent({ name: "AppPageActions" })
+            .props("actions");
+        expect(actions.map((action) => action.key)).toEqual([
+            "create",
+            "import",
+        ]);
+        actions.find((action) => "import" === action.key).onSelect();
+        await nextTick();
+
+        const blocks = [{ type: "header", data: { text: "Ordre du jour" } }];
+        wrapper
+            .findComponent({ name: "AppBlockEditor" })
+            .vm.$emit("update:modelValue", blocks);
+        await wrapper.findAll("form")[1].trigger("submit");
+        await flushPromises();
+
+        expect(send).toHaveBeenCalledWith(
+            "/suite/studio/deliverables/import",
+            expect.objectContaining({
+                blocks,
+                scope: "personal",
+                categoryId: null,
+            }),
+        );
+        expect(wrapper.text()).toContain(
+            "suite.studio.deliverables.errors.import_empty",
+        );
+        vi.doUnmock("./composables/useDeliverableRequest.js");
+    });
+
+    it("offers no import without the route or the right to create", () => {
+        const withoutRoute = mountApp();
+        expect(
+            withoutRoute
+                .findComponent({ name: "AppPageActions" })
+                .props("actions")
+                .map((action) => action.key),
+        ).not.toContain("import");
+
+        const withoutRight = mountApp({
+            canCreate: false,
+            importPath: "/suite/studio/deliverables/import",
+        });
+        expect(
+            withoutRight.findComponent({ name: "AppPageActions" }).exists(),
+        ).toBe(false);
     });
 
     it("hides the create button without the right", () => {

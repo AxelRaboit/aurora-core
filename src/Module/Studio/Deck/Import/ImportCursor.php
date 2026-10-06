@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deck\Import;
 
+use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
+
 /**
  * Where the importer is in the document it is reading.
  *
@@ -23,5 +25,10 @@ final class ImportCursor
     /** Whether a slide has been written since the current heading was read. */
     public bool $filled = true;
 
-    public int $count = 0;
+    /**
+     * The slides written so far, in order, each a layout and its content.
+     *
+     * @var list<array{layout: SlideLayoutEnum, content: array<string, mixed>}>
+     */
+    public array $plan = [];
 }

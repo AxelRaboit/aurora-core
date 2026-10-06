@@ -12,6 +12,7 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\Deck\Import\DeckFromBlocks;
 use Aurora\Module\Studio\Deliverable\Dto\DeliverableCategoryInput;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
@@ -29,6 +30,7 @@ use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
 use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
 use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\DeliverablesViewBuilder;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -84,6 +86,8 @@ final class DeliverablesController extends AbstractController
         private readonly DeliverableCategoryManager $categoryManager,
         private readonly PayloadValidator $payloadValidator,
         private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly DeckFromBlocks $fromBlocks,
+        private readonly EntityManagerInterface $entityManager,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -171,6 +175,56 @@ final class DeliverablesController extends AbstractController
                 $this->manager->category($payload['categoryId'] ?? null),
                 $format,
             );
+
+        return $this->jsonSuccess([
+            'editPath' => $this->generateUrl('suite_studio_deliverables_edit', ['id' => $deliverable->getId()]),
+            ...$this->viewBuilder->lists(),
+        ]);
+    }
+
+    /**
+     * Un texte écrit ailleurs, collé ou tapé dans la fenêtre, qui devient une
+     * présentation : un titre ouvre une diapositive, ce qui suit la remplit,
+     * cf. {@see DeckFromBlocks}.
+     *
+     * La conversion est faite ici plutôt que dans le navigateur : chaque
+     * diapositive passe par le gestionnaire et sa liste blanche, comme une
+     * diapositive tapée dans l'éditeur. Un texte dont rien ne se tire est
+     * refusé avant que le livrable existe : on ne laisse pas une présentation
+     * vide derrière un import raté.
+     */
+    #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
+    public function import(Request $request): JsonResponse
+    {
+        if (!$this->access->canCreate()) {
+            return $this->jsonForbidden();
+        }
+
+        $payload = $this->decodeJson($request);
+        $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
+        if ('' === $title) {
+            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_required']);
+        }
+
+        if (mb_strlen($title) > DeliverableManager::TITLE_MAX) {
+            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_too_long']);
+        }
+
+        $plan = $this->fromBlocks->plan(is_array($payload['blocks'] ?? null) ? array_values($payload['blocks']) : []);
+        if ([] === $plan) {
+            return $this->jsonInvalidInput(['blocks' => 'suite.studio.deliverables.errors.import_empty']);
+        }
+
+        $deliverable = $this->manager->create(
+            null,
+            $title,
+            $this->access->user(),
+            DeliverableScopeEnum::fromInput($payload['scope'] ?? null),
+            $this->manager->category($payload['categoryId'] ?? null),
+            DeliverableFormatEnum::Slides,
+        );
+        $this->fromBlocks->apply($deliverable, $plan);
+        $this->entityManager->flush();
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('suite_studio_deliverables_edit', ['id' => $deliverable->getId()]),

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\Deliverable;
 
+use Aurora\Core\Module\Service\ModuleAccessChecker;
+use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
+use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Entity\AuditLog;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
@@ -22,14 +25,20 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 use function array_column;
 use function basename;
 use function bin2hex;
+use function copy;
+use function dirname;
 use function json_decode;
+use function mb_substr;
 use function parse_url;
 use function random_bytes;
 use function sprintf;
+use function sys_get_temp_dir;
+use function tempnam;
 
 use const PHP_URL_PATH;
 
@@ -374,6 +383,47 @@ final class DeliverableSlidesTest extends IntegrationTestCase
         $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/links', $id));
         self::assertResponseIsSuccessful();
         self::assertSame(['facade.jpg'], array_column($this->json()['withheldPictures'], 'name'));
+    }
+
+    /**
+     * Une police déposée depuis un diaporama se sert sous les livrables, sans
+     * compte, et suit leur interrupteur : couper les présentations n'éteint
+     * pas les polices d'un lien de lecture, couper les livrables, si.
+     */
+    public function testAnUploadedFontIsServedUnderTheDeliverables(): void
+    {
+        $id = $this->createSlides('Avec une police');
+
+        $path = (string) tempnam(sys_get_temp_dir(), 'font');
+        copy(dirname(__DIR__, 5).'/node_modules/@fontsource/lobster/files/lobster-latin-400-normal.woff2', $path);
+        $this->client->request('POST', sprintf('/suite/studio/deliverables/%d/fonts/upload', $id), [], [
+            'file' => new UploadedFile($path, 'Marque Display.woff2', null, null, true),
+        ]);
+        self::assertResponseIsSuccessful();
+        $font = $this->json()['font'];
+        $this->documents[] = (int) mb_substr((string) $font['key'], 7);
+        self::assertStringStartsWith('/deliverables/fonts/', (string) $font['url']);
+
+        $settings = self::getContainer()->get(SettingRepository::class);
+        $checker = self::getContainer()->get(ModuleAccessChecker::class);
+        $this->client->getCookieJar()->clear();
+
+        try {
+            $settings->set(ModuleParameterEnum::StudioDecks->value, '0');
+            $checker->reset();
+            $this->client->request('GET', (string) $font['url']);
+            self::assertResponseIsSuccessful();
+            self::assertSame('font/woff2', $this->client->getResponse()->headers->get('Content-Type'));
+
+            $settings->set(ModuleParameterEnum::StudioDeliverables->value, '0');
+            $checker->reset();
+            $this->client->request('GET', (string) $font['url']);
+            self::assertResponseStatusCodeSame(404);
+        } finally {
+            $settings->set(ModuleParameterEnum::StudioDecks->value, '1');
+            $settings->set(ModuleParameterEnum::StudioDeliverables->value, '1');
+            $checker->reset();
+        }
     }
 
     private function createSlides(string $title, string $scope = 'personal'): int

@@ -2102,6 +2102,21 @@ suite:
                 slides_hint: "Composed slide by slide, presented full screen with its notes, and printable."
                 fixed_hint: "The format cannot be changed afterwards."
                 badge_slides: "Presentation"
+                filter_label: "Format"
+                filter_all: "All"
+                filter_page: "Pages"
+                filter_slides: "Presentations"
+            import:
+                action: "Import a text"
+                action_hint: "Paste a text: each heading opens a slide, and you land in the presentation."
+                title: "Import a text"
+                intro: "Write or paste your text. A heading opens a slide, and what follows fills it."
+                title_placeholder: "E.g. Kick-off meeting"
+                document: "The text"
+                placeholder: "Paste here, or write…"
+                hint: "Lists become bullet slides, quotes become quotes, tables become tables. Several blocks under one heading make several slides that repeat it."
+                submit: "Create the presentation"
+                done: "Presentation created from the text"
             slides:
                 settings: "Settings"
             template:
@@ -2120,7 +2135,7 @@ suite:
                 hint: "Who this deliverable is written for, before the client has a space: a proposal to a prospect. Copied into a space, it takes the space's client."
             studio_guide:
                 title: "How deliverables work"
-                step_1: "A deliverable is a document written to be read: an audit, a strategy, a proposal. It is built with the page grid, and never appears on the site."
+                step_1: "A deliverable is a document written to be read or presented: an audit, a strategy, a proposal. A page is built with the page grid, and never appears on the site; a presentation, slide by slide, or from a pasted text with \"Import a text\"."
                 step_2: "“My deliverables” is seen by you alone. “Shared” is read by the whole team with access to deliverables; it is edited by those with the right, and by its author, even without it."
                 step_3: "A deliverable is created in the open tab; after that, only its author moves it between personal and shared, from its menu or its settings."
                 step_4: "A reading link sends it to whoever you want, with an expiry and a password if you like, no account or client space needed. Seeing the links and giving some needs the right to share."
@@ -2282,6 +2297,7 @@ suite:
                 scope_invalid: "That visibility does not exist: choose personal or shared."
                 format_invalid: "That format does not exist: choose a page or a presentation."
                 format_unavailable: "This format cannot be created yet: choose a page."
+                import_empty: "This text holds nothing a slide can be made from."
                 slides_not_in_space: "A presentation stays in Studio for now: it cannot be copied into a client space."
                 conflict: "A colleague saved this deliverable in the meantime. Reload the page to see their version, or save anyway to replace it."
         space_resources:

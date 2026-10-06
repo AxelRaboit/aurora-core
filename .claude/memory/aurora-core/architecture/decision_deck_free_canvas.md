@@ -32,7 +32,9 @@ ces deux atouts partout ailleurs.
   `thumbnail`…) sont ajoutées par `DeckSerializer` et jetées à l'écriture.
 - **Polices** : catalogue `@fontsource` chargé à la demande (`free/fonts.js`),
   jamais Google ; polices importées = documents GED servis par
-  `DeckFontsController` (`/decks/fonts/{id}`), jamais par `/uploads` (la CSP
+  `DeliverableFontsController` (`/deliverables/fonts/{id}`, route
+  `public_deliverable_font`, éteinte avec le module Livrables) depuis la fusion
+  des présentations dans les livrables, jamais par `/uploads` (la CSP
   `font-src` refuse une redirection vers R2).
 - **Lecteur** : le 16:9 du lecteur plein écran tient par `aspect-ratio` ; le
   remplissage en % se résolvait sur la cellule de grille (diapo déformée sur un
