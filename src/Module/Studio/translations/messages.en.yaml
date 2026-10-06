@@ -266,7 +266,7 @@ suite:
                 title: "How a contract goes"
                 step_1: "Prepare it as a draft: the client, the template, the amount, the dates and the extra fields the template asks for."
                 step_2: "Seal it: the text is frozen, the contract gets its reference and can no longer be edited."
-                step_3: "Send it: the client gets a personal signing link by email, valid thirty days. A new send cancels the previous link."
+                step_3: "Send it: the client gets a personal signing link by email, valid {days} days. A new send cancels the previous link."
                 step_4: "The client reads, fills in their identity, signs, then confirms with a code sent by email; they can also decline."
                 step_5: "Countersign: the contract is concluded and both parties get the signed PDF. Declined, expired or revoked, it goes back to “To send”."
             wording:
@@ -418,7 +418,7 @@ suite:
                 edit_description: Edits the draft. Nothing is sealed until you ask for it.
                 freeze_description: Freezes the text, mints the reference and makes it sendable. Permanent.
                 delete_description: Deletes the draft. Nothing has been sent to the customer yet.
-                send_description: 'Sends the customer a signing link, valid for thirty days.'
+                send_description: 'Sends the customer a signing link, valid for {days} days.'
                 revoke_description: Kills the current link. Its verification codes go with it.
                 preview_description: Shows the document as the client will read it, before sealing.
                 document_description: Opens the sealed document and its proof block.
@@ -494,10 +494,10 @@ suite:
                         description: 'Fixes the text and draws the reference. Final.'
                     send:
                         title: Send to the customer
-                        description: 'A signing link, valid for thirty days.'
+                        description: 'A signing link, valid for {days} days.'
                     resend:
                         title: Send again
-                        description: 'A new link, valid for thirty days. The old one stops working.'
+                        description: 'A new link, valid for {days} days. The old one stops working.'
                     remind:
                         title: Send a reminder
                         description: 'A reminder with a new link. The old one stops working.'
@@ -532,7 +532,7 @@ suite:
                         title: Delete
                         description: 'Permanent. A draft at any time, a sealed contract once its retention has run out.'
                 confirm:
-                    send: 'Send the contract to {email}? They will get a signing link valid for thirty days.'
+                    send: 'Send the contract to {email}? They will get a signing link valid for {days} days.'
                     send_no_address: 'This customer has no contractual address: add it to their file before sending.'
                     remind: 'Send a reminder to {email}? They will get a new link; the old one will stop working.'
                     revoke: 'Revoke the link? The customer will no longer be able to open the contract, which becomes « Revoked ». You can send it again.'

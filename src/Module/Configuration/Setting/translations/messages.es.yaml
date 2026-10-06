@@ -530,6 +530,9 @@ suite:
         studio_contract_reminder_max:
             label: 'Número máximo de recordatorios'
             description: 'Por encima, el contrato se deja tranquilo. El silencio también es una respuesta.'
+        studio_contract_link_days:
+            label: 'Validez de un enlace de firma (días)'
+            description: 'Cuántos días permanece abierta la dirección enviada al cliente. Entre 1 y 365; un nuevo envío crea una nueva.'
         nav_section_aliases:
             label: 'Alias de las secciones de navegación'
             description: 'Mapa JSON de los alias de secciones (gestionado desde la interfaz).'

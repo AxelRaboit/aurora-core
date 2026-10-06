@@ -12,6 +12,7 @@ use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
+use Aurora\Module\Studio\Contract\Service\ContractLinkLifetime;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,16 +42,6 @@ use function hash_equals;
 #[AsAlias(ContractAccessLinkManagerInterface::class)]
 class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
 {
-    /**
-     * How long an address stays valid, in days.
-     *
-     * Thirty, because an offer that can still be accepted a year later is a
-     * liability and the paper version always carried a validity period. A
-     * setting can come the day somebody wants a different number; a constant
-     * that is documented beats a column nobody has a use for yet.
-     */
-    public const int DEFAULT_LIFETIME_DAYS = 30;
-
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
@@ -58,6 +49,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly MailService $mail,
         protected readonly TranslatorInterface $translator,
+        protected readonly ContractLinkLifetime $lifetime,
     ) {}
 
     public function send(ContractInterface $contract): ContractAccessLinkInterface
@@ -167,7 +159,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         $link
             ->setContract($contract)
             ->setRecipientEmail($recipient)
-            ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', self::DEFAULT_LIFETIME_DAYS)));
+            ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $this->lifetime->days())));
 
         // Saved before the mail so the address it carries opens something,
         // and the addresses handed out before are left alone until the mail

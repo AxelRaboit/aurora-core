@@ -266,7 +266,7 @@ suite:
                 title: "Cómo avanza un contrato"
                 step_1: "Prepárelo como borrador: el cliente, la plantilla, el importe, las fechas y los campos que pida la plantilla."
                 step_2: "Séllelo: el texto queda fijado, el contrato recibe su referencia y ya no se modifica."
-                step_3: "Envíelo: el cliente recibe por correo un enlace de firma personal, válido treinta días. Un nuevo envío anula el enlace anterior."
+                step_3: "Envíelo: el cliente recibe por correo un enlace de firma personal, válido {days} días. Un nuevo envío anula el enlace anterior."
                 step_4: "El cliente lee, indica su identidad, firma y confirma con un código recibido por correo; también puede rechazarlo."
                 step_5: "Contrafirme: el contrato queda concluido y cada parte recibe el PDF firmado. Rechazado, caducado o revocado, vuelve a «Por enviar»."
             wording:
@@ -418,7 +418,7 @@ suite:
                 edit_description: 'Edita el borrador. No se sella nada hasta que se solicite.'
                 freeze_description: 'Fija el texto, asigna la referencia y deja el contrato listo para enviar. Definitivo.'
                 delete_description: 'Elimina el borrador. Todavía no se ha enviado nada al cliente.'
-                send_description: 'Envía al cliente un enlace de firma, válido durante treinta días.'
+                send_description: 'Envía al cliente un enlace de firma, válido durante {days} días.'
                 revoke_description: 'Corta el enlace en curso. Sus códigos de verificación quedan anulados con él.'
                 preview_description: 'Muestra el documento tal como lo leerá el cliente, antes del sellado.'
                 document_description: 'Abre el documento sellado y su bloque de prueba.'
@@ -494,10 +494,10 @@ suite:
                         description: 'Fija el texto y asigna la referencia. Definitivo.'
                     send:
                         title: Enviar al cliente
-                        description: 'Un enlace de firma, válido durante treinta días.'
+                        description: 'Un enlace de firma, válido durante {days} días.'
                     resend:
                         title: Volver a enviar
-                        description: 'Un enlace nuevo, válido durante treinta días. El anterior deja de funcionar.'
+                        description: 'Un enlace nuevo, válido durante {days} días. El anterior deja de funcionar.'
                     remind:
                         title: Enviar un recordatorio
                         description: 'Un recordatorio con un enlace nuevo. El anterior deja de funcionar.'
@@ -532,7 +532,7 @@ suite:
                         title: Eliminar
                         description: 'Definitivo. Un borrador en cualquier momento, un contrato sellado cuando termina su conservación.'
                 confirm:
-                    send: '¿Enviar el contrato a {email}? Recibirá un enlace de firma válido durante treinta días.'
+                    send: '¿Enviar el contrato a {email}? Recibirá un enlace de firma válido durante {days} días.'
                     send_no_address: 'Este cliente no tiene dirección contractual: añádala en su ficha antes de enviar.'
                     remind: '¿Enviar un recordatorio a {email}? Recibirá un enlace nuevo; el anterior dejará de funcionar.'
                     revoke: '¿Revocar el enlace? El cliente ya no podrá abrir el contrato, que pasará a « Revocado ». Podrá volver a enviarlo.'

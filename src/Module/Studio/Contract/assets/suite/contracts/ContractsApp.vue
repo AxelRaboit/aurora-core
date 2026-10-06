@@ -37,6 +37,8 @@ import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const props = defineProps({
+    /** How long a signing address stays valid, from the setting. */
+    linkDays: { type: Number, default: 30 },
     contracts: { type: Array, default: () => [] },
     customers: { type: Array, default: () => [] },
     bodies: { type: Array, default: () => [] },
@@ -57,7 +59,7 @@ const { t } = useI18n();
 const { can } = usePrivileges();
 const { request } = useRequest();
 const { formatDateNumeric } = useDateFormat();
-const { flowOf } = useContractFlow();
+const { flowOf } = useContractFlow({ linkDays: props.linkDays });
 
 const P = "suite.studio.contracts";
 const F = `${P}.flow`;
@@ -207,7 +209,7 @@ const pageActions = computed(() =>
              replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('suite.studio.contracts.guide.title')" storage-key="contracts-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="n in 5" :key="n">{{ t(`suite.studio.contracts.guide.step_${n}`) }}</li>
+                <li v-for="n in 5" :key="n">{{ t(`suite.studio.contracts.guide.step_${n}`, { days: linkDays }) }}</li>
             </ol>
         </AppGuide>
 

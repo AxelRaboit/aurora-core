@@ -266,7 +266,7 @@ suite:
                 title: "Comment se déroule un contrat"
                 step_1: "Préparez-le en brouillon : le client, la trame, le montant, les dates et les compléments que la trame demande."
                 step_2: "Scellez-le : le texte est figé, le contrat reçoit sa référence et ne se modifie plus."
-                step_3: "Envoyez-le : le client reçoit par courriel un lien de signature personnel, valable trente jours. Un nouvel envoi annule le lien précédent."
+                step_3: "Envoyez-le : le client reçoit par courriel un lien de signature personnel, valable {days} jours. Un nouvel envoi annule le lien précédent."
                 step_4: "Le client lit, renseigne son identité, signe, puis confirme avec un code reçu par courriel ; il peut aussi refuser."
                 step_5: "Contresignez : le contrat est conclu et chacun reçoit le PDF signé. Refusé, expiré ou révoqué, il revient « À envoyer »."
             wording:
@@ -418,7 +418,7 @@ suite:
                 edit_description: Modifie le brouillon. Rien n'est scellé tant qu'on ne le demande pas.
                 freeze_description: Fige le texte, tire la référence et rend le contrat envoyable. Définitif.
                 delete_description: Supprime le brouillon. Rien n'a encore été envoyé au client.
-                send_description: 'Envoie au client un lien de signature, valable trente jours.'
+                send_description: 'Envoie au client un lien de signature, valable {days} jours.'
                 revoke_description: Coupe le lien en cours. Ses codes de vérification tombent avec lui.
                 preview_description: Montre le document tel que le client le lira, avant scellement.
                 document_description: Ouvre le document scellé et son bloc de preuve.
@@ -494,10 +494,10 @@ suite:
                         description: 'Fige le texte et tire la référence. Définitif.'
                     send:
                         title: Envoyer au client
-                        description: 'Un lien de signature, valable trente jours.'
+                        description: 'Un lien de signature, valable {days} jours.'
                     resend:
                         title: Renvoyer au client
-                        description: 'Un nouveau lien, valable trente jours. L''ancien cesse de fonctionner.'
+                        description: 'Un nouveau lien, valable {days} jours. L''ancien cesse de fonctionner.'
                     remind:
                         title: Relancer
                         description: 'Un rappel avec un nouveau lien. L''ancien cesse de fonctionner.'
@@ -532,7 +532,7 @@ suite:
                         title: Supprimer
                         description: 'Définitif. Un brouillon à tout moment, un contrat scellé après sa durée de conservation.'
                 confirm:
-                    send: 'Envoyer le contrat à {email} ? Il recevra un lien de signature valable trente jours.'
+                    send: 'Envoyer le contrat à {email} ? Il recevra un lien de signature valable {days} jours.'
                     send_no_address: 'Ce client n''a pas d''adresse contractuelle : ajoutez-la sur sa fiche avant d''envoyer.'
                     remind: 'Relancer {email} ? Il recevra un nouveau lien ; l''ancien cessera de fonctionner.'
                     revoke: 'Révoquer le lien ? Le client ne pourra plus ouvrir le contrat, qui passera en « Révoqué ». Vous pourrez le renvoyer.'
