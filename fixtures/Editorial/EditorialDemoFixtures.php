@@ -186,10 +186,12 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      */
     private function createCustomFields(EntityManagerInterface $entityManager, PostTypeInterface $article): void
     {
+        // Options in the shape the field form writes: a select keeps its
+        // choices under `choices`, which is where the editor reads them.
         $definitions = [
             ['reading_time', 'Temps de lecture (min)', 'number', false, false, []],
             ['source_url', 'Source', 'url', false, false, []],
-            ['level', 'Niveau', 'select', false, true, ['Débutant', 'Intermédiaire', 'Avancé']],
+            ['level', 'Niveau', 'select', false, true, ['choices' => ['Débutant', 'Intermédiaire', 'Avancé']]],
             ['featured', 'Mettre en avant', 'checkbox', false, false, []],
         ];
 
@@ -1277,6 +1279,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         $steps = ['step-1', 'step-2', 'step-3'];
+
+        // Its own colours, the theme's elsewhere: the Appearance tab of a
+        // post has something to show, and the page shows what it does.
+        $about->setAccentColor('#f59e0b')
+            ->setColorOverrides(['heading_color' => '#fcd34d', 'figure_color' => '#f59e0b']);
 
         $about->setGridLayout($this->gridNormalizer->normalizeLayout([
             'enabled' => true,

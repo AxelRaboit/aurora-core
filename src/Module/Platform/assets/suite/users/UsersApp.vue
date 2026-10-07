@@ -58,7 +58,6 @@ const props = defineProps({
     selectablePath: { type: String, required: true },
     showPath: { type: String, required: true },
     currentUserId: { type: Number, default: 0 },
-    currentUserEmail: { type: String, default: "" },
     /**
      * Extra fields to register on the invite + edit forms. Lets clients extend
      * the modals + table without forking this component.

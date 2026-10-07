@@ -48,12 +48,14 @@ const topLevel = computed(() => Math.min(...outline.value.map((heading) => headi
             </AppIconButton>
         </header>
 
-        <div class="px-3 pt-2 flex gap-1">
+        <div class="px-3 pt-2 flex gap-1" role="tablist">
             <AppTab
                 size="xs"
                 align="center"
                 class="flex-1"
                 data-side-tab="outline"
+                role="tab"
+                :aria-selected="tab === 'outline' ? 'true' : 'false'"
                 :active="tab === 'outline'"
                 v-on:click="tab = 'outline'"
             >
@@ -65,6 +67,8 @@ const topLevel = computed(() => Math.min(...outline.value.map((heading) => headi
                 align="center"
                 class="flex-1"
                 data-side-tab="backlinks"
+                role="tab"
+                :aria-selected="tab === 'backlinks' ? 'true' : 'false'"
                 :active="tab === 'backlinks'"
                 v-on:click="tab = 'backlinks'"
             >
@@ -76,6 +80,8 @@ const topLevel = computed(() => Math.min(...outline.value.map((heading) => headi
                 align="center"
                 class="flex-1"
                 data-side-tab="mentions"
+                role="tab"
+                :aria-selected="tab === 'mentions' ? 'true' : 'false'"
                 :active="tab === 'mentions'"
                 v-on:click="tab = 'mentions'"
             >

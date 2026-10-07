@@ -30,6 +30,7 @@
  */
 
 import { chromium } from "@playwright/test";
+import { createHash } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -146,6 +147,20 @@ async function hideZonesAbove(element) {
     });
 }
 
+/**
+ * Opens a row's action sheet and picks one of its actions.
+ *
+ * The sheet is a window of its own, outside `main`, and its entries carry a
+ * description under their label: matched on the start of the name. An entry
+ * that leads somewhere ("Modifier" on a post) is a link, not a button.
+ */
+async function rowAction(page, row, action) {
+    await page.locator("main").getByTitle(row).first().click();
+    const sheet = page.locator(".fixed.inset-0.z-50");
+    await sheet.getByRole("button", { name: action }).or(sheet.getByRole("link", { name: action })).first().click();
+    await page.waitForTimeout(1_500);
+}
+
 async function placeAt(page, element, top) {
     await element.scrollIntoViewIfNeeded();
     const box = await element.boundingBox();
@@ -171,7 +186,7 @@ function postTabShot(name, tab, extra) {
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
-            await page.getByRole("button", { name: tab, exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: tab, exact: true }).first().click();
             await page.waitForTimeout(2_000);
 
             if (extra) await extra(page);
@@ -197,9 +212,7 @@ async function openPost(page) {
 /** The editor of a post, on the requested tab. */
 const postTab = (name) => async (page) => {
     await openPost(page);
-    await page.getByRole("tab", { name }).first().click().catch(async () => {
-        await page.getByRole("button", { name }).first().click();
-    });
+    await page.locator("main").getByRole("tab", { name }).first().click();
     await page.waitForTimeout(1_500);
 };
 
@@ -300,6 +313,78 @@ async function deliverableEditUrl(page, title = "Audit de présence en ligne") {
 }
 
 /**
+ * The demo contract's signing page, at the address the fixtures pin.
+ *
+ * Derived from the same phrases as `StudioDemoFixtures::pinSigningLink`:
+ * the token only ever exists in the email, and no secret-looking literal
+ * belongs in a public repository.
+ */
+const SIGNING_URL = (() => {
+    const sha = (phrase) => createHash("sha256").update(phrase).digest("hex");
+
+    return `${BASE_URL}/contracts/${sha("aurora-demo-signing-selector").slice(0, 32)}/${sha("aurora-demo-signing-token")}`;
+})();
+
+/**
+ * Answers the two calls the signing page makes on its own.
+ *
+ * "Opened" would move the demo contract to "Ouvert", and the code would go
+ * out by email: answered here, the page behaves as for the client and the
+ * demo is left as it was. The masked address is the one the server writes.
+ */
+async function stubSigningCalls(page) {
+    await page.route(/\/opened$/, (route) => route.fulfill({ json: { success: true } }));
+    await page.route(/\/code$/, (route) => route.fulfill({ json: { success: true, sentTo: "je*********@aurora.app" } }));
+}
+
+/**
+ * Picks an option in an AppSelect: its options are rendered elsewhere in the
+ * page, so they are found visible and by their text, not inside the field.
+ */
+async function pickOption(page, field, text) {
+    await field.click();
+    await page.locator(".multiselect__option:visible").filter({ hasText: text }).first().click();
+    await page.waitForTimeout(600);
+}
+
+/**
+ * Three phone screens of the suite, side by side, on the frame the public
+ * site's phone shot uses.
+ *
+ * A phone context of its own, signed in with the main context's session, so
+ * the screens are the ones the rules write for: cards, "…", the page bar.
+ */
+async function phoneTriptych(page, steps) {
+    const phone = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 1,
+        isMobile: true,
+        hasTouch: true,
+        colorScheme: "dark",
+        locale: "fr-FR",
+        timezoneId: "Europe/Paris",
+        reducedMotion: "reduce",
+        storageState: await context.storageState(),
+    });
+    await phone.addInitScript(() => window.localStorage.setItem("aurora.guides.open", "0"));
+
+    const shots = [];
+    for (const step of steps) {
+        const tab = await phone.newPage();
+        await step(tab);
+        await hideChrome(tab);
+        await tab.waitForTimeout(1_500);
+        shots.push((await tab.screenshot()).toString("base64"));
+    }
+    await phone.close();
+
+    await page.setContent(`<!doctype html><html><body style="margin:0;height:1000px;display:flex;align-items:center;justify-content:center;gap:56px;background:radial-gradient(ellipse at 50% 40%,#12302a,#030712 75%)">${shots
+        .map((shot) => `<div style="padding:10px;border-radius:46px;background:#0b0f17;box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.12)"><img src="data:image/png;base64,${shot}" style="display:block;width:390px;height:844px;border-radius:36px"></div>`)
+        .join("")}</body></html>`);
+    await page.waitForTimeout(300);
+}
+
+/**
  * Opens the "Réseaux sociaux" space, where every shot of a space starts.
  *
  * **The list's tab is remembered from one visit to the next**, and `espaces-
@@ -351,6 +436,36 @@ const SPACES = "/suite/studio/spaces";
  * studio issues it, then followed. Shared by the shot of the client-side space
  * and the shot of its deliverables.
  */
+/**
+ * The address of the links the client-side shots issue, and only theirs: the
+ * demo's own Camille uses `camille@atelier-dupont.fr`.
+ */
+const CLIENT_SIDE_EMAIL = "camille@atelier-dupont.example.com";
+
+/**
+ * Deletes the links `openClientSide` issued.
+ *
+ * Every shot of the client side issues one, since its address is only shown
+ * once, and the demo kept them: the space's access screen listed five
+ * "Camille, gérante" by the time it was photographed. Run after each of
+ * those shots, through the screen, so the demo stays as the fixtures left it.
+ */
+async function removeClientSideLinks(page) {
+    await page.goto(`${BASE_URL}${SPACES}`, { waitUntil: "networkidle" });
+    await openSpace(page);
+    await page.getByRole("link", { name: "Accès client", exact: true }).first().click();
+    await page.getByRole("button", { name: "Nouveau lien d'accès" }).first().waitFor();
+
+    const rows = page.locator("main li").filter({ hasText: CLIENT_SIDE_EMAIL });
+
+    while ((await rows.count()) > 0) {
+        await rows.first().getByTitle(/^Actions pour/).click();
+        await page.locator(".fixed.inset-0.z-50").getByRole("button", { name: /^Supprimer/ }).first().click();
+        await page.getByRole("dialog").last().getByRole("button", { name: /^Supprimer/ }).click();
+        await page.waitForTimeout(1_200);
+    }
+}
+
 async function openClientSide(page) {
     await openSpace(page);
 
@@ -372,7 +487,7 @@ async function openClientSide(page) {
     // By the field's placeholder and not by its label: the fields of
     // this modal have no id, so nothing ties the `<label>` to its
     // `<input>` for a tool that reads the page.
-    await page.getByPlaceholder("camille@societe.fr").fill("camille@atelier-dupont.example.com");
+    await page.getByPlaceholder("camille@societe.fr").fill(CLIENT_SIDE_EMAIL);
     await page.getByPlaceholder(/^Camille, /).fill("Camille, gérante");
 
     await page.getByRole("dialog").getByRole("button", { name: "Créer le lien" }).click();
@@ -458,10 +573,50 @@ const SHOTS = [
     },
 
     { name: "tour-publications", path: "/suite/editorial/posts" },
-    { name: "tour-grille", path: "/suite", prepare: postTab(/^Contenu$/) },
+    {
+        // The grid of the demo's richest page, twenty-five zones: on the
+        // welcome page, five zones said little of what a grid holds.
+        name: "tour-grille",
+        path: `/suite/editorial/posts?search=${encodeURIComponent("Nouveaux blocs")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour Nouveaux blocs", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("tab", { name: "Contenu", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+        },
+    },
     { name: "tour-entete", path: "/suite", prepare: postTab(/En-tête/) },
-    { name: "tour-seo", path: "/suite", prepare: postTab(/Moteurs/) },
+    {
+        // The site-wide SEO settings, and no longer the post tab: the banner
+        // and the body of the card showed that same tab twice. The post tab
+        // stays in the body (`tour-seo-onglet`); the banner shows what every
+        // page inherits. The demo leaves these fields empty, so they are
+        // typed in and not saved.
+        name: "tour-seo",
+        path: "/suite/configuration/settings/seo",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            const fields = page.locator("main input[type='text'], main textarea");
+            await fields.nth(0).fill("{title} · {siteName}");
+            await fields.nth(1).fill("Le site de démonstration d'Aurora : publications, médiathèque, formulaires et espaces clients.");
+            await fields.nth(2).fill("@aurora");
+            await fields.nth(2).blur();
+            await page.waitForTimeout(800);
+        },
+    },
     { name: "tour-galerie", path: "/suite", prepare: postTab(/Galerie/) },
+    {
+        // The gallery as a visitor sees it, under the page: the banner of the
+        // card, since the editor tab already illustrates its body.
+        name: "tour-galerie-site",
+        path: "/fr/page/bienvenue",
+        anonymous: true,
+        async prepare(page) {
+            const gallery = page.locator("section.not-prose").filter({ has: page.locator("[data-gallery-open]") }).last();
+            await placeAt(page, gallery, 120);
+        },
+    },
     {
         name: "tour-traductions",
         path: "/suite",
@@ -472,15 +627,38 @@ const SHOTS = [
             await openPost(page);
             await page.getByRole("button", { name: "es", exact: true }).first().click();
             await page.waitForTimeout(2_000);
-            await page.getByRole("tab", { name: /Paramétrage/ }).first().click().catch(() => {});
+            await page.locator("main").getByRole("tab", { name: /Paramétrage/ }).first().click();
             await page.waitForTimeout(1_200);
         },
     },
 
     { name: "tour-types", path: "/suite/editorial/post-types" },
     { name: "tour-taxonomies", path: "/suite/editorial/taxonomies" },
-    { name: "tour-menus", path: "/suite/editorial/menus" },
-    { name: "tour-commentaires", path: "/suite/editorial/comments" },
+    {
+        // The main navigation, the menu a visitor sees on every page. The
+        // list opens on the first menu, "Compte", whose two entries say
+        // little.
+        name: "tour-menus",
+        path: "/suite/editorial/menus",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("#sidemenu").getByRole("link", { name: /Navigation principale/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // The comments as a visitor reads them, under an article: replies in
+        // a thread and reactions. Moderation, the suite side, illustrates
+        // the body of the card (`tour-commentaires-moderation`); both used to
+        // show the moderation list.
+        name: "tour-commentaires",
+        path: "/fr/article/ecrire-premier-article",
+        anonymous: true,
+        async prepare(page) {
+            const title = page.getByRole("heading", { name: /^Commentaires/ }).first();
+            await placeAt(page, title, 120);
+        },
+    },
     {
         // The list of forms, since 0.9.320: a menu entry, and behind it a
         // table that says for each one whether it is online, how many
@@ -572,9 +750,9 @@ const SHOTS = [
             // contains "contenu", and it is what the first result points to.
             // The capture then came out on the Paramétrage tab, which is the
             // neighbouring one and looks close enough that nobody notices.
-            await page.getByRole("button", { name: "Contenu", exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: "Contenu", exact: true }).first().click();
             await page.waitForTimeout(2_000);
-            // Down to the bottom of the palette: it holds 44 types, and the
+            // Down to the bottom of the palette: it holds 45 types, and the
             // top of the tab only showed three rows of them.
             await page
                 .locator("main")
@@ -585,13 +763,8 @@ const SHOTS = [
             await page.waitForTimeout(1_000);
         },
     },
-    // No shot of a zone's editor, and I tried three times. The editor
-    // opens below the grid, and the scroll does not hold until the
-    // shutter: the capture comes out on the grid, that is, a duplicate of
-    // the one above. Two identical pictures are worth less than one, and
-    // the palette one already says what the card promises: twenty-four
-    // kinds of zones to place. To be redone by targeting the container
-    // that actually scrolls, which is not the window.
+    // A zone's editor is `tour-grille-zone`, further down: three attempts
+    // here scrolled an inner box, when it is the window that scrolls.
 
     {
         // A post's settings: its status, its dates, its type and its URL.
@@ -605,7 +778,7 @@ const SHOTS = [
             // the component is mounted, and the editor keeps a connection
             // open in dev, so `load` never fires.
             await page.waitForTimeout(4_000);
-            await page.getByRole("button", { name: "Paramétrage" }).first().click();
+            await page.locator("main").getByRole("tab", { name: "Paramétrage" }).first().click();
             await page.waitForTimeout(1_500);
         },
     },
@@ -632,7 +805,14 @@ const SHOTS = [
         // The trash, which spans the modules: deleting does not erase right
         // away, and the screen says how much time is left.
         name: "tour-publications-corbeille",
-        path: "/suite/trash",
+        path: "/suite/editorial/posts",
+        // Deleting a post, from its row: the window says it goes to the
+        // trash. The trash itself is the banner of its own card, and this
+        // used to be the same picture. Never confirmed.
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour Les tarifs de l'an dernier", /^Supprimer/);
+        },
     },
     // The card promises the header settings and the shot showed none: the
     // preview fills the whole window and the controls (placement, height,
@@ -682,7 +862,7 @@ const SHOTS = [
             // `exact: true` cannot help, the two labels are identical. The
             // menu lives outside `<main>`, so limiting the search to it
             // tells them apart for good.
-            await page.locator("main").getByRole("button", { name: "GED", exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: "GED", exact: true }).first().click();
             await page.waitForTimeout(1_500);
         },
     },
@@ -734,6 +914,9 @@ const SHOTS = [
             await page.waitForTimeout(2_500);
             await page.getByRole("link", { name: /Navigation principale/ }).first().click();
             await page.waitForTimeout(2_500);
+            // An entry open, with what it can point to: the banner of the
+            // card already shows the list of this same menu.
+            await rowAction(page, "Actions pour Accueil", /^Modifier/);
         },
     },
     {
@@ -748,6 +931,9 @@ const SHOTS = [
             // never photograph another list while believing it shows this one.
             await page.locator("main h2", { hasText: "Catégories" }).first().waitFor();
             await page.waitForTimeout(2_500);
+            // A term open, its name and address in each language: the list
+            // of terms is the banner of the card.
+            await rowAction(page, "Actions pour Guides", /^Modifier/);
         },
     },
     {
@@ -759,6 +945,9 @@ const SHOTS = [
             await page.waitForTimeout(2_500);
             await page.locator('#sidemenu a[href*="/suite/editorial/post-types/"]', { hasText: "Article" }).first().click();
             await page.waitForTimeout(2_500);
+            // A field open, a list of choices: its type, its choices, required
+            // or not, per language or not. The list of fields is the banner.
+            await rowAction(page, "Actions pour Niveau", /^Modifier/);
         },
     },
     {
@@ -1182,7 +1371,7 @@ const SHOTS = [
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
-            await page.getByRole("button", { name: "En-tête", exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: "En-tête", exact: true }).first().click();
             await page.waitForTimeout(2_000);
             await page.locator("main").getByText("Diapositive 2", { exact: true }).first().click();
             await page.waitForTimeout(1_500);
@@ -1501,6 +1690,19 @@ const SHOTS = [
      */
     { name: "tour-espaces-clients", path: SPACES, prepare: contents("Tableau") },
 
+    /**
+     * The list of spaces on the Clients tab: the banner of the card, which
+     * used to be the board, already in its body.
+     */
+    {
+        name: "tour-espaces-clients-liste",
+        path: SPACES,
+        async prepare(page) {
+            await page.getByRole("button", { name: /^Clients/ }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+
     /** The same plan as a list: the card promises "en kanban ou en liste". */
     { name: "espace-liste", path: SPACES, prepare: contents("Liste") },
 
@@ -1535,8 +1737,11 @@ const SHOTS = [
         path: SPACES,
         async prepare(page) {
             await contents("Tableau")(page);
-            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().waitFor();
-            await page.waitForTimeout(800);
+            // The window, opened from the banner: who receives the email.
+            // Closed, the picture was the board itself, the card's banner.
+            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
         },
     },
 
@@ -1594,6 +1799,7 @@ const SHOTS = [
         name: "espace-cote-client",
         path: SPACES,
         prepare: openClientSide,
+        after: removeClientSideLinks,
     },
 
     /** Its deliverables, same side: what was written for them, published. */
@@ -1605,6 +1811,7 @@ const SHOTS = [
             await page.getByRole("button", { name: "Livrables", exact: true }).first().click();
             await page.waitForTimeout(1_500);
         },
+        after: removeClientSideLinks,
     },
 
     /** A space's deliverables on the studio side: the demo audit, published. */
@@ -1842,7 +2049,10 @@ const SHOTS = [
     { name: "tour-utilisateurs", path: "/suite/platform/users" },
     { name: "tour-audit", path: "/dev/dashboard/audit" },
     { name: "tour-themes", path: "/suite/configuration/themes" },
-    { name: "tour-reglages", path: "/suite/configuration/settings/general" },
+    // The modules, switched on and off: the card's title promises them and
+    // its body already shows the settings (`tour-reglages-onglets`), which
+    // open on the same General tab.
+    { name: "tour-reglages", path: "/dev/dashboard/modules" },
 
     {
         name: "tour-calendrier-semaine",
@@ -1861,7 +2071,9 @@ const SHOTS = [
             await page.mouse.move(1000, 600);
             await page.mouse.wheel(0, -2_000);
             await page.waitForTimeout(300);
-            await page.mouse.wheel(0, 530);
+            // Down to about eight in the morning, where the demo's days
+            // start since its times are written in the calendar's zone.
+            await page.mouse.wheel(0, 300);
             await page.waitForTimeout(600);
         },
     },
@@ -1984,6 +2196,600 @@ const SHOTS = [
             await page.waitForTimeout(2_500);
         },
     },
+
+    /**
+     * Lot 1 of the tour audit (07/10/2026): the screens the tour described
+     * without showing them.
+     */
+    {
+        // One zone of the grid selected, its settings open: width per
+        // screen, offset, surface. The card is under the canvas, and the
+        // window is what scrolls: three earlier attempts scrolled an inner
+        // box that does not move.
+        name: "tour-grille-zone",
+        path: `/suite/editorial/posts/${DEMO_POST_ID}/edit#content`,
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            await page.locator('main [data-zone="1"] > button').first().click();
+            await page.waitForTimeout(1_200);
+            const card = page.locator("main div.border-accent.space-y-4").filter({ visible: true }).first();
+            await card.evaluate((node) => window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - 90, behavior: "instant" }));
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // A list zone and its presentations, on the about page: the card
+        // promises eleven presentations for one list.
+        name: "tour-grille-liste",
+        // Searched: the list has two pages and this post is on the second.
+        path: `/suite/editorial/posts?search=${encodeURIComponent("À propos")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour À propos", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("tab", { name: "Contenu", exact: true }).first().click();
+            await page.waitForTimeout(1_200);
+            await page.locator('main [data-zone="1"] > button').first().click();
+            await page.waitForTimeout(1_200);
+            // The list's own presentations, not the zone-type palette above,
+            // which also has a "Présentation" button.
+            const presentation = page.locator("main").getByText("Étapes numérotées", { exact: true }).filter({ visible: true }).first();
+            await presentation.evaluate((node) => window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - 160, behavior: "instant" }));
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // The Appearance tab of a post that repaints itself: the about page
+        // carries its own colours in the demo.
+        name: "tour-publication-apparence",
+        // Searched: the list has two pages and this post is on the second.
+        path: `/suite/editorial/posts?search=${encodeURIComponent("À propos")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour À propos", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("tab", { name: "Apparence", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // A post waiting for review, and the reviewer's two answers in the
+        // page bar's sheet.
+        name: "tour-relecture",
+        path: "/suite/editorial/posts",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour Relire avant de publier", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.locator(".fixed.inset-0.z-50").getByRole("button", { name: /^Approuver et publier/ }).first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // The Studio's editorial calendar, every space: the demo account is
+        // not a member of the space that has dated contents.
+        name: "tour-studio-calendrier",
+        path: "/suite/studio/spaces/calendar?scope=all",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // A space's client links: who, what each may do, expired, revoked.
+        name: "tour-espace-acces",
+        path: SPACES,
+        async prepare(page) {
+            await openSpace(page);
+            await page.getByRole("link", { name: "Accès client", exact: true }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // The window that issues a link, with its rights. Never confirmed.
+        name: "tour-espace-acces-nouveau",
+        path: SPACES,
+        async prepare(page) {
+            await openSpace(page);
+            await page.getByRole("link", { name: "Accès client", exact: true }).first().click();
+            await page.waitForTimeout(2_500);
+            await page.locator("main").getByRole("button", { name: /^Nouveau lien d'accès/ }).first().click();
+            const dialog = page.getByRole("dialog").first();
+            await dialog.waitFor();
+            await dialog.getByPlaceholder("camille@societe.fr").fill("claire.dupont@atelier-dupont.fr");
+            await dialog.getByPlaceholder("Camille, responsable marketing").fill("Claire, gérante");
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // An event open: its guests and their answers.
+        name: "tour-calendrier-evenement",
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.locator("main").getByText("Réunion générale", { exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Sharing a calendar by link: who has one, until when, revoked.
+        // The share button only shows when the calendar row is hovered.
+        name: "tour-calendrier-partage",
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            // Shown on hover, and only where the pointer can hover (3.6.0):
+            // headless Chromium declares none, so the button never shows.
+            // Clicked through the DOM; the picture is the window, not it.
+            const row = page.locator("#sidemenu").getByRole("button", { name: "Pro", exact: true }).first().locator("xpath=..");
+            await row.getByTitle("Partage par lien").evaluate((button) => button.click());
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // A document's edit window: alternative text, caption, category,
+        // tags. A real photo with its alternative text: the filed demo
+        // documents are flat colours.
+        name: "tour-mediatheque-modifier",
+        path: `/suite/ged/documents?search=${encodeURIComponent("façade de verre")}`,
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await rowAction(page, "Actions pour Une façade de verre", /^Modifier/);
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // The bell open: what waits for a decision.
+        name: "tour-notifications",
+        path: "/suite",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.getByRole("button", { name: "Notifications", exact: true }).filter({ visible: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // The Studio panel of the dashboard, every space.
+        name: "tour-dashboard-studio",
+        path: "/suite?module=studio&studioScope=all",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+
+    /**
+     * Lot 2: the contract seen from the client's side, on the link the demo
+     * pins (`StudioDemoFixtures::pinSigningLink`). Nothing is sent and
+     * nothing changes state: opening is answered here, and so is the code
+     * request, so the contract stays "Envoyé" and no email leaves.
+     */
+    {
+        name: "tour-signature-contrat",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        name: "tour-signature-code",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            await page.getByPlaceholder("Camille", { exact: true }).fill("Jean");
+            await page.getByPlaceholder("Durand", { exact: true }).fill("Martin");
+            await page.getByPlaceholder("camille@societe.fr").fill("jean.martin@martin-documents.fr");
+            await page.getByPlaceholder("Lyon", { exact: true }).fill("Grenoble");
+
+            // A signature drawn in the frame: the code button waits for one.
+            const pad = page.locator("canvas").first();
+            await pad.scrollIntoViewIfNeeded();
+            const box = await pad.boundingBox();
+            const at = (x, y) => [box.x + box.width * x, box.y + box.height * y];
+            await page.mouse.move(...at(0.15, 0.6));
+            await page.mouse.down();
+            for (const [x, y] of [[0.22, 0.3], [0.3, 0.7], [0.38, 0.35], [0.46, 0.65], [0.55, 0.4], [0.63, 0.6], [0.75, 0.45], [0.85, 0.55]]) {
+                await page.mouse.move(...at(x, y), { steps: 6 });
+            }
+            await page.mouse.up();
+
+            await page.getByRole("button", { name: "Recevoir le code" }).click();
+            await page.getByPlaceholder("123456").fill("482913");
+            await page.getByRole("checkbox").last().check();
+            await placeAt(page, page.getByText("Votre signature", { exact: true }).first(), 120);
+        },
+    },
+
+    /**
+     * A card the client opens on their side: the visual, the deadline, the
+     * files and the thread, and the two answers they can give. Never
+     * answered here: that would change the demo.
+     */
+    {
+        name: "espace-cote-client-fiche",
+        path: SPACES,
+        async prepare(page) {
+            await openClientSide(page);
+            await page.getByText("Offre de rentrée", { exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+        after: removeClientSideLinks,
+    },
+    {
+        // Creating a contract: a client, a body, an annex, an amount. Never
+        // saved.
+        name: "tour-contrat-nouveau",
+        path: "/suite/studio/contracts",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.getByRole("button", { name: /^Nouveau contrat/ }).first().click();
+            const dialog = page.getByRole("dialog").first();
+            await dialog.waitFor();
+            await pickOption(page, dialog.locator(".multiselect").nth(0), "Martin Documents");
+            await pickOption(page, dialog.locator(".multiselect").nth(1), "Contrat de prestation mensuelle");
+            await dialog.getByPlaceholder("850").fill("690");
+            await dialog.getByPlaceholder("850").blur();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // The suite on a phone, lists: one card per row, its actions behind
+        // "…", the page bar with the back button and icon-only commands.
+        name: "tour-telephone-listes",
+        path: "/suite",
+        async prepare(page) {
+            await phoneTriptych(page, [
+                async (tab) => tab.goto(`${BASE_URL}/suite/platform/users`, { waitUntil: "networkidle" }),
+                async (tab) => tab.goto(`${BASE_URL}/suite/editorial/posts`, { waitUntil: "networkidle" }),
+                async (tab) => tab.goto(`${BASE_URL}/suite`, { waitUntil: "networkidle" }),
+            ]);
+        },
+    },
+    {
+        // The suite on a phone, at work: a space's board, a note, the week.
+        name: "tour-telephone-travail",
+        path: SPACES,
+        async prepare(page) {
+            // The space's address is read on the desktop first: on a phone
+            // the list is cards and the section rail is a menu, which the
+            // helpers written for the desktop do not walk.
+            await contents("Tableau")(page);
+            const space = page.url();
+            await phoneTriptych(page, [
+                async (tab) => tab.goto(space, { waitUntil: "networkidle" }),
+                async (tab) => {
+                    // The note is found through the list's endpoint, which
+                    // a blank tab cannot reach by a relative address.
+                    await tab.goto(`${BASE_URL}/suite/notes/markdown`, { waitUntil: "domcontentloaded" });
+                    await openNoteByTitle(tab, "Cabinet Verrier");
+                },
+                async (tab) => tab.goto(`${BASE_URL}/suite/planning/calendar`, { waitUntil: "networkidle" }),
+            ]);
+        },
+    },
+
+    {
+        // Refusing is provided for as much as signing: a reason, and the
+        // studio is told. Opened, never sent.
+        name: "tour-signature-refus",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            await page.getByRole("button", { name: "Je ne signe pas" }).click();
+            const heading = page.getByText("Ne pas signer ce contrat", { exact: true }).first();
+            await heading.waitFor();
+            await placeAt(page, heading, 160);
+        },
+    },
+    {
+        // What is collected, why and for how long, at the moment it is.
+        name: "tour-signature-donnees",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            const summary = page.locator("details summary").filter({ hasText: "Vos données" }).first();
+            await summary.click();
+            await placeAt(page, summary, 120);
+        },
+    },
+    {
+        // The client's side of the discussion.
+        name: "espace-cote-client-discussion",
+        path: SPACES,
+        async prepare(page) {
+            await openClientSide(page);
+            await page.getByRole("button", { name: "Discussion", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+        after: removeClientSideLinks,
+    },
+    {
+        // The client's side of the files: what was put on each content.
+        name: "espace-cote-client-fichiers",
+        path: SPACES,
+        async prepare(page) {
+            await openClientSide(page);
+            await page.getByRole("button", { name: "Fichiers", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+        after: removeClientSideLinks,
+    },
+    {
+        // The suite on a phone, by hand: a row's actions behind "…", the
+        // menu as a drawer, a post with its page bar.
+        name: "tour-telephone-gestes",
+        path: "/suite",
+        async prepare(page) {
+            await phoneTriptych(page, [
+                async (tab) => {
+                    await tab.goto(`${BASE_URL}/suite/platform/users`, { waitUntil: "networkidle" });
+                    await tab.getByTitle("Actions pour Jean Martin").first().click();
+                    await tab.waitForTimeout(800);
+                },
+                async (tab) => {
+                    await tab.goto(`${BASE_URL}/suite`, { waitUntil: "networkidle" });
+                    await tab.getByRole("button", { name: "Afficher le menu", exact: true }).first().click();
+                    await tab.waitForTimeout(800);
+                },
+                async (tab) => tab.goto(`${BASE_URL}/suite/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" }),
+            ]);
+        },
+    },
+
+    /**
+     * Lot 4: blocks as a visitor sees them, on the demo page that holds one
+     * of each. Framed by their place in the grid: the public HTML carries no
+     * zone id. The zones above are hidden, as for the booking.
+     */
+    ...[
+        ["tour-blocs-pratiques", 1, "Disponibilité, compte à rebours, horaires, carte de visite"],
+        ["tour-blocs-reseaux", 5, "Une publication façon réseau social, une image dans un cadre d'ordinateur"],
+        ["tour-blocs-code", 9, "Un terminal et un diff"],
+        ["tour-blocs-graphiques", 13, "Trois graphiques"],
+        ["tour-blocs-calendrier", 17, "Un calendrier éditorial"],
+        ["tour-blocs-tarifs", 18, "Une carte et ses tarifs"],
+        ["tour-blocs-voyage", 22, "Une carte de voyage étape par étape"],
+        ["tour-blocs-devis", 23, "Un simulateur de devis"],
+        ["tour-blocs-recit", 25, "Un récit en images"],
+    ].map(([name, child]) => ({
+        name,
+        path: "/fr/page/nouveaux-blocs",
+        anonymous: true,
+        async prepare(page) {
+            const zone = page.locator(`.aurora-grid > div:nth-child(${child})`).first();
+            await hideZonesAbove(zone);
+            await placeAt(page, zone, 120);
+        },
+    })),
+
+    {
+        // The page a shared calendar opens on, for whoever holds the link:
+        // read in the share window, then followed.
+        name: "tour-agenda-partage",
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            const row = page.locator("#sidemenu").getByRole("button", { name: "Pro", exact: true }).first().locator("xpath=..");
+            await row.getByTitle("Partage par lien").evaluate((button) => button.click());
+            const dialog = page.getByRole("dialog").first();
+            await dialog.waitFor();
+            const link = await dialog.locator("input[readonly]").first().inputValue();
+            await page.goto(link, { waitUntil: "networkidle" });
+            await hideChrome(page);
+            await page.waitForTimeout(1_500);
+        },
+    },
+
+    /** Lot 3: the rest of the suite the tour only described. */
+    {
+        // A form's settings: online or not, where answers go, the limits.
+        name: "tour-formulaire-reglages",
+        path: "/suite/editorial/forms/1#settings",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // A question that only shows after a given answer.
+        name: "tour-formulaire-condition",
+        path: "/suite/editorial/forms/1",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: /Nombre de références au catalogue/ }).first().click();
+            await page.waitForTimeout(1_000);
+            const when = page.locator("main").getByText("Quand l'afficher", { exact: false }).filter({ visible: true }).first();
+            await when.evaluate((node) => window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - 160, behavior: "instant" }));
+            await page.waitForTimeout(800);
+        },
+    },
+    { name: "tour-reglages-lettre", path: "/suite/configuration/settings/newsletter" },
+    { name: "tour-reglages-studio", path: "/suite/configuration/settings/studio" },
+    { name: "tour-reglages-stockage", path: "/suite/configuration/settings/storage" },
+    { name: "tour-reglages-systeme", path: "/suite/configuration/settings/system" },
+    { name: "tour-reglages-navigation", path: "/suite/configuration/settings/navigation" },
+    { name: "tour-reglages-marque", path: "/suite/configuration/settings/branding" },
+    {
+        // The document picker, opened from the logo field: the library and
+        // free photos, without leaving the screen. Closed, never chosen.
+        name: "tour-selecteur-document",
+        path: "/suite/configuration/settings/branding",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: /^Changer/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // The theme's font, in its edit window.
+        name: "tour-themes-police",
+        path: "/suite/configuration/themes",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.locator("main").getByRole("button", { name: "Actions pour Default" }).click();
+            await page.getByRole("button", { name: "Modifier", exact: true }).click();
+            await page.waitForTimeout(2_000);
+            const font = page.getByText("Police d'écriture", { exact: false }).filter({ visible: true }).first();
+            await font.scrollIntoViewIfNeeded();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Importing a text as a deliverable: pasted, kept with its titles.
+        // Never imported.
+        name: "tour-livrables-import",
+        path: "/suite/studio/deliverables?scope=shared",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.locator(".fixed.inset-0.z-50").getByRole("button", { name: /^Importer un texte/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // A model copied into a client space. Never copied.
+        name: "tour-livrables-copie",
+        path: "/suite/studio/deliverables?scope=shared",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await rowAction(page, `Actions pour ${AUDIT_MODEL}`, /^Copier dans un espace client/);
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // Who works on a space, and who leads it.
+        name: "tour-espaces-equipe",
+        path: SPACES,
+        async prepare(page) {
+            await page.getByRole("button", { name: /^Clients/ }).first().click();
+            await page.waitForTimeout(1_000);
+            // The social media space: two people, one of them leading.
+            await page.locator("main tr").filter({ hasText: "Réseaux sociaux" }).getByRole("button", { name: /^\d+ personnes?$/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // A new channel, shown to the client or kept between the team.
+        // Never opened.
+        name: "espace-nouveau-canal",
+        path: SPACES,
+        async prepare(page) {
+            await spaceView("Discussion")(page);
+            await page.locator("main").getByRole("button", { name: /Nouveau canal/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // Inviting someone: never sent.
+        name: "tour-utilisateur-invitation",
+        path: "/suite/platform/users",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await page.getByRole("button", { name: /^Inviter un utilisateur/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    { name: "tour-demandes-acces", path: "/dev/dashboard/access-requests" },
+    {
+        // The sign-in page, as somebody who is not signed in sees it.
+        name: "tour-connexion",
+        path: "/suite/platform/login",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(1_200);
+        },
+    },
+    { name: "tour-dev-montage", path: "/dev/dashboard/mount-points" },
+    // The developer side of the accounts: roles, types, who can do what.
+    { name: "tour-dev-utilisateurs", path: "/dev/dashboard/users" },
+
+    /** Lot 5: the smaller screens. */
+    ...[["tour-calendrier-jour", "Jour"], ["tour-calendrier-agenda", "Agenda"]].map(([name, view]) => ({
+        name,
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: view, exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+            if ("Jour" === view) {
+                // The day opens on the current hour: up, then to the morning,
+                // as for the week.
+                await page.mouse.move(1000, 600);
+                await page.mouse.wheel(0, -2_000);
+                await page.waitForTimeout(300);
+                await page.mouse.wheel(0, 300);
+                await page.waitForTimeout(600);
+            }
+        },
+    })),
+    {
+        name: "tour-mot-de-passe-oublie",
+        path: "/suite/platform/forgot-password",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(1_000);
+        },
+    },
+    { name: "tour-galeries-liste", path: "/suite/editorial/post-galleries" },
+    {
+        // A draft's preview, opened from its row: the page as it will be
+        // once published, at an address that works without a session.
+        name: "tour-brouillon-apercu",
+        path: `/suite/editorial/posts?search=${encodeURIComponent("Ce qui arrive ensuite")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            const [preview] = await Promise.all([
+                page.context().waitForEvent("page"),
+                rowAction(page, "Actions pour Ce qui arrive ensuite", /^Prévisualiser/),
+            ]);
+            await preview.waitForLoadState("domcontentloaded");
+            const address = preview.url();
+            await preview.close();
+            await page.goto(address, { waitUntil: "networkidle" });
+            await hideChrome(page);
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Two people on the same post: the second save is stopped and says
+        // why, instead of overwriting the first. The other tab saves the
+        // post unchanged, which only moves its version on.
+        name: "tour-conflit",
+        path: `/suite/editorial/posts/${DEMO_POST_ID}/edit`,
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            const other = await page.context().newPage();
+            await other.goto(`${BASE_URL}/suite/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" });
+            await other.getByRole("button", { name: "Enregistrer", exact: true }).first().waitFor();
+            await other.waitForTimeout(2_000);
+            await other.getByRole("button", { name: "Enregistrer", exact: true }).first().click();
+            await other.waitForTimeout(2_000);
+            await other.close();
+            await page.getByRole("button", { name: "Enregistrer", exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    { name: "tour-reglages-lecture", path: "/suite/configuration/settings/reading" },
+    { name: "tour-reglages-localisation", path: "/suite/configuration/settings/localization" },
+    { name: "tour-reglages-anti-robots", path: "/suite/configuration/settings/captcha" },
 
     // "tour-releases" and "tour-release-notes" are no longer photographed:
     // they were GitHub pages. They are drawn from the CHANGELOG with
