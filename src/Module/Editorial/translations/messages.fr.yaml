@@ -1481,12 +1481,22 @@ suite:
         conflict_reload: Recharger la leur
         conflict_overwrite: Enregistrer la mienne
         filters: Filtres
-        clear_filters: Effacer
+        clear_filters: Tout effacer
         filter_type: Type de contenu
         filter_status: Statut
         filter_visibility: 'Diffusion'
         filter_term: Terme
-        no_terms: Aucun terme défini.
+        remove_filter: 'Retirer « {value} » du filtre {filter}'
+        filter_all:
+            type: Tous les types
+            status: Tous les statuts
+            visibility: Toute diffusion
+            term: Tous les termes
+        filter_count:
+            type: '{count} type | {count} types'
+            status: '{count} statut | {count} statuts'
+            visibility: '{count} diffusion | {count} diffusions'
+            term: '{count} terme | {count} termes'
         title_column: Titre
         type_column: Type
         status_column: Statut
@@ -1647,7 +1657,7 @@ suite:
             step_5: "Supprimer est définitif, et ses réponses remontent d'un niveau."
         title: Commentaires
         empty: Aucun commentaire.
-        search_placeholder: "Chercher un auteur, une adresse, un texte…"
+        search_placeholder: "Rechercher un commentaire…"
         all: Tous
         author: Auteur
         on_post: Sur

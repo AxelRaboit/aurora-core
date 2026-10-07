@@ -41,7 +41,7 @@ import { useDocumentCrop } from "./composables/useDocumentCrop.js";
 import { useMultiSelection } from "@/shared/composables/list/useMultiSelection.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
-import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Layers, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw, Palette, SlidersHorizontal, Bookmark } from "lucide-vue-next";
+import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw, Palette, SlidersHorizontal, Bookmark } from "lucide-vue-next";
 import ImageCropperModal from "@/shared/components/overlay/ImageCropperModal.vue";
 import AppImagePreview from "@/shared/components/display/AppImagePreview.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
@@ -59,6 +59,8 @@ import DocumentRecolorModal from "@ged/suite/documents/components/DocumentRecolo
 import DocumentFamilyStrip from "@ged/suite/documents/components/DocumentFamilyStrip.vue";
 import { familyMembers } from "@ged/suite/documents/utils/familyLabels.js";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -433,164 +435,150 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <!-- Header: breadcrumb + search + add -->
-        <div class="aurora-card flex flex-col sm:flex-row sm:items-center gap-3 px-2 py-2 sm:px-4 sm:py-3">
-            <nav class="flex items-center gap-1 text-sm text-muted min-w-0 flex-1 flex-wrap">
-                <template v-if="allDocumentsView">
-                    <span class="flex items-center gap-1.5 text-primary shrink-0">
-                        <Layers class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("suite.ged.documents.all_documents") }}
-                    </span>
-                </template>
-                <template v-else>
-                    <AppTextLinkButton color="muted" size="sm" class="shrink-0 no-underline hover:no-underline" v-on:click="navigateToRoot">
-                        <Home class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("suite.ged.documents.root_folder") }}
-                    </AppTextLinkButton>
-                    <template v-for="crumb in breadcrumbs" :key="crumb.id">
-                        <ChevronRight class="w-3 h-3 shrink-0" :stroke-width="2" />
-                        <AppTextLinkButton color="muted" size="sm" class="truncate no-underline hover:no-underline" v-on:click="navigateTo(crumb.id)">
-                            {{ crumb.name }}
-                        </AppTextLinkButton>
-                    </template>
-                </template>
-            </nav>
+        <!-- Where the list stands, as a plain line rather than a card: the
+             search used to sit squeezed inside it, its placeholder cut. Shown
+             inside the folder tree only; « Tous les documents » is already
+             what the menu panel highlights. -->
+        <nav
+            v-if="!allDocumentsView"
+            class="flex min-w-0 flex-wrap items-center gap-1 text-sm text-muted"
+            :aria-label="t('suite.ged.documents.folder')"
+        >
+            <AppTextLinkButton color="muted" size="sm" class="shrink-0 no-underline hover:no-underline" v-on:click="navigateToRoot">
+                <Home class="w-3.5 h-3.5" :stroke-width="2" />
+                {{ t("suite.ged.documents.root_folder") }}
+            </AppTextLinkButton>
+            <template v-for="crumb in breadcrumbs" :key="crumb.id">
+                <ChevronRight class="w-3 h-3 shrink-0" :stroke-width="2" />
+                <AppTextLinkButton color="muted" size="sm" class="truncate no-underline hover:no-underline" v-on:click="navigateTo(crumb.id)">
+                    {{ crumb.name }}
+                </AppTextLinkButton>
+            </template>
+        </nav>
 
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:shrink-0">
-                <div class="w-full sm:w-64">
-                    <AppSearchInput v-model="searchInput" :placeholder="t('suite.ged.documents.search_placeholder')" v-on:search="onSearch" />
-                </div>
-                <AppPageActions
-                    v-if="pageActions.length"
-                    :actions="pageActions"
-                    class="w-full sm:w-auto"
-                />
-            </div>
+        <!-- The house list toolbar: the search on the left, the page
+             actions on the right. Four filters and « Plus de filtres » do
+             not fit beside a search with a 320 px menu: squeezed, their
+             placeholders broke over two lines. They take the row under it. -->
+        <AppListToolbar>
+            <AppSearchInput v-model="searchInput" :placeholder="t('suite.ged.documents.search_placeholder')" v-on:search="onSearch" />
+            <template v-if="pageActions.length" #actions>
+                <AppPageActions :actions="pageActions" class="w-full sm:w-auto" />
+            </template>
+        </AppListToolbar>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <AppMultiselect
+                v-model="filterCategoryId"
+                :options="filterCategoryOptions"
+                :allow-empty="true"
+                :placeholder="t('suite.ged.documents.all_categories')"
+                class="w-full sm:w-52"
+                v-on:update:model-value="applyFilter"
+            />
+            <AppMultiselect
+                v-model="filterTagId"
+                :options="filterTagOptions"
+                :allow-empty="true"
+                :placeholder="t('suite.ged.documents.all_tags')"
+                class="w-full sm:w-52"
+                v-on:update:model-value="applyFilter"
+            />
+            <AppMultiselect
+                v-model="filterStatus"
+                :options="statusOptions"
+                :allow-empty="true"
+                :searchable="false"
+                :placeholder="t('suite.ged.documents.all_statuses')"
+                class="w-full sm:w-52"
+                v-on:update:model-value="applyFilter"
+            />
+            <AppMultiselect
+                v-model="filterMimeGroup"
+                :options="mimeGroupOptions"
+                :allow-empty="true"
+                :searchable="false"
+                :placeholder="t('suite.ged.documents.all_types')"
+                class="w-full sm:w-52"
+                v-on:update:model-value="applyFilter"
+            />
+            <AppButton
+                variant="secondary"
+                class="w-full sm:w-auto"
+                :aria-expanded="showMoreFilters || 0 < moreFiltersCount"
+                v-on:click="showMoreFilters = !showMoreFilters"
+            >
+                <SlidersHorizontal class="w-4 h-4" :stroke-width="2" />
+                {{ t("suite.ged.documents.more_filters") }}
+                <span v-if="moreFiltersCount" class="rounded-full bg-accent-500/15 px-1.5 text-xs font-semibold text-accent-400 tabular-nums">
+                    {{ moreFiltersCount }}
+                </span>
+            </AppButton>
+            <AppButton
+                v-if="hasActiveFilter"
+                variant="ghost"
+                class="w-full sm:w-auto"
+                v-on:click="resetFilters"
+            >
+                <X class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.reset") }}
+            </AppButton>
+        </div>
+
+        <!-- The wider search: where the box looks, when a document was
+             added, its shape and its weight. Behind a button because
+             most visits never need it; open whenever one is set. -->
+        <div
+            v-if="showMoreFilters || 0 < moreFiltersCount"
+            class="aurora-card grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-5 sm:p-4"
+        >
+            <AppMultiselect
+                v-model="searchIn"
+                :options="searchInOptions"
+                :allow-empty="false"
+                :searchable="false"
+                :label="t('suite.ged.documents.search_in')"
+                v-on:update:model-value="onSearchInChange"
+            />
+            <AppDatePicker
+                v-model="filterAddedFrom"
+                :label="t('suite.ged.documents.added_from')"
+                v-on:update:model-value="applyFilter"
+            />
+            <AppDatePicker
+                v-model="filterAddedTo"
+                :label="t('suite.ged.documents.added_to')"
+                v-on:update:model-value="applyFilter"
+            />
+            <AppMultiselect
+                v-model="filterOrientation"
+                :options="orientationOptions"
+                :allow-empty="true"
+                :searchable="false"
+                :label="t('suite.ged.documents.orientation')"
+                :placeholder="t('suite.ged.documents.any')"
+                v-on:update:model-value="applyFilter"
+            />
+            <AppMultiselect
+                v-model="filterWeight"
+                :options="weightOptions"
+                :allow-empty="true"
+                :searchable="false"
+                :label="t('suite.ged.documents.weight')"
+                :placeholder="t('suite.ged.documents.any')"
+                v-on:update:model-value="applyFilter"
+            />
         </div>
 
         <!-- The screen's how-to guide, next to what it explains;
-     folded or unfolded, the choice applies to every panel. -->
+             folded or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.ged.documents.guide.title')" storage-key="ged-documents">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.ged.documents.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
+
         <div class="flex flex-col lg:flex-row gap-4">
-            <!-- Sidebar -->
-
             <main class="flex-1 min-w-0 space-y-4">
-                <!-- Filters -->
-                <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                    <AppMultiselect
-                        v-model="filterCategoryId"
-                        :options="filterCategoryOptions"
-                        :allow-empty="true"
-                        :placeholder="t('suite.ged.documents.filter_by_category')"
-                        class="w-full sm:w-auto sm:min-w-44"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppMultiselect
-                        v-model="filterTagId"
-                        :options="filterTagOptions"
-                        :allow-empty="true"
-                        :placeholder="t('suite.ged.documents.filter_by_tag')"
-                        class="w-full sm:w-auto sm:min-w-44"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppMultiselect
-                        v-model="filterStatus"
-                        :options="statusOptions"
-                        :allow-empty="true"
-                        :searchable="false"
-                        :placeholder="t('suite.ged.documents.filter_by_status')"
-                        class="w-full sm:w-auto sm:min-w-44"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppMultiselect
-                        v-model="filterMimeGroup"
-                        :options="mimeGroupOptions"
-                        :allow-empty="true"
-                        :searchable="false"
-                        :placeholder="t('suite.ged.documents.filter_by_type')"
-                        class="w-full sm:w-auto sm:min-w-44"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppCheckbox
-                        v-model="filterOriginalsOnly"
-                        :label="t('suite.ged.documents.originals_only')"
-                        :title="t('suite.ged.documents.originals_only_hint')"
-                        class="self-center"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppButton
-                        variant="secondary"
-                        size="sm"
-                        class="w-full sm:w-auto"
-                        :aria-expanded="showMoreFilters || 0 < moreFiltersCount"
-                        v-on:click="showMoreFilters = !showMoreFilters"
-                    >
-                        <SlidersHorizontal class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("suite.ged.documents.more_filters") }}
-                        <span v-if="moreFiltersCount" class="rounded-full bg-accent-500/15 px-1.5 text-xs font-semibold text-accent-400 tabular-nums">
-                            {{ moreFiltersCount }}
-                        </span>
-                    </AppButton>
-                    <AppButton
-                        v-if="hasActiveFilter"
-                        variant="ghost"
-                        size="sm"
-                        class="w-full sm:w-auto"
-                        v-on:click="resetFilters"
-                    >
-                        <X class="w-3 h-3" :stroke-width="2" /> {{ t("shared.common.reset") }}
-                    </AppButton>
-                </div>
-
-                <!-- The wider search: where the box looks, when a document was
-                     added, its shape and its weight. Behind a button because
-                     most visits never need it; open whenever one is set. -->
-                <div
-                    v-if="showMoreFilters || 0 < moreFiltersCount"
-                    class="aurora-card grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-5 sm:p-4"
-                >
-                    <AppMultiselect
-                        v-model="searchIn"
-                        :options="searchInOptions"
-                        :allow-empty="false"
-                        :searchable="false"
-                        :label="t('suite.ged.documents.search_in')"
-                        v-on:update:model-value="onSearchInChange"
-                    />
-                    <AppDatePicker
-                        v-model="filterAddedFrom"
-                        :label="t('suite.ged.documents.added_from')"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppDatePicker
-                        v-model="filterAddedTo"
-                        :label="t('suite.ged.documents.added_to')"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppMultiselect
-                        v-model="filterOrientation"
-                        :options="orientationOptions"
-                        :allow-empty="true"
-                        :searchable="false"
-                        :label="t('suite.ged.documents.orientation')"
-                        :placeholder="t('suite.ged.documents.any')"
-                        v-on:update:model-value="applyFilter"
-                    />
-                    <AppMultiselect
-                        v-model="filterWeight"
-                        :options="weightOptions"
-                        :allow-empty="true"
-                        :searchable="false"
-                        :label="t('suite.ged.documents.weight')"
-                        :placeholder="t('suite.ged.documents.any')"
-                        v-on:update:model-value="applyFilter"
-                    />
-                </div>
-
                 <!-- Selection bar -->
                 <div v-if="selectedIds.size" class="flex flex-wrap items-center gap-2 bg-accent-500/10 border border-accent-400/30 rounded-xl px-2 py-2 sm:px-4 sm:py-2.5">
                     <span class="text-sm font-medium text-accent-400">{{ selectedIds.size }} {{ t("shared.common.selected") }}</span>
@@ -611,58 +599,78 @@ const pageActions = computed(() => {
                     </div>
                 </div>
 
-                <!-- View toolbar: sort + view mode + multiselect -->
-                <div class="flex flex-wrap items-center gap-1.5">
-                    <div class="flex gap-1 border border-line rounded-lg p-0.5">
-                        <AppTab
-                            v-for="sortField in DOCUMENT_SORT_FIELDS"
-                            :key="sortField.key"
-                            size="xs"
-                            :active="sortBy === sortField.key"
-                            :title="sortField.labelKey ? t(sortField.labelKey) : sortField.label"
-                            v-on:click="setSort(sortField.key)"
-                        >
-                            {{ sortField.labelKey ? t(sortField.labelKey) : sortField.label }}
-                            <SortAsc v-if="sortBy === sortField.key && sortDirection === 'asc'" class="w-3 h-3" :stroke-width="2" />
-                            <SortDesc v-else-if="sortBy === sortField.key" class="w-3 h-3" :stroke-width="2" />
-                        </AppTab>
-                    </div>
-                    <!-- Absent where it is already refused: a narrow container
-                         forces the thumbnails, so the switch changed nothing
-                         on screen, and a button that does nothing reads as a
-                         broken button. The choice is kept and comes back
-                         with the room. -->
-                    <div v-if="!isNarrow" class="flex border border-line rounded-lg p-0.5">
-                        <AppIconButton
-                            :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                            :title="t('shared.common.grid_view')"
-                            :aria-label="t('shared.common.grid_view')"
-                            :aria-pressed="storedViewMode === 'grid'"
-                            v-on:click="setViewMode('grid')"
-                        >
-                            <LayoutGrid class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                        <AppIconButton
-                            :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                            :title="t('shared.common.list_view')"
-                            :aria-label="t('shared.common.list_view')"
-                            :aria-pressed="storedViewMode === 'list'"
-                            v-on:click="setViewMode('list')"
-                        >
-                            <List class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
-                    <AppIconButton
-                        v-if="can('ged.documents.delete') || can('ged.documents.edit')"
-                        class="border border-line"
-                        :class="isSelecting ? 'bg-accent-500/15 text-accent-400' : 'text-muted hover:text-primary'"
-                        :title="isSelecting ? t('suite.ged.documents.stop_selecting') : t('suite.ged.documents.select_mode')"
-                        :aria-label="isSelecting ? t('suite.ged.documents.stop_selecting') : t('suite.ged.documents.select_mode')"
-                        :aria-pressed="isSelecting"
-                        v-on:click="isSelecting = !isSelecting; if (!isSelecting) clearSelection()"
+                <!-- Display options, aligned right under the toolbar: they
+                     change how the list reads, not what it holds. Every group
+                     is the same 38px segmented box. « Regrouper les variantes »
+                     acts at once, so it is a switch and not a checkbox. -->
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                    <label
+                        class="flex cursor-pointer items-center gap-2 text-sm text-secondary"
+                        :title="t('suite.ged.documents.originals_only_hint')"
                     >
-                        <CheckSquare class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
+                        <AppToggle v-model="filterOriginalsOnly" v-on:update:model-value="applyFilter" />
+                        {{ t("suite.ged.documents.originals_only") }}
+                    </label>
+                    <div class="flex items-center gap-1.5">
+                        <div class="flex h-9.5 items-stretch gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5">
+                            <AppTab
+                                v-for="sortField in DOCUMENT_SORT_FIELDS"
+                                :key="sortField.key"
+                                size="xs"
+                                :active="sortBy === sortField.key"
+                                active-class="bg-surface text-primary shadow-sm"
+                                inactive-class="text-muted hover:text-primary"
+                                :title="sortField.labelKey ? t(sortField.labelKey) : sortField.label"
+                                v-on:click="setSort(sortField.key)"
+                            >
+                                {{ sortField.labelKey ? t(sortField.labelKey) : sortField.label }}
+                                <SortAsc v-if="sortBy === sortField.key && sortDirection === 'asc'" class="w-3 h-3" :stroke-width="2" />
+                                <SortDesc v-else-if="sortBy === sortField.key" class="w-3 h-3" :stroke-width="2" />
+                            </AppTab>
+                        </div>
+                        <!-- Absent where it is already refused: a narrow container
+                             forces the thumbnails, so the switch changed nothing
+                             on screen, and a button that does nothing reads as a
+                             broken button. The choice is kept and comes back
+                             with the room. -->
+                        <div v-if="!isNarrow" class="flex h-9.5 items-stretch gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5">
+                            <AppIconButton
+                                class="px-2"
+                                :class="storedViewMode === 'grid' ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                                :title="t('shared.common.grid_view')"
+                                :aria-label="t('shared.common.grid_view')"
+                                :aria-pressed="storedViewMode === 'grid'"
+                                v-on:click="setViewMode('grid')"
+                            >
+                                <LayoutGrid class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppIconButton
+                                class="px-2"
+                                :class="storedViewMode === 'list' ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                                :title="t('shared.common.list_view')"
+                                :aria-label="t('shared.common.list_view')"
+                                :aria-pressed="storedViewMode === 'list'"
+                                v-on:click="setViewMode('list')"
+                            >
+                                <List class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+                        </div>
+                        <div
+                            v-if="can('ged.documents.delete') || can('ged.documents.edit')"
+                            class="flex h-9.5 items-stretch rounded-lg border border-line bg-surface-2/40 p-0.5"
+                        >
+                            <AppIconButton
+                                class="px-2"
+                                :class="isSelecting ? 'bg-accent-500/15 text-accent-400' : 'text-muted hover:text-primary'"
+                                :title="isSelecting ? t('suite.ged.documents.stop_selecting') : t('suite.ged.documents.select_mode')"
+                                :aria-label="isSelecting ? t('suite.ged.documents.stop_selecting') : t('suite.ged.documents.select_mode')"
+                                :aria-pressed="isSelecting"
+                                v-on:click="isSelecting = !isSelecting; if (!isSelecting) clearSelection()"
+                            >
+                                <CheckSquare class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="relative space-y-4">
@@ -843,10 +851,16 @@ const pageActions = computed(() => {
                                         <AppBadge :color="DOCUMENT_STATUS_BADGE[gedDocument.status]">{{ gedDocument.statusLabel }}</AppBadge>
                                     </td>
                                     <td class="px-4 py-2 hidden lg:table-cell">
-                                        <span v-if="gedDocument.fileName" class="flex items-center gap-1 text-xs text-muted"><Paperclip class="w-3 h-3" :stroke-width="2" /> {{ gedDocument.fileName }}</span>
+                                        <!-- One line, cut with an ellipsis: wrapped, a name
+                                             broke in the middle (« demo-doc- / 19.png »). The
+                                             whole name stays in the tooltip. -->
+                                        <span v-if="gedDocument.fileName" class="flex max-w-48 min-w-0 items-center gap-1 text-xs text-muted" :title="gedDocument.fileName">
+                                            <Paperclip class="w-3 h-3 shrink-0" :stroke-width="2" />
+                                            <span class="truncate">{{ gedDocument.fileName }}</span>
+                                        </span>
                                         <span v-else class="text-muted text-xs">-</span>
                                     </td>
-                                    <td class="px-4 py-2 text-right hidden lg:table-cell text-xs text-muted tabular-nums">
+                                    <td class="px-4 py-2 text-right hidden lg:table-cell text-xs text-muted whitespace-nowrap tabular-nums">
                                         <span v-if="gedDocument.fileSize">{{ formatSize(gedDocument.fileSize) }}</span>
                                         <span v-else>-</span>
                                     </td>

@@ -15,7 +15,7 @@ export function useComments(props) {
     const total = ref(0);
     const page = ref(1);
     const totalPages = ref(1);
-    const status = ref("");
+    const status = ref(statusFromAddress(props.statuses));
     const search = ref("");
     const loading = ref(false);
 
@@ -58,6 +58,7 @@ export function useComments(props) {
     // empty when it is not.
     watch(status, () => {
         page.value = 1;
+        writeStatusToAddress(status.value);
         void load();
     });
 
@@ -130,4 +131,39 @@ export function useComments(props) {
         deleteLoading,
         doDelete,
     };
+}
+
+/**
+ * The tab a link asked for, as in `?status=pending` from the dashboard.
+ *
+ * Only a status the screen offers is taken: anything else opens on « Tous »
+ * rather than on a tab that does not exist and an empty list.
+ */
+function statusFromAddress(statuses) {
+    const requested =
+        new URLSearchParams(window.location.search).get("status") ?? "";
+    const known = (statuses ?? []).map((option) => option.value);
+
+    return known.includes(requested) ? requested : "";
+}
+
+/**
+ * Keeps the address bar on the open tab without reloading the page, so a
+ * refresh or a shared link lands on the same queue. Other parameters of the
+ * address are left as they are.
+ */
+function writeStatusToAddress(value) {
+    const address = new URL(window.location.href);
+
+    if (value) {
+        address.searchParams.set("status", value);
+    } else {
+        address.searchParams.delete("status");
+    }
+
+    window.history.replaceState(
+        {},
+        "",
+        `${address.pathname}${address.search}${address.hash}`,
+    );
 }

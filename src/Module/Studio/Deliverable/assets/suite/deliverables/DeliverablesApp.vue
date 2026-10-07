@@ -7,28 +7,28 @@
  * its author. Otherwise it is the same document as in a space: the page grid,
  * its appearance, its reading links.
  *
- * The controls are those of the contract template list, the neighbouring
- * screen: the search bar and the button on top, the how-to guide, the shelves
- * as pills with their count.
+ * The controls are those of the other lists: the shelves as a segmented
+ * group with their count on their own row, then the toolbar with the search,
+ * the filters as selects next to it, and the button on the right.
  *
  * Studio deliverables are sorted by category (audit, strategy...): a filter
- * next to the shelves, like the trade filter on the templates, and a display
- * by category, in sections, or as a plain list. The filter and the display go
- * into the address, like the shelf: a link reopens the same view.
+ * next to the search, and a display by category, in sections, or as a plain
+ * list. The filter and the display go into the address, like the shelf: a
+ * link reopens the same view.
  *
- * A deliverable can be a template: a badge on its card, the "Modèles" filter
- * next to the categories, and "Partir d'un modèle" in the creation dialog.
+ * A deliverable can be a template: a badge on its card, a "Modèles" entry in
+ * the format filter, and "Partir d'un modèle" in the creation dialog.
  * The client it was written for, when it has one, shows on the card.
  *
  * Pages and presentations are a single list: a badge on a presentation's
- * card, and a format filter (Tous, Pages, Présentations) next to the others,
- * in the address like them. "Importer un texte" turns pasted text into a
+ * card, and a format filter ("Tous les formats", Pages, Présentations,
+ * Modèles) next to the categories, in the address like them. "Importer un texte" turns pasted text into a
  * presentation: a heading opens a slide, what follows fills it.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, FileInput, FileText, FolderInput, Layers, LayoutTemplate, Link2, List, Lock, Pencil, Plus, Presentation, Tags, Trash2, Users, X } from "lucide-vue-next";
+import { Copy, ExternalLink, FileInput, FolderInput, Layers, LayoutTemplate, Link2, List, Lock, Pencil, Plus, Presentation, Tags, Trash2, Users, X } from "lucide-vue-next";
 import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { queueFlash } from "@/shared/utils/flash.js";
@@ -39,14 +39,12 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
-import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
-import AppTab from "@/shared/components/nav/AppTab.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
 import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
@@ -163,7 +161,7 @@ const scoped = computed(() =>
     "" === formatFilter.value ? lists.value[scope.value] : lists.value[scope.value].filter((row) => formatOf(row) === formatFilter.value),
 );
 
-/** How many of each format in the open shelf, for the pills. */
+/** How many of each format in the open shelf, for the format filter. */
 const formatCounts = computed(() => {
     const rows = lists.value[scope.value];
 
@@ -174,20 +172,42 @@ const formatCounts = computed(() => {
     };
 });
 
-const formatFilters = computed(() =>
-    ["", ...FORMATS].map((value) => ({ value, label: t(`suite.studio.deliverables.format.filter_${value || "all"}`) })),
-);
-
 /** Templates only, or everything: in the address like the other filters. */
 const { value: templatesQuery, set: setTemplatesQuery } = useQueryState("templates", { defaultValue: "", valid: ["", "1"] });
 const templatesOnly = computed(() => "1" === templatesQuery.value);
 
-function toggleTemplatesOnly() {
-    setTemplatesQuery(templatesOnly.value ? "" : "1");
+/** How many templates in the open shelf, for the filter's count. */
+const templateCount = computed(() => lists.value[scope.value].filter((row) => row.template).length);
+
+/**
+ * Format and templates share one select, "Tous les formats", "Pages",
+ * "Présentations", "Modèles": two pill groups beside the shelves and the
+ * categories pushed "Modèles" alone onto a second line. The address keeps its
+ * two parameters, `format` and `templates`, so older links still open the
+ * same view.
+ */
+const TEMPLATES = "templates";
+const kindFilter = computed(() => (templatesOnly.value ? TEMPLATES : formatFilter.value));
+
+function setKindFilter(value) {
+    setTemplatesQuery(TEMPLATES === value ? "1" : "");
+    setFormatQuery(FORMATS.includes(value) ? value : "");
 }
 
-/** How many templates in the open shelf, for the filter's count. */
-const templateCount = computed(() => scoped.value.filter((row) => row.template).length);
+/**
+ * "Modèles" only when the shelf holds some, or when the filter is on, so it
+ * can be turned off. The counts as on the category filter.
+ */
+const kindFilterOptions = computed(() => [
+    { value: "", label: t("suite.studio.deliverables.format.filter_all") },
+    ...FORMATS.map((value) => ({
+        value,
+        label: `${t(`suite.studio.deliverables.format.filter_${value}`)} (${formatCounts.value[value]})`,
+    })),
+    ...(templateCount.value || templatesOnly.value
+        ? [{ value: TEMPLATES, label: `${t("suite.studio.deliverables.template.filter")} (${templateCount.value})` }]
+        : []),
+]);
 
 /** The search covers the title, the summary and the client, in the open shelf. */
 const searched = computed(() => {
@@ -526,29 +546,75 @@ function actionsFor(deliverable) {
 
 <template>
     <div class="aurora-stack">
+        <!-- The two shelves and the sentence that says what the current one
+             is: their own row, above the toolbar, because they decide what
+             every filter below counts. The house segmented group, at its
+             natural width, scrolling sideways rather than wrapping. -->
+        <div class="flex flex-col gap-2">
+            <div
+                class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+                role="tablist"
+                :aria-label="t('suite.studio.deliverables.scope.label')"
+            >
+                <button
+                    v-for="value in SCOPES"
+                    :key="value"
+                    type="button"
+                    role="tab"
+                    :aria-selected="scope === value ? 'true' : 'false'"
+                    class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
+                    :class="scope === value ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                    v-on:click="setScope(value)"
+                >
+                    <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t(`suite.studio.deliverables.scope.tab_${value}`) }}
+                    <span class="text-xs tabular-nums text-muted">{{ lists[value].length }}</span>
+                </button>
+            </div>
+            <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`suite.studio.deliverables.scope.intro_${scope}`) }}</p>
+        </div>
+
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('suite.studio.deliverables.search_placeholder')" />
-            <!-- By category or as a list: the same switch as the view of the
-                 other lists, next to the search. Without categories there is
-                 nothing to choose. Hidden on phones, like the one on the
-                 templates: stacked under the search, it stretched across a
-                 whole line for two icons stuck to the left. -->
-            <template v-if="categories.length" #inline>
-                <div class="hidden shrink-0 border border-line rounded-lg p-0.5 sm:flex">
-                    <AppIconButton
-                        :title="t('suite.studio.deliverables.categories.layout_grouped')"
-                        :active="'grouped' === layout"
-                        v-on:click="setLayout('grouped')"
-                    >
-                        <Layers class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                    <AppIconButton
-                        :title="t('suite.studio.deliverables.categories.layout_flat')"
-                        :active="'flat' === layout"
-                        v-on:click="setLayout('flat')"
-                    >
-                        <List class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
+            <!-- One row from `sm`, stacked on a phone: the display switch, the
+                 category and the format, next to the search like the filters
+                 of the other lists. The display switch is hidden on phones:
+                 stacked under the search, it stretched across a whole line
+                 for two icons stuck to the left. -->
+            <template #inline>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div v-if="categories.length" class="hidden shrink-0 border border-line rounded-lg p-0.5 sm:flex">
+                        <AppIconButton
+                            :title="t('suite.studio.deliverables.categories.layout_grouped')"
+                            :active="'grouped' === layout"
+                            v-on:click="setLayout('grouped')"
+                        >
+                            <Layers class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+                        <AppIconButton
+                            :title="t('suite.studio.deliverables.categories.layout_flat')"
+                            :active="'flat' === layout"
+                            v-on:click="setLayout('flat')"
+                        >
+                            <List class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+                    </div>
+                    <!-- "Toutes" first and "Sans catégorie" last, with their
+                         count: a filter that leads to an empty list shows
+                         before the click. -->
+                    <AppSelect
+                        v-if="categories.length"
+                        :model-value="categoryFilter"
+                        :options="categoryFilterOptions"
+                        class="sm:min-w-48"
+                        v-on:update:model-value="setCategoryFilter"
+                    />
+                    <AppSelect
+                        :model-value="kindFilter"
+                        :options="kindFilterOptions"
+                        class="sm:min-w-48"
+                        v-on:update:model-value="setKindFilter"
+                    />
                 </div>
             </template>
             <template #actions>
@@ -563,107 +629,6 @@ function actionsFor(deliverable) {
                 <li v-for="step in 6" :key="step">{{ t(`suite.studio.deliverables.studio_guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
-
-        <!-- The shelves and the sentence that says what the current one is:
-             a single block, the page spacing comes after, before the cards. -->
-        <div class="flex flex-col gap-2">
-            <!-- The shelves, then the category filter: stacked on a phone,
-                 side by side from `sm`, as on the templates. -->
-            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-                <!-- The two shelves, as pills with their count, like the filters
-                 of the other Studio lists. -->
-                <div
-                    class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start"
-                    role="tablist"
-                    :aria-label="t('suite.studio.deliverables.scope.label')"
-                >
-                    <AppTab
-                        v-for="value in SCOPES"
-                        :key="value"
-                        role="tab"
-                        :aria-selected="scope === value ? 'true' : 'false'"
-                        size="sm"
-                        class="justify-between sm:flex-none sm:justify-start"
-                        :active="scope === value"
-                        active-class="bg-surface text-primary shadow-sm"
-                        inactive-class="text-secondary hover:text-primary"
-                        v-on:click="setScope(value)"
-                    >
-                        <span class="inline-flex items-center gap-1.5">
-                            <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t(`suite.studio.deliverables.scope.tab_${value}`) }}
-                        </span>
-                        <span class="ml-1 text-xs text-muted">{{ lists[value].length }}</span>
-                    </AppTab>
-                </div>
-
-                <!-- "Toutes" first and "Sans catégorie" last, with their count:
-                 a filter that leads to an empty list shows before the click. -->
-                <AppMultiselect
-                    v-if="categories.length"
-                    :model-value="categoryFilter"
-                    :options="categoryFilterOptions"
-                    :allow-empty="true"
-                    :placeholder="t('suite.studio.deliverables.categories.all')"
-                    class="w-full sm:w-auto sm:min-w-48"
-                    v-on:update:model-value="setCategoryFilter"
-                />
-
-                <!-- Pages, presentations, or both: pills with their count, like
-                     the shelves; "Tous" is not written in the address. -->
-                <div
-                    class="flex w-full p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:self-start"
-                    role="group"
-                    :aria-label="t('suite.studio.deliverables.format.filter_label')"
-                >
-                    <AppTab
-                        v-for="option in formatFilters"
-                        :key="option.value || 'all'"
-                        size="sm"
-                        class="flex-1 justify-between sm:flex-none sm:justify-start"
-                        :active="formatFilter === option.value"
-                        :aria-pressed="formatFilter === option.value ? 'true' : 'false'"
-                        active-class="bg-surface text-primary shadow-sm"
-                        inactive-class="text-secondary hover:text-primary"
-                        v-on:click="setFormatQuery(option.value)"
-                    >
-                        <span class="inline-flex items-center gap-1.5">
-                            <Presentation v-if="'slides' === option.value" class="h-3.5 w-3.5" :stroke-width="2" />
-                            <FileText v-else-if="'page' === option.value" class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ option.label }}
-                        </span>
-                        <span class="ml-1 text-xs text-muted">{{ formatCounts[option.value] }}</span>
-                    </AppTab>
-                </div>
-
-                <!-- Templates only: a pill you press in, with its count, like
-                     the shelves. Visible even at zero when the filter is on, so
-                     it can be turned off. -->
-                <div
-                    v-if="templateCount || templatesOnly"
-                    class="flex w-full p-1 bg-surface-2 border border-line rounded-lg sm:inline-flex sm:w-auto sm:self-start"
-                >
-                    <AppTab
-                        size="sm"
-                        class="flex-1 justify-between sm:flex-none sm:justify-start"
-                        :active="templatesOnly"
-                        :aria-pressed="templatesOnly ? 'true' : 'false'"
-                        :title="t('suite.studio.deliverables.template.filter_hint')"
-                        active-class="bg-surface text-primary shadow-sm"
-                        inactive-class="text-secondary hover:text-primary"
-                        v-on:click="toggleTemplatesOnly"
-                    >
-                        <span class="inline-flex items-center gap-1.5">
-                            <LayoutTemplate class="h-3.5 w-3.5" :stroke-width="2" />
-                            {{ t("suite.studio.deliverables.template.filter") }}
-                        </span>
-                        <span class="ml-1 text-xs text-muted">{{ templateCount }}</span>
-                    </AppTab>
-                </div>
-            </div>
-
-            <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`suite.studio.deliverables.scope.intro_${scope}`) }}</p>
-        </div>
 
         <AppNoData
             v-if="!visible.length"

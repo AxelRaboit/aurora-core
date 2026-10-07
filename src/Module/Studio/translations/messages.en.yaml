@@ -933,8 +933,13 @@ suite:
             trash_action: "Move to the trash"
             delete_confirm: 'Move {name} to the trash?'
             delete_warning: "The space leaves the lists, the search, the counts and the calendars, and its client page and access links stop answering. Nothing is erased: its content items, conversations, files, deliverables and note space wait for it in the trash, from where it comes back as it was. After the trash delay, or once deleted for good, it goes with everything in it. While it is in the trash, its customer cannot be deleted."
-            show_archived: Show archived spaces
-            sort_by_urgency: Sort by urgency
+            status_filter:
+                active: Active spaces
+                archived: Archived spaces
+                all: All spaces
+            sort:
+                name: Sort by name
+                urgency: Sort by urgency
             archived_badge: Archived
             no_members: Nobody assigned
             team_button: '1 person | {count} people'
@@ -1397,7 +1402,7 @@ suite:
                 fixed_hint: "The format cannot be changed afterwards."
                 badge_slides: "Presentation"
                 filter_label: "Format"
-                filter_all: "All"
+                filter_all: "All formats"
                 filter_page: "Pages"
                 filter_slides: "Presentations"
             import:

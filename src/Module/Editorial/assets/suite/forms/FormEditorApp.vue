@@ -175,7 +175,7 @@ const headerActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <AppPageBar :back-href="listPath" :back-label="t('suite.forms.editor.back')">
+        <AppPageBar :back-href="listPath" :back-label="t('suite.forms.title')">
             <!-- Online or not, visible whatever the tab: one must know they
                  are editing a form that people fill in. -->
             <AppBadge :color="current.active ? 'emerald' : 'gray'">

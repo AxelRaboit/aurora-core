@@ -3,7 +3,6 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
-import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
@@ -11,7 +10,7 @@ import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppLink from "@/shared/components/nav/AppLink.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import { Trash2, RotateCcw, Flame, X, Info } from "lucide-vue-next";
+import { Trash2, RotateCcw, Flame, X } from "lucide-vue-next";
 import { useTrashOverview } from "@general/suite/trash/composables/useTrashOverview.js";
 
 /**
@@ -20,7 +19,8 @@ import { useTrashOverview } from "@general/suite/trash/composables/useTrashOverv
  * Names no module and imports none: each row comes from a
  * TrashSourceInterface on the PHP side, icon, label and action addresses
  * included. A module that is switched off, or one the reader may not open,
- * contributes no tab at all.
+ * contributes no tab at all. The tabs come in two rows: the modules holding
+ * something, then the types of the open one.
  *
  * The actions post to those addresses, which are the module's own endpoints.
  * Restoring a document and restoring a category obey different rules - a
@@ -38,9 +38,9 @@ const { formatDateShort } = useDateFormat();
 const { can } = usePrivileges();
 
 const {
-    rows, total, active, activeKey, busyId,
+    visibleModules, total, active, activeModule, activeKey, busyId,
     pendingForceDelete, pendingEmpty, emptying,
-    select, restore, askForceDelete, doForceDelete, askEmpty, doEmpty,
+    select, selectModule, restore, askForceDelete, doForceDelete, askEmpty, doEmpty,
 } = useTrashOverview(props);
 
 function mayAct(trash) {
@@ -75,12 +75,12 @@ function itemActions(trash, item) {
 
 <template>
     <div class="aurora-stack">
-        <div class="space-y-1">
-            <p class="text-sm text-secondary">{{ t("suite.trash.intro") }}</p>
-            <p class="text-xs text-muted">
-                {{ retentionDays > 0 ? t("suite.trash.retention", { days: retentionDays }) : t("suite.trash.retention_off") }}
-            </p>
-        </div>
+        <!-- The retention alone: what the trash is and how a restore goes
+             are told by the guide below, said a second time above it and a
+             third time under the list. -->
+        <p class="text-xs text-muted">
+            {{ retentionDays > 0 ? t("suite.trash.retention", { days: retentionDays }) : t("suite.trash.retention_off") }}
+        </p>
 
         <!-- The screen's how-to guide, next to what it explains; folded
              or unfolded, the choice applies to every panel. -->
@@ -96,30 +96,54 @@ function itemActions(trash, item) {
         />
 
         <template v-else>
-            <!-- One tab per type rather than one long list: what can be done to
-                 a row depends on what it is, and the counter says where to
-                 look without opening anything. -->
-            <nav class="flex items-center gap-1 flex-wrap" :aria-label="t('suite.trash.title')">
-                <AppTab
-                    v-for="row in rows"
-                    :key="row.key"
-                    size="sm"
-                    :color="row.count > 0 ? 'rose' : 'accent'"
-                    :active="activeKey === row.key"
-                    v-on:click="select(row.key)"
+            <!-- The modules, then the types of the open one, rather than one
+                 tab per type: what can be done to a row depends on what it
+                 is, and the counts say where to look without opening
+                 anything. Both rows are the house segmented group, on one
+                 line, scrolling sideways on a phone. -->
+            <div class="flex flex-col gap-2">
+                <div
+                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+                    role="group"
+                    :aria-label="t('suite.trash.modules_label')"
                 >
-                    <component :is="row.iconComponent" class="w-3.5 h-3.5" :stroke-width="2" />
-                    <!-- The module before what it contains: "Dossiers" alone
-                         could name three things, and the section heading
-                         that disambiguates it in the menu is not here. -->
-                    <template v-if="row.showSection">
-                        <span class="text-muted">{{ row.sectionLabel }}</span>
-                        <span class="text-muted">·</span>
-                    </template>
-                    {{ row.label }}
-                    <span v-if="row.count" class="ml-1 tabular-nums">({{ row.count }})</span>
-                </AppTab>
-            </nav>
+                    <button
+                        v-for="group in visibleModules"
+                        :key="group.key"
+                        type="button"
+                        class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
+                        :class="activeModule?.key === group.key ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                        :aria-pressed="activeModule?.key === group.key"
+                        v-on:click="selectModule(group.key)"
+                    >
+                        {{ group.label }}
+                        <span class="text-xs tabular-nums text-muted">{{ group.count }}</span>
+                    </button>
+                </div>
+
+                <!-- A module with a single type needs no second row: its
+                     name above already says what the list holds. -->
+                <div
+                    v-if="activeModule && activeModule.rows.length > 1"
+                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+                    role="group"
+                    :aria-label="t('suite.trash.types_label')"
+                >
+                    <button
+                        v-for="row in activeModule.rows"
+                        :key="row.key"
+                        type="button"
+                        class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
+                        :class="activeKey === row.key ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                        :aria-pressed="activeKey === row.key"
+                        v-on:click="select(row.key)"
+                    >
+                        <component :is="row.iconComponent" class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ row.label }}
+                        <span class="text-xs tabular-nums text-muted">{{ row.count }}</span>
+                    </button>
+                </div>
+            </div>
 
             <div v-if="active" class="space-y-3">
                 <div class="flex flex-wrap items-center gap-3 bg-rose-500/10 border border-rose-400/30 rounded-xl px-2 py-2 sm:px-4 sm:py-2.5">
@@ -195,11 +219,6 @@ function itemActions(trash, item) {
                 </p>
             </div>
         </template>
-
-        <p class="flex items-start gap-2 text-xs text-muted">
-            <Info class="w-3.5 h-3.5 shrink-0 mt-0.5" :stroke-width="2" />
-            {{ t("suite.trash.rules_note") }}
-        </p>
 
         <AppModal
             :show="!!pendingForceDelete"

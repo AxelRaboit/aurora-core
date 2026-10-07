@@ -447,7 +447,7 @@ const confirmBlocked = computed(
              commands live in the « next step » card below. -->
         <!-- The other actions in the bar, as on every detail screen; the
              next step keeps its button in its card, further down. -->
-        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')">
+        <AppPageBar :back-href="indexPath" :back-label="t('suite.studio.contracts.title')">
             <AppPageActions
                 v-if="otherActions.length"
                 :actions="otherActions"

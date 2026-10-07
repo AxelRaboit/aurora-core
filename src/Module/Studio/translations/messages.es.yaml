@@ -925,8 +925,13 @@ suite:
             trash_action: "Enviar a la papelera"
             delete_confirm: '¿Enviar {name} a la papelera?'
             delete_warning: 'El espacio sale de las listas, de la búsqueda, de los recuentos y de los calendarios, y su página de cliente y sus enlaces de acceso dejan de responder. No se borra nada: sus contenidos, sus conversaciones, sus archivos, sus entregables y su espacio de notas lo esperan en la papelera, de donde vuelve tal como estaba. Pasado el plazo de la papelera, o eliminado definitivamente, desaparece con todo lo que contiene. Mientras está en la papelera, su cliente no se puede eliminar.'
-            show_archived: 'Mostrar los espacios archivados'
-            sort_by_urgency: 'Ordenar por urgencia'
+            status_filter:
+                active: 'Espacios activos'
+                archived: 'Espacios archivados'
+                all: 'Todos los espacios'
+            sort:
+                name: 'Ordenar por nombre'
+                urgency: 'Ordenar por urgencia'
             archived_badge: Archivado
             no_members: 'Ningún miembro'
             team_button: '1 persona | {count} personas'
@@ -1375,7 +1380,7 @@ suite:
                 fixed_hint: "El formato ya no cambia después."
                 badge_slides: "Presentación"
                 filter_label: "Formato"
-                filter_all: "Todos"
+                filter_all: "Todos los formatos"
                 filter_page: "Páginas"
                 filter_slides: "Presentaciones"
             import:

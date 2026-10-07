@@ -1481,12 +1481,22 @@ suite:
         conflict_reload: Reload theirs
         conflict_overwrite: Save mine anyway
         filters: Filters
-        clear_filters: Clear
+        clear_filters: Clear all
         filter_type: Content type
         filter_status: Status
         filter_visibility: 'Visibility'
         filter_term: Term
-        no_terms: No term defined.
+        remove_filter: 'Remove "{value}" from the {filter} filter'
+        filter_all:
+            type: All types
+            status: All statuses
+            visibility: Any visibility
+            term: All terms
+        filter_count:
+            type: '{count} type | {count} types'
+            status: '{count} status | {count} statuses'
+            visibility: '{count} visibility | {count} visibilities'
+            term: '{count} term | {count} terms'
         title_column: Title
         type_column: Type
         status_column: Status
@@ -1647,7 +1657,7 @@ suite:
             step_5: "Deleting is permanent, and its replies move up one level."
         title: Comments
         empty: No comment yet.
-        search_placeholder: 'Search an author, an address, a text…'
+        search_placeholder: 'Search comments…'
         all: All
         author: Author
         on_post: On

@@ -933,8 +933,13 @@ suite:
             trash_action: "Mettre à la corbeille"
             delete_confirm: 'Mettre {name} à la corbeille ?'
             delete_warning: "L'espace quitte les listes, la recherche, les comptes et les calendriers, et sa page client et ses liens d'accès cessent de répondre. Rien n'est effacé : ses contenus, ses discussions, ses fichiers, ses livrables et son espace de notes l'attendent dans la corbeille, d'où il revient tel qu'il était. Passé le délai de la corbeille, ou supprimé définitivement, il disparaît avec tout ce qu'il contient. Tant qu'il est dans la corbeille, son client ne peut pas être supprimé."
-            show_archived: Afficher les espaces archivés
-            sort_by_urgency: Trier par urgence
+            status_filter:
+                active: Espaces actifs
+                archived: Espaces archivés
+                all: Tous les espaces
+            sort:
+                name: Trier par nom
+                urgency: Trier par urgence
             archived_badge: Archivé
             no_members: Aucun membre
             team_button: '1 personne | {count} personnes'
@@ -1404,7 +1409,7 @@ suite:
                 fixed_hint: "Le format ne change plus ensuite."
                 badge_slides: "Présentation"
                 filter_label: "Format"
-                filter_all: "Tous"
+                filter_all: "Tous les formats"
                 filter_page: "Pages"
                 filter_slides: "Présentations"
             import:

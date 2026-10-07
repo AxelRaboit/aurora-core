@@ -41,12 +41,9 @@ const totals = computed(() => [
     { key: "posts", icon: FileText, value: props.stats.posts ?? 0 },
     { key: "post_types", icon: LayoutTemplate, value: props.stats.postTypes ?? 0 },
     { key: "taxonomies", icon: Tags, value: props.stats.taxonomies ?? 0 },
-    {
-        key: "trashed",
-        icon: Trash2,
-        value: props.stats.trashed ?? 0,
-        danger: (props.stats.trashed ?? 0) > 0,
-    },
+    // Not in red any more: a post in the trash is no fault, and red is kept
+    // for what needs a gesture (UI audit of 07/10/2026).
+    { key: "trashed", icon: Trash2, value: props.stats.trashed ?? 0 },
 ]);
 
 /**

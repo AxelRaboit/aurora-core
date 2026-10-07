@@ -578,6 +578,16 @@ suite:
             step_3: "The open tab is written into the page address: a copied link reopens the same tab."
             step_4: "The figures are computed when the page opens: reload it to update them."
         no_module_enabled: No dashboard module is enabled.
+        todo:
+            title: "To do"
+            nothing: "Nothing is waiting for you right now."
+            countersign: "{count} contract to countersign | {count} contracts to countersign"
+            missed: "{count} missed publication | {count} missed publications"
+            late_review: "{count} late review | {count} late reviews"
+            changes_requested: "{count} content item to rework | {count} content items to rework"
+            comments_pending: "{count} pending comment | {count} pending comments"
+            posts_pending_review: "{count} post to review | {count} posts to review"
+            reminders_overdue: "{count} overdue reminder | {count} overdue reminders"
     forms:
         errors:
             slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

@@ -28,8 +28,13 @@ const slots = useSlots();
              to it, two twelve-rem selects took the three hundred and fifty
              pixels of the line and the search dropped to zero, its icon
              stuck behind them (contract list, 02/10/2026). -->
-        <div v-if="slots.inline" class="flex flex-col gap-2 min-w-0 sm:flex-row sm:items-center">
-            <div class="flex-1 min-w-0">
+        <!-- **The search never shrinks under eighteen rem.** Four filters
+             beside it took the line and left a field too narrow for its own
+             placeholder (posts and GED lists, UI audit of 07/10/2026). The
+             row wraps instead: the filters go to the next line, the search
+             keeps the width it needs. -->
+        <div v-if="slots.inline" class="flex flex-col gap-2 min-w-0 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="flex-1 min-w-0 sm:min-w-72">
                 <slot />
             </div>
             <slot name="inline" />
@@ -46,7 +51,7 @@ const slots = useSlots();
              gesture. -->
         <div
             v-if="slots.actions"
-            class="flex flex-col gap-2 sm:flex-row sm:items-center *:w-full sm:*:w-auto"
+            class="flex flex-col gap-2 sm:flex-row sm:items-center sm:self-start *:w-full sm:*:w-auto"
         >
             <slot name="actions" />
         </div>

@@ -454,7 +454,7 @@ function termLabel(term) {
              state, then the actions, then the languages. Back has become what
              it is again - navigation, not an action - and what acts on the
              post stays together on the right. -->
-        <AppPageBar :back-href="listPath" :back-label="t('suite.posts.back_to_list')">
+        <AppPageBar :back-href="listPath" :back-label="t('suite.posts.title')">
             <!-- Status stays visible whatever section is open. Knowing you
                  are editing a live page should not require opening a tab. -->
             <AppBadge :color="STATUS_COLORS[form.status] ?? 'gray'">
@@ -506,7 +506,9 @@ function termLabel(term) {
                 inactive-class="text-secondary hover:text-primary"
                 v-on:click="switchLocale(code)"
             >
-                {{ code }}
+                <!-- In capitals, as everywhere else a language code is shown
+                     (the list's FR EN ES, the form preview's switch). -->
+                <span class="uppercase">{{ code }}</span>
                 <!-- A dot on a language with nothing written in it. Read live from
                      the form rather than from what the server last sent, so it
                      clears as soon as a title is typed instead of at the next save.

@@ -187,8 +187,11 @@ const pageActions = computed(() => {
             >
                 <div class="flex items-start justify-between gap-2">
                     <div class="flex flex-col gap-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-base font-semibold text-primary truncate">{{ theme.name }}</span>
+                        <!-- The slug always under the name: beside it, it wrapped
+                             on one card and not on its neighbour, and the row of
+                             cards lost its line (UI audit of 07/10/2026). -->
+                        <div class="flex min-w-0 flex-col items-start gap-1">
+                            <span class="max-w-full truncate text-base font-semibold text-primary">{{ theme.name }}</span>
                             <span class="text-xs font-mono bg-surface-2 text-muted px-1.5 py-0.5 rounded">{{ theme.slug }}</span>
                         </div>
                         <p v-if="theme.description" class="text-sm text-muted line-clamp-2">{{ theme.description }}</p>

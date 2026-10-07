@@ -146,7 +146,7 @@ suite:
             add: Ajouter un document
             create: Nouveau document
             edit: "Modifier le document {title}"
-            search_placeholder: "Rechercher : titre, fichier, texte, étiquette…"
+            search_placeholder: Rechercher un document…
             picker_title: Choisir un document
             picker_empty: Aucun document disponible
             picker_confirm: Sélectionner
@@ -157,18 +157,17 @@ suite:
             empty: Aucun document pour le moment
             delete_confirm: "Êtes-vous sûr de vouloir supprimer le document « {title} » ?"
             delete_warning: Le document part à la corbeille. Vous pourrez le restaurer tant qu'elle n'a pas été vidée.
-            back_to_list: Retour aux documents
+            back_to_list: Documents
             no_category: Sans catégorie
             tags: Étiquettes
             no_tags: Aucune étiquette
             folder: Dossier
             no_folder: Aucun dossier
             versions: Historique des versions
-            filter_by_status: Filtrer par statut
-            filter_by_category: Filtrer par catégorie
-            filter_by_tag: Filtrer par étiquette
-            filter_by_folder: Filtrer par dossier
-            filter_by_type: Filtrer par type
+            all_statuses: Tous les statuts
+            all_categories: Toutes les catégories
+            all_tags: Toutes les étiquettes
+            all_types: Tous les types
             filter_no_tag: Sans étiquette
             more_filters: Plus de filtres
             any: Tous

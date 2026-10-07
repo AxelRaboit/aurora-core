@@ -577,6 +577,16 @@ suite:
             step_3: 'La pestaña abierta se escribe en la dirección de la página: un enlace copiado vuelve a abrir la misma pestaña.'
             step_4: 'Las cifras se calculan al abrir la página: recárguela para actualizarlas.'
         no_module_enabled: 'No hay ningún módulo de panel activado.'
+        todo:
+            title: "Pendiente"
+            nothing: "Nada le espera por ahora."
+            countersign: "{count} contrato por contrafirmar | {count} contratos por contrafirmar"
+            missed: "{count} publicación perdida | {count} publicaciones perdidas"
+            late_review: "{count} revisión atrasada | {count} revisiones atrasadas"
+            changes_requested: "{count} contenido por revisar | {count} contenidos por revisar"
+            comments_pending: "{count} comentario pendiente | {count} comentarios pendientes"
+            posts_pending_review: "{count} publicación por revisar | {count} publicaciones por revisar"
+            reminders_overdue: "{count} recordatorio atrasado | {count} recordatorios atrasados"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'

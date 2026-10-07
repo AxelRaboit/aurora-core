@@ -578,7 +578,17 @@ suite:
             step_2: "Un onglet n'apparaît que si son module est activé et que votre rôle vous permet de le consulter."
             step_3: "L'onglet ouvert s'inscrit dans l'adresse de la page : un lien copié rouvre le même onglet."
             step_4: "Les chiffres sont calculés à l'ouverture de la page : rechargez-la pour les mettre à jour."
-        no_module_enabled: Aucun module de dashboard activé.
+        no_module_enabled: Aucun module de tableau de bord activé.
+        todo:
+            title: "À traiter"
+            nothing: "Rien ne vous attend pour l'instant."
+            countersign: "{count} contrat à contresigner | {count} contrats à contresigner"
+            missed: "{count} parution manquée | {count} parutions manquées"
+            late_review: "{count} relecture en retard | {count} relectures en retard"
+            changes_requested: "{count} contenu à revoir | {count} contenus à revoir"
+            comments_pending: "{count} commentaire en attente | {count} commentaires en attente"
+            posts_pending_review: "{count} publication à relire | {count} publications à relire"
+            reminders_overdue: "{count} rappel en retard | {count} rappels en retard"
     forms:
         errors:
             slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

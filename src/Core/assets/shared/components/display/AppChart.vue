@@ -76,7 +76,13 @@ const baseOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: { labels: { color: ink.value.secondary, font: { size: 11 } } },
+        // A single series needs no legend: its name is the chart's title, and
+        // the legend only repeated it (UI audit of 07/10/2026). A doughnut
+        // keeps its own, which names the slices.
+        legend: {
+            display: "doughnut" === props.type || (props.data?.datasets?.length ?? 0) > 1,
+            labels: { color: ink.value.secondary, font: { size: 11 } },
+        },
         tooltip: {
             backgroundColor: ink.value.surface,
             titleColor: ink.value.primary,
@@ -89,7 +95,9 @@ const baseOptions = computed(() => ({
         "doughnut" === props.type
             ? undefined
             : {
-                x: { ticks: { color: ink.value.secondary }, grid: { color: ink.value.line }, border: { color: ink.value.line } },
+                // Labels stay horizontal and skip what does not fit, rather
+                // than tilting twelve month names.
+                x: { ticks: { color: ink.value.secondary, maxRotation: 0, autoSkip: true, autoSkipPadding: 12 }, grid: { display: false }, border: { color: ink.value.line } },
                 y: { ticks: { color: ink.value.secondary, precision: 0 }, grid: { color: ink.value.line }, border: { color: ink.value.line }, beginAtZero: true },
             },
 }));

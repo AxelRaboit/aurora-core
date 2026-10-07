@@ -202,7 +202,7 @@ const pageActions = computed(() => {
                         <p class="text-xs text-muted truncate mt-0.5">{{ user.email }}</p>
                         <div class="mt-2 flex flex-wrap gap-1">
                             <AppBadge :color="statusBadgeColor(user.status)">{{ user.statusLabel }}</AppBadge>
-                            <AppBadge :color="user.type === 'suite' ? 'accent' : 'gray'">{{ user.typeLabel }}</AppBadge>
+                            <AppBadge color="gray">{{ user.typeLabel }}</AppBadge>
                             <AppBadge v-if="user.isDev" :color="user.devColor">Dev</AppBadge>
                             <AppBadge v-if="user.roleLabel" :color="user.roleColor">{{ user.roleLabel }}</AppBadge>
                             <AppBadge v-if="isCurrent(user)" color="accent">{{ t('suite.users.you') }}</AppBadge>
@@ -272,7 +272,9 @@ const pageActions = computed(() => {
                                 </div>
                             </td>
                             <td class="px-4 py-2 hidden lg:table-cell">
-                                <AppBadge :color="user.type === 'suite' ? 'accent' : 'gray'">{{ user.typeLabel }}</AppBadge>
+                                <!-- Plain text: a type is not a state, and colour is kept
+                                     for the states (UI audit of 07/10/2026). -->
+                                <span class="text-sm text-secondary">{{ user.typeLabel }}</span>
                             </td>
                             <td class="px-4 py-2">
                                 <AppBadge :color="statusBadgeColor(user.status)">{{ user.statusLabel }}</AppBadge>

@@ -2,15 +2,15 @@ suite:
     trash:
         guide:
             title: "Cómo funciona la papelera"
-            step_1: "Lo que se elimina en publicaciones, la mediateca (documentos, carpetas, categorías), notas y entregables (páginas y presentaciones) espera aquí, una pestaña por tipo."
-            step_2: "Restaurar devuelve el elemento a su sitio; si ese sitio ya no existe, una carpeta vuelve a la raíz."
+            step_1: "Lo que se elimina en publicaciones, la mediateca (documentos, carpetas, categorías), notas, espacios de cliente y sus contenidos, y entregables (páginas y presentaciones) espera aquí, ordenado por módulo y luego por tipo."
+            step_2: "Restaurar devuelve el elemento a su sitio cuando todavía es posible: una carpeta cuyo padre se eliminó vuelve a la raíz, una categoría cuyo nombre se ha reutilizado recibe un nombre libre."
             step_3: "Cada elemento se va definitivamente tras el plazo fijado (treinta días por defecto), durante la purga nocturna."
             step_4: "«Eliminar definitivamente» y «Vaciar» no se deshacen; los comentarios, menús, formularios y cuentas nunca pasan por aquí."
         title: Papelera
-        intro: 'Todo lo eliminado espera aquí, sea cual sea el módulo, y se restaura desde aquí.'
+        modules_label: 'Módulos'
+        types_label: 'Tipos de elementos'
         retention: 'Cada fila se elimina definitivamente {days} días después de su eliminación.'
         retention_off: 'La purga automática está desactivada: nada se elimina por sí solo.'
-        rules_note: 'Restaurar devuelve el elemento a donde estaba, cuando todavía es posible: una carpeta cuya carpeta superior se ha eliminado vuelve a la raíz, una categoría cuyo nombre se ha reutilizado recibe un nombre libre.'
         count: '1 elemento | {count} elementos'
         empty_one: 'Esta papelera está vacía.'
         open_list: 'Abrir {list}'

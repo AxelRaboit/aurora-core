@@ -14,13 +14,13 @@ import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
-import AppRevealList from "@/shared/components/list/AppRevealList.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
-import { Globe, Plus, Trash2, X, FileText, Filter } from "lucide-vue-next";
+import PostsListFilter from "./components/PostsListFilter.vue";
+import { Globe, Plus, Trash2, X, FileText } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -51,7 +51,7 @@ const props = defineProps({
 const {
     items, total, page, totalPages, loading,
     search, postTypeIds, termIds, statuses, visibilities,
-    activeFilterCount, goToPage, toggleIn, clearFilters,
+    goToPage, toggleIn, clearFilters,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
     editPath, reload,
 } = usePostsList(props);
@@ -242,13 +242,58 @@ const statusColors = {
     archived: "zinc",
 };
 
-/** Terms of every taxonomy, flattened once for the filter list. */
-const allTerms = computed(() =>
-    props.taxonomies.flatMap((taxonomy) =>
-        (taxonomy.terms ?? []).map((term) => ({
-            id: term.id,
-            label: term.translations?.[props.locales[0]]?.name ?? `#${term.id}`,
-            taxonomy: taxonomy.slug,
+/**
+ * The four filters of the toolbar, in the `{ value, label }` shape the
+ * select reads. Terms of every taxonomy are flattened into one list: it is
+ * long, and the search of the select is what makes it usable.
+ */
+const allFilters = computed(() => [
+    {
+        key: "type",
+        model: postTypeIds,
+        options: props.postTypes.map((postType) => ({ value: postType.id, label: postType.label })),
+    },
+    {
+        key: "status",
+        model: statuses,
+        options: props.statusOptions.map((status) => ({ value: status, label: t(`suite.posts.status.${status}`) })),
+    },
+    {
+        key: "visibility",
+        model: visibilities,
+        options: props.visibilityOptions.map((visibility) => ({
+            value: visibility,
+            label: t(`suite.posts.visibility.${visibility}`),
+        })),
+    },
+    {
+        key: "term",
+        model: termIds,
+        options: props.taxonomies.flatMap((taxonomy) =>
+            (taxonomy.terms ?? []).map((term) => ({
+                value: term.id,
+                label: term.translations?.[props.locales[0]]?.name ?? `#${term.id}`,
+            })),
+        ),
+    },
+]);
+
+// A filter with nothing to choose from is not offered (no term defined yet,
+// for instance).
+const filters = computed(() => allFilters.value.filter((filter) => filter.options.length));
+
+/**
+ * One chip per chosen value, in the order of the toolbar. A value the
+ * options no longer know (a term deleted since the link was shared) still
+ * gets its chip, so that it can be removed.
+ */
+const activeChips = computed(() =>
+    allFilters.value.flatMap((filter) =>
+        filter.model.value.map((value) => ({
+            key: `${filter.key}-${value}`,
+            filter: t(`suite.posts.filter_${filter.key}`),
+            label: filter.options.find((option) => option.value === value)?.label ?? `#${value}`,
+            remove: () => toggleIn(filter.model, value),
         })),
     ),
 );
@@ -277,6 +322,22 @@ const pageActions = computed(() => {
     <div ref="container" class="aurora-stack">
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('suite.posts.search_placeholder')" />
+            <!-- No label, the placeholder says it (« Tous les statuts »).
+                 When they do not fit beside the search, AppListToolbar puts
+                 them on the next line. -->
+            <template v-if="filters.length" #inline>
+                <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <PostsListFilter
+                        v-for="filter in filters"
+                        :key="filter.key"
+                        v-model="filter.model.value"
+                        class="sm:w-48"
+                        :options="filter.options"
+                        :placeholder="t(`suite.posts.filter_all.${filter.key}`)"
+                        :count-label="(count) => t(`suite.posts.filter_count.${filter.key}`, { count }, count)"
+                    />
+                </div>
+            </template>
             <template #actions>
                 <AppPageActions
                     v-if="pageActions.length"
@@ -285,6 +346,37 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
+        <!-- What the list is narrowed to, one chip per value, only while
+             something is chosen. The fields above say « 3 statuts »; this
+             row says which, and takes each one away. -->
+        <div
+            v-if="activeChips.length"
+            class="flex flex-wrap items-center gap-2"
+            role="group"
+            :aria-label="t('suite.posts.filters')"
+        >
+            <AppBadge
+                v-for="chip in activeChips"
+                :key="chip.key"
+                color="accent"
+                size="sm"
+                class="pr-1.5"
+            >
+                {{ chip.label }}
+                <button
+                    type="button"
+                    class="-my-0.5 flex size-5 items-center justify-center rounded-full transition-colors hover:bg-accent-600/25"
+                    :aria-label="t('suite.posts.remove_filter', { filter: chip.filter, value: chip.label })"
+                    :title="t('suite.posts.remove_filter', { filter: chip.filter, value: chip.label })"
+                    v-on:click="chip.remove"
+                >
+                    <X class="size-3.5" :stroke-width="2" />
+                </button>
+            </AppBadge>
+            <AppButton variant="ghost" size="sm" v-on:click="clearFilters">
+                {{ t("suite.posts.clear_filters") }}
+            </AppButton>
+        </div>
         <!-- The screen's how-to guide, next to what it explains; collapsed
              or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.posts.guide.title')" storage-key="posts-list">
@@ -323,79 +415,17 @@ const pageActions = computed(() => {
             {{ t("suite.posts.bulk.result", { done: bulkResult.done, skipped: bulkResult.skipped }) }}
         </p>
 
-        <div class="aurora-card p-4 space-y-3">
-            <div class="flex items-center justify-between gap-3">
-                <span class="flex items-center gap-2 text-sm font-medium text-primary">
-                    <Filter class="w-4 h-4" :stroke-width="2" /> {{ t("suite.posts.filters") }}
-                </span>
-                <div class="flex items-center gap-2">
-                    <AppButton v-if="activeFilterCount" variant="ghost" size="sm" v-on:click="clearFilters">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("suite.posts.clear_filters") }}
-                    </AppButton>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div class="space-y-1">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ t("suite.posts.filter_type") }}</p>
-                    <AppRevealList :items="postTypes" :is-active="(postType) => postTypeIds.includes(postType.id)">
-                        <template #default="{ item }">
-                            <AppCheckbox
-                                :model-value="postTypeIds.includes(item.id)"
-                                :label="item.label"
-                                v-on:update:model-value="toggleIn(postTypeIds, item.id)"
-                            />
-                        </template>
-                    </AppRevealList>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ t("suite.posts.filter_status") }}</p>
-                    <AppRevealList :items="statusOptions" :is-active="(status) => statuses.includes(status)">
-                        <template #default="{ item }">
-                            <AppCheckbox
-                                :model-value="statuses.includes(item)"
-                                :label="t(`suite.posts.status.${item}`)"
-                                v-on:update:model-value="toggleIn(statuses, item)"
-                            />
-                        </template>
-                    </AppRevealList>
-                    <p class="pt-2 text-xs uppercase tracking-wide text-muted">{{ t("suite.posts.filter_visibility") }}</p>
-                    <AppCheckbox
-                        v-for="visibility in visibilityOptions"
-                        :key="visibility"
-                        :model-value="visibilities.includes(visibility)"
-                        :label="t(`suite.posts.visibility.${visibility}`)"
-                        v-on:update:model-value="toggleIn(visibilities, visibility)"
-                    />
-                </div>
-                <div class="space-y-1">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ t("suite.posts.filter_term") }}</p>
-                    <AppNoData v-if="!allTerms.length" :message="t('suite.posts.no_terms')" />
-                    <AppRevealList :items="allTerms" :is-active="(term) => termIds.includes(term.id)">
-                        <template #default="{ item }">
-                            <AppCheckbox
-                                :model-value="termIds.includes(item.id)"
-                                :label="item.label"
-                                v-on:update:model-value="toggleIn(termIds, item.id)"
-                            />
-                        </template>
-                    </AppRevealList>
-                </div>
-            </div>
-        </div>
-
         <div v-if="!isNarrow" class="aurora-card overflow-x-auto scrollbar-thin">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th class="w-10 px-4 py-2">
-                            <input
-                                type="checkbox"
-                                class="cursor-pointer accent-accent-600"
-                                :checked="allOnPageSelected"
+                            <AppCheckbox
+                                :model-value="allOnPageSelected"
+                                :indeterminate="!allOnPageSelected && selected.size > 0"
                                 :aria-label="t('suite.posts.bulk.select_all')"
-                                v-on:change="toggleAllOnPage"
-                            >
+                                v-on:update:model-value="toggleAllOnPage"
+                            />
                         </th>
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("suite.posts.title_column") }}</th>
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("suite.posts.type_column") }}</th>
@@ -418,17 +448,15 @@ const pageActions = computed(() => {
                         :class="selected.has(post.id) ? 'bg-accent-600/10' : 'hover:bg-surface-2/40'"
                     >
                         <td class="px-4 py-2">
-                            <input
-                                type="checkbox"
-                                class="cursor-pointer accent-accent-600"
-                                :checked="selected.has(post.id)"
+                            <AppCheckbox
+                                :model-value="selected.has(post.id)"
                                 :aria-label="post.title || t('suite.posts.untitled')"
-                                v-on:change="toggleRow(post)"
-                            >
+                                v-on:update:model-value="toggleRow(post)"
+                            />
                         </td>
                         <td class="px-4 py-2">
                             <p class="font-medium text-primary truncate">{{ post.title || t("suite.posts.untitled") }}</p>
-                            <p class="text-xs text-muted font-mono mt-0.5 truncate">{{ post.reference }}</p>
+                            <p class="text-xs text-muted tabular-nums mt-0.5 truncate">{{ post.reference }}</p>
                         </td>
                         <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ post.postType.label }}</td>
                         <!-- Every language, with the missing ones dimmed rather than
@@ -488,16 +516,15 @@ const pageActions = computed(() => {
                 :class="selected.has(post.id) ? 'border-accent-600/50 bg-accent-600/5' : 'border-line'"
             >
                 <div class="flex items-start gap-3">
-                    <input
-                        type="checkbox"
-                        class="mt-1 cursor-pointer accent-accent-600 shrink-0"
-                        :checked="selected.has(post.id)"
+                    <AppCheckbox
+                        class="mt-0.5 shrink-0"
+                        :model-value="selected.has(post.id)"
                         :aria-label="post.title || t('suite.posts.untitled')"
-                        v-on:change="toggleRow(post)"
-                    >
+                        v-on:update:model-value="toggleRow(post)"
+                    />
                     <div class="min-w-0 flex-1">
                         <p class="font-medium text-primary break-words">{{ post.title || t("suite.posts.untitled") }}</p>
-                        <p class="text-xs text-muted font-mono mt-0.5">{{ post.reference }}</p>
+                        <p class="text-xs text-muted tabular-nums mt-0.5">{{ post.reference }}</p>
                     </div>
                     <span class="flex shrink-0 flex-col items-end gap-1">
                         <AppBadge :color="statusColors[post.status] ?? 'gray'">

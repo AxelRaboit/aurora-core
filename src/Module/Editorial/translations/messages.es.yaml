@@ -1507,12 +1507,22 @@ suite:
         conflict_reload: 'Recargar la suya'
         conflict_overwrite: 'Guardar la mía'
         filters: Filtros
-        clear_filters: Borrar
+        clear_filters: Borrar todo
         filter_type: 'Tipo de contenido'
         filter_status: Estado
         filter_visibility: 'Difusión'
         filter_term: Término
-        no_terms: 'Ningún término definido.'
+        remove_filter: 'Quitar « {value} » del filtro {filter}'
+        filter_all:
+            type: Todos los tipos
+            status: Todos los estados
+            visibility: Toda difusión
+            term: Todos los términos
+        filter_count:
+            type: '{count} tipo | {count} tipos'
+            status: '{count} estado | {count} estados'
+            visibility: '{count} difusión | {count} difusiones'
+            term: '{count} término | {count} términos'
         title_column: Título
         type_column: Tipo
         status_column: Estado
@@ -1673,7 +1683,7 @@ suite:
             step_5: "Eliminar es definitivo, y sus respuestas suben un nivel."
         title: Comentarios
         empty: 'Ningún comentario.'
-        search_placeholder: 'Buscar un autor, una dirección, un texto…'
+        search_placeholder: 'Buscar un comentario…'
         all: Todos
         author: Autor
         on_post: En
