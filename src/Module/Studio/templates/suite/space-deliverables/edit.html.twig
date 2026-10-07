@@ -4,6 +4,10 @@
    board, its header and its two tabs, with the "Espace de travail" tab
    active. #}
 {% set activeTab = 'content' %}
+{# The shell's way back leads to the space's Deliverables tab, and the editor
+   below draws none: one way back per page. #}
+{% set backPath = deliverablesPath %}
+{% set backLabel = 'suite.studio.deliverables.back'|trans({'{space}': space.name}) %}
 
 {% block title %}{{ deliverable.title }} - {{ space.name }}{% endblock %}
 

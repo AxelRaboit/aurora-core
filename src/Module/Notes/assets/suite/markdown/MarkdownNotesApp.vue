@@ -1178,8 +1178,12 @@ onUnmounted(() => {
             class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-muted"
             :aria-label="t('notes.markdown.breadcrumb')"
         >
+            <!-- A real address, so the library opens in a new tab on a
+                 modified click; a plain click returns to it without
+                 reloading the page. -->
             <AppBackLink
-                class="shrink-0"
+                class="mr-1 shrink-0"
+                :href="libraryPath"
                 :label="t('notes.markdown.library.title')"
                 v-on:back="backToLibrary"
             />

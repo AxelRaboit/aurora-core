@@ -4,6 +4,10 @@
    shell like a page: its header, its tabs, the content tab lit. The editor's
    back link leads to the Deliverables tab; the shell's, to the spaces list. #}
 {% set activeTab = 'content' %}
+{# The shell's way back leads to the space's Deliverables tab, and the editor
+   below draws none: one way back per page. #}
+{% set backPath = deliverablesPath %}
+{% set backLabel = 'suite.studio.deliverables.back'|trans({'{space}': space.name}) %}
 
 {% block title %}{{ deck.title }} - {{ space.name }}{% endblock %}
 
@@ -12,7 +16,7 @@
     deck: deck,
     deliverable: deliverable,
     space: space,
-    backPath: deliverablesPath,
+    backPath: null,
     canEdit: canEdit,
     canShare: canShare,
     canChangeScope: canChangeScope,

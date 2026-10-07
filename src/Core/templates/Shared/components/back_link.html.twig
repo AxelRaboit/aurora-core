@@ -1,0 +1,36 @@
+{# The way up from a page the server renders: the Twig twin of AppBackLink.vue.
+
+   Same HTML, same classes - read the component for the reasons. A page that
+   needs a way back includes this rather than drawing one, and
+   BackLinkRuleTest refuses any other.
+
+   Parameters:
+   - `href`: the parent's address.
+   - `label`: the parent's name, never "Back". Hidden below `sm`, still the
+     element's text for screen readers and voice control.
+   - `close` (optional): for a preview opened in a new tab, a button that
+     closes the tab instead of opening the parent inside it. `href` is then
+     where to go when the browser refuses to close a tab it did not open. #}
+{% set backLinkClass = 'inline-flex size-9.5 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line text-sm text-secondary transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 sm:w-auto sm:justify-start sm:pl-2.5 sm:pr-3' %}
+{% if close|default(false) %}
+    <button type="button" data-back-link data-close-preview title="{{ label }}" class="{{ backLinkClass }}">
+        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <span class="sr-only sm:not-sr-only sm:max-w-64 sm:truncate">{{ label }}</span>
+    </button>
+    <script nonce="{{ csp_nonce() }}">
+        (function (button, fallback) {
+            button.addEventListener('click', function () {
+                window.close();
+                // Still here: the tab was not opened by the editor (a link
+                // copied, a reload), and a browser only closes what a script
+                // opened.
+                window.setTimeout(function () { if (fallback) window.location.href = fallback; }, 200);
+            });
+        })(document.currentScript.previousElementSibling, {{ (href|default(''))|json_encode|raw }});
+    </script>
+{% else %}
+    <a href="{{ href }}" data-back-link title="{{ label }}" class="{{ backLinkClass }}">
+        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        <span class="sr-only sm:not-sr-only sm:max-w-64 sm:truncate">{{ label }}</span>
+    </a>
+{% endif %}

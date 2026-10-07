@@ -6,6 +6,7 @@
 
 {% block page_header_slot %}
     {{ include('@Shared/components/page_header.html.twig', {
+        backLink: true,
         crumbs: [
             {label: 'suite.nav.sections.editorial'|trans},
             {label: 'suite.nav.forms'|trans, href: path('suite_editorial_forms')},

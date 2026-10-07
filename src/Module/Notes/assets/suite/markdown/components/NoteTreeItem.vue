@@ -297,7 +297,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
             <!-- With negative margins: the buttons keep their click area
                  without stretching the row. They pushed it up to 42 pixels, a
                  form height, where a file explorer fits in 30. -->
-            <div v-if="!readonly" class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
+            <div v-if="!readonly" class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 touch:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
                     v-if="isFolder && editable"
                     color="accent"

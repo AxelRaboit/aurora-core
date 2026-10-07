@@ -1053,7 +1053,7 @@ onUnmounted(() => {
                     >{{ t('notes.markdown.spaces.read_only') }}</span>
                     <AppIconButton
                         v-if="group.space.canWrite"
-                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100 touch:opacity-100"
                         :title="t('notes.markdown.spaces.add_here', { name: spaceLabel(group.space, t) })"
                         :data-space-add="group.space.id"
                         v-on:click="addInSpace(group.space)"
@@ -1062,7 +1062,7 @@ onUnmounted(() => {
                     </AppIconButton>
                     <AppIconButton
                         v-if="group.space.canManage && !group.space.managed"
-                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100 touch:opacity-100"
                         :title="t('notes.markdown.spaces.settings')"
                         :data-space-settings="group.space.id"
                         v-on:click="forward('space-settings', Number(group.space.id))"
@@ -1072,7 +1072,7 @@ onUnmounted(() => {
                     <!-- Take a single space away, or pour files into it: the
                          two gestures of the panel's bar, limited to it. -->
                     <AppRowActions
-                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100 touch:opacity-100"
                         size="sm"
                         :data-space-menu="group.space.id"
                         :actions="spaceActions(group.space)"
@@ -1147,7 +1147,7 @@ onUnmounted(() => {
                     </button>
 
                     <AppIconButton
-                        class="shrink-0 sm:opacity-0 sm:group-hover:opacity-100"
+                        class="shrink-0 sm:opacity-0 sm:group-hover:opacity-100 touch:opacity-100"
                         :class="one.pinned ? 'sm:opacity-100' : ''"
                         :title="one.pinned ? t('notes.markdown.library.tag.unpin') : t('notes.markdown.library.tag.pin')"
                         v-on:click.stop="togglePinned(one.name)"

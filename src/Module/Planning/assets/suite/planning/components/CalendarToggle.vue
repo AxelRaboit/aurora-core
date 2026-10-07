@@ -83,7 +83,7 @@ function swatch() {
              in their place - the line has the width for all three. -->
         <div
             v-if="canManage"
-            class="flex shrink-0 items-center gap-1.5 md:hidden md:group-hover:flex"
+            class="flex shrink-0 items-center gap-1.5 md:hidden md:group-hover:flex md:touch:flex"
         >
             <!-- `p-1 -m-1`: the target goes from fourteen to twenty-two
                  pixels without the line moving a hair. A fourteen-pixel icon

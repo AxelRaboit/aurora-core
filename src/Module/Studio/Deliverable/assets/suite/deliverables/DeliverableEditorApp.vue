@@ -78,11 +78,9 @@ const mayShare = computed(() => props.canShare ?? props.canEdit);
 const mayDelete = computed(() => props.canDelete ?? props.canEdit);
 const mayDuplicate = computed(() => props.canDuplicate ?? props.canEdit);
 
-const backLabel = computed(() =>
-    props.space
-        ? t("suite.studio.deliverables.back", { space: props.space.name })
-        : t("suite.studio.deliverables.back_to_list"),
-);
+// Inside a client space the shell's header carries the way back, to the
+// space's Deliverables tab: one way back per page.
+const backLabel = computed(() => (props.space ? null : t("suite.studio.deliverables.back_to_list")));
 const { form, saving, errors, conflict, dirty, save, saveAnyway, dismissConflict, markClean } = useDeliverableEditor(props);
 
 /**
