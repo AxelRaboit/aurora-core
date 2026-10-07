@@ -10,9 +10,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 ### Corrigé
 - **« de » s'élide devant un nom qui commence par une voyelle.** « Livrables de Atelier Dupont » se lit « Livrables d'Atelier Dupont », de même pour « Équipe de… », « Supprimer le contrat de… », « Copie de… » et une vingtaine d'autres libellés, dans la suite comme sur le site. Le y et le h ne s'élident pas (« de Yann ») : la règle ne devine pas. Un test vérifie qu'aucun texte fixe du catalogue n'est touché.
 - **Les onglets s'annoncent comme des onglets.** Ceux de l'éditeur de publication, de l'éditeur de formulaire, des modules du tableau de bord, du panneau d'une note, de la bibliothèque de sections et du sélecteur de document étaient de simples boutons pour un lecteur d'écran : ils portent le rôle d'onglet et disent lequel est ouvert, comme ceux des livrables.
+- **Le badge « Vous » ne marque plus que le compte connecté.** Une même adresse peut porter un compte de la suite et un compte du site public : les deux s'affichaient « Vous », et le second ne pouvait être ni modifié ni désactivé depuis la liste des utilisateurs.
 - Le bouton « … » d'un terme de taxonomie et d'une entrée de menu s'annonçait « Actions pour » sans nom : il porte le nom du terme ou le libellé de l'entrée, comme partout ailleurs.
 - Dans la démonstration, le champ « Niveau » des articles ouvrait une liste de choix vide : ses trois choix sont rangés là où l'éditeur les lit.
 - Tour : sept pages montraient deux fois la même capture. Le référencement, les types de contenu, les taxonomies, les commentaires, les menus, les réglages, les galeries, les espaces clients et la corbeille ont chacun une seconde prise distincte (réglages SEO du site, un champ ouvert, un terme ouvert, les commentaires côté visiteur, la navigation principale, une entrée ouverte, les modules, la galerie côté visiteur, la liste des espaces, la fenêtre « Envoyer à relire », la mise à la corbeille d'une publication).
+
+### Ajouté
+- Tour : une trentaine de nouvelles prises (lots de l'audit du 07/10) et ce que la démonstration leur fournit : des couleurs propres à la page « À propos », et un lien de signature au contrat en attente dont l'adresse se déduit, pour photographier la page que signe le client sans rien envoyer. Les prises côté client suppriment le lien d'accès qu'elles créent.
 
 ### Dans aurora-client
 Rien à faire au-delà de `make aurora-update` et `make deploy-prod`.

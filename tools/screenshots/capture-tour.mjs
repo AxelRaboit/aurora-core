@@ -30,6 +30,7 @@
  */
 
 import { chromium } from "@playwright/test";
+import { createHash } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -149,13 +150,14 @@ async function hideZonesAbove(element) {
 /**
  * Opens a row's action sheet and picks one of its actions.
  *
- * The sheet is a window of its own, outside `main`, and its buttons carry a
- * description under their label: matched on the start of the name.
+ * The sheet is a window of its own, outside `main`, and its entries carry a
+ * description under their label: matched on the start of the name. An entry
+ * that leads somewhere ("Modifier" on a post) is a link, not a button.
  */
 async function rowAction(page, row, action) {
     await page.locator("main").getByTitle(row).first().click();
     const sheet = page.locator(".fixed.inset-0.z-50");
-    await sheet.getByRole("button", { name: action }).first().click();
+    await sheet.getByRole("button", { name: action }).or(sheet.getByRole("link", { name: action })).first().click();
     await page.waitForTimeout(1_500);
 }
 
@@ -311,6 +313,78 @@ async function deliverableEditUrl(page, title = "Audit de présence en ligne") {
 }
 
 /**
+ * The demo contract's signing page, at the address the fixtures pin.
+ *
+ * Derived from the same phrases as `StudioDemoFixtures::pinSigningLink`:
+ * the token only ever exists in the email, and no secret-looking literal
+ * belongs in a public repository.
+ */
+const SIGNING_URL = (() => {
+    const sha = (phrase) => createHash("sha256").update(phrase).digest("hex");
+
+    return `${BASE_URL}/contracts/${sha("aurora-demo-signing-selector").slice(0, 32)}/${sha("aurora-demo-signing-token")}`;
+})();
+
+/**
+ * Answers the two calls the signing page makes on its own.
+ *
+ * "Opened" would move the demo contract to "Ouvert", and the code would go
+ * out by email: answered here, the page behaves as for the client and the
+ * demo is left as it was. The masked address is the one the server writes.
+ */
+async function stubSigningCalls(page) {
+    await page.route(/\/opened$/, (route) => route.fulfill({ json: { success: true } }));
+    await page.route(/\/code$/, (route) => route.fulfill({ json: { success: true, sentTo: "je*********@aurora.app" } }));
+}
+
+/**
+ * Picks an option in an AppSelect: its options are rendered elsewhere in the
+ * page, so they are found visible and by their text, not inside the field.
+ */
+async function pickOption(page, field, text) {
+    await field.click();
+    await page.locator(".multiselect__option:visible").filter({ hasText: text }).first().click();
+    await page.waitForTimeout(600);
+}
+
+/**
+ * Three phone screens of the suite, side by side, on the frame the public
+ * site's phone shot uses.
+ *
+ * A phone context of its own, signed in with the main context's session, so
+ * the screens are the ones the rules write for: cards, "…", the page bar.
+ */
+async function phoneTriptych(page, steps) {
+    const phone = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 1,
+        isMobile: true,
+        hasTouch: true,
+        colorScheme: "dark",
+        locale: "fr-FR",
+        timezoneId: "Europe/Paris",
+        reducedMotion: "reduce",
+        storageState: await context.storageState(),
+    });
+    await phone.addInitScript(() => window.localStorage.setItem("aurora.guides.open", "0"));
+
+    const shots = [];
+    for (const step of steps) {
+        const tab = await phone.newPage();
+        await step(tab);
+        await hideChrome(tab);
+        await tab.waitForTimeout(1_500);
+        shots.push((await tab.screenshot()).toString("base64"));
+    }
+    await phone.close();
+
+    await page.setContent(`<!doctype html><html><body style="margin:0;height:1000px;display:flex;align-items:center;justify-content:center;gap:56px;background:radial-gradient(ellipse at 50% 40%,#12302a,#030712 75%)">${shots
+        .map((shot) => `<div style="padding:10px;border-radius:46px;background:#0b0f17;box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.12)"><img src="data:image/png;base64,${shot}" style="display:block;width:390px;height:844px;border-radius:36px"></div>`)
+        .join("")}</body></html>`);
+    await page.waitForTimeout(300);
+}
+
+/**
  * Opens the "Réseaux sociaux" space, where every shot of a space starts.
  *
  * **The list's tab is remembered from one visit to the next**, and `espaces-
@@ -362,6 +436,36 @@ const SPACES = "/suite/studio/spaces";
  * studio issues it, then followed. Shared by the shot of the client-side space
  * and the shot of its deliverables.
  */
+/**
+ * The address of the links the client-side shots issue, and only theirs: the
+ * demo's own Camille uses `camille@atelier-dupont.fr`.
+ */
+const CLIENT_SIDE_EMAIL = "camille@atelier-dupont.example.com";
+
+/**
+ * Deletes the links `openClientSide` issued.
+ *
+ * Every shot of the client side issues one, since its address is only shown
+ * once, and the demo kept them: the space's access screen listed five
+ * "Camille, gérante" by the time it was photographed. Run after each of
+ * those shots, through the screen, so the demo stays as the fixtures left it.
+ */
+async function removeClientSideLinks(page) {
+    await page.goto(`${BASE_URL}${SPACES}`, { waitUntil: "networkidle" });
+    await openSpace(page);
+    await page.getByRole("link", { name: "Accès client", exact: true }).first().click();
+    await page.getByRole("button", { name: "Nouveau lien d'accès" }).first().waitFor();
+
+    const rows = page.locator("main li").filter({ hasText: CLIENT_SIDE_EMAIL });
+
+    while ((await rows.count()) > 0) {
+        await rows.first().getByTitle(/^Actions pour/).click();
+        await page.locator(".fixed.inset-0.z-50").getByRole("button", { name: /^Supprimer/ }).first().click();
+        await page.getByRole("dialog").last().getByRole("button", { name: /^Supprimer/ }).click();
+        await page.waitForTimeout(1_200);
+    }
+}
+
 async function openClientSide(page) {
     await openSpace(page);
 
@@ -383,7 +487,7 @@ async function openClientSide(page) {
     // By the field's placeholder and not by its label: the fields of
     // this modal have no id, so nothing ties the `<label>` to its
     // `<input>` for a tool that reads the page.
-    await page.getByPlaceholder("camille@societe.fr").fill("camille@atelier-dupont.example.com");
+    await page.getByPlaceholder("camille@societe.fr").fill(CLIENT_SIDE_EMAIL);
     await page.getByPlaceholder(/^Camille, /).fill("Camille, gérante");
 
     await page.getByRole("dialog").getByRole("button", { name: "Créer le lien" }).click();
@@ -1688,6 +1792,7 @@ const SHOTS = [
         name: "espace-cote-client",
         path: SPACES,
         prepare: openClientSide,
+        after: removeClientSideLinks,
     },
 
     /** Its deliverables, same side: what was written for them, published. */
@@ -1699,6 +1804,7 @@ const SHOTS = [
             await page.getByRole("button", { name: "Livrables", exact: true }).first().click();
             await page.waitForTimeout(1_500);
         },
+        after: removeClientSideLinks,
     },
 
     /** A space's deliverables on the studio side: the demo audit, published. */
@@ -2079,6 +2185,285 @@ const SHOTS = [
         path: "/dev/dashboard/permissions",
         async prepare(page) {
             await page.waitForTimeout(2_500);
+        },
+    },
+
+    /**
+     * Lot 1 of the tour audit (07/10/2026): the screens the tour described
+     * without showing them.
+     */
+    {
+        // One zone of the grid selected, its settings open: width per
+        // screen, offset, surface. The card is under the canvas, and the
+        // window is what scrolls: three earlier attempts scrolled an inner
+        // box that does not move.
+        name: "tour-grille-zone",
+        path: `/suite/editorial/posts/${DEMO_POST_ID}/edit#content`,
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            await page.locator('main [data-zone="1"] > button').first().click();
+            await page.waitForTimeout(1_200);
+            const card = page.locator("main div.border-accent.space-y-4").filter({ visible: true }).first();
+            await card.evaluate((node) => window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - 90, behavior: "instant" }));
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // A list zone and its presentations, on the about page: the card
+        // promises eleven presentations for one list.
+        name: "tour-grille-liste",
+        // Searched: the list has two pages and this post is on the second.
+        path: `/suite/editorial/posts?search=${encodeURIComponent("À propos")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour À propos", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("tab", { name: "Contenu", exact: true }).first().click();
+            await page.waitForTimeout(1_200);
+            await page.locator('main [data-zone="1"] > button').first().click();
+            await page.waitForTimeout(1_200);
+            // The list's own presentations, not the zone-type palette above,
+            // which also has a "Présentation" button.
+            const presentation = page.locator("main").getByText("Étapes numérotées", { exact: true }).filter({ visible: true }).first();
+            await presentation.evaluate((node) => window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - 160, behavior: "instant" }));
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // The Appearance tab of a post that repaints itself: the about page
+        // carries its own colours in the demo.
+        name: "tour-publication-apparence",
+        // Searched: the list has two pages and this post is on the second.
+        path: `/suite/editorial/posts?search=${encodeURIComponent("À propos")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour À propos", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("tab", { name: "Apparence", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // A post waiting for review, and the reviewer's two answers in the
+        // page bar's sheet.
+        name: "tour-relecture",
+        path: "/suite/editorial/posts",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour Relire avant de publier", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.locator(".fixed.inset-0.z-50").getByRole("button", { name: /^Approuver et publier/ }).first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // The Studio's editorial calendar, every space: the demo account is
+        // not a member of the space that has dated contents.
+        name: "tour-studio-calendrier",
+        path: "/suite/studio/spaces/calendar?scope=all",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // A space's client links: who, what each may do, expired, revoked.
+        name: "tour-espace-acces",
+        path: SPACES,
+        async prepare(page) {
+            await openSpace(page);
+            await page.getByRole("link", { name: "Accès client", exact: true }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // The window that issues a link, with its rights. Never confirmed.
+        name: "tour-espace-acces-nouveau",
+        path: SPACES,
+        async prepare(page) {
+            await openSpace(page);
+            await page.getByRole("link", { name: "Accès client", exact: true }).first().click();
+            await page.waitForTimeout(2_500);
+            await page.locator("main").getByRole("button", { name: /^Nouveau lien d'accès/ }).first().click();
+            const dialog = page.getByRole("dialog").first();
+            await dialog.waitFor();
+            await dialog.getByPlaceholder("camille@societe.fr").fill("claire.dupont@atelier-dupont.fr");
+            await dialog.getByPlaceholder("Camille, responsable marketing").fill("Claire, gérante");
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // An event open: its guests and their answers.
+        name: "tour-calendrier-evenement",
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.locator("main").getByText("Réunion générale", { exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Sharing a calendar by link: who has one, until when, revoked.
+        // The share button only shows when the calendar row is hovered.
+        name: "tour-calendrier-partage",
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            // Shown on hover, and only where the pointer can hover (3.6.0):
+            // headless Chromium declares none, so the button never shows.
+            // Clicked through the DOM; the picture is the window, not it.
+            const row = page.locator("#sidemenu").getByRole("button", { name: "Pro", exact: true }).first().locator("xpath=..");
+            await row.getByTitle("Partage par lien").evaluate((button) => button.click());
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // A document's edit window: alternative text, caption, category,
+        // tags. A real photo with its alternative text: the filed demo
+        // documents are flat colours.
+        name: "tour-mediatheque-modifier",
+        path: `/suite/ged/documents?search=${encodeURIComponent("façade de verre")}`,
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await rowAction(page, "Actions pour Une façade de verre", /^Modifier/);
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // The bell open: what waits for a decision.
+        name: "tour-notifications",
+        path: "/suite",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.getByRole("button", { name: "Notifications", exact: true }).filter({ visible: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // The Studio panel of the dashboard, every space.
+        name: "tour-dashboard-studio",
+        path: "/suite?module=studio&studioScope=all",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+
+    /**
+     * Lot 2: the contract seen from the client's side, on the link the demo
+     * pins (`StudioDemoFixtures::pinSigningLink`). Nothing is sent and
+     * nothing changes state: opening is answered here, and so is the code
+     * request, so the contract stays "Envoyé" and no email leaves.
+     */
+    {
+        name: "tour-signature-contrat",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        name: "tour-signature-code",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            await page.getByPlaceholder("Camille", { exact: true }).fill("Jean");
+            await page.getByPlaceholder("Durand", { exact: true }).fill("Martin");
+            await page.getByPlaceholder("camille@societe.fr").fill("jean.martin@martin-documents.fr");
+            await page.getByPlaceholder("Lyon", { exact: true }).fill("Grenoble");
+
+            // A signature drawn in the frame: the code button waits for one.
+            const pad = page.locator("canvas").first();
+            await pad.scrollIntoViewIfNeeded();
+            const box = await pad.boundingBox();
+            const at = (x, y) => [box.x + box.width * x, box.y + box.height * y];
+            await page.mouse.move(...at(0.15, 0.6));
+            await page.mouse.down();
+            for (const [x, y] of [[0.22, 0.3], [0.3, 0.7], [0.38, 0.35], [0.46, 0.65], [0.55, 0.4], [0.63, 0.6], [0.75, 0.45], [0.85, 0.55]]) {
+                await page.mouse.move(...at(x, y), { steps: 6 });
+            }
+            await page.mouse.up();
+
+            await page.getByRole("button", { name: "Recevoir le code" }).click();
+            await page.getByPlaceholder("123456").fill("482913");
+            await page.getByRole("checkbox").last().check();
+            await placeAt(page, page.getByText("Votre signature", { exact: true }).first(), 120);
+        },
+    },
+
+    /**
+     * A card the client opens on their side: the visual, the deadline, the
+     * files and the thread, and the two answers they can give. Never
+     * answered here: that would change the demo.
+     */
+    {
+        name: "espace-cote-client-fiche",
+        path: SPACES,
+        async prepare(page) {
+            await openClientSide(page);
+            await page.getByText("Offre de rentrée", { exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+        after: removeClientSideLinks,
+    },
+    {
+        // Creating a contract: a client, a body, an annex, an amount. Never
+        // saved.
+        name: "tour-contrat-nouveau",
+        path: "/suite/studio/contracts",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.getByRole("button", { name: /^Nouveau contrat/ }).first().click();
+            const dialog = page.getByRole("dialog").first();
+            await dialog.waitFor();
+            await pickOption(page, dialog.locator(".multiselect").nth(0), "Martin Documents");
+            await pickOption(page, dialog.locator(".multiselect").nth(1), "Contrat de prestation mensuelle");
+            await dialog.getByPlaceholder("850").fill("690");
+            await dialog.getByPlaceholder("850").blur();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // The suite on a phone, lists: one card per row, its actions behind
+        // "…", the page bar with the back button and icon-only commands.
+        name: "tour-telephone-listes",
+        path: "/suite",
+        async prepare(page) {
+            await phoneTriptych(page, [
+                async (tab) => tab.goto(`${BASE_URL}/suite/platform/users`, { waitUntil: "networkidle" }),
+                async (tab) => tab.goto(`${BASE_URL}/suite/editorial/posts`, { waitUntil: "networkidle" }),
+                async (tab) => tab.goto(`${BASE_URL}/suite`, { waitUntil: "networkidle" }),
+            ]);
+        },
+    },
+    {
+        // The suite on a phone, at work: a space's board, a note, the week.
+        name: "tour-telephone-travail",
+        path: SPACES,
+        async prepare(page) {
+            // The space's address is read on the desktop first: on a phone
+            // the list is cards and the section rail is a menu, which the
+            // helpers written for the desktop do not walk.
+            await contents("Tableau")(page);
+            const space = page.url();
+            await phoneTriptych(page, [
+                async (tab) => tab.goto(space, { waitUntil: "networkidle" }),
+                async (tab) => {
+                    // The note is found through the list's endpoint, which
+                    // a blank tab cannot reach by a relative address.
+                    await tab.goto(`${BASE_URL}/suite/notes/markdown`, { waitUntil: "domcontentloaded" });
+                    await openNoteByTitle(tab, "Cabinet Verrier");
+                },
+                async (tab) => tab.goto(`${BASE_URL}/suite/planning/calendar`, { waitUntil: "networkidle" }),
+            ]);
         },
     },
 

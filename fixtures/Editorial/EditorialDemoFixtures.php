@@ -1280,6 +1280,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $steps = ['step-1', 'step-2', 'step-3'];
 
+        // Its own colours, the theme's elsewhere: the Appearance tab of a
+        // post has something to show, and the page shows what it does.
+        $about->setAccentColor('#f59e0b')
+            ->setColorOverrides(['heading_color' => '#fcd34d', 'figure_color' => '#f59e0b']);
+
         $about->setGridLayout($this->gridNormalizer->normalizeLayout([
             'enabled' => true,
             'snap' => 4,

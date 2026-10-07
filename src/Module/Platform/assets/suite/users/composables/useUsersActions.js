@@ -81,9 +81,9 @@ export function useUsersActions(props, fetchUsers) {
         return "rose";
     }
 
-    const isCurrent = (user) =>
-        user.id === props.currentUserId ||
-        (props.currentUserEmail && user.email === props.currentUserEmail);
+    // By id only: the same address can hold a suite account and a public
+    // site account, and the second is not the one signed in.
+    const isCurrent = (user) => user.id === props.currentUserId;
     const canActOn = (user) =>
         !isCurrent(user) && props.currentUserPriority >= user.rolePriority;
     const canEditUser = (user) => isCurrent(user) || canActOn(user);
