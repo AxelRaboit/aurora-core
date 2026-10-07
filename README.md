@@ -1,6 +1,12 @@
 <div align="center">
 
-# Aurora
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/aurora-logo.svg">
+    <img src="docs/images/aurora-logo-fond-clair.svg" alt="" height="48" align="absmiddle">
+  </picture>
+  Aurora
+</h1>
 
 **Un site, son back-office et l'espace de travail d'une petite agence, dans un seul bundle Symfony**
 
