@@ -23,10 +23,10 @@ const instance = {
     lastSeenAt: "2026-10-05T12:00:00+00:00",
 };
 
-function mountApp() {
+function mountApp(instances = [instance]) {
     return mount(InstancesApp, {
         props: {
-            instances: [instance],
+            instances,
             forgetPath: "/dev/beacon/__id__/forget",
         },
         global: {
@@ -34,7 +34,7 @@ function mountApp() {
             stubs: {
                 AppRowActions: {
                     name: "AppRowActions",
-                    props: ["actions", "label"],
+                    props: { actions: Array, label: String, iconOnly: Boolean },
                     template: "<div />",
                 },
                 AppModal: {
@@ -68,5 +68,38 @@ describe("InstancesApp", () => {
             true,
         );
         expect(nativeConfirm).not.toHaveBeenCalled();
+    });
+
+    it("draws the forget gesture as its bare icon", () => {
+        expect(
+            mountApp()
+                .findComponent({ name: "AppRowActions" })
+                .props("iconOnly"),
+        ).toBe(true);
+    });
+
+    it("pages the instances five at a time", async () => {
+        const instances = Array.from({ length: 7 }, (_, index) => ({
+            ...instance,
+            id: index + 1,
+            domain: `copie-${index + 1}.example`,
+        }));
+        const wrapper = mountApp(instances);
+
+        expect(wrapper.findAll("tbody tr")).toHaveLength(5);
+
+        wrapper.findComponent({ name: "AppPagination" }).vm.$emit("change", 2);
+        await wrapper.vm.$nextTick();
+
+        const domains = wrapper
+            .findAll("tbody tr")
+            .map((row) => row.findAll("td")[1].text());
+        expect(domains).toEqual(["copie-6.example", "copie-7.example"]);
+    });
+
+    it("shows no pagination for five instances or fewer", () => {
+        expect(
+            mountApp().findComponent({ name: "AppPagination" }).exists(),
+        ).toBe(false);
     });
 });

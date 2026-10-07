@@ -6,6 +6,7 @@ namespace Aurora\Module\Beacon\Controller\Suite;
 
 use Aurora\Module\Beacon\Entity\DeployedInstanceInterface;
 use Aurora\Module\Beacon\Repository\DeployedInstanceRepository;
+use Aurora\Module\Beacon\Setting\BeaconSettingEnum;
 use Aurora\Module\Beacon\View\BeaconViewBuilder;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,8 +32,6 @@ use function mb_trim;
 #[IsGranted('ROLE_DEV')]
 final class InstancesController extends AbstractController
 {
-    private const string KNOWN_DOMAINS_KEY = 'beacon.known_domains';
-
     public function __construct(
         private readonly DeployedInstanceRepository $instances,
         private readonly BeaconViewBuilder $viewBuilder,
@@ -68,7 +67,7 @@ final class InstancesController extends AbstractController
 
         $domains = array_keys($domains);
 
-        $this->settings->set(self::KNOWN_DOMAINS_KEY, json_encode($domains));
+        $this->settings->set(BeaconSettingEnum::KnownDomains->value, json_encode($domains));
 
         return $this->json(['success' => true, 'domains' => $domains]);
     }
