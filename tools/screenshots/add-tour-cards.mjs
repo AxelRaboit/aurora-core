@@ -48,7 +48,7 @@ import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { remote, tourPostIdQuery } from "./lib/remote.mjs";
+import { relocateCommand, remote, tourPostIdQuery } from "./lib/remote.mjs";
 
 const run = promisify(execFile);
 
@@ -287,6 +287,13 @@ await run("ssh", [
     `cd ${REMOTE_DIR} && db=$(grep -oP 'DATABASE_URL=.*/\\K[^?"]+' .env.local | head -1); ` +
     `sudo -u postgres psql -v ON_ERROR_STOP=1 -d $db -f ${script} && rm -f ${script}`,
 ]);
+
+// ---- on the tour's disk ----------------------------------------------------
+
+// An import or a replacement writes through the site's active disk: the
+// pictures come back to the tour's own (see `tourDisk()`).
+await run("ssh", [HOST, relocateCommand(REMOTE_DIR, Object.values(documents))]);
+console.log(`  ⇢ ${Object.keys(documents).length} image(s) rangée(s) sur le disque du tour`);
 
 // ---- the card table, so the next campaign replaces ------------------------
 
