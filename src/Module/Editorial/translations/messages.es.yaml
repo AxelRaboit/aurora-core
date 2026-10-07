@@ -250,7 +250,7 @@ suite:
         empty: 'Ninguna publicación'
         untitled: 'Sin título'
         edit: Galería
-        back: 'Todas las publicaciones'
+        back: "Galerías"
         locales: Idiomas
         saved: Guardado
         no_photos: 'Ninguna foto'
@@ -2041,6 +2041,7 @@ frontend:
         download_pdf: "Descargar en PDF"
         prepared_for: 'Preparado para %name%'
         back: 'Volver al espacio'
+        close_preview: 'Cerrar la vista previa'
         updated_on: 'Actualizado el %date%'
         footer: 'Este documento se le ha enviado personalmente. Por favor, no comparta su enlace.'
         locked_title: 'Documento protegido'

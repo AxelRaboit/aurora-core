@@ -186,13 +186,11 @@ describe("le chemin de retour", () => {
         askPage("notes:select", { args: [1] });
         await flushPromises();
 
-        const back = wrapper
-            .findAll("button")
-            .find((button) =>
-                button.text().includes("notes.markdown.library.title"),
-            );
+        // A real link now, to the library's address (07/10/2026).
+        const back = wrapper.find("[data-back-link]");
 
-        expect(back, "le lien de retour est là").toBeTruthy();
+        expect(back.exists(), "le lien de retour est là").toBe(true);
+        expect(back.text()).toContain("notes.markdown.library.title");
         expect(
             back.element.closest("header"),
             "il n'est pas dans l'en-tête de la note",

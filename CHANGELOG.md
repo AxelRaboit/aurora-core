@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.6.0] - 2026-10-07
+
+### Modifié
+- **Un seul bouton retour, partout.** Il était dessiné de cinq façons, dont deux copies qui avaient dérivé. Le composant `AppBackLink` et son jumeau Twig `@Shared/components/back_link.html.twig` sont désormais les seuls, et `BackLinkRuleTest` refuse toute autre flèche de retour. Le retour s'aligne sur la marge du contenu (il touchait le bord de l'écran sur téléphone), fait 38 px de haut comme les commandes de la barre (un carré avec l'icône seule sous 640 px, le chevron et le nom au-dessus), porte une bordure discrète et un anneau de focus visible.
+- **Il nomme l'endroit où il mène** : « Galeries » au lieu de « Toutes les publications », « Contrat CTR-… » au lieu de « Retour au contrat », « Espaces clients » au lieu de « Retour aux espaces », « Livrables » au lieu de « Retour » sur une présentation, le nom de l'espace côté client. En français, anglais et espagnol.
+- **Il revient à la liste telle qu'on l'a laissée** : quand la page précédente est la liste vers laquelle il mène, il y revient avec ses filtres, sa page et sa position, au lieu de la recharger.
+- **Un seul retour par écran.** Un livrable ouvert dans un espace client n'en montre plus deux : l'entête de l'espace mène à « Livrables de … ». Sous 1024 px, le fil d'Ariane n'affiche plus en lien le parent que le retour propose déjà.
+- **Les aperçus se ferment** : ouverts dans un nouvel onglet, ils proposent « Fermer l'aperçu » au lieu d'un retour qui ouvrait un second éditeur dans l'onglet. Les présentations en ont un aussi.
+- **Le survol ne reste plus après un tap.** Il ne s'applique qu'aux appareils qui survolent vraiment (le réglage d'origine de Tailwind) ; ce qu'il révélait (actions de ligne, poignées de déplacement, croix de suppression) est affiché d'office sur un écran tactile.
+
+### Corrigé
+- La lecture d'une note sur téléphone avait son retour caché dans le tiroir : il est dans la barre du haut.
+- L'éditeur de notes revient à la bibliothèque par un vrai lien (ouvrable dans un nouvel onglet), sans recharger la page sur un clic simple.
+- Un lien de retour jamais affiché, dans la note partagée, est retiré.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` et `make deploy-prod`.
+
+---
+
 ## [3.5.0] - 2026-10-07
 
 ### Ajouté

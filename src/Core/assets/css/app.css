@@ -114,7 +114,18 @@
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
-@custom-variant hover (&:hover);
+/*
+ * Hover only where something hovers. Declared as a plain `:hover` since the
+ * first commit, it fired on touch screens too and stayed after a tap: the
+ * back link's rounded box stuck to the edge of the screen, and every hover
+ * colour lingered on whatever was last touched. This is Tailwind's own
+ * default, restored.
+ *
+ * `touch:` is its counterpart, for what a mouse reveals on hover and a
+ * finger must find without it: row actions, drag handles, delete crosses.
+ */
+@custom-variant hover (@media (hover: hover) { &:hover });
+@custom-variant touch (@media (hover: none));
 
 /*
  * Only TRULY global styles are imported here. Feature/module CSS sits

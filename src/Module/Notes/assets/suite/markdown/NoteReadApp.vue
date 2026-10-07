@@ -258,6 +258,16 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             <!-- A single, discreet bar: tuck the tree away, where one is, and
                  a way to go back to writing. -->
             <header class="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-body/90 px-3 py-2 backdrop-blur sm:px-6 print:hidden">
+                <!-- Below `md` the column holding the way back is gone: it
+                     lived only in the drawer, and a reader with no editor to
+                     go to had to open it to leave. -->
+                <AppBackLink
+                    v-if="!publicTitle"
+                    data-reader-back-phone
+                    class="md:hidden"
+                    :href="exitPath"
+                    :label="exitLabel"
+                />
                 <AppIconButton
                     data-reader-nav-toggle
                     :title="t('notes.markdown.read.contents')"

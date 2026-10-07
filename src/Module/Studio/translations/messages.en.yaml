@@ -276,7 +276,8 @@ suite:
                 diff_removed: Removed
                 unsaved: Unsaved changes
                 leave_warning: Some changes are not saved.
-                back: Back to the contract
+                back: "Contract {reference}"
+                back_draft: "The contract"
                 badge: Adapted
                 panel: Wording adapted for this contract
                 open: See the wording
@@ -2281,7 +2282,7 @@ suite:
                 view_description: Read this content, its files and its thread
                 delete_description: Move this content item to the trash
             calendar_name: Client content
-            back_to_spaces: Back to spaces
+            back_to_spaces: "Client spaces"
             switch_space: "Switch space"
             add_item: "New content item"
             create_item: "New content item"

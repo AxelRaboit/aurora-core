@@ -95,7 +95,7 @@ const answered = computed(() => "pending" !== props.item.approval);
                  body competes with the click that opens it, and one of the two
                  loses at random. -->
             <GripVertical
-                class="card-drag-handle mt-0.5 h-3.5 w-3.5 shrink-0 cursor-grab text-muted opacity-0 transition-opacity group-hover:opacity-100"
+                class="card-drag-handle mt-0.5 h-3.5 w-3.5 shrink-0 cursor-grab text-muted opacity-0 transition-opacity group-hover:opacity-100 touch:opacity-100"
                 :stroke-width="2"
             />
             <div v-if="thumbnail" class="relative shrink-0">

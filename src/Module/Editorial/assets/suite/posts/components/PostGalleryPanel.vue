@@ -284,7 +284,7 @@ async function onFiles(files) {
                         order is changed without one.
                     -->
                     <div
-                        class="absolute inset-x-0 top-0 flex justify-end gap-0.5 bg-gradient-to-b from-black/70 to-transparent p-1.5 transition-opacity group-focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                        class="absolute inset-x-0 top-0 flex justify-end gap-0.5 bg-gradient-to-b from-black/70 to-transparent p-1.5 transition-opacity group-focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch:opacity-100"
                     >
                         <button
                             type="button"

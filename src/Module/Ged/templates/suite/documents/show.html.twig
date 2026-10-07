@@ -4,6 +4,7 @@
 
 {% block page_header_slot %}
     {{ include('@Shared/components/page_header.html.twig', {
+        backLink: true,
         crumbs: [
             {label: 'suite.nav.sections.ged'|trans},
             {label: 'suite.nav.documents'|trans, href: path('suite_ged_documents')},

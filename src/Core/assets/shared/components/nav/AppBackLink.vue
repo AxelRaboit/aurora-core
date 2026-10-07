@@ -1,58 +1,93 @@
 <script setup>
 /**
- * The link that goes up from a screen.
+ * The way up from a screen, the only one the app draws.
  *
- * Four screens carried it, in four forms: a ghost button on the publication
- * editor, an anchor with an arrow in the media library, an anchor with a
- * chevron and a label that disappears on a phone in a client space, and a
- * text button in the notes. The same gesture, four drawings, only one of
- * which is right.
+ * Five drawings carried this one gesture (07/10/2026): this component, a
+ * Twig copy in the client spaces, a link in the reading pages, a link of
+ * its own in the client's presentation, and a dead link in a shared note.
+ * The copies had drifted. Its Twig twin,
+ * `@Shared/components/back_link.html.twig`, writes the same HTML for the
+ * pages the server renders, and `BackLinkRuleTest` refuses any other.
  *
- * **It is not an action, it is navigation.** A solid or ghost button puts it
- * at the same visual level as "Save", placed a centimetre away: on a
- * phone where the two end up one below the other, the screen no longer has
- * a hierarchy. A discreet link says it for what it is.
+ * **On the gutter, at the height of the bar.** The box used to start 8px
+ * before the content (`-ml-2`) so that the chevron, not the box, met the
+ * gutter: on a phone, where the gutter is 8px, the box touched the edge of
+ * the screen. Its edge is now the gutter, like the cards and the language
+ * switch below it. Thirty-eight pixels high at every width, as the commands
+ * of the same bar: a square holding the chevron below `sm`, the chevron and
+ * the destination above.
  *
- * **The label disappears below `sm`, everywhere, without exception.** It is
- * the find of the client space, taken up here: "Back to the list" takes
- * nearly half the bar for a word the chevron already says, and on a phone
- * that half is missing elsewhere. It is still read by a screen reader in
- * both cases, because `aria-label` carries it.
+ * **It names where it goes, never "Back".** The label is the parent the
+ * breadcrumb shows. Hidden below `sm` but still the element's text, so a
+ * screen reader reads it and voice control can say it.
  *
- * No escape hatch to keep it visible: an option to do otherwise is an
- * invitation for each screen to decide, and that is exactly what this
- * component is here to fix.
+ * **It is not an action, it is navigation.** Outlined, never filled: it
+ * keeps its rank under "Save", placed a centimetre away.
+ *
+ * **Back to the list as it was left.** When the previous page is the very
+ * list it leads to, a click goes back in history rather than reloading the
+ * list: its filters, page and scroll position come back. Anything else, a
+ * modified click or a page reached from elsewhere, follows the link.
  */
-import { ChevronLeft } from "lucide-vue-next";
+import { ChevronLeft, X } from "lucide-vue-next";
 
-defineProps({
-    /** An address, or nothing: without it, the component emits `back`. */
+const props = defineProps({
+    /** The parent's address. */
     href: { type: String, default: "" },
     label: { type: String, required: true },
+    /**
+     * Handles the way back without leaving the page (the notebook returning
+     * to its library). Declared as a prop rather than an event so that a
+     * listener is known to exist: the link keeps its address for a new tab.
+     */
+    onBack: { type: Function, default: null },
+    /** A preview opened in a new tab: a cross, the way out closes the tab. */
+    closes: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["back"]);
+function cameFromParent() {
+    if (!document.referrer || window.history.length < 2) return false;
+
+    try {
+        const previous = new URL(document.referrer);
+        const parent = new URL(props.href, window.location.href);
+
+        return previous.origin === parent.origin && previous.pathname === parent.pathname;
+    } catch {
+        return false;
+    }
+}
+
+function onClick(event) {
+    if (event.defaultPrevented || 0 !== event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+    }
+
+    if (props.onBack) {
+        event.preventDefault();
+        props.onBack();
+
+        return;
+    }
+
+    if (props.href && cameFromParent()) {
+        event.preventDefault();
+        window.history.back();
+    }
+}
 </script>
 
 <template>
-    <!-- `inline-flex` and not `flex`: placed outside a row (a contract's
-         page), a `flex` took the whole width and the entire line became
-         clickable. Thirty-eight pixels on a phone, the height of the
-         commands of the bar it sits in (02/10/2026).
-
-         An anchor when there is an address, a button otherwise: the
-         notebook goes back to its library without changing page, and an
-         empty anchor would be a link that leads nowhere for someone
-         navigating with the keyboard. Both carry the same look. -->
     <component
         :is="href ? 'a' : 'button'"
         :href="href || undefined"
         :type="href ? undefined : 'button'"
-        :aria-label="label"
-        class="-ml-2 inline-flex min-h-9.5 shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:min-h-0 sm:py-1"
-        v-on:click="href ? undefined : emit('back')"
+        :title="label"
+        data-back-link
+        class="inline-flex size-9.5 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line text-sm text-secondary transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 sm:w-auto sm:justify-start sm:pl-2.5 sm:pr-3"
+        v-on:click="onClick"
     >
-        <ChevronLeft class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
-        <span class="hidden sm:inline">{{ label }}</span>
+        <component :is="closes ? X : ChevronLeft" class="h-4 w-4 shrink-0" :stroke-width="2" aria-hidden="true" />
+        <span class="sr-only sm:not-sr-only sm:max-w-64 sm:truncate">{{ label }}</span>
     </component>
 </template>
