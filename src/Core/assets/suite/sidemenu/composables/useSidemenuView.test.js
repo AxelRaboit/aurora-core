@@ -204,8 +204,8 @@ describe("the nav filter", () => {
 
         nav.navFilter.value = "ged_trash";
 
-        const routes = nav.displayedSections.value.flatMap((s) =>
-            s.items.map((i) => i.route),
+        const routes = nav.displayedSections.value.flatMap((section) =>
+            section.items.map((item) => item.route),
         );
         expect(routes).toEqual(["suite_ged_trash"]);
     });
@@ -216,8 +216,8 @@ describe("the nav filter", () => {
         nav.backToProject();
         nav.navFilter.value = "dashboard";
 
-        const routes = nav.displayedSections.value.flatMap((s) =>
-            s.items.map((i) => i.route),
+        const routes = nav.displayedSections.value.flatMap((section) =>
+            section.items.map((item) => item.route),
         );
         expect(routes).toEqual(["suite_dashboard"]);
     });
@@ -240,14 +240,16 @@ describe("what the search palette is offered", () => {
     // The audit's first cost: a destination declared only at module level was
     // findable nowhere. It is now in the palette's index.
     it("includes the open module's destinations alongside the project's", () => {
-        const routes = makeNav(GED_VIEW).navItems.value.map((i) => i.route);
+        const routes = makeNav(GED_VIEW).navItems.value.map(
+            (item) => item.route,
+        );
 
         expect(routes).toContain("suite_dashboard");
         expect(routes).toContain("suite_ged_trash");
     });
 
     it("offers only project destinations when no module view was resolved", () => {
-        const routes = makeNav(null).navItems.value.map((i) => i.route);
+        const routes = makeNav(null).navItems.value.map((item) => item.route);
 
         expect(routes).toEqual(["suite_dashboard", "suite_ged_documents"]);
     });

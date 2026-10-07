@@ -68,7 +68,11 @@ export function useTopbarNavigation() {
             if (navigator.serviceWorker) {
                 const registrations =
                     await navigator.serviceWorker.getRegistrations();
-                await Promise.all(registrations.map((r) => r.unregister()));
+                await Promise.all(
+                    registrations.map((registration) =>
+                        registration.unregister(),
+                    ),
+                );
             }
 
             if (window.caches) {

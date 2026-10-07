@@ -233,7 +233,7 @@ export function useContractFlow({ linkDays = 30 } = {}) {
             (each) => "customer" === each.role,
         );
 
-        const params = {
+        const summaryParameters = {
             sealed: { date: date(contract.frozenAt) },
             refused: { date: date(contract.refusal?.refusedAt) },
             sent: {
@@ -253,7 +253,7 @@ export function useContractFlow({ linkDays = 30 } = {}) {
 
         return t(
             `${PREFIX}.summary.${contract.status}`,
-            params[contract.status] ?? {},
+            summaryParameters[contract.status] ?? {},
         );
     }
 

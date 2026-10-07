@@ -274,7 +274,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
                 'contract' => $contract,
                 'signature' => $signature,
             ],
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }
 
@@ -313,7 +313,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
             // The provider's copy links to the back office; the customer's
             // has no back office to link to.
             context: ['contract' => $contract, 'forProvider' => true],
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }
 
@@ -333,7 +333,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
             template: '@Studio/email/concluded.html.twig',
             context: ['contract' => $contract],
             locale: $contract->getLocale(),
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
             attachments: $attachments,
         );
     }

@@ -51,8 +51,8 @@ function upgrade(root) {
     });
 
     function show(index) {
-        buttons.forEach((button, i) => {
-            const current = i === index;
+        buttons.forEach((button, buttonIndex) => {
+            const current = buttonIndex === index;
 
             button.setAttribute("aria-selected", String(current));
             button.tabIndex = current ? 0 : -1;
@@ -61,7 +61,7 @@ function upgrade(root) {
             button.classList.toggle("border-transparent", !current);
             button.classList.toggle("text-secondary", !current);
 
-            panels[i].hidden = !current;
+            panels[buttonIndex].hidden = !current;
         });
     }
 

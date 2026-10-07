@@ -113,7 +113,7 @@ final class ModuleNavResolver
 
         // Longest first, so the module that claims the most specific prefix is
         // asked for its view before any module that merely claims a stem of it.
-        usort($candidates, static fn (array $a, array $b): int => $b['length'] <=> $a['length']);
+        usort($candidates, static fn (array $left, array $right): int => $right['length'] <=> $left['length']);
 
         foreach ($candidates as $candidate) {
             $view = $this->viewOf($candidate['module']);

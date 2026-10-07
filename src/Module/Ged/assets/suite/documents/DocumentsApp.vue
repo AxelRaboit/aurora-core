@@ -103,26 +103,26 @@ const props = defineProps({
     emptyTrashPath: { type: String, default: "" },
 });
 
-const categoryOptions = props.categories.map((c) => ({ value: c.id, label: c.name }));
+const categoryOptions = props.categories.map((category) => ({ value: category.id, label: category.name }));
 const tagOptions = props.tags.map((tag) => ({ value: tag.id, label: tag.name }));
 // The filters also find what was never filed: « Sans catégorie », « Sans
 // étiquette ». Kept out of the options above, which the edit forms share.
 const filterCategoryOptions = [{ value: NONE, label: t("suite.ged.documents.no_category") }, ...categoryOptions];
 const filterTagOptions = [{ value: NONE, label: t("suite.ged.documents.filter_no_tag") }, ...tagOptions];
 
-const { viewingDoc, viewingDocVersions, viewingDocUsage, viewDoc, closeDetail } = useDocumentDetail(props.versionsPath, props.usagePath);
+const { viewingDocument, viewingDocumentVersions, viewingDocumentUsage, viewDocument, closeDetail } = useDocumentDetail(props.versionsPath, props.usagePath);
 
-const { qrItem: qrDoc, openQr, closeQr } = useQrCode();
+const { qrItem: qrDocument, openQr, closeQr } = useQrCode();
 const { copy } = useClipboard();
 
-function permalinkFor(doc) {
-    return doc.permalink ?? (doc.fileUrl ? window.location.origin + doc.fileUrl : "");
+function permalinkFor(gedDocument) {
+    return gedDocument.permalink ?? (gedDocument.fileUrl ? window.location.origin + gedDocument.fileUrl : "");
 }
 
 const {
     filterCategoryId, filterTagId, filterStatus, filterMimeGroup, filterOriginalsOnly,
     searchIn, filterAddedFrom, filterAddedTo, filterOrientation, filterWeight, moreFiltersCount,
-    hasActiveFilter, extraParams: filterExtraParams, applyFilter, resetFilters,
+    hasActiveFilter, extraParameters: filterExtraParameters, applyFilter, resetFilters,
     // The arrow defers the read: `reset` comes from useListPage, which needs
     // these refs to exist before it is called.
     // eslint-disable-next-line no-use-before-define
@@ -153,7 +153,7 @@ const { selectedIds, isSelecting, toggle: toggleSelect, clear: clearSelection } 
 const {
     folders, currentFolderId, allDocumentsView, rootOnly,
     navigateTo, navigateToRoot, navigateToAll,
-    onListResponse, extraParams: navExtraParams,
+    onListResponse, extraParams: navExtraParameters,
     // eslint-disable-next-line no-use-before-define -- same cycle as above.
 } = useDocumentNavigation(props, () => reset(), clearSelection);
 
@@ -162,12 +162,12 @@ const {
 // double-writing the same query param.
 // The sort is asked of the server; its state is created with the display
 // below, once `items` exists, and plugged in here at request time.
-let sortExtraParams = () => ({});
+let sortExtraParameters = () => ({});
 
 function combinedExtraParams() {
-    const base = filterExtraParams();
+    const base = filterExtraParameters();
     delete base.folderId;
-    return { ...base, ...navExtraParams(), ...sortExtraParams() };
+    return { ...base, ...navExtraParameters(), ...sortExtraParameters() };
 }
 
 const { items, loading, page, totalPages, search: searchInput, onSearch, goToPage, reload: reset } = useListPage(
@@ -187,8 +187,8 @@ function onSearchInChange() {
 
 const {
     statusOptions,
-    showCreate, newDoc, uploadingCreate, createErrors, createLoading, openCreate, onLocalFileCreate, submitCreate,
-    showEdit, editingDoc, editForm, uploadingEdit, editErrors, editLoading, openEdit, onLocalFileEdit, submitEdit,
+    showCreate, newDocument, uploadingCreate, createErrors, createLoading, openCreate, onLocalFileCreate, submitCreate,
+    showEdit, editingDocument, editForm, uploadingEdit, editErrors, editLoading, openEdit, onLocalFileEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
 } = useDocumentsForm(props.createPath, props.updatePath, props.deletePath, reset, props.uploadPath);
 
@@ -199,29 +199,29 @@ const {
     container,
     isNarrow,
     sortBy,
-    sortDir,
+    sortDirection,
     setSort,
-    sortParams,
+    sortParameters,
     displayedItems,
 } = useDocumentsDisplay(items);
-sortExtraParams = sortParams;
+sortExtraParameters = sortParameters;
 // A new order is a new listing, from its first page.
-watch([sortBy, sortDir], () => reset());
+watch([sortBy, sortDirection], () => reset());
 
 // ── Families ─────────────────────────────────────────────────────────────────
 // Which member a family card shows, chosen with its chips. Kept by original
 // id for the page on screen; a reload shows the originals again.
 const previewedMember = ref({});
 
-function familyOf(doc) {
-    return familyMembers(doc);
+function familyOf(gedDocument) {
+    return familyMembers(gedDocument);
 }
 
-function thumbnailShown(doc) {
-    const id = previewedMember.value[doc.id];
-    if (!id || id === doc.id) return doc.thumbnailUrl;
+function thumbnailShown(gedDocument) {
+    const id = previewedMember.value[gedDocument.id];
+    if (!id || id === gedDocument.id) return gedDocument.thumbnailUrl;
 
-    return doc.alternates?.find((member) => member.id === id)?.thumbnailUrl ?? doc.thumbnailUrl;
+    return gedDocument.alternates?.find((member) => member.id === id)?.thumbnailUrl ?? gedDocument.thumbnailUrl;
 }
 
 // "With its alternates" is the default answer when an original is deleted or
@@ -235,12 +235,12 @@ function submitDelete() {
 // Adding a variant from the family strip: the create form, already declared
 // as a variant of this original, with the label left to fill in.
 function startVariant(original) {
-    viewingDoc.value = null;
+    viewingDocument.value = null;
     openCreate();
-    newDoc.value.originalId = original.id;
-    newDoc.value.originalTitle = original.title;
-    newDoc.value.folderId = original.folderId ?? null;
-    newDoc.value.kept = true;
+    newDocument.value.originalId = original.id;
+    newDocument.value.originalTitle = original.title;
+    newDocument.value.folderId = original.folderId ?? null;
+    newDocument.value.kept = true;
 }
 
 const { currentFolder, breadcrumbs, folderEditOptions } = useDocumentSidebarTree(folders, currentFolderId);
@@ -287,7 +287,7 @@ const { relocate } = useDocumentRelocation(props, items);
 
 const documentActions = useDocumentRowActions({
     can,
-    viewDoc,
+    viewDocument,
     openQr,
     openEdit,
     confirmDelete,
@@ -364,22 +364,22 @@ const bulkActions = computed(() => {
     return actions;
 });
 
-const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
+const { cropTarget, onCropped } = useDocumentCrop(viewingDocument, reset);
 
 // The document a colour alternate is being made from. The new copy is opened
 // once made, so it can be checked straight away, and the listing reloaded.
 const recolorTarget = ref(null);
-const canRecolor = (doc) => !!props.recolorPath && can("ged.documents.create") && /^image\/(png|jpe?g|webp)$/.test(doc?.fileMime ?? "");
+const canRecolor = (gedDocument) => !!props.recolorPath && can("ged.documents.create") && /^image\/(png|jpe?g|webp)$/.test(gedDocument?.fileMime ?? "");
 
 function onRecolored(created) {
     recolorTarget.value = null;
     reset();
-    if (created) viewDoc(created);
+    if (created) viewDocument(created);
 }
 
 // Whether the selection holds an original with alternates: only then is
 // "with its alternates" a question worth asking.
-const selectedHaveAlternates = computed(() => items.value.some((doc) => selectedIds.value.has(doc.id) && doc.alternateCount > 0));
+const selectedHaveAlternates = computed(() => items.value.some((gedDocument) => selectedIds.value.has(gedDocument.id) && gedDocument.alternateCount > 0));
 
 const {
     pendingDisk: relocateAllDisk,
@@ -614,16 +614,16 @@ const pageActions = computed(() => {
                 <div class="flex flex-wrap items-center gap-1.5">
                     <div class="flex gap-1 border border-line rounded-lg p-0.5">
                         <AppTab
-                            v-for="s in DOCUMENT_SORT_FIELDS"
-                            :key="s.key"
+                            v-for="sortField in DOCUMENT_SORT_FIELDS"
+                            :key="sortField.key"
                             size="xs"
-                            :active="sortBy === s.key"
-                            :title="s.labelKey ? t(s.labelKey) : s.label"
-                            v-on:click="setSort(s.key)"
+                            :active="sortBy === sortField.key"
+                            :title="sortField.labelKey ? t(sortField.labelKey) : sortField.label"
+                            v-on:click="setSort(sortField.key)"
                         >
-                            {{ s.labelKey ? t(s.labelKey) : s.label }}
-                            <SortAsc v-if="sortBy === s.key && sortDir === 'asc'" class="w-3 h-3" :stroke-width="2" />
-                            <SortDesc v-else-if="sortBy === s.key" class="w-3 h-3" :stroke-width="2" />
+                            {{ sortField.labelKey ? t(sortField.labelKey) : sortField.label }}
+                            <SortAsc v-if="sortBy === sortField.key && sortDirection === 'asc'" class="w-3 h-3" :stroke-width="2" />
+                            <SortDesc v-else-if="sortBy === sortField.key" class="w-3 h-3" :stroke-width="2" />
                         </AppTab>
                     </div>
                     <!-- Absent where it is already refused: a narrow container
@@ -670,33 +670,33 @@ const pageActions = computed(() => {
                     <!-- Grid view -->
                     <div v-if="viewMode === 'grid' && displayedItems?.length" class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                         <div
-                            v-for="doc in displayedItems"
-                            :key="doc.id"
+                            v-for="gedDocument in displayedItems"
+                            :key="gedDocument.id"
                             class="group relative bg-surface border rounded-lg overflow-hidden transition-colors cursor-pointer"
                             :class="[
-                                selectedIds.has(doc.id) ? 'border-accent-400 ring-2 ring-accent-500' : 'border-line hover:border-accent-400',
+                                selectedIds.has(gedDocument.id) ? 'border-accent-400 ring-2 ring-accent-500' : 'border-line hover:border-accent-400',
                                 // A family reads as a stack: two edges behind the card.
-                                doc.alternates?.length ? 'shadow-[3px_-3px_0_-1px_var(--color-surface-3),6px_-6px_0_-2px_var(--color-surface-2)] mt-1.5 mr-1.5' : '',
+                                gedDocument.alternates?.length ? 'shadow-[3px_-3px_0_-1px_var(--color-surface-3),6px_-6px_0_-2px_var(--color-surface-2)] mt-1.5 mr-1.5' : '',
                             ]"
                             draggable="true"
-                            v-on:click="isSelecting ? toggleSelect(doc.id) : viewDoc(doc)"
-                            v-on:dragstart="onDocumentDragStart($event, doc)"
+                            v-on:click="isSelecting ? toggleSelect(gedDocument.id) : viewDocument(gedDocument)"
+                            v-on:dragstart="onDocumentDragStart($event, gedDocument)"
                         >
-                            <div v-if="isSelecting" class="absolute top-1.5 left-1.5 z-10" v-on:click.stop="toggleSelect(doc.id)">
-                                <AppSelectionCheck :active="selectedIds.has(doc.id)" />
+                            <div v-if="isSelecting" class="absolute top-1.5 left-1.5 z-10" v-on:click.stop="toggleSelect(gedDocument.id)">
+                                <AppSelectionCheck :active="selectedIds.has(gedDocument.id)" />
                             </div>
                             <div class="relative aspect-square bg-surface-2 flex items-center justify-center overflow-hidden">
                                 <AppImage
-                                    v-if="thumbnailShown(doc)"
-                                    :key="thumbnailShown(doc)"
-                                    :src="thumbnailShown(doc)"
-                                    :alt="doc.fileName ?? doc.title"
+                                    v-if="thumbnailShown(gedDocument)"
+                                    :key="thumbnailShown(gedDocument)"
+                                    :src="thumbnailShown(gedDocument)"
+                                    :alt="gedDocument.fileName ?? gedDocument.title"
                                     object-fit="cover"
                                 />
-                                <FileText v-else-if="doc.fileMime === 'application/pdf'" class="w-12 h-12 text-rose-400" :stroke-width="1.5" />
-                                <Paperclip v-else-if="doc.fileUrl" class="w-10 h-10 text-muted" :stroke-width="1.5" />
+                                <FileText v-else-if="gedDocument.fileMime === 'application/pdf'" class="w-12 h-12 text-rose-400" :stroke-width="1.5" />
+                                <Paperclip v-else-if="gedDocument.fileUrl" class="w-10 h-10 text-muted" :stroke-width="1.5" />
                                 <FileText v-else class="w-10 h-10 text-muted" :stroke-width="1.5" />
-                                <AppBadge v-if="doc.status" :color="DOCUMENT_STATUS_BADGE[doc.status]" class="absolute top-1 right-1">{{ doc.statusLabel }}</AppBadge>
+                                <AppBadge v-if="gedDocument.status" :color="DOCUMENT_STATUS_BADGE[gedDocument.status]" class="absolute top-1 right-1">{{ gedDocument.statusLabel }}</AppBadge>
                                 <!-- **By finger, a button; by mouse, the
                                      hover.** The three actions of this
                                      thumbnail lived in an overlay that only
@@ -710,11 +710,11 @@ const pageActions = computed(() => {
                                     class="absolute bottom-1 right-1 sm:hidden"
                                     v-on:click.stop
                                 >
-                                    <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
+                                    <AppRowActions :actions="documentActions(gedDocument)" :label="gedDocument.title ?? ''" />
                                 </div>
 
                                 <div v-if="!isSelecting" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center justify-center gap-1.5">
-                                    <AppOverlayIconButton size="sm" variant="light" :title="t('shared.common.view')" v-on:click.stop="viewDoc(doc)">
+                                    <AppOverlayIconButton size="sm" variant="light" :title="t('shared.common.view')" v-on:click.stop="viewDocument(gedDocument)">
                                         <Eye class="w-4 h-4" :stroke-width="2" />
                                     </AppOverlayIconButton>
                                     <AppOverlayIconButton
@@ -722,50 +722,50 @@ const pageActions = computed(() => {
                                         size="sm"
                                         variant="light"
                                         :title="t('shared.common.edit')"
-                                        v-on:click.stop="openEdit(doc)"
+                                        v-on:click.stop="openEdit(gedDocument)"
                                     >
                                         <Pencil class="w-4 h-4" :stroke-width="2" />
                                     </AppOverlayIconButton>
                                     <AppOverlayIconButton
-                                        v-if="doc.fileUrl"
+                                        v-if="gedDocument.fileUrl"
                                         size="sm"
                                         variant="light"
                                         :title="t('shared.common.qr_code')"
-                                        v-on:click.stop="openQr(doc)"
+                                        v-on:click.stop="openQr(gedDocument)"
                                     >
                                         <QrCode class="w-4 h-4" :stroke-width="2" />
                                     </AppOverlayIconButton>
                                 </div>
                             </div>
                             <div class="p-2 space-y-1">
-                                <div class="text-xs font-medium text-primary truncate" :title="doc.title">{{ doc.title }}</div>
-                                <div v-if="doc.reference" class="text-xs text-muted font-mono truncate">{{ doc.reference }}</div>
+                                <div class="text-xs font-medium text-primary truncate" :title="gedDocument.title">{{ gedDocument.title }}</div>
+                                <div v-if="gedDocument.reference" class="text-xs text-muted font-mono truncate">{{ gedDocument.reference }}</div>
                                 <div class="text-xs text-muted">
-                                    <span v-if="doc.fileSize">{{ formatSize(doc.fileSize) }}</span>
-                                    <span v-if="doc.width && doc.height"><span v-if="doc.fileSize"> · </span>{{ doc.width }}×{{ doc.height }}</span>
-                                    <span v-if="doc.categoryName"><span v-if="doc.fileSize || doc.width"> · </span>{{ doc.categoryName }}</span>
+                                    <span v-if="gedDocument.fileSize">{{ formatSize(gedDocument.fileSize) }}</span>
+                                    <span v-if="gedDocument.width && gedDocument.height"><span v-if="gedDocument.fileSize"> · </span>{{ gedDocument.width }}×{{ gedDocument.height }}</span>
+                                    <span v-if="gedDocument.categoryName"><span v-if="gedDocument.fileSize || gedDocument.width"> · </span>{{ gedDocument.categoryName }}</span>
                                 </div>
-                                <div v-if="doc.folderName" class="text-xs text-accent-400/80 truncate flex items-center gap-1">
-                                    <Folder class="w-2.5 h-2.5 shrink-0" :stroke-width="2" />{{ doc.folderName }}
+                                <div v-if="gedDocument.folderName" class="text-xs text-accent-400/80 truncate flex items-center gap-1">
+                                    <Folder class="w-2.5 h-2.5 shrink-0" :stroke-width="2" />{{ gedDocument.folderName }}
                                 </div>
                                 <DocumentFamilyChips
-                                    v-if="familyOf(doc).length"
-                                    v-model="previewedMember[doc.id]"
-                                    :members="familyOf(doc)"
+                                    v-if="familyOf(gedDocument).length"
+                                    v-model="previewedMember[gedDocument.id]"
+                                    :members="familyOf(gedDocument)"
                                 />
                                 <DocumentFamilyUsage
-                                    v-if="familyOf(doc).length"
-                                    :members="familyOf(doc)"
+                                    v-if="familyOf(gedDocument).length"
+                                    :members="familyOf(gedDocument)"
                                 />
-                                <div v-if="doc.tags?.length || storageRelocationAvailable || 0 === doc.usageCount || doc.kept || doc.alternateCount || doc.originalId" class="flex flex-wrap items-center gap-1 pt-0.5">
-                                    <DocumentStateBadges :doc="doc" v-on:open-family="viewDoc" />
+                                <div v-if="gedDocument.tags?.length || storageRelocationAvailable || 0 === gedDocument.usageCount || gedDocument.kept || gedDocument.alternateCount || gedDocument.originalId" class="flex flex-wrap items-center gap-1 pt-0.5">
+                                    <DocumentStateBadges :doc="gedDocument" v-on:open-family="viewDocument" />
                                     <DocumentStorageChip
                                         v-if="storageRelocationAvailable"
-                                        :disk="doc.storageDisk"
-                                        :state="doc.storageTransferState"
-                                        :error="doc.storageTransferError"
+                                        :disk="gedDocument.storageDisk"
+                                        :state="gedDocument.storageTransferState"
+                                        :error="gedDocument.storageTransferError"
                                     />
-                                    <DocumentTagChip v-for="tag in doc.tags" :key="tag.id" :tag="tag" />
+                                    <DocumentTagChip v-for="tag in gedDocument.tags" :key="tag.id" :tag="tag" />
                                 </div>
                             </div>
                         </div>
@@ -797,26 +797,26 @@ const pageActions = computed(() => {
                             </thead>
                             <tbody class="divide-y divide-line/40">
                                 <tr
-                                    v-for="doc in displayedItems"
-                                    :key="doc.id"
+                                    v-for="gedDocument in displayedItems"
+                                    :key="gedDocument.id"
                                     class="group hover:bg-surface-2/40 transition-colors"
-                                    :class="{ 'bg-accent-500/10': isSelecting && selectedIds.has(doc.id), 'cursor-pointer': isSelecting }"
+                                    :class="{ 'bg-accent-500/10': isSelecting && selectedIds.has(gedDocument.id), 'cursor-pointer': isSelecting }"
                                     draggable="true"
-                                    v-on:click="isSelecting ? toggleSelect(doc.id) : null"
-                                    v-on:dragstart="onDocumentDragStart($event, doc)"
+                                    v-on:click="isSelecting ? toggleSelect(gedDocument.id) : null"
+                                    v-on:dragstart="onDocumentDragStart($event, gedDocument)"
                                 >
-                                    <td v-if="isSelecting" class="px-3 py-3" v-on:click.stop="toggleSelect(doc.id)">
-                                        <CheckSquare v-if="selectedIds.has(doc.id)" class="w-4 h-4 text-accent-400" :stroke-width="2" />
+                                    <td v-if="isSelecting" class="px-3 py-3" v-on:click.stop="toggleSelect(gedDocument.id)">
+                                        <CheckSquare v-if="selectedIds.has(gedDocument.id)" class="w-4 h-4 text-accent-400" :stroke-width="2" />
                                         <Square v-else class="w-4 h-4 text-muted" :stroke-width="2" />
                                     </td>
                                     <td class="px-4 py-2">
-                                        <p class="font-medium text-primary">{{ doc.title }}</p>
+                                        <p class="font-medium text-primary">{{ gedDocument.title }}</p>
                                         <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-                                            <span v-if="doc.reference" class="text-xs text-muted font-mono">{{ doc.reference }}</span>
-                                            <span v-if="doc.folderName" class="text-xs text-muted flex items-center gap-0.5">
-                                                <Folder class="w-3 h-3" :stroke-width="2" /> {{ doc.folderName }}
+                                            <span v-if="gedDocument.reference" class="text-xs text-muted font-mono">{{ gedDocument.reference }}</span>
+                                            <span v-if="gedDocument.folderName" class="text-xs text-muted flex items-center gap-0.5">
+                                                <Folder class="w-3 h-3" :stroke-width="2" /> {{ gedDocument.folderName }}
                                             </span>
-                                            <DocumentTagChip v-for="tag in doc.tags" :key="tag.id" :tag="tag" />
+                                            <DocumentTagChip v-for="tag in gedDocument.tags" :key="tag.id" :tag="tag" />
                                             <!-- **Only when nothing displays it.** A count on
                                                  every row would fill the list with a figure that
                                                  is of no use: what you look for here is what you
@@ -824,29 +824,29 @@ const pageActions = computed(() => {
                                                  in use therefore carry no mark, and the eye
                                                  lands on the others. The detail of who uses it
                                                  opens with the document. -->
-                                            <DocumentStateBadges :doc="doc" v-on:open-family="viewDoc" />
+                                            <DocumentStateBadges :doc="gedDocument" v-on:open-family="viewDocument" />
                                             <DocumentFamilyChips
-                                                v-if="familyOf(doc).length"
-                                                v-model="previewedMember[doc.id]"
-                                                :members="familyOf(doc)"
+                                                v-if="familyOf(gedDocument).length"
+                                                v-model="previewedMember[gedDocument.id]"
+                                                :members="familyOf(gedDocument)"
                                             />
                                             <DocumentFamilyUsage
-                                                v-if="familyOf(doc).length"
+                                                v-if="familyOf(gedDocument).length"
                                                 class="basis-full"
-                                                :members="familyOf(doc)"
+                                                :members="familyOf(gedDocument)"
                                             />
                                         </div>
                                     </td>
-                                    <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ doc.categoryName ?? t("suite.ged.documents.no_category") }}</td>
+                                    <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ gedDocument.categoryName ?? t("suite.ged.documents.no_category") }}</td>
                                     <td class="px-4 py-2 hidden lg:table-cell">
-                                        <AppBadge :color="DOCUMENT_STATUS_BADGE[doc.status]">{{ doc.statusLabel }}</AppBadge>
+                                        <AppBadge :color="DOCUMENT_STATUS_BADGE[gedDocument.status]">{{ gedDocument.statusLabel }}</AppBadge>
                                     </td>
                                     <td class="px-4 py-2 hidden lg:table-cell">
-                                        <span v-if="doc.fileName" class="flex items-center gap-1 text-xs text-muted"><Paperclip class="w-3 h-3" :stroke-width="2" /> {{ doc.fileName }}</span>
+                                        <span v-if="gedDocument.fileName" class="flex items-center gap-1 text-xs text-muted"><Paperclip class="w-3 h-3" :stroke-width="2" /> {{ gedDocument.fileName }}</span>
                                         <span v-else class="text-muted text-xs">-</span>
                                     </td>
                                     <td class="px-4 py-2 text-right hidden lg:table-cell text-xs text-muted tabular-nums">
-                                        <span v-if="doc.fileSize">{{ formatSize(doc.fileSize) }}</span>
+                                        <span v-if="gedDocument.fileSize">{{ formatSize(gedDocument.fileSize) }}</span>
                                         <span v-else>-</span>
                                     </td>
                                     <!-- A column of its own rather than a chip tucked under the title:
@@ -855,9 +855,9 @@ const pageActions = computed(() => {
                                          while a single suite exists, like the chip. -->
                                     <td v-if="storageRelocationAvailable" class="px-4 py-2 hidden lg:table-cell">
                                         <DocumentStorageChip
-                                            :disk="doc.storageDisk"
-                                            :state="doc.storageTransferState"
-                                            :error="doc.storageTransferError"
+                                            :disk="gedDocument.storageDisk"
+                                            :state="gedDocument.storageTransferState"
+                                            :error="gedDocument.storageTransferError"
                                         />
                                     </td>
                                     <td class="px-4 py-2 hidden xl:table-cell">
@@ -865,32 +865,32 @@ const pageActions = computed(() => {
                                              thumbnail here looked identical and did nothing. Same target, so
                                              the same affordance: a real button, reachable by keyboard. -->
                                         <button
-                                            v-if="doc.fileUrl || doc.thumbnailUrl"
+                                            v-if="gedDocument.fileUrl || gedDocument.thumbnailUrl"
                                             type="button"
                                             class="group/preview flex items-center gap-1.5 rounded transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface cursor-pointer"
-                                            :aria-label="t('suite.ged.documents.preview_of', { name: doc.title ?? doc.fileName ?? '' })"
-                                            v-on:click.stop="isSelecting ? toggleSelect(doc.id) : viewDoc(doc)"
+                                            :aria-label="t('suite.ged.documents.preview_of', { name: gedDocument.title ?? gedDocument.fileName ?? '' })"
+                                            v-on:click.stop="isSelecting ? toggleSelect(gedDocument.id) : viewDocument(gedDocument)"
                                         >
                                             <AppThumbnail
-                                                v-if="doc.thumbnailUrl"
-                                                :src="doc.thumbnailUrl"
-                                                :alt="doc.fileName"
+                                                v-if="gedDocument.thumbnailUrl"
+                                                :src="gedDocument.thumbnailUrl"
+                                                :alt="gedDocument.fileName"
                                                 size="landscape"
                                             />
-                                            <template v-else-if="doc.fileMime === 'application/pdf'">
+                                            <template v-else-if="gedDocument.fileMime === 'application/pdf'">
                                                 <FileText class="w-5 h-5 shrink-0 text-rose-400" :stroke-width="1.5" />
                                                 <span class="text-xs text-muted">PDF</span>
                                             </template>
                                             <template v-else>
                                                 <FileText class="w-5 h-5 shrink-0" :stroke-width="1.5" />
-                                                <span class="text-xs text-muted">{{ doc.fileMime ?? '-' }}</span>
+                                                <span class="text-xs text-muted">{{ gedDocument.fileMime ?? '-' }}</span>
                                             </template>
                                         </button>
                                         <span v-else class="text-muted text-xs">-</span>
                                     </td>
                                     <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                                         <div class="flex items-center justify-end gap-0.5">
-                                            <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
+                                            <AppRowActions :actions="documentActions(gedDocument)" :label="gedDocument.title ?? ''" />
                                         </div>
                                     </td>
                                 </tr>
@@ -916,19 +916,19 @@ const pageActions = computed(() => {
         >
             <div class="space-y-4">
                 <AppInput
-                    v-model="newDoc.title"
+                    v-model="newDocument.title"
                     :label="t('suite.ged.documents.title')"
                     :placeholder="t('suite.ged.documents.title_placeholder')"
                     :error="createErrors.title"
                     required
                 />
-                <AppInput v-model="newDoc.description" :label="t('suite.ged.documents.description')" :placeholder="t('suite.ged.documents.description_placeholder')" />
-                <template v-if="newDoc.mimeType?.startsWith('image/')">
-                    <AppInput v-model="newDoc.alt" :label="t('suite.ged.documents.alt')" :placeholder="t('suite.ged.documents.alt_placeholder')" />
-                    <AppInput v-model="newDoc.caption" :label="t('suite.ged.documents.caption')" :placeholder="t('suite.ged.documents.caption_placeholder')" />
+                <AppInput v-model="newDocument.description" :label="t('suite.ged.documents.description')" :placeholder="t('suite.ged.documents.description_placeholder')" />
+                <template v-if="newDocument.mimeType?.startsWith('image/')">
+                    <AppInput v-model="newDocument.alt" :label="t('suite.ged.documents.alt')" :placeholder="t('suite.ged.documents.alt_placeholder')" />
+                    <AppInput v-model="newDocument.caption" :label="t('suite.ged.documents.caption')" :placeholder="t('suite.ged.documents.caption_placeholder')" />
                 </template>
                 <AppMultiselect
-                    v-model="newDoc.categoryId"
+                    v-model="newDocument.categoryId"
                     :label="t('suite.ged.documents.category')"
                     :options="categoryOptions"
                     :allow-empty="true"
@@ -936,7 +936,7 @@ const pageActions = computed(() => {
                 />
                 <AppMultiselect
                     v-if="tags.length"
-                    v-model="newDoc.tagIds"
+                    v-model="newDocument.tagIds"
                     :label="t('suite.ged.documents.tags')"
                     :options="tagOptions"
                     :multiple="true"
@@ -945,7 +945,7 @@ const pageActions = computed(() => {
                 />
                 <AppMultiselect
                     v-if="folders.length"
-                    v-model="newDoc.folderId"
+                    v-model="newDocument.folderId"
                     :label="t('suite.ged.documents.folder')"
                     :options="folderEditOptions"
                     :allow-empty="true"
@@ -954,7 +954,7 @@ const pageActions = computed(() => {
                     option-label="displayLabel"
                 />
                 <AppMultiselect
-                    v-model="newDoc.status"
+                    v-model="newDocument.status"
                     :label="t('suite.ged.documents.status')"
                     :options="statusOptions"
                     :allow-empty="false"
@@ -974,15 +974,15 @@ const pageActions = computed(() => {
                             </AppButton>
                         </template>
                     </AppFileInput>
-                    <span v-if="newDoc.originalName ?? newDoc.fileName" class="text-sm text-muted flex items-center gap-1"><FileText class="w-4 h-4" :stroke-width="2" /> {{ newDoc.originalName ?? newDoc.fileName }}</span>
+                    <span v-if="newDocument.originalName ?? newDocument.fileName" class="text-sm text-muted flex items-center gap-1"><FileText class="w-4 h-4" :stroke-width="2" /> {{ newDocument.originalName ?? newDocument.fileName }}</span>
                 </div>
                 <!-- A new document can be born a variant, from the family strip
                      or by choosing its original here. -->
                 <DocumentFamilyFields
-                    v-model:kept="newDoc.kept"
-                    v-model:original-id="newDoc.originalId"
-                    v-model:original-title="newDoc.originalTitle"
-                    v-model:label="newDoc.alternateLabel"
+                    v-model:kept="newDocument.kept"
+                    v-model:original-id="newDocument.originalId"
+                    v-model:original-title="newDocument.originalTitle"
+                    v-model:label="newDocument.alternateLabel"
                     :alternates-path="alternatesPath"
                     :show-path="showPath"
                     :error="createErrors.originalId"
@@ -1000,19 +1000,19 @@ const pageActions = computed(() => {
         <!-- Edit modal -->
         <AppModal
             :show="showEdit"
-            :title="t('suite.ged.documents.edit', { title: editingDoc?.title ?? '' })"
+            :title="t('suite.ged.documents.edit', { title: editingDocument?.title ?? '' })"
             :icon="Pencil"
             max-width="4xl"
             :closeable="false"
             v-on:close="showEdit = false"
         >
-            <div :class="editingDoc?.fileUrl ? 'grid grid-cols-1 md:grid-cols-2 gap-5 items-start' : 'space-y-4'">
+            <div :class="editingDocument?.fileUrl ? 'grid grid-cols-1 md:grid-cols-2 gap-5 items-start' : 'space-y-4'">
                 <AppFilePreview
-                    v-if="editingDoc?.fileUrl"
-                    :url="editingDoc.fileUrl"
-                    :mime="editingDoc.fileMime"
-                    :name="editingDoc.fileName"
-                    :alt="editingDoc.alt ?? editingDoc.title"
+                    v-if="editingDocument?.fileUrl"
+                    :url="editingDocument.fileUrl"
+                    :mime="editingDocument.fileMime"
+                    :name="editingDocument.fileName"
+                    :alt="editingDocument.alt ?? editingDocument.title"
                     max-height="28rem"
                     class="md:sticky md:top-0"
                 />
@@ -1084,7 +1084,7 @@ const pageActions = computed(() => {
                         v-model:original-id="editForm.originalId"
                         v-model:original-title="editForm.originalTitle"
                         v-model:label="editForm.alternateLabel"
-                        :doc="editingDoc"
+                        :doc="editingDocument"
                         :alternates-path="alternatesPath"
                         :show-path="showPath"
                         :error="editErrors.originalId"
@@ -1206,22 +1206,22 @@ const pageActions = computed(() => {
 
         <!-- Detail modal -->
         <AppModal
-            :show="!!viewingDoc"
-            :title="viewingDoc?.title ?? ''"
+            :show="!!viewingDocument"
+            :title="viewingDocument?.title ?? ''"
             :icon="FileText"
             max-width="5xl"
             :closeable="false"
-            v-on:close="viewingDoc = null"
+            v-on:close="viewingDocument = null"
         >
-            <template v-if="viewingDoc">
+            <template v-if="viewingDocument">
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
-                    <div v-if="viewingDoc.fileUrl" class="lg:col-span-3 rounded-lg border border-line overflow-hidden">
-                        <AppImagePreview v-if="viewingDoc.fileMime?.startsWith('image/')" :src="viewingDoc.fileUrl" :alt="viewingDoc.alt ?? viewingDoc.fileName" full />
+                    <div v-if="viewingDocument.fileUrl" class="lg:col-span-3 rounded-lg border border-line overflow-hidden">
+                        <AppImagePreview v-if="viewingDocument.fileMime?.startsWith('image/')" :src="viewingDocument.fileUrl" :alt="viewingDocument.alt ?? viewingDocument.fileName" full />
                         <iframe
-                            v-else-if="viewingDoc.fileMime === 'application/pdf'"
-                            :src="viewingDoc.fileUrl"
+                            v-else-if="viewingDocument.fileMime === 'application/pdf'"
+                            :src="viewingDocument.fileUrl"
                             class="w-full h-144"
-                            :title="viewingDoc.fileName"
+                            :title="viewingDocument.fileName"
                         />
                         <!-- A film used to land in the generic branch below and show a
                              paper icon: the one file type whose whole point is to be
@@ -1230,115 +1230,115 @@ const pageActions = computed(() => {
                              opening a document here asked for that document, and the
                              duration is part of what they came to check. -->
                         <video
-                            v-else-if="viewingDoc.fileMime?.startsWith('video/')"
+                            v-else-if="viewingDocument.fileMime?.startsWith('video/')"
                             class="block w-full max-h-144 bg-black"
                             controls
                             playsinline
                             preload="metadata"
-                            :poster="viewingDoc.thumbnailUrl ?? undefined"
+                            :poster="viewingDocument.thumbnailUrl ?? undefined"
                         >
-                            <source :src="viewingDoc.fileUrl" :type="viewingDoc.fileMime">
+                            <source :src="viewingDocument.fileUrl" :type="viewingDocument.fileMime">
                         </video>
                         <audio
-                            v-else-if="viewingDoc.fileMime?.startsWith('audio/')"
+                            v-else-if="viewingDocument.fileMime?.startsWith('audio/')"
                             class="block w-full p-4"
                             controls
                             preload="metadata"
-                            :src="viewingDoc.fileUrl"
+                            :src="viewingDocument.fileUrl"
                         />
                         <div v-else class="flex flex-col items-center justify-center gap-3 px-4 py-16 bg-surface-2">
                             <FileText class="w-16 h-16 text-muted" :stroke-width="1.25" />
-                            <p class="text-sm font-medium text-primary truncate max-w-full">{{ viewingDoc.fileName }}</p>
-                            <p v-if="viewingDoc.fileMime" class="text-xs text-muted">{{ viewingDoc.fileMime }}</p>
+                            <p class="text-sm font-medium text-primary truncate max-w-full">{{ viewingDocument.fileName }}</p>
+                            <p v-if="viewingDocument.fileMime" class="text-xs text-muted">{{ viewingDocument.fileMime }}</p>
                         </div>
                     </div>
 
-                    <div :class="viewingDoc.fileUrl ? 'lg:col-span-2 space-y-4' : 'lg:col-span-5 space-y-4'">
+                    <div :class="viewingDocument.fileUrl ? 'lg:col-span-2 space-y-4' : 'lg:col-span-5 space-y-4'">
                         <div class="flex items-center gap-3 flex-wrap">
-                            <AppBadge :color="DOCUMENT_STATUS_BADGE[viewingDoc.status]">{{ viewingDoc.statusLabel }}</AppBadge>
-                            <span v-if="viewingDoc.reference" class="text-xs text-muted font-mono">{{ viewingDoc.reference }}</span>
+                            <AppBadge :color="DOCUMENT_STATUS_BADGE[viewingDocument.status]">{{ viewingDocument.statusLabel }}</AppBadge>
+                            <span v-if="viewingDocument.reference" class="text-xs text-muted font-mono">{{ viewingDocument.reference }}</span>
                         </div>
 
-                        <p v-if="viewingDoc.description" class="text-sm text-secondary leading-relaxed">{{ viewingDoc.description }}</p>
+                        <p v-if="viewingDocument.description" class="text-sm text-secondary leading-relaxed">{{ viewingDocument.description }}</p>
 
                         <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                            <div v-if="viewingDoc.categoryName">
+                            <div v-if="viewingDocument.categoryName">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.category") }}</dt>
-                                <dd class="text-primary">{{ viewingDoc.categoryName }}</dd>
+                                <dd class="text-primary">{{ viewingDocument.categoryName }}</dd>
                             </div>
-                            <div v-if="viewingDoc.folderName">
+                            <div v-if="viewingDocument.folderName">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.folder") }}</dt>
-                                <dd class="text-primary flex items-center gap-1"><Folder class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" /> {{ viewingDoc.folderName }}</dd>
+                                <dd class="text-primary flex items-center gap-1"><Folder class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" /> {{ viewingDocument.folderName }}</dd>
                             </div>
-                            <div v-if="viewingDoc.fileName">
+                            <div v-if="viewingDocument.fileName">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.file") }}</dt>
-                                <dd class="text-secondary truncate" :title="viewingDoc.fileName">{{ viewingDoc.fileName }}</dd>
+                                <dd class="text-secondary truncate" :title="viewingDocument.fileName">{{ viewingDocument.fileName }}</dd>
                             </div>
-                            <div v-if="viewingDoc.fileSize">
+                            <div v-if="viewingDocument.fileSize">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.size") }}</dt>
-                                <dd class="text-secondary tabular-nums">{{ formatSize(viewingDoc.fileSize) }}</dd>
+                                <dd class="text-secondary tabular-nums">{{ formatSize(viewingDocument.fileSize) }}</dd>
                             </div>
-                            <div v-if="viewingDoc.width && viewingDoc.height">
+                            <div v-if="viewingDocument.width && viewingDocument.height">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.dimensions") }}</dt>
-                                <dd class="text-secondary tabular-nums">{{ viewingDoc.width }}×{{ viewingDoc.height }}</dd>
+                                <dd class="text-secondary tabular-nums">{{ viewingDocument.width }}×{{ viewingDocument.height }}</dd>
                             </div>
-                            <div v-if="viewingDoc.fileMime">
+                            <div v-if="viewingDocument.fileMime">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.type") }}</dt>
-                                <dd class="text-secondary">{{ viewingDoc.fileMime }}</dd>
+                                <dd class="text-secondary">{{ viewingDocument.fileMime }}</dd>
                             </div>
                             <div v-if="storageRelocationAvailable">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.storage.column") }}</dt>
                                 <dd>
                                     <DocumentStorageChip
-                                        :disk="viewingDoc.storageDisk"
-                                        :state="viewingDoc.storageTransferState"
-                                        :error="viewingDoc.storageTransferError"
+                                        :disk="viewingDocument.storageDisk"
+                                        :state="viewingDocument.storageTransferState"
+                                        :error="viewingDocument.storageTransferError"
                                     />
                                 </dd>
                             </div>
                             <div>
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("shared.common.created") }}</dt>
-                                <dd class="text-secondary">{{ formatDate(viewingDoc.createdAt) }}</dd>
+                                <dd class="text-secondary">{{ formatDate(viewingDocument.createdAt) }}</dd>
                             </div>
                             <div>
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("shared.common.updated") }}</dt>
-                                <dd class="text-secondary">{{ formatDate(viewingDoc.updatedAt) }}</dd>
+                                <dd class="text-secondary">{{ formatDate(viewingDocument.updatedAt) }}</dd>
                             </div>
                         </dl>
 
-                        <dl v-if="viewingDoc.fileMime?.startsWith('image/') && (viewingDoc.alt || viewingDoc.caption)" class="space-y-3 text-sm">
-                            <div v-if="viewingDoc.alt">
+                        <dl v-if="viewingDocument.fileMime?.startsWith('image/') && (viewingDocument.alt || viewingDocument.caption)" class="space-y-3 text-sm">
+                            <div v-if="viewingDocument.alt">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.alt") }}</dt>
-                                <dd class="text-primary">{{ viewingDoc.alt }}</dd>
+                                <dd class="text-primary">{{ viewingDocument.alt }}</dd>
                             </div>
-                            <div v-if="viewingDoc.caption">
+                            <div v-if="viewingDocument.caption">
                                 <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.caption") }}</dt>
-                                <dd class="text-primary">{{ viewingDoc.caption }}</dd>
+                                <dd class="text-primary">{{ viewingDocument.caption }}</dd>
                             </div>
                         </dl>
 
-                        <div v-if="viewingDoc.fileUrl">
+                        <div v-if="viewingDocument.fileUrl">
                             <dt class="text-xs text-muted uppercase tracking-wide mb-0.5">{{ t("suite.ged.documents.permalink") }}</dt>
                             <div class="flex items-center gap-2">
-                                <code class="text-xs text-secondary bg-surface-2 rounded px-2 py-1 truncate flex-1">{{ permalinkFor(viewingDoc) }}</code>
-                                <AppIconButton color="default" :title="t('shared.common.copy')" v-on:click="copy(permalinkFor(viewingDoc))">
+                                <code class="text-xs text-secondary bg-surface-2 rounded px-2 py-1 truncate flex-1">{{ permalinkFor(viewingDocument) }}</code>
+                                <AppIconButton color="default" :title="t('shared.common.copy')" v-on:click="copy(permalinkFor(viewingDocument))">
                                     <Copy class="w-4 h-4" :stroke-width="2" />
                                 </AppIconButton>
                             </div>
                         </div>
 
-                        <div v-if="viewingDoc.tags?.length" class="flex flex-wrap gap-1.5">
-                            <DocumentTagChip v-for="tag in viewingDoc.tags" :key="tag.id" :tag="tag" />
+                        <div v-if="viewingDocument.tags?.length" class="flex flex-wrap gap-1.5">
+                            <DocumentTagChip v-for="tag in viewingDocument.tags" :key="tag.id" :tag="tag" />
                         </div>
 
-                        <div v-if="viewingDocVersions.length > 1" class="space-y-2">
+                        <div v-if="viewingDocumentVersions.length > 1" class="space-y-2">
                             <p class="text-xs text-muted uppercase tracking-wide">{{ t("suite.ged.documents.versions") }}</p>
                             <div class="divide-y divide-line/40 rounded-lg border border-line overflow-hidden">
                                 <div
-                                    v-for="version in viewingDocVersions"
+                                    v-for="version in viewingDocumentVersions"
                                     :key="version.id"
                                     class="flex items-center gap-3 px-3 py-2 text-sm"
-                                    :class="version.versionNumber === viewingDocVersions[0].versionNumber ? 'bg-accent/5' : 'bg-surface'"
+                                    :class="version.versionNumber === viewingDocumentVersions[0].versionNumber ? 'bg-accent/5' : 'bg-surface'"
                                 >
                                     <span class="shrink-0 text-xs font-mono font-medium px-1.5 py-0.5 rounded bg-surface-2 text-secondary">v{{ version.versionNumber }}</span>
                                     <span class="flex-1 truncate text-primary text-xs">{{ version.fileName }}</span>
@@ -1350,10 +1350,10 @@ const pageActions = computed(() => {
                             </div>
                         </div>
 
-                        <div v-if="viewingDocUsage && viewingDocUsage.total > 0" class="space-y-2">
-                            <p class="text-xs text-muted uppercase tracking-wide">{{ t("suite.ged.documents.usage_title") }} ({{ viewingDocUsage.total }})</p>
+                        <div v-if="viewingDocumentUsage && viewingDocumentUsage.total > 0" class="space-y-2">
+                            <p class="text-xs text-muted uppercase tracking-wide">{{ t("suite.ged.documents.usage_title") }} ({{ viewingDocumentUsage.total }})</p>
                             <div class="divide-y divide-line/40 rounded-lg border border-line overflow-hidden">
-                                <template v-for="group in viewingDocUsage.groups" :key="group.type">
+                                <template v-for="group in viewingDocumentUsage.groups" :key="group.type">
                                     <component
                                         :is="item.href ? 'a' : 'div'"
                                         v-for="(item, index) in group.items"
@@ -1373,47 +1373,47 @@ const pageActions = computed(() => {
                 </div>
                 <DocumentFamilyStrip
                     class="mt-5 border-t border-line/40 pt-4"
-                    :doc="viewingDoc"
+                    :doc="viewingDocument"
                     :alternates-path="alternatesPath"
                     :can-add="can('ged.documents.create')"
-                    :can-recolor="canRecolor(viewingDoc)"
-                    v-on:open="viewDoc"
+                    :can-recolor="canRecolor(viewingDocument)"
+                    v-on:open="viewDocument"
                     v-on:add="startVariant"
                     v-on:recolor="recolorTarget = $event"
                 />
             </template>
             <template #footer>
                 <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="viewingDoc = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.close") }}</AppButton>
+                    <AppButton variant="ghost" size="md" v-on:click="viewingDocument = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.close") }}</AppButton>
                     <AppButton
-                        v-if="cropPath && can('ged.documents.edit') && viewingDoc?.fileMime?.startsWith('image/')"
+                        v-if="cropPath && can('ged.documents.edit') && viewingDocument?.fileMime?.startsWith('image/')"
                         variant="ghost"
                         size="md"
-                        v-on:click="cropTarget = viewingDoc"
+                        v-on:click="cropTarget = viewingDocument"
                     >
                         <Crop class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("suite.ged.documents.crop") }}
                     </AppButton>
                     <AppButton
-                        v-if="canRecolor(viewingDoc)"
+                        v-if="canRecolor(viewingDocument)"
                         variant="ghost"
                         size="md"
-                        v-on:click="recolorTarget = viewingDoc"
+                        v-on:click="recolorTarget = viewingDocument"
                     >
                         <Palette class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("suite.ged.documents.recolor.open") }}
                     </AppButton>
                     <AppButton
-                        v-if="viewingDoc?.fileUrl"
+                        v-if="viewingDocument?.fileUrl"
                         variant="ghost"
                         size="md"
-                        v-on:click="openQr(viewingDoc)"
+                        v-on:click="openQr(viewingDocument)"
                     >
                         <QrCode class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.qr_code") }}
                     </AppButton>
                     <AppButton
-                        v-if="viewingDoc?.fileUrl"
+                        v-if="viewingDocument?.fileUrl"
                         variant="secondary"
                         size="md"
-                        :href="viewingDoc.fileUrl"
+                        :href="viewingDocument.fileUrl"
                         download
                     >
                         <Download class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.download") }}
@@ -1432,7 +1432,7 @@ const pageActions = computed(() => {
             v-on:created="onRecolored"
         />
 
-        <AppQrCodeModal :item="qrDoc" v-on:close="closeQr" />
+        <AppQrCodeModal :item="qrDocument" v-on:close="closeQr" />
 
         <ImageCropperModal
             :item="cropTarget"

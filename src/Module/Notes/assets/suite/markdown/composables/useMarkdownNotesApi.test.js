@@ -103,9 +103,9 @@ describe("useMarkdownNotesApi", () => {
 
         await useMarkdownNotesApi(props).uploadImage(new Blob(["x"]));
 
-        const [url, body, opts] = requestMock.mock.calls[0];
+        const [url, body, options] = requestMock.mock.calls[0];
         expect(url).toBe("/api/notes/images");
         expect(body).toBeNull();
-        expect(opts.rawBody).toBeInstanceOf(FormData);
+        expect(options.rawBody).toBeInstanceOf(FormData);
     });
 });

@@ -818,7 +818,7 @@ class PostRepository extends ResolveTargetEntityRepository
     {
         $term = $search;
         if (str_contains($search, '/')) {
-            $segments = array_values(array_filter(explode('/', $search), static fn (string $s): bool => '' !== $s));
+            $segments = array_values(array_filter(explode('/', $search), static fn (string $segment): bool => '' !== $segment));
             if ([] !== $segments) {
                 $term = end($segments);
             }

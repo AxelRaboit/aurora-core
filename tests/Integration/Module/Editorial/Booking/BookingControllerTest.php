@@ -55,7 +55,7 @@ final class BookingControllerTest extends IntegrationTestCase
         self::assertSame('frontend.editorial.grid.booking.taken', $second['error'] ?? null);
 
         $events = static::getContainer()->get(PlanningEventRepository::class)->findAll();
-        self::assertCount(1, array_filter($events, static fn ($e) => 'Camille Laurent' === $e->getTitle()));
+        self::assertCount(1, array_filter($events, static fn ($event) => 'Camille Laurent' === $event->getTitle()));
     }
 
     /**

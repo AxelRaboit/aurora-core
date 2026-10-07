@@ -80,7 +80,7 @@ Cf [decision_repository_no_interface.md](../decision_repository_no_interface.md)
 ### 1. Oublier `repositoryClass`
 
 Sans `#[ORM\Entity(repositoryClass: AppAgencyRepository::class)]`,
-`$em->getRepository(AppAgency::class)` retournera l'`AgencyRepository`
+`$entityManager->getRepository(AppAgency::class)` retournera l'`AgencyRepository`
 Aurora - les finders custom ne seront pas accessibles via cette voie.
 
 ### 2. Override d'un finder Aurora avec signature différente

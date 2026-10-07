@@ -54,8 +54,8 @@ final class DocsLinksTest extends TestCase
     {
         $files = [self::REPO_ROOT.'/README.md'];
 
-        $docs = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::REPO_ROOT.'/docs', RecursiveDirectoryIterator::SKIP_DOTS));
-        foreach ($docs as $entry) {
+        $documentationFiles = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::REPO_ROOT.'/docs', RecursiveDirectoryIterator::SKIP_DOTS));
+        foreach ($documentationFiles as $entry) {
             if ('md' === $entry->getExtension()) {
                 $files[] = $entry->getPathname();
             }

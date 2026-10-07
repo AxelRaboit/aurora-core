@@ -224,12 +224,12 @@ class AuroraBundle extends AbstractBundle
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $dir = dirname(__DIR__);
+        $bundleDirectory = dirname(__DIR__);
 
         // Only this monorepo's own modules. A module shipped as a separate
         // Composer package registers its Doctrine mapping / Twig / i18n /
         // resolve_target_entities from its own Aurora<Name>Bundle instead.
-        $moduleDirs = glob($dir.'/src/Module/*', GLOB_ONLYDIR) ?: [];
+        $moduleDirectories = glob($bundleDirectory.'/src/Module/*', GLOB_ONLYDIR) ?: [];
 
         $builder->prependExtensionConfig('doctrine', [
             'dbal' => [
@@ -328,24 +328,24 @@ class AuroraBundle extends AbstractBundle
                         'AuroraCore' => [
                             'type' => 'attribute',
                             'is_bundle' => false,
-                            'dir' => $dir.'/src/Core',
+                            'dir' => $bundleDirectory.'/src/Core',
                             'prefix' => 'Aurora\Core',
                             'alias' => 'AuroraCore',
                         ],
                     ],
-                    ...array_map(static function (string $moduleDir): array {
-                        $moduleName = basename($moduleDir);
+                    ...array_map(static function (string $moduleDirectory): array {
+                        $moduleName = basename($moduleDirectory);
 
                         return [
                             'Aurora'.$moduleName => [
                                 'type' => 'attribute',
                                 'is_bundle' => false,
-                                'dir' => $moduleDir,
+                                'dir' => $moduleDirectory,
                                 'prefix' => 'Aurora\\Module\\'.$moduleName,
                                 'alias' => 'Aurora'.$moduleName,
                             ],
                         ];
-                    }, $moduleDirs),
+                    }, $moduleDirectories),
                 ),
             ],
         ]);
@@ -356,17 +356,17 @@ class AuroraBundle extends AbstractBundle
         // for each namespace - the new co-located path (mirroring core's layout
         // since templates were moved under src/) AND the legacy top-level path
         // (kept for backward compat with existing client projects).
-        $projectDir = (string) $builder->getParameter('kernel.project_dir');
+        $projectDirectory = (string) $builder->getParameter('kernel.project_dir');
 
         $twigPaths = [];
 
         // 1. Client-side overrides (highest priority - registered first).
-        foreach ($moduleDirs as $moduleDir) {
-            $moduleName = basename($moduleDir);
-            $clientColocated = $projectDir.'/src/Module/'.$moduleName.'/templates';
-            $clientLegacy = $projectDir.'/templates/Module/'.$moduleName;
-            // Don't double-register when $projectDir === $dir (aurora-core dev mode).
-            if ($clientColocated !== $dir.'/src/Module/'.$moduleName.'/templates' && is_dir($clientColocated)) {
+        foreach ($moduleDirectories as $moduleDirectory) {
+            $moduleName = basename($moduleDirectory);
+            $clientColocated = $projectDirectory.'/src/Module/'.$moduleName.'/templates';
+            $clientLegacy = $projectDirectory.'/templates/Module/'.$moduleName;
+            // Don't double-register when $projectDirectory === $bundleDirectory (aurora-core dev mode).
+            if ($clientColocated !== $bundleDirectory.'/src/Module/'.$moduleName.'/templates' && is_dir($clientColocated)) {
                 $twigPaths[$clientColocated] = $moduleName;
             }
 
@@ -380,15 +380,15 @@ class AuroraBundle extends AbstractBundle
         // project had no namespace at all and its templates were unreachable -
         // it had to fall back to the project's default templates/ directory,
         // breaking the co-location the convention asks for everywhere else.
-        if ($projectDir !== $dir) {
-            foreach (glob($projectDir.'/src/Module/*', GLOB_ONLYDIR) ?: [] as $clientModuleDir) {
-                $moduleName = basename($clientModuleDir);
-                $templates = $clientModuleDir.'/templates';
+        if ($projectDirectory !== $bundleDirectory) {
+            foreach (glob($projectDirectory.'/src/Module/*', GLOB_ONLYDIR) ?: [] as $clientModuleDirectory) {
+                $moduleName = basename($clientModuleDirectory);
+                $templates = $clientModuleDirectory.'/templates';
 
                 // Aurora-owned names are handled above, with their fallback to
                 // the bundle's own templates; re-registering here would shadow
                 // that ordering.
-                if (is_dir($dir.'/src/Module/'.$moduleName)) {
+                if (is_dir($bundleDirectory.'/src/Module/'.$moduleName)) {
                     continue;
                 }
 
@@ -398,10 +398,10 @@ class AuroraBundle extends AbstractBundle
             }
         }
 
-        if ($projectDir !== $dir) {
+        if ($projectDirectory !== $bundleDirectory) {
             foreach (['Core', 'Shared'] as $namespace) {
-                $clientColocated = $projectDir.'/src/Core/templates/'.$namespace;
-                $clientLegacy = $projectDir.'/templates/'.$namespace;
+                $clientColocated = $projectDirectory.'/src/Core/templates/'.$namespace;
+                $clientLegacy = $projectDirectory.'/templates/'.$namespace;
                 if (is_dir($clientColocated)) {
                     $twigPaths[$clientColocated] = $namespace;
                 }
@@ -417,9 +417,9 @@ class AuroraBundle extends AbstractBundle
         // relative refs like 'Frontend/themes/default/...' still resolve) and
         // the legacy <bundle>/templates/ (still hosts templates/bundles/TwigBundle/
         // for Symfony's third-party override convention).
-        $twigPaths[$dir.'/src/Core/templates'] = null;
-        $twigPaths[$dir.'/templates'] = null;
-        $twigPaths[$dir.'/src/Core/assets/css'] = 'styles';
+        $twigPaths[$bundleDirectory.'/src/Core/templates'] = null;
+        $twigPaths[$bundleDirectory.'/templates'] = null;
+        $twigPaths[$bundleDirectory.'/src/Core/assets/css'] = 'styles';
 
         // The bundle's error pages, for projects that ship none of their own.
         //
@@ -436,8 +436,8 @@ class AuroraBundle extends AbstractBundle
         // paths are registered before per-bundle override paths - so doing this
         // unconditionally would make the bundle's pages win over the client's,
         // which is precisely backwards.
-        if (!is_dir($projectDir.'/templates/bundles/TwigBundle')) {
-            $twigPaths[$dir.'/templates/bundles/TwigBundle'] = 'Twig';
+        if (!is_dir($projectDirectory.'/templates/bundles/TwigBundle')) {
+            $twigPaths[$bundleDirectory.'/templates/bundles/TwigBundle'] = 'Twig';
         }
 
         // Stable alias for the bundle's own theme files, so a module package
@@ -445,17 +445,17 @@ class AuroraBundle extends AbstractBundle
         // original: `{% extends 'Frontend/themes/default/layout.html.twig' %}`
         // from inside such an override resolves back to the override itself and
         // recurses forever. @see AbstractAuroraModuleBundle::prepend()
-        $twigPaths[$dir.'/src/Core/templates/Frontend/themes'] = 'AuroraTheme';
+        $twigPaths[$bundleDirectory.'/src/Core/templates/Frontend/themes'] = 'AuroraTheme';
         foreach (['Core', 'Shared'] as $namespace) {
-            $bundleColocated = $dir.'/src/Core/templates/'.$namespace;
+            $bundleColocated = $bundleDirectory.'/src/Core/templates/'.$namespace;
             if (is_dir($bundleColocated)) {
                 $twigPaths[$bundleColocated] = $namespace;
             }
         }
 
-        foreach ($moduleDirs as $moduleDir) {
-            $moduleName = basename($moduleDir);
-            $bundleModuleTemplates = $moduleDir.'/templates';
+        foreach ($moduleDirectories as $moduleDirectory) {
+            $moduleName = basename($moduleDirectory);
+            $bundleModuleTemplates = $moduleDirectory.'/templates';
             if (is_dir($bundleModuleTemplates)) {
                 $twigPaths[$bundleModuleTemplates] = $moduleName;
             }
@@ -512,7 +512,7 @@ class AuroraBundle extends AbstractBundle
 
         $builder->prependExtensionConfig('doctrine_migrations', [
             'migrations_paths' => [
-                'DoctrineMigrations' => $dir.'/migrations',
+                'DoctrineMigrations' => $bundleDirectory.'/migrations',
             ],
             'enable_profiler' => false,
         ]);
@@ -595,9 +595,9 @@ class AuroraBundle extends AbstractBundle
             ],
         ]);
 
-        $coreDirs = array_merge(
-            glob($dir.'/src/Core/*/translations', GLOB_ONLYDIR) ?: [],
-            glob($dir.'/src/Core/*/*/translations', GLOB_ONLYDIR) ?: [],
+        $coreTranslationDirectories = array_merge(
+            glob($bundleDirectory.'/src/Core/*/translations', GLOB_ONLYDIR) ?: [],
+            glob($bundleDirectory.'/src/Core/*/*/translations', GLOB_ONLYDIR) ?: [],
         );
 
         // A client module carries its own catalogue, co-located like aurora's
@@ -605,16 +605,16 @@ class AuroraBundle extends AbstractBundle
         // a client had exactly one place to put translations - the project's
         // root catalogue - however many modules it owned. Depth 1 and 2, to
         // match `src/Module/<Domain>/<Feature>/`.
-        $clientTranslationDirs = $projectDir === $dir ? [] : array_merge(
-            glob($projectDir.'/src/Module/*/translations', GLOB_ONLYDIR) ?: [],
-            glob($projectDir.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
+        $clientTranslationDirectories = $projectDirectory === $bundleDirectory ? [] : array_merge(
+            glob($projectDirectory.'/src/Module/*/translations', GLOB_ONLYDIR) ?: [],
+            glob($projectDirectory.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
         );
 
         $builder->prependExtensionConfig('framework', [
             'default_locale' => LocaleEnum::default()->value,
             'enabled_locales' => LocaleEnum::values(),
             'translator' => [
-                'default_path' => $dir.'/src/Core/translations',
+                'default_path' => $bundleDirectory.'/src/Core/translations',
                 // Client catalogues come LAST on purpose: a later path wins on
                 // a shared key, so trailing position is what lets a client
                 // restate an aurora string - the priority client templates
@@ -630,10 +630,10 @@ class AuroraBundle extends AbstractBundle
                 // cannot be overridden this way whatever the ordering.
                 'paths' => array_values(array_filter(
                     array_merge(
-                        array_map(static fn (string $moduleDir): string => $moduleDir.'/translations', $moduleDirs),
-                        glob($dir.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
-                        $coreDirs,
-                        $clientTranslationDirs,
+                        array_map(static fn (string $moduleDirectory): string => $moduleDirectory.'/translations', $moduleDirectories),
+                        glob($bundleDirectory.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
+                        $coreTranslationDirectories,
+                        $clientTranslationDirectories,
                     ),
                     is_dir(...),
                 )),

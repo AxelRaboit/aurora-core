@@ -45,7 +45,10 @@ export function registerSearchSection({
         sections[existing] = entry;
     }
 
-    sections.sort((a, b) => a.order - b.order || a.key.localeCompare(b.key));
+    sections.sort(
+        (left, right) =>
+            left.order - right.order || left.key.localeCompare(right.key),
+    );
 }
 
 /** @returns {Array<{key: string, kind: string, labelKey: string, icon: object, order: number}>} */

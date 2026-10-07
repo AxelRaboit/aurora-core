@@ -149,6 +149,6 @@ const vueContext = {
     ),
 };
 
-const vueContextFn = (key) => vueContext[key]();
-vueContextFn.keys = () => Object.keys(vueContext);
-registerVueControllerComponents(vueContextFn);
+const vueContextLoader = (key) => vueContext[key]();
+vueContextLoader.keys = () => Object.keys(vueContext);
+registerVueControllerComponents(vueContextLoader);

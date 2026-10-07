@@ -15,7 +15,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { Check, ShieldAlert, Trash2, X } from "lucide-vue-next";
 
-const { t, d } = useI18n();
+const { t, d: formatLocalizedDate } = useI18n();
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -44,7 +44,7 @@ const actionsFor = useCommentRowActions({
 });
 
 function formatDate(value) {
-    return d(new Date(value), "short");
+    return formatLocalizedDate(new Date(value), "short");
 }
 
 function badgeColor(value) {

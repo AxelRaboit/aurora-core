@@ -45,8 +45,8 @@ const restoring = ref(false);
 const confirming = ref(false);
 const whole = ref(false);
 
-const diff = computed(() => (detail.value ? lineDiff(detail.value.content ?? "", props.current?.content ?? "") : null));
-const stats = computed(() => diffStats(diff.value));
+const lineDifference = computed(() => (detail.value ? lineDiff(detail.value.content ?? "", props.current?.content ?? "") : null));
+const stats = computed(() => diffStats(lineDifference.value));
 const titleChanged = computed(() => detail.value && (detail.value.title ?? "") !== (props.current?.title ?? ""));
 
 async function load() {
@@ -164,7 +164,7 @@ const LINE_CLASSES = {
                     </p>
 
                     <pre
-                        v-if="whole || null === diff"
+                        v-if="whole || null === lineDifference"
                         class="m-0 max-h-[24rem] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-surface-2/40 p-3 text-xs text-secondary"
                     >{{ detail.content }}</pre>
                     <div
@@ -173,7 +173,7 @@ const LINE_CLASSES = {
                         data-revision-diff
                     >
                         <div
-                            v-for="(line, index) in diff"
+                            v-for="(line, index) in lineDifference"
                             :key="index"
                             class="whitespace-pre-wrap break-words px-3 py-px"
                             :class="LINE_CLASSES[line.kind]"

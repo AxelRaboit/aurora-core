@@ -32,19 +32,19 @@ export function usePostsList(props) {
     );
 
     function queryString() {
-        const params = new URLSearchParams();
-        if (search.value) params.set("search", search.value);
-        if (page.value > 1) params.set("page", String(page.value));
+        const parameters = new URLSearchParams();
+        if (search.value) parameters.set("search", search.value);
+        if (page.value > 1) parameters.set("page", String(page.value));
         if (postTypeIds.value.length)
-            params.set("postTypeIds", postTypeIds.value.join(","));
+            parameters.set("postTypeIds", postTypeIds.value.join(","));
         if (termIds.value.length)
-            params.set("termIds", termIds.value.join(","));
+            parameters.set("termIds", termIds.value.join(","));
         if (statuses.value.length)
-            params.set("statuses", statuses.value.join(","));
+            parameters.set("statuses", statuses.value.join(","));
         if (visibilities.value.length)
-            params.set("visibilities", visibilities.value.join(","));
+            parameters.set("visibilities", visibilities.value.join(","));
 
-        return params.toString();
+        return parameters.toString();
     }
 
     async function reload() {

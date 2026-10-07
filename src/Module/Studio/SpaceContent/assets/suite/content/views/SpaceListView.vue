@@ -27,7 +27,7 @@ const props = defineProps({
 
 const emit = defineEmits(["add-item", "open-item"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 /**
  * The first file on a card that has a picture to show, or nothing.
@@ -43,7 +43,7 @@ function previewOf(card) {
 function when(item) {
     if (!item.scheduledAt) return t("suite.studio.space_content.unscheduled");
 
-    return d(new Date(item.scheduledAt), "short");
+    return formatDate(new Date(item.scheduledAt), "short");
 }
 </script>
 

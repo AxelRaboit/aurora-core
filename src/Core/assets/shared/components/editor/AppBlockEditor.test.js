@@ -44,7 +44,7 @@ const BLOCK = {
 };
 
 async function settle() {
-    for (let i = 0; i < 6; i++) await Promise.resolve();
+    for (let tick = 0; tick < 6; tick++) await Promise.resolve();
 }
 
 beforeEach(() => {

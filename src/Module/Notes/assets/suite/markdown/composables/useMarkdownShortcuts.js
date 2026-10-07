@@ -37,11 +37,11 @@ function wrapSelection(before, after) {
         const replacement = before + selected + after;
         const newContent =
             content.slice(0, start) + replacement + content.slice(end);
-        const cursorPos =
+        const cursorPosition =
             selected.length > 0
                 ? start + replacement.length
                 : start + before.length;
-        return { newContent, cursorPos };
+        return { newContent, cursorPos: cursorPosition };
     };
 }
 
@@ -58,9 +58,9 @@ function wrapLink(textarea, content) {
     const replacement = `[${selected || "text"}](url)`;
     const newContent =
         content.slice(0, start) + replacement + content.slice(end);
-    const cursorPos = selected ? start + selected.length + 3 : start + 1;
-    const cursorEnd = selected ? cursorPos + 3 : cursorPos + 4;
-    return { newContent, cursorPos, cursorEnd };
+    const cursorPosition = selected ? start + selected.length + 3 : start + 1;
+    const cursorEnd = selected ? cursorPosition + 3 : cursorPosition + 4;
+    return { newContent, cursorPos: cursorPosition, cursorEnd };
 }
 
 function prependLine(prefix) {
@@ -69,8 +69,8 @@ function prependLine(prefix) {
         const lineStart = content.lastIndexOf("\n", start - 1) + 1;
         const newContent =
             content.slice(0, lineStart) + prefix + content.slice(lineStart);
-        const cursorPos = start + prefix.length;
-        return { newContent, cursorPos };
+        const cursorPosition = start + prefix.length;
+        return { newContent, cursorPos: cursorPosition };
     };
 }
 
@@ -100,7 +100,9 @@ export function handleMarkdownShortcut(event, textarea, content) {
     if (!isMod) return null;
 
     const shortcut = SHORTCUTS.find(
-        (s) => s.key === event.key.toLowerCase() && s.shift === event.shiftKey,
+        (candidate) =>
+            candidate.key === event.key.toLowerCase() &&
+            candidate.shift === event.shiftKey,
     );
     if (!shortcut) return null;
 

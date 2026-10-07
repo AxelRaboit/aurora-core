@@ -92,7 +92,7 @@ final class IcalWriterTest extends TestCase
         // And nothing was lost on the way.
         self::assertSame(
             'SUMMARY:'.str_repeat('é', 100),
-            implode('', array_map(static fn (string $line, int $i): string => 0 === $i ? $line : mb_substr($line, 1), $folded, array_keys($folded))),
+            implode('', array_map(static fn (string $line, int $lineIndex): string => 0 === $lineIndex ? $line : mb_substr($line, 1), $folded, array_keys($folded))),
         );
     }
 }

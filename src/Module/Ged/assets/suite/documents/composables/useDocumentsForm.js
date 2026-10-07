@@ -76,7 +76,7 @@ export function useDocumentsForm(
     ];
 
     const showCreate = ref(false);
-    const newDoc = ref(emptyForm());
+    const newDocument = ref(emptyForm());
     const uploadingCreate = ref(false);
 
     const {
@@ -88,11 +88,11 @@ export function useDocumentsForm(
         rules: () => ({
             title: () =>
                 required(t("suite.ged.documents.errors.title_required"))(
-                    newDoc.value.title,
+                    newDocument.value.title,
                 ),
         }),
         url: () => createPath,
-        body: () => ({ ...newDoc.value }),
+        body: () => ({ ...newDocument.value }),
         onSuccess: () => {
             showCreate.value = false;
             toast.success(t("suite.ged.documents.created"));
@@ -101,7 +101,7 @@ export function useDocumentsForm(
     });
 
     function openCreate() {
-        newDoc.value = emptyForm();
+        newDocument.value = emptyForm();
         clearCreate();
         showCreate.value = true;
     }
@@ -145,21 +145,21 @@ export function useDocumentsForm(
         uploadingCreate.value = false;
         if (!data) return;
         if (data.success && data.filePath) {
-            newDoc.value.filePath = data.filePath;
-            newDoc.value.fileName = data.fileName;
-            newDoc.value.originalName = data.originalName;
-            newDoc.value.mimeType = data.mimeType;
-            newDoc.value.size = data.size;
-            newDoc.value.width = data.width;
-            newDoc.value.height = data.height;
-            newDoc.value.thumbnailPath = data.thumbnailPath ?? null;
+            newDocument.value.filePath = data.filePath;
+            newDocument.value.fileName = data.fileName;
+            newDocument.value.originalName = data.originalName;
+            newDocument.value.mimeType = data.mimeType;
+            newDocument.value.size = data.size;
+            newDocument.value.width = data.width;
+            newDocument.value.height = data.height;
+            newDocument.value.thumbnailPath = data.thumbnailPath ?? null;
         } else {
             toast.error(t("shared.common.error"));
         }
     }
 
     const showEdit = ref(false);
-    const editingDoc = ref(null);
+    const editingDocument = ref(null);
     const editForm = ref(emptyForm());
     const uploadingEdit = ref(false);
 
@@ -175,7 +175,7 @@ export function useDocumentsForm(
                     editForm.value.title,
                 ),
         }),
-        url: () => buildPath(updatePath, { id: editingDoc.value.id }),
+        url: () => buildPath(updatePath, { id: editingDocument.value.id }),
         body: () => ({ ...editForm.value }),
         onSuccess: () => {
             showEdit.value = false;
@@ -184,36 +184,36 @@ export function useDocumentsForm(
         },
     });
 
-    function openEdit(doc) {
-        editingDoc.value = doc;
+    function openEdit(gedDocument) {
+        editingDocument.value = gedDocument;
         editForm.value = {
-            title: doc.title,
-            description: doc.description ?? "",
-            status: doc.status,
-            categoryId: doc.categoryId ?? null,
-            tagIds: doc.tagIds ?? [],
-            folderId: doc.folderId ?? null,
+            title: gedDocument.title,
+            description: gedDocument.description ?? "",
+            status: gedDocument.status,
+            categoryId: gedDocument.categoryId ?? null,
+            tagIds: gedDocument.tagIds ?? [],
+            folderId: gedDocument.folderId ?? null,
             // On edit, file metadata is round-tripped but only sent back to
             // the server if the user uploads a new one (the manager checks
             // for filePath !== current to decide whether to record a new
             // version). So passing the existing values keeps the form in
             // sync visually without forcing a re-snapshot.
-            filePath: doc.filePath ?? null,
-            fileName: doc.fileName ?? null,
-            originalName: doc.originalName ?? null,
-            mimeType: doc.fileMime ?? null,
-            size: doc.fileSize ?? null,
-            width: doc.width ?? null,
-            height: doc.height ?? null,
-            thumbnailPath: doc.thumbnailPath ?? null,
-            alt: doc.alt ?? "",
-            caption: doc.caption ?? "",
-            focalX: doc.focalX ?? null,
-            focalY: doc.focalY ?? null,
-            kept: doc.kept ?? false,
-            originalId: doc.originalId ?? null,
-            originalTitle: doc.originalTitle ?? null,
-            alternateLabel: doc.alternateLabel ?? "",
+            filePath: gedDocument.filePath ?? null,
+            fileName: gedDocument.fileName ?? null,
+            originalName: gedDocument.originalName ?? null,
+            mimeType: gedDocument.fileMime ?? null,
+            size: gedDocument.fileSize ?? null,
+            width: gedDocument.width ?? null,
+            height: gedDocument.height ?? null,
+            thumbnailPath: gedDocument.thumbnailPath ?? null,
+            alt: gedDocument.alt ?? "",
+            caption: gedDocument.caption ?? "",
+            focalX: gedDocument.focalX ?? null,
+            focalY: gedDocument.focalY ?? null,
+            kept: gedDocument.kept ?? false,
+            originalId: gedDocument.originalId ?? null,
+            originalTitle: gedDocument.originalTitle ?? null,
+            alternateLabel: gedDocument.alternateLabel ?? "",
         };
         clearEdit();
         showEdit.value = true;
@@ -251,7 +251,7 @@ export function useDocumentsForm(
     return {
         statusOptions,
         showCreate,
-        newDoc,
+        newDocument,
         uploadingCreate,
         createErrors,
         createLoading,
@@ -259,7 +259,7 @@ export function useDocumentsForm(
         onLocalFileCreate,
         submitCreate,
         showEdit,
-        editingDoc,
+        editingDocument,
         editForm,
         uploadingEdit,
         editErrors,

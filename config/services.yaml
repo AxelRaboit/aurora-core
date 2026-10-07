@@ -98,7 +98,7 @@ services:
     # packages. Client adds one `type: aurora_modules` routing entry.
     Aurora\Core\Routing\AuroraModuleRouteLoader:
         arguments:
-            $projectDir: '%kernel.project_dir%'
+            $projectDirectory: '%kernel.project_dir%'
         tags: [routing.loader]
 
     Aurora\Module\Ged\Document\Service\DocumentUsageService:
@@ -136,7 +136,7 @@ services:
 
     Aurora\Core\Twig\VersionExtension:
         arguments:
-            $projectDir: '%kernel.project_dir%'
+            $projectDirectory: '%kernel.project_dir%'
 
     # The content security policy. `devMode` opens the bare minimum for the
     # Vite server and its reload socket, which do not exist in a build: the
@@ -153,15 +153,15 @@ services:
 
     Aurora\Module\Configuration\Theme\Service\ThemeResolver:
         arguments:
-            $projectDir: '%kernel.project_dir%'
+            $projectDirectory: '%kernel.project_dir%'
 
     Aurora\Module\Configuration\Theme\Manager\ThemeManager:
         arguments:
-            $projectDir: '%kernel.project_dir%'
+            $projectDirectory: '%kernel.project_dir%'
 
     Aurora\Module\Configuration\Setting\Command\DumpJsTranslationsCommand:
         arguments:
-            $auroraDir: '%kernel.project_dir%'
+            $auroraDirectory: '%kernel.project_dir%'
 
     Aurora\Core\Module\Service\ModuleRegistry:
         arguments:

@@ -32,7 +32,7 @@ class MenuSerializer implements MenuSerializerInterface
             $items[] = $this->serializeItem($item, $targetLabels);
         }
 
-        usort($items, static fn (array $a, array $b): int => $a['position'] <=> $b['position']);
+        usort($items, static fn (array $left, array $right): int => $left['position'] <=> $right['position']);
 
         return [
             'id' => $menu->getId(),

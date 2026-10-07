@@ -9,8 +9,8 @@ export function useLocalPagination(source, perPage = 10) {
         return items.value.slice(start, start + perPage);
     });
 
-    function goToPage(n) {
-        page.value = n;
+    function goToPage(pageNumber) {
+        page.value = pageNumber;
     }
 
     return { page, totalPages, paginatedItems, goToPage };

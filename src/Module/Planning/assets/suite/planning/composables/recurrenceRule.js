@@ -204,8 +204,11 @@ function presetOf(form, start) {
     return "custom";
 }
 
-function sameDays(a, b) {
-    return a.length === b.length && a.every((day) => b.includes(day));
+function sameDays(firstDays, secondDays) {
+    return (
+        firstDays.length === secondDays.length &&
+        firstDays.every((day) => secondDays.includes(day))
+    );
 }
 
 /** `20261231T225959Z` back to `2026-12-31`, on the reader's own clock. */
@@ -215,9 +218,11 @@ function untilToDate(until) {
         return "";
     }
 
-    const [, y, m, d, h, min, s] = match;
-    const at = new Date(Date.UTC(+y, +m - 1, +d, +h, +min, +s));
-    const pad = (n) => String(n).padStart(2, "0");
+    const [, year, month, day, hour, minute, second] = match;
+    const at = new Date(
+        Date.UTC(+year, +month - 1, +day, +hour, +minute, +second),
+    );
+    const pad = (value) => String(value).padStart(2, "0");
 
     return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
 }

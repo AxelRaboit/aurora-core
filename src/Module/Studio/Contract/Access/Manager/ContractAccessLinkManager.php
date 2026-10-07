@@ -219,7 +219,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             // the client read « le contrat {reference} attend votre
             // signature ». The first sending's subject has no placeholder and
             // ignores it.
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }
 

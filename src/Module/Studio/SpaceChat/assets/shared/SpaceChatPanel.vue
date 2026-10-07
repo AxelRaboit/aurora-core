@@ -104,7 +104,7 @@ const props = defineProps({
     focusMessageId: { type: [Number, null], default: null },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const {
     messages,
@@ -215,7 +215,7 @@ const roomNotice = computed(() => {
  */
 const peopleChoices = computed(() => {
     if ("invite" === peopleFor.value) {
-        const inside = new Set((openChannel.value?.members ?? []).map((m) => m.label));
+        const inside = new Set((openChannel.value?.members ?? []).map((member) => member.label));
 
         return props.team.filter((person) => !inside.has(person.label));
     }
@@ -620,7 +620,7 @@ function onKeydown(event) {
                              "17/09/2026 00:48" on a line whose whole job is to
                              say which day the messages under it belong to. -->
                             <span class="text-xs text-muted">
-                                {{ d(entry.at, "long") }}
+                                {{ formatDate(entry.at, "long") }}
                             </span>
                             <span class="h-px flex-1 bg-line/60" />
                         </div>
@@ -661,7 +661,7 @@ function onKeydown(event) {
                                         {{ entry.message.author }}
                                     </span>
                                     <span class="text-xs text-muted">
-                                        {{ d(new Date(entry.message.createdAt), "short") }}
+                                        {{ formatDate(new Date(entry.message.createdAt), "short") }}
                                     </span>
                                     <!-- Only when it tells something: on their
                                      own page, the client does not need to be

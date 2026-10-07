@@ -348,8 +348,9 @@ describe("DeliverableLinksModal", () => {
 
         // A pasted address that carries « Sans expiration · Jamais ouvert » is a 404: the address is
         // one selectable block.
-        const address = [...document.body.querySelectorAll("p")].find((p) =>
-            p.textContent.includes("https://x.test/deliverables/1"),
+        const address = [...document.body.querySelectorAll("p")].find(
+            (paragraph) =>
+                paragraph.textContent.includes("https://x.test/deliverables/1"),
         );
         expect(address.classList.contains("select-all")).toBe(true);
         expect(address.textContent).not.toContain("Jamais ouvert");
@@ -400,8 +401,8 @@ describe("DeliverableLinksModal", () => {
         expect(body()).toContain("links.show_hidden");
 
         // The toggle brings it back, tagged as hidden, and a second click puts it away again.
-        const toggle = [...document.body.querySelectorAll("button")].find((b) =>
-            b.textContent.includes("links.show_hidden"),
+        const toggle = [...document.body.querySelectorAll("button")].find(
+            (button) => button.textContent.includes("links.show_hidden"),
         );
         toggle.click();
         await flushPromises();

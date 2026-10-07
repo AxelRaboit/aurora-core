@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
  *
  * The easy migration of the six: every tab already had a route of its own,
  * kept in the address by `useUrlSyncedState`, so nothing had to be invented -
- * unlike the settings tabs, which shared one route name and needed `routeParams`
+ * unlike the settings tabs, which shared one route name and needed `routeParameters`
  * and a stable key before they could move.
  */
 final class DevModuleNavViewTest extends TestCase

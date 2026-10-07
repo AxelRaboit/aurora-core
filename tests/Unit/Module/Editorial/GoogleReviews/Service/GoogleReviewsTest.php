@@ -78,8 +78,8 @@ final class GoogleReviewsTest extends TestCase
     public function testTheLastReadOutlivesAnOutage(): void
     {
         $cache = new ArrayAdapter();
-        $up = new GoogleReviews(new MockHttpClient(new MockResponse(self::PAGE)), $cache, new NullLogger());
-        $up->forPlace('place-id', 'key', 'fr');
+        $online = new GoogleReviews(new MockHttpClient(new MockResponse(self::PAGE)), $cache, new NullLogger());
+        $online->forPlace('place-id', 'key', 'fr');
 
         $cache->delete('editorial.google_reviews.'.md5('place-id.fr'));
 

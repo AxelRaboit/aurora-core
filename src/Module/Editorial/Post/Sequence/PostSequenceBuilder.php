@@ -157,7 +157,7 @@ final readonly class PostSequenceBuilder
             }
         }
 
-        usort($children, static fn (TaxonomyTermInterface $a, TaxonomyTermInterface $b): int => $a->getPosition() <=> $b->getPosition());
+        usort($children, static fn (TaxonomyTermInterface $left, TaxonomyTermInterface $right): int => $left->getPosition() <=> $right->getPosition());
 
         return $children;
     }

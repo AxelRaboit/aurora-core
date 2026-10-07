@@ -51,7 +51,7 @@ final class SetPostRevealCommand extends Command
     public function __construct(
         private readonly PostRepository $posts,
         private readonly GridNormalizer $grid,
-        private readonly EntityManagerInterface $em,
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
@@ -138,7 +138,7 @@ final class SetPostRevealCommand extends Command
             return Command::SUCCESS;
         }
 
-        $this->em->flush();
+        $this->entityManager->flush();
         $io->success(sprintf('%d publication(s) mises à jour.', $touched));
 
         return Command::SUCCESS;

@@ -121,8 +121,13 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
         savingGroups[groupName] = true;
 
         const changed = groups[groupName]
-            .filter((p) => fieldValues[p.key] !== initialValues[p.key])
-            .sort((a, b) => dependencyDepth(a) - dependencyDepth(b));
+            .filter(
+                (parameter) =>
+                    fieldValues[parameter.key] !== initialValues[parameter.key],
+            )
+            .sort(
+                (left, right) => dependencyDepth(left) - dependencyDepth(right),
+            );
 
         if (changed.length === 0) {
             savingGroups[groupName] = false;

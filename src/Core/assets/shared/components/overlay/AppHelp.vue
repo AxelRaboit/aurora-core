@@ -35,7 +35,7 @@ const props = defineProps({
     label: { type: String, default: "" },
 });
 
-const { t, te } = useI18n();
+const { t, te: translationExists } = useI18n();
 const open = ref(false);
 
 const registered = computed(() => (props.topic ? helpTopic(props.topic) : null));
@@ -64,16 +64,16 @@ const sections = computed(() => {
     if (!registered.value) return [];
 
     return (registered.value.sections ?? [])
-        .filter((name) => te(`${prefix.value}.${name}_body`))
+        .filter((name) => translationExists(`${prefix.value}.${name}_body`))
         .map((name) => ({
             key: name,
-            title: te(`${prefix.value}.${name}_title`) ? t(`${prefix.value}.${name}_title`) : "",
+            title: translationExists(`${prefix.value}.${name}_title`) ? t(`${prefix.value}.${name}_title`) : "",
             body: t(`${prefix.value}.${name}_body`),
         }));
 });
 
 const intro = computed(() =>
-    registered.value && te(`${prefix.value}.intro`) ? t(`${prefix.value}.intro`) : "",
+    registered.value && translationExists(`${prefix.value}.intro`) ? t(`${prefix.value}.intro`) : "",
 );
 </script>
 

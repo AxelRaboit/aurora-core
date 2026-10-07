@@ -67,9 +67,9 @@ final class CommentModerationPaginationTest extends IntegrationTestCase
         }
         $this->entityManager->persist($post);
 
-        for ($i = 1; $i <= 25; ++$i) {
+        for ($commentNumber = 1; $commentNumber <= 25; ++$commentNumber) {
             $comment = new Comment();
-            $comment->setPost($post)->setAuthorName($tag)->setAuthorEmail('lecteur@example.test')->setContent('Commentaire '.$i)->setStatus(CommentStatusEnum::Pending);
+            $comment->setPost($post)->setAuthorName($tag)->setAuthorEmail('lecteur@example.test')->setContent('Commentaire '.$commentNumber)->setStatus(CommentStatusEnum::Pending);
             $this->entityManager->persist($comment);
         }
         $this->entityManager->flush();

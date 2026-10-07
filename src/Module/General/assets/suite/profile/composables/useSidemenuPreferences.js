@@ -88,7 +88,7 @@ export function useSidemenuPreferences({
         const keys = [];
         collectItemKeys(section.items, keys);
         const next = new Set(hiddenItems.value);
-        keys.forEach((k) => next.add(k));
+        keys.forEach((itemKey) => next.add(itemKey));
         hiddenItems.value = next;
     }
 
@@ -96,7 +96,7 @@ export function useSidemenuPreferences({
         const keys = [];
         collectItemKeys(section.items, keys);
         const next = new Set(hiddenItems.value);
-        keys.forEach((k) => next.delete(k));
+        keys.forEach((itemKey) => next.delete(itemKey));
         hiddenItems.value = next;
     }
 

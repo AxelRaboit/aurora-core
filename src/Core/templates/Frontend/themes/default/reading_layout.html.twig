@@ -13,7 +13,7 @@
 
 {% block frontend_header %}
     {% set reading = reading|default({}) %}
-    {% set readingLocales = context.activeLocales|filter(loc => (reading.localeUrls|default({}))[loc.code] is defined) %}
+    {% set readingLocales = context.activeLocales|filter(activeLocale => (reading.localeUrls|default({}))[activeLocale.code] is defined) %}
     <header class="aurora-surface aurora-surface-header border-b border-line print:hidden{{ chromeClass|default('') ? ' ' ~ chromeClass }}">
         {# No wrap on the outer row: the language switch stays top right on a
            phone rather than taking a line of its own under the name. #}

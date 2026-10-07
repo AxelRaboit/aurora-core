@@ -40,8 +40,8 @@ const local = ref(String(props.modelValue ?? ""));
 
 watch(
     () => props.modelValue,
-    (v) => {
-        const next = String(v ?? "");
+    (modelValue) => {
+        const next = String(modelValue ?? "");
         if (next !== local.value) local.value = next;
     },
 );

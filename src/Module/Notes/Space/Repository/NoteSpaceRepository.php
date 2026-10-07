@@ -82,19 +82,19 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
      * Only the ones the query mentions: Doctrine refuses an extra parameter,
      * and a read query does not mention the write roles.
      */
-    public static function bindViewer(QueryBuilder $qb, CoreUserInterface $user): QueryBuilder
+    public static function bindViewer(QueryBuilder $queryBuilder, CoreUserInterface $user): QueryBuilder
     {
-        $qb
+        $queryBuilder
             ->setParameter('spaceViewer', $user)
             ->setParameter('spaceViewerAdopts', self::isAdmin($user))
             ->setParameter('spaceAccessBackoffice', NoteSpaceAccessEnum::Backoffice)
             ->setParameter('spaceAccessMembers', NoteSpaceAccessEnum::Members);
 
-        if (str_contains($qb->getDQL(), ':spaceWriterRoles')) {
-            $qb->setParameter('spaceWriterRoles', [NoteSpaceRoleEnum::Editor, NoteSpaceRoleEnum::Manager]);
+        if (str_contains($queryBuilder->getDQL(), ':spaceWriterRoles')) {
+            $queryBuilder->setParameter('spaceWriterRoles', [NoteSpaceRoleEnum::Editor, NoteSpaceRoleEnum::Manager]);
         }
 
-        return $qb;
+        return $queryBuilder;
     }
 
     /**
@@ -121,14 +121,14 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
         // Their own first, through an expression and not a descending sort
         // on the column: PostgreSQL puts null values first in a descending
         // sort, and the shared spaces then came first.
-        $qb = $this->createQueryBuilder('s')
+        $queryBuilder = $this->createQueryBuilder('s')
             ->addSelect('CASE WHEN s.personalUser IS NULL THEN 1 ELSE 0 END AS HIDDEN sharedLast')
             ->where(sprintf('s.id IN (%s)', self::readableSubquery()))
             ->orderBy('sharedLast', Order::Ascending->value)
             ->addOrderBy('s.position', Order::Ascending->value)
             ->addOrderBy('s.id', Order::Ascending->value);
 
-        return self::bindViewer($qb, $user)->getQuery()->getResult();
+        return self::bindViewer($queryBuilder, $user)->getQuery()->getResult();
     }
 
     public function findPublishedBySlug(string $slug): ?NoteSpaceInterface
@@ -144,16 +144,16 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
 
     public function slugTaken(string $slug, ?int $exceptId = null): bool
     {
-        $qb = $this->createQueryBuilder('s')
+        $queryBuilder = $this->createQueryBuilder('s')
             ->select('COUNT(s.id)')
             ->where('s.slug = :slug')
             ->setParameter('slug', $slug);
 
         if (null !== $exceptId) {
-            $qb->andWhere('s.id != :except')->setParameter('except', $exceptId);
+            $queryBuilder->andWhere('s.id != :except')->setParameter('except', $exceptId);
         }
 
-        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 
     /** A person's membership of a space, if they are a member. */

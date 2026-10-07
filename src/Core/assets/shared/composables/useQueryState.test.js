@@ -48,10 +48,10 @@ describe("useQueryState", () => {
 
         useQueryState("sort", { defaultValue: "name" }).set("date");
 
-        const params = new URLSearchParams(window.location.search);
-        expect(params.get("page")).toBe("3");
-        expect(params.get("q")).toBe("facture");
-        expect(params.get("sort")).toBe("date");
+        const searchParameters = new URLSearchParams(window.location.search);
+        expect(searchParameters.get("page")).toBe("3");
+        expect(searchParameters.get("q")).toBe("facture");
+        expect(searchParameters.get("sort")).toBe("date");
     });
 
     it("keeps the path and the fragment intact", () => {

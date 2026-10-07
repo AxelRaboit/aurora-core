@@ -107,13 +107,13 @@ final class GenerateThumbnailsCommand extends Command
                 continue;
             }
 
-            $thumbDir = $this->thumbDirFor($document);
+            $thumbDirectory = $this->thumbDirFor($document);
             $basename = pathinfo($document->getFileName() ?? (string) $document->getId(), PATHINFO_FILENAME);
             $adapter = $this->storageManager->active();
 
             $thumbPath = $isVideo
-                ? $this->videoPosterGenerator->fromSource($adapter, $filePath, $thumbDir, $basename)
-                : $this->thumbnailGenerator->generate($adapter, $filePath, $thumbDir, $basename);
+                ? $this->videoPosterGenerator->fromSource($adapter, $filePath, $thumbDirectory, $basename)
+                : $this->thumbnailGenerator->generate($adapter, $filePath, $thumbDirectory, $basename);
 
             if (null === $thumbPath) {
                 $io->warning(sprintf('Failed for #%d (%s)', $document->getId(), $document->getTitle()));

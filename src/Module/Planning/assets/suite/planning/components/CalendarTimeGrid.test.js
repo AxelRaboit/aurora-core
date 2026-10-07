@@ -22,7 +22,7 @@ function mountGrid(props = {}) {
 function columns(wrapper) {
     return wrapper
         .findAll(".cursor-pointer")
-        .filter((el) => el.attributes("style")?.includes("72rem"));
+        .filter((element) => element.attributes("style")?.includes("72rem"));
 }
 
 describe("CalendarTimeGrid", () => {
@@ -41,7 +41,9 @@ describe("CalendarTimeGrid", () => {
     it("rules every hour of every column", () => {
         const lines = columns(mountGrid())[0]
             .findAll("div")
-            .filter((el) => el.attributes("class")?.includes("border-b"));
+            .filter((element) =>
+                element.attributes("class")?.includes("border-b"),
+            );
 
         expect(lines).toHaveLength(24);
         expect(lines[0].attributes("style")).toContain("top: 0rem");
@@ -58,7 +60,9 @@ describe("CalendarTimeGrid", () => {
     it("rules the hours as visibly as it separates the days", () => {
         const line = columns(mountGrid())[0]
             .findAll("div")
-            .find((el) => el.attributes("class")?.includes("border-b"));
+            .find((element) =>
+                element.attributes("class")?.includes("border-b"),
+            );
 
         expect(line.attributes("class")).toContain("border-line");
         expect(line.attributes("class")).not.toContain("border-line/");

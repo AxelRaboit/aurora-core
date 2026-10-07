@@ -418,19 +418,19 @@ final class MarkdownNoteTest extends IntegrationTestCase
     public function testReorderingSubfoldersKeepsThemInTheirParent(): void
     {
         $parent = $this->folder($this->owner, 'Parent');
-        $a = $this->folder($this->owner, 'A', $parent);
-        $b = $this->folder($this->owner, 'B', $parent);
+        $folderA = $this->folder($this->owner, 'A', $parent);
+        $folderB = $this->folder($this->owner, 'B', $parent);
 
         $this->client->loginUser($this->owner, 'admin');
         $this->post('suite_notes_markdown_folders_reorder', ['entries' => [
-            ['id' => $b->getId(), 'parentId' => $parent->getId(), 'position' => 0],
-            ['id' => $a->getId(), 'parentId' => $parent->getId(), 'position' => 1],
+            ['id' => $folderB->getId(), 'parentId' => $parent->getId(), 'position' => 0],
+            ['id' => $folderA->getId(), 'parentId' => $parent->getId(), 'position' => 1],
         ]]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $freshA = $this->entityManager->find(NoteFolder::class, $a->getId());
-        $freshB = $this->entityManager->find(NoteFolder::class, $b->getId());
+        $freshA = $this->entityManager->find(NoteFolder::class, $folderA->getId());
+        $freshB = $this->entityManager->find(NoteFolder::class, $folderB->getId());
 
         self::assertSame($parent->getId(), $freshA?->getParent()?->getId());
         self::assertSame($parent->getId(), $freshB?->getParent()?->getId());
@@ -1101,8 +1101,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
         // The tree is in the paths: a filed note is a file in the directory
         // named after its folder.
         $entries = [];
-        for ($i = 0; $i < $archive->numFiles; ++$i) {
-            $entries[] = (string) $archive->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $archive->numFiles; ++$entryIndex) {
+            $entries[] = (string) $archive->getNameIndex($entryIndex);
         }
         $archive->close();
 
@@ -1266,8 +1266,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertTrue($archive->open($path));
 
         $entries = [];
-        for ($i = 0; $i < $archive->numFiles; ++$i) {
-            $entries[] = (string) $archive->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $archive->numFiles; ++$entryIndex) {
+            $entries[] = (string) $archive->getNameIndex($entryIndex);
         }
 
         $exported = (string) $archive->getFromName('Illustré/Une note illustrée.md');
@@ -1329,11 +1329,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
         unlink($path);
     }
 
-    private function post(string $route, array $payload = [], array $params = []): array
+    private function post(string $route, array $payload = [], array $parameters = []): array
     {
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate($route, $params),
+            $this->urlGenerator->generate($route, $parameters),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode($payload, JSON_THROW_ON_ERROR),
         );

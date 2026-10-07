@@ -189,7 +189,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     labelKey: 'suite.nav.taxonomies',
                     icon: 'tags',
                     requiredPrivilege: 'editorial.taxonomies.view',
-                    routeParams: ['id' => $taxonomy->getId()],
+                    routeParameters: ['id' => $taxonomy->getId()],
                     key: sprintf('editorial.taxonomy.%d', $taxonomy->getId()),
                     label: $this->taxonomyLabel($taxonomy),
                     description: $this->taxonomyDescription($taxonomy),
@@ -210,7 +210,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     labelKey: 'suite.nav.menus',
                     icon: 'menu',
                     requiredPrivilege: 'editorial.menus.view',
-                    routeParams: ['id' => $menu->getId()],
+                    routeParameters: ['id' => $menu->getId()],
                     key: sprintf('editorial.menu.%d', $menu->getId()),
                     label: $menu->getName(),
                     description: $menu->getDescription() ?? '',
@@ -233,7 +233,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     labelKey: 'suite.nav.post_types',
                     icon: 'layout-template',
                     requiredPrivilege: 'editorial.post_types.view',
-                    routeParams: ['id' => $postType->getId()],
+                    routeParameters: ['id' => $postType->getId()],
                     // Every entry shares one route name, so the route name
                     // cannot identify them: without a key of its own, hiding
                     // one post type from the menu would hide all of them, and

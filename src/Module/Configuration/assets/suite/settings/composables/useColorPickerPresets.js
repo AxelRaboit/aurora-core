@@ -40,7 +40,8 @@ export function useColorPickerPresets({ groups, updatePath }) {
     const { t } = useI18n();
 
     const initialValue =
-        groups?.appearance?.find?.((s) => s.key === STORAGE_KEY)?.value ?? "[]";
+        groups?.appearance?.find?.((setting) => setting.key === STORAGE_KEY)
+            ?.value ?? "[]";
 
     const presets = ref(parseInitialPresets(initialValue));
     const newColor = ref(null);

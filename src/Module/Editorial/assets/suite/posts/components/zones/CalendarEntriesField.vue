@@ -64,11 +64,11 @@ function commit(next) {
 }
 
 function update(index, patch) {
-    commit(rows.value.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+    commit(rows.value.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)));
 }
 
 function remove(index) {
-    const next = rows.value.filter((_, i) => i !== index);
+    const next = rows.value.filter((_, rowIndex) => rowIndex !== index);
 
     commit(next.length ? next : [blank()]);
 }

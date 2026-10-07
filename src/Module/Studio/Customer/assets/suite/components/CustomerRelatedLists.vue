@@ -20,14 +20,14 @@ const props = defineProps({
 
 const { t } = useI18n();
 
-const R = "suite.studio.customers.related";
+const RELATED_KEYS = "suite.studio.customers.related";
 
 /** The three lists that have something to show, in the order they are consulted. */
 const groups = computed(() =>
     [
-        { key: "contracts", title: t(`${R}.contracts`), rows: props.related?.contracts },
-        { key: "deliverables", title: t(`${R}.deliverables`), rows: props.related?.deliverables },
-        { key: "spaces", title: t(props.fromSpace ? `${R}.other_spaces` : `${R}.spaces`), rows: props.related?.spaces },
+        { key: "contracts", title: t(`${RELATED_KEYS}.contracts`), rows: props.related?.contracts },
+        { key: "deliverables", title: t(`${RELATED_KEYS}.deliverables`), rows: props.related?.deliverables },
+        { key: "spaces", title: t(props.fromSpace ? `${RELATED_KEYS}.other_spaces` : `${RELATED_KEYS}.spaces`), rows: props.related?.spaces },
     ].filter((group) => Array.isArray(group.rows) && group.rows.length),
 );
 </script>
@@ -47,7 +47,7 @@ const groups = computed(() =>
                 </ul>
             </section>
         </template>
-        <p v-else class="m-0 text-xs text-muted">{{ t(fromSpace ? `${R}.empty_other` : `${R}.empty`) }}</p>
+        <p v-else class="m-0 text-xs text-muted">{{ t(fromSpace ? `${RELATED_KEYS}.empty_other` : `${RELATED_KEYS}.empty`) }}</p>
         <slot />
     </div>
 </template>

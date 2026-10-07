@@ -27,7 +27,7 @@ final readonly class BeaconViewBuilder
         $instances = array_map($this->serialize(...), $this->instances->findAllOrdered());
 
         // Leads first, then by most-recently seen.
-        usort($instances, static fn (array $a, array $b): int => [$a['known'], $b['lastSeenAt']] <=> [$b['known'], $a['lastSeenAt']]);
+        usort($instances, static fn (array $left, array $right): int => [$left['known'], $right['lastSeenAt']] <=> [$right['known'], $left['lastSeenAt']]);
 
         return [
             'instances' => $instances,

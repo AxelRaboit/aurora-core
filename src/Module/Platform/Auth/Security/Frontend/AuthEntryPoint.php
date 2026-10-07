@@ -15,7 +15,7 @@ final readonly class AuthEntryPoint implements AuthenticationEntryPointInterface
 {
     public function __construct(private UrlGeneratorInterface $urlGenerator) {}
 
-    public function start(Request $request, ?AuthenticationException $authException = null): Response
+    public function start(Request $request, ?AuthenticationException $authenticationException = null): Response
     {
         // If the path looks like a front locale path (/fr/... /en/... etc.), redirect to front login.
         if (preg_match('#^/([a-z]{2})/#', $request->getPathInfo(), $matches)) {

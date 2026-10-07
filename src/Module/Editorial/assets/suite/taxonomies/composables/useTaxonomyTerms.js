@@ -47,7 +47,10 @@ function flatten(terms) {
     }
 
     for (const siblings of byParent.values()) {
-        siblings.sort((a, b) => a.position - b.position || a.id - b.id);
+        siblings.sort(
+            (left, right) =>
+                left.position - right.position || left.id - right.id,
+        );
     }
 
     const rows = [];

@@ -147,7 +147,7 @@ final readonly class SpaceDeliverablesViewBuilder
             throw new LogicException('A deliverable without a space opens in Studio, not in a space.');
         }
 
-        $params = ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()];
+        $parameters = ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()];
         $canEdit = $this->security->isGranted('studio.spaces.edit');
 
         return [
@@ -169,15 +169,15 @@ final readonly class SpaceDeliverablesViewBuilder
             'backPath' => $this->urlGenerator->generate('suite_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
-            'updatePath' => $this->urlGenerator->generate('workspace_space_deliverables_update', $params),
-            'previewPath' => $this->urlGenerator->generate('workspace_space_deliverables_preview', $params),
+            'updatePath' => $this->urlGenerator->generate('workspace_space_deliverables_update', $parameters),
+            'previewPath' => $this->urlGenerator->generate('workspace_space_deliverables_preview', $parameters),
             'gridPreviewPath' => $this->urlGenerator->generate('workspace_space_deliverables_grid_preview', ['id' => $space->getId()]),
             'bannerPreviewPath' => $this->urlGenerator->generate('workspace_space_deliverables_banner_preview', ['id' => $space->getId()]),
-            'linksPath' => $this->urlGenerator->generate('workspace_space_deliverables_links', $params),
-            'duplicatePath' => $this->urlGenerator->generate('workspace_space_deliverables_duplicate', $params),
-            'deletePath' => $this->urlGenerator->generate('workspace_space_deliverables_delete', $params),
+            'linksPath' => $this->urlGenerator->generate('workspace_space_deliverables_links', $parameters),
+            'duplicatePath' => $this->urlGenerator->generate('workspace_space_deliverables_duplicate', $parameters),
+            'deletePath' => $this->urlGenerator->generate('workspace_space_deliverables_delete', $parameters),
             'copyToStudioPath' => $this->access->canCopyToStudio()
-                ? $this->urlGenerator->generate('workspace_space_deliverables_copy_to_studio', $params)
+                ? $this->urlGenerator->generate('workspace_space_deliverables_copy_to_studio', $parameters)
                 : '',
         ];
     }

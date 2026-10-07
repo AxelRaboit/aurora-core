@@ -59,7 +59,7 @@ final readonly class DeliverableSerializer
      */
     public function spaceRow(array $row, CustomerSpaceInterface $space, ?DocumentInterface $thumbnail): array
     {
-        $params = ['id' => $space->getId(), 'deliverableId' => $row['id']];
+        $parameters = ['id' => $space->getId(), 'deliverableId' => $row['id']];
 
         return [
             'id' => $row['id'],
@@ -75,8 +75,8 @@ final readonly class DeliverableSerializer
             'thumbnailUrl' => $this->documentUrls->thumbUrl($thumbnail),
             'thumbnailPosition' => $this->documentUrls->focalPositionCss($thumbnail),
             'updatedAt' => $row['updatedAt']->format(DATE_ATOM),
-            'editPath' => $this->urlGenerator->generate('workspace_space_deliverables_edit', $params),
-            'previewPath' => $this->urlGenerator->generate('workspace_space_deliverables_preview', $params),
+            'editPath' => $this->urlGenerator->generate('workspace_space_deliverables_edit', $parameters),
+            'previewPath' => $this->urlGenerator->generate('workspace_space_deliverables_preview', $parameters),
         ];
     }
 

@@ -5,13 +5,13 @@
  * Usage:
  *   <AppSearchInput v-model="search" v-on:search="(v) => { syncUrl(v); reset(); }" />
  */
-export function useUrlSearchSync(paramName = "search") {
+export function useUrlSearchSync(parameterName = "search") {
     return function syncUrl(value) {
         const url = new URL(window.location.href);
         if (value) {
-            url.searchParams.set(paramName, value);
+            url.searchParams.set(parameterName, value);
         } else {
-            url.searchParams.delete(paramName);
+            url.searchParams.delete(parameterName);
         }
         window.history.replaceState(null, "", url.toString());
     };

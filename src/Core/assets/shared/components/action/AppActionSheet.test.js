@@ -62,7 +62,7 @@ describe("AppActionSheet", () => {
 
         await wrapper.find('[data-test="trigger"]').trigger("click");
 
-        expect(rowsOf(wrapper).map((r) => r.text())).toEqual([
+        expect(rowsOf(wrapper).map((row) => row.text())).toEqual([
             "Voir",
             "Modifier",
             "Supprimer",

@@ -52,16 +52,16 @@ const aligns = {
 };
 
 const classes = computed(() => {
-    const v = variants[props.variant] ?? variants.pill;
-    const activeFallback = v.active[props.color] ?? v.active.accent;
+    const variant = variants[props.variant] ?? variants.pill;
+    const activeFallback = variant.active[props.color] ?? variant.active.accent;
     return [
-        v.base,
-        v.sizes[props.size] ?? v.sizes.md,
+        variant.base,
+        variant.sizes[props.size] ?? variant.sizes.md,
         aligns[props.align] ?? aligns.left,
         props.shapeClass,
         props.active
             ? props.activeClass ?? activeFallback
-            : props.inactiveClass ?? v.inactive,
+            : props.inactiveClass ?? variant.inactive,
     ];
 });
 </script>

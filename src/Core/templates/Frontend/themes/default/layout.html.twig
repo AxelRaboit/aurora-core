@@ -22,8 +22,8 @@
     {% endblock %}
 
     {% set alternatesByLocale = {} %}
-    {% for alt in alternates %}
-        {% set alternatesByLocale = alternatesByLocale|merge({(alt.locale): alt.url}) %}
+    {% for alternate in alternates %}
+        {% set alternatesByLocale = alternatesByLocale|merge({(alternate.locale): alternate.url}) %}
     {% endfor %}
 
     {# Chrome stays module-independent by asking rather than knowing: `menu_items()`
@@ -80,9 +80,9 @@
                 {% endif %}
                 {% if context.activeLocales|length > 1 %}
                     {% set localeUrls = {} %}
-                    {% for loc in context.activeLocales %}
+                    {% for activeLocale in context.activeLocales %}
                         {% set localeUrls = localeUrls|merge({
-                            (loc.code): alternatesByLocale[loc.code] ?? default_front_home_path(loc.code),
+                            (activeLocale.code): alternatesByLocale[activeLocale.code] ?? default_front_home_path(activeLocale.code),
                         }) %}
                     {% endfor %}
                     {{ include('Frontend/themes/default/partials/locale_switcher.html.twig', {

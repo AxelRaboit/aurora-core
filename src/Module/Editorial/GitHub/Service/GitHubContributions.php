@@ -194,7 +194,7 @@ final readonly class GitHubContributions
             return null;
         }
 
-        usort($days, static fn (array $a, array $b): int => [$a['col'], $a['row']] <=> [$b['col'], $b['row']]);
+        usort($days, static fn (array $left, array $right): int => [$left['col'], $left['row']] <=> [$right['col'], $right['row']]);
 
         return [
             'total' => array_sum(array_column($days, 'count')),

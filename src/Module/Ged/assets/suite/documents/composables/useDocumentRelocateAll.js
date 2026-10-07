@@ -50,17 +50,17 @@ export function useDocumentRelocateAll(props, reload) {
 
         running.value = true;
         try {
-            const res = await request(props.relocateAllPath, {
+            const response = await request(props.relocateAllPath, {
                 disk: pendingDisk.value,
             });
-            if (!res) return;
-            if (!res.success) {
+            if (!response) return;
+            if (!response.success) {
                 toast.error(t("shared.common.error"));
 
                 return;
             }
 
-            const queued = res.queued ?? 0;
+            const queued = response.queued ?? 0;
 
             // "Nothing to do" and "nothing happened" look the same from the
             // outside, and the reader who just pressed a button deserves to be
@@ -70,7 +70,7 @@ export function useDocumentRelocateAll(props, reload) {
                     ? t("suite.ged.documents.relocation.all_nothing")
                     : t("suite.ged.documents.relocation.all_queued", {
                           queued,
-                          skipped: res.alreadyThere ?? 0,
+                          skipped: response.alreadyThere ?? 0,
                       }),
             );
 

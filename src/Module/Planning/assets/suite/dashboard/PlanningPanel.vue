@@ -20,7 +20,7 @@ const props = defineProps({
     stats: { type: Object, default: () => ({}) },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const overdue = computed(() => props.stats.overdue ?? 0);
 
@@ -28,8 +28,8 @@ const upcoming = computed(() =>
     (props.stats.upcoming ?? []).map((row) => ({
         ...row,
         when: row.allDay
-            ? d(new Date(row.at), { weekday: "short", day: "numeric", month: "short" })
-            : d(new Date(row.at), {
+            ? formatDate(new Date(row.at), { weekday: "short", day: "numeric", month: "short" })
+            : formatDate(new Date(row.at), {
                 weekday: "short",
                 day: "numeric",
                 month: "short",

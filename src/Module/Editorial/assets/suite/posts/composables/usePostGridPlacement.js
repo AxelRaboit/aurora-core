@@ -81,7 +81,9 @@ export function usePostGridPlacement(zones, snap) {
         const gaps = [];
 
         rows.forEach((onThisRow, row) => {
-            const sorted = [...onThisRow].sort((a, b) => a.start - b.start);
+            const sorted = [...onThisRow].sort(
+                (left, right) => left.start - right.start,
+            );
             let cursor = 0;
 
             sorted.forEach((zone) => {

@@ -184,18 +184,18 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * whether a field follows the language is the choice that screen exists to
      * offer.
      */
-    private function createCustomFields(EntityManagerInterface $em, PostTypeInterface $article): void
+    private function createCustomFields(EntityManagerInterface $entityManager, PostTypeInterface $article): void
     {
-        $defs = [
+        $definitions = [
             ['reading_time', 'Temps de lecture (min)', 'number', false, false, []],
             ['source_url', 'Source', 'url', false, false, []],
             ['level', 'Niveau', 'select', false, true, ['Débutant', 'Intermédiaire', 'Avancé']],
             ['featured', 'Mettre en avant', 'checkbox', false, false, []],
         ];
 
-        $repository = $em->getRepository(PostTypeField::class);
+        $repository = $entityManager->getRepository(PostTypeField::class);
 
-        foreach ($defs as $position => [$name, $label, $type, $required, $translatable, $options]) {
+        foreach ($definitions as $position => [$name, $label, $type, $required, $translatable, $options]) {
             // Reused by (type, machine name): the pair is what identifies a
             // field, and `make demo` runs twice.
             $field = $repository->findOneBy(['postType' => $article, 'name' => $name]) ?? new PostTypeField();
@@ -209,7 +209,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ->setOptions($options)
                 ->setPosition($position);
 
-            $em->persist($field);
+            $entityManager->persist($field);
         }
     }
 
@@ -229,7 +229,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * because the two do not serve the same purpose and the table of contents
      * is drawn from the first.
      */
-    private function bindTaxonomies(EntityManagerInterface $em, PostTypeInterface $article): void
+    private function bindTaxonomies(EntityManagerInterface $entityManager, PostTypeInterface $article): void
     {
         foreach (['category', 'tag'] as $slug) {
             $taxonomy = $this->taxonomyRepository->findOneBySlug($slug);
@@ -243,10 +243,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
         }
 
-        $em->flush();
+        $entityManager->flush();
     }
 
-    private function createTerms(EntityManagerInterface $em): array
+    private function createTerms(EntityManagerInterface $entityManager): array
     {
         $category = $this->taxonomyRepository->findOneBySlug('category');
         $tag = $this->taxonomyRepository->findOneBySlug('tag');
@@ -254,13 +254,13 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $terms = [];
 
         if ($category instanceof TaxonomyInterface) {
-            $terms['guides'] = $this->term($em, $category, [
+            $terms['guides'] = $this->term($entityManager, $category, [
                 'fr' => ['Guides', 'guides'],
                 'en' => ['Guides', 'guides'],
                 'es' => ['Guías', 'guias'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-1');
 
-            $terms['starters'] = $this->term($em, $category, [
+            $terms['starters'] = $this->term($entityManager, $category, [
                 'fr' => ['Premiers pas', 'premiers-pas'],
                 'en' => ['Getting started', 'getting-started'],
                 'es' => ['Primeros pasos', 'primeros-pasos'],
@@ -270,25 +270,25 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // them indented, on a screen two-thirds empty. What shows here is the
             // nesting, and it takes a second parent and a second level for it to read
             // as a tree rather than as an accident.
-            $terms['layout'] = $this->term($em, $category, [
+            $terms['layout'] = $this->term($entityManager, $category, [
                 'fr' => ['Mise en page', 'mise-en-page'],
                 'en' => ['Layout', 'layout'],
                 'es' => ['Maquetación', 'maquetacion'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-5', $terms['guides']);
 
-            $terms['cases'] = $this->term($em, $category, [
+            $terms['cases'] = $this->term($entityManager, $category, [
                 'fr' => ['Études de cas', 'etudes-de-cas'],
                 'en' => ['Case studies', 'case-studies'],
                 'es' => ['Casos prácticos', 'casos-practicos'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-6');
 
-            $terms['showcase'] = $this->term($em, $category, [
+            $terms['showcase'] = $this->term($entityManager, $category, [
                 'fr' => ['Sites vitrines', 'sites-vitrines'],
                 'en' => ['Showcase sites', 'showcase-sites'],
                 'es' => ['Sitios escaparate', 'sitios-escaparate'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-7', $terms['cases']);
 
-            $terms['shops'] = $this->term($em, $category, [
+            $terms['shops'] = $this->term($entityManager, $category, [
                 'fr' => ['Boutiques en ligne', 'boutiques-en-ligne'],
                 'en' => ['Online shops', 'online-shops'],
                 'es' => ['Tiendas en línea', 'tiendas-en-linea'],
@@ -296,32 +296,32 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         if ($tag instanceof TaxonomyInterface) {
-            $terms['editorial'] = $this->term($em, $tag, [
+            $terms['editorial'] = $this->term($entityManager, $tag, [
                 'fr' => ['Éditorial', 'editorial'],
                 'en' => ['Editorial', 'editorial'],
                 'es' => ['Editorial', 'editorial-es'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-3');
 
-            $terms['release'] = $this->term($em, $tag, [
+            $terms['release'] = $this->term($entityManager, $tag, [
                 'fr' => ['Nouveautés', 'nouveautes'],
                 'en' => ['Releases', 'releases'],
                 'es' => ['Novedades', 'novedades'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-4');
 
             // Tags are flat by nature: what was missing here was only the number.
-            $terms['media'] = $this->term($em, $tag, [
+            $terms['media'] = $this->term($entityManager, $tag, [
                 'fr' => ['Médias', 'medias'],
                 'en' => ['Media', 'media'],
                 'es' => ['Medios', 'medios'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-9');
 
-            $terms['forms'] = $this->term($em, $tag, [
+            $terms['forms'] = $this->term($entityManager, $tag, [
                 'fr' => ['Formulaires', 'formulaires'],
                 'en' => ['Forms', 'forms'],
                 'es' => ['Formularios', 'formularios'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-10');
 
-            $terms['a11y'] = $this->term($em, $tag, [
+            $terms['a11y'] = $this->term($entityManager, $tag, [
                 'fr' => ['Accessibilité', 'accessibilite'],
                 'en' => ['Accessibility', 'accessibility'],
                 'es' => ['Accesibilidad', 'accesibilidad'],
@@ -335,7 +335,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * @param array<string, array{0: string, 1: string}> $translations locale → [name, slug]
      */
     private function term(
-        EntityManagerInterface $em,
+        EntityManagerInterface $entityManager,
         TaxonomyInterface $taxonomy,
         array $translations,
         string $reference,
@@ -344,7 +344,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // Reused when the reference is already taken, for the same reason as
         // the publications below: `make demo` should refresh a database that
         // already has demo data rather than dying halfway through it.
-        $term = $em->getRepository(TaxonomyTerm::class)->findOneBy(['reference' => $reference])
+        $term = $entityManager->getRepository(TaxonomyTerm::class)->findOneBy(['reference' => $reference])
             ?? new TaxonomyTerm();
 
         $term
@@ -357,7 +357,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $term->translate($locale)->setName($name)->setSlug($slug);
         }
 
-        $em->persist($term);
+        $entityManager->persist($term);
 
         return $term;
     }
@@ -372,7 +372,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * @return array<string, PostInterface>
      */
     private function createPosts(
-        EntityManagerInterface $em,
+        EntityManagerInterface $entityManager,
         array $types,
         array $terms,
     ): array {
@@ -381,7 +381,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $author = $this->getReference(CoreDemoFixtures::userRef(0), User::class);
         $now = new DateTimeImmutable();
 
-        $defs = [
+        $definitions = [
             'welcome' => [
                 'type' => $types['page'],
                 'media' => 0,
@@ -584,9 +584,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $posts = [];
         $index = 0;
-        $repository = $em->getRepository(Post::class);
+        $repository = $entityManager->getRepository(Post::class);
 
-        foreach ($defs as $key => $def) {
+        foreach ($definitions as $key => $definition) {
             ++$index;
 
             $reference = sprintf('%s-DEMO-%d', SequencePrefixEnum::Post->value, $index);
@@ -599,24 +599,24 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $post = $repository->findOneBy(['reference' => $reference]) ?? new Post();
 
             $post
-                ->setPostType($def['type'])
+                ->setPostType($definition['type'])
                 ->setAuthor($author)
                 // Every publication carries one: a demo where some cards have
                 // a picture and some do not shows the empty layout as often as
                 // the real one, and reads as unfinished rather than as a
                 // choice.
-                ->setThumbnail($this->getReference(GedDemoFixtures::mediaRef($def['media']), Document::class))
+                ->setThumbnail($this->getReference(GedDemoFixtures::mediaRef($definition['media']), Document::class))
                 // Stated rather than left to the default. It is the same value,
                 // and a demo that relies on a default cannot show that the
                 // control exists.
                 ->setThumbnailFit(ThumbnailFitEnum::Cover)
-                ->setStatus($def['status'])
-                ->setPublishedAt($def['publishedAt'])
-                ->setScheduledAt($def['scheduledAt'] ?? null)
-                ->setDeletedAt($def['deletedAt'] ?? null)
+                ->setStatus($definition['status'])
+                ->setPublishedAt($definition['publishedAt'])
+                ->setScheduledAt($definition['scheduledAt'] ?? null)
+                ->setDeletedAt($definition['deletedAt'] ?? null)
                 ->setReference($reference);
 
-            foreach ($def['terms'] as $termKey) {
+            foreach ($definition['terms'] as $termKey) {
                 if (isset($terms[$termKey])) {
                     $post->addTerm($terms[$termKey]);
                 }
@@ -638,15 +638,15 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ]));
 
             foreach (LocaleEnum::values() as $locale) {
-                [$title, $slug, $description] = $def[$locale];
+                [$title, $slug, $description] = $definition[$locale];
 
                 $translation = $post->translate($locale)
                     ->setTitle($title)
                     ->setSlug($slug)
                     ->setDescription($description);
 
-                if (isset($def['seo'][$locale])) {
-                    [$metaTitle, $metaDescription, $focusKeyword] = $def['seo'][$locale];
+                if (isset($definition['seo'][$locale])) {
+                    [$metaTitle, $metaDescription, $focusKeyword] = $definition['seo'][$locale];
 
                     $translation
                         ->setMetaTitle($metaTitle)
@@ -663,7 +663,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
             // persist() on an entity Doctrine already manages is a no-op, so
             // the reused branch needs no guard of its own.
-            $em->persist($post);
+            $entityManager->persist($post);
             $posts[$key] = $post;
         }
 
@@ -1198,7 +1198,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      *
      * @return array<string, PostTypeInterface> keyed by slug
      */
-    private function createDemoPostTypes(EntityManagerInterface $em, array $builtIn): array
+    private function createDemoPostTypes(EntityManagerInterface $entityManager, array $builtIn): array
     {
         $definitions = [
             ['services', 'Services', 'briefcase'],
@@ -1220,7 +1220,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ->setHasArchive(true)
                 ->setIsBuiltIn(false);
 
-            $em->persist($type);
+            $entityManager->persist($type);
             $types[$slug] = $type;
         }
 
@@ -1237,7 +1237,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      *
      * @param array<string, PostInterface> $posts
      */
-    private function createPollVotes(EntityManagerInterface $em, array $posts): void
+    private function createPollVotes(EntityManagerInterface $entityManager, array $posts): void
     {
         $page = $posts['showcase'] ?? null;
 
@@ -1245,14 +1245,14 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             return;
         }
 
-        $repository = $em->getRepository(PollVote::class);
+        $repository = $entityManager->getRepository(PollVote::class);
 
         foreach ([0 => 23, 1 => 14, 2 => 9] as $answer => $count) {
-            for ($i = 1; $i <= $count; ++$i) {
-                $voter = sprintf('demo-%d-%d', $answer, $i);
+            for ($voteIndex = 1; $voteIndex <= $count; ++$voteIndex) {
+                $voter = sprintf('demo-%d-%d', $answer, $voteIndex);
 
                 if (null === $repository->findOneBy(['post' => $page, 'zoneId' => 'vote', 'voter' => $voter])) {
-                    $em->persist(new PollVote($page, 'vote', $answer, $voter));
+                    $entityManager->persist(new PollVote($page, 'vote', $answer, $voter));
                 }
             }
         }
@@ -1768,7 +1768,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * @param array<string, PostInterface>     $posts
      * @param array<string, PostTypeInterface> $types
      */
-    private function fillPrimaryMenu(EntityManagerInterface $em, array $posts, array $types): void
+    private function fillPrimaryMenu(EntityManagerInterface $entityManager, array $posts, array $types): void
     {
         $menu = $this->menuRepository->findOneByLocation('primary');
         if (!$menu instanceof MenuInterface) {
@@ -1819,7 +1819,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $menu->addItem($item);
-            $em->persist($item);
+            $entityManager->persist($item);
         }
 
         foreach ($archives as $entry) {
@@ -1844,7 +1844,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $menu->addItem($item);
-            $em->persist($item);
+            $entityManager->persist($item);
         }
     }
 
@@ -2221,7 +2221,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      *
      * @param array<string, PostInterface> $posts
      */
-    private function createComments(EntityManagerInterface $em, array $posts): void
+    private function createComments(EntityManagerInterface $entityManager, array $posts): void
     {
         $post = $posts['first-steps'] ?? null;
 
@@ -2229,7 +2229,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             return;
         }
 
-        $repository = $em->getRepository(Comment::class);
+        $repository = $entityManager->getRepository(Comment::class);
         $now = new DateTimeImmutable();
 
         $entries = [
@@ -2286,7 +2286,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 $comment->setParent($created[$entry['parent']]);
             }
 
-            $em->persist($comment);
+            $entityManager->persist($comment);
             $created[$key] = $comment;
 
             // One fingerprint per reaction: it stands in for an identity for a visitor
@@ -2294,7 +2294,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // comment count as one. The database guarantees it with a unique index,
             // which made the second `make demo` fail - hence the lookup before the
             // insert.
-            $reactions = $em->getRepository(CommentReaction::class);
+            $reactions = $entityManager->getRepository(CommentReaction::class);
 
             foreach ($entry['reactions'] as $index => $type) {
                 $fingerprint = sprintf('demo-%s-%d', $key, $index);
@@ -2309,26 +2309,26 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     ->setType($type)
                     ->setFingerprint($fingerprint);
 
-                $em->persist($reaction);
+                $entityManager->persist($reaction);
             }
         }
 
-        $em->flush();
+        $entityManager->flush();
 
         // After the flush: the creation date is set by the constructor, and a demo
         // whose four comments carry the same minute does not show a discussion
         // thread.
         foreach ($entries as $key => $entry) {
-            $this->backdate($em, $created[$key], $entry['at']);
+            $this->backdate($entityManager, $created[$key], $entry['at']);
         }
 
-        $em->flush();
+        $entityManager->flush();
     }
 
     /** Moves the date of a comment back, which the entity does not let anyone write. */
-    private function backdate(EntityManagerInterface $em, CommentInterface $comment, DateTimeImmutable $at): void
+    private function backdate(EntityManagerInterface $entityManager, CommentInterface $comment, DateTimeImmutable $at): void
     {
-        $em->getConnection()->executeStatement(
+        $entityManager->getConnection()->executeStatement(
             'UPDATE core_comments SET created_at = :at WHERE id = :id',
             ['at' => $at->format('Y-m-d H:i:s'), 'id' => $comment->getId()],
         );

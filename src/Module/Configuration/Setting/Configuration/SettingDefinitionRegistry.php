@@ -91,7 +91,7 @@ final class SettingDefinitionRegistry
         }
 
         $tabs = array_values($byId);
-        usort($tabs, static fn (ConfigurationTab $a, ConfigurationTab $b): int => $a->priority <=> $b->priority);
+        usort($tabs, static fn (ConfigurationTab $left, ConfigurationTab $right): int => $left->priority <=> $right->priority);
 
         return $this->tabs = $tabs;
     }

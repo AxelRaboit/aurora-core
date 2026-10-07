@@ -171,7 +171,7 @@ describe("what one operator may do to one user", () => {
         });
 
         const impersonate = wrapper.vm.actions.find(
-            (a) => "impersonate" === a.key,
+            (action) => "impersonate" === action.key,
         );
 
         // Encoded by `buildPath`, which is the point: an address goes into a

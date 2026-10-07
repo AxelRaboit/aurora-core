@@ -64,7 +64,7 @@ readonly class FormNotificationService
             '@Editorial/email/form_submission.html.twig',
             $context,
             locale: $readerLocale,
-            subjectParams: ['{form}' => $context['formTitle']],
+            subjectParameters: ['{form}' => $context['formTitle']],
             replyTo: $replyTo,
         );
     }
@@ -89,7 +89,7 @@ readonly class FormNotificationService
             '@Editorial/email/form_submission_confirmation.html.twig',
             $context,
             locale: $locale,
-            subjectParams: ['{form}' => $context['formTitle']],
+            subjectParameters: ['{form}' => $context['formTitle']],
         );
     }
 

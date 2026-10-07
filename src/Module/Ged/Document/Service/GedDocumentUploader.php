@@ -74,8 +74,8 @@ final readonly class GedDocumentUploader
         // moment it arrived. See {@see StoredFileName}. `originalName` keeps
         // the human-readable one, which is what a download needs.
         $newFilename = StoredFileName::withExtension($extension);
-        $relativeDir = sprintf('%s/%s', StorageAreaEnum::Ged->value, $dateSlug);
-        $relativePath = sprintf('%s/%s', $relativeDir, $newFilename);
+        $relativeDirectory = sprintf('%s/%s', StorageAreaEnum::Ged->value, $dateSlug);
+        $relativePath = sprintf('%s/%s', $relativeDirectory, $newFilename);
 
         $adapter = $this->storageManager->active();
 
@@ -84,14 +84,14 @@ final readonly class GedDocumentUploader
         // and the temporary is swept at the end of the request either way.
         $adapter->writeFromLocalFile($relativePath, $file->getPathname());
 
-        $thumbDir = sprintf('%s/thumbnails/%s', StorageAreaEnum::Ged->value, $dateSlug);
+        $thumbDirectory = sprintf('%s/thumbnails/%s', StorageAreaEnum::Ged->value, $dateSlug);
         $thumbBasename = pathinfo($newFilename, PATHINFO_FILENAME);
 
         $thumbnailPath = null;
         [$width, $height] = $this->readImageDimensions($adapter, $relativePath, $mimeType);
 
         if (MimeTypeEnum::Pdf->value === $mimeType) {
-            $thumbnailPath = $this->pdfThumbnailGenerator->generate($adapter, $relativePath, $thumbDir, $thumbBasename);
+            $thumbnailPath = $this->pdfThumbnailGenerator->generate($adapter, $relativePath, $thumbDirectory, $thumbBasename);
         }
 
         if (MimeTypeEnum::tryFrom($mimeType)?->isVideo() ?? false) {
@@ -99,8 +99,8 @@ final readonly class GedDocumentUploader
             // nothing installed here. `fromSource` is the path for uploads no
             // browser handled - an API call, a fixture, a console import.
             $thumbnailPath = $capture instanceof VideoCapture
-                ? $this->videoPosterGenerator->fromCapture($adapter, $capture->poster, $thumbDir, $thumbBasename)
-                : $this->videoPosterGenerator->fromSource($adapter, $relativePath, $thumbDir, $thumbBasename);
+                ? $this->videoPosterGenerator->fromCapture($adapter, $capture->poster, $thumbDirectory, $thumbBasename)
+                : $this->videoPosterGenerator->fromSource($adapter, $relativePath, $thumbDirectory, $thumbBasename);
 
             [$width, $height] = $this->readVideoDimensions($adapter, $capture, $thumbnailPath);
         }

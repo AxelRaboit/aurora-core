@@ -71,8 +71,8 @@ final class SurfaceContrastTest extends TestCase
     public function testNoBackgroundCanEverFallBelowAa(): void
     {
         $worst = 21.0;
-        for ($v = 0; $v <= 255; ++$v) {
-            $worst = min($worst, $this->contrast->bestRatio(sprintf('#%02x%02x%02x', $v, $v, $v)));
+        for ($grey = 0; $grey <= 255; ++$grey) {
+            $worst = min($worst, $this->contrast->bestRatio(sprintf('#%02x%02x%02x', $grey, $grey, $grey)));
         }
 
         self::assertGreaterThan(4.5, $worst, 'AA est tenu par construction');

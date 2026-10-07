@@ -217,9 +217,9 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
     {
         $base = mb_strtolower(new AsciiSlugger()->slug($name)->toString());
         $slug = $base;
-        $i = 2;
+        $suffix = 2;
         while ($this->slugExists($slug, $excludeId)) {
-            $slug = $base.'-'.$i++;
+            $slug = $base.'-'.$suffix++;
         }
 
         return $slug;
@@ -227,16 +227,16 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
 
     private function slugExists(string $slug, ?int $excludeId): bool
     {
-        $qb = $this->categoryRepository->createQueryBuilder('c')
+        $queryBuilder = $this->categoryRepository->createQueryBuilder('c')
             ->select('COUNT(c.id)')
             ->where('c.slug = :slug')
             ->andWhere('c.deletedAt IS NULL')
             ->setParameter('slug', $slug);
 
         if (null !== $excludeId) {
-            $qb->andWhere('c.id != :id')->setParameter('id', $excludeId);
+            $queryBuilder->andWhere('c.id != :id')->setParameter('id', $excludeId);
         }
 
-        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 }

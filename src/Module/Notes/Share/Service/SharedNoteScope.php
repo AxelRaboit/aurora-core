@@ -131,9 +131,9 @@ final readonly class SharedNoteScope
         // The root is what is being shared, not something a switch added.
         array_shift($scope);
 
-        return array_map(static fn (MarkdownNoteInterface $n): array => [
-            'id' => (int) $n->getId(),
-            'title' => $n->getTitle(),
+        return array_map(static fn (MarkdownNoteInterface $scopedNote): array => [
+            'id' => (int) $scopedNote->getId(),
+            'title' => $scopedNote->getTitle(),
         ], $scope);
     }
 

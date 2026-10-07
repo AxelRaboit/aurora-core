@@ -35,7 +35,7 @@ const props = defineProps({
     eventsPath: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const {
     visibleEvents,
@@ -50,7 +50,7 @@ const {
     anchor,
     cells,
     days,
-    go,
+    go: pageBy,
     goToToday,
     setView,
     zone,
@@ -76,11 +76,11 @@ watch([year, month], () => {
 /** The same three shapes the suite's toolbar uses, for the same reasons. */
 const rangeLabel = computed(() => {
     if (usesMonthRange.value) {
-        return d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
+        return formatDate(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
     }
 
     if ("day" === view.value) {
-        return d(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        return formatDate(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     }
 
     const first = days.value[0];
@@ -92,8 +92,8 @@ const rangeLabel = computed(() => {
 
     const sameMonth = first.getMonth() === last.getMonth();
 
-    return `${d(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
-        + `${d(last, { day: "numeric", month: "long", year: "numeric" })}`;
+    return `${formatDate(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
+        + `${formatDate(last, { day: "numeric", month: "long", year: "numeric" })}`;
 });
 
 const viewOptions = computed(() =>
@@ -124,10 +124,10 @@ const legend = computed(() => props.calendars);
         <AppLoader :active="loading" />
 
         <div class="flex flex-wrap items-center gap-2">
-            <AppIconButton :title="t('shared.common.previous')" v-on:click="go(-1)">
+            <AppIconButton :title="t('shared.common.previous')" v-on:click="pageBy(-1)">
                 <ChevronLeft class="h-4 w-4" :stroke-width="2" />
             </AppIconButton>
-            <AppIconButton :title="t('shared.common.next')" v-on:click="go(1)">
+            <AppIconButton :title="t('shared.common.next')" v-on:click="pageBy(1)">
                 <ChevronRight class="h-4 w-4" :stroke-width="2" />
             </AppIconButton>
             <h2 class="min-w-0 truncate text-sm font-semibold text-primary first-letter:uppercase sm:text-base">

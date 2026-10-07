@@ -154,7 +154,9 @@ describe("DeliverablesApp", () => {
         const keys = (wrapper) =>
             wrapper
                 .findAllComponents({ name: "AppPageActions" })
-                .flatMap((c) => c.props("actions").map((a) => a.key));
+                .flatMap((component) =>
+                    component.props("actions").map((action) => action.key),
+                );
 
         expect(keys(mountFiled())).not.toContain("categories");
         expect(keys(mountFiled({ canManageCategories: true }))).toContain(

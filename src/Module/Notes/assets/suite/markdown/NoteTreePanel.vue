@@ -149,12 +149,12 @@ const expanded = computed(() =>
  * would make the page spin without showing anything.
  */
 function revealNote(noteId) {
-    const note = notes.value.find((n) => Number(n.id) === Number(noteId));
+    const note = notes.value.find((candidate) => Number(candidate.id) === Number(noteId));
 
     if (!note?.folderId) return;
 
     const parents = new Map(
-        folders.value.map((f) => [Number(f.id), Number(f.parentId) || null]),
+        folders.value.map((folder) => [Number(folder.id), Number(folder.parentId) || null]),
     );
 
     const next = new Set(openedIds.value);
@@ -275,7 +275,7 @@ const favorites = computed(() => {
     return [
         ...pinned(folders.value, "folder"),
         ...pinned(notes.value, "note"),
-    ].sort((a, b) => Date.parse(b.favoritedAt) - Date.parse(a.favoritedAt));
+    ].sort((left, right) => Date.parse(right.favoritedAt) - Date.parse(left.favoritedAt));
 });
 
 // ── Spaces ─────────────────────────────────────────────────────────
@@ -485,9 +485,9 @@ const allTags = computed(() => {
     return [...counts.entries()]
         .map(([name, count]) => ({ name, count }))
         .sort(
-            (a, b) =>
-                b.count - a.count ||
-                a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+            (left, right) =>
+                right.count - left.count ||
+                left.name.localeCompare(right.name, undefined, { sensitivity: "base" }),
         );
 });
 
@@ -567,8 +567,8 @@ function clearHover() {
     hoverKey = null;
 }
 
-function forward(name, ...args) {
-    return askPage(`notes:${name}`, { args });
+function forward(name, ...forwardedArguments) {
+    return askPage(`notes:${name}`, { args: forwardedArguments });
 }
 
 /**

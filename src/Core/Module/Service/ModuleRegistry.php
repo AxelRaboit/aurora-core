@@ -73,7 +73,7 @@ final readonly class ModuleRegistry
             }
         }
 
-        usort($sections, static fn (array $a, array $b): int => [$a['priority'], $a['insertion']] <=> [$b['priority'], $b['insertion']]);
+        usort($sections, static fn (array $left, array $right): int => [$left['priority'], $left['insertion']] <=> [$right['priority'], $right['insertion']]);
 
         $sectionOrder = $this->readSectionOrder();
         $itemOrder = $this->readItemOrder();
@@ -127,7 +127,7 @@ final readonly class ModuleRegistry
             }
         }
 
-        usort($sections, static fn (array $a, array $b): int => [$a['priority'], $a['insertion']] <=> [$b['priority'], $b['insertion']]);
+        usort($sections, static fn (array $left, array $right): int => [$left['priority'], $left['insertion']] <=> [$right['priority'], $right['insertion']]);
 
         $sectionOrder = $this->readSectionOrder();
         $itemOrder = $this->readItemOrder();

@@ -40,7 +40,7 @@ const props = defineProps({
     itemsPath: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { request } = useRequest();
 const { container, isNarrow } = useNarrowContainer(560);
 
@@ -54,13 +54,13 @@ const STATES = [
     { value: "published", labelKey: "suite.studio.calendar.states.published" },
 ];
 
-const params = new URLSearchParams(window.location.search);
+const searchParameters = new URLSearchParams(window.location.search);
 const today = new Date();
 const year = ref(today.getFullYear());
 const month = ref(today.getMonth());
-const view = ref("list" === params.get("view") ? "list" : "month");
-const customer = ref(params.get("customer") ?? "");
-const state = ref(STATES.some((entry) => entry.value === params.get("state")) ? params.get("state") : "");
+const view = ref("list" === searchParameters.get("view") ? "list" : "month");
+const customer = ref(searchParameters.get("customer") ?? "");
+const state = ref(STATES.some((entry) => entry.value === searchParameters.get("state")) ? searchParameters.get("state") : "");
 const selectedDay = ref(new Date());
 
 const items = ref([]);
@@ -94,7 +94,7 @@ const visible = computed(() =>
 );
 
 const cells = computed(() => monthGrid(year.value, month.value));
-const monthTitle = computed(() => d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }));
+const monthTitle = computed(() => formatDate(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }));
 
 /**
  * A state requested as a list: all its cards, across all months, dated or
@@ -122,7 +122,7 @@ const byDay = computed(() => {
         days.get(key).items.push(item);
     }
 
-    const groups = [...days.values()].sort((a, b) => a.date - b.date);
+    const groups = [...days.values()].sort((left, right) => left.date - right.date);
 
     return undated.length ? [...groups, { key: "undated", date: null, items: undated }] : groups;
 });
@@ -306,7 +306,7 @@ function spaceName(item) {
             <AppNoData v-if="!loading && !byDay.length" :message="t(acrossMonths ? 'suite.studio.calendar.empty_state' : 'suite.studio.calendar.empty_month')" />
             <section v-for="day in byDay" :key="day.key" class="space-y-1">
                 <h3 class="text-xs font-medium uppercase tracking-wide text-secondary">
-                    {{ day.date ? d(day.date, acrossMonths ? { weekday: "long", day: "numeric", month: "long", year: "numeric" } : { weekday: "long", day: "numeric", month: "long" }) : t("suite.studio.calendar.undated") }}
+                    {{ day.date ? formatDate(day.date, acrossMonths ? { weekday: "long", day: "numeric", month: "long", year: "numeric" } : { weekday: "long", day: "numeric", month: "long" }) : t("suite.studio.calendar.undated") }}
                 </h3>
                 <ul class="aurora-card divide-y divide-line/60">
                     <li v-for="item in day.items" :key="item.id">
@@ -314,7 +314,7 @@ function spaceName(item) {
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate text-sm text-primary">{{ item.title }}</span>
                                 <span class="block truncate text-xs text-muted">
-                                    {{ spaceName(item) }} · {{ item.stepName }}<template v-if="item.startAt"> · {{ d(new Date(item.startAt), { hour: "2-digit", minute: "2-digit" }) }}</template>
+                                    {{ spaceName(item) }} · {{ item.stepName }}<template v-if="item.startAt"> · {{ formatDate(new Date(item.startAt), { hour: "2-digit", minute: "2-digit" }) }}</template>
                                 </span>
                             </span>
                             <span class="flex flex-wrap items-center gap-1.5">

@@ -23,7 +23,7 @@ final class GedModuleTest extends TestCase
     ): GedModule {
         $checker = $this->createStub(ModuleAccessChecker::class);
         $checker->method('isEnabled')->willReturnCallback(
-            static fn (ModuleParameterEnum $param): bool => match ($param) {
+            static fn (ModuleParameterEnum $parameter): bool => match ($parameter) {
                 ModuleParameterEnum::GedSuite => $suiteEnabled,
                 ModuleParameterEnum::GedDocuments => $documentsEnabled,
                 ModuleParameterEnum::GedCategories => $categoriesEnabled,

@@ -22,10 +22,10 @@ export function spaceLabel(space, t) {
  */
 export function sortSpaces(spaces) {
     return [...(spaces ?? [])].sort(
-        (a, b) =>
-            Number(Boolean(b.personal)) - Number(Boolean(a.personal)) ||
-            (a.position ?? 0) - (b.position ?? 0) ||
-            Number(a.id) - Number(b.id),
+        (left, right) =>
+            Number(Boolean(right.personal)) - Number(Boolean(left.personal)) ||
+            (left.position ?? 0) - (right.position ?? 0) ||
+            Number(left.id) - Number(right.id),
     );
 }
 

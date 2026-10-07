@@ -81,8 +81,8 @@ final class GitHubContributionsTest extends TestCase
     public function testTheLastGridReadOutlivesAnOutage(): void
     {
         $cache = new ArrayAdapter();
-        $up = new GitHubContributions(new MockHttpClient(new MockResponse(self::PAGE)), $cache, new NullLogger());
-        $up->forLogin('AxelRaboit');
+        $online = new GitHubContributions(new MockHttpClient(new MockResponse(self::PAGE)), $cache, new NullLogger());
+        $online->forLogin('AxelRaboit');
 
         // The fresh entry expires; only the stale copy is left.
         $cache->delete('editorial.github.contributions.axelraboit');

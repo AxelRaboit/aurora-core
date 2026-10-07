@@ -47,14 +47,14 @@ export default class TwoColumnBlock {
     }
 
     #makeCol(html, placeholder, onChange) {
-        const col = document.createElement("div");
-        col.className = "two-col-block__col";
-        col.contentEditable = "true";
-        col.dataset.placeholder = placeholder;
-        col.innerHTML = html;
-        col.addEventListener("input", () => onChange(col.innerHTML));
-        col.addEventListener("paste", handlePlainTextPaste);
-        return col;
+        const column = document.createElement("div");
+        column.className = "two-col-block__col";
+        column.contentEditable = "true";
+        column.dataset.placeholder = placeholder;
+        column.innerHTML = html;
+        column.addEventListener("input", () => onChange(column.innerHTML));
+        column.addEventListener("paste", handlePlainTextPaste);
+        return column;
     }
 
     save() {

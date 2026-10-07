@@ -35,15 +35,15 @@
 <meta property="og:site_name" content="{{ context.siteName }}">
 <meta property="og:url" content="{{ seo.canonical }}">
 <meta property="og:locale" content="{{ locale }}">
-{% for alt in alternates %}
-    {% if alt.locale != locale %}
-        <meta property="og:locale:alternate" content="{{ alt.locale }}">
+{% for alternate in alternates %}
+    {% if alternate.locale != locale %}
+        <meta property="og:locale:alternate" content="{{ alternate.locale }}">
     {% endif %}
 {% endfor %}
-{% for alt in alternates %}
-    <link rel="alternate" hreflang="{{ alt.locale }}" href="{{ context.siteUrl }}{{ alt.url }}">
-    {% if alt.locale == context.defaultLocale %}
-        <link rel="alternate" hreflang="x-default" href="{{ context.siteUrl }}{{ alt.url }}">
+{% for alternate in alternates %}
+    <link rel="alternate" hreflang="{{ alternate.locale }}" href="{{ context.siteUrl }}{{ alternate.url }}">
+    {% if alternate.locale == context.defaultLocale %}
+        <link rel="alternate" hreflang="x-default" href="{{ context.siteUrl }}{{ alternate.url }}">
     {% endif %}
 {% endfor %}
 {% if seo.image %}

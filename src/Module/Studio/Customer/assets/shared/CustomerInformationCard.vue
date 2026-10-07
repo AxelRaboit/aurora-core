@@ -39,9 +39,9 @@ const info = computed(() => props.information ?? {});
 const ROWS = [
     { key: "siret", labelKey: "shared.space_information.siret", icon: Hash },
     { key: "siren", labelKey: "shared.space_information.siren", icon: Hash },
-    { key: "phone", labelKey: "shared.space_information.phone", icon: Smartphone, href: (v) => `tel:${v.replace(/\s/g, "")}` },
-    { key: "landline", labelKey: "shared.space_information.landline", icon: Phone, href: (v) => `tel:${v.replace(/\s/g, "")}` },
-    { key: "email", labelKey: "shared.space_information.email", icon: AtSign, href: (v) => `mailto:${v}` },
+    { key: "phone", labelKey: "shared.space_information.phone", icon: Smartphone, href: (value) => `tel:${value.replace(/\s/g, "")}` },
+    { key: "landline", labelKey: "shared.space_information.landline", icon: Phone, href: (value) => `tel:${value.replace(/\s/g, "")}` },
+    { key: "email", labelKey: "shared.space_information.email", icon: AtSign, href: (value) => `mailto:${value}` },
     { key: "postalAddress", labelKey: "shared.space_information.registered_office", icon: MapPin, multiline: true },
 ];
 

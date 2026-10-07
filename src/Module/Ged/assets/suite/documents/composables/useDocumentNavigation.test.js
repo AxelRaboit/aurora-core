@@ -16,13 +16,13 @@ describe("useDocumentNavigation - the address", () => {
 
         await navigateTo(7);
 
-        const params = new URLSearchParams(window.location.search);
-        expect(params.get("folderId")).toBe("7");
-        expect(params.get("all")).toBeNull();
-        expect(params.get("search")).toBe("carte");
-        expect(params.get("sort")).toBe("name");
-        expect(params.get("dir")).toBe("asc");
-        expect(params.get("familles")).toBe("0");
+        const searchParameters = new URLSearchParams(window.location.search);
+        expect(searchParameters.get("folderId")).toBe("7");
+        expect(searchParameters.get("all")).toBeNull();
+        expect(searchParameters.get("search")).toBe("carte");
+        expect(searchParameters.get("sort")).toBe("name");
+        expect(searchParameters.get("dir")).toBe("asc");
+        expect(searchParameters.get("familles")).toBe("0");
     });
 
     it("drops the previous folder when going back to every document", async () => {
@@ -39,9 +39,9 @@ describe("useDocumentNavigation - the address", () => {
 
         await navigateToAll();
 
-        const params = new URLSearchParams(window.location.search);
-        expect(params.get("folderId")).toBeNull();
-        expect(params.get("all")).toBe("1");
-        expect(params.get("familles")).toBe("0");
+        const searchParameters = new URLSearchParams(window.location.search);
+        expect(searchParameters.get("folderId")).toBeNull();
+        expect(searchParameters.get("all")).toBe("1");
+        expect(searchParameters.get("familles")).toBe("0");
     });
 });

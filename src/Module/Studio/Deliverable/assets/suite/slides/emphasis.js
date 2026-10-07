@@ -38,11 +38,11 @@ import DOMPurify from "dompurify";
 const accentMark = {
     name: "accentMark",
     level: "inline",
-    start(src) {
-        return src.indexOf("==");
+    start(source) {
+        return source.indexOf("==");
     },
-    tokenizer(src) {
-        const match = /^==(?=\S)([\s\S]*?\S)==/.exec(src);
+    tokenizer(source) {
+        const match = /^==(?=\S)([\s\S]*?\S)==/.exec(source);
 
         if (!match) return undefined;
 

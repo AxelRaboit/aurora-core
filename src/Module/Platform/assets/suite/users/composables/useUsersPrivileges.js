@@ -22,8 +22,8 @@ export function useUsersPrivileges(props, fetchUsers) {
     }
 
     function togglePrivilege(name) {
-        const idx = pendingPrivileges.value.indexOf(name);
-        if (idx >= 0) pendingPrivileges.value.splice(idx, 1);
+        const index = pendingPrivileges.value.indexOf(name);
+        if (index >= 0) pendingPrivileges.value.splice(index, 1);
         else pendingPrivileges.value.push(name);
     }
 

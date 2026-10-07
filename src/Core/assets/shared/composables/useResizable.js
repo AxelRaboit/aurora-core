@@ -62,8 +62,8 @@ export function useResizable({
         event.preventDefault();
         dragging.value = true;
 
-        const handleEl = event.currentTarget;
-        const origin = getOrigin ? getOrigin() : handleEl?.parentElement;
+        const handleElement = event.currentTarget;
+        const origin = getOrigin ? getOrigin() : handleElement?.parentElement;
         originRect = origin?.getBoundingClientRect() ?? null;
 
         document.body.style.cursor = axis === "x" ? "col-resize" : "row-resize";

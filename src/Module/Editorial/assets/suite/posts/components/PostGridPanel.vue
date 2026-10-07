@@ -323,7 +323,7 @@ const frameHeight = ref(300);
  * is sized to the screen (`100vh`) is let go: the frame grows to fit its
  * page, and a page as tall as its frame would grow with it for ever.
  */
-const frameDoc = computed(() =>
+const frameSource = computed(() =>
     String(framePageHtml.value ?? "")
         .replace(/<script\b[\s\S]*?<\/script>/gi, "")
         .replace(/<head([^>]*)>/i, '<head$1><base target="_blank"><style>body{cursor:pointer;min-height:0!important}.aurora-slide{min-height:0!important}</style><style data-highlight></style>'),
@@ -331,8 +331,8 @@ const frameDoc = computed(() =>
 
 /** The selected zone, outlined in the frame. */
 function paintHighlight() {
-    const doc = frame.value?.contentDocument;
-    const style = doc?.querySelector("style[data-highlight]");
+    const frameDocument = frame.value?.contentDocument;
+    const style = frameDocument?.querySelector("style[data-highlight]");
     if (!style) return;
 
     const id = zones.value[selectedIndex.value]?.id;
@@ -340,15 +340,15 @@ function paintHighlight() {
 }
 
 function onFrameLoad() {
-    const doc = frame.value?.contentDocument;
-    if (!doc) return;
+    const frameDocument = frame.value?.contentDocument;
+    if (!frameDocument) return;
 
-    doc.addEventListener("click", pickFromPreview);
-    frameHeight.value = Math.max(200, doc.body.scrollHeight);
+    frameDocument.addEventListener("click", pickFromPreview);
+    frameHeight.value = Math.max(200, frameDocument.body.scrollHeight);
     paintHighlight();
     // Pictures arrive after the frame: measure again when they have.
-    doc.querySelectorAll("img").forEach((image) => image.addEventListener("load", () => {
-        frameHeight.value = Math.max(200, doc.body.scrollHeight);
+    frameDocument.querySelectorAll("img").forEach((image) => image.addEventListener("load", () => {
+        frameHeight.value = Math.max(200, frameDocument.body.scrollHeight);
     }, { once: true }));
 }
 
@@ -1245,7 +1245,7 @@ function resizeZone(index, columns) {
                     <iframe
                         ref="frame"
                         :title="t('suite.posts.grid.preview')"
-                        :srcdoc="frameDoc"
+                        :srcdoc="frameSource"
                         class="block border-0"
                         :style="{ width: `${deviceWidth}px`, height: `${frameHeight}px`, transform: `scale(${previewScale})`, transformOrigin: 'top left' }"
                         v-on:load="onFrameLoad"

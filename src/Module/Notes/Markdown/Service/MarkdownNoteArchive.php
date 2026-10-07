@@ -123,9 +123,9 @@ final readonly class MarkdownNoteArchive
                 continue;
             }
 
-            $dir = $this->uniqueName($this->safeName((string) $space->getName(), sprintf('espace-%d', $id)), $seenSpaces);
-            $zip->addEmptyDir($dir);
-            $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, $dir.'/', $user, $ajoutees);
+            $spaceDirectory = $this->uniqueName($this->safeName((string) $space->getName(), sprintf('espace-%d', $id)), $seenSpaces);
+            $zip->addEmptyDir($spaceDirectory);
+            $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, $spaceDirectory.'/', $user, $ajoutees);
         }
 
         $zip->close();

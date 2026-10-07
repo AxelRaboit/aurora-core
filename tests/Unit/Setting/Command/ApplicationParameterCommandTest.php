@@ -29,12 +29,12 @@ final class ApplicationParameterCommandTest extends TestCase
      */
     private function makeTester(
         SettingRepository $repository,
-        EntityManagerInterface $em,
+        EntityManagerInterface $entityManager,
         ?iterable $providers = null,
         iterable $owners = [],
     ): CommandTester {
         $providers ??= [new CoreApplicationParameterProvider(), new CoreModuleParameterProvider()];
-        $command = new ApplicationParameterCommand($repository, $em, $providers, $owners);
+        $command = new ApplicationParameterCommand($repository, $entityManager, $providers, $owners);
 
         return new CommandTester($command);
     }
@@ -57,8 +57,8 @@ final class ApplicationParameterCommandTest extends TestCase
         $repository = $this->createMock(SettingRepository::class);
         $repository->method('findAll')->willReturn([$owned]);
 
-        $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::never())->method('remove');
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('remove');
 
         $owner = new class implements OwnedSettingProviderInterface {
             public function getOwnedSettingKeys(): iterable
@@ -67,7 +67,7 @@ final class ApplicationParameterCommandTest extends TestCase
             }
         };
 
-        $tester = $this->makeTester($repository, $em, [], [$owner]);
+        $tester = $this->makeTester($repository, $entityManager, [], [$owner]);
 
         self::assertSame(0, $tester->execute([]));
     }
@@ -75,13 +75,13 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testCreatesAbsentParameters(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $repository->method('findAll')->willReturn([]);
-        $em->expects(self::atLeastOnce())->method('persist');
-        $em->expects(self::once())->method('flush');
+        $entityManager->expects(self::atLeastOnce())->method('persist');
+        $entityManager->expects(self::once())->method('flush');
 
-        $tester = $this->makeTester($repository, $em);
+        $tester = $this->makeTester($repository, $entityManager);
         $tester->execute([]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -91,13 +91,13 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testDryRunDoesNotFlush(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $repository->method('findAll')->willReturn([]);
-        $em->expects(self::never())->method('flush');
-        $em->expects(self::never())->method('persist');
+        $entityManager->expects(self::never())->method('flush');
+        $entityManager->expects(self::never())->method('persist');
 
-        $tester = $this->makeTester($repository, $em);
+        $tester = $this->makeTester($repository, $entityManager);
         $tester->execute(['--dry-run' => true]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -109,14 +109,14 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testSyncsOutdatedDescription(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $staleSetting = $this->makeSettingStub('site_name', 'old_description', 'string', 'application');
 
         $repository->method('findAll')->willReturn([$staleSetting]);
-        $em->expects(self::once())->method('flush');
+        $entityManager->expects(self::once())->method('flush');
 
-        $tester = $this->makeTester($repository, $em);
+        $tester = $this->makeTester($repository, $entityManager);
         $tester->execute([]);
 
         $display = $tester->getDisplay();
@@ -126,15 +126,15 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testDeletesObsoleteParameters(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $obsolete = $this->makeSettingStub('totally_unknown_obsolete_key');
 
         $repository->method('findAll')->willReturn([$obsolete]);
-        $em->expects(self::once())->method('remove')->with($obsolete);
-        $em->expects(self::once())->method('flush');
+        $entityManager->expects(self::once())->method('remove')->with($obsolete);
+        $entityManager->expects(self::once())->method('flush');
 
-        $tester = $this->makeTester($repository, $em);
+        $tester = $this->makeTester($repository, $entityManager);
         $tester->execute([]);
 
         $display = $tester->getDisplay();
@@ -145,12 +145,12 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testSummaryContainsAllCounters(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $repository->method('findAll')->willReturn([]);
-        $em->method('flush');
+        $entityManager->method('flush');
 
-        $tester = $this->makeTester($repository, $em);
+        $tester = $this->makeTester($repository, $entityManager);
         $tester->execute([]);
 
         $display = $tester->getDisplay();
@@ -160,11 +160,11 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testDryRunDisplaysPendingCreations(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $repository->method('findAll')->willReturn([]);
 
-        $tester = $this->makeTester($repository, $em);
+        $tester = $this->makeTester($repository, $entityManager);
         $tester->execute(['--dry-run' => true]);
 
         $display = $tester->getDisplay();
@@ -174,14 +174,14 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testCustomProviderContributesItsEnumCases(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $repository->method('findAll')->willReturn([]);
 
         $customKey = 'suite_extension_custom_setting';
         $customProvider = $this->makeProviderWith($this->stubParameterEnum($customKey));
 
-        $tester = $this->makeTester($repository, $em, [$customProvider]);
+        $tester = $this->makeTester($repository, $entityManager, [$customProvider]);
         $tester->execute(['--dry-run' => true]);
 
         // The custom key from an extension provider appears in the "to-create" list
@@ -191,7 +191,7 @@ final class ApplicationParameterCommandTest extends TestCase
     public function testSettingKeptWhenItsProviderIsRegistered(): void
     {
         $repository = $this->createMock(SettingRepository::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
 
         $customKey = 'suite_extension_custom_setting';
         // Existing setting already in DB (admin saved a value via the UI)
@@ -199,11 +199,11 @@ final class ApplicationParameterCommandTest extends TestCase
         $repository->method('findAll')->willReturn([$existing]);
 
         // EM should NOT remove the setting - the provider claims its key
-        $em->expects(self::never())->method('remove');
+        $entityManager->expects(self::never())->method('remove');
 
         $customProvider = $this->makeProviderWith($this->stubParameterEnum($customKey));
 
-        $tester = $this->makeTester($repository, $em, [$customProvider]);
+        $tester = $this->makeTester($repository, $entityManager, [$customProvider]);
         $tester->execute([]);
 
         // No "obsolète" line for the provider-claimed key

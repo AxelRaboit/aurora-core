@@ -121,8 +121,8 @@ final readonly class MarkdownNoteImporter
         // readers see them.
         $imported = $this->importImages($zip, $space ?? $user);
 
-        for ($i = 0; $i < $zip->numFiles; ++$i) {
-            $entry = (string) $zip->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $zip->numFiles; ++$entryIndex) {
+            $entry = (string) $zip->getNameIndex($entryIndex);
 
             if (str_starts_with($entry, '__MACOSX/')) {
                 continue;
@@ -164,7 +164,7 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $notes[] = $this->noteInput($under, $space, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($i), $imported));
+            $notes[] = $this->noteInput($under, $space, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($entryIndex), $imported));
             ++$created;
         }
 
@@ -196,8 +196,8 @@ final readonly class MarkdownNoteImporter
     {
         $imported = [];
 
-        for ($i = 0; $i < $zip->numFiles; ++$i) {
-            $entry = (string) $zip->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $zip->numFiles; ++$entryIndex) {
+            $entry = (string) $zip->getNameIndex($entryIndex);
             if (str_starts_with($entry, '__MACOSX/')) {
                 continue;
             }
@@ -216,7 +216,7 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $octets = $zip->getFromIndex($i);
+            $octets = $zip->getFromIndex($entryIndex);
             if (false === $octets) {
                 continue;
             }
@@ -271,20 +271,20 @@ final readonly class MarkdownNoteImporter
 
         return (string) preg_replace_callback(
             '/!\[([^\]]*)\]\(([^)\s]+)([^)]*)\)/',
-            static function (array $m) use ($imported): string {
-                $cible = $m[2];
+            static function (array $match) use ($imported): string {
+                $cible = $match[2];
 
                 if (str_starts_with($cible, 'http://') || str_starts_with($cible, 'https://') || str_starts_with($cible, 'data:')) {
-                    return $m[0];
+                    return $match[0];
                 }
 
                 $base = basename(explode('#', explode('?', $cible)[0])[0]);
 
                 if (!isset($imported[$base])) {
-                    return $m[0];
+                    return $match[0];
                 }
 
-                return sprintf('![%s](%s%s)', $m[1], $imported[$base], $m[3]);
+                return sprintf('![%s](%s%s)', $match[1], $imported[$base], $match[3]);
             },
             $content,
         );

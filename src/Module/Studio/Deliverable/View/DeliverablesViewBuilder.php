@@ -131,8 +131,8 @@ final readonly class DeliverablesViewBuilder
      */
     public function editorView(DeliverableInterface $deliverable): array
     {
-        $params = ['id' => $deliverable->getId()];
-        $route = fn (string $action): string => $this->urlGenerator->generate('suite_studio_deliverables_'.$action, $params);
+        $parameters = ['id' => $deliverable->getId()];
+        $route = fn (string $action): string => $this->urlGenerator->generate('suite_studio_deliverables_'.$action, $parameters);
 
         return [
             'deliverable' => $this->serializer->editor($deliverable),

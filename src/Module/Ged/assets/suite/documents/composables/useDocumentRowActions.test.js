@@ -3,19 +3,19 @@ import { useDocumentRowActions } from "./useDocumentRowActions.js";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 
-const DOC = { id: 1, title: "Devis", fileUrl: "/uploads/devis.pdf" };
+const DOCUMENT = { id: 1, title: "Devis", fileUrl: "/uploads/devis.pdf" };
 
-const keysFor = (options, doc = DOC) =>
+const keysFor = (options, gedDocument = DOCUMENT) =>
     useDocumentRowActions({
         can: () => true,
         openEdit: vi.fn(),
         confirmDelete: vi.fn(),
         ...options,
-    })(doc).map((action) => action.key);
+    })(gedDocument).map((action) => action.key);
 
 describe("useDocumentRowActions", () => {
     it("offers the library's full list when the row can be opened", () => {
-        expect(keysFor({ viewDoc: vi.fn(), openQr: vi.fn() })).toEqual([
+        expect(keysFor({ viewDocument: vi.fn(), openQr: vi.fn() })).toEqual([
             "view",
             "download",
             "qr",
@@ -36,7 +36,7 @@ describe("useDocumentRowActions", () => {
     // resolves to nothing.
     it("offers no download for a document that has no file yet", () => {
         expect(
-            keysFor({ viewDoc: vi.fn(), openQr: vi.fn() }, { id: 2 }),
+            keysFor({ viewDocument: vi.fn(), openQr: vi.fn() }, { id: 2 }),
         ).toEqual(["view", "edit", "delete"]);
     });
 
@@ -56,13 +56,13 @@ describe("useDocumentRowActions", () => {
      */
     it("offers only the restore for a trashed document", () => {
         const restore = vi.fn();
-        const trashed = { ...DOC, trashed: true };
+        const trashed = { ...DOCUMENT, trashed: true };
 
         expect(keysFor({ restore }, trashed)).toEqual(["restore"]);
     });
 
     it("offers nothing for a trashed document without the right to restore", () => {
-        const trashed = { ...DOC, trashed: true };
+        const trashed = { ...DOCUMENT, trashed: true };
 
         expect(
             keysFor({ restore: vi.fn(), can: () => false }, trashed),

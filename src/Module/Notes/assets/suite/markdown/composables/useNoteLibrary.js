@@ -229,9 +229,9 @@ export function useNoteLibrary({
      * The name breaks the tie, then the id, which is unique - so reversing
      * the direction always reverses something.
      */
-    function rank(a, b, labelOf) {
+    function rank(left, right, labelOf) {
         if ("manual" === sort.value) {
-            const byPosition = (a.position ?? 0) - (b.position ?? 0);
+            const byPosition = (left.position ?? 0) - (right.position ?? 0);
 
             if (0 !== byPosition) return byPosition;
         } else if ("name" !== sort.value) {
@@ -245,28 +245,30 @@ export function useNoteLibrary({
                 return Number.isFinite(value) ? value : 0;
             };
 
-            const byDate = at(a) - at(b);
+            const byDate = at(left) - at(right);
 
             if (0 !== byDate) return byDate;
         }
 
         // `localeCompare` with `numeric` so that "Note 2" comes before
         // "Note 10", which a code comparison reverses.
-        const byName = String(labelOf(a) ?? "").localeCompare(
-            String(labelOf(b) ?? ""),
+        const byName = String(labelOf(left) ?? "").localeCompare(
+            String(labelOf(right) ?? ""),
             undefined,
             { numeric: true, sensitivity: "base" },
         );
 
         if (0 !== byName) return byName;
 
-        return Number(a.id ?? 0) - Number(b.id ?? 0);
+        return Number(left.id ?? 0) - Number(right.id ?? 0);
     }
 
     function sorted(items, labelOf) {
         const factor = "asc" === direction.value ? 1 : -1;
 
-        return [...items].sort((a, b) => factor * rank(a, b, labelOf));
+        return [...items].sort(
+            (left, right) => factor * rank(left, right, labelOf),
+        );
     }
 
     /**

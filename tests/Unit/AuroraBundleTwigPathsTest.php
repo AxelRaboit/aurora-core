@@ -51,10 +51,10 @@ final class AuroraBundleTwigPathsTest extends TestCase
     }
 
     /** @return list<string|null> the namespace of every registered Twig path */
-    private function twigPathsForProject(string $projectDir): array
+    private function twigPathsForProject(string $projectDirectory): array
     {
         $builder = new ContainerBuilder();
-        $builder->setParameter('kernel.project_dir', $projectDir);
+        $builder->setParameter('kernel.project_dir', $projectDirectory);
 
         // prependExtension() never touches the configurator; it writes through
         // the builder. A real one would need a loader and a file it can import.

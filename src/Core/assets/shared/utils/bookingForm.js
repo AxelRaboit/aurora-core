@@ -51,8 +51,8 @@ async function submit(booking, at, label) {
             form.hidden = true;
             booking
                 .querySelectorAll("[data-booking-day], [data-booking-slot]")
-                .forEach((el) => {
-                    el.disabled = true;
+                .forEach((control) => {
+                    control.disabled = true;
                 });
             const success = booking.querySelector("[data-booking-success]");
             success.textContent =

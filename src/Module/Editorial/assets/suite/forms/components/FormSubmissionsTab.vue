@@ -20,12 +20,12 @@ const props = defineProps({
     exportPath: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatLocalizedDate } = useI18n();
 const { submissions, total, page, totalPages, loading, load, goToPage, exportUrl } = useFormSubmissions(props);
 
 onMounted(load);
 
-const formatDate = (value) => d(new Date(value), { dateStyle: "medium", timeStyle: "short" });
+const formatDate = (value) => formatLocalizedDate(new Date(value), { dateStyle: "medium", timeStyle: "short" });
 </script>
 
 <template>

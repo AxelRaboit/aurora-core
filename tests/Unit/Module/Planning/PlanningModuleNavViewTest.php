@@ -20,7 +20,7 @@ final class PlanningModuleNavViewTest extends TestCase
     {
         $checker = $this->createStub(ModuleAccessChecker::class);
         $checker->method('isEnabled')->willReturnCallback(
-            static fn (ModuleParameterEnum $param): bool => ModuleParameterEnum::PlanningSuite === $param && $suite,
+            static fn (ModuleParameterEnum $parameter): bool => ModuleParameterEnum::PlanningSuite === $parameter && $suite,
         );
 
         return new PlanningModule(new PlanningContext($checker));

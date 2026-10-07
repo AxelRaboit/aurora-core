@@ -27,10 +27,10 @@ export function createCheckboxRenderer() {
             // order as the `- [ ]` lines in the source.
             const index = checkboxCounter++;
             const body = this.parser.parse(item.tokens);
-            const checkedAttr = item.checked ? "checked" : "";
+            const checkedAttribute = item.checked ? "checked" : "";
             return (
                 `<li class="task-list-item">` +
-                `<input type="checkbox" class="task-checkbox" data-checkbox-index="${index}" ${checkedAttr} />` +
+                `<input type="checkbox" class="task-checkbox" data-checkbox-index="${index}" ${checkedAttribute} />` +
                 `<div class="task-list-body">${body}</div>` +
                 `</li>\n`
             );

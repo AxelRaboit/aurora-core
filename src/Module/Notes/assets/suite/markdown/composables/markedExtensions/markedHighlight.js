@@ -20,19 +20,22 @@ function escapeHtml(text) {
  */
 export function createHighlightRenderer() {
     return {
-        code({ text, lang }) {
-            const language = lang && hljs.getLanguage(lang) ? lang : null;
+        code({ text, lang: requestedLanguage }) {
+            const language =
+                requestedLanguage && hljs.getLanguage(requestedLanguage)
+                    ? requestedLanguage
+                    : null;
             const highlighted = language
                 ? hljs.highlight(text, { language }).value
                 : escapeHtml(text);
-            const langLabel = language || "";
-            const langClass = language ? ` language-${language}` : "";
+            const languageLabel = language || "";
+            const languageClass = language ? ` language-${language}` : "";
 
             return `<div class="code-block">${
-                langLabel
-                    ? `<div class="code-block-lang">${langLabel}</div>`
+                languageLabel
+                    ? `<div class="code-block-lang">${languageLabel}</div>`
                     : ""
-            }<pre><code class="hljs${langClass}">${highlighted}</code></pre></div>\n`;
+            }<pre><code class="hljs${languageClass}">${highlighted}</code></pre></div>\n`;
         },
     };
 }

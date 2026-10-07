@@ -58,7 +58,7 @@ describe("SpaceInformationView", () => {
     it("ne montre pas les champs vides dans le récapitulatif", () => {
         const recap = monter()
             .findAll("dt")
-            .map((d) => d.text())
+            .map((term) => term.text())
             .join(" ");
 
         expect(recap).toContain("siret");

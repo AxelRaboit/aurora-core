@@ -10,12 +10,12 @@ vi.mock("@/shared/composables/http/suite/useRequest.js", () => ({
 
 // The real one registers onUnmounted, which needs a component instance.
 vi.mock("@/shared/composables/useDebounce.js", () => ({
-    useDebounce: (fn, delay) => {
+    useDebounce: (callback, delay) => {
         let timer = null;
 
-        return (...args) => {
+        return (...callArguments) => {
             clearTimeout(timer);
-            timer = setTimeout(() => fn(...args), delay);
+            timer = setTimeout(() => callback(...callArguments), delay);
         };
     },
 }));

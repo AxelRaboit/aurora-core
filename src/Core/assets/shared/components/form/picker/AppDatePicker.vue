@@ -104,24 +104,24 @@ const HAS_OFFSET = /(?:[zZ]|[+-]\d{2}:?\d{2})$/;
 /** The requested time zone, if this browser knows it; otherwise the browser's own. */
 const zone = computed(() => (isKnownZone(props.timeZone) ? props.timeZone : ""));
 
-function onUpdate(val) {
-    if (!val) { emit("update:modelValue", ""); return; }
-    const pad = (n) => String(n).padStart(2, "0");
+function onUpdate(value) {
+    if (!value) { emit("update:modelValue", ""); return; }
+    const pad = (number) => String(number).padStart(2, "0");
     if (props.monthOnly) {
         // VueDatePicker emits `{ month, year }` in month-picker mode.
-        const year = val.year ?? new Date(val).getFullYear();
-        const monthIndex = (val.month ?? new Date(val).getMonth());
+        const year = value.year ?? new Date(value).getFullYear();
+        const monthIndex = (value.month ?? new Date(value).getMonth());
         emit("update:modelValue", `${year}-${pad(monthIndex + 1)}`);
         return;
     }
-    const d = new Date(val);
+    const date = new Date(value);
     if (props.enableTime && zone.value) {
-        const wall = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        emit("update:modelValue", `${wall}:00${offsetIn(fromDisplay(d, zone.value), zone.value)}`);
+        const wall = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        emit("update:modelValue", `${wall}:00${offsetIn(fromDisplay(date, zone.value), zone.value)}`);
     } else if (props.enableTime) {
-        emit("update:modelValue", `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`);
+        emit("update:modelValue", `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`);
     } else {
-        emit("update:modelValue", `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+        emit("update:modelValue", `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`);
     }
 }
 
@@ -139,8 +139,8 @@ const internalValue = computed(() => {
     const value = zone.value && props.enableTime && HAS_OFFSET.test(props.modelValue)
         ? toDisplay(props.modelValue, zone.value)
         : props.modelValue;
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? null : d;
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? null : date;
 });
 </script>
 

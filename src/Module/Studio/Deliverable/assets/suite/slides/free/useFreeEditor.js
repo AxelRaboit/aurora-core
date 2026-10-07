@@ -381,7 +381,7 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
     }
 
     /** Move the selection by a distance in per cent of the slide's width. */
-    function nudge(dx, dy) {
+    function nudge(deltaX, deltaY) {
         const movable = selected.value
             .filter((element) => !element.locked)
             .map((element) => element.id);
@@ -390,8 +390,8 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
 
         patch(movable, (element) => ({
             ...element,
-            x: round(element.x + dx),
-            y: round(element.y + dy / RATIO),
+            x: round(element.x + deltaX),
+            y: round(element.y + deltaY / RATIO),
         }));
     }
 
@@ -422,20 +422,20 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
             targets.map((element) => element.id),
             (element) => {
                 const box = boundsOf(element);
-                let dx = 0;
-                let dy = 0;
+                let deltaX = 0;
+                let deltaY = 0;
 
-                if (edge === "left") dx = frame.left - box.left;
-                if (edge === "center") dx = frame.centreX - box.centreX;
-                if (edge === "right") dx = frame.right - box.right;
-                if (edge === "top") dy = frame.top - box.top;
-                if (edge === "middle") dy = frame.centreY - box.centreY;
-                if (edge === "bottom") dy = frame.bottom - box.bottom;
+                if (edge === "left") deltaX = frame.left - box.left;
+                if (edge === "center") deltaX = frame.centreX - box.centreX;
+                if (edge === "right") deltaX = frame.right - box.right;
+                if (edge === "top") deltaY = frame.top - box.top;
+                if (edge === "middle") deltaY = frame.centreY - box.centreY;
+                if (edge === "bottom") deltaY = frame.bottom - box.bottom;
 
                 return {
                     ...element,
-                    x: round(element.x + dx),
-                    y: round(element.y + dy),
+                    x: round(element.x + deltaX),
+                    y: round(element.y + deltaY),
                 };
             },
         );
@@ -451,7 +451,7 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
         const end = axis === "x" ? "right" : "bottom";
         const boxes = targets
             .map((element) => ({ element, box: boundsOf(element) }))
-            .sort((a, b) => a.box[start] - b.box[start]);
+            .sort((left, right) => left.box[start] - right.box[start]);
         const span = boxes[boxes.length - 1].box[end] - boxes[0].box[start];
         const used = boxes.reduce(
             (sum, { box }) => sum + (box[end] - box[start]),

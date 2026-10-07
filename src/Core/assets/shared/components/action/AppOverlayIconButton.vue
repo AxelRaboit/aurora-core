@@ -12,8 +12,8 @@
  * `active=true` switches the icon color to accent (e.g. picked heart).
  */
 const props = defineProps({
-    size: { type: String, default: "md", validator: (v) => ["xs", "sm", "md", "lg"].includes(v) },
-    variant: { type: String, default: "default", validator: (v) => ["default", "light", "danger"].includes(v) },
+    size: { type: String, default: "md", validator: (size) => ["xs", "sm", "md", "lg"].includes(size) },
+    variant: { type: String, default: "default", validator: (variant) => ["default", "light", "danger"].includes(variant) },
     active: { type: Boolean, default: false },
     title: { type: String, default: null },
     ariaLabel: { type: String, default: null },

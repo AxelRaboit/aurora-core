@@ -432,13 +432,13 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $this->client->loginUser($this->admin, 'admin');
 
         // More successes than the hourly limit: they do not count.
-        for ($i = 0; $i < 25; ++$i) {
+        for ($attempt = 0; $attempt < 25; ++$attempt) {
             $this->client->request('POST', sprintf('/deliverables/%s/unlock', $token), ['password' => 'phrase secrète ']);
             self::assertResponseRedirects(sprintf('/deliverables/%s', $token));
         }
 
         // Twenty failures, then the wall.
-        for ($i = 0; $i < 20; ++$i) {
+        for ($attempt = 0; $attempt < 20; ++$attempt) {
             $this->client->request('POST', sprintf('/deliverables/%s/unlock', $token), ['password' => 'faux']);
             self::assertResponseIsSuccessful();
         }

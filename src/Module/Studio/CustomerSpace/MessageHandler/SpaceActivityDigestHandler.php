@@ -110,7 +110,7 @@ final readonly class SpaceActivityDigestHandler
                 ),
                 'url' => $url,
             ],
-            subjectParams: ['{space}' => $space->getName()],
+            subjectParameters: ['{space}' => $space->getName()],
         );
 
         foreach ($unread as $notification) {

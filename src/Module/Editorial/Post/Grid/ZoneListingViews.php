@@ -112,7 +112,7 @@ final readonly class ZoneListingViews
             }
         }
 
-        usort($entries, static fn (array $a, array $b): int => (int) $collator->compare($a['title'], $b['title']));
+        usort($entries, static fn (array $left, array $right): int => (int) $collator->compare($left['title'], $right['title']));
 
         $groups = [];
         foreach ($entries as $entry) {
@@ -122,7 +122,7 @@ final readonly class ZoneListingViews
         }
 
         // `#` last, the way a printed index puts figures after Z.
-        uksort($groups, static fn (string $a, string $b): int => ('#' === $a) <=> ('#' === $b) ?: $a <=> $b);
+        uksort($groups, static fn (string $left, string $right): int => ('#' === $left) <=> ('#' === $right) ?: $left <=> $right);
 
         $index = [];
         foreach ($groups as $letter => $list) {
@@ -198,7 +198,7 @@ final readonly class ZoneListingViews
             }
         }
 
-        usort($entries, static fn (array $a, array $b): int => $b['date'] <=> $a['date']);
+        usort($entries, static fn (array $left, array $right): int => $right['date'] <=> $left['date']);
 
         return array_slice($entries, 0, max(1, (int) $zone['limit']));
     }

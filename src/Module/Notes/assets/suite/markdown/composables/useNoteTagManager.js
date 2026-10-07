@@ -32,10 +32,10 @@ export function useNoteTagManager({ api, show, onChanged }) {
     const submitting = ref(false);
 
     const filteredTags = computed(() => {
-        const q = query.value.trim().toLowerCase();
-        if (q === "") return tags.value;
+        const needle = query.value.trim().toLowerCase();
+        if (needle === "") return tags.value;
         return tags.value.filter((entry) =>
-            entry.tag.toLowerCase().includes(q),
+            entry.tag.toLowerCase().includes(needle),
         );
     });
 

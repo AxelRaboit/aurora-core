@@ -26,7 +26,7 @@ describe("AppColorPicker", () => {
         const wrapper = mount(AppColorPicker, { props: { modelValue: null } });
         const buttons = wrapper
             .findAll("button[type='button']")
-            .filter((b) => b.attributes("title")?.startsWith("#"));
+            .filter((button) => button.attributes("title")?.startsWith("#"));
         expect(buttons.length).toBe(16);
     });
 
@@ -37,7 +37,7 @@ describe("AppColorPicker", () => {
         });
         const activeButton = wrapper
             .findAll("button[type='button']")
-            .find((b) => b.attributes("title") === activeColor);
+            .find((button) => button.attributes("title") === activeColor);
         expect(activeButton?.classes()).toContain("border-primary");
     });
 
@@ -47,7 +47,7 @@ describe("AppColorPicker", () => {
         });
         const inactiveButton = wrapper
             .findAll("button[type='button']")
-            .find((b) => b.attributes("title") === "#ef4444");
+            .find((button) => button.attributes("title") === "#ef4444");
         expect(inactiveButton?.classes()).not.toContain("border-primary");
     });
 
@@ -55,7 +55,7 @@ describe("AppColorPicker", () => {
         const wrapper = mount(AppColorPicker, { props: { modelValue: null } });
         const firstPreset = wrapper
             .findAll("button[type='button']")
-            .find((b) => b.attributes("title")?.startsWith("#"));
+            .find((button) => button.attributes("title")?.startsWith("#"));
         await firstPreset?.trigger("click");
         expect(wrapper.emitted("update:modelValue")).toBeTruthy();
     });

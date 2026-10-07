@@ -43,12 +43,12 @@ export function direction(from, to, step = 0) {
 }
 
 /** The step a horizontal swipe asks for, or 0 when it is too short or too vertical. */
-export function swipeStep(dx, dy, threshold = SWIPE_THRESHOLD) {
-    if (Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy)) {
+export function swipeStep(deltaX, deltaY, threshold = SWIPE_THRESHOLD) {
+    if (Math.abs(deltaX) < threshold || Math.abs(deltaX) < Math.abs(deltaY)) {
         return 0;
     }
 
-    return dx < 0 ? 1 : -1;
+    return deltaX < 0 ? 1 : -1;
 }
 
 /** The duration of a slide in milliseconds, bounded as on the server. */
@@ -65,7 +65,7 @@ function wire(root) {
     const slides = [...root.querySelectorAll("[data-banner-slide]")];
     const dots = [...root.querySelectorAll("[data-banner-dot]")];
     const controls = root.querySelector("[data-banner-controls]");
-    const prev = root.querySelector("[data-banner-prev]");
+    const previous = root.querySelector("[data-banner-prev]");
     const next = root.querySelector("[data-banner-next]");
     const pause = root.querySelector("[data-banner-pause]");
 
@@ -108,7 +108,7 @@ function wire(root) {
         });
     }
 
-    function show(target, dir) {
+    function show(target, slideDirection) {
         if (target === current) {
             return;
         }
@@ -120,10 +120,16 @@ function wire(root) {
             // The incoming slide is placed on the side it comes from, without a
             // transition, then released: that is what makes it slide the right way.
             entering.setAttribute("data-banner-staging", "");
-            entering.style.setProperty("--banner-to", `${dir * 100}%`);
+            entering.style.setProperty(
+                "--banner-to",
+                `${slideDirection * 100}%`,
+            );
             void entering.offsetWidth;
             entering.removeAttribute("data-banner-staging");
-            leaving.style.setProperty("--banner-to", `${-dir * 100}%`);
+            leaving.style.setProperty(
+                "--banner-to",
+                `${-slideDirection * 100}%`,
+            );
         }
 
         leaving.removeAttribute("data-active");
@@ -174,13 +180,13 @@ function wire(root) {
     if (controls) {
         controls.hidden = false;
     }
-    [prev, next].forEach((button) => {
+    [previous, next].forEach((button) => {
         if (button) {
             button.hidden = false;
         }
     });
 
-    prev?.addEventListener("click", () => go(-1));
+    previous?.addEventListener("click", () => go(-1));
     next?.addEventListener("click", () => go(1));
     dots.forEach((dot) =>
         dot.addEventListener("click", () =>

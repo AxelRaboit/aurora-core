@@ -118,14 +118,14 @@ class SpaceChatController extends AbstractController
         $this->assertOwned($space, $channel->getSpace()->getId());
         $this->assertInRoom($channel);
 
-        $me = $this->security->getUser();
+        $currentUser = $this->security->getUser();
 
-        if (!$me instanceof CoreUserInterface) {
+        if (!$currentUser instanceof CoreUserInterface) {
             return $this->jsonInvalidInput(['channel' => 'suite.studio.space_chat.errors.needs_account']);
         }
 
         try {
-            $this->channels->hideDirect($channel, $me, null);
+            $this->channels->hideDirect($channel, $currentUser, null);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
@@ -377,11 +377,11 @@ class SpaceChatController extends AbstractController
     #[IsGranted('studio.spaces.edit')]
     public function openDirect(CustomerSpace $space, Request $request): JsonResponse
     {
-        $me = $this->security->getUser();
+        $currentUser = $this->security->getUser();
         $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
         $other = $userId > 0 ? $this->users->find($userId) : null;
 
-        if (!$me instanceof CoreUserInterface) {
+        if (!$currentUser instanceof CoreUserInterface) {
             return $this->jsonInvalidInput(['participant' => 'suite.studio.space_chat.errors.needs_account']);
         }
 
@@ -390,7 +390,7 @@ class SpaceChatController extends AbstractController
         }
 
         try {
-            $channel = $this->channels->openDirect($space, $me, null, $other, null);
+            $channel = $this->channels->openDirect($space, $currentUser, null, $other, null);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
@@ -429,11 +429,11 @@ class SpaceChatController extends AbstractController
             return;
         }
 
-        $me = $this->security->getUser();
+        $currentUser = $this->security->getUser();
 
-        if ($me instanceof CoreUserInterface) {
+        if ($currentUser instanceof CoreUserInterface) {
             foreach ($channel->getMembers() as $member) {
-                if ($member->getUser()?->getId() === $me->getId()) {
+                if ($member->getUser()?->getId() === $currentUser->getId()) {
                     return;
                 }
             }

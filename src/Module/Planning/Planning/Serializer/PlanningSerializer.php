@@ -61,7 +61,7 @@ final readonly class PlanningSerializer
             ];
         }
 
-        usort($rows, static fn (array $a, array $b): int => strcmp((string) $a['name'], (string) $b['name']));
+        usort($rows, static fn (array $left, array $right): int => strcmp((string) $left['name'], (string) $right['name']));
 
         return $rows;
     }

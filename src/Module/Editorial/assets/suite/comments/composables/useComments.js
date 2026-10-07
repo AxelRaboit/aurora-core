@@ -24,14 +24,21 @@ export function useComments(props) {
     async function load() {
         loading.value = true;
         try {
-            const params = new URLSearchParams({ page: String(page.value) });
-            if (status.value) params.set("status", status.value);
-            if (search.value.trim()) params.set("search", search.value.trim());
-
-            const data = await request(`${props.listPath}?${params}`, null, {
-                method: HttpMethod.Get,
-                noGuard: true,
+            const parameters = new URLSearchParams({
+                page: String(page.value),
             });
+            if (status.value) parameters.set("status", status.value);
+            if (search.value.trim())
+                parameters.set("search", search.value.trim());
+
+            const data = await request(
+                `${props.listPath}?${parameters}`,
+                null,
+                {
+                    method: HttpMethod.Get,
+                    noGuard: true,
+                },
+            );
             if (!data?.success) return;
 
             comments.value = data.comments;

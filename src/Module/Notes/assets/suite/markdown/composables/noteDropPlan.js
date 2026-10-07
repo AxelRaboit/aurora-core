@@ -45,9 +45,9 @@ export function isWithin(folders, ancestorId, folderId) {
     if (null === ancestorId || null === folderId) return false;
 
     const parents = new Map(
-        folders.map((f) => [
-            Number(f.id),
-            null == f.parentId ? null : Number(f.parentId),
+        folders.map((folder) => [
+            Number(folder.id),
+            null == folder.parentId ? null : Number(folder.parentId),
         ]),
     );
 
@@ -109,7 +109,8 @@ function siblings(folders, notes, parentId, spaceId = null) {
         .map(({ kind, id }) => ({ kind, id }));
 }
 
-const sameEntry = (a, b) => a.kind === b.kind && a.id === b.id;
+const sameEntry = (left, right) =>
+    left.kind === right.kind && left.id === right.id;
 
 /**
  * What a drop asks to write, or `null` when it cannot succeed.

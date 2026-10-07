@@ -166,7 +166,7 @@ function colorValue(node) {
 
     return `#${match
         .slice(1, 4)
-        .map((n) => Number(n).toString(16).padStart(2, "0"))
+        .map((channel) => Number(channel).toString(16).padStart(2, "0"))
         .join("")}`;
 }
 

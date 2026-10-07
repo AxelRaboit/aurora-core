@@ -28,10 +28,10 @@ import { COLUMNS, largeSpan, planMove } from "./usePostGrid.js";
  *
  * @param {object} deps
  * @param {import("vue").Ref<Array<object>>} deps.zones the arrangement, in order
- * @param {import("vue").Ref<HTMLElement|null>} deps.gridEl the measured grid
+ * @param {import("vue").Ref<HTMLElement|null>} deps.gridRef the measured grid
  * @param {(event: string, ...args: unknown[]) => void} deps.emit the SFC's emit
  */
-export function usePostGridDrop({ zones, gridEl, emit }) {
+export function usePostGridDrop({ zones, gridRef, emit }) {
     /** The zone being dragged on the row, by index, or null. */
     const draggingFrom = ref(null);
 
@@ -205,7 +205,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
      *   past it.
      */
     function dropAt(event, ignoreIndex = draggingFrom.value) {
-        const rect = gridEl.value?.getBoundingClientRect();
+        const rect = gridRef.value?.getBoundingClientRect();
 
         if (!rect?.width) {
             return null;
@@ -227,7 +227,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
         // Only the zone boxes: the grid also holds the between-row strips, the
         // targets over the holes and the drop ghost, and counting any of them as
         // a zone would put the drop somewhere other than where it was aimed.
-        gridEl.value
+        gridRef.value
             .querySelectorAll(":scope > [data-zone]")
             .forEach((child) => {
                 const index = Number(child.dataset.zone);

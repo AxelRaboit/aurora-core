@@ -77,9 +77,9 @@ final class EmptyStateCanReachItsModalTest extends TestCase
     private function rootElseBranch(array $lines): ?array
     {
         $start = null;
-        foreach ($lines as $i => $line) {
+        foreach ($lines as $lineIndex => $line) {
             if (str_contains($line, 'v-else') && 1 === preg_match('/^\s*<\w/', $line)) {
-                $start = $i;
+                $start = $lineIndex;
                 break;
             }
         }
@@ -91,12 +91,12 @@ final class EmptyStateCanReachItsModalTest extends TestCase
         preg_match('/^\s*<(\w+)/', $lines[$start], $tag);
         $depth = 0;
 
-        for ($i = $start, $count = count($lines); $i < $count; ++$i) {
-            $depth += preg_match_all('/<'.$tag[1].'\b/', $lines[$i]);
-            $depth -= preg_match_all('#</'.$tag[1].'>#', $lines[$i]);
+        for ($lineIndex = $start, $count = count($lines); $lineIndex < $count; ++$lineIndex) {
+            $depth += preg_match_all('/<'.$tag[1].'\b/', $lines[$lineIndex]);
+            $depth -= preg_match_all('#</'.$tag[1].'>#', $lines[$lineIndex]);
 
-            if ($depth <= 0 && $i > $start) {
-                return [$start, $i];
+            if ($depth <= 0 && $lineIndex > $start) {
+                return [$start, $lineIndex];
             }
         }
 

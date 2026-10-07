@@ -43,20 +43,23 @@ function toLinear(channel) {
 
 /** WCAG relative luminance: 0 for black, 1 for white. */
 function relativeLuminance(hex) {
-    const [r, g, b] = hexToRgb(hex);
+    const [red, green, blue] = hexToRgb(hex);
 
     return (
-        0.2126 * toLinear(r / 255) +
-        0.7152 * toLinear(g / 255) +
-        0.0722 * toLinear(b / 255)
+        0.2126 * toLinear(red / 255) +
+        0.7152 * toLinear(green / 255) +
+        0.0722 * toLinear(blue / 255)
     );
 }
 
 /** WCAG contrast ratio between two colours, from 1 to 21. */
 export function contrastRatio(hexA, hexB) {
-    const a = relativeLuminance(hexA);
-    const b = relativeLuminance(hexB);
-    const [lighter, darker] = a > b ? [a, b] : [b, a];
+    const luminanceA = relativeLuminance(hexA);
+    const luminanceB = relativeLuminance(hexB);
+    const [lighter, darker] =
+        luminanceA > luminanceB
+            ? [luminanceA, luminanceB]
+            : [luminanceB, luminanceA];
 
     return (lighter + 0.05) / (darker + 0.05);
 }

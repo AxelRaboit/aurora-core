@@ -58,7 +58,7 @@ const props = defineProps({
     deleteEventPathTemplate: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { can } = usePrivileges();
 
 const {
@@ -80,7 +80,7 @@ const {
     cells,
     days,
     load,
-    go,
+    go: pageBy,
     goToToday,
     setView,
     toggleCalendar,
@@ -98,11 +98,11 @@ const {
  */
 const rangeLabel = computed(() => {
     if (usesMonthRange.value) {
-        return d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
+        return formatDate(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
     }
 
     if ("day" === view.value) {
-        return d(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        return formatDate(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     }
 
     const first = days.value[0];
@@ -114,8 +114,8 @@ const rangeLabel = computed(() => {
 
     const sameMonth = first.getMonth() === last.getMonth();
 
-    return `${d(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
-        + `${d(last, { day: "numeric", month: "long", year: "numeric" })}`;
+    return `${formatDate(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
+        + `${formatDate(last, { day: "numeric", month: "long", year: "numeric" })}`;
 });
 
 const viewOptions = computed(() =>
@@ -259,7 +259,7 @@ function isBusy() {
 usePlanningShortcuts({
     isBusy,
     setView,
-    go,
+    go: pageBy,
     goToToday,
     createEvent: () => create(),
     createReminder: () => createReminder(),
@@ -278,12 +278,12 @@ usePlanningShortcuts({
  */
 const PANEL_INTENTS = {
     "set-zone": (value) => setZone(value),
-    "create-event": (...a) => create(...a),
-    "create-reminder": (...a) => createReminder(...a),
-    "create-calendar": (...a) => createCalendar(...a),
-    "edit-calendar": (...a) => editCalendar(...a),
-    "share-calendar": (...a) => openShareFor(...a),
-    "toggle-calendar": (...a) => toggleCalendar(...a),
+    "create-event": (...intentArguments) => create(...intentArguments),
+    "create-reminder": (...intentArguments) => createReminder(...intentArguments),
+    "create-calendar": (...intentArguments) => createCalendar(...intentArguments),
+    "edit-calendar": (...intentArguments) => editCalendar(...intentArguments),
+    "share-calendar": (...intentArguments) => openShareFor(...intentArguments),
+    "toggle-calendar": (...intentArguments) => toggleCalendar(...intentArguments),
 };
 
 const stopListening = [];
@@ -304,7 +304,7 @@ function announce() {
 onMounted(() => {
     for (const [intent, run] of Object.entries(PANEL_INTENTS)) {
         stopListening.push(
-            onPanelRequest(`planning:${intent}`, ({ args = [] }) => run(...args)),
+            onPanelRequest(`planning:${intent}`, ({ args: intentArguments = [] }) => run(...intentArguments)),
         );
     }
 
@@ -348,10 +348,10 @@ onUnmounted(() => {
                  pixels of controls at 375 of viewport, so the label truncated to
                  nothing and the switcher wrapped under the chevrons. -->
             <div class="flex flex-wrap items-center gap-2">
-                <AppIconButton :title="t('shared.common.previous')" v-on:click="go(-1)">
+                <AppIconButton :title="t('shared.common.previous')" v-on:click="pageBy(-1)">
                     <ChevronLeft class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton :title="t('shared.common.next')" v-on:click="go(1)">
+                <AppIconButton :title="t('shared.common.next')" v-on:click="pageBy(1)">
                     <ChevronRight class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
                 <!-- Capitalised by the locale's own rules, so "août 2026" reads

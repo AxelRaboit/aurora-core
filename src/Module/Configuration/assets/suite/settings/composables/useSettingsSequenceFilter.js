@@ -5,12 +5,12 @@ export function useSettingsSequenceFilter(groups) {
     const sequenceSearch = ref("");
 
     const filteredSequences = computed(() => {
-        const q = sequenceSearch.value.toLowerCase().trim();
-        if (!q) return groups["sequences"] ?? [];
+        const query = sequenceSearch.value.toLowerCase().trim();
+        if (!query) return groups["sequences"] ?? [];
         return (groups["sequences"] ?? []).filter(
-            (p) =>
-                p.label.toLowerCase().includes(q) ||
-                p.key.toLowerCase().includes(q),
+            (sequence) =>
+                sequence.label.toLowerCase().includes(query) ||
+                sequence.key.toLowerCase().includes(query),
         );
     });
 

@@ -7,10 +7,10 @@ describe("AppImagePreview", () => {
         const wrapper = mount(AppImagePreview, {
             props: { src: "https://example.com/preview.jpg", alt: "Preview" },
         });
-        const img = wrapper.find("img");
-        expect(img.exists()).toBe(true);
-        expect(img.attributes("src")).toBe("https://example.com/preview.jpg");
-        expect(img.attributes("alt")).toBe("Preview");
+        const image = wrapper.find("img");
+        expect(image.exists()).toBe(true);
+        expect(image.attributes("src")).toBe("https://example.com/preview.jpg");
+        expect(image.attributes("alt")).toBe("Preview");
     });
 
     it("applies max-h-64 class by default (size=md)", () => {
@@ -38,8 +38,8 @@ describe("AppImagePreview", () => {
         const wrapper = mount(AppImagePreview, {
             props: { src: "https://example.com/preview.jpg", full: true },
         });
-        const img = wrapper.find("img");
-        expect(img.classes()).toContain("w-full");
-        expect(img.classes()).not.toContain("rounded-lg");
+        const image = wrapper.find("img");
+        expect(image.classes()).toContain("w-full");
+        expect(image.classes()).not.toContain("rounded-lg");
     });
 });

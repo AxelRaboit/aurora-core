@@ -103,14 +103,14 @@ function offered(tools) {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const holderEl = ref(null);
+const holderElement = ref(null);
 
 // Where the caret last was inside these blocks, so an emoji picked from the
 // button above lands there rather than nowhere.
 let lastRange = null;
 function rememberCaret() {
     const selection = document.getSelection();
-    if (selection?.rangeCount && holderEl.value?.contains(selection.anchorNode)) {
+    if (selection?.rangeCount && holderElement.value?.contains(selection.anchorNode)) {
         lastRange = selection.getRangeAt(0).cloneRange();
     }
 }
@@ -176,7 +176,7 @@ async function renderBlocks(blocks) {
 
 onMounted(async () => {
     editor = new EditorJS({
-        holder: holderEl.value,
+        holder: holderElement.value,
         placeholder: props.placeholder || t("suite.editor.placeholder"),
         data: { blocks: toPlainBlocks(props.modelValue) },
         i18n: {
@@ -482,7 +482,7 @@ onBeforeUnmount(async () => {
         <div class="mb-1 flex justify-end">
             <AppEmojiPicker v-on:pick="insertEmoji" />
         </div>
-        <div ref="holderEl" class="editor-block-holder" v-on:keyup="rememberCaret" v-on:mouseup="rememberCaret" />
+        <div ref="holderElement" class="editor-block-holder" v-on:keyup="rememberCaret" v-on:mouseup="rememberCaret" />
     </div>
-    <div v-else ref="holderEl" class="editor-block-holder" />
+    <div v-else ref="holderElement" class="editor-block-holder" />
 </template>

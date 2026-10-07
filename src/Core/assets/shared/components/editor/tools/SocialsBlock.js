@@ -72,21 +72,21 @@ export default class SocialsBlock {
         const networks = document.createElement("div");
         networks.className = "socials-block__networks";
         SOCIAL_NETWORKS.forEach(({ value, label }) => {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = `socials-block__network social-list__item--${value}${value === item.network ? " socials-block__network--active" : ""}`;
-            btn.title = label;
-            btn.setAttribute("aria-label", label);
-            btn.setAttribute(
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `socials-block__network social-list__item--${value}${value === item.network ? " socials-block__network--active" : ""}`;
+            button.title = label;
+            button.setAttribute("aria-label", label);
+            button.setAttribute(
                 "aria-pressed",
                 value === item.network ? "true" : "false",
             );
-            btn.innerHTML = `<span class="social-list__icon">${socialNetworkSvg(value)}</span>`;
-            btn.addEventListener("click", () => {
+            button.innerHTML = `<span class="social-list__icon">${socialNetworkSvg(value)}</span>`;
+            button.addEventListener("click", () => {
                 item.network = value;
                 this.#rebuild();
             });
-            networks.appendChild(btn);
+            networks.appendChild(button);
         });
         row.appendChild(networks);
 

@@ -88,7 +88,7 @@ function renameStep(index) {
     const title = (stepTitles.value[index] ?? "").trim();
     if (title === (steps.value[index]?.title ?? "")) return;
 
-    void commitSteps(steps.value.map((step, i) => ({ title: i === index ? title : step.title ?? "" })));
+    void commitSteps(steps.value.map((step, stepIndex) => ({ title: stepIndex === index ? title : step.title ?? "" })));
 }
 
 /**
@@ -115,7 +115,7 @@ function canRemoveStep(index) {
 }
 
 function removeStep(index) {
-    const next = steps.value.filter((_, i) => i !== index).map((step) => ({ title: step.title ?? "" }));
+    const next = steps.value.filter((_, stepIndex) => stepIndex !== index).map((step) => ({ title: step.title ?? "" }));
     void commitSteps(next.length ? next : null);
 }
 

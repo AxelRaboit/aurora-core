@@ -11,15 +11,15 @@ const MODULES_PATH = "/suite/dev/modules";
 const UPDATE_PATH = "/suite/dev/modules/__key__";
 const VERIFY_PATH = "/suite/dev/modules/verify-password";
 
-function makeParameter(key, value = "1", opts = {}) {
+function makeParameter(key, value = "1", options = {}) {
     return {
         key,
         label: `Label ${key}`,
         description: `Desc ${key}`,
         value,
-        requires: opts.requires ?? null,
+        requires: options.requires ?? null,
         navItems: [],
-        subModules: opts.subModules ?? [],
+        subModules: options.subModules ?? [],
     };
 }
 
@@ -27,10 +27,10 @@ function makeInitialData(parameters) {
     return { parameters };
 }
 
-function mountWithComposable(setupFn) {
+function mountWithComposable(setupCallback) {
     const Comp = defineComponent({
         setup: () => {
-            setupFn();
+            setupCallback();
             return () => h("div");
         },
     });
@@ -155,7 +155,7 @@ describe("useModules - applyToggle", () => {
         await nextTick();
 
         // Now passwordVerified is true - use onToggle to toggle off
-        const paramRef = makeParameter("mod_a", "1");
+        const toggledParameter = makeParameter("mod_a", "1");
         api.fieldValues["mod_a"] = "1";
         // Call onToggle to toggle off (this calls applyToggle internally)
         // Note: onToggle also calls save() async
@@ -171,8 +171,10 @@ describe("useModules - applyToggle", () => {
         // Directly test: after init, fieldValues is set correctly
         // The applyToggle function cascades to children
         const sub = makeParameter("child", "1", { requires: "mod_a" });
-        const parentParam = makeParameter("mod_a", "1", { subModules: [sub] });
-        const data2 = makeInitialData([parentParam]);
+        const parentParameter = makeParameter("mod_a", "1", {
+            subModules: [sub],
+        });
+        const data2 = makeInitialData([parentParameter]);
 
         let api2;
         mountWithComposable(() => {
@@ -211,9 +213,9 @@ describe("useModules - applyToggle", () => {
 
 describe("useModules - filteredParameters", () => {
     it("returns all parameters when searchInput is empty", async () => {
-        const paramA = makeParameter("billing_admin", "1");
-        const paramB = makeParameter("crm_admin", "1");
-        const initialData = makeInitialData([paramA, paramB]);
+        const parameterA = makeParameter("billing_admin", "1");
+        const parameterB = makeParameter("crm_admin", "1");
+        const initialData = makeInitialData([parameterA, parameterB]);
 
         let api;
         mountWithComposable(() => {
@@ -229,11 +231,11 @@ describe("useModules - filteredParameters", () => {
     });
 
     it("filters by parameter label", async () => {
-        const paramA = makeParameter("billing_admin", "1");
-        paramA.label = "Billing Module";
-        const paramB = makeParameter("crm_admin", "1");
-        paramB.label = "CRM Module";
-        const initialData = makeInitialData([paramA, paramB]);
+        const parameterA = makeParameter("billing_admin", "1");
+        parameterA.label = "Billing Module";
+        const parameterB = makeParameter("crm_admin", "1");
+        parameterB.label = "CRM Module";
+        const initialData = makeInitialData([parameterA, parameterB]);
 
         let api;
         mountWithComposable(() => {
@@ -253,9 +255,9 @@ describe("useModules - filteredParameters", () => {
     });
 
     it("filters by parameter key", async () => {
-        const paramA = makeParameter("billing_admin", "1");
-        const paramB = makeParameter("crm_admin", "1");
-        const initialData = makeInitialData([paramA, paramB]);
+        const parameterA = makeParameter("billing_admin", "1");
+        const parameterB = makeParameter("crm_admin", "1");
+        const initialData = makeInitialData([parameterA, parameterB]);
 
         let api;
         mountWithComposable(() => {
@@ -277,13 +279,13 @@ describe("useModules - filteredParameters", () => {
     it("matches on sub-module label", async () => {
         const sub = makeParameter("billing_invoices", "1");
         sub.label = "Invoices";
-        const paramA = makeParameter("billing_admin", "1", {
+        const parameterA = makeParameter("billing_admin", "1", {
             subModules: [sub],
         });
-        paramA.label = "Billing";
-        const paramB = makeParameter("crm_admin", "1");
-        paramB.label = "CRM";
-        const initialData = makeInitialData([paramA, paramB]);
+        parameterA.label = "Billing";
+        const parameterB = makeParameter("crm_admin", "1");
+        parameterB.label = "CRM";
+        const initialData = makeInitialData([parameterA, parameterB]);
 
         let api;
         mountWithComposable(() => {
@@ -305,9 +307,9 @@ describe("useModules - filteredParameters", () => {
 
 describe("useModules - save", () => {
     it("sends only changed parameters", async () => {
-        const paramA = makeParameter("billing_admin", "1");
-        const paramB = makeParameter("crm_admin", "0");
-        const initialData = makeInitialData([paramA, paramB]);
+        const parameterA = makeParameter("billing_admin", "1");
+        const parameterB = makeParameter("crm_admin", "0");
+        const initialData = makeInitialData([parameterA, parameterB]);
 
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,
@@ -410,8 +412,8 @@ describe("useModules - save", () => {
         const { toast } = await import("vue-sonner");
         const toastErrorSpy = vi.spyOn(toast, "error");
 
-        const paramA = makeParameter("erp_admin", "0");
-        const initialData = makeInitialData([paramA]);
+        const parameterA = makeParameter("erp_admin", "0");
+        const initialData = makeInitialData([parameterA]);
 
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,

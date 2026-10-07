@@ -107,7 +107,9 @@ export function layOutDay(day, events) {
             start: new Date(event.startAt),
             end: new Date(event.endAt),
         }))
-        .sort((a, b) => a.start - b.start || b.end - a.end);
+        .sort(
+            (left, right) => left.start - right.start || right.end - left.end,
+        );
 
     const clusters = [];
     let current = [];
@@ -192,7 +194,7 @@ export function allDayBand(days, events) {
             end: new Date(event.endAt),
         }))
         .filter(({ start, end }) => start < to && end > from)
-        .sort((a, b) => a.start - b.start || b.end - a.end)
+        .sort((left, right) => left.start - right.start || right.end - left.end)
         .map(({ event, start, end }) => {
             const first = Math.max(
                 0,

@@ -88,8 +88,8 @@ const { request } = useRequest();
 const { formatDateNumeric, formatDateTimeNumeric } = useDateFormat();
 const { flowOf, summaryOf } = useContractFlow({ linkDays: props.linkDays });
 
-const P = "suite.studio.contracts";
-const F = `${P}.flow`;
+const CONTRACT_KEYS = "suite.studio.contracts";
+const FLOW_KEYS = `${CONTRACT_KEYS}.flow`;
 
 const contract = ref({ ...props.contract });
 const isDraft = computed(() => "draft" === contract.value.status);
@@ -119,7 +119,7 @@ async function loadDraftPreview() {
 
     draftPreview.value = data?.success
         ? { loading: false, html: data.html ?? "", error: "", unknownTokens: data.unknownTokens ?? [] }
-        : { loading: false, html: "", error: data?.errors?.preview ?? t(`${P}.preview_failed`), unknownTokens: [] };
+        : { loading: false, html: "", error: data?.errors?.preview ?? t(`${CONTRACT_KEYS}.preview_failed`), unknownTokens: [] };
 }
 
 onMounted(() => {
@@ -135,13 +135,13 @@ onMounted(() => {
  * status allows is opened, and the parameter leaves the address once used.
  */
 function openRequestedGesture() {
-    const params = new URLSearchParams(window.location.search);
-    const key = params.get("do");
+    const searchParameters = new URLSearchParams(window.location.search);
+    const key = searchParameters.get("do");
 
     if (!key) return;
 
-    params.delete("do");
-    const query = params.toString();
+    searchParameters.delete("do");
+    const query = searchParameters.toString();
     window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
 
     const all = [flow.value.next, ...flow.value.others].filter(Boolean);
@@ -197,7 +197,7 @@ const signatures = computed(() => contract.value.signatures ?? []);
 /* ------------------------------------------------------------------ */
 
 /** A gesture that answers with the contract, which replaces the page's copy. */
-async function act(path, doneKey, params = {}) {
+async function act(path, doneKey, translationParameters = {}) {
     busy.value = true;
 
     try {
@@ -210,7 +210,7 @@ async function act(path, doneKey, params = {}) {
         }
 
         if (data.contract) contract.value = data.contract;
-        if (doneKey) toast.success(t(doneKey, params));
+        if (doneKey) toast.success(t(doneKey, translationParameters));
 
         return data;
     } finally {
@@ -231,31 +231,31 @@ async function runPending() {
     const email = contract.value.link?.recipientEmail ?? contract.value.customerEmail ?? "";
 
     if ("freeze" === key) {
-        const data = await act(props.freezePath, `${F}.done.frozen`);
+        const data = await act(props.freezePath, `${FLOW_KEYS}.done.frozen`);
         if (data) pending.value = null;
     } else if ("send" === key || "resend" === key) {
-        const data = await act(props.sendPath, `${F}.done.sent`, { email });
+        const data = await act(props.sendPath, `${FLOW_KEYS}.done.sent`, { email });
         if (data) pending.value = null;
     } else if ("remind" === key) {
-        const data = await act(props.remindPath, `${F}.done.reminded`, { email });
+        const data = await act(props.remindPath, `${FLOW_KEYS}.done.reminded`, { email });
         if (data) pending.value = null;
     } else if ("revoke" === key) {
-        const data = await act(props.revokeLinkPath, `${F}.done.revoked`);
+        const data = await act(props.revokeLinkPath, `${FLOW_KEYS}.done.revoked`);
         if (data) pending.value = null;
     } else if ("cancel" === key) {
-        const data = await act(props.cancelPath, `${F}.done.cancelled`);
+        const data = await act(props.cancelPath, `${FLOW_KEYS}.done.cancelled`);
         if (data) {
             pending.value = null;
             if (cancelAlsoDuplicates.value) await duplicate();
         }
     } else if ("delete" === key) {
-        const data = await act(props.deletePath, `${F}.done.deleted`);
+        const data = await act(props.deletePath, `${FLOW_KEYS}.done.deleted`);
         if (data) window.location.assign(props.indexPath);
     }
 }
 
 async function duplicate() {
-    const data = await act(props.duplicatePath, `${F}.done.duplicated`);
+    const data = await act(props.duplicatePath, `${FLOW_KEYS}.done.duplicated`);
 
     if (data?.showPath) window.location.assign(data.showPath);
 }
@@ -287,7 +287,7 @@ async function saveEdit() {
 
         if (data.contract) contract.value = data.contract;
         showEdit.value = false;
-        toast.success(t(`${P}.updated`));
+        toast.success(t(`${CONTRACT_KEYS}.updated`));
         loadDraftPreview();
     } finally {
         saving.value = false;
@@ -343,7 +343,7 @@ async function countersign() {
 
         if (data.contract) contract.value = data.contract;
         showCountersign.value = false;
-        toast.success(t(`${P}.countersigned`));
+        toast.success(t(`${CONTRACT_KEYS}.countersigned`));
     } finally {
         countersigning.value = false;
     }
@@ -387,7 +387,7 @@ async function terminate() {
 
         if (data.contract) contract.value = data.contract;
         showTerminate.value = false;
-        toast.success(t(`${P}.terminated`));
+        toast.success(t(`${CONTRACT_KEYS}.terminated`));
     } finally {
         terminating.value = false;
     }
@@ -433,14 +433,14 @@ const confirmText = computed(() => {
 
     switch (pending.value) {
     case "freeze":
-        return t(`${P}.freeze_confirm`, { name: contract.value.customerName });
+        return t(`${CONTRACT_KEYS}.freeze_confirm`, { name: contract.value.customerName });
     case "send":
     case "resend":
-        return email ? t(`${F}.confirm.send`, { email, days: props.linkDays }) : t(`${F}.confirm.send_no_address`);
+        return email ? t(`${FLOW_KEYS}.confirm.send`, { email, days: props.linkDays }) : t(`${FLOW_KEYS}.confirm.send_no_address`);
     case "remind":
-        return t(`${F}.confirm.remind`, { email });
+        return t(`${FLOW_KEYS}.confirm.remind`, { email });
     default:
-        return pending.value ? t(`${F}.confirm.${pending.value}`) : "";
+        return pending.value ? t(`${FLOW_KEYS}.confirm.${pending.value}`) : "";
     }
 });
 
@@ -468,13 +468,13 @@ const confirmBlocked = computed(
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 space-y-1">
                 <h1 class="text-lg font-semibold text-primary">
-                    {{ contract.reference ?? t(`${P}.draft_title`) }}
+                    {{ contract.reference ?? t(`${CONTRACT_KEYS}.draft_title`) }}
                 </h1>
                 <p class="flex flex-wrap items-center gap-2 text-sm text-muted">
                     <span>{{ contract.customerName }}</span>
                     <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
                     <span v-if="contract.amends" class="text-xs">
-                        {{ t(`${P}.amends_long`, { reference: contract.amends.reference }) }}
+                        {{ t(`${CONTRACT_KEYS}.amends_long`, { reference: contract.amends.reference }) }}
                     </span>
                 </p>
             </div>
@@ -490,7 +490,7 @@ const confirmBlocked = computed(
 
         <!-- The step first: where it stands, and the one thing to do next. -->
         <section class="aurora-card p-4 space-y-3" data-contract-step>
-            <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${F}.next_step`) }}</p>
+            <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${FLOW_KEYS}.next_step`) }}</p>
             <p class="text-sm text-primary">{{ summary }}</p>
             <div v-if="nextAction" class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <AppButton
@@ -510,31 +510,31 @@ const confirmBlocked = computed(
             <span class="flex items-start gap-2">
                 <ShieldAlert class="w-4 h-4 shrink-0 mt-0.5" :stroke-width="2" />
                 <span>
-                    <strong>{{ t(`${P}.seal_broken`) }}</strong><br>
-                    {{ t(`${P}.seal_broken_hint`) }}
+                    <strong>{{ t(`${CONTRACT_KEYS}.seal_broken`) }}</strong><br>
+                    {{ t(`${CONTRACT_KEYS}.seal_broken_hint`) }}
                 </span>
             </span>
         </AppMessage>
 
         <!-- The refusal carries a reason somebody wrote: worth its own block. -->
         <section v-if="contract.refusal" class="bg-surface border border-rose-500/40 rounded-lg p-4 space-y-2 text-sm">
-            <p class="font-medium text-rose-400">{{ t(`${P}.refused_at`) }} {{ dateTime(contract.refusal.refusedAt) }}</p>
-            <p class="text-xs text-muted">{{ t(`${P}.refused_from`, { ip: contract.refusal.ip ?? "-" }) }}</p>
-            <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${P}.refusal_reason`) }}</p>
+            <p class="font-medium text-rose-400">{{ t(`${CONTRACT_KEYS}.refused_at`) }} {{ dateTime(contract.refusal.refusedAt) }}</p>
+            <p class="text-xs text-muted">{{ t(`${CONTRACT_KEYS}.refused_from`, { ip: contract.refusal.ip ?? "-" }) }}</p>
+            <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${CONTRACT_KEYS}.refusal_reason`) }}</p>
             <p v-if="contract.refusal.reason" class="text-primary whitespace-pre-line">{{ contract.refusal.reason }}</p>
-            <p v-else class="text-muted">{{ t(`${P}.refusal_no_reason`) }}</p>
+            <p v-else class="text-muted">{{ t(`${CONTRACT_KEYS}.refusal_no_reason`) }}</p>
         </section>
 
         <section v-if="contract.termination" class="bg-surface border border-amber-500/40 rounded-lg p-4 space-y-2 text-sm">
             <p class="font-medium text-amber-500">
                 {{
                     contract.termination.isEffective
-                        ? t(`${P}.termination.ended`, { date: date(contract.termination.effectiveAt) })
-                        : t(`${P}.termination.ending`, { date: date(contract.termination.effectiveAt) })
+                        ? t(`${CONTRACT_KEYS}.termination.ended`, { date: date(contract.termination.effectiveAt) })
+                        : t(`${CONTRACT_KEYS}.termination.ending`, { date: date(contract.termination.effectiveAt) })
                 }}
             </p>
             <p class="text-xs text-muted">
-                {{ t(`${P}.termination.noticed`, { date: date(contract.termination.noticedAt), origin: t(contract.termination.originLabel) }) }}
+                {{ t(`${CONTRACT_KEYS}.termination.noticed`, { date: date(contract.termination.noticedAt), origin: t(contract.termination.originLabel) }) }}
             </p>
             <p v-if="contract.termination.reason" class="text-primary whitespace-pre-line">{{ contract.termination.reason }}</p>
         </section>
@@ -543,9 +543,9 @@ const confirmBlocked = computed(
             <!-- The document, always. -->
             <div class="lg:col-span-2 min-w-0 space-y-2">
                 <template v-if="isDraft">
-                    <p class="text-xs text-muted">{{ t(`${P}.preview_notice`) }}</p>
+                    <p class="text-xs text-muted">{{ t(`${CONTRACT_KEYS}.preview_notice`) }}</p>
                     <AppMessage v-if="draftPreview.unknownTokens.length" variant="warning">
-                        {{ t(`${P}.preview_unknown_tokens`, { tokens: draftPreview.unknownTokens.join(", ") }) }}
+                        {{ t(`${CONTRACT_KEYS}.preview_unknown_tokens`, { tokens: draftPreview.unknownTokens.join(", ") }) }}
                     </AppMessage>
                     <AppMessage v-if="draftPreview.error" variant="danger">{{ draftPreview.error }}</AppMessage>
                     <p v-else-if="draftPreview.loading" class="text-sm text-muted">{{ t("shared.common.loading") }}</p>
@@ -555,17 +555,17 @@ const confirmBlocked = computed(
 
             <aside class="min-w-0 space-y-4">
                 <section class="aurora-card p-4 space-y-2 text-sm">
-                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${F}.panels.information`) }}</p>
+                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${FLOW_KEYS}.panels.information`) }}</p>
                     <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
-                        <dt class="text-muted">{{ t(`${F}.panels.customer`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.customer`) }}</dt>
                         <dd class="text-primary min-w-0 break-words">{{ contract.customerName }}</dd>
                         <template v-if="contract.body">
-                            <dt class="text-muted">{{ t(`${F}.panels.template`) }}</dt>
+                            <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.template`) }}</dt>
                             <dd class="min-w-0">
                                 <a class="text-accent-400 hover:underline" :href="versionHref(contract.body)">{{ contract.body.templateName }}</a>
-                                <span class="text-muted"> · {{ t(`${F}.panels.version`, { number: contract.body.versionNumber }) }}</span>
+                                <span class="text-muted"> · {{ t(`${FLOW_KEYS}.panels.version`, { number: contract.body.versionNumber }) }}</span>
                                 <p v-if="contract.body.isOutdated && isDraft" class="text-xs text-amber-500">
-                                    {{ t(`${F}.panels.version_outdated`, { number: contract.body.versionNumber, latest: contract.body.latestVersionNumber }) }}
+                                    {{ t(`${FLOW_KEYS}.panels.version_outdated`, { number: contract.body.versionNumber, latest: contract.body.latestVersionNumber }) }}
                                 </p>
                                 <p v-if="contract.body.isAdapted" class="flex flex-wrap items-center gap-1.5 text-xs">
                                     <AppBadge color="violet">{{ t("suite.studio.contracts.wording.badge") }}</AppBadge>
@@ -574,50 +574,50 @@ const confirmBlocked = computed(
                             </dd>
                         </template>
                         <template v-if="contract.annex">
-                            <dt class="text-muted">{{ t(`${F}.panels.annex`) }}</dt>
+                            <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.annex`) }}</dt>
                             <dd class="min-w-0">
                                 <a class="text-accent-400 hover:underline" :href="versionHref(contract.annex)">{{ contract.annex.templateName }}</a>
-                                <span class="text-muted"> · {{ t(`${F}.panels.version`, { number: contract.annex.versionNumber }) }}</span>
+                                <span class="text-muted"> · {{ t(`${FLOW_KEYS}.panels.version`, { number: contract.annex.versionNumber }) }}</span>
                                 <p v-if="contract.annex.isAdapted" class="flex flex-wrap items-center gap-1.5 text-xs">
                                     <AppBadge color="violet">{{ t("suite.studio.contracts.wording.badge") }}</AppBadge>
                                     <a class="text-accent-400 hover:underline" :href="wordingHref('annex')">{{ t("suite.studio.contracts.wording.open") }}</a>
                                 </p>
                             </dd>
                         </template>
-                        <dt class="text-muted">{{ t(`${F}.panels.amount`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.amount`) }}</dt>
                         <dd class="text-primary tabular-nums">{{ amount }}</dd>
-                        <dt class="text-muted">{{ t(`${F}.panels.effective_date`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.effective_date`) }}</dt>
                         <dd class="text-primary">{{ date(contract.effectiveDate) }}</dd>
-                        <dt class="text-muted">{{ t(`${F}.panels.language`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.language`) }}</dt>
                         <dd class="text-primary">{{ localeLabel }}</dd>
-                        <dt class="text-muted">{{ t(`${F}.panels.created_at`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.created_at`) }}</dt>
                         <dd class="text-primary">{{ date(contract.createdAt) }}</dd>
                         <template v-if="contract.frozenAt">
-                            <dt class="text-muted">{{ t(`${F}.panels.sealed_at`) }}</dt>
+                            <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.sealed_at`) }}</dt>
                             <dd class="text-primary">{{ dateTime(contract.frozenAt) }}</dd>
                         </template>
                     </dl>
                 </section>
 
                 <section v-if="contract.isFrozen" class="aurora-card p-4 space-y-2 text-sm">
-                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${F}.panels.link`) }}</p>
+                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${FLOW_KEYS}.panels.link`) }}</p>
                     <dl v-if="contract.link" class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
-                        <dt class="text-muted">{{ t(`${F}.panels.recipient`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.recipient`) }}</dt>
                         <dd class="text-primary min-w-0 break-all">{{ contract.link.recipientEmail }}</dd>
-                        <dt class="text-muted">{{ t(`${F}.panels.sent_at`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.sent_at`) }}</dt>
                         <dd class="text-primary">{{ dateTime(contract.link.sentAt) }}</dd>
-                        <dt class="text-muted">{{ t(`${F}.panels.opened_at`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.opened_at`) }}</dt>
                         <dd class="text-primary">{{ dateTime(contract.link.firstOpenedAt) }}</dd>
-                        <dt class="text-muted">{{ t(`${F}.panels.expires_at`) }}</dt>
+                        <dt class="text-muted">{{ t(`${FLOW_KEYS}.panels.expires_at`) }}</dt>
                         <dd class="text-primary">{{ date(contract.link.expiresAt) }}</dd>
                     </dl>
-                    <p v-else class="text-muted">{{ t(`${F}.panels.no_link`) }}</p>
+                    <p v-else class="text-muted">{{ t(`${FLOW_KEYS}.panels.no_link`) }}</p>
                     <p class="text-xs text-muted">
-                        {{ t(`${F}.panels.reminders`) }} :
+                        {{ t(`${FLOW_KEYS}.panels.reminders`) }} :
                         {{
                             contract.reminders?.count
-                                ? t(`${P}.reminders_count`, { count: contract.reminders.count, date: date(contract.reminders.lastAt) })
-                                : t(`${P}.reminders_none`)
+                                ? t(`${CONTRACT_KEYS}.reminders_count`, { count: contract.reminders.count, date: date(contract.reminders.lastAt) })
+                                : t(`${CONTRACT_KEYS}.reminders_none`)
                         }}
                     </p>
                 </section>
@@ -625,36 +625,36 @@ const confirmBlocked = computed(
                 <!-- The signatures as proof: who, where, when, and how they
                      were identified. -->
                 <section v-if="contract.isFrozen" class="aurora-card p-4 space-y-3 text-sm">
-                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${F}.panels.signatures`) }}</p>
-                    <p v-if="!signatures.length" class="text-muted">{{ t(`${F}.panels.no_signature`) }}</p>
+                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${FLOW_KEYS}.panels.signatures`) }}</p>
+                    <p v-if="!signatures.length" class="text-muted">{{ t(`${FLOW_KEYS}.panels.no_signature`) }}</p>
                     <div v-for="signature in signatures" :key="signature.role" class="space-y-0.5">
                         <p class="font-medium text-primary">
-                            {{ "customer" === signature.role ? t(`${F}.panels.role_customer`) : t(`${F}.panels.role_provider`) }}
+                            {{ "customer" === signature.role ? t(`${FLOW_KEYS}.panels.role_customer`) : t(`${FLOW_KEYS}.panels.role_provider`) }}
                             · {{ signature.name }}
                         </p>
-                        <p class="text-xs text-secondary">{{ t(`${F}.panels.signed_in`, { place: signature.place, date: date(signature.date) }) }}</p>
-                        <p class="text-xs text-muted">{{ t(`${F}.panels.signed_at_trace`, { at: dateTime(signature.signedAt), ip: signature.ip ?? "-" }) }}</p>
-                        <p v-if="signature.codeSentTo" class="text-xs text-muted">{{ t(`${F}.panels.code_sent_to`, { email: signature.codeSentTo }) }}</p>
-                        <p v-if="signature.byUser" class="text-xs text-muted">{{ t(`${F}.panels.by_account`, { name: signature.byUser }) }}</p>
-                        <p v-if="!signature.hashMatches" class="text-xs text-rose-400">{{ t(`${F}.panels.hash_mismatch`) }}</p>
+                        <p class="text-xs text-secondary">{{ t(`${FLOW_KEYS}.panels.signed_in`, { place: signature.place, date: date(signature.date) }) }}</p>
+                        <p class="text-xs text-muted">{{ t(`${FLOW_KEYS}.panels.signed_at_trace`, { at: dateTime(signature.signedAt), ip: signature.ip ?? "-" }) }}</p>
+                        <p v-if="signature.codeSentTo" class="text-xs text-muted">{{ t(`${FLOW_KEYS}.panels.code_sent_to`, { email: signature.codeSentTo }) }}</p>
+                        <p v-if="signature.byUser" class="text-xs text-muted">{{ t(`${FLOW_KEYS}.panels.by_account`, { name: signature.byUser }) }}</p>
+                        <p v-if="!signature.hashMatches" class="text-xs text-rose-400">{{ t(`${FLOW_KEYS}.panels.hash_mismatch`) }}</p>
                     </div>
                 </section>
 
                 <!-- The chain: what this amends, and what amended it. -->
                 <section v-if="contract.amends || contract.amendments?.length" class="aurora-card p-4 space-y-2 text-sm">
-                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${P}.chain`) }}</p>
+                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${CONTRACT_KEYS}.chain`) }}</p>
                     <p v-if="contract.amends">
                         <a
                             v-if="contract.amends.id"
                             class="text-accent-400 hover:underline"
                             :href="buildPath(showPath, { id: contract.amends.id })"
-                        >{{ t(`${P}.amends_long`, { reference: contract.amends.reference }) }}</a>
-                        <span v-else>{{ t(`${P}.amends_long`, { reference: contract.amends.reference }) }}</span>
+                        >{{ t(`${CONTRACT_KEYS}.amends_long`, { reference: contract.amends.reference }) }}</a>
+                        <span v-else>{{ t(`${CONTRACT_KEYS}.amends_long`, { reference: contract.amends.reference }) }}</span>
                     </p>
                     <ul v-if="contract.amendments?.length" class="space-y-1">
                         <li v-for="amendment in contract.amendments" :key="amendment.id" class="flex flex-wrap items-baseline gap-2">
                             <a class="font-mono text-xs text-accent-400 hover:underline" :href="buildPath(showPath, { id: amendment.id })">
-                                {{ amendment.reference ?? t(`${P}.draft_title`) }}
+                                {{ amendment.reference ?? t(`${CONTRACT_KEYS}.draft_title`) }}
                             </a>
                             <AppBadge :color="contractStatusColor(amendment.status)">{{ t(amendment.statusLabel) }}</AppBadge>
                         </li>
@@ -665,17 +665,17 @@ const confirmBlocked = computed(
                     <p class="flex items-center gap-2" :class="seal.verified ? 'text-emerald-500' : 'text-rose-400'">
                         <ShieldCheck v-if="seal.verified" class="w-4 h-4" :stroke-width="2" />
                         <ShieldAlert v-else class="w-4 h-4" :stroke-width="2" />
-                        {{ seal.verified ? t(`${P}.seal_intact`) : t(`${P}.seal_broken`) }}
+                        {{ seal.verified ? t(`${CONTRACT_KEYS}.seal_intact`) : t(`${CONTRACT_KEYS}.seal_broken`) }}
                     </p>
-                    <p class="text-xs text-muted">{{ t(`${P}.seal_hash`) }}</p>
+                    <p class="text-xs text-muted">{{ t(`${CONTRACT_KEYS}.seal_hash`) }}</p>
                     <p class="font-mono text-xs text-primary break-all">{{ seal.contentHash }}</p>
                     <p class="text-xs text-muted">{{ seal.hashAlgo }} · c{{ seal.canonicalVersion }}</p>
-                    <p class="text-xs text-muted">{{ t(`${P}.retained_until`) }} {{ date(contract.retainedUntil) }}</p>
+                    <p class="text-xs text-muted">{{ t(`${CONTRACT_KEYS}.retained_until`) }} {{ date(contract.retainedUntil) }}</p>
                 </section>
 
                 <section class="aurora-card p-4 space-y-2 text-sm">
-                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${F}.panels.history`) }}</p>
-                    <p v-if="!contract.history?.length" class="text-muted">{{ t(`${F}.panels.no_history`) }}</p>
+                    <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${FLOW_KEYS}.panels.history`) }}</p>
+                    <p v-if="!contract.history?.length" class="text-muted">{{ t(`${FLOW_KEYS}.panels.no_history`) }}</p>
                     <ul v-else class="space-y-1.5">
                         <li v-for="(entry, index) in contract.history" :key="index" class="text-xs">
                             <span class="text-primary">{{ entry.label }}</span>
@@ -687,13 +687,13 @@ const confirmBlocked = computed(
         </div>
 
         <!-- Confirmations: one modal, the sentence says what will happen. -->
-        <AppModal :show="null !== pending" max-width="md" :title="pending ? t(`${F}.actions.${pending}.title`) : ''" v-on:close="pending = null">
+        <AppModal :show="null !== pending" max-width="md" :title="pending ? t(`${FLOW_KEYS}.actions.${pending}.title`) : ''" v-on:close="pending = null">
             <div class="space-y-3">
                 <p class="text-sm text-secondary">{{ confirmText }}</p>
                 <AppCheckbox
                     v-if="'cancel' === pending"
                     v-model="cancelAlsoDuplicates"
-                    :label="t(`${F}.confirm.cancel_duplicate`)"
+                    :label="t(`${FLOW_KEYS}.confirm.cancel_duplicate`)"
                 />
             </div>
             <template #footer>
@@ -712,7 +712,7 @@ const confirmBlocked = computed(
                         <Trash2 v-if="'delete' === pending" class="w-3.5 h-3.5" :stroke-width="2" />
                         <Lock v-else-if="'freeze' === pending" class="w-3.5 h-3.5" :stroke-width="2" />
                         <Check v-else class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ pending ? t(`${F}.actions.${pending}.title`) : "" }}
+                        {{ pending ? t(`${FLOW_KEYS}.actions.${pending}.title`) : "" }}
                     </AppButton>
                 </AppModalFooter>
             </template>
@@ -722,7 +722,7 @@ const confirmBlocked = computed(
             :show="showEdit"
             max-width="lg"
             :closeable="false"
-            :title="t(`${P}.edit`, { name: contract.customerName })"
+            :title="t(`${CONTRACT_KEYS}.edit`, { name: contract.customerName })"
             v-on:close="showEdit = false"
         >
             <form v-on:submit.prevent="saveEdit">
@@ -755,13 +755,13 @@ const confirmBlocked = computed(
             :show="showCountersign"
             max-width="lg"
             :closeable="false"
-            :title="t(`${P}.countersign`)"
+            :title="t(`${CONTRACT_KEYS}.countersign`)"
             :icon="PenLine"
             v-on:close="showCountersign = false"
         >
             <div class="space-y-4">
                 <AppMessage v-if="countersignErrors.status" variant="danger">{{ countersignErrors.status }}</AppMessage>
-                <p class="text-sm text-secondary">{{ t(`${P}.countersign_intro`) }}</p>
+                <p class="text-sm text-secondary">{{ t(`${CONTRACT_KEYS}.countersign_intro`) }}</p>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <AppInput
                         v-model="countersignForm.firstName"
@@ -804,7 +804,7 @@ const confirmBlocked = computed(
                 </div>
                 <AppSignaturePad v-model="countersignForm.signatureImage" :label="t('studio.public.sign.signature')" />
                 <p v-if="countersignErrors.signatureImage" class="text-xs text-red-500">{{ countersignErrors.signatureImage }}</p>
-                <AppCheckbox v-model="countersignForm.consent" :label="t(`${P}.countersign_consent`)" />
+                <AppCheckbox v-model="countersignForm.consent" :label="t(`${CONTRACT_KEYS}.countersign_consent`)" />
                 <p v-if="countersignErrors.consent" class="text-xs text-red-500">{{ countersignErrors.consent }}</p>
             </div>
             <template #footer>
@@ -821,7 +821,7 @@ const confirmBlocked = computed(
                         v-on:click="countersign"
                     >
                         <Check class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t(`${P}.countersign`) }}
+                        {{ t(`${CONTRACT_KEYS}.countersign`) }}
                     </AppButton>
                 </AppModalFooter>
             </template>
@@ -830,41 +830,41 @@ const confirmBlocked = computed(
         <AppModal
             :show="showTerminate"
             max-width="lg"
-            :title="t(`${P}.terminate`)"
+            :title="t(`${CONTRACT_KEYS}.terminate`)"
             :icon="CalendarX"
             v-on:close="showTerminate = false"
         >
             <div class="space-y-4">
                 <AppMessage v-if="terminationErrors.status" variant="danger">{{ terminationErrors.status }}</AppMessage>
-                <p class="text-sm text-secondary">{{ t(`${P}.termination.intro`) }}</p>
+                <p class="text-sm text-secondary">{{ t(`${CONTRACT_KEYS}.termination.intro`) }}</p>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <AppDatePicker
                         v-model="termination.noticedAt"
-                        :label="t(`${P}.termination.noticed_at`)"
-                        :hint="t(`${P}.termination.noticed_at_hint`)"
+                        :label="t(`${CONTRACT_KEYS}.termination.noticed_at`)"
+                        :hint="t(`${CONTRACT_KEYS}.termination.noticed_at_hint`)"
                         :error="terminationErrors.noticedAt"
                         required
                     />
                     <AppDatePicker
                         v-model="termination.effectiveAt"
-                        :label="t(`${P}.termination.effective_at`)"
-                        :hint="t(`${P}.termination.effective_at_hint`)"
+                        :label="t(`${CONTRACT_KEYS}.termination.effective_at`)"
+                        :hint="t(`${CONTRACT_KEYS}.termination.effective_at_hint`)"
                         :error="terminationErrors.effectiveAt"
                         required
                     />
                 </div>
                 <AppSelect
                     v-model="termination.origin"
-                    :label="t(`${P}.termination.origin_label`)"
-                    :placeholder="t(`${P}.termination.origin_placeholder`)"
+                    :label="t(`${CONTRACT_KEYS}.termination.origin_label`)"
+                    :placeholder="t(`${CONTRACT_KEYS}.termination.origin_placeholder`)"
                     :options="originOptions"
                     :error="terminationErrors.origin"
                     required
                 />
                 <AppTextarea
                     v-model="termination.reason"
-                    :label="t(`${P}.termination.reason`)"
-                    :placeholder="t(`${P}.termination.reason_placeholder`)"
+                    :label="t(`${CONTRACT_KEYS}.termination.reason`)"
+                    :placeholder="t(`${CONTRACT_KEYS}.termination.reason_placeholder`)"
                     :error="terminationErrors.reason"
                     :rows="4"
                 />
@@ -883,7 +883,7 @@ const confirmBlocked = computed(
                         v-on:click="terminate"
                     >
                         <CalendarX class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t(`${P}.terminate`) }}
+                        {{ t(`${CONTRACT_KEYS}.terminate`) }}
                     </AppButton>
                 </AppModalFooter>
             </template>

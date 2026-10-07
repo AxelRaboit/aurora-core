@@ -22,7 +22,7 @@ import {
  * Download carries `href` and stays a link: it is a navigation, and the browser
  * is what should handle it.
  *
- * `viewDoc` and `openQr` are optional because the same list is read from two
+ * `viewDocument` and `openQr` are optional because the same list is read from two
  * places now: the library, where a document is a row you can open, and the
  * document's own page, where opening it is where you already are. Left out,
  * their entries simply do not appear.
@@ -41,7 +41,7 @@ import {
  */
 export function useDocumentRowActions({
     can,
-    viewDoc = null,
+    viewDocument = null,
     openQr = null,
     openEdit,
     confirmDelete,
@@ -51,8 +51,8 @@ export function useDocumentRowActions({
 }) {
     const { t } = useI18n();
 
-    return function actionsFor(doc) {
-        if (doc.trashed) {
+    return function actionsFor(gedDocument) {
+        if (gedDocument.trashed) {
             if (!restore || !can("ged.documents.delete")) return [];
 
             return [
@@ -64,14 +64,14 @@ export function useDocumentRowActions({
                     description: t(
                         "suite.ged.documents.row_actions.restore_description",
                     ),
-                    onSelect: () => restore(doc),
+                    onSelect: () => restore(gedDocument),
                 },
             ];
         }
 
         const actions = [];
 
-        if (viewDoc) {
+        if (viewDocument) {
             actions.push({
                 key: "view",
                 color: "sky",
@@ -80,11 +80,11 @@ export function useDocumentRowActions({
                 description: t(
                     "suite.ged.documents.row_actions.view_description",
                 ),
-                onSelect: () => viewDoc(doc),
+                onSelect: () => viewDocument(gedDocument),
             });
         }
 
-        if (doc.fileUrl) {
+        if (gedDocument.fileUrl) {
             actions.push({
                 key: "download",
                 color: "default",
@@ -93,7 +93,7 @@ export function useDocumentRowActions({
                 description: t(
                     "suite.ged.documents.row_actions.download_description",
                 ),
-                href: doc.fileUrl,
+                href: gedDocument.fileUrl,
             });
 
             if (openQr) {
@@ -105,7 +105,7 @@ export function useDocumentRowActions({
                     description: t(
                         "suite.ged.documents.row_actions.qr_description",
                     ),
-                    onSelect: () => openQr(doc),
+                    onSelect: () => openQr(gedDocument),
                 });
             }
         }
@@ -119,7 +119,7 @@ export function useDocumentRowActions({
                 description: t(
                     "suite.ged.documents.row_actions.edit_description",
                 ),
-                onSelect: () => openEdit(doc),
+                onSelect: () => openEdit(gedDocument),
             });
         }
 
@@ -127,8 +127,8 @@ export function useDocumentRowActions({
         // Offering a destination that does not exist is an action that can only
         // fail, and the reader has no way to know why.
         if (relocationAvailable && relocate && can("ged.documents.relocate")) {
-            const toRemote = doc.storageDisk !== "r2";
-            const pending = doc.storageTransferState === "pending";
+            const toRemote = gedDocument.storageDisk !== "r2";
+            const pending = gedDocument.storageTransferState === "pending";
 
             actions.push({
                 key: "relocate",
@@ -143,7 +143,8 @@ export function useDocumentRowActions({
                     ? t("suite.ged.documents.row_actions.relocate_pending")
                     : t("suite.ged.documents.row_actions.relocate_description"),
                 disabled: pending,
-                onSelect: () => relocate(doc, toRemote ? "r2" : "local"),
+                onSelect: () =>
+                    relocate(gedDocument, toRemote ? "r2" : "local"),
             });
         }
 
@@ -156,7 +157,7 @@ export function useDocumentRowActions({
                 description: t(
                     "suite.ged.documents.row_actions.delete_description",
                 ),
-                onSelect: () => confirmDelete(doc),
+                onSelect: () => confirmDelete(gedDocument),
             });
         }
 

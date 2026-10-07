@@ -47,7 +47,7 @@ function open(event) {
     emit("open", props.item);
 }
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const excerpt = computed(() => {
     const body = props.item.body ?? "";
@@ -72,7 +72,7 @@ const extraFiles = computed(() => Math.max(0, props.files.length - 1));
 const when = computed(() => {
     if (!props.item.scheduledAt) return t("suite.studio.space_content.unscheduled");
 
-    return d(new Date(props.item.scheduledAt), "short");
+    return formatDate(new Date(props.item.scheduledAt), "short");
 });
 
 /**

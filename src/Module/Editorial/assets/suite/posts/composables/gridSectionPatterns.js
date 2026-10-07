@@ -33,9 +33,12 @@ function zone(type, width, extra = {}) {
     };
 }
 
-const h = (text, level = 2) => ({ type: "header", data: { text, level } });
-const p = (text) => ({ type: "paragraph", data: { text } });
-const ul = (...items) => ({
+const heading = (text, level = 2) => ({
+    type: "header",
+    data: { text, level },
+});
+const paragraph = (text) => ({ type: "paragraph", data: { text } });
+const bulletList = (...items) => ({
     type: "list",
     data: {
         style: "unordered",
@@ -71,20 +74,23 @@ export const SECTION_PATTERNS = [
         key: "title",
         rows: [[48]],
         build(t) {
-            const s = sheet();
-            s.add(zone("text", FULL, { newRow: true }), {
-                blocks: [h(words(t, "title")), p(words(t, "intro"))],
+            const section = sheet();
+            section.add(zone("text", FULL, { newRow: true }), {
+                blocks: [
+                    heading(words(t, "title")),
+                    paragraph(words(t, "intro")),
+                ],
             });
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "card_phone",
         rows: [[28, 20]],
         build(t) {
-            const s = sheet();
-            s.add(
+            const section = sheet();
+            section.add(
                 zone("text", 28, {
                     newRow: true,
                     surface: "raised",
@@ -92,8 +98,8 @@ export const SECTION_PATTERNS = [
                 }),
                 {
                     blocks: [
-                        h(`${words(t, "heading")} 👀`, 3),
-                        ul(
+                        heading(`${words(t, "heading")} 👀`, 3),
+                        bulletList(
                             words(t, "point"),
                             words(t, "point"),
                             words(t, "point"),
@@ -101,7 +107,7 @@ export const SECTION_PATTERNS = [
                     ],
                 },
             );
-            s.add(
+            section.add(
                 zone("media", 20, {
                     options: {
                         frame: "phone",
@@ -112,30 +118,30 @@ export const SECTION_PATTERNS = [
                 {},
             );
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "two_cards",
         rows: [[20, 28]],
         build(t) {
-            const s = sheet();
-            s.add(zone("text", 20, { newRow: true, surface: "raised" }), {
+            const section = sheet();
+            section.add(zone("text", 20, { newRow: true, surface: "raised" }), {
                 blocks: [
-                    h(words(t, "heading"), 3),
-                    p(words(t, "text")),
-                    ul(words(t, "point"), words(t, "point")),
+                    heading(words(t, "heading"), 3),
+                    paragraph(words(t, "text")),
+                    bulletList(words(t, "point"), words(t, "point")),
                 ],
             });
-            s.add(zone("text", 28, { surface: "raised" }), {
+            section.add(zone("text", 28, { surface: "raised" }), {
                 blocks: [
-                    h(words(t, "heading"), 3),
-                    p(words(t, "text")),
-                    ul(words(t, "point"), words(t, "point")),
+                    heading(words(t, "heading"), 3),
+                    paragraph(words(t, "text")),
+                    bulletList(words(t, "point"), words(t, "point")),
                 ],
             });
 
-            return s.result();
+            return section.result();
         },
     },
     {
@@ -145,88 +151,110 @@ export const SECTION_PATTERNS = [
             [24, 24],
         ],
         build(t) {
-            const s = sheet();
+            const section = sheet();
             ["strengths", "weaknesses", "opportunities", "threats"].forEach(
                 (name, index) => {
-                    s.add(
+                    section.add(
                         zone("text", 24, {
                             newRow: 0 === index % 2,
                             surface: "raised",
                         }),
-                        { blocks: [h(words(t, name), 3), p(words(t, "text"))] },
+                        {
+                            blocks: [
+                                heading(words(t, name), 3),
+                                paragraph(words(t, "text")),
+                            ],
+                        },
                     );
                 },
             );
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "three_columns",
         rows: [[16, 16, 16]],
         build(t) {
-            const s = sheet();
+            const section = sheet();
             [0, 1, 2].forEach((index) => {
-                s.add(zone("text", 16, { newRow: 0 === index }), {
-                    blocks: [pill(words(t, "label")), p(words(t, "text"))],
+                section.add(zone("text", 16, { newRow: 0 === index }), {
+                    blocks: [
+                        pill(words(t, "label")),
+                        paragraph(words(t, "text")),
+                    ],
                 });
             });
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "three_tags",
         rows: [[16, 16, 16]],
         build(t) {
-            const s = sheet();
+            const section = sheet();
             ["rose", "indigo", "lime"].forEach((tone, index) => {
-                s.add(zone("text", 16, { newRow: 0 === index }), {
+                section.add(zone("text", 16, { newRow: 0 === index }), {
                     blocks: [
                         pill(`${words(t, "competitor")} 👀`, tone),
-                        p(`<b>${words(t, "lead")}</b> : ${words(t, "point")}`),
-                        p(`<b>${words(t, "lead")}</b> : ${words(t, "point")}`),
-                        p(`<b>${words(t, "lead")}</b> : ${words(t, "point")}`),
+                        paragraph(
+                            `<b>${words(t, "lead")}</b> : ${words(t, "point")}`,
+                        ),
+                        paragraph(
+                            `<b>${words(t, "lead")}</b> : ${words(t, "point")}`,
+                        ),
+                        paragraph(
+                            `<b>${words(t, "lead")}</b> : ${words(t, "point")}`,
+                        ),
                     ],
                 });
             });
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "keep_avoid",
         rows: [[24, 24]],
         build(t) {
-            const s = sheet();
-            s.add(zone("text", 24, { newRow: true, surface: "raised" }), {
+            const section = sheet();
+            section.add(zone("text", 24, { newRow: true, surface: "raised" }), {
                 blocks: [
-                    h(words(t, "keep"), 3),
-                    ul(words(t, "point"), words(t, "point"), words(t, "point")),
+                    heading(words(t, "keep"), 3),
+                    bulletList(
+                        words(t, "point"),
+                        words(t, "point"),
+                        words(t, "point"),
+                    ),
                 ],
             });
-            s.add(zone("text", 24, { surface: "raised" }), {
+            section.add(zone("text", 24, { surface: "raised" }), {
                 blocks: [
-                    h(words(t, "avoid"), 3),
-                    ul(words(t, "point"), words(t, "point"), words(t, "point")),
+                    heading(words(t, "avoid"), 3),
+                    bulletList(
+                        words(t, "point"),
+                        words(t, "point"),
+                        words(t, "point"),
+                    ),
                 ],
             });
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "showcase_figure",
         rows: [[32, 16]],
         build(t) {
-            const s = sheet();
+            const section = sheet();
             const entry = () => ({
                 title: words(t, "post"),
                 caption: words(t, "post_when"),
                 description: words(t, "post_figures"),
                 url: "",
             });
-            s.add(
+            section.add(
                 zone("items", 32, {
                     newRow: true,
                     display: "showcase",
@@ -239,37 +267,37 @@ export const SECTION_PATTERNS = [
                 }),
                 { items: { e1: entry(), e2: entry(), e3: entry() } },
             );
-            s.add(
+            section.add(
                 zone("text", 16, {
                     surface: "raised",
                     options: { valign: "center" },
                 }),
                 {
                     blocks: [
-                        h(`${words(t, "figure")} 🔥`, 3),
-                        p(`<b>${words(t, "figure_label")}</b>`),
-                        p(words(t, "text")),
+                        heading(`${words(t, "figure")} 🔥`, 3),
+                        paragraph(`<b>${words(t, "figure_label")}</b>`),
+                        paragraph(words(t, "text")),
                     ],
                 },
             );
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "text_chart",
         rows: [[26, 22]],
         build(t) {
-            const s = sheet();
-            s.add(zone("text", 26, { newRow: true, surface: "raised" }), {
+            const section = sheet();
+            section.add(zone("text", 26, { newRow: true, surface: "raised" }), {
                 blocks: [
-                    h(words(t, "heading"), 3),
-                    p(words(t, "text")),
-                    h(words(t, "heading"), 3),
-                    p(words(t, "text")),
+                    heading(words(t, "heading"), 3),
+                    paragraph(words(t, "text")),
+                    heading(words(t, "heading"), 3),
+                    paragraph(words(t, "text")),
                 ],
             });
-            s.add(
+            section.add(
                 zone("chart", 22, {
                     options: {
                         chartType: "pie",
@@ -283,15 +311,15 @@ export const SECTION_PATTERNS = [
                 },
             );
 
-            return s.result();
+            return section.result();
         },
     },
     {
         key: "networks",
         rows: [[16, 32]],
         build(t) {
-            const s = sheet();
-            s.add(zone("text", 16, { newRow: true }), {
+            const section = sheet();
+            section.add(zone("text", 16, { newRow: true }), {
                 blocks: [
                     pill(`${words(t, "networks")} 👀`),
                     {
@@ -318,11 +346,11 @@ export const SECTION_PATTERNS = [
                     },
                 ],
             });
-            s.add(zone("text", 32), {
-                blocks: [pill(words(t, "label")), p(words(t, "text"))],
+            section.add(zone("text", 32), {
+                blocks: [pill(words(t, "label")), paragraph(words(t, "text"))],
             });
 
-            return s.result();
+            return section.result();
         },
     },
 ];

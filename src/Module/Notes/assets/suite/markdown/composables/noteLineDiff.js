@@ -18,43 +18,60 @@ const MAX_CELLS = 4_000_000;
  * @returns {Array<{kind: "same"|"removed"|"added", text: string}>|null}
  */
 export function lineDiff(before, after) {
-    const a = String(before ?? "").split("\n");
-    const b = String(after ?? "").split("\n");
+    const beforeLines = String(before ?? "").split("\n");
+    const afterLines = String(after ?? "").split("\n");
 
-    if (a.length * b.length > MAX_CELLS) return null;
+    if (beforeLines.length * afterLines.length > MAX_CELLS) return null;
 
-    // lengths[i][j]: the longest common subsequence of a[i..] and b[j..].
+    // lengths[beforeIndex][afterIndex]: the longest common subsequence of
+    // beforeLines[beforeIndex..] and afterLines[afterIndex..].
     const lengths = Array.from(
-        { length: a.length + 1 },
-        () => new Uint32Array(b.length + 1),
+        { length: beforeLines.length + 1 },
+        () => new Uint32Array(afterLines.length + 1),
     );
-    for (let i = a.length - 1; i >= 0; i -= 1) {
-        for (let j = b.length - 1; j >= 0; j -= 1) {
-            lengths[i][j] =
-                a[i] === b[j]
-                    ? lengths[i + 1][j + 1] + 1
-                    : Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+    for (
+        let beforeIndex = beforeLines.length - 1;
+        beforeIndex >= 0;
+        beforeIndex -= 1
+    ) {
+        for (
+            let afterIndex = afterLines.length - 1;
+            afterIndex >= 0;
+            afterIndex -= 1
+        ) {
+            lengths[beforeIndex][afterIndex] =
+                beforeLines[beforeIndex] === afterLines[afterIndex]
+                    ? lengths[beforeIndex + 1][afterIndex + 1] + 1
+                    : Math.max(
+                          lengths[beforeIndex + 1][afterIndex],
+                          lengths[beforeIndex][afterIndex + 1],
+                      );
         }
     }
 
     const lines = [];
-    let i = 0;
-    let j = 0;
-    while (i < a.length && j < b.length) {
-        if (a[i] === b[j]) {
-            lines.push({ kind: "same", text: a[i] });
-            i += 1;
-            j += 1;
-        } else if (lengths[i + 1][j] >= lengths[i][j + 1]) {
-            lines.push({ kind: "removed", text: a[i] });
-            i += 1;
+    let beforeIndex = 0;
+    let afterIndex = 0;
+    while (beforeIndex < beforeLines.length && afterIndex < afterLines.length) {
+        if (beforeLines[beforeIndex] === afterLines[afterIndex]) {
+            lines.push({ kind: "same", text: beforeLines[beforeIndex] });
+            beforeIndex += 1;
+            afterIndex += 1;
+        } else if (
+            lengths[beforeIndex + 1][afterIndex] >=
+            lengths[beforeIndex][afterIndex + 1]
+        ) {
+            lines.push({ kind: "removed", text: beforeLines[beforeIndex] });
+            beforeIndex += 1;
         } else {
-            lines.push({ kind: "added", text: b[j] });
-            j += 1;
+            lines.push({ kind: "added", text: afterLines[afterIndex] });
+            afterIndex += 1;
         }
     }
-    while (i < a.length) lines.push({ kind: "removed", text: a[i++] });
-    while (j < b.length) lines.push({ kind: "added", text: b[j++] });
+    while (beforeIndex < beforeLines.length)
+        lines.push({ kind: "removed", text: beforeLines[beforeIndex++] });
+    while (afterIndex < afterLines.length)
+        lines.push({ kind: "added", text: afterLines[afterIndex++] });
 
     return lines;
 }

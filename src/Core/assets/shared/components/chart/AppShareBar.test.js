@@ -3,7 +3,9 @@ import { mount } from "@vue/test-utils";
 import AppShareBar from "./AppShareBar.vue";
 
 vi.mock("vue-i18n", () => ({
-    useI18n: () => ({ t: (key, params) => `${key}:${JSON.stringify(params)}` }),
+    useI18n: () => ({
+        t: (key, parameters) => `${key}:${JSON.stringify(parameters)}`,
+    }),
 }));
 
 const STUBS = {

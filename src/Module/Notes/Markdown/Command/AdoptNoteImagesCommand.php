@@ -50,7 +50,7 @@ final class AdoptNoteImagesCommand extends Command
     public function __construct(
         private readonly StorageManager $storageManager,
         #[Autowire('%kernel.project_dir%/var/uploads/notes-markdown')]
-        private readonly string $legacyDir,
+        private readonly string $legacyDirectory,
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
         parent::__construct();
@@ -68,7 +68,7 @@ final class AdoptNoteImagesCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('Images de notes restées sur le disque');
 
-        if (!$this->filesystem->exists($this->legacyDir)) {
+        if (!$this->filesystem->exists($this->legacyDirectory)) {
             $io->success("Rien à reprendre : le dossier local n'existe pas.");
 
             return Command::SUCCESS;
@@ -82,7 +82,7 @@ final class AdoptNoteImagesCommand extends Command
         $deja = 0;
         $purgees = 0;
 
-        $finder = new Finder()->files()->in($this->legacyDir)->depth('== 1')->sortByName();
+        $finder = new Finder()->files()->in($this->legacyDirectory)->depth('== 1')->sortByName();
 
         foreach ($finder as $file) {
             $utilisateur = basename(dirname($file->getPathname()));

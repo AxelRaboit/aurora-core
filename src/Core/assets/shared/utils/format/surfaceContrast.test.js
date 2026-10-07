@@ -45,8 +45,8 @@ describe("surfaceContrast", () => {
         // The invariant that justifies flagging AAA rather than AA, checked on the
         // 256 greys, where the worst case lies.
         let worst = 21;
-        for (let v = 0; v <= 255; v += 1) {
-            const hex = `#${v.toString(16).padStart(2, "0").repeat(3)}`;
+        for (let grey = 0; grey <= 255; grey += 1) {
+            const hex = `#${grey.toString(16).padStart(2, "0").repeat(3)}`;
             worst = Math.min(worst, bestContrastRatio(hex));
         }
 

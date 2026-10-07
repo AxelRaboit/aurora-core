@@ -31,7 +31,7 @@ final class MigrationStatusChecker
     public function __construct(
         private readonly Connection $connection,
         #[Autowire(param: 'kernel.project_dir')]
-        private readonly string $projectDir,
+        private readonly string $projectDirectory,
     ) {}
 
     /**
@@ -57,7 +57,7 @@ final class MigrationStatusChecker
 
     private function countAvailableMigrationFiles(): int
     {
-        $files = glob($this->projectDir.'/migrations/Version*.php');
+        $files = glob($this->projectDirectory.'/migrations/Version*.php');
 
         return false === $files ? 0 : count($files);
     }

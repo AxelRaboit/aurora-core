@@ -16,7 +16,7 @@
 export const RATIO = 9 / 16;
 
 /** A length in thousandths of the slide's width, as CSS. */
-export const u = (value) => `${(Number(value) || 0) / 10}cqw`;
+export const cssLength = (value) => `${(Number(value) || 0) / 10}cqw`;
 
 /** The deck's three colours, by the name an element stores. */
 const THEME = {
@@ -59,7 +59,7 @@ export function paint(value) {
 export function shadow(value) {
     if (!value?.color) return null;
 
-    return `drop-shadow(${u(value.x)} ${u(value.y)} ${u(value.blur)} ${colour(value.color)})`;
+    return `drop-shadow(${cssLength(value.x)} ${cssLength(value.y)} ${cssLength(value.blur)} ${colour(value.color)})`;
 }
 
 /** A picture's adjustments as one `filter` value. */

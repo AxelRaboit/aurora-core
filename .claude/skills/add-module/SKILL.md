@@ -243,7 +243,7 @@ CLIENT projects don't inherit aurora-core's auto-discovery globs. Verify
            '%kernel.project_dir%/src/Module/<Module>/templates': '<Module>'
    ```
 3. `config/services.yaml` - append the new translations dir to
-   `DumpJsTranslationsCommand.$extraSourceDirs`.
+   `DumpJsTranslationsCommand.$extraSourceDirectories`.
 
 ## Step 5 - Sync + verify
 

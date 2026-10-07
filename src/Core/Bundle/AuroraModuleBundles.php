@@ -35,10 +35,10 @@ final class AuroraModuleBundles
      *
      * @return array<class-string, array<string, bool>>
      */
-    public static function all(string $projectDir, array $envs = ['all' => true]): array
+    public static function all(string $projectDirectory, array $envs = ['all' => true]): array
     {
         $bundles = [];
-        foreach (self::discover($projectDir) as $class) {
+        foreach (self::discover($projectDirectory) as $class) {
             $bundles[$class] = $envs;
         }
 
@@ -48,9 +48,9 @@ final class AuroraModuleBundles
     /**
      * @return list<class-string>
      */
-    public static function discover(string $projectDir): array
+    public static function discover(string $projectDirectory): array
     {
-        $pattern = $projectDir.'/vendor/axelraboit/aurora-*/composer.json';
+        $pattern = $projectDirectory.'/vendor/axelraboit/aurora-*/composer.json';
         $classes = [];
 
         foreach (glob($pattern) ?: [] as $composerFile) {

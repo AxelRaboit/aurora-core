@@ -46,19 +46,19 @@ final readonly class SeoCacheInvalidationSubscriber
         private RssFeedService $rssFeedService,
     ) {}
 
-    public function postPersist(PostPersistEventArgs $args): void
+    public function postPersist(PostPersistEventArgs $arguments): void
     {
-        $this->dispatch($args->getObject());
+        $this->dispatch($arguments->getObject());
     }
 
-    public function postUpdate(PostUpdateEventArgs $args): void
+    public function postUpdate(PostUpdateEventArgs $arguments): void
     {
-        $this->dispatch($args->getObject());
+        $this->dispatch($arguments->getObject());
     }
 
-    public function postRemove(PostRemoveEventArgs $args): void
+    public function postRemove(PostRemoveEventArgs $arguments): void
     {
-        $this->dispatch($args->getObject());
+        $this->dispatch($arguments->getObject());
     }
 
     private function dispatch(object $entity): void

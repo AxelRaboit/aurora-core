@@ -57,9 +57,9 @@ final class PlanningScreenWiringTest extends IntegrationTestCase
             'updateReminderPathTemplate' => '/suite/planning/reminders/__id__/update',
             'deleteReminderPathTemplate' => '/suite/planning/reminders/__id__/delete',
             'toggleReminderPathTemplate' => '/suite/planning/reminders/__id__/toggle',
-        ] as $prop => $path) {
-            self::assertArrayHasKey($prop, $props, sprintf('The screen is never given %s.', $prop));
-            self::assertSame($path, $props[$prop]);
+        ] as $propertyName => $path) {
+            self::assertArrayHasKey($propertyName, $props, sprintf('The screen is never given %s.', $propertyName));
+            self::assertSame($path, $props[$propertyName]);
         }
     }
 

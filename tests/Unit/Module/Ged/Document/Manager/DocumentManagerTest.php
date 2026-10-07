@@ -52,7 +52,7 @@ final class DocumentManagerTest extends TestCase
     private DocumentVersionRepository $versionRepository;
     private DocumentRepository $documentRepository;
     private DocumentManager $manager;
-    private string $workDir;
+    private string $workDirectory;
 
     protected function setUp(): void
     {
@@ -67,13 +67,13 @@ final class DocumentManagerTest extends TestCase
         $settingRepository = $this->createStub(SettingRepository::class);
         $settingRepository->method('getOrDefault')->willReturn(SequencePrefixEnum::GedDocument->value);
 
-        $this->workDir = sys_get_temp_dir().'/aurora-ged-manager-'.uniqid();
-        mkdir($this->workDir, 0o777, true);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-ged-manager-'.uniqid();
+        mkdir($this->workDirectory, 0o777, true);
 
         $filesystem = new Filesystem();
         $workspace = new LocalWorkspace($filesystem);
         $storageManager = new StorageManager(
-            [new LocalStorageAdapter($filesystem, $this->workDir)],
+            [new LocalStorageAdapter($filesystem, $this->workDirectory)],
             new class implements ActiveStorageDiskProviderInterface {
                 public function activeDisk(): StorageDiskEnum
                 {
@@ -106,7 +106,7 @@ final class DocumentManagerTest extends TestCase
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove($this->workDir);
+        (new Filesystem())->remove($this->workDirectory);
     }
 
     private function makeSequenceGenerator(): SequenceGenerator
@@ -662,7 +662,7 @@ final class DocumentManagerTest extends TestCase
 
     private function writeSourceImage(string $relativePath, int $width, int $height): string
     {
-        $absolute = $this->workDir.'/'.$relativePath;
+        $absolute = $this->workDirectory.'/'.$relativePath;
         mkdir(dirname($absolute), 0o777, true);
         $image = imagecreatetruecolor($width, $height);
         imagepng($image, $absolute);

@@ -16,10 +16,10 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 const progress = ref(0);
 
 function update() {
-    const doc = document.documentElement;
-    const max = doc.scrollHeight - doc.clientHeight;
+    const root = document.documentElement;
+    const max = root.scrollHeight - root.clientHeight;
 
-    progress.value = max > 0 ? Math.min(100, Math.max(0, (doc.scrollTop / max) * 100)) : 0;
+    progress.value = max > 0 ? Math.min(100, Math.max(0, (root.scrollTop / max) * 100)) : 0;
 }
 
 onMounted(() => {

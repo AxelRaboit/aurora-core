@@ -50,7 +50,7 @@ final readonly class NavItemResolver
         return [
             'key' => $item->stableKey(),
             'route' => $item->activeRoutePrefix ?? $item->route,
-            'path' => $this->urlGenerator->generate($item->route, $item->routeParams),
+            'path' => $this->urlGenerator->generate($item->route, $item->routeParameters),
             'labelKey' => $item->labelKey,
             'label' => $item->label,
             'descriptionKey' => $item->descriptionKey,
@@ -60,7 +60,7 @@ final readonly class NavItemResolver
             // Several entries on one route name cannot be told apart by that
             // name: the eleven settings tabs would all light up at once. When
             // an item carries params, its path is what identifies it.
-            'matchPath' => [] !== $item->routeParams,
+            'matchPath' => [] !== $item->routeParameters,
             'children' => $children,
         ];
     }

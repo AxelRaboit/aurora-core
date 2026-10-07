@@ -27,20 +27,20 @@ use function uniqid;
  */
 final class ExportStorageCommandTest extends TestCase
 {
-    private string $workDir;
+    private string $workDirectory;
 
     private LocalStorageAdapter $source;
 
     protected function setUp(): void
     {
-        $this->workDir = sys_get_temp_dir().'/aurora-export-'.uniqid();
-        (new Filesystem())->mkdir($this->workDir.'/source');
-        $this->source = new LocalStorageAdapter(new Filesystem(), $this->workDir.'/source');
+        $this->workDirectory = sys_get_temp_dir().'/aurora-export-'.uniqid();
+        (new Filesystem())->mkdir($this->workDirectory.'/source');
+        $this->source = new LocalStorageAdapter(new Filesystem(), $this->workDirectory.'/source');
     }
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove($this->workDir);
+        (new Filesystem())->remove($this->workDirectory);
     }
 
     public function testEveryKeyLandsAtTheSamePath(): void
@@ -48,29 +48,29 @@ final class ExportStorageCommandTest extends TestCase
         $this->source->write('ged/2026/09/a.png', 'aaa');
         $this->source->write('contracts/b.pdf', 'bb');
 
-        $tester = $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local']);
+        $tester = $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local']);
 
         self::assertSame(Command::SUCCESS, $tester->getStatusCode());
-        self::assertSame('aaa', file_get_contents($this->workDir.'/copy/ged/2026/09/a.png'));
-        self::assertSame('bb', file_get_contents($this->workDir.'/copy/contracts/b.pdf'));
+        self::assertSame('aaa', file_get_contents($this->workDirectory.'/copy/ged/2026/09/a.png'));
+        self::assertSame('bb', file_get_contents($this->workDirectory.'/copy/contracts/b.pdf'));
         self::assertStringContainsString('2 copied', $tester->getDisplay());
     }
 
     public function testASecondRunOnlyFetchesWhatChanged(): void
     {
         $this->source->write('ged/a.png', 'aaa');
-        $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local']);
+        $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local']);
 
         $this->source->write('ged/b.png', 'b');
-        file_put_contents($this->workDir.'/copy/ged/a.png', 'stale, and longer');
+        file_put_contents($this->workDirectory.'/copy/ged/a.png', 'stale, and longer');
 
-        $display = $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local'])->getDisplay();
+        $display = $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local'])->getDisplay();
 
         self::assertStringContainsString('2 copied', $display);
-        self::assertSame('aaa', file_get_contents($this->workDir.'/copy/ged/a.png'));
+        self::assertSame('aaa', file_get_contents($this->workDirectory.'/copy/ged/a.png'));
         self::assertStringContainsString('0 already', $display);
 
-        self::assertStringContainsString('2 already', $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local'])->getDisplay());
+        self::assertStringContainsString('2 already', $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local'])->getDisplay());
     }
 
     public function testThePrefixNarrowsTheCopy(): void
@@ -78,37 +78,37 @@ final class ExportStorageCommandTest extends TestCase
         $this->source->write('ged/a.png', 'a');
         $this->source->write('contracts/b.pdf', 'b');
 
-        $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local', '--prefix' => 'ged']);
+        $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local', '--prefix' => 'ged']);
 
-        self::assertTrue(is_file($this->workDir.'/copy/ged/a.png'));
-        self::assertFalse(is_file($this->workDir.'/copy/contracts/b.pdf'));
+        self::assertTrue(is_file($this->workDirectory.'/copy/ged/a.png'));
+        self::assertFalse(is_file($this->workDirectory.'/copy/contracts/b.pdf'));
     }
 
     public function testADryRunWeighsWithoutWriting(): void
     {
         $this->source->write('ged/a.png', 'aaa');
 
-        $tester = $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local', '--dry-run' => true]);
+        $tester = $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local', '--dry-run' => true]);
 
         self::assertSame(Command::SUCCESS, $tester->getStatusCode());
         self::assertStringContainsString('ged', $tester->getDisplay());
-        self::assertFalse(is_file($this->workDir.'/copy/ged/a.png'));
+        self::assertFalse(is_file($this->workDirectory.'/copy/ged/a.png'));
     }
 
     /** A file rewritten at the same length is still fetched again. */
     public function testASameSizeRewriteIsFetchedAgain(): void
     {
         $this->source->write('ged/a.png', 'aaa');
-        $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local']);
+        $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local']);
 
         // The copy is older than the source now, and just as long.
-        touch($this->workDir.'/copy/ged/a.png', time() - 3600);
-        file_put_contents($this->workDir.'/copy/ged/a.png', 'zzz');
-        touch($this->workDir.'/copy/ged/a.png', time() - 3600);
+        touch($this->workDirectory.'/copy/ged/a.png', time() - 3600);
+        file_put_contents($this->workDirectory.'/copy/ged/a.png', 'zzz');
+        touch($this->workDirectory.'/copy/ged/a.png', time() - 3600);
 
-        $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local']);
+        $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'local']);
 
-        self::assertSame('aaa', file_get_contents($this->workDir.'/copy/ged/a.png'));
+        self::assertSame('aaa', file_get_contents($this->workDirectory.'/copy/ged/a.png'));
     }
 
     /** `/` trims to nothing: every key would pass the guard and land at the root. */
@@ -121,7 +121,7 @@ final class ExportStorageCommandTest extends TestCase
 
     public function testAnUnknownDiskIsRefused(): void
     {
-        self::assertSame(Command::INVALID, $this->export(['target' => $this->workDir.'/copy', '--disk' => 'floppy'])->getStatusCode());
+        self::assertSame(Command::INVALID, $this->export(['target' => $this->workDirectory.'/copy', '--disk' => 'floppy'])->getStatusCode());
     }
 
     /** @param array<string, mixed> $input */

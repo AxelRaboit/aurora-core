@@ -10,14 +10,14 @@ const RANGE =
     /^(\d{1,2})(?:[:h](\d{2}))?h?\s*[-–—à]\s*(\d{1,2})(?:[:h](\d{2}))?h?$/i;
 
 function clock(hours, minutes) {
-    const h = Number(hours);
-    const m = Number(minutes ?? 0);
+    const hour = Number(hours);
+    const minute = Number(minutes ?? 0);
 
-    if (h > 24 || m > 59 || (24 === h && 0 !== m)) {
+    if (hour > 24 || minute > 59 || (24 === hour && 0 !== minute)) {
         return null;
     }
 
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
 /** `"9-12, 14:00-18:30"` to `[["09:00", "12:00"], ["14:00", "18:30"]]`. */

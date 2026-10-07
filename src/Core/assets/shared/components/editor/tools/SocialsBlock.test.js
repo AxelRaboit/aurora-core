@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import SocialsBlock from "./SocialsBlock.js";
 import { SOCIAL_NETWORKS } from "./socialNetworks.js";
-import { REPO_ROOT } from "@/tests/helpers/phpSources.js";
+import { REPOSITORY_ROOT } from "@/tests/helpers/phpSources.js";
 
 function tool(data = {}) {
     const block = new SocialsBlock({ data, config: {} });
@@ -20,7 +20,7 @@ describe("SocialsBlock", () => {
     /** Mirrors BlocksRenderer::SOCIAL_NETWORK_NAMES: a network the page cannot draw is a row that vanishes. */
     it("offers the networks the page knows how to draw, in the same order", () => {
         const php = fs.readFileSync(
-            `${REPO_ROOT}/src/Module/Editorial/Post/Service/BlocksRenderer.php`,
+            `${REPOSITORY_ROOT}/src/Module/Editorial/Post/Service/BlocksRenderer.php`,
             "utf8",
         );
         const declared = php

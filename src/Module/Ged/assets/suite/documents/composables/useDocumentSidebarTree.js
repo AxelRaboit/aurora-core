@@ -41,8 +41,9 @@ export function withDepthLabel(list) {
  * it had done nothing. The deleted folders page had this comparator; the panel
  * inherited its job and has to inherit this too.
  */
-export const byPosition = (a, b) =>
-    (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name);
+export const byPosition = (left, right) =>
+    (left.position ?? 0) - (right.position ?? 0) ||
+    left.name.localeCompare(right.name);
 
 /**
  * GED sidebar tree mirroring Media's: tree + flat list (collapse-aware),
@@ -94,7 +95,9 @@ export function useDocumentSidebarTree(folders, currentFolderId) {
     );
 
     const favouriteFolders = computed(() =>
-        folders.value.filter((f) => favouriteFolderIds.value.has(f.id)),
+        folders.value.filter((folder) =>
+            favouriteFolderIds.value.has(folder.id),
+        ),
     );
 
     /**
@@ -109,7 +112,10 @@ export function useDocumentSidebarTree(folders, currentFolderId) {
     );
 
     const currentFolder = computed(
-        () => folders.value.find((f) => f.id === currentFolderId.value) ?? null,
+        () =>
+            folders.value.find(
+                (folder) => folder.id === currentFolderId.value,
+            ) ?? null,
     );
 
     const breadcrumbs = computed(() => {
@@ -118,7 +124,9 @@ export function useDocumentSidebarTree(folders, currentFolderId) {
         while (current) {
             chain.unshift(current);
             current =
-                folders.value.find((f) => f.id === current.parentId) ?? null;
+                folders.value.find(
+                    (folder) => folder.id === current.parentId,
+                ) ?? null;
         }
         return chain;
     });

@@ -18,7 +18,7 @@ use Doctrine\ORM\QueryBuilder;
  * case added here has to be subtracted from `Other` in **both** methods below,
  * or a file lands in two buckets and the totals stop adding up.
  *
- * Bind each case to a Doctrine `LIKE`/`=` clause via `applyTo($qb, $alias)`,
+ * Bind each case to a Doctrine `LIKE`/`=` clause via `applyTo($queryBuilder, $alias)`,
  * or ask the same question of a mime type already in hand via `matches()`.
  */
 enum MimeGroupEnum: string
@@ -30,20 +30,20 @@ enum MimeGroupEnum: string
     case Other = 'other';
 
     /**
-     * Append the matching condition to `$qb` against `<alias>.mimeType`.
+     * Append the matching condition to `$queryBuilder` against `<alias>.mimeType`.
      */
-    public function applyTo(QueryBuilder $qb, string $alias): void
+    public function applyTo(QueryBuilder $queryBuilder, string $alias): void
     {
         match ($this) {
-            self::Image => $qb->andWhere(sprintf("%s.mimeType LIKE 'image/%%'", $alias)),
-            self::Video => $qb->andWhere(sprintf("%s.mimeType LIKE 'video/%%'", $alias)),
-            self::Audio => $qb->andWhere(sprintf("%s.mimeType LIKE 'audio/%%'", $alias)),
-            self::Pdf => $qb->andWhere(sprintf("%s.mimeType = 'application/pdf'", $alias)),
+            self::Image => $queryBuilder->andWhere(sprintf("%s.mimeType LIKE 'image/%%'", $alias)),
+            self::Video => $queryBuilder->andWhere(sprintf("%s.mimeType LIKE 'video/%%'", $alias)),
+            self::Audio => $queryBuilder->andWhere(sprintf("%s.mimeType LIKE 'audio/%%'", $alias)),
+            self::Pdf => $queryBuilder->andWhere(sprintf("%s.mimeType = 'application/pdf'", $alias)),
             // Every bucket above, negated. A type added to this enum without
             // being subtracted here lands in two buckets at once, and the
             // dashboard - which stops at the first case that matches - would
             // then count it as whichever comes first in `cases()`.
-            self::Other => $qb->andWhere(sprintf(
+            self::Other => $queryBuilder->andWhere(sprintf(
                 "%1\$s.mimeType NOT LIKE 'image/%%' AND %1\$s.mimeType NOT LIKE 'video/%%' AND %1\$s.mimeType NOT LIKE 'audio/%%' AND %1\$s.mimeType <> 'application/pdf'",
                 $alias,
             )),

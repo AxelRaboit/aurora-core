@@ -26,17 +26,17 @@ export function useDocumentBulkActions(
         if (!props.bulkDeletePath || selectedIds.value.size === 0) return;
         // An original goes to the trash with its alternates, which the trash
         // gives back together: left behind, they would be copies of nothing.
-        const res = await bulkDeleteRequest(props.bulkDeletePath, {
+        const response = await bulkDeleteRequest(props.bulkDeletePath, {
             ids: [...selectedIds.value],
             withAlternates: true,
         });
-        if (!res) return;
-        if (!res.success) {
+        if (!response) return;
+        if (!response.success) {
             toast.error(t("shared.common.error"));
             return;
         }
         items.value = items.value.filter(
-            (doc) => !selectedIds.value.has(doc.id),
+            (gedDocument) => !selectedIds.value.has(gedDocument.id),
         );
         clearSelection();
         isSelecting.value = false;
@@ -50,19 +50,19 @@ export function useDocumentBulkActions(
 
     async function bulkMove() {
         if (!selectedIds.value.size) return;
-        const res = await bulkMoveRequest(props.bulkMovePath, {
+        const response = await bulkMoveRequest(props.bulkMovePath, {
             ids: [...selectedIds.value],
             folderId: bulkMoveTargetId.value,
             withAlternates: bulkMoveWithAlternates.value,
         });
-        if (!res) return;
-        if (!res.success) {
+        if (!response) return;
+        if (!response.success) {
             toast.error(t("shared.common.error"));
             return;
         }
         if (bulkMoveTargetId.value !== currentFolderId.value) {
             items.value = items.value.filter(
-                (doc) => !selectedIds.value.has(doc.id),
+                (gedDocument) => !selectedIds.value.has(gedDocument.id),
             );
         }
         clearSelection();
@@ -82,13 +82,13 @@ export function useDocumentBulkActions(
 
     async function bulkCategorize() {
         if (!props.bulkCategoryPath || !selectedIds.value.size) return;
-        const res = await bulkCategoryRequest(props.bulkCategoryPath, {
+        const response = await bulkCategoryRequest(props.bulkCategoryPath, {
             ids: [...selectedIds.value],
             categoryId: bulkCategoryTargetId.value,
             withAlternates: bulkCategoryWithAlternates.value,
         });
-        if (!res) return;
-        if (!res.success) {
+        if (!response) return;
+        if (!response.success) {
             toast.error(t("shared.common.error"));
             return;
         }
@@ -98,7 +98,7 @@ export function useDocumentBulkActions(
         await reload?.();
         toast.success(
             t("suite.ged.documents.bulk_categorized", {
-                count: res.categorized ?? 0,
+                count: response.categorized ?? 0,
             }),
         );
     }
@@ -119,20 +119,20 @@ export function useDocumentBulkActions(
 
         bulkRelocating.value = true;
         try {
-            const res = await bulkStorageRequest(props.bulkStoragePath, {
+            const response = await bulkStorageRequest(props.bulkStoragePath, {
                 ids: [...selectedIds.value],
                 disk,
             });
-            if (!res) return;
-            if (!res.success) {
+            if (!response) return;
+            if (!response.success) {
                 toast.error(t("shared.common.error"));
 
                 return;
             }
 
-            const done = (res.moved ?? 0) + (res.queued ?? 0);
-            const skipped = (res.alreadyThere ?? 0) + (res.busy ?? 0);
-            const failed = res.failed ?? 0;
+            const done = (response.moved ?? 0) + (response.queued ?? 0);
+            const skipped = (response.alreadyThere ?? 0) + (response.busy ?? 0);
+            const failed = response.failed ?? 0;
 
             if (failed > 0) {
                 toast.error(

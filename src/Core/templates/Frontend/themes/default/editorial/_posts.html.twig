@@ -16,11 +16,11 @@
 
     {% if totalPages > 1 %}
         <nav class="flex items-center justify-center gap-2 mt-8" aria-label="{{ 'frontend.editorial.pagination'|trans }}">
-            {% for p in 1..totalPages %}
+            {% for pageNumber in 1..totalPages %}
                 <a
-                    href="?page={{ p }}"
-                    class="px-3 py-1.5 rounded-lg text-sm {{ p == page ? 'bg-surface border border-line text-primary font-semibold' : 'text-secondary hover:text-primary' }}"
-                >{{ p }}</a>
+                    href="?page={{ pageNumber }}"
+                    class="px-3 py-1.5 rounded-lg text-sm {{ pageNumber == page ? 'bg-surface border border-line text-primary font-semibold' : 'text-secondary hover:text-primary' }}"
+                >{{ pageNumber }}</a>
             {% endfor %}
         </nav>
     {% endif %}

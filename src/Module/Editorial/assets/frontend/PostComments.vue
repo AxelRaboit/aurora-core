@@ -19,7 +19,7 @@ const props = defineProps({
     captcha: { type: Object, default: () => ({ enabled: false }) },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatLocalizedDate } = useI18n();
 
 const {
     comments, total, reactionTypes, loaded,
@@ -38,7 +38,7 @@ onMounted(() => {
 });
 
 function formatDate(value) {
-    return d(new Date(value), "short");
+    return formatLocalizedDate(new Date(value), "short");
 }
 
 function reactionCount(comment, type) {

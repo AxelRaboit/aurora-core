@@ -72,8 +72,8 @@ final readonly class SingleLocaleRedirectSubscriber implements EventSubscriberIn
         $remainder = '' === $matches[2] ? '/' : $matches[2];
         $newPath = '/'.$defaultLocale.$remainder;
 
-        $qs = $request->getQueryString();
-        $target = $request->getBaseUrl().$newPath.(null !== $qs ? '?'.$qs : '');
+        $queryString = $request->getQueryString();
+        $target = $request->getBaseUrl().$newPath.(null !== $queryString ? '?'.$queryString : '');
 
         $event->setResponse(new RedirectResponse($target, 301));
     }

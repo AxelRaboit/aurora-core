@@ -27,11 +27,11 @@ const LAYOUT_COMPONENT_COUNT = 1;
 
 // --- Core ---
 
-function createLoader(loaderEl) {
+function createLoader(loaderElement) {
     // Guest pages (auth, password reset, etc.) have no sidemenu shell and no
     // #main-content main wrapper - they mount a single Vue app directly under
     // <body>. In that mode we just wait for the first vue:mount anywhere.
-    const isGuest = loaderEl.dataset.mode === "guest";
+    const isGuest = loaderElement.dataset.mode === "guest";
     const main = isGuest ? null : document.querySelector("#main-content main");
     const requiredLayoutCount = isGuest ? 0 : LAYOUT_COMPONENT_COUNT;
     let done = false;
@@ -47,8 +47,8 @@ function createLoader(loaderEl) {
         document.removeEventListener("vue:mount", onVueMount, true);
         document.removeEventListener(AppEvents.LayoutMounted, onLayoutMounted);
         /* eslint-enable no-use-before-define */
-        loaderEl.classList.add("is-done");
-        setTimeout(() => loaderEl.remove(), FADE_OUT_MS);
+        loaderElement.classList.add("is-done");
+        setTimeout(() => loaderElement.remove(), FADE_OUT_MS);
     };
 
     const tryHide = () => {
@@ -79,10 +79,10 @@ function createLoader(loaderEl) {
 // --- Init ---
 
 function initLoader() {
-    const loaderEl = document.getElementById(LOADER_ID);
-    if (!loaderEl) return;
+    const loaderElement = document.getElementById(LOADER_ID);
+    if (!loaderElement) return;
 
-    const { hide, onLayoutMounted, onVueMount } = createLoader(loaderEl);
+    const { hide, onLayoutMounted, onVueMount } = createLoader(loaderElement);
 
     document.addEventListener(AppEvents.LayoutMounted, onLayoutMounted);
     document.addEventListener("vue:mount", onVueMount, true);

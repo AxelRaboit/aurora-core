@@ -51,10 +51,13 @@ describe("usePostGallery", () => {
     });
 
     it("refuses anything once the cap is reached", () => {
-        const items = Array.from({ length: GALLERY_MAX_ITEMS }, (_, i) => ({
-            id: `i${i}`,
-            mediaId: i + 1,
-        }));
+        const items = Array.from(
+            { length: GALLERY_MAX_ITEMS },
+            (_, itemIndex) => ({
+                id: `i${itemIndex}`,
+                mediaId: itemIndex + 1,
+            }),
+        );
         const { api } = setup(items);
 
         expect(api.isFull.value).toBe(true);
@@ -88,13 +91,13 @@ describe("usePostGallery", () => {
         ]);
 
         api.moveItem("a", -1);
-        expect(layout.items.map((i) => i.id)).toEqual(["a", "b"]);
+        expect(layout.items.map((item) => item.id)).toEqual(["a", "b"]);
 
         api.moveItem("a", 1);
-        expect(layout.items.map((i) => i.id)).toEqual(["b", "a"]);
+        expect(layout.items.map((item) => item.id)).toEqual(["b", "a"]);
 
         api.moveItem("a", 1);
-        expect(layout.items.map((i) => i.id)).toEqual(["b", "a"]);
+        expect(layout.items.map((item) => item.id)).toEqual(["b", "a"]);
     });
 
     /**
@@ -147,7 +150,7 @@ describe("usePostGallery", () => {
 
         api.reorder([{ id: "c" }, { id: "a" }, { id: "b" }]);
 
-        expect(layout.items.map((i) => i.id)).toEqual(["c", "a", "b"]);
+        expect(layout.items.map((item) => item.id)).toEqual(["c", "a", "b"]);
         // The stored objects, not the ones the drag handed over.
         expect(layout.items[0].mediaId).toBe(3);
     });
@@ -162,7 +165,7 @@ describe("usePostGallery", () => {
         api.reorder("nonsense");
         api.reorder([{ id: "a" }]);
 
-        expect(layout.items.map((i) => i.id)).toEqual(["a", "b"]);
+        expect(layout.items.map((item) => item.id)).toEqual(["a", "b"]);
     });
 
     /**

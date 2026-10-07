@@ -303,11 +303,11 @@ final class NoteShareTest extends IntegrationTestCase
     {
         $scope = static::getContainer()->get(SharedNoteScope::class);
 
-        $a = $this->note('Aller', 'Vers [[Retour]].');
-        $b = $this->note('Retour', 'Vers [[Aller]].');
+        $outboundNote = $this->note('Aller', 'Vers [[Retour]].');
+        $returnNote = $this->note('Retour', 'Vers [[Aller]].');
 
-        self::assertCount(2, $scope->walk($a, linked: true));
-        self::assertCount(2, $scope->walk($b, linked: true));
+        self::assertCount(2, $scope->walk($outboundNote, linked: true));
+        self::assertCount(2, $scope->walk($returnNote, linked: true));
     }
 
     /** A link naming a note that does not exist adds nothing and breaks nothing. */

@@ -34,7 +34,7 @@ function wire(carousel) {
     const slides = track.children.length;
     const index = () =>
         currentIndex(track.scrollLeft, track.clientWidth, slides);
-    const go = (step) => {
+    const scrollByStep = (step) => {
         const target = Math.min(slides - 1, Math.max(0, index() + step));
         track.scrollTo({ left: target * track.clientWidth });
     };
@@ -42,18 +42,18 @@ function wire(carousel) {
     controls.hidden = false;
     carousel
         .querySelector("[data-carousel-prev]")
-        ?.addEventListener("click", () => go(-1));
+        ?.addEventListener("click", () => scrollByStep(-1));
     carousel
         .querySelector("[data-carousel-next]")
-        ?.addEventListener("click", () => go(1));
+        ?.addEventListener("click", () => scrollByStep(1));
 
     track.addEventListener("keydown", (event) => {
         if ("ArrowLeft" === event.key) {
             event.preventDefault();
-            go(-1);
+            scrollByStep(-1);
         } else if ("ArrowRight" === event.key) {
             event.preventDefault();
-            go(1);
+            scrollByStep(1);
         }
     });
 

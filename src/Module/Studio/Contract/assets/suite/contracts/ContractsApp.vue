@@ -65,8 +65,8 @@ const { request } = useRequest();
 const { formatDateNumeric } = useDateFormat();
 const { flowOf } = useContractFlow({ linkDays: props.linkDays });
 
-const P = "suite.studio.contracts";
-const F = `${P}.flow`;
+const CONTRACT_KEYS = "suite.studio.contracts";
+const FLOW_KEYS = `${CONTRACT_KEYS}.flow`;
 
 const {
     search,
@@ -95,9 +95,9 @@ const {
 
 const steps = computed(() => ["all", ...STEPS]);
 
-const customerOptions = computed(() => [{ value: "", label: t(`${F}.list.all_customers`) }, ...props.customers]);
+const customerOptions = computed(() => [{ value: "", label: t(`${FLOW_KEYS}.list.all_customers`) }, ...props.customers]);
 const templateOptions = computed(() => [
-    { value: "", label: t(`${F}.list.all_templates`) },
+    { value: "", label: t(`${FLOW_KEYS}.list.all_templates`) },
     ...[...props.bodies, ...props.annexes].map((template) => ({ value: template.value, label: template.label })),
 ]);
 
@@ -107,16 +107,16 @@ const templateOptions = computed(() => [
  * reload does not reopen a form somebody closed.
  */
 onMounted(() => {
-    const params = new URLSearchParams(window.location.search);
-    const requested = Number(params.get("amends"));
+    const searchParameters = new URLSearchParams(window.location.search);
+    const requested = Number(searchParameters.get("amends"));
 
     if (requested && props.amendable.some((each) => each.id === requested)) {
         openCreate(requested);
     }
 
-    if (params.has("amends")) {
-        params.delete("amends");
-        const query = params.toString();
+    if (searchParameters.has("amends")) {
+        searchParameters.delete("amends");
+        const query = searchParameters.toString();
         window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
     }
 });
@@ -138,7 +138,7 @@ async function openPreview(contract) {
 
     preview.value = data?.success
         ? { open: true, loading: false, html: data.html ?? "", error: "", unknownTokens: data.unknownTokens ?? [] }
-        : { open: true, loading: false, html: "", error: data?.errors?.preview ?? t(`${P}.preview_failed`), unknownTokens: [] };
+        : { open: true, loading: false, html: "", error: data?.errors?.preview ?? t(`${CONTRACT_KEYS}.preview_failed`), unknownTokens: [] };
 }
 
 async function duplicate(contract) {
@@ -150,7 +150,7 @@ async function duplicate(contract) {
         return;
     }
 
-    toast.success(t(`${F}.done.duplicated`));
+    toast.success(t(`${FLOW_KEYS}.done.duplicated`));
     if (data.showPath) window.location.assign(data.showPath);
 }
 
@@ -190,7 +190,7 @@ function rowActions(contract) {
 
 const pageActions = computed(() =>
     can("studio.contracts.create")
-        ? [{ key: "create", color: "accent", icon: Plus, title: t(`${P}.add`), onSelect: () => openCreate() }]
+        ? [{ key: "create", color: "accent", icon: Plus, title: t(`${CONTRACT_KEYS}.add`), onSelect: () => openCreate() }]
         : [],
 );
 </script>
@@ -204,7 +204,7 @@ const pageActions = computed(() =>
             :templates-path="templatesPath"
         />
         <AppListToolbar>
-            <AppSearchInput v-model="search" :placeholder="t(`${F}.list.search`)" />
+            <AppSearchInput v-model="search" :placeholder="t(`${FLOW_KEYS}.list.search`)" />
             <template #inline>
                 <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                     <AppSelect v-model="customerFilter" class="sm:min-w-[12rem]" :options="customerOptions" />
@@ -219,40 +219,40 @@ const pageActions = computed(() =>
              expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contracts.guide.title')" storage-key="contracts-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="n in 5" :key="n">{{ t(`suite.studio.contracts.guide.step_${n}`, { days: linkDays }) }}</li>
+                <li v-for="stepNumber in 5" :key="stepNumber">{{ t(`suite.studio.contracts.guide.step_${stepNumber}`, { days: linkDays }) }}</li>
             </ol>
         </AppGuide>
 
         <!-- The journey, as tabs. The count says whether a step is worth
              opening, and the hint what it holds. -->
-        <nav class="flex flex-wrap items-center gap-1" :aria-label="t(`${P}.title`)">
+        <nav class="flex flex-wrap items-center gap-1" :aria-label="t(`${CONTRACT_KEYS}.title`)">
             <AppTab
                 v-for="key in steps"
                 :key="key"
                 size="sm"
                 :active="step === key"
-                :title="'all' === key ? '' : t(`${F}.steps_hint.${key}`)"
+                :title="'all' === key ? '' : t(`${FLOW_KEYS}.steps_hint.${key}`)"
                 v-on:click="step = key"
             >
-                {{ t(`${F}.steps.${key}`) }}
+                {{ t(`${FLOW_KEYS}.steps.${key}`) }}
                 <span class="ml-1 tabular-nums text-muted">{{ counts[key] ?? 0 }}</span>
             </AppTab>
         </nav>
-        <p v-if="'all' !== step" class="text-xs text-muted">{{ t(`${F}.steps_hint.${step}`) }}</p>
+        <p v-if="'all' !== step" class="text-xs text-muted">{{ t(`${FLOW_KEYS}.steps_hint.${step}`) }}</p>
 
-        <AppNoData v-if="!rows.length" :message="'all' === step ? t(`${P}.empty`) : t(`${F}.empty_step`)" />
+        <AppNoData v-if="!rows.length" :message="'all' === step ? t(`${CONTRACT_KEYS}.empty`) : t(`${FLOW_KEYS}.empty_step`)" />
 
         <div v-else class="aurora-card overflow-x-auto scrollbar-thin hidden md:block">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40 text-left text-xs font-medium uppercase tracking-wider text-muted">
-                        <th class="px-4 py-2">{{ t(`${F}.list.reference`) }}</th>
-                        <th class="px-4 py-2">{{ t(`${F}.list.customer`) }}</th>
-                        <th class="px-4 py-2 hidden lg:table-cell">{{ t(`${F}.list.template`) }}</th>
-                        <th class="px-4 py-2 hidden lg:table-cell">{{ t(`${F}.list.amount`) }}</th>
-                        <th class="px-4 py-2 hidden xl:table-cell">{{ t(`${F}.list.effective_date`) }}</th>
-                        <th class="px-4 py-2">{{ t(`${F}.list.status`) }}</th>
-                        <th class="px-4 py-2 hidden xl:table-cell">{{ t(`${F}.list.last_activity`) }}</th>
+                        <th class="px-4 py-2">{{ t(`${FLOW_KEYS}.list.reference`) }}</th>
+                        <th class="px-4 py-2">{{ t(`${FLOW_KEYS}.list.customer`) }}</th>
+                        <th class="px-4 py-2 hidden lg:table-cell">{{ t(`${FLOW_KEYS}.list.template`) }}</th>
+                        <th class="px-4 py-2 hidden lg:table-cell">{{ t(`${FLOW_KEYS}.list.amount`) }}</th>
+                        <th class="px-4 py-2 hidden xl:table-cell">{{ t(`${FLOW_KEYS}.list.effective_date`) }}</th>
+                        <th class="px-4 py-2">{{ t(`${FLOW_KEYS}.list.status`) }}</th>
+                        <th class="px-4 py-2 hidden xl:table-cell">{{ t(`${FLOW_KEYS}.list.last_activity`) }}</th>
                         <th class="px-4 py-2 text-right sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
@@ -260,10 +260,10 @@ const pageActions = computed(() =>
                     <tr v-for="contract in rows" :key="contract.id" class="hover:bg-surface-2/40 transition-colors">
                         <td class="px-4 py-2 whitespace-nowrap">
                             <a class="font-mono text-xs text-primary hover:underline" :href="showHref(contract)">
-                                {{ contract.reference ?? t(`${F}.list.draft_reference`) }}
+                                {{ contract.reference ?? t(`${FLOW_KEYS}.list.draft_reference`) }}
                             </a>
                             <span v-if="contract.amends" class="block text-2xs text-muted">
-                                {{ t(`${F}.list.amends`, { reference: contract.amends.reference }) }}
+                                {{ t(`${FLOW_KEYS}.list.amends`, { reference: contract.amends.reference }) }}
                             </span>
                         </td>
                         <td class="px-4 py-2 text-primary">{{ contract.customerName }}</td>
@@ -297,7 +297,7 @@ const pageActions = computed(() =>
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <a class="font-mono text-xs text-primary hover:underline" :href="showHref(contract)">
-                            {{ contract.reference ?? t(`${F}.list.draft_reference`) }}
+                            {{ contract.reference ?? t(`${FLOW_KEYS}.list.draft_reference`) }}
                         </a>
                         <p class="font-medium text-primary break-words">{{ contract.customerName }}</p>
                         <p class="text-xs text-muted">
@@ -369,7 +369,7 @@ const pageActions = computed(() =>
             :show="showCreate"
             max-width="lg"
             :closeable="false"
-            :title="t(`${P}.create`)"
+            :title="t(`${CONTRACT_KEYS}.create`)"
             :icon="FileSignature"
             v-on:close="showCreate = false"
         >
@@ -405,7 +405,7 @@ const pageActions = computed(() =>
             :show="showEdit"
             max-width="lg"
             :closeable="false"
-            :title="t(`${P}.edit`, { name: editing?.customerName ?? '' })"
+            :title="t(`${CONTRACT_KEYS}.edit`, { name: editing?.customerName ?? '' })"
             :icon="Pencil"
             v-on:close="showEdit = false"
         >

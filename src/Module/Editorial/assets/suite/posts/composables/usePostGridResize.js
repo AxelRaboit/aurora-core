@@ -20,13 +20,13 @@ import { COLUMNS } from "./usePostGrid.js";
  * ask for the extremes and let the clamp downstream answer.
  *
  * @param {object} deps
- * @param {import("vue").Ref<HTMLElement|null>} deps.gridEl the measured grid
+ * @param {import("vue").Ref<HTMLElement|null>} deps.gridRef the measured grid
  * @param {import("vue").Ref<number>} deps.snap how far an arrow key moves
  * @param {(index: number) => number} deps.widthOf a zone's current width
  * @param {(index: number) => number} deps.startOf its current first column
  * @param {(event: string, ...args: unknown[]) => void} deps.emit the SFC's emit
  */
-export function usePostGridResize({ gridEl, snap, widthOf, startOf, emit }) {
+export function usePostGridResize({ gridRef, snap, widthOf, startOf, emit }) {
     /** The zone being dragged, so a stray pointermove on another handle is ignored. */
     const dragging = ref(null);
 
@@ -35,7 +35,7 @@ export function usePostGridResize({ gridEl, snap, widthOf, startOf, emit }) {
 
     /** The column under the pointer, as a fraction of the grid's own width. */
     function columnAt(clientX) {
-        const rect = gridEl.value?.getBoundingClientRect();
+        const rect = gridRef.value?.getBoundingClientRect();
 
         if (!rect?.width) {
             return null;

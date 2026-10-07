@@ -54,7 +54,7 @@ describe("eventTime", () => {
     it("reads an instant with an offset back as a local wall clock", () => {
         const iso = "2026-09-01T08:00:00+00:00";
         const expected = new Date(iso);
-        const pad = (n) => String(n).padStart(2, "0");
+        const pad = (value) => String(value).padStart(2, "0");
 
         expect(toPickerValue(iso)).toBe(
             `${expected.getFullYear()}-${pad(expected.getMonth() + 1)}-${pad(expected.getDate())}` +

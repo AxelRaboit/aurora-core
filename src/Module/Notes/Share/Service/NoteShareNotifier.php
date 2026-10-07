@@ -53,7 +53,7 @@ final readonly class NoteShareNotifier
                     UrlGeneratorInterface::ABSOLUTE_URL,
                 ),
             ],
-            subjectParams: ['%title%' => $title],
+            subjectParameters: ['%title%' => $title],
         );
 
         // Stamped after the send, so a row that says "sent" means the handoff to

@@ -17,23 +17,25 @@ function makeEvent(text, caret) {
 
 describe("useWikiLinkAutocomplete", () => {
     it("opens when the caret sits inside an unclosed [[", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         try {
-            w.onInput(makeEvent("note about [[", 13));
+            autocomplete.onInput(makeEvent("note about [[", 13));
         } catch {
             /* jsdom may not paint computed styles */
         }
-        expect(w.showSuggestions.value).toBe(true);
+        expect(autocomplete.showSuggestions.value).toBe(true);
     });
 
     it("filters suggestions by case-insensitive title substring", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         try {
-            w.onInput(makeEvent("[[hello", 7));
+            autocomplete.onInput(makeEvent("[[hello", 7));
         } catch {
             /* ignore */
         }
-        const titles = w.filteredSuggestions.value.map((n) => n.title);
+        const titles = autocomplete.filteredSuggestions.value.map(
+            (suggestion) => suggestion.title,
+        );
         expect(titles).toContain("Hello World");
         expect(titles).toContain("Hello Aurora");
         expect(titles).not.toContain("Project Plan");
@@ -41,34 +43,34 @@ describe("useWikiLinkAutocomplete", () => {
 
     it("caps suggestions at 8", () => {
         const many = ref(
-            Array.from({ length: 20 }, (_, i) => ({
-                id: i,
-                title: `Note ${i}`,
+            Array.from({ length: 20 }, (_, index) => ({
+                id: index,
+                title: `Note ${index}`,
             })),
         );
-        const w = useWikiLinkAutocomplete(many);
+        const autocomplete = useWikiLinkAutocomplete(many);
         try {
-            w.onInput(makeEvent("[[note", 6));
+            autocomplete.onInput(makeEvent("[[note", 6));
         } catch {
             /* ignore */
         }
-        expect(w.filteredSuggestions.value.length).toBe(8);
+        expect(autocomplete.filteredSuggestions.value.length).toBe(8);
     });
 
     it("closes when the user types ]] (caret past close)", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         try {
-            w.onInput(makeEvent("[[hello]]", 9));
+            autocomplete.onInput(makeEvent("[[hello]]", 9));
         } catch {
             /* ignore */
         }
-        expect(w.showSuggestions.value).toBe(false);
+        expect(autocomplete.showSuggestions.value).toBe(false);
     });
 
     it("does not open when a newline interrupts the bracket", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         try {
-            w.onInput(
+            autocomplete.onInput(
                 makeEvent(
                     "[[oops\nstill typing",
                     "[[oops\nstill typing".length,
@@ -77,30 +79,30 @@ describe("useWikiLinkAutocomplete", () => {
         } catch {
             /* ignore */
         }
-        expect(w.showSuggestions.value).toBe(false);
+        expect(autocomplete.showSuggestions.value).toBe(false);
     });
 
     it("navigates with ArrowDown/ArrowUp", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         try {
-            w.onInput(makeEvent("[[hello", 7));
+            autocomplete.onInput(makeEvent("[[hello", 7));
         } catch {
             /* ignore */
         }
-        w.onKeydown({ key: "ArrowDown", preventDefault: () => {} });
-        expect(w.suggestionIndex.value).toBe(1);
-        w.onKeydown({ key: "ArrowUp", preventDefault: () => {} });
-        expect(w.suggestionIndex.value).toBe(0);
+        autocomplete.onKeydown({ key: "ArrowDown", preventDefault: () => {} });
+        expect(autocomplete.suggestionIndex.value).toBe(1);
+        autocomplete.onKeydown({ key: "ArrowUp", preventDefault: () => {} });
+        expect(autocomplete.suggestionIndex.value).toBe(0);
     });
 
     it("returns the picked note on Enter", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         try {
-            w.onInput(makeEvent("[[hello", 7));
+            autocomplete.onInput(makeEvent("[[hello", 7));
         } catch {
             /* ignore */
         }
-        const picked = w.onKeydown({
+        const picked = autocomplete.onKeydown({
             key: "Enter",
             preventDefault: () => {},
         });
@@ -108,29 +110,29 @@ describe("useWikiLinkAutocomplete", () => {
     });
 
     it("closes on Escape", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         try {
-            w.onInput(makeEvent("[[h", 3));
+            autocomplete.onInput(makeEvent("[[h", 3));
         } catch {
             /* ignore */
         }
-        w.onKeydown({ key: "Escape", preventDefault: () => {} });
-        expect(w.showSuggestions.value).toBe(false);
+        autocomplete.onKeydown({ key: "Escape", preventDefault: () => {} });
+        expect(autocomplete.showSuggestions.value).toBe(false);
     });
 
     it("applySuggestion splices [[Title]] at the bracket position", () => {
-        const w = useWikiLinkAutocomplete(makeNotes());
+        const autocomplete = useWikiLinkAutocomplete(makeNotes());
         const content = "see [[hel";
         try {
-            w.onInput(makeEvent(content, content.length));
+            autocomplete.onInput(makeEvent(content, content.length));
         } catch {
             /* ignore */
         }
-        const picked = w.filteredSuggestions.value.find(
-            (n) => n.title === "Hello World",
+        const picked = autocomplete.filteredSuggestions.value.find(
+            (suggestion) => suggestion.title === "Hello World",
         );
         const textarea = { value: content, selectionStart: content.length };
-        const { newContent, newCaret } = w.applySuggestion(
+        const { newContent, newCaret } = autocomplete.applySuggestion(
             textarea,
             picked,
             content,
@@ -142,14 +144,14 @@ describe("useWikiLinkAutocomplete", () => {
 
     it("applySuggestion falls back to the untitled label for an empty title", () => {
         const notes = ref([{ id: 1, title: "" }]);
-        const w = useWikiLinkAutocomplete(notes);
+        const autocomplete = useWikiLinkAutocomplete(notes);
         try {
-            w.onInput(makeEvent("[[", 2));
+            autocomplete.onInput(makeEvent("[[", 2));
         } catch {
             /* ignore */
         }
         const textarea = { value: "[[", selectionStart: 2 };
-        const { newContent } = w.applySuggestion(
+        const { newContent } = autocomplete.applySuggestion(
             textarea,
             notes.value[0],
             "[[",

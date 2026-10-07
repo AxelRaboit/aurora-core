@@ -595,7 +595,7 @@ final class GridNormalizerTest extends TestCase
     private function placeWidths(int ...$widths): array
     {
         return $this->place(array_map(
-            static fn (int $lg): array => ['span' => ['lg' => $lg]],
+            static fn (int $largeSpan): array => ['span' => ['lg' => $largeSpan]],
             $widths,
         ));
     }
@@ -813,7 +813,7 @@ final class GridNormalizerTest extends TestCase
     public function testTheChildCountIsCapped(): void
     {
         $children = array_map(
-            static fn (int $i): array => ['id' => 'c'.$i, 'type' => 'text'],
+            static fn (int $childNumber): array => ['id' => 'c'.$childNumber, 'type' => 'text'],
             range(1, 20),
         );
 

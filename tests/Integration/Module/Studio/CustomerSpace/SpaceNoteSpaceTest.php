@@ -332,10 +332,10 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         return $user;
     }
 
-    /** @param array<string, scalar> $params */
-    private function url(string $route, array $params = []): string
+    /** @param array<string, scalar> $parameters */
+    private function url(string $route, array $parameters = []): string
     {
-        return static::getContainer()->get(UrlGeneratorInterface::class)->generate($route, $params);
+        return static::getContainer()->get(UrlGeneratorInterface::class)->generate($route, $parameters);
     }
 
     /**

@@ -37,7 +37,7 @@ final class SpaceFilesTest extends IntegrationTestCase
     private EntityManagerInterface $entityManager;
 
     /** @var list<string> */
-    private array $tempFiles = [];
+    private array $temporaryFiles = [];
 
     protected function setUp(): void
     {
@@ -57,7 +57,7 @@ final class SpaceFilesTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        foreach ($this->tempFiles as $file) {
+        foreach ($this->temporaryFiles as $file) {
             @unlink($file);
         }
 
@@ -134,7 +134,7 @@ final class SpaceFilesTest extends IntegrationTestCase
 
         $path = sys_get_temp_dir().'/aurora-space-file-'.bin2hex(random_bytes(4)).'.jpg';
         file_put_contents($path, $this->jpegBytes());
-        $this->tempFiles[] = $path;
+        $this->temporaryFiles[] = $path;
 
         $this->client->request(
             'POST',
@@ -222,7 +222,7 @@ final class SpaceFilesTest extends IntegrationTestCase
     {
         $path = sys_get_temp_dir().'/aurora-space-file-'.bin2hex(random_bytes(4)).'.jpg';
         file_put_contents($path, $this->jpegBytes());
-        $this->tempFiles[] = $path;
+        $this->temporaryFiles[] = $path;
 
         $this->client->request(
             'POST',

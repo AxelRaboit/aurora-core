@@ -117,7 +117,7 @@ final class UserHierarchyManagerTest extends IntegrationTestCase
         $this->hierarchyManager->setManager($carol, $alice->getId());
 
         $this->entityManager->refresh($alice);
-        $names = array_map(static fn (User $u): string => $u->getName(), $alice->getSubordinates()->toArray());
+        $names = array_map(static fn (User $subordinate): string => $subordinate->getName(), $alice->getSubordinates()->toArray());
         self::assertCount(2, $names);
         self::assertContains('bob', $names);
         self::assertContains('carol', $names);

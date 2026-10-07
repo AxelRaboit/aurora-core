@@ -13,7 +13,10 @@ vi.mock("vue-sonner", () => ({
  * since `Object.entries` runs on its list.
  */
 const EXTRA = {
-    color: { default: "#10b981", fromEntity: (cat) => cat.color ?? "" },
+    color: {
+        default: "#10b981",
+        fromEntity: (category) => category.color ?? "",
+    },
 };
 
 function run(extraFields = {}) {

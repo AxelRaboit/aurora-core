@@ -82,7 +82,7 @@ const hrefFor = (node) => ("note" === node.kind ? readUrl(node.id) : "#");
  */
 function initialOpen() {
     const open = readExpanded();
-    const parents = new Map(props.folders.map((f) => [Number(f.id), null == f.parentId ? null : Number(f.parentId)]));
+    const parents = new Map(props.folders.map((folder) => [Number(folder.id), null == folder.parentId ? null : Number(folder.parentId)]));
     const note = props.notes.find((one) => Number(one.id) === props.noteId);
 
     let id = null == note?.folderId ? null : Number(note.folderId);

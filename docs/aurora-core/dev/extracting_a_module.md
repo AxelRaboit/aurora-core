@@ -195,7 +195,7 @@ twig:
 ```yaml
 Aurora\Module\Configuration\Setting\Command\DumpJsTranslationsCommand:
     arguments:
-        $extraSourceDirs:
+        $extraSourceDirectories:
             - '%kernel.project_dir%/src/Module/<X>/translations'
 ```
 

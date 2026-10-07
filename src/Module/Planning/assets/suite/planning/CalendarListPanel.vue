@@ -24,8 +24,8 @@ const { t } = useI18n();
 /** Everything `CalendarSidebar` needs, as the page last announced it. */
 const state = ref(null);
 
-function forward(name, ...args) {
-    askPage(`planning:${name}`, { args });
+function forward(name, ...commandArguments) {
+    askPage(`planning:${name}`, { args: commandArguments });
 }
 
 const stopListening = [];

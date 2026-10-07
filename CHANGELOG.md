@@ -5,6 +5,51 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.0.0] - 2026-10-07
+
+### Modifié (rupture)
+- **Studio remis à plat** (audit du 06/10). Le détail de chaque rupture, classe par classe, route par route et clé par clé, est dans `docs/aurora-client/MIGRATION_STUDIO.md` ; en résumé :
+  - **les présentations deviennent des livrables** au format « Diapos », à côté du format « Page », dans un seul module « Livrables » (filtre « Présentations ») ; le moteur de diapositives passe sous `Deliverable/Slides`, les entités `Deck`, `DeckCategory` et `DeckShareLink` sont retirées, comme les droits `studio.decks.*`, l'interrupteur `modules_studio_decks` et le limiteur `deck_share_password`. Les adresses `/decks/{jeton}` répondent en 301 vers `/deliverables/{jeton}` ;
+  - **les notes d'un espace client passent dans le module Notes** : un espace de notes par espace client, ouvert à son équipe, avec l'import Craft (route `suite_notes_craft_settings`, réglages `suite_notes_craft_*`) ;
+  - **une seule règle de visibilité par le client** : étapes, ressources, livrables, canaux et fichiers d'un espace naissent cachés, et les montrer demande `studio.spaces.share` en plus de `studio.spaces.edit` ;
+  - **les espaces clients et leurs contenus vont à la corbeille** au lieu d'être détruits ; `delete()` des deux managers est remplacé par `trash()`, `restore()` et `forceDelete()` ;
+  - **une page par client** (`/suite/studio/customers/{id}`), seul endroit où sa fiche s'écrit ; l'onglet Informations d'un espace passe en lecture, et le champ « Compte utilisateur » d'un client est retiré ;
+  - **les catégories de trames** sont des lignes gérées à l'écran au lieu d'un enum de métiers ; les trames deviennent un onglet de Contrats, le calendrier éditorial une vue des espaces (`/suite/studio/calendar` répond en 301) ;
+  - **les rôles d'étape du tableau** se réduisent à Relecture et Publié.
+
+### Ajouté
+- **Studio** :
+  - les présentations vivent aussi dans les espaces clients, et le client les lit sur sa page quand on les lui montre ;
+  - un espace se règle entièrement depuis son onglet Réglages (identité, équipe, Google Drive) ;
+  - un client envoie des fichiers à son espace depuis l'onglet Fichiers de sa page ;
+  - la recherche globale trouve les ressources, fichiers et messages d'un espace ;
+  - les présentations et leurs liens de partage écrivent dans le journal d'audit ;
+  - la durée de validité du lien de signature est un réglage, citée par chaque écran qui l'annonce.
+- **Garde-fou des noms** : variables, paramètres et propriétés s'écrivent en mots complets (`$entityManager`, pas `$em` ; `$index`, pas `$i`). La liste des mots interdits est `tools/naming/full-word-names.json`, lue par `tests/Unit/NamesAreFullWordsTest.php` (PHP et gabarits Twig) et par la nouvelle règle ESLint `aurora/full-word-names` (JS et Vue).
+- **Garde-fou des commentaires** : `tests/Unit/Core/CommentsAreInEnglishTest.php` tient les commentaires en anglais.
+- **Migrations `Version20261006090000` à `Version20261006220000`** : catégories de trames, présentations en livrables (irréversible), table des diapositives, colonnes des notes et clés des réglages Craft, notes d'espace déplacées dans Notes (irréversible, demande `AURORA_ENCRYPTION_KEY`), visibilité par le client, corbeille des espaces et des contenus, compte utilisateur d'un client retiré. **`Version20261006190000` ne se joue jamais en `--dry-run`** : Doctrine exécute aussi son `postUp` à blanc.
+
+### Modifié
+- **Noms complets dans tout le code** : environ 2 700 noms courts ou abrégés renommés dans ~560 fichiers (`$em`, `$qb`, `$repo`, `$def`, `$i`, `$a`/`$b`, `doc`, `btn`, `el`…). Aucun comportement ne change : clés de tableau et de JSON, props et événements Vue, routes et traductions sont restés tels quels.
+- **Les commentaires du code sont en anglais**, environ 4 200 traduits.
+- **Studio** : un mot par notion dans tous les libellés (glossaire dans la mémoire du dépôt) ; les tuiles du tableau de bord suivent les interrupteurs des présentations et des contrats.
+- Dépendances : `source-map-js` épinglé en 1.2.2 (GHSA-68fv-2mgg-jv7q) et `postcss-selector-parser` en 7.1.6 (GHSA-rj75-hqrm-r3gf).
+
+### Corrigé
+- **Studio, droits** : le Drive d'un espace se lit avec le droit de le voir et se range avec celui de le modifier ; la page d'accès client et son onglet demandent le droit de donner accès ; le choix du client d'une présentation demande le droit de voir les clients ; ouvrir un prospect depuis un espace demande le droit de créer un client.
+- **Studio** : les jetons de partage des présentations sont chiffrés en base et retrouvés par leur empreinte ; la fiche d'un espace ne peut plus vider l'email contractuel d'un client signé ; la page de signature nomme la trame et l'expéditeur, pas le lecteur ; les notifications au client nomment le lien d'accès, pas son email ; une pièce jointe refusée sur un contenu est annoncée au client ; l'étape « Programmé » reste visible par défaut, et le tableau signale les étapes cachées ; les espaces d'un client s'ouvrent filtrés par identifiant, sur le bon onglet ; les livrables portent la même icône partout ; plusieurs textes d'aide qui décrivaient ce que le code ne fait pas.
+- **Le PDF signé ne nomme plus la suite**, et l'espagnol dit « de la suite ».
+- **Le bloc calendrier de la grille** est un calendrier de publication ; **un espace de notes** s'appelle toujours un espace de notes.
+- **Une apostrophe dans un commentaire de `NavItem`** ne bloque plus le test des icônes.
+
+### Dans aurora-client
+- Suivre `docs/aurora-client/MIGRATION_STUDIO.md`, sections 1 à 13 : entrées `Deck*` et `SpaceNote*` à retirer de `resolve_target_entities`, clé `deck_share_password` à retirer de `config/packages/rate_limiter.yaml`, droits `studio.decks.*` devenus `studio.deliverables.*`, gabarits et traductions surchargés à déplacer, et `studio.spaces.share` à donner à qui doit montrer quelque chose au client.
+- `make aurora-update` joue les migrations ; `AURORA_ENCRYPTION_KEY` doit être dans l'environnement de la commande.
+- **`config/services.yaml`** : les arguments de `DumpJsTranslationsCommand` changent de nom, `$auroraDir` devient `$auroraDirectory` et `$extraSourceDirs` devient `$extraSourceDirectories`. Sans ce renommage, le conteneur refuse de démarrer (« Invalid service … has no argument named $auroraDir »).
+- Une sous-classe ou un appel en arguments nommés d'une classe du cœur suit les paramètres renommés (par exemple `NavItem::$routeParams` devenu `$routeParameters`, `subjectParams:` de `MailService` devenu `subjectParameters:`, `$projectDir` devenu `$projectDirectory` dans les constructeurs liés par `config/services.yaml`).
+
+---
+
 ## [2.0.0] - 2026-10-06
 
 ### Modifié (rupture)

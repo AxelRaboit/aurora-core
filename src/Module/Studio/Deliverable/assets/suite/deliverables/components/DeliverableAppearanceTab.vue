@@ -179,8 +179,8 @@ function inkOn(hex) {
     if (!hex) return null;
 
     const value = Number.parseInt(hex.slice(1), 16);
-    const [r, g, b] = [(value >> 16) & 255, (value >> 8) & 255, value & 255];
-    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    const [red, green, blue] = [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+    const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
 
     return luminance > 0.6 ? "#111827" : "#f9fafb";
 }

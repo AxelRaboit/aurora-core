@@ -92,7 +92,7 @@ final readonly class UsersViewBuilder
             ];
         }
 
-        usort($privilegesByModule, fn (array $a, array $b): int => $this->priorityFor($a['module']) <=> $this->priorityFor($b['module']));
+        usort($privilegesByModule, fn (array $left, array $right): int => $this->priorityFor($left['module']) <=> $this->priorityFor($right['module']));
 
         // Modules currently enabled globally - surfaced to the per-user
         // disabled-modules picker as a hierarchical tree
@@ -109,7 +109,7 @@ final readonly class UsersViewBuilder
             $modulesForAccess[] = $this->buildToggleNode($toggle);
         }
 
-        usort($modulesForAccess, fn (array $a, array $b): int => $this->priorityFor((string) $a['moduleId']) <=> $this->priorityFor((string) $b['moduleId']));
+        usort($modulesForAccess, fn (array $left, array $right): int => $this->priorityFor((string) $left['moduleId']) <=> $this->priorityFor((string) $right['moduleId']));
 
         /**
          * The two populations that can be invited.

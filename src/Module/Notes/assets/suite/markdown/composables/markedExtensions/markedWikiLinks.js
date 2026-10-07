@@ -11,12 +11,12 @@ export function createWikiLinkExtension() {
     return {
         name: "wikiLink",
         level: "inline",
-        start(src) {
-            const i = src.indexOf("[[");
-            return i === -1 ? undefined : i;
+        start(source) {
+            const openingIndex = source.indexOf("[[");
+            return openingIndex === -1 ? undefined : openingIndex;
         },
-        tokenizer(src) {
-            const match = src.match(/^\[\[([^\]]+)\]\]/);
+        tokenizer(source) {
+            const match = source.match(/^\[\[([^\]]+)\]\]/);
             if (!match) return undefined;
             const raw = match[1].trim();
             const hashIndex = raw.indexOf("#");
@@ -52,8 +52,8 @@ function renderWikiLink(noteTitle, heading) {
     return `<a class="wiki-link" data-note-title="${esc(noteTitle)}" data-heading="${esc(heading)}">${esc(display)}</a>`;
 }
 
-function esc(str) {
-    return String(str)
+function esc(text) {
+    return String(text)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")

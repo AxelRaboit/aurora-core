@@ -9,7 +9,8 @@ const error = vi.fn();
 // would pass whatever numbers were put in it.
 vi.mock("vue-i18n", () => ({
     useI18n: () => ({
-        t: (key, params) => (params ? `${key} ${JSON.stringify(params)}` : key),
+        t: (key, parameters) =>
+            parameters ? `${key} ${JSON.stringify(parameters)}` : key,
     }),
 }));
 vi.mock("vue-sonner", () => ({ toast: { success, error } }));

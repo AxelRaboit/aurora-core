@@ -71,8 +71,8 @@ final class InstagramFeedTest extends TestCase
     public function testTheLastFeedReadOutlivesAnOutage(): void
     {
         $cache = new ArrayAdapter();
-        $up = new InstagramFeed(new MockHttpClient(new MockResponse(self::PAGE)), $cache, new NullLogger());
-        $up->forAccount('12345', 'token', 24);
+        $online = new InstagramFeed(new MockHttpClient(new MockResponse(self::PAGE)), $cache, new NullLogger());
+        $online->forAccount('12345', 'token', 24);
 
         $cache->delete('editorial.instagram.feed.'.md5('12345'));
 

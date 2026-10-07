@@ -109,7 +109,7 @@ const props = defineProps({
     documents: { type: Array, default: () => [] },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { request } = useRequest();
 const { formatSize } = useFileSize();
 
@@ -341,22 +341,22 @@ function driveDownload(file) {
 /** The day the list shows. Today until someone picks one. */
 const selectedDay = ref(new Date());
 
-function sameDay(a, b) {
+function sameDay(first, second) {
     return (
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth() &&
-        a.getDate() === b.getDate()
+        first.getFullYear() === second.getFullYear() &&
+        first.getMonth() === second.getMonth() &&
+        first.getDate() === second.getDate()
     );
 }
 
 const dayItems = computed(() =>
     visibleEvents.value
         .filter((event) => sameDay(new Date(event.startAt), selectedDay.value))
-        .sort((a, b) => new Date(a.startAt) - new Date(b.startAt)),
+        .sort((left, right) => new Date(left.startAt) - new Date(right.startAt)),
 );
 
 const dayTitle = computed(() =>
-    d(selectedDay.value, { weekday: "long", day: "numeric", month: "long" }),
+    formatDate(selectedDay.value, { weekday: "long", day: "numeric", month: "long" }),
 );
 
 const itemsById = computed(
@@ -366,7 +366,7 @@ const itemsById = computed(
 const openItem = ref(null);
 
 const monthTitle = computed(() =>
-    d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
+    formatDate(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
 );
 
 function goToMonth(delta) {
@@ -378,7 +378,7 @@ function goToMonth(delta) {
 const openWhen = computed(() => {
     if (!openItem.value?.scheduledAt) return "";
 
-    return d(new Date(openItem.value.scheduledAt), "long");
+    return formatDate(new Date(openItem.value.scheduledAt), "long");
 });
 
 const answering = ref("");
@@ -590,7 +590,7 @@ async function approveSelected() {
 function reviewByLabel(event) {
     const item = itemsById.value.get(event.id);
 
-    return item?.reviewBy ? d(new Date(item.reviewBy), "long") : "";
+    return item?.reviewBy ? formatDate(new Date(item.reviewBy), "long") : "";
 }
 
 function isLate(event) {
@@ -786,7 +786,7 @@ function isLate(event) {
                             >
                                 <span class="block truncate text-sm text-primary">{{ event.title }}</span>
                                 <span class="mt-0.5 flex flex-wrap items-center gap-2 text-2xs text-muted">
-                                    <span>{{ d(new Date(event.startAt), "long") }}</span>
+                                    <span>{{ formatDate(new Date(event.startAt), "long") }}</span>
                                     <!-- The review deadline, when there is
                                          one. Lateness is shown, but blocks
                                          nothing: it is information. -->
@@ -824,7 +824,7 @@ function isLate(event) {
                                 v-on:click="open(event)"
                             >
                                 <span class="shrink-0 text-xs tabular-nums text-muted">
-                                    {{ d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
+                                    {{ formatDate(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
                                 </span>
                                 <span class="min-w-0 flex-1 truncate text-sm text-primary">
                                     {{ event.title }}
@@ -1007,7 +1007,7 @@ function isLate(event) {
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm text-primary sm:truncate">{{ file.title }}</p>
                                 <p class="text-xs text-muted">
-                                    {{ d(new Date(file.createdAt), "short") }}
+                                    {{ formatDate(new Date(file.createdAt), "short") }}
                                     <!-- Who sent it, when it came from the client side: a
                                          space can have several links out. -->
                                     <template v-if="file.fromClient">
@@ -1063,7 +1063,7 @@ function isLate(event) {
                             <span class="text-xs text-muted">
                                 <!-- A presentation says so before it opens: it is watched
                                      slide by slide, not read like a page. -->
-                                <template v-if="'slides' === document.format">{{ t("studio.public.space.document_presentation") }} · </template>{{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
+                                <template v-if="'slides' === document.format">{{ t("studio.public.space.document_presentation") }} · </template>{{ t("studio.public.space.document_updated_on", { date: formatDate(new Date(document.updatedAt), "long") }) }}
                             </span>
                         </span>
                     </a>
@@ -1102,7 +1102,7 @@ function isLate(event) {
                 {{
                     expiresAt
                         ? t("studio.public.space.footer_until", {
-                            date: d(new Date(expiresAt), "long"),
+                            date: formatDate(new Date(expiresAt), "long"),
                         })
                         : t("studio.public.space.footer")
                 }}

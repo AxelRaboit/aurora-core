@@ -15,10 +15,10 @@ const PAYLOAD = {
     totalPages: 1,
 };
 
-function mountWithComposable(setupFn) {
+function mountWithComposable(setupComposable) {
     const Comp = defineComponent({
         setup: () => {
-            const result = setupFn();
+            const result = setupComposable();
             return () => h("div");
         },
     });
@@ -90,9 +90,9 @@ describe("useListPage", () => {
         });
         api.onSearch("");
         await nextTick();
-        const params = new URL(window.location.href).searchParams;
-        expect(params.has("search")).toBe(false);
-        expect(params.get("other")).toBe("keep");
+        const searchParameters = new URL(window.location.href).searchParams;
+        expect(searchParameters.has("search")).toBe(false);
+        expect(searchParameters.get("other")).toBe("keep");
     });
 
     it("merges extraParams into the request URL", async () => {

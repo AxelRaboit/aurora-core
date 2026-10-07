@@ -183,8 +183,8 @@ final class ModuleNavResolverTest extends TestCase
         bool $granted = true,
         ?CoreUserInterface $user = null,
     ): ModuleNavResolver {
-        $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
-        $authChecker->method('isGranted')->willReturn($granted);
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->method('isGranted')->willReturn($granted);
 
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $urlGenerator->method('generate')->willReturnCallback(static fn (string $route): string => '/'.$route);
@@ -194,7 +194,7 @@ final class ModuleNavResolverTest extends TestCase
 
         return new ModuleNavResolver(
             modules: $modules,
-            navItemResolver: new NavItemResolver($authChecker, $urlGenerator),
+            navItemResolver: new NavItemResolver($authorizationChecker, $urlGenerator),
             userSecurity: $security,
         );
     }

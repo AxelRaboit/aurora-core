@@ -52,21 +52,28 @@ export function useRelativeTime(dateRef, { tickMs = 15_000 } = {}) {
         const date = dateRef.value;
         if (!date) return "";
 
-        const diffSeconds = Math.round(
+        const differenceSeconds = Math.round(
             (date.getTime() - now.value.getTime()) / 1000,
         );
-        const abs = Math.abs(diffSeconds);
+        const absoluteSeconds = Math.abs(differenceSeconds);
 
         const formatter = new Intl.RelativeTimeFormat(locale.value, {
             numeric: "auto",
         });
 
-        if (abs < 60) return formatter.format(diffSeconds, "second");
-        if (abs < 3_600)
-            return formatter.format(Math.round(diffSeconds / 60), "minute");
-        if (abs < 86_400)
-            return formatter.format(Math.round(diffSeconds / 3_600), "hour");
-        return formatter.format(Math.round(diffSeconds / 86_400), "day");
+        if (absoluteSeconds < 60)
+            return formatter.format(differenceSeconds, "second");
+        if (absoluteSeconds < 3_600)
+            return formatter.format(
+                Math.round(differenceSeconds / 60),
+                "minute",
+            );
+        if (absoluteSeconds < 86_400)
+            return formatter.format(
+                Math.round(differenceSeconds / 3_600),
+                "hour",
+            );
+        return formatter.format(Math.round(differenceSeconds / 86_400), "day");
     });
 
     return { relative };

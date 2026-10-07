@@ -20,7 +20,7 @@ import SlideChart from "../components/SlideChart.vue";
 import { cells } from "../cells.js";
 import { iconNamed } from "./icons.js";
 import { BOXES, PATHS, maskImage } from "./shapes.js";
-import { colour, filters, fontFamily, mask, paint, shadow, u } from "./model.js";
+import { colour, cssLength, filters, fontFamily, mask, paint, shadow } from "./model.js";
 import { useTextFit } from "./useTextFit.js";
 
 const props = defineProps({
@@ -47,21 +47,21 @@ const type = computed(() => element.value.type);
  * picture keeps its handles where the person sees them.
  */
 const outer = computed(() => {
-    const el = element.value;
+    const freeElement = element.value;
     const transforms = [];
 
-    if (el.rotate) transforms.push(`rotate(${el.rotate}deg)`);
+    if (freeElement.rotate) transforms.push(`rotate(${freeElement.rotate}deg)`);
 
     return {
-        left: `${el.x}%`,
-        top: `${el.y}%`,
-        width: `${el.w}%`,
-        height: `${el.h}%`,
+        left: `${freeElement.x}%`,
+        top: `${freeElement.y}%`,
+        width: `${freeElement.w}%`,
+        height: `${freeElement.h}%`,
         transform: transforms.length ? transforms.join(" ") : undefined,
-        opacity: el.opacity ?? undefined,
-        filter: shadow(el.shadow) ?? undefined,
-        "--enter-duration": `${el.duration ?? 600}ms`,
-        "--enter-delay": `${el.delay ?? 0}ms`,
+        opacity: freeElement.opacity ?? undefined,
+        filter: shadow(freeElement.shadow) ?? undefined,
+        "--enter-duration": `${freeElement.duration ?? 600}ms`,
+        "--enter-delay": `${freeElement.delay ?? 0}ms`,
     };
 });
 
@@ -83,20 +83,20 @@ const maskPath = computed(() => PATHS[element.value.shape] ?? "");
 const strokeCss = computed(() => {
     const stroke = element.value.stroke;
 
-    return stroke ? `${u(stroke.width)} ${stroke.style ?? "solid"} ${colour(stroke.color)}` : undefined;
+    return stroke ? `${cssLength(stroke.width)} ${stroke.style ?? "solid"} ${colour(stroke.color)}` : undefined;
 });
 
 const body = computed(() => {
-    const el = element.value;
+    const freeElement = element.value;
     const style = {};
 
-    const background = paint(el.fill);
+    const background = paint(freeElement.fill);
     if (background) style.background = background;
 
-    const clip = mask(el.mask);
+    const clip = mask(freeElement.mask);
 
     if (isPathShape.value) {
-        const image = maskImage(el.shape);
+        const image = maskImage(freeElement.shape);
 
         style.maskImage = image;
         style.webkitMaskImage = image;
@@ -106,10 +106,10 @@ const body = computed(() => {
         style.webkitMaskRepeat = "no-repeat";
     } else if (clip) {
         style.clipPath = clip;
-    } else if (isBoxShape.value && el.shape === "ellipse") {
+    } else if (isBoxShape.value && freeElement.shape === "ellipse") {
         style.borderRadius = "50%";
-    } else if (el.radius) {
-        style.borderRadius = u(el.radius);
+    } else if (freeElement.radius) {
+        style.borderRadius = cssLength(freeElement.radius);
     }
 
     // A text's outline is the letters' own, drawn by the text; every other
@@ -126,21 +126,21 @@ const body = computed(() => {
 
 /** The words' own look. Every size is a share of the slide's width. */
 const text = computed(() => {
-    const el = element.value;
+    const freeElement = element.value;
 
     return {
-        fontFamily: fontFamily(el.font, props.families),
-        fontSize: `calc(${u(el.size ?? 40)} * var(--fit, 1))`,
-        fontWeight: el.weight ?? 400,
-        fontStyle: el.italic ? "italic" : undefined,
-        letterSpacing: el.spacing ? `${el.spacing / 1000}em` : undefined,
-        lineHeight: el.lineHeight ?? 1.2,
-        padding: el.padX || el.padY ? `${u(el.padY ?? 0)} ${u(el.padX ?? 0)}` : undefined,
-        textAlign: el.align ?? "left",
-        justifyContent: { top: "flex-start", middle: "center", bottom: "flex-end" }[el.valign ?? "top"],
-        color: colour(el.color, "var(--slide-ink)"),
-        textTransform: { upper: "uppercase", lower: "lowercase", title: "capitalize" }[el.case] ?? undefined,
-        WebkitTextStroke: el.stroke ? `${u(el.stroke.width)} ${colour(el.stroke.color)}` : undefined,
+        fontFamily: fontFamily(freeElement.font, props.families),
+        fontSize: `calc(${cssLength(freeElement.size ?? 40)} * var(--fit, 1))`,
+        fontWeight: freeElement.weight ?? 400,
+        fontStyle: freeElement.italic ? "italic" : undefined,
+        letterSpacing: freeElement.spacing ? `${freeElement.spacing / 1000}em` : undefined,
+        lineHeight: freeElement.lineHeight ?? 1.2,
+        padding: freeElement.padX || freeElement.padY ? `${cssLength(freeElement.padY ?? 0)} ${cssLength(freeElement.padX ?? 0)}` : undefined,
+        textAlign: freeElement.align ?? "left",
+        justifyContent: { top: "flex-start", middle: "center", bottom: "flex-end" }[freeElement.valign ?? "top"],
+        color: colour(freeElement.color, "var(--slide-ink)"),
+        textTransform: { upper: "uppercase", lower: "lowercase", title: "capitalize" }[freeElement.case] ?? undefined,
+        WebkitTextStroke: freeElement.stroke ? `${cssLength(freeElement.stroke.width)} ${colour(freeElement.stroke.color)}` : undefined,
     };
 });
 
@@ -215,7 +215,7 @@ const playsFilm = computed(() => !props.compact && !props.still && !!element.val
 /** The player itself only where the slide is watched. */
 const playsEmbed = computed(() => props.live && !!element.value.embedUrl);
 
-const embedSrc = computed(() => {
+const embedSource = computed(() => {
     const url = element.value.embedUrl;
 
     if (!url) return null;
@@ -322,7 +322,7 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
                 <iframe
                     v-if="playsEmbed"
                     class="fe-media"
-                    :src="embedSrc"
+                    :src="embedSource"
                     allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                     allowfullscreen
                     loading="lazy"
@@ -343,7 +343,7 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
             </template>
 
             <template v-else-if="isLine">
-                <span class="fe-line" :style="{ '--line-width': u(element.stroke?.width ?? 6), '--line-colour': colour(element.stroke?.color, 'var(--slide-ink)') }">
+                <span class="fe-line" :style="{ '--line-width': cssLength(element.stroke?.width ?? 6), '--line-colour': colour(element.stroke?.color, 'var(--slide-ink)') }">
                     <span v-if="element.head === 'both'" class="fe-line-head is-start" />
                     <span v-if="element.head === 'end' || element.head === 'both'" class="fe-line-head is-end" />
                 </span>
@@ -370,7 +370,7 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
             <table
                 v-else-if="type === 'table'"
                 class="fe-table"
-                :style="{ fontSize: u(element.size ?? 22), color: colour(element.color, 'var(--slide-ink)') }"
+                :style="{ fontSize: cssLength(element.size ?? 22), color: colour(element.color, 'var(--slide-ink)') }"
             >
                 <thead v-if="tableRows.length">
                     <tr>
@@ -400,7 +400,7 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
                 fill="none"
                 :stroke="colour(element.stroke.color)"
                 :stroke-dasharray="element.stroke.style === 'dashed' ? '6 4' : element.stroke.style === 'dotted' ? '1 3' : undefined"
-                :style="{ strokeWidth: u(element.stroke.width) }"
+                :style="{ strokeWidth: cssLength(element.stroke.width) }"
                 vector-effect="non-scaling-stroke"
                 fill-rule="evenodd"
             />

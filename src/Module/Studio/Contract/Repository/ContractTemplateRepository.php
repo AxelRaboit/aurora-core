@@ -135,7 +135,7 @@ class ContractTemplateRepository extends ResolveTargetEntityRepository
         $position = array_flip(array_map(intval(...), $ids));
         usort(
             $templates,
-            static fn (ContractTemplateInterface $a, ContractTemplateInterface $b): int => $position[(int) $a->getId()] <=> $position[(int) $b->getId()],
+            static fn (ContractTemplateInterface $left, ContractTemplateInterface $right): int => $position[(int) $left->getId()] <=> $position[(int) $right->getId()],
         );
 
         return $templates;

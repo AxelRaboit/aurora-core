@@ -129,8 +129,8 @@ final class CommentsAreInEnglishTest extends TestCase
             }
         }
 
-        foreach (self::SCANNED as $dir) {
-            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/'.$dir, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+        foreach (self::SCANNED as $scannedDirectory) {
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/'.$scannedDirectory, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
                 if (!$file instanceof SplFileInfo || !in_array($file->getExtension(), self::EXTENSIONS, true)) {
                     continue;
                 }

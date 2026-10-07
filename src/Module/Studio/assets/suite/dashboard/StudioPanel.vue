@@ -57,11 +57,11 @@ const tiles = computed(() =>
 
 /** The same address, the other scope: the panel is recomputed on the server. */
 function scopeHref(scope) {
-    const params = new URLSearchParams(window.location.search);
-    params.set("module", "studio");
-    params.set("studioScope", scope);
+    const searchParameters = new URLSearchParams(window.location.search);
+    searchParameters.set("module", "studio");
+    searchParameters.set("studioScope", scope);
 
-    return `?${params.toString()}`;
+    return `?${searchParameters.toString()}`;
 }
 </script>
 

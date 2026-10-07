@@ -24,20 +24,20 @@ class DocumentCategoryRepository extends ResolveTargetEntityRepository
 
     public function findPaginated(int $page, int $limit = 20, ?string $search = null, bool $trashed = false): array
     {
-        $qb = $this->createQueryBuilder('c')->orderBy('c.name', Order::Ascending->value);
-        $countQb = $this->createQueryBuilder('c')->select('COUNT(c.id)');
+        $queryBuilder = $this->createQueryBuilder('c')->orderBy('c.name', Order::Ascending->value);
+        $countQueryBuilder = $this->createQueryBuilder('c')->select('COUNT(c.id)');
 
         $trashCondition = $trashed ? 'c.deletedAt IS NOT NULL' : 'c.deletedAt IS NULL';
-        $qb->andWhere($trashCondition);
-        $countQb->andWhere($trashCondition);
+        $queryBuilder->andWhere($trashCondition);
+        $countQueryBuilder->andWhere($trashCondition);
 
         if (null !== $search && '' !== $search) {
             $pattern = '%'.mb_strtolower($search).'%';
-            $qb->andWhere('LOWER(c.name) LIKE :search')->setParameter('search', $pattern);
-            $countQb->andWhere('LOWER(c.name) LIKE :search')->setParameter('search', $pattern);
+            $queryBuilder->andWhere('LOWER(c.name) LIKE :search')->setParameter('search', $pattern);
+            $countQueryBuilder->andWhere('LOWER(c.name) LIKE :search')->setParameter('search', $pattern);
         }
 
-        return $this->paginate($qb, $countQb, $page, $limit);
+        return $this->paginate($queryBuilder, $countQueryBuilder, $page, $limit);
     }
 
     /** @return DocumentCategory[] */

@@ -101,7 +101,10 @@ export function cascadeOrder(entries) {
             target: entry.target,
             box: entry.target.getBoundingClientRect(),
         }))
-        .sort((a, b) => a.box.top - b.box.top || a.box.left - b.box.left)
+        .sort(
+            (left, right) =>
+                left.box.top - right.box.top || left.box.left - right.box.left,
+        )
         .map(({ target }) => target);
 }
 
