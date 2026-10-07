@@ -11,6 +11,7 @@ import StudioSectionTabs from "../../../../assets/suite/components/StudioSection
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useSpaceRowActions } from "./composables/useSpaceRowActions.js";
@@ -36,16 +37,12 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { PanelsTopLeft, Plus, Save, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
+const { formatSize } = useFileSize();
 const { container, isNarrow } = useNarrowContainer();
 
-/** Units people read, not bytes people count. */
+/** Units people read, not bytes people count, in the reader's language. */
 function weigh(bytes) {
-    if (!bytes) return "—";
-
-    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} Go`;
-    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} Mo`;
-
-    return `${Math.max(1, Math.round(bytes / 1024))} ko`;
+    return bytes ? formatSize(bytes) : "-";
 }
 const { can } = usePrivileges();
 
@@ -191,6 +188,7 @@ const pageActions = computed(() => {
     return [
         {
             key: "create",
+            primary: true,
             color: "accent",
             icon: Plus,
             title: t("suite.studio.spaces.add"),

@@ -364,7 +364,7 @@ async function submitImport() {
 const pageActions = computed(() => {
     const actions = [];
     if (props.canCreate) {
-        actions.push({ key: "create", color: "accent", icon: Plus, title: t("suite.studio.deliverables.add"), onSelect: openCreate });
+        actions.push({ key: "create", primary: true, color: "accent", icon: Plus, title: t("suite.studio.deliverables.add"), onSelect: openCreate });
         if (props.importPath) {
             actions.push({
                 key: "import",

@@ -141,8 +141,8 @@ function themeActions(theme) {
     ];
 }
 
-// One entry and still a sheet: every list in the suite opens its actions the
-// same way, and a toolbar's width belongs to the search, not to a verb.
+// The create verb is marked `primary`: AppPageActions sets it beside the
+// sheet as the page's main button, and the sheet keeps whatever else there is.
 const pageActions = computed(() => {
     if (!can("configuration.themes.manage")) {
         return [];
@@ -151,6 +151,7 @@ const pageActions = computed(() => {
     return [
         {
             key: "create",
+            primary: true,
             color: "accent",
             icon: Plus,
             title: t("suite.themes.new"),

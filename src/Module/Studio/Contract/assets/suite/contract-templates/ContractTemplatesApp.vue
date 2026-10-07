@@ -38,7 +38,7 @@ import {
     X,
 } from "lucide-vue-next";
 
-const { formatDateNumeric } = useDateFormat();
+const { formatDateShort } = useDateFormat();
 const { t } = useI18n();
 const { can } = usePrivileges();
 
@@ -276,6 +276,7 @@ const pageActions = computed(() => {
     if (can("studio.contract_templates.create")) {
         actions.push({
             key: "create",
+            primary: true,
             color: "accent",
             icon: Plus,
             title: t("suite.studio.contract_templates.add"),
@@ -535,7 +536,7 @@ const pageActions = computed(() => {
                                 {{ t("suite.studio.contract_templates.never_published") }}
                             </span>
                             <span v-if="template.publishedAt" class="block text-2xs text-muted">
-                                {{ formatDateNumeric(template.publishedAt) }}
+                                {{ formatDateShort(template.publishedAt) }}
                             </span>
                         </td>
                         <!-- The draft is amber and clickable: on this screen it

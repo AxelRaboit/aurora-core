@@ -3,7 +3,7 @@ suite:
         guide:
             title: "Votre profil en bref"
             step_1: "La photo s'enregistre dès que vous la choisissez, sans autre bouton."
-            step_2: "Le nom, l'adresse e-mail, le mot de passe et la phrase de mood ont chacun leur bouton Enregistrer, qui n'envoie que sa carte."
+            step_2: "Le nom, l'adresse e-mail, le mot de passe et la phrase d'humeur ont chacun leur bouton Enregistrer, qui n'envoie que sa carte."
             step_3: "Changer de langue recharge aussitôt l'administration dans la langue choisie."
             step_4: "La carte Préférences mène au réglage de votre menu latéral : sections cachées et couleurs."
             step_5: "La suppression du compte, en bas de page, est définitive, et le dernier développeur de l'instance ne peut pas supprimer le sien."
@@ -21,11 +21,11 @@ suite:
             title: Photo de profil
             subtitle: Cette image apparaît dans le menu latéral et la liste des utilisateurs.
         mood:
-            title: Phrase de mood
+            title: Phrase d'humeur
             subtitle: Une courte phrase qui décrit votre humeur du moment.
             placeholder: Ce que vous voulez partager…
             hint: 160 caractères max.
-            saved: Mood mis à jour.
+            saved: Phrase d'humeur mise à jour.
             errors:
                 too_long: La phrase ne doit pas dépasser 160 caractères.
         locale:

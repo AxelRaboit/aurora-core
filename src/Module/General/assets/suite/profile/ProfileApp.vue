@@ -67,7 +67,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
             <div class="aurora-stack">
                 <div class="aurora-card p-4">
                     <header class="mb-4">
-                        <h2 class="text-lg font-semibold text-primary">{{ t('suite.profile.photo.title') }}</h2>
+                        <h2 class="text-base font-semibold text-primary">{{ t('suite.profile.photo.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.photo.subtitle') }}</p>
                     </header>
                     <div class="flex items-center gap-5">
@@ -100,7 +100,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
                 <div class="aurora-card p-4">
                     <header class="mb-4">
-                        <h2 class="text-lg font-semibold text-primary">{{ t('suite.profile.info.title') }}</h2>
+                        <h2 class="text-base font-semibold text-primary">{{ t('suite.profile.info.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.info.subtitle') }}</p>
                     </header>
                     <form class="space-y-4" v-on:submit.prevent="saveInfo">
@@ -129,7 +129,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
                 <div class="aurora-card p-4">
                     <header class="mb-4">
-                        <h2 class="text-lg font-semibold text-primary">{{ t('suite.profile.password.title') }}</h2>
+                        <h2 class="text-base font-semibold text-primary">{{ t('suite.profile.password.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.password.subtitle') }}</p>
                     </header>
                     <form class="space-y-4" v-on:submit.prevent="savePassword">
@@ -174,7 +174,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
             <div class="aurora-stack">
                 <div class="aurora-card p-4">
                     <header class="mb-4">
-                        <h2 class="text-lg font-semibold text-primary">{{ t('suite.profile.locale.title') }}</h2>
+                        <h2 class="text-base font-semibold text-primary">{{ t('suite.profile.locale.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.locale.subtitle') }}</p>
                     </header>
                     <AppSelect
@@ -196,7 +196,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
                 <div class="aurora-card p-4">
                     <header class="mb-4">
-                        <h2 class="text-lg font-semibold text-primary">{{ t('suite.profile.mood.title') }}</h2>
+                        <h2 class="text-base font-semibold text-primary">{{ t('suite.profile.mood.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.mood.subtitle') }}</p>
                     </header>
                     <form class="space-y-3" v-on:submit.prevent="saveMood">
@@ -221,7 +221,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
                 <div class="aurora-card p-4">
                     <header class="mb-4">
-                        <h2 class="text-lg font-semibold text-primary">{{ t('suite.profile.account.title') }}</h2>
+                        <h2 class="text-base font-semibold text-primary">{{ t('suite.profile.account.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.account.subtitle') }}</p>
                     </header>
 
@@ -281,7 +281,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
         <!-- Full-width danger zone -->
         <div class="aurora-card border-rose-900/40 p-4">
             <header class="mb-4">
-                <h2 class="text-lg font-semibold text-rose-400">{{ t('suite.profile.danger.title') }}</h2>
+                <h2 class="text-base font-semibold text-rose-400">{{ t('suite.profile.danger.title') }}</h2>
                 <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.danger.description') }}</p>
             </header>
             <!-- Full width below `sm`, like the others: it is an action,

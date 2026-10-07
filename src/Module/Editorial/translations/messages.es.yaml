@@ -590,7 +590,7 @@ suite:
             selected: '1 seleccionada | {count} seleccionadas'
             select_all: 'Seleccionar todo en esta página'
             clear: 'Anular la selección'
-            result: '{done} modificada(s), {skipped} omitida(s).'
+            result: "Publicaciones modificadas: {done} · omitidas: {skipped}."
             action_publish: Publicar
             action_draft: 'Volver a borrador'
             action_trash: 'Enviar a la papelera'
@@ -628,7 +628,7 @@ suite:
             import_drop: 'Suelte sus imágenes aquí'
             import_progress: 'Importando {done} de {total}…'
             import_hint: 'Varias imágenes a la vez. Se envían una a una y aparecen a medida que llegan.'
-            import_skipped: '{added} añadida(s), {skipped} descartada(s): ya presentes, rechazadas o por encima del máximo.'
+            import_skipped: "Imágenes añadidas: {added} · descartadas: {skipped} (ya presentes, rechazadas o por encima del máximo)."
             full: 'Se ha alcanzado el máximo de imágenes.'
             alt: 'Texto alternativo ({locale})'
             alt_hint: 'Lo que muestra la imagen, para quien no la ve. Si está vacío, se usa el de la mediateca.'
@@ -1688,8 +1688,8 @@ suite:
         marked_spam: 'Comentario marcado como no deseado.'
         delete_confirm: '¿Eliminar este comentario de {name}? Sus respuestas suben un nivel.'
         deleted: 'Comentario eliminado.'
-        replies: '{count} respuestas'
-        reactions: '{count} reacciones'
+        replies: "{count} respuesta | {count} respuestas"
+        reactions: "{count} reacción | {count} reacciones"
         status:
             pending: Pendiente
             approved: Aprobado
@@ -1917,7 +1917,7 @@ suite:
             or: 'Al menos una condición'
         errors:
             step_below_one: 'Los pasos se cuentan a partir de 1.'
-            step_out_of_range: 'Este formulario tiene {count} paso(s).'
+            step_out_of_range: "Este formulario tiene {count} paso. | Este formulario tiene {count} pasos."
             translations_required: 'Debe completarse al menos un idioma.'
             field_translations_required: 'Debe completarse al menos un idioma.'
             slug_taken: 'El slug «{slug}» ya está en uso.'

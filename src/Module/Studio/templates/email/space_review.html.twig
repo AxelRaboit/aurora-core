@@ -7,7 +7,7 @@
 
    The pending count is in the body and in the subject: it is what decides
    whether to open it now or tonight. #}
-<p>{{ 'studio.email.space_review.body'|trans({'{space}': space.name, '{count}': awaiting}) }}</p>
+<p>{{ 'studio.email.space_review.body'|trans({'{space}': space.name, '{count}': awaiting, '%count%': awaiting}) }}</p>
 
 <p><a href="{{ url }}">{{ 'studio.email.space_review.cta'|trans }}</a></p>
 

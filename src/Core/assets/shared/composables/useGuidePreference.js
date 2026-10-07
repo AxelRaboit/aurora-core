@@ -43,16 +43,51 @@ function remember(open) {
     }
 }
 
-/** For tests: forget the choice, like a fresh browser. */
+/**
+ * The screens whose guide has already been shown once.
+ *
+ * As long as the reader has chosen nothing, a guide opens the first time its
+ * screen is visited and stays folded after that: open everywhere, the guides
+ * pushed every list below the fold, on a phone below the first screen (UI
+ * audit of 07/10/2026). Kept per browser, like the choice.
+ */
+const SEEN_KEY = "aurora.guides.seen";
+
+function readSeen() {
+    try {
+        const value = JSON.parse(window.localStorage.getItem(SEEN_KEY) ?? "[]");
+
+        return Array.isArray(value) ? value : [];
+    } catch {
+        return [];
+    }
+}
+
+function hasSeen(key) {
+    return readSeen().includes(key);
+}
+
+function markSeen(key) {
+    const seen = readSeen();
+    if (seen.includes(key)) return;
+    try {
+        window.localStorage.setItem(SEEN_KEY, JSON.stringify([...seen, key]));
+    } catch {
+        // Without storage, every visit is a first one.
+    }
+}
+
+/** For tests: forget the choice and the screens seen, like a fresh browser. */
 function forget() {
     choice.value = null;
     try {
         window.localStorage.removeItem(STORAGE_KEY);
+        window.localStorage.removeItem(SEEN_KEY);
     } catch {
         // Nothing to forget.
     }
 }
 
 export function useGuidePreference() {
-    return { choice: readonly(choice), remember, forget };
+    return { choice: readonly(choice), remember, forget, hasSeen, markSeen };
 }

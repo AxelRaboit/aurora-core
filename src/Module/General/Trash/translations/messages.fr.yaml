@@ -24,7 +24,7 @@ suite:
         deleted_forever: "Élément supprimé définitivement."
         empty: "Vider"
         empty_confirm: "Vider cette corbeille supprimera définitivement ses {count} éléments. C'est sans retour."
-        emptied: "{count} élément(s) supprimé(s) définitivement."
+        emptied: "{count} élément supprimé définitivement. | {count} éléments supprimés définitivement."
         truncated: "{shown} éléments affichés sur {total}. Videz la corbeille ou attendez la purge pour le reste."
         all_empty: "Aucune corbeille ne contient quoi que ce soit."
         all_empty_hint: "Ce qui sera supprimé apparaîtra ici, le temps de sa rétention."

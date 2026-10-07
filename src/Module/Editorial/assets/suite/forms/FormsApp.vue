@@ -14,6 +14,7 @@
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { toast } from "vue-sonner";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
@@ -40,7 +41,8 @@ const props = defineProps({
     deletePathTemplate: { type: String, required: true },
 });
 
-const { t, d: formatLocalizedDate } = useI18n();
+const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
 const { can } = usePrivileges();
 const { request } = useRequest();
 const { container, isNarrow } = useNarrowContainer();
@@ -70,7 +72,7 @@ const filteredItems = computed(() => {
 });
 
 function formatDate(value) {
-    return value ? formatLocalizedDate(new Date(value), "short") : null;
+    return value ? formatDateTime(value) : null;
 }
 
 // ── Creation ────────────────────────────────────────────────────────────────
@@ -155,7 +157,7 @@ function actionsFor(form) {
 
 const pageActions = computed(() =>
     can("editorial.forms.create")
-        ? [{ key: "create", color: "accent", icon: Plus, title: t("suite.forms.create"), onSelect: openCreate }]
+        ? [{ key: "create", primary: true, color: "accent", icon: Plus, title: t("suite.forms.create"), onSelect: openCreate }]
         : [],
 );
 </script>

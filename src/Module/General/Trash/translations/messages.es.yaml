@@ -24,7 +24,7 @@ suite:
         deleted_forever: 'Elemento eliminado definitivamente.'
         empty: Vaciar
         empty_confirm: 'Vaciar esta papelera eliminará definitivamente sus {count} elementos. No se puede deshacer.'
-        emptied: '{count} elemento(s) eliminado(s) definitivamente.'
+        emptied: "{count} elemento eliminado definitivamente. | {count} elementos eliminados definitivamente."
         truncated: '{shown} elementos mostrados de {total}. Vacíe la papelera o espere a la purga para el resto.'
         all_empty: 'Ninguna papelera contiene nada.'
         all_empty_hint: 'Lo que se elimine aparecerá aquí durante su periodo de conservación.'

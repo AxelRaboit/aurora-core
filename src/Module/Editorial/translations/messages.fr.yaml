@@ -590,7 +590,7 @@ suite:
             selected: "1 sélectionnée | {count} sélectionnées"
             select_all: "Tout sélectionner sur cette page"
             clear: "Désélectionner"
-            result: "{done} modifiée(s), {skipped} ignorée(s)."
+            result: "Publications modifiées : {done} · ignorées : {skipped}."
             action_publish: "Publier"
             action_draft: "Repasser en brouillon"
             action_trash: "Mettre à la corbeille"
@@ -628,7 +628,7 @@ suite:
             import_drop: Déposez vos images ici
             import_progress: "Import de {done} sur {total}…"
             import_hint: "Plusieurs images à la fois. Elles sont envoyées une par une et apparaissent au fur et à mesure."
-            import_skipped: "{added} ajoutée(s), {skipped} écartée(s) : déjà présentes, refusées, ou au-delà du maximum."
+            import_skipped: "Images ajoutées : {added} · écartées : {skipped} (déjà présentes, refusées, ou au-delà du maximum)."
             full: "Le maximum d'images est atteint."
             alt: "Texte alternatif ({locale})"
             alt_hint: "Ce que montre l'image, pour qui ne la voit pas. Vide, celui de la médiathèque est utilisé."
@@ -1662,8 +1662,8 @@ suite:
         marked_spam: Commentaire marqué comme indésirable.
         delete_confirm: "Supprimer ce commentaire de {name} ? Ses réponses remontent d'un niveau."
         deleted: Commentaire supprimé.
-        replies: '{count} réponses'
-        reactions: '{count} réactions'
+        replies: "{count} réponse | {count} réponses"
+        reactions: "{count} réaction | {count} réactions"
         status:
             pending: En attente
             approved: Approuvé
@@ -1891,7 +1891,7 @@ suite:
             or: Au moins une condition
         errors:
             step_below_one: "Les étapes se comptent à partir de 1."
-            step_out_of_range: "Ce formulaire compte {count} étape(s)."
+            step_out_of_range: "Ce formulaire compte {count} étape. | Ce formulaire compte {count} étapes."
             translations_required: Au moins une langue doit être renseignée.
             field_translations_required: Au moins une langue doit être renseignée.
             slug_taken: 'Le slug « {slug} » est déjà utilisé.'

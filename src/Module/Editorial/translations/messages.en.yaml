@@ -1662,8 +1662,8 @@ suite:
         marked_spam: Comment marked as spam.
         delete_confirm: "Delete this comment from {name}? Its replies move up a level."
         deleted: Comment deleted.
-        replies: '{count} replies'
-        reactions: '{count} reactions'
+        replies: "{count} reply | {count} replies"
+        reactions: "{count} reaction | {count} reactions"
         status:
             pending: Pending
             approved: Approved
@@ -1891,7 +1891,7 @@ suite:
             or: Any condition
         errors:
             step_below_one: "Steps are numbered from 1."
-            step_out_of_range: "This form has {count} step(s)."
+            step_out_of_range: "This form has {count} step. | This form has {count} steps."
             translations_required: At least one language must be filled in.
             field_translations_required: At least one language must be filled in.
             slug_taken: 'The slug "{slug}" is already used.'

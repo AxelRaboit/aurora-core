@@ -110,7 +110,7 @@ suite:
             system_description: 'Mantenimiento, registros, acceso y subidas de archivos.'
             email: Emails
             email_description: 'Idioma y colores de los emails salientes.'
-            media: 'Medios y subidas'
+            media: 'Medios y archivos'
             media_description: 'Límites de subida de archivos (tamaño máximo, extensiones permitidas).'
             sequences: Secuencias
             sequences_description: 'Prefijos de las referencias generadas automáticamente. Pestaña reservada a los desarrolladores.'
@@ -137,7 +137,7 @@ suite:
             captcha: Antirrobots
             captcha_description: 'Verificación de comentarios y formularios: servicio, claves y activación.'
             notes: Notas
-            notes_description: 'Ajustes del módulo Notas Markdown: tamaño / calidad de las imágenes subidas.'
+            notes_description: 'Ajustes del módulo Notas Markdown: tamaño y calidad de las imágenes subidas.'
             storage: 'Almacenamiento de archivos'
             storage_description: 'Dónde escribe sus archivos la aplicación: el disco del servidor, o el almacenamiento de objetos Cloudflare R2.'
             modules: Módulos
@@ -306,7 +306,7 @@ suite:
         modules_empty: 'No se ha encontrado ningún módulo.'
         module_type:
             suite: Suite
-            frontend: Frontend
+            frontend: 'Sitio público'
         save: Guardar
         saved: 'Ajustes guardados.'
         modules_search_placeholder: 'Buscar un módulo…'
@@ -362,7 +362,7 @@ suite:
             placeholder: 'Plataforma de gestión empresarial multimódulo'
         site_url:
             label: 'URL pública del sitio'
-            description: 'URL absoluta del sitio (sin barra final), utilizada en los emails y el sitemap'
+            description: 'URL absoluta del sitio (sin barra final), utilizada en los correos y el mapa del sitio'
             placeholder: 'https://app.example.com'
         admin_email:
             label: 'Email del administrador'

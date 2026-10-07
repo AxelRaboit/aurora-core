@@ -4,6 +4,16 @@ import { siteZone } from "@/shared/utils/format/zonedTime.js";
 /**
  * Dates in the reader's language, at the site's time.
  *
+ * **Three formats for the suite, and no others** (UI audit of 07/10/2026,
+ * which counted seven on as many screens):
+ * - `formatDateShort` « 7 oct. 2026 » - a day in a list column or a sentence;
+ * - `formatDateTime` « 7 oct., 09:17 » - an instant in a list; the year
+ *   shows when it is not the current one (« 7 oct. 2025, 09:17 »);
+ * - `formatDate` « 7 octobre 2026 à 09:17 » - an instant on a detail page.
+ *
+ * The numeric ones stay for the documents that call for them (a client's
+ * own screens, an export); the suite does not print « 07/10/2026 ».
+ *
  * The zone is the site's (Settings > Localisation) when the page hands it over,
  * so a post scheduled for 09:00 reads 09:00 in the list too, and not the time
  * of the laptop reading it. Pages that do not (public ones) keep the browser's.
@@ -24,7 +34,8 @@ export function useDateFormat() {
             : undefined;
     };
 
-    function formatDate(isoString) {
+    function formatDate(isoString, placeholder = "-") {
+        if (!isoString) return placeholder;
         return new Intl.DateTimeFormat(locale.value, {
             timeZone: zoneFor(isoString),
             day: "numeric",
@@ -35,7 +46,8 @@ export function useDateFormat() {
         }).format(new Date(isoString));
     }
 
-    function formatDateShort(isoString) {
+    function formatDateShort(isoString, placeholder = "-") {
+        if (!isoString) return placeholder;
         return new Intl.DateTimeFormat(locale.value, {
             timeZone: zoneFor(isoString),
             day: "numeric",
@@ -44,14 +56,24 @@ export function useDateFormat() {
         }).format(new Date(isoString));
     }
 
-    function formatDateTime(isoString) {
+    function formatDateTime(isoString, placeholder = "-") {
+        if (!isoString) return placeholder;
+        const date = new Date(isoString);
+        const timeZone = zoneFor(isoString);
+        const yearOf = (value) =>
+            new Intl.DateTimeFormat("en", { timeZone, year: "numeric" }).format(
+                value,
+            );
+
         return new Intl.DateTimeFormat(locale.value, {
-            timeZone: zoneFor(isoString),
+            timeZone,
             day: "numeric",
             month: "short",
+            // Without the year, last October reads as this one.
+            ...(yearOf(date) === yearOf(new Date()) ? {} : { year: "numeric" }),
             hour: "2-digit",
             minute: "2-digit",
-        }).format(new Date(isoString));
+        }).format(date);
     }
 
     /** The hour alone, « 16:33 » in FR, « 4:33 PM » in EN: to follow a date written out. */

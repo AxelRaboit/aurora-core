@@ -141,12 +141,13 @@ const { privilegesModal, pendingPrivileges, togglePrivilege, openPrivileges, sav
 const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveModules } = useUsersDisabledModules(props, fetchUsers);
 
 
-// One entry and still a sheet: every list in the suite opens its actions the
-// same way, and a toolbar's width belongs to the search, not to a verb.
+// The create verb is marked `primary`: AppPageActions sets it beside the
+// sheet as the page's main button, and the sheet keeps whatever else there is.
 const pageActions = computed(() => {
     return [
         {
             key: "invite",
+            primary: true,
             color: "accent",
             icon: UserPlus,
             title: t("suite.users.invite"),

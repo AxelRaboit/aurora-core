@@ -271,7 +271,7 @@ suite:
                 reset_done: Le contrat reprend le texte de la trame.
                 differences: Différences avec la trame
                 differences_none: Aucune différence avec la trame.
-                differences_summary: '{added} ajouté(s), {removed} retiré(s)'
+                differences_summary: "Ajouts : {added} · retraits : {removed}"
                 diff_added: Ajouté
                 diff_removed: Retiré
                 unsaved: Modifications non enregistrées
@@ -372,7 +372,7 @@ suite:
             retained_until: 'Conservé jusqu''au'
             reminders: 'Relances'
             reminders_none: 'Aucune relance'
-            reminders_count: '{count} relance(s), dernière le {date}'
+            reminders_count: "{count} relance, le {date} | {count} relances, dernière le {date}"
             not_sealed_yet: Ce contrat n'est pas encore scellé. Son texte sera figé au moment du scellement.
             seal_intact: Le sceau est intact
             seal_intact_hint: Le document stocké correspond exactement au hash pris lors du scellement.
@@ -624,7 +624,7 @@ suite:
                 draft_already_open: 'Un brouillon est déjà ouvert sur cette trame (version {number}). Terminez-le ou abandonnez-le avant d''en ouvrir un autre.'
                 nothing_to_publish: Cette version n'a aucun texte à publier.
                 already_published: "Cette version n'est plus un brouillon : son texte ne peut plus être modifié. Ouvrez une nouvelle version."
-                used_by_contracts: '{count} contrat(s), brouillons compris, partent de cette trame : elle ne peut pas être supprimée. Archivez-la, elle ne sera plus proposée et ces contrats gardent leur texte.'
+                used_by_contracts: "{count} contrat, brouillons compris, part de cette trame : elle ne peut pas être supprimée. Archivez-la, elle ne sera plus proposée et ce contrat garde son texte. | {count} contrats, brouillons compris, partent de cette trame : elle ne peut pas être supprimée. Archivez-la, elle ne sera plus proposée et ces contrats gardent leur texte."
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
                 governing_locale_required: 'Cette version est rédigée en plusieurs langues : indiquez laquelle fait foi avant de publier.'
@@ -802,7 +802,7 @@ suite:
             delete_confirm: 'Supprimer {name} ?'
             delete_warning: 'Un client nommé par un contrat ou par un espace, même à la corbeille, ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
 
-            contracts_count: '{count} contrat(s)'
+            contracts_count: "{count} contrat | {count} contrats"
             col_company: "Raison sociale"
             col_representative: Représentant
             col_siret: SIRET
@@ -893,9 +893,9 @@ suite:
                 contractual_email_invalid: Cet email n'est pas valide.
                 share_capital_invalid: Le capital social ne peut pas être négatif.
                 siret_invalid: 'Ce SIRET est invalide : quatorze chiffres et une clé de contrôle correcte sont attendus.'
-                has_contracts: 'Ce client est nommé par {count} contrat(s). Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui.'
+                has_contracts: "Ce client est nommé par {count} contrat. Un client lié à un contrat ne se supprime pas : c'est ce contrat qui prouve ce qui a été convenu, et avec qui. | Ce client est nommé par {count} contrats. Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui."
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
-                has_spaces: 'Ce client a encore {count} espace(s), corbeille comprise. Supprimez-les définitivement avant de supprimer la fiche.'
+                has_spaces: "Ce client a encore {count} espace, corbeille comprise. Supprimez-le définitivement avant de supprimer la fiche. | Ce client a encore {count} espaces, corbeille comprise. Supprimez-les définitivement avant de supprimer la fiche."
                 siren_invalid: 'Ce SIREN est invalide : neuf chiffres et une clé de contrôle correcte sont attendus.'
                 siren_mismatch: "Ce SIREN ne correspond pas au SIRET saisi. Les neuf premiers chiffres d'un SIRET sont son SIREN."
                 phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
@@ -2325,9 +2325,9 @@ suite:
                 banner_action: Envoyer à relire
                 banner_hide: Masquer ce bandeau
                 confirm_title: Envoyer à relire ?
-                confirm_body: "{count} contenu(s) attendent une réponse. Chaque destinataire pouvant valider recevra un email avec une adresse neuve, et son adresse précédente cessera de fonctionner."
+                confirm_body: "{count} contenu attend une réponse. Chaque destinataire pouvant valider recevra un email avec une adresse neuve, et son adresse précédente cessera de fonctionner. | {count} contenus attendent une réponse. Chaque destinataire pouvant valider recevra un email avec une adresse neuve, et son adresse précédente cessera de fonctionner."
                 confirm_send: Envoyer
-                sent: 'Envoyé à {count} destinataire(s).'
+                sent: "Envoyé à {count} destinataire. | Envoyé à {count} destinataires."
                 nothing_awaiting: Rien n'attend de réponse pour le moment.
                 nobody_to_write_to: "Aucun lien de cet espace ne peut répondre. Émettez un lien d'accès avec le droit de valider depuis l'onglet Accès client."
                 late: '{count} en retard'
@@ -2379,7 +2379,7 @@ suite:
                 review_by_invalid: La date de relecture est invalide.
                 column_name_required: Le nom de l'étape est obligatoire.
                 column_name_too_long: Le nom ne peut pas dépasser 100 caractères.
-                column_not_empty: 'Cette étape contient {count} contenu(s). Déplacez-les avant de la supprimer.'
+                column_not_empty: "Cette étape contient {count} contenu. Déplacez-le avant de la supprimer. | Cette étape contient {count} contenus. Déplacez-les avant de la supprimer."
                 column_last: Un tableau garde au moins une étape.
                 comment_required: Le message ne peut pas être vide.
                 comment_needs_account: Il faut être connecté pour écrire sur un échange.
@@ -2522,7 +2522,7 @@ studio:
             nothing_awaiting: Vous avez répondu sur tout ce qui était en attente.
             select_all: Tout sélectionner
             approve_selected: 'Valider la sélection ({count})'
-            approved_many: "{count} contenu(s) validé(s)."
+            approved_many: "{count} contenu validé. | {count} contenus validés."
             review_by: 'à relire avant le {date}'
             approval:
                 approved: Validé
@@ -2598,7 +2598,7 @@ studio:
     email:
         space_review:
             subject: 'Votre avis est attendu sur {space}'
-            body: "{count} contenu(s) attendent votre avis dans l'espace {space}. Vous pouvez les valider ou répondre « À revoir », et commenter chacun d'eux."
+            body: "{count} contenu attend votre avis dans l'espace {space}. Vous pouvez le valider ou répondre « À revoir », et le commenter. | {count} contenus attendent votre avis dans l'espace {space}. Vous pouvez les valider ou répondre « À revoir », et commenter chacun d'eux."
             cta: Ouvrir mon espace
             replaces: "Cette adresse remplace la précédente, qui ne fonctionne plus. Elle est personnelle, ne la transmettez pas."
             expires: 'Elle reste valable jusqu''au {date}.'

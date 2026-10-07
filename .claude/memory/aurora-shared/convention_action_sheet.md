@@ -29,34 +29,30 @@ Trois composants dans `@/shared/components/action/` :
 ```
 
 Une action : `{ key, title, description?, color?, icon?, href?, onSelect?,
-disabled?, loading? }`.
+disabled?, loading?, primary? }`.
 
 **Les six règles de placement :**
 
-1. **Un seul geste primaire reste visible, sauf sur un toolbar de liste.**
+1. **Un seul geste primaire reste visible, partout, toolbar de liste compris.**
    Sur une page qui édite ou montre **un** enregistrement, le verbe de la page
    garde son bouton : Enregistrer sur un éditeur, Présenter sur un deck,
-   Contresigner sur un contrat. L'enterrer derrière un clic est l'erreur que ce
-   composant rend facile.
+   Contresigner sur un contrat. Sur une **liste**, c'est Créer : « + Nouvelle
+   publication », « + Nouveau contrat », « Inviter ».
 
-   Le **toolbar d'une liste** est l'exception, et elle est **validée en
-   regardant l'écran** (Axel, 14/09/2026, sur `/suite/studio/decks` puis
-   `/suite/studio/customers`) : Créer part dans la feuille avec les autres,
-   et il ne reste qu'un bouton « Actions » à droite de la recherche. La
-   différence tient à ce qui occupe la rangée : un en-tête d'éditeur n'a que
-   ses boutons, un toolbar de liste a une recherche et souvent un filtre qui
-   veulent la largeur. **Ne pas « corriger » une liste en ressortant Créer** :
-   c'est le rendu voulu, pas un oubli.
-2. **Un toolbar de liste n'a pas de seuil : toujours la feuille, même pour
-   une seule action.** Demandé explicitement (Axel, 14/09/2026) : « même un
-   seul bouton je veux ce bouton actions ». Quatorze pages y sont passées, de
-   `CustomersApp` à `MountPointsTab`, y compris celles qui n'offraient que
-   « Ajouter ». Ce qui compte est qu'une liste du back-office s'ouvre toujours
-   de la même façon.
+   **Décision d'Axel du 07/10/2026**, qui remplace celle du 14/09 (« même un
+   seul bouton je veux ce bouton actions ») : l'audit UI de la suite a montré
+   que le geste le plus fréquent d'une liste coûtait deux clics et une modale
+   centrée qui ne contenait qu'une ligne. Mécanisme : l'action porte
+   `primary: true` dans la liste passée à `AppPageActions`, qui la pose en
+   bouton plein à droite de la feuille ; la feuille garde le reste (importer,
+   catégories, purger) et **disparaît quand il ne reste rien dedans**. Sur
+   téléphone, « Actions » se réduit alors à son icône pour laisser la ligne au
+   bouton principal.
+2. **Une action destructrice ou rare ne sort jamais de la feuille**, même
+   seule (« Purger » des demandes d'accès) : seul le verbe principal en sort.
 
    **L'état vide garde son vrai bouton** (slot `#action` d'`AppNoData`) : une
-   liste sans rien dedans n'a qu'une chose à proposer, et la cacher derrière un
-   menu serait un menu dans une pièce vide.
+   liste sans rien dedans n'a qu'une chose à proposer.
 
 3. **Deux seuils ailleurs.** Une **ligne** passe en feuille dès **deux**
    actions, c'est la convention déjà appliquée par une quinzaine de listes et

@@ -67,15 +67,59 @@ describe("AppPageActions", () => {
         expect(trigger(wrapper).classes()).toContain("text-xs");
     });
 
-    // The component has two roots: a `class` set on it got lost.
-    it("puts the classes it receives on its trigger", () => {
+    // The sheet has two roots: a `class` set on this component got lost. It
+    // now lands on the row that holds the buttons.
+    it("puts the classes it receives on the row of buttons", () => {
         const wrapper = mount(AppPageActions, {
             props: { actions: [PRINT] },
             attrs: { class: "w-full sm:w-auto" },
             global: { stubs: { AppModal: { template: "<div />" } } },
         });
-        expect(trigger(wrapper).classes()).toEqual(
+        expect(wrapper.classes()).toEqual(
             expect.arrayContaining(["w-full", "sm:w-auto"]),
         );
+    });
+
+    /**
+     * The create verb used to sit alone in the sheet: two clicks and a modal
+     * for the most frequent gesture of a list.
+     */
+    describe("a primary action", () => {
+        const CREATE = {
+            key: "create",
+            title: "Nouvelle publication",
+            primary: true,
+        };
+
+        it("stands beside the sheet as the page's main button", async () => {
+            const onSelect = vi.fn();
+            const wrapper = mountActions([PRINT, { ...CREATE, onSelect }]);
+            const buttons = wrapper.findAll("button");
+
+            expect(buttons).toHaveLength(2);
+            expect(buttons[1].text()).toContain("Nouvelle publication");
+
+            await buttons[1].trigger("click");
+            expect(onSelect).toHaveBeenCalledOnce();
+        });
+
+        it("leaves no « Actions » button when nothing else is offered", () => {
+            const wrapper = mountActions([CREATE]);
+            const buttons = wrapper.findAll("button");
+
+            expect(buttons).toHaveLength(1);
+            expect(buttons[0].text()).toContain("Nouvelle publication");
+            expect(wrapper.text()).not.toContain("shared.actions.plain_title");
+        });
+
+        it("is not offered a second time in the sheet", async () => {
+            const wrapper = mountActions([PRINT, CREATE]);
+
+            await trigger(wrapper).trigger("click");
+
+            expect(wrapper.find('[data-test="sheet"]').text()).not.toContain(
+                "Nouvelle publication",
+            );
+        });
     });
 });

@@ -271,7 +271,7 @@ suite:
                 reset_done: El contrato vuelve a usar el texto de la plantilla.
                 differences: Diferencias con la plantilla
                 differences_none: Ninguna diferencia con la plantilla.
-                differences_summary: '{added} añadido(s), {removed} retirado(s)'
+                differences_summary: "Añadidos: {added} · retirados: {removed}"
                 diff_added: Añadido
                 diff_removed: Retirado
                 unsaved: Cambios sin guardar
@@ -372,7 +372,7 @@ suite:
             retained_until: 'Conservado hasta el'
             reminders: Recordatorios
             reminders_none: 'Ningún recordatorio'
-            reminders_count: '{count} recordatorio(s), el último el {date}'
+            reminders_count: "{count} recordatorio, el {date} | {count} recordatorios, el último el {date}"
             not_sealed_yet: 'Este contrato aún no está sellado. Su texto quedará fijado en el momento del sellado.'
             seal_intact: 'El sello está intacto'
             seal_intact_hint: 'El documento almacenado corresponde exactamente al hash tomado durante el sellado.'
@@ -624,7 +624,7 @@ suite:
                 draft_already_open: 'Ya hay un borrador abierto en esta plantilla (versión {number}). Termínelo o descártelo antes de abrir otro.'
                 nothing_to_publish: 'Esta versión no tiene ningún texto que publicar.'
                 already_published: "Esta versión ya no es un borrador: su texto ya no se puede modificar. Abra una nueva versión."
-                used_by_contracts: '{count} contrato(s), borradores incluidos, parten de esta plantilla: no puede eliminarse. Archívela; dejará de proponerse y esos contratos conservan su texto.'
+                used_by_contracts: "{count} contrato, borradores incluidos, parte de esta plantilla: no puede eliminarse. Archívela; dejará de proponerse y ese contrato conserva su texto. | {count} contratos, borradores incluidos, parten de esta plantilla: no puede eliminarse. Archívela; dejará de proponerse y esos contratos conservan su texto."
                 governing_locale_unknown: 'La aplicación no admite este idioma.'
                 governing_locale_not_written: 'El idioma de referencia ({locale}) no está redactado en esta versión.'
                 governing_locale_required: 'Esta versión está redactada en varios idiomas: indique cuál es el de referencia antes de publicar.'
@@ -801,7 +801,7 @@ suite:
             deleted: 'Cliente eliminado.'
             delete_confirm: '¿Eliminar {name}?'
             delete_warning: 'Un cliente mencionado en un contrato o en un espacio, aunque esté en la papelera, no se puede eliminar: la eliminación se rechazará mientras quede alguno.'
-            contracts_count: '{count} contrato(s)'
+            contracts_count: "{count} contrato | {count} contratos"
             col_company: "Razón social"
             col_representative: Representante
             col_siret: SIRET
@@ -885,9 +885,9 @@ suite:
                 contractual_email_invalid: 'Este email no es válido.'
                 share_capital_invalid: 'El capital social no puede ser negativo.'
                 siret_invalid: 'Este SIRET no es válido: se esperan catorce cifras y un dígito de control correcto.'
-                has_contracts: 'Este cliente figura en {count} contrato(s). Un cliente vinculado a un contrato no se puede eliminar: los contratos prueban lo que se acordó, y con quién.'
+                has_contracts: "Este cliente figura en {count} contrato. Un cliente vinculado a un contrato no se puede eliminar: ese contrato prueba lo que se acordó, y con quién. | Este cliente figura en {count} contratos. Un cliente vinculado a un contrato no se puede eliminar: los contratos prueban lo que se acordó, y con quién."
                 siret_taken: 'Este SIRET ya está registrado para {name}.'
-                has_spaces: 'Este cliente aún tiene {count} espacio(s), papelera incluida. Elimínelos definitivamente antes de eliminar la ficha.'
+                has_spaces: "Este cliente aún tiene {count} espacio, papelera incluida. Elimínelo definitivamente antes de eliminar la ficha. | Este cliente aún tiene {count} espacios, papelera incluida. Elimínelos definitivamente antes de eliminar la ficha."
                 siren_invalid: 'Este SIREN no es válido: se esperan nueve cifras y un dígito de control correcto.'
                 siren_mismatch: 'Este SIREN no corresponde al SIRET introducido. Las nueve primeras cifras de un SIRET son su SIREN.'
                 phone_too_long: 'Este número no puede superar los 30 caracteres.'
@@ -2292,9 +2292,9 @@ suite:
                 banner_action: 'Enviar a revisar'
                 banner_hide: 'Ocultar este aviso'
                 confirm_title: '¿Enviar a revisar?'
-                confirm_body: "{count} contenido(s) esperan una respuesta. Cada destinatario que pueda validar recibirá un correo electrónico con una nueva dirección, y su dirección anterior dejará de funcionar."
+                confirm_body: "{count} contenido espera una respuesta. Cada destinatario que pueda validar recibirá un correo electrónico con una nueva dirección, y su dirección anterior dejará de funcionar. | {count} contenidos esperan una respuesta. Cada destinatario que pueda validar recibirá un correo electrónico con una nueva dirección, y su dirección anterior dejará de funcionar."
                 confirm_send: Enviar
-                sent: 'Enviado a {count} destinatario(s).'
+                sent: "Enviado a {count} destinatario. | Enviado a {count} destinatarios."
                 nothing_awaiting: 'Nada espera respuesta por el momento.'
                 nobody_to_write_to: "Ningún enlace de este espacio puede responder. Emita un enlace de acceso con permiso para validar desde la pestaña Acceso del cliente."
                 late: '{count} atrasadas'
@@ -2343,7 +2343,7 @@ suite:
                 review_by_invalid: 'La fecha de revisión no es válida.'
                 column_name_required: 'El nombre de la etapa es obligatorio.'
                 column_name_too_long: 'El nombre no puede superar los 100 caracteres.'
-                column_not_empty: 'Esta etapa contiene {count} contenido(s). Muévalos antes de eliminarla.'
+                column_not_empty: "Esta etapa contiene {count} contenido. Muévalo antes de eliminarla. | Esta etapa contiene {count} contenidos. Muévalos antes de eliminarla."
                 column_last: 'Un tablero conserva al menos una etapa.'
                 comment_required: 'El mensaje no puede estar vacío.'
                 comment_needs_account: 'Debe iniciar sesión para escribir en una conversación.'
@@ -2481,7 +2481,7 @@ studio:
             nothing_awaiting: 'Ha respondido a todo lo que estaba pendiente.'
             select_all: 'Seleccionar todo'
             approve_selected: 'Validar la selección ({count})'
-            approved_many: "{count} contenido(s) validado(s)."
+            approved_many: "{count} contenido validado. | {count} contenidos validados."
             review_by: 'revisar antes del {date}'
             approval:
                 approved: Validado
@@ -2557,7 +2557,7 @@ studio:
     email:
         space_review:
             subject: 'Se espera su opinión sobre {space}'
-            body: "{count} contenido(s) esperan su opinión en el espacio {space}. Puede validarlos o responder «Por revisar», y comentar cada uno."
+            body: "{count} contenido espera su opinión en el espacio {space}. Puede validarlo o responder «Por revisar», y comentarlo. | {count} contenidos esperan su opinión en el espacio {space}. Puede validarlos o responder «Por revisar», y comentar cada uno."
             cta: 'Abrir mi espacio'
             replaces: 'Esta dirección sustituye a la anterior, que ya no funciona. Es personal, no la transmita.'
             expires: 'Sigue siendo válida hasta el {date}.'

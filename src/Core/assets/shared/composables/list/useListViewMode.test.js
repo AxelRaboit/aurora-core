@@ -45,7 +45,7 @@ beforeEach(() => {
 });
 
 /**
- * The sidemenu is 480px fixed from 1024 up and hidden below, so a 768px window
+ * The sidemenu is up to 480px wide from 1024 up and hidden below, so a 768px window
  * leaves a list 718px and a 1024px window leaves it 478px. Every threshold
  * written against the window is therefore asking the wrong thing, and this is
  * what these tests pin down.

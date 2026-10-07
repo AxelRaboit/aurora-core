@@ -73,7 +73,7 @@ Distribué via composer : les clients lisent ces mémoires depuis
   boutons dans `#actions` = wrapper `flex flex-col sm:flex-row gap-2 w-full sm:w-auto`
 - [convention_action_sheet.md](convention_action_sheet.md) - 3 actions ou plus =
   feuille modale derrière un bouton unique : `AppRowActions` (ligne),
-  `AppPageActions` (en-tête de page), primaire et navigation restent dehors
+  `AppPageActions` (en-tête de page), primaire (`primary: true`, Créer d'une liste compris) et navigation restent dehors
 - [convention_modal_and_confirmation.md](convention_modal_and_confirmation.md) -
   AppModal API + confirmation de suppression via modale (jamais `confirm()` natif)
 - [convention_vue_form_validation.md](convention_vue_form_validation.md) -

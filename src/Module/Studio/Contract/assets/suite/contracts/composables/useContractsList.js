@@ -1,5 +1,6 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useMoneyFormat } from "@/shared/composables/format/useMoneyFormat.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
@@ -54,6 +55,7 @@ function emptyForm(locales) {
  */
 export function useContractsList(props) {
     const { t } = useI18n();
+    const { formatMoney } = useMoneyFormat();
 
     const items = ref([...(props.contracts ?? [])]);
 
@@ -255,14 +257,10 @@ export function useContractsList(props) {
     }
 
     function formatAmount(contract) {
-        if (null === contract.amountCents || undefined === contract.amountCents)
-            return null;
-
-        return new Intl.NumberFormat(undefined, {
-            style: "currency",
-            currency: contract.amountCurrency ?? "EUR",
-            minimumFractionDigits: 0 === contract.amountCents % 100 ? 0 : 2,
-        }).format(contract.amountCents / 100);
+        return formatMoney(
+            contract.amountCents,
+            contract.amountCurrency ?? "EUR",
+        );
     }
 
     return {

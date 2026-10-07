@@ -462,21 +462,42 @@ seulement si vous gérez le HTTP vous-même.
 
 ### `useDateFormat()` (`@shared/composables/format/`)
 
-Format de date/heure suivant la locale courante (intl).
+Dates dans la langue de la suite (vue-i18n), à l'heure du site. Trois formats
+pour la suite, et pas d'autres :
 
 ```js
-const { formatDate, formatDateTime, formatRelative } = useDateFormat();
-formatDate(post.createdAt);          // '15 mai 2026'
-formatDateTime(post.updatedAt);      // '15 mai 2026 14:32'
+const { formatDateShort, formatDateTime, formatDate } = useDateFormat();
+formatDateShort(contract.effectiveDate); // '7 oct. 2026' - un jour, en liste ou dans une phrase
+formatDateTime(comment.createdAt);       // '7 oct., 09:17' - un instant en liste ; '7 oct. 2025, 09:17' une autre année
+formatDate(contract.frozenAt);           // '7 octobre 2026 à 09:17' - un instant sur une fiche
 ```
+
+Les trois rendent `'-'` (ou le second argument) pour une valeur vide.
+`formatDateNumeric` et `formatDateTimeNumeric` restent pour les documents qui
+les demandent ; la suite n'affiche pas « 07/10/2026 ».
+
+### `useMoneyFormat()` (`@shared/composables/format/`)
+
+Montants en centimes, dans la langue de la suite ; les décimales n'apparaissent
+que si elles portent quelque chose.
+
+```js
+const { formatMoney } = useMoneyFormat();
+formatMoney(75000);              // '750 €'
+formatMoney(75050, "EUR", "-");  // '750,50 €' ; '-' pour un montant absent
+```
+
+Jamais `Intl.NumberFormat(undefined, …)` ni `toLocaleDateString(undefined, …)` :
+ils prennent la langue du navigateur, et `FormatsFollowTheSuiteLanguageTest`
+les refuse.
 
 ### `useFileSize()` (`@shared/composables/format/`)
 
-Format de taille fichier humain-readable.
+Taille de fichier lisible, dans la langue de la suite.
 
 ```js
-const { format } = useFileSize();
-format(1024 * 1024 * 3.5);           // '3,5 Mo'
+const { formatSize } = useFileSize();
+formatSize(1024 * 1024 * 3.5);           // '3,5 Mo'
 ```
 
 ### `useRelativeTime()` (`@shared/composables/`)

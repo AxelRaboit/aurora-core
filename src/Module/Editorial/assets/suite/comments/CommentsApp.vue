@@ -1,6 +1,7 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useCommentRowActions } from "./composables/useCommentRowActions.js";
 import { useComments } from "./composables/useComments.js";
@@ -15,7 +16,8 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { Check, ShieldAlert, Trash2, X } from "lucide-vue-next";
 
-const { t, d: formatLocalizedDate } = useI18n();
+const { t, te: hasTranslation } = useI18n();
+const { formatDateTime } = useDateFormat();
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -43,8 +45,11 @@ const actionsFor = useCommentRowActions({
     },
 });
 
-function formatDate(value) {
-    return formatLocalizedDate(new Date(value), "short");
+/** A reaction by the name readers see under the post (« J'aime »), not its code. */
+function reactionLabel(type) {
+    const key = `frontend.editorial.comments.reactions.${type}`;
+
+    return hasTranslation(key) ? t(key) : type;
 }
 
 function badgeColor(value) {
@@ -126,7 +131,7 @@ function badgeColor(value) {
                              below `sm`. -->
                         <p class="text-xs text-muted mt-0.5 sm:truncate">
                             {{ t("suite.comments.on_post") }} {{ comment.postTitle }}
-                            · {{ formatDate(comment.createdAt) }}
+                            · {{ formatDateTime(comment.createdAt) }}
                             <span v-if="comment.parentAuthorName">
                                 · {{ t("suite.comments.in_reply_to", { name: comment.parentAuthorName }) }}
                             </span>
@@ -148,7 +153,7 @@ function badgeColor(value) {
 
                 <footer v-if="comment.replyCount || comment.reactions" class="flex flex-wrap gap-3 text-xs text-muted">
                     <span v-if="comment.replyCount">{{ t("suite.comments.replies", { count: comment.replyCount }) }}</span>
-                    <span v-for="(count, type) in comment.reactions" :key="type">{{ type }} · {{ count }}</span>
+                    <span v-for="(count, type) in comment.reactions" :key="type">{{ reactionLabel(type) }} · {{ count }}</span>
                 </footer>
             </article>
         </div>

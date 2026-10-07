@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createAppI18n } from "./i18n.js";
+import { createAppI18n, frenchPlural } from "./i18n.js";
 
 /**
  * A named format vue-i18n cannot resolve renders as an empty string, silently.
@@ -28,5 +28,32 @@ describe("createAppI18n", () => {
         expect(createAppI18n("fr").global.d(at, "long")).not.toMatch(
             /\d{1,2}:\d{2}/,
         );
+    });
+});
+
+/**
+ * French puts zero in the singular. vue-i18n's default rule does not, which
+ * wrote « 0 dossiers » under every empty folder.
+ */
+describe("frenchPlural", () => {
+    it("reads 0 and 1 in the singular, from 2 in the plural", () => {
+        expect([0, 1, 2, 12].map((count) => frenchPlural(count, 2))).toEqual([
+            0, 0, 1, 1,
+        ]);
+    });
+
+    it("keeps a zero form when the message has one", () => {
+        expect([0, 1, 2, 12].map((count) => frenchPlural(count, 3))).toEqual([
+            0, 1, 2, 2,
+        ]);
+    });
+
+    it("is the rule French messages are chosen with", () => {
+        const { global } = createAppI18n("fr");
+        const key = "notes.markdown.folders.folder_count";
+
+        expect(global.t(key, { count: 0 })).toBe("0 dossier");
+        expect(global.t(key, { count: 1 })).toBe("1 dossier");
+        expect(global.t(key, { count: 3 })).toBe("3 dossiers");
     });
 });

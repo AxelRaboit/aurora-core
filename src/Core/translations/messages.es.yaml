@@ -192,6 +192,7 @@ shared:
         copied: Copiado.
         copy: Copiar
         dates: Fechas
+        size: Tamaño
         created: 'Creado el'
         updated: 'Modificado el'
         reset: Restablecer

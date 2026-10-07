@@ -5,6 +5,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Modifié
+- **La suite plus sobre et plus nette** (audit UI du 07/10/2026) :
+  - le menu latéral s'ouvre à 320 px au lieu de 480 (la poignée va toujours jusqu'à 480, une largeur déjà choisie est gardée) ; ses sections perdent leurs bandeaux colorés au profit d'une pastille de la couleur du module, et l'élément actif a la même forme dans tous les modules, arbres des dossiers de la médiathèque et des notes compris ;
+  - le verbe principal d'une liste est un vrai bouton (« + Nouvelle publication », « + Nouveau contrat », « Inviter »…) au lieu d'une entrée seule dans la feuille « Actions » ; une action de page marquée `primary: true` sort de la feuille, et la feuille disparaît quand il ne reste rien dedans ;
+  - les encarts « Comment ça marche » s'ouvrent à la première visite d'un écran seulement, et repliés ne sont plus qu'une ligne discrète ;
+  - précédent, suivant et recharger ne s'affichent plus que dans l'application installée ;
+  - titres de fiche en 24 px, titres des cartes du profil ramenés sous le titre de page ; le fil d'Ariane ne commence plus par « / » sur téléphone.
+- **Dates, montants et tailles dans la langue de la suite**, plus celle du navigateur : « 750 € » et non « €750 », « 7 oct. 2026 » et non « Oct 06, 2026 », « 42,8 Ko » et non « 42.8 Ko ». Trois formats de date seulement (`formatDateShort`, `formatDateTime`, `formatDate` de `useDateFormat`), l'année n'apparaissant dans `formatDateTime` que si elle n'est pas l'année en cours ; nouveau `useMoneyFormat`. `tests/Unit/Core/FormatsFollowTheSuiteLanguageTest.php` refuse un formatage qui prend la langue du navigateur.
+- **De vrais pluriels** : plus aucun « (s) » dans les trois langues, le français met 0 au singulier (`frenchPlural` dans `i18n.js`), et les messages lus par PHP reçoivent `%count%` ; libellés en franglais remplacés (« Marque », « Phrase d'humeur », « Site public », « Modèle de titre SEO », « Taille » et « Nom » pour trier la médiathèque…), réactions des commentaires par leur nom, « Toutes les notes » dans Notes.
+
+---
+
 ## [3.0.1] - 2026-10-07
 
 ### Corrigé

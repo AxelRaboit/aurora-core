@@ -62,7 +62,7 @@ const props = defineProps({
 const { t } = useI18n();
 const { can } = usePrivileges();
 const { request } = useRequest();
-const { formatDateNumeric } = useDateFormat();
+const { formatDateShort } = useDateFormat();
 const { flowOf } = useContractFlow({ linkDays: props.linkDays });
 
 const CONTRACT_KEYS = "suite.studio.contracts";
@@ -190,7 +190,7 @@ function rowActions(contract) {
 
 const pageActions = computed(() =>
     can("studio.contracts.create")
-        ? [{ key: "create", color: "accent", icon: Plus, title: t(`${CONTRACT_KEYS}.add`), onSelect: () => openCreate() }]
+        ? [{ key: "create", primary: true, color: "accent", icon: Plus, title: t(`${CONTRACT_KEYS}.add`), onSelect: () => openCreate() }]
         : [],
 );
 </script>
@@ -275,13 +275,13 @@ const pageActions = computed(() =>
                         </td>
                         <td class="px-4 py-2 text-primary whitespace-nowrap tabular-nums hidden lg:table-cell">{{ formatAmount(contract) ?? "-" }}</td>
                         <td class="px-4 py-2 text-muted text-xs whitespace-nowrap hidden xl:table-cell">
-                            {{ contract.effectiveDate ? formatDateNumeric(contract.effectiveDate) : "-" }}
+                            {{ contract.effectiveDate ? formatDateShort(contract.effectiveDate) : "-" }}
                         </td>
                         <td class="px-4 py-2">
                             <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
                         </td>
                         <td class="px-4 py-2 text-muted text-xs whitespace-nowrap hidden xl:table-cell">
-                            {{ contract.lastActivityAt ? formatDateNumeric(contract.lastActivityAt) : "-" }}
+                            {{ contract.lastActivityAt ? formatDateShort(contract.lastActivityAt) : "-" }}
                         </td>
                         <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions :actions="rowActions(contract)" :label="contract.reference ?? contract.customerName ?? ''" />

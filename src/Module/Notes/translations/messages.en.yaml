@@ -234,7 +234,7 @@ notes:
         folders:
             title: Folders
             trash_label: Note folders
-            root: All documents
+            root: All notes
             create: New folder
             created: Folder created
             rename: Rename
@@ -246,10 +246,11 @@ notes:
             confirm_delete: 'Send "{name}" to the trash, with what it holds?'
             deleted: Folder moved to the trash
             move_to: Move to…
-            move_root: All documents
+            move_root: All notes
             moved: Item moved
             open: Open the folder
-            contents: '{folders} folders · {notes} notes'
+            folder_count: "{count} folder | {count} folders"
+            note_count: "{count} note | {count} notes"
             tree_empty: No folder yet.
             errors:
                 move_refused: 'Move refused: a folder cannot be filed inside itself, nor deeper than {max} levels.'
@@ -261,7 +262,7 @@ notes:
                 move_failed: Could not move the item.
                 load_failed: Could not load the folder.
         library:
-            title: All documents
+            title: All notes
             new_note: New note
             recent: Recently changed
             favorites: Favourites
@@ -278,11 +279,11 @@ notes:
                 shared: "Filter: shared note spaces"
                 private: "Filter: my note space"
                 clear: Clear the filter
-            selected: '{count} selected'
+            selected: "{count} selected | {count} selected"
             select: Select
             stop_selecting: Stop selecting
             clear_selection: Clear the selection
-            some_refused: '{count} items could not be handled.'
+            some_refused: "{count} item could not be handled. | {count} items could not be handled."
             confirm_delete_selection: 'Send the {count} selected items to the trash?'
             new_folder: New folder
             search_placeholder: Search the notes…
@@ -408,7 +409,7 @@ notes:
             empty: 'No past version yet'
             empty_hint: 'A version is kept when you edit the note, at most one every few minutes (settings, Notes tab).'
             no_author: 'Unknown author'
-            since: 'Since this version: {added} line(s) added, {removed} removed'
+            since: "Since this version, lines added: {added} · removed: {removed}"
             show_whole: 'Show the whole version'
             show_changes: 'Show the changes'
             title_was: 'The title was then: {title}'
@@ -471,7 +472,7 @@ notes:
             no_results: No commands
         tags:
             add_placeholder: Add a tag…
-            summary: '{count} tag(s)'
+            summary: "{count} tag | {count} tags"
             filter_label: Filter by tag
             clear: Clear all
             no_results: No notes for these tags

@@ -65,7 +65,7 @@ const props = defineProps({
 const { t } = useI18n();
 const { can } = usePrivileges();
 const { request } = useRequest();
-const { formatDateTimeNumeric } = useDateFormat();
+const { formatDateTime } = useDateFormat();
 
 const isFrozen = computed(() => true === props.contract.isFrozen);
 const canEdit = computed(() => !isFrozen.value && can("studio.contracts.edit"));
@@ -245,7 +245,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
 
         <div class="min-w-0 space-y-1">
             <div class="flex flex-wrap items-baseline gap-2">
-                <h1 class="text-lg font-semibold text-primary">
+                <h1 class="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
                     {{ t(`${WORDING_KEYS}.heading`, { customer: contract.customerName }) }}
                 </h1>
                 <span class="text-sm text-muted">{{ t(`${WORDING_KEYS}.parts.${part}`) }}</span>
@@ -256,7 +256,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                 {{ t(`${WORDING_KEYS}.intro`, { template: template.name, number: template.versionNumber }) }}
             </p>
             <p v-if="adaptation?.adaptedAt" class="text-xs text-muted">
-                {{ t(`${WORDING_KEYS}.adapted_on`, { date: formatDateTimeNumeric(adaptation.adaptedAt) }) }}
+                {{ t(`${WORDING_KEYS}.adapted_on`, { date: formatDateTime(adaptation.adaptedAt) }) }}
             </p>
         </div>
 

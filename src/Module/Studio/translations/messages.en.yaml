@@ -372,7 +372,7 @@ suite:
             retained_until: 'Kept until'
             reminders: 'Reminders'
             reminders_none: 'No reminder'
-            reminders_count: '{count} reminder(s), last on {date}'
+            reminders_count: "{count} reminder, on {date} | {count} reminders, last on {date}"
             not_sealed_yet: This contract is not sealed yet. Its wording is frozen at the moment of sealing.
             seal_intact: The seal is intact
             seal_intact_hint: The stored document matches exactly the hash taken when it was sealed.
@@ -624,7 +624,7 @@ suite:
                 draft_already_open: 'A draft is already open on this template (version {number}). Finish or discard it before opening another.'
                 nothing_to_publish: This version has no wording to publish.
                 already_published: "This version is no longer a draft: its wording can no longer be changed. Open a new version."
-                used_by_contracts: '{count} contract(s), drafts included, are built on this template: it cannot be deleted. Archive it instead; it will no longer be offered and these contracts keep their text.'
+                used_by_contracts: "{count} contract, drafts included, is built on this template: it cannot be deleted. Archive it instead; it will no longer be offered and this contract keeps its text. | {count} contracts, drafts included, are built on this template: it cannot be deleted. Archive it instead; it will no longer be offered and these contracts keep their text."
                 governing_locale_unknown: This language is not one the application offers.
                 governing_locale_not_written: 'The governing language ({locale}) is not written in this version.'
                 governing_locale_required: 'This version is written in several languages: say which one prevails before publishing it.'
@@ -802,7 +802,7 @@ suite:
             delete_confirm: 'Delete {name}?'
             delete_warning: 'A customer a contract or a space names, even one in the trash, is not deleted: this will be refused for as long as one remains.'
 
-            contracts_count: '{count} contract(s)'
+            contracts_count: "{count} contract | {count} contracts"
             col_company: "Legal name"
             col_representative: Representative
             col_siret: Registration no.
@@ -893,9 +893,9 @@ suite:
                 contractual_email_invalid: This email is not valid.
                 share_capital_invalid: Share capital cannot be negative.
                 siret_invalid: 'This registration number is invalid: fourteen digits with a correct checksum are expected.'
-                has_contracts: '{count} contract(s) name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom.'
+                has_contracts: "{count} contract names this customer. A customer a contract points at is not deleted: that contract is what proves what was agreed, and with whom. | {count} contracts name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom."
                 siret_taken: 'This registration number is already recorded for {name}.'
-                has_spaces: 'This client still has {count} space(s), the trash included. Delete them for good before deleting the record.'
+                has_spaces: "This client still has {count} space, the trash included. Delete it for good before deleting the record. | This client still has {count} spaces, the trash included. Delete them for good before deleting the record."
                 siren_invalid: 'This SIREN is invalid: nine digits and a correct check digit are expected.'
                 siren_mismatch: "This SIREN does not match the SIRET. The first nine digits of a SIRET are its SIREN."
                 phone_too_long: This number cannot exceed 30 characters.
@@ -2318,9 +2318,9 @@ suite:
                 banner_action: Send for review
                 banner_hide: Hide this banner
                 confirm_title: Send for review?
-                confirm_body: "{count} content item(s) are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working."
+                confirm_body: "{count} content item is waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working. | {count} content items are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working."
                 confirm_send: Send
-                sent: 'Sent to {count} recipient(s).'
+                sent: "Sent to {count} recipient. | Sent to {count} recipients."
                 nothing_awaiting: Nothing is waiting for an answer right now.
                 nobody_to_write_to: "No link on this space can answer. Issue an access link with the right to approve from the Client access tab."
                 late: '{count} late'
@@ -2372,7 +2372,7 @@ suite:
                 review_by_invalid: The review date is invalid.
                 column_name_required: The step name is required.
                 column_name_too_long: The name cannot be longer than 100 characters.
-                column_not_empty: "This step holds {count} content item(s). Move them before deleting it."
+                column_not_empty: "This step holds {count} content item. Move it before deleting the step. | This step holds {count} content items. Move them before deleting the step."
                 column_last: A board keeps at least one step.
                 comment_required: The message cannot be empty.
                 comment_needs_account: You have to be signed in to write on a thread.
@@ -2515,7 +2515,7 @@ studio:
             nothing_awaiting: You have answered everything that was waiting.
             select_all: Select all
             approve_selected: 'Approve selection ({count})'
-            approved_many: "{count} content item(s) approved."
+            approved_many: "{count} content item approved. | {count} content items approved."
             review_by: 'to review before {date}'
             approval:
                 approved: Approved
@@ -2591,7 +2591,7 @@ studio:
     email:
         space_review:
             subject: 'Your answer is needed on {space}'
-            body: "{count} content item(s) are waiting for your answer in the {space} space. You can approve them or answer “Changes requested”, and comment on each one."
+            body: "{count} content item is waiting for your answer in the {space} space. You can approve it or answer “Changes requested”, and comment on it. | {count} content items are waiting for your answer in the {space} space. You can approve them or answer “Changes requested”, and comment on each one."
             cta: Open my space
             replaces: 'This address replaces the previous one, which no longer works. It is personal, please do not pass it on.'
             expires: 'It stays valid until {date}.'

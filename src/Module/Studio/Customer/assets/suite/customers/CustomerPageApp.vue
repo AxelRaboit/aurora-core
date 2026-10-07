@@ -127,7 +127,7 @@ const pageActions = computed(() => {
         </AppPageBar>
 
         <div class="min-w-0">
-            <h1 class="m-0 break-words text-lg font-semibold text-primary">{{ customer.legalName }}</h1>
+            <h1 class="m-0 break-words text-xl font-semibold tracking-tight text-primary sm:text-2xl">{{ customer.legalName }}</h1>
             <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
                 <AppBadge :color="isProspect ? 'amber' : 'emerald'">{{ t(customer.statusLabel) }}</AppBadge>
                 <span v-if="customer.legalForm">{{ customer.legalForm }}</span>

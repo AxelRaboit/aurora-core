@@ -129,7 +129,7 @@ suite:
         updated: Thème mis à jour.
         activated: Thème activé.
         deleted: Thème supprimé.
-        template_count: '{count} fichier(s) de template'
+        template_count: "{count} fichier de gabarit | {count} fichiers de gabarit"
         errors:
             slug_invalid: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'
             slug_taken: Ce slug est déjà utilisé.

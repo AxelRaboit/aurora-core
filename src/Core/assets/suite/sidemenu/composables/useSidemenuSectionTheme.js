@@ -63,6 +63,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-slate-500/10",
                 headerBorder: "border-l-slate-500",
+                dot: "bg-slate-500",
                 headerText: "text-slate-300",
                 activeBg: "bg-slate-600/15",
                 activeText: "text-slate-300",
@@ -75,6 +76,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-indigo-500/10",
                 headerBorder: "border-l-indigo-500",
+                dot: "bg-indigo-500",
                 headerText: "text-indigo-400",
                 activeBg: "bg-indigo-600/15",
                 activeText: "text-indigo-400",
@@ -87,6 +89,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-stone-500/10",
                 headerBorder: "border-l-stone-500",
+                dot: "bg-stone-500",
                 headerText: "text-stone-300",
                 activeBg: "bg-stone-600/15",
                 activeText: "text-stone-300",
@@ -99,6 +102,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-zinc-500/10",
                 headerBorder: "border-l-zinc-500",
+                dot: "bg-zinc-500",
                 headerText: "text-zinc-300",
                 activeBg: "bg-zinc-600/15",
                 activeText: "text-zinc-300",
@@ -111,6 +115,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-yellow-500/10",
                 headerBorder: "border-l-yellow-500",
+                dot: "bg-yellow-500",
                 headerText: "text-yellow-400",
                 activeBg: "bg-yellow-600/15",
                 activeText: "text-yellow-400",
@@ -123,6 +128,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-emerald-500/10",
                 headerBorder: "border-l-emerald-500",
+                dot: "bg-emerald-500",
                 headerText: "text-emerald-400",
                 activeBg: "bg-emerald-600/15",
                 activeText: "text-emerald-400",
@@ -135,6 +141,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-rose-500/10",
                 headerBorder: "border-l-rose-500",
+                dot: "bg-rose-500",
                 headerText: "text-rose-400",
                 activeBg: "bg-rose-600/15",
                 activeText: "text-rose-400",
@@ -147,6 +154,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-lime-500/10",
                 headerBorder: "border-l-lime-500",
+                dot: "bg-lime-500",
                 headerText: "text-lime-400",
                 activeBg: "bg-lime-600/15",
                 activeText: "text-lime-400",
@@ -159,6 +167,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-cyan-500/10",
                 headerBorder: "border-l-cyan-500",
+                dot: "bg-cyan-500",
                 headerText: "text-cyan-400",
                 activeBg: "bg-cyan-600/15",
                 activeText: "text-cyan-400",
@@ -171,6 +180,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-sky-500/10",
                 headerBorder: "border-l-sky-500",
+                dot: "bg-sky-500",
                 headerText: "text-sky-400",
                 activeBg: "bg-sky-600/15",
                 activeText: "text-sky-400",
@@ -183,6 +193,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-teal-500/10",
                 headerBorder: "border-l-teal-500",
+                dot: "bg-teal-500",
                 headerText: "text-teal-400",
                 activeBg: "bg-teal-600/15",
                 activeText: "text-teal-400",
@@ -195,6 +206,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-purple-500/10",
                 headerBorder: "border-l-purple-500",
+                dot: "bg-purple-500",
                 headerText: "text-purple-400",
                 activeBg: "bg-purple-600/15",
                 activeText: "text-purple-400",
@@ -207,6 +219,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-amber-500/10",
                 headerBorder: "border-l-amber-500",
+                dot: "bg-amber-500",
                 headerText: "text-amber-400",
                 activeBg: "bg-amber-600/15",
                 activeText: "text-amber-400",
@@ -219,6 +232,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-fuchsia-500/10",
                 headerBorder: "border-l-fuchsia-500",
+                dot: "bg-fuchsia-500",
                 headerText: "text-fuchsia-400",
                 activeBg: "bg-fuchsia-600/15",
                 activeText: "text-fuchsia-400",
@@ -231,6 +245,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-pink-500/10",
                 headerBorder: "border-l-pink-500",
+                dot: "bg-pink-500",
                 headerText: "text-pink-400",
                 activeBg: "bg-pink-600/15",
                 activeText: "text-pink-400",
@@ -243,6 +258,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-blue-500/10",
                 headerBorder: "border-l-blue-500",
+                dot: "bg-blue-500",
                 headerText: "text-blue-400",
                 activeBg: "bg-blue-600/15",
                 activeText: "text-blue-400",
@@ -255,6 +271,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-green-500/10",
                 headerBorder: "border-l-green-500",
+                dot: "bg-green-500",
                 headerText: "text-green-400",
                 activeBg: "bg-green-600/15",
                 activeText: "text-green-400",
@@ -267,6 +284,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-red-500/10",
                 headerBorder: "border-l-red-500",
+                dot: "bg-red-500",
                 headerText: "text-red-400",
                 activeBg: "bg-red-600/15",
                 activeText: "text-red-400",
@@ -279,6 +297,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-orange-500/10",
                 headerBorder: "border-l-orange-500",
+                dot: "bg-orange-500",
                 headerText: "text-orange-400",
                 activeBg: "bg-orange-600/15",
                 activeText: "text-orange-400",
@@ -291,6 +310,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-violet-500/10",
                 headerBorder: "border-l-violet-500",
+                dot: "bg-violet-500",
                 headerText: "text-violet-400",
                 activeBg: "bg-violet-600/15",
                 activeText: "text-violet-400",
@@ -304,6 +324,7 @@ function makeTheme(colorName) {
             return {
                 headerBg: "bg-surface-2/40",
                 headerBorder: "border-l-line",
+                dot: "bg-accent-500",
                 headerText: "text-muted",
                 activeBg: "bg-accent-600/15",
                 activeText: "text-accent-400",
@@ -342,13 +363,26 @@ export function useSidemenuSectionTheme(overrides = {}) {
         return SECTION_THEMES[sectionId] ?? FALLBACK_THEME;
     }
 
-    function headerClasses(sectionId) {
-        const theme = resolve(sectionId);
-        return `${theme.headerBg} border-l-[3px] ${theme.headerBorder} rounded-r-md`;
+    /**
+     * A section header is a quiet label, not a coloured band.
+     *
+     * Eight tinted bands down the column, and an active row that changed
+     * colour from one module to the next, read as a rainbow rather than a
+     * menu (UI audit of 07/10/2026). The section keeps its hue, and the
+     * reader's habit of « lime is the GED », in a dot before its name
+     * (`dotClasses`); the label and the band go neutral.
+     */
+    function headerClasses() {
+        return "rounded-md hover:bg-surface-2";
     }
 
-    function labelClasses(sectionId) {
-        return resolve(sectionId).headerText;
+    function labelClasses() {
+        return "text-muted hover:text-secondary";
+    }
+
+    /** The section's own colour, kept to a dot before its name. */
+    function dotClasses(sectionId) {
+        return resolve(sectionId).dot ?? "bg-accent-500";
     }
 
     /**
@@ -358,30 +392,32 @@ export function useSidemenuSectionTheme(overrides = {}) {
      * - idle                       → muted text, hover slides into tint
      */
     function itemClasses(sectionId, { isActive, inTree }) {
-        const theme = resolve(sectionId);
+        // One active state for the whole suite, whatever the module: the
+        // place you are reads the same everywhere.
         if (isActive) {
-            return `${theme.activeBg} ${theme.activeText}`;
+            return "bg-surface-2 text-primary font-medium";
         }
         if (inTree) {
-            return `${theme.activeText} hover:bg-surface-2`;
+            return "text-primary hover:bg-surface-2";
         }
 
-        return `text-secondary ${theme.hoverText} ${theme.hoverBg}`;
+        return "text-secondary hover:text-primary hover:bg-surface-2/60";
     }
 
-    /**
-     * Tailwind classes for the icon nested inside a nav item - picks up
-     * the section colour when its container is active/in-tree, slides
-     * into it on hover otherwise.
-     */
+    /** Tailwind classes for the icon nested inside a nav item. */
     function iconClasses(sectionId, { isActive }) {
-        const theme = resolve(sectionId);
         if (isActive) {
-            return theme.iconActive;
+            return "text-primary";
         }
 
-        return `text-muted ${theme.iconHover} transition-colors`;
+        return "text-muted group-hover:text-secondary transition-colors";
     }
 
-    return { headerClasses, labelClasses, itemClasses, iconClasses };
+    return {
+        headerClasses,
+        labelClasses,
+        dotClasses,
+        itemClasses,
+        iconClasses,
+    };
 }

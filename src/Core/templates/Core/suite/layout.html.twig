@@ -80,10 +80,11 @@
 
         {% block page_header_slot %}{% endblock %}
 
-        {% if aurora_is_dev() and aurora_pending_migrations() > 0 %}
+        {% set pending_migrations = aurora_is_dev() ? aurora_pending_migrations() : 0 %}
+        {% if pending_migrations > 0 %}
             {% embed '@Shared/components/app_message.html.twig' with {variant: 'warning', strip: true, icon: 'database'} %}
                 {% block content %}
-                    {{ 'suite.migrations.pending.banner'|trans({'{count}': aurora_pending_migrations()}) }}
+                    {{ 'suite.migrations.pending.banner'|trans({'{count}': pending_migrations, '%count%': pending_migrations}) }}
                 {% endblock %}
                 {% block actions %}
                     <code class="ml-2 font-mono text-xs px-1.5 py-0.5 rounded bg-warning/10 border border-warning/30">make migrate</code>

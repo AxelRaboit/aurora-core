@@ -126,15 +126,15 @@ suite:
                 done: 'Documento trasladado.'
                 queued: 'Traslado iniciado. Continúa en segundo plano.'
                 already_there: 'Este documento ya está en esta ubicación.'
-                bulk_done: '{done} documento(s) trasladado(s), {skipped} sin cambios.'
-                bulk_partial: '{done} documento(s) trasladado(s), {failed} con error.'
+                bulk_done: "Documentos trasladados: {done} · sin cambios: {skipped}."
+                bulk_partial: "Documentos trasladados: {done} · con error: {failed}."
                 all_to_remote: 'Pasar todo al almacenamiento remoto'
                 all_to_local: 'Pasar todo al servidor'
                 all_confirm_remote: '¿Enviar al almacenamiento remoto todos los documentos que aún no están allí?'
                 all_confirm_local: '¿Traer de vuelta al servidor todos los documentos que aún no están allí?'
                 all_explain: 'Los documentos que ya están en destino se omiten. La papelera no se traslada.'
                 all_background: 'El traslado se realiza en segundo plano: las filas pasan a «Traslado» a medida que avanza.'
-                all_queued: '{queued} documento(s) en cola, {skipped} ya en destino.'
+                all_queued: "Documentos en cola: {queued} · ya en destino: {skipped}."
                 all_nothing: 'Todos los documentos ya están en esta ubicación.'
             reference: Referencia
             title: Título

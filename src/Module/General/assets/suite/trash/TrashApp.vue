@@ -1,6 +1,7 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -33,6 +34,7 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+const { formatDateShort } = useDateFormat();
 const { can } = usePrivileges();
 
 const {
@@ -68,16 +70,6 @@ function itemActions(trash, item) {
     }
 
     return actions;
-}
-
-function formatDate(value) {
-    if (!value) return "";
-
-    return new Date(value).toLocaleDateString(undefined, {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
 }
 </script>
 
@@ -183,7 +175,7 @@ function formatDate(value) {
                             <p class="text-sm font-medium text-primary truncate">{{ item.label }}</p>
                             <p class="text-xs text-muted mt-0.5">
                                 <span v-if="item.context">{{ item.context }} &middot; </span>
-                                {{ t("suite.trash.deleted_on", { date: formatDate(item.deletedAt) }) }}
+                                {{ t("suite.trash.deleted_on", { date: formatDateShort(item.deletedAt) }) }}
                             </p>
                         </div>
                         <AppRowActions

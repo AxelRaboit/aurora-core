@@ -129,7 +129,7 @@ suite:
         updated: Theme updated.
         activated: Theme activated.
         deleted: Theme deleted.
-        template_count: '{count} template file(s)'
+        template_count: "{count} template file | {count} template files"
         errors:
             slug_invalid: 'Slug may only contain lowercase letters, numbers, and hyphens.'
             slug_taken: This slug is already in use.
