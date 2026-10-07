@@ -423,19 +423,19 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             // one icon, repeated. Half of what the screen does - the tiles,
             // the preview when a document is opened, the sizes generated on
             // upload - is invisible until something in it is a picture.
-            ['title' => 'Visuel de campagne - Automne 2025',           'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Visuel principal de la campagne d\'automne, décliné en trois formats.', 'file' => 'images/campagne-automne.jpg',   'w' => 1600, 'h' => 900],
-            ['title' => 'Photo d\'équipe - Séminaire 2025',            'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Photo de groupe prise au séminaire annuel, utilisable sur le site et en presse.', 'file' => 'images/equipe-seminaire.jpg',   'w' => 1400, 'h' => 933],
+            ['title' => 'Visuel de campagne - Automne 2025',           'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Visuel principal de la campagne d\'automne, décliné en trois formats.', 'file' => 'images/pexels/pexels-34799548.jpg', 'w' => 1920, 'h' => 1280, 'pexels' => [34799548, '开 心'], 'alt' => 'Des feuilles d\'érable aux couleurs de l\'automne'],
+            ['title' => 'Photo d\'équipe - Séminaire 2025',            'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Photo de groupe prise au séminaire annuel, utilisable sur le site et en presse.', 'file' => 'images/pexels/pexels-7495291.jpg', 'w' => 1920, 'h' => 1244, 'pexels' => [7495291, 'Moe Magners'], 'alt' => 'Une équipe réunie autour d\'une table, dans un bureau jaune et blanc'],
             ['title' => 'Logo Aurora - Fond sombre',                   'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Logo sur fond sombre, à réserver aux bandeaux et aux couvertures.', 'file' => 'images/logo-fond-sombre.png',   'w' => 1200, 'h' => 1200],
-            ['title' => 'Bureau - Illustration article',               'cat' => 1, 'folder' => 0, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Illustration en cours de sélection pour l\'article sur l\'installation.', 'file' => 'images/bureau-illustration.webp', 'w' => 1600, 'h' => 1067],
-            ['title' => 'Plan des locaux - Étage 2',                   'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Plan d\'évacuation du deuxième étage, affiché près des ascenseurs.', 'file' => 'images/plan-etage-2.png',       'w' => 1240, 'h' => 1754],
-            ['title' => 'Capture - Tableau de bord client',            'cat' => 1, 'folder' => 0, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Capture d\'écran du tableau de bord, jointe à la documentation de prise en main.', 'file' => 'images/capture-tableau-de-bord.png', 'w' => 1600, 'h' => 1000],
+            ['title' => 'Bureau - Illustration article',               'cat' => 1, 'folder' => 0, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Illustration en cours de sélection pour l\'article sur l\'installation.', 'file' => 'images/pexels/pexels-7658310.jpg', 'w' => 1920, 'h' => 1282, 'pexels' => [7658310, 'Pavel Danilyuk'], 'alt' => 'Un espace de travail partagé, des bureaux en bois et des ordinateurs'],
+            ['title' => 'Plan des locaux - Étage 2',                   'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Plan d\'évacuation du deuxième étage, affiché près des ascenseurs.', 'file' => 'images/pexels/pexels-271667.jpg', 'w' => 1920, 'h' => 1272, 'pexels' => [271667, 'Pixabay'], 'alt' => 'Le plan d\'un étage, ses pièces et leurs cotes'],
+            ['title' => 'Capture - Tableau de bord client',            'cat' => 1, 'folder' => 0, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Capture d\'écran du tableau de bord, jointe à la documentation de prise en main.', 'file' => 'images/capture-tableau-de-bord.png', 'w' => 1600, 'h' => 1000, 'alt' => 'Le tableau de bord d\'Aurora : ce qui attend, les publications par statut et par mois'],
 
             // In the trash, at different dates, so the screen says what it
             // usually says: what goes soon and what has time left. At the end
             // of the list, so no earlier file gets renamed.
             ['title' => 'Devis Menuiserie - première version',        'cat' => 0, 'folder' => 7, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Premier chiffrage, remplacé par le devis signé.', 'file' => $samplePdf, 'trashed' => '-2 days'],
             ['title' => 'Brochure commerciale 2023',                  'cat' => 2, 'folder' => 4, 'tags' => [3],        'status' => DocumentStatusEnum::Archived,  'desc' => 'Ancienne brochure, retirée depuis la nouvelle charte.', 'file' => $samplePdf, 'trashed' => '-11 days'],
-            ['title' => 'Photo d\'équipe - prise floue',              'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Doublon raté de la photo du séminaire.', 'file' => 'images/equipe-seminaire.jpg', 'w' => 1400, 'h' => 933, 'trashed' => '-1 day'],
+            ['title' => 'Photo d\'équipe - prise floue',              'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Doublon raté de la photo du séminaire.', 'file' => 'images/pexels/pexels-7495291.jpg', 'w' => 1920, 'h' => 1244, 'trashed' => '-1 day'],
         ];
 
         // `2` and not `4`, as twenty lines above: four levels went out of the
@@ -489,11 +489,10 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 if (file_exists($source)) {
                     $this->filesystem->copy($source, $destinationFile, true);
                 } elseif (isset($definition['w'])) {
-                    // The flat colour from above, and it is a choice, not a
-                    // fallback: these documents have no source in
-                    // `test_files/` because a drawn flat colour is better than
-                    // a committed photograph, which would have a subject and
-                    // weight.
+                    // The flat colour from above, for a picture whose source
+                    // is not in `test_files/`. The library's own pictures have
+                    // had real photos since 08/10/2026: flat colours made a
+                    // photographer's library look like a palette.
                     //
                     // The previous comment said `test_files/` was not shipped
                     // with the repository. That was wrong - six files are
@@ -543,6 +542,19 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
                     $document->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$gedMonth.'/'.$fileName, $mimeType));
                 }
+            }
+
+            // A photo is credited and described as in the list above: the
+            // name under the picture, and the text a screen reader reads.
+            if (isset($definition['pexels'])) {
+                [$pexelsId, $photographer] = $definition['pexels'];
+                $document->setSourceUrl(sprintf('https://www.pexels.com/photo/%d/', $pexelsId))
+                    ->setAttributionName($photographer)
+                    ->setAttributionUrl('https://www.pexels.com');
+            }
+
+            if (isset($definition['alt'])) {
+                $document->setAlt($definition['alt']);
             }
 
             $entityManager->persist($document);
