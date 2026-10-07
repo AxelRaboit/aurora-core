@@ -60,9 +60,11 @@ final readonly class UsersViewBuilder
      */
     public function indexView(bool $isDev, ?User $currentUser, bool $canManageDisabledModules = false, ?int $activeId = null): array
     {
-        $selectableRoles = $isDev
+        // Least privileged first: the invitation preselects the first role,
+        // and it used to be the highest one the inviter could give.
+        $selectableRoles = array_reverse($isDev
             ? [UserRoleEnum::Dev, ...UserRoleEnum::selectableForAdmin()]
-            : UserRoleEnum::selectableForAdmin();
+            : UserRoleEnum::selectableForAdmin());
 
         $translator = $this->translator;
         $roles = array_map(

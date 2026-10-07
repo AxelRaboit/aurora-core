@@ -10,12 +10,9 @@ enum MountPointTypeEnum: string
     case Api = 'api';
     case Sftp = 'sftp';
 
-    public function getLabel(): string
+    /** Translated: the list read "Database" and "Api" in a French suite. */
+    public function getLabelKey(): string
     {
-        return match ($this) {
-            self::Database => 'Database',
-            self::Api => 'API',
-            self::Sftp => 'SFTP',
-        };
+        return 'suite.mount_points.types.'.$this->value;
     }
 }

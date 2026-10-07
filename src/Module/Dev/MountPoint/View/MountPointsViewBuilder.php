@@ -7,12 +7,14 @@ namespace Aurora\Module\Dev\MountPoint\View;
 use Aurora\Module\Dev\MountPoint\Enum\MountPointTypeEnum;
 use Aurora\Module\Dev\MountPoint\Repository\MountPointRepository;
 use Aurora\Module\Dev\MountPoint\Serializer\MountPointSerializerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final readonly class MountPointsViewBuilder
 {
     public function __construct(
         private MountPointRepository $mountPointRepository,
         private MountPointSerializerInterface $mountPointSerializer,
+        private TranslatorInterface $translator,
     ) {}
 
     /** @return array<string, mixed> */
@@ -24,7 +26,7 @@ final readonly class MountPointsViewBuilder
         );
 
         $types = array_map(
-            static fn (MountPointTypeEnum $type): array => ['value' => $type->value, 'label' => $type->getLabel()],
+            fn (MountPointTypeEnum $type): array => ['value' => $type->value, 'label' => $this->translator->trans($type->getLabelKey())],
             MountPointTypeEnum::cases(),
         );
 

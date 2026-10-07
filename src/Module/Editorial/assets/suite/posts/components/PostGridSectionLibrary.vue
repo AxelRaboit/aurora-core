@@ -106,11 +106,23 @@ async function remove(section) {
         v-on:close="emit('close')"
     >
         <div class="space-y-4">
-            <div class="flex gap-1 border-b border-line">
-                <AppTab variant="underline" :active="'builtin' === tab" v-on:click="tab = 'builtin'">
+            <div class="flex gap-1 border-b border-line" role="tablist">
+                <AppTab
+                    variant="underline"
+                    role="tab"
+                    :aria-selected="'builtin' === tab ? 'true' : 'false'"
+                    :active="'builtin' === tab"
+                    v-on:click="tab = 'builtin'"
+                >
                     {{ t("suite.posts.grid.sections.builtin") }}
                 </AppTab>
-                <AppTab variant="underline" :active="'mine' === tab" v-on:click="tab = 'mine'">
+                <AppTab
+                    variant="underline"
+                    role="tab"
+                    :aria-selected="'mine' === tab ? 'true' : 'false'"
+                    :active="'mine' === tab"
+                    v-on:click="tab = 'mine'"
+                >
                     {{ t("suite.posts.grid.sections.mine") }}
                 </AppTab>
             </div>

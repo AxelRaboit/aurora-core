@@ -7,6 +7,8 @@ namespace Aurora\Fixtures\Core;
 use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Core\Notification\Entity\Notification;
 use Aurora\Module\Configuration\Theme\Entity\Theme;
+use Aurora\Module\Dev\MountPoint\Entity\MountPoint;
+use Aurora\Module\Dev\MountPoint\Enum\MountPointTypeEnum;
 use Aurora\Module\Platform\Auth\Entity\AccessRequest;
 use Aurora\Module\Platform\Auth\Enum\AccessRequestStatusEnum;
 use Aurora\Module\Platform\User\Entity\User;
@@ -72,6 +74,40 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
 
         $this->createNotifications($manager);
         $this->createAccessRequests($manager);
+        $this->createMountPoints($manager);
+    }
+
+    /**
+     * Two connections on the developer side: one that answered its last test,
+     * one that did not. The screen was empty in the demo, and an empty list
+     * says nothing of what a mount point is. Fictitious hosts, no secret.
+     */
+    private function createMountPoints(EntityManagerInterface $entityManager): void
+    {
+        $definitions = [
+            ['Base des ventes', MountPointTypeEnum::Database, 'ventes.example.test', 5432, 'lecture', 'ventes', '-2 hours', true],
+            ['API du transporteur', MountPointTypeEnum::Api, 'api.transporteur.example.test', 443, null, null, '-3 days', false],
+        ];
+
+        $repository = $entityManager->getRepository(MountPoint::class);
+
+        foreach ($definitions as [$name, $type, $host, $port, $username, $database, $testedAt, $succeeded]) {
+            if (null !== $repository->findOneBy(['name' => $name])) {
+                continue;
+            }
+
+            $entityManager->persist(new MountPoint()
+                ->setName($name)
+                ->setType($type)
+                ->setHost($host)
+                ->setPort($port)
+                ->setUsername($username)
+                ->setDatabase($database)
+                ->setLastTestedAt(new DateTimeImmutable($testedAt))
+                ->setLastTestSuccessful($succeeded));
+        }
+
+        $entityManager->flush();
     }
 
     /**

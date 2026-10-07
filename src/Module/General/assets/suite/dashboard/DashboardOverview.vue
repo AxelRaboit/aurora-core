@@ -73,11 +73,13 @@ const TONES = {
                 </ul>
             </section>
 
-            <div v-if="visibleModules.length > 1" class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1 max-w-full overflow-x-auto scrollbar-thin">
+            <div v-if="visibleModules.length > 1" class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1 max-w-full overflow-x-auto scrollbar-thin" role="tablist">
                 <AppTab
                     v-for="module in visibleModules"
                     :key="module.id"
                     size="sm"
+                    role="tab"
+                    :aria-selected="activeModule === module.id ? 'true' : 'false'"
                     :active="activeModule === module.id"
                     active-class="bg-surface text-primary shadow-sm"
                     inactive-class="text-secondary hover:text-primary"

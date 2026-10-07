@@ -83,6 +83,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 
+use function hash;
 use function implode;
 use function mb_substr;
 use function sprintf;
@@ -124,6 +125,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * blank. A demo instance therefore needs an identity of its own, and an
      * invented one is the only honest choice in a public repository.
      */
+    /** The phrases the demo signing link is derived from: see pinSigningLink. */
+    private const string SIGNING_SELECTOR_PHRASE = 'aurora-demo-signing-selector';
+
+    private const string SIGNING_TOKEN_PHRASE = 'aurora-demo-signing-token';
+
     private const array PROVIDER = [
         'studio_provider_name' => 'Studio Aurora (démonstration)',
         'studio_provider_representative' => 'Camille Vasseur, gérante',
@@ -292,6 +298,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // read, which is worse.
         if (0 !== $this->contractRepository->count([])) {
             $this->entityManager->flush();
+            $this->pinSigningLink();
 
             return;
         }
@@ -447,6 +454,42 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->chronicle($revoked, ['contract.created' => '-4 days', 'contract.frozen' => '-3 days', 'contract.link_sent' => '-3 days', 'contract.link_revoked' => '-1 day']);
 
         $this->entityManager->flush();
+        $this->pinSigningLink();
+    }
+
+    /**
+     * Gives the waiting contract's signing link a known address.
+     *
+     * The plain token only ever exists in the email that carries it, and the
+     * tour photographs the page the client signs on: the capture script
+     * derives the same selector and token from the same phrases. Derived
+     * rather than written out, so no secret-looking literal sits in a public
+     * repository; demo data only, never loaded in production.
+     */
+    private function pinSigningLink(): void
+    {
+        $link = $this->entityManager->getRepository(ContractAccessLink::class)->createQueryBuilder('link')
+            ->join('link.contract', 'contract')
+            ->andWhere('contract.status = :sent')
+            ->andWhere('link.revokedAt IS NULL')
+            ->setParameter('sent', ContractStatusEnum::Sent)
+            ->orderBy('link.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if (!$link instanceof ContractAccessLink) {
+            return;
+        }
+
+        $this->entityManager->getConnection()->executeStatement(
+            'UPDATE core_contract_access_links SET selector = :selector, hashed_token = :hashed WHERE id = :id',
+            [
+                'selector' => mb_substr(hash('sha256', self::SIGNING_SELECTOR_PHRASE), 0, 32),
+                'hashed' => ContractAccessLink::hashToken(hash('sha256', self::SIGNING_TOKEN_PHRASE)),
+                'id' => $link->getId(),
+            ],
+        );
     }
 
     /**

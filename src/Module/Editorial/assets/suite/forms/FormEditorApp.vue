@@ -198,12 +198,14 @@ const headerActions = computed(() => {
             </p>
         </div>
 
-        <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin">
+        <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin" role="tablist">
             <AppTab
                 v-for="tab in TABS"
                 :key="tab"
                 class="shrink-0"
                 variant="underline"
+                role="tab"
+                :aria-selected="isTabActive(tab) ? 'true' : 'false'"
                 :active="isTabActive(tab)"
                 v-on:click="selectTab(tab)"
             >

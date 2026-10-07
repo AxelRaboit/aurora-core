@@ -1,6 +1,7 @@
 import { createI18n } from "vue-i18n";
 import { deepMerge } from "@/shared/utils/data/deepMerge.js";
 import { datetimeFormats } from "@/datetimeFormats.js";
+import { frenchElision } from "@/shared/utils/format/frenchElision.js";
 
 // Generated from translations/messages.{locale}.yaml via `php bin/console app:translations:dump-js`.
 // Single source of truth for all Vue + Twig translations.
@@ -50,7 +51,7 @@ export function frenchPlural(choice, choicesLength) {
 }
 
 export function createAppI18n(locale = "fr") {
-    return createI18n({
+    const i18n = createI18n({
         legacy: false,
         locale,
         // French is the source language, and it is what the Twig half falls
@@ -61,4 +62,12 @@ export function createAppI18n(locale = "fr") {
         datetimeFormats,
         pluralRules: { fr: frenchPlural },
     });
+
+    // "Livrables de {space}" with a space called "Atelier": the name only
+    // arrives once interpolated, so the elision is applied to the result.
+    i18n.global.setPostTranslationHandler((text) =>
+        i18n.global.locale.value === "fr" ? frenchElision(text) : text,
+    );
+
+    return i18n;
 }

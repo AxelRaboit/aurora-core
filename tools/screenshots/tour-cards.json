@@ -533,6 +533,258 @@
         "tour-notes-export": {
             "document": 810,
             "slug": "notes-markdown"
+        },
+        "espace-cote-client-discussion": {
+            "document": 811,
+            "slug": "ce-que-voit-le-client"
+        },
+        "espace-cote-client-fiche": {
+            "document": 812,
+            "slug": "ce-que-voit-le-client"
+        },
+        "espace-cote-client-fichiers": {
+            "document": 813,
+            "slug": "ce-que-voit-le-client"
+        },
+        "espace-nouveau-canal": {
+            "document": 814,
+            "slug": "les-espaces-clients"
+        },
+        "tour-agenda-partage": {
+            "document": 815,
+            "slug": "calendrier"
+        },
+        "tour-blocs-calendrier": {
+            "document": 816,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-code": {
+            "document": 817,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-devis": {
+            "document": 818,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-graphiques": {
+            "document": 819,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-pratiques": {
+            "document": 820,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-recit": {
+            "document": 821,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-reseaux": {
+            "document": 822,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-tarifs": {
+            "document": 823,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-blocs-voyage": {
+            "document": 824,
+            "slug": "les-blocs-cote-visiteur"
+        },
+        "tour-brouillon-apercu": {
+            "document": 825,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-calendrier-agenda": {
+            "document": 826,
+            "slug": "calendrier"
+        },
+        "tour-calendrier-evenement": {
+            "document": 827,
+            "slug": "calendrier"
+        },
+        "tour-calendrier-jour": {
+            "document": 828,
+            "slug": "calendrier"
+        },
+        "tour-calendrier-partage": {
+            "document": 829,
+            "slug": "calendrier"
+        },
+        "tour-conflit": {
+            "document": 830,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-connexion": {
+            "document": 831,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-contrat-nouveau": {
+            "document": 832,
+            "slug": "clients-et-contrats"
+        },
+        "tour-dashboard-studio": {
+            "document": 833,
+            "slug": "tableau-de-bord"
+        },
+        "tour-demandes-acces": {
+            "document": 834,
+            "slug": "espace-developpeur"
+        },
+        "tour-dev-montage": {
+            "document": 835,
+            "slug": "espace-developpeur"
+        },
+        "tour-dev-utilisateurs": {
+            "document": 836,
+            "slug": "espace-developpeur"
+        },
+        "tour-espace-acces": {
+            "document": 837,
+            "slug": "les-espaces-clients"
+        },
+        "tour-espace-acces-nouveau": {
+            "document": 838,
+            "slug": "les-espaces-clients"
+        },
+        "tour-espaces-clients-liste": {
+            "document": 839,
+            "slug": "les-espaces-clients"
+        },
+        "tour-espaces-equipe": {
+            "document": 840,
+            "slug": "les-espaces-clients"
+        },
+        "tour-formulaire-condition": {
+            "document": 841,
+            "slug": "formulaires"
+        },
+        "tour-formulaire-reglages": {
+            "document": 842,
+            "slug": "formulaires"
+        },
+        "tour-galerie-site": {
+            "document": 843,
+            "slug": "galeries"
+        },
+        "tour-galeries-liste": {
+            "document": 844,
+            "slug": "galeries"
+        },
+        "tour-grille-liste": {
+            "document": 845,
+            "slug": "composer-une-page"
+        },
+        "tour-grille-zone": {
+            "document": 846,
+            "slug": "composer-une-page"
+        },
+        "tour-livrables-copie": {
+            "document": 847,
+            "slug": "livrables"
+        },
+        "tour-livrables-import": {
+            "document": 848,
+            "slug": "livrables"
+        },
+        "tour-mediatheque-modifier": {
+            "document": 849,
+            "slug": "mediatheque"
+        },
+        "tour-mot-de-passe-oublie": {
+            "document": 850,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-notifications": {
+            "document": 851,
+            "slug": "tableau-de-bord"
+        },
+        "tour-publication-apparence": {
+            "document": 852,
+            "slug": "theme-et-identite"
+        },
+        "tour-reglages-anti-robots": {
+            "document": 853,
+            "slug": "reglages-et-modules"
+        },
+        "tour-reglages-lecture": {
+            "document": 854,
+            "slug": "reglages-et-modules"
+        },
+        "tour-reglages-lettre": {
+            "document": 855,
+            "slug": "formulaires"
+        },
+        "tour-reglages-localisation": {
+            "document": 856,
+            "slug": "reglages-et-modules"
+        },
+        "tour-reglages-marque": {
+            "document": 857,
+            "slug": "theme-et-identite"
+        },
+        "tour-reglages-navigation": {
+            "document": 858,
+            "slug": "reglages-et-modules"
+        },
+        "tour-reglages-stockage": {
+            "document": 859,
+            "slug": "reglages-et-modules"
+        },
+        "tour-reglages-studio": {
+            "document": 860,
+            "slug": "clients-et-contrats"
+        },
+        "tour-reglages-systeme": {
+            "document": 861,
+            "slug": "reglages-et-modules"
+        },
+        "tour-relecture": {
+            "document": 862,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-selecteur-document": {
+            "document": 863,
+            "slug": "mediatheque"
+        },
+        "tour-signature-code": {
+            "document": 864,
+            "slug": "signer-un-contrat"
+        },
+        "tour-signature-contrat": {
+            "document": 865,
+            "slug": "signer-un-contrat"
+        },
+        "tour-signature-donnees": {
+            "document": 866,
+            "slug": "signer-un-contrat"
+        },
+        "tour-signature-refus": {
+            "document": 867,
+            "slug": "signer-un-contrat"
+        },
+        "tour-studio-calendrier": {
+            "document": 868,
+            "slug": "les-espaces-clients"
+        },
+        "tour-telephone-gestes": {
+            "document": 869,
+            "slug": "la-suite-sur-telephone"
+        },
+        "tour-telephone-listes": {
+            "document": 870,
+            "slug": "la-suite-sur-telephone"
+        },
+        "tour-telephone-travail": {
+            "document": 871,
+            "slug": "la-suite-sur-telephone"
+        },
+        "tour-themes-police": {
+            "document": 872,
+            "slug": "theme-et-identite"
+        },
+        "tour-utilisateur-invitation": {
+            "document": 873,
+            "slug": "comptes-et-privileges"
         }
     }
 }

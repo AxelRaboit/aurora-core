@@ -158,7 +158,7 @@ function isUnresolved(item) {
                             <AppIconButton :title="t('suite.menus.move_down')" v-on:click="move(item, 1)">
                                 <ChevronDown class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
-                            <AppRowActions :actions="itemActions(item)" :label="item.label ?? item.name ?? ''" />
+                            <AppRowActions :actions="itemActions(item)" :label="labelOf(item)" />
                         </div>
                     </div>
                 </div>

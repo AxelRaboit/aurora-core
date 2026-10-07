@@ -333,11 +333,23 @@ function isSelected(gedDocument) {
         v-on:close="emit('close')"
     >
         <div class="space-y-4">
-            <div v-if="pexelsAvailable" class="flex gap-1 border-b border-line">
-                <AppTab variant="underline" :active="tab === 'library'" v-on:click="tab = 'library'">
+            <div v-if="pexelsAvailable" class="flex gap-1 border-b border-line" role="tablist">
+                <AppTab
+                    variant="underline"
+                    role="tab"
+                    :aria-selected="tab === 'library' ? 'true' : 'false'"
+                    :active="tab === 'library'"
+                    v-on:click="tab = 'library'"
+                >
                     {{ t("suite.ged.documents.picker_tab_library") }}
                 </AppTab>
-                <AppTab variant="underline" :active="tab === 'pexels'" v-on:click="tab = 'pexels'">
+                <AppTab
+                    variant="underline"
+                    role="tab"
+                    :aria-selected="tab === 'pexels' ? 'true' : 'false'"
+                    :active="tab === 'pexels'"
+                    v-on:click="tab = 'pexels'"
+                >
                     {{ t("suite.ged.pexels.tab") }}
                 </AppTab>
             </div>
