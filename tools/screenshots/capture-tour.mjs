@@ -2717,6 +2717,8 @@ const SHOTS = [
         },
     },
     { name: "tour-dev-montage", path: "/dev/dashboard/mount-points" },
+    // The developer side of the accounts: roles, types, who can do what.
+    { name: "tour-dev-utilisateurs", path: "/dev/dashboard/users" },
 
     /** Lot 5: the smaller screens. */
     ...[["tour-calendrier-jour", "Jour"], ["tour-calendrier-agenda", "Agenda"]].map(([name, view]) => ({

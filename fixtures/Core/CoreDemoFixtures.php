@@ -6,9 +6,9 @@ namespace Aurora\Fixtures\Core;
 
 use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Core\Notification\Entity\Notification;
+use Aurora\Module\Configuration\Theme\Entity\Theme;
 use Aurora\Module\Dev\MountPoint\Entity\MountPoint;
 use Aurora\Module\Dev\MountPoint\Enum\MountPointTypeEnum;
-use Aurora\Module\Configuration\Theme\Entity\Theme;
 use Aurora\Module\Platform\Auth\Entity\AccessRequest;
 use Aurora\Module\Platform\Auth\Enum\AccessRequestStatusEnum;
 use Aurora\Module\Platform\User\Entity\User;
