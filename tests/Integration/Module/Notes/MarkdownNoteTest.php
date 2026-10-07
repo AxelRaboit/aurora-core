@@ -24,6 +24,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use ZipArchive;
 
 /**
@@ -1106,8 +1107,12 @@ final class MarkdownNoteTest extends IntegrationTestCase
         }
         $archive->close();
 
-        self::assertContains('Clients/', $entries, 'le dossier est déclaré, même vide');
-        self::assertContains('Clients/Studio Lumen.md', $entries);
+        // Every space in its own folder, the personal one included, under the
+        // name the panel gives it.
+        $personal = $this->personalDirectory();
+
+        self::assertContains($personal.'Clients/', $entries, 'le dossier est déclaré, même vide');
+        self::assertContains($personal.'Clients/Studio Lumen.md', $entries);
 
         $this->client->request(
             'POST',
@@ -1119,8 +1124,9 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true);
 
-        // A folder and a note: the directory walked through counts for the
-        // folder it is, only once.
+        // A folder and a note: the personal space's folder is unwrapped on
+        // the way back into that same notebook, and the directory walked
+        // through counts for the folder it is, only once.
         self::assertSame(2, $body['created']);
 
         foreach ($this->notes() as $note) {
@@ -1146,6 +1152,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         self::assertInstanceOf(MarkdownNoteInterface::class, $imported, 'la note est revenue');
         self::assertSame('Clients', $imported->getFolder()?->getName(), 'et dans son dossier');
+        self::assertNull($imported->getFolder()?->getParent(), 'à la racine du carnet, sans le dossier « Mon espace de notes »');
     }
 
     /** Tags travel in the front matter, and come back as tags. */
@@ -1270,14 +1277,14 @@ final class MarkdownNoteTest extends IntegrationTestCase
             $entries[] = (string) $archive->getNameIndex($entryIndex);
         }
 
-        $exported = (string) $archive->getFromName('Illustré/Une note illustrée.md');
+        $exported = (string) $archive->getFromName($this->personalDirectory().'Illustré/Une note illustrée.md');
         $archive->close();
 
         self::assertContains('_images/'.$upload['filename'], $entries, "l'image est dans l'archive");
         self::assertStringContainsString(
-            '../_images/'.$upload['filename'],
+            '../../_images/'.$upload['filename'],
             $exported,
-            'la note remonte d\'un cran, puisqu\'elle est dans un dossier',
+            'la note remonte de deux crans : son dossier, puis celui de son espace',
         );
         self::assertStringNotContainsString(
             '/suite/notes/markdown/images/',
@@ -1339,5 +1346,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
         );
 
         return json_decode((string) $this->client->getResponse()->getContent(), true) ?? [];
+    }
+
+    /** The personal space's folder in a full export: the name the panel shows. */
+    private function personalDirectory(): string
+    {
+        return static::getContainer()->get(TranslatorInterface::class)->trans('notes.markdown.spaces.my_space').'/';
     }
 }

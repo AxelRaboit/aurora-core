@@ -45,12 +45,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_filter;
 use function array_values;
-use function date;
 use function iconv;
 use function is_array;
 use function is_numeric;
 use function preg_replace;
-use function sprintf;
 
 #[Route('/suite/notes/markdown', name: 'suite_notes_markdown')]
 #[IsGranted('notes.markdown.use')]
@@ -311,20 +309,25 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // `spaceId` only takes that space, if it is readable.
-        $space = null;
+        // `spaceId` only takes that space, `folderId` that folder, if it is
+        // readable: whoever reads a space can take it away, since they can
+        // already read and copy all of it.
+        $root = null;
         $spaceId = $request->query->get('spaceId');
-        if (is_numeric($spaceId)) {
-            $space = $this->spaceAccess->readableSpace($user, (int) $spaceId);
-
-            if (!$space instanceof NoteSpaceInterface) {
-                throw $this->createNotFoundException();
-            }
+        $folderId = $request->query->get('folderId');
+        if (is_numeric($folderId)) {
+            $root = $this->spaceAccess->readableFolder($user, (int) $folderId);
+        } elseif (is_numeric($spaceId)) {
+            $root = $this->spaceAccess->readableSpace($user, (int) $spaceId);
         }
 
-        $path = $this->archive->zipFor($user, $space);
+        if ((is_numeric($folderId) || is_numeric($spaceId)) && null === $root) {
+            throw $this->createNotFoundException();
+        }
 
-        return $this->file($path, sprintf('notes-%s.zip', date('Y-m-d')))->deleteFileAfterSend(true);
+        $path = $this->archive->zipFor($user, $root);
+
+        return $this->file($path, $this->archive->fileNameFor($root))->deleteFileAfterSend(true);
     }
 
     /** A single note, to take it away without taking the rest. */

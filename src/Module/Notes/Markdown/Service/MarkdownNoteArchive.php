@@ -9,8 +9,11 @@ use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use RuntimeException;
+use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use ZipArchive;
 
 use function count;
@@ -49,7 +52,9 @@ final readonly class MarkdownNoteArchive
     public function __construct(
         private MarkdownNoteRepository $notes,
         private NoteFolderRepository $folders,
+        private NoteSpaceRepository $spaces,
         private MarkdownNoteImageService $images,
+        private TranslatorInterface $translator,
     ) {}
 
     /**
@@ -59,11 +64,21 @@ final readonly class MarkdownNoteArchive
      * on a file, and a notebook of several thousand notes has no reason to
      * sit twice in RAM to be downloaded.
      *
-     * @param ?NoteSpaceInterface $only a single space, stored at the root of the archive; everything the person reads otherwise
+     * **Everything: one folder per space, the personal one included.** Every
+     * space the person can read gets its folder at the root, under the name
+     * the panel shows, even when it is empty. The personal space used to sit
+     * at the root, mixed with the shared spaces' folders: a personal folder
+     * named like a shared space then wrote into the same folder of the zip,
+     * and a reimport filed both together.
+     *
+     * **One space, or one folder:** its content at the root of the archive,
+     * whose name says what it holds ({@see self::fileNameFor()}).
+     *
+     * @param NoteSpaceInterface|NoteFolderInterface|null $root what to take; everything the person reads when null
      *
      * @return string the path of the zip, to be deleted by the caller
      */
-    public function zipFor(CoreUserInterface $user, ?NoteSpaceInterface $only = null): string
+    public function zipFor(CoreUserInterface $user, NoteSpaceInterface|NoteFolderInterface|null $root = null): string
     {
         $path = (string) tempnam(sys_get_temp_dir(), 'aurora-notes-');
 
@@ -73,64 +88,79 @@ final readonly class MarkdownNoteArchive
             throw new RuntimeException("impossible d'ouvrir l'archive");
         }
 
-        $notes = $this->notes->findAllWithContentForUser($user);
+        $onlySpace = $root instanceof NoteFolderInterface ? $root->getSpace() : $root;
 
-        // Each shared space goes into its own folder, under its name: at the
-        // root of the archive, its folders would mix with those of the
-        // personal notebook, and a reimport would file everything at home
-        // without warning. The root of a space is the negative key of its id.
+        // The root of a space is the negative key of its id.
         /** @var array<int, list<MarkdownNoteInterface>> $notesByFolder */
         $notesByFolder = [];
-        /** @var array<int, NoteSpaceInterface> $spaces */
-        $spaces = [];
-        foreach ($notes as $note) {
-            if ($only instanceof NoteSpaceInterface && $note->getSpace()->getId() !== $only->getId()) {
+        foreach ($this->notes->findAllWithContentForUser($user) as $note) {
+            if ($onlySpace instanceof NoteSpaceInterface && $note->getSpace()->getId() !== $onlySpace->getId()) {
                 continue;
             }
 
-            $spaces[(int) $note->getSpace()->getId()] = $note->getSpace();
             $notesByFolder[$note->getFolder()?->getId() ?? -(int) $note->getSpace()->getId()][] = $note;
         }
 
         /** @var array<int, list<NoteFolderInterface>> $foldersByParent */
         $foldersByParent = [];
         foreach ($this->folders->findAllForUser($user) as $folder) {
-            if ($only instanceof NoteSpaceInterface && $folder->getSpace()->getId() !== $only->getId()) {
+            if ($onlySpace instanceof NoteSpaceInterface && $folder->getSpace()->getId() !== $onlySpace->getId()) {
                 continue;
             }
 
-            $spaces[(int) $folder->getSpace()->getId()] = $folder->getSpace();
             $foldersByParent[$folder->getParent()?->getId() ?? -(int) $folder->getSpace()->getId()][] = $folder;
-        }
-
-        // An empty notebook would give a zip with no entry, which some tools
-        // refuse to open. One line is enough to make it valid and to say why
-        // it is empty.
-        if ([] === $notesByFolder && [] === $foldersByParent) {
-            $zip->addFromString('notes.md', "# Aucune note\n");
         }
 
         // The images already written into the archive, so as to add none of
         // them twice: two notes can cite the same one.
         $ajoutees = [];
 
-        $seenSpaces = [];
-        foreach ($spaces as $id => $space) {
-            // A single space requested: it is the whole archive, at its root.
-            if ($space->isPersonal() || $only instanceof NoteSpaceInterface) {
-                $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, '', $user, $ajoutees);
-
-                continue;
+        if ($root instanceof NoteFolderInterface) {
+            $this->addBranch($zip, $notesByFolder, $foldersByParent, (int) $root->getId(), '', $user, $ajoutees);
+        } elseif ($root instanceof NoteSpaceInterface) {
+            $this->addBranch($zip, $notesByFolder, $foldersByParent, -(int) $root->getId(), '', $user, $ajoutees);
+        } else {
+            // From the list of readable spaces, not from the notes found: an
+            // empty space had no folder in the archive.
+            $seenSpaces = [];
+            foreach ($this->spaces->findReadableFor($user) as $space) {
+                $spaceDirectory = $this->uniqueName($this->safeName($this->spaceLabel($space), sprintf('espace-%d', $space->getId())), $seenSpaces);
+                $zip->addEmptyDir($spaceDirectory);
+                $this->addBranch($zip, $notesByFolder, $foldersByParent, -(int) $space->getId(), $spaceDirectory.'/', $user, $ajoutees);
             }
+        }
 
-            $spaceDirectory = $this->uniqueName($this->safeName((string) $space->getName(), sprintf('espace-%d', $id)), $seenSpaces);
-            $zip->addEmptyDir($spaceDirectory);
-            $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, $spaceDirectory.'/', $user, $ajoutees);
+        // An empty space or folder would give a zip with no entry, which some
+        // tools refuse to open. One line is enough to make it valid and to
+        // say why it is empty.
+        if (0 === $zip->numFiles) {
+            $zip->addFromString('notes.md', "# Aucune note\n");
         }
 
         $zip->close();
 
         return $path;
+    }
+
+    /**
+     * The archive's name, which says what it holds.
+     *
+     * Always `notes-2026-10-07.zip` before: two exports of the same day, a
+     * space then a folder, could not be told apart in the downloads folder.
+     */
+    public function fileNameFor(NoteSpaceInterface|NoteFolderInterface|null $root = null): string
+    {
+        $label = match (true) {
+            $root instanceof NoteSpaceInterface => $this->spaceLabel($root),
+            $root instanceof NoteFolderInterface => (string) $root->getName(),
+            default => '',
+        };
+
+        $slug = mb_strtolower(new AsciiSlugger()->slug($label)->toString());
+
+        return '' === $slug
+            ? sprintf('notes-%s.zip', date('Y-m-d'))
+            : sprintf('notes-%s-%s.zip', $slug, date('Y-m-d'));
     }
 
     /**
@@ -195,6 +225,20 @@ final readonly class MarkdownNoteArchive
 
             $this->addBranch($zip, $notesByFolder, $foldersByParent, (int) $folder->getId(), $prefix.$name.'/', $user, $ajoutees);
         }
+    }
+
+    /**
+     * A space's name as the panel shows it.
+     *
+     * The personal space is shown as « Mon espace de notes », whatever name
+     * it carries in the database: the archive uses the same words, in the
+     * reader's language.
+     */
+    private function spaceLabel(NoteSpaceInterface $space): string
+    {
+        return $space->isPersonal()
+            ? $this->translator->trans('notes.markdown.spaces.my_space')
+            : (string) $space->getName();
     }
 
     /**
