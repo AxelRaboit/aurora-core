@@ -1,8 +1,9 @@
 <script setup>
 import { ref, watch, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import AppFieldLabel from "@/shared/components/form/AppFieldLabel.vue";
 import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";
-import { X } from "lucide-vue-next";
+import { Ban, X } from "lucide-vue-next";
 
 const DEFAULT_PRESETS = [
     "#ef4444", "#f97316", "#f59e0b", "#eab308",
@@ -28,6 +29,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue"]);
+
+const { t } = useI18n();
 
 const hexInput = ref(props.modelValue ?? "");
 
@@ -75,16 +78,30 @@ function clear() {
         </div>
 
         <div class="flex items-center gap-2">
-            <AppColorSwatch
-                :model-value="preview ?? '#000000'"
-                size="sm"
-                v-on:update:model-value="selectPreset($event)"
-            />
+            <!-- With no colour, the native input still opens the system
+                 picker, but stays invisible: it cannot be empty and would
+                 show black, read as a colour that is not there. -->
+            <div class="relative shrink-0">
+                <AppColorSwatch
+                    :model-value="preview ?? '#000000'"
+                    size="sm"
+                    :class="preview ? '' : 'opacity-0'"
+                    v-on:update:model-value="selectPreset($event)"
+                />
+                <span
+                    v-if="!preview"
+                    data-color-picker-empty
+                    class="pointer-events-none absolute inset-0 flex items-center justify-center rounded border border-line text-muted"
+                    :title="t('shared.palette.no_colour')"
+                >
+                    <Ban class="h-3.5 w-3.5" :stroke-width="2" />
+                </span>
+            </div>
             <input
                 class="flex-1 bg-surface border rounded-lg px-3 py-1.5 text-sm font-mono text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 transition"
                 :class="hexInput && !isValidHex ? 'border-red-400' : 'border-line'"
                 :value="hexInput"
-                placeholder="#3b82f6"
+                :placeholder="t('shared.palette.no_colour')"
                 maxlength="7"
                 v-on:input="onHexInput"
             >
@@ -92,7 +109,8 @@ function clear() {
                 v-if="modelValue"
                 type="button"
                 class="text-muted hover:text-primary transition"
-                title="Effacer"
+                :title="t('shared.palette.clear_colour')"
+                :aria-label="t('shared.palette.clear_colour')"
                 v-on:click="clear"
             >
                 <X class="w-4 h-4" :stroke-width="2" />

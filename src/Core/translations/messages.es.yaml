@@ -97,6 +97,7 @@ shared:
         count: 'Ningún archivo | 1 archivo | {count} archivos'
     palette:
         no_colour: 'Ningún color'
+        clear_colour: 'Quitar el color'
         colour_slot: 'Color {slot}'
     placeholders:
         name: 'Un nombre corto'
