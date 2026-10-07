@@ -20,16 +20,17 @@ describe("useFileSize", () => {
     it("formats bytes with FR units (o/Ko/Mo/Go)", () => {
         const { formatSize } = mountWithComposable("fr");
         expect(formatSize(512)).toBe("512 o");
-        expect(formatSize(1024)).toBe("1.0 Ko");
-        expect(formatSize(1024 * 1024)).toBe("1.0 Mo");
-        expect(formatSize(1024 * 1024 * 1024)).toBe("1.00 Go");
+        expect(formatSize(1024)).toBe("1 Ko");
+        expect(formatSize(43827)).toBe("42,8 Ko");
+        expect(formatSize(1024 * 1024)).toBe("1 Mo");
+        expect(formatSize(1024 * 1024 * 1024)).toBe("1 Go");
     });
 
     it("formats bytes with EN units (B/KB/MB/GB)", () => {
         const { formatSize } = mountWithComposable("en");
         expect(formatSize(512)).toBe("512 B");
-        expect(formatSize(2048)).toBe("2.0 KB");
-        expect(formatSize(2 * 1024 * 1024)).toBe("2.0 MB");
+        expect(formatSize(2048)).toBe("2 KB");
+        expect(formatSize(2 * 1024 * 1024)).toBe("2 MB");
     });
 
     it("uses EN units as fallback for unknown locale", () => {
@@ -43,8 +44,8 @@ describe("useFileSize", () => {
         expect(formatSize(1.5 * 1024 * 1024)).toBe("1.5 MB");
     });
 
-    it("shows two decimal places for GB", () => {
+    it("shows up to two decimal places for GB", () => {
         const { formatSize } = mountWithComposable("en");
-        expect(formatSize(1.5 * 1024 * 1024 * 1024)).toBe("1.50 GB");
+        expect(formatSize(1.25 * 1024 * 1024 * 1024)).toBe("1.25 GB");
     });
 });

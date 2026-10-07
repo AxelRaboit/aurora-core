@@ -281,7 +281,7 @@ const governingLabel = computed(
         <!-- The page's bar first, like every editor: back on the left, the
              commands on the right. The title comes under it, on its own line,
              where a long name pushes nothing (02/10/2026). -->
-        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')">
+        <AppPageBar :back-href="indexPath" :back-label="t('suite.studio.contract_templates.title')">
             <AppPageActions
                 :actions="templateActions"
                 :label="template.name"
@@ -366,7 +366,7 @@ const governingLabel = computed(
         </AppMessage>
 
         <div class="flex flex-wrap items-baseline gap-2">
-            <h1 class="text-lg font-semibold text-primary">
+            <h1 class="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
                 {{ template.name }}
             </h1>
             <span class="text-sm text-muted">

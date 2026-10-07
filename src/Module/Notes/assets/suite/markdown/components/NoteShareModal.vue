@@ -15,7 +15,7 @@ import { useClipboard } from "@shared/composables/useClipboard.js";
 import { useNoteShareApi } from "@notes/suite/markdown/composables/useNoteShareApi.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
-const { formatDateNumeric } = useDateFormat();
+const { formatDateShort } = useDateFormat();
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -133,7 +133,7 @@ function copy(url) {
 function openedLabel(link) {
     return link.lastUsedAt
         ? t("notes.markdown.share.last_opened", {
-            date: formatDateNumeric(link.lastUsedAt),
+            date: formatDateShort(link.lastUsedAt),
         })
         : t("notes.markdown.share.never_opened");
 }
@@ -237,7 +237,7 @@ function openedLabel(link) {
                                 {{
                                     link.revokedAt
                                         ? t("notes.markdown.share.revoked_on", {
-                                            date: formatDateNumeric(link.revokedAt),
+                                            date: formatDateShort(link.revokedAt),
                                         })
                                         : openedLabel(link)
                                 }}

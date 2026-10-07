@@ -953,7 +953,7 @@ onUnmounted(() => {
             class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-md border px-2 py-1.5 text-sm no-underline transition-colors"
             :class="'root' === dropHint?.key
                 ? 'border-accent-600/40 bg-accent-600/15 text-accent-400 ring-2 ring-accent-500'
-                : null === selectedKey ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'border-transparent text-primary hover:bg-surface-2'"
+                : null === selectedKey ? 'border-transparent bg-surface-2 font-medium text-primary' : 'border-transparent text-primary hover:bg-surface-2'"
             v-on:click.prevent="onSelect({ kind: 'folder', id: null, key: null })"
             v-on:dragover="onDragOver(rootNode, $event)"
             v-on:dragleave="onDragLeave(rootNode, $event)"

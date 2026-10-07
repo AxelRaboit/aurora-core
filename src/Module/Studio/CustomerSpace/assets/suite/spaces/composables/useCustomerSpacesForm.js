@@ -127,13 +127,15 @@ export function useCustomerSpacesForm(
     );
 
     /**
-     * Archived spaces are off by default and one switch away.
+     * Active spaces by default, the archived ones one filter away.
      *
-     * A filter in the page rather than a second request: the list is already
-     * here in full, so hiding rows costs nothing and showing them again does
-     * not wait on the network.
+     * Part of the list's scope, so a toolbar filter rather than a checkbox
+     * stacked under the tabs: "active", "archived" or both. A filter in the
+     * page rather than a second request: the list is already here in full,
+     * so hiding rows costs nothing and showing them again does not wait on
+     * the network.
      */
-    const showArchived = ref(false);
+    const statusFilter = ref("active");
 
     /**
      * Customers or prospects, never both.
@@ -197,18 +199,21 @@ export function useCustomerSpacesForm(
               ),
     );
 
-    /** The filters compose: the company, the tab, then the archives. */
+    /** The filters compose: the company, the tab, then the status. */
     const ofTab = computed(() =>
         ofCustomer.value.filter(
             (space) => (space.customerStatus ?? "client") === tab.value,
         ),
     );
 
-    const visibleItems = computed(() =>
-        showArchived.value
-            ? ofTab.value
-            : ofTab.value.filter((space) => !space.archived),
-    );
+    const visibleItems = computed(() => {
+        if ("all" === statusFilter.value) return ofTab.value;
+        const archived = "archived" === statusFilter.value;
+
+        return ofTab.value.filter(
+            (space) => Boolean(space.archived) === archived,
+        );
+    });
 
     const tabs = computed(() =>
         ["client", "prospect"].map((key) => ({
@@ -278,7 +283,7 @@ export function useCustomerSpacesForm(
         visibleItems,
         tab,
         tabs,
-        showArchived,
+        statusFilter,
         archivedCount,
         customerOptions,
         users,

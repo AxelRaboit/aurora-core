@@ -11,6 +11,7 @@ import StudioSectionTabs from "../../../../assets/suite/components/StudioSection
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useSpaceRowActions } from "./composables/useSpaceRowActions.js";
@@ -27,25 +28,22 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import CustomerSpaceTeamModal from "./components/CustomerSpaceTeamModal.vue";
 import CustomerSpaceTeamCell from "./components/CustomerSpaceTeamCell.vue";
 import SpaceWorkloadBadges from "../../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { PanelsTopLeft, Plus, Save, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
+const { formatSize } = useFileSize();
 const { container, isNarrow } = useNarrowContainer();
 
-/** Units people read, not bytes people count. */
+/** Units people read, not bytes people count, in the reader's language. */
 function weigh(bytes) {
-    if (!bytes) return "—";
-
-    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} Go`;
-    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} Mo`;
-
-    return `${Math.max(1, Math.round(bytes / 1024))} ko`;
+    return bytes ? formatSize(bytes) : "-";
 }
 const { can } = usePrivileges();
 
@@ -83,7 +81,7 @@ const {
     visibleItems,
     tab,
     tabs,
-    showArchived,
+    statusFilter,
     archivedCount,
     customerOptions,
     showCreate,
@@ -159,10 +157,21 @@ const { formatDate } = useDateFormat();
 
 /**
  * The most urgent at the top, on demand: missed publications, late reviews,
- * content to rework, then what is waiting on the client. Without the
- * checkbox, the order stays by name, which is scanned to find a space.
+ * content to rework, then what is waiting on the client. Otherwise the order
+ * stays by name, which is scanned to find a space.
+ *
+ * The order of a list is a sort control in the toolbar, not a checkbox under
+ * the tabs, and a taste remembered from one visit to the next.
  */
-const byUrgency = ref(false);
+const { choice: sortOrder } = usePersistedChoice("studio.spaces.sort", "name", ["name", "urgency"]);
+const sortOptions = computed(() =>
+    ["name", "urgency"].map((value) => ({ value, label: t(`suite.studio.spaces.sort.${value}`) })),
+);
+
+/** Active, archived, or both: the scope of the list, next to the search. */
+const statusOptions = computed(() =>
+    ["active", "archived", "all"].map((value) => ({ value, label: t(`suite.studio.spaces.status_filter.${value}`) })),
+);
 
 function urgencyOf(space) {
     const workload = space.workload ?? {};
@@ -171,7 +180,7 @@ function urgencyOf(space) {
 }
 
 const rows = computed(() => {
-    if (!byUrgency.value) return visibleItems.value;
+    if ("urgency" !== sortOrder.value) return visibleItems.value;
 
     return [...visibleItems.value].sort((left, right) => {
         const [leftUrgency, rightUrgency] = [urgencyOf(left), urgencyOf(right)];
@@ -191,6 +200,7 @@ const pageActions = computed(() => {
     return [
         {
             key: "create",
+            primary: true,
             color: "accent",
             icon: Plus,
             title: t("suite.studio.spaces.add"),
@@ -215,6 +225,26 @@ const pageActions = computed(() => {
                 v-model="search"
                 :placeholder="t('suite.studio.spaces.search_placeholder')"
             />
+            <!-- The scope and the order of the list, next to the search like
+                 the filters of the other lists. The status filter is only
+                 offered when there is something to reveal (or when it is
+                 already moved off "active", so it can be moved back): a
+                 control that does nothing is one people learn to distrust. -->
+            <template #inline>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <AppSelect
+                        v-if="archivedCount || 'active' !== statusFilter"
+                        v-model="statusFilter"
+                        class="sm:min-w-48"
+                        :options="statusOptions"
+                    />
+                    <AppSelect
+                        v-model="sortOrder"
+                        class="sm:min-w-48"
+                        :options="sortOptions"
+                    />
+                </div>
+            </template>
             <template #actions>
                 <AppPageActions
                     v-if="pageActions.length"
@@ -249,9 +279,12 @@ const pageActions = computed(() => {
 
              The count is on the label because it is what makes the other tab
              visible: a space opened for a prospect would otherwise be filed
-             somewhere nobody thinks to open. -->
+             somewhere nobody thinks to open.
+
+             The group keeps its natural width (`w-fit`): stretched over the
+             whole line, two short labels floated in an empty bar. -->
         <div
-            class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+            class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
             role="group"
             :aria-label="t('suite.studio.customers.status')"
         >
@@ -259,7 +292,7 @@ const pageActions = computed(() => {
                 v-for="entry in tabs"
                 :key="entry.key"
                 type="button"
-                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
                 :class="
                     tab === entry.key
                         ? 'bg-surface font-medium text-primary shadow-sm'
@@ -272,15 +305,6 @@ const pageActions = computed(() => {
                 <span class="text-xs tabular-nums text-muted">{{ entry.count }}</span>
             </button>
         </div>
-
-        <!-- Only offered when there is something to reveal: a switch that does
-             nothing is a switch people learn to distrust. -->
-        <AppCheckbox
-            v-if="archivedCount"
-            v-model="showArchived"
-            :label="t('suite.studio.spaces.show_archived')"
-        />
-        <AppCheckbox v-model="byUrgency" :label="t('suite.studio.spaces.sort_by_urgency')" />
 
         <!-- Mobile cards -->
         <div v-if="isNarrow" class="space-y-2">
@@ -409,7 +433,10 @@ const pageActions = computed(() => {
                         <td class="px-4 py-2 hidden md:table-cell">
                             <div class="space-y-1">
                                 <SpaceWorkloadBadges :workload="space.workload" />
-                                <p v-if="space.workload?.nextPublication" class="text-xs text-muted whitespace-nowrap">
+                                <!-- Wraps rather than staying on one line: kept
+                                     whole, it ran under the sticky actions
+                                     column and read « le 10 octobr ». -->
+                                <p v-if="space.workload?.nextPublication" class="text-xs text-muted">
                                     {{ t("suite.studio.workload.next_publication", { date: formatDate(space.workload.nextPublication) }) }}
                                 </p>
                             </div>

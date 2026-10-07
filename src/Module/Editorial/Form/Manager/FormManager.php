@@ -377,7 +377,7 @@ class FormManager implements FormManagerInterface
 
         $count = count($form->getSteps() ?? []);
         if ($count > 0 && $step > $count) {
-            throw new FieldException('step', $this->translator->trans('suite.forms.errors.step_out_of_range', ['{count}' => $count]));
+            throw new FieldException('step', $this->translator->trans('suite.forms.errors.step_out_of_range', ['{count}' => $count, '%count%' => $count]));
         }
     }
 

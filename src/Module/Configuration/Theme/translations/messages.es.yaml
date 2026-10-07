@@ -132,7 +132,7 @@ suite:
         updated: 'Tema actualizado.'
         activated: 'Tema activado.'
         deleted: 'Tema eliminado.'
-        template_count: '{count} archivo(s) de plantilla'
+        template_count: "{count} archivo de plantilla | {count} archivos de plantilla"
         errors:
             slug_invalid: 'El slug solo puede contener letras minúsculas, cifras y guiones.'
             slug_taken: 'Este slug ya está en uso.'

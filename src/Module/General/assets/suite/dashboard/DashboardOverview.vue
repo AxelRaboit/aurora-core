@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import AppTab from "@/shared/components/nav/AppTab.vue";
-import { Package } from "lucide-vue-next";
+import { ChevronRight, Package } from "lucide-vue-next";
 import { useDashboardModule } from "@general/suite/dashboard/composables/useDashboardModule.js";
 
 /**
@@ -24,6 +24,26 @@ const { t } = useI18n();
 const enabledModules = computed(() => props.enabledModules);
 
 const { activeModule, selectModule, visibleModules } = useDashboardModule(enabledModules);
+
+/**
+ * What waits for a gesture, across every module, above the tabs.
+ *
+ * The dashboard was a set of figures per module, the editorial one opening
+ * by default: a contract to countersign or a late review sat behind the
+ * Studio tab (UI audit of 07/10/2026). Each module says what waits through
+ * its registered `todo`, from the figures it already sends; a zero is left
+ * out, and with nothing left the strip says so in one line.
+ */
+const todos = computed(() =>
+    visibleModules.value
+        .flatMap((module) => module.todo?.(props.stats[module.id] ?? {}) ?? [])
+        .filter((item) => item.count > 0),
+);
+
+const TONES = {
+    danger: "text-rose-500",
+    warning: "text-amber-500",
+};
 </script>
 
 <template>
@@ -34,6 +54,25 @@ const { activeModule, selectModule, visibleModules } = useDashboardModule(enable
         </div>
 
         <template v-else>
+            <section class="flex flex-col gap-2" :aria-label="t('suite.stats.todo.title')">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">{{ t('suite.stats.todo.title') }}</h2>
+                <p v-if="!todos.length" class="text-sm text-secondary">{{ t('suite.stats.todo.nothing') }}</p>
+                <ul v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    <li v-for="item in todos" :key="item.key">
+                        <component
+                            :is="item.href ? 'a' : 'div'"
+                            :href="item.href || undefined"
+                            class="group flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3 no-underline transition-colors"
+                            :class="item.href ? 'hover:border-accent-600/40 hover:bg-surface-2' : ''"
+                        >
+                            <span class="text-2xl font-semibold tabular-nums" :class="TONES[item.tone] ?? 'text-primary'">{{ item.count }}</span>
+                            <span class="min-w-0 flex-1 text-sm text-secondary">{{ t(item.labelKey, { count: item.count }) }}</span>
+                            <ChevronRight v-if="item.href" class="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" :stroke-width="2" />
+                        </component>
+                    </li>
+                </ul>
+            </section>
+
             <div v-if="visibleModules.length > 1" class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1 max-w-full overflow-x-auto scrollbar-thin">
                 <AppTab
                     v-for="module in visibleModules"

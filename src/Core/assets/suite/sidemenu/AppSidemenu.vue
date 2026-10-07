@@ -116,10 +116,12 @@ const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: res
     // Keep equal to the `--sidemenu-width` in sidemenu.css, see the comment
     // there: a mismatch shows as a jump on load.
     //
-    // The default is the maximum: the menu now carries trees and searches,
-    // not only links. A width already chosen is kept - this only moves those
-    // who never dragged the handle.
-    defaultValue: 480,
+    // 320, not the 480 maximum it used to open at: at 480 a 1440 window kept
+    // two thirds for the work, and the contracts table wrapped a template
+    // name over four lines (UI audit of 07/10/2026). 320 still holds a folder
+    // tree; whoever wants more drags the handle. A width already chosen is
+    // kept - this only moves those who never dragged it.
+    defaultValue: 320,
     min: 200,
     max: 480,
     onChange: (widthPx) => { document.documentElement.style.setProperty("--sidemenu-width", `${widthPx}px`); },
@@ -245,14 +247,16 @@ function openSearchFromMobile() {
         <!-- Shown only inside a module. Two rows, because they answer two
              different questions and merging them would make the module's name a
              button that leaves it: the first says where the column is, the
-             second is the way out. The name borrows the module's section colour
-             from the same registry the project view uses - the reader already
-             reads lime as "GED", so it is reused rather than re-invented. -->
+             second is the way out. The dot before the name borrows the module's
+             section colour from the same registry the project view uses - the
+             reader already reads lime as "GED", so it is reused rather than
+             re-invented. -->
         <div v-if="inModuleView" class="px-3 py-2 border-b border-line shrink-0 flex flex-col gap-1">
             <div
                 class="si-section-header flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"
                 :class="[sectionTheme.headerClasses(moduleId), sectionTheme.labelClasses(moduleId)]"
             >
+                <span class="size-2 shrink-0 rounded-full" :class="sectionTheme.dotClasses(moduleId)" aria-hidden="true" />
                 <span class="truncate">{{ moduleLabel }}</span>
             </div>
             <button

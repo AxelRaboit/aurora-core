@@ -33,7 +33,6 @@ import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
-import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import ContractsSectionTabs from "../components/ContractsSectionTabs.vue";
 
@@ -62,7 +61,7 @@ const props = defineProps({
 const { t } = useI18n();
 const { can } = usePrivileges();
 const { request } = useRequest();
-const { formatDateNumeric } = useDateFormat();
+const { formatDateShort } = useDateFormat();
 const { flowOf } = useContractFlow({ linkDays: props.linkDays });
 
 const CONTRACT_KEYS = "suite.studio.contracts";
@@ -190,7 +189,7 @@ function rowActions(contract) {
 
 const pageActions = computed(() =>
     can("studio.contracts.create")
-        ? [{ key: "create", color: "accent", icon: Plus, title: t(`${CONTRACT_KEYS}.add`), onSelect: () => openCreate() }]
+        ? [{ key: "create", primary: true, color: "accent", icon: Plus, title: t(`${CONTRACT_KEYS}.add`), onSelect: () => openCreate() }]
         : [],
 );
 </script>
@@ -224,19 +223,27 @@ const pageActions = computed(() =>
         </AppGuide>
 
         <!-- The journey, as tabs. The count says whether a step is worth
-             opening, and the hint what it holds. -->
-        <nav class="flex flex-wrap items-center gap-1" :aria-label="t(`${CONTRACT_KEYS}.title`)">
-            <AppTab
+             opening, and the hint what it holds. The house segmented group,
+             on one line that scrolls on a phone: green pills wrapping over
+             three lines stood apart from every other list (UI audit of
+             07/10/2026). -->
+        <nav
+            class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+            :aria-label="t(`${CONTRACT_KEYS}.title`)"
+        >
+            <button
                 v-for="key in steps"
                 :key="key"
-                size="sm"
-                :active="step === key"
+                type="button"
+                class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
+                :class="step === key ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                :aria-pressed="step === key ? 'true' : 'false'"
                 :title="'all' === key ? '' : t(`${FLOW_KEYS}.steps_hint.${key}`)"
                 v-on:click="step = key"
             >
                 {{ t(`${FLOW_KEYS}.steps.${key}`) }}
-                <span class="ml-1 tabular-nums text-muted">{{ counts[key] ?? 0 }}</span>
-            </AppTab>
+                <span class="tabular-nums text-muted">{{ counts[key] ?? 0 }}</span>
+            </button>
         </nav>
         <p v-if="'all' !== step" class="text-xs text-muted">{{ t(`${FLOW_KEYS}.steps_hint.${step}`) }}</p>
 
@@ -259,7 +266,7 @@ const pageActions = computed(() =>
                 <tbody class="divide-y divide-line/40">
                     <tr v-for="contract in rows" :key="contract.id" class="hover:bg-surface-2/40 transition-colors">
                         <td class="px-4 py-2 whitespace-nowrap">
-                            <a class="font-mono text-xs text-primary hover:underline" :href="showHref(contract)">
+                            <a class="text-sm font-medium tabular-nums text-primary hover:underline" :href="showHref(contract)">
                                 {{ contract.reference ?? t(`${FLOW_KEYS}.list.draft_reference`) }}
                             </a>
                             <span v-if="contract.amends" class="block text-2xs text-muted">
@@ -275,13 +282,13 @@ const pageActions = computed(() =>
                         </td>
                         <td class="px-4 py-2 text-primary whitespace-nowrap tabular-nums hidden lg:table-cell">{{ formatAmount(contract) ?? "-" }}</td>
                         <td class="px-4 py-2 text-muted text-xs whitespace-nowrap hidden xl:table-cell">
-                            {{ contract.effectiveDate ? formatDateNumeric(contract.effectiveDate) : "-" }}
+                            {{ contract.effectiveDate ? formatDateShort(contract.effectiveDate) : "-" }}
                         </td>
                         <td class="px-4 py-2">
                             <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
                         </td>
                         <td class="px-4 py-2 text-muted text-xs whitespace-nowrap hidden xl:table-cell">
-                            {{ contract.lastActivityAt ? formatDateNumeric(contract.lastActivityAt) : "-" }}
+                            {{ contract.lastActivityAt ? formatDateShort(contract.lastActivityAt) : "-" }}
                         </td>
                         <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions :actions="rowActions(contract)" :label="contract.reference ?? contract.customerName ?? ''" />
@@ -296,7 +303,7 @@ const pageActions = computed(() =>
             <article v-for="contract in rows" :key="contract.id" class="aurora-card p-3 space-y-2 min-w-0">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <a class="font-mono text-xs text-primary hover:underline" :href="showHref(contract)">
+                        <a class="text-sm font-medium tabular-nums text-primary hover:underline" :href="showHref(contract)">
                             {{ contract.reference ?? t(`${FLOW_KEYS}.list.draft_reference`) }}
                         </a>
                         <p class="font-medium text-primary break-words">{{ contract.customerName }}</p>

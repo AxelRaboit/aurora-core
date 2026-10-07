@@ -67,3 +67,16 @@ body.aurora-front {
         width: auto;
     }
 }
+
+/**
+ * The sticky « Actions » column of a list table, in its header row.
+ *
+ * Header rows are `bg-surface-2/50`, translucent over the card; the sticky
+ * cell has to be opaque so rows do not show through it when the table
+ * scrolls sideways, and `bg-surface-2` made it a darker block at the end of
+ * every header, which read as a defect (UI audit of 07/10/2026). The same
+ * mix, opaque. Unlayered, so it wins over the utility on every table at once.
+ */
+thead tr th.sticky.right-0 {
+    background-color: color-mix(in oklab, var(--color-surface-2) 50%, var(--color-surface));
+}

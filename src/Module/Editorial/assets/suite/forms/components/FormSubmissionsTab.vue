@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { Download, Inbox } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
@@ -20,12 +21,13 @@ const props = defineProps({
     exportPath: { type: String, required: true },
 });
 
-const { t, d: formatLocalizedDate } = useI18n();
+const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
 const { submissions, total, page, totalPages, loading, load, goToPage, exportUrl } = useFormSubmissions(props);
 
 onMounted(load);
 
-const formatDate = (value) => formatLocalizedDate(new Date(value), { dateStyle: "medium", timeStyle: "short" });
+const formatDate = (value) => formatDateTime(value);
 </script>
 
 <template>

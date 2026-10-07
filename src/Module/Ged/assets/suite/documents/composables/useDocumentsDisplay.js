@@ -15,8 +15,8 @@ import { useListSort } from "@/shared/composables/list/useListSort.js";
  */
 export const DOCUMENT_SORT_FIELDS = [
     { key: "date", labelKey: "shared.common.dates" },
-    { key: "name", label: "A-Z" },
-    { key: "size", label: "KB" },
+    { key: "name", labelKey: "shared.common.name" },
+    { key: "size", labelKey: "shared.common.size" },
 ];
 
 export function useDocumentsDisplay(items) {

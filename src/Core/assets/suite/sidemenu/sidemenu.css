@@ -11,12 +11,11 @@
  * mounts (`watch(..., { immediate: true })`). Two different values make the
  * width jump in plain sight, once, for anyone who never resized.
  *
- * It is the maximum the resizing allows, on purpose: the menu is no longer a
- * list of links scanned with the eye, it carries trees, searches and
- * buttons. So it opens at the width it can take, and whoever wants it back
- * takes it back by dragging the handle.
+ * 320, below the 480 the resizing allows: wide enough for the trees and
+ * searches the menu carries, narrow enough to leave a 1440 window most of its
+ * width for the work. Whoever wants more drags the handle.
  */
-:root { --sidemenu-width: 480px; }
+:root { --sidemenu-width: 320px; }
 
 #sidemenu {
     width: var(--sidemenu-width);

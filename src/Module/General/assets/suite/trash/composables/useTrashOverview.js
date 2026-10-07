@@ -23,39 +23,83 @@ export function useTrashOverview(props) {
     const { request } = useRequest();
 
     const trashes = ref(props.trashes ?? []);
-    const activeKey = ref(trashes.value[0]?.key ?? null);
+    const activeKey = ref(firstKey(trashes.value));
     const busyId = ref(null);
     const pendingForceDelete = ref(null);
     const pendingEmpty = ref(null);
     const emptying = ref(false);
 
     const rows = computed(() =>
-        trashes.value.map((trash) => {
-            const label = t(trash.labelKey);
-
-            return {
-                ...trash,
-                label,
-                iconComponent: resolveNavIcon(trash.icon),
-                daysLeft: daysLeft(trash.oldestDeletedAt, props.retentionDays),
-                // The module in front of what it contains, except when it
-                // repeats it: "Notes · Notes Markdown" says the same thing
-                // twice, and the prefix is only there to remove an ambiguity.
-                showSection:
-                    Boolean(trash.sectionLabel) &&
-                    !label
-                        .toLowerCase()
-                        .startsWith(String(trash.sectionLabel).toLowerCase()),
-            };
-        }),
+        trashes.value.map((trash) => ({
+            ...trash,
+            label: t(trash.labelKey),
+            // The module the trash belongs to, as the side menu names it.
+            // Grouping by it is what keeps "Dossiers" unambiguous without
+            // repeating "GED ·" in front of every tab.
+            section: trash.sectionLabel || t(trash.labelKey),
+            iconComponent: resolveNavIcon(trash.icon),
+            daysLeft: daysLeft(trash.oldestDeletedAt, props.retentionDays),
+        })),
     );
 
-    const total = computed(() =>
-        rows.value.reduce((sum, row) => sum + row.count, 0),
-    );
+    /**
+     * The trashes grouped by module, in the order the server sent them.
+     *
+     * Nine tabs on three lines, each repeating its module, read as a wall: a
+     * first row of modules, then the types of the open one, says the same
+     * thing in two short rows.
+     */
+    const modules = computed(() => {
+        const bySection = new Map();
+        for (const row of rows.value) {
+            if (!bySection.has(row.section)) {
+                bySection.set(row.section, {
+                    key: row.section,
+                    label: row.section,
+                    count: 0,
+                    rows: [],
+                });
+            }
+            const group = bySection.get(row.section);
+            group.rows.push(row);
+            group.count += row.count;
+        }
+
+        return [...bySection.values()];
+    });
 
     const active = computed(
         () => rows.value.find((row) => row.key === activeKey.value) ?? null,
+    );
+
+    const activeModule = computed(
+        () =>
+            modules.value.find(
+                (group) => group.key === active.value?.section,
+            ) ?? null,
+    );
+
+    /**
+     * The modules worth a tab: those holding something, and the open one
+     * even once emptied, so the reader is not moved off what they just
+     * cleared.
+     */
+    const visibleModules = computed(() =>
+        modules.value.filter(
+            (group) => group.count > 0 || group.key === activeModule.value?.key,
+        ),
+    );
+
+    /** Opens a module on its first type holding something. */
+    function selectModule(key) {
+        const group = modules.value.find((candidate) => candidate.key === key);
+        if (!group) return;
+
+        activeKey.value = firstKey(group.rows);
+    }
+
+    const total = computed(() =>
+        rows.value.reduce((sum, row) => sum + row.count, 0),
     );
 
     function select(key) {
@@ -75,7 +119,7 @@ export function useTrashOverview(props) {
         // place; keeping the reader on a tab that no longer exists would show
         // them nothing and look broken.
         if (!trashes.value.some((trash) => trash.key === activeKey.value)) {
-            activeKey.value = trashes.value[0]?.key ?? null;
+            activeKey.value = firstKey(trashes.value);
         }
     }
 
@@ -159,14 +203,18 @@ export function useTrashOverview(props) {
 
     return {
         rows,
+        modules,
+        visibleModules,
         total,
         active,
+        activeModule,
         activeKey,
         busyId,
         pendingForceDelete,
         pendingEmpty,
         emptying,
         select,
+        selectModule,
         reload,
         restore,
         askForceDelete,
@@ -174,6 +222,17 @@ export function useTrashOverview(props) {
         askEmpty,
         doEmpty,
     };
+}
+
+/**
+ * The trash to open first: the first one holding something, otherwise the
+ * first one at all. Opening on an empty trash while another one is full made
+ * the reader hunt for the content.
+ */
+function firstKey(trashes) {
+    return (
+        (trashes.find((trash) => trash.count > 0) ?? trashes[0])?.key ?? null
+    );
 }
 
 /**

@@ -146,7 +146,7 @@ describe("the GED folder panel", () => {
         await folderLinks(wrapper)[2].trigger("click");
 
         expect(folderLinks(wrapper)[2].attributes("class")).toContain(
-            "bg-lime-600/15",
+            "bg-surface-2 text-primary font-medium",
         );
     });
 
@@ -156,10 +156,10 @@ describe("the GED folder panel", () => {
 
         await folderLinks(wrapper)[0].trigger("click");
 
-        // `hover:bg-lime-600/10` is on every idle row, so the active
-        // background is the class to look for, not the colour name.
+        // `hover:bg-surface-2/60` is on every idle row, so the whole active
+        // trio is what to look for, not the background alone.
         expect(folderLinks(wrapper)[0].attributes("class")).not.toContain(
-            "bg-lime-600/15",
+            "bg-surface-2 text-primary font-medium",
         );
     });
 

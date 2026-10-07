@@ -106,7 +106,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     {
         $items = $this->columnRepository->countItems($column);
         if ($items > 0) {
-            throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_not_empty', ['{count}' => (string) $items]));
+            throw new FieldException('column', $this->translator->trans('suite.studio.space_content.errors.column_not_empty', ['{count}' => (string) $items, '%count%' => $items]));
         }
 
         $others = array_values(array_filter(

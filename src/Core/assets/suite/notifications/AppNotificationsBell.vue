@@ -6,7 +6,7 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { useNotifications } from "./composables/useNotifications.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
-const { formatDateNumeric } = useDateFormat();
+const { formatDateTime } = useDateFormat();
 
 const props = defineProps({
     listPath: { type: String, required: true },
@@ -40,7 +40,7 @@ function formatDate(iso) {
     if (elapsedSeconds < 60) return t("suite.notifications.just_now");
     if (elapsedSeconds < 3600) return t("suite.notifications.minutes_ago", { n: Math.floor(elapsedSeconds / 60) });
     if (elapsedSeconds < 86400) return t("suite.notifications.hours_ago", { n: Math.floor(elapsedSeconds / 3600) });
-    return formatDateNumeric(date.toISOString());
+    return formatDateTime(date.toISOString());
 }
 
 function onItemClick(entry) {

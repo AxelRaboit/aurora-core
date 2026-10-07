@@ -2,6 +2,7 @@
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { CheckCircle2, ExternalLink, PlugZap, Save, Unplug, X, XCircle } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -16,7 +17,7 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
-const { formatDateTimeNumeric } = useDateFormat();
+const { formatDateTime } = useDateFormat();
 
 /**
  * The storage tab of the settings screen.
@@ -38,6 +39,7 @@ defineProps({
 const SETTINGS_PATH = "/suite/configuration/storage";
 
 const { t } = useI18n();
+const { formatSize } = useFileSize();
 const { request } = useRequest();
 
 const loading = ref(true);
@@ -55,14 +57,9 @@ const activeDisk = ref("local");
  */
 const usage = ref({ local: { count: 0, bytes: 0 }, r2: { count: 0, bytes: 0 } });
 
-/** Units you read, not bytes you count. */
+/** Units you read, not bytes you count, in the reader's language. */
 function weigh(bytes) {
-    if (!bytes) return "0 ko";
-
-    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} Go`;
-    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} Mo`;
-
-    return `${Math.max(1, Math.round(bytes / 1024))} ko`;
+    return formatSize(bytes ?? 0);
 }
 const deliveryMode = ref("proxy");
 const endpoint = ref("");
@@ -118,7 +115,7 @@ const verifiedOn = computed(() => {
     if (!verifiedAt.value) return "";
     const date = new Date(verifiedAt.value);
 
-    return Number.isNaN(date.getTime()) ? verifiedAt.value : formatDateTimeNumeric(date.toISOString());
+    return Number.isNaN(date.getTime()) ? verifiedAt.value : formatDateTime(date.toISOString());
 });
 /**
  * The one line that answers "is this thing on?" without reading the form.

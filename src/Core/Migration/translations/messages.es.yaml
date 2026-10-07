@@ -1,4 +1,4 @@
 suite:
     migrations:
         pending:
-            banner: '{count} migración(es) pendiente(s) en la base de desarrollo. Ejecute el comando para sincronizar:'
+            banner: "{count} migración pendiente en la base de desarrollo. Ejecute el comando para sincronizar: | {count} migraciones pendientes en la base de desarrollo. Ejecute el comando para sincronizar:"

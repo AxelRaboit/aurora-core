@@ -238,7 +238,7 @@ notes:
         folders:
             title: Dossiers
             trash_label: Dossiers de notes
-            root: Tous les documents
+            root: Toutes les notes
             create: Nouveau dossier
             created: Dossier créé
             rename: Renommer
@@ -250,10 +250,11 @@ notes:
             confirm_delete: "Mettre « {name} » à la corbeille, avec ce qu'il contient ?"
             deleted: Dossier mis à la corbeille
             move_to: Déplacer vers…
-            move_root: Tous les documents
+            move_root: Toutes les notes
             moved: Élément déplacé
             open: Ouvrir le dossier
-            contents: '{folders} dossiers · {notes} notes'
+            folder_count: "{count} dossier | {count} dossiers"
+            note_count: "{count} note | {count} notes"
             tree_empty: Aucun dossier pour l'instant.
             errors:
                 move_refused: 'Déplacement refusé : un dossier ne peut pas être rangé dans lui-même, ni au-delà de {max} niveaux.'
@@ -265,7 +266,7 @@ notes:
                 move_failed: Impossible de déplacer l'élément.
                 load_failed: Impossible de charger le dossier.
         library:
-            title: Tous les documents
+            title: Toutes les notes
             new_note: Nouvelle note
             recent: Récemment modifiées
             favorites: Favoris
@@ -282,11 +283,11 @@ notes:
                 shared: "Filtre : espaces de notes partagés"
                 private: "Filtre : mon espace de notes"
                 clear: Retirer le filtre
-            selected: '{count} sélectionné(s)'
+            selected: "{count} sélectionné | {count} sélectionnés"
             select: Sélectionner
             stop_selecting: Terminer la sélection
             clear_selection: Tout désélectionner
-            some_refused: "{count} élément(s) n'ont pas pu être traités."
+            some_refused: "{count} élément n'a pas pu être traité. | {count} éléments n'ont pas pu être traités."
             confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'
             new_folder: Nouveau dossier
             search_placeholder: Rechercher une note…
@@ -412,7 +413,7 @@ notes:
             empty: 'Aucune version passée pour l''instant'
             empty_hint: 'Une version est gardée quand vous modifiez la note, au plus une toutes les quelques minutes (réglages, onglet Notes).'
             no_author: 'Auteur inconnu'
-            since: 'Depuis cette version : {added} ligne(s) ajoutée(s), {removed} retirée(s)'
+            since: "Depuis cette version, lignes ajoutées : {added} · retirées : {removed}"
             show_whole: 'Voir la version entière'
             show_changes: 'Voir les changements'
             title_was: 'Le titre était alors : {title}'
@@ -476,7 +477,7 @@ notes:
             no_results: Aucune commande
         tags:
             add_placeholder: Ajouter un tag…
-            summary: '{count} tag(s)'
+            summary: "{count} tag | {count} tags"
             filter_label: Filtrer par tag
             clear: Tout effacer
             no_results: Aucune note pour ces tags

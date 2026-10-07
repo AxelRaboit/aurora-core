@@ -12,7 +12,7 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
-const { formatDateTimeNumeric } = useDateFormat();
+const { formatDateTime } = useDateFormat();
 
 defineProps({
     groups: { type: Object, default: () => ({}) },
@@ -49,7 +49,7 @@ const acceptedOn = computed(() => {
     if (!acceptedAt.value) return "";
     const date = new Date(acceptedAt.value);
 
-    return Number.isNaN(date.getTime()) ? acceptedAt.value : formatDateTimeNumeric(date.toISOString());
+    return Number.isNaN(date.getTime()) ? acceptedAt.value : formatDateTime(date.toISOString());
 });
 
 const canEnable = computed(

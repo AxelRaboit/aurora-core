@@ -857,7 +857,7 @@ describe("the library", () => {
             );
             expect(
                 cards.some((text) =>
-                    text.includes("notes.markdown.folders.contents"),
+                    text.includes("notes.markdown.folders.folder_count"),
                 ),
             ).toBe(false);
         });

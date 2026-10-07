@@ -23,8 +23,18 @@ const panels = [];
  * @param {object}   panel.icon      lucide component for that tab
  * @param {Function} panel.component `() => import("...")` - kept lazy so a panel
  *                                   nobody looks at is never downloaded
+ * @param {Function} [panel.todo]    `(stats) => [{ key, labelKey, count, href, tone? }]`:
+ *                                   what waits for a gesture in this module, for the
+ *                                   « À traiter » strip above the tabs. Read from the
+ *                                   figures the module already sends; a zero is left out.
  */
-export function registerDashboardPanel({ id, labelKey, icon, component }) {
+export function registerDashboardPanel({
+    id,
+    labelKey,
+    icon,
+    component,
+    todo = null,
+}) {
     // Registration is idempotent: HMR re-runs the register files, and a
     // duplicated tab is a confusing way to find that out.
     const existing = panels.findIndex((panel) => panel.id === id);
@@ -33,6 +43,7 @@ export function registerDashboardPanel({ id, labelKey, icon, component }) {
         labelKey,
         icon: markRaw(icon),
         component: markRaw(defineAsyncComponent(component)),
+        todo,
     };
 
     if (existing === -1) panels.push(entry);

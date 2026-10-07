@@ -5,6 +5,29 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.1.0] - 2026-10-07
+
+### Modifié
+- **La suite plus sobre et plus nette** (audit UI du 07/10/2026) :
+  - le menu latéral s'ouvre à 320 px au lieu de 480 (la poignée va toujours jusqu'à 480, une largeur déjà choisie est gardée) ; ses sections perdent leurs bandeaux colorés au profit d'une pastille de la couleur du module, et l'élément actif a la même forme dans tous les modules, arbres des dossiers de la médiathèque et des notes compris ;
+  - le verbe principal d'une liste est un vrai bouton (« + Nouvelle publication », « + Nouveau contrat », « Inviter »…) au lieu d'une entrée seule dans la feuille « Actions » ; une action de page marquée `primary: true` sort de la feuille, et la feuille disparaît quand il ne reste rien dedans ;
+  - les encarts « Comment ça marche » s'ouvrent à la première visite d'un écran seulement, et repliés ne sont plus qu'une ligne discrète ;
+  - précédent, suivant et recharger ne s'affichent plus que dans l'application installée ;
+  - titres de fiche en 24 px, titres des cartes du profil ramenés sous le titre de page ; le fil d'Ariane ne commence plus par « / » sur téléphone.
+- **Dates, montants et tailles dans la langue de la suite**, plus celle du navigateur : « 750 € » et non « €750 », « 7 oct. 2026 » et non « Oct 06, 2026 », « 42,8 Ko » et non « 42.8 Ko ». Trois formats de date seulement (`formatDateShort`, `formatDateTime`, `formatDate` de `useDateFormat`), l'année n'apparaissant dans `formatDateTime` que si elle n'est pas l'année en cours ; nouveau `useMoneyFormat`. `tests/Unit/Core/FormatsFollowTheSuiteLanguageTest.php` refuse un formatage qui prend la langue du navigateur.
+- **De vrais pluriels** : plus aucun « (s) » dans les trois langues, le français met 0 au singulier (`frenchPlural` dans `i18n.js`), et les messages lus par PHP reçoivent `%count%` ; libellés en franglais remplacés (« Marque », « Phrase d'humeur », « Site public », « Modèle de titre SEO », « Taille » et « Nom » pour trier la médiathèque…), réactions des commentaires par leur nom, « Toutes les notes » dans Notes.
+- **Contrôles et barres de liste unifiés** (audit UI, lot 3) :
+  - une seule case à cocher, `AppCheckbox` (nouveaux `ariaLabel` et `indeterminate`), y compris la sélection des tableaux et « Se souvenir de moi » ; `tests/Unit/CheckboxesAreTheHouseOnesTest.php` refuse une case écrite à la main dans la suite ;
+  - publications : les quatre colonnes de cases du panneau « Filtres » deviennent des sélecteurs dans la barre (« Tous les types », « Tous les statuts »…), avec une ligne de pastilles retirables pour les filtres actifs ; commentaires : onglets segmentés, recherche dans la barre, statut lu et écrit dans l'adresse (`?status=pending`) ;
+  - médiathèque : la recherche prend la largeur, les filtres « Toutes les … » passent dessous, « Regrouper les variantes » devient un interrupteur à côté du tri et de la vue ; nom de fichier et taille sur une ligne ;
+  - espaces : « Afficher les espaces archivés » et « Trier par urgence » deviennent des sélecteurs de la barre (statut, tri mémorisé) ; livrables : un seul filtre de format au lieu d'un second groupe d'onglets ; corbeille rangée par module puis par type, comptes sans parenthèses ;
+  - onglets de section et étapes des contrats en groupe segmenté sur une ligne, qui défile sur téléphone ; `AppListToolbar` ne laisse plus la recherche descendre sous 18 rem et passe les filtres à la ligne ;
+  - listes déroulantes à l'accent du thème (fini l'indigo) et texte d'attente aligné sur la valeur ; en-tête de la colonne « Actions » fondu dans sa ligne.
+- **Tableau de bord** : une bande « À traiter » au-dessus des onglets réunit ce qui attend un geste dans chaque module (contrats à contresigner, relectures en retard, contenus à revoir, parutions manquées, commentaires en attente, publications à relire, rappels en retard), chaque carte ouvrant la liste filtrée ; un module la nourrit par l'option `todo` de `registerDashboardPanel`. Graphique sans légende pour une seule série, mois à l'horizontale ; la tuile de la corbeille n'est plus rouge.
+- **Fiches** : le retour porte le nom de la liste parente (« Clients », « Contrats », « Publications », « Documents »…), la fiche client dit « Modifications non enregistrées », un bouton plein désactivé passe au gris ; codes de langue en capitales dans l'éditeur, références en police normale, type d'utilisateur en texte simple, slug des thèmes sous leur nom, grille des notes à trois colonnes jusqu'à 1 536 px, titre du panneau du calendrier plus en double.
+
+---
+
 ## [3.0.1] - 2026-10-07
 
 ### Corrigé

@@ -71,12 +71,12 @@ class CustomerManager implements CustomerManagerInterface
     {
         $contracts = $this->contractRepository->countForCustomer($customer);
         if ($contracts > 0) {
-            throw new FieldException('customer', $this->translator->trans('suite.studio.customers.errors.has_contracts', ['{count}' => (string) $contracts]));
+            throw new FieldException('customer', $this->translator->trans('suite.studio.customers.errors.has_contracts', ['{count}' => (string) $contracts, '%count%' => $contracts]));
         }
 
         $spaces = $this->spaceRepository->countForCustomer($customer);
         if ($spaces > 0) {
-            throw new FieldException('customer', $this->translator->trans('suite.studio.customers.errors.has_spaces', ['{count}' => (string) $spaces]));
+            throw new FieldException('customer', $this->translator->trans('suite.studio.customers.errors.has_spaces', ['{count}' => (string) $spaces, '%count%' => $spaces]));
         }
 
         $this->auditDeleted($customer);

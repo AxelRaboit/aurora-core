@@ -48,8 +48,10 @@ onUnmounted(() => {
 </script>
 
 <template>
+    <!-- The module's name, not « Mes calendriers »: the card below already
+         heads its list with that, and the panel said it twice in a row. -->
     <AppModulePanel
-        :title="t('suite.plannings.calendars')"
+        :title="t('suite.nav.sections.planning')"
         :loading="null === state"
     >
         <CalendarSidebar

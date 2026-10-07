@@ -49,12 +49,15 @@
         {# The only control that collapses the menu, at the top left of the
            page - not in the menu it hides. A button that lives in what it hides
            needs a second copy elsewhere to bring it back, which Aurora had.
-           Then come the browser's arrows, brought into the page. #}
+           Then come the browser's arrows, brought into the page - only when
+           the suite runs as an installed application, which has no toolbar of
+           its own. In a browser tab they doubled the ones right above them
+           (UI audit of 07/10/2026). #}
         <div class="flex shrink-0 items-center gap-1">
             <div {{ vue_component('core/suite/sidemenu/AppSidemenuToggle', {
                 collapsedPath: path('suite_general_profile_sidemenu_collapsed'),
             }) }}></div>
-            <div class="border-l border-line pl-1">
+            <div class="hidden border-l border-line pl-1 [@media(display-mode:standalone)]:block">
                 <div {{ vue_component('core/suite/sidemenu/AppTopbarNav') }}></div>
             </div>
         </div>
@@ -94,8 +97,12 @@
         <nav class="aurora-page-x flex h-8 items-center gap-1.5 border-b border-line bg-surface text-xs" aria-label="{{ 'suite.nav.breadcrumb'|trans }}">
             {% for crumb in trail %}
                 {% set isNarrowVisible = loop.index >= (trail|length - 1) %}
+                {# A separator goes with the level before it: on a phone, where
+                   that level is hidden, a visible one opened the path with a
+                   stray « / Clients ». #}
+                {% set isSeparatorNarrowVisible = (loop.index - 1) >= (trail|length - 1) %}
                 {% if not loop.first %}
-                    <span class="select-none shrink-0 text-muted {% if not isNarrowVisible %}hidden sm:inline{% endif %}">/</span>
+                    <span class="select-none shrink-0 text-muted {% if not isSeparatorNarrowVisible %}hidden sm:inline{% endif %}">/</span>
                 {% endif %}
                 <span class="min-w-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">
                     {% if crumb.href is defined and crumb.href %}

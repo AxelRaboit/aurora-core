@@ -54,7 +54,7 @@ const { t } = useI18n();
 // and only one knew the units of the other languages.
 const { formatSize } = useFileSize();
 const { request } = useRequest();
-const { formatDateTimeNumeric } = useDateFormat();
+const { formatDateTime } = useDateFormat();
 
 /**
  * The cards need width. Below the threshold, the list says the same thing
@@ -437,7 +437,7 @@ async function importToLibrary(file) {
                             <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ file.name }}</span>
                             <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
                             <span v-if="file.modifiedAt" class="hidden shrink-0 text-xs text-muted sm:inline">
-                                {{ formatDateTimeNumeric(file.modifiedAt) }}
+                                {{ formatDateTime(file.modifiedAt) }}
                             </span>
                         </button>
                     </li>
@@ -468,7 +468,7 @@ async function importToLibrary(file) {
                 <span v-if="previewed.size">{{ formatSize(previewed.size) }}</span>
                 <template v-if="previewed.modifiedAt">
                     <span aria-hidden="true">·</span>
-                    <span>{{ formatDateTimeNumeric(previewed.modifiedAt) }}</span>
+                    <span>{{ formatDateTime(previewed.modifiedAt) }}</span>
                 </template>
             </p>
 

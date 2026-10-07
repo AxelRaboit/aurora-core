@@ -1,21 +1,24 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useCommentRowActions } from "./composables/useCommentRowActions.js";
 import { useComments } from "./composables/useComments.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
-import AppInput from "@/shared/components/form/input/AppInput.vue";
-import AppTab from "@/shared/components/nav/AppTab.vue";
+import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import { Check, ShieldAlert, Trash2, X } from "lucide-vue-next";
+import { Trash2, X } from "lucide-vue-next";
 
-const { t, d: formatLocalizedDate } = useI18n();
+const { t, te: hasTranslation } = useI18n();
+const { formatDateTime } = useDateFormat();
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -43,54 +46,66 @@ const actionsFor = useCommentRowActions({
     },
 });
 
-function formatDate(value) {
-    return formatLocalizedDate(new Date(value), "short");
+/** A reaction by the name readers see under the post (« J'aime »), not its code. */
+function reactionLabel(type) {
+    const key = `frontend.editorial.comments.reactions.${type}`;
+
+    return hasTranslation(key) ? t(key) : type;
 }
 
+/**
+ * Approved reads as done (green), pending as waiting (amber), spam as
+ * refused (rose). "green" was not a colour the badge knows, so approved
+ * comments came out grey, like nothing at all.
+ */
 function badgeColor(value) {
-    return { approved: "green", spam: "rose" }[value] ?? "amber";
+    return { approved: "emerald", spam: "rose" }[value] ?? "amber";
 }
+
+/** « Tous » first, counting every queue, then one tab per status. */
+const tabs = computed(() => [
+    {
+        value: "",
+        label: t("suite.comments.all"),
+        count: Object.values(counts.value).reduce((sum, count) => sum + count, 0),
+    },
+    ...props.statuses.map((option) => ({
+        value: option.value,
+        label: t(option.labelKey),
+        count: counts.value[option.value] ?? 0,
+    })),
+]);
 </script>
 
 <template>
     <div class="aurora-stack">
-        <!-- Stacked on a phone, side by side from `sm`, like every other filter
-             row: a control narrower than the screen is a smaller target for no
-             reason. -->
-        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-            <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row">
-                <AppTab
-                    size="sm"
-                    class="justify-between sm:flex-none sm:justify-start"
-                    :active="status === ''"
-                    active-class="bg-surface text-primary shadow-sm"
-                    inactive-class="text-secondary hover:text-primary"
-                    v-on:click="status = ''"
+        <!-- The queues first, as a segmented group like the other lists of
+             the suite, each with its count as a muted number. One line on
+             a phone too: it scrolls sideways rather than wrapping. -->
+        <div class="overflow-x-auto scrollbar-thin">
+            <div
+                class="inline-flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+                role="group"
+                :aria-label="t('suite.comments.title')"
+            >
+                <button
+                    v-for="tab in tabs"
+                    :key="tab.value"
+                    type="button"
+                    class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
+                    :class="status === tab.value ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                    :aria-pressed="status === tab.value"
+                    v-on:click="status = tab.value"
                 >
-                    {{ t("suite.comments.all") }}
-                </AppTab>
-                <AppTab
-                    v-for="option in statuses"
-                    :key="option.value"
-                    size="sm"
-                    class="justify-between sm:flex-none sm:justify-start"
-                    :active="status === option.value"
-                    active-class="bg-surface text-primary shadow-sm"
-                    inactive-class="text-secondary hover:text-primary"
-                    v-on:click="status = option.value"
-                >
-                    {{ t(option.labelKey) }}
-                    <span v-if="counts[option.value]" class="ml-1 text-xs text-muted">{{ counts[option.value] }}</span>
-                </AppTab>
+                    {{ tab.label }}
+                    <span class="text-xs tabular-nums text-muted">{{ tab.count }}</span>
+                </button>
             </div>
-
-            <AppInput
-                v-model="search"
-                class="w-full sm:w-72"
-                :placeholder="t('suite.comments.search_placeholder')"
-                :loading="loading"
-            />
         </div>
+
+        <AppListToolbar>
+            <AppSearchInput v-model="search" :placeholder="t('suite.comments.search_placeholder')" />
+        </AppListToolbar>
 
         <!-- The screen's how-to guide, next to what it explains; collapsed
              or expanded, the choice applies to every guide. -->
@@ -126,7 +141,7 @@ function badgeColor(value) {
                              below `sm`. -->
                         <p class="text-xs text-muted mt-0.5 sm:truncate">
                             {{ t("suite.comments.on_post") }} {{ comment.postTitle }}
-                            · {{ formatDate(comment.createdAt) }}
+                            · {{ formatDateTime(comment.createdAt) }}
                             <span v-if="comment.parentAuthorName">
                                 · {{ t("suite.comments.in_reply_to", { name: comment.parentAuthorName }) }}
                             </span>
@@ -148,7 +163,7 @@ function badgeColor(value) {
 
                 <footer v-if="comment.replyCount || comment.reactions" class="flex flex-wrap gap-3 text-xs text-muted">
                     <span v-if="comment.replyCount">{{ t("suite.comments.replies", { count: comment.replyCount }) }}</span>
-                    <span v-for="(count, type) in comment.reactions" :key="type">{{ type }} · {{ count }}</span>
+                    <span v-for="(count, type) in comment.reactions" :key="type">{{ reactionLabel(type) }} · {{ count }}</span>
                 </footer>
             </article>
         </div>

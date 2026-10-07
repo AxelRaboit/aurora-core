@@ -126,15 +126,15 @@ suite:
                 done: Document déplacé.
                 queued: Déplacement lancé. Il se poursuit en arrière-plan.
                 already_there: Ce document est déjà à cet emplacement.
-                bulk_done: "{done} document(s) déplacé(s), {skipped} laissé(s) tel(s) quel(s)."
-                bulk_partial: "{done} document(s) déplacé(s), {failed} en échec."
+                bulk_done: "Documents déplacés : {done} · laissés tels quels : {skipped}."
+                bulk_partial: "Documents déplacés : {done} · en échec : {failed}."
                 all_to_remote: Tout basculer sur le stockage distant
                 all_to_local: Tout basculer sur le serveur
                 all_confirm_remote: Envoyer vers le stockage distant tous les documents qui n'y sont pas encore ?
                 all_confirm_local: Rapatrier sur le serveur tous les documents qui n'y sont pas encore ?
                 all_explain: "Les documents déjà à destination sont ignorés. La corbeille n'est pas déplacée."
                 all_background: "Le déplacement se fait en arrière-plan : les lignes passent en « Déplacement » au fur et à mesure."
-                all_queued: "{queued} document(s) mis en file, {skipped} déjà à destination."
+                all_queued: "Documents mis en file : {queued} · déjà à destination : {skipped}."
                 all_nothing: Tous les documents sont déjà à cet emplacement.
             reference: Référence
             title: Titre
@@ -146,7 +146,7 @@ suite:
             add: Ajouter un document
             create: Nouveau document
             edit: "Modifier le document {title}"
-            search_placeholder: "Rechercher : titre, fichier, texte, étiquette…"
+            search_placeholder: Rechercher un document…
             picker_title: Choisir un document
             picker_empty: Aucun document disponible
             picker_confirm: Sélectionner
@@ -157,18 +157,17 @@ suite:
             empty: Aucun document pour le moment
             delete_confirm: "Êtes-vous sûr de vouloir supprimer le document « {title} » ?"
             delete_warning: Le document part à la corbeille. Vous pourrez le restaurer tant qu'elle n'a pas été vidée.
-            back_to_list: Retour aux documents
+            back_to_list: Documents
             no_category: Sans catégorie
             tags: Étiquettes
             no_tags: Aucune étiquette
             folder: Dossier
             no_folder: Aucun dossier
             versions: Historique des versions
-            filter_by_status: Filtrer par statut
-            filter_by_category: Filtrer par catégorie
-            filter_by_tag: Filtrer par étiquette
-            filter_by_folder: Filtrer par dossier
-            filter_by_type: Filtrer par type
+            all_statuses: Tous les statuts
+            all_categories: Toutes les catégories
+            all_tags: Toutes les étiquettes
+            all_types: Tous les types
             filter_no_tag: Sans étiquette
             more_filters: Plus de filtres
             any: Tous

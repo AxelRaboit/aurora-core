@@ -6,7 +6,7 @@ suite:
     users:
         guide:
             title: "Comment fonctionnent les comptes"
-            step_1: "Un compte Suite accède à l'administration ; un compte Frontend n'est qu'un compte du site public."
+            step_1: "Un compte de la suite accède à l'administration ; un compte du site public ne sert qu'au site."
             step_2: "Un Administrateur a accès à tout ; un Utilisateur n'a que les privilèges que vous lui cochez, écran par écran."
             step_3: "Inviter envoie un courriel pour que la personne choisisse son mot de passe."
             step_4: "Désactiver bloque la connexion sans rien perdre, alors que supprimer est définitif ; vous ne pouvez pas changer votre propre rôle."
@@ -43,7 +43,7 @@ suite:
         type_label: Type
         type:
             suite: Suite
-            frontend: Frontend
+            frontend: Site public
         status_label: Statut
         status:
             active: Actif
