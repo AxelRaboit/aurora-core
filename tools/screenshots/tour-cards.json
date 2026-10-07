@@ -522,9 +522,13 @@
             "document": 793,
             "slug": "corbeille"
         },
-        "tour-corbeille-presentations": {
+        "tour-corbeille-espaces": {
             "document": 794,
             "slug": "corbeille"
+        },
+        "tour-client-page": {
+            "document": 809,
+            "slug": "clients-et-contrats"
         }
     }
 }

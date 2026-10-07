@@ -573,7 +573,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         );
 
         $this->seedProspectBoard($launch);
-        $this->seedNotes($launch);
+        $this->seedNotes($launch, $this->prospectNoteContents());
         $this->seedResources($launch, [
             ['link', 'Moodboard', 'https://canva.example.com/menuiserie-fabre-moodboard', null, true],
             ['contact', 'Thomas Fabre', null, 'Gérant. Passe par son fils pour tout ce qui touche au site.', false, 'contact@menuiserie-fabre.example.com', '04 74 98 76 54'],
@@ -746,6 +746,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ],
             2 => [
                 ['Offre de rentrée', 'Le devis gratuit jusqu\'au 30. À faire valider avant mardi.', '+5 days 18:00', ['Affiche du salon 2026']],
+                // Still waiting for the client: since only the Review step
+                // counts as "with the client", the answered card above left
+                // the board with nothing to send, and the "Envoyer à relire"
+                // banner never showed.
+                ["Horaires d'hiver", "Les nouveaux horaires de l'atelier à partir du 3 novembre.", '+6 days 12:00', []],
             ],
             3 => [
                 ['Journée portes ouvertes', "Rappel de l'événement du 12, avec le plan d'accès.", '+8 days 10:00', ['Plan des locaux - Étage 2']],
@@ -1260,7 +1265,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * named after the client space - where the migration files the older
      * ones. A pinned note becomes a favourite of its author.
      */
-    private function seedNotes(CustomerSpaceInterface $space): void
+    /**
+     * @param list<array{0: string, 1: bool, 2: bool, 3: list<string>}>|null $notes the notes to write, those of {@see noteContents()} when null
+     */
+    private function seedNotes(CustomerSpaceInterface $space, ?array $notes = null): void
     {
         $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
         // The personal notes are taken by the development account, and that
@@ -1276,7 +1284,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $team = $this->noteSpaces->resolve($space);
         $folder = null;
 
-        foreach ($this->noteContents() as [$title, $pinned, $personal, $paragraphs]) {
+        foreach ($notes ?? $this->noteContents() as [$title, $pinned, $personal, $paragraphs]) {
             $author = $personal ? $admin : $marie;
 
             if ($personal && !$folder instanceof NoteFolderInterface) {
@@ -1329,6 +1337,34 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ['Ce que je ne dirai pas comme ça', false, true, [
                 'La direction « artisanale » ne prend pas. Trouver comment le dire sans dire « ça ne marche pas ».',
                 'Préparer deux planches avant le point, pas une seule à défendre.',
+            ]],
+        ];
+    }
+
+    /**
+     * The prospect's own notes, about its logo.
+     *
+     * Its space used to receive the same five notes as the client's. Each
+     * space had its own wall then, so nothing showed; since space notes live
+     * in the Notes module, the library and the favourites listed every one
+     * of them twice.
+     *
+     * @return list<array{0: string, 1: bool, 2: bool, 3: list<string>}>
+     */
+    private function prospectNoteContents(): array
+    {
+        return [
+            ['Premier rendez-vous', true, false, [
+                "Il tient au rabot du logo actuel : c'est celui de son grand-père.",
+                'Budget pas encore arrêté. Attendre le devis du photographe avant de chiffrer.',
+            ]],
+            ['Pistes de logo', false, false, [
+                "- Monogramme MF, comme gravé dans le bois
+- Le rabot simplifié, d'un seul trait
+- La typographie seule, sans pictogramme",
+            ]],
+            ['Avant de signer', false, true, [
+                'Lui faire valider une charte en deux couleurs seulement : il imprime tout chez le même artisan.',
             ]],
         ];
     }
