@@ -16,7 +16,8 @@ export function useMoneyFormat() {
     const { locale } = useI18n();
 
     function formatMoney(cents, currency = "EUR", placeholder = null) {
-        if (null === cents || undefined === cents || "" === cents) return placeholder;
+        if (null === cents || undefined === cents || "" === cents)
+            return placeholder;
 
         const amount = Number(cents);
         if (!Number.isFinite(amount)) return placeholder;
