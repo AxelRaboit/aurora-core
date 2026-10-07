@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.0.1] - 2026-10-07
+
+### Corrigé
+- **Démo : un contenu attend de nouveau l'avis du client.** Depuis que seule l'étape « À valider » compte comme « chez le client », le seul contenu de la démo dans cette étape avait déjà une réponse : le bandeau « Envoyer à relire » ne s'affichait plus. Le tableau d'Atelier Dupont gagne « Horaires d'hiver », daté et en attente.
+- **Démo : le prospect Menuiserie Fabre a ses propres notes.** Son espace recevait les mêmes cinq notes que celui d'Atelier Dupont ; depuis que les notes d'espace vivent dans Notes, la bibliothèque et les favoris les montraient toutes en double.
+- **Outils du tour public** (`tools/screenshots/`) : les scénarios suivent les libellés de la 3.0.0 (« Tableau », « Partager », « Rechercher dans la suite… », « Nouveau lien d'accès »), photographient les présentations depuis l'écran des livrables, la corbeille des espaces clients à la place de celle des présentations, et la page d'un client ; le bandeau « Envoyer à relire » est fermé dans les vues d'un espace qui ne sont pas son tableau.
+
+---
+
 ## [3.0.0] - 2026-10-07
 
 ### Modifié (rupture)
