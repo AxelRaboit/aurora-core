@@ -125,6 +125,27 @@ async function flatten(page) {
  * barely overflow. Measured afterwards, because a block that opens (the
  * appointment form) has changed height in the meantime.
  */
+/**
+ * Hides the grid zones that end above the one being shot.
+ *
+ * A block framed in the middle of the demo's long pages had the bottom of
+ * its neighbour above in the picture: a world map over the booking, the
+ * axis of a chart over the poll. Moving the block up does not fix it: the
+ * public header shows or hides with the scroll direction, so it either
+ * covers the block's title or uncovers the neighbour. Hidden, not removed:
+ * the page keeps its layout, and the space reads as the page background.
+ */
+async function hideZonesAbove(element) {
+    await element.evaluate((node) => {
+        const grid = node.closest(".aurora-grid");
+        const zone = [...grid.children].find((child) => child.contains(node));
+        const top = zone.getBoundingClientRect().top;
+        for (const child of grid.children) {
+            if (child.getBoundingClientRect().bottom <= top + 1) child.style.visibility = "hidden";
+        }
+    });
+}
+
 async function placeAt(page, element, top) {
     await element.scrollIntoViewIfNeeded();
     const box = await element.boundingBox();
@@ -1762,11 +1783,15 @@ const SHOTS = [
         anonymous: true,
         async prepare(page) {
             const zone = page.locator("[data-booking]").first();
+            // Tomorrow, not today: today's slots run out as the afternoon
+            // goes, and the third one was gone by 15:30.
+            await zone.locator("[data-booking-day]").nth(1).click();
             await zone.locator("[data-booking-slots]:not([hidden]) [data-booking-slot]").nth(2).click();
             await zone.locator("[data-booking-name]").fill("Camille Laurent");
             await zone.locator("[data-booking-email]").fill("camille.laurent@example.com");
             await zone.locator("[data-booking-message]").fill("Séance portrait en extérieur, si possible en fin de journée.");
             await zone.locator("[data-booking-message]").blur();
+            await hideZonesAbove(zone);
             await placeAt(page, zone, 140);
         },
     },
@@ -1789,6 +1814,7 @@ const SHOTS = [
                 await page.getByText(/^Votes :/).first().waitFor({ state: "visible" });
             }
 
+            await hideZonesAbove(titre);
             await placeAt(page, titre, 220);
         },
     },
