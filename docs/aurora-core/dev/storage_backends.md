@@ -131,4 +131,7 @@ du support d'en face.
 - Le manuel utilisateur : rubrique Configuration, page « Stockage des fichiers ».
 - Mémoires : `pattern_storage_adapter`, `pitfall_r2_head_metadata`.
 - Le déplacement d'un document : `DocumentRelocator`, et sa page dans la
-  rubrique Médiathèque.
+  rubrique Médiathèque. Pour un ensemble connu depuis la console (une
+  catégorie, des identifiants) : `aurora:ged:relocate <local|r2>
+  --category=<id> | --id=<id>…`, que les outils du tour public appellent pour
+  garder leurs images sur le disque du serveur.

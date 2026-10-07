@@ -5,6 +5,14 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.2.0] - 2026-10-07
+
+### Ajouté
+- **`aurora:ged:relocate <local|r2> --category=<id> | --id=<id>…`** : déplace un ensemble de documents de la médiathèque vers un disque, comme le menu de la médiathèque le fait, en synchrone et par `DocumentRelocator` (copie, vérification, enregistrement, puis suppression à la source). Un document déjà en place est laissé tel quel ; sans `--category` ni `--id`, la commande refuse plutôt que de déplacer toute la médiathèque.
+- **Outils du tour public** (`tools/screenshots/`) : les images du tour vivent sur le disque du serveur et non plus sur le stockage objet. `push-tour`, `add-tour-cards` et `add-banner-image` rangent ce qu'ils viennent d'envoyer avec `aurora:ged:relocate` ; `TOUR_DISK=r2` garde l'ancien comportement.
+
+---
+
 ## [3.1.0] - 2026-10-07
 
 ### Modifié
