@@ -26,7 +26,7 @@ import { readFile, access } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { remote } from "./lib/remote.mjs";
+import { relocateCommand, remote } from "./lib/remote.mjs";
 
 const run = promisify(execFile);
 
@@ -100,6 +100,7 @@ if (dryRun) {
 await run("ssh", [HOST, `mkdir -p ${REMOTE_TMP}`]);
 
 let failed = 0;
+const replaced = [];
 
 for (const { name, file, document, slug } of ready) {
     process.stdout.write(`  → ${name} (#${document}) `);
@@ -112,10 +113,23 @@ for (const { name, file, document, slug } of ready) {
             HOST,
             `cd ${REMOTE_DIR} && php bin/console aurora:ged:replace ${document} ${REMOTE_TMP}/${name}.png`,
         ]);
+        replaced.push(document);
         console.log(`✅  /fr/aurora/${slug}`);
     } catch (error) {
         failed += 1;
         console.log(`❌  ${String(error.stderr ?? error.message).split("\n")[0]}`);
+    }
+}
+
+// A replacement writes through the site's active disk: the pictures come
+// back to the tour's own (see `tourDisk()`).
+if (0 !== replaced.length) {
+    try {
+        await run("ssh", [HOST, relocateCommand(REMOTE_DIR, replaced)]);
+        console.log(`\n  ⇢ ${replaced.length} image(s) rangée(s) sur le disque du tour`);
+    } catch (error) {
+        failed += 1;
+        console.log(`\n❌ rangement : ${String(error.stderr ?? error.message).split("\n")[0]}`);
     }
 }
 

@@ -29,7 +29,7 @@ import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { remote } from "./lib/remote.mjs";
+import { relocateCommand, remote } from "./lib/remote.mjs";
 
 const run = promisify(execFile);
 
@@ -139,6 +139,9 @@ if (!dryRun) {
     }
 
     console.log(`  ${capture} → document #${mediaId}`);
+
+    // Imported through the site's active disk: back to the tour's own.
+    await run("ssh", [HOST, relocateCommand(REMOTE_DIR, [mediaId])]);
 }
 
 if (asBackground) {

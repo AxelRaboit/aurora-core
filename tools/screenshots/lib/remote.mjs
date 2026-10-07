@@ -42,3 +42,33 @@ export function tourPostIdQuery(slug) {
         `WHERE pt.slug = 'aurora' AND t.locale = 'fr' AND t.slug = '${slug}';`
     );
 }
+
+/**
+ * Where the tour's pictures live on the server: its own disk by default.
+ *
+ * Decided on 07/10/2026: the screenshots of the public tour are kept on the
+ * server rather than on the object storage. An import or a replacement writes
+ * through the site's active disk, whatever it is, so each script brings what
+ * it has just sent back here with `aurora:ged:relocate`. `TOUR_DISK=r2` keeps
+ * them on the object storage instead.
+ */
+export function tourDisk() {
+    const disk = process.env.TOUR_DISK ?? "local";
+
+    if (!["local", "r2"].includes(disk)) {
+        console.error(`TOUR_DISK doit valoir « local » ou « r2 », reçu « ${disk} ».`);
+        process.exit(1);
+    }
+
+    return disk;
+}
+
+/**
+ * The console command that moves the given documents to the tour's disk, run
+ * as the web server's user so the files it writes are the site's to read.
+ */
+export function relocateCommand(dir, ids) {
+    const options = ids.map((id) => `--id=${Number(id)}`).join(" ");
+
+    return `cd ${dir} && sudo -u www-data php bin/console aurora:ged:relocate ${tourDisk()} --env=prod ${options}`;
+}

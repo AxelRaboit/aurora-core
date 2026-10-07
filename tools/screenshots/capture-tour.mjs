@@ -477,8 +477,8 @@ const SHOTS = [
         name: "tour-formulaire-modeles",
         path: "/suite/editorial/forms",
         async prepare(page) {
-            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
-            await page.getByRole("button", { name: /Nouveau formulaire/ }).first().click();
+            // The list's main button since 3.1.0, no longer in « Actions ».
+            await page.locator("main").getByRole("button", { name: /Nouveau formulaire/ }).first().click();
             const dialog = page.getByRole("dialog").filter({ hasText: "Point de départ" }).first();
             await dialog.waitFor();
             await dialog.getByRole("textbox").first().fill("Demande de devis");
@@ -527,13 +527,13 @@ const SHOTS = [
             // library spans two pages, and this one is not always on the
             // first. It is the one we want, because it carries three
             // versions and the card talks about them.
-            // Since 0.9.327 the field also searches the text and the tags,
-            // and its placeholder says so: "Rechercher : titre, …".
+            // Since 3.1.0 its placeholder is short again ("Rechercher un
+            // document…"); the guide says it also reads text and tags.
             // In card view: a list row does not open on click, a card does,
             // and the mode is remembered from one visit to the next.
             await page.locator("main").getByRole("button", { name: "Vue cartes" }).click();
             await page.waitForTimeout(1_000);
-            await page.getByPlaceholder(/^Rechercher :/).fill("Visuel de campagne");
+            await page.getByPlaceholder(/^Rechercher un document/).fill("Visuel de campagne");
             await page.waitForTimeout(2_000);
             await page.locator("main").getByText("Visuel de campagne", { exact: false }).first().click();
             await page.waitForTimeout(2_500);
@@ -1167,10 +1167,8 @@ const SHOTS = [
         name: "tour-livrables-nouveau",
         path: "/suite/studio/deliverables?scope=shared",
         async prepare(page) {
-            // The page's single action is kept in its "Actions" menu.
-            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
-            await page.waitForTimeout(500);
-            await page.getByText("Nouveau livrable", { exact: true }).first().click();
+            // The list's main button since 3.1.0, beside « Actions ».
+            await page.locator("main").getByRole("button", { name: /Nouveau livrable/ }).first().click();
             const dialog = page.getByRole("dialog").first();
             await dialog.waitFor();
             await dialog.locator("input").first().fill("Proposition de refonte, trame de l'équipe");
@@ -1339,7 +1337,10 @@ const SHOTS = [
         name: "tour-presentations",
         path: PRESENTATIONS,
         async prepare(page) {
-            await page.locator("main").getByRole("button", { name: /^Présentations/ }).first().click();
+            // The format is a select since 3.1.0 (« Tous les formats »), and
+            // its options are rendered outside the component.
+            await page.locator("main .multiselect").filter({ hasText: "Tous les formats" }).first().click();
+            await page.locator(".multiselect__option:visible").filter({ hasText: /^Présentations/ }).first().click();
             await page.waitForTimeout(1_200);
         },
     },
@@ -1638,7 +1639,8 @@ const SHOTS = [
         name: "tour-corbeille-publications",
         path: "/suite/trash",
         async prepare(page) {
-            await page.locator("main").getByRole("button", { name: /Publications/ }).first().click();
+            // By module, then by type, since 3.1.0; Éditorial has one type.
+            await page.locator("main").getByRole("button", { name: /^Éditorial/ }).first().click();
             await page.waitForTimeout(1_200);
         },
     },
@@ -1661,7 +1663,9 @@ const SHOTS = [
         name: "tour-corbeille-livrables",
         path: "/suite/trash",
         async prepare(page) {
-            await page.locator("main").getByRole("button", { name: /Livrables/ }).first().click();
+            await page.locator("main").getByRole("button", { name: /^Studio/ }).first().click();
+            await page.waitForTimeout(600);
+            await page.locator("main").getByRole("button", { name: /^Livrables/ }).first().click();
             await page.waitForTimeout(1_200);
         },
     },
@@ -1674,7 +1678,9 @@ const SHOTS = [
         name: "tour-corbeille-espaces",
         path: "/suite/trash",
         async prepare(page) {
-            await page.locator("main").getByRole("button", { name: /Espaces clients/ }).first().click();
+            await page.locator("main").getByRole("button", { name: /^Studio/ }).first().click();
+            await page.waitForTimeout(600);
+            await page.locator("main").getByRole("button", { name: /^Espaces clients/ }).first().click();
             await page.waitForTimeout(1_200);
         },
     },
@@ -1684,8 +1690,8 @@ const SHOTS = [
      * archiver" card did not show: acting on several rows at once, and
      * duplicating.
      *
-     * The selection bar carries its own "Actions" button, in addition to the
-     * page's: it is the second one.
+     * The selection bar carries the only "Actions" button since 3.1.0: the
+     * page's create verb is its own button.
      */
     {
         name: "tour-publications-selection",
@@ -1698,7 +1704,7 @@ const SHOTS = [
             }
 
             await page.waitForTimeout(500);
-            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).nth(1).click();
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.waitForTimeout(800);
         },
     },
