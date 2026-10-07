@@ -107,6 +107,7 @@ const {
     revealOptions,
     rowGap,
     rowGapOptions,
+    pictureFirst,
     typeOptions: allTypeOptions,
     leafTypeOptions: allLeafTypeOptions,
     widthOptions,
@@ -1176,6 +1177,16 @@ function resizeZone(index, columns) {
                     :label="t('suite.posts.grid.row_gap')"
                     :hint="t('suite.posts.grid.row_gap_hint')"
                     :options="rowGapOptions"
+                />
+                <!-- A page that alternates puts every other row's text first,
+                 since the sequence decides the side. Stacked, that read
+                 picture, text, text, picture: on by default, off for a page
+                 that wants its sequence kept. -->
+                <AppToggle
+                    v-model="pictureFirst"
+                    data-grid-picture-first
+                    :label="t('suite.posts.grid.picture_first')"
+                    :hint="t('suite.posts.grid.picture_first_hint')"
                 />
 
                 <!-- The snap only governs the precise sliders now that fractions

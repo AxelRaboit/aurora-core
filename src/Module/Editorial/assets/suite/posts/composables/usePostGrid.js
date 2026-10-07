@@ -811,6 +811,15 @@ export function usePostGrid(layout, content) {
 
     const rowGapOptions = computed(() => labelled(ROW_GAPS, "row_gaps"));
 
+    // Once zones stack, a row's picture before its text. On for a grid
+    // saved before the choice existed, as the server reads it.
+    const pictureFirst = writable(
+        () => false !== layout.value.pictureFirst,
+        (value) => {
+            layout.value.pictureFirst = value;
+        },
+    );
+
     const snapOptions = computed(() =>
         SNAPS.map((step) => ({
             value: step,
@@ -2056,6 +2065,7 @@ export function usePostGrid(layout, content) {
         revealOptions,
         rowGap,
         rowGapOptions,
+        pictureFirst,
         typeOptions,
         leafTypeOptions,
         widthOptions,

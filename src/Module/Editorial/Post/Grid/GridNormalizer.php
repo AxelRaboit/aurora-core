@@ -829,6 +829,11 @@ final readonly class GridNormalizer
             'reveal' => $this->values->oneOf($data['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
             // `normal` is the gap every page had before it could be chosen.
             'rowGap' => $this->values->oneOf($data['rowGap'] ?? null, self::ROW_GAPS, self::ROW_GAPS[1]),
+            // Once zones stack, a row's picture before its text
+            // ({@see self::readingOrder()}). On unless the author keeps the
+            // page's own sequence: a grid saved before the choice existed
+            // reads as on.
+            'pictureFirst' => (bool) ($data['pictureFirst'] ?? true),
             'zones' => $this->zones($data),
         ];
     }
@@ -1450,6 +1455,56 @@ final readonly class GridNormalizer
         }
 
         return $places;
+    }
+
+    /**
+     * The order zones are read in once they stack, below the large breakpoint.
+     *
+     * **A picture comes before its text.** A page that alternates - picture
+     * left and text right, then the reverse - writes the second row text
+     * first, because the sequence is what puts a zone on the left. Stacked on
+     * a phone, that sequence read picture, text, text, picture, picture, text:
+     * nobody could tell which caption went with which screenshot. Within a row
+     * that holds both, the pictures therefore move up front, the rest keeping
+     * its order; rows are never mixed with one another.
+     *
+     * Null when nothing moves, so a page that never alternates emits nothing
+     * and renders exactly as before.
+     *
+     * @param list<array<string, mixed>> $zones
+     *
+     * @return ?list<int> the position each zone takes, one per zone, in order
+     */
+    public static function readingOrder(array $zones): ?array
+    {
+        /** @var array<int, list<int>> $rows zone indexes, by large-screen row */
+        $rows = [];
+        foreach (self::place($zones) as $index => $place) {
+            $rows[$place['row']][] = $index;
+        }
+
+        $order = [];
+        $moved = false;
+        $position = 0;
+        foreach ($rows as $indexes) {
+            $pictures = array_values(array_filter($indexes, static fn (int $index): bool => self::ZONE_MEDIA === ($zones[$index]['type'] ?? null)));
+            $others = array_values(array_filter($indexes, static fn (int $index): bool => self::ZONE_MEDIA !== ($zones[$index]['type'] ?? null)));
+
+            foreach ([...$pictures, ...$others] as $slot => $index) {
+                $order[$index] = $position + $slot;
+                $moved = $moved || $index !== $indexes[$slot];
+            }
+
+            $position += count($indexes);
+        }
+
+        if (!$moved) {
+            return null;
+        }
+
+        ksort($order);
+
+        return array_values($order);
     }
 
     /**
