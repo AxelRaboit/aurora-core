@@ -94,6 +94,15 @@ function mountFiled(extra = {}) {
     });
 }
 
+/** The format filter: the select whose entries include "Pages". */
+function kindSelect(wrapper) {
+    return wrapper
+        .findAllComponents({ name: "AppSelect" })
+        .find((select) =>
+            select.props("options").some((option) => "page" === option.value),
+        );
+}
+
 function sectionTitles(wrapper) {
     return wrapper.findAll("section h3").map((title) => title.text());
 }
@@ -233,11 +242,17 @@ describe("DeliverablesApp", () => {
         expect(templates.text()).toContain("Audit type");
         expect(templates.text()).not.toContain("Proposition à Fabre");
 
-        // The pressed pill is released: everything comes back, and so does the address.
-        const pill = templates
-            .findAll("[aria-pressed]")
-            .find((tab) => tab.text().includes("template.filter"));
-        await pill.trigger("click");
+        // "Modèles" is an entry of the format filter, chosen from the address.
+        const select = kindSelect(templates);
+        expect(select.props("modelValue")).toBe("templates");
+        expect(
+            select
+                .props("options")
+                .find((option) => "templates" === option.value).label,
+        ).toContain("template.filter");
+
+        // Back to every format: everything comes back, and so does the address.
+        select.vm.$emit("update:modelValue", "");
         await flushPromises();
         expect(window.location.search).toBe("");
         expect(templates.text()).toContain("Proposition à Fabre");
@@ -397,26 +412,25 @@ describe("DeliverablesApp", () => {
         expect(wrapper.text()).toContain("Réunion de lancement");
         expect(wrapper.text()).not.toContain("Bilan trimestriel");
 
-        const tabs = wrapper
-            .findAll("[aria-pressed]")
-            .filter((tab) => tab.text().includes("format.filter_"));
-        expect(
-            tabs.map((tab) => tab.text().replace(/\s+/g, " ").trim()),
-        ).toEqual([
-            expect.stringContaining("3"),
-            expect.stringContaining("2"),
-            expect.stringContaining("1"),
+        const select = kindSelect(wrapper);
+        expect(select.props("modelValue")).toBe("slides");
+        // "Tous les formats" first, then each format with its count; no
+        // "Modèles" entry while the shelf holds none.
+        expect(select.props("options").map((option) => option.label)).toEqual([
+            expect.stringContaining("format.filter_all"),
+            expect.stringContaining("(2)"),
+            expect.stringContaining("(1)"),
         ]);
 
         // With no format written, a row is a page.
-        await tabs[1].trigger("click");
+        select.vm.$emit("update:modelValue", "page");
         await flushPromises();
         expect(window.location.search).toBe("?format=page");
         expect(wrapper.text()).toContain("Bilan trimestriel");
         expect(wrapper.text()).toContain("Ancienne note");
         expect(wrapper.text()).not.toContain("Réunion de lancement");
 
-        await tabs[0].trigger("click");
+        select.vm.$emit("update:modelValue", "");
         await flushPromises();
         expect(window.location.search).toBe("");
         expect(wrapper.text()).toContain("Réunion de lancement");

@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { useI18n } from "vue-i18n";
+import { useMoneyFormat } from "@/shared/composables/format/useMoneyFormat.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useCustomerRowActions } from "./composables/useCustomerRowActions.js";
@@ -23,6 +24,7 @@ import { Building2, Plus, Save, X } from "lucide-vue-next";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const { t } = useI18n();
+const { formatMoney } = useMoneyFormat();
 const { container, isNarrow } = useNarrowContainer();
 const { can } = usePrivileges();
 
@@ -121,27 +123,14 @@ function formatSiret(siret) {
     );
 }
 
+// A capital is a round figure far more often than not, so the decimals show
+// only when they carry something - which is what formatMoney does.
 function formatCapital(customer) {
-    if (
-        customer.shareCapitalCents === null ||
-        customer.shareCapitalCents === undefined
-    ) {
-        return null;
-    }
-
-    const currency = customer.shareCapitalCurrency ?? "EUR";
-
-    return new Intl.NumberFormat(undefined, {
-        style: "currency",
-        currency,
-        // A capital is a round figure far more often than not, so the decimals
-        // show only when they carry something.
-        minimumFractionDigits: customer.shareCapitalCents % 100 === 0 ? 0 : 2,
-    }).format(customer.shareCapitalCents / 100);
+    return formatMoney(customer.shareCapitalCents, customer.shareCapitalCurrency ?? "EUR");
 }
 
-// One entry and still a sheet: every list in the suite opens its actions the
-// same way, and a toolbar's width belongs to the search, not to a verb.
+// The create verb is marked `primary`: AppPageActions sets it beside the
+// sheet as the page's main button, and the sheet keeps whatever else there is.
 const pageActions = computed(() => {
     if (!can("studio.customers.create")) {
         return [];
@@ -150,6 +139,7 @@ const pageActions = computed(() => {
     return [
         {
             key: "create",
+            primary: true,
             color: "accent",
             icon: Plus,
             title: t("suite.studio.customers.add"),

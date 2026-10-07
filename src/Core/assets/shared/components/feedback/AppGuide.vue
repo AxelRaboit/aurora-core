@@ -12,18 +12,28 @@
  * has chosen nothing, the panel follows `open`; an integration guide thus
  * stays open as long as nothing is connected.
  *
+ * **Open once, then folded.** Without an `open` from the caller and without
+ * a choice from the reader, a panel opens the first time its screen is
+ * visited (`storageKey`, or the title) and stays folded on the next visits.
+ * Folded, it is one discreet line rather than a dashed box: open on every
+ * screen, the panels pushed every list below the fold (UI audit of
+ * 07/10/2026).
+ *
  * The content is free: steps (`<ol>`), a sentence, a link. The text style is
  * set here, so that every panel reads the same.
  */
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { BookOpen, ChevronDown } from "lucide-vue-next";
 import { useGuidePreference } from "@/shared/composables/useGuidePreference.js";
 
 const props = defineProps({
     title: { type: String, required: true },
-    /** Open at first, as long as the reader has chosen nothing. */
-    open: { type: Boolean, default: true },
-    /** Accepted and ignored: the choice to open or collapse is shared by all panels. */
+    /**
+     * The caller's say, as long as the reader has chosen nothing. Left out,
+     * the panel opens on the first visit of its screen only.
+     */
+    open: { type: Boolean, default: null },
+    /** Names the screen, for « already shown once ». The title stands in. */
     storageKey: { type: String, default: "" },
     /**
      * Rounded corners, by default. `false` removes them, for a panel embedded in
@@ -34,9 +44,19 @@ const props = defineProps({
     rounded: { type: Boolean, default: true },
 });
 
-const { choice, remember } = useGuidePreference();
+const { choice, remember, hasSeen, markSeen } = useGuidePreference();
 
-const isOpen = computed(() => choice.value ?? props.open);
+const screenKey = props.storageKey || props.title;
+// Read once, before this visit counts: the panel must not fold under the
+// reader's eyes the moment it has been marked as seen.
+const firstVisit = !hasSeen(screenKey);
+
+const isOpen = computed(() => choice.value ?? props.open ?? firstVisit);
+
+/** Whether the panel is unfolded right now, for its frame. */
+const expanded = ref(isOpen.value);
+
+onMounted(() => markSeen(screenKey));
 
 /**
  * `toggle` also fires when the state changes through code (another panel has
@@ -44,6 +64,7 @@ const isOpen = computed(() => choice.value ?? props.open);
  * reader.
  */
 function onToggle(event) {
+    expanded.value = event.target.open;
     if (event.target.open === isOpen.value) return;
 
     remember(event.target.open);
@@ -54,15 +75,23 @@ function onToggle(event) {
     <!-- A named region rather than an <aside> or a <section>: the screens
          keep those tags for their side panels and their groups, and their
          tests count them. `data-guide` points to it without ambiguity. -->
+    <!-- Folded, the frame goes: one muted line the reader can open, not a
+         dashed box the width of the page on every screen. -->
     <div
         data-guide
         role="region"
-        class="min-w-0 border border-dashed border-line p-3 sm:p-4"
-        :class="rounded ? 'rounded-lg' : 'rounded-none'"
+        class="min-w-0"
+        :class="[
+            expanded ? 'border border-dashed border-line p-3 sm:p-4' : '',
+            rounded ? 'rounded-lg' : 'rounded-none',
+        ]"
         :aria-label="title"
     >
         <details :open="isOpen" class="group" v-on:toggle="onToggle">
-            <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
+            <summary
+                class="flex cursor-pointer list-none items-center gap-2 text-sm [&::-webkit-details-marker]:hidden"
+                :class="expanded ? 'font-medium text-primary' : 'w-fit text-muted hover:text-primary'"
+            >
                 <BookOpen class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                 <span class="min-w-0 flex-1">{{ title }}</span>
                 <ChevronDown class="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" :stroke-width="2" />

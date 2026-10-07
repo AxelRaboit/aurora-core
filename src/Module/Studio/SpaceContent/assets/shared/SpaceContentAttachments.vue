@@ -23,6 +23,7 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { FileText, FileSpreadsheet, Film, FolderOpen, Music, File, Upload, Trash2 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -48,6 +49,7 @@ const props = defineProps({
 const emit = defineEmits(["upload", "remove", "pick", "pick-drive"]);
 
 const { t } = useI18n();
+const { formatSize } = useFileSize();
 
 const dragging = ref(false);
 const input = ref(null);
@@ -73,18 +75,7 @@ function iconFor(mimeType) {
 }
 
 function humanSize(bytes) {
-    if (!bytes) return "";
-
-    const units = ["o", "ko", "Mo", "Go"];
-    let value = bytes;
-    let unit = 0;
-
-    while (value >= 1024 && unit < units.length - 1) {
-        value /= 1024;
-        unit += 1;
-    }
-
-    return `${value < 10 && unit > 0 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
+    return bytes ? formatSize(bytes) : "";
 }
 
 function send(files) {

@@ -10,6 +10,7 @@ use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Editorial's figures on the suite dashboard.
@@ -25,6 +26,7 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
         private CommentRepository $commentRepository,
         private PostTypeRepository $postTypeRepository,
         private TaxonomyRepository $taxonomyRepository,
+        private UrlGeneratorInterface $urlGenerator,
     ) {}
 
     public function getModuleKey(): string
@@ -58,6 +60,10 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
                 // Twelve months including this one, gaps filled with zeroes by
                 // the repository - see why there.
                 'publishedByMonth' => $this->postRepository->countPublishedByMonth(),
+                // Where the dashboard's « À traiter » strip sends the reader:
+                // each list opened on what waits, not on everything.
+                'commentsPendingPath' => $this->urlGenerator->generate('suite_editorial_comments', ['status' => 'pending']),
+                'postsPendingReviewPath' => $this->urlGenerator->generate('suite_editorial_posts', ['statuses' => PostStatusEnum::PendingReview->value]),
             ],
         ];
     }

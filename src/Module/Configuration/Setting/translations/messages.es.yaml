@@ -110,7 +110,7 @@ suite:
             system_description: 'Mantenimiento, registros, acceso y subidas de archivos.'
             email: Emails
             email_description: 'Idioma y colores de los emails salientes.'
-            media: 'Medios y subidas'
+            media: 'Medios y archivos'
             media_description: 'Límites de subida de archivos (tamaño máximo, extensiones permitidas).'
             sequences: Secuencias
             sequences_description: 'Prefijos de las referencias generadas automáticamente. Pestaña reservada a los desarrolladores.'
@@ -137,7 +137,7 @@ suite:
             captcha: Antirrobots
             captcha_description: 'Verificación de comentarios y formularios: servicio, claves y activación.'
             notes: Notas
-            notes_description: 'Ajustes del módulo Notas Markdown: tamaño / calidad de las imágenes subidas.'
+            notes_description: 'Ajustes del módulo Notas Markdown: tamaño y calidad de las imágenes subidas.'
             storage: 'Almacenamiento de archivos'
             storage_description: 'Dónde escribe sus archivos la aplicación: el disco del servidor, o el almacenamiento de objetos Cloudflare R2.'
             modules: Módulos
@@ -306,7 +306,7 @@ suite:
         modules_empty: 'No se ha encontrado ningún módulo.'
         module_type:
             suite: Suite
-            frontend: Frontend
+            frontend: 'Sitio público'
         save: Guardar
         saved: 'Ajustes guardados.'
         modules_search_placeholder: 'Buscar un módulo…'
@@ -362,7 +362,7 @@ suite:
             placeholder: 'Plataforma de gestión empresarial multimódulo'
         site_url:
             label: 'URL pública del sitio'
-            description: 'URL absoluta del sitio (sin barra final), utilizada en los emails y el sitemap'
+            description: 'URL absoluta del sitio (sin barra final), utilizada en los correos y el mapa del sitio'
             placeholder: 'https://app.example.com'
         admin_email:
             label: 'Email del administrador'
@@ -577,6 +577,16 @@ suite:
             step_3: 'La pestaña abierta se escribe en la dirección de la página: un enlace copiado vuelve a abrir la misma pestaña.'
             step_4: 'Las cifras se calculan al abrir la página: recárguela para actualizarlas.'
         no_module_enabled: 'No hay ningún módulo de panel activado.'
+        todo:
+            title: "Pendiente"
+            nothing: "Nada le espera por ahora."
+            countersign: "{count} contrato por contrafirmar | {count} contratos por contrafirmar"
+            missed: "{count} publicación perdida | {count} publicaciones perdidas"
+            late_review: "{count} revisión atrasada | {count} revisiones atrasadas"
+            changes_requested: "{count} contenido por revisar | {count} contenidos por revisar"
+            comments_pending: "{count} comentario pendiente | {count} comentarios pendientes"
+            posts_pending_review: "{count} publicación por revisar | {count} publicaciones por revisar"
+            reminders_overdue: "{count} recordatorio atrasado | {count} recordatorios atrasados"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'

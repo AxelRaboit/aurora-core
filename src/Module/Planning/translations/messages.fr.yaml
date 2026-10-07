@@ -56,7 +56,7 @@ suite:
             week: Semaine
             month: Mois
             agenda: Agenda
-        more: "+{count} autre(s)"
+        more: "+{count} autre | +{count} autres"
         calendars: Mes calendriers
         new_calendar: Nouveau calendrier
         edit_calendar: Modifier le calendrier

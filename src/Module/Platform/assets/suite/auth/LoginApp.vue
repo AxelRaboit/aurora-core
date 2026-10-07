@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { LogIn } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import { useAuthForm } from "@/shared/composables/form/useAuthForm.js";
 import { required, email as emailValidator, compose } from "@/shared/utils/validation/validators.js";
 
@@ -24,6 +25,7 @@ const props = defineProps({
 
 const email = ref(props.lastUsername);
 const password = ref("");
+const rememberMe = ref(false);
 const { errors, submitOnValid } = useAuthForm();
 
 function handleSubmit(event) {
@@ -67,10 +69,8 @@ function handleSubmit(event) {
         />
 
         <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" name="_remember_me" value="1" class="w-4 h-4 rounded border-line bg-surface-2 text-accent-600 focus:ring-accent-500 focus:ring-offset-0">
-                <span class="text-sm text-secondary">{{ t('suite.auth.login.remember') }}</span>
-            </label>
+            <!-- Posted with the form: Symfony reads « on » as yes. -->
+            <AppCheckbox v-model="rememberMe" name="_remember_me" :label="t('suite.auth.login.remember')" />
             <AppLink :href="forgotPath" class="text-sm">{{ t('suite.auth.login.forgot') }}</AppLink>
         </div>
 

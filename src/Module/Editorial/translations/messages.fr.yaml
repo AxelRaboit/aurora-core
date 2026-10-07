@@ -590,7 +590,7 @@ suite:
             selected: "1 sélectionnée | {count} sélectionnées"
             select_all: "Tout sélectionner sur cette page"
             clear: "Désélectionner"
-            result: "{done} modifiée(s), {skipped} ignorée(s)."
+            result: "Publications modifiées : {done} · ignorées : {skipped}."
             action_publish: "Publier"
             action_draft: "Repasser en brouillon"
             action_trash: "Mettre à la corbeille"
@@ -628,7 +628,7 @@ suite:
             import_drop: Déposez vos images ici
             import_progress: "Import de {done} sur {total}…"
             import_hint: "Plusieurs images à la fois. Elles sont envoyées une par une et apparaissent au fur et à mesure."
-            import_skipped: "{added} ajoutée(s), {skipped} écartée(s) : déjà présentes, refusées, ou au-delà du maximum."
+            import_skipped: "Images ajoutées : {added} · écartées : {skipped} (déjà présentes, refusées, ou au-delà du maximum)."
             full: "Le maximum d'images est atteint."
             alt: "Texte alternatif ({locale})"
             alt_hint: "Ce que montre l'image, pour qui ne la voit pas. Vide, celui de la médiathèque est utilisé."
@@ -1481,12 +1481,22 @@ suite:
         conflict_reload: Recharger la leur
         conflict_overwrite: Enregistrer la mienne
         filters: Filtres
-        clear_filters: Effacer
+        clear_filters: Tout effacer
         filter_type: Type de contenu
         filter_status: Statut
         filter_visibility: 'Diffusion'
         filter_term: Terme
-        no_terms: Aucun terme défini.
+        remove_filter: 'Retirer « {value} » du filtre {filter}'
+        filter_all:
+            type: Tous les types
+            status: Tous les statuts
+            visibility: Toute diffusion
+            term: Tous les termes
+        filter_count:
+            type: '{count} type | {count} types'
+            status: '{count} statut | {count} statuts'
+            visibility: '{count} diffusion | {count} diffusions'
+            term: '{count} terme | {count} termes'
         title_column: Titre
         type_column: Type
         status_column: Statut
@@ -1647,7 +1657,7 @@ suite:
             step_5: "Supprimer est définitif, et ses réponses remontent d'un niveau."
         title: Commentaires
         empty: Aucun commentaire.
-        search_placeholder: "Chercher un auteur, une adresse, un texte…"
+        search_placeholder: "Rechercher un commentaire…"
         all: Tous
         author: Auteur
         on_post: Sur
@@ -1662,8 +1672,8 @@ suite:
         marked_spam: Commentaire marqué comme indésirable.
         delete_confirm: "Supprimer ce commentaire de {name} ? Ses réponses remontent d'un niveau."
         deleted: Commentaire supprimé.
-        replies: '{count} réponses'
-        reactions: '{count} réactions'
+        replies: "{count} réponse | {count} réponses"
+        reactions: "{count} réaction | {count} réactions"
         status:
             pending: En attente
             approved: Approuvé
@@ -1891,7 +1901,7 @@ suite:
             or: Au moins une condition
         errors:
             step_below_one: "Les étapes se comptent à partir de 1."
-            step_out_of_range: "Ce formulaire compte {count} étape(s)."
+            step_out_of_range: "Ce formulaire compte {count} étape. | Ce formulaire compte {count} étapes."
             translations_required: Au moins une langue doit être renseignée.
             field_translations_required: Au moins une langue doit être renseignée.
             slug_taken: 'Le slug « {slug} » est déjà utilisé.'

@@ -38,7 +38,7 @@ import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFoldable } from "@notes/suite/markdown/composables/useFoldable.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
 
-const { formatDateTimeNumeric } = useDateFormat();
+const { formatDateTime } = useDateFormat();
 
 const props = defineProps({
     notes: { type: Array, default: () => [] },
@@ -1298,7 +1298,7 @@ onUnmounted(() => {
                                 <span
                                     v-if="lastSavedAt"
                                     class="text-xs text-muted"
-                                    :title="formatDateTimeNumeric(lastSavedAt.toISOString())"
+                                    :title="formatDateTime(lastSavedAt.toISOString())"
                                 >
                                     {{ t('shared.common.autosave.last_saved', { time: lastSavedRelative }) }}
                                 </span>

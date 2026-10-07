@@ -155,4 +155,59 @@ describe("useTrashOverview", () => {
         expect(total.value).toBe(0);
         expect(active.value).toBeNull();
     });
+
+    it("groups the trashes by module, and offers only the modules holding something", () => {
+        const trashes = [
+            ...props().trashes,
+            {
+                key: "ged_folders",
+                labelKey: "suite.nav.ged_folders",
+                sectionLabel: "GED",
+                icon: "folder",
+                count: 1,
+                items: [],
+            },
+        ];
+        const { modules, visibleModules, activeModule } = useTrashOverview(
+            props({ trashes }),
+        );
+
+        expect(
+            modules.value.map((group) => [
+                group.key,
+                group.count,
+                group.rows.length,
+            ]),
+        ).toEqual([
+            ["GED", 3, 2],
+            ["Notes", 0, 1],
+        ]);
+        expect(visibleModules.value.map((group) => group.key)).toEqual(["GED"]);
+        expect(activeModule.value.key).toBe("GED");
+    });
+
+    it("opens on the first trash holding something, and a module on its first full type", () => {
+        const [documents, notes] = props().trashes;
+        const folders = { ...documents, key: "ged_folders", count: 1 };
+        const api = useTrashOverview(
+            props({
+                trashes: [
+                    { ...documents, count: 0 },
+                    notes,
+                    { ...notes, key: "notes_folders", count: 3 },
+                    folders,
+                ],
+            }),
+        );
+
+        expect(api.activeKey.value).toBe("notes_folders");
+
+        api.selectModule("GED");
+        expect(api.activeKey.value).toBe("ged_folders");
+        // The module just opened stays offered, even with its first type empty.
+        expect(api.visibleModules.value.map((group) => group.key)).toEqual([
+            "GED",
+            "Notes",
+        ]);
+    });
 });

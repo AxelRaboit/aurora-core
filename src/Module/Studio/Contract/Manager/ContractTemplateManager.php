@@ -131,7 +131,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         // silence. Archiving is the way to retire a template that has served.
         $used = $this->contractRepository->countUsingTemplate($template);
         if ($used > 0) {
-            throw new FieldException('template', $this->translator->trans('suite.studio.contract_templates.errors.used_by_contracts', ['{count}' => (string) $used]));
+            throw new FieldException('template', $this->translator->trans('suite.studio.contract_templates.errors.used_by_contracts', ['{count}' => (string) $used, '%count%' => $used]));
         }
 
         $this->auditLogger->log('studio', 'contract_template.deleted', 'ContractTemplate', $template->getId(), $this->auditPayload($template));

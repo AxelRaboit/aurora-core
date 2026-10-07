@@ -105,7 +105,7 @@ const pageActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')">
+        <AppPageBar :back-href="indexPath" :back-label="t('suite.studio.customers.title')">
             <AppPageActions
                 v-if="pageActions.length"
                 :actions="pageActions"
@@ -127,10 +127,13 @@ const pageActions = computed(() => {
         </AppPageBar>
 
         <div class="min-w-0">
-            <h1 class="m-0 break-words text-lg font-semibold text-primary">{{ customer.legalName }}</h1>
+            <h1 class="m-0 break-words text-xl font-semibold tracking-tight text-primary sm:text-2xl">{{ customer.legalName }}</h1>
             <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
                 <AppBadge :color="isProspect ? 'amber' : 'emerald'">{{ t(customer.statusLabel) }}</AppBadge>
                 <span v-if="customer.legalForm">{{ customer.legalForm }}</span>
+                <!-- Said in words beside the title, as on a deliverable: the
+                     greyed Enregistrer alone did not say why it woke up. -->
+                <AppBadge v-if="dirty" color="amber">{{ t("shared.common.autosave.pending") }}</AppBadge>
             </div>
         </div>
 

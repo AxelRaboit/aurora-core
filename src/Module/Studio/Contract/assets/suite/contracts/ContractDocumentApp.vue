@@ -38,6 +38,7 @@ import { localIsoDate } from "@/shared/utils/format/localDate.js";
 import { contractStatusColor } from "@/shared/utils/format/statusStyles.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+import { useMoneyFormat } from "@/shared/composables/format/useMoneyFormat.js";
 import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -84,8 +85,9 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+const { formatMoney } = useMoneyFormat();
 const { request } = useRequest();
-const { formatDateNumeric, formatDateTimeNumeric } = useDateFormat();
+const { formatDateShort, formatDateTime } = useDateFormat();
 const { flowOf, summaryOf } = useContractFlow({ linkDays: props.linkDays });
 
 const CONTRACT_KEYS = "suite.studio.contracts";
@@ -95,11 +97,11 @@ const contract = ref({ ...props.contract });
 const isDraft = computed(() => "draft" === contract.value.status);
 const seal = computed(() => contract.value.seal ?? {});
 const flow = computed(() => flowOf(contract.value));
-const summary = computed(() => summaryOf(contract.value, formatDateNumeric));
+const summary = computed(() => summaryOf(contract.value, formatDateShort));
 const busy = ref(false);
 
-const date = (value) => (value ? formatDateNumeric(value) : "-");
-const dateTime = (value) => (value ? formatDateTimeNumeric(value) : "-");
+const date = (value) => (value ? formatDateShort(value) : "-");
+const dateTime = (value) => (value ? formatDateTime(value) : "-");
 
 /* ------------------------------------------------------------------ */
 /* The document                                                        */
@@ -174,17 +176,7 @@ function versionHref(part) {
     return part ? buildPath(props.templateVersionPath, { id: part.templateId, versionId: part.versionId }) : null;
 }
 
-const amount = computed(() => {
-    const cents = contract.value.amountCents;
-
-    if (null === cents || undefined === cents) return "-";
-
-    return new Intl.NumberFormat(undefined, {
-        style: "currency",
-        currency: contract.value.amountCurrency ?? "EUR",
-        minimumFractionDigits: 0 === cents % 100 ? 0 : 2,
-    }).format(cents / 100);
-});
+const amount = computed(() => formatMoney(contract.value.amountCents, contract.value.amountCurrency ?? "EUR", "-"));
 
 const localeLabel = computed(
     () => props.locales.find((locale) => locale.code === contract.value.locale)?.label ?? contract.value.locale,
@@ -455,7 +447,7 @@ const confirmBlocked = computed(
              commands live in the « next step » card below. -->
         <!-- The other actions in the bar, as on every detail screen; the
              next step keeps its button in its card, further down. -->
-        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')">
+        <AppPageBar :back-href="indexPath" :back-label="t('suite.studio.contracts.title')">
             <AppPageActions
                 v-if="otherActions.length"
                 :actions="otherActions"
@@ -467,7 +459,7 @@ const confirmBlocked = computed(
 
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 space-y-1">
-                <h1 class="text-lg font-semibold text-primary">
+                <h1 class="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
                     {{ contract.reference ?? t(`${CONTRACT_KEYS}.draft_title`) }}
                 </h1>
                 <p class="flex flex-wrap items-center gap-2 text-sm text-muted">

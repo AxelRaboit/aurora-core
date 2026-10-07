@@ -175,7 +175,7 @@ const headerActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <AppPageBar :back-href="listPath" :back-label="t('suite.forms.editor.back')">
+        <AppPageBar :back-href="listPath" :back-label="t('suite.forms.title')">
             <!-- Online or not, visible whatever the tab: one must know they
                  are editing a form that people fill in. -->
             <AppBadge :color="current.active ? 'emerald' : 'gray'">
@@ -192,7 +192,7 @@ const headerActions = computed(() => {
         </AppGuide>
 
         <div class="min-w-0">
-            <h1 class="m-0 truncate text-lg font-semibold text-primary">{{ title }}</h1>
+            <h1 class="m-0 truncate text-xl font-semibold tracking-tight text-primary sm:text-2xl">{{ title }}</h1>
             <p v-if="current.translations?.[primaryLocale]?.description" class="m-0 mt-0.5 text-sm text-secondary">
                 {{ current.translations[primaryLocale].description }}
             </p>

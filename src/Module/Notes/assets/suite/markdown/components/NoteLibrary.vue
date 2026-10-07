@@ -109,7 +109,7 @@ const emit = defineEmits([
 ]);
 
 const { t } = useI18n();
-const { formatDateTimeNumeric } = useDateFormat();
+const { formatDateTime } = useDateFormat();
 
 const foldersRef = computed(() => props.folders);
 const notesRef = computed(() => props.notes);
@@ -1248,7 +1248,7 @@ function onCardClick(kind, item, event) {
 
 function updatedLabel(item) {
     return Number.isFinite(Date.parse(item.updatedAt))
-        ? formatDateTimeNumeric(item.updatedAt)
+        ? formatDateTime(item.updatedAt)
         : "";
 }
 
@@ -1605,7 +1605,7 @@ defineExpose({
                 <div v-if="'list' !== view">
                     <div
                         class="grid grid-cols-1 gap-3"
-                        :class="'mosaic' === view ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'sm:grid-cols-3 xl:grid-cols-4'"
+                        :class="'mosaic' === view ? 'sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4' : 'sm:grid-cols-3 2xl:grid-cols-4'"
                     >
                         <article
                             v-for="folder in pagedFolders"
@@ -1669,7 +1669,7 @@ defineExpose({
                             </div>
 
                             <p class="mt-2 text-xs text-muted">
-                                {{ t('notes.markdown.folders.contents', { folders: folder.folderCount ?? 0, notes: folder.noteCount ?? 0 }) }}
+                                {{ t('notes.markdown.folders.folder_count', { count: folder.folderCount ?? 0 }) }} · {{ t('notes.markdown.folders.note_count', { count: folder.noteCount ?? 0 }) }}
                             </p>
                         </article>
 

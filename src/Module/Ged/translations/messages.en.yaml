@@ -126,15 +126,15 @@ suite:
                 done: Document moved.
                 queued: Move started. It continues in the background.
                 already_there: This document is already there.
-                bulk_done: "{done} document(s) moved, {skipped} left as they were."
-                bulk_partial: "{done} document(s) moved, {failed} failed."
+                bulk_done: "Documents moved: {done} · left as they were: {skipped}."
+                bulk_partial: "Documents moved: {done} · failed: {failed}."
                 all_to_remote: Move everything to remote storage
                 all_to_local: Move everything to the server
                 all_confirm_remote: Move every document that is not on the remote storage yet?
                 all_confirm_local: Bring back to the server every document that is not on it yet?
                 all_explain: "Documents already there are left alone. The trash is not moved."
                 all_background: "The move runs in the background: rows turn to \u201cMoving\u201d as it goes."
-                all_queued: "{queued} document(s) queued, {skipped} already there."
+                all_queued: "Documents queued: {queued} · already there: {skipped}."
                 all_nothing: Every document is already there.
             reference: Reference
             title: Title
@@ -146,7 +146,7 @@ suite:
             add: Add document
             create: New document
             edit: "Edit document {title}"
-            search_placeholder: "Search: title, file, text, tag…"
+            search_placeholder: Search a document…
             picker_title: Pick a document
             picker_empty: No document available
             picker_confirm: Select
@@ -157,18 +157,17 @@ suite:
             empty: No documents yet
             delete_confirm: "Are you sure you want to delete document « {title} »?"
             delete_warning: The document goes to the trash. You can restore it until the trash is emptied.
-            back_to_list: Back to documents
+            back_to_list: Documents
             no_category: No category
             tags: Tags
             no_tags: No tags
             folder: Folder
             no_folder: No folder
             versions: Version history
-            filter_by_status: Filter by status
-            filter_by_category: Filter by category
-            filter_by_tag: Filter by tag
-            filter_by_folder: Filter by folder
-            filter_by_type: Filter by type
+            all_statuses: All statuses
+            all_categories: All categories
+            all_tags: All tags
+            all_types: All types
             filter_no_tag: No tag
             more_filters: More filters
             any: Any

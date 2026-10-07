@@ -41,8 +41,8 @@ onMounted(() => {
     if (!accessRequests.items.value?.length) accessRequests.load();
 });
 
-// One entry and still a sheet: every list in the suite opens its actions the
-// same way, and a toolbar's width belongs to the search, not to a verb.
+// In the sheet: none of these is the page's main verb (a create verb would
+// be marked `primary` and stand beside it as a button).
 const pageActions = computed(() => {
     return [
         {

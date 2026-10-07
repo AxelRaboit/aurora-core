@@ -233,7 +233,7 @@ notes:
         folders:
             title: Carpetas
             trash_label: 'Carpetas de notas'
-            root: 'Todos los documentos'
+            root: 'Todas las notas'
             create: 'Nueva carpeta'
             created: 'Carpeta creada'
             rename: Renombrar
@@ -245,10 +245,11 @@ notes:
             confirm_delete: '¿Mover «{name}» a la papelera, con su contenido?'
             deleted: 'Carpeta movida a la papelera'
             move_to: 'Mover a…'
-            move_root: 'Todos los documentos'
+            move_root: 'Todas las notas'
             moved: 'Elemento movido'
             open: 'Abrir la carpeta'
-            contents: '{folders} carpetas · {notes} notas'
+            folder_count: "{count} carpeta | {count} carpetas"
+            note_count: "{count} nota | {count} notas"
             tree_empty: 'Todavía no hay carpetas.'
             errors:
                 move_refused: 'Movimiento rechazado: una carpeta no puede guardarse dentro de sí misma, ni a más de {max} niveles.'
@@ -260,7 +261,7 @@ notes:
                 move_failed: 'No se puede mover el elemento.'
                 load_failed: 'No se puede cargar la carpeta.'
         library:
-            title: 'Todos los documentos'
+            title: 'Todas las notas'
             new_note: 'Nueva nota'
             recent: 'Editadas recientemente'
             favorites: Favoritos
@@ -277,11 +278,11 @@ notes:
                 shared: "Filtro: espacios de notas compartidos"
                 private: "Filtro: mi espacio de notas"
                 clear: 'Quitar el filtro'
-            selected: '{count} seleccionado(s)'
+            selected: "{count} seleccionado | {count} seleccionados"
             select: Seleccionar
             stop_selecting: 'Terminar la selección'
             clear_selection: 'Deseleccionar todo'
-            some_refused: '{count} elemento(s) no se han podido procesar.'
+            some_refused: "{count} elemento no se ha podido procesar. | {count} elementos no se han podido procesar."
             confirm_delete_selection: '¿Mover a la papelera los {count} elementos seleccionados?'
             new_folder: 'Nueva carpeta'
             search_placeholder: 'Buscar una nota…'
@@ -410,7 +411,7 @@ notes:
             empty: 'Ninguna versión anterior por ahora'
             empty_hint: 'Se guarda una versión cuando modifica la nota, como mucho una cada pocos minutos (ajustes, pestaña Notas).'
             no_author: 'Autor desconocido'
-            since: 'Desde esta versión: {added} línea(s) añadida(s), {removed} quitada(s)'
+            since: "Desde esta versión, líneas añadidas: {added} · quitadas: {removed}"
             show_whole: 'Ver la versión entera'
             show_changes: 'Ver los cambios'
             title_was: 'El título era entonces: {title}'
@@ -473,7 +474,7 @@ notes:
             no_results: 'Ningún comando'
         tags:
             add_placeholder: 'Añadir una etiqueta…'
-            summary: '{count} etiqueta(s)'
+            summary: "{count} etiqueta | {count} etiquetas"
             filter_label: 'Filtrar por etiqueta'
             clear: 'Borrar todo'
             no_results: 'Ninguna nota con estas etiquetas'

@@ -192,6 +192,7 @@ shared:
         copied: Copié.
         copy: Copier
         dates: Dates
+        size: Taille
         created: Créé le
         updated: Modifié le
         reset: Réinitialiser

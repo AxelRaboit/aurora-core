@@ -1,4 +1,4 @@
 suite:
     migrations:
         pending:
-            banner: "{count} pending migration(s) on the dev database. Run the command to sync:"
+            banner: "{count} pending migration on the dev database. Run the command to sync: | {count} pending migrations on the dev database. Run the command to sync:"

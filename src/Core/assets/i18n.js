@@ -33,6 +33,22 @@ const fr = deepMerge(frYaml, client("fr"));
 const en = deepMerge(enYaml, client("en"));
 const es = deepMerge(esYaml, client("es"));
 
+/**
+ * French counts zero with the singular: « 0 note », « 1 dossier », and the
+ * plural from two on. vue-i18n's default rule puts zero in the plural, which
+ * read « 0 dossiers » on every empty folder.
+ *
+ * Two forms (`one | other`): 0 and 1 take the first. Three forms
+ * (`zero | one | other`) keep their meaning: 0, 1, then the rest.
+ */
+export function frenchPlural(choice, choicesLength) {
+    const count = Math.abs(choice);
+
+    if (choicesLength === 2) return count < 2 ? 0 : 1;
+
+    return Math.min(count, choicesLength - 1);
+}
+
 export function createAppI18n(locale = "fr") {
     return createI18n({
         legacy: false,
@@ -43,5 +59,6 @@ export function createAppI18n(locale = "fr") {
         fallbackLocale: "fr",
         messages: { fr, en, es },
         datetimeFormats,
+        pluralRules: { fr: frenchPlural },
     });
 }

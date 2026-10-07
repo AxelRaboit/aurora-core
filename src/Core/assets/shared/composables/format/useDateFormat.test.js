@@ -47,6 +47,27 @@ describe("useDateFormat", () => {
         expect(result).toContain("15");
     });
 
+    it("formatDateShort, formatDateTime and formatDate return the placeholder for an empty value", () => {
+        const { formatDateShort, formatDateTime, formatDate } =
+            mountWithComposable("fr");
+        expect(formatDateShort(null)).toBe("-");
+        expect(formatDateTime("")).toBe("-");
+        expect(formatDate(undefined, "")).toBe("");
+    });
+
+    it("formatDateTime leaves out the current year", () => {
+        const { formatDateTime } = mountWithComposable("fr");
+        const thisYear = new Date().getUTCFullYear();
+        const result = formatDateTime(`${thisYear}-03-15T12:00:00Z`);
+        expect(result).toContain("15");
+        expect(result).not.toContain(String(thisYear));
+    });
+
+    it("formatDateTime writes any other year", () => {
+        const { formatDateTime } = mountWithComposable("fr");
+        expect(formatDateTime("2019-03-15T12:00:00Z")).toContain("2019");
+    });
+
     it("formatMonthYear accepts a YYYY-MM prefix (FR)", () => {
         const { formatMonthYear } = mountWithComposable("fr");
         expect(formatMonthYear("2026-05")).toBe("Mai 2026");

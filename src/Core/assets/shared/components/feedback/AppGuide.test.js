@@ -52,6 +52,41 @@ describe("AppGuide", () => {
         expect(later.find("details").element.open).toBe(false);
     });
 
+    it("opens on the first visit of its screen, and stays folded after", () => {
+        const first = mount(AppGuide, {
+            props: { title: "Guide", storageKey: "posts" },
+        });
+        expect(first.find("details").element.open).toBe(true);
+
+        const next = mount(AppGuide, {
+            props: { title: "Guide", storageKey: "posts" },
+        });
+        expect(next.find("details").element.open).toBe(false);
+
+        const elsewhere = mount(AppGuide, {
+            props: { title: "Guide", storageKey: "contracts" },
+        });
+        expect(elsewhere.find("details").element.open).toBe(true);
+    });
+
+    it("drops its frame when folded", async () => {
+        const wrapper = mount(AppGuide, {
+            props: { title: "Guide", open: false },
+        });
+
+        expect(wrapper.find("[data-guide]").classes()).not.toContain(
+            "border-dashed",
+        );
+
+        const details = wrapper.find("details");
+        details.element.open = true;
+        await details.trigger("toggle");
+
+        expect(wrapper.find("[data-guide]").classes()).toContain(
+            "border-dashed",
+        );
+    });
+
     it("is rounded unless told otherwise", () => {
         const rounded = mount(AppGuide, { props: { title: "Arrondi" } });
         const flush = mount(AppGuide, {

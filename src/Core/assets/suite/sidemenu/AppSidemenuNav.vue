@@ -5,7 +5,7 @@
  * ignored. The wrapper is still there even though this menu passes it nothing -
  * `AppNavLink` renders it for every caller - so the constraint stands. The
  * section gap matches the row gap so the last row of a section is spaced like
- * every other: the coloured header band is what separates sections, it does not
+ * every other: the section header is what separates sections, it does not
  * need a gutter as well.
  *
  * The note is here rather than above the root so it is not rendered into the page
@@ -70,7 +70,7 @@ defineProps({
     sections: { type: Array, required: true },
     /** Everything from `useSidemenuNav` that this loop reads. */
     nav: { type: Object, required: true },
-    /** `headerClasses` / `labelClasses` from `useSidemenuSectionTheme`. */
+    /** `headerClasses` / `labelClasses` / `dotClasses` from `useSidemenuSectionTheme`. */
     theme: { type: Object, required: true },
     /**
      * The nav filter's current text. While it is set, section headers are
@@ -99,7 +99,10 @@ defineProps({
             :class="[theme.headerClasses(themeId(section)), theme.labelClasses(themeId(section))]"
             v-on:click="nav.toggleSection(section)"
         >
-            <span class="truncate">{{ section.label }}</span>
+            <span class="flex min-w-0 items-center gap-2">
+                <span class="size-2 shrink-0 rounded-full" :class="theme.dotClasses(themeId(section))" aria-hidden="true" />
+                <span class="truncate">{{ section.label }}</span>
+            </span>
             <ChevronDown
                 class="w-3.5 h-3.5 shrink-0 transition-transform"
                 :class="{ '-rotate-90': !nav.isSectionExpanded(section) }"

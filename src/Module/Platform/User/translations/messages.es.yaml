@@ -6,7 +6,7 @@ suite:
     users:
         guide:
             title: 'Cómo funcionan las cuentas'
-            step_1: 'Una cuenta Suite accede a la administración; una cuenta Frontend solo es una cuenta del sitio público.'
+            step_1: 'Una cuenta de la suite accede a la administración; una cuenta del sitio público solo sirve para el sitio.'
             step_2: 'Un Administrador tiene acceso a todo; un Usuario solo tiene los privilegios que le marque, pantalla por pantalla.'
             step_3: 'Invitar envía un correo para que la persona elija su contraseña.'
             step_4: 'Desactivar bloquea el acceso sin perder nada, mientras que eliminar es definitivo; no puede cambiar su propio rol.'
@@ -43,7 +43,7 @@ suite:
         type_label: Tipo
         type:
             suite: Suite
-            frontend: Frontend
+            frontend: 'Sitio público'
         status_label: Estado
         status:
             active: Activo

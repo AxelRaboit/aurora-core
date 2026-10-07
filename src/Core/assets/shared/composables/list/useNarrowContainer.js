@@ -18,7 +18,7 @@ export const TABLE_MIN_WIDTH = 768;
  * Whether the element holding a list is too narrow for a table.
  *
  * **The container, never the window.** This is the whole point, and it is not
- * a detail: the back-office sidemenu is 480px fixed from 1024 up and hidden
+ * a detail: the suite's sidemenu is 320px by default (up to 480) from 1024 up and hidden
  * below, so a 768px window leaves a list 718px and a 1024px window leaves it
  * 478px. Widening the screen by 256px costs the list 240px. Every `md:` and
  * `lg:` in a list template is therefore asking the window a question only the

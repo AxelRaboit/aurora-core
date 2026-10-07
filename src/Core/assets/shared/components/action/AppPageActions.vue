@@ -32,14 +32,22 @@
  * spinner in its place. Per-action `loading` still shows on the row itself, for
  * a reader who opens the sheet again while it works.
  *
+ * **An action marked `primary: true` leaves the sheet** and stands beside it
+ * as the page's main button: « + Nouvelle publication », not « Actions » that
+ * opens a modal holding that one line. Every list used to put its create verb
+ * in the sheet, which made the most frequent gesture of the suite cost two
+ * clicks through a centred modal (UI audit of 07/10/2026). When nothing else
+ * is left, there is no « Actions » button at all.
+ *
  * See {@see AppActionSheet} for the shape of an action.
  */
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { MoreHorizontal } from "lucide-vue-next";
 import AppButton from "./AppButton.vue";
 import AppActionSheet from "./AppActionSheet.vue";
 
-defineProps({
+const props = defineProps({
     /** What the page offers, in the order they are meant to be read. */
     actions: { type: Array, required: true },
     /** Names what is being acted on, in the sheet's title. Optional. */
@@ -55,27 +63,58 @@ defineProps({
 
 // AppActionSheet has two roots (the trigger and its modal): a `class` set on
 // this component landed nowhere, neither `w-full sm:w-auto` nor the others
-// (14 calls). It now goes on the button, which is what you see.
+// (14 calls). It now goes on the row that holds the buttons, which is what
+// you see.
 defineOptions({ inheritAttrs: false });
 
 const { t } = useI18n();
+
+const primaryActions = computed(() => props.actions.filter((action) => action.primary));
+const sheetActions = computed(() => props.actions.filter((action) => !action.primary));
+
+function runPrimary(action) {
+    if (action.disabled || action.loading) return;
+    action.onSelect?.();
+}
 </script>
 
 <template>
-    <AppActionSheet :actions="actions" :label="label">
-        <template #trigger="{ open }">
-            <AppButton
-                v-bind="$attrs"
-                :variant="variant"
-                :size="size"
-                :loading="busy"
-                :label="t('shared.actions.plain_title')"
-                :icon-only-on-phone="iconOnlyOnPhone"
-                :title="t('shared.actions.plain_title')"
-                v-on:click="open"
-            >
-                <MoreHorizontal v-if="!busy" class="w-4 h-4" :stroke-width="2" />
-            </AppButton>
-        </template>
-    </AppActionSheet>
+    <div v-bind="$attrs" class="flex items-center gap-2">
+        <AppActionSheet v-if="sheetActions.length" :actions="sheetActions" :label="label">
+            <template #trigger="{ open }">
+                <!-- Beside a main button it shrinks to its icon on a phone
+                     and keeps its square: a full-width bar with three dots in
+                     the middle reads as nothing. -->
+                <AppButton
+                    :class="primaryActions.length ? 'shrink-0' : 'flex-1 sm:flex-none'"
+                    :variant="variant"
+                    :size="size"
+                    :loading="busy"
+                    :label="t('shared.actions.plain_title')"
+                    :icon-only-on-phone="iconOnlyOnPhone || primaryActions.length > 0"
+                    :title="t('shared.actions.plain_title')"
+                    v-on:click="open"
+                >
+                    <MoreHorizontal v-if="!busy" class="w-4 h-4" :stroke-width="2" />
+                </AppButton>
+            </template>
+        </AppActionSheet>
+
+        <!-- The page's main verb, the rightmost, as the header rule wants. -->
+        <AppButton
+            v-for="action in primaryActions"
+            :key="action.key"
+            class="flex-1 sm:flex-none"
+            variant="primary"
+            :size="size"
+            :href="action.href ?? null"
+            :label="action.title"
+            :disabled="action.disabled"
+            :loading="action.loading"
+            :icon-only-on-phone="iconOnlyOnPhone"
+            v-on:click="runPrimary(action)"
+        >
+            <component :is="action.icon" v-if="action.icon" class="w-4 h-4" :stroke-width="2" />
+        </AppButton>
+    </div>
 </template>

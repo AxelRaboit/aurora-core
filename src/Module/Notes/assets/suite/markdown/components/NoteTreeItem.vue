@@ -208,7 +208,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 isDropInside
                     ? 'bg-accent-600/15 text-accent-400 border-accent-600/40 ring-2 ring-accent-500'
                     : isSelected
-                        ? 'bg-accent-600/15 text-accent-400 border-accent-600/30'
+                        ? 'bg-surface-2 font-medium text-primary border-transparent'
                         : 'hover:bg-surface-2 text-primary border-transparent',
                 isBeingDragged ? 'opacity-40' : '',
                 draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',

@@ -76,12 +76,16 @@ const variants = {
     // primary was two pixels shorter than a secondary or a ghost placed next to
     // it (36 against 38 in md), and a header bar lined up three different
     // heights. All the buttons of one size have the same height.
-    primary: 'bg-accent-600 hover:bg-accent-700 text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent-500',
+    //
+    // **Disabled, a solid button goes grey**, not a washed-out green: the
+    // customer page's Enregistrer, inactive while nothing changed, read as a
+    // display bug at half its colour (UI audit of 07/10/2026).
+    primary: 'bg-accent-600 hover:bg-accent-700 text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent-500 disabled:bg-surface-3 disabled:text-secondary disabled:border-line disabled:hover:bg-surface-3',
     secondary: 'bg-surface-3 hover:bg-surface-2 text-primary border border-line focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-base',
     danger: 'bg-rose-600 hover:bg-rose-500 text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-rose-500',
     'danger-outline': 'bg-transparent hover:bg-rose-500/10 text-rose-400 border border-line focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-rose-500',
 
-    accent: 'bg-accent hover:bg-accent-hover text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent',
+    accent: 'bg-accent hover:bg-accent-hover text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent disabled:bg-surface-3 disabled:text-secondary disabled:border-line disabled:hover:bg-surface-3',
     // **Never transparent on a phone.** A ghost button reads with a mouse: it
     // waits for the hover to exist, and its place in a dense bar already says
     // that it is one. With a finger there is no hover, and a full-width button

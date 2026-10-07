@@ -100,18 +100,18 @@ suite:
             reading_description: "Articles par page, page d'accueil, commentaires."
             localization: Localisation
             localization_description: 'Langue, fuseau horaire, style des dates.'
-            branding: Branding
+            branding: Marque
             branding_description: 'Logo, favicon et identité visuelle.'
             appearance: Apparence
             appearance_description: 'Personnaliser la palette de couleurs et autres paramètres visuels de l''admin.'
             seo: SEO
-            seo_description: Template de titre et meta description par défaut.
+            seo_description: Modèle de titre et méta-description par défaut.
             system: Système
-            system_description: 'Maintenance, inscriptions, accès et uploads.'
+            system_description: 'Maintenance, inscriptions, accès et envois de fichiers.'
             email: Emails
             email_description: Langue et couleurs des emails sortants.
-            media: Médias & uploads
-            media_description: Limites d'upload des fichiers (taille maximale, extensions autorisées).
+            media: Médias et fichiers
+            media_description: Limites des fichiers envoyés (taille maximale, extensions autorisées).
             sequences: Séquences
             sequences_description: Préfixes des références auto-générées. Onglet réservé aux développeurs.
             navigation: Navigation
@@ -137,7 +137,7 @@ suite:
             captcha: Anti-robots
             captcha_description: "Vérification des commentaires et des formulaires : service, clés et activation."
             notes: Notes
-            notes_description: 'Paramètres du module Notes Markdown : taille / qualité des images uploadées.'
+            notes_description: 'Paramètres du module Notes Markdown : taille et qualité des images envoyées.'
             storage: Stockage des fichiers
             storage_description: "Où sont écrits les fichiers de l'application : le disque du serveur, ou un stockage objet Cloudflare R2."
             modules: Modules
@@ -306,7 +306,7 @@ suite:
         modules_empty: Aucun module trouvé.
         module_type:
             suite: Suite
-            frontend: Frontend
+            frontend: Site public
         save: Enregistrer
         saved: Réglages sauvegardés.
         modules_search_placeholder: Rechercher un module…
@@ -362,7 +362,7 @@ suite:
             placeholder: Plateforme de gestion d'entreprise multi-modules
         site_url:
             label: URL publique du site
-            description: 'URL absolue du site (sans slash final), utilisée dans les emails et le sitemap'
+            description: 'URL absolue du site (sans barre oblique finale), utilisée dans les e-mails et le plan du site'
             placeholder: 'https://app.example.com'
         admin_email:
             label: Email administrateur
@@ -379,7 +379,7 @@ suite:
             description: Nombre d'articles affichés par page sur les listes publiques
             placeholder: 10
         max_upload_size_mb:
-            label: Taille max d'upload (Mo)
+            label: Taille maximale d'un fichier envoyé (Mo)
             description: "Plafond, en mégaoctets, de tout fichier déposé - bibliothèque comme espaces clients. Les invités d'un espace restent en plus limités à 25 Mo."
             placeholder: 100
         timezone:
@@ -437,7 +437,7 @@ suite:
             label: "Nom du site dans la barre de la suite sur téléphone"
             description: "Affiche le nom du site à côté du logo dans la barre du haut de la suite, sous 640 px de large. Désactivé, seul le logo reste ; le nom est toujours lu par les lecteurs d'écran. Pour le site public, le réglage équivalent est dans le thème."
         seo_title_template:
-            label: Template de titre SEO
+            label: Modèle de titre SEO
             description: 'Template pour le titre des pages. Utilisez {title} et {siteName}. Ex. : {title} · {siteName}'
             placeholder: '{title} · {siteName}'
         seo_default_description:
@@ -578,7 +578,17 @@ suite:
             step_2: "Un onglet n'apparaît que si son module est activé et que votre rôle vous permet de le consulter."
             step_3: "L'onglet ouvert s'inscrit dans l'adresse de la page : un lien copié rouvre le même onglet."
             step_4: "Les chiffres sont calculés à l'ouverture de la page : rechargez-la pour les mettre à jour."
-        no_module_enabled: Aucun module de dashboard activé.
+        no_module_enabled: Aucun module de tableau de bord activé.
+        todo:
+            title: "À traiter"
+            nothing: "Rien ne vous attend pour l'instant."
+            countersign: "{count} contrat à contresigner | {count} contrats à contresigner"
+            missed: "{count} parution manquée | {count} parutions manquées"
+            late_review: "{count} relecture en retard | {count} relectures en retard"
+            changes_requested: "{count} contenu à revoir | {count} contenus à revoir"
+            comments_pending: "{count} commentaire en attente | {count} commentaires en attente"
+            posts_pending_review: "{count} publication à relire | {count} publications à relire"
+            reminders_overdue: "{count} rappel en retard | {count} rappels en retard"
     forms:
         errors:
             slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

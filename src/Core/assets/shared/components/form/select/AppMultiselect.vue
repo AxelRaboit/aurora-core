@@ -99,19 +99,30 @@ function onSelect(value) {
     padding: 6px 40px 0 8px;
     font-size: 0.875rem;
 }
+/* The placeholder and the chosen value on the same line: the library gives
+   the placeholder its own top padding, and « Tous les clients » sat two
+   pixels above « En attente de revue » in the next field (UI audit of
+   07/10/2026). One line height for both, and no top padding. */
+.multiselect__single,
+.multiselect__input,
+.multiselect__placeholder {
+    display: block;
+    font-size: 0.875rem;
+    line-height: 24px;
+    min-height: 24px;
+    margin-bottom: 6px;
+    padding: 0 0 0 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .multiselect__single,
 .multiselect__input {
     background-color: var(--color-surface);
     color: var(--color-primary);
-    font-size: 0.875rem;
-    margin-bottom: 4px;
-    padding: 0 0 0 4px;
 }
 .multiselect__placeholder {
     color: var(--color-muted);
-    font-size: 0.875rem;
-    margin-bottom: 4px;
-    padding: 0 0 0 4px;
 }
 .multiselect__content-wrapper {
     background-color: var(--color-surface);
@@ -122,8 +133,10 @@ function onSelect(value) {
     font-size: 0.875rem;
     background-color: var(--color-surface);
 }
+/* The suite's accent, not a fixed indigo: the list lit up in a colour that
+   appeared nowhere else on screen. */
 .multiselect__option--highlight {
-    background: #4f46e5;
+    background: var(--color-accent-600);
     color: #fff;
 }
 .multiselect__option--selected {
@@ -132,15 +145,15 @@ function onSelect(value) {
     font-weight: 600;
 }
 .multiselect__option--selected.multiselect__option--highlight {
-    background: #4338ca;
+    background: var(--color-accent-700);
     color: #fff;
 }
 .multiselect__tag {
-    background: #4f46e5;
+    background: var(--color-accent-600);
 }
 .multiselect--active .multiselect__tags {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 1px #6366f1;
+    border-color: var(--color-accent-500);
+    box-shadow: 0 0 0 1px var(--color-accent-500);
 }
 .multiselect--error .multiselect__tags {
     border-color: rgb(239 68 68);

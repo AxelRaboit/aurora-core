@@ -67,13 +67,16 @@ Distribué via composer : les clients lisent ces mémoires depuis
   `v-on:` (forme longue) pour les events, jamais `@` ; `:` reste OK pour v-bind
 - [convention_mobile_card_layout.md](convention_mobile_card_layout.md) - toute
   liste CRUD = sm:hidden cards + hidden sm:block table + footer d'actions
+- [convention_suite_controls.md](convention_suite_controls.md) - une seule case
+  (`AppCheckbox`), règle case/interrupteur/filtre/tri, trois formats de date,
+  pluriels sans « (s) », couleur = état (audit UI du 07/10/2026)
 - [pattern_admin_list_toolbar.md](pattern_admin_list_toolbar.md) - toolbar
   standard (search + boutons) via `<AppListToolbar>` slot-par-défaut + `#actions`
 - [convention_multi_button_toolbar.md](convention_multi_button_toolbar.md) - 2
   boutons dans `#actions` = wrapper `flex flex-col sm:flex-row gap-2 w-full sm:w-auto`
 - [convention_action_sheet.md](convention_action_sheet.md) - 3 actions ou plus =
   feuille modale derrière un bouton unique : `AppRowActions` (ligne),
-  `AppPageActions` (en-tête de page), primaire et navigation restent dehors
+  `AppPageActions` (en-tête de page), primaire (`primary: true`, Créer d'une liste compris) et navigation restent dehors
 - [convention_modal_and_confirmation.md](convention_modal_and_confirmation.md) -
   AppModal API + confirmation de suppression via modale (jamais `confirm()` natif)
 - [convention_vue_form_validation.md](convention_vue_form_validation.md) -
