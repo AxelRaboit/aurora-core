@@ -26,6 +26,7 @@ import {
     ArrowUpDown,
     ArrowUpNarrowWide,
     ChevronRight,
+    Download,
     FileDown,
     CheckSquare,
     FileText,
@@ -97,6 +98,8 @@ const props = defineProps({
     noteUrlFor: { type: Function, required: true },
     /** Builds the address that downloads one note as Markdown. */
     noteExportUrlFor: { type: Function, default: () => "" },
+    /** Builds the zip address: `{ folderId }` for a folder, nothing for everything. */
+    exportUrlFor: { type: Function, default: null },
     /** What the server accepts as depth, to say it on refusal. */
     maxDepth: { type: Number, default: 8 },
 });
@@ -1137,6 +1140,16 @@ function orderActions(kind, item) {
 }
 
 // ── A card's actions ───────────────────────────────────────────────
+/**
+ * Takes away what is on screen: everything at the root, the folder otherwise.
+ *
+ * A navigation and not a request, like the panel's: the browser receives the
+ * file and stores it.
+ */
+function exportShown() {
+    window.location.assign(props.exportUrlFor({ folderId: currentFolderId.value }));
+}
+
 function folderActions(folder) {
     return [
         {
@@ -1159,6 +1172,14 @@ function folderActions(folder) {
             onSelect: () => askToMove("folder", folder),
         },
         favoriteAction("folder", folder),
+        ...(props.exportUrlFor
+            ? [{
+                key: "export",
+                title: t("notes.markdown.folders.export"),
+                icon: Download,
+                href: props.exportUrlFor({ folderId: folder.id }),
+            }]
+            : []),
         ...orderActions("folder", folder),
         {
             key: "delete",
@@ -1362,6 +1383,19 @@ defineExpose({
                      one step from each other, that did not look like the
                      same family. -->
                 <div class="flex shrink-0 items-center gap-1">
+                    <!-- In the title row, not in the toolbar below, which
+                         already holds nine icons: it takes away what the row
+                         names, everything at the root, the folder otherwise. -->
+                    <AppIconButton
+                        v-if="exportUrlFor"
+                        data-library-export
+                        :title="null === currentFolderId ? t('notes.markdown.export.all') : t('notes.markdown.folders.export')"
+                        :aria-label="null === currentFolderId ? t('notes.markdown.export.all') : t('notes.markdown.folders.export')"
+                        v-on:click="exportShown"
+                    >
+                        <Download class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+
                     <AppIconButton
                         color="accent"
                         :title="t('notes.markdown.library.new_folder')"
@@ -1517,7 +1551,7 @@ defineExpose({
              edges. -->
         <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library" class="mx-3 mt-3">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 7" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
+                <li v-for="step in 8" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 

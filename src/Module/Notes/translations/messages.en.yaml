@@ -120,6 +120,7 @@ notes:
             step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
             step_6: "A note's Actions menu duplicates it, makes it a template, goes back to a past version or prints it as PDF."
             step_7: "Type “/” at the start of a line to insert a heading, a list or a table: “/table 3x4” creates 3 columns and 4 rows, and Tab moves from one cell to the next."
+            step_8: 'The download icon exports what you are looking at as a zip: everything, a space or a folder. One folder per space, one Markdown file per note, tags at the top: Obsidian opens it as is.'
         share:
             button: Share with a link
             title: Share this note with a link
@@ -233,6 +234,7 @@ notes:
                 manager: 'Manage'
         folders:
             title: Folders
+            export: 'Export this folder (zip)'
             trash_label: Note folders
             root: All notes
             create: New folder
@@ -378,7 +380,7 @@ notes:
         content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
         create_root: New note
         export:
-            all: Export the notebook
+            all: 'Export all my spaces (zip)'
             one: Export this note
         import:
             button: Import notes
