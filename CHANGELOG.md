@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.3.2] - 2026-10-07
+
+### Corrigé
+
+#### Le README parlait encore de « back-office »
+Le back-office s'appelle « la suite » depuis la 2.0.0 : la présentation du projet le dit maintenant, comme les adresses `/suite`.
+
+#### Des bouts de blocs voisins au-dessus de la réservation et du sondage, dans le tour
+Les captures `tour-reservation` et `tour-sondage` montraient en haut le bas coupé du bloc précédent (une carte, des graphiques). Le scénario masque désormais les zones situées au-dessus du bloc photographié (`hideZonesAbove`), et la réservation choisit un créneau du lendemain : ceux du jour s'épuisaient au fil de l'après-midi et faisaient échouer la capture.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` et `make deploy-prod`.
+
+---
+
 ## [3.3.1] - 2026-10-07
 
 ### Corrigé
