@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Beacon\Service;
 
 use Aurora\Core\Enum\AppVersionEnum;
+use Aurora\Module\Beacon\Setting\BeaconSettingEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -35,8 +36,6 @@ use function random_bytes;
 final readonly class BeaconSender
 {
     private const int TIMEOUT_SECONDS = 4;
-
-    private const string INSTANCE_ID_KEY = 'beacon.instance_id';
 
     public function __construct(
         private HttpClientInterface $httpClient,
@@ -93,10 +92,10 @@ final readonly class BeaconSender
 
     private function instanceId(): string
     {
-        $id = $this->settings->get(self::INSTANCE_ID_KEY);
+        $id = $this->settings->get(BeaconSettingEnum::InstanceId->value);
         if (null === $id || '' === $id) {
             $id = bin2hex(random_bytes(16));
-            $this->settings->set(self::INSTANCE_ID_KEY, $id);
+            $this->settings->set(BeaconSettingEnum::InstanceId->value, $id);
         }
 
         return $id;

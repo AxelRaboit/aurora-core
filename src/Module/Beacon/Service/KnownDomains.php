@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Beacon\Service;
 
+use Aurora\Module\Beacon\Setting\BeaconSettingEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 
 use function in_array;
@@ -21,8 +22,6 @@ use function mb_trim;
  */
 final readonly class KnownDomains
 {
-    private const string SETTING_KEY = 'beacon.known_domains';
-
     /** @var list<string> */
     private const array DEFAULTS = ['axelraboit.fr', 'app.axelraboit.fr'];
 
@@ -36,7 +35,7 @@ final readonly class KnownDomains
     /** @return list<string> */
     public function all(): array
     {
-        $raw = $this->settings->get(self::SETTING_KEY);
+        $raw = $this->settings->get(BeaconSettingEnum::KnownDomains->value);
         if (null === $raw || '' === $raw) {
             return self::DEFAULTS;
         }

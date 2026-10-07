@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { Radar, Trash2, Save, ShieldCheck, X } from "lucide-vue-next";
@@ -8,6 +8,7 @@ import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
@@ -29,6 +30,18 @@ const domainsText = ref(props.knownDomains.join("\n"));
 const savingDomains = ref(false);
 
 const leadCount = computed(() => rows.value.filter((row) => !row.known).length);
+
+// A handful of rows at most, all already on the page: paged here rather than
+// by the server.
+const PAGE_SIZE = 5;
+const page = ref(1);
+const totalPages = computed(() => Math.max(1, Math.ceil(rows.value.length / PAGE_SIZE)));
+const pageRows = computed(() => rows.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE));
+
+// Forgetting the last row of the last page must not leave an empty page.
+watch(totalPages, (count) => {
+    if (page.value > count) page.value = count;
+});
 
 async function saveDomains() {
     if (savingDomains.value) return;
@@ -58,7 +71,7 @@ const {
     "suite.beacon.forgotten",
 );
 
-/** What can be done with an instance, behind "…" as on the other lists. */
+/** What can be done with an instance: one gesture, drawn as its trash icon. */
 function rowActions(row) {
     return [
         {
@@ -103,7 +116,7 @@ function rowActions(row) {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-line">
-                        <tr v-for="row in rows" :key="row.id" class="text-primary">
+                        <tr v-for="row in pageRows" :key="row.id" class="text-primary">
                             <td class="px-3 py-2">
                                 <AppBadge :color="row.known ? 'emerald' : 'rose'">
                                     {{ row.known ? t("suite.beacon.known") : t("suite.beacon.lead") }}
@@ -122,12 +135,14 @@ function rowActions(row) {
                             <td class="px-3 py-2 text-right tabular-nums text-secondary">{{ row.pingCount }}</td>
                             <td class="px-3 py-2 text-secondary">{{ formatDateTime(row.lastSeenAt) }}</td>
                             <td class="px-3 py-2 text-right">
-                                <AppRowActions :actions="rowActions(row)" :label="row.domain ?? row.instanceId" />
+                                <AppRowActions :actions="rowActions(row)" :label="row.domain ?? row.instanceId" icon-only />
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <AppPagination v-if="totalPages > 1" :page="page" :total-pages="totalPages" v-on:change="page = $event" />
         </section>
 
         <section class="space-y-3 max-w-xl">

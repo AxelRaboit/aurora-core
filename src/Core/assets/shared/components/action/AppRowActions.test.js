@@ -149,4 +149,30 @@ describe("AppRowActions", () => {
     it("draws nothing without an action", () => {
         expect(mountActions([]).html()).not.toContain("button");
     });
+
+    it("draws a lone action as its bare icon when asked, with its word as the name", async () => {
+        const onSelect = vi.fn();
+        const wrapper = mountActions([{ ...DELETE, onSelect }], {
+            iconOnly: true,
+        });
+
+        const buttons = wrapper.findAll("button");
+        expect(buttons).toHaveLength(1);
+        expect(buttons[0].text()).toBe("");
+        expect(buttons[0].attributes("title")).toBe("Supprimer");
+        expect(buttons[0].attributes("aria-label")).toBe("Supprimer - Jean");
+
+        await buttons[0].trigger("click");
+        expect(onSelect).toHaveBeenCalledOnce();
+        expect(wrapper.find('[data-test="sheet"]').exists()).toBe(false);
+    });
+
+    it("keeps the « … » menu when several actions are asked as icons", () => {
+        const wrapper = mountActions([EDIT, DELETE], { iconOnly: true });
+
+        expect(wrapper.findAll("button")).toHaveLength(1);
+        expect(wrapper.find("button").attributes("title")).toBe(
+            "shared.actions.open",
+        );
+    });
 });
