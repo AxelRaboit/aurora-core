@@ -1144,6 +1144,52 @@ describe("the library", () => {
         });
     });
 
+    /**
+     * The export sits in the title row and takes what the row names:
+     * everything at the root, the folder once one is open.
+     */
+    it("exports what is on screen, everything then the open folder", async () => {
+        const assign = vi.fn();
+        const original = window.location;
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: { ...original, assign },
+        });
+        const exportUrlFor = ({ folderId }) =>
+            null == folderId
+                ? "/suite/notes/markdown/export"
+                : `/suite/notes/markdown/export?folderId=${folderId}`;
+
+        const wrapper = render({ exportUrlFor });
+        const button = () => wrapper.find("[data-library-export]");
+
+        expect(button().attributes("title")).toBe("notes.markdown.export.all");
+        await button().trigger("click");
+        expect(assign).toHaveBeenLastCalledWith("/suite/notes/markdown/export");
+
+        await wrapper.unmount();
+        const inFolder = render({ exportUrlFor, initialFolderId: 1 });
+        await flushPromises();
+
+        const folderButton = inFolder.find("[data-library-export]");
+        expect(folderButton.attributes("title")).toBe(
+            "notes.markdown.folders.export",
+        );
+        await folderButton.trigger("click");
+        expect(assign).toHaveBeenLastCalledWith(
+            "/suite/notes/markdown/export?folderId=1",
+        );
+
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: original,
+        });
+    });
+
+    it("offers no export where nothing builds its address", () => {
+        expect(render().find("[data-library-export]").exists()).toBe(false);
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 

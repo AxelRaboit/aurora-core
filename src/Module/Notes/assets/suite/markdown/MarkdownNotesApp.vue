@@ -801,11 +801,17 @@ function backToLibrary() {
  * receive a file and store it, and going through `fetch` would force keeping
  * a whole zip in memory to hand it back to a fabricated link.
  */
-function exportAll(spaceId = null) {
-    // A single space when the panel asks for it from its header.
-    const url = null == spaceId ? props.exportPath : `${props.exportPath}?spaceId=${encodeURIComponent(String(spaceId))}`;
+function exportUrl({ spaceId = null, folderId = null } = {}) {
+    // A single space when the panel asks for it from its header, a single
+    // folder from its menu.
+    if (null != folderId) return `${props.exportPath}?folderId=${encodeURIComponent(String(folderId))}`;
+    if (null != spaceId) return `${props.exportPath}?spaceId=${encodeURIComponent(String(spaceId))}`;
 
-    window.location.assign(url);
+    return props.exportPath;
+}
+
+function exportAll(spaceId = null) {
+    window.location.assign(exportUrl({ spaceId }));
 }
 
 function exportOne(id) {
@@ -1025,6 +1031,7 @@ const PANEL_INTENTS = {
     },
     favorite: ({ kind, id }) => toggleFavorite(kind, id),
     export: (spaceId) => exportAll(spaceId ?? null),
+    'export-folder': (folderId) => window.location.assign(exportUrl({ folderId })),
     import: (spaceId) => askForFiles(spaceId ?? null),
     'craft-import': (spaceId) => {
         if (props.craftEnabled) craftImport.value = { spaceId: spaceId ?? null, folderId: null };
@@ -1487,6 +1494,7 @@ onUnmounted(() => {
                     :root-url="libraryPath"
                     :note-url-for="noteUrlFor"
                     :note-export-url-for="noteExportUrlFor"
+                    :export-url-for="exportUrl"
                     :max-depth="maxDepth"
                     v-on:open-note="openNote"
                     v-on:create-note="createNote"

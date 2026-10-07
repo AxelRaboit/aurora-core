@@ -124,6 +124,7 @@ notes:
             step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
             step_6: "Le menu Actions d'une note la duplique, en fait un modèle, revient à une version passée ou l'imprime en PDF."
             step_7: "Tapez « / » en début de ligne pour insérer un titre, une liste ou un tableau : « /tableau 3x4 » crée 3 colonnes et 4 lignes, et Tab passe d'une case à l'autre."
+            step_8: "L'icône de téléchargement exporte en zip ce que vous regardez : tout, un espace ou un dossier. Un dossier par espace, un fichier Markdown par note, les étiquettes en tête : Obsidian l'ouvre tel quel."
         share:
             button: Partager par un lien
             title: Partager cette note par un lien
@@ -237,6 +238,7 @@ notes:
                 manager: 'Gestion'
         folders:
             title: Dossiers
+            export: 'Exporter ce dossier (zip)'
             trash_label: Dossiers de notes
             root: Toutes les notes
             create: Nouveau dossier
@@ -382,7 +384,7 @@ notes:
         content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
         create_root: Nouvelle note
         export:
-            all: Exporter le carnet
+            all: 'Exporter tous mes espaces (zip)'
             one: Exporter cette note
         import:
             button: Importer des notes

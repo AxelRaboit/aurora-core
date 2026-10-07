@@ -19,7 +19,7 @@
  */
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, LayoutTemplate, Pencil, Plus, Star, StarOff, Trash2 } from 'lucide-vue-next';
+import { ChevronRight, ChevronDown, Download, FileText, Folder, FolderOpen, LayoutTemplate, Pencil, Plus, Star, StarOff, Trash2 } from 'lucide-vue-next';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
 
@@ -37,6 +37,8 @@ const props = defineProps({
      * what is one's own - favourites -, no rename, no filing, no delete.
      */
     editable: { type: Boolean, default: true },
+    /** Offers « Exporter ce dossier »: only where something answers it. */
+    exportable: { type: Boolean, default: false },
     draggingKey: { type: String, default: null },
     /** Where what is held would land: `{ key, zone }`, zone before, inside or after. */
     dropHint: { type: Object, default: null },
@@ -61,6 +63,7 @@ const emit = defineEmits([
     'rename',
     'favorite',
     'delete',
+    'export',
     'drag-start',
     'drag-end',
     'drag-over',
@@ -113,7 +116,21 @@ const editActions = computed(() => [
     },
 ]);
 
-const rowActions = computed(() => (props.editable ? editActions.value : [favoriteAction.value]));
+// Taking a folder away only asks to read it: a reader of the space can
+// already read and copy all of it.
+const exportAction = computed(() => (isFolder.value && props.exportable
+    ? [{
+        key: 'export',
+        title: t('notes.markdown.folders.export'),
+        icon: Download,
+        onSelect: () => emit('export', props.node),
+    }]
+    : []));
+
+const rowActions = computed(() => [
+    ...(props.editable ? editActions.value : [favoriteAction.value]),
+    ...exportAction.value,
+]);
 const children = computed(() => props.node.children ?? []);
 const hasChildren = computed(() => children.value.length > 0);
 const isOpen = computed(() => props.expanded.has(Number(props.node.id)));
@@ -317,6 +334,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 :draggable="draggable"
                 :readonly="readonly"
                 :editable="editable"
+                :exportable="exportable"
                 :dragging-key="draggingKey"
                 :drop-hint="dropHint"
                 :parent-key="node.key"
@@ -328,6 +346,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 v-on:rename="(n) => emit('rename', n)"
                 v-on:favorite="(n) => emit('favorite', n)"
                 v-on:delete="(n) => emit('delete', n)"
+                v-on:export="(n) => emit('export', n)"
                 v-on:drag-start="(n, e) => emit('drag-start', n, e)"
                 v-on:drag-end="(e) => emit('drag-end', e)"
                 v-on:drag-over="(n, e) => emit('drag-over', n, e)"

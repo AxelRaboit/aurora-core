@@ -48,6 +48,7 @@ const NOTES_ENDPOINT = "/suite/notes/markdown/list";
 const SEARCH_ENDPOINT = "/suite/notes/markdown/search";
 const SPACES_ENDPOINT = "/suite/notes/spaces";
 const LIBRARY_URL = "/suite/notes/markdown";
+const EXPORT_URL = "/suite/notes/markdown/export";
 const PINNED_TAGS_KEY = "aurora.notes.panel.pinnedTags";
 const TAGS_OPEN_KEY = "aurora.notes.panel.tagsOpen";
 const SPACES_CLOSED_KEY = "aurora.notes.panel.spacesClosed";
@@ -412,7 +413,7 @@ function spaceActions(space) {
             key: "export",
             title: t("notes.markdown.spaces.export"),
             icon: Download,
-            onSelect: () => forward("export", Number(space.id)),
+            onSelect: () => exportArchive("space", Number(space.id)),
         },
     ];
 }
@@ -569,6 +570,21 @@ function clearHover() {
 
 function forward(name, ...forwardedArguments) {
     return askPage(`notes:${name}`, { args: forwardedArguments });
+}
+
+/**
+ * Takes everything, a space or a folder away, as a zip.
+ *
+ * The page answers when it is the notes page; elsewhere (reading a note) the
+ * panel downloads by itself, otherwise the menu entry did nothing.
+ */
+function exportArchive(kind = null, id = null) {
+    const handled = "folder" === kind ? forward("export-folder", id) : forward("export", id ?? undefined);
+
+    if (handled) return;
+
+    const query = "folder" === kind ? `?folderId=${id}` : null != id ? `?spaceId=${id}` : "";
+    window.location.assign(`${EXPORT_URL}${query}`);
 }
 
 /**
@@ -896,7 +912,7 @@ onUnmounted(() => {
             </AppIconButton>
             <AppIconButton
                 :title="t('notes.markdown.export.all')"
-                v-on:click="forward('export')"
+                v-on:click="exportArchive()"
             >
                 <Download class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
@@ -1073,6 +1089,7 @@ onUnmounted(() => {
                         :expanded="expanded"
                         :draggable="group.space ? group.space.canWrite : true"
                         :editable="group.space ? group.space.canWrite : true"
+                        exportable
                         :dragging-key="draggingKey"
                         :drop-hint="dropHint"
                         :href-for="hrefFor"
@@ -1082,6 +1099,7 @@ onUnmounted(() => {
                         v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
                         v-on:favorite="toggleFavorite"
                         v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
+                        v-on:export="(node) => exportArchive('folder', Number(node.id))"
                         v-on:drag-start="onDragStart"
                         v-on:drag-end="onDragEnd"
                         v-on:drag-over="onDragOver"

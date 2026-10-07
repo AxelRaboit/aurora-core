@@ -11,16 +11,21 @@ use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInput;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use ZipArchive;
 
 use function array_filter;
 use function array_map;
 use function array_pop;
+use function array_shift;
+use function array_unique;
 use function array_values;
 use function explode;
+use function in_array;
 use function mb_substr;
 use function mb_trim;
 use function pathinfo;
@@ -67,6 +72,10 @@ final readonly class MarkdownNoteImporter
         private MarkdownNoteManagerInterface $notes,
         private NoteFolderManagerInterface $folders,
         private MarkdownNoteImageService $images,
+        private TranslatorInterface $translator,
+        /** @var list<string> */
+        #[Autowire(param: 'kernel.enabled_locales')]
+        private array $locales = [],
         private Filesystem $filesystem = new Filesystem(),
     ) {}
 
@@ -109,6 +118,15 @@ final readonly class MarkdownNoteImporter
             return 0;
         }
 
+        // A full export files the personal notebook under « Mon espace de
+        // notes/ » ({@see MarkdownNoteArchive::zipFor()}). Poured back into
+        // that same notebook, the folder would only add a level: its content
+        // goes to the root instead. Only there - imported into a folder or a
+        // shared space, it stays the folder it is - and the shared spaces'
+        // folders always stay folders, so that an import never pours notes
+        // unannounced into a space others read.
+        $personalRoots = !$folder instanceof NoteFolderInterface && (!$space instanceof NoteSpaceInterface || $space->isPersonal()) ? $this->personalLabels() : [];
+
         /** @var array<string, NoteFolderInterface> $byPath */
         $byPath = [];
         $created = 0;
@@ -142,6 +160,14 @@ final readonly class MarkdownNoteImporter
 
             $fileName = $isDirectory ? null : array_pop($segments);
 
+            if (isset($segments[0]) && in_array($segments[0], $personalRoots, true)) {
+                array_shift($segments);
+
+                if (null === $fileName && [] === $segments) {
+                    continue;
+                }
+            }
+
             $under = $folder;
             $path = '';
 
@@ -173,6 +199,26 @@ final readonly class MarkdownNoteImporter
         $this->notes->createMany($user, $notes);
 
         return $created;
+    }
+
+    /**
+     * The personal space's name in every language the site speaks.
+     *
+     * The export writes it in the reader's language: an archive made in
+     * English must unwrap the same way when it comes back in French.
+     *
+     * @return list<string>
+     */
+    private function personalLabels(): array
+    {
+        $key = 'notes.markdown.spaces.my_space';
+        $labels = [$this->translator->trans($key)];
+
+        foreach ($this->locales as $locale) {
+            $labels[] = $this->translator->trans($key, [], null, $locale);
+        }
+
+        return array_values(array_unique($labels));
     }
 
     /**

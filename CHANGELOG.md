@@ -5,6 +5,31 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.4.0] - 2026-10-07
+
+### Ajouté
+- **Exporter un dossier de notes** : « Exporter ce dossier (zip) » dans le menu d'un dossier, dans l'arbre comme dans la bibliothèque. Le zip contient le dossier et tout ce qu'il range, posé à sa racine. Ouvert à quiconque peut lire l'espace, comme l'export d'un espace.
+- **Un bouton Exporter dans la bibliothèque des notes**, dans la ligne du titre : il exporte ce qui est affiché, toutes les notes à la racine, le dossier ouvert sinon. L'icône du panneau s'appelle désormais « Exporter tous mes espaces (zip) ».
+- **L'encart « Comment s'organisent les notes » parle de l'export** (8e étape), en français, anglais et espagnol.
+
+### Modifié
+- **L'export de toutes les notes range chaque espace dans son dossier**, l'espace personnel compris, sous le nom que lui donne le panneau (« Mon espace de notes »).
+- **Réimporter un export complet dans son carnet perso le retrouve tel qu'il était** : le dossier « Mon espace de notes » est déballé, son contenu revient à la racine du carnet, quelle que soit la langue dans laquelle l'export a été fait. Les dossiers des espaces partagés restent des dossiers, pour qu'un import ne verse jamais de notes en douce dans un espace que d'autres lisent ; importé dans un dossier ou un espace partagé, le zip garde tous ses dossiers.
+- **Le zip porte le nom de ce qu'il contient** : `notes-2026-10-07.zip` pour tout, `notes-guide-de-l-agence-2026-10-07.zip` pour un espace ou un dossier. Deux exports du même jour se distinguent dans les téléchargements.
+
+### Corrigé
+
+#### Un dossier perso et un espace partagé du même nom mélangés dans l'export
+Un dossier de premier niveau de l'espace personnel et un espace partagé portant le même nom écrivaient dans le même dossier du zip, et un réimport rangeait tout ensemble. Chaque espace ayant maintenant son propre dossier, ils restent séparés.
+
+#### Un espace vide absent de l'export complet
+La liste des espaces était déduite des notes et des dossiers trouvés : un espace sans rien dedans n'avait pas de dossier dans le zip. Elle part désormais des espaces lisibles.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` et `make deploy-prod`.
+
+---
+
 ## [3.3.3] - 2026-10-07
 
 ### Corrigé
