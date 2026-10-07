@@ -10,15 +10,15 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Une famille se déclare à quatre endroits qui doivent rester d'accord : le cas
- * de l'enum, ses graisses importées dans `app.css`, sa description traduite, et
- * le défaut recopié dans le formulaire Vue.
+ * A family is declared in four places that must stay in agreement: the enum
+ * case, its weights imported in `app.css`, its translated description, and
+ * the default copied into the Vue form.
  *
- * Aucun de ces désaccords ne casse quoi que ce soit bruyamment. Un cas sans
- * import sert une page composée dans la pile de secours, donc dans une police
- * qui n'est pas celle qu'on a choisie ; une description manquante affiche sa
- * clé en clair sous le sélecteur. Ce sont les pannes que personne ne signale,
- * d'où ces tests plutôt qu'un commentaire.
+ * None of these mismatches breaks anything loudly. A case without an import
+ * serves a page set in the fallback stack, so in a font that is not the one
+ * that was chosen; a missing description shows its raw key under the
+ * selector. These are the failures nobody reports, hence these tests rather
+ * than a comment.
  */
 final class ThemeFontEnumTest extends TestCase
 {
@@ -39,11 +39,11 @@ final class ThemeFontEnumTest extends TestCase
     }
 
     /**
-     * Les six graisses de la famille sont embarquées.
+     * The six weights of the family are bundled.
      *
-     * Le nom du paquet `@fontsource` est le `value` du cas, ce qui n'est pas
-     * une coïncidence à préserver par hasard : c'est ce qui rend cette
-     * vérification possible.
+     * The name of the `@fontsource` package is the case's `value`, which is
+     * not a coincidence to be preserved by chance: it is what makes this
+     * check possible.
      */
     #[DataProvider('fonts')]
     public function testTheFamilyIsBundled(ThemeFontEnum $font): void
@@ -66,8 +66,8 @@ final class ThemeFontEnumTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function locales(): iterable
     {
-        // L'espagnol du back-office est encore en repli français, donc rien à
-        // y vérifier tant qu'il n'a pas sa section `suite`.
+        // The back office Spanish still falls back to French, so nothing to
+        // check there until it has its `suite` section.
         yield 'fr' => ['fr'];
         yield 'en' => ['en'];
     }
@@ -94,12 +94,12 @@ final class ThemeFontEnumTest extends TestCase
     }
 
     /**
-     * Le défaut vit en PHP et le formulaire en garde une copie, pour savoir
-     * quelle famille proposer avant d'avoir reçu la liste.
+     * The default lives in PHP and the form keeps a copy of it, to know which
+     * family to offer before having received the list.
      *
-     * Cf. `convention_mirrored_contract_php_js` : la copie est permise, un test
-     * la tient. C'est la même histoire que ThemeDefaultColourMirrorTest, où le
-     * défaut avait glissé de l'indigo au vert d'un seul côté.
+     * See `convention_mirrored_contract_php_js`: the copy is allowed, a test
+     * holds it. It is the same story as ThemeDefaultColourMirrorTest, where the
+     * default had slipped from indigo to green on one side only.
      */
     public function testTheJsDefaultMatchesTheEnum(): void
     {
@@ -115,8 +115,8 @@ final class ThemeFontEnumTest extends TestCase
     }
 
     /**
-     * Et le même défaut, une troisième fois, dans `theme.css` : c'est lui qui
-     * compose les pages tant qu'aucune règle n'est posée au chargement.
+     * And the same default, a third time, in `theme.css`: it is what sets the
+     * pages as long as no rule is applied at load time.
      */
     public function testTheCssDefaultMatchesTheEnum(): void
     {
@@ -131,9 +131,9 @@ final class ThemeFontEnumTest extends TestCase
 
     public function testAnUnknownValueFallsBackToTheDefault(): void
     {
-        // La colonne `config` est un JSON libre : une clé écrite à la main ou
-        // survivant à la suppression d'un cas vaut mieux composée en Poppins
-        // qu'en page d'erreur.
+        // The `config` column is free JSON: a key written by hand or
+        // surviving the removal of a case is better set in Poppins than
+        // turned into an error page.
         self::assertSame(ThemeFontEnum::default(), ThemeFontEnum::fromConfig('comic-sans'));
         self::assertSame(ThemeFontEnum::default(), ThemeFontEnum::fromConfig(null));
         self::assertSame(ThemeFontEnum::default(), ThemeFontEnum::fromConfig(42));

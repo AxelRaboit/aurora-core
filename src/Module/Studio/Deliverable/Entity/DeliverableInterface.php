@@ -6,18 +6,72 @@ namespace Aurora\Module\Studio\Deliverable\Entity;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\Collection;
 
+/**
+ * A deliverable carries slides when its format is `slides`; a page has none.
+ * Everything that writes, draws or counts slides (`SlidesManager`,
+ * `DeckAppearance`, `DeckPictures`, `DeckFonts`, the serializer) talks to a
+ * deliverable: since presentations became deliverables, there is no other
+ * owner.
+ *
+ * The theme and its adjustments are called `slideTheme`/`slideStyle` because
+ * a deliverable already has its appearance, the page's: the two must not be
+ * confused.
+ */
 interface DeliverableInterface
 {
     public function getId(): ?int;
 
+    /** @return Collection<int, SlideInterface> */
+    public function getSlides(): Collection;
+
+    public function addSlide(SlideInterface $slide): static;
+
+    public function removeSlide(SlideInterface $slide): static;
+
+    /** The theme the slides are drawn in. */
+    public function getSlideTheme(): DeckThemeEnum;
+
+    public function setSlideTheme(DeckThemeEnum $theme): static;
+
+    /**
+     * What the slides adjust in their theme, see `DeckStyleNormalizer`.
+     *
+     * @return array<string, mixed>
+     */
+    public function getSlideStyle(): array;
+
+    /** @param array<string, mixed> $style */
+    public function setSlideStyle(array $style): static;
+
     public function getSpace(): ?CustomerSpaceInterface;
 
-    /** Vrai pour un livrable de Studio, rattaché à aucun espace. */
+    /** True for a Studio deliverable, attached to no space. */
     public function isStandalone(): bool;
+
+    /** A page or slides, set at creation. */
+    public function getFormat(): DeliverableFormatEnum;
+
+    /** A slideshow: slides rather than a grid. */
+    public function isSlides(): bool;
+
+    /** A Studio template, offered when creating a deliverable; never in a space. */
+    public function isTemplate(): bool;
+
+    public function setTemplate(bool $template): static;
+
+    /** The client a Studio deliverable was written for; null in a space. */
+    public function getCustomer(): ?CustomerInterface;
+
+    public function setCustomer(?CustomerInterface $customer): static;
 
     public function getOwner(): ?CoreUserInterface;
 
@@ -81,7 +135,7 @@ interface DeliverableInterface
 
     public function touch(): static;
 
-    /** Quand il a été mis à la corbeille ; nul, il est vivant. */
+    /** When it was moved to the trash; null, it is live. */
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;

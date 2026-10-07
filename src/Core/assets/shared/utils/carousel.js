@@ -1,16 +1,16 @@
 /**
- * Les flèches et le compteur d'un carrousel - `[data-carousel]`.
+ * The arrows and the counter of a carousel - `[data-carousel]`.
  *
- * Le défilement lui-même est celui du navigateur (scroll snapping) : il
- * marche au doigt, au pavé tactile et au clavier sans ce module. Celui-ci
- * ajoute les flèches, tient le compteur à jour pendant qu'on fait défiler,
- * et reste muet sans JavaScript, où les flèches restent cachées.
+ * The scrolling itself is the browser's (scroll snapping): it works with a
+ * finger, a touchpad and the keyboard without this module. This one adds the
+ * arrows, keeps the counter up to date while scrolling, and stays silent
+ * without JavaScript, where the arrows stay hidden.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_carousel.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_carousel.html.twig
  */
 const SELECTOR = "[data-carousel]";
 
-/** La diapositive visible : celle dont le début est le plus proche du bord gauche. */
+/** The visible slide: the one whose start is closest to the left edge. */
 export function currentIndex(scrollLeft, slideWidth, count) {
     if (slideWidth <= 0 || count <= 0) {
         return 0;
@@ -34,7 +34,7 @@ function wire(carousel) {
     const slides = track.children.length;
     const index = () =>
         currentIndex(track.scrollLeft, track.clientWidth, slides);
-    const go = (step) => {
+    const scrollByStep = (step) => {
         const target = Math.min(slides - 1, Math.max(0, index() + step));
         track.scrollTo({ left: target * track.clientWidth });
     };
@@ -42,18 +42,18 @@ function wire(carousel) {
     controls.hidden = false;
     carousel
         .querySelector("[data-carousel-prev]")
-        ?.addEventListener("click", () => go(-1));
+        ?.addEventListener("click", () => scrollByStep(-1));
     carousel
         .querySelector("[data-carousel-next]")
-        ?.addEventListener("click", () => go(1));
+        ?.addEventListener("click", () => scrollByStep(1));
 
     track.addEventListener("keydown", (event) => {
         if ("ArrowLeft" === event.key) {
             event.preventDefault();
-            go(-1);
+            scrollByStep(-1);
         } else if ("ArrowRight" === event.key) {
             event.preventDefault();
-            go(1);
+            scrollByStep(1);
         }
     });
 

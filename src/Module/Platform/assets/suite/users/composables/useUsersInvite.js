@@ -14,16 +14,19 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         email: "",
         role: roles[0]?.value ?? "",
         message: "",
-        // Créer le compte sans contacter personne. Le serveur n'émet alors aucun
-        // jeton et n'envoie aucun mail ; l'invitation part quand le compte est
-        // activé depuis la liste.
+        // Create the account without contacting anyone. The server then issues
+        // no token and sends no email; the invitation goes out when the
+        // account is activated from the list.
         disabled: false,
-        // L'administration ou le site public. Un compte frontend reçoit
-        // ROLE_USER quel que soit le rôle envoyé : c'est le serveur qui le
-        // force, la frontière d'écriture étant le seul endroit qui compte.
+        // The administration or the public site. A frontend account gets
+        // ROLE_USER whatever role is sent: the server forces it, the write
+        // boundary being the only place that counts.
         type: "suite",
         ...Object.fromEntries(
-            Object.entries(extraFields).map(([key, def]) => [key, def.default]),
+            Object.entries(extraFields).map(([key, definition]) => [
+                key,
+                definition.default,
+            ]),
         ),
     });
 
@@ -35,8 +38,8 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         inviteForm.message = "";
         inviteForm.disabled = false;
         inviteForm.type = "suite";
-        for (const [key, def] of Object.entries(extraFields)) {
-            inviteForm[key] = def.default;
+        for (const [key, definition] of Object.entries(extraFields)) {
+            inviteForm[key] = definition.default;
         }
         inviteModal.open = true;
     }
@@ -59,8 +62,9 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
                 inviteModal.errors = data.errors ?? {};
                 return;
             }
-            // Rien n'a été envoyé quand le compte est créé désactivé : annoncer
-            // une invitation partie ferait attendre un mail qui n'existe pas.
+            // Nothing was sent when the account is created disabled: announcing
+            // a sent invitation would make someone wait for an email that does
+            // not exist.
             toast.success(
                 inviteForm.disabled
                     ? t("suite.users.account_created_disabled")

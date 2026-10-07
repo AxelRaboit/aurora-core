@@ -64,8 +64,8 @@ final class ProfilePhotoFilesController extends AbstractController
     {
         $key = sprintf('%s/%s', StorageAreaEnum::ProfilePhotos->value, $filename);
 
-        // Servi par le service commun : local déchargé par le serveur
-        // web, distant diffusé par morceaux, privé une heure.
+        // Served by the shared service: local offloaded to the web server,
+        // remote streamed in chunks, private for one hour.
         return $this->responder->respond($key);
     }
 }

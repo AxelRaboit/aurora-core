@@ -148,7 +148,7 @@ final class GridNormalizerTest extends TestCase
             [
                 'id', 'anchor', 'type', 'span', 'offset', 'newRow', 'ratio', 'scale', 'align',
                 'mediaId', 'mediaIds', 'mediaUrl', 'postId', 'variant', 'size', 'separatorStyle',
-                'display', 'columns', 'items', 'taxonomyId', 'deckId', 'postTypeId', 'termId', 'limit',
+                'display', 'columns', 'items', 'taxonomyId', 'deliverableId', 'postTypeId', 'termId', 'limit',
                 'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers',
                 'visibleFrom', 'visibleUntil', 'audience', 'exclusiveOpen',
                 'surface', 'background', 'contrast', 'highlight', 'highlightColor', 'accentColor', 'siteAccent', 'reveal', 'sticky', 'fullBleed', 'options', 'banner', 'children',
@@ -595,7 +595,7 @@ final class GridNormalizerTest extends TestCase
     private function placeWidths(int ...$widths): array
     {
         return $this->place(array_map(
-            static fn (int $lg): array => ['span' => ['lg' => $lg]],
+            static fn (int $largeSpan): array => ['span' => ['lg' => $largeSpan]],
             $widths,
         ));
     }
@@ -813,7 +813,7 @@ final class GridNormalizerTest extends TestCase
     public function testTheChildCountIsCapped(): void
     {
         $children = array_map(
-            static fn (int $i): array => ['id' => 'c'.$i, 'type' => 'text'],
+            static fn (int $childNumber): array => ['id' => 'c'.$childNumber, 'type' => 'text'],
             range(1, 20),
         );
 
@@ -911,7 +911,7 @@ final class GridNormalizerTest extends TestCase
         self::assertSame($content, $this->normalizer->normalizeContent($content, $layout));
     }
 
-    // ── Listes d'entrées ──────────────────────────────────────────────────
+    // ── Entry lists ───────────────────────────────────────────────────────
 
     /** @return array<string, mixed> */
     private function itemsZone(array $items): array

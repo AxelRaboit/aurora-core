@@ -13,20 +13,19 @@
  * the column header names them; here nothing does, and a lone glyph in a row of
  * labelled buttons reads as a fourth mystery.
  *
- * **`iconOnlyOnPhone` fait partir le mot sous `sm`**, et c'est réservé aux
- * barres d'entête qui tiennent sur une ligne. La règle de la maison depuis le
- * 18/09/2026 : un libellé qui coûte la ligne devient une icône. Dans une barre
- * de trois commandes à 375 pixels, « Actions » et « Enregistrer » écrits en
- * toutes lettres prennent la place du reste, et les voisins étant eux aussi
- * en icône, le glyphe seul n'est plus l'intrus.
+ * **`iconOnlyOnPhone` makes the word go below `sm`**, and it is reserved for
+ * header bars that fit on one line. The house rule since 18/09/2026: a label
+ * that costs the line becomes an icon. In a bar of three commands at 375
+ * pixels, "Actions" and "Save" spelled out take the room of the rest,
+ * and since the neighbours are icons too, the lone glyph is no longer the
+ * odd one out.
  *
- * **Pourquoi une option et pas la règle partout** : l'autre règle mobile de
- * la maison veut qu'un bouton prenne la ligne entière sous `sm`. Un bouton
- * pleine largeur dont on retire le libellé devient une barre vide avec trois
- * points au milieu - essayé sur la liste des utilisateurs, c'est pire que ce
- * qu'on corrigeait. Les deux règles ne se contredisent pas, elles répondent à
- * deux situations : une barre qui reste horizontale se resserre, une commande
- * qui prend la ligne garde son nom.
+ * **Why an option and not the rule everywhere**: the other mobile house rule
+ * wants a button to take the whole line below `sm`. A full-width button whose
+ * label is removed becomes an empty bar with three dots in the middle - tried
+ * on the user list, it is worse than what it was fixing. The two rules do not
+ * contradict each other, they answer two situations: a bar that stays
+ * horizontal tightens, a command that takes the line keeps its name.
  *
  * `busy` is for the moment after the sheet has closed: the action is running,
  * the button that started it is out of sight, and the trigger carries the
@@ -50,13 +49,13 @@ defineProps({
     /** Mirrors AppButton, so the trigger sits at the weight the header needs. */
     variant: { type: String, default: "secondary" },
     size: { type: String, default: "md" },
-    /** Barre d'entête qui tient sur une ligne : le mot part sous `sm`. */
+    /** Header bar that fits on one line: the word goes below `sm`. */
     iconOnlyOnPhone: { type: Boolean, default: false },
 });
 
-// AppActionSheet a deux racines (le déclencheur et sa modale) : un `class`
-// posé sur ce composant n'atterrissait nulle part, ni `w-full sm:w-auto` ni
-// les autres (14 appels). Il va désormais sur le bouton, qui est ce qu'on voit.
+// AppActionSheet has two roots (the trigger and its modal): a `class` set on
+// this component landed nowhere, neither `w-full sm:w-auto` nor the others
+// (14 calls). It now goes on the button, which is what you see.
 defineOptions({ inheritAttrs: false });
 
 const { t } = useI18n();

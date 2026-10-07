@@ -26,7 +26,7 @@ export function useNoteSidePanel({
     );
 
     async function refresh() {
-        // Le plan se lit dans le texte de la note : rien à demander.
+        // The outline is read from the note's text: nothing to ask for.
         if (noteIdRef.value === null || tab.value === "outline") return;
         loading.value = true;
         try {

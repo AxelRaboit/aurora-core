@@ -55,8 +55,8 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
     {
         return $this->createQueryBuilder('l')
             ->where('l.space = :space')
-            // Les aperçus vivent quelques minutes et appartiennent à un autre
-            // lien : les lister ferait croire à des destinataires en trop.
+            // Previews live a few minutes and belong to another link: listing
+            // them would suggest extra recipients.
             ->andWhere('l.previewOf IS NULL')
             ->setParameter('space', $space)
             ->orderBy('l.createdAt', Order::Descending->value)
@@ -66,11 +66,11 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les liens d'un espace qui peuvent encore répondre, aujourd'hui.
+     * A space's links that can still answer, today.
      *
-     * Ni révoqués, ni expirés, ni aperçus, et porteurs du droit de valider :
-     * c'est la liste des gens à qui une invitation à relire veut parler. Un
-     * lien en lecture seule en recevrait une qu'il ne pourrait pas honorer.
+     * Not revoked, not expired, not previews, and carrying the right to
+     * approve: it is the list of people a review invitation wants to reach. A
+     * read-only link would receive one it could not act on.
      *
      * @return list<SpaceAccessLinkInterface>
      */
@@ -90,7 +90,7 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
-    /** L'aperçu en cours d'un lien, s'il y en a un. */
+    /** A link's current preview, if there is one. */
     public function findPreviewOf(SpaceAccessLinkInterface $link): ?SpaceAccessLinkInterface
     {
         return $this->createQueryBuilder('l')

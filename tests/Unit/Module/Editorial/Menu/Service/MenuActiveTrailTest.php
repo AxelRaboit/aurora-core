@@ -15,16 +15,16 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 final class MenuActiveTrailTest extends TestCase
 {
-    /** @param array<string, string> $routeParams what the router matched */
-    private function trail(?string $uri = '/fr/page/a-propos', array $routeParams = []): MenuActiveTrail
+    /** @param array<string, string> $routeParameters what the router matched */
+    private function trail(?string $uri = '/fr/page/a-propos', array $routeParameters = []): MenuActiveTrail
     {
         $stack = new RequestStack();
 
         if (null !== $uri) {
             $request = Request::create('https://example.test'.$uri);
 
-            if ([] !== $routeParams) {
-                $request->attributes->set('_route_params', $routeParams);
+            if ([] !== $routeParameters) {
+                $request->attributes->set('_route_params', $routeParameters);
             }
 
             $stack->push($request);

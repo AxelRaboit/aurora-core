@@ -8,8 +8,8 @@
  * For real navigation use AppLink. For prominent buttons use AppButton.
  */
 defineProps({
-    color: { type: String, default: "default", validator: (v) => ["default", "danger", "muted"].includes(v) },
-    size: { type: String, default: "sm", validator: (v) => ["xs", "sm", "md"].includes(v) },
+    color: { type: String, default: "default", validator: (color) => ["default", "danger", "muted"].includes(color) },
+    size: { type: String, default: "sm", validator: (size) => ["xs", "sm", "md"].includes(size) },
 });
 
 const colors = {

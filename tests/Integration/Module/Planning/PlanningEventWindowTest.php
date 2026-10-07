@@ -85,7 +85,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
             new DateTimeImmutable('2026-09-01 00:00'),
         );
 
-        return array_map(static fn (object $e): string => $e->getTitle(), $found);
+        return array_map(static fn (object $event): string => $event->getTitle(), $found);
     }
 
     public function testAnEventInsideTheWindowIsFound(): void

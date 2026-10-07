@@ -33,7 +33,7 @@ class AuthController extends AbstractController
     public function __construct(
         private readonly UserManager $frontUserManager,
         private readonly UserRepository $userRepository,
-        private readonly FrontendAuthGate $authGate,
+        private readonly FrontendAuthGate $authenticationGate,
         private readonly TranslatorInterface $translator,
         private readonly PayloadValidator $payloadValidator,
         private readonly Context $context,
@@ -42,7 +42,7 @@ class AuthController extends AbstractController
     ) {}
 
     #[Route('/{locale}/login', name: 'frontend_login', requirements: ['locale' => '[a-z]{2}'], priority: 8)]
-    public function login(string $locale, Request $request, AuthenticationUtils $authUtils): Response
+    public function login(string $locale, Request $request, AuthenticationUtils $authenticationUtils): Response
     {
         $this->assertActiveLocale($locale);
         $request->setLocale($locale);
@@ -54,8 +54,8 @@ class AuthController extends AbstractController
 
         return $this->render($this->themeResolver->resolve('auth/login'), $this->viewBuilder->loginView(
             $locale,
-            $authUtils->getLastUsername(),
-            $authUtils->getLastAuthenticationError(),
+            $authenticationUtils->getLastUsername(),
+            $authenticationUtils->getLastAuthenticationError(),
         ));
     }
 
@@ -75,7 +75,7 @@ class AuthController extends AbstractController
             return $this->redirectToRoute('frontend_root');
         }
 
-        $registrationEnabled = $this->authGate->isRegistrationEnabled();
+        $registrationEnabled = $this->authenticationGate->isRegistrationEnabled();
 
         if (!$registrationEnabled || !$request->isMethod(HttpMethodEnum::Post->value)) {
             return $this->render($this->themeResolver->resolve('auth/register/index'), $this->viewBuilder->registerView(

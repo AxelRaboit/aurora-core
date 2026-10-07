@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Entity;
 
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -33,6 +34,13 @@ interface CustomerSpaceInterface
     public function setStatus(CustomerSpaceStatusEnum $status): static;
 
     public function isArchived(): bool;
+
+    /** When the space was moved to the trash; null while it is alive. */
+    public function getDeletedAt(): ?DateTimeImmutable;
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
+
+    public function isTrashed(): bool;
 
     public function getColourSlot(): int;
 
@@ -76,4 +84,9 @@ interface CustomerSpaceInterface
     public function getDocumentFolder(): ?DocumentFolderInterface;
 
     public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static;
+
+    /** The notes space where the team takes this space's notes; null until someone has opened one. */
+    public function getNoteSpace(): ?NoteSpaceInterface;
+
+    public function setNoteSpace(?NoteSpaceInterface $noteSpace): static;
 }

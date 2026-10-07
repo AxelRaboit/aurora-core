@@ -33,11 +33,11 @@ final readonly class SpaceResourcesViewBuilder
     }
 
     /**
-     * Ce que renvoie chaque écriture : la liste entière.
+     * What each write returns: the whole list.
      *
-     * La même raison qu'ailleurs : ajouter pose en fin de liste, ranger
-     * renumérote tout, et une page qui rafistolerait sa copie s'écarterait du
-     * serveur en trois gestes. Une liste de ressources est courte.
+     * The same reason as elsewhere: adding appends to the end of the list,
+     * reordering renumbers everything, and a page that patched up its copy would
+     * drift from the server in three gestures. A list of resources is short.
      *
      * @return array<string, mixed>
      */

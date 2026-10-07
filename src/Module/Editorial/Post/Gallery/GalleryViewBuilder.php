@@ -176,10 +176,10 @@ final readonly class GalleryViewBuilder
             // describes the file.
             'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),
             'focalPosition' => $this->documentUrlGenerator->focalPositionCss($media),
-            // Ce qui réserve la place avant que la photo arrive. Une galerie
-            // est l'endroit où l'omission coûte le plus : vingt images
-            // différées qui occupent zéro pixel, c'est une page qui
-            // s'allonge vingt fois sous le lecteur.
+            // What reserves the space before the photo arrives. A gallery is
+            // where leaving this out costs the most: twenty deferred images
+            // taking zero pixels make a page that grows twenty times under
+            // the reader.
             'width' => $media->getWidth(),
             'height' => $media->getHeight(),
             // Null for anything we host ourselves. Present, and displayed by

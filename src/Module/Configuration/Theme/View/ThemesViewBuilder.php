@@ -26,10 +26,10 @@ final readonly class ThemesViewBuilder
     {
         return [
             'themes' => array_map($this->themeSerializer->serialize(...), $this->themeRepository->findAll()),
-            // Les familles proposées viennent de l'enum et pas d'une liste
-            // recopiée dans le JavaScript : leurs piles CSS servent aussi à
-            // composer l'aperçu du sélecteur, et deux copies d'une pile
-            // divergent dès que personne ne les compare.
+            // The offered families come from the enum and not from a list
+            // copied into the JavaScript: their CSS stacks also serve to set
+            // the selector's preview, and two copies of a stack drift apart as
+            // soon as nobody compares them.
             'fonts' => ThemeFontEnum::choices(),
         ];
     }

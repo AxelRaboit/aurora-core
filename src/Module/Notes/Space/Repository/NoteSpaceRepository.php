@@ -31,17 +31,16 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les espaces qu'une personne peut lire, en une sous-requête DQL.
+     * The spaces a person can read, in one DQL subquery.
      *
-     * **Une seule définition de « qui voit quoi »**, que toutes les requêtes
-     * du module reprennent : son espace personnel, ceux dont elle est
-     * propriétaire, ceux où elle est inscrite quand l'accès est aux membres,
-     * et ceux ouverts à tout le back-office. Chaque liste qui réécrivait sa
-     * propre règle aurait fini par en oublier une branche, et c'est comme ça
-     * qu'une note s'ouvre par erreur.
+     * **A single definition of "who sees what"**, which every query of the
+     * module reuses: their personal space, the ones they own, the ones they
+     * are a member of when access is for members, and the ones open to the
+     * whole back office. Every list that rewrote its own rule would have
+     * ended up forgetting a branch, and that is how a note opens by mistake.
      *
-     * Le paramètre `:spaceViewer` et les trois paramètres d'accès sont posés
-     * par {@see self::bindViewer()}.
+     * The `:spaceViewer` parameter and the three access parameters are set
+     * by {@see self::bindViewer()}.
      */
     public static function readableSubquery(string $prefix = 'rs'): string
     {
@@ -58,10 +57,10 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les espaces où une personne peut écrire : pareil, avec le rôle.
+     * The spaces where a person can write: the same, with the role.
      *
-     * Rédacteur ou gestionnaire par son inscription, ou par le rôle par défaut
-     * d'un espace ouvert à tout le back-office.
+     * Editor or manager through their membership, or through the default
+     * role of a space open to the whole back office.
      */
     public static function writableSubquery(string $prefix = 'ws'): string
     {
@@ -78,29 +77,29 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Pose les paramètres des deux sous-requêtes sur une requête.
+     * Sets the parameters of the two subqueries on a query.
      *
-     * Seulement ceux que la requête cite : Doctrine refuse un paramètre en
-     * trop, et une requête de lecture ne cite pas les rôles d'écriture.
+     * Only the ones the query mentions: Doctrine refuses an extra parameter,
+     * and a read query does not mention the write roles.
      */
-    public static function bindViewer(QueryBuilder $qb, CoreUserInterface $user): QueryBuilder
+    public static function bindViewer(QueryBuilder $queryBuilder, CoreUserInterface $user): QueryBuilder
     {
-        $qb
+        $queryBuilder
             ->setParameter('spaceViewer', $user)
             ->setParameter('spaceViewerAdopts', self::isAdmin($user))
             ->setParameter('spaceAccessBackoffice', NoteSpaceAccessEnum::Backoffice)
             ->setParameter('spaceAccessMembers', NoteSpaceAccessEnum::Members);
 
-        if (str_contains($qb->getDQL(), ':spaceWriterRoles')) {
-            $qb->setParameter('spaceWriterRoles', [NoteSpaceRoleEnum::Editor, NoteSpaceRoleEnum::Manager]);
+        if (str_contains($queryBuilder->getDQL(), ':spaceWriterRoles')) {
+            $queryBuilder->setParameter('spaceWriterRoles', [NoteSpaceRoleEnum::Editor, NoteSpaceRoleEnum::Manager]);
         }
 
-        return $qb;
+        return $queryBuilder;
     }
 
     /**
-     * Administrateur, au sens des espaces orphelins : ceux-là reviennent aux
-     * administrateurs quand leur propriétaire est parti.
+     * Administrator, in the sense of orphaned spaces: those fall to the
+     * administrators when their owner has left.
      */
     public static function isAdmin(CoreUserInterface $user): bool
     {
@@ -113,25 +112,23 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les espaces qu'une personne peut lire, le sien d'abord, puis par
-     * position.
+     * The spaces a person can read, their own first, then by position.
      *
      * @return list<NoteSpaceInterface>
      */
     public function findReadableFor(CoreUserInterface $user): array
     {
-        // Le sien d'abord, par une expression et non par un tri décroissant
-        // sur la colonne : PostgreSQL range les valeurs nulles en tête d'un
-        // tri décroissant, et c'étaient alors les espaces partagés qui
-        // passaient devant.
-        $qb = $this->createQueryBuilder('s')
+        // Their own first, through an expression and not a descending sort
+        // on the column: PostgreSQL puts null values first in a descending
+        // sort, and the shared spaces then came first.
+        $queryBuilder = $this->createQueryBuilder('s')
             ->addSelect('CASE WHEN s.personalUser IS NULL THEN 1 ELSE 0 END AS HIDDEN sharedLast')
             ->where(sprintf('s.id IN (%s)', self::readableSubquery()))
             ->orderBy('sharedLast', Order::Ascending->value)
             ->addOrderBy('s.position', Order::Ascending->value)
             ->addOrderBy('s.id', Order::Ascending->value);
 
-        return self::bindViewer($qb, $user)->getQuery()->getResult();
+        return self::bindViewer($queryBuilder, $user)->getQuery()->getResult();
     }
 
     public function findPublishedBySlug(string $slug): ?NoteSpaceInterface
@@ -147,26 +144,26 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
 
     public function slugTaken(string $slug, ?int $exceptId = null): bool
     {
-        $qb = $this->createQueryBuilder('s')
+        $queryBuilder = $this->createQueryBuilder('s')
             ->select('COUNT(s.id)')
             ->where('s.slug = :slug')
             ->setParameter('slug', $slug);
 
         if (null !== $exceptId) {
-            $qb->andWhere('s.id != :except')->setParameter('except', $exceptId);
+            $queryBuilder->andWhere('s.id != :except')->setParameter('except', $exceptId);
         }
 
-        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 
-    /** L'inscription d'une personne à un espace, si elle y est inscrite. */
+    /** A person's membership of a space, if they are a member. */
     public function findMembership(NoteSpaceInterface $space, CoreUserInterface $user): ?NoteSpaceMemberInterface
     {
         return $this->getEntityManager()->getRepository(NoteSpaceMember::class)->findOneBy(['space' => $space, 'user' => $user]);
     }
 
     /**
-     * Les inscriptions d'une personne à ces espaces, en une requête.
+     * A person's memberships of these spaces, in one query.
      *
      * @param list<NoteSpaceInterface> $spaces
      *
@@ -182,7 +179,7 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les inscrits d'un espace avec leur compte, en une requête.
+     * A space's members with their account, in one query.
      *
      * @return list<NoteSpaceMemberInterface>
      */

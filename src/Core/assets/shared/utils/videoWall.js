@@ -1,21 +1,21 @@
 /**
- * Le mur de vidéos verticales - `[data-video-wall]`.
+ * The wall of vertical videos - `[data-video-wall]`.
  *
- * Chaque film joue sans le son tant qu'il est à l'écran et s'arrête dès qu'il
- * n'y est plus : un mur de douze films qui tournent tous à la fois hors champ
- * coûte la batterie d'un téléphone pour rien. Un appui rend le son et les
- * commandes au film touché. Rien ne démarre seul pour qui a demandé moins
- * d'animations ; les films restent là, à lancer d'un appui.
+ * Each film plays muted while it is on screen and stops as soon as it is no
+ * longer there: a wall of twelve films all running at once off screen costs
+ * a phone its battery for nothing. A tap gives the sound and the controls
+ * back to the film touched. Nothing starts on its own for whoever asked for
+ * fewer animations; the films stay there, to start with a tap.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_video_wall.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_video_wall.html.twig
  */
 const SELECTOR = "[data-video-wall-film]";
 
 /**
- * Le film derrière une section sur vidéo : même règle, lancé à l'écran et
- * arrêté hors champ, mais sans son ni commandes à rendre - il est le décor.
- * L'attribut `autoplay` ne suffit pas : un onglet en arrière-plan ou un
- * navigateur économe le laisse à l'arrêt sans rien dire.
+ * The film behind a section on video: same rule, started on screen and
+ * stopped off screen, but with no sound or controls to give back - it is the
+ * scenery. The `autoplay` attribute is not enough: a background tab or a
+ * frugal browser leaves it stopped without a word.
  */
 const BACKGROUND = "[data-background-film]";
 

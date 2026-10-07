@@ -66,9 +66,9 @@ final readonly class SharedNoteScope
         // queried per hop: a query per level is a round trip per level, and one
         // person's notes fit in memory by a wide margin. The bodies are needed
         // anyway, to read the links out of them.
-        // L'espace de la note partagée, et lui seul : un lien public qui
-        // suit les wiki-liens ne doit jamais s'échapper vers un autre
-        // espace, que personne dehors n'a à lire.
+        // The shared note's space, and only that one: a public link that
+        // follows wiki links must never escape to another space, which
+        // nobody outside has any business reading.
         $all = $this->notes->findLivingInSpace($root->getSpace());
 
         $byTitle = [];
@@ -131,9 +131,9 @@ final readonly class SharedNoteScope
         // The root is what is being shared, not something a switch added.
         array_shift($scope);
 
-        return array_map(static fn (MarkdownNoteInterface $n): array => [
-            'id' => (int) $n->getId(),
-            'title' => $n->getTitle(),
+        return array_map(static fn (MarkdownNoteInterface $scopedNote): array => [
+            'id' => (int) $scopedNote->getId(),
+            'title' => $scopedNote->getTitle(),
         ], $scope);
     }
 

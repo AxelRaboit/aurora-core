@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { ref } from "vue";
 import { useLocalPagination } from "./useLocalPagination.js";
 
-const ITEMS = Array.from({ length: 25 }, (_, i) => ({ id: i + 1 }));
+const ITEMS = Array.from({ length: 25 }, (_, index) => ({ id: index + 1 }));
 
 describe("useLocalPagination", () => {
     it("paginates a plain array, first page contains perPage items", () => {

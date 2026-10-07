@@ -8,8 +8,8 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les sections de grille qu'une personne garde pour les réinsérer : une suite
- * de zones et leurs mots, à elle seule.
+ * The grid sections a person keeps to insert them again: a run of zones and
+ * their words, their own alone.
  */
 final class Version20261004200000 extends AbstractMigration
 {

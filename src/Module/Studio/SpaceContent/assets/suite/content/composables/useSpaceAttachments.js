@@ -93,14 +93,14 @@ export function useSpaceAttachments(attachments, paths, applyBoard) {
     }
 
     /**
-     * Range un fichier du Drive dans la médiathèque, puis le met sur la fiche.
+     * Files a Drive file into the media library, then puts it on the card.
      *
-     * **Deux appels et pas un, délibérément.** Le premier recopie le fichier
-     * et rend un document ; le second l'accroche par la route qui accroche
-     * déjà n'importe quel document. Une route qui aurait fait les deux aurait
-     * ajouté un troisième chemin vers une pièce jointe, alors que la moitié
-     * intéressante est justement qu'il n'y en ait pas : une fois dans la
-     * médiathèque, un fichier du Drive n'est plus un cas particulier.
+     * **Two calls and not one, deliberately.** The first copies the file and
+     * returns a document; the second attaches it through the route that
+     * already attaches any document. A route doing both would have added a
+     * third path to an attachment, when the interesting half is precisely
+     * that there is none: once in the media library, a Drive file is no
+     * longer a special case.
      */
     async function pickFromDrive(item, file) {
         if (!item || !file?.id || attachmentLoading.value) return false;

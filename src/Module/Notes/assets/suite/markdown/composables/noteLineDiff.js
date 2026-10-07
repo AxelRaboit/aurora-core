@@ -1,65 +1,82 @@
 /**
- * Ce qui change entre deux textes, ligne par ligne.
+ * What changes between two texts, line by line.
  *
- * Pour l'historique d'une note : une version se compare à l'état courant en
- * montrant les lignes retirées et ajoutées, comme un « git diff » sans ses
- * en-têtes. Une note est du texte, et c'est ce qu'on veut voir d'abord : ce
- * qui a bougé, pas deux colonnes à relire côte à côte.
+ * For a note's history: a version is compared with the current state by
+ * showing the removed and added lines, like a "git diff" without its
+ * headers. A note is text, and that is what one wants to see first: what
+ * moved, not two columns to reread side by side.
  *
- * Plus longue sous-suite commune, en O(n × m). Au-delà de `MAX_CELLS`
- * (deux notes de deux mille lignes), le calcul s'arrête et rend `null` :
- * l'écran montre alors la version entière plutôt que de figer la page.
+ * Longest common subsequence, in O(n × m). Beyond `MAX_CELLS` (two notes of
+ * two thousand lines), the computation stops and returns `null`: the screen
+ * then shows the whole version rather than freezing the page.
  */
 const MAX_CELLS = 4_000_000;
 
 /**
- * @param {string} before le texte de la version
- * @param {string} after  le texte courant
+ * @param {string} before the version's text
+ * @param {string} after  the current text
  * @returns {Array<{kind: "same"|"removed"|"added", text: string}>|null}
  */
 export function lineDiff(before, after) {
-    const a = String(before ?? "").split("\n");
-    const b = String(after ?? "").split("\n");
+    const beforeLines = String(before ?? "").split("\n");
+    const afterLines = String(after ?? "").split("\n");
 
-    if (a.length * b.length > MAX_CELLS) return null;
+    if (beforeLines.length * afterLines.length > MAX_CELLS) return null;
 
-    // lengths[i][j] : la plus longue suite commune de a[i..] et b[j..].
+    // lengths[beforeIndex][afterIndex]: the longest common subsequence of
+    // beforeLines[beforeIndex..] and afterLines[afterIndex..].
     const lengths = Array.from(
-        { length: a.length + 1 },
-        () => new Uint32Array(b.length + 1),
+        { length: beforeLines.length + 1 },
+        () => new Uint32Array(afterLines.length + 1),
     );
-    for (let i = a.length - 1; i >= 0; i -= 1) {
-        for (let j = b.length - 1; j >= 0; j -= 1) {
-            lengths[i][j] =
-                a[i] === b[j]
-                    ? lengths[i + 1][j + 1] + 1
-                    : Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+    for (
+        let beforeIndex = beforeLines.length - 1;
+        beforeIndex >= 0;
+        beforeIndex -= 1
+    ) {
+        for (
+            let afterIndex = afterLines.length - 1;
+            afterIndex >= 0;
+            afterIndex -= 1
+        ) {
+            lengths[beforeIndex][afterIndex] =
+                beforeLines[beforeIndex] === afterLines[afterIndex]
+                    ? lengths[beforeIndex + 1][afterIndex + 1] + 1
+                    : Math.max(
+                          lengths[beforeIndex + 1][afterIndex],
+                          lengths[beforeIndex][afterIndex + 1],
+                      );
         }
     }
 
     const lines = [];
-    let i = 0;
-    let j = 0;
-    while (i < a.length && j < b.length) {
-        if (a[i] === b[j]) {
-            lines.push({ kind: "same", text: a[i] });
-            i += 1;
-            j += 1;
-        } else if (lengths[i + 1][j] >= lengths[i][j + 1]) {
-            lines.push({ kind: "removed", text: a[i] });
-            i += 1;
+    let beforeIndex = 0;
+    let afterIndex = 0;
+    while (beforeIndex < beforeLines.length && afterIndex < afterLines.length) {
+        if (beforeLines[beforeIndex] === afterLines[afterIndex]) {
+            lines.push({ kind: "same", text: beforeLines[beforeIndex] });
+            beforeIndex += 1;
+            afterIndex += 1;
+        } else if (
+            lengths[beforeIndex + 1][afterIndex] >=
+            lengths[beforeIndex][afterIndex + 1]
+        ) {
+            lines.push({ kind: "removed", text: beforeLines[beforeIndex] });
+            beforeIndex += 1;
         } else {
-            lines.push({ kind: "added", text: b[j] });
-            j += 1;
+            lines.push({ kind: "added", text: afterLines[afterIndex] });
+            afterIndex += 1;
         }
     }
-    while (i < a.length) lines.push({ kind: "removed", text: a[i++] });
-    while (j < b.length) lines.push({ kind: "added", text: b[j++] });
+    while (beforeIndex < beforeLines.length)
+        lines.push({ kind: "removed", text: beforeLines[beforeIndex++] });
+    while (afterIndex < afterLines.length)
+        lines.push({ kind: "added", text: afterLines[afterIndex++] });
 
     return lines;
 }
 
-/** Combien de lignes ajoutées et retirées. */
+/** How many lines were added and removed. */
 export function diffStats(lines) {
     return (lines ?? []).reduce(
         (stats, line) => ({

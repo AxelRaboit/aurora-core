@@ -15,14 +15,14 @@ interface NoteSpaceInterface extends TimestampableInterface
 {
     public function getId(): ?int;
 
-    /** La personne dont c'est l'espace personnel ; null pour un espace partagé. */
+    /** The person whose personal space this is; null for a shared space. */
     public function getPersonalUser(): ?CoreUserInterface;
 
     public function setPersonalUser(?CoreUserInterface $user): static;
 
     public function isPersonal(): bool;
 
-    /** Le propriétaire ; null quand son compte a été supprimé. */
+    /** The owner; null when their account has been deleted. */
     public function getOwner(): ?CoreUserInterface;
 
     public function setOwner(?CoreUserInterface $owner): static;
@@ -39,7 +39,7 @@ interface NoteSpaceInterface extends TimestampableInterface
 
     public function setAccess(NoteSpaceAccessEnum $access): static;
 
-    /** Le rôle de toute personne du back-office, quand l'accès est ouvert à tous. */
+    /** The role of anybody in the back office, when access is open to all. */
     public function getDefaultRole(): NoteSpaceRoleEnum;
 
     public function setDefaultRole(NoteSpaceRoleEnum $role): static;
@@ -54,7 +54,7 @@ interface NoteSpaceInterface extends TimestampableInterface
 
     public function setSlug(?string $slug): static;
 
-    /** Visible dans les moteurs de recherche, une fois publié. Non par défaut. */
+    /** Visible in search engines, once published. No by default. */
     public function isIndexable(): bool;
 
     public function setIndexable(bool $indexable): static;
@@ -66,6 +66,14 @@ interface NoteSpaceInterface extends TimestampableInterface
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $at): static;
+
+    /** What configures the space instead of its managers; null for an ordinary space. */
+    public function getManagedBy(): ?string;
+
+    public function setManagedBy(?string $managedBy): static;
+
+    /** Its name, access and members come from elsewhere: the notes screen does not configure them. */
+    public function isManaged(): bool;
 
     /** @return Collection<int, NoteSpaceMemberInterface> */
     public function getMembers(): Collection;

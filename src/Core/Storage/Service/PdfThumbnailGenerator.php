@@ -39,7 +39,7 @@ final readonly class PdfThumbnailGenerator
     ) {}
 
     /**
-     * Renders page 1 of `$sourceKey` to a JPEG thumb under `$thumbDirKey` and
+     * Renders page 1 of `$sourceKey` to a JPEG thumb under `$thumbDirectoryKey` and
      * returns the key it was stored at, or `null` on any failure.
      *
      * Both binaries take filenames and neither will take a stream, so the work
@@ -48,11 +48,11 @@ final readonly class PdfThumbnailGenerator
      * produces anything the workspace stores nothing, so a failed render
      * leaves no empty object behind.
      *
-     * @param string $sourceKey   key of the PDF to render
-     * @param string $thumbDirKey key prefix the output is stored under
-     * @param string $basename    output filename without extension
+     * @param string $sourceKey         key of the PDF to render
+     * @param string $thumbDirectoryKey key prefix the output is stored under
+     * @param string $basename          output filename without extension
      */
-    public function generate(StorageAdapterInterface $adapter, string $sourceKey, string $thumbDirKey, string $basename): ?string
+    public function generate(StorageAdapterInterface $adapter, string $sourceKey, string $thumbDirectoryKey, string $basename): ?string
     {
         if (!$adapter->exists($sourceKey)) {
             $this->logger->warning('PdfThumbnailGenerator: source missing', ['key' => $sourceKey]);
@@ -60,7 +60,7 @@ final readonly class PdfThumbnailGenerator
             return null;
         }
 
-        $thumbKey = Path::join($thumbDirKey, sprintf('%s.%s', $basename, MimeTypeEnum::Jpeg->extension()));
+        $thumbKey = Path::join($thumbDirectoryKey, sprintf('%s.%s', $basename, MimeTypeEnum::Jpeg->extension()));
 
         $rendered = $this->workspace->readable(
             $adapter,

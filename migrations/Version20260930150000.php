@@ -8,15 +8,14 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * L'épinglage et le partage en lecture quittent les notes et les dossiers.
+ * Pinning and read-only sharing leave notes and folders.
  *
- * Les deux vivent ailleurs depuis la migration précédente : les favoris dans
- * leur table, une ligne par personne, et le partage dans les espaces. Les
- * colonnes n'étaient plus lues par rien.
+ * Both live elsewhere since the previous migration: favourites in their own
+ * table, one row per person, and sharing in spaces. The columns were no
+ * longer read by anything.
  *
- * Le retour arrière rend à chaque ligne l'épinglage de son auteur, le seul
- * qu'une colonne sur la note savait porter ; le partage en lecture, lui,
- * revient vide.
+ * Rolling back gives each row back its author's pin, the only one a column on
+ * the note could carry; read-only sharing comes back empty.
  */
 final class Version20260930150000 extends AbstractMigration
 {

@@ -8,10 +8,10 @@ use Aurora\Module\Configuration\Setting\Configuration\ConfigurationTab;
 use Aurora\Module\Configuration\Setting\Configuration\ConfigurationTabProviderInterface;
 
 /**
- * Pose l'onglet « Google Drive » sur l'écran des réglages.
+ * Puts the "Google Drive" tab on the settings screen.
  *
- * Aucun champ déclaré : le rendu générique enverrait la clé du compte de
- * service au navigateur comme une valeur ordinaire.
+ * No field declared: the generic rendering would send the service account
+ * key to the browser as an ordinary value.
  */
 final readonly class DriveConfigurationTabProvider implements ConfigurationTabProviderInterface
 {

@@ -32,11 +32,6 @@ class CustomerRepository extends ResolveTargetEntityRepository
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('c')
-            // The account is joined now rather than looked up per row: the list
-            // shows whether a customer has a login, which is one query here and
-            // one per customer without it.
-            ->addSelect('u')
-            ->leftJoin('c.user', 'u')
             ->orderBy('c.legalName', Order::Ascending->value)
             ->getQuery()
             ->getResult();
@@ -54,11 +49,10 @@ class CustomerRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les clients dont la raison sociale, le SIRET ou le SIREN contient le
-     * terme.
+     * The customers whose company name, SIRET or SIREN contains the term.
      *
-     * Le numéro est comparé sans ses espaces : il s'écrit souvent par groupes
-     * de trois, et il est enregistré d'un seul tenant.
+     * The number is compared without its spaces: it is often written in groups
+     * of three, and it is stored in one piece.
      *
      * @return list<CustomerInterface>
      */

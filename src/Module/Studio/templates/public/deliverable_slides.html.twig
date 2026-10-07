@@ -1,0 +1,35 @@
+{# A presentation opened by a secret address.
+
+   Its own page, with no menu and no account: whoever opens it has none, and
+   that is the reason for the address. Modelled on a contract's public page,
+   with one difference that matters here: this document is watched rather than
+   read, so the page gives the room to the slides and nothing else.
+
+   Opened from the client's space, it leads back there (`backUrl`); opened by
+   a reading link, there is nowhere to go back to. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {# Nothing here is meant to be found. The address is a secret handed to
+           someone, and a search engine that indexed it would hand it to
+           everyone, for good and out of reach of any revocation. #}
+        <meta name="robots" content="noindex, nofollow, noarchive">
+        <meta name="referrer" content="no-referrer">
+        <title>{{ deck.title }}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+    </head>
+    <body class="min-h-screen bg-body transition-colors duration-200">
+        <div {{ vue_component('studio/suite/slides/PublicDeckApp', {
+            deck: deck,
+            expiresAt: expiresAt ? expiresAt|date('c') : null,
+            backUrl: backUrl|default(null),
+        }) }} class="min-h-screen"></div>
+    </body>
+</html>

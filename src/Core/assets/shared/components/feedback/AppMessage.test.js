@@ -19,10 +19,10 @@ describe("AppMessage", () => {
     });
 
     /**
-     * La variante qui explique plutôt qu'elle n'alerte : c'est la seule dont
-     * les classes ne viennent pas d'une couleur d'état, donc la seule qu'une
-     * relecture distraite pourrait aligner sur les autres « pour faire
-     * pareil ». Le test dit qu'elle est neutre exprès.
+     * The variant that explains rather than alerts: it is the only one whose
+     * classes do not come from a state colour, so the only one that a careless
+     * review could align with the others "to match". The test says it is
+     * neutral on purpose.
      */
     it("keeps the neutral variant free of any state colour", () => {
         const wrapper = mount(AppMessage, { props: { variant: "neutral" } });
@@ -68,8 +68,8 @@ describe("AppMessage", () => {
     });
 
     /**
-     * La croix n'existe que si on la demande, et ne cache rien elle-même :
-     * c'est l'appelant qui décide pour combien de temps.
+     * The cross only exists when asked for, and hides nothing by itself: the
+     * caller decides for how long.
      */
     it("offers a cross only when dismissible, and leaves the hiding to the caller", async () => {
         expect(mount(AppMessage).find("button").exists()).toBe(false);

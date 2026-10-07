@@ -1,7 +1,6 @@
 /**
- * Les catégories d'un livrable de Studio, au format des sélecteurs : écrit une
- * fois pour la fenêtre de création et pour les réglages, qui en gardaient
- * chacun une copie.
+ * A Studio deliverable's categories, in the selector format: written once for
+ * the creation dialog and for the settings, which each used to keep a copy.
  *
  * @param {Array<{id: number, name: string}>} categories
  */

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\Manager;
 
-use Aurora\Module\Studio\Customer\Dto\CustomerInformationInputInterface;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 
@@ -12,22 +11,20 @@ interface CustomerManagerInterface
 {
     public function create(CustomerInputInterface $input): CustomerInterface;
 
+    /**
+     * The whole sheet, from the customer's page: the only write path.
+     *
+     * A space's Informations tab no longer writes it, it shows it and leads
+     * here. A whole input applies whole: a missing field is empty.
+     */
     public function update(CustomerInterface $customer, CustomerInputInterface $input): void;
 
     /**
-     * La fiche du client, telle que son espace la remplit.
+     * A prospect becomes a customer.
      *
-     * Les colonnes que cet écran ne montre pas ne sont pas touchées : elles
-     * portent l'identité contractuelle, qui se remplit sur la fiche client.
-     */
-    public function updateInformation(CustomerInterface $customer, CustomerInformationInputInterface $input): void;
-
-    /**
-     * Un prospect devient client.
-     *
-     * L'adresse est le seul champ demande, parce que c'est le seul que le
-     * statut impose : c'est la que part son contrat. Le reste de l'identite
-     * legale se remplit sur sa fiche, quand on l'a.
+     * The address is the only field asked for, because it is the only one the
+     * status requires: it is where their contract goes. The rest of the legal
+     * identity is filled in on their sheet, when it is known.
      */
     public function convertToClient(CustomerInterface $customer, ?string $contractualEmail): void;
 

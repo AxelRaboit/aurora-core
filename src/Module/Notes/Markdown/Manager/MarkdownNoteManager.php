@@ -80,7 +80,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
         foreach ($inputs as $input) {
             $folderId = $input->getFolderId();
-            // Une racine par espace : sans dossier, `spaceId` dit laquelle.
+            // One root per space: without a folder, `spaceId` says which.
             $key = $folderId ?? 'root:'.($input->getSpaceId() ?? 'personal');
 
             if (!array_key_exists($key, $folders)) {
@@ -138,6 +138,22 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $this->entityManager->flush();
 
         $this->auditUpdated($note);
+    }
+
+    /**
+     * Not a form field: the id only comes from the import, and letting it
+     * through the ordinary save would let any call attach a note to a Craft
+     * document that is not its own.
+     */
+    public function markImportedFromCraft(MarkdownNoteInterface $note, string $craftDocumentId): void
+    {
+        $note->setCraftDocumentId($craftDocumentId);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('notes_markdown', 'note.imported_from_craft', 'MarkdownNote', $note->getId(), [
+            ...$this->auditPayload($note),
+            'craftDocumentId' => $craftDocumentId,
+        ]);
     }
 
     /**
@@ -336,12 +352,12 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
-     * Fait passer une note dans un autre espace, images comprises.
+     * Moves a note to another space, images included.
      *
-     * Ses adresses d'images ne portent que le nom du fichier : le fichier doit
-     * donc exister dans le compartiment du nouvel espace, sinon ses nouveaux
-     * lecteurs verraient des images cassées. L'auteur ne change pas - il a
-     * écrit la note, où qu'elle aille.
+     * Its image addresses only carry the file name: the file must therefore
+     * exist in the new space's bucket, otherwise its new readers would see
+     * broken images. The author does not change - they wrote the note,
+     * wherever it goes.
      */
     public function changeSpace(MarkdownNoteInterface $note, NoteSpaceInterface $space): void
     {
@@ -357,8 +373,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
-     * L'espace d'une création : celui du dossier, sinon celui demandé, sinon
-     * l'espace personnel. Le contrôleur a déjà vérifié qu'on y écrit.
+     * The space of a creation: the folder's, otherwise the requested one,
+     * otherwise the personal space. The controller already checked you can write there.
      */
     protected function targetSpace(CoreUserInterface $user, ?int $folderId, ?int $spaceId): NoteSpaceInterface
     {
@@ -387,8 +403,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
         $ids = array_map(static fn (array $entry): int => (int) $entry['id'], $entries);
 
-        // Ce que la personne peut écrire, dans les deux espaces : une note
-        // d'équipe se range par ceux qui en ont le droit, pas par son auteur.
+        // What the person can write, in both spaces: a team note is filed by
+        // those who have the right to, not by its author.
         $byId = [];
         foreach ($this->noteRepository->findBy(['id' => $ids]) as $note) {
             if ($this->spaceAccess->canWriteNote($user, $note)) {
@@ -405,9 +421,9 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             $folderId = $entry['folderId'] ?? null;
             $folder = $this->folderFor($note, null === $folderId ? null : (int) $folderId);
 
-            // Un dossier d'un autre espace, ou d'un autre carnet : on ne range
-            // pas là, et on ne range pas non plus à la racine par défaut - la
-            // note reste où elle est. Changer d'espace est l'affaire de move().
+            // A folder of another space, or of another notebook: we do not
+            // file there, nor do we file at the root by default - the note
+            // stays where it is. Changing space is move()'s business.
             if (null !== $folderId && !$folder instanceof NoteFolderInterface) {
                 continue;
             }
@@ -754,9 +770,9 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $newPattern = '[['.$newTitle.']]';
         $excludeId = $note->getId();
 
-        // Dans l'espace de la note seulement : renommer une note d'un espace
-        // partagé ne touche pas aux carnets des autres, qu'on n'a pas le
-        // droit d'écrire.
+        // In the note's space only: renaming a note of a shared space does
+        // not touch other people's notebooks, which you are not allowed to
+        // write.
         $scope = $this->noteRepository->findLivingInSpace($note->getSpace());
 
         foreach ($scope as $other) {
@@ -774,8 +790,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             }
 
             $other->setContent(str_replace($oldPattern, $newPattern, $content));
-            // Une autre note réécrite : ouverte ailleurs, son éditeur doit le
-            // savoir plutôt que remettre l'ancien lien au prochain enregistrement.
+            // Another note rewritten: open elsewhere, its editor must know it
+            // rather than put the old link back on the next save.
             $other->bumpVersion();
         }
     }
@@ -884,9 +900,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
-     * Le dossier où une note peut être rangée : du même espace qu'elle. Null
-     * sinon - changer d'espace est l'affaire de move(), pas d'un
-     * enregistrement.
+     * The folder where a note can be filed: from the same space as the note.
+     * Null otherwise - changing space is move()'s business, not a save's.
      */
     protected function folderFor(MarkdownNoteInterface $note, ?int $folderId): ?NoteFolderInterface
     {
@@ -904,8 +919,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
-     * Les notes qu'une personne peut réécrire en masse : celles des espaces
-     * où elle écrit.
+     * The notes a person can rewrite in bulk: those of the spaces where they
+     * write.
      *
      * @return list<MarkdownNoteInterface>
      */

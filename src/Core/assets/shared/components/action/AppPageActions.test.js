@@ -67,7 +67,7 @@ describe("AppPageActions", () => {
         expect(trigger(wrapper).classes()).toContain("text-xs");
     });
 
-    // Le composant a deux racines : un `class` posé dessus se perdait.
+    // The component has two roots: a `class` set on it got lost.
     it("puts the classes it receives on its trigger", () => {
         const wrapper = mount(AppPageActions, {
             props: { actions: [PRINT] },

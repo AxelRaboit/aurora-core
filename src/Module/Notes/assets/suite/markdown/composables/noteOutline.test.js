@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { outlineOf, readingMinutes, wordCount } from "./noteOutline.js";
 
 /**
- * Le plan d'une note et sa longueur.
+ * A note's outline and its length.
  *
- * Ce qui se casserait sans bruit : un `#` de code compté comme un titre, ou
- * un titre affiché avec sa syntaxe (`**gras**`, `[[lien]]`) dans le plan.
+ * What would break silently: a code `#` counted as a heading, or a heading
+ * shown with its syntax (`**gras**`, `[[lien]]`) in the outline.
  */
 const BRIEF = [
     "# Brief Atelier Dupont",
@@ -43,9 +43,9 @@ describe("outlineOf", () => {
 
 describe("wordCount", () => {
     it("counts the words read, not the syntax nor the code", () => {
-        // Brief Atelier Dupont (3) + Intro du projet, en deux phrases. (6)
-        // + Objectifs (1) + Plus de devis (3) + Revoir le logo (3)
-        // + Lien vers Tarifs 2024 et budget (6) + Calendrier (1)
+        // "Brief Atelier Dupont" (3) + "Intro du projet, en deux phrases." (6)
+        // + "Objectifs" (1) + "Plus de devis" (3) + "Revoir le logo" (3)
+        // + "Lien vers Tarifs 2024 et budget" (6) + "Calendrier" (1)
         expect(wordCount(BRIEF)).toBe(23);
     });
 

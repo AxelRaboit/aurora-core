@@ -62,23 +62,26 @@ export function labelSwatch(label) {
  * The members of a row's family in chip order: the original first, then its
  * alternates as the server sorted them (by label).
  *
- * @param {object} doc a listing row carrying `alternates`
+ * @param {object} gedDocument a listing row carrying `alternates`
  * @returns {Array<{id: number, label: string|null, thumbnailUrl: string|null, usageCount: number, usageByType: object, original: boolean}>}
  */
-export function familyMembers(doc) {
-    if (!doc?.alternates?.length) return [];
+export function familyMembers(gedDocument) {
+    if (!gedDocument?.alternates?.length) return [];
 
     return [
         {
-            id: doc.id,
+            id: gedDocument.id,
             label: null,
-            title: doc.title,
-            thumbnailUrl: doc.thumbnailUrl ?? null,
-            usageCount: doc.usageCount ?? 0,
-            usageByType: doc.usageByType ?? {},
+            title: gedDocument.title,
+            thumbnailUrl: gedDocument.thumbnailUrl ?? null,
+            usageCount: gedDocument.usageCount ?? 0,
+            usageByType: gedDocument.usageByType ?? {},
             original: true,
         },
-        ...doc.alternates.map((member) => ({ ...member, original: false })),
+        ...gedDocument.alternates.map((member) => ({
+            ...member,
+            original: false,
+        })),
     ];
 }
 

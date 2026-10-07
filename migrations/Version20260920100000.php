@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une étape du tableau peut ne pas regarder le client.
+ * A board stage can be none of the client's business.
  *
- * Vrai partout au départ, ce qui est l'état de toutes les colonnes existantes :
- * jusqu'ici le client voyait tout. Fermer d'office aurait vidé les espaces en
- * cours le jour de la mise à jour.
+ * True everywhere at first, which is the state of every existing column: so
+ * far the client saw everything. Closing them regardless would have emptied
+ * the spaces in progress on the day of the update.
  */
 final class Version20260920100000 extends AbstractMigration
 {

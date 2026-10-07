@@ -12,14 +12,16 @@
  * Orphaned nodes (parentId points to a non-existent id) are promoted to root.
  *
  * @param {Array}    list    - flat array of folder objects
- * @param {Function} sortFn  - optional comparator; defaults to alphabetical by name
+ * @param {Function} compareFolders  - optional comparator; defaults to alphabetical by name
  * @returns {Array} root nodes, each with a `children` array
  */
 export function buildFolderTree(
     list,
-    sortFn = (a, b) => a.name.localeCompare(b.name),
+    compareFolders = (left, right) => left.name.localeCompare(right.name),
 ) {
-    const byId = new Map(list.map((f) => [f.id, { ...f, children: [] }]));
+    const byId = new Map(
+        list.map((folder) => [folder.id, { ...folder, children: [] }]),
+    );
     const roots = [];
 
     for (const node of byId.values()) {
@@ -55,15 +57,17 @@ export function buildFolderTree(
 
         const parent = byId.get(node.parentId);
         if (parent) {
-            parent.children = parent.children.filter((c) => c.id !== node.id);
+            parent.children = parent.children.filter(
+                (child) => child.id !== node.id,
+            );
         }
         roots.push(node);
         walk([node]);
     }
 
     const sort = (nodes) => {
-        nodes.sort(sortFn);
-        nodes.forEach((n) => sort(n.children));
+        nodes.sort(compareFolders);
+        nodes.forEach((node) => sort(node.children));
     };
     sort(roots);
 
@@ -102,11 +106,11 @@ export function flattenFolders(nodes, depth = 0, collapsedIds = null) {
  */
 export function getFolderAncestors(folders, folderId) {
     const ancestors = [];
-    let current = folders.find((f) => f.id === folderId);
+    let current = folders.find((folder) => folder.id === folderId);
     while (current) {
         ancestors.unshift(current);
         current = current.parentId
-            ? folders.find((f) => f.id === current.parentId)
+            ? folders.find((folder) => folder.id === current.parentId)
             : null;
     }
     return ancestors;
@@ -121,7 +125,9 @@ export function getFolderAncestors(folders, folderId) {
  */
 export function getFolderDescendantIds(folders, folderId) {
     const result = [folderId];
-    const children = folders.filter((f) => (f.parentId ?? null) === folderId);
+    const children = folders.filter(
+        (folder) => (folder.parentId ?? null) === folderId,
+    );
     for (const child of children) {
         result.push(...getFolderDescendantIds(folders, child.id));
     }

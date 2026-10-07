@@ -1,27 +1,27 @@
 /**
- * Réétalonner la photo incrustée dans une carte composée, elle seule.
+ * Regrade the photo embedded in a composed card, and only that photo.
  *
- * Les cartes de service sont des montages : un fond, des tirages inclinés,
- * des coins de visée, une ligne d'exposition. Quand la photo d'origine est
- * corrigée dans la médiathèque, le montage, lui, garde l'ancien étalonnage,
- * et la carte se met à jurer avec la galerie qu'elle annonce.
+ * Service cards are montages: a background, tilted prints, viewfinder
+ * corners, an exposure line. When the original photo is corrected in the
+ * media library, the montage keeps the old grade, and the card starts to
+ * clash with the gallery it announces.
  *
- * **La zone est géométrique, pas colorimétrique.** Le cadre blanc du tirage
- * donne ses quatre coins au pixel près, donc on corrige exactement le
- * rectangle de la photo, incliné comme lui. Un masque par couleur aurait
- * mordu sur le fond vert ou laissé un liseré sur le bord blanc ; ici il n'y
- * a pas de frontière à rater, et le paysage voisin n'est pas touché.
+ * **The area is geometric, not colorimetric.** The print's white frame gives
+ * its four corners to the pixel, so the correction covers exactly the photo
+ * rectangle, tilted like it. A color mask would have bitten into the green
+ * background or left a fringe on the white edge; here there is no boundary
+ * to miss, and the neighbouring landscape is not touched.
  *
- * **Trois leviers, mesurés ensemble.** Retirer du jaune et de la clarté fait
- * monter la saturation apparente, et un rabat de saturation uniforme ne
- * touche presque pas la zone la plus colorée - des lèvres rouges restent
- * rouges. On balaie donc les réglages et on mesure les quatre grandeurs à
- * chaque essai, plutôt que de corriger un axe à la fois.
+ * **Three levers, measured together.** Removing yellow and lightness raises
+ * the apparent saturation, and a uniform saturation cut barely touches the
+ * most colorful area - red lips stay red. So the script sweeps the settings
+ * and measures the four quantities on each try, rather than correcting one
+ * axis at a time.
  *
- * La cible se donne en clair : le teint et la chrominance des lèvres de la
- * série à laquelle la carte doit ressembler.
+ * The target is given in plain values: the skin tone and lip chroma of the
+ * series the card must look like.
  *
- * Usage :
+ * Usage:
  *   node tools/screenshots/regrade-card-photo.mjs <carte.png> <sortie.png> [--dry-run]
  */
 import { chromium } from "@playwright/test";
@@ -36,9 +36,9 @@ if (!entree || !sortie) {
 }
 
 /**
- * Le tirage à corriger, relevé sur la carte 499 : les trois coins du cadre
- * blanc, et l'épaisseur des marges qui séparent le cadre de la photo. Un
- * polaroid a une marge basse plus épaisse que les trois autres.
+ * The print to correct, measured on card 499: the three corners of the white
+ * frame, and the thickness of the margins between the frame and the photo. A
+ * polaroid has a thicker bottom margin than the other three.
  */
 const TIRAGE = {
     haut: [708, 150],
@@ -47,7 +47,7 @@ const TIRAGE = {
     marges: { haut: 5, bas: 42, gauche: 9, droite: 13 },
 };
 
-/** Ce à quoi la photo doit ressembler : la moyenne de la série en galerie. */
+/** What the photo must look like: the average of the series in the gallery. */
 const CIBLE = { peauL: 57.5, peauB: 14.5, levres: 58.5 };
 
 const browser = await chromium.launch();
@@ -75,7 +75,7 @@ const resultat = await page.evaluate(
         };
         const sat = (r, gg, bl) => { const M = Math.max(r, gg, bl), m = Math.min(r, gg, bl); return 0 === M ? 0 : (M - m) / M; };
 
-        // Le repère du tirage, et le test d'appartenance à la photo.
+        // The print's coordinate frame, and the test for belonging to the photo.
         const { haut, droite, gauche, marges } = tirage;
         const lu = Math.hypot(droite[0] - haut[0], droite[1] - haut[1]);
         const lv = Math.hypot(gauche[0] - haut[0], gauche[1] - haut[1]);
@@ -93,7 +93,7 @@ const resultat = await page.evaluate(
         c.height = img.height;
         const ctx = c.getContext("2d");
 
-        /** Une passe : corrige la zone et rend les mesures qui comptent. */
+        /** One pass: corrects the area and returns the measurements that matter. */
         const passe = (dL, dB, seuil, ratio, ecrire) => {
             ctx.clearRect(0, 0, c.width, c.height);
             ctx.drawImage(img, 0, 0);

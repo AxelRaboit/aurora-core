@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 
-// Le module s'arme au chargement et appelle `matchMedia`, que jsdom ne
-// fournit pas. Le double doit donc être en place avant l'import.
+// The module arms itself on load and calls `matchMedia`, which jsdom does
+// not provide. The double must therefore be in place before the import.
 vi.stubGlobal("matchMedia", (query) => ({
     matches: false,
     media: query,
@@ -12,11 +12,11 @@ vi.stubGlobal("matchMedia", (query) => ({
 const { cascadeOrder, cascadeDelay } = await import("./scrollReveal.js");
 
 /**
- * Une entrée d'observateur, réduite à ce que la cascade lit.
+ * An observer entry, reduced to what the cascade reads.
  *
- * `getBoundingClientRect` plutôt qu'un champ : c'est ce que le vrai code
- * appelle, et jsdom renvoie des zéros pour tout le monde - un test qui
- * s'appuierait sur la mise en page réelle ne vérifierait rien.
+ * `getBoundingClientRect` rather than a field: it is what the real code
+ * calls, and jsdom returns zeros for everyone - a test that relied on the
+ * real layout would check nothing.
  */
 function entry(top, left, isIntersecting = true) {
     return {

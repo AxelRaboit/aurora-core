@@ -17,8 +17,8 @@ use function preg_quote;
 use function sprintf;
 
 /**
- * Les gris du back-office : une palette laissée au défaut ne doit rien
- * émettre, et ce n'est honnête que si le défaut est exactement `theme.css`.
+ * The back office grays: a palette left at the default must emit nothing, and
+ * that is only honest if the default is exactly `theme.css`.
  */
 final class SuitePaletteTest extends TestCase
 {
@@ -113,7 +113,7 @@ final class SuitePaletteTest extends TestCase
     }
 
     /**
-     * Les variables neutres d'un bloc de `theme.css`, converties en hexadécimal.
+     * The neutral variables of a `theme.css` block, converted to hexadecimal.
      *
      * @return array<string, string>
      */

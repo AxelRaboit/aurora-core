@@ -6,10 +6,7 @@ namespace Aurora\Module\Studio\Customer\Manager;
 
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
-use Aurora\Module\Studio\Customer\Dto\CustomerInformationInputInterface;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
@@ -32,7 +29,6 @@ class CustomerManager implements CustomerManagerInterface
         protected readonly CustomerRepository $customerRepository,
         protected readonly ContractRepository $contractRepository,
         protected readonly CustomerSpaceRepository $spaceRepository,
-        protected readonly UserRepository $userRepository,
         protected readonly TranslatorInterface $translator,
     ) {}
 
@@ -55,38 +51,6 @@ class CustomerManager implements CustomerManagerInterface
         $this->entityManager->flush();
 
         $this->auditUpdated($customer);
-    }
-
-    /**
-     * La fiche telle qu'on la remplit depuis un espace.
-     *
-     * **Sa propre écriture, et non `update` avec moins de champs.** Celle-là
-     * applique une saisie entière : les colonnes qu'elle ne reçoit pas, elle
-     * les vide. Le capital, le RCS, la TVA et le représentant ne sont pas sur
-     * cet écran, et les lui passer aurait effacé l'identité contractuelle du
-     * client au premier enregistrement depuis un projet.
-     *
-     * Le SIRET est vérifié libre ici aussi : c'est une colonne unique, et une
-     * collision non posée remonterait en erreur SQL au milieu d'une requête.
-     */
-    public function updateInformation(CustomerInterface $customer, CustomerInformationInputInterface $input): void
-    {
-        $this->assertSiretIsFree($input->getSiret(), $customer->getId());
-
-        $customer
-            ->setLegalName($input->getLegalName())
-            ->setSiret($input->getSiret())
-            ->setSiren($input->getSiren())
-            ->setPhone($input->getPhone())
-            ->setLandline($input->getLandline())
-            ->setContractualEmail($input->getEmail())
-            ->setRegisteredOffice($input->getPostalAddress())
-            ->setLinks($input->getLinks())
-            ->setInformationNotes($input->getNotes());
-
-        $this->entityManager->flush();
-
-        $this->auditLogger->log('studio', 'customer.information_updated', 'Customer', $customer->getId(), $this->auditPayload($customer));
     }
 
     /**
@@ -122,16 +86,17 @@ class CustomerManager implements CustomerManagerInterface
     }
 
     /**
-     * Un prospect devient client, en un geste.
+     * A prospect becomes a customer, in one gesture.
      *
-     * **Une operation a elle seule plutot qu'une mise a jour ordinaire**, parce
-     * que c'est ce qu'elle est : on ne modifie pas une fiche, on dit qu'une
-     * societe s'est engagee. Passer par `update` aurait demande de renvoyer la
-     * raison sociale et tout le reste pour changer une colonne, et aurait ecrit
-     * dans l'audit une modification la ou il s'est passe quelque chose.
+     * **An operation of its own rather than an ordinary update**, because that
+     * is what it is: a sheet is not being edited, a company is being declared
+     * committed. Going through `update` would have meant sending the company
+     * name and everything else again to change one column, and would have
+     * written an edit into the audit where something actually happened.
      *
-     * L'adresse est le seul champ accepte : c'est le seul que le statut impose.
-     * Une fiche qui en a deja une peut donc etre convertie sans rien saisir.
+     * The address is the only field accepted: it is the only one the status
+     * requires. A sheet that already has one can therefore be converted
+     * without entering anything.
      */
     public function convertToClient(CustomerInterface $customer, ?string $contractualEmail): void
     {
@@ -154,16 +119,16 @@ class CustomerManager implements CustomerManagerInterface
     }
 
     /**
-     * Un client a une adresse, un prospect pas forcement.
+     * A customer has an address, a prospect not necessarily.
      *
-     * **C'est la seule chose que le statut impose**, et elle porte sur la paire
-     * plutot que sur le champ, donc elle est ici et pas dans le DTO : c'est le
-     * Manager qui voit les deux. Un prospect peut n'etre qu'un nom - on le
-     * rencontre, on ouvre un espace, on structure le travail, et on n'a rien
-     * d'autre. Un client, lui, est quelqu'un a qui on envoie un contrat.
+     * **It is the only thing the status requires**, and it covers the pair
+     * rather than the field, so it is here and not in the DTO: the Manager is
+     * the one that sees both. A prospect can be just a name - you meet them,
+     * open a space, structure the work, and have nothing else. A customer, on
+     * the other hand, is someone you send a contract to.
      *
-     * Signale sous le champ de l'adresse et pas sous le statut : c'est
-     * l'adresse qui manque, et c'est elle que le lecteur doit remplir.
+     * Reported under the address field and not under the status: the address
+     * is what is missing, and it is what the reader must fill in.
      */
     protected function assertClientHasAnAddress(CustomerInputInterface $input): void
     {
@@ -214,21 +179,10 @@ class CustomerManager implements CustomerManagerInterface
             ->setRepresentativeRole($input->getRepresentativeRole())
             ->setContractualEmail($input->getContractualEmail())
             ->setPhone($input->getPhone())
-            ->setUser($this->resolveUser($input));
-    }
-
-    /**
-     * The account to attach, or null.
-     *
-     * An id that no longer resolves lands as null rather than as an error: the
-     * picker is fed from the account list, so the only way to send an unknown
-     * one is to have edited the payload.
-     */
-    protected function resolveUser(CustomerInputInterface $input): ?CoreUserInterface
-    {
-        $userId = $input->getUserId();
-
-        return null === $userId ? null : $this->userRepository->find($userId);
+            ->setSiren($input->getSiren())
+            ->setLandline($input->getLandline())
+            ->setLinks($input->getLinks())
+            ->setInformationNotes($input->getInformationNotes());
     }
 
     /**

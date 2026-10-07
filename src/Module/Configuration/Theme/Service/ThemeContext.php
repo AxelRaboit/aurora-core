@@ -47,8 +47,8 @@ final class ThemeContext implements ResetInterface
     ) {}
 
     /**
-     * Oublie le thème lu : un worker qui enverrait des e-mails pendant des
-     * heures garderait sinon celui d'avant un changement de thème.
+     * Forgets the theme read: a worker sending emails for hours would
+     * otherwise keep the one from before a theme change.
      */
     public function reset(): void
     {
@@ -102,9 +102,9 @@ final class ThemeContext implements ResetInterface
     }
 
     /**
-     * Le logo seul sur téléphone : le nom du site (ou le texte personnalisé)
-     * passe sous `sm`. Seulement quand un logo existe, sinon l'entête
-     * n'aurait plus rien à montrer.
+     * Logo only on phones: the site name (or the custom text) goes away below
+     * `sm`. Only when a logo exists, otherwise the header would have nothing
+     * left to show.
      */
     public function headerTextHiddenOnPhone(): bool
     {
@@ -113,9 +113,9 @@ final class ThemeContext implements ResetInterface
     }
 
     /**
-     * La barre de lecture en haut des pages publiques. Affichée par défaut :
-     * seul un thème qui l'a coupée porte la clé, comme les autres réglages
-     * qui ne s'écrivent que lorsqu'ils s'écartent du défaut.
+     * The reading bar at the top of public pages. Shown by default: only a
+     * theme that turned it off carries the key, like the other settings that
+     * are only written when they differ from the default.
      */
     public function readingProgress(): bool
     {
@@ -123,10 +123,10 @@ final class ThemeContext implements ResetInterface
     }
 
     /**
-     * Le crédit « Aurora » en pied des pages publiques. Masqué par défaut :
-     * seul un thème qui l'a allumé porte la clé, à l'inverse des réglages
-     * actifs par défaut. Sert d'ancrage visible, indexable par les moteurs,
-     * pour repérer une réutilisation non autorisée du code (voir LICENSE).
+     * The "Aurora" credit in the footer of public pages. Hidden by default:
+     * only a theme that turned it on carries the key, unlike the settings
+     * active by default. Serves as a visible anchor, indexable by search
+     * engines, to spot unauthorized reuse of the code (see LICENSE).
      */
     public function watermarkVisible(): bool
     {
@@ -177,11 +177,11 @@ final class ThemeContext implements ResetInterface
     }
 
     /**
-     * La famille choisie par le thème actif.
+     * The family chosen by the active theme.
      *
-     * Rangée dans le thème plutôt que dans un réglage global, pour la même
-     * raison que la largeur de contenu : changer de thème doit emporter sa
-     * typographie, pas hériter de celle du précédent.
+     * Stored in the theme rather than in a global setting, for the same reason
+     * as the content width: switching theme must bring its typography along,
+     * not inherit the previous one's.
      */
     public function font(): ThemeFontEnum
     {
@@ -189,11 +189,11 @@ final class ThemeContext implements ResetInterface
     }
 
     /**
-     * Ce que prennent les survols du site public et les repères des cartes
-     * (catégorie, flèche) : la couleur principale, ou le texte de la surface
-     * sur laquelle ils sont posés. Le neutre sert aux pages qui jouent déjà
-     * leurs propres couleurs et qu'un survol vert viendrait contredire. Le
-     * personnalisé sans couleur exploitable retombe sur l'accent.
+     * What the public site's hovers and the card markers (category, arrow)
+     * take: the main color, or the text of the surface they sit on. Neutral
+     * serves pages that already play their own colors and that a green hover
+     * would contradict. Custom without a usable color falls back to the
+     * accent.
      *
      * @return 'accent'|'neutral'|'custom'
      */

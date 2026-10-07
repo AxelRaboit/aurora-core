@@ -29,10 +29,10 @@ export function evaluateAmount(
     const hasOperator = /[+\-*/]/.test(cleaned.slice(1));
 
     if (!hasOperator) {
-        const n = Number(cleaned);
-        if (!Number.isFinite(n)) return cleaned;
-        if (!allowNegative && n < 0) return cleaned;
-        return n.toFixed(decimals);
+        const amount = Number(cleaned);
+        if (!Number.isFinite(amount)) return cleaned;
+        if (!allowNegative && amount < 0) return cleaned;
+        return amount.toFixed(decimals);
     }
 
     const result = arithmetic(cleaned);

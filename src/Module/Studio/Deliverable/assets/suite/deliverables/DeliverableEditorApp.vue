@@ -1,23 +1,23 @@
 <script setup>
 /**
- * Un livrable, sur sa propre page.
+ * A deliverable, on its own page.
  *
- * Trois onglets : la grille pour composer le document, son apparence, et ses
- * réglages (titre, langue, en-tête, ce que voit le client). Pas de SEO, pas de
- * statut : un livrable n'est jamais sur le site, et ce qui décide que le
- * client le lit est la case « visible par le client ».
+ * Three tabs: the grid to compose the document, its appearance, and its
+ * settings (title, language, header, what the client sees). No SEO, no
+ * status: a deliverable is never on the site, and what decides that the
+ * client reads it is the "visible par le client" box.
  *
- * Le même éditeur pour un livrable d'espace et un livrable de Studio : sans
- * `space`, il n'y a pas de client à qui ouvrir le document, et l'en-tête dit
- * son rayon, perso ou partagé, à la place.
+ * The same editor for a space deliverable and a Studio deliverable: without
+ * `space`, there is no client to open the document to, and the header shows
+ * its shelf, personal or shared, instead.
  *
- * La grille est celle des pages du site, avec ses zones et son aperçu : un
- * livrable se compose comme une page, il ne se publie pas comme une page.
+ * The grid is the site pages' grid, with its zones and its preview: a
+ * deliverable is composed like a page, it is not published like a page.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, Link2, Lock, RefreshCw, Save, Trash2, Users } from "lucide-vue-next";
+import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, LayoutTemplate, Link2, Lock, RefreshCw, Save, Trash2, Users } from "lucide-vue-next";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -39,14 +39,14 @@ import { useDeliverableEditor } from "./composables/useDeliverableEditor.js";
 
 const props = defineProps({
     deliverable: { type: Object, required: true },
-    /** L'espace du client ; nul pour un livrable de Studio. */
+    /** The client's space; null for a Studio deliverable. */
     space: { type: Object, default: null },
-    /** L'auteur d'un livrable de Studio. */
+    /** The author of a Studio deliverable. */
     ownerName: { type: String, default: null },
     locales: { type: Array, default: () => [] },
     hiddenZoneTypes: { type: Array, default: () => [] },
     canEdit: { type: Boolean, default: false },
-    /** Nuls, ils suivent `canEdit` : c'est la règle d'un espace. */
+    /** When null, they follow `canEdit`: that is a space's rule. */
     canShare: { type: Boolean, default: null },
     canDelete: { type: Boolean, default: null },
     canDuplicate: { type: Boolean, default: null },
@@ -59,13 +59,16 @@ const props = defineProps({
     linksPath: { type: String, required: true },
     duplicatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
-    /** Studio : déposer une copie dans un espace client, parmi ces espaces. */
+    /** Studio: drop a copy into a client space, among these spaces. */
     copyToSpacePath: { type: String, default: "" },
     copyTargets: { type: Array, default: () => [] },
-    /** Espace : garder une copie dans Studio ; vide sans le droit. */
+    /** Space: keep a copy in Studio; empty without the right. */
     copyToStudioPath: { type: String, default: "" },
-    /** Les catégories des livrables de Studio. */
+    /** The Studio deliverable categories. */
     categories: { type: Array, default: () => [] },
+    /** Studio: the clients that can be named, empty without the right to see them. */
+    customers: { type: Array, default: () => [] },
+    canPickCustomer: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -92,8 +95,8 @@ const placeholders = computed(() =>
 );
 
 /**
- * Le retour rouvre le rayon où le livrable se trouve maintenant : l'auteur
- * peut l'avoir fait passer de l'un à l'autre depuis les réglages.
+ * Going back reopens the shelf the deliverable is now on: the author may have
+ * moved it from one to the other in the settings.
  */
 const backHref = computed(() => {
     if (props.space || !form.value.scope) return props.deliverablesPath;
@@ -104,14 +107,15 @@ const backHref = computed(() => {
     return url.pathname + url.search;
 });
 
-// Les clés vont dans l'adresse : un lien vers l'apparence d'un livrable
-// s'envoie tel quel.
+// The keys go into the address: a link to a deliverable's appearance can be
+// sent as is.
 const TABS = ["content", "appearance", "settings"];
 const { select: selectTab, isActive: isTabActive } = useTabState(TABS, { hash: true });
 
 /**
- * Un onglet qui porte une erreur le dit, même fermé. Le serveur ne répond que
- * de ces trois champs : le titre et la langue (réglages), la grille (contenu).
+ * A tab that holds an error says so, even when closed. The server only
+ * answers for these three fields: the title and the language (settings), the
+ * grid (content).
  */
 const tabsWithErrors = computed(() => {
     const keys = Object.keys(errors.value);
@@ -124,9 +128,9 @@ const tabsWithErrors = computed(() => {
 });
 
 /**
- * Ce que le serveur a refusé, en toutes lettres et en tête de page : une
- * erreur de grille n'avait qu'un point sur l'onglet, et celle d'une langue
- * rien du tout quand le sélecteur de langue est masqué (une seule langue).
+ * What the server refused, spelled out at the top of the page: a grid error
+ * only had a dot on the tab, and a language error nothing at all when the
+ * language selector is hidden (a single language).
  */
 const errorMessages = computed(() => [
     ...new Set(
@@ -136,14 +140,14 @@ const errorMessages = computed(() => [
     ),
 ]);
 
-// ── En-tête ─────────────────────────────────────────────────────────────────
+// ── Header ──────────────────────────────────────────────────────────────────
 
 const showLinks = ref(false);
 const pendingDelete = ref(false);
 const deleting = ref(false);
 const duplicating = ref(false);
 
-/** Ouvrir l'aperçu enregistre d'abord : la page montre ce qui est en base. */
+/** Opening the preview saves first: the page shows what is in the database. */
 async function openPreview() {
     if (dirty.value && !(await save())) return;
 
@@ -168,7 +172,7 @@ async function duplicate() {
     try {
         const data = await request(props.duplicatePath, {});
         if (data?.success) {
-            // Dit à la page d'arrivée : celui-ci serait parti avec la page.
+            // Told to the landing page: this one would have left with the page.
             queueFlash("success", t("suite.studio.deliverables.duplicated"));
             window.location.href = data.editPath;
         }
@@ -180,7 +184,7 @@ async function duplicate() {
 const showCopyToSpace = ref(false);
 const copyingToStudio = ref(false);
 
-/** La copie part de ce qui est en base : on enregistre d'abord. */
+/** The copy starts from what is in the database: save first. */
 async function openCopyToSpace() {
     if (dirty.value && !(await save())) return;
 
@@ -220,13 +224,13 @@ async function doDelete() {
 }
 
 /**
- * L'attribut `inert` d'un panneau, ou rien : Vue écrit `inert="false"` pour un
- * faux, et pour un navigateur la seule présence de l'attribut rend la zone
- * inerte. Il faut donc l'omettre (`undefined`) quand on peut écrire.
+ * A panel's `inert` attribute, or nothing: Vue writes `inert="false"` for a
+ * false value, and for a browser the mere presence of the attribute makes the
+ * area inert. So it has to be omitted (`undefined`) when writing is allowed.
  */
 const inertWhenReadOnly = computed(() => (props.canEdit ? undefined : true));
 
-/** Recharger la page : on perd ce qui n'était pas enregistré, et c'est écrit dans la fenêtre. */
+/** Reload the page: unsaved work is lost, and the dialog says so. */
 function reload() {
     markClean();
     window.location.reload();
@@ -254,7 +258,7 @@ const headerActions = computed(() => {
         actions.push({
             key: "links",
             icon: Link2,
-            title: t("suite.studio.deliverables.links.title"),
+            title: t("suite.studio.deliverables.share"),
             description: t("suite.studio.deliverables.links_hint"),
             onSelect: () => (showLinks.value = true),
         });
@@ -309,10 +313,9 @@ const headerActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <!-- La barre de tous les écrans : le retour à gauche, les commandes à
-             droite. Les pastilles d'état n'y entrent pas : trois d'entre elles
-             faisaient passer la barre sur deux lignes sur un téléphone, elles
-             viennent sous le titre. -->
+        <!-- The bar every screen has: back on the left, commands on the
+             right. The status pills do not go in it: three of them pushed the
+             bar onto two lines on a phone, so they come under the title. -->
         <AppPageBar :back-href="backHref" :back-label="backLabel">
             <AppPageActions :actions="headerActions" icon-only-on-phone />
             <AppButton
@@ -337,13 +340,17 @@ const headerActions = computed(() => {
                 {{ t("suite.studio.deliverables.scope.by", { name: ownerName }) }}
             </p>
 
-            <!-- Ce que voit le client, quel que soit l'onglet : on doit savoir
-                 qu'on modifie un document qu'il lit déjà. Sans espace, le
-                 rayon : perso ou partagé avec l'équipe. -->
+            <!-- What the client sees, whatever the tab: you must know you are
+                 editing a document they already read. Without a space, the
+                 shelf: personal or shared with the team. -->
             <div class="mt-2 flex flex-wrap items-center gap-2">
                 <AppBadge v-if="!space" :color="'shared' === form.scope ? 'sky' : 'gray'">
                     <component :is="'shared' === form.scope ? Users : Lock" class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
                     {{ t(`suite.studio.deliverables.scope.${form.scope}`) }}
+                </AppBadge>
+                <AppBadge v-if="!space && form.template" color="violet">
+                    <LayoutTemplate class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                    {{ t("suite.studio.deliverables.template.badge") }}
                 </AppBadge>
                 <AppBadge v-else :color="form.visibleToClient ? 'emerald' : 'gray'">
                     {{ t(form.visibleToClient
@@ -353,8 +360,8 @@ const headerActions = computed(() => {
                 <AppBadge v-if="placeholders" color="amber" :title="t('suite.posts.grid.placeholders_left', { count: placeholders })">
                     [{{ placeholders }}] {{ t("suite.studio.deliverables.placeholders_badge") }}
                 </AppBadge>
-                <!-- Dit en mots, pas par un point : un état qui n'est qu'une
-                     pastille de couleur n'existe pas pour qui ne la voit pas. -->
+                <!-- Said in words, not with a dot: a state that is only a
+                     coloured dot does not exist for someone who cannot see it. -->
                 <AppBadge v-if="dirty" color="amber">{{ t("suite.studio.deliverables.unsaved") }}</AppBadge>
                 <AppBadge v-if="!canEdit" color="gray">{{ t("suite.studio.deliverables.read_only") }}</AppBadge>
             </div>
@@ -372,13 +379,13 @@ const headerActions = computed(() => {
             {{ t("suite.studio.deliverables.read_only_hint") }}
         </p>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.deliverables.editor_guide.title')" storage-key="deliverable-editor">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <!-- Sans espace, les étapes qui parlent du client disent son
-                     destinataire et sa visibilité à la place. -->
-                <li v-for="step in 6" :key="step">{{ t(`suite.studio.deliverables.editor_guide.step_${step}${!space && [3, 4].includes(step) ? "_studio" : ""}`) }}</li>
+                <!-- Without a space, the steps that talk about the client
+                     describe its recipient and its visibility instead. -->
+                <li v-for="step in 6" :key="step">{{ t(`suite.studio.deliverables.editor_guide.step_${step}${!space && [3, 4, 6].includes(step) ? "_studio" : ""}`) }}</li>
             </ol>
         </AppGuide>
 
@@ -401,9 +408,8 @@ const headerActions = computed(() => {
             </AppTab>
         </div>
 
-        <!-- v-show et pas v-if : la grille tient des éditeurs de texte qui
-             gardent leur saisie, et changer d'onglet ne doit rien leur faire
-             perdre. -->
+        <!-- v-show and not v-if: the grid holds text editors that keep their
+             input, and switching tabs must not make them lose anything. -->
         <div v-show="isTabActive('content')" class="aurora-card p-3 sm:p-5" :inert="inertWhenReadOnly">
             <PostGridPanel
                 :layout="form.gridLayout"
@@ -423,6 +429,7 @@ const headerActions = computed(() => {
             :inert="inertWhenReadOnly"
             :title="form.title"
             :summary="form.summary"
+            :format="form.format"
         />
 
         <DeliverableSettingsTab
@@ -434,14 +441,19 @@ const headerActions = computed(() => {
             v-model:visible-to-client="form.visibleToClient"
             v-model:scope="form.scope"
             v-model:category-id="form.categoryId"
+            v-model:template="form.template"
+            v-model:customer-id="form.customerId"
             v-model:thumbnail="form.thumbnail"
             :inert="inertWhenReadOnly"
             :locales="locales"
             :errors="errors"
             :customer-name="space?.customerName ?? ''"
             :with-client="!!space"
+            :can-show-to-client="mayShare"
             :can-change-scope="canChangeScope"
             :categories="categories"
+            :customers="customers"
+            :can-pick-customer="canPickCustomer"
             :placeholders="placeholders"
         />
 
@@ -456,8 +468,8 @@ const headerActions = computed(() => {
             v-on:close="showCopyToSpace = false"
         />
 
-        <!-- Quelqu'un d'autre a enregistré avant nous : on le dit, on ne
-             choisit pas à la place de l'auteur entre sa version et la nôtre. -->
+        <!-- Someone else saved before us: say so, and do not choose between
+             their version and ours on the author's behalf. -->
         <AppModal
             :show="conflict"
             max-width="md"

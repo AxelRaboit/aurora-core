@@ -6,7 +6,7 @@ Le mécanisme Doctrine `resolve_target_entities` **ne s'applique qu'aux
 relations Doctrine** (`@ManyToOne`, `@OneToMany`, etc.). Il **ne fait
 rien** sur :
 - Les `new <Name>()` directs dans le code
-- Les requêtes (`$em->getRepository(<Name>::class)` doit utiliser le bon
+- Les requêtes (`$entityManager->getRepository(<Name>::class)` doit utiliser le bon
   resolver)
 
 ## Pourquoi

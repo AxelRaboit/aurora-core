@@ -187,7 +187,7 @@ final class SeoExtensionTest extends TestCase
     ): SeoExtension {
         $settings = $this->createMock(SettingRepository::class);
         $settings->method('getOrDefault')->willReturnCallback(
-            static fn (ApplicationParameterEnum $param): string => ApplicationParameterEnum::SiteName === $param ? $siteName : $param->getDefaultValue(),
+            static fn (ApplicationParameterEnum $parameter): string => ApplicationParameterEnum::SiteName === $parameter ? $siteName : $parameter->getDefaultValue(),
         );
         $settings->method('get')->willReturnCallback(
             static function (string $key, mixed $default = null) use ($siteUrl): mixed {
@@ -199,21 +199,21 @@ final class SeoExtensionTest extends TestCase
             },
         );
 
-        $localeRepo = $this->createMock(LocaleRepository::class);
-        $localeRepo->method('findBy')->willReturn([]);
+        $localeRepository = $this->createMock(LocaleRepository::class);
+        $localeRepository->method('findBy')->willReturn([]);
         $localeContext = $this->createMock(LocaleContextInterface::class);
         $localeContext->method('isSingleLocaleMode')->willReturn(false);
 
-        // Contexte de routage vide : ces tests s'appuient sur la requete.
+        // Empty routing context: these tests rely on the request.
         $routingContext = new RequestContext();
         $routingContext->setHost('');
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $urlGenerator->method('getContext')->willReturn($routingContext);
 
-        $context = new Context($localeRepo, $settings, $localeContext, new RequestStack(), $urlGenerator);
+        $context = new Context($localeRepository, $settings, $localeContext, new RequestStack(), $urlGenerator);
 
-        $mediaRepo = $this->createMock(DocumentRepository::class);
+        $documentRepository = $this->createMock(DocumentRepository::class);
 
-        return new SeoExtension($context, $settings, $mediaRepo, $stack, $this->makeDocumentUrlGenerator());
+        return new SeoExtension($context, $settings, $documentRepository, $stack, $this->makeDocumentUrlGenerator());
     }
 }

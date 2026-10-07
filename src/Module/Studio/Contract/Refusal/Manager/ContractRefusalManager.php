@@ -138,7 +138,7 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
             ],
             // Without it the subject read « Contrat {reference} : refus du
             // client », braces included.
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }
 }

@@ -6,12 +6,12 @@ import { toast } from "vue-sonner";
  * Generic composable for paginated JSON fetch (XHR-based, no page reload).
  *
  * @param {string|(() => string)} getPath  - URL or function returning the URL (for dynamic paths)
- * @param {() => object}          getExtraParams - Returns extra URLSearchParams entries (search, filter…)
+ * @param {() => object}          getExtraParameters - Returns extra URLSearchParams entries (search, filter…)
  * @param {(data: object) => void} onData  - Optional callback to extract extra fields from the response
  */
 export function usePaginatedFetch(
     getPath,
-    getExtraParams = () => ({}),
+    getExtraParameters = () => ({}),
     onData = null,
     initialData = null,
 ) {
@@ -29,13 +29,15 @@ export function usePaginatedFetch(
 
         loading.value = true;
         try {
-            const params = new URLSearchParams({ page: String(targetPage) });
-            for (const [key, value] of Object.entries(getExtraParams())) {
+            const searchParameters = new URLSearchParams({
+                page: String(targetPage),
+            });
+            for (const [key, value] of Object.entries(getExtraParameters())) {
                 if (value !== undefined && value !== null && value !== "") {
-                    params.set(key, String(value));
+                    searchParameters.set(key, String(value));
                 }
             }
-            const response = await fetch(`${path}?${params}`, {
+            const response = await fetch(`${path}?${searchParameters}`, {
                 headers: { "X-Requested-With": "XMLHttpRequest" },
             });
             const data = await response.json();

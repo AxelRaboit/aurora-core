@@ -92,7 +92,7 @@ final readonly class UsersViewBuilder
             ];
         }
 
-        usort($privilegesByModule, fn (array $a, array $b): int => $this->priorityFor($a['module']) <=> $this->priorityFor($b['module']));
+        usort($privilegesByModule, fn (array $left, array $right): int => $this->priorityFor($left['module']) <=> $this->priorityFor($right['module']));
 
         // Modules currently enabled globally - surfaced to the per-user
         // disabled-modules picker as a hierarchical tree
@@ -109,13 +109,13 @@ final readonly class UsersViewBuilder
             $modulesForAccess[] = $this->buildToggleNode($toggle);
         }
 
-        usort($modulesForAccess, fn (array $a, array $b): int => $this->priorityFor((string) $a['moduleId']) <=> $this->priorityFor((string) $b['moduleId']));
+        usort($modulesForAccess, fn (array $left, array $right): int => $this->priorityFor((string) $left['moduleId']) <=> $this->priorityFor((string) $right['moduleId']));
 
         /**
-         * Les deux populations invitables.
+         * The two populations that can be invited.
          *
-         * Construit ici plutôt que codé dans le composant pour que les libellés
-         * passent par le traducteur, comme les rôles juste au-dessus.
+         * Built here rather than hard-coded in the component so that the labels
+         * go through the translator, like the roles just above.
          */
         $types = array_map(
             static fn (UserTypeEnum $type): array => ['value' => $type->value, 'label' => $translator->trans($type->getLabelKey())],

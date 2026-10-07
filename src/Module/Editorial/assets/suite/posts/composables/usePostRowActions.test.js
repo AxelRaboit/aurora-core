@@ -45,9 +45,9 @@ describe("usePostRowActions", () => {
     });
 
     /**
-     * Modifier reste en tête, parce que c'est le geste courant de cet écran ;
-     * la lecture vient ensuite, et l'irréversible en dernier. L'ordre de
-     * cette liste est celui dans lequel on la parcourt sous pression.
+     * Edit stays first, because it is the usual gesture of this screen;
+     * viewing comes next, and the irreversible one last. The order of this
+     * list is the one in which it is scanned under pressure.
      */
     it("reads edit, preview, duplicate, then delete", () => {
         expect(actionsFor({ id: 1 }, { canPreview: true })).toEqual([

@@ -24,10 +24,10 @@
 
 {% set _base = 'inline-flex items-center justify-center gap-2 rounded-lg transition duration-150 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed' %}
 
-{# Aligné sur AppButton.vue le 02/10/2026 : le ghost porte surface et filet
-   sous `sm` et redevient transparent au-dessus, et les boutons pleins ont un
-   filet transparent, pour que tous les boutons d'une taille aient la même
-   hauteur. #}
+{# Aligned with AppButton.vue on 02/10/2026: the ghost carries a surface and a
+   border below `sm` and turns transparent again above, and the solid buttons
+   have a transparent border, so that all buttons of one size have the same
+   height. #}
 {% set _variants = {
     primary: 'bg-accent-600 hover:bg-accent-700 text-white border border-transparent focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent-500',
     secondary: 'bg-surface-3 hover:bg-surface-2 text-primary border border-line focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-base',

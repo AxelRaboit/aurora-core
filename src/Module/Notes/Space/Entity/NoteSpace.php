@@ -23,7 +23,7 @@ class NoteSpace extends AbstractNoteSpace
     protected ?int $id = null;
 
     /**
-     * Sur la classe concrète, per `convention_collection_on_concrete`.
+     * On the concrete class, per `convention_collection_on_concrete`.
      *
      * @var Collection<int, NoteSpaceMemberInterface>
      */

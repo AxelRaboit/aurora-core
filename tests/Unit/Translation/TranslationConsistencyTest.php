@@ -13,18 +13,18 @@ use Symfony\Component\Yaml\Yaml;
 final class TranslationConsistencyTest extends TestCase
 {
     private const PLACEHOLDER_EXCEPTIONS = [
-        // ICU plural syntax - accolades imbriquées contiennent du texte traduit, pas des placeholders
+        // ICU plural syntax - nested braces contain translated text, not placeholders
         'photo.galleries.usage.item_count',
     ];
 
     private const PARITY_EXCEPTIONS = [
-        // Laisse vide pour l'instant - on ajoutera au fur et à mesure
+        // Left empty for now - entries will be added as we go
     ];
 
     /** @return list<array{string, array<string, mixed>, array<string, mixed>}> */
     public static function translationPairsProvider(): array
     {
-        $srcDir = dirname(__DIR__, 3).'/src';
+        $sourceDirectory = dirname(__DIR__, 3).'/src';
         $pairs = [];
 
         // Discovered by walking src/ rather than by a fixed list of glob
@@ -33,18 +33,18 @@ final class TranslationConsistencyTest extends TestCase
         // sub-module one (Dev/Audit, Platform/User, Configuration/Theme, …).
         // Audit's messages.en.yaml sat half-filled with French text for that
         // exact reason: no test ever looked at it.
-        $dirs = [];
-        $walker = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir, RecursiveDirectoryIterator::SKIP_DOTS));
+        $translationDirectories = [];
+        $walker = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDirectory, RecursiveDirectoryIterator::SKIP_DOTS));
         foreach ($walker as $file) {
             if ('messages.fr.yaml' === $file->getFilename()) {
-                $dirs[] = \dirname($file->getPathname());
+                $translationDirectories[] = \dirname($file->getPathname());
             }
         }
-        sort($dirs);
+        sort($translationDirectories);
 
-        foreach ($dirs as $dir) {
-            $frFile = $dir.'/messages.fr.yaml';
-            $enFile = $dir.'/messages.en.yaml';
+        foreach ($translationDirectories as $translationDirectory) {
+            $frFile = $translationDirectory.'/messages.fr.yaml';
+            $enFile = $translationDirectory.'/messages.en.yaml';
 
             if (!file_exists($enFile)) {
                 continue;
@@ -54,7 +54,7 @@ final class TranslationConsistencyTest extends TestCase
             // Dev/Audit and Dev/MountPoint both reduce to "Dev" and would
             // overwrite each other in this array, so only one of them would
             // ever be asserted on.
-            $label = str_replace($srcDir.'/', '', $dir);
+            $label = str_replace($sourceDirectory.'/', '', $translationDirectory);
 
             $pairs[$label] = [
                 $label,
@@ -181,8 +181,8 @@ final class TranslationConsistencyTest extends TestCase
         $flatFr = $this->flattenKeys($fr);
         $flatEn = $this->flattenKeys($en);
 
-        $violationsFr = array_filter($flatFr, static fn (mixed $v): bool => is_string($v) && str_contains($v, "{'@'}"));
-        $violationsEn = array_filter($flatEn, static fn (mixed $v): bool => is_string($v) && str_contains($v, "{'@'}"));
+        $violationsFr = array_filter($flatFr, static fn (mixed $value): bool => is_string($value) && str_contains($value, "{'@'}"));
+        $violationsEn = array_filter($flatEn, static fn (mixed $value): bool => is_string($value) && str_contains($value, "{'@'}"));
 
         self::assertEmpty(
             $violationsFr,

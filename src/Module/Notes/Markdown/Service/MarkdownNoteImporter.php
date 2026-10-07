@@ -29,35 +29,35 @@ use function str_ends_with;
 use function str_starts_with;
 
 /**
- * Des fichiers Markdown, remis en carnet.
+ * Markdown files, turned back into a notebook.
  *
- * **Le retour du voyage que fait {@see MarkdownNoteArchive}.** Un zip exporté
- * puis réimporté doit redonner la même arborescence, les mêmes titres et les
- * mêmes étiquettes : c'est la seule preuve qu'une exportation est autre chose
- * qu'un tas de fichiers.
+ * **The return leg of the trip {@see MarkdownNoteArchive} makes.** A zip
+ * exported then reimported must give back the same tree, the same titles and
+ * the same tags: it is the only proof that an export is something other than
+ * a pile of files.
  *
- * **Un répertoire est un dossier, un `.md` est une note.** Il n'y a plus de
- * cas particulier à rattraper : le format de l'archive dit lequel des deux
- * est lequel, là où l'ancienne convention faisait d'un même nom un fichier et
- * un répertoire pour une seule note.
+ * **A directory is a folder, a `.md` is a note.** There is no special case
+ * left to catch: the archive format says which of the two is which, where the
+ * old convention made one name both a file and a directory for a single
+ * note.
  *
- * **Rien n'est écrasé.** Une note du même nom existe déjà ? Une seconde est
- * créée à côté. Fusionner demanderait de décider ce qui gagne, sur un écran
- * où personne n'a rien demandé de tel ; ajouter est le seul geste qui ne perd
- * rien, et la corbeille rattrape le doublon.
+ * **Nothing is overwritten.** A note with the same name already exists? A
+ * second one is created next to it. Merging would mean deciding what wins, on
+ * a screen where nobody asked for anything like that; adding is the only
+ * action that loses nothing, and the trash catches the duplicate.
  *
- * Tout passe par les gestionnaires, jamais par les entités : une note
- * importée est une note comme une autre, avec son journal et ses positions.
+ * Everything goes through the managers, never through the entities: an
+ * imported note is a note like any other, with its log and its positions.
  */
 final readonly class MarkdownNoteImporter
 {
     /**
-     * Les extensions qu'une archive peut porter comme image.
+     * The extensions an archive can carry as an image.
      *
-     * La même liste que celle du service d'images, moins le détail : c'est
-     * lui qui tranche pour de bon, en lisant le type réel du fichier. Ici on
-     * ne fait que décider quelles entrées du zip valent la peine d'être
-     * ouvertes, pour ne pas tenter d'importer un PDF de deux cents pages.
+     * The same list as the image service's, minus the detail: it is the one
+     * that really decides, by reading the file's actual type. Here we only
+     * decide which zip entries are worth opening, so as not to try importing
+     * a two hundred page PDF.
      *
      * @var list<string>
      */
@@ -71,17 +71,17 @@ final readonly class MarkdownNoteImporter
     ) {}
 
     /**
-     * Importe un fichier, `.md` ou `.zip`, dans le dossier donné.
+     * Imports a file, `.md` or `.zip`, into the given folder.
      *
-     * @return int le nombre de notes et de dossiers créés
+     * @return int the number of notes and folders created
      */
     /**
-     * @param ?NoteSpaceInterface $space la racine où importer quand il n'y a pas de dossier ; son espace personnel à défaut
+     * @param ?NoteSpaceInterface $space the root to import into when there is no folder; the personal space otherwise
      */
     public function import(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): int
     {
         $name = $file->getClientOriginalName();
-        // Un dossier impose son espace ; sans lui, la racine demandée.
+        // A folder imposes its space; without one, the requested root.
         $space = $folder?->getSpace() ?? $space;
 
         if (str_ends_with(mb_strtolower($name), '.zip')) {
@@ -94,13 +94,12 @@ final readonly class MarkdownNoteImporter
     }
 
     /**
-     * Un zip, dossier par dossier.
+     * A zip, folder by folder.
      *
-     * Les répertoires de l'archive sont créés au fil des chemins rencontrés,
-     * une fois chacun : un dossier traversé par dix fichiers est un dossier,
-     * pas dix. L'ordre des entrées n'étant pas garanti par le format, un
-     * répertoire déclaré vide et un répertoire déduit d'un chemin aboutissent
-     * au même dossier.
+     * The archive's directories are created as paths are met, once each: a
+     * folder crossed by ten files is one folder, not ten. Since the format
+     * does not guarantee the order of entries, a directory declared empty
+     * and a directory deduced from a path end up as the same folder.
      */
     private function importZip(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space): int
     {
@@ -116,14 +115,14 @@ final readonly class MarkdownNoteImporter
         /** @var list<MarkdownNoteInput> $notes written together once the folders exist */
         $notes = [];
 
-        // Les images d'abord, parce qu'une note qui en cite une a besoin de
-        // sa nouvelle adresse au moment où on l'écrit.
-        // Les images vont dans le compartiment de l'espace d'arrivée, pour que
-        // tous ses lecteurs les voient.
+        // Images first, because a note that cites one needs its new address
+        // at the moment it is written.
+        // Images go into the bucket of the destination space, so that all its
+        // readers see them.
         $imported = $this->importImages($zip, $space ?? $user);
 
-        for ($i = 0; $i < $zip->numFiles; ++$i) {
-            $entry = (string) $zip->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $zip->numFiles; ++$entryIndex) {
+            $entry = (string) $zip->getNameIndex($entryIndex);
 
             if (str_starts_with($entry, '__MACOSX/')) {
                 continue;
@@ -165,7 +164,7 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $notes[] = $this->noteInput($under, $space, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($i), $imported));
+            $notes[] = $this->noteInput($under, $space, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($entryIndex), $imported));
             ++$created;
         }
 
@@ -177,30 +176,28 @@ final readonly class MarkdownNoteImporter
     }
 
     /**
-     * Reprend les images que l'archive transporte, et rend la table qui dit
-     * quel nom de fichier est devenu quelle adresse.
+     * Takes back the images the archive carries, and returns the table that
+     * says which file name became which address.
      *
-     * Indexées par leur **nom de base** et non par leur chemin : nos archives
-     * les rangent dans `_images/`, Obsidian dans un dossier de pièces jointes
-     * que chacun nomme comme il veut, et une note y renvoie par un chemin
-     * relatif qui dépend de sa profondeur. Le nom de base est ce que les deux
-     * ont en commun. Deux images homonymes dans deux dossiers différents se
-     * marcheraient dessus ; c'est le prix, et il est plus faible que celui de
-     * ne rien importer du tout.
+     * Keyed by their **base name** and not by their path: our archives store
+     * them in `_images/`, Obsidian in an attachments folder each person names
+     * as they like, and a note points to it through a relative path that
+     * depends on its depth. The base name is what both have in common. Two
+     * images with the same name in two different folders would step on each
+     * other; that is the price, and it is lower than importing nothing at all.
      *
-     * Une image refusée par le service - trop grosse, ou d'un type qu'on
-     * n'accepte pas, un SVG par exemple - est simplement sautée. L'import du
-     * carnet continue, et la note gardera un lien mort plutôt que de ne pas
-     * exister.
+     * An image refused by the service - too big, or of a type not accepted,
+     * an SVG for example - is simply skipped. The notebook import goes on, and
+     * the note will keep a dead link rather than not exist.
      *
-     * @return array<string, string> nom de base dans l'archive => adresse à écrire
+     * @return array<string, string> base name in the archive => address to write
      */
     private function importImages(ZipArchive $zip, CoreUserInterface|NoteSpaceInterface $bucket): array
     {
         $imported = [];
 
-        for ($i = 0; $i < $zip->numFiles; ++$i) {
-            $entry = (string) $zip->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $zip->numFiles; ++$entryIndex) {
+            $entry = (string) $zip->getNameIndex($entryIndex);
             if (str_starts_with($entry, '__MACOSX/')) {
                 continue;
             }
@@ -219,7 +216,7 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $octets = $zip->getFromIndex($i);
+            $octets = $zip->getFromIndex($entryIndex);
             if (false === $octets) {
                 continue;
             }
@@ -228,11 +225,11 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            // Par un fichier temporaire : le service valide le type réel en
-            // lisant le fichier, ce qu'on ne peut pas lui demander sur une
-            // chaîne en mémoire. Le cinquième argument met l'objet en mode
-            // test, sans quoi Symfony refuse un fichier que PHP n'a pas
-            // reçu lui-même d'un formulaire.
+            // Through a temporary file: the service validates the actual type
+            // by reading the file, which cannot be asked of it on an
+            // in-memory string. The fifth argument puts the object in test
+            // mode, without which Symfony refuses a file that PHP did not
+            // itself receive from a form.
             $temporaire = (string) tempnam(sys_get_temp_dir(), 'aurora-note-image-');
             $this->filesystem->dumpFile($temporaire, $octets);
 
@@ -243,7 +240,7 @@ final readonly class MarkdownNoteImporter
                 );
                 $imported[$base] = '/suite/notes/markdown/images/'.$filename;
             } catch (FileException) {
-                // Sautée, pour la raison dite plus haut.
+                // Skipped, for the reason given above.
             } finally {
                 $this->filesystem->remove($temporaire);
             }
@@ -253,16 +250,16 @@ final readonly class MarkdownNoteImporter
     }
 
     /**
-     * Remplace, dans le texte d'une note, les chemins vers les images de
-     * l'archive par les adresses qu'elles ont prises ici.
+     * Replaces, in a note's text, the paths to the archive's images with the
+     * addresses they took here.
      *
-     * Ce que l'export a écrit dans l'autre sens : `_images/x.png` redevient
-     * une adresse du back-office. Le chemin est comparé par son nom de base,
-     * donc `../../_images/x.png` comme `attachments/x.png` retombent sur la
-     * même entrée.
+     * What the export wrote in the other direction: `_images/x.png` becomes a
+     * back office address again. The path is compared by its base name, so
+     * `../../_images/x.png` and `attachments/x.png` both land on the same
+     * entry.
      *
-     * Une adresse absolue est laissée telle quelle : elle ne désigne pas un
-     * fichier de l'archive.
+     * An absolute address is left as is: it does not designate a file of the
+     * archive.
      *
      * @param array<string, string> $imported
      */
@@ -274,20 +271,20 @@ final readonly class MarkdownNoteImporter
 
         return (string) preg_replace_callback(
             '/!\[([^\]]*)\]\(([^)\s]+)([^)]*)\)/',
-            static function (array $m) use ($imported): string {
-                $cible = $m[2];
+            static function (array $match) use ($imported): string {
+                $cible = $match[2];
 
                 if (str_starts_with($cible, 'http://') || str_starts_with($cible, 'https://') || str_starts_with($cible, 'data:')) {
-                    return $m[0];
+                    return $match[0];
                 }
 
                 $base = basename(explode('#', explode('?', $cible)[0])[0]);
 
                 if (!isset($imported[$base])) {
-                    return $m[0];
+                    return $match[0];
                 }
 
-                return sprintf('![%s](%s%s)', $m[1], $imported[$base], $m[3]);
+                return sprintf('![%s](%s%s)', $match[1], $imported[$base], $match[3]);
             },
             $content,
         );
@@ -317,12 +314,12 @@ final readonly class MarkdownNoteImporter
     }
 
     /**
-     * Sépare le préambule du texte.
+     * Splits the front matter from the text.
      *
-     * Seul `tags:` est lu : c'est la seule chose que l'export écrit, et lire
-     * des clés qu'on ne produit pas serait promettre un dialecte qu'on ne
-     * tient pas. Un préambule d'un autre outil est donc laissé dans le texte,
-     * où il reste visible plutôt que perdu en silence.
+     * Only `tags:` is read: it is the only thing the export writes, and
+     * reading keys we do not produce would promise a dialect we do not keep.
+     * Another tool's front matter is therefore left in the text, where it
+     * stays visible rather than silently lost.
      *
      * @return array{0: list<string>, 1: string}
      */
@@ -353,7 +350,7 @@ final readonly class MarkdownNoteImporter
         return [$tags, $rest];
     }
 
-    /** Le nom du fichier, sans son extension, comme titre. */
+    /** The file name, without its extension, as the title. */
     private function titleOf(string $fileName): string
     {
         $title = pathinfo($fileName, PATHINFO_FILENAME);

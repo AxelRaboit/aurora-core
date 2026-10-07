@@ -101,14 +101,14 @@ final class NoteShareController extends AbstractController
     /**
      * An image embedded in a shared note.
      *
-     * Sans cette route, chaque image d'une note partagée est une icône cassée :
-     * celle du back-office construit sa clé avec la personne connectée, et un
-     * invité n'en est pas une. Ici la clé est celle du propriétaire de la
-     * note, que le jeton vient de désigner.
+     * Without this route, every image of a shared note is a broken icon: the
+     * back office one builds its key with the logged-in person, and a guest is
+     * not one. Here the key is the note owner's, whom the token just pointed
+     * to.
      *
-     * Le jeton est la seule autorisation, et il a déjà été validé au-dessus :
-     * `resolveUsable` refuse un lien révoqué ou périmé. Ce qui suit ne décide
-     * donc plus rien, il sert.
+     * The token is the only authorisation, and it was already validated
+     * above: `resolveUsable` refuses a revoked or expired link. What follows
+     * therefore decides nothing more, it serves.
      */
     #[Route(
         '/{token}/images/{filename}',
@@ -124,13 +124,12 @@ final class NoteShareController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        // La forme du nom est vérifiée par le service, qui rend null plutôt
-        // que de fabriquer une clé à partir de n'importe quoi. Réutiliser le
-        // même point d'entrée que la route authentifiée garde les deux sur la
-        // même règle.
-        // Le compartiment est celui de l'espace de la note : une note d'un
-        // espace partagé range ses images là, pas chez son auteur - qui peut
-        // d'ailleurs ne plus exister.
+        // The name's shape is checked by the service, which returns null
+        // rather than build a key out of anything. Reusing the same entry
+        // point as the authenticated route keeps both on the same rule.
+        // The bucket is the one of the note's space: a note in a shared space
+        // stores its images there, not with its author - who may no longer
+        // exist anyway.
         $key = $this->images->keyOrNull($filename, $this->images->bucketOf($link->getNote()));
 
         if (null === $key) {
@@ -168,10 +167,10 @@ final class NoteShareController extends AbstractController
                 'token' => $token,
                 'id' => '__id__',
             ]),
-            // La note telle qu'elle est, bandeau et habillage compris : un
-            // lien partagé montre la note, pas une version dépouillée
-            // d'elle. L'image vit chez celui qui l'héberge, donc un invité
-            // la voit sans qu'on lui ouvre quoi que ce soit.
+            // The note as it is, banner and styling included: a shared link
+            // shows the note, not a stripped-down version of it. The image
+            // lives with whoever hosts it, so a guest sees it without
+            // anything being opened to them.
             'cover' => [
                 'url' => $note->getCoverUrl(),
                 'creditName' => $note->getCoverCreditName(),
@@ -183,9 +182,9 @@ final class NoteShareController extends AbstractController
             // The list is handed to the page so a share carrying several
             // notes can be navigated, and it carries titles and ids only -
             // never the bodies of notes the reader has not opened.
-            'tree' => array_map(static fn (MarkdownNoteInterface $n): array => [
-                'id' => (int) $n->getId(),
-                'title' => $n->getTitle(),
+            'tree' => array_map(static fn (MarkdownNoteInterface $scopedNote): array => [
+                'id' => (int) $scopedNote->getId(),
+                'title' => $scopedNote->getTitle(),
             ], $scope),
             'titleIndex' => $this->scope->titleIndex($scope),
         ];

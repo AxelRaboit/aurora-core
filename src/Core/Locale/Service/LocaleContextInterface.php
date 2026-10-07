@@ -11,15 +11,15 @@ interface LocaleContextInterface
     public function getDefaultLocale(): string;
 
     /**
-     * Locales actives à l'affichage / écriture (1 seule si single-locale mode).
+     * Locales active for display / writing (only 1 in single-locale mode).
      *
      * @return list<string>
      */
     public function getActiveLocales(): array;
 
     /**
-     * Toutes les locales déclarées par le bundle, indépendamment du mode.
-     * À utiliser pour les outils statiques (dump de traductions JS, etc.).
+     * Every locale declared by the bundle, regardless of the mode.
+     * For static tools (JS translations dump, etc.).
      *
      * @return list<string>
      */

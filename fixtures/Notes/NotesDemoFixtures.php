@@ -40,27 +40,25 @@ use Throwable;
 use function assert;
 
 /**
- * Un carnet de notes qui se tient debout tout seul.
+ * A notebook that stands on its own.
  *
- * La démo n'en avait aucune, et l'écran des notes s'ouvrait sur un éditeur
- * vide : les huit pages de documentation de la rubrique montraient toutes la
- * même capture d'un carnet neuf, et le graphe des liens était un rectangle
- * noir. Ce qu'il faut pour que ces écrans disent quelque chose :
+ * The demo had none, and the notes screen opened on an empty editor: the
+ * eight documentation pages of the section all showed the same capture of a
+ * new notebook, and the link graph was a black rectangle. What it takes for
+ * these screens to say something:
  *
- *  - des liens `[[Titre]]` réels, donc un graphe qui a des arêtes ;
- *  - une note citée par deux autres, pour la liste « ce qui pointe ici » ;
- *  - un titre mentionné sans crochets, pour les mentions non liées ;
- *  - des étiquettes, pour le filtre et la recherche ;
- *  - un dossier avec des notes dedans, pour la bibliothèque.
+ *  - real `[[Title]]` links, so a graph that has edges;
+ *  - a note cited by two others, for the "what points here" list;
+ *  - a title mentioned without brackets, for unlinked mentions;
+ *  - tags, for the filter and the search;
+ *  - a folder with notes in it, for the library.
  *
- * Et depuis la refonte en dossiers, de quoi montrer ce qu'elle a ajouté :
- * un dossier dans un dossier (fil d'Ariane, profondeur, vue à plat), des
- * couleurs de dossier, des favoris, des apparences, des bandeaux, une
- * liste de tâches pour que la vignette d'une carte montre autre chose que
- * du texte, et une note à la corbeille pour que l'écran de corbeille ne
- * soit pas vide.
+ * And since the folders redesign, enough to show what it added: a folder in
+ * a folder (breadcrumb, depth, flat view), folder colours, favourites,
+ * appearances, banners, a task list so a card's thumbnail shows something
+ * other than text, and a note in the trash so the trash screen is not empty.
  *
- * Dev/test only, groupe `demo`.
+ * Dev/test only, group `demo`.
  */
 class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
@@ -88,10 +86,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     {
         assert($manager instanceof EntityManagerInterface);
 
-        // Le compte que la documentation photographie. Les notes sont
-        // personnelles : rangées sous un autre compte, l'écran s'ouvre vide
-        // pour qui prend la capture, ce qui est exactement ce qui s'est
-        // passé.
+        // The account the documentation captures. Notes are personal: filed
+        // under another account, the screen opens empty for whoever takes the
+        // capture, which is exactly what happened.
         $owner = $this->userRepository->findOneBy([
             'email' => 'dev@aurora.app',
             'type' => UserTypeEnum::Suite->value,
@@ -101,16 +98,15 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             throw new RuntimeException('The demo suite account is missing - run the core fixtures first.');
         }
 
-        // Tout le carnet de démo vit dans l'espace personnel du compte.
+        // The whole demo notebook lives in the account's personal space.
         $space = $this->spaces->personalSpace($owner);
 
         $repository = $manager->getRepository(MarkdownNote::class);
 
-        // Les titres sont chiffrés en base, donc `findOneBy(['title' => …])`
-        // ne trouve jamais rien : la comparaison porterait sur du texte clair
-        // contre du chiffré. Les notes de l'utilisateur sont chargées une
-        // fois et indexées après déchiffrement, ce qui est le seul endroit où
-        // le titre existe en clair.
+        // Titles are encrypted in the database, so `findOneBy(['title' => …])`
+        // never finds anything: the comparison would be plain text against
+        // ciphertext. The user's notes are loaded once and indexed after
+        // decryption, which is the only place the title exists in plain text.
         $existing = [];
         foreach ($repository->findBy(['user' => $owner]) as $note) {
             $existing[(string) $note->getTitle()] = $note;
@@ -125,11 +121,10 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
         $folders = [];
 
-        // Dossiers et notes d'un même dossier partagent un seul ordre depuis
-        // la 0.9.331 : un compteur par dossier, que les deux font avancer.
-        // Une note marquée `first` passe devant tout, dossiers compris :
-        // c'est ce que l'arborescence sait montrer, et la démonstration doit
-        // le montrer aussi.
+        // Folders and notes of the same folder share a single order since
+        // 0.9.331: one counter per folder, which both move forward. A note
+        // marked `first` goes ahead of everything, folders included: it is
+        // what the tree can show, and the demo must show it too.
         $positions = [];
         $next = static function (?string $group) use (&$positions): int {
             $key = $group ?? '';
@@ -140,9 +135,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         /** @var list<array{string, NoteFolder|MarkdownNote, DateTimeImmutable}> $pinned */
         $pinned = [];
 
-        // Les parents sont déclarés avant leurs enfants, donc une seule
-        // passe suffit : un dossier ne peut pointer que vers un dossier
-        // déjà construit.
+        // Parents are declared before their children, so a single pass is
+        // enough: a folder can only point to a folder already built.
         foreach ($this->folders() as $key => $definition) {
             $folder = $existingFolders[$definition['name']] ?? new NoteFolder();
             $folder
@@ -189,9 +183,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 $pinned[] = ['note', $note, new DateTimeImmutable('-2 days')];
             }
 
-            // Une note à la corbeille, pour que l'écran global en montre
-            // une. Reposée à chaque exécution : elle est le décor, pas le
-            // résultat d'un geste qu'on voudrait conserver.
+            // A note in the trash, so the global screen shows one. Set again
+            // on every run: it is scenery, not the result of an action worth
+            // keeping.
             $note->setDeletedAt(
                 ($definition['trashed'] ?? false) ? new DateTimeImmutable('-1 day') : null,
             );
@@ -216,12 +210,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Un espace partagé, pour que le panneau montre ses sections et que la
-     * lecture publique ait quelque chose à lire.
+     * A shared space, so the panel shows its sections and the public reading
+     * has something to read.
      *
-     * Le guide d'une petite agence : ouvert à tout le back-office en lecture,
-     * Marie y écrit, Jean le lit, et il est publié sur le web. Retrouvé par
-     * son adresse publique à chaque exécution, donc jamais en double.
+     * A small agency's handbook: open to the whole back office for reading,
+     * Marie writes in it, Jean reads it, and it is published on the web. Found
+     * by its public address on every run, so never duplicated.
      */
     private function teamSpace(EntityManagerInterface $manager, User $owner): void
     {
@@ -263,8 +257,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $existing[(string) $note->getTitle()] = $note;
         }
 
-        // Le sommaire passe devant le dossier, à la racine de l'espace ; les
-        // procédures se suivent dans leur dossier.
+        // The index goes ahead of the folder, at the root of the space; the
+        // procedures follow one another in their folder.
         $position = 1;
         $team = [];
         $definitions = [];
@@ -289,13 +283,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Le guide d'une petite agence, lu par toute l'équipe et publié sur le web.
+     * A small agency's handbook, read by the whole team and published on the web.
      *
-     * Chaque note montre une forme différente de ce que le rendu sait faire :
-     * un sommaire avec ses encadrés, une procédure numérotée, un tableau de
-     * rituels, une liste à cocher, et une procédure technique avec ses blocs
-     * de code. Le sommaire passe devant le dossier (`first`) : l'ordre libre
-     * se voit dès l'arborescence.
+     * Each note shows a different form of what the rendering can do: an index
+     * with its callouts, a numbered procedure, a table of rituals, a checklist,
+     * and a technical procedure with its code blocks. The index goes ahead of
+     * the folder (`first`): the free order shows right in the tree.
      *
      * @return list<array{title: string, age: string, tags: list<string>, inFolder: bool, first?: bool, content: string}>
      */
@@ -466,14 +459,14 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Les versions passées de la fiche du cabinet, pour que l'historique
-     * s'ouvre sur quelque chose : trois états, du plus ancien au plus récent,
-     * chacun avec ce qui a changé depuis.
+     * The past versions of the firm's sheet, so the history opens on
+     * something: three states, from oldest to newest, each with what changed
+     * since.
      *
-     * Reposées à chaque exécution : le décor, pas des versions qu'on voudrait
-     * garder d'une démonstration à l'autre. Chaque version se construit en
-     * retirant au texte courant ce qui lui a été ajouté depuis, pour que les
-     * trois restent d'accord avec lui quand on le retouche.
+     * Set again on every run: scenery, not versions worth keeping from one
+     * demo to the next. Each version is built by removing from the current
+     * text what was added to it since, so the three stay consistent with it
+     * when it is edited.
      */
     private function history(EntityManagerInterface $manager, User $owner, MarkdownNote $note): void
     {
@@ -485,12 +478,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
         $current = (string) $note->getContent();
 
-        // La veille : tout, sauf l'encadré sur les accès.
+        // The day before: everything, except the callout about access.
         $yesterday = (string) preg_replace('/\n> \[!info\] Accès\n> [^\n]*\n/', "\n", $current);
-        // Il y a cinq jours : pas encore de section technique.
+        // Five days ago: no technical section yet.
         $fiveDays = (string) preg_replace('/## Technique\n.*?(?=\nLe cadre contractuel)/s', '', $yesterday);
-        // Il y a douze jours : les fiches chantier en cours, et pas encore
-        // l'avertissement de Paul.
+        // Twelve days ago: the site sheets in progress, and not yet Paul's
+        // warning.
         $twelveDays = str_replace(
             '- [x] Reprise des fiches chantier, 24 au total',
             '- [ ] Reprise des fiches chantier, 18 sur 24',
@@ -498,8 +491,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         );
 
         $createdAt = new ReflectionProperty(MarkdownNoteRevision::class, 'createdAt');
-        // Des heures de Paris : la colonne est en UTC, et l'écran les rend
-        // dans le fuseau du site. Sans fuseau, « 21:40 » s'affichait 23:40.
+        // Paris times: the column is in UTC, and the screen renders them in
+        // the site's time zone. Without a time zone, "21:40" showed as 23:40.
         $paris = new DateTimeZone('Europe/Paris');
 
         foreach ([[$twelveDays, '-12 days 10:30'], [$fiveDays, '-5 days 18:05'], [$yesterday, '-1 day 21:40']] as [$content, $when]) {
@@ -513,13 +506,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * L'âge de chaque note : la date de modification que la liste et
-     * « Récemment modifiées » affichent.
+     * Each note's age: the modification date that the list and "Récemment
+     * modifiées" display.
      *
-     * Toutes portaient l'heure du chargement, la même à la minute près, et la
-     * vue en liste montrait une colonne de dates identiques. Posées après
-     * coup, en base : l'horodatage de l'entité se réécrit à chaque
-     * enregistrement.
+     * They all carried the load time, the same to the minute, and the list
+     * view showed a column of identical dates. Set afterwards, in the
+     * database: the entity's timestamp is rewritten on every save.
      *
      * @param array<array-key, MarkdownNote>        $notes
      * @param array<array-key, array{age?: string}> $definitions
@@ -538,8 +530,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Les favoris du compte de démo : ils sont à la personne, dans leur
-     * table, et reposés à chaque exécution comme le reste du décor.
+     * The demo account's favourites: they belong to the person, in their own
+     * table, and are set again on every run like the rest of the scenery.
      *
      * @param list<array{string, NoteFolder|MarkdownNote, DateTimeImmutable}> $pinned
      */
@@ -563,19 +555,19 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Une note partagée, pour que l'écran des partages ait quelque chose.
+     * A shared note, so the shares screen has something.
      *
-     * Il s'ouvrait toujours sur une liste vide, si bien que la fonctionnalité
-     * la plus visible du module - une note lisible sans compte - ne se voyait
-     * nulle part. La note d'index avec ses liens suivis, parce que c'est le
-     * cas que l'option « inclure les notes liées » existe pour : partager un
-     * sommaire seul donne au destinataire une liste de titres et rien
-     * derrière.
+     * It always opened on an empty list, so the module's most visible feature
+     * - a note readable without an account - showed nowhere. The index note
+     * with its links followed, because it is the case the "inclure les notes
+     * liées" option exists for: sharing an index alone gives the recipient a
+     * list of titles and nothing behind them.
      */
     private function shareLinkFor(?MarkdownNote $note): void
     {
-        // Rejoué à chaque `make demo` sinon : la note est retrouvée, le lien
-        // non, et l'écran se remplirait d'un partage de plus par exécution.
+        // Otherwise replayed on every `make demo`: the note is found again,
+        // the link is not, and the screen would fill with one more share per
+        // run.
         if (!$note instanceof MarkdownNote || [] !== $this->shareLinkRepository->findForNote($note)) {
             return;
         }
@@ -590,12 +582,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Les dossiers de la démo, parents d'abord.
+     * The demo's folders, parents first.
      *
-     * Un dossier dans un dossier n'est pas du décor : c'est ce qui fait
-     * exister le fil d'Ariane, la profondeur, et la différence entre la vue
-     * rangée et la vue à plat. Les couleurs servent à voir d'un coup d'œil
-     * ce que la carte et l'arbre du menu en font.
+     * A folder in a folder is not scenery: it is what makes the breadcrumb,
+     * the depth, and the difference between the filed view and the flat view
+     * exist. The colours show at a glance what the card and the menu tree do
+     * with them.
      *
      * @return array<string, array{name: string, parent?: string, color?: string, favorite?: bool}>
      */
@@ -607,54 +599,52 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             'photo' => ['name' => 'Photographie', 'color' => '#f59e0b'],
             'editorial' => ['name' => 'Éditorial', 'color' => '#8b5cf6'],
             'archives' => ['name' => 'Archives'],
-            // Les modèles d'une fiche : « Partir de » les propose dans
-            // « Ajouter ».
+            // A sheet's templates: "Partir de" offers them in "Ajouter".
             'modeles' => ['name' => 'Modèles', 'color' => '#ec4899'],
         ];
     }
 
     /**
-     * L'adresse d'une photo Pexels, telle que la note la garde.
+     * A Pexels photo's address, as the note keeps it.
      *
-     * **Rien n'est téléchargé, ici pas plus qu'ailleurs** : la démo écrit
-     * l'adresse servie par leur CDN, exactement ce que le sélecteur écrit
-     * quand on choisit une photo. C'est la démonstration la plus fidèle du
-     * choix de conception - l'image vit dehors, la note n'en a que
-     * l'adresse et le crédit.
+     * **Nothing is downloaded, here no more than anywhere else**: the demo
+     * writes the address served by their CDN, exactly what the picker writes
+     * when a photo is chosen. It is the most faithful demonstration of the
+     * design choice - the image lives outside, the note only has its address
+     * and its credit.
      *
-     * Les identifiants et les noms viennent d'une vraie recherche
-     * (`aurora:ged:pexels:search`, jouée là où la clé est configurée), et
-     * chaque adresse a été vérifiée. Inventer des identifiants aurait donné
-     * des cadres vides sous un crédit faux, ce qui est pire qu'un carnet
-     * sans bandeau.
+     * The ids and names come from a real search (`aurora:ged:pexels:search`,
+     * run where the key is configured), and every address was checked.
+     * Making up ids would have given empty frames under a false credit, which
+     * is worse than a notebook without banners.
      *
-     * Le lien de crédit pointe la page de la photo : la licence demande de
-     * nommer l'auteur, et c'est de là qu'on remonte à lui.
+     * The credit link points to the photo's page: the licence requires naming
+     * the author, and that is where one traces back to them.
      */
     /**
-     * Remplace les `{{image:0}}` du texte par de vraies images collées.
+     * Replaces the `{{image:0}}` markers in the text with real pasted images.
      *
-     * Le carnet de démonstration montrait tout du module sauf ça : une note
-     * pouvait porter une image, mais aucune n'en portait, donc ni la vignette
-     * de la bibliothèque ni la capture du site public ne le disaient.
+     * The demo notebook showed everything in the module except this: a note
+     * could carry an image, but none did, so neither the library thumbnail
+     * nor the public site capture showed it.
      *
-     * **Les photos ne sont pas dans le dépôt.** Elles sont tirées du CDN de
-     * Pexels au chargement, comme les bandeaux tirent leur adresse du même
-     * endroit - à ceci près qu'ici il faut les octets, puisqu'une image collée
-     * est un fichier chez nous. Committer des photos dans un dépôt public
-     * pour décorer un jeu d'essai est un poids qu'on ne reprend jamais, et
-     * l'une d'elles portait dans ses métadonnées un « All Rights Reserved »
-     * qui n'a rien à faire là.
+     * **The photos are not in the repository.** They are pulled from the
+     * Pexels CDN on load, as the banners take their address from the same
+     * place - except that here the bytes are needed, since a pasted image is a
+     * file on our side. Committing photos into a public repository to
+     * decorate a test data set is a weight never taken back, and one of them
+     * carried an "All Rights Reserved" in its metadata that has no business
+     * there.
      *
-     * **Sans réseau, la note garde son texte.** Un jeu de démonstration qui
-     * refuse de se charger parce qu'un CDN est lent est un jeu de
-     * démonstration cassé. Le marqueur disparaît, l'image avec, et le reste
-     * du carnet arrive.
+     * **Without network, the note keeps its text.** A demo data set that
+     * refuses to load because a CDN is slow is a broken demo data set. The
+     * marker disappears, the image with it, and the rest of the notebook
+     * arrives.
      *
-     * **Idempotente** : si la note porte déjà des images, on réutilise les
-     * fichiers qu'elle cite plutôt que d'en téléverser de nouveaux à chaque
-     * `make demo`. Sans ça, dix rechargements laisseraient dix copies de la
-     * même photo dans le stockage, sans que rien ne les réclame.
+     * **Idempotent**: if the note already carries images, the files it cites
+     * are reused rather than uploading new ones on every `make demo`. Without
+     * this, ten reloads would leave ten copies of the same photo in storage,
+     * with nothing claiming them.
      *
      * @param array{content: string, images?: list<int>} $definition
      */
@@ -673,8 +663,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $filename = $already[$index] ?? $this->fetchImage($photoId, $owner);
 
             if (null === $filename) {
-                // Le marqueur part avec la ligne qui le porte : un
-                // `![légende]()` vide afficherait une icône cassée.
+                // The marker goes with the line that carries it: an empty
+                // `![légende]()` would show a broken icon.
                 $content = (string) preg_replace('/^.*\{\{image:'.$index.'\}\}.*$\n?/m', '', $content);
 
                 continue;
@@ -690,7 +680,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         return $content;
     }
 
-    /** Une photo de Pexels, téléversée comme si on l'avait collée. */
+    /** A Pexels photo, uploaded as if it had been pasted. */
     private function fetchImage(int $photoId, CoreUserInterface $owner): ?string
     {
         $temporaire = (string) tempnam(sys_get_temp_dir(), 'aurora-demo-image-');
@@ -720,23 +710,22 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Le carnet d'un petit studio : développement web, photographie, réseaux
-     * sociaux.
+     * A small studio's notebook: web development, photography, social media.
      *
-     * Réécrit le 03/10/2026 pour le tour : les notes tenaient en quatre lignes
-     * et montraient surtout que le module était vide. Chacune montre
-     * maintenant une forme que le rendu sait faire, et le carnet entier les
-     * réunit toutes : encadrés de plusieurs couleurs, tableaux alignés, listes
-     * à cocher par section, blocs de code colorés, images à leur taille,
-     * titres sur trois niveaux pour le plan, liens `[[…]]` pour le graphe.
+     * Rewritten on 03/10/2026 for the tour: the notes were four lines long and
+     * mostly showed that the module was empty. Each one now shows a form the
+     * rendering can do, and the whole notebook brings them all together:
+     * callouts in several colours, aligned tables, checklists per section,
+     * highlighted code blocks, images at their size, headings on three levels
+     * for the outline, `[[…]]` links for the graph.
      *
-     * - « Cabinet Verrier » est la vitrine de l'éditeur : le plan y a de quoi
-     *   se déplier, et c'est elle qui porte l'historique (`history()`).
-     * - « Sommaire des clients » passe devant le dossier « Studio Lumen »
-     *   (`first`) : l'ordre libre se voit dans l'arborescence.
-     * - Les deux notes du dossier « Modèles » sont des modèles : « Ajouter »
-     *   les propose sous « Partir de ».
-     * - `age` donne à chaque note sa date de modification.
+     * - "Cabinet Verrier" is the editor's showcase: the outline has enough
+     *   there to unfold, and it is the one carrying the history (`history()`).
+     * - "Sommaire des clients" goes ahead of the "Studio Lumen" folder
+     *   (`first`): the free order shows in the tree.
+     * - The two notes of the "Modèles" folder are templates: "Ajouter" offers
+     *   them under "Partir de".
+     * - `age` gives each note its modification date.
      *
      * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, first?: bool, template?: bool, age?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool, images?: list<int>}>
      */
@@ -744,19 +733,18 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     {
         return [
             'clients' => [
-                // Le sommaire ne porte pas le nom de son dossier : deux
-                // lignes « Clients » l'une sous l'autre, un dossier et une
-                // note, est exactement l'ambiguïté que les dossiers ont
-                // supprimée.
+                // The index does not carry its folder's name: two "Clients"
+                // rows one under the other, a folder and a note, is exactly
+                // the ambiguity folders removed.
                 'title' => 'Sommaire des clients',
                 'tags' => ['index', 'client'],
                 'folder' => 'clients',
                 'first' => true,
                 'favorite' => true,
                 'age' => '-2 hours',
-                // Un atelier clair et ses tables de travail. La photo d'avant
-                // montrait une affiche au logo de Pexels en plein milieu, et
-                // c'est elle qui ouvrait la page de partage et la lecture.
+                // A bright workshop and its work tables. The previous photo
+                // showed a poster with the Pexels logo right in the middle,
+                // and it was the one opening the share page and the reading.
                 'cover' => 4348298,
                 'coverCredit' => 'Antoni Shkraba',
                 'coverPosition' => 60,
@@ -821,12 +809,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'age' => '-25 minutes',
                 'cover' => 923307,
                 'coverCredit' => 'Julien Bachelet',
-                // La vitrine de l'éditeur, et c'est délibéré : c'est elle que
-                // la première image de la carte photographie, en écriture avec
-                // son rendu à côté, et c'est elle que le plan et l'historique
-                // montrent. Des titres sur trois niveaux, un encadré, un
-                // tableau aligné, un bloc de code et une image à sa taille :
-                // tout ce que le rendu sait faire, dans une vraie fiche.
+                // The editor's showcase, on purpose: it is the one the card's
+                // first image captures, being written with its rendering next
+                // to it, and the one the outline and the history show.
+                // Headings on three levels, a callout, an aligned table, a
+                // code block and an image at its size: everything the
+                // rendering can do, in a real sheet.
                 'content' => <<<'MD'
                     # Cabinet Verrier
 
@@ -912,8 +900,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'age' => '-8 days',
                 'cover' => 5668471,
                 'coverCredit' => 'Sora Shimazaki',
-                // Un modèle : « Partir de » le propose, et la date du jour
-                // remplace le repère à la création.
+                // A template: "Partir de" offers it, and today's date replaces
+                // the placeholder on creation.
                 'content' => <<<'MD'
                     # Brief de projet
 
@@ -975,9 +963,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'tags' => ['photo', 'méthode'],
                 'folder' => 'photo',
                 'age' => '-6 days',
-                // Une photo en hauteur, coupée haut : c'est le cas qui
-                // justifie le réglage de cadrage, un portrait montrant un
-                // menton quand on le centre.
+                // A portrait-format photo, cropped high: it is the case that
+                // justifies the framing setting, a portrait showing a chin
+                // when centred.
                 'cover' => 35256272,
                 'coverCredit' => 'Alef Morais',
                 'coverPosition' => 30,
@@ -1108,9 +1096,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     MD,
             ],
             'livraison' => [
-                // Des cases à cocher, pour que la vignette d'une carte
-                // montre autre chose qu'un paragraphe : c'est la forme qui
-                // fait reconnaître une note d'un coup d'œil.
+                // Checkboxes, so a card's thumbnail shows something other
+                // than a paragraph: it is the form that makes a note
+                // recognisable at a glance.
                 'title' => 'Checklist de livraison',
                 'tags' => ['méthode'],
                 'folder' => 'photo',
@@ -1181,8 +1169,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     MD,
             ],
             'brouillon' => [
-                // À la corbeille : l'écran global en montrait une liste
-                // vide, donc personne ne voyait ce qu'il sait faire.
+                // In the trash: the global screen showed an empty list, so
+                // nobody saw what it can do.
                 'title' => 'Brouillon abandonné',
                 'tags' => [],
                 'trashed' => true,

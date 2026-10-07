@@ -10,6 +10,7 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceResource\Dto\SpaceResourceInputFactoryInterface;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Module\Studio\SpaceResource\Manager\SpaceResourceManagerInterface;
@@ -25,17 +26,17 @@ use function is_array;
 use function is_numeric;
 
 /**
- * Les ressources d'un espace.
+ * The resources of a space.
  *
- * **Aucune route publique.** Le client lit les siennes avec le reste de sa
- * page, et rien ici ne s'ouvre sans compte : une route publique qui prendrait
- * une ressource par son identifiant serait un second chemin vers des lignes
- * dont la moitié est fermée.
+ * **No public route.** The client reads theirs with the rest of their page,
+ * and nothing here opens without an account: a public route that took a
+ * resource by its identifier would be a second path to rows half of which
+ * are closed.
  *
- * Chaque route nomme l'espace et chaque gestionnaire vérifie que la ressource
- * qu'on lui a donnée lui appartient - rien n'empêche une requête fabriquée de
- * désigner la ressource d'un client sous l'espace d'un autre, et `assertOwned`
- * est ce qui l'en empêche.
+ * Each route names the space and each handler checks that the resource it
+ * was given belongs to it - nothing prevents a forged request from pointing
+ * to one client's resource under another's space, and `assertOwned` is what
+ * stops it.
  */
 #[Route('/workspace/{id}/resources', name: 'workspace_space_resources', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -50,6 +51,7 @@ class SpaceResourcesController extends AbstractController
         protected readonly SpaceResourceInputFactoryInterface $inputFactory,
         protected readonly SpaceResourcesViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
+        protected readonly ClientVisibility $clientVisibility,
     ) {}
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
@@ -62,6 +64,12 @@ class SpaceResourcesController extends AbstractController
 
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
+        }
+
+        // Creating a resource that is already shown is showing it: the right to
+        // share the space, like the button of the list.
+        if (!$this->clientVisibility->allowsChange(false, $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
         }
 
         $this->resources->create($space, $input);
@@ -87,6 +95,10 @@ class SpaceResourcesController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
+        if (!$this->clientVisibility->allowsChange($resource->isVisibleToClient(), $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
+        }
+
         $this->resources->update($resource, $input);
 
         return $this->jsonSuccess($this->viewBuilder->payload($space));
@@ -94,6 +106,7 @@ class SpaceResourcesController extends AbstractController
 
     #[Route('/{resourceId}/visibility', name: '_visibility', requirements: ['resourceId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
     public function visibility(
         CustomerSpace $space,
         #[MapEntity(id: 'resourceId')]

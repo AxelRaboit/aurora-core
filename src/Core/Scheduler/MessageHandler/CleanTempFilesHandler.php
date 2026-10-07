@@ -36,11 +36,11 @@ final readonly class CleanTempFilesHandler
 
     public function __invoke(CleanTempFilesMessage $message): void
     {
-        $tmpCleaned = $this->cleanTmpFiles();
+        $temporaryFilesCleaned = $this->cleanTmpFiles();
 
-        if ($tmpCleaned > 0) {
+        if ($temporaryFilesCleaned > 0) {
             $this->logger->info('CleanTempFiles: removed {tmp} tmp file(s).', [
-                'tmp' => $tmpCleaned,
+                'tmp' => $temporaryFilesCleaned,
             ]);
         }
     }
@@ -48,11 +48,11 @@ final readonly class CleanTempFilesHandler
     private function cleanTmpFiles(): int
     {
         $cutoff = time() - (self::TMP_MAX_AGE_MINUTES * 60);
-        $tmpDir = sys_get_temp_dir();
+        $temporaryDirectory = sys_get_temp_dir();
         $removed = 0;
 
         foreach (self::TMP_PREFIXES as $prefix) {
-            $pattern = $tmpDir.DIRECTORY_SEPARATOR.$prefix.'*';
+            $pattern = $temporaryDirectory.DIRECTORY_SEPARATOR.$prefix.'*';
             foreach (glob($pattern) ?: [] as $file) {
                 if (is_file($file) && filemtime($file) < $cutoff) {
                     @unlink($file);

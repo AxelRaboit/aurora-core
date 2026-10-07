@@ -24,16 +24,16 @@ use function mb_trim;
 use function sprintf;
 
 /**
- * Les réglages d'un espace, ouverts au référent.
+ * A space's settings, open to the lead.
  *
- * **C'est ce qui donne enfin un sens au rôle de responsable.** Il ne disait
- * jusqu'ici qu'à qui s'adresser ; il ouvre maintenant une porte que ses
- * coéquipiers n'ont pas. Le reste du travail ne bouge pas : un équipier écrit,
- * commente et programme comme avant.
+ * **This is what finally gives the lead role a meaning.** Until now it only
+ * said who to talk to; it now opens a door their teammates do not have. The
+ * rest of the work does not move: a teammate writes, comments and schedules
+ * as before.
  *
- * **Un 404 et non un 403** pour qui n'y a pas droit, comme partout ailleurs
- * sur un espace : ne pas confirmer qu'une porte existe est moins bavard que
- * de la refuser poliment.
+ * **A 404 and not a 403** for whoever has no right to it, as everywhere else
+ * on a space: not confirming that a door exists says less than refusing it
+ * politely.
  */
 #[Route('/workspace/{id}/settings', name: 'workspace_space_settings', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -49,7 +49,7 @@ final class SpaceSettingsController extends AbstractController
         private readonly RateLimiterFactoryInterface $spaceDriveUnlockLimiter,
     ) {}
 
-    /** L'état des réglages, sans jamais rendre le mot de passe lui-même. */
+    /** The state of the settings, without ever returning the password itself. */
     #[Route('', name: '_show', methods: [HttpMethodEnum::Get->value])]
     public function show(CustomerSpace $space): JsonResponse
     {
@@ -59,17 +59,17 @@ final class SpaceSettingsController extends AbstractController
     }
 
     /**
-     * Le dossier Drive que cet espace regarde.
+     * The Drive folder this space looks at.
      *
-     * **Ici et non sur l'onglet Drive**, où il se trouvait d'abord. Désigner
-     * le dossier d'un client est une configuration : ça se décide une fois,
-     * par celui qui répond de l'espace. Laissé au-dessus de la liste des
-     * fichiers, le champ était modifiable par quiconque ouvrait l'onglet, et
-     * il occupait une place sur un écran qu'on vient consulter.
+     * **Here and not on the Drive tab**, where it first was. Pointing at a
+     * customer's folder is configuration: it is decided once, by whoever
+     * answers for the space. Left above the file list, the field could be
+     * edited by anyone who opened the tab, and it took room on a screen people
+     * come to consult.
      *
-     * L'adresse entière est acceptée et découpée : c'est ce qu'on a sous la
-     * main en sortant de Drive, et exiger l'identifiant nu ferait échouer le
-     * geste le plus naturel.
+     * The whole address is accepted and split: it is what is at hand when
+     * coming out of Drive, and requiring the bare id would make the most
+     * natural gesture fail.
      */
     #[Route('/drive-folder', name: '_drive_folder', methods: [HttpMethodEnum::Post->value])]
     public function setDriveFolder(CustomerSpace $space, Request $request): JsonResponse
@@ -98,11 +98,11 @@ final class SpaceSettingsController extends AbstractController
     }
 
     /**
-     * Pose ou remplace le mot de passe du Drive.
+     * Sets or replaces the Drive password.
      *
-     * Remplacer demande l'ancien : sans cela, un écran laissé ouvert suffirait
-     * à le changer, et la serrure ne vaudrait que jusqu'à la prochaine pause
-     * café.
+     * Replacing asks for the old one: without that, a screen left open would
+     * be enough to change it, and the lock would only hold until the next
+     * coffee break.
      */
     #[Route('/drive-password', name: '_drive_password', methods: [HttpMethodEnum::Post->value])]
     public function setDrivePassword(CustomerSpace $space, Request $request): JsonResponse
@@ -128,12 +128,13 @@ final class SpaceSettingsController extends AbstractController
     }
 
     /**
-     * Rouvre l'onglet, contre le mot de passe en cours.
+     * Reopens the tab, against the current password.
      *
-     * **Le saisir est ce qui distingue une serrure d'un ralentisseur.** Sans
-     * cette exigence, quiconque atteint cet écran l'enlève en un clic. Le prix
-     * est qu'un oubli bloque : le secours est `aurora:space:drive-password:clear`
-     * sur le serveur, et c'est le bon niveau d'autorité pour forcer une porte.
+     * **Entering it is what tells a lock from a speed bump.** Without that
+     * requirement, anyone reaching this screen removes it in one click. The
+     * price is that forgetting it blocks: the fallback is
+     * `aurora:space:drive-password:clear` on the server, and that is the right
+     * level of authority to force a door.
      */
     #[Route('/drive-password/clear', name: '_drive_password_clear', methods: [HttpMethodEnum::Post->value])]
     public function clearDrivePassword(CustomerSpace $space, Request $request): JsonResponse
@@ -157,16 +158,16 @@ final class SpaceSettingsController extends AbstractController
     }
 
     /**
-     * Redemande le mot de passe à tout le monde.
+     * Asks everyone for the password again.
      *
-     * **Sans changer le mot de passe**, ce qui est tout l'intérêt : ceux qui
-     * le connaissent le retapent, et on n'a pas à leur en communiquer un
-     * nouveau. C'est la réponse au doute ordinaire, un écran resté ouvert
-     * ailleurs, plutôt qu'à un mot de passe éventé, qui demande de le changer.
+     * **Without changing the password**, which is the whole point: those who
+     * know it type it again, and nobody has to be given a new one. It is the
+     * answer to the ordinary doubt, a screen left open somewhere else, rather
+     * than to a leaked password, which calls for changing it.
      *
-     * Rien à saisir pour l'appuyer : le geste ne donne accès à rien, il en
-     * retire. Refuser un bouton qui ne fait que refermer serait sévère pour
-     * rien.
+     * Nothing to enter to press it: the gesture grants access to nothing, it
+     * takes some away. Refusing a button that only locks again would be harsh
+     * for nothing.
      */
     #[Route('/drive-revoke', name: '_drive_revoke', methods: [HttpMethodEnum::Post->value])]
     public function revokeDriveSessions(CustomerSpace $space): JsonResponse
@@ -184,18 +185,17 @@ final class SpaceSettingsController extends AbstractController
     }
 
     /**
-     * Ouvre l'onglet Drive pour cette session.
+     * Opens the Drive tab for this session.
      *
-     * Sur les réglages et non sur le Drive, parce que c'est ici qu'on sait ce
-     * qu'est un mot de passe d'espace ; l'écran du Drive ne fait qu'afficher
-     * la demande.
+     * On the settings and not on the Drive, because this is where a space
+     * password is understood; the Drive screen only shows the prompt.
      */
     #[Route('/drive-unlock', name: '_drive_unlock', methods: [HttpMethodEnum::Post->value])]
     public function unlockDrive(CustomerSpace $space, Request $request): JsonResponse
     {
-        // Pas `denyUnlessReferent` : déverrouiller n'est pas configurer. Tout
-        // équipier qui voit l'espace peut ouvrir l'onglet s'il connaît le mot
-        // de passe, ce qui est exactement ce qu'un mot de passe veut dire.
+        // Not `denyUnlessReferent`: unlocking is not configuring. Any teammate
+        // who sees the space can open the tab if they know the password,
+        // which is exactly what a password means.
         if (!$this->visibility->canSee($space)) {
             throw $this->createNotFoundException();
         }
@@ -213,9 +213,9 @@ final class SpaceSettingsController extends AbstractController
             return $this->jsonFailure('suite.studio.spaces.settings.errors.wrong_password');
         }
 
-        // La première ouverture d'un espace fermé avant la génération lui en
-        // donne une : sans cet enregistrement, la session retiendrait une
-        // valeur que l'espace ne porte pas.
+        // The first opening of a space locked before generations existed
+        // gives it one: without this save, the session would hold a value the
+        // space does not carry.
         $this->entityManager->flush();
 
         return $this->jsonSuccess(['unlocked' => true]);

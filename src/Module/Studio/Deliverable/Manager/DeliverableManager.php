@@ -10,15 +10,19 @@ use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
@@ -34,11 +38,11 @@ use function mb_trim;
 use function str_starts_with;
 
 /**
- * Écrit les livrables : création, enregistrement, copie, suppression.
+ * Writes deliverables: creation, saving, copying, deletion.
  *
- * La grille passe par le normaliseur des pages du site : c'est la même
- * construction, avec les mêmes zones et les mêmes garde-fous, et ce qui est
- * accepté ici est ce qui sait se rendre là-bas.
+ * The grid goes through the site pages' normalizer: it is the same
+ * construction, with the same zones and the same safeguards, and what is
+ * accepted here is what knows how to render there.
  */
 readonly class DeliverableManager
 {
@@ -52,18 +56,21 @@ readonly class DeliverableManager
         private DocumentRepository $documents,
         private AuditLogger $auditLogger,
         private DeliverableRepository $deliverables,
+        private CustomerRepository $customers,
+        private SlidesManager $slides,
     ) {}
 
     /**
-     * Un livrable neuf, prêt à composer.
+     * A new deliverable, ready to compose.
      *
-     * La grille est allumée d'emblée : un livrable n'a pas d'autre corps, et
-     * un interrupteur à basculer avant d'écrire la première ligne serait un
-     * geste pour rien. Dans un espace, « Préparé pour » reprend la raison
-     * sociale du client ; sans espace, il n'y a encore personne à nommer.
+     * The grid is on from the start: a deliverable has no other body, and a
+     * switch to flip before writing the first line would be a wasted action.
+     * In a space, "Préparé pour" takes the client's company name; without a
+     * space, there is nobody to name yet.
      *
-     * La portée ne compte que sans espace : dans un espace, c'est l'équipe de
-     * l'espace qui lit.
+     * The scope only counts without a space: in a space, the space's team is
+     * the reader. The format is decided here once and for all, see
+     * {@see DeliverableFormatEnum}.
      */
     public function create(
         ?CustomerSpaceInterface $space,
@@ -71,8 +78,9 @@ readonly class DeliverableManager
         ?CoreUserInterface $owner = null,
         DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
         ?DeliverableCategoryInterface $category = null,
+        DeliverableFormatEnum $format = DeliverableFormatEnum::Page,
     ): DeliverableInterface {
-        $deliverable = $this->instantiate($space, $title, $this->localeContext->getDefaultLocale());
+        $deliverable = $this->instantiate($space, $title, $this->localeContext->getDefaultLocale(), $format);
         $deliverable
             ->setOwner($owner)
             ->setCategory($space instanceof CustomerSpaceInterface ? null : $category)
@@ -94,26 +102,60 @@ readonly class DeliverableManager
     }
 
     /**
-     * L'entité qu'on crée, à un seul endroit : un projet qui étend le livrable
-     * (un champ de plus, une relation) surcharge ceci et reçoit sa classe à
-     * chaque création, copie ou duplication, sans réécrire le gestionnaire.
-     * C'est le même point d'accroche que celui des espaces clients.
+     * The entity being created, in one place: a project that extends the
+     * deliverable (one more field, a relation) overrides this and gets its
+     * class on every creation, copy or duplication, without rewriting the
+     * manager. It is the same hook as the one for client spaces.
      */
-    protected function instantiate(?CustomerSpaceInterface $space, string $title, string $locale): DeliverableInterface
-    {
-        return new Deliverable($space, $title, $locale);
+    protected function instantiate(
+        ?CustomerSpaceInterface $space,
+        string $title,
+        string $locale,
+        DeliverableFormatEnum $format = DeliverableFormatEnum::Page,
+    ): DeliverableInterface {
+        return new Deliverable($space, $title, $locale, $format);
     }
 
     /**
-     * Ce que l'éditeur tient est-il plus vieux que ce qui est enregistré ?
+     * A new Studio deliverable, started from a template: its body, its
+     * appearance, its image, its header, its language and its format, under
+     * the title just typed.
      *
-     * L'éditeur renvoie la date de modification qu'il a reçue en ouvrant le
-     * livrable ou en l'enregistrant. Si elle n'est plus celle de la base,
-     * quelqu'un d'autre est passé entre-temps, et enregistrer effacerait son
-     * travail : le livrable partagé a plusieurs auteurs. Un envoi qui ne la
-     * porte pas n'est pas comparé, pour qu'un appel venu d'ailleurs reste
-     * possible, et `force` enregistre quand même, quand l'auteur a choisi
-     * d'écraser ce que l'autre a fait.
+     * Like a duplication, with two differences: the shelf and the category
+     * come from the creation dialog, and the new one is not a template itself
+     * (nor does it take the template's client, if it had one): you start from
+     * a template to write to someone.
+     */
+    public function createFromTemplate(
+        DeliverableInterface $template,
+        string $title,
+        ?CoreUserInterface $owner = null,
+        DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
+        ?DeliverableCategoryInterface $category = null,
+    ): DeliverableInterface {
+        $deliverable = $this->instantiate(null, $title, $template->getLocale(), $template->getFormat());
+        $deliverable
+            ->setOwner($owner)
+            ->setScope($scope)
+            ->setCategory($category)
+            ->setReadingHeader($template->getReadingHeader());
+
+        $deliverable = $this->persistCopy($template, $deliverable);
+        $this->auditLogger->log('studio', 'deliverable.created', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable, ['from' => $template->getId()]));
+
+        return $deliverable;
+    }
+
+    /**
+     * Is what the editor holds older than what is saved?
+     *
+     * The editor sends back the modification date it received when opening
+     * or saving the deliverable. If it no longer matches the database,
+     * someone else came by in the meantime, and saving would erase their
+     * work: the shared deliverable has several authors. A request that does
+     * not carry it is not compared, so that a call from elsewhere stays
+     * possible, and `force` saves anyway, when the author chose to overwrite
+     * what the other did.
      *
      * @param array<string, mixed> $data
      */
@@ -132,11 +174,11 @@ readonly class DeliverableManager
     }
 
     /**
-     * Enregistre ce que l'éditeur envoie, entier.
+     * Saves what the editor sends, in full.
      *
      * @param array<string, mixed> $data
      *
-     * @return array<string, string> les erreurs par champ, vide quand tout est passé
+     * @return array<string, string> the errors by field, empty when everything went through
      */
     public function update(DeliverableInterface $deliverable, array $data): array
     {
@@ -145,8 +187,8 @@ readonly class DeliverableManager
             return $errors;
         }
 
-        // Un livrable est toujours une grille : son éditeur n'offre pas de
-        // l'éteindre, et une grille éteinte rendrait une page vide.
+        // A deliverable is always a grid: its editor offers no way to turn it
+        // off, and a grid turned off would render an empty page.
         $layout = $this->gridNormalizer->normalizeLayout([...(is_array($data['gridLayout'] ?? null) ? $data['gridLayout'] : []), 'enabled' => true]);
         $summary = is_string($data['summary'] ?? null) ? mb_trim($data['summary']) : '';
 
@@ -158,18 +200,28 @@ readonly class DeliverableManager
             ->setGridContent($this->gridNormalizer->normalizeContent($data['gridContent'] ?? [], $layout))
             ->setAppearance(DeliverableAppearance::normalize($data['appearance'] ?? []))
             ->setReadingHeader(DeliverableReadingHeader::normalize($data['readingHeader'] ?? []))
-            // Sans espace, il n'y a pas de client pour le voir : la case reste
-            // fermée, quoi que dise l'éditeur.
+            // Without a space, there is no client to see it: the box stays
+            // unchecked, whatever the editor says.
             ->setVisibleToClient(!$deliverable->isStandalone() && true === ($data['visibleToClient'] ?? false))
             ->touch();
 
-        // La catégorie et l'image ne changent que si l'envoi les nomme : un
-        // appel qui les omet ne les efface pas. Un livrable d'espace n'a
-        // jamais de catégorie.
+        // The category, the "modèle" box, the client and the image only change
+        // if the request names them: a call that omits them does not clear
+        // them. A space deliverable never has a category; it is never a
+        // template and has no client other than its space's, which the entity
+        // guarantees on its own.
         if (!$deliverable->isStandalone()) {
             $deliverable->setCategory(null);
         } elseif (array_key_exists('categoryId', $data)) {
             $deliverable->setCategory($this->category($data['categoryId']));
+        }
+
+        if (array_key_exists('template', $data)) {
+            $deliverable->setTemplate(true === $data['template']);
+        }
+
+        if (array_key_exists('customerId', $data)) {
+            $deliverable->setCustomer($this->customer($data['customerId']));
         }
 
         if (array_key_exists('thumbnailId', $data)) {
@@ -181,7 +233,7 @@ readonly class DeliverableManager
         return [];
     }
 
-    /** Ouvert ou fermé au client, sans rouvrir l'éditeur : c'est le geste de la liste. */
+    /** Open or closed to the client, without reopening the editor: this is the list's action. */
     public function setVisibleToClient(DeliverableInterface $deliverable, bool $visible): void
     {
         $deliverable->setVisibleToClient($visible);
@@ -194,22 +246,26 @@ readonly class DeliverableManager
     }
 
     /**
-     * Une copie, pour partir d'un livrable existant : le bilan du mois dernier
-     * pour écrire celui-ci.
+     * A copy, to start from an existing deliverable: last month's report to
+     * write this one.
      *
-     * Fermée au client, quoi qu'il en soit de l'original : une copie est un
-     * travail en cours. Ses liens de lecture ne suivent pas, ils ont été donnés
-     * pour l'original.
+     * Closed to the client, whatever the original's state: a copy is work in
+     * progress. Its reading links do not follow, they were given for the
+     * original.
+     *
+     * It keeps the original's client, whom it still addresses, but not the
+     * "modèle" box: duplicating a template means starting to fill it in.
      */
     public function duplicate(DeliverableInterface $source, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
-        $copy = $this->instantiate($source->getSpace(), $title, $source->getLocale());
-        // La copie est à qui la fait, dans le même rayon que l'original : une
-        // copie d'un livrable partagé reste à l'équipe.
+        $copy = $this->instantiate($source->getSpace(), $title, $source->getLocale(), $source->getFormat());
+        // The copy belongs to whoever makes it, on the same shelf as the
+        // original: a copy of a shared deliverable stays with the team.
         $copy
             ->setOwner($author ?? $source->getOwner())
             ->setScope($source->getScope())
             ->setCategory($source->getCategory())
+            ->setCustomer($source->getCustomer())
             ->setReadingHeader($source->getReadingHeader());
 
         $copy = $this->persistCopy($source, $copy);
@@ -219,16 +275,22 @@ readonly class DeliverableManager
     }
 
     /**
-     * Un livrable de Studio recopié dans l'espace d'un client : le modèle
-     * d'audit ou de stratégie qu'on remplit pour lui.
+     * A Studio deliverable copied into a client's space: the audit or
+     * strategy template you fill in for them.
      *
-     * La copie vit désormais dans l'espace, avec ses droits ; l'original
-     * reste dans Studio, intact. Elle arrive fermée au client, comme toute
-     * copie, et « Préparé pour » prend le nom du client de l'espace.
+     * A page or a presentation: a presentation takes its slides, their
+     * notes, its theme and style along, see {@see self::persistCopy()}. It is
+     * also what « Partir d'un modèle » does from a space's Deliverables tab.
+     * The copy then lives in the space, under its rights; the original stays
+     * in Studio, untouched. It arrives closed to the client, like any copy,
+     * and "Préparé pour" takes the name of the space's client.
+     *
+     * No template flag and no client of its own: in a space, the space states
+     * both, and a copy of a template is the document you fill in.
      */
     public function copyToSpace(DeliverableInterface $source, CustomerSpaceInterface $space, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
-        $copy = $this->instantiate($space, $title, $source->getLocale());
+        $copy = $this->instantiate($space, $title, $source->getLocale(), $source->getFormat());
         $copy
             ->setOwner($author)
             ->setScope(DeliverableScopeEnum::Shared)
@@ -244,12 +306,13 @@ readonly class DeliverableManager
     }
 
     /**
-     * Un livrable d'espace recopié dans Studio, pour en faire un modèle : il
-     * arrive dans les livrables perso de qui le copie, sans client à nommer.
+     * A space deliverable copied into Studio, to make a template of it: it
+     * lands in the personal deliverables of whoever copies it, with no client
+     * to name.
      */
     public function copyToStudio(DeliverableInterface $source, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
-        $copy = $this->instantiate(null, $title, $source->getLocale());
+        $copy = $this->instantiate(null, $title, $source->getLocale(), $source->getFormat());
         $copy
             ->setOwner($author)
             ->setScope(DeliverableScopeEnum::Personal)
@@ -261,7 +324,7 @@ readonly class DeliverableManager
         return $copy;
     }
 
-    /** Perso ou partagé, pour un livrable sans espace. */
+    /** Personal or shared, for a deliverable without a space. */
     public function setScope(DeliverableInterface $deliverable, DeliverableScopeEnum $scope, ?CoreUserInterface $by = null): void
     {
         if (!$deliverable->isStandalone()) {
@@ -269,8 +332,8 @@ readonly class DeliverableManager
         }
 
         $deliverable->setScope($scope);
-        // Un orphelin qui change de rayon a été recueilli : il revient à qui
-        // en a décidé, plutôt que de rester sans auteur.
+        // An orphan that changes shelf has been taken in: it goes to whoever
+        // decided it, rather than staying without an author.
         if (!$deliverable->getOwner() instanceof CoreUserInterface && $by instanceof CoreUserInterface) {
             $deliverable->setOwner($by);
         }
@@ -280,11 +343,11 @@ readonly class DeliverableManager
     }
 
     /**
-     * La catégorie qu'envoie l'éditeur ou la fenêtre de création.
+     * The category sent by the editor or the creation dialog.
      *
-     * Un identifiant que plus rien ne résout laisse le livrable sans catégorie
-     * plutôt que de refuser l'enregistrement : il ne peut venir que d'une
-     * catégorie supprimée entre l'ouverture de la page et l'enregistrement.
+     * An id that no longer resolves leaves the deliverable without a category
+     * rather than refusing the save: it can only come from a category deleted
+     * between opening the page and saving.
      */
     public function category(mixed $id): ?DeliverableCategoryInterface
     {
@@ -294,9 +357,21 @@ readonly class DeliverableManager
     }
 
     /**
-     * L'image qu'envoie l'éditeur : un document de la médiathèque, et une
-     * image. Un identifiant qui ne résout rien, ou un PDF, laisse le livrable
-     * sans image plutôt que de refuser l'enregistrement.
+     * The client sent by a Studio deliverable's settings. An id that no
+     * longer resolves leaves it without a client, like a category deleted in
+     * the meantime.
+     */
+    public function customer(mixed $id): ?CustomerInterface
+    {
+        $id = is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : null;
+
+        return null === $id ? null : $this->customers->find($id);
+    }
+
+    /**
+     * The image sent by the editor: a media library document, and an image.
+     * An id that resolves nothing, or a PDF, leaves the deliverable without
+     * an image rather than refusing the save.
      */
     private function thumbnail(mixed $id): ?DocumentInterface
     {
@@ -306,7 +381,10 @@ readonly class DeliverableManager
         return $document instanceof DocumentInterface && str_starts_with((string) $document->getMimeType(), 'image/') ? $document : null;
     }
 
-    /** Le corps de l'original dans la copie, puis enregistrée. */
+    /**
+     * The original's body into the copy, then saved: a page's grid, or a
+     * slideshow's theme and slides, notes included.
+     */
     private function persistCopy(DeliverableInterface $source, DeliverableInterface $copy): DeliverableInterface
     {
         $copy
@@ -317,17 +395,22 @@ readonly class DeliverableManager
             ->setThumbnail($source->getThumbnail());
 
         $this->entityManager->persist($copy);
+
+        if ($source->isSlides() && $copy->isSlides()) {
+            $this->slides->copySlides($copy, $source);
+        }
+
         $this->entityManager->flush();
 
         return $copy;
     }
 
     /**
-     * Met le livrable à la corbeille : il sort des listes, de la recherche et
-     * des comptes, et ses liens de lecture cessent de répondre. Rien n'est
-     * détruit : ses images restent comptées par la médiathèque, ses liens et
-     * leur historique restent en base, et la restauration remet tout comme
-     * c'était.
+     * Moves the deliverable to the trash: it leaves the lists, the search and
+     * the counts, and its reading links stop answering. Nothing is destroyed:
+     * its images stay counted by the media library, its links and their
+     * history stay in the database, and restoring puts everything back as it
+     * was.
      */
     public function trash(DeliverableInterface $deliverable): void
     {
@@ -340,7 +423,7 @@ readonly class DeliverableManager
         $this->auditLogger->log('studio', 'deliverable.trashed', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
     }
 
-    /** Sort le livrable de la corbeille : ses liens de lecture reprennent, tels qu'ils étaient. */
+    /** Takes the deliverable out of the trash: its reading links resume, as they were. */
     public function restore(DeliverableInterface $deliverable): void
     {
         if (!$deliverable->isTrashed()) {
@@ -353,14 +436,14 @@ readonly class DeliverableManager
     }
 
     /**
-     * Détruit le livrable pour de bon, avec ses liens de lecture. Le bouton
-     * « Supprimer définitivement » de la corbeille et la purge planifiée y
-     * passent : c'est le seul endroit où un livrable disparaît.
+     * Destroys the deliverable for good, with its reading links. The trash's
+     * "Supprimer définitivement" button and the scheduled purge go through
+     * here: it is the only place where a deliverable disappears.
      */
     public function forceDelete(DeliverableInterface $deliverable): void
     {
-        // Journalisé avant d'être retiré : après, il n'a plus d'identifiant.
-        // Définitif, et c'est le seul témoin de qui l'a fait.
+        // Logged before being removed: afterwards it has no id any more.
+        // Final, and the only record of who did it.
         $this->auditLogger->log('studio', 'deliverable.deleted', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
 
         $this->entityManager->remove($deliverable);
@@ -368,9 +451,8 @@ readonly class DeliverableManager
     }
 
     /**
-     * Détruit ce qui est à la corbeille depuis avant cette date, et rend
-     * combien : la purge planifiée, après le délai que partagent toutes les
-     * corbeilles.
+     * Destroys what has been in the trash since before this date, and returns
+     * how many: the scheduled purge, after the delay all trashes share.
      */
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
     {
@@ -384,15 +466,14 @@ readonly class DeliverableManager
     }
 
     /**
-     * Ce que dit une ligne du journal sur un livrable : son titre, son espace
-     * et son rayon. Les gestes qui engagent quelqu'un d'autre que l'auteur
-     * s'y inscrivent (créer, copier, supprimer, ouvrir ou fermer au client,
-     * changer de rayon, donner ou retirer une adresse) ; un enregistrement du
-     * contenu n'y figure pas, il aurait une ligne par pause de frappe.
+     * What an audit log line says about a deliverable: its title, its space,
+     * its shelf, its format and whether it is a template. The actions that
+     * affect someone other than the author are logged (create, copy, delete,
+     * open or close to the client, change shelf, give or revoke an address);
+     * a content save is not, it would have one line per typing pause.
      *
-     * Chaque appel écrit son action en toutes lettres : le test des libellés du
-     * journal ne lit que les arguments littéraux, et une action construite
-     * échapperait à son contrôle.
+     * Each call writes its action out in full: the audit label test only
+     * reads literal arguments, and a built action would escape its check.
      *
      * @param array<string, mixed> $extra
      *
@@ -404,6 +485,8 @@ readonly class DeliverableManager
             'title' => $deliverable->getTitle(),
             'space' => $deliverable->getSpace()?->getId(),
             'scope' => $deliverable->isStandalone() ? $deliverable->getScope()->value : null,
+            'format' => $deliverable->getFormat()->value,
+            'template' => $deliverable->isTemplate(),
             ...$extra,
         ];
     }

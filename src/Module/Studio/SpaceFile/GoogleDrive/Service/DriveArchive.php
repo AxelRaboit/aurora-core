@@ -20,51 +20,49 @@ use function tempnam;
 use function unlink;
 
 /**
- * Tout le dossier partagé, en un seul fichier.
+ * The whole shared folder, in a single file.
  *
- * **Le geste qui manquait.** Un client à qui on partage trente visuels les
- * téléchargeait un par un, trente clics et trente allers-retours. Le lot
- * répond à la seule question qu'il se pose vraiment : « je récupère tout ».
+ * **The missing action.** A client with thirty visuals shared with them
+ * downloaded them one by one, thirty clicks and thirty round trips. The bundle
+ * answers the only question they really ask: "I take everything".
  *
- * **Écrit sur disque, pas en mémoire.** `ZipArchive` ne sait travailler que
- * sur un fichier, et un dossier de vidéos n'a pas à tenir en RAM pour être
- * emporté. Chaque fichier descend de chez Google par morceaux dans un fichier
- * temporaire, entre dans l'archive, et s'efface.
+ * **Written to disk, not to memory.** `ZipArchive` can only work on a file,
+ * and a folder of videos does not have to fit in RAM to be taken away. Each
+ * file comes down from Google in chunks into a temporary file, enters the
+ * archive, and is deleted.
  *
- * **Sans recompresser.** Ce sont des photos, des PDF, des vidéos : déjà
- * compressés. Les repasser dans un déflateur coûterait des minutes de
- * processeur pour quelques pour cent, sur un serveur qui sert aussi des pages.
+ * **Without recompressing.** These are photos, PDFs, videos: already
+ * compressed. Running them through a deflater again would cost minutes of
+ * CPU for a few percent, on a server that also serves pages.
  *
- * Deux choses qu'un lot ne peut pas emporter, et qu'il dit plutôt que de les
- * faire disparaître : ce qui dépasse la taille tenable, refusé avant de
- * commencer ; et les documents Google, qui n'ont pas d'octets à télécharger et
- * sont nommés dans un fichier posé à la racine de l'archive.
+ * Two things a bundle cannot take, and which it states rather than making
+ * them vanish: what exceeds the manageable size, refused before starting;
+ * and Google documents, which have no bytes to download and are named in a
+ * file placed at the root of the archive.
  */
 final readonly class DriveArchive
 {
     /**
-     * Ce qu'un lot peut peser.
+     * What a bundle may weigh.
      *
-     * **La borne vient du temps, pas du disque.** L'archive est écrite en
-     * entier avant que le premier octet ne parte : tant qu'elle se construit,
-     * le serveur web attend sans rien recevoir, et il finit par abandonner.
-     * Apache coupe à trois cents secondes.
+     * **The limit comes from time, not from disk.** The archive is written in
+     * full before the first byte leaves: while it is being built, the web
+     * server waits without receiving anything, and it ends up giving up.
+     * Apache cuts off at three hundred seconds.
      *
-     * Mesuré sur le serveur le 20/09/2026, contre un vrai dossier partagé :
-     * **1,41 Mo par seconde** et **0,64 seconde par fichier**, cette seconde
-     * étant l'aller-retour vers Google, que le fichier pèse trois kilo-octets
-     * ou trois mégaoctets. Deux cents fichiers coûtent donc déjà cent
-     * vingt-sept secondes avant le premier octet transféré.
+     * Measured on the server on 20/09/2026, against a real shared folder:
+     * **1.41 MB per second** and **0.64 second per file**, that second being
+     * the round trip to Google, whether the file weighs three kilobytes or
+     * three megabytes. Two hundred files therefore already cost one hundred
+     * and twenty-seven seconds before the first byte is transferred.
      *
-     * Le pire cas admis - deux cents fichiers et cent cinquante mégaoctets -
-     * demande deux cent trente-quatre secondes, ce qui laisse un cinquième de
-     * marge. La borne précédente, cinq cents mégaoctets, ne pouvait pas
-     * aboutir : trois cent cinquante-cinq secondes de transfert à elle seule,
-     * même pour un fichier unique. Elle promettait une archive que le serveur
-     * web coupait.
+     * The worst accepted case - two hundred files and one hundred and fifty
+     * megabytes - takes two hundred and thirty-four seconds, which leaves a
+     * fifth as margin. The previous limit, five hundred megabytes, could not
+     * succeed: three hundred and fifty-five seconds of transfer on its own,
+     * even for a single file. It promised an archive the web server cut off.
      *
-     * Au-delà, le fichier par fichier reste ouvert et ne coûte rien à
-     * personne.
+     * Beyond that, file-by-file download stays open and costs nobody anything.
      */
     public const int MAX_BYTES = 150 * 1024 * 1024;
 
@@ -73,10 +71,10 @@ final readonly class DriveArchive
     ) {}
 
     /**
-     * Le poids annoncé du lot, d'après la liste déjà en main.
+     * The announced weight of the bundle, from the list already in hand.
      *
-     * Les documents Google n'ont pas de taille et ne comptent pas : ils ne
-     * seront pas téléchargés non plus.
+     * Google documents have no size and do not count: they will not be
+     * downloaded either.
      *
      * @param list<array{id: string, name: string, path: string, mimeType: string, size: int|null, modifiedAt: string|null, thumbnail: string|null}> $files
      */
@@ -94,11 +92,11 @@ final readonly class DriveArchive
     }
 
     /**
-     * Le lot, écrit dans un fichier temporaire.
+     * The bundle, written to a temporary file.
      *
      * @param list<array{id: string, name: string, path: string, mimeType: string, size: int|null, modifiedAt: string|null, thumbnail: string|null}> $files
      *
-     * @return string le chemin du zip, à supprimer par l'appelant
+     * @return string the zip's path, to be deleted by the caller
      */
     public function zipFor(GoogleServiceAccount $account, array $files): string
     {
@@ -122,9 +120,10 @@ final readonly class DriveArchive
             $downloaded = $this->downloadToFile($account, $file['id']);
 
             if (null === $downloaded) {
-                // Un document Google, ou un fichier retiré du partage entre
-                // la liste et le téléchargement. Nommé plutôt qu'escamoté :
-                // un lot incomplet sans le dire est pire qu'un lot incomplet.
+                // A Google document, or a file removed from sharing between
+                // the list and the download. Named rather than hidden: a
+                // bundle incomplete without saying so is worse than an
+                // incomplete bundle.
                 $missed[] = $entry;
 
                 continue;
@@ -140,8 +139,8 @@ final readonly class DriveArchive
             $zip->addFromString('FICHIERS-NON-INCLUS.txt', $this->explain($missed));
         }
 
-        // Un dossier vide donnerait une archive sans entrée, que certains
-        // outils refusent d'ouvrir.
+        // An empty folder would give an archive with no entry, which some
+        // tools refuse to open.
         if (0 === $zip->numFiles) {
             $zip->addFromString('LISEZ-MOI.txt', "Le dossier partagé ne contient aucun fichier téléchargeable.\n");
         }
@@ -156,10 +155,10 @@ final readonly class DriveArchive
     }
 
     /**
-     * Le chemin d'un fichier dans l'archive, jamais deux fois le même.
+     * A file's path in the archive, never the same one twice.
      *
-     * Drive accepte deux fichiers du même nom dans un dossier ; un zip aussi,
-     * mais l'extraction en écrase alors un. Le second prend un suffixe.
+     * Drive accepts two files with the same name in a folder; so does a zip,
+     * but extracting then overwrites one of them. The second gets a suffix.
      *
      * @param array{name: string, path: string, ...} $file
      * @param array<string, int>                     $seen
@@ -179,10 +178,10 @@ final readonly class DriveArchive
     }
 
     /**
-     * Ce qu'un système de fichiers refuse, et ce qui ferait sortir une entrée
-     * de l'archive du dossier où on l'extrait.
+     * What a file system refuses, and what would make an archive entry escape
+     * the folder it is extracted into.
      *
-     * Les séparateurs de `path` sont gardés : ce sont les dossiers.
+     * The separators of `path` are kept: they are the folders.
      */
     private function sanitise(string $name): string
     {
@@ -192,10 +191,10 @@ final readonly class DriveArchive
     }
 
     /**
-     * Le fichier, descendu par morceaux dans un temporaire.
+     * The file, brought down in chunks into a temporary file.
      *
-     * Null quand Google ne le sert pas : un document natif n'a pas d'octets,
-     * et un fichier retiré du partage entre-temps n'en a plus.
+     * Null when Google does not serve it: a native document has no bytes, and
+     * a file removed from sharing in the meantime no longer has any.
      */
     private function downloadToFile(GoogleServiceAccount $account, string $fileId): ?string
     {

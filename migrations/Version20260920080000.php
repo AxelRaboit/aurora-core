@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * L'onglet Drive d'un espace peut être fermé par un mot de passe.
+ * The Drive tab of a space can be closed with a password.
  *
- * Haché et non chiffré : un mot de passe n'a jamais besoin d'être relu,
- * seulement comparé. Nul partout au départ, c'est-à-dire ouvert, ce qui est
- * l'état de tous les espaces existants.
+ * Hashed and not encrypted: a password never needs to be read back, only
+ * compared. Null everywhere at first, that is, open, which is the state of
+ * every existing space.
  */
 final class Version20260920080000 extends AbstractMigration
 {

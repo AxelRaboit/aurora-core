@@ -1,9 +1,9 @@
 @theme inline {
-    /* Forwarded from :root, pour la meme raison que la palette d'accent plus
-       bas : `@theme inline` recopie la valeur litterale dans chaque endroit qui
-       s'en sert, donc redefinir --font-sans au runtime ne changerait rien. En
-       passant par --th-font-sans, ce qui est recopie est le `var(...)`, et la
-       regle posee en tete de page par ThemeContext::fontFamilyCss() prend. */
+    /* Forwarded from :root, for the same reason as the accent palette below:
+       `@theme inline` copies the literal value into every place that uses it,
+       so redefining --font-sans at runtime would change nothing. Going through
+       --th-font-sans, what gets copied is the `var(...)`, and the rule set at
+       the top of the page by ThemeContext::fontFamilyCss() takes effect. */
     --font-sans: var(--th-font-sans);
 
     --text-2xs: 0.625rem;
@@ -21,10 +21,10 @@
 
     --color-line:        var(--color-border);
     --color-line-strong: var(--color-border-strong);
-    /* Le contour des cartes : celui du theme s'il en pose un, sinon le trait. */
+    /* The cards' outline: the theme's if it sets one, otherwise the line. */
     --color-card-line:   var(--th-card-line, var(--color-border));
-    /* Les chiffres mis en avant (statistiques, prix) : ceux du theme s'il en
-       pose, sinon la couleur principale, comme avant. */
+    /* Highlighted figures (statistics, prices): the theme's if it sets them,
+       otherwise the main colour, as before. */
     --color-figure:      var(--th-figure, var(--th-accent));
 
     --width-serp-max: 600px;
@@ -56,9 +56,9 @@
     --color-accent-900: var(--th-accent-900);
     --color-accent-950: var(--th-accent-950);
 
-    /* Survols du site public et reperes des cartes. Sans --th-highlight c'est
-       l'accent, au pixel pres ; le repli est resolu la ou la classe s'applique,
-       donc l'accent propre a une publication reste respecte. */
+    /* Hovers on the public site and card markers. Without --th-highlight it is
+       the accent, to the pixel; the fallback is resolved where the class
+       applies, so a publication's own accent is still respected. */
     --color-highlight:     var(--th-highlight, var(--th-accent));
     --color-highlight-500: var(--th-highlight, var(--th-accent-500));
 
@@ -87,8 +87,8 @@
 }
 
 :root {
-    /* Mirroir de ThemeFontEnum::Poppins->stack(). Un theme sans police choisie
-       n'emet aucune regle, donc c'est cette valeur qui sert. */
+    /* Mirror of ThemeFontEnum::Poppins->stack(). A theme without a chosen font
+       emits no rule, so this is the value that applies. */
     --th-font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 
     --th-bg:        rgb(249 250 251);
@@ -193,27 +193,27 @@
     }
 }
 
-/* Surfaces colorables du frontend public (topbar, pied de page).
+/* Colourable surfaces of the public frontend (topbar, footer).
  *
- * ThemeContext n'emet une regle pour ces selecteurs que lorsqu'une couleur est
- * configuree ; sans regle, --th-surface-bg reste indefini et le repli
- * `transparent` laisse la surface heritee du body, c'est-a-dire l'apparence
- * historique. Rien ne change tant que personne ne choisit de couleur.
+ * ThemeContext only emits a rule for these selectors when a colour is
+ * configured; without a rule, --th-surface-bg stays undefined and the
+ * `transparent` fallback leaves the surface inherited from the body, that is
+ * the historical look. Nothing changes as long as nobody picks a colour.
  *
- * L'interet de poser la couleur sur une variable plutot qu'en dur : la regle
- * injectee redefinit au meme endroit tout le jeu de jetons de la surface
- * (--th-primary, --th-secondary, --color-border, --th-bg...). Les proprietes
- * personnalisees etant heritees, les enfants suivent sans exception - y compris
- * les panneaux de menu deroulant, qui sont peints en `bg-bg` et se retrouvent
- * donc sur le fond de leur topbar et non sur celui de la page. */
+ * The point of setting the colour on a variable rather than hard-coding it:
+ * the injected rule redefines the surface's whole set of tokens in the same
+ * place (--th-primary, --th-secondary, --color-border, --th-bg...). Custom
+ * properties being inherited, the children follow without exception -
+ * including the dropdown menu panels, which are painted in `bg-bg` and so end
+ * up on their topbar's background and not on the page's. */
 .aurora-surface {
     background-color: var(--th-surface-bg, transparent);
 }
 
-/* Mode neutre des survols (ThemeContext::highlight). Pose sur chaque element
- * et non sur `html` : resolu a la racine, var(--th-primary) figerait le texte
- * de la page, et un lien survole dans une topbar coloree prendrait une couleur
- * que la surface a justement remplacee. */
+/* Neutral mode of the hovers (ThemeContext::highlight). Set on every element
+ * and not on `html`: resolved at the root, var(--th-primary) would freeze the
+ * page's text colour, and a hovered link in a coloured topbar would take a
+ * colour that the surface has precisely replaced. */
 html[data-highlight="neutral"] * {
     --th-highlight: var(--th-primary);
 }
@@ -260,19 +260,19 @@ html[data-theme] [data-card-highlight][data-card-highlight] * {
     --th-highlight: var(--card-highlight);
 }
 
-/* Le plugin Tailwind Typography peint `.prose` avec ses propres variables, des
- * gris figes qui ignorent totalement les jetons du projet. Tout le contenu
- * editorial passant par cette classe, un fond sombre laissait le texte des
- * articles en gris fonce sur noir - illisible, et sans rapport avec le reste de
- * la page qui basculait correctement.
+/* The Tailwind Typography plugin paints `.prose` with its own variables,
+ * fixed greys that completely ignore the project's tokens. All the editorial
+ * content going through this class, a dark background left the articles' text
+ * in dark grey on black - unreadable, and unrelated to the rest of the page,
+ * which switched correctly.
  *
- * Les variables du plugin sont donc rebranchees sur les jetons. Le mapping est
- * global et non limite au frontend, parce que le defaut vaut aussi pour le
- * suite : l'apercu de note en mode sombre souffrait du meme probleme.
+ * The plugin's variables are therefore rewired to the tokens. The mapping is
+ * global and not limited to the frontend, because the flaw also applies to
+ * the suite: the note preview in dark mode suffered from the same problem.
  *
- * Le corps de texte prend `--th-primary` et non un gris intermediaire, pour
- * qu'un paragraphe rendu dans `.prose` ait exactement la couleur d'un
- * paragraphe rendu a cote : le layout pose deja `text-primary` sur le body. */
+ * The body text takes `--th-primary` and not an in-between grey, so that a
+ * paragraph rendered in `.prose` has exactly the colour of a paragraph
+ * rendered next to it: the layout already sets `text-primary` on the body. */
 .prose {
     --tw-prose-body: var(--th-primary);
     --tw-prose-headings: var(--th-heading, var(--th-primary));

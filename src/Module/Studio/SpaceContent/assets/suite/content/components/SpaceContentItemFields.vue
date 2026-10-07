@@ -116,10 +116,10 @@ function set(field, value) {
                 v-on:update:model-value="set('scheduledAt', $event)"
             />
 
-            <!-- Une date de parution ne dit pas quand il faut avoir tranché.
-                 Celle-ci n'apparaît qu'une fois la parution posée : demander
-                 une relecture pour quelque chose qui ne sort pas encore n'a
-                 personne à qui la demander. -->
+            <!-- A publication date does not say when the decision must be
+                 made. This one only appears once the publication is set:
+                 asking for a review of something not yet going out has
+                 nobody to ask. -->
             <AppDatePicker
                 v-if="form.scheduledAt"
                 :model-value="form.reviewBy"
@@ -133,9 +133,9 @@ function set(field, value) {
             />
         </div>
 
-        <!-- Sous la date, et seulement quand il y en a une : décocher une
-             carte qui n'a pas de date ne changerait rien, et une case sans
-             effet se lit comme cassée. -->
+        <!-- Under the date, and only when there is one: unticking a card
+             without a date would change nothing, and a box with no effect
+             reads as broken. -->
         <AppCheckbox
             v-if="form.scheduledAt"
             :model-value="false !== form.showOnCalendar"

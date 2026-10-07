@@ -81,7 +81,7 @@ describe("the calendars panel", () => {
 
         const toggle = wrapper
             .findAll("button")
-            .find((b) => b.text().includes("Perso"));
+            .find((button) => button.text().includes("Perso"));
         expect(toggle, "a calendar row is on screen").toBeTruthy();
 
         await toggle.trigger("click");

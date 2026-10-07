@@ -22,7 +22,7 @@ use function sprintf;
  */
 final class NotesRouteGateSubscriberTest extends TestCase
 {
-    private const array ROUTES = ['suite_notes_markdown', 'suite_notes_markdown_update', 'suite_notes_spaces_create', 'notes_share', 'notes_share_note', 'notes_public_space', 'notes_public_image'];
+    private const array ROUTES = ['suite_notes_markdown', 'suite_notes_markdown_update', 'suite_notes_spaces_create', 'suite_notes_craft_import', 'suite_notes_craft_settings', 'workspace_space_notes_open', 'notes_share', 'notes_share_note', 'notes_public_space', 'notes_public_image'];
 
     public function testNotesOffCloseTheirScreensAndWhatTheyPublish(): void
     {
@@ -40,7 +40,7 @@ final class NotesRouteGateSubscriberTest extends TestCase
     public function testRoutesOfAnotherModuleAreNotItsBusiness(): void
     {
         self::assertFalse($this->blocks('suite_studio_spaces', ModuleParameterEnum::NotesSuite));
-        self::assertFalse($this->blocks('workspace_space_notes', ModuleParameterEnum::NotesSuite));
+        self::assertFalse($this->blocks('workspace_space_content', ModuleParameterEnum::NotesSuite));
     }
 
     private function blocks(string $route, ?ModuleParameterEnum $off): bool

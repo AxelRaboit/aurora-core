@@ -51,31 +51,31 @@ final readonly class MailService
     /**
      * Send a templated email to a recipient.
      *
-     * @param string                                   $to            Recipient email; empty = silent no-op
-     * @param string                                   $subjectKey    i18n key, will be wrapped as "[SiteName] <translated>"
-     * @param string                                   $template      Twig template (e.g. "@Ecommerce/email/order_paid.html.twig")
-     * @param array<string, mixed>                     $context       Template variables (siteName injected automatically)
-     * @param list<string>                             $cc            CC recipients (filtered to avoid duplicate of $to)
-     * @param string|null                              $locale        Override locale (e.g. customer's stored locale).
-     *                                                                When null, falls back to EmailLocale setting → DefaultLocale.
-     * @param array<string, string>                    $subjectParams Translation parameters for the subject (e.g. ['{title}' => $title])
-     * @param string|null                              $replyTo       Where a reply should go, when that is not the sender.
-     *                                                                Dropped when it is not a valid address.
-     * @param list<array{path: string, name?: string}> $attachments   Files to attach, by absolute path.
-     *                                                                A path that is not a readable file is skipped
-     *                                                                rather than fatal: a mail that says a contract is
-     *                                                                concluded is worth sending without its copy, and
-     *                                                                the alternative is an exception in the middle of
-     *                                                                recording a signature.
+     * @param string                                   $to                Recipient email; empty = silent no-op
+     * @param string                                   $subjectKey        i18n key, will be wrapped as "[SiteName] <translated>"
+     * @param string                                   $template          Twig template (e.g. "@Ecommerce/email/order_paid.html.twig")
+     * @param array<string, mixed>                     $context           Template variables (siteName injected automatically)
+     * @param list<string>                             $carbonCopies      CC recipients (filtered to avoid duplicate of $to)
+     * @param string|null                              $locale            Override locale (e.g. customer's stored locale).
+     *                                                                    When null, falls back to EmailLocale setting → DefaultLocale.
+     * @param array<string, string>                    $subjectParameters Translation parameters for the subject (e.g. ['{title}' => $title])
+     * @param string|null                              $replyTo           Where a reply should go, when that is not the sender.
+     *                                                                    Dropped when it is not a valid address.
+     * @param list<array{path: string, name?: string}> $attachments       Files to attach, by absolute path.
+     *                                                                    A path that is not a readable file is skipped
+     *                                                                    rather than fatal: a mail that says a contract is
+     *                                                                    concluded is worth sending without its copy, and
+     *                                                                    the alternative is an exception in the middle of
+     *                                                                    recording a signature.
      */
     public function send(
         string $to,
         string $subjectKey,
         string $template,
         array $context = [],
-        array $cc = [],
+        array $carbonCopies = [],
         ?string $locale = null,
-        array $subjectParams = [],
+        array $subjectParameters = [],
         array $attachments = [],
         ?string $replyTo = null,
     ): void {
@@ -83,10 +83,10 @@ final readonly class MailService
             return;
         }
 
-        $send = function () use ($to, $subjectKey, $template, $context, $cc, $subjectParams, $attachments, $replyTo): void {
+        $send = function () use ($to, $subjectKey, $template, $context, $carbonCopies, $subjectParameters, $attachments, $replyTo): void {
             $siteName = $this->siteName();
             $body = $this->twig->render($template, ['siteName' => $siteName] + $context);
-            $subject = sprintf('[%s] %s', $siteName, $this->translator->trans($subjectKey, $subjectParams));
+            $subject = sprintf('[%s] %s', $siteName, $this->translator->trans($subjectKey, $subjectParameters));
 
             $email = new Email()
                 ->from($this->mailerFrom)
@@ -117,7 +117,7 @@ final readonly class MailService
                 $email->attachFromPath($path, $attachment['name'] ?? null);
             }
 
-            foreach ($cc as $ccAddress) {
+            foreach ($carbonCopies as $ccAddress) {
                 if ('' !== $ccAddress && $ccAddress !== $to) {
                     // `cc()` is a SETTER that replaces the whole list - use
                     // `addCc()` to append each address so multiple CCs stick.
@@ -142,16 +142,16 @@ final readonly class MailService
      * Send to the configured admin email. No-op when AdminEmail isn't set.
      *
      * @param array<string, mixed>  $context
-     * @param array<string, string> $subjectParams
+     * @param array<string, string> $subjectParameters
      */
-    public function sendToAdmin(string $subjectKey, string $template, array $context = [], array $subjectParams = [], ?string $replyTo = null): void
+    public function sendToAdmin(string $subjectKey, string $template, array $context = [], array $subjectParameters = [], ?string $replyTo = null): void
     {
         $adminEmail = $this->adminEmail();
         if (null === $adminEmail) {
             return;
         }
 
-        $this->send($adminEmail, $subjectKey, $template, $context, subjectParams: $subjectParams, replyTo: $replyTo);
+        $this->send($adminEmail, $subjectKey, $template, $context, subjectParameters: $subjectParameters, replyTo: $replyTo);
     }
 
     public function siteName(): string

@@ -45,7 +45,7 @@ const props = defineProps({
     position: {
         type: Object,
         required: true,
-        validator: (v) => typeof v.top === "number" && typeof v.left === "number",
+        validator: (position) => typeof position.top === "number" && typeof position.left === "number",
     },
     /**
      * Height cap in pixels, computed from the room actually left on the chosen

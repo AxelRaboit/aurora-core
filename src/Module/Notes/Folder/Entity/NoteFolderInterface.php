@@ -22,7 +22,7 @@ interface NoteFolderInterface extends TimestampableInterface
 {
     public function getId(): ?int;
 
-    /** L'auteur ; null quand son compte a été supprimé. */
+    /** The author; null when their account has been deleted. */
     public function getUser(): ?CoreUserInterface;
 
     public function setUser(?CoreUserInterface $user): static;
@@ -39,11 +39,11 @@ interface NoteFolderInterface extends TimestampableInterface
     public function setName(?string $name): static;
 
     /**
-     * La couleur du dossier, `#rrggbb`, ou null s'il n'en porte pas.
+     * The folder's colour, `#rrggbb`, or null if it has none.
      *
-     * En clair, contrairement au nom : une couleur ne dit rien de ce qu'il y
-     * a dedans, et c'est ce qui permet de la trier et de la compter en SQL
-     * le jour où un écran le demandera.
+     * In clear, unlike the name: a colour says nothing about what is inside,
+     * and that is what allows sorting and counting it in SQL the day a screen
+     * asks for it.
      */
     public function getColor(): ?string;
 
@@ -65,7 +65,7 @@ interface NoteFolderInterface extends TimestampableInterface
 
     public function setTrashedWithFolderId(?int $trashedWithFolderId): static;
 
-    /** L'espace où vit la ligne : c'est lui qui dit qui la lit et qui l'écrit. */
+    /** The space the row lives in: it says who reads it and who writes it. */
     public function getSpace(): NoteSpaceInterface;
 
     public function setSpace(NoteSpaceInterface $space): static;

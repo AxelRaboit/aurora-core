@@ -71,8 +71,8 @@ final class ContextSiteUrlTest extends TestCase
 
     public function testTheShippedPlaceholderAlsoLosesToTheRoutingContext(): void
     {
-        // Une installation anterieure porte encore la valeur semee. Personne
-        // ne l'a choisie : elle ne doit pas gagner sur DEFAULT_URI non plus.
+        // An older install still carries the seeded value. Nobody chose it:
+        // it must not win over DEFAULT_URI either.
         self::assertSame('https://aurora.test', $this->context('http://localhost', null, 'aurora.test')->siteUrl());
     }
 
@@ -107,8 +107,8 @@ final class ContextSiteUrlTest extends TestCase
             $requestStack->push(Request::create($requestOrigin.'/fr'));
         }
 
-        // Le contexte de routage, que le framework remplit depuis DEFAULT_URI.
-        // Hote vide = rien de configure au deploiement.
+        // The routing context, which the framework fills from DEFAULT_URI.
+        // Empty host = nothing configured at deploy time.
         $routingContext = new RequestContext();
         $routingContext->setHost($routingHost ?? '');
         $routingContext->setScheme($routingScheme);

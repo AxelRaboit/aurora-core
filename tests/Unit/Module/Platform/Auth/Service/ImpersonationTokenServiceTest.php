@@ -26,8 +26,8 @@ final class ImpersonationTokenServiceTest extends TestCase
 
     public function testGenerateProducesThreePartToken(): void
     {
-        $repo = $this->createStub(UserRepository::class);
-        $service = new ImpersonationTokenService(self::SECRET, $repo);
+        $userRepository = $this->createStub(UserRepository::class);
+        $service = new ImpersonationTokenService(self::SECRET, $userRepository);
 
         $user = $this->makeFrontUser(42);
         $token = $service->generate($user);
@@ -39,10 +39,10 @@ final class ImpersonationTokenServiceTest extends TestCase
     {
         $user = $this->makeFrontUser(42);
 
-        $repo = $this->createStub(UserRepository::class);
-        $repo->method('find')->willReturn($user);
+        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository->method('find')->willReturn($user);
 
-        $service = new ImpersonationTokenService(self::SECRET, $repo);
+        $service = new ImpersonationTokenService(self::SECRET, $userRepository);
 
         $token = $service->generate($user);
         $result = $service->validate($token);
@@ -52,8 +52,8 @@ final class ImpersonationTokenServiceTest extends TestCase
 
     public function testValidateReturnsNullForMalformedToken(): void
     {
-        $repo = $this->createStub(UserRepository::class);
-        $service = new ImpersonationTokenService(self::SECRET, $repo);
+        $userRepository = $this->createStub(UserRepository::class);
+        $service = new ImpersonationTokenService(self::SECRET, $userRepository);
 
         self::assertNull($service->validate('invalid'));
         self::assertNull($service->validate('a|b'));
@@ -62,16 +62,16 @@ final class ImpersonationTokenServiceTest extends TestCase
 
     public function testValidateReturnsNullForBadSignature(): void
     {
-        $repo = $this->createStub(UserRepository::class);
-        $service = new ImpersonationTokenService(self::SECRET, $repo);
+        $userRepository = $this->createStub(UserRepository::class);
+        $service = new ImpersonationTokenService(self::SECRET, $userRepository);
 
         self::assertNull($service->validate('42|'.time().'|tampered-signature'));
     }
 
     public function testValidateReturnsNullForExpiredToken(): void
     {
-        $repo = $this->createStub(UserRepository::class);
-        $service = new ImpersonationTokenService(self::SECRET, $repo);
+        $userRepository = $this->createStub(UserRepository::class);
+        $service = new ImpersonationTokenService(self::SECRET, $userRepository);
 
         $expiredTime = time() - 3600;
         $payload = '42|'.$expiredTime;
@@ -82,10 +82,10 @@ final class ImpersonationTokenServiceTest extends TestCase
 
     public function testValidateReturnsNullWhenUserNotFound(): void
     {
-        $repo = $this->createStub(UserRepository::class);
-        $repo->method('find')->willReturn(null);
+        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository->method('find')->willReturn(null);
 
-        $service = new ImpersonationTokenService(self::SECRET, $repo);
+        $service = new ImpersonationTokenService(self::SECRET, $userRepository);
 
         $token = $service->generate($this->makeFrontUser(99));
 
@@ -98,10 +98,10 @@ final class ImpersonationTokenServiceTest extends TestCase
         (new ReflectionProperty(User::class, 'id'))->setValue($user, 42);
         $user->setType(UserTypeEnum::Suite);
 
-        $repo = $this->createStub(UserRepository::class);
-        $repo->method('find')->willReturn($user);
+        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository->method('find')->willReturn($user);
 
-        $service = new ImpersonationTokenService(self::SECRET, $repo);
+        $service = new ImpersonationTokenService(self::SECRET, $userRepository);
         $token = $service->generate($user);
 
         self::assertNull($service->validate($token));

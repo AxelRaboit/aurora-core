@@ -109,8 +109,8 @@ describe("what one operator may do to one user", () => {
     });
 
     it("says enable for a disabled account and disable for a live one", () => {
-        // `invitedAt` renseigné : ce compte a été contacté, puis désactivé. Le
-        // rouvrir lui rend son accès, sans rien envoyer.
+        // `invitedAt` set: this account was contacted, then disabled. Opening
+        // it again gives its access back, without sending anything.
         const disabled = useTitles({
             canAct: true,
             user: user({
@@ -125,10 +125,10 @@ describe("what one operator may do to one user", () => {
     });
 
     /**
-     * Un compte pré-provisionné : créé désactivé, jamais contacté, donc
-     * `invitedAt` nul. L'ouvrir envoie son invitation - ce n'est pas la même
-     * action, et annoncer « réactiver » ferait croire qu'on rend un accès à
-     * quelqu'un qui ne l'a jamais eu, en taisant qu'un mail part.
+     * A pre-provisioned account: created disabled, never contacted, so
+     * `invitedAt` null. Opening it sends its invitation - it is not the same
+     * action, and saying "réactiver" would suggest access is being given back
+     * to someone who never had it, while hiding that an email goes out.
      */
     it("says enable and invite for an account nobody was ever told about", () => {
         const titles = useTitles({
@@ -171,7 +171,7 @@ describe("what one operator may do to one user", () => {
         });
 
         const impersonate = wrapper.vm.actions.find(
-            (a) => "impersonate" === a.key,
+            (action) => "impersonate" === action.key,
         );
 
         // Encoded by `buildPath`, which is the point: an address goes into a

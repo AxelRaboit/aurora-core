@@ -142,7 +142,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
 
         $wrong = '000000' === $code ? '111111' : '000000';
 
-        for ($i = 0; $i < AbstractContractSignatureChallenge::MAX_ATTEMPTS; ++$i) {
+        for ($attempt = 0; $attempt < AbstractContractSignatureChallenge::MAX_ATTEMPTS; ++$attempt) {
             try {
                 $this->challenges->verify($link, $wrong);
                 self::fail('A wrong code was accepted.');
@@ -239,7 +239,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
     {
         $link = $this->sentLink();
 
-        for ($i = 0; $i < ContractSignatureChallengeManager::MAX_ISSUED_PER_HOUR; ++$i) {
+        for ($issued = 0; $issued < ContractSignatureChallengeManager::MAX_ISSUED_PER_HOUR; ++$issued) {
             $this->challenges->issue($link);
         }
 

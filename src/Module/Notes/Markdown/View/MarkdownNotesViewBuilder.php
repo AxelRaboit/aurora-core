@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Markdown\View;
 
 use Aurora\Core\Support\Num;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Notes\Craft\Service\CraftClient;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
@@ -34,6 +35,7 @@ final readonly class MarkdownNotesViewBuilder
         private NoteSpaceRepository $spaces,
         private NoteFavoriteManagerInterface $favorites,
         private NoteSpaceSerializerInterface $spaceSerializer,
+        private CraftClient $craft,
     ) {}
 
     /**
@@ -75,31 +77,40 @@ final readonly class MarkdownNotesViewBuilder
             ...$this->notePaths(),
             ...$this->folderPaths(),
             ...$this->spacePaths(),
+            // The Craft import only exists on screen if the installation has
+            // opened the connection: an action that leads to an empty list and
+            // an explanation is an action that disappoints every time.
+            'craftEnabled' => $this->craft->isConfigured(),
+            'craftPaths' => [
+                'documents' => $this->urlGenerator->generate('suite_notes_craft_documents'),
+                'import' => $this->urlGenerator->generate('suite_notes_craft_import'),
+                'refresh' => $this->urlGenerator->generate('suite_notes_craft_refresh', ['id' => '__id__']),
+            ],
             'imageMaxEdge' => (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::ImageMaxEdge),
             'imageQuality' => $this->imageQualityRatio(),
         ];
     }
 
     /**
-     * Ce qu'il faut pour dessiner une note seule, sans le back-office.
+     * What is needed to draw a single note, without the back office.
      *
-     * L'index des titres est celui de tout le carnet, et non d'un périmètre
-     * comme pour un partage : le lecteur est ici chez lui, donc un wiki-lien
-     * mène toujours quelque part.
+     * The title index is that of the whole notebook, and not of a scope as
+     * for a share: the reader is at home here, so a wiki link always leads
+     * somewhere.
      *
      * @return array<string, mixed>
      */
     public function readView(CoreUserInterface $user, MarkdownNoteInterface $note): array
     {
-        // Chargés une fois et passés à qui en a besoin : l'index des titres,
-        // l'ordre de lecture et l'arborescence lisaient chacun la même liste,
-        // et chaque lecture déchiffre tous les titres visibles.
+        // Loaded once and passed to whoever needs them: the title index, the
+        // reading order and the tree each read the same list, and each read
+        // decrypts every visible title.
         $rows = $this->noteRepository->findFlatListForUser($user);
         $folders = $this->folderRepository->findAllForUser($user);
 
-        // Les liens et les pages suivantes restent dans l'espace de la note :
-        // un `[[Budget]]` écrit dans un espace mène au « Budget » de cet
-        // espace, pas à celui d'un autre carnet qui porterait le même titre.
+        // Links and next pages stay within the note's space: a `[[Budget]]`
+        // written in a space leads to that space's "Budget", not to the one
+        // of another notebook that would carry the same title.
         $spaceId = (int) $note->getSpace()->getId();
         $spaceRows = array_values(array_filter($rows, static fn (array $row): bool => (int) $row['spaceId'] === $spaceId));
         $spaceFolders = array_values(array_filter($folders, static fn (NoteFolderInterface $folder): bool => (int) $folder->getSpace()->getId() === $spaceId));
@@ -109,13 +120,13 @@ final readonly class MarkdownNotesViewBuilder
 
         return [
             'note' => $note,
-            // Le chemin de la note depuis la racine de son espace.
+            // The note's path from the root of its space.
             'breadcrumb' => array_map(
                 static fn (NoteFolderInterface $one): array => ['id' => $one->getId(), 'name' => $one->getName(), 'color' => $one->getColor()],
                 $this->hierarchy->pathTo($note->getFolder()),
             ),
             'canEdit' => $this->spaceAccess->canWriteNote($user, $note),
-            // Lire suffit pour épingler : les favoris sont à la personne.
+            // Reading is enough to pin: favorites belong to the person.
             'favorited' => null !== $this->favorites->favoritedAt($user, $note),
             'favoritePath' => $this->urlGenerator->generate('suite_notes_markdown_favorite', ['id' => $note->getId()]),
             'previous' => $neighbours['previous'],
@@ -124,9 +135,9 @@ final readonly class MarkdownNotesViewBuilder
             'folderShowPath' => $this->urlGenerator->generate('suite_notes_markdown_folder', ['id' => '__id__']),
             'readNotePath' => $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => '__id__']),
             'searchPath' => $this->urlGenerator->generate('suite_notes_markdown_search'),
-            // Les images passent par une route qui applique la règle de
-            // lecture de la note et la clé de son auteur : l'adresse écrite
-            // dans le texte est celle de l'auteur, que l'on réécrit.
+            // Images go through a route that applies the note's read rule
+            // and its author's key: the address written in the text is the
+            // author's, which we rewrite.
             'imagePrefix' => str_replace('__filename__', '', $this->urlGenerator->generate('suite_notes_markdown_images_serve', ['filename' => '__filename__'])),
             'noteImagePath' => $this->urlGenerator->generate('suite_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => '__filename__']),
             'backPath' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $note->getId()]),
@@ -143,12 +154,12 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Ce que le lecteur montre à gauche : tout son carnet, et ce qu'on lui a
-     * partagé, à part.
+     * What the reader shows on the left: the whole notebook, and what was
+     * shared with them, apart.
      *
-     * Le mode lecture est un espace à lui, sans le back-office autour : il
-     * porte donc sa propre arborescence plutôt que le panneau du menu. Les
-     * titres seulement - aucun corps n'est déchiffré pour dessiner un arbre.
+     * Reading mode is a space of its own, without the back office around it:
+     * it therefore carries its own tree rather than the menu panel. Titles
+     * only - no body is decrypted to draw a tree.
      *
      * @param list<NoteFolderInterface>  $folders
      * @param list<array<string, mixed>> $rows
@@ -161,8 +172,8 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Les dossiers et les notes tels que l'arbre du lecteur les veut : les
-     * titres seulement, jamais les corps.
+     * The folders and notes as the reader's tree wants them: titles only,
+     * never bodies.
      *
      * @param list<NoteFolderInterface>  $folders
      * @param list<array<string, mixed>> $rows
@@ -195,8 +206,8 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Les espaces qu'une personne lit, le sien d'abord, avec son rôle dans
-     * chacun - calculé en une fois, pas espace par espace.
+     * The spaces a person reads, their own first, with their role in each
+     * one - computed in one go, not space by space.
      *
      * @return list<array<string, mixed>>
      */
@@ -213,13 +224,12 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Les titres de tout son carnet : chez soi, un wiki-lien mène toujours
-     * quelque part.
+     * The titles of the whole notebook: at home, a wiki link always leads
+     * somewhere.
      *
-     * La liste à plat plutôt que les entités : elle porte les titres et les
-     * identifiants, et rien d'autre. Charger neuf cents corps chiffrés pour
-     * construire un index de titres serait le prix d'un déchiffrement par
-     * note, pour rien.
+     * The flat list rather than the entities: it carries the titles and the
+     * ids, and nothing else. Loading nine hundred encrypted bodies to build a
+     * title index would cost one decryption per note, for nothing.
      *
      * @param list<array<string, mixed>> $rows
      *
@@ -241,14 +251,14 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Ce qu'il faut pour lire une note d'un espace publié, sans compte.
+     * What is needed to read a note of a published space, without an account.
      *
-     * **Tout vient de l'espace, rien de la personne** : il n'y en a pas.
-     * L'arbre, l'index des titres et les pages voisines sont ceux de l'espace
-     * seul ; un wiki-lien vers une note d'ailleurs ne mène donc nulle part,
-     * ce qui est exactement ce qu'on veut d'une page ouverte à tous. Les
-     * adresses sont celles de la lecture publique, jamais celles du
-     * back-office.
+     * **Everything comes from the space, nothing from the person**: there is
+     * none. The tree, the title index and the neighbouring pages are those of
+     * the space alone; a wiki link to a note elsewhere therefore leads
+     * nowhere, which is exactly what we want from a page open to everyone.
+     * The addresses are those of the public reading, never those of the back
+     * office.
      *
      * @return array<string, mixed>
      */
@@ -277,8 +287,8 @@ final readonly class MarkdownNotesViewBuilder
             'folderShowPath' => '',
             'readNotePath' => $this->urlGenerator->generate('notes_public_note', ['slug' => $slug, 'id' => '__id__']),
             'searchPath' => '',
-            // Le texte cite ses images par l'adresse du back-office ; la page
-            // les réécrit vers la route publique, bornée à cette note.
+            // The text cites its images by the back office address; the page
+            // rewrites them to the public route, limited to this note.
             'imagePrefix' => str_replace('__filename__', '', $this->urlGenerator->generate('suite_notes_markdown_images_serve', ['filename' => '__filename__'])),
             'noteImagePath' => $this->urlGenerator->generate('notes_public_image', ['slug' => $slug, 'id' => $note->getId(), 'filename' => '__filename__']),
             'backPath' => '',
@@ -295,7 +305,7 @@ final readonly class MarkdownNotesViewBuilder
         ];
     }
 
-    /** La première note d'un espace dans l'ordre de lecture : là où s'ouvre sa page publique. */
+    /** The first note of a space in reading order: where its public page opens. */
     public function firstInSpace(NoteSpaceInterface $space): ?int
     {
         return $this->readingOrder(
@@ -305,12 +315,12 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * La première note du carnet, dans l'ordre de lecture : là où s'ouvre le
-     * lecteur quand on y entre sans note, par son adresse ou son raccourci.
+     * The first note of the notebook, in reading order: where the reader
+     * opens when you enter it without a note, by its address or its shortcut.
      */
     public function firstInReadingOrder(CoreUserInterface $user): ?int
     {
-        // Le premier espace qui a des notes, le personnel d'abord.
+        // The first space that has notes, the personal one first.
         $rows = $this->noteRepository->findFlatListForUser($user);
         $folders = $this->folderRepository->findAllForUser($user);
 
@@ -330,7 +340,7 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Toutes les notes de la personne, dans l'ordre de l'arborescence.
+     * All of the person's notes, in tree order.
      *
      * @param list<NoteFolderInterface>  $folders
      * @param list<array<string, mixed>> $rows
@@ -354,7 +364,7 @@ final readonly class MarkdownNotesViewBuilder
         }
 
         foreach ($childrenOf as &$children) {
-            usort($children, static fn (array $a, array $b): int => $a <=> $b);
+            usort($children, static fn (array $left, array $right): int => $left <=> $right);
         }
 
         unset($children);
@@ -362,8 +372,8 @@ final readonly class MarkdownNotesViewBuilder
         $order = [];
         $seen = [];
         $walk = static function (int $folderId) use (&$walk, &$order, &$seen, $childrenOf): void {
-            // Un carnet abîmé dont un dossier se contiendrait lui-même ne
-            // doit pas faire tourner la page.
+            // A damaged notebook where a folder would contain itself must not
+            // make the page loop.
             if (isset($seen[$folderId])) {
                 return;
             }
@@ -384,12 +394,12 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * La note d'avant et celle d'après, dans l'ordre de l'arborescence.
+     * The previous note and the next one, in tree order.
      *
-     * C'est ce qui fait du mode lecture une lecture du carnet et pas d'une
-     * note : on avance d'une note à la suivante comme on tourne une page, dans
-     * l'ordre où le panneau les range : dossiers et notes mêlés, chaque niveau
-     * selon sa position.
+     * It is what makes reading mode a reading of the notebook and not of a
+     * note: you move from one note to the next as you turn a page, in the
+     * order the panel files them: folders and notes mixed, each level
+     * according to its position.
      *
      * @param list<NoteFolderInterface>  $folders
      * @param list<array<string, mixed>> $rows
@@ -414,12 +424,12 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Les extraits, collés sur les lignes de la liste.
+     * The excerpts, stuck onto the list rows.
      *
-     * Une requête de plus, et pas une jointure : le corps est chiffré, donc
-     * l'extrait se calcule en PHP après déchiffrement, et le faire ici
-     * plutôt que dans la requête de liste garde celle-ci légère pour les
-     * écrans qui n'en veulent pas.
+     * One more query, and not a join: the body is encrypted, so the excerpt
+     * is computed in PHP after decryption, and doing it here rather than in
+     * the list query keeps that one light for the screens that do not want
+     * it.
      *
      * @param list<array<string, mixed>> $notes
      *
@@ -476,7 +486,7 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Les routes des espaces, en un objet, comme celles des dossiers.
+     * The routes of the spaces, in one object, like those of the folders.
      *
      * @return array<string, array<string, string>>
      */

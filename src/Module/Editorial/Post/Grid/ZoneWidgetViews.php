@@ -483,7 +483,7 @@ final readonly class ZoneWidgetViews
             }
 
             $view['points'] = $points;
-            $view['polyline'] = implode(' ', array_map(static fn (array $p): string => $p['x'].','.$p['y'], $points));
+            $view['polyline'] = implode(' ', array_map(static fn (array $point): string => $point['x'].','.$point['y'], $points));
             $view['area'] = '20,220 '.$view['polyline'].' '.end($points)['x'].',220';
         }
 
@@ -553,7 +553,7 @@ final readonly class ZoneWidgetViews
         $day = $start;
         do {
             $week = [];
-            for ($i = 0; $i < 7; ++$i) {
+            for ($weekdayIndex = 0; $weekdayIndex < 7; ++$weekdayIndex) {
                 $key = $day->format('Y-m-d');
                 $week[] = [
                     'day' => (int) $day->format('j'),
@@ -568,11 +568,11 @@ final readonly class ZoneWidgetViews
         } while ($day->format('Y-m') === $month);
 
         $inMonth = array_values(array_filter($entries, static fn (array $entry): bool => str_starts_with($entry['date'], $month)));
-        usort($inMonth, static fn (array $a, array $b): int => $a['date'] <=> $b['date']);
+        usort($inMonth, static fn (array $left, array $right): int => $left['date'] <=> $right['date']);
 
-        // La légende : chaque couleur du mois avec le mot qui la porte, dans
-        // l'ordre où elle apparaît. Un même format écrit deux fois de deux
-        // façons (« Carrousel », « carrousel ») n'en fait qu'un.
+        // The legend: each colour of the month with the word it carries, in
+        // the order it appears. The same format written twice in two ways
+        // ("Carrousel", "carrousel") counts as one.
         $legend = [];
         foreach ($inMonth as $entry) {
             $key = $entry['tone'].'|'.mb_strtolower($entry['network']);
@@ -583,7 +583,7 @@ final readonly class ZoneWidgetViews
 
         return [
             'month' => $this->capitalise((string) $monthName->format($first)),
-            'weekdays' => array_map(fn (int $i): string => $this->capitalise(mb_rtrim((string) $weekdays->format(new DateTimeImmutable(sprintf('2024-01-%02d', $i + 1))), '.')), range(0, 6)),
+            'weekdays' => array_map(fn (int $weekdayIndex): string => $this->capitalise(mb_rtrim((string) $weekdays->format(new DateTimeImmutable(sprintf('2024-01-%02d', $weekdayIndex + 1))), '.')), range(0, 6)),
             'weeks' => $weeks,
             'list' => array_map(fn (array $entry): array => [...$entry, 'dateLabel' => $this->longDate(new DateTimeImmutable($entry['date']), $locale)], $inMonth),
             'legend' => array_values($legend),
@@ -805,12 +805,12 @@ final readonly class ZoneWidgetViews
         $chapters = [];
 
         foreach ($this->lines($parts[0]) as $line) {
-            if (1 !== preg_match('/^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+(.+)$/', $line, $m)) {
+            if (1 !== preg_match('/^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+(.+)$/', $line, $matches)) {
                 continue;
             }
 
-            $seconds = (int) $m[1] * 3600 + (int) $m[2] * 60 + (int) $m[3];
-            $chapters[] = ['seconds' => $seconds, 'time' => mb_trim(explode(' ', $line, 2)[0]), 'label' => mb_trim($m[4])];
+            $seconds = (int) $matches[1] * 3600 + (int) $matches[2] * 60 + (int) $matches[3];
+            $chapters[] = ['seconds' => $seconds, 'time' => mb_trim(explode(' ', $line, 2)[0]), 'label' => mb_trim($matches[4])];
         }
 
         $transcript = mb_trim($parts[1] ?? '');

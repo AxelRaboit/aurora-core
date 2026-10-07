@@ -30,7 +30,7 @@ final readonly class SpaceFilesViewBuilder
     ) {}
 
     /**
-     * Ce dont la vue a besoin, envoyé avec le reste de la page.
+     * What the view needs, sent with the rest of the page.
      *
      * @return array<string, mixed>
      */
@@ -41,43 +41,50 @@ final readonly class SpaceFilesViewBuilder
             'spaceFileUploadPath' => $this->urlGenerator->generate('workspace_space_files_upload', ['id' => $space->getId()]),
             'spaceFileAttachPath' => $this->urlGenerator->generate('workspace_space_files_attach', ['id' => $space->getId()]),
             'spaceFileRemovePath' => $this->pathTemplates->generate('workspace_space_files_remove', ['id' => $space->getId(), 'fileId' => '__id__']),
-            // Le dossier Drive de cet espace. `driveEnabled` dit que
-            // l'installation a une clé ; `driveFolderId` dit que cet espace-ci
-            // a désigné un dossier. Les deux, sinon l'écran propose un champ
-            // qui ne mènerait nulle part.
+            'spaceFileVisibilityPath' => $this->pathTemplates->generate('workspace_space_files_visibility', ['id' => $space->getId(), 'fileId' => '__id__']),
+            // This space's Drive folder. `driveEnabled` says the installation
+            // has a key; `driveFolderId` says this particular space has
+            // designated a folder. Both, otherwise the screen offers a field
+            // that would lead nowhere.
             'driveEnabled' => $this->drive->isEnabled(),
             'driveFolderId' => $space->getDriveFolderId(),
             'driveListPath' => $this->urlGenerator->generate('workspace_space_drive_list', ['id' => $space->getId()]),
             'driveFilePath' => $this->pathTemplates->generate('workspace_space_drive_file', ['id' => $space->getId(), 'fileId' => '__id__']),
             'driveArchivePath' => $this->urlGenerator->generate('workspace_space_drive_archive', ['id' => $space->getId()]),
-            'driveImportPath' => $this->pathTemplates->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__']),
-            // Le dossier de l'agence : le même pour tous les espaces, choisi
-            // dans la configuration du Drive. Réservé au studio, il n'est
-            // jamais montré au client : rien ici ne part vers le portail.
+            // Filing a file writes to the media library: the button only shows
+            // to someone who can edit the space, as the route requires.
+            'driveImportPath' => $this->canEdit()
+                ? $this->pathTemplates->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
+                : '',
+            // The agency's folder: the same for every space, chosen in the
+            // Drive configuration. Reserved to the studio, it is never shown to
+            // the client: nothing here goes to the portal.
             'driveAgencyFolderId' => $this->drive->agencyFolderId(),
             'driveAgencyListPath' => $this->urlGenerator->generate('workspace_space_drive_agency_list', ['id' => $space->getId()]),
             'driveAgencyFilePath' => $this->pathTemplates->generate('workspace_space_drive_agency_file', ['id' => $space->getId(), 'fileId' => '__id__']),
             'driveAgencyArchivePath' => $this->urlGenerator->generate('workspace_space_drive_agency_archive', ['id' => $space->getId()]),
-            'driveAgencyImportPath' => $this->pathTemplates->generate('workspace_space_drive_agency_import', ['id' => $space->getId(), 'fileId' => '__fileId__']),
+            'driveAgencyImportPath' => $this->canEdit()
+                ? $this->pathTemplates->generate('workspace_space_drive_agency_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
+                : '',
             'driveUnlockPath' => $this->urlGenerator->generate('workspace_space_settings_drive_unlock', ['id' => $space->getId()]),
-            // La serrure telle qu'elle est pour *cette* session : fermée mais
-            // déjà ouverte ici ne se lit pas comme fermée.
+            // The lock as it stands for *this* session: closed but already
+            // opened here does not read as closed.
             'driveLocked' => $this->lock->isClosedFor($space),
-            // Les réglages, et qui peut les ouvrir. Décidé ici plutôt que
-            // deviné dans l'écran : la règle vit dans `SpaceVisibility`.
+            // The settings, and who can open them. Decided here rather than
+            // guessed in the screen: the rule lives in `SpaceVisibility`.
             'canConfigure' => $this->visibility->canConfigure($space),
             'settingsPath' => $this->urlGenerator->generate('workspace_space_settings_show', ['id' => $space->getId()]),
-            // Le dossier de l'agence se règle là où il manque, dans une
-            // fenêtre des réglages de l'espace, sans quitter l'espace. Pour
-            // qui a la main sur la configuration seulement : les autres lisent
-            // la phrase, sans geste qui finirait sur un 403.
+            // The agency's folder is set where it is missing, in a window of
+            // the space settings, without leaving the space. Only for someone
+            // in charge of the configuration: the others read the sentence,
+            // with no action that would end on a 403.
             'driveAgencyFolderPath' => $this->canConfigureDrive()
                 ? $this->urlGenerator->generate('suite_studio_drive_settings_agency_folder')
                 : null,
-            // L'adresse avec laquelle partager un dossier, à copier dans la
-            // fenêtre : pour celui de l'agence, et d'abord pour celui du
-            // client, à qui il faut bien la donner. Elle n'a rien de secret,
-            // elle s'écrit dans chaque partage.
+            // The address to share a folder with, to copy in the window: for
+            // the agency's, and first of all for the client's, who has to be
+            // given it. There is nothing secret about it, it is written in
+            // every share.
             'driveServiceAccountEmail' => $this->drive->isEnabled() ? $this->drive->state()['email'] : null,
         ];
     }
@@ -88,11 +95,11 @@ final readonly class SpaceFilesViewBuilder
     }
 
     /**
-     * Ce que renvoie chaque écriture : la liste entière.
+     * What each write returns: the whole list.
      *
-     * Plutôt que la seule ligne touchée, pour la raison que le tableau donne
-     * déjà : une page qui rafistolerait sa copie s'écarterait du serveur en
-     * trois gestes, et la liste des fichiers d'un espace est courte.
+     * Rather than only the row touched, for the reason the board already
+     * gives: a page that patched its own copy would drift from the server in
+     * three actions, and a space's file list is short.
      *
      * @return array<string, mixed>
      */
@@ -102,12 +109,13 @@ final readonly class SpaceFilesViewBuilder
     }
 
     /**
-     * Les fichiers de l'espace, tels que le client les lit.
+     * The space's files, as the client reads them.
      *
-     * **Il les voit, et c'est la définition de l'onglet.** Un espace est
-     * partagé : ses fiches, ses fichiers et sa discussion se lisent des deux
-     * côtés. Ce que le studio garde pour lui, ce sont les notes, qui n'ont
-     * aucune route publique.
+     * **Those shown to them, and those they sent.** A file dropped by the
+     * studio is born hidden from the client, like everything a space can show
+     * them: the brief being worked from is not the brand guide handed to them.
+     * The route that serves a file asks the same question, so that a guessed
+     * address does not serve what the list keeps quiet.
      *
      * @return array<string, mixed>
      */
@@ -116,7 +124,7 @@ final readonly class SpaceFilesViewBuilder
         return [
             'spaceFiles' => array_map(
                 fn (SpaceFileInterface $file): array => $this->serializer->serializeForGuest($file, $link, $token),
-                $this->files->findForSpace($link->getSpace()),
+                $this->files->findShownForSpace($link->getSpace()),
             ),
         ];
     }
@@ -125,5 +133,10 @@ final readonly class SpaceFilesViewBuilder
     public function files(CustomerSpaceInterface $space): array
     {
         return array_map($this->serializer->serialize(...), $this->files->findForSpace($space));
+    }
+
+    private function canEdit(): bool
+    {
+        return $this->authorization->isGranted('studio.spaces.edit');
     }
 }

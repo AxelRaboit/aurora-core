@@ -26,9 +26,10 @@ describe("lineDiff", () => {
     });
 
     it("gives up rather than freezing on two huge texts", () => {
-        const huge = Array.from({ length: 2100 }, (_, n) => `ligne ${n}`).join(
-            "\n",
-        );
+        const huge = Array.from(
+            { length: 2100 },
+            (_, lineNumber) => `ligne ${lineNumber}`,
+        ).join("\n");
 
         expect(lineDiff(huge, `${huge}\nfin`)).toBeNull();
     });

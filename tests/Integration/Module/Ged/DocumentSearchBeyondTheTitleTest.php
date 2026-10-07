@@ -163,7 +163,7 @@ final class DocumentSearchBeyondTheTitleTest extends IntegrationTestCase
         self::assertSame(['Carre'], $this->titles($this->marker, new DocumentSearchFilters(searchIn: $title, weight: DocumentWeightEnum::Heavy)));
     }
 
-    /** « Jusqu'au 15 » comprend le 15 : la borne est la fin de la journée. */
+    /** "Up to the 15th" includes the 15th: the bound is the end of the day. */
     public function testTheAddedDatesIncludeTheirWholeDay(): void
     {
         $this->entityManager->createQuery(sprintf('UPDATE %s d SET d.createdAt = :at WHERE d.id = :id', Document::class))

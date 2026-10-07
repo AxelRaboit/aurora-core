@@ -172,9 +172,9 @@ const wrapperClass = computed(() =>
 );
 
 const contentClass = computed(() => [
-    // Seize pixels de flanc sur téléphone plutôt que vingt-quatre : une
-    // modale y fait la largeur de l'écran moins la gouttière, et ce qu'elle
-    // contient - un champ, une liste de noms - n'a pas de marge à donner.
+    // Sixteen pixels of side margin on a phone rather than twenty-four: a modal
+    // there is the width of the screen minus the gutter, and what it contains -
+    // a field, a list of names - has no margin to spare.
     props.noPadding ? "" : "px-4 space-y-4 sm:px-6",
     props.scrollable ? "overflow-y-auto scrollbar-thin flex-1 py-6" : "py-6",
 ]);

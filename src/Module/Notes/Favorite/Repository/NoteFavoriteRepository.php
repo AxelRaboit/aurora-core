@@ -23,7 +23,7 @@ class NoteFavoriteRepository extends ResolveTargetEntityRepository
         parent::__construct($registry, NoteFavorite::class, NoteFavoriteInterface::class);
     }
 
-    /** L'heure où une personne a épinglé cette note ou ce dossier, ou rien. */
+    /** When a person pinned this note or this folder, or nothing. */
     public function favoritedAt(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): ?string
     {
         $favorite = $this->findOneBy($item instanceof MarkdownNoteInterface ? ['user' => $user, 'note' => $item] : ['user' => $user, 'folder' => $item]);
@@ -32,8 +32,8 @@ class NoteFavoriteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Ce qu'une personne a épinglé : l'identifiant de la note ou du dossier,
-     * et l'heure du geste, qui ordonne le panneau.
+     * What a person has pinned: the id of the note or the folder, and the
+     * time of the action, which orders the panel.
      *
      * @return array{notes: array<int, string>, folders: array<int, string>}
      */

@@ -105,9 +105,9 @@ describe("AppSelect", () => {
         expect(short.find("input.multiselect__input").exists()).toBe(false);
         short.unmount();
 
-        const many = Array.from({ length: 12 }, (_, i) => ({
-            value: `o${i}`,
-            label: `Option ${i}`,
+        const many = Array.from({ length: 12 }, (_, index) => ({
+            value: `o${index}`,
+            label: `Option ${index}`,
         }));
         const long = mountSelect({ options: many });
         expect(long.find("input.multiselect__input").exists()).toBe(true);

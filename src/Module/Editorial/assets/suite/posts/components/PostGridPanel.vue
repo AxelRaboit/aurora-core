@@ -323,7 +323,7 @@ const frameHeight = ref(300);
  * is sized to the screen (`100vh`) is let go: the frame grows to fit its
  * page, and a page as tall as its frame would grow with it for ever.
  */
-const frameDoc = computed(() =>
+const frameSource = computed(() =>
     String(framePageHtml.value ?? "")
         .replace(/<script\b[\s\S]*?<\/script>/gi, "")
         .replace(/<head([^>]*)>/i, '<head$1><base target="_blank"><style>body{cursor:pointer;min-height:0!important}.aurora-slide{min-height:0!important}</style><style data-highlight></style>'),
@@ -331,8 +331,8 @@ const frameDoc = computed(() =>
 
 /** The selected zone, outlined in the frame. */
 function paintHighlight() {
-    const doc = frame.value?.contentDocument;
-    const style = doc?.querySelector("style[data-highlight]");
+    const frameDocument = frame.value?.contentDocument;
+    const style = frameDocument?.querySelector("style[data-highlight]");
     if (!style) return;
 
     const id = zones.value[selectedIndex.value]?.id;
@@ -340,15 +340,15 @@ function paintHighlight() {
 }
 
 function onFrameLoad() {
-    const doc = frame.value?.contentDocument;
-    if (!doc) return;
+    const frameDocument = frame.value?.contentDocument;
+    if (!frameDocument) return;
 
-    doc.addEventListener("click", pickFromPreview);
-    frameHeight.value = Math.max(200, doc.body.scrollHeight);
+    frameDocument.addEventListener("click", pickFromPreview);
+    frameHeight.value = Math.max(200, frameDocument.body.scrollHeight);
     paintHighlight();
     // Pictures arrive after the frame: measure again when they have.
-    doc.querySelectorAll("img").forEach((image) => image.addEventListener("load", () => {
-        frameHeight.value = Math.max(200, doc.body.scrollHeight);
+    frameDocument.querySelectorAll("img").forEach((image) => image.addEventListener("load", () => {
+        frameHeight.value = Math.max(200, frameDocument.body.scrollHeight);
     }, { once: true }));
 }
 
@@ -507,7 +507,7 @@ function resizeZone(index, columns) {
                         {{ t("suite.posts.grid.outline", { count: outline.length }) }}
                     </summary>
                     <ol class="m-0 mt-2 grid list-none gap-x-4 gap-y-0.5 p-0 sm:grid-cols-2">
-                        <!-- `min-w-0` : un élément de grille garde sinon la largeur de son contenu, et un titre de section long poussait les deux boutons hors de l'écran sur téléphone (la page défilait de côté). -->
+                        <!-- `min-w-0`: otherwise a grid item keeps the width of its content, and a long section title pushed both buttons off the screen on a phone (the page scrolled sideways). -->
                         <li v-for="(section, position) in outline" :key="section.index" class="flex min-w-0 items-center gap-1">
                             <button
                                 type="button"
@@ -876,10 +876,10 @@ function resizeZone(index, columns) {
                             </div>
                         </div>
 
-                        <!-- Indépendant du fond : une carte ou une teinte garde
-                         son intérêt sur une zone qui demande en plus le
-                         schéma opposé, donc ce réglage vit à côté de
-                         « Fond » plutôt que dans son panneau personnalisé. -->
+                        <!-- Independent of the background: a card or a tint
+                         still makes sense on a zone that also asks for the
+                         opposite scheme, so this setting lives next to
+                         "Fond" rather than in its custom panel. -->
                         <AppChoiceRow
                             v-model="zoneFields(index).contrast.value"
                             :label="t('suite.posts.grid.contrast')"
@@ -920,12 +920,12 @@ function resizeZone(index, columns) {
                             :hint="t('suite.posts.grid.accent_color_hint')"
                         />
 
-                        <!-- Comment la zone arrive quand le lecteur la
-                         rejoint. Ici, avec le fond et la largeur, parce que
-                         c'est la même question posée une troisième fois :
-                         comment cette zone se présente. Sans effet par
-                         défaut - une page où tout bouge est une page où rien
-                         ne ressort. -->
+                        <!-- How the zone arrives when the reader reaches
+                         it. Here, with the background and the width, because
+                         it is the same question asked a third time: how this
+                         zone presents itself. No effect by default - a page
+                         where everything moves is a page where nothing
+                         stands out. -->
                         <AppChoiceRow
                             v-model="zoneFields(index).reveal.value"
                             :label="t('suite.posts.grid.reveal')"
@@ -1210,8 +1210,8 @@ function resizeZone(index, columns) {
                     :icon="Eye"
                     v-on:close="showPreview = false"
                 >
-                    <!-- La modale a déjà ses seize pixels : seize de plus ici en feraient
-                     trente-deux sur un téléphone, pour un aperçu qu'on regarde. -->
+                    <!-- The modal already has its sixteen pixels: sixteen more here would
+                     make thirty-two on a phone, for a preview one looks at. -->
                     <div class="relative min-h-40 p-2 sm:p-4">
                         <div v-html="previewHtml" />
                         <AppLoader :active="previewLoading" />
@@ -1245,7 +1245,7 @@ function resizeZone(index, columns) {
                     <iframe
                         ref="frame"
                         :title="t('suite.posts.grid.preview')"
-                        :srcdoc="frameDoc"
+                        :srcdoc="frameSource"
                         class="block border-0"
                         :style="{ width: `${deviceWidth}px`, height: `${frameHeight}px`, transform: `scale(${previewScale})`, transformOrigin: 'top left' }"
                         v-on:load="onFrameLoad"

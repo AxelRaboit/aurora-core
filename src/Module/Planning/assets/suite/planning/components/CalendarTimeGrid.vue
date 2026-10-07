@@ -40,7 +40,7 @@ const props = defineProps({
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "move-event"]);
 
-const { d, t } = useI18n();
+const { d: formatDate, t } = useI18n();
 
 /** One hour of height. The whole grid is 24 of these. */
 const HOUR_REM = 3;
@@ -108,23 +108,23 @@ function nowLine(day) {
 }
 
 function dayLabel(day) {
-    return d(day, { weekday: "short" });
+    return formatDate(day, { weekday: "short" });
 }
 
 function hourLabel(hour) {
     // Formatted through the locale so a 12-hour language says "1 PM" rather than
     // a "13:00" written out here.
-    return d(new Date(2026, 0, 1, hour), { hour: "2-digit", minute: "2-digit" });
+    return formatDate(new Date(2026, 0, 1, hour), { hour: "2-digit", minute: "2-digit" });
 }
 
 function remindersOn(day) {
     return props.reminders
         .filter((reminder) => sameDay(new Date(reminder.dueAt), day))
-        .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+        .sort((left, right) => new Date(left.dueAt) - new Date(right.dueAt));
 }
 
 function timeOf(event) {
-    return d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
+    return formatDate(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
 }
 
 /**

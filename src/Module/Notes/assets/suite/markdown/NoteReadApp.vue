@@ -1,22 +1,22 @@
 <script setup>
 /**
- * Le lecteur : le carnet se lit, dans un espace épuré.
+ * The reader: the notebook is read, in an uncluttered space.
  *
- * Pas de back-office autour - ni menu, ni barre du haut : l'arborescence à
- * gauche, le texte au milieu, à largeur de lecture. C'est la lecture
- * d'Obsidian ou de Notion, et c'est ce qu'Axel a demandé : « un espace
- * épuré, sans le layout habituel ».
+ * No back-office around it - no menu, no top bar: the tree on the left, the
+ * text in the middle, at reading width. It is Obsidian's or Notion's reading
+ * view, and it is what Axel asked for: "un espace épuré, sans le layout
+ * habituel".
  *
- * **L'arborescence se range.** Sur ordinateur, elle se replie d'un geste et
- * s'en souvient ; sur téléphone, elle vit dans un tiroir derrière le bouton
- * « Sommaire », qui se referme dès qu'on a choisi.
+ * **The tree tucks away.** On a computer, it folds with one gesture and
+ * remembers it; on a phone, it lives in a drawer behind the "Sommaire"
+ * button, which closes as soon as a choice is made.
  *
- * **On tourne les pages.** Précédente et suivante suivent l'ordre de
- * l'arborescence - sous-dossiers d'abord, puis les notes - pour lire un
- * dossier entier d'affilée ; les flèches du clavier font la même chose.
+ * **Pages turn.** Previous and next follow the tree's order - subfolders
+ * first, then the notes - to read a whole folder in a row; the keyboard
+ * arrows do the same.
  *
- * **Le rendu est celui du partage**, le même composant : ce qu'on lit ici est
- * exactement ce qu'un invité lirait, et les deux ne peuvent pas diverger.
+ * **The rendering is the share's**, the same component: what is read here is
+ * exactly what a guest would read, and the two cannot diverge.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -40,33 +40,33 @@ const props = defineProps({
     readNotePath: { type: String, required: true },
     imagePrefix: { type: String, default: "" },
     noteImagePath: { type: String, default: "" },
-    /** Les dossiers de la note depuis la racine ; vide pour la note d'un autre. */
+    /** The note's folders from the root; empty for someone else's note. */
     breadcrumb: { type: Array, default: () => [] },
-    /** Vrai seulement chez soi : la note d'un autre se lit, elle ne s'écrit pas. */
+    /** True only at home: someone else's note is read, it is not written. */
     canEdit: { type: Boolean, default: false },
-    /** Dans les favoris de qui lit, et l'adresse qui l'y met ou l'en retire. */
+    /** In the reader's favourites, and the address that adds or removes it. */
     favorited: { type: Boolean, default: false },
     favoritePath: { type: String, default: "" },
     backPath: { type: String, default: "" },
     previous: { type: Object, default: null },
     next: { type: Object, default: null },
     libraryPath: { type: String, required: true },
-    /** Vide sur la lecture publique, où un dossier n'a pas de page. */
+    /** Empty on public reading, where a folder has no page. */
     folderShowPath: { type: String, default: "" },
     treeFolders: { type: Array, default: () => [] },
     treeNotes: { type: Array, default: () => [] },
-    /** Les espaces lisibles, le sien d'abord : l'arbre se range par espace. */
+    /** The readable spaces, one's own first: the tree is grouped by space. */
     treeSpaces: { type: Array, default: () => [] },
     searchPath: { type: String, default: "" },
     /**
-     * Le nom d'un espace publié, sur sa page publique : il remplace le
-     * retour vers le back-office, qui ne mène nulle part pour qui n'a pas
-     * de compte.
+     * The name of a published space, on its public page: it replaces the
+     * link back to the back-office, which leads nowhere for someone without
+     * an account.
      */
     publicTitle: { type: String, default: "" },
     /**
-     * Ouvert depuis « Imprimer ou exporter en PDF » de l'éditeur : le
-     * dialogue s'ouvre sans second clic, une fois les images chargées.
+     * Opened from the editor's "Imprimer ou exporter en PDF": the dialog
+     * opens without a second click, once the images have loaded.
      */
     autoPrint: { type: Boolean, default: false },
 });
@@ -75,15 +75,15 @@ const { t } = useI18n();
 
 const SIDEBAR_KEY = "aurora.notes.reader.sidebar";
 
-/** Où ramène le retour : l'édition de sa note, sinon la bibliothèque. */
+/** Where the back link leads: editing one's note, otherwise the library. */
 const exitPath = computed(() => (props.canEdit && props.backPath ? props.backPath : props.libraryPath));
 const exitLabel = computed(() =>
     props.canEdit && props.backPath ? t('notes.markdown.read.back') : t('notes.markdown.library.title'),
 );
 
 /**
- * L'étoile : on lit une note et on se dit qu'on y reviendra. La mettre en
- * favori ne demande pas d'aller la chercher ailleurs.
+ * The star: one reads a note and thinks of coming back to it. Adding it to
+ * favourites does not require going to find it elsewhere.
  */
 const { request } = useRequest();
 const isFavorite = ref(props.favorited);
@@ -101,7 +101,7 @@ const readUrl = (id) => props.readNotePath.replace("__id__", String(id));
 const folderUrl = (id) => props.folderShowPath.replace("__id__", String(id));
 const titleOf = (note) => note?.title?.trim() || t("notes.markdown.untitled");
 
-// ── L'arborescence : colonne sur ordinateur, tiroir sur téléphone ──
+// ── The tree: a column on a computer, a drawer on a phone ──────────
 
 function readSidebar() {
     try {
@@ -118,13 +118,13 @@ watch(sidebarOpen, (open) => {
     try {
         window.localStorage.setItem(SIDEBAR_KEY, open ? "1" : "0");
     } catch {
-        // Une préférence d'affichage, rien de plus.
+        // A display preference, nothing more.
     }
 });
 
 /**
- * Le même bouton sert les deux tailles : il ouvre le tiroir sur un
- * téléphone, il replie la colonne sur un ordinateur.
+ * The same button serves both sizes: it opens the drawer on a phone, it
+ * folds the column on a computer.
  */
 function toggleNav() {
     if (window.matchMedia?.("(min-width: 768px)").matches) {
@@ -137,11 +137,11 @@ function toggleNav() {
 }
 
 /**
- * Les flèches tournent les pages, Échap referme le tiroir. Rien de tout cela
- * quand on tape : la recherche garde ses touches.
+ * The arrows turn the pages, Escape closes the drawer. None of this while
+ * typing: the search keeps its keys.
  */
 function onKeydown(event) {
-    // Alt+R, la même touche qui a ouvert le lecteur, ramène à l'écriture.
+    // Alt+R, the same key that opened the reader, goes back to writing.
     if (event.altKey && !event.ctrlKey && !event.metaKey && "KeyR" === event.code) {
         if (props.canEdit && props.backPath) {
             event.preventDefault();
@@ -183,16 +183,16 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 <template>
     <div class="flex min-h-screen">
-        <!-- La colonne, sur ordinateur : elle reste en place quand le texte
-             défile. -->
+        <!-- The column, on a computer: it stays in place when the text
+             scrolls. -->
         <aside
             v-if="sidebarOpen"
             data-reader-sidebar
             class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-3 border-r border-line bg-surface p-3 md:flex print:hidden"
         >
-            <!-- Un retour, pas le nom du site : on sort de la lecture pour
-                 revenir là d'où l'on vient - l'édition de la note, ou la
-                 bibliothèque quand la note est à quelqu'un d'autre. -->
+            <!-- A back link, not the site name: one leaves reading to go back
+                 where one came from - editing the note, or the library when
+                 the note belongs to someone else. -->
             <a
                 v-if="publicTitle"
                 data-reader-public-title
@@ -217,8 +217,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             />
         </aside>
 
-        <!-- Le tiroir, sur téléphone : il couvre l'écran, et se referme d'un
-             toucher à côté, d'Échap, ou en choisissant une note. -->
+        <!-- The drawer, on a phone: it covers the screen, and closes with a
+             tap beside it, with Escape, or by picking a note. -->
         <div v-if="drawerOpen" data-reader-drawer class="fixed inset-0 z-40 md:hidden">
             <button
                 type="button"
@@ -255,8 +255,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
         </div>
 
         <main class="min-w-0 flex-1">
-            <!-- Une seule barre, discrète : ranger l'arbre, où l'on est, et
-                 de quoi repartir écrire. -->
+            <!-- A single, discreet bar: tuck the tree away, where one is, and
+                 a way to go back to writing. -->
             <header class="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-body/90 px-3 py-2 backdrop-blur sm:px-6 print:hidden">
                 <AppIconButton
                     data-reader-nav-toggle
@@ -279,8 +279,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     >{{ publicTitle || t('notes.markdown.library.title') }}</a>
                     <template v-for="crumb in breadcrumb" :key="crumb.id">
                         <ChevronRight class="hidden h-3 w-3 shrink-0 sm:block" :stroke-width="2" />
-                        <!-- Un dossier n'a pas de page publique : sur la
-                             lecture publique, il se lit sans mener ailleurs. -->
+                        <!-- A folder has no public page: on public reading,
+                             it reads without leading anywhere. -->
                         <span
                             v-if="!folderShowPath"
                             data-read-crumb
@@ -299,10 +299,10 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     <span class="min-w-0 truncate px-1 text-secondary" aria-current="page">{{ titleOf({ title: noteTitle }) }}</span>
                 </nav>
 
-                <!-- Les commandes de la barre sont de vrais boutons, de la
-                     même taille (02/10/2026) : le favori était une étoile nue
-                     à côté d'un « Modifier » encadré, et ce dernier n'avait
-                     plus de nom sur téléphone. -->
+                <!-- The bar's commands are real buttons, of the same size
+                     (02/10/2026): the favourite was a bare star next to a
+                     framed "Modifier", and the latter had no name left on a
+                     phone. -->
                 <AppButton
                     v-if="favoritePath"
                     variant="secondary"
@@ -354,7 +354,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     :title-index="titleIndex"
                 />
 
-                <!-- Tourner la page, comme au bas d'un chapitre. -->
+                <!-- Turn the page, as at the end of a chapter. -->
                 <nav
                     v-if="previous || next"
                     data-read-pager

@@ -46,14 +46,14 @@ const props = defineProps({
     storageRelocationAvailable: { type: Boolean, default: false },
     alternatesPath: { type: String, default: "" },
     showPath: { type: String, default: "" },
-    /** De quoi ranger le document, comme dans la médiathèque. */
+    /** What to file the document with, as in the media library. */
     categories: { type: Array, default: () => [] },
     tags: { type: Array, default: () => [] },
     folders: { type: Array, default: () => [] },
 });
 
-// La fenêtre « Modifier » range le document comme celle de la médiathèque :
-// catégorie, étiquettes et dossier, et pas seulement son titre et son statut.
+// The "Modifier" window files the document like the media library one does:
+// category, tags and folder, and not only its title and status.
 const categoryOptions = computed(() => props.categories.map((category) => ({ value: category.id, label: category.name })));
 const tagOptions = computed(() => props.tags.map((tag) => ({ value: tag.id, label: tag.name })));
 const folderOptions = computed(() => withDepthLabel(flattenFolders(buildFolderTree(props.folders, byPosition))));
@@ -63,23 +63,23 @@ function openMember(member) {
     if (props.showPath) window.location.href = buildPath(props.showPath, { id: member.id });
 }
 
-const doc = ref({ ...props.document });
+const currentDocument = ref({ ...props.document });
 
 // The composable patches a list; here there is one document, so it is handed a
 // list of one and reads the result back out. Cheaper than a second code path
 // that could drift from the one the list screen uses.
 const singleton = computed({
-    get: () => [doc.value],
+    get: () => [currentDocument.value],
     set: (rows) => {
-        doc.value = rows[0];
+        currentDocument.value = rows[0];
     },
 });
 const { relocate, relocatingId } = useDocumentRelocation(props, singleton);
 
 const cropTarget = ref(null);
 
-function onCropped(updatedDoc) {
-    if (updatedDoc) doc.value = { ...updatedDoc };
+function onCropped(updatedDocument) {
+    if (updatedDocument) currentDocument.value = { ...updatedDocument };
 }
 
 function onSaved() {
@@ -92,7 +92,7 @@ function onDeleted() {
 
 const {
     statusOptions,
-    showEdit, editingDoc, editForm, editErrors, editLoading, openEdit, submitEdit,
+    showEdit, editingDocument, editForm, editErrors, editLoading, openEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
 } = useDocumentsForm(
     '',
@@ -139,7 +139,7 @@ const actionsFor = useDocumentRowActions({
     restore: props.restorePath ? restore : null,
 });
 
-const documentActions = computed(() => actionsFor(doc.value));
+const documentActions = computed(() => actionsFor(currentDocument.value));
 
 function isImage(mimeType) {
     return mimeType?.startsWith('image/');
@@ -159,22 +159,22 @@ function isPdf(mimeType) {
         <AppPageBar :back-href="backPath" :back-label="t('suite.ged.documents.back_to_list')">
             <DocumentStorageChip
                 v-if="storageRelocationAvailable"
-                :disk="doc.storageDisk"
-                :state="doc.storageTransferState"
-                :error="doc.storageTransferError"
+                :disk="currentDocument.storageDisk"
+                :state="currentDocument.storageTransferState"
+                :error="currentDocument.storageTransferError"
             />
             <AppPageActions
                 v-if="documentActions.length"
                 :actions="documentActions"
-                :label="doc.title ?? ''"
-                :busy="relocatingId === doc.id"
+                :label="currentDocument.title ?? ''"
+                :busy="relocatingId === currentDocument.id"
                 icon-only-on-phone
             />
         </AppPageBar>
 
-        <AppMessage v-if="doc.trashed" variant="trash">
+        <AppMessage v-if="currentDocument.trashed" variant="trash">
             <p class="font-medium">{{ t("suite.ged.documents.trashed.title") }}</p>
-            <p class="mt-0.5">{{ t("suite.ged.documents.trashed.body", { date: formatDate(doc.deletedAt) }) }}</p>
+            <p class="mt-0.5">{{ t("suite.ged.documents.trashed.body", { date: formatDate(currentDocument.deletedAt) }) }}</p>
             <template v-if="restorePath && can('ged.documents.delete')" #actions>
                 <AppButton size="sm" variant="ghost" :loading="restoring" v-on:click="restore">
                     <RotateCcw class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("suite.trash.restore") }}
@@ -182,8 +182,8 @@ function isPdf(mimeType) {
             </template>
         </AppMessage>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.ged.documents.show_guide.title')" storage-key="ged-document-show">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.ged.documents.show_guide.step_${step}`) }}</li>
@@ -202,69 +202,69 @@ function isPdf(mimeType) {
                  on the page. -->
             <div class="px-4 py-5 sm:px-6">
                 <div class="flex items-start justify-between gap-4">
-                    <p v-if="doc.reference" class="font-mono text-sm text-secondary">{{ doc.reference }}</p>
-                    <AppBadge v-if="doc.trashed" color="rose" class="shrink-0">{{ t("suite.ged.documents.trashed.badge") }}</AppBadge>
-                    <AppBadge v-else :color="DOCUMENT_STATUS_BADGE[doc.status]" class="shrink-0">{{ doc.statusLabel }}</AppBadge>
+                    <p v-if="currentDocument.reference" class="font-mono text-sm text-secondary">{{ currentDocument.reference }}</p>
+                    <AppBadge v-if="currentDocument.trashed" color="rose" class="shrink-0">{{ t("suite.ged.documents.trashed.badge") }}</AppBadge>
+                    <AppBadge v-else :color="DOCUMENT_STATUS_BADGE[currentDocument.status]" class="shrink-0">{{ currentDocument.statusLabel }}</AppBadge>
                 </div>
-                <p v-if="doc.description" class="mt-3 text-sm text-secondary leading-relaxed">{{ doc.description }}</p>
+                <p v-if="currentDocument.description" class="mt-3 text-sm text-secondary leading-relaxed">{{ currentDocument.description }}</p>
             </div>
 
             <!-- Metadata grid -->
             <div class="px-4 py-4 grid grid-cols-1 sm:grid-cols-2 sm:px-6 gap-4">
-                <div v-if="doc.categoryName">
+                <div v-if="currentDocument.categoryName">
                     <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.category") }}</p>
-                    <p class="text-sm text-primary">{{ doc.categoryName }}</p>
+                    <p class="text-sm text-primary">{{ currentDocument.categoryName }}</p>
                 </div>
-                <div v-if="doc.folderName">
+                <div v-if="currentDocument.folderName">
                     <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.folder") }}</p>
                     <p class="text-sm text-primary flex items-center gap-1.5">
-                        <Folder class="w-3.5 h-3.5 text-muted" :stroke-width="2" /> {{ doc.folderName }}
+                        <Folder class="w-3.5 h-3.5 text-muted" :stroke-width="2" /> {{ currentDocument.folderName }}
                     </p>
                 </div>
-                <div v-if="doc.tags?.length">
+                <div v-if="currentDocument.tags?.length">
                     <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.tags") }}</p>
                     <div class="flex flex-wrap gap-1.5">
-                        <DocumentTagChip v-for="tag in doc.tags" :key="tag.id" :tag="tag" />
+                        <DocumentTagChip v-for="tag in currentDocument.tags" :key="tag.id" :tag="tag" />
                     </div>
                 </div>
-                <div v-if="doc.width && doc.height">
+                <div v-if="currentDocument.width && currentDocument.height">
                     <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.dimensions") }}</p>
-                    <p class="text-sm text-primary">{{ doc.width }} × {{ doc.height }} px</p>
+                    <p class="text-sm text-primary">{{ currentDocument.width }} × {{ currentDocument.height }} px</p>
                 </div>
                 <div>
                     <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("shared.common.dates") }}</p>
-                    <p class="text-xs text-secondary">{{ t("shared.common.created") }} {{ formatDate(doc.createdAt) }}</p>
-                    <p class="text-xs text-secondary">{{ t("shared.common.updated") }} {{ formatDate(doc.updatedAt) }}</p>
+                    <p class="text-xs text-secondary">{{ t("shared.common.created") }} {{ formatDate(currentDocument.createdAt) }}</p>
+                    <p class="text-xs text-secondary">{{ t("shared.common.updated") }} {{ formatDate(currentDocument.updatedAt) }}</p>
                 </div>
             </div>
 
             <!-- File -->
-            <div v-if="doc.fileUrl" class="px-4 py-4 sm:px-6">
+            <div v-if="currentDocument.fileUrl" class="px-4 py-4 sm:px-6">
                 <p class="text-xs text-muted uppercase tracking-wide mb-3">{{ t("suite.ged.documents.file") }}</p>
-                <template v-if="isImage(doc.fileMime)">
-                    <AppImagePreview :src="doc.fileUrl" :alt="doc.fileName" size="lg" />
+                <template v-if="isImage(currentDocument.fileMime)">
+                    <AppImagePreview :src="currentDocument.fileUrl" :alt="currentDocument.fileName" size="lg" />
                     <div class="flex justify-end items-center gap-4 mt-2">
                         <button
                             v-if="can('ged.documents.edit')"
                             type="button"
                             class="flex items-center gap-1.5 text-sm text-accent hover:underline"
-                            v-on:click="cropTarget = doc"
+                            v-on:click="cropTarget = currentDocument"
                         >
                             <Crop class="w-4 h-4" :stroke-width="2" /> {{ t("suite.ged.documents.crop") }}
                         </button>
-                        <a :href="doc.fileUrl" download class="flex items-center gap-1.5 text-sm text-accent hover:underline">
+                        <a :href="currentDocument.fileUrl" download class="flex items-center gap-1.5 text-sm text-accent hover:underline">
                             <Download class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.download") }}
                         </a>
                     </div>
                 </template>
-                <template v-else-if="isPdf(doc.fileMime)">
+                <template v-else-if="isPdf(currentDocument.fileMime)">
                     <iframe
-                        :src="doc.fileUrl"
+                        :src="currentDocument.fileUrl"
                         class="w-full h-96 rounded-lg border border-line"
-                        :title="doc.fileName"
+                        :title="currentDocument.fileName"
                     />
                     <div class="flex justify-end mt-2">
-                        <a :href="doc.fileUrl" download class="flex items-center gap-1.5 text-sm text-accent hover:underline">
+                        <a :href="currentDocument.fileUrl" download class="flex items-center gap-1.5 text-sm text-accent hover:underline">
                             <Download class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.download") }}
                         </a>
                     </div>
@@ -272,11 +272,11 @@ function isPdf(mimeType) {
                 <div v-else class="flex items-center gap-3 p-3 bg-surface-2 rounded-lg border border-line">
                     <FileText class="w-8 h-8 text-muted shrink-0" :stroke-width="1.5" />
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-primary truncate">{{ doc.fileName }}</p>
-                        <p v-if="doc.fileSize" class="text-xs text-muted">{{ Math.round(doc.fileSize / 1024) }} ko</p>
+                        <p class="text-sm font-medium text-primary truncate">{{ currentDocument.fileName }}</p>
+                        <p v-if="currentDocument.fileSize" class="text-xs text-muted">{{ Math.round(currentDocument.fileSize / 1024) }} ko</p>
                     </div>
                     <a
-                        :href="doc.fileUrl"
+                        :href="currentDocument.fileUrl"
                         target="_blank"
                         class="flex items-center gap-1.5 text-sm text-accent hover:underline shrink-0"
                         download
@@ -290,14 +290,14 @@ function isPdf(mimeType) {
         <!-- Edit modal -->
         <DocumentFamilyStrip
             class="border-t border-line/40 pt-4"
-            :doc="doc"
+            :doc="currentDocument"
             :alternates-path="alternatesPath"
             v-on:open="openMember"
         />
 
         <AppModal
             :show="showEdit"
-            :title="t('suite.ged.documents.edit', { title: editingDoc?.title ?? '' })"
+            :title="t('suite.ged.documents.edit', { title: editingDocument?.title ?? '' })"
             :icon="Pencil"
             :closeable="false"
             v-on:close="showEdit = false"
@@ -367,7 +367,7 @@ function isPdf(mimeType) {
             :icon="Trash2"
             v-on:close="pendingDelete = null"
         >
-            <p class="text-sm text-primary">{{ t("suite.ged.documents.delete_confirm", { title: doc.title }) }}</p>
+            <p class="text-sm text-primary">{{ t("suite.ged.documents.delete_confirm", { title: currentDocument.title }) }}</p>
             <p class="text-sm text-secondary">{{ t("suite.ged.documents.delete_warning") }}</p>
             <template #footer>
                 <AppModalFooter>

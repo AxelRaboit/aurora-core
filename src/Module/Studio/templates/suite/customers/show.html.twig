@@ -1,0 +1,27 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ customer.legalName }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_customers'|trans, href: indexPath},
+            {label: customer.legalName},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/customers/CustomerPageApp', {
+    customer: customer,
+    related: related,
+    currencies: currencies,
+    indexPath: indexPath,
+    updatePath: updatePath,
+    convertPath: convertPath,
+    deletePath: deletePath,
+    spacesPath: spacesPath,
+    contractsPath: contractsPath,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

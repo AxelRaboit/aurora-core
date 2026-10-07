@@ -1,19 +1,19 @@
 /**
- * Le bandeau d'image qui défile plus lentement que la page - `[data-parallax]`.
+ * The image band that scrolls more slowly than the page - `[data-parallax]`.
  *
- * L'image est plus haute que son cadre (130 %) ; ce module la décale au fil du
- * défilement, d'au plus ce surplus, pour qu'aucun bord n'apparaisse. Immobile
- * pour qui a demandé moins d'animations : le bandeau reste une image recadrée
- * avec sa phrase, ce qui suffit.
+ * The image is taller than its frame (130%); this module shifts it as the
+ * page scrolls, by at most that surplus, so that no edge shows. Still for
+ * whoever asked for fewer animations: the band stays a cropped image with
+ * its sentence, which is enough.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/_grid_zone.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/_grid_zone.html.twig
  */
 const SELECTOR = "[data-parallax]";
 
-/** Le surplus de l'image, de part et d'autre du cadre, en fraction de sa hauteur. */
+/** The surplus of the image, on either side of the frame, as a fraction of its height. */
 const TRAVEL = 0.15;
 
-/** Décalage en pixels pour un cadre à `top` dans une fenêtre de `viewport` pixels. */
+/** Offset in pixels for a frame at `top` in a window of `viewport` pixels. */
 export function offset(top, height, viewport) {
     const progress = (viewport - top) / (viewport + height);
     const clamped = Math.min(1, Math.max(0, progress));

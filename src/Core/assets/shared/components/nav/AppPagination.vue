@@ -29,9 +29,9 @@ function go(newPage) {
         </span>
 
         <div class="flex items-center gap-1 order-1 sm:order-2">
-            <!-- Icône seule sous `sm`, avec son nom en infobulle et pour les
-                 lecteurs d'écran : l'ancien `hidden sm:inline` laissait sur
-                 téléphone deux boutons sans nom (02/10/2026). -->
+            <!-- Icon only below `sm`, with its name as a tooltip and for
+                 screen readers: the old `hidden sm:inline` left two buttons
+                 without a name on a phone (02/10/2026). -->
             <AppButton
                 variant="ghost"
                 size="sm"
@@ -45,14 +45,14 @@ function go(newPage) {
 
             <template v-if="showNumbers">
                 <button
-                    v-for="pageNum in totalPages"
-                    :key="pageNum"
+                    v-for="pageNumber in totalPages"
+                    :key="pageNumber"
                     type="button"
                     class="size-7.5 rounded-lg text-sm font-medium transition-colors"
-                    :class="pageNum === page ? 'bg-accent-600 text-white shadow-sm' : 'bg-surface-2 text-secondary hover:bg-surface-3'"
-                    v-on:click="go(pageNum)"
+                    :class="pageNumber === page ? 'bg-accent-600 text-white shadow-sm' : 'bg-surface-2 text-secondary hover:bg-surface-3'"
+                    v-on:click="go(pageNumber)"
                 >
-                    {{ pageNum }}
+                    {{ pageNumber }}
                 </button>
             </template>
 

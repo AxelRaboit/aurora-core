@@ -20,9 +20,9 @@ const criteria = computed(() =>
 </script>
 
 <template>
-    <!-- Une règle par ligne sur téléphone : à deux colonnes, « Une lettre
-         majuscule » tombe dans cent quarante-six pixels et repasse à la ligne,
-         ce qui fait une liste de quatre règles sur six lignes mal alignées. -->
+    <!-- One rule per line on a phone: in two columns, "Une lettre
+         majuscule" falls into a hundred and forty-six pixels and wraps,
+         which makes a list of four rules on six badly aligned lines. -->
     <ul class="grid grid-cols-1 gap-x-4 gap-y-1.5 mt-2.5 sm:grid-cols-2">
         <li
             v-for="criterion in criteria"

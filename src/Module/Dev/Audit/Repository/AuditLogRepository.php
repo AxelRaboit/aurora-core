@@ -24,29 +24,29 @@ class AuditLogRepository extends ResolveTargetEntityRepository
 
     public function findPaginated(int $page, int $limit = 50, ?string $module = null): array
     {
-        $qb = $this->createQueryBuilder('a')->orderBy('a.createdAt', Order::Descending->value);
-        $countQb = $this->createQueryBuilder('a')->select('COUNT(a.id)');
+        $queryBuilder = $this->createQueryBuilder('a')->orderBy('a.createdAt', Order::Descending->value);
+        $countQueryBuilder = $this->createQueryBuilder('a')->select('COUNT(a.id)');
 
         if (null !== $module) {
-            $qb->andWhere('a.module = :module')->setParameter('module', $module);
-            $countQb->andWhere('a.module = :module')->setParameter('module', $module);
+            $queryBuilder->andWhere('a.module = :module')->setParameter('module', $module);
+            $countQueryBuilder->andWhere('a.module = :module')->setParameter('module', $module);
         }
 
-        return $this->paginate($qb, $countQb, $page, $limit);
+        return $this->paginate($queryBuilder, $countQueryBuilder, $page, $limit);
     }
 
     public function findPaginatedForEntity(string $entityType, int $entityId, int $page, int $limit = 10): array
     {
-        $qb = $this->createQueryBuilder('a')
+        $queryBuilder = $this->createQueryBuilder('a')
             ->andWhere('a.entityType = :type')->setParameter('type', $entityType)
             ->andWhere('a.entityId = :id')->setParameter('id', $entityId)
             ->orderBy('a.createdAt', Order::Descending->value);
 
-        $countQb = $this->createQueryBuilder('a')->select('COUNT(a.id)')
+        $countQueryBuilder = $this->createQueryBuilder('a')->select('COUNT(a.id)')
             ->andWhere('a.entityType = :type')->setParameter('type', $entityType)
             ->andWhere('a.entityId = :id')->setParameter('id', $entityId);
 
-        return $this->paginate($qb, $countQb, $page, $limit);
+        return $this->paginate($queryBuilder, $countQueryBuilder, $page, $limit);
     }
 
     /**
@@ -70,13 +70,13 @@ class AuditLogRepository extends ResolveTargetEntityRepository
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(static fn (array $r): array => [
-            'id' => $r['id'],
-            'action' => $r['action'],
-            'entityId' => $r['entityId'],
-            'createdAt' => $r['createdAt']->format(DateTimeInterface::ATOM),
-            'userName' => $r['userName'],
-            'data' => $r['data'],
+        return array_map(static fn (array $row): array => [
+            'id' => $row['id'],
+            'action' => $row['action'],
+            'entityId' => $row['entityId'],
+            'createdAt' => $row['createdAt']->format(DateTimeInterface::ATOM),
+            'userName' => $row['userName'],
+            'data' => $row['data'],
         ], $rows);
     }
 
@@ -91,7 +91,7 @@ class AuditLogRepository extends ResolveTargetEntityRepository
      */
     public function findForProject(int $projectId, array $taskIds, array $columnIds, int $limit = 50): array
     {
-        $qb = $this->createQueryBuilder('a')
+        $queryBuilder = $this->createQueryBuilder('a')
             ->andWhere(
                 '(a.entityType = :projectType AND a.entityId = :projectId)'
                 .([] !== $taskIds ? ' OR (a.entityType = :taskType AND a.entityId IN (:taskIds))' : '')
@@ -103,14 +103,14 @@ class AuditLogRepository extends ResolveTargetEntityRepository
             ->setMaxResults($limit);
 
         if ([] !== $taskIds) {
-            $qb->setParameter('taskType', 'ProjectTask')->setParameter('taskIds', $taskIds);
+            $queryBuilder->setParameter('taskType', 'ProjectTask')->setParameter('taskIds', $taskIds);
         }
 
         if ([] !== $columnIds) {
-            $qb->setParameter('columnType', 'ProjectColumn')->setParameter('columnIds', $columnIds);
+            $queryBuilder->setParameter('columnType', 'ProjectColumn')->setParameter('columnIds', $columnIds);
         }
 
-        return $qb->getQuery()->getResult();
+        return $queryBuilder->getQuery()->getResult();
     }
 
     /** @return array<int, string> */

@@ -1,43 +1,42 @@
 /**
- * Un chiffre qui monte jusqu'à sa valeur quand le lecteur le rejoint.
+ * A figure that climbs to its value when the reader reaches it.
  *
- * **La valeur finale est déjà dans le HTML**, et c'est la contrainte qui
- * décide de tout le reste : ce fichier la lit, compte jusqu'à elle, et la
- * repose. Script en erreur, JavaScript coupé, moteur de recherche, lecteur
- * d'écran : le chiffre juste est là, écrit par le serveur. Partir de zéro
- * dans le balisage aurait mis un faux chiffre sur la page pour tout ce qui
- * ne joue pas l'animation.
+ * **The final value is already in the HTML**, and that constraint decides
+ * everything else: this file reads it, counts up to it, and puts it back.
+ * Script in error, JavaScript turned off, search engine, screen reader: the
+ * right figure is there, written by the server. Starting from zero in the
+ * markup would have put a wrong figure on the page for everything that does
+ * not play the animation.
  *
- * **Ce qui n'est pas un nombre n'est pas touché.** La valeur d'un chiffre est
- * du texte libre : « 24 », mais aussi « 3 langues », « +40 % », « 2 à 3 ».
- * Seul un nombre en tête, éventuellement suivi d'une unité, se compte ; tout
- * le reste s'affiche tel quel. On préfère ne rien animer à animer de travers.
+ * **What is not a number is not touched.** The value of a figure is free
+ * text: "24", but also "3 languages", "+40 %", "2 to 3". Only a leading number,
+ * possibly followed by a unit, is counted; everything else shows as is.
+ * Animating nothing is better than animating wrong.
  *
- * Le format vient de la page : séparateur de milliers, virgule décimale,
- * nombre de décimales sont relus de la valeur écrite, pas devinés d'une
- * locale. C'est le serveur qui a écrit « 1 250 », il n'y a pas de raison de
- * réinventer comment.
+ * The format comes from the page: thousands separator, decimal comma, number
+ * of decimals are read back from the written value, not guessed from a
+ * locale. The server wrote "1 250", there is no reason to reinvent how.
  *
- * Balisage : templates/Frontend/themes/default/editorial/post/_grid_items.html.twig
+ * Markup: templates/Frontend/themes/default/editorial/post/_grid_items.html.twig
  */
 const SELECTOR = "[data-count-up]";
 
-/** Assez pour qu'on voie monter, assez peu pour ne pas faire attendre. */
+/** Enough to see it climb, little enough not to keep anyone waiting. */
 const DURATION = 900;
 
 const THRESHOLD = 0.4;
 
 /**
- * Ce qu'on sait lire : un nombre en tête, le reste conservé.
+ * What can be read: a leading number, the rest kept.
  *
- * Les espaces acceptés comme séparateurs de milliers incluent l'espace
- * insécable étroit (U+202F), celui que PHP écrit en français, et l'insécable
- * ordinaire (U+00A0) - sans eux « 1 250 » se lirait « 1 ».
+ * The spaces accepted as thousands separators include the narrow no-break
+ * space (U+202F), the one PHP writes in French, and the ordinary no-break
+ * space (U+00A0) - without them "1 250" would read as "1".
  *
- * **Un séparateur ne compte que suivi de trois chiffres.** Sans cette
- * exigence l'expression avalait aussi l'espace qui sépare un nombre de son
- * unité : « 3 langues » donnait le nombre 3 et le reste « langues », qui se
- * réaffichait collé, « 3langues ».
+ * **A separator only counts when followed by three digits.** Without that
+ * requirement the expression also swallowed the space that separates a
+ * number from its unit: "3 languages" gave the number 3 and the rest
+ * "languages", which was shown again glued on, "3languages".
  */
 const SHAPE = /^(\d+(?:[\u202f\u00a0\s]\d{3})*(?:[.,]\d+)?)(.*)$/s;
 
@@ -63,7 +62,7 @@ export function readFigure(text) {
         : null;
 }
 
-/** Rendre un nombre comme la page l'avait écrit. */
+/** Render a number the way the page had written it. */
 export function format(value, figure) {
     const fixed = value.toFixed(figure.decimals);
     const [whole, fraction] = fixed.split(".");
@@ -76,10 +75,11 @@ export function format(value, figure) {
 }
 
 /**
- * La part du chemin parcourue à cet instant.
+ * The share of the way covered at this moment.
  *
- * Rapide au début puis freinage long, pour que le nombre se pose sur sa
- * valeur au lieu de s'y arrêter net. Le dernier chiffre est celui qu'on lit.
+ * Fast at first, then a long braking, so that the number settles on its
+ * value instead of stopping dead on it. The last figure is the one people
+ * read.
  */
 export function ease(ratio) {
     const clamped = Math.min(Math.max(ratio, 0), 1);
@@ -94,9 +94,9 @@ function run(element, figure) {
         const ratio = (now - start) / DURATION;
 
         if (ratio >= 1) {
-            // La valeur écrite par le serveur, telle quelle : reconstruire la
-            // dernière image à partir du nombre risquerait d'en changer le
-            // format sur la seule image qui reste affichée.
+            // The value written by the server, as is: rebuilding the last frame from
+            // the number could change its format on the only frame that stays
+            // displayed.
             element.textContent = element.dataset.countUp;
 
             return;
@@ -146,11 +146,11 @@ function arm() {
     );
 
     figures.forEach((element) => {
-        // Ce qui est déjà à l'écran n'a pas de raison de repartir de zéro
-        // sous les yeux du lecteur : on l'observe quand même, l'observateur
-        // le signalera immédiatement, et compter un chiffre qu'on regarde
-        // vaut mieux que le voir sauter. En revanche on ne réécrit jamais
-        // rien avant d'y être : le chiffre juste reste affiché jusque-là.
+        // What is already on screen has no reason to start again from zero under
+        // the reader's eyes: it is observed anyway, the observer will report it
+        // immediately, and counting a figure being watched is better than seeing it
+        // jump. On the other hand nothing is ever rewritten before getting there:
+        // the right figure stays displayed until then.
         observer.observe(element);
     });
 }

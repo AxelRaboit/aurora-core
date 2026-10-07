@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Entity;
 
 use Aurora\Core\Timestampable\TimestampableInterface;
-use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
@@ -22,9 +21,9 @@ interface ContractTemplateInterface extends TimestampableInterface
 
     public function setKind(ContractTemplateKindEnum $kind): static;
 
-    public function getCategory(): ?ContractTemplateCategoryEnum;
+    public function getCategory(): ?ContractTemplateCategoryInterface;
 
-    public function setCategory(?ContractTemplateCategoryEnum $category): static;
+    public function setCategory(?ContractTemplateCategoryInterface $category): static;
 
     public function getArchivedAt(): ?DateTimeImmutable;
 

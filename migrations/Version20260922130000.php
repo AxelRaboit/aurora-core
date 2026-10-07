@@ -8,22 +8,21 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * La date avant laquelle un client doit avoir répondu.
+ * The date by which a client must have answered.
  *
- * **Une colonne de plus, et pas un usage détourné de `scheduled_at`.** Une
- * publication prévue le 30 ne se valide pas le 30 : il faut le temps de
- * produire et parfois de reprendre. Les deux dates répondent à deux questions
- * différentes, et les confondre fait découvrir la veille qu'il manquait un
- * avis.
+ * **One more column, and not a misuse of `scheduled_at`.** A post planned for
+ * the 30th is not approved on the 30th: it takes time to produce and sometimes
+ * to rework. The two dates answer two different questions, and mixing them up
+ * means finding out the day before that a review was missing.
  *
- * Nullable, parce que la plupart des cartes n'en portent pas : une colonne
- * obligatoire aurait forcé à inventer une échéance à chaque création. Rien ne
- * s'y accroche côté application - pas de blocage, pas de déprogrammation - donc
- * une valeur dépassée ne fait rien d'autre qu'apparaître.
+ * Nullable, because most cards do not carry one: a required column would have
+ * forced inventing a deadline at every creation. Nothing hooks into it on the
+ * application side - no blocking, no unscheduling - so a past value does
+ * nothing but show up.
  *
- * Écrite à la main plutôt que par `doctrine:migrations:diff` : la génération
- * automatique ramassait une dérive d'index préexistante et aurait supprimé une
- * dizaine d'index qui n'ont rien à voir avec ce changement.
+ * Written by hand rather than with `doctrine:migrations:diff`: the automatic
+ * generation picked up a pre-existing index drift and would have dropped about
+ * ten indexes that have nothing to do with this change.
  */
 final class Version20260922130000 extends AbstractMigration
 {

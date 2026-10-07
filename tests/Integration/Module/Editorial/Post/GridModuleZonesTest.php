@@ -6,7 +6,9 @@ namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
-use Aurora\Module\Studio\Deck\Entity\Deck;
+use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment;
@@ -92,12 +94,36 @@ final class GridModuleZonesTest extends IntegrationTestCase
         self::assertTrue($withZone['hasComments']);
     }
 
-    /** A deck nobody has shared is an internal document, and draws nothing. */
-    public function testADeckWithNoShareLinkDrawsNothing(): void
+    /** A presentation nobody has shared is an internal document, and draws nothing. */
+    public function testAPresentationWithNoReadingLinkDrawsNothing(): void
     {
-        $deckId = $this->deck();
+        $deliverableId = $this->presentation();
 
-        self::assertSame('', mb_trim(strip_tags($this->render(['id' => 'z1', 'type' => 'deck', 'deckId' => $deckId]))));
+        self::assertSame('', mb_trim(strip_tags($this->render(['id' => 'z1', 'type' => 'deck', 'deliverableId' => $deliverableId]))));
+    }
+
+    /**
+     * A presentation is a slides deliverable: the zone keeps its type and
+     * frames the deliverable's reading page, through a link that is live and
+     * open. A link behind a password is a locked door, and draws nothing.
+     */
+    public function testAPresentationIsFramedThroughItsLiveReadingLink(): void
+    {
+        $deliverableId = $this->presentation(link: true);
+
+        $html = $this->render(['id' => 'z1', 'type' => 'deck', 'deliverableId' => $deliverableId]);
+
+        self::assertMatchesRegularExpression('#<iframe[^>]+src="/deliverables/[a-f0-9]{64}"#', $html);
+
+        self::assertSame('', mb_trim(strip_tags($this->render(['id' => 'z1', 'type' => 'deck', 'deliverableId' => $this->presentation(link: true, locked: true)]))));
+    }
+
+    /** A page is not a presentation, even with a reading link. */
+    public function testAPageDeliverableIsNotDrawnByADeckZone(): void
+    {
+        $deliverableId = $this->presentation(link: true, format: DeliverableFormatEnum::Page);
+
+        self::assertSame('', mb_trim(strip_tags($this->render(['id' => 'z1', 'type' => 'deck', 'deliverableId' => $deliverableId]))));
     }
 
     public function testADeckZoneNamingNothingDrawsNothing(): void
@@ -105,17 +131,25 @@ final class GridModuleZonesTest extends IntegrationTestCase
         self::assertSame('', mb_trim(strip_tags($this->render(['id' => 'z1', 'type' => 'deck']))));
     }
 
-    private function deck(): int
+    private function presentation(bool $link = false, bool $locked = false, DeliverableFormatEnum $format = DeliverableFormatEnum::Slides): int
     {
-        $deck = new Deck();
-        $deck->setTitle('Notre offre '.bin2hex(random_bytes(3)));
+        $deliverable = new Deliverable(null, 'Notre offre '.bin2hex(random_bytes(3)), 'fr', $format);
 
-        $this->entityManager->persist($deck);
+        $this->entityManager->persist($deliverable);
+        $this->created[] = $deliverable;
+
+        if ($link) {
+            $reading = new DeliverableLink($deliverable);
+            if ($locked) {
+                $reading->setPasswordHash(password_hash('secret', PASSWORD_DEFAULT));
+            }
+
+            $this->entityManager->persist($reading);
+        }
+
         $this->entityManager->flush();
 
-        $this->created[] = $deck;
-
-        return (int) $deck->getId();
+        return (int) $deliverable->getId();
     }
 
     private function postType(string $slug): int

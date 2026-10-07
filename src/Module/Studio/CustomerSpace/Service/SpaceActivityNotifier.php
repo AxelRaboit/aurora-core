@@ -88,6 +88,21 @@ final readonly class SpaceActivityNotifier
     }
 
     /**
+     * A file the client sent to the space itself, on no card.
+     *
+     * The link opens the space on its Files tab, where the file is marked as
+     * the client's. Folded like a card upload while unread: five photos sent
+     * in a row are one thing to go and look at.
+     */
+    public function clientSentFile(CustomerSpaceInterface $space, string $author, string $file): void
+    {
+        $this->announce($space, 'studio.space.upload', 'suite.studio.space_notifications.space_upload', [
+            '%who%' => $author,
+            '%file%' => $file,
+        ], query: ['view' => 'files']);
+    }
+
+    /**
      * A verdict, which is never folded into an earlier one.
      *
      * Two answers on the same card are a client changing their mind, and the
@@ -158,9 +173,9 @@ final readonly class SpaceActivityNotifier
         ?SpaceContentItemInterface $item = null,
         array $query = [],
     ): void {
-        // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
-        // Sur la fiche quand il y en a une : ouvrir l'espace sur la dernière
-        // vue utilisée envoyait chercher la carte à la main.
+        // A path, not an absolute address: cf. NotificationManagerInterface::notify().
+        // On the record when there is one: opening the space on the last view
+        // used sent people looking for the card by hand.
         $url = $this->urlGenerator->generate(
             'workspace_space_content',
             ['id' => $space->getId(), ...($item instanceof SpaceContentItemInterface ? ['item' => $item->getId()] : []), ...$query],

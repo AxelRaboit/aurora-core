@@ -7,13 +7,13 @@
       - route       (string) - Symfony route name to generate page URLs
       - params      (object) - extra route params merged with `page`; default {}
 #}
-{% set _params = params|default({}) %}
+{% set queryParameters = params|default({}) %}
 
 <nav class="flex items-center justify-center gap-1 mt-8" aria-label="Pagination">
 
     {# Previous #}
     {% if page > 1 %}
-        <a href="{{ path(route, _params|merge({page: page - 1})) }}"
+        <a href="{{ path(route, queryParameters|merge({page: page - 1})) }}"
            class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm text-secondary hover:bg-surface-2 hover:text-primary transition-colors"
            aria-label="{{ 'shared.pagination.previous'|trans }}">
             {{ include('@Shared/components/icon.html.twig', {name: 'chevron-left', class: 'w-4 h-4'}) }}
@@ -26,21 +26,21 @@
     {% endif %}
 
     {# Page numbers #}
-    {% for p in 1..totalPages %}
-        {% if p == page %}
+    {% for pageNumber in 1..totalPages %}
+        {% if pageNumber == page %}
             <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-semibold bg-accent-600 text-white"
-                  aria-current="page">{{ p }}</span>
-        {% elseif p == 1 or p == totalPages or (p >= page - 2 and p <= page + 2) %}
-            <a href="{{ path(route, _params|merge({page: p})) }}"
-               class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm text-secondary hover:bg-surface-2 hover:text-primary transition-colors">{{ p }}</a>
-        {% elseif p == page - 3 or p == page + 3 %}
+                  aria-current="page">{{ pageNumber }}</span>
+        {% elseif pageNumber == 1 or pageNumber == totalPages or (pageNumber >= page - 2 and pageNumber <= page + 2) %}
+            <a href="{{ path(route, queryParameters|merge({page: pageNumber})) }}"
+               class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm text-secondary hover:bg-surface-2 hover:text-primary transition-colors">{{ pageNumber }}</a>
+        {% elseif pageNumber == page - 3 or pageNumber == page + 3 %}
             <span class="inline-flex items-center justify-center w-9 h-9 text-sm text-muted">…</span>
         {% endif %}
     {% endfor %}
 
     {# Next #}
     {% if page < totalPages %}
-        <a href="{{ path(route, _params|merge({page: page + 1})) }}"
+        <a href="{{ path(route, queryParameters|merge({page: page + 1})) }}"
            class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm text-secondary hover:bg-surface-2 hover:text-primary transition-colors"
            aria-label="{{ 'shared.pagination.next'|trans }}">
             {{ include('@Shared/components/icon.html.twig', {name: 'chevron-right', class: 'w-4 h-4'}) }}

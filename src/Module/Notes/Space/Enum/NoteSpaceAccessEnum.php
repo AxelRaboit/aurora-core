@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Space\Enum;
 
 /**
- * Qui a accès à un espace, dans le back-office.
+ * Who has access to a space, in the back office.
  *
- * Indépendant de la publication sur le web : un espace qu'on est seul à écrire
- * peut être publié, un espace ouvert à tout le back-office peut ne pas l'être.
+ * Independent of publication on the web: a space only one person writes in
+ * can be published, a space open to the whole back office may not be.
  */
 enum NoteSpaceAccessEnum: string
 {
-    /** Le propriétaire seul. L'espace personnel l'est toujours. */
+    /** The owner alone. The personal space always is. */
     case Private = 'private';
 
-    /** Les personnes inscrites, chacune avec son rôle. */
+    /** The members, each with their role. */
     case Members = 'members';
 
     /**
-     * Toute personne qui a le module, avec le rôle par défaut de l'espace ;
-     * un membre inscrit garde le sien s'il est plus fort.
+     * Anybody who has the module, with the space's default role; a member
+     * keeps their own if it is stronger.
      */
     case Backoffice = 'backoffice';
 

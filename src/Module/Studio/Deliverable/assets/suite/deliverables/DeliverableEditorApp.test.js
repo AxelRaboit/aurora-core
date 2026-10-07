@@ -24,13 +24,12 @@ vi.mock("vue-sonner", () => ({
 const i18n = createTestI18n();
 
 /**
- * L'éditeur d'un livrable, en tête et en réserve.
+ * A deliverable's editor, its header and its reserve.
  *
- * Ce qui se cassait sans bruit : un lecteur seul qui recevait un éditeur
- * entièrement modifiable (et un 403 en revenant), le compteur de [crochets]
- * qui ne lisait que la grille (le titre ou « Préparé pour » partaient avec un
- * trou), et un enregistrement refusé pour cause de version qui n'expliquait
- * rien.
+ * What broke silently: a read-only user who got a fully editable editor (and
+ * a 403 on the way back), the [brackets] counter that only read the grid (the
+ * title or "Préparé pour" went out with a blank), and a save refused because
+ * of the version that explained nothing.
  */
 const DELIVERABLE = {
     id: 1,

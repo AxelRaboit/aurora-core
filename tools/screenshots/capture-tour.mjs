@@ -58,20 +58,19 @@ const VIEWPORT = { width: 1600, height: 1000 };
  * say what they do once something is on them.
  */
 /**
- * Met la bibliothèque à plat, si elle ne l'est pas déjà.
+ * Flattens the library, if it is not flat already.
  *
- * Le bouton porte le geste qu'il ferait, pas l'état où l'on est : « Tout
- * afficher à plat » quand on est par dossiers, « Afficher par dossiers »
- * quand on est à plat. Et l'état est retenu d'une visite à l'autre, donc le
- * deuxième scénario cherchait un libellé que le premier venait de faire
- * disparaître.
+ * The button carries the action it would perform, not the current state:
+ * "Tout afficher à plat" when the view is by folder, "Afficher par dossiers"
+ * when it is flat. And the state is remembered from one visit to the next, so
+ * the second scenario looked for a label the first had just made disappear.
  */
 /**
- * Ouvre une note par son titre, retrouvée dans la liste du serveur.
+ * Opens a note by its title, found in the server's list.
  *
- * Par le titre et non par un identifiant : les fixtures renumérotent à chaque
- * rechargement. Et par la liste plutôt que par un clic : la bande « Récemment
- * modifiées » ne montre pas toutes les notes, et l'arbre replie leurs dossiers.
+ * By title and not by id: the fixtures renumber on every reload. And through
+ * the list rather than a click: the "Récemment modifiées" strip does not show
+ * every note, and the tree collapses their folders.
  */
 async function openNoteByTitle(page, title) {
     const id = await page.evaluate(async (wanted) => {
@@ -90,11 +89,11 @@ async function openNoteByTitle(page, title) {
 }
 
 /**
- * La note en écriture avec son rendu à côté, et le panneau « Sur cette note »
- * ouvert. Le volet d'écriture est rétréci d'abord : sa largeur est retenue
- * d'une visite à l'autre, et la valeur par défaut laissait au rendu deux cent
- * trente pixels une fois le panneau sorti, si bien que le tableau de la note y
- * était coupé en plein milieu d'un en-tête.
+ * The note in edit mode with its preview alongside, and the "Sur cette note"
+ * panel open. The editing pane is narrowed first: its width is remembered from
+ * one visit to the next, and the default value left the preview two hundred
+ * and thirty pixels once the panel was out, so the note's table was cut right
+ * in the middle of a header.
  */
 async function openNoteWithPanel(page, title) {
     await openNoteByTitle(page, title);
@@ -119,32 +118,31 @@ async function flatten(page) {
 }
 
 /**
- * Fait défiler la page pour que `element` commence à `top` pixels du haut.
+ * Scrolls the page so that `element` starts `top` pixels from the top.
  *
- * Pour les blocs d'une longue page publique : `scrollIntoViewIfNeeded` les
- * colle au bord, sous l'entête collante, ou les laisse où ils sont s'ils
- * dépassent à peine. Mesuré après coup, parce qu'un bloc qui s'ouvre (le
- * formulaire d'un rendez-vous) a changé de hauteur entre-temps.
+ * For the blocks of a long public page: `scrollIntoViewIfNeeded` pins them to
+ * the edge, under the sticky header, or leaves them where they are if they
+ * barely overflow. Measured afterwards, because a block that opens (the
+ * appointment form) has changed height in the meantime.
  */
 async function placeAt(page, element, top) {
     await element.scrollIntoViewIfNeeded();
     const box = await element.boundingBox();
     await page.evaluate((delta) => window.scrollBy(0, delta), box.y - top);
-    // Les zones apparaissent en glissant quand elles entrent dans l'écran.
+    // Zones slide in as they enter the screen.
     await page.waitForTimeout(1_500);
 }
 
 /**
- * Une prise sur un onglet de l'éditeur de publication.
+ * A shot of one tab of the post editor.
  *
- * Quatre cartes racontent chacune un onglet - l'entête, la galerie, le
- * référencement, les langues - et montraient toutes la même liste de
- * publications.
+ * Four cards each describe a tab (the header, the gallery, SEO, the
+ * languages) and all showed the same list of posts.
  *
- * `exact` sur le nom de l'onglet : « Types de contenu » vit dans le menu
- * latéral et contient « Contenu », donc un nom approchant attrape le menu et
- * la prise ressort sur l'onglet d'à côté - qui ressemble assez pour qu'on ne
- * le voie pas.
+ * `exact` on the tab name: "Types de contenu" lives in the side menu and
+ * contains "Contenu", so an approximate name catches the menu and the shot
+ * comes out on the neighbouring tab, which looks close enough that nobody
+ * notices.
  */
 function postTabShot(name, tab, extra) {
     return {
@@ -161,21 +159,21 @@ function postTabShot(name, tab, extra) {
 }
 
 /**
- * Ouvre une publication de la démonstration.
+ * Opens a demo post.
  *
- * Par son adresse et non par un clic dans la liste : une ligne n'est pas un
- * lien, et son menu d'actions est un popover sans rôle à viser.
+ * By its URL and not by a click in the list: a row is not a link, and its
+ * actions menu is a popover with no role to target.
  */
 const DEMO_POST_ID = process.env.TOUR_POST_ID ?? "1";
 
 async function openPost(page) {
-    // `domcontentloaded` et non `load` : l'éditeur garde une connexion ouverte
-    // en dev, donc l'événement `load` n'arrive jamais.
+    // `domcontentloaded` and not `load`: the editor keeps a connection open
+    // in dev, so the `load` event never fires.
     await page.goto(`${BASE_URL}/suite/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(4_000);
 }
 
-/** L'éditeur d'une publication, sur l'onglet demandé. */
+/** The editor of a post, on the requested tab. */
 const postTab = (name) => async (page) => {
     await openPost(page);
     await page.getByRole("tab", { name }).first().click().catch(async () => {
@@ -185,15 +183,14 @@ const postTab = (name) => async (page) => {
 };
 
 /**
- * Un espace de la démonstration, sur la vue demandée.
+ * A demo space, on the requested view.
  *
- * Par la liste et nommément, pour la raison que `tour-espaces-clients`
- * explique : les identifiants changent à chaque rechargement des fixtures, et
- * la démonstration porte des espaces vides qui photographient une page qui
- * réussit sans rien montrer.
+ * Through the list and by name, for the reason `tour-espaces-clients`
+ * explains: ids change on every fixture reload, and the demo holds empty
+ * spaces that photograph a page that succeeds while showing nothing.
  *
- * La vue ouverte est retenue d'une visite à l'autre, donc chaque prise
- * reclique la sienne au lieu de compter sur ce qui était affiché avant.
+ * The open view is remembered from one visit to the next, so each shot clicks
+ * its own again instead of relying on what was displayed before.
  */
 const spaceView = (view) => async (page) => {
     await openSpace(page);
@@ -202,39 +199,39 @@ const spaceView = (view) => async (page) => {
 };
 
 /**
- * Une entrée du rail d'un espace, par son libellé.
+ * An entry of a space's rail, by its label.
  *
- * Depuis la 0.9.328 les sections d'un espace sont un rail de boutons, et une
- * entrée porte un compteur quand quelque chose attend (« Contenus 3 ») : son
- * nom accessible n'est plus le libellé seul, et un `exact: true` ne la trouve
- * plus. Le libellé, suivi ou non d'un nombre, et rien d'autre.
+ * Since 0.9.328 the sections of a space are a rail of buttons, and an entry
+ * carries a counter when something is waiting ("Contenus 3"): its accessible
+ * name is no longer the label alone, and an `exact: true` no longer finds it.
+ * The label, followed or not by a number, and nothing else.
  */
 function spaceSection(page, label) {
-    // Dans `main` : le menu latéral a aussi ses « Réglages ».
+    // Inside `main`: the side menu has its own "Réglages" too.
     return page.locator("main").getByRole("button", { name: new RegExp(`^${label}(\\s+\\d+)?$`) }).first();
 }
 
 /**
- * Déplie les encarts « Comment ça marche » de la page.
+ * Expands the page's "Comment ça marche" boxes.
  *
- * Les prises les gardent repliés (voir le script d'init du contexte) ; celles
- * qui montrent un encart l'ouvrent ici. Un clic sur un seul suffit : le choix
- * est commun, ils s'ouvrent tous.
+ * Shots keep them collapsed (see the context's init script); those that show
+ * a box open it here. One click on a single one is enough: the choice is
+ * shared, they all open.
  */
 async function openGuides(page) {
     await page.locator("[data-guide] summary").first().click();
     await page.waitForTimeout(800);
 }
 
-/** Les deux modèles d'audit de Studio, tels que les fixtures les nomment. */
+/** The two Studio audit templates, as the fixtures name them. */
 const AUDIT_MODEL = "Modèle · Audit des réseaux sociaux";
 const AUDIT_PRESENTATION = "Audit en présentation";
 
 /**
- * L'identifiant d'un livrable de Studio, par son titre : il change à chaque
- * `make demo-reset`, et une adresse écrite en dur (les nos 13 et 14 d'une base
- * locale) donnait un 404 sur une base neuve. La liste que la page lit elle-même
- * le dit, sous la session déjà ouverte.
+ * The id of a Studio deliverable, by its title: it changes on every
+ * `make demo-reset`, and a hardcoded URL (numbers 13 and 14 of a local
+ * database) gave a 404 on a fresh database. The list the page reads itself
+ * gives it, under the session already open.
  */
 async function deliverableId(page, title) {
     const response = await page.request.get(`${BASE_URL}/suite/studio/deliverables/lists`);
@@ -247,9 +244,9 @@ async function deliverableId(page, title) {
 }
 
 /**
- * L'adresse de l'éditeur d'un livrable de l'espace ouvert, par son titre : la
- * liste est rangée par dernière modification, et la démo y met trois
- * livrables à côté de l'audit. Le titre de chaque carte mène à son éditeur.
+ * The editor URL of a deliverable in the open space, by its title: the list
+ * is sorted by last modification, and the demo puts three deliverables there
+ * next to the audit. Each card's title leads to its editor.
  */
 async function deliverableEditUrl(page, title = "Audit de présence en ligne") {
     const href = await page
@@ -263,15 +260,14 @@ async function deliverableEditUrl(page, title = "Audit de présence en ligne") {
 }
 
 /**
- * Ouvrir l'espace « Réseaux sociaux », d'où partent toutes les prises d'un
- * espace.
+ * Opens the "Réseaux sociaux" space, where every shot of a space starts.
  *
- * **L'onglet de la liste est retenu d'une visite à l'autre**, et `espaces-
- * prospects` le laisse sur Prospects juste avant. L'espace cherché est chez
- * un client, donc il n'est plus dans la liste, le clic expire au bout de
- * trente secondes et le scénario suivant tombe - seul il passait, dans la
- * série il ratait, ce qui est la signature d'un état partagé. On remet donc
- * l'onglet sur Clients avant de chercher, sans se demander où il en est.
+ * **The list's tab is remembered from one visit to the next**, and `espaces-
+ * prospects` leaves it on Prospects just before. The space we look for
+ * belongs to a client, so it is no longer in the list, the click times out
+ * after thirty seconds and the next scenario fails. Alone it passed, in the
+ * series it failed, which is the signature of shared state. So the tab is set
+ * back to Clients before searching, without checking where it is.
  */
 async function openSpace(page) {
     await page.getByRole("button", { name: /^Clients/ }).first().click();
@@ -282,11 +278,11 @@ async function openSpace(page) {
 }
 
 /**
- * Les contenus d'un espace, en kanban ou en liste.
+ * The contents of a space, as a kanban or a list.
  *
- * **La forme est retenue d'une visite à l'autre** : une prise en liste
- * laissait la suivante sur la liste, et le tableau photographié n'en était
- * plus un. Chaque prise dit donc la sienne.
+ * **The shape is remembered from one visit to the next**: a shot in list mode
+ * left the next one on the list, and the board photographed was no longer a
+ * board. So each shot states its own.
  */
 const contents = (shape) => async (page) => {
     await openSpace(page);
@@ -296,7 +292,7 @@ const contents = (shape) => async (page) => {
     await page.waitForTimeout(1_500);
 };
 
-/** Une fiche du tableau ouverte, par son titre. */
+/** A board card opened, by its title. */
 const openCard = (title) => async (page) => {
     await contents("Kanban")(page);
     await page.locator("main").getByText(title, { exact: true }).first().click();
@@ -304,13 +300,13 @@ const openCard = (title) => async (page) => {
     await page.waitForTimeout(1_500);
 };
 
-/** Les espaces, d'où toutes les prises d'un espace partent. */
+/** The spaces, where every shot of a space starts. */
 const SPACES = "/suite/studio/spaces";
 
 /**
- * La page que le client ouvre, par une vraie adresse : un lien émis comme le
- * studio l'émet, puis suivi. Partagé par la prise de l'espace côté client et
- * par celle de ses livrables.
+ * The page the client opens, through a real URL: a link issued the way the
+ * studio issues it, then followed. Shared by the shot of the client-side space
+ * and the shot of its deliverables.
  */
 async function openClientSide(page) {
     await openSpace(page);
@@ -318,21 +314,21 @@ async function openClientSide(page) {
     const espace = new URL(page.url());
     await page.goto(`${espace.origin}${espace.pathname}/access`, { waitUntil: "networkidle" });
 
-    // Attendre le bouton plutôt que compter jusqu'à mille cinq cents.
+    // Wait for the button rather than count to fifteen hundred.
     //
-    // Ce scénario passait seul et tombait dans la série complète, sur
-    // un `click` expiré au bout de trente secondes : une pause fixe
-    // suffit sur une machine au repos et plus sur la même machine au
-    // soixante-huitième écran. L'attente porte donc sur ce qu'on
-    // attend vraiment, l'application montée et son bouton présent.
+    // This scenario passed alone and failed in the full series, on a
+    // `click` that timed out after thirty seconds: a fixed pause is
+    // enough on an idle machine and no longer on the same machine at
+    // the sixty-eighth screen. So the wait is on what we really wait
+    // for, the app mounted and its button present.
     const ouvrir = page.getByRole("button", { name: "Créer un lien" }).first();
     await ouvrir.waitFor({ state: "visible", timeout: 30_000 });
     await ouvrir.click();
     await page.waitForTimeout(1_000);
 
-    // Par l'exemple du champ et non par son libellé : les champs de
-    // cette modale n'ont pas d'identifiant, donc rien ne relie le
-    // `<label>` à son `<input>` pour un outil qui lit la page.
+    // By the field's placeholder and not by its label: the fields of
+    // this modal have no id, so nothing ties the `<label>` to its
+    // `<input>` for a tool that reads the page.
     await page.getByPlaceholder("camille@societe.fr").fill("camille@atelier-dupont.example.com");
     await page.getByPlaceholder(/^Camille, /).fill("Camille, gérante");
 
@@ -346,8 +342,8 @@ async function openClientSide(page) {
 
 
 /**
- * Une présentation ouverte depuis la liste, par son titre : les identifiants
- * changent à chaque rechargement des fixtures.
+ * A presentation opened from the list, by its title: ids change on every
+ * fixture reload.
  */
 function openDeck(title) {
     return async (page) => {
@@ -358,29 +354,29 @@ function openDeck(title) {
 }
 
 /**
- * Une capture par carte du tour, nommée comme le document qu'elle remplace.
+ * One capture per tour card, named after the document it replaces.
  *
- * **Le nom est le lien avec la production.** Chaque carte de /fr/page/aurora
- * affiche un document de la médiathèque appelé `tour-<nom>.png` ; une capture
- * qui porte le même nom se remplace par `aurora:ged:replace`, et la carte n'a
- * rien à savoir. Tenir une table de correspondance à côté serait une seconde
- * source de vérité à garder en phase.
+ * **The name is the link with production.** Each card of /fr/page/aurora
+ * shows a media library document called `tour-<name>.png`; a capture with the
+ * same name is swapped in with `aurora:ged:replace`, and the card needs to
+ * know nothing. Keeping a mapping table alongside would be a second source of
+ * truth to keep in sync.
  *
- * `prepare` tourne après le chargement et avant le déclencheur : c'est là
- * qu'un panneau s'ouvre ou qu'une requête se tape, parce que plusieurs de ces
- * écrans ne disent ce qu'ils font qu'une fois quelque chose dessus.
+ * `prepare` runs after loading and before the shutter: it is where a panel
+ * gets opened or a query typed, because several of these screens only say
+ * what they do once something is on them.
  */
 const SHOTS = [
     { name: "tour-dashboard", path: "/suite" },
     {
-        // Le même écran en thème clair, pour la moitié droite du bandeau du
-        // sommaire.
+        // The same screen in light theme, for the right half of the index
+        // page's banner.
         //
-        // Le thème du back-office vit dans `localStorage` sous
-        // `aurora-theme`, et c'est `useTheme` qui le repose sur `<html>` au
-        // démarrage de l'application. On l'écrit donc **avant** le
-        // chargement : le poser après, sur le document, se ferait écraser par
-        // le composable une fraction de seconde plus tard.
+        // The back-office theme lives in `localStorage` under
+        // `aurora-theme`, and `useTheme` puts it back on `<html>` when the
+        // app starts. So it is written **before** loading: setting it
+        // afterwards, on the document, would be overwritten by the
+        // composable a fraction of a second later.
         name: "tour-dashboard-clair",
         path: "/suite",
         async prepare(page) {
@@ -392,9 +388,9 @@ const SHOTS = [
             });
         },
         async after(page) {
-            // Remis comme on l'a trouvé : toutes les autres prises sont en
-            // sombre, et une préférence qui survit ferait basculer la
-            // suivante sans prévenir.
+            // Put back as it was found: every other shot is in dark mode,
+            // and a preference that survives would switch the next one
+            // without warning.
             await page.addInitScript(() => {
                 window.localStorage.setItem("aurora-theme", "dark");
             });
@@ -404,8 +400,8 @@ const SHOTS = [
         name: "tour-recherche",
         path: "/suite",
         async prepare(page) {
-            // Aucun raccourci clavier ne l'ouvre : le bouton est la seule
-            // porte, et il s'annonce, ce qui le rend trouvable ici.
+            // No keyboard shortcut opens it: the button is the only way in,
+            // and it announces itself, which makes it findable here.
             await page.getByRole("button", { name: "Rechercher…" }).click();
 
             const field = page.getByPlaceholder(/^Rechercher dans le back-office/);
@@ -423,9 +419,9 @@ const SHOTS = [
     {
         name: "tour-traductions",
         path: "/suite",
-        // L'espagnol plutôt que le français : la carte parle d'une seule mise
-        // en page pour plusieurs langues, et c'est la langue traduite qui le
-        // montre. Le sélecteur de langue est au-dessus des onglets.
+        // Spanish rather than French: the card talks about a single layout
+        // for several languages, and the translated language is what shows
+        // it. The language selector sits above the tabs.
         async prepare(page) {
             await openPost(page);
             await page.getByRole("button", { name: "es", exact: true }).first().click();
@@ -440,9 +436,9 @@ const SHOTS = [
     { name: "tour-menus", path: "/suite/editorial/menus" },
     { name: "tour-commentaires", path: "/suite/editorial/comments" },
     {
-        // La liste des formulaires, depuis la 0.9.320 : une entrée de menu,
-        // et derrière elle un tableau qui dit pour chacun s'il est en ligne,
-        // combien il pose de questions et s'il reçoit des réponses.
+        // The list of forms, since 0.9.320: a menu entry, and behind it a
+        // table that says for each one whether it is online, how many
+        // questions it asks and whether it receives answers.
         name: "tour-formulaires-liste",
         path: "/suite/editorial/forms",
         async prepare(page) {
@@ -451,8 +447,8 @@ const SHOTS = [
         },
     },
     {
-        // La création : un titre et un point de départ. Le modèle « Demande
-        // de devis » choisi, pour montrer qu'un modèle peut porter des étapes.
+        // Creation: a title and a starting point. The "Demande de devis"
+        // template is chosen, to show that a template can carry steps.
         name: "tour-formulaire-modeles",
         path: "/suite/editorial/forms",
         async prepare(page) {
@@ -467,11 +463,11 @@ const SHOTS = [
     },
     {
         name: "tour-formulaire-champs",
-        // Les questions d'un formulaire, une question ouverte dans le panneau
-        // et l'aperçu dessous : c'est l'écran où l'on compose, et la carte en
-        // parle. Depuis la 0.9.320 chaque formulaire a sa page ; plus de
-        // détour par la liste, ni de repli qui photographierait l'écran
-        // d'avant si le clic ratait.
+        // The questions of a form, one question open in the panel and the
+        // preview below: it is the screen where the form is built, and the
+        // card talks about it. Since 0.9.320 each form has its own page; no
+        // more detour through the list, nor a fallback that would photograph
+        // the previous screen if the click missed.
         path: "/suite/editorial/forms/1",
         async prepare(page) {
             await page.waitForTimeout(2_500);
@@ -481,9 +477,9 @@ const SHOTS = [
     },
 
     {
-        // La grille, choisie explicitement : un navigateur neuf ouvre la
-        // médiathèque en liste sur un écran large, et la carte montre les
-        // vignettes.
+        // The grid, chosen explicitly: a fresh browser opens the media
+        // library as a list on a wide screen, and the card shows the
+        // thumbnails.
         name: "tour-mediatheque-grille",
         path: "/suite/ged/documents",
         async prepare(page) {
@@ -492,24 +488,24 @@ const SHOTS = [
         },
     },
     /**
-     * La fiche d'un document : ses métadonnées et son historique de versions.
+     * A document's detail page: its metadata and its version history.
      *
-     * La seconde image de la carte médiathèque. Elle illustrait déjà la page
-     * et ne se refaisait pas : elle datait d'une semaine de plus que toutes
-     * les autres.
+     * The second picture of the media library card. It already illustrated
+     * the page and was never retaken: it was a week older than all the
+     * others.
      */
     {
         name: "tour-mediatheque-document",
         path: "/suite/ged/documents",
         async prepare(page) {
-            // Cherché plutôt que cliqué dans la liste : la médiathèque de
-            // démonstration tient sur deux pages, et celui-ci n'est pas
-            // toujours sur la première. C'est celui-là qu'on veut, parce
-            // qu'il porte trois versions et que la carte en parle.
-            // Le champ cherche aussi dans le texte et les étiquettes depuis la
-            // 0.9.327, et son exemple l'annonce : « Rechercher : titre, … ».
-            // En cartes : une ligne de la liste ne s'ouvre pas au clic, une
-            // carte si, et le mode est retenu d'une visite à l'autre.
+            // Searched for rather than clicked in the list: the demo media
+            // library spans two pages, and this one is not always on the
+            // first. It is the one we want, because it carries three
+            // versions and the card talks about them.
+            // Since 0.9.327 the field also searches the text and the tags,
+            // and its placeholder says so: "Rechercher : titre, …".
+            // In card view: a list row does not open on click, a card does,
+            // and the mode is remembered from one visit to the next.
             await page.locator("main").getByRole("button", { name: "Vue cartes" }).click();
             await page.waitForTimeout(1_000);
             await page.getByPlaceholder(/^Rechercher :/).fill("Visuel de campagne");
@@ -519,21 +515,21 @@ const SHOTS = [
         },
     },
     {
-        // La grille et sa palette : quarante-huit colonnes, les zones déjà
-        // posées, et en bas tout ce qu'on peut poser. La carte énumère dix
-        // sortes de zones et n'en montrait aucune.
+        // The grid and its palette: forty-eight columns, the zones already
+        // placed, and at the bottom everything that can be placed. The card
+        // lists ten kinds of zones and showed none.
         name: "tour-grille-palette",
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
-            // `exact`, sinon le menu latéral gagne : « Types de contenu » contient
-            // « contenu », et c'est lui que le premier résultat désigne. La
-            // capture sortait alors sur l'onglet Paramétrage, qui est celui
-            // d'à côté et qui ressemble assez pour qu'on ne le voie pas.
+            // `exact`, otherwise the side menu wins: "Types de contenu"
+            // contains "contenu", and it is what the first result points to.
+            // The capture then came out on the Paramétrage tab, which is the
+            // neighbouring one and looks close enough that nobody notices.
             await page.getByRole("button", { name: "Contenu", exact: true }).first().click();
             await page.waitForTimeout(2_000);
-            // Jusqu'au bas de la palette : elle compte 44 types, et le haut
-            // de l'onglet n'en montrait que trois rangées.
+            // Down to the bottom of the palette: it holds 44 types, and the
+            // top of the tab only showed three rows of them.
             await page
                 .locator("main")
                 .getByRole("button", { name: "Pile", exact: true })
@@ -543,40 +539,39 @@ const SHOTS = [
             await page.waitForTimeout(1_000);
         },
     },
-    // Pas de prise de l'éditeur d'une zone, et j'ai essayé trois fois.
-    // L'éditeur s'ouvre sous la grille, et le défilement ne tient pas
-    // jusqu'à l'obturateur : la capture ressort sur la grille, c'est-à-dire
-    // en double de celle du dessus. Deux images identiques valent moins
-    // qu'une seule, et celle de la palette dit déjà ce que la carte promet -
-    // vingt-quatre sortes de zones à poser. À reprendre en visant le
-    // conteneur qui défile vraiment, qui n'est pas la fenêtre.
+    // No shot of a zone's editor, and I tried three times. The editor
+    // opens below the grid, and the scroll does not hold until the
+    // shutter: the capture comes out on the grid, that is, a duplicate of
+    // the one above. Two identical pictures are worth less than one, and
+    // the palette one already says what the card promises: twenty-four
+    // kinds of zones to place. To be redone by targeting the container
+    // that actually scrolls, which is not the window.
 
     {
-        // Le paramétrage d'une publication : son statut, ses dates, son type
-        // et son adresse. La carte parle d'un cycle - brouillon, revue,
-        // programmation, publication, archivage - et ne montrait que la liste
-        // où le statut se lit, jamais l'endroit où il se décide.
+        // A post's settings: its status, its dates, its type and its URL.
+        // The card talks about a cycle (draft, review, scheduling,
+        // publishing, archiving) and only showed the list where the status
+        // is read, never the place where it is decided.
         name: "tour-publications-parametrage",
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
-            // `domcontentloaded` ne suffit pas ici : l'onglet n'existe qu'une
-            // fois le composant monté, et l'éditeur garde une connexion
-            // ouverte en dev, donc `load` n'arrive jamais.
+            // `domcontentloaded` is not enough here: the tab only exists once
+            // the component is mounted, and the editor keeps a connection
+            // open in dev, so `load` never fires.
             await page.waitForTimeout(4_000);
             await page.getByRole("button", { name: "Paramétrage" }).first().click();
             await page.waitForTimeout(1_500);
         },
     },
     {
-        // L'historique : ce qui a été enregistré avant est conservé et se
-        // compare. La carte le promet noir sur blanc.
+        // The history: what was saved before is kept and can be compared.
+        // The card promises it in black and white.
         //
-        // La prise n'a été possible qu'après avoir donné des révisions au
-        // jeu de démonstration : les fixtures écrivent les publications en
-        // direct, alors qu'une révision naît d'un enregistrement passé par
-        // le gestionnaire. La modale s'ouvrait donc sur « Aucune version
-        // enregistrée pour le moment », soit l'image qui réussit sans rien
-        // montrer.
+        // The shot only became possible after giving revisions to the demo
+        // dataset: the fixtures write posts directly, whereas a revision is
+        // born from a save that goes through the manager. So the modal
+        // opened on "Aucune version enregistrée pour le moment", the
+        // picture that succeeds while showing nothing.
         name: "tour-publications-historique",
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
@@ -588,26 +583,26 @@ const SHOTS = [
         },
     },
     {
-        // La corbeille, qui traverse les modules : supprimer n'efface pas
-        // tout de suite, et l'écran dit combien de temps il reste.
+        // The trash, which spans the modules: deleting does not erase right
+        // away, and the screen says how much time is left.
         name: "tour-publications-corbeille",
         path: "/suite/trash",
     },
-    // La carte promet les réglages de l'en-tête et la prise n'en montrait
-    // aucun : l'aperçu occupe toute la fenêtre et les contrôles - placement,
-    // hauteur, largeur, dégradé, fondu, boutons - commencent sous le pli. On
-    // descend donc jusqu'à « Hauteur », ce qui laisse le bas de l'aperçu en
-    // haut du cadre : on voit ce qu'on règle et ce que ça donne.
+    // The card promises the header settings and the shot showed none: the
+    // preview fills the whole window and the controls (placement, height,
+    // width, gradient, fade, buttons) start below the fold. So we scroll
+    // down to "Hauteur", which leaves the bottom of the preview at the top
+    // of the frame: you see what you adjust and what it gives.
     postTabShot("tour-entete-reglages", "En-tête", async (page) => {
         await page.getByText("Hauteur", { exact: true }).first().scrollIntoViewIfNeeded();
         await page.waitForTimeout(1_200);
     }),
     postTabShot("tour-seo-onglet", "Moteurs de recherche"),
     {
-        // Le module Galeries, et non plus l'onglet de l'éditeur : la page du
-        // tour montrait deux fois ce même onglet, bandeau et corps. Ce
-        // second accès ne touche qu'à la galerie, ce qui permet de confier
-        // les photos à quelqu'un sans lui ouvrir le reste de la publication.
+        // The Galleries module, and no longer the editor tab: the tour page
+        // showed that same tab twice, banner and body. This second entry
+        // point only touches the gallery, which lets someone be trusted with
+        // the photos without opening the rest of the post to them.
         name: "tour-galeries-module",
         path: `/suite/editorial/post-galleries/${DEMO_POST_ID}/edit`,
         async prepare(page) {
@@ -615,9 +610,8 @@ const SHOTS = [
         },
     },
     {
-        // La même publication dans une autre langue : même disposition,
-        // mots différents. La carte dit « un onglet par langue » et montrait
-        // une page en français.
+        // The same post in another language: same layout, different words.
+        // The card says "un onglet par langue" and showed a page in French.
         name: "tour-multilingue-en",
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
@@ -627,68 +621,67 @@ const SHOTS = [
         },
     },
     {
-        // Le tableau de bord sur un autre module que l'éditorial : la carte
-        // promet « un panneau par module actif, chacun avec ses chiffres ».
+        // The dashboard on a module other than editorial: the card promises
+        // "un panneau par module actif, chacun avec ses chiffres".
         name: "tour-dashboard-modules",
         path: "/suite",
         async prepare(page) {
             await page.waitForTimeout(3_000);
 
-            // **Dans le contenu, pas dans la page entière.** « GED » nomme à
-            // la fois l'onglet du tableau de bord et une section du menu
-            // latéral, et `.first()` prenait la section : le menu se dépliait,
-            // se décalait, l'onglet Éditorial restait ouvert, et la prise
-            // montrait l'écran d'avant sous un nom qui promettait l'autre.
-            // `exact: true` n'y peut rien, les deux libellés sont identiques.
-            // Le menu vit hors du `<main>`, donc y limiter la recherche les
-            // départage pour de bon.
+            // **In the content, not in the whole page.** "GED" names both
+            // the dashboard tab and a section of the side menu, and
+            // `.first()` took the section: the menu expanded, shifted, the
+            // Éditorial tab stayed open, and the shot showed the previous
+            // screen under a name that promised the other one.
+            // `exact: true` cannot help, the two labels are identical. The
+            // menu lives outside `<main>`, so limiting the search to it
+            // tells them apart for good.
             await page.locator("main").getByRole("button", { name: "GED", exact: true }).first().click();
             await page.waitForTimeout(1_500);
         },
     },
     {
-        // La recherche ouverte, avec ses résultats groupés par nature.
+        // The search open, with its results grouped by kind.
         name: "tour-recherche-resultats",
         path: "/suite",
         async prepare(page) {
             await page.waitForTimeout(3_000);
             await page.keyboard.press("Control+K");
             await page.waitForTimeout(1_200);
-            // « client » et non le mot par défaut : il touche trois natures à
-            // la fois - une entrée de navigation, un média, des événements -
-            // et c'est le groupement que la carte promet. « aurora » ne
-            // ramenait que des médias, soit une liste et pas une démonstration.
+            // "client" and not the default word: it hits three kinds at once
+            // (a navigation entry, a media item, events), and that grouping
+            // is what the card promises. "aurora" only brought back media,
+            // a list and not a demonstration.
             await page.keyboard.type("client", { delay: 60 });
             await page.waitForTimeout(2_500);
         },
     },
     {
-        // La modération des commentaires et ses trois états.
+        // Comment moderation and its three states.
         name: "tour-commentaires-moderation",
         path: "/suite/editorial/comments",
     },
     {
-        // Les demandes reçues par un formulaire : la carte parle de ce qu'un
-        // formulaire sait faire et s'arrêtait à ses champs.
-        // Les demandes vivent **sous** les champs, sur la page du
-        // formulaire.
+        // The submissions a form received: the card talks about what a form
+        // can do and stopped at its fields.
+        // Submissions live **below** the fields, on the form's page.
         //
-        // Deux erreurs avant d'y arriver, et la seconde est partie en
-        // production : chercher un onglet « Réponses » qui n'existe pas, puis
-        // viser `/submissions`, qui est l'API JSON et non un écran. La prise
-        // était un dump de JSON brut, et elle a illustré la carte publique
-        // pendant une heure. Une adresse qui répond n'est pas une page.
+        // Two mistakes before getting there, and the second went to
+        // production: looking for a "Réponses" tab that does not exist, then
+        // targeting `/submissions`, which is the JSON API and not a screen.
+        // The shot was a raw JSON dump, and it illustrated the public card
+        // for an hour. A URL that answers is not a page.
         name: "tour-formulaire-reponses",
-        // L'onglet Réponses, par son adresse : depuis la 0.9.320 les réponses
-        // ont leur onglet, et il est dans le fragment de l'URL.
+        // The Réponses tab, by its URL: since 0.9.320 submissions have
+        // their own tab, and it is in the URL fragment.
         path: "/suite/editorial/forms/1#submissions",
         async prepare(page) {
             await page.waitForTimeout(3_000);
         },
     },
     {
-        // Un menu ouvert, avec ses entrées imbriquées : la carte décrit ce
-        // qu'une entrée peut viser et montrait la liste des menus.
+        // A menu open, with its nested entries: the card describes what an
+        // entry can point to and showed the list of menus.
         name: "tour-menus-entrees",
         path: "/suite/editorial/menus",
         async prepare(page) {
@@ -698,22 +691,22 @@ const SHOTS = [
         },
     },
     {
-        // Les termes d'une taxonomie : la carte oppose l'arbre des catégories
-        // et les étiquettes à plat, sans montrer ni l'un ni l'autre.
+        // The terms of a taxonomy: the card contrasts the category tree with
+        // flat tags, without showing either.
         name: "tour-taxonomies-termes",
         path: "/suite/editorial/taxonomies",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            // La page ouvre d'office la première taxonomie, les catégories :
-            // rien à cliquer, mais on vérifie que c'est bien elle, pour ne
-            // jamais photographier une autre liste en croyant montrer celle-ci.
+            // The page opens the first taxonomy, the categories, by default:
+            // nothing to click, but we check it really is that one, so as to
+            // never photograph another list while believing it shows this one.
             await page.locator("main h2", { hasText: "Catégories" }).first().waitFor();
             await page.waitForTimeout(2_500);
         },
     },
     {
-        // Les champs d'un type de contenu : c'est ce que la carte détaille,
-        // et la liste des types n'en dit rien.
+        // The fields of a content type: it is what the card details, and the
+        // list of types says nothing about them.
         name: "tour-types-champs",
         path: "/suite/editorial/post-types",
         async prepare(page) {
@@ -723,23 +716,23 @@ const SHOTS = [
         },
     },
     {
-        // La palette d'un thème : la carte parle de couleurs déduites et de
-        // contrastes, donc c'est là qu'il faut regarder.
+        // A theme's palette: the card talks about derived colours and
+        // contrasts, so that is where to look.
         name: "tour-themes-palette",
         path: "/suite/configuration/themes",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            // Le thème livré avec Aurora, toujours là. Pas de repli : un clic
-            // raté photographiait la liste des thèmes à la place de la palette,
-            // en double de tour-themes.
+            // The theme shipped with Aurora, always there. No fallback: a
+            // missed click photographed the list of themes instead of the
+            // palette, a duplicate of tour-themes.
             await page.locator("main").getByRole("button", { name: "Actions pour Default" }).click();
             await page.getByRole("button", { name: "Modifier", exact: true }).click();
             await page.waitForTimeout(2_500);
         },
     },
     {
-        // Les gris du clair et du sombre (1.4.0) : les deux colonnes, leur
-        // famille, l'aperçu et les nuances.
+        // The light and dark greys (1.4.0): the two columns, their family,
+        // the preview and the shades.
         name: "tour-reglages-apparence",
         path: "/suite/configuration/settings/appearance",
         async prepare(page) {
@@ -747,7 +740,7 @@ const SHOTS = [
         },
     },
     {
-        // Les couleurs des e-mails (1.4.0), sous la langue, dans leur onglet.
+        // The email colours (1.4.0), below the language, in their own tab.
         name: "tour-reglages-emails",
         path: "/suite/configuration/settings/email",
         async prepare(page) {
@@ -755,8 +748,8 @@ const SHOTS = [
         },
     },
     {
-        // Les privilèges d'un compte, écran par écran : c'est la promesse
-        // centrale de la carte, et elle ne montrait que la liste des comptes.
+        // An account's privileges, screen by screen: it is the card's central
+        // promise, and it only showed the list of accounts.
         name: "tour-privileges",
         path: "/suite/platform/users",
         async prepare(page) {
@@ -768,8 +761,8 @@ const SHOTS = [
         },
     },
     {
-        // Les réglages et leurs onglets : la carte parle de ce qui se règle
-        // sans montrer où.
+        // The settings and their tabs: the card talks about what can be set
+        // without showing where.
         name: "tour-reglages-onglets",
         path: "/suite/configuration/settings",
         async prepare(page) {
@@ -777,8 +770,8 @@ const SHOTS = [
         },
     },
     {
-        // Une intégration sur le gabarit commun (0.9.328) : ce qu'elle fait,
-        // son état, la carte de connexion, et le mode d'emploi à côté.
+        // An integration on the shared template (0.9.328): what it does, its
+        // state, the connection card, and the how-to alongside.
         name: "tour-integrations",
         path: "/suite/configuration/settings/pexels",
         async prepare(page) {
@@ -787,8 +780,8 @@ const SHOTS = [
         },
     },
     {
-        // Un encart « Comment ça marche » ouvert, sur un écran simple : chaque
-        // écran a le sien, à côté de ce qu'il explique.
+        // A "Comment ça marche" box open, on a simple screen: each screen has
+        // its own, next to what it explains.
         name: "tour-encarts",
         path: "/suite/ged/categories",
         async prepare(page) {
@@ -797,30 +790,30 @@ const SHOTS = [
         },
     },
     {
-        // Les catégories : une par nature de document, celle qui décide où un
-        // fichier est rangé. La carte en parle et ne la montrait pas.
+        // The categories: one per kind of document, the one that decides
+        // where a file is filed. The card talks about it and did not show it.
         name: "tour-mediatheque-categories",
         path: "/suite/ged/categories",
     },
     {
-        // Les étiquettes, qui traversent les catégories : un même document
-        // peut en porter autant qu'il veut, là où il n'a qu'une catégorie.
+        // Tags, which cut across categories: a document can carry as many as
+        // it wants, whereas it has only one category.
         name: "tour-mediatheque-etiquettes",
         path: "/suite/ged/tags",
     },
     {
-        // La carte promet « le rendu à côté de la source », et son texte de
-        // remplacement décrit « une note, son rendu à côté, ses étiquettes et
-        // ses liens ». La prise montrait la bibliothèque : des dossiers et des
-        // vignettes, c'est-à-dire la seule chose que la carte ne dit pas.
+        // The card promises "le rendu à côté de la source", and its alt text
+        // describes "une note, son rendu à côté, ses étiquettes et ses
+        // liens". The shot showed the library: folders and thumbnails, that
+        // is, the one thing the card does not mention.
         //
-        // Par le nom et non par un identifiant : les fixtures renumérotent à
-        // chaque rechargement. « Cabinet Verrier » est la seule note de la
-        // démonstration qui réunisse les trois : un bandeau, un lien wiki dans
-        // son texte, et un lien entrant, donc un panneau qui montre quelque
-        // chose. « Sommaire des clients » a une source plus riche mais rien ne
-        // pointe vers elle : le panneau s'ouvrait sur « Aucun lien entrant »,
-        // au milieu d'une image qui sert à montrer que les notes se relient.
+        // By name and not by id: the fixtures renumber on every reload.
+        // "Cabinet Verrier" is the only demo note that brings all three
+        // together: a banner, a wiki link in its text, and an incoming link,
+        // so a panel that shows something. "Sommaire des clients" has a
+        // richer source but nothing points to it: the panel opened on
+        // "Aucun lien entrant", in the middle of a picture meant to show
+        // that notes link to each other.
         name: "tour-notes",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -830,10 +823,10 @@ const SHOTS = [
         },
     },
     {
-        // Le plan de la note (0.9.331) : ses titres en retrait selon leur
-        // niveau, un clic qui y mène, et en pied le nombre de mots et le
-        // temps de lecture. La fiche du cabinet a des titres sur trois
-        // niveaux, donc un plan qui se déplie.
+        // The note's outline (0.9.331): its headings indented by level, a
+        // click that leads to them, and at the bottom the word count and
+        // reading time. The firm's note has headings on three levels, so an
+        // outline that unfolds.
         name: "tour-notes-plan",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -844,9 +837,9 @@ const SHOTS = [
         },
     },
     {
-        // L'historique des versions (0.9.331), sur la plus ancienne des trois
-        // que la démonstration pose : c'est elle dont l'écart avec le texte
-        // courant montre le plus, des lignes retirées comme ajoutées.
+        // The version history (0.9.331), on the oldest of the three the demo
+        // creates: its diff with the current text shows the most, lines
+        // removed as well as added.
         name: "tour-notes-historique",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -860,8 +853,8 @@ const SHOTS = [
         },
     },
     {
-        // Partir d'un modèle (0.9.331) : « Ajouter » propose les notes
-        // marquées comme modèles, et la consigne sur la date du jour.
+        // Starting from a template (0.9.331): "Ajouter" offers the notes
+        // marked as templates, and the instruction about today's date.
         name: "tour-notes-modele",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -876,10 +869,9 @@ const SHOTS = [
         },
     },
     {
-        // La bibliothèque, à plat et en mosaïque : chaque note montre le
-        // début de son contenu en petit, comme sur une étagère. C'est la
-        // première chose qu'on voit en ouvrant le module, et la carte n'en
-        // montrait rien.
+        // The library, flat and as a mosaic: each note shows the start of
+        // its content in small, as on a shelf. It is the first thing you see
+        // when opening the module, and the card showed none of it.
         name: "tour-notes-bibliotheque",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -887,9 +879,9 @@ const SHOTS = [
         },
     },
     {
-        // La même bibliothèque en vue cartes : la grille dense, sans extrait.
-        // Trois façons de regarder le même carnet, et une seule était
-        // photographiée.
+        // The same library in card view: the dense grid, without excerpts.
+        // Three ways to look at the same notebook, and only one was
+        // photographed.
         name: "tour-notes-vue-cartes",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -899,8 +891,8 @@ const SHOTS = [
         },
     },
     {
-        // Et en liste : titre, étiquettes, dossier, date. C'est la vue de
-        // celui qui cherche une note précise plutôt que de parcourir.
+        // And as a list: title, tags, folder, date. It is the view for
+        // someone looking for a specific note rather than browsing.
         name: "tour-notes-vue-liste",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -910,20 +902,20 @@ const SHOTS = [
         },
     },
     {
-        // L'habillage d'une note, où les deux choses se décident au même
-        // endroit : l'image d'entête, cherchée chez Pexels et recadrée à la
-        // molette, et les six apparences. Une seule fenêtre pour les deux,
-        // donc une seule image.
+        // A note's styling, where both things are decided in the same
+        // place: the header image, searched on Pexels and cropped with the
+        // scroll wheel, and the six appearances. A single window for both,
+        // so a single picture.
         name: "tour-notes-entete",
         path: "/suite/notes/markdown",
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
-            // **Dans le contenu, pas dans la page entière.** Depuis que
-            // chaque ligne de l'arbre porte sa propre feuille d'actions,
-            // « Actions pour… » existe aussi dans le menu latéral, et
-            // `.first()` y attrapait la première ligne au lieu de la note
-            // ouverte. L'arbre vit hors du `<main>`, ce qui les départage.
+            // **In the content, not in the whole page.** Since each row of
+            // the tree carries its own action sheet, "Actions pour…" also
+            // exists in the side menu, and `.first()` caught the first row
+            // there instead of the open note. The tree lives outside
+            // `<main>`, which tells them apart.
             await page.locator("main").getByTitle(/^Actions/).first().click();
             await page.waitForTimeout(800);
             await page.getByRole("button", { name: "Image d'entête" }).first().click();
@@ -931,9 +923,9 @@ const SHOTS = [
         },
     },
     {
-        // Le graphe, que le texte de la carte promet depuis le début sans
-        // l'avoir jamais montré. Il s'ouvre depuis le menu d'une note, donc
-        // il faut en ouvrir une d'abord.
+        // The graph, which the card's text has promised from the start
+        // without ever showing it. It opens from a note's menu, so one has
+        // to be opened first.
         name: "tour-notes-graphe",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -942,25 +934,25 @@ const SHOTS = [
             await page.locator("main").getByTitle(/^Actions/).first().click();
             await page.waitForTimeout(700);
             await page.getByRole("button", { name: "Ouvrir le graphe" }).first().click();
-            // La construction est animée : elle place les nœuds avant de se
-            // stabiliser, et photographier trop tôt donne une pelote.
+            // The layout is animated: it places the nodes before settling,
+            // and photographing too early gives a tangle.
             await page.waitForTimeout(4_000);
         },
     },
     {
-        // La page publique d'une note : l'autre promesse du texte, « montrer
-        // une note à quelqu'un qui n'a pas de compte ».
+        // A note's public page: the text's other promise, "montrer une note
+        // à quelqu'un qui n'a pas de compte".
         //
-        // L'adresse est demandée au serveur plutôt qu'écrite ici : le jeton
-        // est tiré au hasard à chaque chargement des fixtures, donc une
-        // adresse en dur serait morte au premier `make demo`.
+        // The URL is asked from the server rather than written here: the
+        // token is drawn at random on every fixture load, so a hardcoded
+        // URL would be dead at the first `make demo`.
         //
-        // La note aussi se retrouve par son titre. Le scénario demandait les
-        // partages de la note 1, qui était le sommaire tant que la démo
-        // n'avait jamais changé ; une démo rechargée par-dessus une ancienne
-        // garde l'ancienne note sous ce numéro, et la carte a publié quatre
-        // lignes sans image ni notes liées pendant que le vrai sommaire, sa
-        // couverture et son lien « avec les notes liées » restaient à côté.
+        // The note too is found by its title. The scenario asked for the
+        // shares of note 1, which was the index as long as the demo had
+        // never changed; a demo reloaded on top of an old one keeps the old
+        // note under that number, and the card published four lines with no
+        // image and no linked notes while the real index, its cover and its
+        // "avec les notes liées" link sat right next to it.
         name: "tour-notes-partage",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -985,19 +977,19 @@ const SHOTS = [
         },
     },
     {
-        // La vue de lecture : une adresse qui n'affiche **que** la note, sans
-        // le menu ni le fil d'Ariane, pour qui a un compte.
+        // The reading view: a URL that shows **only** the note, without the
+        // menu or the breadcrumb, for someone with an account.
         //
-        // La prise montrait l'aperçu de l'éditeur, c'est-à-dire la même
-        // fenêtre que la première image, en mode rendu. Deux photos du même
-        // écran, et la vue qui existe précisément pour montrer une note nue
-        // n'était sur aucune. Elle se distingue aussi de la page de partage,
-        // qui est l'autre bout : celle-ci se lit sans compte et porte la
-        // liste des notes liées quand le lien les emporte.
+        // The shot showed the editor's preview, that is, the same window as
+        // the first picture, in rendered mode. Two photos of the same
+        // screen, and the view that exists precisely to show a bare note
+        // was on neither. It also differs from the share page, which is the
+        // other end: that one is read without an account and carries the
+        // list of linked notes when the link includes them.
         //
-        // Par l'adresse plutôt que par un clic : le bouton qui y mène est
-        // dans le menu de la note, et ouvrir un menu pour photographier ce
-        // qu'il y a derrière allonge le scénario sans rien prouver de plus.
+        // By URL rather than by a click: the button that leads there is in
+        // the note's menu, and opening a menu to photograph what is behind
+        // it makes the scenario longer without proving anything more.
         name: "tour-notes-apparence",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -1013,32 +1005,32 @@ const SHOTS = [
         },
     },
     {
-        // Le panneau par espace : son carnet d'abord, puis « Guide de
-        // l'agence », que la démonstration partage avec tout le back-office.
-        // Le dossier de l'espace est déplié pour qu'on voie ce qu'il range.
+        // The panel by space: its own notebook first, then "Guide de
+        // l'agence", which the demo shares with the whole back office.
+        // The space's folder is expanded so you can see what it holds.
         name: "tour-notes-espaces",
         path: "/suite/notes/markdown",
         async prepare(page) {
             const header = page.locator("[data-space-header]").filter({ hasText: /Guide de l.agence/i }).first();
             await header.waitFor();
 
-            // Tout replié d'abord : son carnet déplié repoussait l'espace
-            // partagé sous le bord de l'image. Le bouton n'existe que si
-            // quelque chose est ouvert.
+            // Everything collapsed first: its expanded notebook pushed the
+            // shared space below the edge of the picture. The button only
+            // exists if something is open.
             const replier = page.getByTitle("Tout replier").first();
             if (await replier.count() > 0) await replier.click();
 
             await page.getByRole("link", { name: /^Procédures/ }).first().click();
             await page.waitForTimeout(1_500);
-            // La mosaïque, qui montre le début de chaque note ; la vue est
-            // retenue d'un scénario à l'autre.
+            // The mosaic, which shows the start of each note; the view is
+            // remembered from one scenario to the next.
             await page.locator("main").getByTitle("Mosaïque").first().click();
             await page.waitForTimeout(1_000);
         },
     },
     {
-        // Créer un espace : la même fenêtre que pour une note ou un dossier,
-        // avec qui y entre et ce qu'on y fait.
+        // Creating a space: the same window as for a note or a folder, with
+        // who gets in and what they do there.
         name: "tour-notes-nouvel-espace",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -1050,9 +1042,9 @@ const SHOTS = [
         },
     },
     {
-        // Les réglages d'un espace : l'accès, les membres et leur rôle, et
-        // la publication sur le web avec son adresse. Le bouton n'apparaît
-        // qu'au survol de l'en-tête, comme pour une vraie souris.
+        // A space's settings: access, members and their role, and web
+        // publishing with its URL. The button only appears when hovering the
+        // header, as with a real mouse.
         name: "tour-notes-reglages-espace",
         path: "/suite/notes/markdown",
         async prepare(page) {
@@ -1064,9 +1056,9 @@ const SHOTS = [
         },
     },
     {
-        // Un espace publié, lu sans compte : son arbre et sa première note,
-        // rien du back-office autour. L'adresse est celle que les fixtures
-        // donnent à l'espace de démonstration.
+        // A published space, read without an account: its tree and its
+        // first note, nothing of the back office around it. The URL is the
+        // one the fixtures give the demo space.
         name: "tour-notes-publique",
         path: "/p/guide-agence",
         async prepare(page) {
@@ -1079,14 +1071,14 @@ const SHOTS = [
     { name: "tour-contrats", path: "/suite/studio/contracts" },
     { name: "tour-trames", path: "/suite/studio/contract-templates" },
     {
-        // L'aperçu d'une trame, depuis la 0.9.318 : chaque valeur venue d'une
-        // variable est colorée selon sa source (exemple inventé, vraie
-        // information, champ à remplir), avec la légende sous l'encadré.
+        // A template's preview, since 0.9.318: each value coming from a
+        // variable is coloured by its source (made-up example, real
+        // information, field to fill in), with the legend below the box.
         name: "tour-trame-apercu",
         path: "/suite/studio/contract-templates",
         async prepare(page) {
-            // Le titre d'une trame n'est pas un lien : c'est sa version qui
-            // ouvre l'éditeur.
+            // A template's title is not a link: its version is what opens
+            // the editor.
             await page.locator("main tr").filter({ hasText: "Contrat de prestation mensuelle" })
                 .getByRole("link", { name: /^Version/ }).first().click();
             await page.waitForLoadState("domcontentloaded");
@@ -1100,9 +1092,9 @@ const SHOTS = [
     { name: "tour-clients", path: "/suite/studio/customers" },
 
     /**
-     * Le carrousel de l'en-tête : l'accueil de la démo en a trois diapositives.
-     * La deuxième plutôt que la première, pour qu'on voie qu'elle en est une.
-     * « Diapositive 2 » est un onglet, pas un bouton : visé par son texte.
+     * The header carousel: the demo's home page has three slides in it.
+     * The second rather than the first, so it is visible that it is one.
+     * "Diapositive 2" is a tab, not a button: targeted by its text.
      */
     {
         name: "tour-entete-carrousel",
@@ -1124,10 +1116,10 @@ const SHOTS = [
     },
 
     /**
-     * Les livrables de Studio (1.7.0), ceux qui ne sont rattachés à aucun
-     * espace : les deux rayons, la création qui demande lequel, et les
-     * réglages d'un livrable partagé où son auteur le change. Le rayon ouvert
-     * se lit dans l'adresse, `?scope=`.
+     * Studio deliverables (1.7.0), those attached to no space: the two
+     * shelves, the creation that asks which one, and the settings of a
+     * shared deliverable where its author changes it. The open shelf is
+     * read from the URL, `?scope=`.
      */
     { name: "tour-livrables", path: "/suite/studio/deliverables?scope=personal" },
     { name: "tour-livrables-partages", path: "/suite/studio/deliverables?scope=shared" },
@@ -1135,7 +1127,7 @@ const SHOTS = [
         name: "tour-livrables-nouveau",
         path: "/suite/studio/deliverables?scope=shared",
         async prepare(page) {
-            // L'action seule de la page est rangée dans son menu « Actions ».
+            // The page's single action is kept in its "Actions" menu.
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.waitForTimeout(500);
             await page.getByText("Nouveau livrable", { exact: true }).first().click();
@@ -1152,19 +1144,19 @@ const SHOTS = [
             await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
             await page.waitForLoadState("domcontentloaded");
             await page.waitForTimeout(3_000);
-            // Les onglets de l'éditeur ont le rôle `tab` (depuis la 1.13.0, pour
-            // les lecteurs d'écran), et « Réglages » est aussi une entrée du
-            // menu latéral : visé dans le contenu.
+            // The editor's tabs have the `tab` role (since 1.13.0, for
+            // screen readers), and "Réglages" is also an entry of the side
+            // menu: targeted inside the content.
             await page.locator("main").getByRole("tab", { name: "Réglages", exact: true }).first().click();
             await page.waitForTimeout(1_500);
         },
     },
 
     /**
-     * Les liens de lecture d'un livrable (1.13.0) : trois états sur le modèle
-     * d'audit de l'équipe, venus des fixtures. Un lien déjà ouvert, qui ne peut
-     * plus que se retirer ; un lien protégé qui expire ; un lien neuf, que sa
-     * corbeille (l'icône) supprime tant que personne ne l'a ouvert.
+     * A deliverable's reading links (1.13.0): three states on the team's
+     * audit template, from the fixtures. A link already opened, which can
+     * only be revoked now; a protected link that expires; a new link, which
+     * its trash icon deletes as long as nobody has opened it.
      */
     {
         name: "tour-livrables-liens",
@@ -1181,7 +1173,7 @@ const SHOTS = [
         },
     },
     {
-        // Le PDF au lecteur : un réglage de l'apparence, éteint par défaut.
+        // The PDF for the reader: an appearance setting, off by default.
         name: "tour-livrables-pdf",
         path: "/suite/studio/deliverables?scope=shared",
         async prepare(page) {
@@ -1196,12 +1188,12 @@ const SHOTS = [
     },
 
     /**
-     * Les nouveautés de la 1.11.0, sur deux livrables de démonstration : le
-     * modèle d'audit mis en page comme un diaporama (fond blanc, cartes en
-     * relief, pastilles, téléphone penché) et le même audit en présentation
-     * (aux couleurs du site, cartes colorées). Ils viennent des fixtures
-     * (`fixtures/Studio/data/`) et se retrouvent par leur titre : leurs
-     * identifiants changent à chaque `make demo-reset`.
+     * What is new in 1.11.0, on two demo deliverables: the audit template
+     * laid out like a slideshow (white background, raised cards, badges,
+     * tilted phone) and the same audit as a presentation (in the site's
+     * colours, coloured cards). They come from the fixtures
+     * (`fixtures/Studio/data/`) and are found by their title: their ids
+     * change on every `make demo-reset`.
      */
     {
         name: "tour-livrables-audit",
@@ -1253,8 +1245,9 @@ const SHOTS = [
             await page.waitForTimeout(3_000);
             await page.locator("main aside").getByTitle("Téléphone").click();
             await page.waitForTimeout(4_000);
-            // La première zone de la section « Présentation de l'entreprise »,
-            // choisie dans l'aperçu : elle s'y souligne, et son réglage s'ouvre.
+            // The first zone of the "Présentation de l'entreprise" section,
+            // picked in the preview: it gets outlined there, and its
+            // settings open.
             const frame = page.frameLocator("[data-preview-pane] iframe");
             await frame.locator("[data-grid-zone]").nth(9).click();
             await page.waitForTimeout(1_500);
@@ -1275,10 +1268,10 @@ const SHOTS = [
     },
 
     /**
-     * Une variante de couleur, par la famille du « Visuel de campagne » que
-     * `make demo` décline en rouge et en bleu. Derrière la fenêtre, le bandeau
-     * de famille déplié montre l'original et sa variante. « Voir la famille »
-     * est une étiquette de bouton, pas un texte : visé par l'attribut.
+     * A colour variant, through the family of the "Visuel de campagne" that
+     * `make demo` derives in red and in blue. Behind the window, the expanded
+     * family strip shows the original and its variant. "Voir la famille" is
+     * a button label, not text: targeted by the attribute.
      */
     {
         name: "tour-mediatheque-variante",
@@ -1295,9 +1288,8 @@ const SHOTS = [
     },
 
     /**
-     * Les présentations, par la réunion de lancement et nommément : ses
-     * douze diapositives passent par tous les gabarits, là où la trame n'en a
-     * que quatre.
+     * Presentations, through the kickoff meeting and by name: its twelve
+     * slides go through every layout, whereas the template has only four.
      */
     { name: "tour-presentations", path: "/suite/studio/decks" },
     { name: "tour-presentations-editeur", path: "/suite/studio/decks", prepare: openDeck("Réunion de lancement") },
@@ -1308,17 +1300,18 @@ const SHOTS = [
             await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: "Présenter" }).click();
             await page.waitForTimeout(1_500);
-            // La quatrième diapositive, une photo pleine page : la première
-            // n'est qu'un titre sur fond uni.
+            // The fourth slide, a full-page photo: the first is only a title
+            // on a plain background.
             for (let i = 0; i < 3; i++) await page.keyboard.press("ArrowRight");
             await page.waitForTimeout(1_500);
         },
     },
     /**
-     * La diapo libre de la réunion de lancement, prise en main : la photo choisie montre ses
-     * poignées et sa poignée de rotation, et le panneau à côté ce qu'on règle
-     * sur une image. Atteinte par son libellé dans la liste, « 11. Diapo
-     * libre », et non par le bouton du même nom qui en ajoute une.
+     * The kickoff meeting's free slide, being edited: the selected photo
+     * shows its handles and its rotation handle, and the panel alongside
+     * what can be set on an image. Reached by its label in the list,
+     * "11. Diapo libre", and not by the button of the same name that adds
+     * one.
      */
     {
         name: "tour-presentations-libre",
@@ -1328,8 +1321,8 @@ const SHOTS = [
             await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
             await page.waitForTimeout(1_500);
             await page.locator("main .fc-stage .fe-image").first().click();
-            // Le clic a fait défiler la page jusqu'à la photo : on remonte,
-            // pour que le bouton « Présenter » ne soit pas coupé en haut.
+            // The click scrolled the page down to the photo: scroll back up,
+            // so the "Présenter" button is not cut off at the top.
             await page.mouse.wheel(0, -2_000);
             await page.waitForTimeout(800);
         },
@@ -1343,8 +1336,8 @@ const SHOTS = [
             await page.waitForTimeout(1_000);
             await page.locator("main").getByRole("button", { name: "Présenter" }).click();
             await page.waitForTimeout(1_500);
-            // Les trois cartes entrent une à une : trois pressions, et le
-            // temps de leur animation.
+            // The three cards come in one by one: three key presses, and the
+            // time for their animation.
             for (let i = 0; i < 3; i++) {
                 await page.keyboard.press("ArrowRight");
                 await page.waitForTimeout(700);
@@ -1354,11 +1347,12 @@ const SHOTS = [
     },
     {
         name: "tour-avenant-scelle",
-        // Le contrat conclu qui a un avenant : le seul état qui montre à la
-        // fois le sceau, les deux signatures et la chaîne d'avenants. Atteint
-        // par sa référence dans la liste plutôt que par un identifiant en dur,
-        // qui dépend de ce que la base contenait quand les fixtures ont tourné.
-        // La référence sans suffixe : celle en « -A1 » est l'avenant lui-même.
+        // The concluded contract that has an amendment: the only state that
+        // shows the seal, both signatures and the chain of amendments at
+        // once. Reached by its reference in the list rather than by a
+        // hardcoded id, which depends on what the database held when the
+        // fixtures ran. The reference without a suffix: the "-A1" one is the
+        // amendment itself.
         path: "/suite/studio/contracts",
         async prepare(page) {
             const row = page
@@ -1374,10 +1368,10 @@ const SHOTS = [
     },
 
     /**
-     * Le texte d'un contrat adapté pour son client : le brouillon de la démo
-     * porte une clause ajoutée, et la colonne de droite la montre comme une
-     * différence avec la trame. Atteint par la fiche, comme un lecteur le
-     * ferait, plutôt que par un identifiant qui change à chaque chargement.
+     * A contract's text adapted for its client: the demo draft carries an
+     * added clause, and the right-hand column shows it as a difference from
+     * the template. Reached through the detail page, as a reader would,
+     * rather than by an id that changes on every load.
      */
     {
         name: "tour-contrat-adapte",
@@ -1397,30 +1391,30 @@ const SHOTS = [
     },
 
     /**
-     * Le tableau d'un espace client.
+     * The board of a client space.
      *
-     * Par la liste plutôt que par une adresse : les identifiants changent à
-     * chaque rechargement des fixtures, et un parcours qui code un
-     * `/workspace/8` en dur photographie une page d'erreur le lendemain.
+     * Through the list rather than a URL: ids change on every fixture
+     * reload, and a walkthrough that hardcodes a `/workspace/8`
+     * photographs an error page the next day.
      *
-     * **Nommément, et pas le premier venu.** La démonstration porte plusieurs
-     * espaces dont un vide ; ouvrir le premier de la liste donnait cinq
-     * colonnes qui disent toutes « Rien ici pour le moment », c'est-à-dire
-     * une capture qui réussit et ne montre rien.
+     * **By name, and not whichever comes first.** The demo holds several
+     * spaces, one of them empty; opening the first of the list gave five
+     * columns that all say "Rien ici pour le moment", that is, a capture
+     * that succeeds and shows nothing.
      *
-     * Puis un clic sur Contenus : la vue ouverte est retenue d'une visite à
-     * l'autre, donc l'espace peut s'ouvrir sur Notes selon ce qui a été
-     * regardé avant.
+     * Then a click on Contenus: the open view is remembered from one visit
+     * to the next, so the space may open on Notes depending on what was
+     * looked at before.
      */
     { name: "tour-espaces-clients", path: SPACES, prepare: contents("Kanban") },
 
-    /** Le même plan en liste : la carte promet « en kanban ou en liste ». */
+    /** The same plan as a list: the card promises "en kanban ou en liste". */
     { name: "espace-liste", path: SPACES, prepare: contents("Liste") },
 
     /**
-     * Une fiche jusqu'en bas : son fil d'échange et l'avis du client, ici
-     * « à reprendre ». La fenêtre défile toute seule jusqu'au fil, que la
-     * prise du haut de la fiche coupait.
+     * A card down to the bottom: its discussion thread and the client's
+     * verdict, here "à reprendre". The window scrolls by itself down to the
+     * thread, which the shot of the top of the card cut off.
      */
     {
         name: "espace-fiche-echanges",
@@ -1437,11 +1431,11 @@ const SHOTS = [
     },
 
     /**
-     * Envoyer à relire : ce qui part chez le client, et comment.
+     * Sending for review: what goes to the client, and how.
      *
-     * Le bandeau, pas la fenêtre de confirmation. Depuis la 0.9.320 c'est lui
-     * qui dit ce qui attend et ce que le client reçoit ; ouverte par-dessus, la
-     * fenêtre le recouvrait d'un voile et la carte montrait l'ancien geste.
+     * The banner, not the confirmation window. Since 0.9.320 the banner says
+     * what is waiting and what the client receives; opened on top, the window
+     * covered it with a veil and the card showed the old action.
      */
     {
         name: "espace-envoyer-relire",
@@ -1454,14 +1448,13 @@ const SHOTS = [
     },
 
     /**
-     * Les autres vues du même espace.
+     * The other views of the same space.
      *
-     * **Elles illustrent déjà la carte, et n'étaient pas reproductibles.**
-     * Prises à la main une fois, elles ont vieilli sans que rien ne le dise :
-     * celle du côté client montrait encore une page qui empilait tout et un
-     * invité signé de son adresse e-mail, deux versions après que l'une et
-     * l'autre aient disparu. C'est exactement ce que ce fichier existe pour
-     * éviter.
+     * **They already illustrate the card, and were not reproducible.** Taken
+     * by hand once, they aged without anything saying so: the client-side
+     * one still showed a page that stacked everything and a guest signed
+     * with their email address, two versions after both had disappeared.
+     * That is exactly what this file exists to avoid.
      */
     { name: "espace-calendrier", path: SPACES, prepare: spaceView("Calendrier") },
     { name: "espace-fichiers", path: SPACES, prepare: spaceView("Fichiers") },
@@ -1470,7 +1463,7 @@ const SHOTS = [
     { name: "espace-informations", path: SPACES, prepare: spaceView("Informations") },
     { name: "espace-liens", path: SPACES, prepare: spaceView("Ressources") },
 
-    /** Une fiche ouverte : le titre, la date, ses fichiers et son fil. */
+    /** A card open: the title, the date, its files and its thread. */
     {
         name: "espace-une-fiche",
         path: SPACES,
@@ -1480,10 +1473,10 @@ const SHOTS = [
     },
 
     /**
-     * Un espace ouvert pour un prospect.
+     * A space opened for a prospect.
      *
-     * L'onglet a son propre compteur, et c'est ce que la capture montre : on
-     * travaille avec quelqu'un avant qu'il signe.
+     * The tab has its own counter, and that is what the capture shows: you
+     * work with someone before they sign.
      */
     {
         name: "espaces-prospects",
@@ -1495,14 +1488,14 @@ const SHOTS = [
     },
 
     /**
-     * La page que le client ouvre, par une vraie adresse.
+     * The page the client opens, through a real URL.
      *
-     * **Un lien émis ici même, et non l'aperçu du studio.** L'aperçu porte un
-     * bandeau qui prévient que ce n'est pas ce que le client a reçu : vrai
-     * dans l'application, trompeur sur une carte qui promet de montrer ce que
-     * le client voit. Le lien se crée donc comme le studio le crée, et
-     * l'adresse se lit là où l'écran l'affiche une fois - c'est la seule fois
-     * où elle existe en clair.
+     * **A link issued right here, and not the studio's preview.** The preview
+     * carries a banner warning that it is not what the client received: true
+     * in the app, misleading on a card that promises to show what the client
+     * sees. So the link is created the way the studio creates it, and the URL
+     * is read where the screen displays it once. That is the only time it
+     * exists in plain text.
      */
     {
         name: "espace-cote-client",
@@ -1510,7 +1503,7 @@ const SHOTS = [
         prepare: openClientSide,
     },
 
-    /** Ses livrables, du même côté : ce qu'on lui a écrit, publié. */
+    /** Its deliverables, same side: what was written for them, published. */
     {
         name: "espace-cote-client-livrables",
         path: SPACES,
@@ -1521,17 +1514,17 @@ const SHOTS = [
         },
     },
 
-    /** Les livrables d'un espace côté studio : l'audit de la démo, publié. */
+    /** A space's deliverables on the studio side: the demo audit, published. */
     { name: "espace-livrables", path: SPACES, prepare: spaceView("Livrables") },
 
-    /** Les réglages d'un espace : son Drive, son fuseau, ses accès (0.9.328). */
+    /** A space's settings: its Drive, its time zone, its access (0.9.328). */
     { name: "espace-reglages", path: SPACES, prepare: spaceView("Réglages") },
 
     /**
-     * Les liens de lecture de l'audit, ouverts depuis son éditeur.
+     * The audit's reading links, opened from its editor.
      *
-     * Atteint par l'espace plutôt que par un identifiant : il change à chaque
-     * rechargement de la démo.
+     * Reached through the space rather than by an id: it changes on every
+     * demo reload.
      */
     {
         name: "tour-publications-liens-lecture",
@@ -1540,7 +1533,7 @@ const SHOTS = [
             await spaceView("Livrables")(page);
             await page.goto(await deliverableEditUrl(page), { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(4_000);
-            // Rangés dans le menu « Actions » de l'éditeur, avec l'aperçu.
+            // Kept in the editor's "Actions" menu, with the preview.
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.waitForTimeout(500);
             await page.getByText("Liens de lecture", { exact: true }).first().click();
@@ -1550,11 +1543,11 @@ const SHOTS = [
     },
 
     /**
-     * La page qu'un lien de lecture ouvre : l'audit, sans le site autour.
+     * The page a reading link opens: the audit, without the site around it.
      *
-     * L'adresse se demande au serveur, qui la rend avec la liste des liens :
-     * le jeton est tiré au hasard à chaque chargement de la démo. Attendue
-     * assez longtemps pour que les chiffres clés aient fini de compter.
+     * The URL is asked from the server, which returns it with the list of
+     * links: the token is drawn at random on every demo load. Waited on long
+     * enough for the key figures to finish counting.
      */
     {
         name: "tour-publications-page-lecture",
@@ -1575,11 +1568,11 @@ const SHOTS = [
     },
 
     /**
-     * La page « La corbeille » du tour.
+     * The tour's "La corbeille" page.
      *
-     * La démonstration en remplit plusieurs, à des dates différentes : une
-     * publication, trois documents, un dossier, une catégorie et deux notes.
-     * L'écran s'ouvre sur la plus pleine, les documents.
+     * The demo fills several of them, at different dates: a post, three
+     * documents, a folder, a category and two notes. The screen opens on the
+     * fullest one, the documents.
      */
     {
         name: "tour-corbeille",
@@ -1589,8 +1582,8 @@ const SHOTS = [
         },
     },
     {
-        // Un autre module dans le même écran : la publication supprimée,
-        // avec le lien vers la liste d'où elle vient.
+        // Another module in the same screen: the deleted post, with the
+        // link to the list it comes from.
         name: "tour-corbeille-publications",
         path: "/suite/trash",
         async prepare(page) {
@@ -1599,7 +1592,7 @@ const SHOTS = [
         },
     },
     {
-        // Vider demande confirmation, et dit que c'est sans retour.
+        // Emptying asks for confirmation, and says it cannot be undone.
         name: "tour-corbeille-vider",
         path: "/suite/trash",
         async prepare(page) {
@@ -1609,9 +1602,9 @@ const SHOTS = [
     },
 
     /**
-     * Studio dans la corbeille commune (1.13.0 et 1.14.0) : un livrable et une
-     * présentation mis de côté, avec de quoi les reprendre. Un onglet par type,
-     * comme les publications.
+     * Studio in the shared trash (1.13.0 and 1.14.0): a deliverable and a
+     * presentation set aside, with what it takes to restore them. One tab per
+     * type, like posts.
      */
     {
         name: "tour-corbeille-livrables",
@@ -1631,12 +1624,12 @@ const SHOTS = [
     },
 
     /**
-     * Les deux gestes de la liste des publications que la carte
-     * « Publier, programmer, archiver » ne montrait pas : agir sur plusieurs
-     * lignes à la fois, et dupliquer.
+     * The two actions of the post list that the "Publier, programmer,
+     * archiver" card did not show: acting on several rows at once, and
+     * duplicating.
      *
-     * La barre de sélection porte son propre bouton « Actions », en plus de
-     * celui de la page : c'est le second.
+     * The selection bar carries its own "Actions" button, in addition to the
+     * page's: it is the second one.
      */
     {
         name: "tour-publications-selection",
@@ -1657,19 +1650,19 @@ const SHOTS = [
         name: "tour-publications-dupliquer",
         path: "/suite/editorial/posts",
         async prepare(page) {
-            // La première ligne, quelle qu'elle soit : l'ordre de la liste
-            // suit la date de modification, et un titre nommé ici passait en
-            // page deux au rechargement suivant de la démo.
+            // The first row, whatever it is: the list's order follows the
+            // modification date, and a title named here moved to page two on
+            // the next demo reload.
             await page.locator("main").getByRole("button", { name: /^Actions pour / }).first().click();
             await page.waitForTimeout(800);
         },
     },
 
     /**
-     * Le profil, pour « Comptes, rôles et privilèges ».
+     * The profile, for "Comptes, rôles et privilèges".
      *
-     * La phrase d'humeur est tapée et pas enregistrée : l'enregistrer la
-     * mettrait sur toutes les autres prises qui montrent ce compte.
+     * The mood line is typed and not saved: saving it would put it on every
+     * other shot that shows this account.
      */
     {
         name: "tour-profil",
@@ -1681,8 +1674,8 @@ const SHOTS = [
         },
     },
     {
-        // Le menu latéral à sa main : une couleur pour une section, un module
-        // masqué. Rien n'est enregistré, pour la même raison.
+        // The side menu made one's own: a colour for a section, a hidden
+        // module. Nothing is saved, for the same reason.
         name: "tour-profil-menu",
         path: "/suite/general/profile/sidemenu",
         async prepare(page) {
@@ -1694,13 +1687,12 @@ const SHOTS = [
     },
 
     /**
-     * Ce que le visiteur remplit en dehors d'un formulaire, pour la carte
-     * « Les formulaires » : un rendez-vous et un sondage, sur la page des
-     * nouveaux blocs de la démonstration.
+     * What the visitor fills in outside a form, for the "Les formulaires"
+     * card: an appointment and a poll, on the demo's new blocks page.
      *
-     * Sans session, comme le site public. Le rendez-vous est rempli et pas
-     * envoyé : l'envoyer poserait un événement dans l'agenda de la démo à
-     * chaque prise, et prendrait le créneau.
+     * Without a session, like the public site. The appointment is filled in
+     * and not sent: sending it would put an event in the demo calendar on
+     * every shot, and would take the slot.
      */
     {
         name: "tour-reservation",
@@ -1717,9 +1709,9 @@ const SHOTS = [
         },
     },
     {
-        // Le vote fait apparaître les résultats. Déjà voté depuis ce
-        // navigateur, ils sont là d'emblée : le bouton n'est cliqué que s'il
-        // attend encore une voix.
+        // Voting reveals the results. If this browser already voted, they
+        // are there straight away: the button is only clicked if it is
+        // still waiting for a vote.
         name: "tour-sondage",
         path: "/fr/page/nouveaux-blocs",
         anonymous: true,
@@ -1727,9 +1719,9 @@ const SHOTS = [
             const titre = page.getByText("Quel format préférez-vous ?", { exact: true }).first();
             await titre.scrollIntoViewIfNeeded();
 
-            // Visible, et pas seulement présent : les résultats sont dans la
-            // page avant le vote, cachés, et les compter suffisait à ne
-            // jamais voter.
+            // Visible, and not merely present: the results are in the page
+            // before the vote, hidden, and counting them was enough to never
+            // vote.
             if (!(await page.getByText(/^Votes :/).first().isVisible())) {
                 await page.getByRole("button", { name: /Les réels/ }).click();
                 await page.getByText(/^Votes :/).first().waitFor({ state: "visible" });
@@ -1751,13 +1743,13 @@ const SHOTS = [
             await page.getByRole("button", { name: /^Semaine$/ }).click();
             await page.waitForTimeout(1_000);
 
-            // La grille s'ouvre sur l'heure courante, donc une capture prise
-            // le soir montre un après-midi vide alors que les événements de
-            // démonstration sont le matin. La molette au-dessus de la grille
-            // est ce que le composant écoute ; fixer `scrollTop` sur un
-            // élément deviné, non. Remontée à fond d'abord, puis descendue
-            // d'un nombre fixe : descendre d'un delta seul atterrirait
-            // ailleurs selon l'heure de la prise.
+            // The grid opens on the current hour, so a capture taken in the
+            // evening shows an empty afternoon while the demo events are in
+            // the morning. The wheel over the grid is what the component
+            // listens to; setting `scrollTop` on a guessed element is not.
+            // Scrolled all the way up first, then down by a fixed amount:
+            // scrolling by a delta alone would land elsewhere depending on
+            // the time of the shot.
             await page.mouse.move(1000, 600);
             await page.mouse.wheel(0, -2_000);
             await page.waitForTimeout(300);
@@ -1767,23 +1759,22 @@ const SHOTS = [
     },
 
     /**
-     * Le site public, vu sans session.
+     * The public site, seen without a session.
      *
-     * Le bandeau d'administration s'affiche au-dessus d'un site quand on le
-     * visite connecté, et il n'a rien à faire sur une image qui montre ce que
-     * voit un visiteur.
+     * The admin bar shows above a site when it is visited while signed in,
+     * and it has no business on a picture that shows what a visitor sees.
      */
     /**
-     * Le site public, tel qu'un visiteur le voit.
+     * The public site, as a visitor sees it.
      *
-     * Refait le 28/09/2026 avec la démonstration habillée (photos, vrais
-     * textes, carrousel d'accueil) : l'accueil, une page de service, une
-     * réalisation, la visionneuse, le site sur téléphone et le contact. Tout
-     * sans session, pour que la barre d'administration n'y soit pas.
+     * Redone on 28/09/2026 with the dressed-up demo (photos, real texts, home
+     * carousel): the home page, a service page, a project, the viewer, the
+     * site on a phone and the contact page. All without a session, so the
+     * admin bar is not there.
      */
     {
-        // L'accueil et son carrousel, sur la première diapositive : elle ne
-        // tourne qu'au bout de sept secondes, et la prise est faite avant.
+        // The home page and its carousel, on the first slide: it only turns
+        // after seven seconds, and the shot is taken before.
         name: "tour-site-public",
         path: "/fr",
         anonymous: true,
@@ -1792,7 +1783,7 @@ const SHOTS = [
         },
     },
     {
-        // Une page composée : l'accroche, puis image et texte en alternance.
+        // A composed page: the hook, then alternating image and text.
         name: "tour-site-public-service",
         path: "/fr/services/developpement-web",
         anonymous: true,
@@ -1801,8 +1792,8 @@ const SHOTS = [
         },
     },
     {
-        // Une réalisation : la grande image, le récit et les chiffres.
-        // Défilée jusqu'au récit, que la grande image cache sinon.
+        // A project: the large image, the story and the figures. Scrolled
+        // down to the story, which the large image hides otherwise.
         name: "tour-site-public-realisation",
         path: "/fr/projets/projet-lumen",
         anonymous: true,
@@ -1812,7 +1803,7 @@ const SHOTS = [
         },
     },
     {
-        // La visionneuse, ouverte sur la galerie de l'accueil.
+        // The viewer, opened on the home page's gallery.
         name: "tour-site-public-galerie",
         path: "/fr",
         anonymous: true,
@@ -1825,11 +1816,11 @@ const SHOTS = [
         },
     },
     {
-        // Trois pages sur téléphone, côte à côte. Chacune est prise dans un
-        // contexte de 390 px de large, où le site se met en page comme sur un
-        // vrai téléphone, puis les trois images sont posées sur la toile. Des
-        // cadres n'iraient pas : le site refuse d'être affiché dans une page
-        // qui n'est pas la sienne.
+        // Three pages on a phone, side by side. Each is taken in a 390 px
+        // wide context, where the site lays itself out as on a real phone,
+        // then the three pictures are placed on the canvas. Frames would not
+        // work: the site refuses to be displayed inside a page that is not
+        // its own.
         name: "tour-site-public-telephone",
         path: "/fr",
         anonymous: true,
@@ -1859,17 +1850,16 @@ const SHOTS = [
         },
     },
     {
-        // Une seconde page publique, celle qui porte le formulaire : elle
-        // montre une autre composition et le rendu d'un formulaire côté
-        // visiteur.
+        // A second public page, the one that carries the form: it shows
+        // another composition and how a form renders for the visitor.
         //
-        // J'ai d'abord voulu le même écran en mode clair, la carte promettant
-        // « un mode sombre et un mode clair ». Deux essais pour rien : le
-        // site public n'inclut pas le script d'amorçage du back-office, donc
-        // `aurora-theme` n'y est lu par personne, et il ne suit pas non plus
-        // `prefers-color-scheme` - la palette est celle du thème actif, et
-        // celui de la démonstration est sombre. Il faudrait changer de thème
-        // pour le montrer, ce qui est un autre sujet.
+        // I first wanted the same screen in light mode, since the card
+        // promises "un mode sombre et un mode clair". Two attempts for
+        // nothing: the public site does not include the back office's boot
+        // script, so nobody reads `aurora-theme` there, and it does not
+        // follow `prefers-color-scheme` either. The palette is the active
+        // theme's, and the demo's is dark. Showing it would mean switching
+        // themes, which is another matter.
         name: "tour-site-public-contact",
         path: "/fr/page/contact",
         anonymous: true,
@@ -1878,8 +1868,8 @@ const SHOTS = [
         },
     },
     {
-        // Les permissions, côté développeur : la carte parle de ce que
-        // l'outil fait par défaut, et l'audit seul n'en montrait qu'une part.
+        // Permissions, on the developer side: the card talks about what the
+        // tool does by default, and the audit alone only showed part of it.
         name: "tour-permissions",
         path: "/dev/dashboard/permissions",
         async prepare(page) {
@@ -1887,9 +1877,9 @@ const SHOTS = [
         },
     },
 
-    // « tour-releases » et « tour-release-notes » ne se photographient plus :
-    // c'étaient des pages de GitHub. Elles se dessinent à partir du CHANGELOG
-    // avec `compose-releases.mjs`.
+    // "tour-releases" and "tour-release-notes" are no longer photographed:
+    // they were GitHub pages. They are drawn from the CHANGELOG with
+    // `compose-releases.mjs`.
 ];
 
 async function login(page) {
@@ -1911,11 +1901,11 @@ async function hideChrome(page) {
     await page.addStyleTag({
         content: `
             .sf-toolbar, .sf-minitoolbar, #sfToolbarMainContent, #sfToolbarClearer { display: none !important; }
-            /* La version sous le logo. Sur une instance locale elle vaut
-               « dev », et c'est la seule chose de ces images qui dise à un
-               client qu'il regarde une machine de développement plutôt que
-               le produit. En production elle porterait un numéro, qui ne lui
-               apprend rien non plus. */
+            /* The version under the logo. On a local instance it reads
+               "dev", and it is the only thing in these images that tells a
+               client they are looking at a development machine rather than
+               the product. In production it would carry a number, which
+               tells them nothing either. */
             [data-app-version] { display: none !important; }
             *, *::before, *::after { caret-color: transparent !important; }
             :focus-visible { outline: none !important; }
@@ -1944,12 +1934,12 @@ const context = await browser.newContext({
     // existing captures are in.
     colorScheme: "dark",
 });
-// Les encarts « Comment ça marche » repliés, sur chaque page : ouverts, ils
-// posent un bloc de texte en tête de chaque écran et poussent ce que la carte
-// montre sous la ligne de flottaison. Le choix est commun à tous les encarts
-// et retenu dans le navigateur (`aurora.guides.open`), donc il se pose avant
-// chaque chargement ; une prise qui veut l'encart ouvert le déplie dans son
-// `prepare` (`openGuides`), et le chargement suivant le replie de nouveau.
+// The "Comment ça marche" boxes collapsed, on every page: open, they put a
+// block of text at the top of each screen and push what the card shows below
+// the fold. The choice is shared by all boxes and remembered in the browser
+// (`aurora.guides.open`), so it is set before each load; a shot that wants
+// the box open expands it in its `prepare` (`openGuides`), and the next load
+// collapses it again.
 await context.addInitScript(() => {
     window.localStorage.setItem("aurora.guides.open", "0");
 });
@@ -1959,12 +1949,12 @@ const page = await context.newPage();
 await login(page);
 
 /**
- * Le contexte sans session, créé seulement si une capture en demande un.
+ * The context without a session, created only if a capture asks for one.
  *
- * Deux captures montrent ce que voit quelqu'un qui n'est pas connecté : le
- * site public, qui porterait sinon le bandeau d'administration, et la page
- * des versions chez GitHub. Ouvrir ce second navigateur pour les vingt autres
- * serait du temps perdu à chaque lancement.
+ * Two captures show what someone who is not signed in sees: the public site,
+ * which would otherwise carry the admin bar, and the releases page on GitHub.
+ * Opening this second browser for the twenty others would be time wasted on
+ * every run.
  */
 let anonymous = null;
 
@@ -1983,17 +1973,17 @@ async function anonymousPage() {
 }
 
 /**
- * Refuser de photographier ce qui n'est pas la page attendue.
+ * Refuses to photograph anything that is not the expected page.
  *
- * Deux prises sont parties en production sans que personne ne s'en aperçoive :
- * un dump de JSON brut, parce que `/submissions` est l'API et non un écran,
- * et la trace d'exception Symfony d'un 404, chemin de disque compris, sur la
- * carte qui présente le site public. Playwright réussit dans les deux cas :
- * l'adresse répond, donc `goto` est content, et le fichier s'écrit.
+ * Two shots went to production without anyone noticing: a raw JSON dump,
+ * because `/submissions` is the API and not a screen, and the Symfony
+ * exception trace of a 404, disk path included, on the card that presents
+ * the public site. Playwright succeeds in both cases: the URL answers, so
+ * `goto` is happy, and the file gets written.
  *
- * **Une adresse qui répond n'est pas une page.** On vérifie donc le code, le
- * type de contenu, et la signature de la page d'erreur de Symfony, et on
- * échoue avant d'écrire plutôt que de laisser relire l'image à quelqu'un.
+ * **A URL that answers is not a page.** So the status code, the content type
+ * and the signature of Symfony's error page are checked, and it fails before
+ * writing rather than leaving the picture for someone to review.
  */
 async function assertPage(target, response, address) {
     const status = response?.status();
@@ -2030,9 +2020,9 @@ for (const shot of shots) {
             target = await anonymousPage();
         }
 
-        // `networkidle` attend un silence que GitHub n'offre jamais tout à
-        // fait ; pour une adresse externe, le document chargé suffit et le
-        // `prepare` fait le reste de l'attente.
+        // `networkidle` waits for a silence GitHub never quite offers; for
+        // an external URL, the loaded document is enough and `prepare` does
+        // the rest of the waiting.
         if (shot.before) await shot.before(target);
 
         const response = await target.goto(address, {

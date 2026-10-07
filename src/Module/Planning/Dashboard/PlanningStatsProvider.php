@@ -111,7 +111,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
             $this->moduleEvents->filter($this->occurrences->find($ids, $now, $now->modify(sprintf('+%d days', self::UPCOMING_DAYS)))),
             static fn (PlanningOccurrence $occurrence): bool => PlanningEventStatusEnum::Cancelled !== $occurrence->event->getStatus(),
         );
-        usort($occurrences, static fn (PlanningOccurrence $a, PlanningOccurrence $b): int => $a->startAt <=> $b->startAt);
+        usort($occurrences, static fn (PlanningOccurrence $left, PlanningOccurrence $right): int => $left->startAt <=> $right->startAt);
 
         foreach (array_slice($occurrences, 0, self::UPCOMING) as $occurrence) {
             $event = $occurrence->event;
@@ -140,7 +140,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
             ];
         }
 
-        usort($rows, static fn (array $a, array $b): int => strcmp((string) $a['at'], (string) $b['at']));
+        usort($rows, static fn (array $left, array $right): int => strcmp((string) $left['at'], (string) $right['at']));
 
         return array_slice($rows, 0, self::UPCOMING);
     }

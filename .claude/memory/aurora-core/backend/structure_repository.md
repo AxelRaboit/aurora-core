@@ -74,8 +74,8 @@ Toujours `Doctrine\Common\Collections\Order` :
 ```php
 use Doctrine\Common\Collections\Order;
 
-$qb->orderBy('a.name', Order::Ascending->value);   // ✅
-$qb->orderBy('a.name', 'ASC');                      // ❌
+$queryBuilder->orderBy('a.name', Order::Ascending->value);   // ✅
+$queryBuilder->orderBy('a.name', 'ASC');                      // ❌
 ```
 
 Cf [`convention_doctrine_order_enum.md`](convention_doctrine_order_enum.md).
@@ -101,12 +101,12 @@ Pattern courant : un finder paginé + un count :
 ```php
 public function findPaginated(int $page, int $limit, ?string $search = null): array
 {
-    $qb = $this->createQueryBuilder('a');
+    $queryBuilder = $this->createQueryBuilder('a');
     if (null !== $search && '' !== $search) {
-        $qb->andWhere('LOWER(a.name) LIKE :s')->setParameter('s', '%'.mb_strtolower($search).'%');
+        $queryBuilder->andWhere('LOWER(a.name) LIKE :s')->setParameter('s', '%'.mb_strtolower($search).'%');
     }
-    $total = (clone $qb)->select('COUNT(a.id)')->getQuery()->getSingleScalarResult();
-    $items = $qb->setFirstResult(($page - 1) * $limit)->setMaxResults($limit)->getQuery()->getResult();
+    $total = (clone $queryBuilder)->select('COUNT(a.id)')->getQuery()->getSingleScalarResult();
+    $items = $queryBuilder->setFirstResult(($page - 1) * $limit)->setMaxResults($limit)->getQuery()->getResult();
 
     return [
         'items' => $items,
@@ -125,11 +125,11 @@ qu'une boucle `find()` :
 ```php
 // ❌ N+1
 foreach ($ids as $id) {
-    $entities[] = $this->repo->find($id);  // 1 requête par appel
+    $entities[] = $this->repository->find($id);  // 1 requête par appel
 }
 
 // ✅ 1 requête
-$entities = $this->repo->findBy(['id' => $ids]);
+$entities = $this->repository->findBy(['id' => $ids]);
 ```
 
 Cf user-level memory `feedback_batch_queries`.

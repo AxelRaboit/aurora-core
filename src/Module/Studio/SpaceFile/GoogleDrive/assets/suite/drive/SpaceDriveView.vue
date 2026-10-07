@@ -19,15 +19,15 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { useDriveTree } from "./useDriveTree.js";
 
 /**
- * Le dossier Drive d'un espace, sa propre vue dans la barre.
+ * A space's Drive folder, its own view in the bar.
  *
- * **À côté de Fichiers, et non dedans.** La barre sépare déjà par origine -
- * ce qui est posé sur les fiches, ce qui appartient à l'espace - et un dossier
- * qui vit chez le client en est une troisième. Rangé en section sous les
- * fichiers, il fallait faire défiler tout le reste pour l'atteindre.
+ * **Next to Files, and not inside it.** The bar already separates by origin -
+ * what is set on the records, what belongs to the space - and a folder that
+ * lives with the client is a third one. Filed as a section under the files,
+ * everything else had to be scrolled past to reach it.
  *
- * **Chargée à l'ouverture, pas au montage.** Lire un dossier chez Google coûte
- * un aller-retour, et la plupart des espaces n'ont pas de Drive.
+ * **Loaded on open, not on mount.** Reading a folder from Google costs a
+ * round trip, and most spaces have no Drive.
  */
 const props = defineProps({
     folderId: { type: String, default: null },
@@ -35,31 +35,31 @@ const props = defineProps({
     filePath: { type: String, required: true },
     archivePath: { type: String, default: "" },
     importPath: { type: String, default: "" },
-    /** L'adresse qui ouvre la serrure pour cette session. */
+    /** The address that opens the lock for this session. */
     unlockPath: { type: String, default: "" },
-    /** Vrai pour le référent : lui seul peut aller brancher le dossier. */
+    /** True for the lead: only they can go and connect the folder. */
     canConfigure: { type: Boolean, default: false },
     /**
-     * Ce que dit la vue quand aucun dossier n'est désigné. Celui d'un client
-     * se branche dans les réglages de son espace ; celui de l'agence, dans la
-     * configuration du Drive : la même phrase enverrait au mauvais endroit.
+     * What the view says when no folder is designated. A client's is
+     * connected in their space's settings; the agency's, in the Drive
+     * configuration: the same sentence would send people to the wrong place.
      */
     emptyKey: { type: String, default: "" },
-    /** La phrase sous le titre : celle du client ne vaut pas pour l'agence. */
+    /** The sentence under the title: the client's does not fit the agency. */
     introKey: { type: String, default: "suite.studio.drive.space.intro" },
 });
 
 const { t } = useI18n();
-// Le formateur partagé : trois copies locales disaient la même chose,
-// et une seule connaissait les unités des autres langues.
+// The shared formatter: three local copies said the same thing,
+// and only one knew the units of the other languages.
 const { formatSize } = useFileSize();
 const { request } = useRequest();
 const { formatDateTimeNumeric } = useDateFormat();
 
 /**
- * Les cartes demandent de la largeur. Sous le seuil, la liste dit la même
- * chose sans étirer une vignette sur toute la ligne - la même règle que les
- * autres vues de l'espace.
+ * The cards need width. Below the threshold, the list says the same thing
+ * without stretching a thumbnail across the whole row - the same rule as the
+ * space's other views.
  */
 const { container, isNarrow } = useNarrowContainer(560);
 
@@ -75,13 +75,13 @@ const previewed = ref(null);
 const linked = computed(() => null !== current.value && "" !== current.value);
 
 /**
- * Ce que pèse le dossier, et si le lot tient.
+ * What the folder weighs, and whether the bundle fits.
  *
- * **La même borne que le serveur, dite ici avant le clic.** L'archive se
- * construit en entier avant de partir, donc au-delà d'une certaine taille le
- * serveur web abandonne avant la fin. Plutôt que de laisser presser un bouton
- * qui finira en erreur au bout de cinq minutes, l'écran ne le propose pas et
- * explique ce qu'il faut faire à la place : les fichiers un par un.
+ * **The same limit as the server, stated here before the click.** The
+ * archive is built in full before it leaves, so beyond a certain size the web
+ * server gives up before the end. Rather than letting someone press a button
+ * that will end in an error after five minutes, the screen does not offer it
+ * and explains what to do instead: the files one by one.
  */
 const ARCHIVE_MAX_BYTES = 150 * 1024 * 1024;
 
@@ -92,20 +92,20 @@ const weight = computed(() =>
 const archivable = computed(() => files.value.length > 0 && weight.value <= ARCHIVE_MAX_BYTES);
 
 /**
- * L'arborescence, reconstruite dans le navigateur à partir des chemins.
+ * The tree, rebuilt in the browser from the paths.
  *
- * Le composable est partagé avec le sélecteur qui accroche un fichier du Drive
- * à une fiche : deux écrans lisent le même arbre, et une seconde copie de
- * cette déduction aurait fini par diverger.
+ * The composable is shared with the picker that attaches a Drive file to a
+ * record: two screens read the same tree, and a second copy of this deduction
+ * would have ended up diverging.
  */
 const { breadcrumb, folders, visible, goTo, open, reset } = useDriveTree(files);
 
 /**
- * Fermé par un mot de passe, et pas encore ouvert dans cette session.
+ * Closed by a password, and not yet opened in this session.
  *
- * Le serveur le dit dans la liste plutôt que de répondre 404 : un refus sec
- * serait indiscernable d'un espace sans Drive, et l'écran afficherait « aucun
- * dossier » à quelqu'un qui n'a qu'un mot de passe à saisir.
+ * The server says so in the list rather than answering 404: a bare refusal
+ * would be indistinguishable from a space without Drive, and the screen would
+ * show "no folder" to someone who only has a password to type.
  */
 const locked = ref(false);
 const password = ref("");
@@ -137,8 +137,8 @@ async function unlock() {
     try {
         const data = await request(props.unlockPath, { password: password.value });
 
-        // Le refus annoncé : sans cela, un mot de passe erroné ne produit rien
-        // du tout et le bouton passe pour mort.
+        // The refusal, announced: without it, a wrong password produces
+        // nothing at all and the button looks dead.
         if (!data?.unlocked) {
             toast.error(t(data?.error ?? "shared.common.error"));
 
@@ -159,7 +159,7 @@ function addressOf(file) {
     return props.filePath.replace("__id__", file.id);
 }
 
-/** La même adresse, mais pour emporter le fichier plutôt que le regarder. */
+/** The same address, but to take the file away rather than look at it. */
 function downloadOf(file) {
     return addressOf(file) + "?download=1";
 }
@@ -167,14 +167,14 @@ function downloadOf(file) {
 const importing = ref(false);
 
 /**
- * Range le fichier dans la médiathèque de l'espace.
+ * Files the file in the space's media library.
  *
- * **C'est le point de passage vers tout le reste.** Une note affiche des
- * images de la médiathèque, une fiche y accroche des documents, une galerie y
- * puise : une fois rangé, le fichier du Drive n'est plus un cas particulier et
- * chacun de ces écrans le voit sans rien savoir de Google. Brancher le Drive
- * dans l'éditeur de notes aurait demandé au noyau de connaître une
- * intégration d'un module, ce que le registre existe pour éviter.
+ * **It is the gateway to everything else.** A note displays images from the
+ * media library, a record attaches documents from it, a gallery draws from
+ * it: once filed, the Drive file is no longer a special case and each of
+ * these screens sees it without knowing anything about Google. Connecting
+ * Drive into the notes editor would have required the core to know about a
+ * module's integration, which is what the registry exists to avoid.
  */
 async function importToLibrary(file) {
     if (!file || !props.importPath || importing.value) return;
@@ -205,8 +205,8 @@ async function importToLibrary(file) {
             </h3>
 
             <div v-if="linked && !locked" class="flex items-center gap-2">
-                <!-- Caché là où un conteneur étroit impose déjà la liste : un
-                     interrupteur qui ne change rien se lit comme cassé. -->
+                <!-- Hidden where a narrow container already forces the list: a
+                     switch that changes nothing reads as broken. -->
                 <div
                     v-if="!isNarrow"
                     class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
@@ -229,9 +229,9 @@ async function importToLibrary(file) {
                     </AppIconButton>
                 </div>
 
-                <!-- Tout le dossier en une fois. Caché tant qu'il n'y a rien
-                     à emporter : un bouton qui produirait une archive vide se
-                     lit comme cassé. -->
+                <!-- The whole folder in one go. Hidden as long as there is
+                     nothing to take: a button that would produce an empty
+                     archive reads as broken. -->
                 <AppButton
                     v-if="archivable && archivePath"
                     class="shrink-0"
@@ -266,11 +266,11 @@ async function importToLibrary(file) {
             {{ t("suite.studio.drive.space.archive_too_large", { weight: formatSize(weight) }) }}
         </p>
 
-        <!-- Plus de champ de dossier ici : le désigner est une
-             configuration, elle vit dans les Réglages. Ce qui reste est un
-             renvoi pour qui arrive sur un écran vide, et rien pour les
-             autres : un équipier qui n'est pas référent verrait une consigne
-             qu'il ne peut pas suivre. -->
+        <!-- No folder field here any more: designating it is configuration,
+             it lives in the Settings. What remains is a pointer for whoever
+             lands on an empty screen, and nothing for the others: a team
+             member who is not the lead would see an instruction they cannot
+             follow. -->
         <p
             v-if="!linked && !loading"
             class="rounded-lg border border-line bg-surface-2 px-3 py-3 text-xs text-muted"
@@ -278,9 +278,9 @@ async function importToLibrary(file) {
             {{ t(emptyKey || (canConfigure ? "suite.studio.drive.space.no_folder_referent" : "suite.studio.drive.space.no_folder")) }}
         </p>
 
-        <!-- La serrure prend toute la place : tant qu'elle est fermée, il n'y
-             a rien d'autre à montrer, et laisser le champ de dossier visible
-             donnerait à croire qu'on peut le changer pour contourner. -->
+        <!-- The lock takes all the room: while it is closed, there is nothing
+             else to show, and leaving the folder field visible would suggest
+             it can be changed to get around the lock. -->
         <section
             v-if="locked"
             class="space-y-3 rounded-lg border border-line bg-surface-2 px-3 py-4 sm:px-4"
@@ -292,9 +292,9 @@ async function importToLibrary(file) {
             <p class="text-xs text-muted">{{ t("suite.studio.drive.space.locked_intro") }}</p>
 
             <form class="flex flex-col gap-2 sm:flex-row sm:items-center" v-on:submit.prevent="unlock">
-                <!-- `AppInput` et non un champ brut : l'œil qui dévoile la
-                     saisie compte d'autant plus ici, où se tromper ne dit rien
-                     de plus précis que « mot de passe incorrect ». -->
+                <!-- `AppInput` and not a raw field: the eye that reveals the
+                     input matters all the more here, where a mistake says
+                     nothing more precise than "incorrect password". -->
                 <AppInput
                     class="min-w-0 flex-1"
                     :model-value="password"
@@ -323,9 +323,9 @@ async function importToLibrary(file) {
             </p>
 
             <template v-else>
-                <!-- Le chemin, et le moyen d'en remonter. Chaque marche est un
-                     bouton : descendre sans pouvoir remonter enfermerait dans
-                     un sous-dossier. -->
+                <!-- The path, and the way back up it. Each step is a button:
+                     going down without being able to go back up would trap
+                     one in a subfolder. -->
                 <nav
                     v-if="breadcrumb.length"
                     class="flex flex-wrap items-center gap-1 text-xs text-muted"
@@ -352,15 +352,15 @@ async function importToLibrary(file) {
                     </template>
                 </nav>
 
-                <!-- Les cartes. La vignette vient du CDN de Google, qui la sert
-                     sans authentification : la relayer coûterait un appel par
-                     image pour moins d'un kilo-octet. `no-referrer` pour que
-                     Google n'apprenne pas de quelle page elle est demandée, et
-                     `lazy` pour qu'un dossier de cent fichiers n'en charge que
-                     ce qui est à l'écran.
+                <!-- The cards. The thumbnail comes from Google's CDN, which
+                     serves it without authentication: relaying it would cost a
+                     call per image for under a kilobyte. `no-referrer` so
+                     Google does not learn which page asks for it, and `lazy`
+                     so a folder of a hundred files only loads what is on
+                     screen.
 
-                     Petites : la vignette sert à reconnaître, pas à lire. Le
-                     fichier s'ouvre en grand d'un clic, juste à côté. -->
+                     Small: the thumbnail is for recognising, not reading. The
+                     file opens full size with one click, right next to it. -->
                 <div v-if="'grid' === mode" class="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
                     <button
                         v-for="entry in folders"
@@ -452,9 +452,9 @@ async function importToLibrary(file) {
             :icon="FileText"
             v-on:close="previewed = null"
         >
-            <!-- L'aperçu lit par l'adresse d'ici, jamais par celle de Google :
-                 c'est la même raison que le reste, et c'est ce qui le rend
-                 identique pour le studio et pour un client sans compte. -->
+            <!-- The preview reads through the address here, never Google's:
+                 it is the same reason as for the rest, and it is what makes it
+                 identical for the studio and for a client without an account. -->
             <AppFilePreview
                 :url="previewed ? addressOf(previewed) : ''"
                 :mime="previewed?.mimeType ?? ''"

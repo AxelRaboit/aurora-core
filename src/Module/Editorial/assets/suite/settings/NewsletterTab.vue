@@ -109,7 +109,7 @@ async function save() {
     }
 }
 
-/** Allumée, prête mais éteinte, ou encore à configurer. */
+/** On, ready but off, or still to be configured. */
 const status = computed(() => {
     if (enabled.value) return "active";
 
@@ -138,9 +138,9 @@ defineExpose({ save, apply, canEnable });
             :placeholder="hasKey ? '••••••••••••••••' : ''"
         />
 
-        <!-- La conformité dans la même carte, au-dessus du bouton : elle
-             s'enregistre avec le reste, et une carte à part sous le bouton
-             laissait croire le contraire. -->
+        <!-- Compliance in the same card, above the button: it is saved with
+             the rest, and a separate card under the button suggested the
+             opposite. -->
         <section class="flex flex-col gap-3 border-t border-line/60 pt-4">
             <div class="flex flex-col gap-1">
                 <h4 class="m-0 text-sm font-medium text-primary">{{ t("suite.editorial.newsletter.settings.compliance_title") }}</h4>

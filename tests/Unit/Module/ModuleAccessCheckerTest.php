@@ -103,8 +103,8 @@ final class ModuleAccessCheckerTest extends TestCase
      */
     private function makeChecker(array $global, ?CoreUserInterface $currentUser = null): ModuleAccessChecker
     {
-        $repo = $this->createMock(SettingRepository::class);
-        $repo->method('getBoolean')->willReturnCallback(
+        $settingRepository = $this->createMock(SettingRepository::class);
+        $settingRepository->method('getBoolean')->willReturnCallback(
             static fn (string $key, bool $default = false): bool => $global[$key] ?? $default,
         );
 
@@ -115,7 +115,7 @@ final class ModuleAccessCheckerTest extends TestCase
         // graph mirrors what aurora-core's modules declare in production.
         $registry = new ModuleToggleRegistry([new InMemoryToggleProvider()]);
 
-        return new ModuleAccessChecker($repo, $security, $registry);
+        return new ModuleAccessChecker($settingRepository, $security, $registry);
     }
 
     /** @param list<string> $disabled */

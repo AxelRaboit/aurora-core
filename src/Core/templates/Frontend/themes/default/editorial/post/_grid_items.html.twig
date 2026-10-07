@@ -61,13 +61,14 @@
         <dl class="m-0 grid grid-cols-1 gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
                 <div class="aurora-reveal-item aurora-card p-6" style="--reveal-index: {{ loop.index0 }};">
-                    {# `data-count-up` porte la valeur finale, et le texte du
-                       `<dt>` aussi : le script lit l'une, compte, et repose
-                       l'autre. Sans lui - erreur de chargement, JavaScript
-                       coupé, moteur de recherche, lecteur d'écran - le chiffre
-                       juste est déjà là, écrit par le serveur. Partir de zéro
-                       dans le balisage aurait mis un faux chiffre sur la page
-                       pour tout ce qui ne joue pas l'animation. #}
+                    {# `data-count-up` carries the final value, and so does
+                       the text of the `<dt>`: the script reads one, counts,
+                       and puts the other back. Without it - loading error,
+                       JavaScript off, search engine, screen reader - the
+                       right number is already there, written by the server.
+                       Starting from zero in the markup would have put a wrong
+                       number on the page for everything that does not play
+                       the animation. #}
                     <dt
                         data-count-up="{{ entry.title }}"
                         class="m-0 text-3xl font-bold text-figure sm:text-4xl"

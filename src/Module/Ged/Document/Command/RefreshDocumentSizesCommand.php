@@ -19,21 +19,21 @@ use function abs;
 use function sprintf;
 
 /**
- * Remet le poids enregistré d'un document sur celui du fichier rangé.
+ * Resets a document's recorded size to that of the stored file.
  *
- * **Pourquoi ils divergent.** Le poids est relevé à l'arrivée du fichier, et
- * une source JPEG est ré-encodée en place à la qualité 85 - métadonnées
- * comprises - au moment où ses tailles générées sont fabriquées. Le nombre cessait
- * donc d'être vrai une ligne plus tard, et la médiathèque affichait un poids
- * sans rapport avec ce qui est stocké. Mesuré sur un import : un million et
- * demi d'octets annoncés pour deux cent mille sur le disque.
+ * **Why they drift apart.** The size is taken when the file arrives, and a
+ * JPEG source is re-encoded in place at quality 85 - metadata included - when
+ * its generated sizes are produced. The number therefore stopped being true
+ * one line later, and the media library showed a size unrelated to what is
+ * stored. Measured on an import: one and a half million bytes announced for
+ * two hundred thousand on disk.
  *
- * {@see DocumentManager::regenerateRenditionsIfImage()} le relit désormais après
- * coup, donc rien de nouveau n'entre faux. Cette commande est pour ce qui est
- * déjà là.
+ * {@see DocumentManager::regenerateRenditionsIfImage()} now reads it again
+ * afterwards, so nothing new comes in wrong. This command is for what is
+ * already there.
  *
- * Idempotente : la relancer sur une bibliothèque saine ne change rien et ne
- * dit rien. `--dry-run` compte sans écrire.
+ * Idempotent: running it again on a healthy library changes nothing and says
+ * nothing. `--dry-run` counts without writing.
  */
 #[AsCommand(
     name: 'aurora:ged:sizes:refresh',
@@ -74,8 +74,8 @@ final class RefreshDocumentSizesCommand extends Command
             $stored = $this->storageManager->forDisk($document->getStorageDisk())->stat($filePath);
 
             if (!$stored instanceof StoredObject) {
-                // Un fichier absent n'est pas un poids à corriger, c'est un
-                // autre problème - et l'écraser à zéro le cacherait.
+                // A missing file is not a size to fix, it is another problem -
+                // and overwriting it with zero would hide it.
                 ++$missing;
 
                 continue;

@@ -16,9 +16,9 @@ const NOTES = [
     { id: 13, title: "Campus", folderId: 2, position: 0 },
 ];
 
-// Les frères d'un dossier, dossiers et notes mêlés, dans l'ordre affiché.
-const F = (id) => ({ kind: "folder", id });
-const N = (id) => ({ kind: "note", id });
+// A folder's siblings, folders and notes mixed, in the displayed order.
+const folderEntry = (id) => ({ kind: "folder", id });
+const noteEntry = (id) => ({ kind: "note", id });
 
 const plan = (dragged, target, zone) =>
     planDrop({ dragged, target, zone, folders: FOLDERS, notes: NOTES });
@@ -72,7 +72,7 @@ describe("planDrop", () => {
             fromFolderId: 3,
             spaceId: null,
             fromSpaceId: null,
-            order: [N(13), N(12)],
+            order: [noteEntry(13), noteEntry(12)],
         });
     });
 
@@ -81,7 +81,7 @@ describe("planDrop", () => {
             plan({ kind: "note", id: 11 }, { kind: "note", id: 10 }, "before"),
         ).toMatchObject({
             folderId: 1,
-            order: [F(4), N(11), N(10)],
+            order: [folderEntry(4), noteEntry(11), noteEntry(10)],
         });
     });
 
@@ -91,7 +91,12 @@ describe("planDrop", () => {
         ).toMatchObject({
             folderId: 1,
             fromFolderId: 3,
-            order: [F(4), N(10), N(12), N(11)],
+            order: [
+                folderEntry(4),
+                noteEntry(10),
+                noteEntry(12),
+                noteEntry(11),
+            ],
         });
     });
 
@@ -105,7 +110,12 @@ describe("planDrop", () => {
         ).toMatchObject({
             folderId: null,
             fromFolderId: 1,
-            order: [F(1), F(2), F(3), F(4)],
+            order: [
+                folderEntry(1),
+                folderEntry(2),
+                folderEntry(3),
+                folderEntry(4),
+            ],
         });
     });
 
@@ -118,7 +128,12 @@ describe("planDrop", () => {
             plan({ kind: "note", id: 13 }, { kind: "folder", id: 4 }, "before"),
         ).toMatchObject({
             folderId: 1,
-            order: [N(13), F(4), N(10), N(11)],
+            order: [
+                noteEntry(13),
+                folderEntry(4),
+                noteEntry(10),
+                noteEntry(11),
+            ],
         });
     });
 
@@ -127,7 +142,7 @@ describe("planDrop", () => {
             plan({ kind: "folder", id: 4 }, { kind: "note", id: 11 }, "after"),
         ).toMatchObject({
             folderId: 1,
-            order: [N(10), N(11), F(4)],
+            order: [noteEntry(10), noteEntry(11), folderEntry(4)],
         });
     });
 
@@ -184,7 +199,7 @@ describe("planDrop across spaces", () => {
     const across = (dragged, target, zone) =>
         planDrop({ dragged, target, zone, folders, notes });
 
-    /** Glisser sur l'en-tête d'un espace range à sa racine. */
+    /** Dragging onto a space header files at its root. */
     it("files at the root of the space whose header it was dropped on", () => {
         expect(
             across(
@@ -196,11 +211,11 @@ describe("planDrop across spaces", () => {
             folderId: null,
             spaceId: 7,
             fromSpaceId: 1,
-            order: [F(2), N(11), N(10)],
+            order: [folderEntry(2), noteEntry(11), noteEntry(10)],
         });
     });
 
-    /** Un dossier d'un autre espace emmène la note dans cet espace. */
+    /** A folder from another space takes the note into that space. */
     it("takes the space of the folder it lands in", () => {
         expect(
             across(
@@ -208,10 +223,14 @@ describe("planDrop across spaces", () => {
                 { kind: "folder", id: 2 },
                 "inside",
             ),
-        ).toMatchObject({ folderId: 2, spaceId: 7, order: [N(12), N(10)] });
+        ).toMatchObject({
+            folderId: 2,
+            spaceId: 7,
+            order: [noteEntry(12), noteEntry(10)],
+        });
     });
 
-    /** La racine d'un espace ne compte pas les notes d'un autre. */
+    /** A space's root does not count the notes of another one. */
     it("orders the root of a space on its own", () => {
         expect(
             across(
@@ -219,10 +238,13 @@ describe("planDrop across spaces", () => {
                 { kind: "folder", id: null, spaceId: 1 },
                 "inside",
             ),
-        ).toMatchObject({ spaceId: 1, order: [F(1), N(10), N(11)] });
+        ).toMatchObject({
+            spaceId: 1,
+            order: [folderEntry(1), noteEntry(10), noteEntry(11)],
+        });
     });
 
-    /** Revenir à la racine de son propre espace, déjà en place : rien à faire. */
+    /** Going back to the root of one's own space, already in place: nothing to do. */
     it("does nothing when the note is already last at that root", () => {
         expect(
             across(

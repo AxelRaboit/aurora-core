@@ -14,20 +14,20 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { iconForType } from "./fieldTypeIcons.js";
 
 /**
- * Le réglage d'une question, dans l'ordre où on se le pose.
+ * A question's settings, in the order one thinks about them.
  *
- * Ce qu'on demande, dans chaque langue ; si la réponse est obligatoire ;
- * où elle se place ; quand elle s'affiche. L'ancienne fenêtre posait tout
- * d'un bloc, les langues empilées les unes sous les autres et les conditions
- * réduites à deux cases sans phrase pour les relier. Ici une langue à la fois,
- * et la condition se lit comme une phrase.
+ * What is asked, in each language; whether the answer is required; where it
+ * sits; when it shows. The old dialog laid everything out at once, the
+ * languages stacked one under the other and the conditions reduced to two
+ * boxes with no sentence to link them. Here one language at a time, and the
+ * condition reads as a sentence.
  *
- * Le même composant sert au panneau de droite sur ordinateur et à la fenêtre
- * plein écran sur téléphone : il prend son état par `inject`, et l'écran qui
- * l'accueille ne décide que de la place.
+ * The same component serves the right-hand panel on a computer and the
+ * full-screen dialog on a phone: it takes its state through `inject`, and the
+ * screen hosting it only decides the room.
  */
 defineProps({
-    /** Vrai dans la fenêtre du téléphone, qui porte déjà son titre et sa croix. */
+    /** True in the phone dialog, which already carries its title and its close button. */
     bare: { type: Boolean, default: false },
 });
 
@@ -56,7 +56,7 @@ const sourceOptions = computed(() =>
     conditionSources.value.map((field) => ({ value: field.id, label: labelOf(field) })),
 );
 
-/** Les choix d'une question source, pour proposer la réponse plutôt que la faire taper. */
+/** A source question's choices, to offer the answer rather than have it typed. */
 function sourceChoices(fieldId) {
     const source = conditionSources.value.find((field) => field.id === fieldId);
     const options = source?.translations?.[locales[0]]?.options ?? [];
@@ -88,7 +88,7 @@ function hasLabelIn(locale) {
     return "" !== (draft.value.translations[locale]?.label ?? "").trim();
 }
 
-/** Les erreurs que le serveur range ailleurs que sous un champ visible. */
+/** The errors the server files somewhere other than under a visible field. */
 const generalErrors = computed(() =>
     Object.entries(fieldErrors.value)
         .filter(([key]) => !key.startsWith("translations["))
@@ -101,7 +101,7 @@ const placeholderHint = computed(() =>
         : t("suite.forms.fields.placeholder_hint"),
 );
 
-/** Les cases et les boutons radio n'ont pas de texte d'exemple : il n'y a nulle part où l'écrire. */
+/** Checkboxes and radio buttons have no placeholder text: there is nowhere to write it. */
 const offersPlaceholder = computed(() => !["checkbox", "radio"].includes(draft.value.type));
 </script>
 
@@ -125,8 +125,8 @@ const offersPlaceholder = computed(() => !["checkbox", "radio"].includes(draft.v
 
         <AppSelect v-model="draft.type" :label="t('suite.forms.fields.type')" :options="typeOptions" />
 
-        <!-- Une langue à la fois. Le point signale une langue sans libellé :
-             la question y sortirait vide pour le visiteur. -->
+        <!-- One language at a time. The dot flags a language without a
+             label: the question would come out empty there for the visitor. -->
         <div v-if="locales.length > 1" class="inline-flex gap-1 rounded-lg border border-line bg-surface-2 p-1">
             <AppTab
                 v-for="code in locales"
@@ -183,9 +183,9 @@ const offersPlaceholder = computed(() => !["checkbox", "radio"].includes(draft.v
             :options="stepOptions"
         />
 
-        <!-- La condition en phrase : « Afficher seulement si [question] vaut
-             [réponse] ». Deux cases sans verbe entre elles laissaient deviner
-             laquelle était la question et laquelle la réponse. -->
+        <!-- The condition as a sentence: "Afficher seulement si [question]
+             vaut [réponse]". Two boxes with no verb between them left people
+             guessing which was the question and which the answer. -->
         <section class="space-y-3 border-t border-line/40 pt-4">
             <AppChoiceRow v-model="visibility" :label="t('suite.forms.fields.visibility')" :options="visibilityOptions" />
 

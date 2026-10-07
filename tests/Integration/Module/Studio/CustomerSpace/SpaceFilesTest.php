@@ -24,11 +24,11 @@ use function sprintf;
 use function sys_get_temp_dir;
 
 /**
- * Les fichiers d'un espace, ceux qui ne sont sur aucune fiche.
+ * A space's files, the ones that are on no item.
  *
- * Pesée sur ce qui ne se voit pas à l'écran : qu'un fichier se range comme les
- * autres, qu'on ne l'atteigne pas depuis l'espace d'un autre client, et que le
- * retirer propose la corbeille au lieu d'en décider.
+ * Weighted towards what cannot be seen on screen: that a file is filed like
+ * the others, that it cannot be reached from another client's space, and
+ * that removing it offers the trash instead of deciding for you.
  */
 final class SpaceFilesTest extends IntegrationTestCase
 {
@@ -37,7 +37,7 @@ final class SpaceFilesTest extends IntegrationTestCase
     private EntityManagerInterface $entityManager;
 
     /** @var list<string> */
-    private array $tempFiles = [];
+    private array $temporaryFiles = [];
 
     protected function setUp(): void
     {
@@ -57,7 +57,7 @@ final class SpaceFilesTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        foreach ($this->tempFiles as $file) {
+        foreach ($this->temporaryFiles as $file) {
             @unlink($file);
         }
 
@@ -69,11 +69,11 @@ final class SpaceFilesTest extends IntegrationTestCase
     }
 
     /**
-     * **Le fichier se range comme tout ce qu'un espace reçoit.**.
+     * **The file is filed like everything a space receives.**.
      *
-     * Dans le dossier de cet espace et en brouillon, donc sans adresse publique
-     * devinable. C'est ce qui permet de le partager avec le client par son lien
-     * sans le publier au monde.
+     * In this space's folder and as a draft, so without a guessable public
+     * address. That is what lets it be shared with the client through their
+     * link without publishing it to the world.
      */
     public function testAFileDroppedOnASpaceIsFiledWithIt(): void
     {
@@ -95,13 +95,13 @@ final class SpaceFilesTest extends IntegrationTestCase
         self::assertNotNull($folder, 'le fichier est rangé dans un dossier');
         self::assertSame($space->getName(), $folder->getName());
 
-        // L'adresse rendue est celle de l'espace, pas celle de la médiathèque :
-        // ce qui ouvre l'espace ouvre ce qu'il y a dedans.
+        // The returned address is the space's, not the media library's: what
+        // opens the space opens what is inside it.
         self::assertStringContainsString(sprintf('/workspace/%d/files/', $space->getId()), $files[0]['url']);
     }
 
     /**
-     * Le même document deux fois se lirait comme une erreur, et c'en est une.
+     * The same document twice would read as a mistake, and it is one.
      */
     public function testTheSameDocumentIsRefusedTwice(): void
     {
@@ -121,12 +121,12 @@ final class SpaceFilesTest extends IntegrationTestCase
     }
 
     /**
-     * **Le dépôt passe par la politique de l'administrateur.**.
+     * **The upload goes through the administrator's policy.**.
      *
-     * Elle ne limite pas les types côté studio - la médiathèque accepte tout ce
-     * qu'un document peut être - mais elle porte le plafond de taille, et cette
-     * route ne la consultait pas du tout : le seul mur était celui de PHP, dont
-     * le refus ressortait en erreur sans phrase.
+     * It does not limit types on the studio side - the media library accepts
+     * anything a document can be - but it carries the size cap, and this route
+     * did not consult it at all: the only wall was PHP's, whose refusal came
+     * out as an error without a sentence.
      */
     public function testAFileRefusedByTheCeilingIsReportedAsSuch(): void
     {
@@ -134,13 +134,13 @@ final class SpaceFilesTest extends IntegrationTestCase
 
         $path = sys_get_temp_dir().'/aurora-space-file-'.bin2hex(random_bytes(4)).'.jpg';
         file_put_contents($path, $this->jpegBytes());
-        $this->tempFiles[] = $path;
+        $this->temporaryFiles[] = $path;
 
         $this->client->request(
             'POST',
             sprintf('/workspace/%d/files/upload', $space->getId()),
             [],
-            // Ce que PHP pose lui-même quand sa propre limite a mordu.
+            // What PHP sets itself when its own limit has kicked in.
             ['file' => new UploadedFile($path, 'charte.jpg', 'image/jpeg', UPLOAD_ERR_INI_SIZE, true)],
         );
 
@@ -152,10 +152,10 @@ final class SpaceFilesTest extends IntegrationTestCase
     }
 
     /**
-     * **Sans ça, supprimer le document viderait l'espace en silence.**.
+     * **Without this, deleting the document would empty the space silently.**.
      *
-     * La ligne cascade : la suppression ne noircirait pas une vignette, elle
-     * retirerait le fichier de l'espace sans rien laisser derrière.
+     * The row cascades: the deletion would not black out a thumbnail, it would
+     * remove the file from the space without leaving anything behind.
      */
     public function testTheLibraryKnowsWhichSpaceCarriesAFile(): void
     {
@@ -168,13 +168,13 @@ final class SpaceFilesTest extends IntegrationTestCase
 
         self::assertSame(1, $usages['total']);
         self::assertSame('studio.space_file', $usages['groups'][0]['type']);
-        // L'espace, pas le document : l'écran de suppression dit déjà quel
-        // fichier part, ce qu'il faut savoir c'est chez qui il sert.
+        // The space, not the document: the deletion screen already says which
+        // file goes, what needs to be known is where it is used.
         self::assertSame($space->getName(), $usages['groups'][0]['items'][0]['label']);
     }
 
     /**
-     * Retirer le fichier de l'espace ne supprime pas le document : ça propose.
+     * Removing the file from the space does not delete the document: it offers to.
      */
     public function testRemovingOffersTheDocumentNobodyUsesAnyMore(): void
     {
@@ -193,15 +193,15 @@ final class SpaceFilesTest extends IntegrationTestCase
         self::assertSame($file['documentId'], $orphaned[0]['id']);
         self::assertArrayHasKey('trashPath', $orphaned[0]);
 
-        // Proposé, pas jeté.
+        // Offered, not thrown away.
         self::assertNotNull($this->entityManager->getRepository(Document::class)->find($file['documentId']));
     }
 
     /**
-     * **Le fichier d'un client n'est pas atteignable sous l'espace d'un autre.**.
+     * **One client's file cannot be reached under another client's space.**.
      *
-     * Il arrive comme sa propre entité par l'URL : rien d'autre que cette
-     * vérification ne sépare deux clients, ni pour le lire ni pour le retirer.
+     * It arrives as its own entity through the URL: nothing but this check
+     * separates two clients, neither for reading it nor for removing it.
      */
     public function testAFileOfAnotherSpaceIsOutOfReach(): void
     {
@@ -222,7 +222,7 @@ final class SpaceFilesTest extends IntegrationTestCase
     {
         $path = sys_get_temp_dir().'/aurora-space-file-'.bin2hex(random_bytes(4)).'.jpg';
         file_put_contents($path, $this->jpegBytes());
-        $this->tempFiles[] = $path;
+        $this->temporaryFiles[] = $path;
 
         $this->client->request(
             'POST',
@@ -263,7 +263,7 @@ final class SpaceFilesTest extends IntegrationTestCase
         return json_decode((string) $this->client->getResponse()->getContent(), true);
     }
 
-    /** La plus petite chose que le détecteur de type appelle un JPEG. */
+    /** The smallest thing the type detector calls a JPEG. */
     private function jpegBytes(): string
     {
         return (string) base64_decode(

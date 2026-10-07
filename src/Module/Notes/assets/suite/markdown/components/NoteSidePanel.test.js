@@ -6,11 +6,11 @@ import NoteSidePanel from "./NoteSidePanel.vue";
 const i18n = createTestI18n();
 
 /**
- * Le plan de la note, dans le panneau latéral.
+ * The note's outline, in the side panel.
  *
- * Il se lit dans le texte, sans rien demander au serveur : basculer sur le
- * plan ne doit pas appeler les liens, et un titre cliqué dit à la page où
- * aller.
+ * It is read from the text, without asking the server anything: switching to
+ * the outline must not call the links, and a clicked heading tells the page
+ * where to go.
  */
 function render(content) {
     const fetchBacklinks = vi
@@ -56,7 +56,7 @@ describe("NoteSidePanel outline", () => {
         const { wrapper } = render("# Brief\n\nTexte de six mots ici présent.");
         await wrapper.find('[data-side-tab="outline"]').trigger("click");
 
-        // Brief (1) + six mots de prose (6) : la clé de traduction reçoit le compte.
+        // Brief (1) + six words of prose (6): the translation key receives the count.
         expect(wrapper.find("[data-note-length]").text()).toContain(
             "outline.words",
         );

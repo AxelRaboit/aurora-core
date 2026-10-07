@@ -9,9 +9,12 @@ use Aurora\Core\Support\Str;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function is_array;
 use function is_numeric;
+use function mb_trim;
 use function preg_replace;
 use function round;
+use function str_replace;
 
 #[AsAlias(CustomerInputFactoryInterface::class)]
 class CustomerInputFactory implements CustomerInputFactoryInterface
@@ -42,12 +45,56 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
             representativeRole: Str::trimOrNullFromArray($data, 'representativeRole'),
             contractualEmail: Str::emailOrNullFromArray($data, 'contractualEmail'),
             phone: Str::trimOrNullFromArray($data, 'phone'),
-            userId: $this->idOrNull($data, 'userId'),
-            // Prospect par defaut : une valeur inconnue ou absente decrit une
-            // fiche dont personne n'a encore dit qu'elle s'etait engagee.
+            // Prospect by default: an unknown or missing value describes a
+            // sheet nobody has yet said had committed.
             status: CustomerStatusEnum::tryFrom(Str::trimFromArray($data, 'status'))
                 ?? CustomerStatusEnum::Prospect,
+            siren: $this->digitsOrNull($data, 'siren'),
+            landline: Str::trimOrNullFromArray($data, 'landline'),
+            links: $this->links($data),
+            informationNotes: Str::trimOrNullFromArray($data, 'informationNotes'),
         );
+    }
+
+    /**
+     * The link rows, stripped of those nobody filled in.
+     *
+     * **An entirely empty row is not an error, it is a row someone opened and
+     * left.** The "Ajouter un lien" button adds an empty one, and refusing to
+     * save because it is empty would force removing it before saving. A
+     * half-filled row, on the other hand, is a real error and comes back as
+     * such, under `links[2].url`.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return list<CustomerLinkInput>
+     */
+    private function links(array $data): array
+    {
+        $raw = $data['links'] ?? [];
+
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $links = [];
+
+        foreach ($raw as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $label = mb_trim((string) ($row['label'] ?? ''));
+            $url = mb_trim((string) ($row['url'] ?? ''));
+
+            if ('' === $label && '' === $url) {
+                continue;
+            }
+
+            $links[] = new CustomerLinkInput(label: $label, url: $url);
+        }
+
+        return $links;
     }
 
     /**
@@ -83,7 +130,7 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
     }
 
     /**
-     * The digits of a SIRET, however it was typed.
+     * The digits of a SIRET or a SIREN, however it was typed.
      *
      * A SIRET is read off a document in groups ("904 512 336 00010") and typed
      * that way. Stripping the separators here means the stored form is always
@@ -127,13 +174,5 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
         $trimmed = mb_trim((string) $data[$key]);
 
         return '' === $trimmed ? null : $trimmed;
-    }
-
-    /** @param array<string, mixed> $data */
-    private function idOrNull(array $data, string $key): ?int
-    {
-        $raw = $data[$key] ?? null;
-
-        return is_numeric($raw) ? (int) $raw : null;
     }
 }

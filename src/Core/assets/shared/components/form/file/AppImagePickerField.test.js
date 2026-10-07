@@ -124,8 +124,8 @@ describe("AppImagePickerField", () => {
         });
         // The ghost/remove button is the last button in the actions block
         const buttons = wrapper.findAll("button");
-        const removeBtn = buttons[buttons.length - 1];
-        await removeBtn.trigger("click");
+        const removeButton = buttons[buttons.length - 1];
+        await removeButton.trigger("click");
         const emitted = wrapper.emitted("update:modelValue");
         expect(emitted).toBeTruthy();
         expect(emitted[0][0]).toEqual({ id: null, url: null });

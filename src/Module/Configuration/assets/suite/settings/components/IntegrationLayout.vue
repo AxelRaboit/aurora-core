@@ -1,19 +1,19 @@
 <script setup>
 /**
- * Le gabarit d'une intégration de la configuration : Google Drive, Instagram,
- * Pexels, la lettre d'information, les avis Google, GitHub, le captcha, Craft.
+ * The layout of a configuration integration: Google Drive, Instagram, Pexels,
+ * the newsletter, Google reviews, GitHub, the captcha, Craft.
  *
- * **L'état d'abord, la connexion ensuite, le mode d'emploi à côté.** Chaque
- * onglet ouvrait sur « Ce que fait cette intégration » puis « Comment
- * l'ouvrir », et le premier champ arrivait un écran plus bas ; rien ne disait
- * en tête si l'intégration marchait. Ici, une phrase et un badge d'état, puis
- * la carte des réglages, et le mode d'emploi dans un encart qui reste ouvert
- * tant que rien n'est branché et se replie ensuite. Sur un grand écran les
- * deux se tiennent côte à côte ; sur téléphone, le mode d'emploi passe devant
- * tant qu'il sert, derrière une fois l'intégration active.
+ * **Status first, connection next, how-to guide alongside.** Each tab opened
+ * on "What this integration does" then "How to open it", and the first field
+ * came one screen lower; nothing at the top said whether the integration
+ * worked. Here, a sentence and a status badge, then the settings card, and
+ * the how-to guide in a panel that stays open as long as nothing is connected
+ * and folds afterwards. On a large screen the two sit side by side; on a
+ * phone, the how-to guide comes first while it is useful, and after once the
+ * integration is active.
  *
- * Ce composant ne sait rien de chaque intégration : l'onglet lui donne son
- * état et remplit ses emplacements.
+ * This component knows nothing about each integration: the tab gives it its
+ * status and fills its slots.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -22,12 +22,12 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 
 const props = defineProps({
-    /** Ce que fait l'intégration, en une phrase. */
+    /** What the integration does, in one sentence. */
     summary: { type: String, default: "" },
-    /** `active` (branchée et allumée), `off` (prête, éteinte) ou `todo` (à configurer). */
+    /** `active` (connected and on), `off` (ready, off) or `todo` (to configure). */
     status: { type: String, default: "todo" },
     loading: { type: Boolean, default: false },
-    /** Le titre de la carte des réglages ; « Connexion » par défaut. */
+    /** The title of the settings card; "Connexion" by default. */
     settingsTitle: { type: String, default: "" },
 });
 
@@ -38,7 +38,7 @@ const STATUS_COLORS = { active: "emerald", off: "gray", todo: "amber" };
 const statusColor = computed(() => STATUS_COLORS[props.status] ?? "gray");
 const statusLabel = computed(() => t(`suite.settings.integration.status_${STATUS_COLORS[props.status] ? props.status : "todo"}`));
 
-/** Le mode d'emploi sert tant que rien ne marche ; ensuite il se replie. */
+/** The how-to guide is useful as long as nothing works; then it folds. */
 const guideOpen = computed(() => "active" !== props.status);
 </script>
 

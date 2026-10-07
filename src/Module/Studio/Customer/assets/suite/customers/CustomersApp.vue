@@ -9,6 +9,8 @@ import { useProspectConversion } from "./composables/useProspectConversion.js";
 import ConvertProspectModal from "./components/ConvertProspectModal.vue";
 import { useCustomersForm } from "./composables/useCustomersForm.js";
 import CustomerFormFields from "./components/CustomerFormFields.vue";
+import CustomerDeleteModal from "./components/CustomerDeleteModal.vue";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
@@ -17,7 +19,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import { Building2, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
+import { Building2, Plus, Save, X } from "lucide-vue-next";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const { t } = useI18n();
@@ -26,13 +28,13 @@ const { can } = usePrivileges();
 
 const props = defineProps({
     customers: { type: Array, default: () => [] },
-    users: { type: Array, default: () => [] },
     currencies: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
-    updatePath: { type: String, required: true },
+    /** A customer's page, with `__id__`: the sheet is edited there. */
+    showPath: { type: String, required: true },
     convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
-    /** La liste des espaces, où l'on va depuis un client. */
+    /** The spaces list, reached from a customer. */
     spacesPath: { type: String, default: "" },
 });
 
@@ -40,31 +42,17 @@ const {
     search,
     filteredItems,
     applyUpdatedList,
-    userOptions,
     showCreate,
     newCustomer,
     createErrors,
     createLoading,
     openCreate,
     submitCreate,
-    showEdit,
-    editingCustomer,
-    editForm,
-    editErrors,
-    editLoading,
-    openEdit,
-    submitEdit,
     pendingDelete,
     deleteLoading,
     confirmDelete,
     doDelete,
-} = useCustomersForm(
-    props.customers,
-    props.users,
-    props.createPath,
-    props.updatePath,
-    props.deletePath,
-);
+} = useCustomersForm(props.customers, props.createPath, props.deletePath);
 
 // Its own rather than the shared edit/delete pair: a prospect has a third
 // thing to offer. See the composable.
@@ -79,9 +67,9 @@ const {
 } = useProspectConversion(props.convertPath, (data) => applyUpdatedList(data));
 
 const actionsFor = useCustomerRowActions({
+    showPath: props.showPath,
     spacesPath: props.spacesPath,
     can,
-    openEdit,
     convertToClient: (customer) =>
         openConversion(customer, {
             id: customer.id,
@@ -92,11 +80,11 @@ const actionsFor = useCustomerRowActions({
 });
 
 /**
- * Clients ou prospects, jamais les deux.
+ * Customers or prospects, never both.
  *
- * Retenu d'un ecran a l'autre, comme les vues d'un espace : quelqu'un qui
- * travaille ses pistes une matiniere entiere ne veut pas rechoisir a chaque
- * retour sur la liste.
+ * Remembered from one screen to the next, like a space's views: someone
+ * working their leads for a whole morning does not want to choose again
+ * every time they come back to the list.
  */
 const { choice: tab } = usePersistedChoice("studio.customers.tab", "client", [
     "client",
@@ -115,6 +103,11 @@ const tabs = computed(() =>
             .length,
     })),
 );
+
+/** The customer's page: the name leads there, on the list as on the cards. */
+function pageOf(customer) {
+    return buildPath(props.showPath, { id: customer.id });
+}
 
 /**
  * A SIRET is read back in the groups it is printed in, not as fourteen run-on
@@ -181,22 +174,22 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.customers.guide.title')" storage-key="customers-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.customers.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- Deux onglets plutot qu'une colonne : un statut a deux valeurs sur
-             lequel on veut filtrer est un filtre, pas une colonne - et une
-             pastille repetee sur chaque ligne d'un onglet qui porte deja le mot
-             ne distingue plus rien.
+        <!-- Two tabs rather than a column: a two-valued status people want to
+             filter on is a filter, not a column - and a badge repeated on
+             every row of a tab that already carries the word no longer
+             distinguishes anything.
 
-             Le compte est sur l'etiquette parce que c'est lui qui rend l'autre
-             onglet visible : un prospect cree depuis un espace serait sinon
-             range quelque part que personne ne pense a ouvrir. -->
+             The count is on the label because it is what makes the other tab
+             visible: a prospect created from a space would otherwise be
+             filed somewhere nobody thinks to open. -->
         <div
             class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="group"
@@ -234,7 +227,7 @@ const pageActions = computed(() => {
                 <div class="flex items-start gap-3 px-4 py-3">
                     <div class="min-w-0 flex-1 space-y-1">
                         <p class="font-medium text-primary text-sm">
-                            {{ customer.legalName }}
+                            <a :href="pageOf(customer)" class="text-primary hover:underline">{{ customer.legalName }}</a>
                             <span v-if="customer.legalForm" class="text-muted font-normal">
                                 · {{ customer.legalForm }}
                             </span>
@@ -250,9 +243,9 @@ const pageActions = computed(() => {
                             {{ formatSiret(customer.siret) }}
                         </p>
                     </div>
-                    <!-- Les gestes derrière le bouton « … », à hauteur du titre,
-                     comme sur toutes les listes (décision d'Axel du 04/10/2026) :
-                     la carte garde sa place pour son contenu. -->
+                    <!-- The gestures behind the "…" button, level with the title,
+                     as on every list (Axel's decision of 04/10/2026): the card
+                     keeps its room for its content. -->
                     <AppRowActions class="shrink-0" :actions="actionsFor(customer)" :label="customer.legalName" />
                 </div>
             </div>
@@ -300,9 +293,11 @@ const pageActions = computed(() => {
                         class="group hover:bg-surface-2/40 transition-colors"
                     >
                         <td class="px-4 py-2">
-                            <div class="font-medium text-primary">
+                            <!-- The name leads to their page, where the whole sheet
+                                 is read and edited. -->
+                            <a :href="pageOf(customer)" class="font-medium text-primary hover:underline">
                                 {{ customer.legalName }}
-                            </div>
+                            </a>
                             <div class="text-xs text-muted">
                                 <span v-if="customer.legalForm">{{ customer.legalForm }}</span>
                                 <span v-if="customer.legalForm && formatCapital(customer)">
@@ -312,8 +307,8 @@ const pageActions = computed(() => {
                                     {{ formatCapital(customer) }}
                                 </span>
                             </div>
-                            <!-- Ses espaces, d'un clic : la fiche d'un client ne
-                                 disait pas quels projets tournaient pour lui. -->
+                            <!-- Their spaces, in one click: a customer sheet did
+                                 not say which projects were running for them. -->
                             <div v-if="customer.spaces?.length" class="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-xs">
                                 <a
                                     v-for="space in customer.spaces"
@@ -325,7 +320,7 @@ const pageActions = computed(() => {
                                     {{ space.name }}
                                 </a>
                             </div>
-                            <!-- Ses contrats, d'un clic : la liste s'ouvre filtrée sur lui. -->
+                            <!-- Their contracts, in one click: the list opens filtered on them. -->
                             <a
                                 v-if="customer.contracts?.count"
                                 :href="customer.contracts.url"
@@ -351,13 +346,6 @@ const pageActions = computed(() => {
                         <td class="px-4 py-2">
                             <div class="text-primary whitespace-nowrap">
                                 {{ customer.contractualEmail }}
-                            </div>
-                            <div v-if="customer.userName" class="text-xs text-muted">
-                                {{
-                                    t("suite.studio.customers.linked_account", {
-                                        name: customer.userName,
-                                    })
-                                }}
                             </div>
                         </td>
                         <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
@@ -392,7 +380,6 @@ const pageActions = computed(() => {
                 <CustomerFormFields
                     v-model="newCustomer"
                     :errors="createErrors"
-                    :user-options="userOptions"
                     :currencies="currencies"
                 />
             </form>
@@ -415,81 +402,13 @@ const pageActions = computed(() => {
             </template>
         </AppModal>
 
-        <AppModal
-            :show="showEdit"
-            max-width="2xl"
-            :title="
-                t('suite.studio.customers.edit', {
-                    name: editingCustomer?.legalName ?? '',
-                })
-            "
-            :icon="Pencil"
-            :closeable="false"
-            v-on:close="showEdit = false"
-        >
-            <form v-on:submit.prevent="submitEdit">
-                <CustomerFormFields
-                    v-model="editForm"
-                    :errors="editErrors"
-                    :user-options="userOptions"
-                    :currencies="currencies"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showEdit = false">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="editLoading"
-                        v-on:click="submitEdit"
-                    >
-                        <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
+        <CustomerDeleteModal
             :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("suite.studio.customers.delete_confirm", {
-                        name: pendingDelete?.legalName ?? "",
-                    })
-                }}
-            </p>
-            <p class="text-sm text-secondary">
-                {{ t("suite.studio.customers.delete_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="danger"
-                        size="md"
-                        :loading="deleteLoading"
-                        v-on:click="doDelete"
-                    >
-                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            :name="pendingDelete?.legalName ?? ''"
+            :loading="deleteLoading"
+            v-on:cancel="pendingDelete = null"
+            v-on:confirm="doDelete"
+        />
 
         <ConvertProspectModal
             :show="!!converting"

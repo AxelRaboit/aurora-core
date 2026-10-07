@@ -1,31 +1,29 @@
 /**
- * Donne à une page du tour le même bandeau que la page sommaire, avec la
- * capture du module à droite.
+ * Gives a tour page the same banner as the hub page, with the module's
+ * capture on the right.
  *
- * La page sommaire ouvre sur un dégradé, un titre et un bouton. Les
- * vingt-quatre pages qu'elle liste ouvraient sur rien : leur bandeau existait
- * mais était éteint, et la page commençait par son titre en petit, suivi
- * d'une image. Le module qu'elles décrivent n'apparaissait qu'en défilant.
+ * The hub page opens on a gradient, a title and a button. The twenty-four
+ * pages it lists opened on nothing: their banner existed but was switched
+ * off, and the page started with its title in small type, followed by an
+ * image. The module they describe only showed up after scrolling.
  *
- * Ce script pose donc, sur une page nommée par son slug :
+ * So this script sets, on a page named by its slug:
  *
- * - le même fond dégradé que le sommaire, à l'identique, pour que la famille
- *   se voie ;
- * - à gauche, le titre et le résumé que la publication porte déjà - repris de
- *   sa traduction, jamais réécrits ici : deux endroits qui disent la même
- *   chose finissent par ne plus la dire pareil ;
- * - à droite, une image, celle que la page montrait en premier.
+ * - the same gradient background as the hub, identical, so the family shows;
+ * - on the left, the title and summary the post already carries - taken from
+ *   its translation, never rewritten here: two places that say the same
+ *   thing end up no longer saying it the same way;
+ * - on the right, an image, the one the page showed first.
  *
- * **L'image quitte le corps.** Sans ça elle serait deux fois sur la page, une
- * fois dans le bandeau et une fois dessous. Le gabarit sait déjà ne pas
- * répéter le titre quand le bandeau en porte un ; pour l'image, c'est à nous
- * de choisir.
+ * **The image leaves the body.** Otherwise it would be on the page twice, once
+ * in the banner and once below. The template already knows not to repeat the
+ * title when the banner carries one; for the image, the choice is ours.
  *
- * Usage :
+ * Usage:
  *   node tools/screenshots/set-tour-banner.mjs <slug> [--dry-run]
  *
- * L'image retenue est la première zone média de la grille. `--media <id>`
- * force un autre document, et `--keep-in-body` la laisse aussi en dessous.
+ * The image picked is the first media zone of the grid. `--media <id>`
+ * forces another document, and `--keep-in-body` leaves it below as well.
  */
 
 import { execFile } from "node:child_process";
@@ -84,7 +82,7 @@ if (null === media) {
     process.exit(1);
 }
 
-/** Le titre et le résumé que la page porte déjà, langue par langue. */
+/** The title and summary the page already carries, locale by locale. */
 const textes = {};
 for (const locale of LOCALES) {
     const ligne = await sql(
@@ -114,8 +112,8 @@ const bannerLayout = {
     verticalAlign: "center",
     logoMediaId: null,
     fadeOut: true,
-    // Le dégradé du sommaire, copié tel quel : c'est ce qui fait qu'on
-    // reconnaît la famille en arrivant sur une page depuis l'autre.
+    // The hub's gradient, copied as is: it is what makes the family
+    // recognisable when arriving on one page from the other.
     background: {
         type: "gradient",
         color: null,

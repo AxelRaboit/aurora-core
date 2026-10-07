@@ -8,13 +8,13 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Le réglage « Format des dates » devient un style : courte, moyenne, longue.
+ * The "Format des dates" setting becomes a style: short, medium, long.
  *
- * Il contenait un motif PHP (`d/m/Y` par défaut) que rien ne lisait, et qui
- * n'aurait pas pu servir trois langues. Les dates des emails, des PDF et des
- * pages de contrat suivent désormais la langue du document, dans le style
- * choisi ; `d/m/Y` décrivait la courte, c'est donc elle qu'il devient. Un
- * motif inconnu se lit aussi comme la courte, migration passée ou non.
+ * It held a PHP pattern (`d/m/Y` by default) that nothing read, and that
+ * could not have served three languages. Dates in emails, PDFs and contract
+ * pages now follow the document's language, in the chosen style; `d/m/Y`
+ * described the short one, so that is what it becomes. An unknown pattern
+ * also reads as the short one, whether the migration ran or not.
  */
 final class Version20261002190000 extends AbstractMigration
 {

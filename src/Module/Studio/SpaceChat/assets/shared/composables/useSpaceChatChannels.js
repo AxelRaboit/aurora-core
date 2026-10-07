@@ -64,11 +64,11 @@ export function useSpaceChatChannels(initial, paths) {
     }
 
     /**
-     * Ouvre une conversation privée, ou rouvre celle qui existe.
+     * Opens a private conversation, or reopens the one that exists.
      *
-     * Le serveur répond la liste **et** l'identifiant du salon : deux personnes
-     * n'ont qu'une conversation entre elles, donc le second appel renvoie le
-     * premier salon, et l'appelant doit pouvoir s'y rendre dans les deux cas.
+     * The server answers with the list **and** the room's id: two people have
+     * only one conversation between them, so the second call returns the first
+     * room, and the caller must be able to go there in both cases.
      */
     async function openDirect(userId) {
         if (!paths.directPath || working.value) return null;
@@ -87,7 +87,7 @@ export function useSpaceChatChannels(initial, paths) {
         }
     }
 
-    /** Range une conversation : elle quitte la liste, rien ne s'efface. */
+    /** Puts a conversation away: it leaves the list, nothing is erased. */
     async function hide(channel) {
         await send(forChannel(paths.hidePath, channel));
     }
@@ -99,10 +99,11 @@ export function useSpaceChatChannels(initial, paths) {
     }
 
     /**
-     * Retire quelqu'un d'un canal, sans toucher à ce qu'il y a écrit.
+     * Removes someone from a channel, without touching what they wrote in it.
      *
-     * L'adresse porte deux trous, le salon et la ligne : c'est le membre qu'on
-     * retire, pas le compte, qui peut être dans d'autres canaux du même espace.
+     * The address carries two holes, the room and the row: it is the member
+     * being removed, not the account, which can be in other channels of the
+     * same space.
      */
     async function removeMember({ channel, memberId }) {
         const path = forChannel(paths.uninvitePath, channel)?.replace(

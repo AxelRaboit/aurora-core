@@ -18,19 +18,19 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use function sprintf;
 
 /**
- * Rouvre l'onglet Drive d'un espace dont le mot de passe est perdu.
+ * Reopens the Drive tab of a space whose password is lost.
  *
- * **Le secours de la serrure, et sa contrepartie.** Le mot de passe ne se
- * désactive pas depuis l'écran sans être saisi : c'est ce qui en fait une
- * serrure plutôt qu'un ralentisseur, et c'est aussi ce qui rend l'oubli
- * bloquant. Il faut donc une sortie, et le bon niveau d'autorité pour cette
- * sortie est l'accès au serveur, pas une case dans une interface.
+ * **The lock's fallback, and its counterpart.** The password cannot be
+ * turned off from the screen without being entered: that is what makes it a
+ * lock rather than a speed bump, and it is also what makes forgetting it
+ * blocking. So there must be a way out, and the right level of authority for
+ * that way out is access to the server, not a checkbox in an interface.
  *
- * Écrite en même temps que la serrure et non après : une porte dont on écrit
- * la clé de secours « plus tard » est une porte qu'on finit par forcer.
+ * Written at the same time as the lock and not after: a door whose spare key
+ * is written "later" is a door that ends up being forced.
  *
- * Ne touche pas aux sessions ouvertes : elles retombent d'elles-mêmes, et
- * l'onglet est de toute façon rouvert pour tout le monde.
+ * Does not touch open sessions: they fall away on their own, and the tab is
+ * reopened for everyone anyway.
  */
 #[AsCommand(
     name: 'aurora:space:drive-password:clear',
@@ -64,16 +64,16 @@ final class ClearDrivePasswordCommand extends Command
         }
 
         if (!$space->isDriveLocked()) {
-            // Dit plutôt que fait silencieusement : quelqu'un qui lance cette
-            // commande croit l'onglet fermé, et se tromper d'espace est
-            // l'erreur la plus probable.
+            // Said rather than done silently: someone running this command
+            // believes the tab is locked, and picking the wrong space is the
+            // most likely mistake.
             $io->warning(sprintf('L\'onglet Drive de « %s » n\'est pas fermé.', $space->getName()));
 
             return Command::SUCCESS;
         }
 
-        // La serrure et non `setDrivePassword(null)` : elle tire aussi une
-        // nouvelle génération, et c'est elle qui sait ce qu'effacer veut dire.
+        // The lock and not `setDrivePassword(null)`: it also draws a new
+        // generation, and it is the one that knows what clearing means.
         $this->lock->clear($space);
         $this->entityManager->flush();
 

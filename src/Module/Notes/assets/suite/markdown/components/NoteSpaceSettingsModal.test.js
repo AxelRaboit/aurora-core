@@ -88,7 +88,7 @@ describe("NoteSpaceSettingsModal", () => {
         ]);
     });
 
-    /** Inscrire s'applique tout de suite, sans attendre « Enregistrer ». */
+    /** Adding a member applies right away, without waiting for "Enregistrer". */
     it("adds a member at once", async () => {
         const api = fakeApi();
         const wrapper = await render(api);
@@ -123,7 +123,7 @@ describe("NoteSpaceSettingsModal", () => {
         expect(wrapper.emitted("close")).toBeTruthy();
     });
 
-    /** Retirer demande un second clic : un espace emporte tout ce qu'il range. */
+    /** Removing asks for a second click: a space takes everything it holds with it. */
     it("asks twice before removing a space", async () => {
         const api = fakeApi();
         await render(api);
@@ -142,7 +142,7 @@ describe("NoteSpaceSettingsModal", () => {
         expect(api.remove).toHaveBeenCalledWith(7);
     });
 
-    /** Son espace ne s'ouvre ni ne se retire : la fenêtre ne le propose pas. */
+    /** One's own space neither opens nor is removed: the dialog does not offer it. */
     it("shows only the colour for one's personal space", async () => {
         await render(
             fakeApi(
@@ -157,7 +157,7 @@ describe("NoteSpaceSettingsModal", () => {
         expect(document.body.querySelector("[data-space-delete]")).toBeNull();
     });
 
-    /** Publier ne s'offre qu'à qui en a le droit ; l'adresse s'affiche aussitôt. */
+    /** Publishing is only offered to whoever is allowed to; the address shows right away. */
     it("offers no publication without the right", async () => {
         await render(fakeApi());
 

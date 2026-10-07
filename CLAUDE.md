@@ -188,8 +188,19 @@ distribuée via composer aux clients.
 > Convention résumée ici ; voir aussi la mémoire shared `convention_naming.md`.
 > Mémoire shared : `.claude/memory/aurora-shared/convention_naming.md`.
 
-- **Variables** : noms complets (jamais 1-2 lettres). Ex : `$company`, pas
-  `$c` ; `$translation`, pas `$tr`.
+- **Variables, paramètres et propriétés** : mots complets, jamais
+  d'abréviation ni de nom d'une ou deux lettres. `$company`, pas `$c` ;
+  `$entityManager`, pas `$em` ; `$queryBuilder`, pas `$qb` ; `$index`, pas
+  `$i` ; `fn ($left, $right)` dans un comparateur, pas `$a`/`$b` ;
+  `$exception`, pas `$e` ; `uploadButton`, pas `uploadBtn`. La liste des mots
+  interdits et des rares noms courts permis (`t` de vue-i18n, `$io`, `id`,
+  `x`/`y` pour des coordonnées, `$at`…) est dans
+  `tools/naming/full-word-names.json`, lue par
+  `tests/Unit/NamesAreFullWordsTest.php` (PHP et Twig) et la règle ESLint
+  `aurora/full-word-names` (JS/Vue). Un mot à interdire s'ajoute là, pas
+  ailleurs. Restent tels quels : `props`, `emit`, le suffixe `Ref` des refs
+  Vue, les unités `Ms`/`Px`. En JS, ne jamais nommer une variable `document`,
+  `window` ou `event` (globales du navigateur) : `gedDocument`, `keyboardEvent`.
 - **Repos: éviter le N+1** : `findBy(['id' => $ids])` plutôt que `find()`
   dans une boucle pour hydrater plusieurs entités.
 - **Manager vs Service** :
@@ -200,6 +211,14 @@ distribuée via composer aux clients.
   "DTO" en prose mais le namespace est `Dto`).
 - **Tests** : helper d'instanciation dans le test si l'API DTO change
   beaucoup, plutôt que recopier `new XxxInput(...)` partout.
+- **Commentaires en anglais** : commentaires, docblocks et commentaires de
+  template (`<!-- -->`, `{# #}`, `#` des YAML et du Makefile) s'écrivent en
+  anglais, comme le code et les commits, même quand la conversation est en
+  français. Un texte affiché à l'écran peut être cité en français entre
+  guillemets. Restent en français : les traductions fr, le contenu des
+  fixtures, `docs/` et `.claude/memory/`. Tenu par
+  `tests/Unit/Core/CommentsAreInEnglishTest.php` (dérive constatée le
+  06/10/2026 : 4 200 commentaires en français, traduits d'un coup).
 
 ---
 

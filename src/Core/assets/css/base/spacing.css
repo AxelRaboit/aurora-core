@@ -1,39 +1,39 @@
 /**
- * L'espacement des pages du back-office, décidé une fois.
+ * The spacing of the back office's pages, decided once.
  *
- * Avant ce fichier, chaque bord était écrit à la main là où il servait :
- * `<main>` posait `px-2 py-2 sm:px-6 sm:py-8 lg:px-8`, le bandeau de titre
- * `px-4 sm:px-6 lg:px-8`, le fil d'Ariane la même chose recopiée, et les
- * quarante-six écrans empilaient là-dessus leurs propres cartes. Deux
- * conséquences mesurées avant d'y toucher :
+ * Before this file, every edge was written by hand where it was used:
+ * `<main>` set `px-2 py-2 sm:px-6 sm:py-8 lg:px-8`, the title bar
+ * `px-4 sm:px-6 lg:px-8`, the breadcrumb the same thing copied again, and the
+ * forty-six screens stacked their own cards on top of that. Two consequences
+ * measured before touching it:
  *
- * - **Le titre et le contenu ne s'alignaient pas sur téléphone.** Huit pixels
- *   pour le contenu, seize pour le bandeau au-dessus : un décrochage visible
- *   sur chaque page, qu'aucun des deux fichiers ne pouvait voir tout seul.
- * - **Un écran plein hauteur devait soustraire la marge à la main.** Le module
- *   Notes portait `h-[calc(100dvh-var(--aurora-topbar)-4rem)]`, où `4rem`
- *   était la somme des `py-8` de `<main>` recopiée en dur. Changer la marge
- *   cassait la hauteur, en silence.
+ * - **The title and the content did not line up on a phone.** Eight pixels
+ *   for the content, sixteen for the bar above: a visible step on every page,
+ *   which neither of the two files could see on its own.
+ * - **A full-height screen had to subtract the margin by hand.** The Notes
+ *   module carried `h-[calc(100dvh-var(--aurora-topbar)-4rem)]`, where `4rem`
+ *   was the sum of `<main>`'s `py-8` copied in hard. Changing the margin
+ *   broke the height, silently.
  *
- * **Une seule valeur, `--aurora-page-margin`, et elle vaut dans les deux sens.**
+ * **A single value, `--aurora-page-margin`, and it holds in both directions.**
  *
- * Le nom compte : `--aurora-gutter`, plus court, était déjà pris. La grille
- * éditoriale s'en sert pour l'écart intérieur de ses colonnes, avec un repli
- * à 1rem que personne ne déclarait - donc poser la même variable sur `:root`
- * la faisait passer de seize pixels à huit sur téléphone, sur chaque zone de
- * chaque page du site public, sans qu'une ligne de la grille ait bougé.
- * La première version en portait deux, une pour les côtés et une pour le haut
- * et le bas, vingt-quatre contre seize sur grand écran. Ça se voit : le coin
- * d'une carte n'est pas à la même distance du bord selon qu'on regarde à
- * gauche ou en haut, et rien ne le justifie. Une page a une marge, pas deux.
+ * The name matters: `--aurora-gutter`, shorter, was already taken. The
+ * editorial grid uses it for the inner gap of its columns, with a 1rem
+ * fallback nobody declared - so setting the same variable on `:root` took it
+ * from sixteen pixels to eight on a phone, on every zone of every page of the
+ * public site, without a single line of the grid having moved.
+ * The first version carried two, one for the sides and one for the top and
+ * bottom, twenty-four against sixteen on a large screen. It shows: a card's
+ * corner is not at the same distance from the edge depending on whether one
+ * looks left or up, and nothing justifies it. A page has one margin, not two.
  *
- * Les valeurs sont plus serrées qu'avant, volontairement : trente-deux pixels
- * de chaque côté sur un écran large, c'est une colonne de texte perdue, et
- * trente-deux pixels sous un bandeau qui porte déjà une bordure, c'est du vide
- * qui ne sépare rien. Sur téléphone la gouttière ne bouge pas - elle était
- * déjà au minimum utile, décidé sur l'espace client.
+ * The values are tighter than before, on purpose: thirty-two pixels on each
+ * side on a wide screen is a lost column of text, and thirty-two pixels under
+ * a bar that already carries a border is empty space that separates nothing.
+ * On a phone the gutter does not move - it was already at the useful minimum,
+ * decided on the client space.
  *
- * Écrit le 23/09/2026.
+ * Written on 23/09/2026.
  */
 :root {
     --aurora-page-margin: 0.5rem;
@@ -52,56 +52,55 @@
 }
 
 /**
- * **L'échelle, en quatre crans, tous multiples de quatre pixels.**
+ * **The scale, in four steps, all multiples of four pixels.**
  *
- * Elle n'invente rien : ce sont les crans de Tailwind qui servaient déjà, mais
- * choisis au lieu d'être pris au hasard. Le relevé d'avant en comptait seize
- * différents pour la même sorte de distance, dont un `py-2.5` de dix pixels au
- * milieu de voisins à huit et douze - l'écart se voit sans se nommer, et
- * personne ne sait lequel est le bon.
+ * It invents nothing: these are the Tailwind steps already in use, but chosen
+ * instead of picked at random. The survey before it counted sixteen different
+ * ones for the same kind of distance, including a ten-pixel `py-2.5` among
+ * neighbours at eight and twelve - the difference shows without being named,
+ * and nobody knows which one is right.
  *
- *   8px  (`2`) - à l'intérieur d'un contrôle, entre deux frères d'une liste,
- *                et la marge de page sur téléphone.
- *   12px (`3`) - entre deux éléments d'un même bloc, et le remplissage d'une
- *                carte dense : une tuile, un panneau d'atelier.
- *   16px (`4`) - le remplissage d'une carte de contenu, et la marge de page à
- *                partir de `sm`.
- *   20px (`5`) - la marge de page à partir de `lg`, c'est-à-dire le plus grand
- *                écart de la page. Rien ne doit le dépasser à l'intérieur :
- *                une carte qui respire plus que la page où elle est posée
- *                inverse la hiérarchie et l'œil ne sait plus ce qui contient
- *                quoi.
+ *   8px  (`2`) - inside a control, between two siblings in a list, and the
+ *                page margin on a phone.
+ *   12px (`3`) - between two elements of the same block, and the padding of
+ *                a dense card: a tile, a workshop panel.
+ *   16px (`4`) - the padding of a content card, and the page margin from
+ *                `sm`.
+ *   20px (`5`) - the page margin from `lg`, that is the largest gap on the
+ *                page. Nothing inside may exceed it: a card that breathes
+ *                more than the page it sits on inverts the hierarchy and the
+ *                eye no longer knows what contains what.
  *
- * Vérifié sur les deux écrans témoins, en 375 et en 1440 : marge de page
- * 8 puis 20, cartes 12, cellules de tableau 8 en haut et en bas, 16 sur les
- * côtés. Aucune valeur hors échelle, hors les retouches d'un pictogramme dans
- * son bouton, qui ne sont pas des espacements de mise en page.
+ * Checked on the two reference screens, at 375 and at 1440: page margin 8
+ * then 20, cards 12, table cells 8 top and bottom, 16 on the sides. No value
+ * off the scale, apart from the nudges of an icon inside its button, which
+ * are not layout spacing.
  */
 
 /**
- * Le contenu d'une page : la même marge sur les quatre bords. Posé sur
- * `<main>`, et sur lui seul.
+ * A page's content: the same margin on all four edges. Set on `<main>`, and
+ * on it alone.
  */
 @utility aurora-page {
     padding: var(--aurora-page-margin);
 }
 
 /**
- * L'écart entre les blocs d'une page : la marge de la page, à chaque largeur.
+ * The gap between a page's blocks: the page's margin, at every width.
  *
- * Les écrans empilaient leurs blocs chacun à sa façon - `space-y-2
- * sm:space-y-4` pour la plupart, `space-y-3`, `space-y-4` ou `space-y-5` pour
- * les autres - et aucune de ces valeurs ne suivait la marge. Mesuré sur
- * téléphone le 03/10/2026 : huit pixels entre le fil d'Ariane et le premier
- * bloc, vingt entre ce bloc et le suivant, sur le tableau de bord, les
- * thèmes, les réglages, le profil et la corbeille ; douze ou seize ailleurs.
- * Et sur grand écran, même les écrans réguliers posaient seize pixels entre
- * leurs blocs pour vingt de marge. Le bouton « Actions » seul en tête de page
- * le rendait visible : plus d'air dessous que dessus.
+ * The screens stacked their blocks each in its own way - `space-y-2
+ * sm:space-y-4` for most, `space-y-3`, `space-y-4` or `space-y-5` for the
+ * others - and none of these values followed the margin. Measured on a phone
+ * on 03/10/2026: eight pixels between the breadcrumb and the first block,
+ * twenty between that block and the next, on the dashboard, the themes, the
+ * settings, the profile and the trash; twelve or sixteen elsewhere. And on a
+ * large screen, even the regular screens set sixteen pixels between their
+ * blocks for a margin of twenty. The "Actions" button alone at the top of a
+ * page made it visible: more air below than above.
  *
- * Posé à la racine de chaque écran, et seulement là : l'intérieur d'une carte
- * ou d'un formulaire garde ses propres crans. Mêmes sélecteurs que
- * `space-y-*` de Tailwind, donc même spécificité nulle.
+ * Set at the root of each screen, and only there: the inside of a card or a
+ * form keeps its own steps. The same selectors as Tailwind's `space-y-*`, so
+ * the same zero specificity.
  */
 @utility aurora-stack {
     :where(& > :not(:last-child)) {
@@ -109,40 +108,40 @@
     }
 }
 
-/** Le même écart pour une grille ou un flex : colonnes d'un écran, rail et contenu. */
+/** The same gap for a grid or a flex: a screen's columns, rail and content. */
 @utility aurora-gap {
     gap: var(--aurora-page-margin);
 }
 
 /**
- * La marge latérale seule, pour ce qui borde la page sans être dedans : la
- * bande collée en haut, qui porte sa propre hauteur et sa propre bordure.
+ * The side margin alone, for what borders the page without being inside it:
+ * the strip stuck at the top, which carries its own height and its own
+ * border.
  *
- * Mesuré sur la liste des utilisateurs : en dessous de `lg`, où la bande ne
- * porte que le fil d'Ariane, celui-ci démarre exactement à la verticale de la
- * première carte - huit pixels tous les deux, contre seize et huit avant. À
- * partir de `lg`, les commandes occupent la gouttière à gauche et le fil
- * commence après elles ; c'est le bord de la bande qui s'aligne, pas son
- * contenu.
+ * Measured on the users list: below `lg`, where the strip carries only the
+ * breadcrumb, the breadcrumb starts exactly in line with the first card -
+ * eight pixels for both, against sixteen and eight before. From `lg`, the
+ * commands take the gutter on the left and the breadcrumb starts after them;
+ * it is the strip's edge that lines up, not its content.
  */
 @utility aurora-page-x {
     padding-inline: var(--aurora-page-margin);
 }
 
 /**
- * Une carte : une surface, un trait, un arrondi.
+ * A card: a surface, a line, a rounding.
  *
- * Cent cinq endroits les réécrivaient en Tailwind, avec trois arrondis
- * différents (`rounded-lg`, `rounded-xl`, `rounded-2xl`) et six opacités de
- * bordure. Rien ne les distinguait : c'était la même carte, écrite par des
- * mains différentes des mois d'écart. Le remplissage reste au cas par cas,
- * parce qu'une carte de tableau et une carte de formulaire n'ont pas la même
- * densité ; l'enveloppe, elle, est la même partout.
+ * A hundred and five places rewrote them in Tailwind, with three different
+ * roundings (`rounded-lg`, `rounded-xl`, `rounded-2xl`) and six border
+ * opacities. Nothing told them apart: it was the same card, written by
+ * different hands months apart. The padding stays case by case, because a
+ * table card and a form card do not have the same density; the shell, though,
+ * is the same everywhere.
  *
- * Les trois propriétés du trait sont écrites séparément, et pas avec le
- * raccourci `border`. Le raccourci remet le style à `solid` : une zone de
- * dépôt en pointillés qui garde son `border-dashed` à côté se retrouvait à
- * lutter à poids égal avec lui, et c'est l'ordre de la feuille qui tranchait.
+ * The three properties of the line are written separately, and not with the
+ * `border` shorthand. The shorthand resets the style to `solid`: a dashed
+ * drop zone keeping its `border-dashed` next to it ended up fighting it with
+ * equal weight, and the stylesheet's order settled it.
  */
 @utility aurora-card {
     background-color: var(--th-surface);

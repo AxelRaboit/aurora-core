@@ -55,8 +55,8 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
 <template>
     <div class="max-w-5xl mx-auto aurora-stack">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.profile.guide.title')" storage-key="profile">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.profile.guide.step_${step}`) }}</li>
@@ -284,8 +284,8 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                 <h2 class="text-lg font-semibold text-rose-400">{{ t('suite.profile.danger.title') }}</h2>
                 <p class="mt-1 text-sm text-secondary">{{ t('suite.profile.danger.description') }}</p>
             </header>
-            <!-- Pleine largeur sous `sm`, comme les autres : c'est un geste,
-                 pas une entrée de liste, et celui-là mérite d'être visé. -->
+            <!-- Full width below `sm`, like the others: it is an action,
+                 not a list entry, and this one deserves to be easy to hit. -->
             <AppButton
                 class="w-full sm:w-auto"
                 variant="danger"

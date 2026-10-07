@@ -1,15 +1,15 @@
 <script setup>
 /**
- * Un formulaire, sur sa propre page.
+ * A form, on its own page.
  *
- * Trois onglets, parce qu'on y vient pour trois choses différentes : composer
- * les questions, lire les réponses, régler ce qui l'entoure. Avant, les trois
- * s'empilaient sur une seule page, et les réglages vivaient dans une fenêtre
- * ouverte par le menu d'une carte. L'onglet est dans l'adresse : un lien vers
- * les réponses d'un formulaire s'envoie tel quel.
+ * Three tabs, because people come here for three different things: writing
+ * the questions, reading the answers, setting what surrounds it. Before, the
+ * three were stacked on a single page, and the settings lived in a dialog
+ * opened from a card's menu. The tab is in the address: a link to a form's
+ * answers can be sent as is.
  *
- * L'état est partagé par `provide` entre les onglets et le panneau d'une
- * question : le même formulaire, mis à jour par chaque réponse du serveur.
+ * The state is shared through `provide` between the tabs and a question's
+ * panel: the same form, updated by every server response.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, provide, ref, watch } from "vue";
@@ -55,7 +55,7 @@ const { request } = useRequest();
 
 const current = ref({ ...props.form });
 
-/** Chaque réponse du serveur porte le formulaire entier : on le remplace, sans recoller. */
+/** Every server response carries the whole form: it is replaced, not patched. */
 function upsert(form) {
     if (!form) return;
     current.value = { ...form, submissionCount: current.value.submissionCount };
@@ -63,7 +63,7 @@ function upsert(form) {
 
 const primaryLocale = computed(() => props.locales[0] ?? "fr");
 
-/** La langue qu'on édite, la même dans le panneau, l'aperçu et les réglages. */
+/** The language being edited, the same in the panel, the preview and the settings. */
 const editLocale = ref(primaryLocale.value);
 
 const title = computed(
@@ -78,8 +78,8 @@ function labelOf(field) {
 }
 
 /**
- * L'adresse publique suit le slug enregistré, pas celui de la première
- * ouverture : après un changement de slug, le lien menait à une page 404.
+ * The public address follows the saved slug, not the one from the first
+ * opening: after a slug change, the link led to a 404 page.
  */
 const publicPaths = computed(() =>
     Object.fromEntries(
@@ -96,9 +96,9 @@ const { settings, errors: settingsErrors, loading: settingsLoading, submit: subm
 
 provide("formFields", fieldsApi);
 
-// Une question s'ouvre toujours sur la langue principale. L'aperçu partage la
-// langue du panneau : laissé en anglais après un coup d'œil, il faisait taper
-// la question suivante en français dans sa version anglaise.
+// A question always opens on the main language. The preview shares the
+// panel's language: left in English after a quick look, it had the next
+// question typed in French into its English version.
 watch(fieldsApi.editorOpen, (open) => {
     if (open) editLocale.value = primaryLocale.value;
 });
@@ -122,7 +122,7 @@ provide("formEditor", {
 const TABS = ["fields", "submissions", "settings"];
 const { select: selectTab, isActive: isTabActive } = useTabState(TABS, { hash: true });
 
-// ── En-tête ─────────────────────────────────────────────────────────────────
+// ── Header ──────────────────────────────────────────────────────────────────
 
 const pendingDelete = ref(false);
 const deleteLoading = ref(false);
@@ -146,8 +146,8 @@ const headerActions = computed(() => {
     const actions = [];
     const path = publicPaths.value[primaryLocale.value];
 
-    // Seulement en ligne : hors ligne, la page répond 404 et le lien mènerait
-    // à une erreur qui ressemble à une panne.
+    // Only when online: offline, the page answers 404 and the link would lead
+    // to an error that looks like an outage.
     if (path && current.value.active) {
         actions.push({
             key: "public",
@@ -176,15 +176,15 @@ const headerActions = computed(() => {
 <template>
     <div class="aurora-stack">
         <AppPageBar :back-href="listPath" :back-label="t('suite.forms.editor.back')">
-            <!-- En ligne ou non, visible quel que soit l'onglet : on doit
-                 savoir qu'on modifie un formulaire que des gens remplissent. -->
+            <!-- Online or not, visible whatever the tab: one must know they
+                 are editing a form that people fill in. -->
             <AppBadge :color="current.active ? 'emerald' : 'gray'">
                 {{ t(current.active ? "suite.forms.list.status_active" : "suite.forms.list.status_inactive") }}
             </AppBadge>
             <AppPageActions v-if="headerActions.length" :actions="headerActions" icon-only-on-phone />
         </AppPageBar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.forms.editor_guide.title')" storage-key="form-editor">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.forms.editor_guide.step_${step}`) }}</li>

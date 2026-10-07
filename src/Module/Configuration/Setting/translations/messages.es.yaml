@@ -37,7 +37,7 @@ suite:
             step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         branding_guide:
             title: 'El logotipo y el icono del sitio'
-            step_1: 'El logotipo aparece en el menú lateral dla suite y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra.'
+            step_1: 'El logotipo aparece en el menú lateral de la suite y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra.'
             step_2: 'Sin favicon elegido, la pestaña del navegador muestra la inicial del nombre del sitio sobre el color principal del tema.'
             step_3: 'Una imagen tomada de la mediateca debe tener el estado «Publicado» para mostrarse a los visitantes.'
             step_4: 'En el teléfono, el nombre del sitio junto al logotipo de la barra superior puede ocultarse para dejar solo el logotipo.'
@@ -47,7 +47,7 @@ suite:
             step_1: 'El idioma por defecto sirve de respaldo al sitio público, y a los correos cuando la pestaña Emails sigue ese idioma.'
             step_2: 'El modo de un solo idioma solo muestra y guarda el idioma por defecto, y redirige hacia él las direcciones de los demás idiomas.'
             step_3: 'Desactivarlo más tarde devuelve su lugar a los contenidos escritos en los demás idiomas, que siguen en la base.'
-            step_4: 'El idioma dla suite no se ajusta aquí: cada uno lo elige en su perfil.'
+            step_4: 'El idioma de la suite no se ajusta aquí: cada uno lo elige en su perfil.'
             step_5: 'La zona horaria da la hora del sitio: las 9:00 en una publicación programada son las 9:00 aquí, y los emails y los PDF se fechan a esa hora, en el estilo de fechas elegido.'
             step_6: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         reading_guide:
@@ -434,8 +434,8 @@ suite:
             label: Favicon
             description: 'ID del medio utilizado como favicon'
         suite_bar_site_name_on_phone:
-          label: "Nombre del sitio en la barra dla suite en el móvil"
-          description: "Muestra el nombre del sitio junto al logotipo en la barra superior dla suite, por debajo de 640 px de ancho. Desactivado, solo queda el logotipo; los lectores de pantalla siguen leyendo el nombre. Para el sitio público, el ajuste equivalente está en el tema."
+          label: "Nombre del sitio en la barra de la suite en el móvil"
+          description: "Muestra el nombre del sitio junto al logotipo en la barra superior de la suite, por debajo de 640 px de ancho. Desactivado, solo queda el logotipo; los lectores de pantalla siguen leyendo el nombre. Para el sitio público, el ajuste equivalente está en el tema."
         seo_title_template:
             label: 'Plantilla de título SEO'
             description: 'Plantilla para el título de las páginas. Use {title} y {siteName}. Ej.: {title} · {siteName}'
@@ -530,6 +530,9 @@ suite:
         studio_contract_reminder_max:
             label: 'Número máximo de recordatorios'
             description: 'Por encima, el contrato se deja tranquilo. El silencio también es una respuesta.'
+        studio_contract_link_days:
+            label: 'Validez de un enlace de firma (días)'
+            description: 'Cuántos días permanece abierta la dirección enviada al cliente. Entre 1 y 365; un nuevo envío crea una nueva.'
         nav_section_aliases:
             label: 'Alias de las secciones de navegación'
             description: 'Mapa JSON de los alias de secciones (gestionado desde la interfaz).'

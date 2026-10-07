@@ -151,12 +151,12 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
     }
 
     /**
-     * Retire une conversation de la liste de quelqu'un, sans la supprimer.
+     * Removes a conversation from someone's list, without deleting it.
      *
-     * Refusée sur un canal : une pièce se quitte ou se supprime, et les deux
-     * gestes existent déjà. Ce rangement-là n'a de sens que pour une
-     * conversation à deux, où « supprimer » voudrait dire effacer la moitié de
-     * ce que l'autre a écrit.
+     * Refused on a channel: a room is left or deleted, and both actions
+     * already exist. This kind of putting away only makes sense for a
+     * conversation between two, where "delete" would mean erasing half of what
+     * the other person wrote.
      */
     public function hideDirect(SpaceChatChannelInterface $channel, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): void
     {
@@ -222,9 +222,9 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         $existing = $this->channelRepository->findDirectBetween($space, $from, $with);
 
         if ($existing instanceof SpaceChatChannelInterface) {
-            // Rouvrir, c'est remettre dans sa liste ce qu'on en avait retiré :
-            // la conversation revient avec tout ce qui s'y est dit, ce qui est
-            // exactement ce qu'on attend en rappelant quelqu'un.
+            // Reopening puts back in one's list what had been removed from it:
+            // the conversation comes back with everything said in it, which is
+            // exactly what one expects when calling someone back.
             foreach ($existing->getMembers() as $member) {
                 $member->reveal();
             }

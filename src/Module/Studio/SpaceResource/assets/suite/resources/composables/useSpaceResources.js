@@ -4,16 +4,17 @@ import { toast } from "vue-sonner";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
- * Les ressources d'un espace, et les cinq écritures qui les changent.
+ * The resources of a space, and the five writes that change them.
  *
- * **Chaque réponse rend la liste entière**, qui remplace la précédente : poser
- * une ressource l'ajoute en fin de liste, la ranger renumérote tout, et une
- * page qui rafistolerait sa copie s'écarterait du serveur en trois gestes. Une
- * liste de ressources est courte, elle tient dans une réponse.
+ * **Each response returns the whole list**, which replaces the previous one:
+ * adding a resource appends it to the end of the list, reordering renumbers
+ * everything, and a page that patched up its copy would drift from the
+ * server in three gestures. A list of resources is short, it fits in one
+ * response.
  *
- * Les refus sont rendus à l'appelant plutôt que criés ici : une erreur de
- * champ se pose sous son champ dans la modale, et un toast à sa place ferait
- * disparaître l'endroit où corriger.
+ * Refusals are handed back to the caller rather than shouted here: a field
+ * error goes under its field in the modal, and a toast in its place would
+ * make the place to fix it disappear.
  */
 export function useSpaceResources(props) {
     const { t } = useI18n();
@@ -27,12 +28,12 @@ export function useSpaceResources(props) {
     }
 
     /**
-     * Un envoi, et ce qu'il faut en faire.
+     * A submission, and what to do with it.
      *
-     * Rend `{ ok, errors }` : `ok` pour fermer la modale, `errors` pour la
-     * garder ouverte avec les messages sous les champs. `request` rend
-     * l'enveloppe d'un 422 sans rien annoncer, donc sans ce tri un libellé
-     * manquant ne produirait rien du tout à l'écran.
+     * Returns `{ ok, errors }`: `ok` to close the modal, `errors` to keep it
+     * open with the messages under the fields. `request` returns the envelope
+     * of a 422 without announcing anything, so without this sorting a missing
+     * label would produce nothing at all on screen.
      */
     async function send(url, payload = null) {
         saving.value = true;
@@ -72,9 +73,9 @@ export function useSpaceResources(props) {
         );
 
         if (result.ok) {
-            // Dit à voix haute : c'est le geste qui publie, et rien d'autre
-            // à l'écran ne distingue « le client le voit » de « il ne le voit
-            // pas » assez vite pour qu'on s'en assure d'un coup d'œil.
+            // Said out loud: it is the gesture that publishes, and nothing else on
+            // screen tells "the client sees it" from "they do not see it" fast enough
+            // to be sure of it at a glance.
             const shown = resources.value.find(
                 (row) => row.id === resource.id,
             )?.visibleToClient;
@@ -95,11 +96,11 @@ export function useSpaceResources(props) {
     }
 
     /**
-     * Le nouvel ordre, envoyé après avoir été appliqué à l'écran.
+     * The new order, sent after being applied on screen.
      *
-     * L'ordre local bouge d'abord : une liste qu'on range doit suivre la main,
-     * et attendre la réponse du serveur pour redessiner fait sauter la ligne
-     * qu'on vient de déplacer.
+     * The local order moves first: a list being arranged must follow the hand,
+     * and waiting for the server response to redraw makes the row that was just
+     * moved jump.
      */
     async function move(id, direction) {
         const index = resources.value.findIndex((row) => row.id === id);

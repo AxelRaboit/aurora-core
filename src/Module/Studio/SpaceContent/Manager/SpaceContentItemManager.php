@@ -11,6 +11,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
@@ -84,8 +85,55 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->announceSchedule($item);
     }
 
-    public function delete(SpaceContentItemInterface $item): void
+    /**
+     * Puts the content in the trash: it leaves the board, the list, the
+     * calendar, the counts and the client page, and its date leaves the
+     * Planning. Nothing is destroyed: its stage, its thread, its files and the
+     * client's answer stay in the database, and restoring puts everything
+     * back as it was.
+     */
+    public function trash(SpaceContentItemInterface $item): void
     {
+        if ($item->isTrashed()) {
+            return;
+        }
+
+        $item->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->auditTrashed($item);
+        $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, (int) $item->getId()));
+    }
+
+    /**
+     * Takes the content out of the trash, at the bottom of its stage: the one
+     * it had, or the board's first one if its own was deleted in the meantime
+     * ({@see SpaceContentColumnManager::delete()} already moved it there). Its
+     * date comes back to the calendar and the Planning.
+     */
+    public function restore(SpaceContentItemInterface $item): void
+    {
+        if (!$item->isTrashed()) {
+            return;
+        }
+
+        $item->setDeletedAt(null);
+        $item->setPosition($this->itemRepository->nextPosition($item->getColumn()));
+
+        $this->entityManager->flush();
+
+        $this->auditRestored($item);
+        $this->announceSchedule($item);
+    }
+
+    /**
+     * Destroys the content for good, with its thread and attached files (the
+     * documents stay in the media library). The trash's "Supprimer
+     * définitivement" button and the scheduled purge go through here.
+     */
+    public function forceDelete(SpaceContentItemInterface $item): void
+    {
+        // Logged before being removed: afterwards, it has no identifier.
         $this->auditDeleted($item);
 
         $id = (int) $item->getId();
@@ -96,6 +144,17 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         // After the row is gone, not before: an announcement that fails must
         // not leave a card deleted from the calendar and present on the board.
         $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
+    }
+
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
+    {
+        $purged = 0;
+        foreach ($this->itemRepository->findTrashedBefore($cutoff) as $item) {
+            $this->forceDelete($item);
+            ++$purged;
+        }
+
+        return $purged;
     }
 
     /**
@@ -195,7 +254,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         // Never folded into an earlier one: answering twice is changing one's
         // mind, and the second answer is the one that counts.
-        $this->notifier->clientAnswered($item, $link->getRecipientEmail(), SpaceContentApprovalEnum::Approved === $approval);
+        $this->notifier->clientAnswered($item, SpaceAccessLinkLabel::of($link), SpaceContentApprovalEnum::Approved === $approval);
     }
 
     public function approveMany(array $items, SpaceAccessLinkInterface $link): int
@@ -227,9 +286,9 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         ));
 
         if (1 === count($approved)) {
-            $this->notifier->clientAnswered($approved[0], $link->getRecipientEmail(), true);
+            $this->notifier->clientAnswered($approved[0], SpaceAccessLinkLabel::of($link), true);
         } else {
-            $this->notifier->clientApprovedMany($link->getSpace(), $link->getRecipientEmail(), count($approved));
+            $this->notifier->clientApprovedMany($link->getSpace(), SpaceAccessLinkLabel::of($link), count($approved));
         }
 
         return count($approved);
@@ -286,14 +345,15 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $scheduledAt = $item->getScheduledAt();
         $space = $item->getSpace();
 
-        // **Décochée vaut non datée, ici aussi.** Une carte retirée du
-        // calendrier de l'espace mais qui resterait dans l'agenda partagé du
-        // studio ferait mentir la case : « ne pas afficher dans le
-        // calendrier » se lit comme valant pour tous les calendriers, et
-        // c'est le seul endroit où cette règle peut être dite une fois.
-        // Et une carte d'un espace archivé non plus : son travail est fini, et
-        // elle encombrerait l'agenda de ceux qui s'occupent des autres.
-        if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar() || $space->isArchived()) {
+        // **Unticked means undated, here too.** A card removed from the
+        // space's calendar but left in the studio's shared agenda would make
+        // the box lie: "ne pas afficher dans le calendrier" reads as applying
+        // to every calendar, and this is the only place where that rule can
+        // be stated once.
+        // Nor a card of an archived space: its work is done, and it would
+        // clutter the agenda of those looking after the others.
+        // Nor a card in the trash, nor one from a space in the trash.
+        if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar() || $space->isArchived() || $item->isTrashed() || $space->isTrashed()) {
             $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
 
             return;
@@ -309,7 +369,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             // to know which client a date belongs to, and "Espaces clients"
             // told them the same thing eight times.
             sourceLabel: $space->getName(),
-            // La fiche, pas seulement l'espace : l'agenda mène à ce qu'il montre.
+            // The card, not only the space: the agenda leads to what it shows.
             url: $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId(), 'view' => 'calendar', 'item' => $item->getId()]),
             colourSlot: $space->getColourSlot(),
         ));
@@ -408,6 +468,16 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             // and the email the link was sent to is the only name there is.
             'answeredBy' => $item->getApprovalByLink()?->getRecipientEmail(),
         ];
+    }
+
+    protected function auditTrashed(SpaceContentItemInterface $item): void
+    {
+        $this->auditLogger->log('studio', 'space_content_item.trashed', 'SpaceContentItem', $item->getId(), $this->auditPayload($item));
+    }
+
+    protected function auditRestored(SpaceContentItemInterface $item): void
+    {
+        $this->auditLogger->log('studio', 'space_content_item.restored', 'SpaceContentItem', $item->getId(), $this->auditPayload($item));
     }
 
     protected function auditDeleted(SpaceContentItemInterface $item): void

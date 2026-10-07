@@ -70,10 +70,10 @@ export function useSpaceContent(initial, paths) {
     const isEmpty = computed(() => items.value.length === 0);
 
     /**
-     * Un état à ne montrer que lui - chez le client, en retard, à reprendre -
-     * ou rien. Les états viennent du serveur (`SpaceWorkload`), comme les
-     * compteurs du tableau de bord : la même carte y est comptée et filtrée
-     * par la même règle.
+     * A state to show on its own - with the client, late, to redo - or
+     * nothing. The states come from the server (`SpaceWorkload`), like the
+     * dashboard counters: the same card is counted there and filtered here by
+     * the same rule.
      */
     const stateFilter = ref("");
 
@@ -106,7 +106,7 @@ export function useSpaceContent(initial, paths) {
             column,
             cards: shown.value
                 .filter((item) => item.columnId === column.id)
-                .sort((a, b) => a.position - b.position),
+                .sort((left, right) => left.position - right.position),
         })),
     );
 
@@ -124,10 +124,10 @@ export function useSpaceContent(initial, paths) {
      * every card belongs to the same client, so what a reader scans a month for
      * is what still needs approving.
      *
-     * **Une carte décochée n'est ni ici ni dans le rail.** Elle a une date,
-     * donc elle n'attend pas d'être placée ; elle a juste une échéance qui ne
-     * regarde pas le calendrier. La faire retomber parmi le travail à placer
-     * aurait redemandé chaque jour de la dater.
+     * **An unticked card is neither here nor in the rail.** It has a date, so
+     * it is not waiting to be placed; it just has a deadline that is none of
+     * the calendar's business. Dropping it back among the work to place
+     * would have asked every day for it to be dated.
      */
     const events = computed(() =>
         shown.value
@@ -247,7 +247,9 @@ export function useSpaceContent(initial, paths) {
     const columnForm = ref({
         name: "",
         colourSlot: null,
-        visibleToClient: true,
+        // Hidden from the client until somebody who may share the space
+        // shows it: the rule of the whole space.
+        visibleToClient: false,
         role: "",
     });
 
@@ -288,7 +290,7 @@ export function useSpaceContent(initial, paths) {
         columnForm.value = {
             name: "",
             colourSlot: null,
-            visibleToClient: true,
+            visibleToClient: false,
             role: "",
         };
         clearColumnErrors();
@@ -300,7 +302,7 @@ export function useSpaceContent(initial, paths) {
         columnForm.value = {
             name: column.name,
             colourSlot: column.colourSlot ?? null,
-            visibleToClient: false !== column.visibleToClient,
+            visibleToClient: true === column.visibleToClient,
             role: column.role ?? "",
         };
         clearColumnErrors();

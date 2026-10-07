@@ -1,7 +1,7 @@
 {% extends '@Core/suite/layout.html.twig' %}
 
-{# Un livrable de Studio se compose dans la coquille du back-office : il n'a
-   pas d'espace dont il emprunterait l'en-tête. #}
+{# A Studio deliverable is composed in the back office shell: it has no space
+   whose header it could borrow. #}
 {% block title %}{{ deliverable.title }} - {{ 'suite.nav.studio_deliverables'|trans }} - {{ parent() }}{% endblock %}
 
 {% block page_header_slot %}
@@ -36,5 +36,7 @@
     copyToSpacePath: copyToSpacePath|default(''),
     copyTargets: copyTargets|default([]),
     categories: categories|default([]),
+    customers: customers|default([]),
+    canPickCustomer: canPickCustomer|default(false),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

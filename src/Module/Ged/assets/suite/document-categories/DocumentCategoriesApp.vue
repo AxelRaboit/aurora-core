@@ -29,7 +29,7 @@ const props = defineProps({
     deletePath: { type: String, required: true },
     listPath: { type: String, required: true },
     // Client extension point. A wrapper in an aurora-client project passes
-    // `{ color: { default: "", fromEntity: (cat) => cat.color ?? "" } }` and
+    // `{ color: { default: "", fromEntity: (category) => category.color ?? "" } }` and
     // fills the three scoped slots below; this component stays untouched, so
     // an aurora-core update never conflicts with it.
     extraFields: { type: Object, default: () => ({}) },
@@ -84,8 +84,8 @@ const pageActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.ged.categories.guide.title')" storage-key="ged-categories">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.ged.categories.guide.step_${step}`) }}</li>
@@ -106,16 +106,16 @@ const pageActions = computed(() => {
             <!-- Mobile cards -->
             <div class="sm:hidden space-y-2">
                 <AppNoData v-if="!items?.length" :message="t('suite.ged.categories.empty')" />
-                <div v-for="cat in items" :key="cat.id" class="aurora-card overflow-hidden">
+                <div v-for="category in items" :key="category.id" class="aurora-card overflow-hidden">
                     <div class="flex items-start gap-3 px-4 py-3">
                         <div class="min-w-0 flex-1">
-                            <p class="font-medium text-primary text-sm">{{ cat.name }}</p>
-                            <p class="text-xs text-muted font-mono mt-0.5">{{ cat.slug }}</p>
+                            <p class="font-medium text-primary text-sm">{{ category.name }}</p>
+                            <p class="text-xs text-muted font-mono mt-0.5">{{ category.slug }}</p>
                         </div>
-                        <!-- Les gestes derrière le bouton « … », à hauteur du
-                             nom, comme sur toutes les listes (décision d'Axel
-                             du 04/10/2026). -->
-                        <AppRowActions class="shrink-0" :actions="actionsFor(cat)" :label="cat.name" />
+                        <!-- The actions behind the "…" button, level with the
+                             name, as on every list (Axel's decision of
+                             04/10/2026). -->
+                        <AppRowActions class="shrink-0" :actions="actionsFor(category)" :label="category.name" />
                     </div>
                 </div>
             </div>
@@ -132,13 +132,13 @@ const pageActions = computed(() => {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-line/40">
-                        <tr v-for="cat in items" :key="cat.id" class="group hover:bg-surface-2/40 transition-colors">
-                            <td class="px-4 py-2 font-medium text-primary">{{ cat.name }}</td>
-                            <td class="px-4 py-2 text-muted font-mono text-xs hidden md:table-cell">{{ cat.slug }}</td>
-                            <slot name="extra-cells" :category="cat" />
+                        <tr v-for="category in items" :key="category.id" class="group hover:bg-surface-2/40 transition-colors">
+                            <td class="px-4 py-2 font-medium text-primary">{{ category.name }}</td>
+                            <td class="px-4 py-2 text-muted font-mono text-xs hidden md:table-cell">{{ category.slug }}</td>
+                            <slot name="extra-cells" :category="category" />
                             <td class="px-4 py-2">
                                 <div class="flex items-center justify-end gap-0.5">
-                                    <AppRowActions :actions="actionsFor(cat)" :label="cat.name ?? cat.label ?? ''" />
+                                    <AppRowActions :actions="actionsFor(category)" :label="category.name ?? category.label ?? ''" />
                                 </div>
                             </td>
                         </tr>

@@ -94,8 +94,8 @@ class SpaceChatChannelRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('c')
             ->leftJoin('c.members', 'm')
             ->where('c.space = :space')
-            // Une conversation rangée sort de la liste de celui qui l'a rangée,
-            // et d'aucune autre : `m.hiddenAt` est porté par la personne.
+            // A conversation put away leaves the list of whoever put it away,
+            // and no other: `m.hiddenAt` is carried by the person.
             ->andWhere('c.kind = :main OR (m.user = :user AND m.hiddenAt IS NULL)')
             ->setParameter('space', $space)
             ->setParameter('main', SpaceChatChannelKindEnum::Main)
@@ -119,22 +119,21 @@ class SpaceChatChannelRepository extends ResolveTargetEntityRepository
      */
     public function findForLink(CustomerSpaceInterface $space, SpaceAccessLinkInterface $link): array
     {
-        // **Les canaux ouverts au client, et rien d'autre.**
+        // **The channels open to the client, and nothing else.**
         //
-        // La seconde branche rendait aussi les conversations privées dont ce
-        // lien était membre. Elle est partie avec la route qui les ouvrait :
-        // une personne sans compte n'a pas de conversation privée, et le
-        // droit qui l'autorisait - « peut commenter » - en disait tout autre
-        // chose.
+        // The second branch also returned the private conversations this link
+        // was a member of. It left with the route that opened them: a person
+        // without an account has no private conversation, and the right that
+        // allowed it - "peut commenter" - said something else entirely.
         //
-        // La garde vit ici plutôt que dans le contrôleur parce qu'elle vaut
-        // aussi pour les conversations ouvertes avant ce changement : elles
-        // restent en base, lisibles du salarié, et ne remontent plus jamais
-        // vers un lien.
+        // The guard lives here rather than in the controller because it also
+        // applies to conversations opened before this change: they stay in
+        // the database, readable by the employee, and never come back up to
+        // a link again.
         //
-        // `$link` reste dans la signature : l'appelant dit de quel lien il
-        // parle, et la prochaine règle qui dépendra de lui n'aura pas à
-        // retraverser tous les appels.
+        // `$link` stays in the signature: the caller says which link it is
+        // talking about, and the next rule depending on it will not have to
+        // go back through every call.
         return $this->createQueryBuilder('c')
             ->where('c.space = :space')
             ->andWhere('c.openToClient = true')

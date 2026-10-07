@@ -95,9 +95,9 @@ final class CategorySlugIsUniqueAmongTheLivingTest extends IntegrationTestCase
     }
 
     /**
-     * Renommer garde l'identifiant. D'autres parties de l'application
-     * retrouvent une catégorie par lui : « Médias éditoriaux », renommée,
-     * était recréée sous l'ancien nom au dépôt suivant d'une image.
+     * Renaming keeps the identifier. Other parts of the application find a
+     * category through it: "Médias éditoriaux", once renamed, was recreated
+     * under the old name on the next image upload.
      */
     public function testRenamingKeepsTheSlug(): void
     {

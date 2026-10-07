@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceFile\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
@@ -41,6 +42,29 @@ class SpaceFileRepository extends ResolveTargetEntityRepository
             ->join('f.document', 'd')
             ->addSelect('d')
             ->where('f.space = :space')
+            ->setParameter('space', $space)
+            ->orderBy('f.createdAt', Order::Descending->value)
+            ->addOrderBy('f.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * The files the client's page lists: shown to them, or sent by them.
+     *
+     * The same order as {@see self::findForSpace()}, and the same rule as
+     * {@see SpaceFileInterface::isShownToClient()}, which the route serving a
+     * file asks of one row.
+     *
+     * @return list<SpaceFileInterface>
+     */
+    public function findShownForSpace(CustomerSpaceInterface $space): array
+    {
+        return $this->createQueryBuilder('f')
+            ->join('f.document', 'd')
+            ->addSelect('d')
+            ->where('f.space = :space')
+            ->andWhere('f.visibleToClient = true OR f.fromClient = true')
             ->setParameter('space', $space)
             ->orderBy('f.createdAt', Order::Descending->value)
             ->addOrderBy('f.id', Order::Descending->value)
@@ -107,5 +131,43 @@ class SpaceFileRepository extends ResolveTargetEntityRepository
     public function has(CustomerSpaceInterface $space, DocumentInterface $document): bool
     {
         return null !== $this->findOneBy(['space' => $space, 'document' => $document]);
+    }
+
+    /**
+     * The space files whose document title or file name contains the term, for
+     * the global search.
+     *
+     * `$spaceIds` as in the other Studio searches: null for every space, a list
+     * to narrow, an empty list for nothing. Neither a space in the trash nor a
+     * document in the library's trash is searched. The document and the space
+     * come along: the result shows the one and names the other.
+     *
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<SpaceFileInterface>
+     */
+    public function search(string $term, ?array $spaceIds, int $limit): array
+    {
+        if ('' === mb_trim($term) || [] === $spaceIds) {
+            return [];
+        }
+
+        $builder = $this->createQueryBuilder('f')
+            ->addSelect('d', 's')
+            ->join('f.document', 'd')
+            ->join('f.space', 's')
+            ->where('LOWER(d.title) LIKE :term OR LOWER(d.originalName) LIKE :term')
+            ->andWhere('s.deletedAt IS NULL')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('f.createdAt', Order::Descending->value)
+            ->addOrderBy('f.id', Order::Descending->value)
+            ->setMaxResults($limit);
+
+        if (null !== $spaceIds) {
+            $builder->andWhere('s.id IN (:ids)')->setParameter('ids', $spaceIds);
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }

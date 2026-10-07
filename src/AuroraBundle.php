@@ -117,6 +117,8 @@ use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategory;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategoryInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersion;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
@@ -133,20 +135,14 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
 use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
-use Aurora\Module\Studio\Deck\Entity\Deck;
-use Aurora\Module\Studio\Deck\Entity\DeckCategory;
-use Aurora\Module\Studio\Deck\Entity\DeckCategoryInterface;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Entity\Slide;
-use Aurora\Module\Studio\Deck\Entity\SlideInterface;
-use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
-use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\Slide;
+use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
@@ -165,8 +161,6 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResourceInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
@@ -230,12 +224,12 @@ class AuroraBundle extends AbstractBundle
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $dir = dirname(__DIR__);
+        $bundleDirectory = dirname(__DIR__);
 
         // Only this monorepo's own modules. A module shipped as a separate
         // Composer package registers its Doctrine mapping / Twig / i18n /
         // resolve_target_entities from its own Aurora<Name>Bundle instead.
-        $moduleDirs = glob($dir.'/src/Module/*', GLOB_ONLYDIR) ?: [];
+        $moduleDirectories = glob($bundleDirectory.'/src/Module/*', GLOB_ONLYDIR) ?: [];
 
         $builder->prependExtensionConfig('doctrine', [
             'dbal' => [
@@ -313,17 +307,14 @@ class AuroraBundle extends AbstractBundle
                     SpaceChatMessageInterface::class => SpaceChatMessage::class,
                     SpaceChatChannelInterface::class => SpaceChatChannel::class,
                     SpaceChatChannelMemberInterface::class => SpaceChatChannelMember::class,
-                    SpaceNoteInterface::class => SpaceNote::class,
                     SpaceFileInterface::class => SpaceFile::class,
                     SpaceResourceInterface::class => SpaceResource::class,
                     DeliverableInterface::class => Deliverable::class,
                     DeliverableLinkInterface::class => DeliverableLink::class,
                     DeliverableCategoryInterface::class => DeliverableCategory::class,
                     GridSectionInterface::class => GridSection::class,
-                    DeckInterface::class => Deck::class,
-                    DeckCategoryInterface::class => DeckCategory::class,
+                    ContractTemplateCategoryInterface::class => ContractTemplateCategory::class,
                     SlideInterface::class => Slide::class,
-                    DeckShareLinkInterface::class => DeckShareLink::class,
                     ContractInterface::class => Contract::class,
                     ContractAccessLinkInterface::class => ContractAccessLink::class,
                     ContractSignatureInterface::class => ContractSignature::class,
@@ -337,24 +328,24 @@ class AuroraBundle extends AbstractBundle
                         'AuroraCore' => [
                             'type' => 'attribute',
                             'is_bundle' => false,
-                            'dir' => $dir.'/src/Core',
+                            'dir' => $bundleDirectory.'/src/Core',
                             'prefix' => 'Aurora\Core',
                             'alias' => 'AuroraCore',
                         ],
                     ],
-                    ...array_map(static function (string $moduleDir): array {
-                        $moduleName = basename($moduleDir);
+                    ...array_map(static function (string $moduleDirectory): array {
+                        $moduleName = basename($moduleDirectory);
 
                         return [
                             'Aurora'.$moduleName => [
                                 'type' => 'attribute',
                                 'is_bundle' => false,
-                                'dir' => $moduleDir,
+                                'dir' => $moduleDirectory,
                                 'prefix' => 'Aurora\\Module\\'.$moduleName,
                                 'alias' => 'Aurora'.$moduleName,
                             ],
                         ];
-                    }, $moduleDirs),
+                    }, $moduleDirectories),
                 ),
             ],
         ]);
@@ -365,17 +356,17 @@ class AuroraBundle extends AbstractBundle
         // for each namespace - the new co-located path (mirroring core's layout
         // since templates were moved under src/) AND the legacy top-level path
         // (kept for backward compat with existing client projects).
-        $projectDir = (string) $builder->getParameter('kernel.project_dir');
+        $projectDirectory = (string) $builder->getParameter('kernel.project_dir');
 
         $twigPaths = [];
 
         // 1. Client-side overrides (highest priority - registered first).
-        foreach ($moduleDirs as $moduleDir) {
-            $moduleName = basename($moduleDir);
-            $clientColocated = $projectDir.'/src/Module/'.$moduleName.'/templates';
-            $clientLegacy = $projectDir.'/templates/Module/'.$moduleName;
-            // Don't double-register when $projectDir === $dir (aurora-core dev mode).
-            if ($clientColocated !== $dir.'/src/Module/'.$moduleName.'/templates' && is_dir($clientColocated)) {
+        foreach ($moduleDirectories as $moduleDirectory) {
+            $moduleName = basename($moduleDirectory);
+            $clientColocated = $projectDirectory.'/src/Module/'.$moduleName.'/templates';
+            $clientLegacy = $projectDirectory.'/templates/Module/'.$moduleName;
+            // Don't double-register when $projectDirectory === $bundleDirectory (aurora-core dev mode).
+            if ($clientColocated !== $bundleDirectory.'/src/Module/'.$moduleName.'/templates' && is_dir($clientColocated)) {
                 $twigPaths[$clientColocated] = $moduleName;
             }
 
@@ -389,15 +380,15 @@ class AuroraBundle extends AbstractBundle
         // project had no namespace at all and its templates were unreachable -
         // it had to fall back to the project's default templates/ directory,
         // breaking the co-location the convention asks for everywhere else.
-        if ($projectDir !== $dir) {
-            foreach (glob($projectDir.'/src/Module/*', GLOB_ONLYDIR) ?: [] as $clientModuleDir) {
-                $moduleName = basename($clientModuleDir);
-                $templates = $clientModuleDir.'/templates';
+        if ($projectDirectory !== $bundleDirectory) {
+            foreach (glob($projectDirectory.'/src/Module/*', GLOB_ONLYDIR) ?: [] as $clientModuleDirectory) {
+                $moduleName = basename($clientModuleDirectory);
+                $templates = $clientModuleDirectory.'/templates';
 
                 // Aurora-owned names are handled above, with their fallback to
                 // the bundle's own templates; re-registering here would shadow
                 // that ordering.
-                if (is_dir($dir.'/src/Module/'.$moduleName)) {
+                if (is_dir($bundleDirectory.'/src/Module/'.$moduleName)) {
                     continue;
                 }
 
@@ -407,10 +398,10 @@ class AuroraBundle extends AbstractBundle
             }
         }
 
-        if ($projectDir !== $dir) {
+        if ($projectDirectory !== $bundleDirectory) {
             foreach (['Core', 'Shared'] as $namespace) {
-                $clientColocated = $projectDir.'/src/Core/templates/'.$namespace;
-                $clientLegacy = $projectDir.'/templates/'.$namespace;
+                $clientColocated = $projectDirectory.'/src/Core/templates/'.$namespace;
+                $clientLegacy = $projectDirectory.'/templates/'.$namespace;
                 if (is_dir($clientColocated)) {
                     $twigPaths[$clientColocated] = $namespace;
                 }
@@ -426,9 +417,9 @@ class AuroraBundle extends AbstractBundle
         // relative refs like 'Frontend/themes/default/...' still resolve) and
         // the legacy <bundle>/templates/ (still hosts templates/bundles/TwigBundle/
         // for Symfony's third-party override convention).
-        $twigPaths[$dir.'/src/Core/templates'] = null;
-        $twigPaths[$dir.'/templates'] = null;
-        $twigPaths[$dir.'/src/Core/assets/css'] = 'styles';
+        $twigPaths[$bundleDirectory.'/src/Core/templates'] = null;
+        $twigPaths[$bundleDirectory.'/templates'] = null;
+        $twigPaths[$bundleDirectory.'/src/Core/assets/css'] = 'styles';
 
         // The bundle's error pages, for projects that ship none of their own.
         //
@@ -445,8 +436,8 @@ class AuroraBundle extends AbstractBundle
         // paths are registered before per-bundle override paths - so doing this
         // unconditionally would make the bundle's pages win over the client's,
         // which is precisely backwards.
-        if (!is_dir($projectDir.'/templates/bundles/TwigBundle')) {
-            $twigPaths[$dir.'/templates/bundles/TwigBundle'] = 'Twig';
+        if (!is_dir($projectDirectory.'/templates/bundles/TwigBundle')) {
+            $twigPaths[$bundleDirectory.'/templates/bundles/TwigBundle'] = 'Twig';
         }
 
         // Stable alias for the bundle's own theme files, so a module package
@@ -454,17 +445,17 @@ class AuroraBundle extends AbstractBundle
         // original: `{% extends 'Frontend/themes/default/layout.html.twig' %}`
         // from inside such an override resolves back to the override itself and
         // recurses forever. @see AbstractAuroraModuleBundle::prepend()
-        $twigPaths[$dir.'/src/Core/templates/Frontend/themes'] = 'AuroraTheme';
+        $twigPaths[$bundleDirectory.'/src/Core/templates/Frontend/themes'] = 'AuroraTheme';
         foreach (['Core', 'Shared'] as $namespace) {
-            $bundleColocated = $dir.'/src/Core/templates/'.$namespace;
+            $bundleColocated = $bundleDirectory.'/src/Core/templates/'.$namespace;
             if (is_dir($bundleColocated)) {
                 $twigPaths[$bundleColocated] = $namespace;
             }
         }
 
-        foreach ($moduleDirs as $moduleDir) {
-            $moduleName = basename($moduleDir);
-            $bundleModuleTemplates = $moduleDir.'/templates';
+        foreach ($moduleDirectories as $moduleDirectory) {
+            $moduleName = basename($moduleDirectory);
+            $bundleModuleTemplates = $moduleDirectory.'/templates';
             if (is_dir($bundleModuleTemplates)) {
                 $twigPaths[$bundleModuleTemplates] = $moduleName;
             }
@@ -521,7 +512,7 @@ class AuroraBundle extends AbstractBundle
 
         $builder->prependExtensionConfig('doctrine_migrations', [
             'migrations_paths' => [
-                'DoctrineMigrations' => $dir.'/migrations',
+                'DoctrineMigrations' => $bundleDirectory.'/migrations',
             ],
             'enable_profiler' => false,
         ]);
@@ -551,66 +542,62 @@ class AuroraBundle extends AbstractBundle
         ]);
 
         /*
-         * Les neuf limiteurs que les contrôleurs d'aurora-core câblent par leur
-         * nom.
+         * The nine limiters that aurora-core's controllers wire by their name.
          *
-         * La liste se relit par `grep -oE '\$[a-zA-Z]+Limiter' src/` : en
-         * oublier un ne se voit qu'au déploiement d'un projet client, sur le
-         * contrôleur qui le demande.
+         * The list is checked again with `grep -oE '\$[a-zA-Z]+Limiter' src/`:
+         * forgetting one only shows when a client project is deployed, on the
+         * controller that asks for it.
          *
-         * **C'était au client de les répéter, et rien ne le disait** - sinon un
-         * conteneur qui refuse de se construire au premier déploiement, sur un
-         * service dont le projet n'a jamais entendu parler. Le commentaire du
-         * routage messenger juste au-dessus notait déjà que les limiteurs ont
-         * cette forme ; il a fallu en ajouter un pour que ça se voie.
+         * **It was up to the client to repeat them, and nothing said so** -
+         * except a container that refuses to build on the first deployment, on
+         * a service the project has never heard of. The messenger routing
+         * comment just above already noted that the limiters have this shape;
+         * it took adding one for it to show.
          *
-         * Fournis ici, ils arrivent avec le paquet. Un client qui veut d'autres
-         * chiffres redéclare la clé dans son propre `rate_limiter.yaml` : sa
-         * configuration est chargée après, donc elle gagne.
+         * Provided here, they come with the package. A client that wants other
+         * figures declares the key again in its own `rate_limiter.yaml`: its
+         * configuration is loaded after, so it wins.
          */
         $builder->prependExtensionConfig('framework', [
             'rate_limiter' => [
-                // L'envoi d'un formulaire du site public.
+                // Submitting a form on the public site.
                 'form_submission' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
-                // La signature d'un contrat par quelqu'un qui tient un lien.
+                // Signing a contract by someone who holds a link.
                 'contract_signature' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 'contract_signature_code' => ['policy' => 'sliding_window', 'limit' => 15, 'interval' => '1 hour'],
-                // Le mot de passe d'un lien de présentation.
-                'deck_share_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
-                // Le mot de passe d'un lien de lecture d'une publication.
+                // The password of a publication's reading link.
                 'post_reading_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
-                // Le mot de passe d'un lien de lecture d'un livrable.
+                // The password of a deliverable's reading link.
                 'deliverable_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
-                // Les gestes d'un client sur l'espace qu'un lien lui ouvre :
-                // valider, commenter, écrire. Plus haut que la signature parce
-                // qu'on parcourt un mois et qu'on valide six publications
-                // d'affilée, là où on ne signe qu'une fois.
+                // A client's actions on the space a link opens to them:
+                // approving, commenting, writing. Higher than the signature
+                // because one goes through a month and approves six
+                // publications in a row, where one signs only once.
                 'space_guest_write' => ['policy' => 'sliding_window', 'limit' => 40, 'interval' => '1 hour'],
-                // Le dépôt d'un fichier : il traverse le stockage, la vignette
-                // et, pour une vidéo, la capture d'une image de couverture.
+                // Uploading a file: it goes through the storage, the thumbnail
+                // and, for a video, the capture of a cover image.
                 'space_guest_upload' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
-                // Le lot du dossier Drive, la route publique la plus chère :
-                // chaque fichier est téléchargé chez Google et le zip est
-                // construit en entier avant le premier octet envoyé.
+                // The Drive folder bundle, the most expensive public route:
+                // every file is downloaded from Google and the zip is built
+                // whole before the first byte is sent.
                 'space_guest_archive' => ['policy' => 'sliding_window', 'limit' => 5, 'interval' => '1 hour'],
-                // Le mot de passe qui ouvre le Drive d'un espace, par personne
-                // et par espace : dix essais le quart d'heure suffisent à qui
-                // l'a mal tapé, pas à qui le cherche.
+                // The password that opens a space's Drive, per person and per
+                // space: ten tries per quarter of an hour are enough for
+                // someone who mistyped it, not for someone guessing it.
                 'space_drive_unlock' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '15 minutes'],
-                // L'inscription à la lettre d'information et la prise d'un
-                // rendez-vous, sur le même mur extérieur que les autres,
-                // gardées par IP.
+                // Subscribing to the newsletter and booking an appointment,
+                // on the same outer wall as the others, guarded by IP.
                 'newsletter_subscription' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 'editorial_booking' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
-                // Le vote d'un sondage : un par lecteur déjà, plus large pour
-                // un foyer derrière une seule adresse.
+                // A poll vote: already one per reader, wider for a household
+                // behind a single address.
                 'editorial_poll_vote' => ['policy' => 'sliding_window', 'limit' => 30, 'interval' => '1 hour'],
             ],
         ]);
 
-        $coreDirs = array_merge(
-            glob($dir.'/src/Core/*/translations', GLOB_ONLYDIR) ?: [],
-            glob($dir.'/src/Core/*/*/translations', GLOB_ONLYDIR) ?: [],
+        $coreTranslationDirectories = array_merge(
+            glob($bundleDirectory.'/src/Core/*/translations', GLOB_ONLYDIR) ?: [],
+            glob($bundleDirectory.'/src/Core/*/*/translations', GLOB_ONLYDIR) ?: [],
         );
 
         // A client module carries its own catalogue, co-located like aurora's
@@ -618,16 +605,16 @@ class AuroraBundle extends AbstractBundle
         // a client had exactly one place to put translations - the project's
         // root catalogue - however many modules it owned. Depth 1 and 2, to
         // match `src/Module/<Domain>/<Feature>/`.
-        $clientTranslationDirs = $projectDir === $dir ? [] : array_merge(
-            glob($projectDir.'/src/Module/*/translations', GLOB_ONLYDIR) ?: [],
-            glob($projectDir.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
+        $clientTranslationDirectories = $projectDirectory === $bundleDirectory ? [] : array_merge(
+            glob($projectDirectory.'/src/Module/*/translations', GLOB_ONLYDIR) ?: [],
+            glob($projectDirectory.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
         );
 
         $builder->prependExtensionConfig('framework', [
             'default_locale' => LocaleEnum::default()->value,
             'enabled_locales' => LocaleEnum::values(),
             'translator' => [
-                'default_path' => $dir.'/src/Core/translations',
+                'default_path' => $bundleDirectory.'/src/Core/translations',
                 // Client catalogues come LAST on purpose: a later path wins on
                 // a shared key, so trailing position is what lets a client
                 // restate an aurora string - the priority client templates
@@ -643,10 +630,10 @@ class AuroraBundle extends AbstractBundle
                 // cannot be overridden this way whatever the ordering.
                 'paths' => array_values(array_filter(
                     array_merge(
-                        array_map(static fn (string $moduleDir): string => $moduleDir.'/translations', $moduleDirs),
-                        glob($dir.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
-                        $coreDirs,
-                        $clientTranslationDirs,
+                        array_map(static fn (string $moduleDirectory): string => $moduleDirectory.'/translations', $moduleDirectories),
+                        glob($bundleDirectory.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
+                        $coreTranslationDirectories,
+                        $clientTranslationDirectories,
                     ),
                     is_dir(...),
                 )),

@@ -107,13 +107,13 @@ function openViewWithPrivileges(user) {
 }
 
 /**
- * Les trois libellés de la bascule d'accès, pour les trois situations qu'elle
- * couvre - et pas deux.
+ * The three labels of the access toggle, for the three situations it covers -
+ * and not two.
  *
- * Ouvrir un compte que personne n'a jamais contacté (`invitedAt` nul) n'est pas
- * une réactivation : c'est le premier envoi de son invitation. Annoncer
- * « réactiver » ferait croire qu'on rend un accès à quelqu'un qui ne l'a jamais
- * eu, et masquerait qu'un mail part.
+ * Opening an account nobody has ever contacted (`invitedAt` null) is not a
+ * reactivation: it is the first sending of its invitation. Saying
+ * "réactiver" would suggest access is being given back to someone who never
+ * had it, and would hide that an email goes out.
  */
 const toggleKeys = computed(() => {
     if (togglingUser.value?.status !== UserStatus.Disabled) {
@@ -170,8 +170,8 @@ const pageActions = computed(() => {
             <AppPageActions :actions="pageActions" class="shrink-0" />
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.users.guide.title')" storage-key="users">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.users.guide.step_${step}`) }}</li>
@@ -180,14 +180,14 @@ const pageActions = computed(() => {
         <div class="relative space-y-4">
             <div v-if="isNarrow" class="space-y-2">
                 <AppNoData v-if="!loading && !users.length" :message="t('suite.users.empty')" />
-                <!-- Une personne, un bloc.
-                     La carte en empilait trois : l'avatar et le nom, puis les
-                     étiquettes, puis un pied barré d'un trait qui ne portait
-                     qu'un menu de trois points, aligné à droite d'une bande
-                     vide. Quarante-cinq pixels et une bordure par personne
-                     pour un seul bouton, sur l'écran qui a le moins de place.
-                     Le menu remonte à la hauteur du nom, là où on le cherche,
-                     et le pied disparaît. -->
+                <!-- One person, one block.
+                     The card used to stack three: the avatar and the name,
+                     then the badges, then a footer crossed by a line that
+                     only carried a three-dot menu, aligned right in an empty
+                     strip. Forty-five pixels and a border per person for a
+                     single button, on the screen with the least room. The
+                     menu moves up to the height of the name, where people
+                     look for it, and the footer goes away. -->
                 <div v-for="user in users" :key="user.id" class="aurora-card flex items-start gap-3 p-3">
                     <AppAvatar
                         variant="solid"
@@ -234,12 +234,12 @@ const pageActions = computed(() => {
                 <table v-else class="w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
-                            <!-- Une seule colonne pour la personne : son nom,
-                                 ce qu'elle a mis en phrase d'accroche, et son
-                                 adresse. L'adresse avait sa colonne, qui
-                                 disparaissait sous 1024 pixels - donc l'écran
-                                 où l'on cherche quelqu'un par son mail était
-                                 justement celui qui ne le montrait pas. -->
+                            <!-- A single column for the person: their name,
+                                 what they wrote as a tagline, and their
+                                 address. The address had its own column,
+                                 which disappeared below 1024 pixels - so the
+                                 screen where someone is looked up by email
+                                 was precisely the one that did not show it. -->
                             <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('suite.users.user_label') }}</th>
                             <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t('suite.users.role_label') }}</th>
                             <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('suite.users.type_label') }}</th>
@@ -332,8 +332,8 @@ const pageActions = computed(() => {
                     :error="inviteModal.errors.email ?? ''"
                     required
                 />
-                <!-- Le type d'abord : il décide si la question du rôle a un
-                     sens. Masqué quand il n'y a rien à choisir. -->
+                <!-- The type first: it decides whether the role question
+                     makes sense. Hidden when there is nothing to choose. -->
                 <AppMultiselect
                     v-if="userTypes.length > 1"
                     v-model="inviteForm.type"
@@ -342,11 +342,11 @@ const pageActions = computed(() => {
                     :error="inviteModal.errors.type ?? ''"
                     required
                 />
-                <!-- Le site public n'a qu'un rôle, et ce n'est pas un choix de
-                     l'opérateur : l'inscription publique pose ROLE_USER en dur,
-                     et une invitation doit aboutir au même compte. Afficher un
-                     sélecteur ici laisserait croire à une décision qui n'existe
-                     pas - le serveur force la valeur de toute façon. -->
+                <!-- The public site has only one role, and it is not the
+                     operator's choice: public sign-up hardcodes ROLE_USER,
+                     and an invitation must lead to the same account. Showing
+                     a selector here would suggest a decision that does not
+                     exist - the server forces the value anyway. -->
                 <AppMultiselect
                     v-if="inviteForm.type !== 'frontend'"
                     v-model="inviteForm.role"
@@ -356,7 +356,7 @@ const pageActions = computed(() => {
                     required
                 />
                 <p v-else class="text-xs text-muted">{{ t('suite.users.invite_frontend_role_hint') }}</p>
-                <!-- Le message n'a plus de destinataire quand rien ne part. -->
+                <!-- The message has no recipient when nothing is sent. -->
                 <div v-if="!inviteForm.disabled">
                     <label class="block text-xs text-secondary uppercase tracking-wide mb-1.5">{{ t('suite.users.invite_message') }}</label>
                     <textarea
@@ -367,10 +367,10 @@ const pageActions = computed(() => {
                     />
                 </div>
 
-                <!-- Pré-provisionner : quelqu'un qui arrive plus tard. Le compte
-                     existe, personne n'est contacté, et la connexion est refusée
-                     jusqu'à ce qu'on l'ouvre depuis la liste - c'est cette
-                     ouverture qui enverra l'invitation. -->
+                <!-- Pre-provision: someone arriving later. The account exists,
+                     nobody is contacted, and sign-in is refused until it is
+                     opened from the list - that opening is what sends the
+                     invitation. -->
                 <AppCheckbox
                     v-model="inviteForm.disabled"
                     :label="t('suite.users.invite_disabled')"
@@ -382,9 +382,9 @@ const pageActions = computed(() => {
             <template #footer>
                 <AppModalFooter>
                     <AppButton variant="ghost" size="md" v-on:click="inviteModal.open = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.cancel') }}</AppButton>
-                    <!-- Le libellé suit ce que le bouton fait vraiment : un
-                         « Envoyer l'invitation » qui n'envoie rien est un
-                         mensonge. -->
+                    <!-- The label follows what the button really does: a
+                         "Envoyer l'invitation" that sends nothing is a
+                         lie. -->
                     <AppButton type="submit" variant="primary" size="md" :loading="inviteModal.saving">
                         <component :is="inviteForm.disabled ? UserPlus : Send" class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ inviteForm.disabled ? t('suite.users.create_disabled_account') : t('suite.users.send_invite') }}

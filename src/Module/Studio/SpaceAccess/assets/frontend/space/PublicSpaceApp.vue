@@ -24,7 +24,7 @@
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip } from "lucide-vue-next";
+import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip, Upload } from "lucide-vue-next";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -52,6 +52,7 @@ import {
     FileText,
     Package,
     MessageSquare,
+    Presentation,
 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -64,17 +65,22 @@ const props = defineProps({
     comments: { type: Object, default: () => ({}) },
     /** Null when this link may only read, so there is nothing to post to. */
     answerPath: { type: String, default: null },
-    /** L'accord en lot. Null pour les mêmes raisons que `answerPath`. */
+    /** The batch approval. Null for the same reasons as `answerPath`. */
     approveManyPath: { type: String, default: null },
     commentPath: { type: String, default: null },
     canUpload: { type: Boolean, default: false },
-    /** Vrai quand le studio se regarde lui-même, et non le client. */
+    /** True when the studio is looking at the page itself, not the client. */
     preview: { type: Boolean, default: false },
     attachments: { type: Object, default: () => ({}) },
     uploadPath: { type: String, default: null },
-    /** Les fichiers de l'espace, ceux qui ne sont sur aucune fiche. */
+    /** The space's own files, the ones attached to no card. */
     spaceFiles: { type: Array, default: () => [] },
-    /** Le dossier Drive du prestataire, quand il en a branché un. */
+    /**
+     * Where a file for the space itself is sent, from the Files tab. Null
+     * without the link's right to send files, so there is no button at all.
+     */
+    spaceFileUploadPath: { type: String, default: null },
+    /** The provider's Drive folder, when they connected one. */
     drivePath: { type: String, default: null },
     driveFilePath: { type: String, default: null },
     driveArchivePath: { type: String, default: null },
@@ -91,19 +97,19 @@ const props = defineProps({
     chatPeople: { type: Array, default: () => [] },
     chatChannelId: { type: [Number, null], default: null },
     /**
-     * La fiche du prestataire sur ce client, ou `null`.
+     * The provider's record on this client, or `null`.
      *
-     * `null` quand elle ne dit rien de plus que le nom, que le client connaît
-     * déjà : l'onglet n'existe alors pas, comme la discussion sans canal.
+     * `null` when it says nothing more than the name, which the client already
+     * knows: the tab then does not exist, like the chat without a channel.
      */
     information: { type: Object, default: null },
-    /** Ce que le studio a ouvert au client, et rien d'autre. */
+    /** What the studio opened to the client, and nothing else. */
     resources: { type: Array, default: () => [] },
-    /** Les documents publiés pour ce client : audits, stratégies. */
+    /** The documents published for this client: audits, strategies. */
     documents: { type: Array, default: () => [] },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { request } = useRequest();
 const { formatSize } = useFileSize();
 
@@ -127,8 +133,8 @@ const columnColours = computed(
     () => new Map(props.columns.map((column) => [column.id, column.colourSlot])),
 );
 
-// Ce que le client voit dans son mois, et la même règle que le studio : une
-// carte décochée porte une échéance interne, pas une parution.
+// What the client sees in their month, with the same rule as the studio: an
+// unchecked card carries an internal deadline, not a publication.
 const events = computed(() =>
     items.value
         .filter((item) => item.scheduledAt && false !== item.showOnCalendar)
@@ -148,29 +154,30 @@ const events = computed(() =>
             // the absence of a listener is what makes the page read-only by
             // construction instead of by omission.
             readOnly: true,
-            // L'état de la réponse voyage avec l'événement. La grille l'ignore,
-            // le compteur, le filtre et la liste du jour s'en servent.
+            // The answer's state travels with the event. The grid ignores it;
+            // the counter, the filter and the day list use it.
             approval: item.approval ?? "pending",
         })),
 );
 
 /**
- * Ce qui attend encore une réponse de ce client.
+ * What is still waiting for an answer from this client.
  *
- * `pending` veut dire que personne n'a rien dit, ce qui n'est pas un refus :
- * c'est exactement la population qu'un client vient chercher en revenant.
+ * `pending` means nobody has said anything, which is not a refusal: it is
+ * exactly the set a client comes back looking for.
  */
 const pendingEvents = computed(() =>
     events.value.filter((event) => "pending" === event.approval),
 );
 
 /**
- * Le mois réduit à ce qui attend, quand le client le demande.
+ * The month reduced to what is waiting, when the client asks for it.
  *
- * Un filtre plutôt qu'une pastille sur la grille : le mois est un composant
- * partagé par toute l'application, et l'événement y porte déjà une couleur,
- * celle de son étape. Un second code couleur sur la même pastille ne se lit
- * pas. Retirer ce qui ne l'attend pas dit la même chose sans rien repeindre.
+ * A filter rather than a dot on the grid: the month is a component shared by
+ * the whole application, and the event already carries a colour there, the
+ * one of its step. A second colour code on the same dot cannot be read.
+ * Removing what is not waiting on them says the same thing without repainting
+ * anything.
  */
 const reviewOnly = ref(false);
 
@@ -178,32 +185,34 @@ const visibleEvents = computed(() =>
     reviewOnly.value ? pendingEvents.value : events.value,
 );
 
-/** Le bouton reste tant qu'il est enclenché, sinon il disparaîtrait sous le doigt. */
+/** The button stays while it is on, otherwise it would vanish under the finger. */
 const showsReviewFilter = computed(
     () => props.canApprove && (pendingEvents.value.length > 0 || reviewOnly.value),
 );
 
 /**
- * Une grille de mois ne tient pas sur un téléphone, et c'est mesurable.
+ * A month grid does not fit on a phone, and that can be measured.
  *
- * Sept colonnes dans trois cent soixante-quinze pixels font des cases de
- * cinquante : les trois autres calendriers d'Aurora passent donc en index à
- * pastilles sous le seuil, avec la liste du jour en dessous. Celui-ci était le
- * seul à ne pas le faire, et il montrait au client des pastilles d'événement de
- * seize pixels de haut - la hauteur d'une ligne de texte, pas celle d'une
- * cible.
+ * Seven columns in three hundred and seventy-five pixels make cells of fifty:
+ * the three other Aurora calendars therefore switch to a dot index below the
+ * threshold, with the day list underneath. This one was the only one not to,
+ * and it showed the client event chips sixteen pixels high - the height of a
+ * line of text, not of a target.
  */
 const { container, isNarrow } = useNarrowContainer(560);
 
 /**
- * Les fichiers du dossier Drive, s'il y en a un.
+ * The files of the Drive folder, if there is one.
  *
- * **Chargés après la page, jamais avec.** Lire un dossier chez Google prend
- * deux dixièmes de seconde et peut échouer ; faire attendre la page pour ça
- * retarderait ce que le client vient vraiment voir. La section apparaît quand
- * la réponse arrive, et reste absente si elle ne vient pas.
+ * **Loaded after the page, never with it.** Reading a folder at Google takes
+ * two tenths of a second and can fail; making the page wait for it would delay
+ * what the client really comes to see. The section appears when the answer
+ * arrives, and stays absent if it does not come.
  */
 const driveFiles = ref([]);
+
+/** The space's own files, replaced by what the server answers after a send. */
+const spaceFileList = ref(props.spaceFiles ?? []);
 
 onMounted(async () => {
     if (!props.drivePath) return;
@@ -216,43 +225,47 @@ onMounted(async () => {
         const data = await response.json();
         driveFiles.value = Array.isArray(data?.files) ? data.files : [];
     } catch {
-        // Silencieux : un dossier qu'on ne joint pas est une section qui ne
-        // s'affiche pas, pas une erreur sur la page d'un client.
+        // Silent: a folder that cannot be reached is a section that does not
+        // show, not an error on a client's page.
     }
 });
 
 /**
- * Les trois choses qu'un client vient faire ici, et une seule à la fois.
+ * The three things a client comes here to do, and only one at a time.
  *
- * **La page les empilait, sur près de deux mille pixels.** Le calendrier, la
- * discussion et les documents se suivaient, donc lire un message demandait de
- * dépasser un mois entier, et retrouver un fichier de dépasser les deux. Sur
- * téléphone la page devenait un couloir.
+ * **The page used to stack them, over nearly two thousand pixels.** The
+ * calendar, the chat and the documents followed each other, so reading a
+ * message meant scrolling past a whole month, and finding a file meant
+ * scrolling past both. On a phone the page became a corridor.
  *
- * Le même idiome qu'un espace côté studio, délibérément : c'est la même
- * matière, et un client qui verrait son prestataire travailler ne devrait pas
- * découvrir un second vocabulaire.
+ * The same idiom as a space on the studio side, on purpose: it is the same
+ * material, and a client who saw their provider at work should not discover a
+ * second vocabulary.
  *
- * Un onglet qui n'a rien à montrer n'existe pas : pas de discussion sans canal
- * lisible, pas de documents sans fichier. Une page à un seul onglet n'en
- * dessine aucun - un sélecteur à un choix est un ornement.
+ * A tab with nothing to show does not exist: no chat without a readable
+ * channel, no documents without a file. A page with a single tab draws none -
+ * a selector with one choice is an ornament.
  */
 const VIEWS = [
     { key: "calendar", labelKey: "studio.public.space.tab_calendar", icon: CalendarDays },
     { key: "chat", labelKey: "studio.public.space.tab_chat", icon: MessagesSquare },
     { key: "files", labelKey: "studio.public.space.tab_files", icon: Paperclip },
-    // Ce que le prestataire a écrit pour ce client, un audit, une stratégie :
-    // on les lit, donc près des fichiers plutôt qu'avec la fiche.
+    // What the provider wrote for this client, an audit, a strategy: they are
+    // read, so they sit near the files rather than with the record.
     { key: "documents", labelKey: "studio.public.space.tab_documents", icon: NotebookText },
-    // Ce que le prestataire a épinglé pour ce client, puis la fiche qu'il
-    // tient sur lui. En dernier parce qu'on les consulte de temps en temps :
-    // ce qu'on vient voir est le calendrier.
+    // What the provider pinned for this client, then the record they keep on
+    // them. Last because they are looked up now and then: what people come to
+    // see is the calendar.
     { key: "resources", labelKey: "studio.public.space.tab_resources", icon: Link2 },
     { key: "information", labelKey: "studio.public.space.tab_information", icon: IdCard },
 ];
 
 const hasChat = computed(() => props.chatChannels.length > 0);
-const hasFiles = computed(() => props.spaceFiles.length > 0 || driveFiles.value.length > 0);
+// The tab also exists to send the first file: a link that may send files has
+// somewhere to do it even before anything was shared.
+const hasFiles = computed(
+    () => spaceFileList.value.length > 0 || driveFiles.value.length > 0 || !!props.spaceFileUploadPath,
+);
 const hasResources = computed(() => props.resources.length > 0);
 const hasDocuments = computed(() => props.documents.length > 0);
 const hasInformation = computed(() => null !== props.information);
@@ -270,12 +283,12 @@ const views = computed(() => VIEWS.filter((entry) => {
 const view = ref("calendar");
 
 /**
- * Le mode d'emploi, réduit à ce que ce lien permet.
+ * The how-to guide, reduced to what this link allows.
  *
- * Chaque droit du lien (valider, commenter, envoyer un fichier, écrire dans
- * la discussion) est réglé à sa création : une étape qui promettrait un
- * bouton absent de la page enverrait le client chercher ce qui n'existe pas.
- * Les mêmes conditions que celles qui dessinent les commandes, donc.
+ * Each right of the link (approve, comment, send a file, write in the chat)
+ * is set when it is created: a step promising a button missing from the page
+ * would send the client looking for something that does not exist. Hence the
+ * same conditions as the ones that draw the controls.
  */
 const guideSteps = computed(() => {
     const steps = ["calendar"];
@@ -285,6 +298,8 @@ const guideSteps = computed(() => {
     if (props.canComment && props.canUpload) steps.push("comment_upload");
     else if (props.canComment) steps.push("comment");
     else if (props.canUpload) steps.push("upload");
+
+    if (props.spaceFileUploadPath) steps.push("files_upload");
 
     if (hasChat.value) steps.push(props.chatPostPath ? "chat" : "chat_read");
 
@@ -296,11 +311,11 @@ const guideSteps = computed(() => {
 });
 
 /**
- * Le calendrier se remesure en revenant dessus.
+ * The calendar measures itself again when the view comes back to it.
  *
- * `useNarrowContainer` observe un élément ; caché puis remonté, il repart
- * d'une largeur nulle et la grille se croit sur téléphone. Un battement de
- * cycle suffit à lui redonner sa taille.
+ * `useNarrowContainer` observes an element; hidden then mounted again, it
+ * starts from a zero width and the grid believes it is on a phone. One tick
+ * is enough to give it its size back.
  */
 watch(view, async (now) => {
     if ("calendar" !== now) return;
@@ -314,34 +329,34 @@ function driveAddress(file) {
 }
 
 /**
- * La même adresse, mais pour emporter le fichier.
+ * The same address, but to take the file away.
  *
- * Le nom n'est pas mis ici : le serveur le redemande à Google, parce qu'un
- * nom venu du navigateur finirait dans un en-tête de réponse.
+ * The name is not put here: the server asks Google for it again, because a
+ * name coming from the browser would end up in a response header.
  */
 function driveDownload(file) {
     return driveAddress(file) + "?download=1";
 }
 
-/** Le jour que la liste montre. Aujourd'hui tant que personne n'en a choisi un. */
+/** The day the list shows. Today until someone picks one. */
 const selectedDay = ref(new Date());
 
-function sameDay(a, b) {
+function sameDay(first, second) {
     return (
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth() &&
-        a.getDate() === b.getDate()
+        first.getFullYear() === second.getFullYear() &&
+        first.getMonth() === second.getMonth() &&
+        first.getDate() === second.getDate()
     );
 }
 
 const dayItems = computed(() =>
     visibleEvents.value
         .filter((event) => sameDay(new Date(event.startAt), selectedDay.value))
-        .sort((a, b) => new Date(a.startAt) - new Date(b.startAt)),
+        .sort((left, right) => new Date(left.startAt) - new Date(right.startAt)),
 );
 
 const dayTitle = computed(() =>
-    d(selectedDay.value, { weekday: "long", day: "numeric", month: "long" }),
+    formatDate(selectedDay.value, { weekday: "long", day: "numeric", month: "long" }),
 );
 
 const itemsById = computed(
@@ -351,7 +366,7 @@ const itemsById = computed(
 const openItem = ref(null);
 
 const monthTitle = computed(() =>
-    d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
+    formatDate(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
 );
 
 function goToMonth(delta) {
@@ -363,7 +378,7 @@ function goToMonth(delta) {
 const openWhen = computed(() => {
     if (!openItem.value?.scheduledAt) return "";
 
-    return d(new Date(openItem.value.scheduledAt), "long");
+    return formatDate(new Date(openItem.value.scheduledAt), "long");
 });
 
 const answering = ref("");
@@ -404,13 +419,64 @@ async function upload(file) {
             { rawBody: form },
         );
 
-        if (!data?.success) return;
+        // A refusal from the policy (too heavy, a type the space does not
+        // take) is said, as on the Files tab: silence read as a success.
+        if (data && !data.success) {
+            toast.error(t(data.errors?.file ?? "studio.public.space.errors.upload_failed"));
+
+            return;
+        }
+
+        if (!data) return;
 
         if (Array.isArray(data.items)) items.value = data.items;
         if (data.comments) comments.value = data.comments;
         if (data.attachments) attachments.value = data.attachments;
     } finally {
         uploading.value = false;
+    }
+}
+
+/** The hidden file field behind « Send a file »: a button is drawn, an `input[type=file]` is not. */
+const spaceFileInput = ref(null);
+const sendingSpaceFile = ref(false);
+
+/**
+ * Sends one file to the space itself, from the Files tab.
+ *
+ * The same rules as a file on a card: multipart, one request per file, and
+ * what may be sent is decided by the server from the bytes. Never from a
+ * preview, whose button is disabled and whose route refuses anyway.
+ */
+async function sendSpaceFile(event) {
+    const file = event.target.files?.[0];
+
+    // Reset, or choosing the same file twice in a row would emit nothing.
+    event.target.value = "";
+
+    if (!file || !props.spaceFileUploadPath || props.preview || sendingSpaceFile.value) return;
+
+    const form = new FormData();
+    form.append("file", file);
+
+    sendingSpaceFile.value = true;
+    try {
+        const data = await request(props.spaceFileUploadPath, null, { rawBody: form });
+
+        // A refusal from the policy is a sentence the client acts on (a
+        // lighter file, another type), so it is said rather than swallowed.
+        if (data && !data.success) {
+            toast.error(t(data.errors?.file ?? "studio.public.space.errors.upload_failed"));
+
+            return;
+        }
+
+        if (!data) return;
+
+        if (Array.isArray(data.spaceFiles)) spaceFileList.value = data.spaceFiles;
+        toast.success(t("studio.public.space.files_uploaded"));
+    } finally {
+        sendingSpaceFile.value = false;
     }
 }
 
@@ -468,12 +534,12 @@ function open(event) {
 }
 
 /**
- * Valider plusieurs cartes d'un geste.
+ * Approve several cards in one gesture.
  *
- * **En lot pour l'accord, jamais pour la reprise.** Approuver dix contenus d'un
- * coup dit une seule chose, dix fois. Demander une modification sans dire
- * laquelle n'apprend rien au studio et l'oblige à rappeler pour comprendre :
- * elle reste attachée à une carte et à son commentaire.
+ * **In batch for approval, never for changes.** Approving ten items at once
+ * says one thing, ten times. Asking for a change without saying which one
+ * teaches the studio nothing and forces it to call back to understand: a
+ * change request stays attached to one card and its comment.
  */
 const selectedIds = ref([]);
 
@@ -520,11 +586,11 @@ async function approveSelected() {
     }
 }
 
-/** L'échéance de relecture d'une carte, telle qu'elle se lit. */
+/** A card's review deadline, as it reads on screen. */
 function reviewByLabel(event) {
     const item = itemsById.value.get(event.id);
 
-    return item?.reviewBy ? d(new Date(item.reviewBy), "long") : "";
+    return item?.reviewBy ? formatDate(new Date(item.reviewBy), "long") : "";
 }
 
 function isLate(event) {
@@ -534,9 +600,9 @@ function isLate(event) {
 
 <template>
     <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 p-4 sm:p-8">
-        <!-- En premier et impossible à manquer : sans ce bandeau, rien ne
-             distingue cette page de celle du client, et on finirait par
-             croire avoir répondu à sa place. -->
+        <!-- First and impossible to miss: without this banner, nothing tells
+             this page apart from the client's, and one would end up thinking
+             they had answered on the client's behalf. -->
         <p
             v-if="preview"
             class="flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2 text-xs text-primary"
@@ -566,19 +632,19 @@ function isLate(event) {
         </p>
 
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('studio.public.space.guide.title')" storage-key="public-space">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in guideSteps" :key="step">{{ t(`studio.public.space.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- Dessinée à partir du second onglet : un sélecteur à un choix
-             n'aide personne à choisir. La bande défile plutôt que de pousser
-             la page, et hors onglet actif le libellé reste au lecteur d'écran
-             sur téléphone - l'icône suffit à reconnaître une pièce où l'on est
-             déjà allé. -->
+        <!-- Drawn from the second tab on: a selector with one choice helps
+             nobody choose. The strip scrolls rather than pushing the page,
+             and outside the active tab the label is left to the screen reader
+             on a phone - the icon is enough to recognise a room one has
+             already visited. -->
         <div
             v-if="views.length > 1"
             class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5"
@@ -630,9 +696,9 @@ function isLate(event) {
                     </h2>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
-                    <!-- La première chose à lire en arrivant : ce qui attend une
-                         réponse. Il fait aussi filtre, parce qu'un client qui
-                         revient veut sa liste de tâches et pas son mois. -->
+                    <!-- The first thing to read on arrival: what is waiting
+                         for an answer. It is also a filter, because a client
+                         coming back wants their task list, not their month. -->
                     <button
                         v-if="showsReviewFilter"
                         type="button"
@@ -669,11 +735,10 @@ function isLate(event) {
                     v-on:select-day="selectedDay = $event"
                 />
 
-                <!-- La liste de relecture : ce que le filtre promet, à savoir
-                     une liste de tâches et pas un mois. Elle remplace la liste
-                     du jour tant qu'il est enclenché, sur téléphone comme sur
-                     un écran large, parce que ce qu'on vient faire ici est
-                     répondre et non naviguer entre les jours. -->
+                <!-- The review list: what the filter promises, namely a task
+                     list and not a month. It replaces the day list while the
+                     filter is on, on a phone as on a wide screen, because what
+                     one comes here to do is answer, not move between days. -->
                 <section
                     v-if="reviewOnly && pendingEvents.length"
                     class="aurora-card"
@@ -721,10 +786,10 @@ function isLate(event) {
                             >
                                 <span class="block truncate text-sm text-primary">{{ event.title }}</span>
                                 <span class="mt-0.5 flex flex-wrap items-center gap-2 text-2xs text-muted">
-                                    <span>{{ d(new Date(event.startAt), "long") }}</span>
-                                    <!-- L'échéance de relecture, quand il y en
-                                         a une. En retard se dit, mais ne
-                                         bloque rien : c'est une information. -->
+                                    <span>{{ formatDate(new Date(event.startAt), "long") }}</span>
+                                    <!-- The review deadline, when there is
+                                         one. Lateness is shown, but blocks
+                                         nothing: it is information. -->
                                     <span
                                         v-if="reviewByLabel(event)"
                                         :class="isLate(event) ? 'rounded-full bg-warning-soft px-1.5 py-0.5 font-medium text-warning' : ''"
@@ -737,8 +802,8 @@ function isLate(event) {
                     </ul>
                 </section>
 
-                <!-- La grille dit quels jours portent quelque chose ; celle-ci dit
-                 quoi. L'une sans l'autre est illisible sur un téléphone. -->
+                <!-- The grid says which days carry something; this one says
+                 what. One without the other is unreadable on a phone. -->
                 <section v-if="isNarrow && !reviewOnly" class="aurora-card">
                     <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
                         <h3 class="text-sm font-medium capitalize text-primary">
@@ -759,15 +824,15 @@ function isLate(event) {
                                 v-on:click="open(event)"
                             >
                                 <span class="shrink-0 text-xs tabular-nums text-muted">
-                                    {{ d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
+                                    {{ formatDate(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
                                 </span>
                                 <span class="min-w-0 flex-1 truncate text-sm text-primary">
                                     {{ event.title }}
                                 </span>
-                                <!-- Ce que ce client a déjà dit sur cette carte.
-                                     Rien pour « sans réponse » : c'est le cas
-                                     ordinaire, et une pastille sur chaque ligne
-                                     ne distinguerait plus rien. -->
+                                <!-- What this client already said on this card.
+                                     Nothing for "no answer": it is the usual
+                                     case, and a badge on every line would no
+                                     longer set anything apart. -->
                                 <span
                                     v-if="canApprove && 'pending' !== event.approval"
                                     class="shrink-0 rounded-full px-1.5 py-0.5 text-2xs font-medium"
@@ -784,10 +849,10 @@ function isLate(event) {
             </div>
         </template>
 
-        <!-- Dans son onglet plutôt que sous le mois, et jamais en bulle
-             flottante : cette page se lit autant sur un téléphone que sur un
-             bureau, et un widget épinglé par-dessus un calendrier couvre ce
-             pour quoi le client est venu. -->
+        <!-- In its own tab rather than under the month, and never as a
+             floating bubble: this page is read as much on a phone as on a
+             desktop, and a widget pinned over a calendar covers what the
+             client came for. -->
         <SpaceChatPanel
             v-if="'chat' === view"
             :messages="chatMessages"
@@ -804,24 +869,54 @@ function isLate(event) {
             :notice="chatPostPath ? t('studio.public.space.chat_notice') : ''"
         />
 
-        <!-- Les fichiers de l'espace, s'il y en a. Sous la discussion parce
-             qu'on ne vient pas ici pour eux : ce sont des documents qu'on
-             retrouve, pas des nouvelles qu'on lit. Rien n'est affiché quand
-             l'espace n'en porte aucun - une section vide sur la page d'un
-             client donne l'impression d'un écran inachevé. -->
-        <!-- Le dossier Drive du prestataire. Sous la discussion et au-dessus
-             des fichiers de l'espace : ce sont des documents qu'on retrouve,
-             pas des nouvelles qu'on lit, et ils viennent d'ailleurs.
+        <!-- The space's files, if there are any. Below the chat because
+             nobody comes here for them: they are documents one looks up, not
+             news one reads. Nothing is shown when the space has none - an
+             empty section on a client's page looks like an unfinished
+             screen. -->
+        <!-- The provider's Drive folder. Below the chat and above the
+             space's files: they are documents one looks up, not news one
+             reads, and they come from elsewhere.
 
-             Chaque adresse passe par ici et non par Google : le dossier n'est
-             partagé qu'avec le compte de service, donc une adresse Drive
-             donnerait à ce lecteur un mur d'authentification. -->
+             Every address goes through here and not through Google: the
+             folder is shared only with the service account, so a Drive
+             address would give this reader an authentication wall. -->
         <template v-if="'files' === view">
+            <!-- The tab's action, above what it adds to: the client's way to
+                 hand a file over without attaching it to a content item. The
+                 notice says what is accepted and who reads it. -->
+            <div
+                v-if="spaceFileUploadPath"
+                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <p class="text-xs text-muted">{{ t("studio.public.space.upload_notice") }}</p>
+
+                <input
+                    ref="spaceFileInput"
+                    type="file"
+                    class="hidden"
+                    data-test="space-file-input"
+                    v-on:change="sendSpaceFile"
+                >
+                <AppButton
+                    class="w-full shrink-0 sm:w-auto"
+                    variant="primary"
+                    size="sm"
+                    data-test="space-file-upload"
+                    :loading="sendingSpaceFile"
+                    :disabled="preview"
+                    v-on:click="spaceFileInput?.click()"
+                >
+                    <Upload class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("studio.public.space.files_upload") }}
+                </AppButton>
+            </div>
+
             <section v-if="driveFiles.length" class="space-y-3">
-                <!-- « Je prends tout » est la question que se pose un client à qui
-                 on partage trente visuels. Le titre et le lot sur la même
-                 ligne, parce que c'est l'action de la section entière et non
-                 d'une de ses lignes. -->
+                <!-- "I'll take everything" is what a client wonders when
+                 thirty visuals are shared with them. The title and the batch
+                 on the same line, because it is the action of the whole
+                 section and not of one of its lines. -->
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="text-sm font-medium text-primary">
                         {{ t("studio.public.space.drive_title") }}
@@ -837,15 +932,15 @@ function isLate(event) {
                     </a>
                 </div>
 
-                <!-- Ouvrir et télécharger sont deux gestes, donc deux commandes.
-                 Un seul lien obligeait à ouvrir le fichier dans un onglet puis
-                 à le réenregistrer depuis la visionneuse du navigateur, ce qui
-                 pour une vidéo ou un gros PDF veut dire le charger deux fois. -->
+                <!-- Opening and downloading are two gestures, so two controls.
+                 A single link forced opening the file in a tab and then saving
+                 it again from the browser's viewer, which for a video or a
+                 large PDF means loading it twice. -->
                 <ul class="divide-y divide-line/40 rounded-lg border border-line">
-                    <!-- Le nom seul sur sa ligne quand la place manque : un
-                         chemin de dossier suivi d'un nom de fichier dépasse
-                         trois cent soixante-quinze pixels bien avant d'avoir
-                         dit quoi que ce soit d'utile. -->
+                    <!-- The name alone on its line when space runs short: a
+                         folder path followed by a file name goes past three
+                         hundred and seventy-five pixels well before saying
+                         anything useful. -->
                     <li
                         v-for="file in driveFiles"
                         :key="file.id"
@@ -875,18 +970,22 @@ function isLate(event) {
                 </ul>
             </section>
 
-            <section v-if="spaceFiles.length" class="space-y-3">
+            <section v-if="spaceFileList.length || spaceFileUploadPath" class="space-y-3">
                 <h2 class="text-sm font-medium text-primary">
                     {{ t("studio.public.space.files_title") }}
                 </h2>
 
-                <ul class="divide-y divide-line/40 rounded-lg border border-line">
-                    <!-- En colonne sur téléphone, en ligne au-delà. Trois
-                         choses sur une ligne de trois cent soixante-quinze
-                         pixels tronquent toujours la même : le nom du fichier,
-                         qui est la seule qu'on lit. -->
+                <p v-if="!spaceFileList.length" class="text-sm text-muted">
+                    {{ t("studio.public.space.files_empty") }}
+                </p>
+
+                <ul v-else class="divide-y divide-line/40 rounded-lg border border-line">
+                    <!-- A column on a phone, a row beyond. Three things on a
+                         line of three hundred and seventy-five pixels always
+                         truncate the same one: the file name, which is the
+                         only one people read. -->
                     <li
-                        v-for="file in spaceFiles"
+                        v-for="file in spaceFileList"
                         :key="file.id"
                         class="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3"
                     >
@@ -907,7 +1006,14 @@ function isLate(event) {
 
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm text-primary sm:truncate">{{ file.title }}</p>
-                                <p class="text-xs text-muted">{{ d(new Date(file.createdAt), "short") }}</p>
+                                <p class="text-xs text-muted">
+                                    {{ formatDate(new Date(file.createdAt), "short") }}
+                                    <!-- Who sent it, when it came from the client side: a
+                                         space can have several links out. -->
+                                    <template v-if="file.fromClient">
+                                        · {{ t("studio.public.space.files_sent_by", { author: file.author }) }}
+                                    </template>
+                                </p>
                             </div>
                         </div>
 
@@ -924,14 +1030,15 @@ function isLate(event) {
             </section>
         </template>
 
-        <!-- Les documents écrits pour ce client. Chacun s'ouvre dans sa propre
-             page, sans le reste de l'espace autour, par le lien de l'espace :
-             aucun mot de passe de plus. -->
+        <!-- The documents written for this client. Each opens in its own
+             page, without the rest of the space around it, through the
+             space's link: no extra password. -->
         <section v-if="'documents' === view" class="space-y-3">
             <ul class="space-y-2">
                 <li v-for="document in documents" :key="document.id">
-                    <!-- L'image du livrable à gauche, comme chez le studio ; sans
-                         image, une tuile neutre garde les titres alignés. -->
+                    <!-- The deliverable's image on the left, as on the studio
+                         side; without an image, a neutral tile keeps the
+                         titles aligned. -->
                     <a
                         :href="document.url"
                         class="aurora-card flex items-center gap-3 p-3 no-underline transition-colors hover:bg-surface-2/60"
@@ -945,6 +1052,7 @@ function isLate(event) {
                                 class="h-full w-full object-cover"
                                 :style="{ objectPosition: document.thumbnailPosition || '50% 50%' }"
                             >
+                            <Presentation v-else-if="'slides' === document.format" class="h-5 w-5 text-muted" :stroke-width="1.75" />
                             <FileText v-else class="h-5 w-5 text-muted" :stroke-width="1.75" />
                         </span>
                         <span class="flex min-w-0 flex-1 flex-col gap-1">
@@ -953,7 +1061,9 @@ function isLate(event) {
                             </span>
                             <span v-if="document.description" class="text-xs text-secondary">{{ document.description }}</span>
                             <span class="text-xs text-muted">
-                                {{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
+                                <!-- A presentation says so before it opens: it is watched
+                                     slide by slide, not read like a page. -->
+                                <template v-if="'slides' === document.format">{{ t("studio.public.space.document_presentation") }} · </template>{{ t("studio.public.space.document_updated_on", { date: formatDate(new Date(document.updatedAt), "long") }) }}
                             </span>
                         </span>
                     </a>
@@ -961,10 +1071,9 @@ function isLate(event) {
             </ul>
         </section>
 
-        <!-- Ce que le prestataire a épinglé pour ce client : une maquette, un
-             accès, la personne à qui écrire. Ce qui n'a pas été ouvert n'est
-             pas ici - ce n'est pas caché à l'affichage, ce n'est jamais sorti
-             du serveur. -->
+        <!-- What the provider pinned for this client: a mockup, an access,
+             the person to write to. What was not opened is not here - it is
+             not hidden on display, it never left the server. -->
         <section v-if="'resources' === view" class="space-y-3">
             <ul class="space-y-2">
                 <li
@@ -977,9 +1086,9 @@ function isLate(event) {
             </ul>
         </section>
 
-        <!-- La fiche que le prestataire tient sur vous. Montrée au client
-             parce que c'est de lui qu'elle parle : un SIRET mal recopié se
-             voit par celui qui le connaît, et pas autrement. -->
+        <!-- The record the provider keeps on you. Shown to the client
+             because it is about them: a mistyped SIRET is spotted by the one
+             who knows it, and by no one else. -->
         <section v-if="'information' === view" class="aurora-card p-4">
             <CustomerInformationCard :information="information" />
         </section>
@@ -993,7 +1102,7 @@ function isLate(event) {
                 {{
                     expiresAt
                         ? t("studio.public.space.footer_until", {
-                            date: d(new Date(expiresAt), "long"),
+                            date: formatDate(new Date(expiresAt), "long"),
                         })
                         : t("studio.public.space.footer")
                 }}

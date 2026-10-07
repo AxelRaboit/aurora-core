@@ -32,12 +32,12 @@ const props = defineProps({
     /** Only the studio has a GED to pick from; the client's page has none. */
     canPick: { type: Boolean, default: false },
     /**
-     * Et le dossier Drive, quand l'espace en a branché un.
+     * And the Drive folder, when the space has connected one.
      *
-     * Un troisième bouton plutôt qu'une source de plus dans le sélecteur de
-     * la médiathèque : les deux listes ne sont pas au même endroit et ne
-     * répondent pas à la même question. « Ce qu'on a déjà rangé » et « ce que
-     * le client a partagé » sont deux étagères, pas deux filtres.
+     * A third button rather than one more source in the media library
+     * picker: the two lists are not in the same place and do not answer the
+     * same question. "What we have already filed" and "what the client has
+     * shared" are two shelves, not two filters.
      */
     canPickDrive: { type: Boolean, default: false },
     /** Shown under the drop zone when the two sides differ on what is allowed. */

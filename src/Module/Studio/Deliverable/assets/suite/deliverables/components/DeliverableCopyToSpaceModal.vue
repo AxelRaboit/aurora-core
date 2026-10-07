@@ -1,10 +1,10 @@
 <script setup>
 /**
- * Copier un livrable de Studio dans l'espace d'un client : le modèle d'audit
- * ou de stratégie qu'on remplit pour lui.
+ * Copy a Studio deliverable into a client's space: the audit or strategy
+ * template you fill in for them.
  *
- * On choisit l'espace, on garde ou on change le titre, et l'on arrive dans
- * l'éditeur de la copie, dans son espace. L'original reste dans Studio.
+ * You pick the space, keep or change the title, and land in the copy's
+ * editor, in its space. The original stays in Studio.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -18,10 +18,10 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 
 const props = defineProps({
     show: { type: Boolean, default: false },
-    /** Le titre de l'original, repris par défaut. */
+    /** The original's title, reused by default. */
     sourceTitle: { type: String, default: "" },
     copyPath: { type: String, default: "" },
-    /** Les espaces où la personne peut écrire : `{ id, name, customer }`. */
+    /** The spaces the person can write to: `{ id, name, customer }`. */
     targets: { type: Array, default: () => [] },
 });
 
@@ -49,7 +49,7 @@ watch(
 const options = computed(() =>
     props.targets.map((space) => ({
         value: space.id,
-        // Le client seulement quand le nom de l'espace ne le dit pas déjà.
+        // The client only when the space name does not already say it.
         label: space.customer && !space.name.includes(space.customer) ? `${space.name} · ${space.customer}` : space.name,
     })),
 );

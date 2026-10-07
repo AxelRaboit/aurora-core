@@ -7,9 +7,9 @@ namespace Aurora\Core\Locale\Service;
 interface LocaleOptionsProviderInterface
 {
     /**
-     * Options de locale exploitables côté Vue (onglets / selects), filtrées
-     * sur les locales actives (en single-locale mode, ne contient que la
-     * locale par défaut).
+     * Locale options usable on the Vue side (tabs / selects), filtered on the
+     * active locales (in single-locale mode, only holds the default
+     * locale).
      *
      * @return list<array{code: string, label: string}>
      */

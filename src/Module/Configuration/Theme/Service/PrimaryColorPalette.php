@@ -42,8 +42,8 @@ final class PrimaryColorPalette
      */
     public function generate(string $hex): array
     {
-        [$r, $g, $b] = $this->hexToRgb($hex);
-        [, $chroma, $hue] = $this->rgbToOklch($r, $g, $b);
+        [$red, $green, $blue] = $this->hexToRgb($hex);
+        [, $chroma, $hue] = $this->rgbToOklch($red, $green, $blue);
 
         $palette = [];
         foreach (self::LIGHTNESS_STOPS as $stop => $lightness) {
@@ -84,26 +84,26 @@ final class PrimaryColorPalette
      *
      * @return array{float, float, float} L, C, H (H in degrees, 0..360)
      */
-    private function rgbToOklch(int $r, int $g, int $b): array
+    private function rgbToOklch(int $red, int $green, int $blue): array
     {
-        [$lr, $lg, $lb] = [
-            $this->srgbToLinear($r / 255),
-            $this->srgbToLinear($g / 255),
-            $this->srgbToLinear($b / 255),
+        [$linearRed, $linearGreen, $linearBlue] = [
+            $this->srgbToLinear($red / 255),
+            $this->srgbToLinear($green / 255),
+            $this->srgbToLinear($blue / 255),
         ];
 
-        // Linear sRGB → LMS
-        $l = 0.4122214708 * $lr + 0.5363325363 * $lg + 0.0514459929 * $lb;
-        $m = 0.2119034982 * $lr + 0.6806995451 * $lg + 0.1073969566 * $lb;
-        $s = 0.0883024619 * $lr + 0.2817188376 * $lg + 0.6299787005 * $lb;
+        // Linear sRGB → LMS (long, medium, short cone responses)
+        $long = 0.4122214708 * $linearRed + 0.5363325363 * $linearGreen + 0.0514459929 * $linearBlue;
+        $medium = 0.2119034982 * $linearRed + 0.6806995451 * $linearGreen + 0.1073969566 * $linearBlue;
+        $short = 0.0883024619 * $linearRed + 0.2817188376 * $linearGreen + 0.6299787005 * $linearBlue;
 
-        $l_ = $this->cbrt($l);
-        $m_ = $this->cbrt($m);
-        $s_ = $this->cbrt($s);
+        $longRoot = $this->cbrt($long);
+        $mediumRoot = $this->cbrt($medium);
+        $shortRoot = $this->cbrt($short);
 
-        $okL = 0.2104542553 * $l_ + 0.7936177850 * $m_ - 0.0040720468 * $s_;
-        $okA = 1.9779984951 * $l_ - 2.4285922050 * $m_ + 0.4505937099 * $s_;
-        $okB = 0.0259040371 * $l_ + 0.7827717662 * $m_ - 0.8086757660 * $s_;
+        $okL = 0.2104542553 * $longRoot + 0.7936177850 * $mediumRoot - 0.0040720468 * $shortRoot;
+        $okA = 1.9779984951 * $longRoot - 2.4285922050 * $mediumRoot + 0.4505937099 * $shortRoot;
+        $okB = 0.0259040371 * $longRoot + 0.7827717662 * $mediumRoot - 0.8086757660 * $shortRoot;
 
         $chroma = sqrt($okA * $okA + $okB * $okB);
         $hue = atan2($okB, $okA) * 180 / M_PI;
@@ -114,9 +114,9 @@ final class PrimaryColorPalette
         return [$okL, $chroma, $hue];
     }
 
-    private function srgbToLinear(float $c): float
+    private function srgbToLinear(float $channel): float
     {
-        return $c <= 0.04045 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+        return $channel <= 0.04045 ? $channel / 12.92 : (($channel + 0.055) / 1.055) ** 2.4;
     }
 
     /** Real-valued cube root (PHP pow() goes NaN on negatives with fractional exponent). */

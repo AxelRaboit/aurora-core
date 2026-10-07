@@ -11,8 +11,10 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -29,13 +31,13 @@ use function json_decode;
 use function sprintf;
 
 /**
- * Demander à un client d'aller relire, et tout ce que l'envoi ne doit pas faire.
+ * Asking a client to go and review, and everything the sending must not do.
  *
- * L'action est la seule du module qui écrit dans la boîte de quelqu'un et qui
- * ferme une adresse encore valide. Ce qui se vérifie ici tient à ces deux
- * conséquences : qu'elle ne parte que lorsqu'il y a vraiment à relire, qu'elle
- * ne parle qu'à ceux qui peuvent répondre, et que l'adresse qu'elle envoie
- * fonctionne quand l'ancienne a cessé de fonctionner.
+ * It is the only action in the module that writes to someone's mailbox and
+ * closes an address that is still valid. What is checked here comes from
+ * those two consequences: that it only goes out when there really is
+ * something to review, that it only speaks to those who can answer, and that
+ * the address it sends works once the old one has stopped working.
  */
 final class SpaceReviewInviteTest extends IntegrationTestCase
 {
@@ -89,12 +91,12 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         $mails = $this->mailerMessages();
         self::assertCount(1, $mails);
         self::assertSame('camille@societe.test', $mails[0]->getTo()[0]->getAddress());
-        // Le nombre est dans le message : c'est lui qui décide si on ouvre
-        // maintenant ou ce soir.
+        // The number is in the message: it is what decides whether one opens
+        // it now or tonight.
         self::assertStringContainsString('1', $mails[0]->getHtmlBody());
 
-        // L'ancienne adresse est fermée, et une neuve existe pour la même
-        // personne : le client en a toujours exactement une valide.
+        // The old address is closed, and a new one exists for the same
+        // person: the client always has exactly one valid address.
         $this->entityManager->clear();
         $stored = $this->links->find($previous);
         self::assertNotNull($stored->getRevokedAt());
@@ -106,8 +108,8 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
     }
 
     /**
-     * Un courriel annonçant zéro publication en attente est celui qui apprend à
-     * ignorer les suivants.
+     * An email announcing zero pending publications is the one that teaches
+     * people to ignore the next ones.
      */
     public function testNothingIsSentWhenNothingIsWaiting(): void
     {
@@ -121,14 +123,14 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         self::assertSame(0, $payload['notified']);
         self::assertCount(0, $this->mailerMessages());
 
-        // Et surtout, l'adresse du client n'a pas été fermée pour rien.
+        // And above all, the client's address was not closed for nothing.
         $this->entityManager->clear();
         self::assertNull($this->links->find($previous)->getRevokedAt());
     }
 
     /**
-     * Une carte sans date, ou décochée du calendrier, n'est pas sous les yeux du
-     * client : lui demander d'y répondre serait lui montrer une porte fermée.
+     * A card without a date, or unticked from the calendar, is not in front of
+     * the client: asking them to answer it would be showing them a closed door.
      */
     public function testACardTheClientCannotSeeDoesNotCount(): void
     {
@@ -142,7 +144,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         self::assertCount(0, $this->mailerMessages());
     }
 
-    /** Un lien en lecture seule recevrait une demande qu'il ne peut pas honorer. */
+    /** A read-only link would receive a request it cannot honour. */
     public function testAReadOnlyLinkIsNotWrittenTo(): void
     {
         $space = $this->givenSpace();
@@ -152,7 +154,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/review', $space->getId()));
 
         $payload = $this->payload();
-        // Il y a bien quelque chose à relire, mais personne à qui le demander.
+        // There is something to review, but nobody to ask.
         self::assertSame(1, $payload['awaiting']);
         self::assertSame(0, $payload['notified']);
         self::assertCount(0, $this->mailerMessages());
@@ -162,17 +164,18 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
     }
 
     /**
-     * Le courriel d'abord, la révocation ensuite.
+     * The email first, the revocation after.
      *
-     * C'est le défaut que le premier essai en local a montré : le serveur de
-     * messagerie était éteint, l'adresse avait déjà été fermée, et le client se
-     * serait retrouvé dehors sans avoir reçu celle qui la remplaçait.
+     * That is the defect the first local try showed: the mail server was off,
+     * the address had already been closed, and the client would have been
+     * locked out without having received the one that replaced it.
      */
     public function testAFailedEmailLeavesTheClientTheirAddress(): void
     {
-        // Sans cela le client redémarre le noyau à chaque requête et jette le
-        // double avec lui ; et posé avant la moindre requête, sinon le service
-        // est déjà initialisé et ne se remplace plus.
+        // Without this the client reboots the kernel on every request and
+        // throws the double away with it; and set before any request,
+        // otherwise the service is already initialized and can no longer be
+        // replaced.
         $this->client->disableReboot();
         static::getContainer()->set('mailer.mailer', new class implements MailerInterface {
             public function send(RawMessage $message, ?Envelope $envelope = null): void
@@ -188,8 +191,8 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/review', $space->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        // Personne n'a été prévenu, et l'écran le dit plutôt que d'annoncer un
-        // envoi qui n'a pas eu lieu.
+        // Nobody was notified, and the screen says so rather than announcing a
+        // sending that did not happen.
         self::assertSame(0, $this->payload()['notified']);
 
         $this->entityManager->clear();
@@ -251,7 +254,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->reviewStep($space)->getId(),
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -271,7 +274,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $id), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->reviewStep($space)->getId(),
             'scheduledAt' => '2026-12-01T09:00',
             'showOnCalendar' => true,
         ]);
@@ -291,8 +294,8 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
     }
 
     /**
-     * Pas `getMailerMessages()` : messenger est actif, donc chaque envoi est
-     * rapporté deux fois, une fois mis en file et une fois délivré.
+     * Not `getMailerMessages()`: messenger is enabled, so each sending is
+     * reported twice, once queued and once delivered.
      *
      * @return list<Email>
      */
@@ -311,5 +314,17 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         }
 
         return $messages;
+    }
+
+    /** The step where the client answers: the one cards awaiting a review sit on. */
+    private function reviewStep(CustomerSpace $space): SpaceContentColumnInterface
+    {
+        foreach ($this->columns->findForSpace($space) as $column) {
+            if (SpaceContentColumnRoleEnum::Review === $column->getRole()) {
+                return $column;
+            }
+        }
+
+        self::fail('The default board has a Review step.');
     }
 }

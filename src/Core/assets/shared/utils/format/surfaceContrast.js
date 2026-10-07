@@ -1,15 +1,15 @@
 /**
- * Miroir client du service PHP `SurfaceContrast`.
+ * Client-side mirror of the PHP `SurfaceContrast` service.
  *
- * La duplication est assumée et limitée : le rendu du frontend public est
- * décidé côté serveur, par le service PHP, qui reste la référence. Ce fichier
- * n'existe que pour l'aperçu en direct de l'écran de thème, où attendre un
- * aller-retour serveur à chaque mouvement du sélecteur de couleur rendrait le
- * retour visuel inutilisable.
+ * The duplication is deliberate and limited: the rendering of the public
+ * frontend is decided on the server side, by the PHP service, which remains
+ * the reference. This file only exists for the live preview of the theme
+ * screen, where waiting for a server round trip on every move of the colour
+ * picker would make the visual feedback unusable.
  *
- * Toute correction du calcul doit être portée des deux côtés. Les deux jeux de
- * tests partagent volontairement les mêmes couleurs de référence, pour qu'une
- * divergence se voie.
+ * Any fix to the calculation must be carried to both sides. The two test
+ * suites deliberately share the same reference colours, so that a
+ * divergence shows.
  */
 
 /** @param {string} hex @returns {[number, number, number]} */
@@ -23,8 +23,8 @@ function hexToRgb(hex) {
     }
 
     if (value.length !== 6 || !/^[0-9a-f]{6}$/i.test(value)) {
-        // Repli sur le blanc, donc sur le jeu clair : l'apparence historique du
-        // frontend, la moins surprenante devant une saisie incomplète.
+        // Falls back to white, so to the light set: the historical look of the
+        // frontend, the least surprising in front of an incomplete input.
         return [255, 255, 255];
     }
 
@@ -41,32 +41,35 @@ function toLinear(channel) {
         : ((channel + 0.055) / 1.055) ** 2.4;
 }
 
-/** Luminance relative WCAG : 0 pour le noir, 1 pour le blanc. */
+/** WCAG relative luminance: 0 for black, 1 for white. */
 function relativeLuminance(hex) {
-    const [r, g, b] = hexToRgb(hex);
+    const [red, green, blue] = hexToRgb(hex);
 
     return (
-        0.2126 * toLinear(r / 255) +
-        0.7152 * toLinear(g / 255) +
-        0.0722 * toLinear(b / 255)
+        0.2126 * toLinear(red / 255) +
+        0.7152 * toLinear(green / 255) +
+        0.0722 * toLinear(blue / 255)
     );
 }
 
-/** Rapport de contraste WCAG entre deux couleurs, de 1 à 21. */
+/** WCAG contrast ratio between two colours, from 1 to 21. */
 export function contrastRatio(hexA, hexB) {
-    const a = relativeLuminance(hexA);
-    const b = relativeLuminance(hexB);
-    const [lighter, darker] = a > b ? [a, b] : [b, a];
+    const luminanceA = relativeLuminance(hexA);
+    const luminanceB = relativeLuminance(hexB);
+    const [lighter, darker] =
+        luminanceA > luminanceB
+            ? [luminanceA, luminanceB]
+            : [luminanceB, luminanceA];
 
     return (lighter + 0.05) / (darker + 0.05);
 }
 
-/** Ce fond appelle-t-il un texte clair ? */
+/** Does this background call for light text? */
 export function needsLightText(hex) {
     return contrastRatio(hex, "#ffffff") > contrastRatio(hex, "#000000");
 }
 
-/** Le meilleur rapport atteignable sur ce fond, blanc ou noir confondus. */
+/** The best ratio reachable on this background, white or black alike. */
 export function bestContrastRatio(hex) {
     return Math.max(
         contrastRatio(hex, "#ffffff"),
@@ -75,12 +78,12 @@ export function bestContrastRatio(hex) {
 }
 
 /**
- * Seuil AAA de WCAG pour du texte courant.
+ * WCAG AAA threshold for body text.
  *
- * C'est AAA et non AA parce qu'AA ne peut pas échouer : en retenant toujours le
- * meilleur du noir et du blanc, le rapport ne descend jamais sous 4,608:1, sur
- * le gris `#757575`. Signaler AA reviendrait à afficher un avertissement qui ne
- * s'allume jamais.
+ * It is AAA and not AA because AA cannot fail: by always keeping the better
+ * of black and white, the ratio never drops below 4.608:1, on the grey
+ * `#757575`. Flagging AA would amount to showing a warning that never lights
+ * up.
  */
 export const AAA_NORMAL_TEXT = 7;
 

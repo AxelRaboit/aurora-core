@@ -19,20 +19,20 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use function sprintf;
 
 /**
- * Le dossier partagé d'un espace, et qui a le droit de le désigner.
+ * A space's shared folder, and who has the right to name it.
  *
- * **Deux choses qu'on ne revérifie jamais à la main.** Coller l'adresse
- * entière sortie de Drive est le geste naturel, et exiger l'identifiant nu
- * ferait échouer tout le monde une fois sur deux ; c'est une politesse
- * silencieuse, donc une politesse qu'on casse sans s'en apercevoir.
+ * **Two things nobody ever checks again by hand.** Pasting the whole address
+ * straight out of Drive is the natural action, and requiring the bare id
+ * would make everyone fail one time out of two; it is a silent courtesy, so
+ * a courtesy that breaks without anyone noticing.
  *
- * Et désigner le dossier est une configuration : elle appartient au référent.
- * Le champ a vécu au-dessus de la liste des fichiers, où n'importe quel
- * équipier le changeait ; ce test est ce qui empêche qu'il y retourne.
+ * And naming the folder is configuration: it belongs to the lead. The field
+ * used to live above the file list, where any team member could change it;
+ * this test is what keeps it from going back there.
  */
 final class SpaceDriveFolderTest extends IntegrationTestCase
 {
-    /** Manifestement faux : ce dépôt est public, et un identifiant réel y nommerait une vraie infrastructure. */
+    /** Obviously fake: this repository is public, and a real id would name real infrastructure in it. */
     private const string FOLDER = 'dossier-de-demonstration-aurora';
 
     private KernelBrowser $client;
@@ -54,9 +54,9 @@ final class SpaceDriveFolderTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le navigateur pose cet en-tête sur chaque appel, et les routes
-        // publiques l'exigent : ce qui les protège est un secret dans
-        // l'adresse, et une adresse se transfère.
+        // The browser sets this header on every call, and public routes
+        // require it: what protects them is a secret in the address, and an
+        // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
@@ -73,7 +73,7 @@ final class SpaceDriveFolderTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** L'adresse entière, telle qu'on la copie depuis Drive. */
+    /** The whole address, as it is copied from Drive. */
     public function testTheWholeFolderAddressIsAccepted(): void
     {
         $space = $this->givenSpace();
@@ -84,7 +84,7 @@ final class SpaceDriveFolderTest extends IntegrationTestCase
         self::assertSame(self::FOLDER, $this->reload($space)->getDriveFolderId());
     }
 
-    /** L'identifiant nu aussi, pour qui l'a déjà sous la main. */
+    /** The bare id too, for whoever already has it at hand. */
     public function testTheBareIdentifierIsAccepted(): void
     {
         $space = $this->givenSpace();
@@ -96,11 +96,11 @@ final class SpaceDriveFolderTest extends IntegrationTestCase
     }
 
     /**
-     * Et ce qui n'est ni l'un ni l'autre est refusé.
+     * And what is neither one nor the other is refused.
      *
-     * Un refus lisible plutôt qu'un dossier enregistré qui ne répondra jamais :
-     * une liste vide inexpliquée se cherche du côté de Google, c'est-à-dire du
-     * mauvais côté.
+     * A readable refusal rather than a saved folder that will never answer: an
+     * unexplained empty list gets investigated on Google's side, that is, on
+     * the wrong side.
      */
     public function testSomethingThatIsNeitherIsRefused(): void
     {
@@ -112,7 +112,7 @@ final class SpaceDriveFolderTest extends IntegrationTestCase
         self::assertNull($this->reload($space)->getDriveFolderId());
     }
 
-    /** Vider le champ débranche le dossier, ce qui n'est pas une erreur. */
+    /** Clearing the field disconnects the folder, which is not an error. */
     public function testAnEmptyFieldUnplugsTheFolder(): void
     {
         $space = $this->givenSpace();
@@ -124,7 +124,7 @@ final class SpaceDriveFolderTest extends IntegrationTestCase
         self::assertNull($this->reload($space)->getDriveFolderId());
     }
 
-    /** Un équipier qui n'est pas référent ne désigne pas le dossier. */
+    /** A team member who is not the lead does not name the folder. */
     public function testATeammateCannotChooseTheFolder(): void
     {
         $space = $this->givenSpace();

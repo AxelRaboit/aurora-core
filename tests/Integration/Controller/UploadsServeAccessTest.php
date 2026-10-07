@@ -48,7 +48,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
 
     private Filesystem $filesystem;
 
-    private string $uploadDir;
+    private string $uploadDirectory;
 
     /** @var list<string> */
     private array $written = [];
@@ -62,7 +62,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->urlGenerator = $container->get(UrlGeneratorInterface::class);
-        $this->uploadDir = (string) $container->getParameter('app.upload_dir');
+        $this->uploadDirectory = (string) $container->getParameter('app.upload_dir');
         $this->filesystem = new Filesystem();
     }
 
@@ -402,7 +402,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
 
     private function write(string $relativePath): void
     {
-        $absolute = Path::join($this->uploadDir, $relativePath);
+        $absolute = Path::join($this->uploadDirectory, $relativePath);
         $this->filesystem->mkdir(dirname($absolute));
         file_put_contents($absolute, 'hello-from-uploads');
 

@@ -49,7 +49,7 @@ function recordRecentRoute(route) {
     if (!route) return;
     const routes = [
         route,
-        ...loadRecentRoutes().filter((r) => r !== route),
+        ...loadRecentRoutes().filter((recentRoute) => recentRoute !== route),
     ].slice(0, RECENT_MAX);
     localStorage.setItem(RECENT_KEY, JSON.stringify(routes));
 }
@@ -95,16 +95,18 @@ export function useSuiteSearch({ searchPath, navItems, currentRoute }) {
         const keys = loadRecentRoutes();
         return keys
             .map((key) =>
-                navItems.value?.find((i) => (i.key ?? i.route) === key),
+                navItems.value?.find(
+                    (item) => (item.key ?? item.route) === key,
+                ),
             )
             .filter(Boolean);
     });
 
     const navResults = computed(() => {
-        const q = searchQuery.value.trim().toLowerCase();
-        if (!q) return [];
-        return (navItems.value ?? []).filter((i) =>
-            i.label.toLowerCase().includes(q),
+        const needle = searchQuery.value.trim().toLowerCase();
+        if (!needle) return [];
+        return (navItems.value ?? []).filter((item) =>
+            item.label.toLowerCase().includes(needle),
         );
     });
 
@@ -127,12 +129,12 @@ export function useSuiteSearch({ searchPath, navItems, currentRoute }) {
                 kind: section.kind,
                 items: apiResults.value[section.key] ?? [],
             })),
-        ].filter((s) => s.items.length > 0);
+        ].filter((section) => section.items.length > 0);
     });
 
     const flatResults = computed(() =>
-        sections.value.flatMap((s) =>
-            s.items.map((item) => ({ kind: s.kind, item })),
+        sections.value.flatMap((section) =>
+            section.items.map((item) => ({ kind: section.kind, item })),
         ),
     );
 
@@ -199,13 +201,14 @@ export function useSuiteSearch({ searchPath, navItems, currentRoute }) {
     function entryIndex(kind, item) {
         const key = itemKey(kind, item);
         return flatResults.value.findIndex(
-            (e) => e.kind === kind && itemKey(e.kind, e.item) === key,
+            (entry) =>
+                entry.kind === kind && itemKey(entry.kind, entry.item) === key,
         );
     }
 
     function findNavPath(routePrefix) {
         return (
-            navItems.value?.find((i) => i.route.startsWith(routePrefix))
+            navItems.value?.find((item) => item.route.startsWith(routePrefix))
                 ?.path ?? null
         );
     }
@@ -282,8 +285,12 @@ export function useSuiteSearch({ searchPath, navItems, currentRoute }) {
         const path =
             "undefined" !== typeof window ? window.location.pathname : null;
         const matchingItem =
-            navItems.value?.find((i) => i.matchPath && i.path === path) ??
-            navItems.value?.find((i) => currentRoute?.startsWith(i.route));
+            navItems.value?.find(
+                (item) => item.matchPath && item.path === path,
+            ) ??
+            navItems.value?.find((item) =>
+                currentRoute?.startsWith(item.route),
+            );
         if (matchingItem)
             recordRecentRoute(matchingItem.key ?? matchingItem.route);
     });

@@ -87,8 +87,9 @@ export function useSpaceChat(initial, paths, channelId = null) {
 
     function sorted(list) {
         return [...list].sort(
-            (a, b) =>
-                new Date(a.createdAt) - new Date(b.createdAt) || a.id - b.id,
+            (left, right) =>
+                new Date(left.createdAt) - new Date(right.createdAt) ||
+                left.id - right.id,
         );
     }
 
@@ -302,8 +303,8 @@ export function useSpaceChat(initial, paths, channelId = null) {
 
         currentChannel.value = id;
         messages.value = [];
-        // Une autre conversation, une autre histoire : ce qu'on savait du
-        // précédent fil ne dit rien de celui-ci.
+        // Another conversation, another story: what was known about the
+        // previous thread says nothing about this one.
         hasOlder.value = true;
 
         await reload();

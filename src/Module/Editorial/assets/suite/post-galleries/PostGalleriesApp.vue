@@ -52,8 +52,8 @@ function editPath(post) {
                 v-on:update:model-value="onSearch"
             />
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.post_galleries.guide.title')" storage-key="post-galleries">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.post_galleries.guide.step_${step}`) }}</li>
@@ -63,12 +63,12 @@ function editPath(post) {
         <AppNoData v-if="!items.length" :message="t('suite.post_galleries.empty')" />
 
         <div v-else class="space-y-2">
-            <!-- **Empilé sur téléphone.** Le titre, le nombre de photos et le
-                 bouton se partageaient la ligne : le titre tombait à cent
-                 trente-deux pixels sur trois cent cinquante-neuf, et « Ce qui
-                 arrive ensuite » devenait « Ce qui arrive ens… » pour laisser
-                 la place à « Aucune photo ». Le titre prend la ligne, le
-                 compte et le bouton la suivante. -->
+            <!-- **Stacked on a phone.** The title, the photo count and the
+                 button shared the line: the title dropped to a hundred and
+                 thirty-two pixels out of three hundred and fifty-nine, and
+                 "Ce qui arrive ensuite" became "Ce qui arrive ens…" to make
+                 room for "Aucune photo". The title takes the line, the count
+                 and the button the next one. -->
             <div
                 v-for="post in items"
                 :key="post.id"

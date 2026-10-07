@@ -234,10 +234,9 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
-        // L'en-tête que le composant de requête du navigateur pose sur
-        // chaque appel, et que les routes publiques exigent : sans lui,
-        // un formulaire hébergé ailleurs pourrait faire poster le
-        // navigateur d'un client vers ces adresses.
+        // The header the browser's request helper sets on every call, and
+        // that public routes require: without it, a form hosted elsewhere
+        // could make a client's browser post to these addresses.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
@@ -285,7 +284,9 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            // Relecture: a new space only shows the client the Relecture
+            // and Publié columns.
+            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
             'scheduledAt' => $scheduledAt,
         ]);
 

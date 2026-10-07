@@ -4,8 +4,8 @@ import { toast } from "vue-sonner";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
- * Ce qui part au serveur : ce que compare l'empreinte, plus la date de
- * modification que l'éditeur a reçue (voir {@see payload}).
+ * What goes to the server: what the fingerprint compares, plus the
+ * modification date the editor received (see {@see payload}).
  */
 function snapshot(form) {
     return JSON.stringify({
@@ -18,22 +18,27 @@ function snapshot(form) {
         readingHeader: form.readingHeader,
         visibleToClient: form.visibleToClient,
         thumbnailId: form.thumbnail?.id ?? null,
-        // Le rayon et la catégorie d'un livrable de Studio ; absents pour un
-        // livrable d'espace.
+        // A Studio deliverable's shelf, category, "modèle" box and client;
+        // absent for a space deliverable.
         ...(form.scope
-            ? { scope: form.scope, categoryId: form.categoryId ?? null }
+            ? {
+                  scope: form.scope,
+                  categoryId: form.categoryId ?? null,
+                  template: !!form.template,
+                  customerId: form.customerId ?? null,
+              }
             : {}),
     });
 }
 
 /**
- * Une valeur sans ses vides, pour comparer.
+ * A value without its empty parts, for comparing.
  *
- * La grille d'édition complète la structure du contenu en la lisant : une zone
- * sans texte reçoit ses champs vides, une liste vide arrivée en `[]` devient
- * `{}`. Rien n'a changé pour autant, et l'éditeur ne doit pas se dire modifié
- * à l'ouverture. Un champ vidé reste un changement : la valeur qu'il avait
- * disparaît de la comparaison.
+ * The editing grid fills in the content structure as it reads it: a zone
+ * without text gets its empty fields, an empty list that arrived as `[]`
+ * becomes `{}`. Nothing has changed for all that, and the editor must not
+ * report itself modified on opening. A cleared field is still a change: the
+ * value it had disappears from the comparison.
  */
 function pruned(value) {
     if (Array.isArray(value)) {
@@ -53,18 +58,18 @@ function pruned(value) {
     return null === value || "" === value ? undefined : value;
 }
 
-/** Ce qu'on compare pour savoir s'il reste à enregistrer. */
+/** What is compared to know whether something is left to save. */
 function fingerprint(form) {
     return JSON.stringify(pruned(JSON.parse(snapshot(form))) ?? null);
 }
 
 /**
- * L'envoi : le contenu, et la date de modification qu'on a reçue.
+ * The request: the content, and the modification date that was received.
  *
- * Elle n'entre pas dans l'empreinte, qui ne dit que ce que l'auteur a changé.
- * Le serveur la compare à la sienne : si un collègue a enregistré entre-temps,
- * il répond 409 plutôt que d'effacer son travail. Un livrable partagé a
- * plusieurs auteurs, et la dernière sauvegarde ne doit pas gagner en silence.
+ * It does not go into the fingerprint, which only says what the author
+ * changed. The server compares it with its own: if a colleague saved in the
+ * meantime, it answers 409 rather than erasing their work. A shared
+ * deliverable has several authors, and the last save must not win silently.
  */
 function payload(form, force) {
     return {
@@ -75,23 +80,22 @@ function payload(form, force) {
 }
 
 /**
- * L'état d'un livrable ouvert dans l'éditeur, et son enregistrement.
+ * The state of a deliverable open in the editor, and its saving.
  *
- * **Les éditeurs de blocs se vident avant d'enregistrer.** Chaque zone de
- * texte tient sa saisie dans son propre éditeur et ne la rend qu'à la
- * demande : c'est le contrat `registerEditor` que les éditeurs de blocs
- * attendent de leur hôte, le même que celui de l'éditeur des publications.
+ * **Block editors are flushed before saving.** Each text zone keeps its input
+ * in its own editor and only hands it over on request: that is the
+ * `registerEditor` contract block editors expect from their host, the same as
+ * the publication editor's.
  *
- * **Quitter la page avec des changements prévient**, comme partout où l'on
- * compose longtemps : une grille de vingt zones ne se retape pas.
+ * **Leaving the page with changes warns**, as everywhere you compose for a
+ * long time: a grid of twenty zones is not retyped.
  *
- * **Sans le droit d'écrire, rien ne s'enregistre ni ne s'arme** : Ctrl+S ne
- * part pas au serveur pour y recevoir un 403, et la page n'avertit pas
- * qu'elle perd des changements qu'on n'a pas pu faire.
+ * **Without the right to write, nothing saves or arms**: Ctrl+S does not go
+ * to the server to get a 403, and the page does not warn that it is losing
+ * changes that could not be made.
  *
- * **Un enregistrement refusé pour cause de version dit pourquoi** : `conflict`
- * s'allume, l'écran propose de recharger ou d'enregistrer quand même
- * ({@see saveAnyway}).
+ * **A save refused because of the version says why**: `conflict` turns on,
+ * the screen offers to reload or to save anyway ({@see saveAnyway}).
  */
 export function useDeliverableEditor(props) {
     const { t } = useI18n();
@@ -120,7 +124,7 @@ export function useDeliverableEditor(props) {
         () => canEdit.value && fingerprint(form.value) !== saved.value,
     );
 
-    /** Le premier message d'erreur du serveur, traduit : ce qui manque, pas « n'a pas pu être enregistré ». */
+    /** The server's first error message, translated: what is missing, not "n'a pas pu être enregistré". */
     function firstError(failures) {
         const key = Object.values(failures ?? {}).find(
             (value) => "string" === typeof value && "" !== value,
@@ -145,8 +149,8 @@ export function useDeliverableEditor(props) {
             );
 
             if (!data?.success) {
-                // Quelqu'un a enregistré avant : ni le message générique ni
-                // un faux « titre invalide », la vraie raison.
+                // Someone saved first: neither the generic message nor a false
+                // "titre invalide", the real reason.
                 if (data?.conflict) {
                     conflict.value = true;
 
@@ -162,10 +166,10 @@ export function useDeliverableEditor(props) {
                 return false;
             }
 
-            // Ce qui a été envoyé, et pas ce que le serveur renvoie : remplacer
-            // le formulaire rechargerait chaque éditeur de texte de la grille,
-            // curseur compris, au milieu d'une saisie. La version normalisée
-            // s'affiche au prochain chargement.
+            // What was sent, and not what the server returns: replacing the
+            // form would reload every text editor in the grid, cursor
+            // included, in the middle of typing. The normalized version shows
+            // on the next load.
             saved.value = fingerprint(JSON.parse(sent));
             form.value.updatedAt =
                 data.deliverable?.updatedAt ?? form.value.updatedAt;
@@ -189,8 +193,8 @@ export function useDeliverableEditor(props) {
             (event.metaKey || event.ctrlKey) &&
             "s" === event.key.toLowerCase()
         ) {
-            // Le navigateur ne propose pas d'enregistrer la page : le geste
-            // est celui de l'éditeur, qu'il puisse écrire ou non.
+            // The browser does not offer to save the page: the shortcut
+            // belongs to the editor, whether it can write or not.
             event.preventDefault();
             if (canEdit.value) void save();
         }
@@ -206,12 +210,12 @@ export function useDeliverableEditor(props) {
         window.removeEventListener("keydown", onKeydown);
     });
 
-    /** Plus rien à garder : après une suppression, la page ne retient pas le départ. */
+    /** Nothing left to keep: after a deletion, the page does not hold back leaving. */
     function markClean() {
         saved.value = fingerprint(form.value);
     }
 
-    /** Écraser ce que le collègue a enregistré : le choix de l'auteur, après avoir lu le conflit. */
+    /** Overwrite what the colleague saved: the author's choice, after reading the conflict. */
     function saveAnyway() {
         return save(true);
     }

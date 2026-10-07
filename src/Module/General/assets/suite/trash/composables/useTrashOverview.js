@@ -38,9 +38,9 @@ export function useTrashOverview(props) {
                 label,
                 iconComponent: resolveNavIcon(trash.icon),
                 daysLeft: daysLeft(trash.oldestDeletedAt, props.retentionDays),
-                // Le module devant ce qu'il contient, sauf quand il le répète :
-                // « Notes · Notes Markdown » dit deux fois la même chose, et le
-                // préfixe n'est là que pour lever une ambiguïté.
+                // The module in front of what it contains, except when it
+                // repeats it: "Notes · Notes Markdown" says the same thing
+                // twice, and the prefix is only there to remove an ambiguity.
                 showSection:
                     Boolean(trash.sectionLabel) &&
                     !label

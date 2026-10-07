@@ -1,18 +1,18 @@
 /**
- * L'ordre d'un niveau de l'arborescence des notes.
+ * The order of one level of the notes tree.
  *
- * Dossiers et notes d'un même dossier partagent un seul ordre depuis qu'on
- * peut les mêler : la position d'abord, puis, à égalité, le dossier avant la
- * note, puis le plus ancien. C'est la règle du serveur pour l'ordre de
- * lecture (`MarkdownNotesViewBuilder::readingOrder`).
+ * Folders and notes of the same folder share a single order since they can
+ * be mixed: the position first, then, on a tie, the folder before the note,
+ * then the oldest. It is the server's rule for the reading order
+ * (`MarkdownNotesViewBuilder::readingOrder`).
  *
- * @param {{kind: string, id: number, position?: number}} a
- * @param {{kind: string, id: number, position?: number}} b
+ * @param {{kind: string, id: number, position?: number}} left
+ * @param {{kind: string, id: number, position?: number}} right
  */
-export function compareSiblings(a, b) {
+export function compareSiblings(left, right) {
     return (
-        (a.position ?? 0) - (b.position ?? 0) ||
-        ("folder" === a.kind ? 0 : 1) - ("folder" === b.kind ? 0 : 1) ||
-        Number(a.id) - Number(b.id)
+        (left.position ?? 0) - (right.position ?? 0) ||
+        ("folder" === left.kind ? 0 : 1) - ("folder" === right.kind ? 0 : 1) ||
+        Number(left.id) - Number(right.id)
     );
 }

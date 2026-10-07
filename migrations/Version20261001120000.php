@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une publication peut être lue par un lien seulement.
+ * A publication can be read through a link only.
  *
- * « site » pour toutes les publications existantes, qui restent sur le site
- * exactement comme avant. « link » sort une publication du site : plus
- * d'adresse sous le site, plus de liste, de menu, de sitemap ni de recherche.
+ * "site" for every existing publication, which stays on the site exactly as
+ * before. "link" takes a publication out of the site: no more address under
+ * the site, no more list, menu, sitemap or search.
  */
 final class Version20261001120000 extends AbstractMigration
 {

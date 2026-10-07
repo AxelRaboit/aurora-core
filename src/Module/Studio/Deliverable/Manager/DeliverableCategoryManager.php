@@ -15,10 +15,10 @@ use function count;
 use function mb_trim;
 
 /**
- * Créer, renommer, ranger et supprimer les catégories des livrables de Studio.
+ * Create, rename, reorder and delete Studio deliverable categories.
  *
- * Supprimer une catégorie ne supprime aucun livrable : la colonne est en
- * `ON DELETE SET NULL`, ses livrables redeviennent « sans catégorie ».
+ * Deleting a category deletes no deliverable: the column is
+ * `ON DELETE SET NULL`, its deliverables go back to "sans catégorie".
  */
 readonly class DeliverableCategoryManager
 {
@@ -27,8 +27,8 @@ readonly class DeliverableCategoryManager
         private DeliverableCategoryRepository $categories,
     ) {}
 
-    /** Une catégorie neuve se range à la fin : on la remonte ensuite si l'on veut. */
-    /** La catégorie qu'on crée, à un seul endroit : un projet qui étend l'entité surcharge ceci. */
+    /** A new category goes at the end: it can be moved up afterwards if wanted. */
+    /** The category being created, in one place: a project that extends the entity overrides this. */
     protected function instantiate(): DeliverableCategoryInterface
     {
         return new DeliverableCategory();
@@ -58,10 +58,10 @@ readonly class DeliverableCategoryManager
     }
 
     /**
-     * L'ordre choisi à la main, d'après la liste des identifiants reçue.
+     * The hand-picked order, from the list of ids received.
      *
-     * Un identifiant inconnu est ignoré ; une catégorie absente de la liste
-     * passe après les autres, dans son ordre d'avant.
+     * An unknown id is ignored; a category missing from the list goes after
+     * the others, in its previous order.
      *
      * @param list<int> $ids
      */

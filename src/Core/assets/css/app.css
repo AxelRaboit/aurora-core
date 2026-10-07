@@ -1,15 +1,15 @@
 /*
- * Les familles qu'un theme peut choisir, declarees cote PHP par ThemeFontEnum.
+ * The families a theme can choose, declared on the PHP side by ThemeFontEnum.
  *
- * Toutes sont importees, une seule sert : un `@font-face` que rien ne reference
- * n'est jamais telecharge, donc le cout d'une famille de plus est celui de ses
- * declarations CSS, pas celui de ses fichiers. C'est ce qui rend le choix
- * possible sans peser sur les pages des sites qui n'en changent pas.
+ * All are imported, only one is used: a `@font-face` that nothing references
+ * is never downloaded, so the cost of one more family is that of its CSS
+ * declarations, not of its files. That is what makes the choice possible
+ * without weighing on the pages of sites that do not change it.
  *
- * Auto-heberge et pas Google Fonts : la CSP pose `font-src 'self' data:`, une
- * balise vers fonts.gstatic.com serait refusee et la page sortirait dans la
- * police du systeme. Ajouter une famille a l'enum veut donc dire ajouter son
- * paquet @fontsource et ses six graisses ici.
+ * Self-hosted and not Google Fonts: the CSP sets `font-src 'self' data:`, a
+ * tag pointing to fonts.gstatic.com would be refused and the page would come
+ * out in the system font. Adding a family to the enum therefore means adding
+ * its @fontsource package and its six weights here.
  */
 @import "@fontsource/poppins/400.css";
 @import "@fontsource/poppins/400-italic.css";
@@ -54,7 +54,7 @@
 @import "@fontsource/playfair-display/500-italic.css";
 @import "@fontsource/playfair-display/600.css";
 @import "@fontsource/playfair-display/700.css";
-/* Space Grotesk n'a pas d'italique : le navigateur l'incline s'il le faut. */
+/* Space Grotesk has no italic: the browser slants it when needed. */
 @import "@fontsource/space-grotesk/400.css";
 @import "@fontsource/space-grotesk/500.css";
 @import "@fontsource/space-grotesk/600.css";
@@ -67,48 +67,48 @@
 @source inline("max-w-3xl max-w-5xl max-w-none mx-auto");
 
 /*
- * Utilitaires Tailwind rendus disponibles dans les contenus.
+ * Tailwind utilities made available in content.
  *
- * Tailwind ne genere que les classes qu'il trouve en scannant les sources.
- * Celles qu'un redacteur ecrit dans un bloc HTML vivent en base, que le
- * scanner ne lit jamais : sans la liste ci-dessous, `class="grid gap-4"`
- * dans un article ne correspond a aucun CSS. C'est la meme raison que pour
- * les largeurs choisies en PHP juste au-dessus, a une autre echelle.
+ * Tailwind only generates the classes it finds by scanning the sources. Those
+ * an editor writes in an HTML block live in the database, which the scanner
+ * never reads: without the list below, `class="grid gap-4"` in an article
+ * matches no CSS. It is the same reason as for the widths chosen in PHP just
+ * above, at another scale.
  *
- * La liste est volontairement close. Elle couvre la mise en page, les
- * espacements, la typographie et les etats au survol ; pour les couleurs
- * elle n'offre que les jetons du theme, de sorte qu'un contenu ne puisse
- * pas sortir de la charte du site en ecrivant une couleur au hasard.
+ * The list is deliberately closed. It covers layout, spacing, typography and
+ * hover states; for colours it only offers the theme's tokens, so that a
+ * piece of content cannot step outside the site's style guide by writing a
+ * random colour.
  *
- * Tout ce qui est ici part chez chaque visiteur, utilise ou non : une
- * addition se pese.
+ * Everything here goes to every visitor, used or not: an addition has to be
+ * weighed.
  */
 
-/* Affichage et flux */
+/* Display and flow */
 @source inline("{sm:,md:,lg:,}{block,inline-block,inline,flex,inline-flex,grid,inline-grid,hidden} {sm:,md:,lg:,}flex-{row,row-reverse,col,col-reverse,wrap,nowrap} flex-{1,auto,none,initial} shrink-0 grow items-{start,center,end,baseline,stretch} justify-{start,center,end,between,around,evenly} self-{auto,start,center,end,stretch} {sm:,md:,lg:,}order-{first,last,none,1,2,3}");
 
-/* Grille */
+/* Grid */
 @source inline("{sm:,md:,lg:,}grid-cols-{1,2,3,4,5,6,12} {sm:,md:,lg:,}col-span-{1,2,3,4,5,6,full} grid-rows-{1,2,3,4} row-span-{1,2,3,full} {sm:,md:,lg:,}gap-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} gap-x-{0,1,2,3,4,6,8} gap-y-{0,1,2,3,4,6,8}");
 
-/* Espacements */
+/* Spacing */
 @source inline("{sm:,md:,lg:,}p-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}px-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}py-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}pt-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}pr-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}pb-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}pl-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}m-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}mx-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}my-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}mt-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}mr-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}mb-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} {sm:,md:,lg:,}ml-{0,0.5,1,1.5,2,2.5,3,4,5,6,8,10,12,16,20,24} mx-auto my-auto ml-auto mr-auto mt-auto space-{x,y}-{0,1,2,3,4,6,8}");
 
 /* Dimensions */
 @source inline("{sm:,md:,lg:,}w-{full,auto,fit,screen,1/2,1/3,2/3,1/4,3/4} h-{full,auto,fit,screen,8,10,12,16,20,24,32,40,48,64} min-h-{0,full,screen,48,64} min-w-0 {sm:,md:,lg:,}max-w-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,full,none,prose} aspect-{square,video,auto}");
 
-/* Position et debordement */
+/* Position and overflow */
 @source inline("relative absolute fixed sticky static inset-0 inset-x-0 inset-y-0 top-0 right-0 bottom-0 left-0 z-{0,10,20,30,40,50} overflow-{hidden,auto,visible} overflow-x-auto overflow-y-auto object-{cover,contain,fill,center,top,bottom}");
 
-/* Typographie */
+/* Typography */
 @source inline("{sm:,md:,lg:,}text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl} font-{light,normal,medium,semibold,bold,extrabold} {sm:,md:,lg:,}text-{left,center,right,justify} leading-{none,tight,snug,normal,relaxed,loose} tracking-{tighter,tight,normal,wide,wider,widest} {uppercase,lowercase,capitalize,normal-case} {italic,not-italic} {hover:,}{underline,no-underline,line-through} truncate line-clamp-{1,2,3,4,none} whitespace-{normal,nowrap,pre-line} break-words break-all text-balance text-pretty");
 
-/* Couleurs du theme - les seules offertes, pour que le contenu reste dans la charte */
+/* Theme colours - the only ones offered, so content stays within the style guide */
 @source inline("{hover:,}text-{primary,secondary,muted,subtle,accent,accent-hover} {hover:,}text-accent-{50,100,200,300,400,500,600,700,800,900,950} {hover:,}bg-{surface,surface-2,surface-3,bg,accent} {hover:,}bg-accent-{50,100,200,300,400,500,600,700,800,900,950} {hover:,}border-{line,line-strong,card-line,accent} {hover:,}border-accent-{50,100,200,300,400,500,600,700,800,900,950} text-{white,black,transparent} bg-{white,black,transparent}");
 
-/* Bordures, arrondis, ombres */
+/* Borders, rounding, shadows */
 @source inline("{hover:,}border border-{0,2,4} border-{t,r,b,l} border-{solid,dashed,dotted} rounded rounded-{none,sm,md,lg,xl,2xl,3xl,full} rounded-{t,r,b,l}-{lg,xl,2xl} {hover:,}shadow shadow-{sm,md,lg,xl,2xl,none} ring-1 ring-2");
 
-/* Transitions et etats - ce qui donne vie a une carte au survol */
+/* Transitions and states - what brings a card to life on hover */
 @source inline("transition transition-{all,colors,transform,opacity,shadow} duration-{75,100,150,200,300,500,700} ease-{linear,in,out,in-out} {hover:,}opacity-{0,10,25,50,60,70,75,80,90,100} {hover:,}{scale-{95,100,105,110},-translate-y-{0.5,1,2},translate-y-0} cursor-pointer select-none");
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";

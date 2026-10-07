@@ -15,10 +15,10 @@ interface SpaceResourceManagerInterface
     public function update(SpaceResourceInterface $resource, SpaceResourceInputInterface $input): void;
 
     /**
-     * Ouvre ou ferme une ressource au client, sans rouvrir la modale.
+     * Opens or closes a resource to the client, without reopening the modal.
      *
-     * Sa propre écriture : dire « celle-ci, il peut la voir » ne devrait pas
-     * renvoyer un libellé, une adresse et un corps.
+     * Its own write: saying "this one, they can see it" should not have to send
+     * a label, an address and a body back.
      */
     public function toggleVisibility(SpaceResourceInterface $resource): void;
 

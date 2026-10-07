@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
+use Aurora\Module\Studio\Contract\Service\ContractLinkLifetime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -41,16 +42,6 @@ use function hash_equals;
 #[AsAlias(ContractAccessLinkManagerInterface::class)]
 class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
 {
-    /**
-     * How long an address stays valid, in days.
-     *
-     * Thirty, because an offer that can still be accepted a year later is a
-     * liability and the paper version always carried a validity period. A
-     * setting can come the day somebody wants a different number; a constant
-     * that is documented beats a column nobody has a use for yet.
-     */
-    public const int DEFAULT_LIFETIME_DAYS = 30;
-
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
@@ -58,6 +49,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly MailService $mail,
         protected readonly TranslatorInterface $translator,
+        protected readonly ContractLinkLifetime $lifetime,
     ) {}
 
     public function send(ContractInterface $contract): ContractAccessLinkInterface
@@ -154,10 +146,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         $recipient = $contract->getCustomer()->getContractualEmail();
 
         if (null === $recipient || '' === $recipient) {
-            // Un prospect peut n'avoir qu'un nom, et c'est voulu. Mais on
-            // n'envoie pas un contrat a personne : c'est ici, au moment de
-            // l'envoi, que l'adresse devient indispensable - pas a la creation
-            // de la fiche.
+            // A prospect can have only a name, and that is intended. But a
+            // contract is not sent to nobody: it is here, at sending time,
+            // that the address becomes required - not when the record is
+            // created.
             throw new FieldException('customer', $this->translator->trans('suite.studio.contracts.errors.customer_has_no_address'));
         }
 
@@ -167,7 +159,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         $link
             ->setContract($contract)
             ->setRecipientEmail($recipient)
-            ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', self::DEFAULT_LIFETIME_DAYS)));
+            ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $this->lifetime->days())));
 
         // Saved before the mail so the address it carries opens something,
         // and the addresses handed out before are left alone until the mail
@@ -227,7 +219,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             // the client read « le contrat {reference} attend votre
             // signature ». The first sending's subject has no placeholder and
             // ignores it.
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }
 

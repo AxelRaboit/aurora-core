@@ -1,6 +1,6 @@
 import { registerSettingsTabComponent } from "@configuration/suite/settings/tabRegistry.js";
 import GitHubTab from "./GitHubTab.vue";
 
-// Correspond à `componentName: 'github'` sur l'onglet que le module Editorial
-// contribue.
+// Matches `componentName: 'github'` on the tab the Editorial module
+// contributes.
 registerSettingsTabComponent("github", GitHubTab);

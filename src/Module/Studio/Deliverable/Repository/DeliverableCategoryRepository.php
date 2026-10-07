@@ -20,7 +20,7 @@ class DeliverableCategoryRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Dans l'ordre choisi, le nom pour départager.
+     * In the chosen order, with the name as tie-breaker.
      *
      * @return list<DeliverableCategoryInterface>
      */

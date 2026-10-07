@@ -7,6 +7,8 @@ namespace Aurora\Module\Studio\Deliverable\View;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
@@ -21,8 +23,8 @@ use function array_map;
 use function array_values;
 
 /**
- * Ce que reçoivent les écrans des livrables de Studio, ceux qui ne sont
- * rattachés à aucun espace : la liste, avec ses deux rayons, et l'éditeur.
+ * What the screens of Studio deliverables receive, the ones attached to no
+ * space: the list, with its two shelves, and the editor.
  */
 final readonly class DeliverablesViewBuilder
 {
@@ -34,6 +36,7 @@ final readonly class DeliverablesViewBuilder
         private PathTemplateGenerator $pathTemplates,
         private LocaleContextInterface $localeContext,
         private DeliverableCategoryRepository $categories,
+        private CustomerRepository $customers,
     ) {}
 
     /**
@@ -50,6 +53,7 @@ final readonly class DeliverablesViewBuilder
             'canCreate' => $this->access->canCreate(),
             'listsPath' => $this->urlGenerator->generate('suite_studio_deliverables_lists'),
             'createPath' => $this->urlGenerator->generate('suite_studio_deliverables_create'),
+            'importPath' => $this->urlGenerator->generate('suite_studio_deliverables_import'),
             'scopePathTemplate' => $template('scope'),
             'duplicatePathTemplate' => $template('duplicate'),
             'deletePathTemplate' => $template('delete'),
@@ -66,8 +70,8 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * Les catégories, et les deux rayons qui les affichent : renommer ou
-     * supprimer une catégorie change les cartes.
+     * The categories, and the two shelves that display them: renaming or
+     * deleting a category changes the cards.
      *
      * @return array{categories: list<array<string, mixed>>, personal: list<array<string, mixed>>, shared: list<array<string, mixed>>}
      */
@@ -86,7 +90,7 @@ final readonly class DeliverablesViewBuilder
     }
 
     /**
-     * Les deux rayons, chaque ligne avec les gestes que la personne y a.
+     * The two shelves, each row with the actions the person has on it.
      *
      * @return array{personal: list<array<string, mixed>>, shared: list<array<string, mixed>>}
      */
@@ -100,24 +104,35 @@ final readonly class DeliverablesViewBuilder
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * A card, with the person's actions. The client is only named on it for
+     * someone with the right to see clients, with the module on.
+     *
+     * @return array<string, mixed>
+     */
     public function row(DeliverableInterface $deliverable): array
     {
-        return [
+        $row = [
             ...$this->serializer->row($deliverable),
             ...$this->permissions($deliverable),
         ];
+
+        if (!$this->access->canPickCustomer()) {
+            $row['customer'] = null;
+        }
+
+        return $row;
     }
 
     /**
-     * L'éditeur d'un livrable de Studio.
+     * A Studio deliverable's editor.
      *
      * @return array<string, mixed>
      */
     public function editorView(DeliverableInterface $deliverable): array
     {
-        $params = ['id' => $deliverable->getId()];
-        $route = fn (string $action): string => $this->urlGenerator->generate('suite_studio_deliverables_'.$action, $params);
+        $parameters = ['id' => $deliverable->getId()];
+        $route = fn (string $action): string => $this->urlGenerator->generate('suite_studio_deliverables_'.$action, $parameters);
 
         return [
             'deliverable' => $this->serializer->editor($deliverable),
@@ -136,12 +151,33 @@ final readonly class DeliverablesViewBuilder
             'copyToSpacePath' => $route('copy_to_space'),
             'copyTargets' => $this->copyTargets(),
             'categories' => $this->categoryList(),
+            'canPickCustomer' => $this->access->canPickCustomer(),
+            'customers' => $this->customerOptions(),
         ];
     }
 
     /**
-     * Les espaces où déposer une copie, pour le sélecteur : vide quand la
-     * personne n'écrit dans aucun, et le geste ne s'affiche pas.
+     * The clients the settings offer, by company name: empty without the
+     * clients module or without the right to see their list, and then the
+     * selector is not shown.
+     *
+     * @return list<array{id: int|null, legalName: string}>
+     */
+    private function customerOptions(): array
+    {
+        if (!$this->access->canPickCustomer()) {
+            return [];
+        }
+
+        return array_map(
+            static fn (CustomerInterface $customer): array => ['id' => $customer->getId(), 'legalName' => $customer->getLegalName()],
+            $this->customers->findAllOrdered(),
+        );
+    }
+
+    /**
+     * The spaces a copy can be dropped into, for the selector: empty when the
+     * person writes to none, and then the action is not shown.
      *
      * @return list<array{id: int|null, name: string, customer: string}>
      */
@@ -165,7 +201,7 @@ final readonly class DeliverablesViewBuilder
             'canShare' => $this->access->canShare($deliverable),
             'canDelete' => $this->access->canDelete($deliverable),
             'canChangeScope' => $this->access->canChangeScope($deliverable),
-            // Copier, c'est créer : la copie est à qui la fait.
+            // Copying is creating: the copy belongs to whoever makes it.
             'canDuplicate' => $this->access->canCreate(),
         ];
     }

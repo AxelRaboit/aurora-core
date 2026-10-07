@@ -38,8 +38,8 @@ final class SpanishTranslationCompletenessTest extends TestCase
     /** @return iterable<string, array{string, array<string, mixed>, array<string, mixed>}> */
     public static function catalogues(): iterable
     {
-        $src = dirname(__DIR__, 3).'/src';
-        $walker = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($src, RecursiveDirectoryIterator::SKIP_DOTS));
+        $sourceDirectory = dirname(__DIR__, 3).'/src';
+        $walker = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDirectory, RecursiveDirectoryIterator::SKIP_DOTS));
 
         foreach ($walker as $file) {
             if (1 !== preg_match_all('/^(\w+)\.fr\.yaml$/', $file->getFilename())) {
@@ -48,7 +48,7 @@ final class SpanishTranslationCompletenessTest extends TestCase
 
             $fr = $file->getPathname();
             $es = str_replace('.fr.yaml', '.es.yaml', $fr);
-            $label = str_replace($src.'/', '', $fr);
+            $label = str_replace($sourceDirectory.'/', '', $fr);
 
             yield $label => [$label, self::flat(Yaml::parseFile($fr) ?? []), is_file($es) ? self::flat(Yaml::parseFile($es) ?? []) : []];
         }

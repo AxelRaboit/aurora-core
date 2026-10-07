@@ -1,6 +1,6 @@
-{# La page d'un livrable : le gabarit de lecture autour, la grille des pages
-   du site dedans. Rien ici n'a d'adresse sur le site, donc rien à référencer :
-   pas de canonique, pas d'indexation. #}
+{# A deliverable's page: the reading template around, the grid of the site's
+   pages inside. Nothing here has an address on the site, so nothing to index:
+   no canonical, no indexing. #}
 {% extends 'Frontend/themes/default/reading_layout.html.twig' %}
 
 {% block seo_define %}
@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block body %}
-{# Les couleurs du livrable, portées par l'article seul : l'en-tête et le pied
-   ont les leurs, repeintes par le thème à partir de `surfaceOverrides`. #}
+{# The deliverable's colours, carried by the article alone: the header and the
+   footer have their own, repainted by the theme from `surfaceOverrides`. #}
 {% if appearance.accentColor %}
     <style>{{ themeStyles.postAccentCss('.aurora-post-accent', appearance.accentColor)|raw }}</style>
 {% endif %}
@@ -22,14 +22,14 @@
 {% if deliverableHighlightCss %}
     <style>{{ deliverableHighlightCss|raw }}</style>
 {% endif %}
-{# Titres et chiffres clés : des jetons du thème, posés ici pour l'article seul.
-   Les valeurs sont des hexadécimaux vérifiés à l'écriture
+{# Titles and key figures: theme tokens, set here for the article alone.
+   The values are hexadecimals checked on write
    (DeliverableAppearance). #}
 {% if appearance.headingColor or appearance.figureColor %}
-    {# Une zone en contraste forcé (un dégradé sombre, une photo) repose ses
-       propres couleurs de texte : ses titres suivent les siennes, pas celle du
-       livrable, qui serait illisible dessus. Ces zones portent leurs jetons en
-       style en ligne, d'où le sélecteur. #}
+    {# A zone with forced contrast (a dark gradient, a photo) sets its own text
+       colours again: its titles follow its own, not the deliverable's, which
+       would be unreadable on it. These zones carry their tokens as inline
+       style, hence the selector. #}
     <style>html[data-theme] .aurora-deliverable{
         {%- if appearance.headingColor %}--th-heading: {{ appearance.headingColor }};{% endif -%}
         {%- if appearance.figureColor %}--th-figure: {{ appearance.figureColor }};{% endif -%}
@@ -38,8 +38,8 @@
 {% endif %}
 
 <article class="prose max-w-none aurora-deliverable{{ appearance.headingStyle|default('theme') == 'display' ? ' aurora-headings-display' : '' }}{{ appearance.accentColor ? ' aurora-post-accent' : '' }}{{ deliverableHighlightCss ? ' aurora-post-highlight' : '' }}">
-    {# Le titre reste dans le document quand il est caché : c'est le seul
-       `<h1>` de la page, et une zone de texte n'en fait pas. #}
+    {# The title stays in the document when it is hidden: it is the page's only
+       `<h1>`, and a text zone does not make one. #}
     {% set hasSummary = appearance.titleVisible and deliverable.summary %}
     <h1 class="{{ appearance.titleVisible ? '' : 'sr-only' }}{{ hasSummary ? ' mb-3' : '' }}">{{ deliverable.title }}</h1>
     {% if hasSummary %}
@@ -51,8 +51,9 @@
         </p>
     {% endif %}
 
-    {# Le PDF du lecteur, quand l'auteur l'a permis : la même page, en version à
-       imprimer. Pas dans l'aperçu de l'éditeur ni dans la version imprimée. #}
+    {# The reader's PDF, when the author allowed it: the same page, in a
+       printable version. Not in the editor's preview nor in the printed
+       version. #}
     {% if appearance.readerPdf|default(false) and not print|default(false) and not editorPreview|default(false) %}
         <p class="not-prose mt-0 mb-4 text-sm" data-reader-pdf>
             <a href="?print=1" class="font-medium underline underline-offset-2">{{ 'frontend.reading.download_pdf'|trans }}</a>
@@ -61,9 +62,9 @@
     {% endif %}
 
     {% if slides|default(null) %}
-        {# Une présentation : une diapositive par section, passées une à une
-           par deliverableSlides.js. Sans lui, elles se lisent à la suite, et
-           c'est encore le document entier. #}
+        {# A presentation: one slide per section, stepped through one by one
+           by deliverableSlides.js. Without it, they read one after the other,
+           and it is still the whole document. #}
         <div class="aurora-slides" data-slides{% if print|default(false) %} data-slides-print{% endif %}>
             {% for slide in slides %}
                 <section class="aurora-slide" data-slide id="diapo-{{ loop.index }}" aria-roledescription="{{ 'frontend.slides.slide'|trans }}" aria-label="{{ loop.index }} / {{ slides|length }}">
@@ -85,7 +86,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                 </button>
                 {% if viewSwitch|default(null) == 'page' %}
-                    {# Lire le même document en page, à la section où l'on est. #}
+                    {# Read the same document as a page, at the current section. #}
                     <a href="?view=page" class="aurora-slides__button" data-view-switch="page" aria-label="{{ 'frontend.slides.view_page'|trans }}" title="{{ 'frontend.slides.view_page'|trans }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 13H8"/><path d="M16 17H8"/><path d="M16 13h-2"/></svg>
                     </a>
@@ -102,10 +103,10 @@
             {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
         {% endif %}
         {% if viewSwitch|default(null) == 'slides' %}
-            {# Lu en page, de quoi le voir en présentation : la même barre, au
-               même endroit que celle des diapositives, collée en bas de
-               l'écran pendant la lecture, pour reprendre à la section où l'on
-               est. La vue de l'auteur reste celle par défaut. #}
+            {# Read as a page, a way to view it as a presentation: the same
+               bar, in the same place as the slides' one, stuck to the bottom
+               of the screen while reading, to pick up at the current section.
+               The author's view stays the default one. #}
             <nav class="aurora-slides__controls not-prose" aria-label="{{ 'frontend.slides.view_slides'|trans }}">
                 <a href="?view=slides" class="aurora-slides__button" data-view-switch="slides" aria-label="{{ 'frontend.slides.view_slides'|trans }}" title="{{ 'frontend.slides.view_slides'|trans }}">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>

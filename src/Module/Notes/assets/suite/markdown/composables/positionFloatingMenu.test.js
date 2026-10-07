@@ -16,11 +16,11 @@ const MENU_HEIGHT = 256;
  * are anchored at the same origin so the caret lands at the top of the box.
  */
 function textareaAt({ top, height = 300 }) {
-    const el = document.createElement("textarea");
-    el.value = "";
-    document.body.appendChild(el);
+    const textarea = document.createElement("textarea");
+    textarea.value = "";
+    document.body.appendChild(textarea);
 
-    el.getBoundingClientRect = () => ({
+    textarea.getBoundingClientRect = () => ({
         top,
         left: 100,
         width: 400,
@@ -28,7 +28,7 @@ function textareaAt({ top, height = 300 }) {
         bottom: top + height,
         right: 500,
     });
-    return el;
+    return textarea;
 }
 
 beforeEach(() => {

@@ -15,6 +15,13 @@ interface SpaceContentItemInterface
 
     public function getSpace(): CustomerSpaceInterface;
 
+    /** When the content was put in the trash; null while it is alive. */
+    public function getDeletedAt(): ?DateTimeImmutable;
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
+
+    public function isTrashed(): bool;
+
     public function setSpace(CustomerSpaceInterface $space): static;
 
     public function getColumn(): SpaceContentColumnInterface;
@@ -46,6 +53,9 @@ interface SpaceContentItemInterface
     public function setReviewBy(?DateTimeImmutable $reviewBy): static;
 
     public function isLateForReview(DateTimeImmutable $now): bool;
+
+    /** Whether the card sits where the client answers: the Review step, or any visible step on a board without one. */
+    public function isAtClientStep(): bool;
 
     public function isScheduled(): bool;
 

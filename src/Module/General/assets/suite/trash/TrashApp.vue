@@ -45,7 +45,7 @@ function mayAct(trash) {
     return !trash.actionPrivilege || can(trash.actionPrivilege);
 }
 
-/** Ce qu'on peut faire d'un élément de la corbeille, derrière le bouton « … ». */
+/** What can be done with a trash item, behind the "…" button. */
 function itemActions(trash, item) {
     const actions = [];
     if (trash.restorePath) {
@@ -90,8 +90,8 @@ function formatDate(value) {
             </p>
         </div>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.trash.guide.title')" storage-key="trash">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`suite.trash.guide.step_${step}`) }}</li>
@@ -117,9 +117,9 @@ function formatDate(value) {
                     v-on:click="select(row.key)"
                 >
                     <component :is="row.iconComponent" class="w-3.5 h-3.5" :stroke-width="2" />
-                    <!-- Le module avant ce qu'il contient : « Dossiers » seul
-                         pourrait nommer trois choses, et l'intitulé de section
-                         qui le désambiguïse dans le menu n'est pas ici. -->
+                    <!-- The module before what it contains: "Dossiers" alone
+                         could name three things, and the section heading
+                         that disambiguates it in the menu is not here. -->
                     <template v-if="row.showSection">
                         <span class="text-muted">{{ row.sectionLabel }}</span>
                         <span class="text-muted">·</span>
@@ -142,9 +142,9 @@ function formatDate(value) {
                             </template>
                         </span>
                     </p>
-                    <!-- Dans le bandeau qui existe déjà, pas au-dessus : deux
-                         bandeaux l'un sur l'autre pour une liste de trois
-                         lignes seraient plus de mobilier que de contenu. -->
+                    <!-- In the banner that already exists, not above it: two
+                         banners stacked for a list of three rows would be
+                         more furniture than content. -->
                     <AppLink
                         v-if="active.listPath"
                         :href="active.listPath"
@@ -171,10 +171,9 @@ function formatDate(value) {
                 </AppMessage>
 
                 <div v-else class="aurora-card overflow-hidden divide-y divide-line/40">
-                    <!-- Le nom garde toute la ligne, et ses gestes (restaurer,
-                         supprimer définitivement) sont derrière le bouton « … »,
-                         comme sur toutes les listes (décision d'Axel du
-                         04/10/2026). -->
+                    <!-- The name keeps the whole row, and its actions (restore,
+                         delete permanently) are behind the "…" button, as on
+                         every list (Axel's decision of 04/10/2026). -->
                     <div
                         v-for="item in active.items"
                         :key="item.id"

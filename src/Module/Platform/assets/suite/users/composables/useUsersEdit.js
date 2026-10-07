@@ -34,7 +34,10 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
         password: "",
         managerId: null,
         ...Object.fromEntries(
-            Object.entries(extraFields).map(([key, def]) => [key, def.default]),
+            Object.entries(extraFields).map(([key, definition]) => [
+                key,
+                definition.default,
+            ]),
         ),
     });
 
@@ -56,10 +59,10 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
         editForm.role = user.role ?? props.roles[0]?.value ?? "";
         editForm.password = "";
         editForm.managerId = user.managerId ? String(user.managerId) : "";
-        for (const [key, def] of Object.entries(extraFields)) {
-            editForm[key] = def.fromEntity
-                ? def.fromEntity(user)
-                : (user[key] ?? def.default);
+        for (const [key, definition] of Object.entries(extraFields)) {
+            editForm[key] = definition.fromEntity
+                ? definition.fromEntity(user)
+                : (user[key] ?? definition.default);
         }
         editModal.open = true;
         loadSelectableUsers();

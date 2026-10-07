@@ -1,15 +1,15 @@
 <script setup>
 /**
- * Les réglages d'un espace : son nom, qui y entre, et qui y est inscrit.
+ * A space's settings: its name, who gets in, and who is a member.
  *
- * **Les inscriptions s'appliquent tout de suite**, le reste à
- * l'enregistrement. Inscrire quelqu'un est un geste en soi, qu'on fait
- * souvent plusieurs fois d'affilée ; l'attacher au bouton du bas ferait
- * perdre une liste entière à qui ferme la fenêtre sans y penser.
+ * **Memberships apply right away**, the rest on save. Adding someone is a
+ * gesture in itself, often done several times in a row; tying it to the
+ * bottom button would make whoever closes the dialog without thinking lose a
+ * whole list.
  *
- * L'espace personnel n'a qu'une couleur à régler : il ne se renomme pas, ne
- * s'ouvre à personne et ne se retire pas. La fenêtre le dit plutôt que de
- * montrer des réglages qui ne feraient rien.
+ * The personal space only has a colour to set: it is not renamed, opened to
+ * anyone or removed. The dialog says so rather than showing settings that
+ * would do nothing.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -28,7 +28,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { spaceLabel } from "../composables/noteSpaces.js";
 
 const props = defineProps({
-    /** L'espace ouvert ; `null` ferme la fenêtre. */
+    /** The open space; `null` closes the dialog. */
     spaceId: { type: Number, default: null },
     /** {@see useNoteSpacesApi} */
     api: { type: Object, required: true },
@@ -116,7 +116,7 @@ const memberRoleOptions = computed(() => [
     { value: "manager", label: t("notes.markdown.spaces.role.manager") },
 ]);
 
-/** Ceux qu'on peut encore inscrire : pas deux fois la même personne. */
+/** Those who can still be added: not the same person twice. */
 const candidates = computed(() => {
     const already = new Set(members.value.map((member) => Number(member.userId)));
 
@@ -170,9 +170,9 @@ async function removeMember(member) {
 }
 
 /**
- * La publication s'applique tout de suite, comme une inscription : ouvrir un
- * espace au web est un geste en soi, et l'adresse qu'il reçoit doit se voir
- * avant de refermer la fenêtre.
+ * Publishing applies right away, like a membership: opening a space to the
+ * web is a gesture in itself, and the address it gets must show before the
+ * dialog is closed.
  */
 async function applyPublication(published) {
     publishing.value = true;
@@ -221,7 +221,7 @@ async function save() {
     emit("close");
 }
 
-/** Deux temps : le bouton demande, le second clic retire. */
+/** Two steps: the button asks, the second click removes. */
 async function removeSpace() {
     if (!confirmingDelete.value) {
         confirmingDelete.value = true;
@@ -294,7 +294,7 @@ async function removeSpace() {
 
             <AppColorPicker v-model="color" class="mt-4" :label="t('notes.markdown.folders.color')" />
 
-            <!-- Les inscrits : chacun avec son rôle, qui se change sur place. -->
+            <!-- The members: each with their role, which is changed in place. -->
             <section v-if="takesMembers" class="mt-6 border-t border-line pt-4" data-space-members>
                 <h3 class="text-sm font-semibold text-primary">{{ t('notes.markdown.spaces.members') }}</h3>
                 <p class="mt-1 text-xs text-muted">
@@ -355,8 +355,8 @@ async function removeSpace() {
                 </div>
             </section>
 
-            <!-- La lecture publique : pour qui en a le droit, jamais pour
-                 son espace personnel. -->
+            <!-- Public reading: for whoever is allowed to, never for one's
+                 personal space. -->
             <section v-if="canPublish" class="mt-6 border-t border-line pt-4" data-space-publication>
                 <h3 class="flex items-center gap-1.5 text-sm font-semibold text-primary">
                     <Globe class="h-3.5 w-3.5" :stroke-width="2" />

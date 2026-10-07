@@ -15,6 +15,7 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Manager\SpaceFileManagerInterface;
@@ -31,16 +32,16 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use function is_numeric;
 
 /**
- * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
+ * The space's files, the ones that are on no record.
  *
- * **Partagés avec le client, comme le reste de l'espace.** La charte, les
- * logos, le brief, un PDF signé : ce qu'on tend à quelqu'un sans l'épingler à
- * une publication. La surface privée du studio, ce sont les notes, et elles
- * n'ont aucune route publique.
+ * **Hidden from the client until they are shown to them**, like everything a
+ * space can show them. The brand guide, the logos, the brief, a signed PDF:
+ * this is where what is handed to them and what is worked from is stored,
+ * and showing either one requires the right to share the space.
  *
- * Chaque route nomme l'espace et vérifie que ce qu'on lui a donné lui
- * appartient : le fichier arrive par son identifiant, donc rien n'empêche une
- * requête fabriquée de désigner celui d'un autre client.
+ * Each route names the space and checks that what it was given belongs to
+ * it: the file arrives by its id, so nothing stops a crafted request from
+ * pointing at another client's.
  */
 #[Route('/workspace/{id}/files', name: 'workspace_space_files', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -60,12 +61,11 @@ class SpaceFilesController extends AbstractController
     ) {}
 
     /**
-     * Un fichier déposé sur l'espace.
+     * A file dropped on the space.
      *
-     * Le même téléverseur que sur une fiche, donc le même dossier et le même
-     * brouillon : la catégorie et le statut sont décidés là-bas, jamais par la
-     * requête - un formulaire qui nommerait sa catégorie pourrait déposer dans
-     * celle des contrats.
+     * The same uploader as on a record, so the same folder and the same draft:
+     * the category and the status are decided there, never by the request - a
+     * form that named its category could drop into the contracts one.
      */
     #[Route('/upload', name: '_upload', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
@@ -77,10 +77,9 @@ class SpaceFilesController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'suite.studio.space_files.errors.required']);
         }
 
-        // La même règle que sur une note et que sur un dépôt d'invité : ce qui
-        // monte passe par la politique de l'administrateur. Sans elle, le seul
-        // plafond était celui de PHP, et un type refusé partout ailleurs
-        // entrait ici.
+        // The same rule as on a note and on a guest drop: what is uploaded
+        // goes through the administrator's policy. Without it, the only cap
+        // was PHP's, and a type refused everywhere else got in here.
         $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
@@ -101,11 +100,10 @@ class SpaceFilesController extends AbstractController
     }
 
     /**
-     * Un document déjà dans la médiathèque, rattaché à l'espace.
+     * A document already in the media library, attached to the space.
      *
-     * La moitié « sélecteur » : rien n'est téléversé et rien n'est copié. Deux
-     * espaces peuvent porter le même fichier, et c'est la ligne que la
-     * médiathèque liste.
+     * The "picker" half: nothing is uploaded and nothing is copied. Two spaces
+     * can carry the same file, and it is the row the media library lists.
      */
     #[Route('/attach', name: '_attach', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
@@ -118,9 +116,9 @@ class SpaceFilesController extends AbstractController
             return $this->jsonInvalidInput(['documentId' => 'suite.studio.space_files.errors.required']);
         }
 
-        // Pris seulement par qui peut parcourir la médiathèque : un numéro se
-        // devine aussi bien qu'il se choisit, et un fichier rattaché à
-        // l'espace se montre au client. Même réponse qu'un numéro inconnu.
+        // Taken only for someone who can browse the media library: a number
+        // can be guessed as easily as it is picked, and a file attached to the
+        // space is shown to the client. Same response as an unknown number.
         $document = $this->isGranted('ged.documents.view') ? $this->documents->find((int) $documentId) : null;
 
         if (!$document instanceof DocumentInterface) {
@@ -137,11 +135,11 @@ class SpaceFilesController extends AbstractController
     }
 
     /**
-     * Retire le fichier de l'espace, et laisse le document.
+     * Removes the file from the space, and leaves the document.
      *
-     * La réponse porte ce que plus rien n'utilise, pour que l'écran propose la
-     * corbeille au lieu d'en décider : le même contrat que les pièces jointes
-     * d'une fiche et les images d'une note.
+     * The response carries what nothing uses any more, so the screen offers
+     * the trash instead of deciding for it: the same contract as a record's
+     * attachments and a note's images.
      */
     #[Route('/{fileId}/remove', name: '_remove', requirements: ['fileId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
@@ -163,14 +161,40 @@ class SpaceFilesController extends AbstractController
     }
 
     /**
-     * Le fichier lui-même, lu à travers l'espace.
+     * Shows the file to the client, or hides it from them.
      *
-     * Pas par la route de la médiathèque : un fichier déposé ici est un
-     * brouillon, que `DocumentUrlGenerator` adresse par `suite_ged_files`,
-     * lequel réclame `ged.documents.view`. Quelqu'un qui gère des espaces
-     * clients n'a pas forcément ce privilège, et le lui réclamer afficherait
-     * une liste de fichiers illisibles sans dire pourquoi. Ce qui ouvre
-     * l'espace ouvre ce qu'il y a dedans.
+     * Under the right to share the space, on top of the right to edit it:
+     * showing a file to the client is sending it to them.
+     */
+    #[Route('/{fileId}/visibility', name: '_visibility', requirements: ['fileId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
+    public function visibility(
+        CustomerSpace $space,
+        #[MapEntity(id: 'fileId')]
+        SpaceFile $file,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $file->getSpace()->getId());
+
+        try {
+            $this->files->setVisibleToClient($file, true === ($this->decodeJson($request)['visible'] ?? false));
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->payload($space));
+    }
+
+    /**
+     * The file itself, read through the space.
+     *
+     * Not through the media library route: a file dropped here is a draft,
+     * which `DocumentUrlGenerator` addresses through `suite_ged_files`, which
+     * requires `ged.documents.view`. Someone who manages customer spaces does
+     * not necessarily have that privilege, and requiring it would show a list
+     * of unreadable files without saying why. What opens the space opens
+     * what is inside it.
      */
     #[Route(
         '/{fileId}/{variant}',
@@ -191,10 +215,10 @@ class SpaceFilesController extends AbstractController
     }
 
     /**
-     * La clé du fichier ou de sa vignette.
+     * The key of the file or of its thumbnail.
      *
-     * Le service ne connaît pas les documents, et c'est voulu : il sert une
-     * clé de stockage, quelle que soit la chose qui l'a produite.
+     * The service does not know about documents, on purpose: it serves a
+     * storage key, whatever produced it.
      */
     private function keyOf(DocumentInterface $document, string $variant): string
     {

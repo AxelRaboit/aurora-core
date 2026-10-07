@@ -1,21 +1,20 @@
 /**
- * Réétalonner le portrait incrusté dans un montage, avec un fondu au bord.
+ * Regrade the portrait inset in a composite, with a fade at the edge.
  *
- * Même besoin que `regrade-card-photo.mjs`, mais sur les entêtes : le
- * portrait y est une bande verticale collée au bord de l'image, voisine
- * d'une grille de vignettes qu'il ne faut surtout pas toucher.
+ * Same need as `regrade-card-photo.mjs`, but on the headers: there the
+ * portrait is a vertical strip against the edge of the image, next to a grid
+ * of thumbnails that must not be touched at all.
  *
- * **La frontière ne se mesure pas proprement** : cherchée par saut de
- * luminance, elle donne vingt-quatre pixels de dispersion, les traits du
- * visage produisant des contrastes aussi forts que le bord du panneau.
- * Quatre méthodes de détection automatique ont échoué pour la même raison.
+ * **The boundary cannot be measured cleanly**: searched for by a jump in
+ * luminance, it gives twenty-four pixels of spread, the facial features
+ * producing contrasts as strong as the panel's edge. Four automatic
+ * detection methods failed for the same reason.
  *
- * **D'où le fondu.** La correction entre progressivement entre `x1` et `x2`,
- * puis s'applique pleinement. Une erreur de placement de vingt pixels ne
- * produit alors aucune couture : elle décale une rampe douce au lieu de
- * créer une marche.
+ * **Hence the fade.** The correction comes in gradually between `x1` and
+ * `x2`, then applies fully. A placement error of twenty pixels then produces
+ * no seam: it shifts a soft ramp instead of creating a step.
  *
- * Usage :
+ * Usage:
  *   node tools/screenshots/regrade-composite-photo.mjs <entrée> <sortie> <x1> <x2> [--dry-run]
  */
 import { chromium } from "@playwright/test";
@@ -30,7 +29,7 @@ if (!entree || !sortie || !X1 || !X2) {
     process.exit(1);
 }
 
-/** Le réglage validé sur la photo de galerie, et repris tel quel ici. */
+/** The setting validated on the gallery photo, reused as it is here. */
 const REGLAGE = { dL: -0.8, dB: -1.5, seuil: 26, ratio: 0.68 };
 
 const browser = await chromium.launch();
@@ -54,7 +53,7 @@ const resultat = await page.evaluate(
         const t = (v) => (v > 0.008856 ? Math.cbrt(v) : 7.787 * v + 16 / 116);
         const ti = (v) => (v ** 3 > 0.008856 ? v ** 3 : (v - 16 / 116) / 7.787);
 
-        /** La chrominance du coeur des lèvres, seule mesure fiable ici. */
+        /** The chrominance of the centre of the lips, the only reliable measure here. */
         const levres = () => {
             const rouges = [];
             for (let y = 0; y < c.height; y += 2) {

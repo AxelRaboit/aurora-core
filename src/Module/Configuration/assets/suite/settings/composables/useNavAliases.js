@@ -18,7 +18,7 @@ function parseJsonList(raw) {
     try {
         const decoded = JSON.parse(raw ?? "[]");
         return Array.isArray(decoded)
-            ? decoded.filter((v) => typeof v === "string")
+            ? decoded.filter((entry) => typeof entry === "string")
             : [];
     } catch {
         return [];
@@ -26,7 +26,10 @@ function parseJsonList(raw) {
 }
 
 function findGroupValue(groups, key, fallback = "{}") {
-    return groups?.navigation?.find?.((s) => s.key === key)?.value ?? fallback;
+    return (
+        groups?.navigation?.find?.((setting) => setting.key === key)?.value ??
+        fallback
+    );
 }
 
 export function useNavAliases({ groups, navSections, updatePath }) {
@@ -64,7 +67,7 @@ export function useNavAliases({ groups, navSections, updatePath }) {
         if (sectionOrder.value.length === 0) {
             return [...sections];
         }
-        const byId = new Map(sections.map((s) => [s.id, s]));
+        const byId = new Map(sections.map((section) => [section.id, section]));
         const result = [];
         for (const id of sectionOrder.value) {
             const section = byId.get(id);
@@ -87,13 +90,13 @@ export function useNavAliases({ groups, navSections, updatePath }) {
             return [...items];
         }
         const key = items[0]?.key ? "key" : "route";
-        const byKey = new Map(items.map((i) => [i[key], i]));
+        const byKey = new Map(items.map((item) => [item[key], item]));
         const result = [];
-        for (const k of order) {
-            const item = byKey.get(k);
+        for (const itemKey of order) {
+            const item = byKey.get(itemKey);
             if (item) {
                 result.push(item);
-                byKey.delete(k);
+                byKey.delete(itemKey);
             }
         }
         for (const item of byKey.values()) {
@@ -148,12 +151,12 @@ export function useNavAliases({ groups, navSections, updatePath }) {
      * order. The order is saved only when `saveAll()` runs.
      */
     function applySectionOrder(sections) {
-        sectionOrder.value = sections.map((s) => s.id);
+        sectionOrder.value = sections.map((section) => section.id);
     }
 
     function applyItemOrder(sectionId, items) {
         const key = items[0]?.key ? "key" : "route";
-        itemOrder[sectionId] = items.map((i) => i[key]);
+        itemOrder[sectionId] = items.map((item) => item[key]);
     }
 
     async function saveAll() {
@@ -212,7 +215,7 @@ export function useNavAliases({ groups, navSections, updatePath }) {
                 ),
             ]);
 
-            if (results.every((r) => r?.success)) {
+            if (results.every((result) => result?.success)) {
                 toast.success(t("suite.settings.saved"));
             }
         } finally {

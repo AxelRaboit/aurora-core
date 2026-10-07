@@ -1,23 +1,22 @@
-{# Un espace client ouvert par une adresse secrète.
+{# A client space opened by a secret address.
 
-   Sa propre page, sans menu ni compte : celui qui l'ouvre n'en a pas, et c'est
-   la raison d'être de l'adresse. Modelée sur la page publique d'une
-   présentation plutôt que sur celle d'un contrat, avec la même raison : un plan
-   de contenu se regarde en grille, et une colonne de lecture de 3xl étrangle un
-   mois.
+   Its own page, with no menu and no account: whoever opens it has none, and
+   that is the reason for the address. Modelled on a presentation's public page
+   rather than a contract's, for the same reason: a content plan is looked at
+   as a grid, and a 3xl reading column chokes a month.
 
-   Rien ici ne permet d'écrire par défaut. Les trois droits - valider, commenter,
-   envoyer un fichier - arrivent chacun avec la colonne qui le porte et la limite
-   de débit qu'une écriture invitée réclame. Celui d'envoyer un fichier est le
-   seul à arriver éteint, parce qu'il écrit des octets dans notre stockage. #}
+   Nothing here allows writing by default. The three rights - approve, comment,
+   send a file - each come with the column that carries it and the rate limit a
+   guest write calls for. Sending a file is the only one that arrives switched
+   off, because it writes bytes into our storage. #}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        {# Rien ici n'est destiné à être trouvé. L'adresse est un secret remis à
-           quelqu'un, et un moteur qui l'indexerait la remettrait à tout le
-           monde, définitivement et hors de portée de toute révocation. #}
+        {# Nothing here is meant to be found. The address is a secret handed to
+           someone, and a search engine that indexed it would hand it to
+           everyone, for good and out of reach of any revocation. #}
         <meta name="robots" content="noindex, nofollow, noarchive">
         <meta name="referrer" content="no-referrer">
         <title>{{ space.name }}</title>
@@ -55,6 +54,7 @@
     chatHidePath: chatHidePath,
     chatPeople: chatPeople,
             spaceFiles: spaceFiles,
+            spaceFileUploadPath: spaceFileUploadPath,
             drivePath: drivePath,
             driveFilePath: driveFilePath,
             driveArchivePath: driveArchivePath,

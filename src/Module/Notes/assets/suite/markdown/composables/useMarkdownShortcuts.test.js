@@ -11,8 +11,8 @@ function makeEvent(key, { shift = false, ctrl = true, meta = false } = {}) {
     };
 }
 
-function makeTextarea(value, selStart, selEnd = selStart) {
-    return { value, selectionStart: selStart, selectionEnd: selEnd };
+function makeTextarea(value, selectionStart, selectionEnd = selectionStart) {
+    return { value, selectionStart, selectionEnd };
 }
 
 describe("handleMarkdownShortcut", () => {

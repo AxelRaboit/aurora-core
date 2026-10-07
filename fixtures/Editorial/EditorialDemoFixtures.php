@@ -140,12 +140,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $this->fillPrimaryMenu($manager, $posts, $types);
 
-        // La page de contact pose le formulaire, donc elle attend qu'il
-        // existe : une zone de formulaire nomme un identifiant, et un
-        // formulaire qui n'est pas encore écrit n'en a pas.
+        // The contact page places the form, so it waits for it to exist: a form
+        // zone names an identifier, and a form that is not written yet has none.
         //
-        // Deux formulaires : la demande de devis garde un champ de chaque
-        // type pour les écrans du module, la page de contact pose le court.
+        // Two forms: the quote request keeps one field of each type for the
+        // module's screens, the contact page places the short one.
         $this->createQuoteForm();
         $this->layOutContactPage($posts, $this->createContactForm());
 
@@ -153,9 +152,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $this->createPollVotes($manager, $posts);
         $manager->flush();
 
-        // Après le dernier `flush` : une révision photographie la publication
-        // telle qu'elle est à cet instant, grille comprise, et la grille est
-        // posée plus haut.
+        // After the last `flush`: a revision photographs the publication as it is
+        // at that moment, grid included, and the grid is laid out above.
         $this->createRevisions($manager, $posts);
 
         $manager->flush();
@@ -186,18 +184,18 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * whether a field follows the language is the choice that screen exists to
      * offer.
      */
-    private function createCustomFields(EntityManagerInterface $em, PostTypeInterface $article): void
+    private function createCustomFields(EntityManagerInterface $entityManager, PostTypeInterface $article): void
     {
-        $defs = [
+        $definitions = [
             ['reading_time', 'Temps de lecture (min)', 'number', false, false, []],
             ['source_url', 'Source', 'url', false, false, []],
             ['level', 'Niveau', 'select', false, true, ['Débutant', 'Intermédiaire', 'Avancé']],
             ['featured', 'Mettre en avant', 'checkbox', false, false, []],
         ];
 
-        $repository = $em->getRepository(PostTypeField::class);
+        $repository = $entityManager->getRepository(PostTypeField::class);
 
-        foreach ($defs as $position => [$name, $label, $type, $required, $translatable, $options]) {
+        foreach ($definitions as $position => [$name, $label, $type, $required, $translatable, $options]) {
             // Reused by (type, machine name): the pair is what identifies a
             // field, and `make demo` runs twice.
             $field = $repository->findOneBy(['postType' => $article, 'name' => $name]) ?? new PostTypeField();
@@ -211,7 +209,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ->setOptions($options)
                 ->setPosition($position);
 
-            $em->persist($field);
+            $entityManager->persist($field);
         }
     }
 
@@ -222,16 +220,16 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * @return array<string, TaxonomyTermInterface>
      */
     /**
-     * Rattache les taxonomies au type Article.
+     * Binds the taxonomies to the Article type.
      *
-     * Sans ce rattachement, l'écran d'édition ne propose aucun terme et le
-     * site public ne dessine ni sommaire ni page suivante : la démo n'avait
-     * donc rien pour montrer une lecture en séquence, alors que c'est ce qui
-     * distingue une documentation d'un blog. Une taxonomie hiérarchique et
-     * une plate, parce que les deux ne servent pas à la même chose et que le
-     * sommaire se dessine à partir de la première.
+     * Without this binding, the edit screen offers no term and the public site
+     * draws neither a table of contents nor a next page: the demo therefore had
+     * nothing to show sequential reading with, even though that is what sets a
+     * documentation apart from a blog. One hierarchical taxonomy and one flat,
+     * because the two do not serve the same purpose and the table of contents
+     * is drawn from the first.
      */
-    private function bindTaxonomies(EntityManagerInterface $em, PostTypeInterface $article): void
+    private function bindTaxonomies(EntityManagerInterface $entityManager, PostTypeInterface $article): void
     {
         foreach (['category', 'tag'] as $slug) {
             $taxonomy = $this->taxonomyRepository->findOneBySlug($slug);
@@ -245,10 +243,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
         }
 
-        $em->flush();
+        $entityManager->flush();
     }
 
-    private function createTerms(EntityManagerInterface $em): array
+    private function createTerms(EntityManagerInterface $entityManager): array
     {
         $category = $this->taxonomyRepository->findOneBySlug('category');
         $tag = $this->taxonomyRepository->findOneBySlug('tag');
@@ -256,42 +254,41 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $terms = [];
 
         if ($category instanceof TaxonomyInterface) {
-            $terms['guides'] = $this->term($em, $category, [
+            $terms['guides'] = $this->term($entityManager, $category, [
                 'fr' => ['Guides', 'guides'],
                 'en' => ['Guides', 'guides'],
                 'es' => ['Guías', 'guias'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-1');
 
-            $terms['starters'] = $this->term($em, $category, [
+            $terms['starters'] = $this->term($entityManager, $category, [
                 'fr' => ['Premiers pas', 'premiers-pas'],
                 'en' => ['Getting started', 'getting-started'],
                 'es' => ['Primeros pasos', 'primeros-pasos'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-2', $terms['guides']);
 
-            // Deux termes ne montrent pas une taxonomie : ils montrent une
-            // liste de deux lignes, dont une indentée, sur un écran vide aux
-            // deux tiers. Ce qui se voit ici, c'est l'imbrication, et il faut
-            // un second parent et un second niveau pour qu'elle se lise comme
-            // une arborescence plutôt que comme un accident.
-            $terms['layout'] = $this->term($em, $category, [
+            // Two terms do not show a taxonomy: they show a list of two lines, one of
+            // them indented, on a screen two-thirds empty. What shows here is the
+            // nesting, and it takes a second parent and a second level for it to read
+            // as a tree rather than as an accident.
+            $terms['layout'] = $this->term($entityManager, $category, [
                 'fr' => ['Mise en page', 'mise-en-page'],
                 'en' => ['Layout', 'layout'],
                 'es' => ['Maquetación', 'maquetacion'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-5', $terms['guides']);
 
-            $terms['cases'] = $this->term($em, $category, [
+            $terms['cases'] = $this->term($entityManager, $category, [
                 'fr' => ['Études de cas', 'etudes-de-cas'],
                 'en' => ['Case studies', 'case-studies'],
                 'es' => ['Casos prácticos', 'casos-practicos'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-6');
 
-            $terms['showcase'] = $this->term($em, $category, [
+            $terms['showcase'] = $this->term($entityManager, $category, [
                 'fr' => ['Sites vitrines', 'sites-vitrines'],
                 'en' => ['Showcase sites', 'showcase-sites'],
                 'es' => ['Sitios escaparate', 'sitios-escaparate'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-7', $terms['cases']);
 
-            $terms['shops'] = $this->term($em, $category, [
+            $terms['shops'] = $this->term($entityManager, $category, [
                 'fr' => ['Boutiques en ligne', 'boutiques-en-ligne'],
                 'en' => ['Online shops', 'online-shops'],
                 'es' => ['Tiendas en línea', 'tiendas-en-linea'],
@@ -299,33 +296,32 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         if ($tag instanceof TaxonomyInterface) {
-            $terms['editorial'] = $this->term($em, $tag, [
+            $terms['editorial'] = $this->term($entityManager, $tag, [
                 'fr' => ['Éditorial', 'editorial'],
                 'en' => ['Editorial', 'editorial'],
                 'es' => ['Editorial', 'editorial-es'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-3');
 
-            $terms['release'] = $this->term($em, $tag, [
+            $terms['release'] = $this->term($entityManager, $tag, [
                 'fr' => ['Nouveautés', 'nouveautes'],
                 'en' => ['Releases', 'releases'],
                 'es' => ['Novedades', 'novedades'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-4');
 
-            // Les étiquettes sont à plat par nature : ce qui manquait ici,
-            // c'est seulement le nombre.
-            $terms['media'] = $this->term($em, $tag, [
+            // Tags are flat by nature: what was missing here was only the number.
+            $terms['media'] = $this->term($entityManager, $tag, [
                 'fr' => ['Médias', 'medias'],
                 'en' => ['Media', 'media'],
                 'es' => ['Medios', 'medios'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-9');
 
-            $terms['forms'] = $this->term($em, $tag, [
+            $terms['forms'] = $this->term($entityManager, $tag, [
                 'fr' => ['Formulaires', 'formulaires'],
                 'en' => ['Forms', 'forms'],
                 'es' => ['Formularios', 'formularios'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-10');
 
-            $terms['a11y'] = $this->term($em, $tag, [
+            $terms['a11y'] = $this->term($entityManager, $tag, [
                 'fr' => ['Accessibilité', 'accessibilite'],
                 'en' => ['Accessibility', 'accessibility'],
                 'es' => ['Accesibilidad', 'accesibilidad'],
@@ -339,7 +335,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * @param array<string, array{0: string, 1: string}> $translations locale → [name, slug]
      */
     private function term(
-        EntityManagerInterface $em,
+        EntityManagerInterface $entityManager,
         TaxonomyInterface $taxonomy,
         array $translations,
         string $reference,
@@ -348,7 +344,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // Reused when the reference is already taken, for the same reason as
         // the publications below: `make demo` should refresh a database that
         // already has demo data rather than dying halfway through it.
-        $term = $em->getRepository(TaxonomyTerm::class)->findOneBy(['reference' => $reference])
+        $term = $entityManager->getRepository(TaxonomyTerm::class)->findOneBy(['reference' => $reference])
             ?? new TaxonomyTerm();
 
         $term
@@ -361,7 +357,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $term->translate($locale)->setName($name)->setSlug($slug);
         }
 
-        $em->persist($term);
+        $entityManager->persist($term);
 
         return $term;
     }
@@ -376,7 +372,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * @return array<string, PostInterface>
      */
     private function createPosts(
-        EntityManagerInterface $em,
+        EntityManagerInterface $entityManager,
         array $types,
         array $terms,
     ): array {
@@ -385,7 +381,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $author = $this->getReference(CoreDemoFixtures::userRef(0), User::class);
         $now = new DateTimeImmutable();
 
-        $defs = [
+        $definitions = [
             'welcome' => [
                 'type' => $types['page'],
                 'media' => 0,
@@ -395,10 +391,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'fr' => ['Bienvenue', 'bienvenue', 'La page d\'accueil de ce site de démonstration.'],
                 'en' => ['Welcome', 'welcome', 'The landing page of this demo site.'],
                 'es' => ['Bienvenida', 'bienvenida', 'La página de inicio de este sitio de demostración.'],
-                // Un onglet « Moteurs de recherche » vide ne montre pas que
-                // l'onglet existe : il montre un formulaire. La page d'accueil
-                // et le premier article le remplissent donc, dans les trois
-                // langues, avec ce qu'un auteur y mettrait vraiment.
+                // An empty "Moteurs de recherche" tab does not show that the tab exists:
+                // it shows a form. The home page and the first article therefore fill it,
+                // in all three languages, with what an author would really put there.
                 'seo' => [
                     'fr' => ['Bienvenue sur le site de démonstration Aurora', 'Découvrez Aurora en conditions réelles : publications, médias, formulaires et espaces clients, sur un site complet.', 'démonstration aurora'],
                     'en' => ['Welcome to the Aurora demo site', 'See Aurora for real: posts, media, forms and client spaces, on a complete working site.', 'aurora demo'],
@@ -440,9 +435,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'en' => ['What comes next', 'what-comes-next', 'A draft, visible in the suite only.'],
                 'es' => ['Lo que viene después', 'lo-que-viene-despues', 'Un borrador, visible solo en la administración.'],
             ],
-            // Les deux statuts que la démo n'avait pas. La page de documentation
-            // sur le cycle de vie en annonce cinq, et la liste n'en montrait
-            // que trois : une capture qui contredit son propre texte.
+            // The two statuses the demo did not have. The documentation page on the
+            // lifecycle announces five, and the list showed only three: a screenshot
+            // that contradicts its own text.
             'review' => [
                 'type' => $types['article'],
                 'media' => 1,
@@ -474,13 +469,12 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'en' => ['Upcoming announcement', 'upcoming-announcement', 'Scheduled: it will publish itself.'],
                 'es' => ['Anuncio previsto', 'anuncio-previsto', 'Programado: se publicará solo.'],
             ],
-            // Ce que la production a et que la démo n'avait pas : des pages
-            // institutionnelles, deux types de contenu maison et des
-            // réalisations - c'est-à-dire la forme d'un vrai site plutôt que
-            // celle d'un bac à sable. Depuis le 28/09/2026, les textes aussi
-            // sont vrais - ceux d'un petit studio fictif - parce que ces pages
-            // illustrent le site public sur le tour d'Aurora, et le faux latin
-            // s'y voyait sur chaque capture.
+            // What production has and the demo did not: institutional pages, two
+            // custom content types and portfolio projects - that is, the shape of a
+            // real site rather than that of a sandbox. Since 28/09/2026 the texts are
+            // real too - those of a small fictional studio - because these pages
+            // illustrate the public site on the Aurora tour, and the fake Latin showed
+            // on every screenshot.
             'about' => [
                 'type' => $types['page'],
                 'media' => 2,
@@ -572,10 +566,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'en' => ['New blocks', 'new-blocks', 'Availability, opening hours, countdown, business card, social post, carousel, screen, terminal and index.'],
                 'es' => ['Nuevos bloques', 'nuevos-bloques', 'Disponibilidad, horarios, cuenta atrás, tarjeta de visita, publicación, carrusel, pantalla, terminal e índice.'],
             ],
-            // À la corbeille, pour que l'écran global en montre une : sans
-            // elle, la page du tour qui présente la corbeille n'avait que des
-            // notes à photographier. Après `showcase`, pour ne déplacer la
-            // référence d'aucune autre publication.
+            // In the trash, so that the global screen shows one: without it, the tour
+            // page that presents the trash had only notes to photograph. After
+            // `showcase`, so as not to move the reference of any other publication.
             'trashed-offer' => [
                 'type' => $types['article'],
                 'media' => 3,
@@ -591,9 +584,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $posts = [];
         $index = 0;
-        $repository = $em->getRepository(Post::class);
+        $repository = $entityManager->getRepository(Post::class);
 
-        foreach ($defs as $key => $def) {
+        foreach ($definitions as $key => $definition) {
             ++$index;
 
             $reference = sprintf('%s-DEMO-%d', SequencePrefixEnum::Post->value, $index);
@@ -606,24 +599,24 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $post = $repository->findOneBy(['reference' => $reference]) ?? new Post();
 
             $post
-                ->setPostType($def['type'])
+                ->setPostType($definition['type'])
                 ->setAuthor($author)
                 // Every publication carries one: a demo where some cards have
                 // a picture and some do not shows the empty layout as often as
                 // the real one, and reads as unfinished rather than as a
                 // choice.
-                ->setThumbnail($this->getReference(GedDemoFixtures::mediaRef($def['media']), Document::class))
+                ->setThumbnail($this->getReference(GedDemoFixtures::mediaRef($definition['media']), Document::class))
                 // Stated rather than left to the default. It is the same value,
                 // and a demo that relies on a default cannot show that the
                 // control exists.
                 ->setThumbnailFit(ThumbnailFitEnum::Cover)
-                ->setStatus($def['status'])
-                ->setPublishedAt($def['publishedAt'])
-                ->setScheduledAt($def['scheduledAt'] ?? null)
-                ->setDeletedAt($def['deletedAt'] ?? null)
+                ->setStatus($definition['status'])
+                ->setPublishedAt($definition['publishedAt'])
+                ->setScheduledAt($definition['scheduledAt'] ?? null)
+                ->setDeletedAt($definition['deletedAt'] ?? null)
                 ->setReference($reference);
 
-            foreach ($def['terms'] as $termKey) {
+            foreach ($definition['terms'] as $termKey) {
                 if (isset($terms[$termKey])) {
                     $post->addTerm($terms[$termKey]);
                 }
@@ -645,15 +638,15 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ]));
 
             foreach (LocaleEnum::values() as $locale) {
-                [$title, $slug, $description] = $def[$locale];
+                [$title, $slug, $description] = $definition[$locale];
 
                 $translation = $post->translate($locale)
                     ->setTitle($title)
                     ->setSlug($slug)
                     ->setDescription($description);
 
-                if (isset($def['seo'][$locale])) {
-                    [$metaTitle, $metaDescription, $focusKeyword] = $def['seo'][$locale];
+                if (isset($definition['seo'][$locale])) {
+                    [$metaTitle, $metaDescription, $focusKeyword] = $definition['seo'][$locale];
 
                     $translation
                         ->setMetaTitle($metaTitle)
@@ -670,7 +663,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
             // persist() on an entity Doctrine already manages is a no-op, so
             // the reused branch needs no guard of its own.
-            $em->persist($post);
+            $entityManager->persist($post);
             $posts[$key] = $post;
         }
 
@@ -718,13 +711,12 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // decided rather than inherited from its content - without it
             // "taller than its neighbours" is not something a picture can be
             // asked for.
-            // Les effets d'apparition se démontrent ici, et l'héritage avec :
-            // la page dit « depuis le bas » une fois pour toutes (plus bas,
-            // à la racine), et deux zones seulement en décident autrement.
-            // La photo et la pile arrivent l'une par la gauche et l'autre par
-            // la droite, deux moitiés qui se rejoignent - c'est l'arrangement
-            // que cette paire existe pour écrire, et le seul qu'un effet par
-            // zone permet de composer.
+            // Entrance effects are demonstrated here, and inheritance with them: the
+            // page says "from the bottom" once and for all (further down, at the root),
+            // and only two zones decide otherwise. The photo and the stack arrive one
+            // from the left and the other from the right, two halves that meet - that is
+            // the arrangement this pair exists to write, and the only one a per-zone
+            // effect can compose.
             ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'reveal' => 'left', 'mediaId' => $picture->getId()],
             [
                 'id' => 'column',
@@ -755,17 +747,17 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $welcome->setGridLayout($this->gridNormalizer->normalizeLayout([
             'enabled' => true,
             'snap' => 4,
-            // Posé une fois pour la page. Les zones qui ne disent rien le
-            // suivent, y compris celles ajoutées plus tard : c'est ce que le
-            // réglage sert à démontrer, plus encore que l'effet lui-même.
+            // Set once for the page. The zones that say nothing follow it, including
+            // those added later: that is what the setting is there to demonstrate, even
+            // more than the effect itself.
             'reveal' => 'up',
             'zones' => $zones,
         ]));
 
-        // Un en-tête en carrousel, sur photos : ce que la page d'accueil d'un
-        // vrai site porte, et ce que le tour d'Aurora photographie. Trois
-        // diapositives, chacune assombrie juste assez pour que le texte blanc
-        // se lise, et un bouton vers la page de contact sur la première.
+        // A carousel banner, on photos: what the home page of a real site carries,
+        // and what the Aurora tour photographs. Three slides, each darkened just
+        // enough for the white text to read, and a button to the contact page on
+        // the first.
         $bannerText = static fn (string $id): array => [
             'id' => $id,
             'type' => 'text',
@@ -914,8 +906,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // masonry exists for, and the one where a fixed ratio would crop
             // the tall picture to nothing.
             'first-steps' => [
-                // Deux portraits et deux paysages, en alternance : ce qui fait
-                // que les colonnes ne tombent pas à la même hauteur.
+                // Two portraits and two landscapes, alternating: that is what keeps the
+                // columns from ending at the same height.
                 'media' => [2, 12, 7, 15],
                 'layout' => GalleryNormalizer::LAYOUT_MASONRY,
                 'columns' => 3,
@@ -1076,9 +1068,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Une page qui pose, l'un sous l'autre, les blocs arrivés ensemble : c'est
-     * elle que les captures du tour photographient, et c'est là qu'un auteur
-     * voit à quoi chacun ressemble rempli plutôt que vide.
+     * A page that lays out, one below the other, the blocks that arrived
+     * together: it is the one the tour screenshots photograph, and it is where
+     * an author sees what each one looks like filled rather than empty.
      *
      * @param array<string, PostInterface> $posts
      */
@@ -1191,22 +1183,22 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Deux types de contenu à la démo, en plus des deux de l'installation.
+     * Two content types for the demo, on top of the two from the installation.
      *
-     * Les types livrés sont le plancher du produit, pas un exemple : un site
-     * réel se fait de pages, d'articles, de services et de réalisations, et
-     * une démo qui n'a que les deux premiers ne montre jamais à quoi
-     * ressemble un type créé à la main - l'écran qui sert à en créer un se
-     * lisait sur une liste où tout était coché « intégré ».
+     * The shipped types are the floor of the product, not an example: a real
+     * site is made of pages, articles, services and portfolio projects, and a
+     * demo that has only the first two never shows what a type created by hand
+     * looks like. The screen used to create one was read on a list where
+     * everything was ticked "intégré".
      *
-     * Chacun a son archive, parce que c'est l'adresse que le menu vise :
-     * `/fr/services` et `/fr/projets` n'existent pas autrement.
+     * Each one has its archive, because that is the address the menu targets:
+     * `/fr/services` and `/fr/projets` do not exist otherwise.
      *
-     * @param array<string, PostTypeInterface> $builtIn les types de l'installation, keyed by slug
+     * @param array<string, PostTypeInterface> $builtIn the installation's types, keyed by slug
      *
      * @return array<string, PostTypeInterface> keyed by slug
      */
-    private function createDemoPostTypes(EntityManagerInterface $em, array $builtIn): array
+    private function createDemoPostTypes(EntityManagerInterface $entityManager, array $builtIn): array
     {
         $definitions = [
             ['services', 'Services', 'briefcase'],
@@ -1216,9 +1208,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $types = $builtIn;
 
         foreach ($definitions as [$slug, $label, $icon]) {
-            // Réutilisé quand il est déjà là, comme les publications plus
-            // bas : un second `make demo` rafraîchit la démo, il ne la double
-            // pas - et le slug est unique.
+            // Reused when it is already there, like the publications further down: a
+            // second `make demo` refreshes the demo, it does not duplicate it - and the
+            // slug is unique.
             $type = $this->postTypeRepository->findOneBySlug($slug) ?? new PostType();
 
             $type
@@ -1228,7 +1220,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ->setHasArchive(true)
                 ->setIsBuiltIn(false);
 
-            $em->persist($type);
+            $entityManager->persist($type);
             $types[$slug] = $type;
         }
 
@@ -1236,17 +1228,16 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Des voix sur le sondage de la page des nouveaux blocs.
+     * Votes on the poll of the new blocks page.
      *
-     * Les résultats ne s'affichent qu'après avoir voté, et sur une démo
-     * fraîche le premier vote donnait 100 % à une réponse et 0 % aux deux
-     * autres : un sondage qui ne montre pas ce qu'est un résultat. Chaque
-     * voix porte un votant factice et stable, donc un second `make demo` ne
-     * la compte pas deux fois.
+     * Results only show after voting, and on a fresh demo the first vote gave
+     * 100% to one answer and 0% to the other two: a poll that does not show
+     * what a result is. Each vote carries a fake, stable voter, so a second
+     * `make demo` does not count it twice.
      *
      * @param array<string, PostInterface> $posts
      */
-    private function createPollVotes(EntityManagerInterface $em, array $posts): void
+    private function createPollVotes(EntityManagerInterface $entityManager, array $posts): void
     {
         $page = $posts['showcase'] ?? null;
 
@@ -1254,26 +1245,26 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             return;
         }
 
-        $repository = $em->getRepository(PollVote::class);
+        $repository = $entityManager->getRepository(PollVote::class);
 
         foreach ([0 => 23, 1 => 14, 2 => 9] as $answer => $count) {
-            for ($i = 1; $i <= $count; ++$i) {
-                $voter = sprintf('demo-%d-%d', $answer, $i);
+            for ($voteIndex = 1; $voteIndex <= $count; ++$voteIndex) {
+                $voter = sprintf('demo-%d-%d', $answer, $voteIndex);
 
                 if (null === $repository->findOneBy(['post' => $page, 'zoneId' => 'vote', 'voter' => $voter])) {
-                    $em->persist(new PollVote($page, 'vote', $answer, $voter));
+                    $entityManager->persist(new PollVote($page, 'vote', $answer, $voter));
                 }
             }
         }
     }
 
     /**
-     * La page « À propos » : du texte, une liste d'étapes, puis les services.
+     * The About page: text, a list of steps, then the services.
      *
-     * La zone d'étapes et la liste automatique sont les deux qu'une page
-     * institutionnelle porte toujours et que la démo n'avait nulle part - la
-     * seconde surtout, qui est la différence entre une page à retoucher à
-     * chaque publication et une page qui se tient à jour toute seule.
+     * The steps zone and the automatic list are the two that an institutional
+     * page always carries and that the demo had nowhere - the second above all,
+     * which is the difference between a page to touch up on every publication
+     * and a page that keeps itself up to date.
      *
      * @param array<string, PostInterface>     $posts
      * @param array<string, PostTypeInterface> $types
@@ -1313,9 +1304,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
         ]));
 
-        // Du vrai texte : la page « À propos » d'un petit studio, telle
-        // qu'un visiteur la lirait. Le faux latin qu'elle portait se voyait
-        // sur toutes les captures du site public.
+        // Real text: the About page of a small studio, as a visitor would read it.
+        // The fake Latin it carried showed on every screenshot of the public site.
         $words = [
             'fr' => [
                 'Qui nous sommes',
@@ -1367,22 +1357,22 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Les trois services, sur un gabarit image/texte alterné.
+     * The three services, on an alternating image/text template.
      *
-     * Un gabarit, justement : les trois pages partagent la même disposition
-     * et seul leur contenu change, ce qui est la façon dont un site range ses
-     * offres - trois compositions différentes pour trois services se lisent
-     * comme trois essais plutôt que comme une rubrique.
+     * A template, precisely: the three pages share the same layout and only
+     * their content changes, which is how a site arranges its offers - three
+     * different compositions for three services read as three attempts rather
+     * than as a section.
      *
-     * L'image passe de gauche à droite d'une ligne à l'autre, ce qu'on obtient
-     * ici sans réglage : les zones se suivent dans l'ordre écrit.
+     * The image moves from left to right from one row to the next, which is
+     * obtained here without any setting: the zones follow the written order.
      *
      * @param array<string, PostInterface> $posts
      */
     private function layOutServicePages(array $posts): void
     {
-        // [première image, seconde image] : la photo du service en haut, une
-        // image d'ambiance en bas.
+        // [first image, second image]: the service photo at the top, a mood image
+        // at the bottom.
         $pages = [
             'service-web' => [9, 3],
             'service-photo' => [7, 12],
@@ -1395,8 +1385,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             'es' => ['Lo que hacemos', 'Cómo trabajamos'],
         ];
 
-        // Un texte par service, dans les trois langues : [accroche, ce que
-        // nous faisons, trois points, comment nous travaillons].
+        // One text per service, in all three languages: [hook, what we do, three
+        // points, how we work].
         $texts = [
             'service-web' => [
                 'fr' => [
@@ -1488,9 +1478,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
                 $translation->setGrid($this->gridNormalizer->normalizeContent([
                     'zones' => [
-                        // Pas de titre ici : le gabarit imprime déjà celui
-                        // de la publication, et un `h2` qui le répète se lit
-                        // comme une erreur de saisie.
+                        // No title here: the template already prints the publication's,
+                        // and an `h2` that repeats it reads like a typing mistake.
                         'lede' => ['blocks' => [EditorBlocks::paragraph($lede)]],
                         'shot-one' => ['alt' => (string) $translation->getTitle(), 'caption' => ''],
                         'pitch' => ['blocks' => [
@@ -1512,12 +1501,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Les deux réalisations : une image large, un récit, des chiffres.
+     * The two portfolio projects: a wide image, a story, figures.
      *
-     * Les chiffres sont une liste d'entrées en costume « stats », qui est la
-     * même zone que les étapes de la page « À propos » portée autrement -
-     * deux démonstrations d'un seul mécanisme, ce qui est exactement ce que la
-     * zone existe pour montrer.
+     * The figures are a list of entries in the "stats" style, which is the same
+     * zone as the steps of the About page worn differently - two demonstrations
+     * of a single mechanism, which is exactly what the zone exists to show.
      *
      * @param array<string, PostInterface> $posts
      */
@@ -1525,8 +1513,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     {
         $pages = ['project-lumen' => 11, 'project-atlas' => 10];
 
-        // [récit, citation, auteur de la citation, trois chiffres avec leur
-        // libellé], par réalisation et par langue.
+        // [story, quote, author of the quote, three figures with their label], per
+        // project and per language.
         $texts = [
             'project-lumen' => [
                 'fr' => [
@@ -1623,11 +1611,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * La page de contact : deux mots, puis le formulaire lui-même.
+     * The contact page: a few words, then the form itself.
      *
-     * Le formulaire a déjà une page à lui, et c'est justement ce que cette
-     * zone évite - quelqu'un qui vient de lire ce que vous faites remplit un
-     * formulaire posé là, pas un lien qui lui demande d'aller ailleurs.
+     * The form already has a page of its own, and that is precisely what this
+     * zone avoids - someone who has just read what you do fills in a form
+     * placed right there, not a link that asks them to go elsewhere.
      *
      * @param array<string, PostInterface> $posts
      */
@@ -1638,8 +1626,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             return;
         }
 
-        // Une page de contact n'appelle pas de discussion : le formulaire est
-        // là pour ça.
+        // A contact page does not call for discussion: the form is there for that.
         $contact->setCommentsEnabled(false);
 
         $contact->setGridLayout($this->gridNormalizer->normalizeLayout([
@@ -1652,13 +1639,12 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
         ]));
 
-        // Du vrai texte, et pas du lorem.
+        // Real text, not lorem.
         //
-        // Cette page illustre le site public sur le tour d'Aurora, et une
-        // capture où le premier paragraphe commence par « Totam rem aperiam »
-        // ne se lit pas comme une démonstration : elle se lit comme un site
-        // qu'on n'a pas fini. Le lorem reste bon pour une page de remplissage
-        // dont personne ne photographie le contenu.
+        // This page illustrates the public site on the Aurora tour, and a
+        // screenshot where the first paragraph starts with "Totam rem aperiam" does
+        // not read as a demonstration: it reads as a site nobody finished. Lorem
+        // stays fine for a filler page whose content nobody photographs.
         $headings = [
             'fr' => [
                 'Nous écrire',
@@ -1702,13 +1688,12 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Des publications liées entre elles.
+     * Publications linked to each other.
      *
-     * Le champ existait et n'était rempli nulle part, si bien que l'écran qui
-     * le règle et le bandeau « à lire ensuite » se lisaient tous les deux
-     * comme des fonctionnalités mortes. Par paires, et dans les deux sens :
-     * la relation n'est pas dirigée pour un lecteur, alors que la table, elle,
-     * l'est.
+     * The field existed and was filled nowhere, so the screen that sets it and
+     * the "read next" banner both read as dead features. In pairs, and in both
+     * directions: the relation is not directed for a reader, whereas the table
+     * is.
      *
      * @param array<string, PostInterface> $posts
      */
@@ -1783,7 +1768,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * @param array<string, PostInterface>     $posts
      * @param array<string, PostTypeInterface> $types
      */
-    private function fillPrimaryMenu(EntityManagerInterface $em, array $posts, array $types): void
+    private function fillPrimaryMenu(EntityManagerInterface $entityManager, array $posts, array $types): void
     {
         $menu = $this->menuRepository->findOneByLocation('primary');
         if (!$menu instanceof MenuInterface) {
@@ -1797,9 +1782,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ['post' => 'contact', 'fr' => 'Contact', 'en' => 'Contact', 'es' => 'Contacto'],
         ];
 
-        // Les deux archives, qui sont l'autre chose qu'un menu vise : une
-        // entrée qui pointe un type suit ses publications sans qu'on y
-        // retouche, là où une entrée par service serait à refaire au suivant.
+        // The two archives, which are the other thing a menu targets: an entry that
+        // points to a type follows its publications without being touched again,
+        // whereas one entry per service would have to be redone for the next one.
         $archives = [
             ['type' => 'services', 'fr' => 'Services', 'en' => 'Services', 'es' => 'Servicios'],
             ['type' => 'projets', 'fr' => 'Projets', 'en' => 'Projects', 'es' => 'Proyectos'],
@@ -1834,7 +1819,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $menu->addItem($item);
-            $em->persist($item);
+            $entityManager->persist($item);
         }
 
         foreach ($archives as $entry) {
@@ -1859,7 +1844,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $menu->addItem($item);
-            $em->persist($item);
+            $entityManager->persist($item);
         }
     }
 
@@ -1876,9 +1861,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      */
     private function createQuoteForm(): FormInterface
     {
-        // Rendu plutôt que tu : la page de contact pose ce formulaire-là, et
-        // au second passage il existe déjà - lui répondre `null` lui ferait
-        // perdre sa zone à chaque `make demo`.
+        // Returned rather than skipped: the contact page places this form, and on
+        // the second pass it already exists - answering `null` would make it lose
+        // its zone on every `make demo`.
         $existing = $this->formTranslationRepository->findOneByLocaleAndSlug('fr', 'demande-de-devis');
         if ($existing instanceof FormTranslationInterface) {
             return $existing->getForm();
@@ -1923,15 +1908,14 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Un formulaire de contact tel qu'on en pose un sur un site : trois
-     * champs, une seule étape.
+     * A contact form as one places on a site: three fields, a single step.
      *
-     * La page de contact posait la demande de devis, qui porte exprès un champ
-     * de chaque type en deux étapes pour les écrans du module Formulaires. Sur
-     * la page, et sur la capture du site public qui la montre, cela donnait un
-     * formulaire de dix champs pour écrire trois lignes.
+     * The contact page used to place the quote request, which deliberately
+     * carries one field of each type over two steps for the screens of the
+     * Forms module. On the page, and on the public site screenshot that shows
+     * it, that gave a ten-field form to write three lines.
      *
-     * Idempotent sur son slug français, comme le devis.
+     * Idempotent on its French slug, like the quote.
      */
     private function createContactForm(): FormInterface
     {
@@ -2134,22 +2118,21 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Deux révisions sur la page d'accueil, pour que l'historique montre
-     * quelque chose.
+     * Two revisions on the home page, so that the history shows something.
      *
-     * Le module en produit une à chaque enregistrement, mais les fixtures
-     * écrivent leurs publications en direct : la modale « Historique des
-     * versions » s'ouvrait donc sur un écran vide, alors que c'est une des
-     * fonctions que la page publique du module met en avant.
+     * The module produces one on every save, but the fixtures write their
+     * publications directly: the "version history" modal therefore opened on an
+     * empty screen, even though it is one of the features the public page of
+     * the module highlights.
      *
-     * Le contenu de chaque révision est une **vraie** photographie de la
-     * publication, prise par le même service que le gestionnaire ; seuls le
-     * titre et le résumé sont remontés d'un cran, pour qu'une comparaison ait
-     * une différence à montrer. Autrement dit : ce sont deux états par
-     * lesquels cette page aurait pu passer, pas deux lignes inventées.
+     * The content of each revision is a **real** snapshot of the publication,
+     * taken by the same service as the manager; only the title and the summary
+     * are moved back one notch, so that a comparison has a difference to show.
+     * In other words: these are two states this page could have gone through,
+     * not two invented rows.
      *
-     * Idempotente : une publication qui a déjà des révisions n'en reçoit pas
-     * de nouvelles à chaque `make demo`.
+     * Idempotent: a publication that already has revisions does not get new
+     * ones on every `make demo`.
      *
      * @param array<string, PostInterface> $posts
      */
@@ -2166,8 +2149,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ['jours' => 3, 'titre' => 'Bienvenue', 'resume' => "La page d'accueil du site."],
         ];
 
-        // Une version signée plutôt qu'« Auteur inconnu » deux fois : dans un
-        // historique, qui a enregistré fait partie de ce qu'on vient y lire.
+        // A signed version rather than "Unknown author" twice: in a history, who
+        // saved is part of what people come to read.
         $auteur = $this->userRepository->findOneBy([
             'email' => 'dev@aurora.app',
             'type' => UserTypeEnum::Suite->value,
@@ -2199,18 +2182,17 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->flush();
 
-        // Les dates sont reculées après coup, en SQL.
+        // The dates are pushed back afterwards, in SQL.
         //
-        // `TimestampableTrait` pose `createdAt` sur `PrePersist` et n'offre
-        // aucun accesseur : c'est voulu, une date de création qui se règle
-        // n'en est plus une. Ici on veut justement mentir un peu, pour qu'un
-        // historique de démonstration ne montre pas deux versions à la même
-        // seconde - ce qui n'apprend rien sur ce à quoi sert un historique.
-        // Le mensonge tient dans ces quatre lignes, visible, plutôt que dans
-        // un setter que tout le monde pourrait appeler.
-        // `ObjectManager` ne connaît pas `getConnection` : c'est l'interface
-        // de persistance, pas celle de Doctrine ORM. Le reste du fichier
-        // travaille déjà sur l'implémentation.
+        // `TimestampableTrait` sets `createdAt` on `PrePersist` and offers no
+        // accessor: that is deliberate, a creation date that can be set is no
+        // longer one. Here we precisely want to lie a little, so that a demo
+        // history does not show two versions in the same second - which teaches
+        // nothing about what a history is for. The lie lives in these four lines,
+        // in plain sight, rather than in a setter anyone could call.
+        // `ObjectManager` does not know `getConnection`: it is the persistence
+        // interface, not the Doctrine ORM one. The rest of the file already works
+        // on the implementation.
         if (!$manager instanceof EntityManagerInterface) {
             return;
         }
@@ -2226,20 +2208,20 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Des commentaires, dans les trois états, avec un fil et des réactions.
+     * Comments, in all three states, with a thread and reactions.
      *
-     * L'écran de modération et la page publique d'un article s'ouvraient tous
-     * les deux sur « Aucun commentaire » : on y voyait où la fonction se
-     * trouve, et rien de ce qu'elle fait. Les trois statuts sont là parce que
-     * c'est entre eux que l'écran sert à choisir, et le fil parce qu'une
-     * réponse ne se range pas comme un commentaire de premier niveau.
+     * The moderation screen and the public page of an article both opened on
+     * "No comments": you could see where the feature lives, and nothing of what
+     * it does. The three statuses are there because the screen is for choosing
+     * between them, and the thread because a reply is not filed like a
+     * top-level comment.
      *
-     * Idempotent sur la référence : `make demo` deux fois ne doit pas en
-     * laisser six.
+     * Idempotent on the reference: running `make demo` twice must not leave
+     * six.
      *
      * @param array<string, PostInterface> $posts
      */
-    private function createComments(EntityManagerInterface $em, array $posts): void
+    private function createComments(EntityManagerInterface $entityManager, array $posts): void
     {
         $post = $posts['first-steps'] ?? null;
 
@@ -2247,7 +2229,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             return;
         }
 
-        $repository = $em->getRepository(Comment::class);
+        $repository = $entityManager->getRepository(Comment::class);
         $now = new DateTimeImmutable();
 
         $entries = [
@@ -2304,15 +2286,15 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 $comment->setParent($created[$entry['parent']]);
             }
 
-            $em->persist($comment);
+            $entityManager->persist($comment);
             $created[$key] = $comment;
 
-            // Une empreinte par réaction : c'est ce qui tient lieu d'identité
-            // à un visiteur sans compte, et deux réactions du même visiteur
-            // sur le même commentaire n'en font qu'une. La base le garantit
-            // par un index unique, ce qui faisait échouer le deuxième
-            // `make demo` - d'où la recherche avant l'insertion.
-            $reactions = $em->getRepository(CommentReaction::class);
+            // One fingerprint per reaction: it stands in for an identity for a visitor
+            // without an account, and two reactions from the same visitor on the same
+            // comment count as one. The database guarantees it with a unique index,
+            // which made the second `make demo` fail - hence the lookup before the
+            // insert.
+            $reactions = $entityManager->getRepository(CommentReaction::class);
 
             foreach ($entry['reactions'] as $index => $type) {
                 $fingerprint = sprintf('demo-%s-%d', $key, $index);
@@ -2327,26 +2309,26 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     ->setType($type)
                     ->setFingerprint($fingerprint);
 
-                $em->persist($reaction);
+                $entityManager->persist($reaction);
             }
         }
 
-        $em->flush();
+        $entityManager->flush();
 
-        // Après le flush : la date de création est posée par le constructeur,
-        // et une démo dont les quatre commentaires portent la même minute ne
-        // montre pas un fil de discussion.
+        // After the flush: the creation date is set by the constructor, and a demo
+        // whose four comments carry the same minute does not show a discussion
+        // thread.
         foreach ($entries as $key => $entry) {
-            $this->backdate($em, $created[$key], $entry['at']);
+            $this->backdate($entityManager, $created[$key], $entry['at']);
         }
 
-        $em->flush();
+        $entityManager->flush();
     }
 
-    /** Repositionne la date d'un commentaire, que l'entité ne laisse pas écrire. */
-    private function backdate(EntityManagerInterface $em, CommentInterface $comment, DateTimeImmutable $at): void
+    /** Moves the date of a comment back, which the entity does not let anyone write. */
+    private function backdate(EntityManagerInterface $entityManager, CommentInterface $comment, DateTimeImmutable $at): void
     {
-        $em->getConnection()->executeStatement(
+        $entityManager->getConnection()->executeStatement(
             'UPDATE core_comments SET created_at = :at WHERE id = :id',
             ['at' => $at->format('Y-m-d H:i:s'), 'id' => $comment->getId()],
         );

@@ -27,9 +27,9 @@ final readonly class NotesModule implements ModuleInterface, ModuleNavViewProvid
     {
         return [
             new NavPermission('notes.markdown.use'),
-            // Créer un espace partagé ; son espace personnel ne demande rien.
+            // Create a shared space; one's personal space requires nothing.
             new NavPermission('notes.spaces.create'),
-            // Publier un espace sur le web, lisible sans connexion.
+            // Publish a space on the web, readable without logging in.
             new NavPermission('notes.spaces.publish'),
         ];
     }

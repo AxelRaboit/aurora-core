@@ -9,11 +9,14 @@ vi.mock("vue-sonner", () => ({
 }));
 
 /**
- * Le champ que poserait un projet client : c'est lui qui a révélé le défaut,
- * puisque c'est sur sa liste que `Object.entries` s'exécute.
+ * The field a client project would add: it is the one that revealed the bug,
+ * since `Object.entries` runs on its list.
  */
 const EXTRA = {
-    color: { default: "#10b981", fromEntity: (cat) => cat.color ?? "" },
+    color: {
+        default: "#10b981",
+        fromEntity: (category) => category.color ?? "",
+    },
 };
 
 function run(extraFields = {}) {
@@ -47,10 +50,10 @@ describe("useDocumentCategoriesForm", () => {
         expect(showCreate.value).toBe(true);
     });
 
-    // Le défaut : `openCreate` appelait `emptyForm()` sans ses champs, donc
-    // `Object.entries(undefined)` levait, le gestionnaire de clic mourait
-    // avant `showCreate`, et le bouton « Ajouter une catégorie » ne faisait
-    // rien du tout - sans rien afficher, puisque Vue avale l'erreur.
+    // The bug: `openCreate` called `emptyForm()` without its fields, so
+    // `Object.entries(undefined)` threw, the click handler died before
+    // `showCreate`, and the "Ajouter une catégorie" button did nothing at
+    // all - without showing anything, since Vue swallows the error.
     it("ouvre la fenêtre même quand un projet client a ajouté des champs", () => {
         const { showCreate, newCategory, openCreate } = run(EXTRA);
 

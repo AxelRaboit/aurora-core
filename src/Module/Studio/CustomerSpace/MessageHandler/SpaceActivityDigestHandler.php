@@ -54,23 +54,23 @@ final readonly class SpaceActivityDigestHandler
         $recipient = $this->users->find($message->recipientId);
         $space = $this->spaces->find($message->spaceId);
 
-        // An account deleted, or a space deleted, between the dispatch and
-        // here. Neither is an error: there is simply nobody to tell, or
-        // nothing to tell them about.
-        if (!$recipient instanceof User || null === $space) {
+        // An account deleted, or a space deleted or put in the trash, between
+        // the dispatch and here. Neither is an error: there is simply nobody
+        // to tell, or nothing to tell them about.
+        if (!$recipient instanceof User || null === $space || $space->isTrashed()) {
             return;
         }
 
-        // **Deux valeurs pour deux usages, et les confondre casse l'envoi.**
-        // La clé de recherche doit être exactement ce que la notification a
-        // enregistré, c'est-à-dire un chemin : une notification vit dans
-        // l'application, et une adresse absolue y graverait l'hôte du worker.
-        // Le lien de l'e-mail, lui, sort de l'application et doit porter
-        // l'hôte - sans quoi il n'est cliquable nulle part.
+        // **Two values for two uses, and mixing them up breaks sending.**
+        // The search key must be exactly what the notification stored, that
+        // is a path: a notification lives in the application, and an absolute
+        // address would engrave the worker's host into it. The email link, on
+        // the other hand, leaves the application and must carry the host -
+        // otherwise it is clickable nowhere.
         //
-        // Elles ont été la même un moment : la recherche cherchait en absolu
-        // ce qui était rangé en relatif, ne trouvait rien, et aucun e-mail ne
-        // partait. Deux cas l'ont dit tout de suite.
+        // They were the same for a while: the search looked up as absolute
+        // what was stored as relative, found nothing, and no email went out.
+        // Two cases said so right away.
         $path = $this->urlGenerator->generate(
             'workspace_space_content',
             ['id' => $space->getId()],
@@ -82,8 +82,8 @@ final readonly class SpaceActivityDigestHandler
             UrlGeneratorInterface::ABSOLUTE_URL,
         );
 
-        // Sous le chemin et non égal à lui : une notification sur une fiche
-        // pointe sur `?item=…`, et elle fait partie du même espace à écrire.
+        // Under the path and not equal to it: a notification on a record
+        // points at `?item=…`, and it belongs to the same space to write to.
         $unread = $this->notifications->findUnreadUnderPath($recipient, $path);
 
         if ([] === $unread) {
@@ -110,7 +110,7 @@ final readonly class SpaceActivityDigestHandler
                 ),
                 'url' => $url,
             ],
-            subjectParams: ['{space}' => $space->getName()],
+            subjectParameters: ['{space}' => $space->getName()],
         );
 
         foreach ($unread as $notification) {

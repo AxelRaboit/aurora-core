@@ -17,8 +17,8 @@ describe("AppButton", () => {
         expect(wrapper.find("button").classes()).toContain("bg-accent-600");
     });
 
-    // Le fantôme porte une surface sous `sm` et la rend au-dessus : au doigt,
-    // un bouton pleine largeur sans fond se lit comme une ligne de texte.
+    // The ghost carries a surface below `sm` and gives it back above: with a
+    // finger, a full-width button without a background reads as a line of text.
     it("applies ghost variant classes", () => {
         const wrapper = mount(AppButton, {
             props: { variant: "ghost" },
@@ -43,8 +43,8 @@ describe("AppButton", () => {
         expect(wrapper.find("button").attributes("disabled")).toBeDefined();
     });
 
-    // 02/10/2026 : la commande d'une barre passe en icône seule sous `sm`,
-    // sans perdre son nom ni son fond.
+    // 02/10/2026: a bar command turns icon only below `sm`, without losing its
+    // name or its background.
     it("keeps the label readable when icon-only on phone", () => {
         const wrapper = mount(AppButton, {
             props: {
@@ -76,8 +76,8 @@ describe("AppButton", () => {
         expect(wrapper.classes()).not.toContain("px-4");
     });
 
-    // Tous les boutons d'une taille ont la même hauteur : un primary porte un
-    // filet transparent pour égaler le secondary posé à côté.
+    // All the buttons of one size have the same height: a primary carries a
+    // transparent border to match the secondary placed next to it.
     it("gives filled variants a transparent border", () => {
         for (const variant of ["primary", "danger", "accent"]) {
             const classes = mount(AppButton, { props: { variant } }).classes();

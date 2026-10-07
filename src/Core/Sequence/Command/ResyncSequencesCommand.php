@@ -63,8 +63,8 @@ final class ResyncSequencesCommand extends Command
                 );
                 $io->writeln(sprintf('  <info>%-40s</info> → %d', $seqName, $maxId + 1));
                 ++$synced;
-            } catch (Throwable $e) {
-                $io->warning(sprintf('Failed %s: %s', $seqName, $e->getMessage()));
+            } catch (Throwable $exception) {
+                $io->warning(sprintf('Failed %s: %s', $seqName, $exception->getMessage()));
                 ++$skipped;
             }
         }

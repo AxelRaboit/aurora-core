@@ -42,14 +42,13 @@ final class MarkdownNotesImagesController extends AbstractController
     ) {}
 
     /**
-     * Une image d'une note qu'on lit sans en être l'auteur.
+     * An image of a note you read without being its author.
      *
-     * Les images sont rangées par propriétaire, et la route ordinaire
-     * construit sa clé avec la personne connectée : une note partagée lue par
-     * quelqu'un d'autre s'affichait donc sans ses images. Ici la clé est celle
-     * de l'auteur, et c'est la règle de lecture de la note - la sienne,
-     * partagée, ou rangée dans un dossier partagé - qui décide, la même que
-     * pour le texte.
+     * Images are stored per owner, and the ordinary route builds its key with
+     * the logged-in person: a shared note read by someone else was therefore
+     * displayed without its images. Here the key is the author's, and it is
+     * the note's read rule - your own, shared, or filed in a shared folder -
+     * that decides, the same as for the text.
      */
     #[Route(
         '/of/{noteId}/{filename}',
@@ -62,9 +61,9 @@ final class MarkdownNotesImagesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Lisible, et citée par cette note : lire une note partagée ne doit
-        // pas ouvrir les images des notes privées de son auteur, même à qui
-        // en connaîtrait le nom.
+        // Readable, and cited by this note: reading a shared note must not
+        // open the images of its author's private notes, even to someone
+        // who knew their name.
         $note = $this->spaceAccess->readableNote($user, $noteId);
         if (!$note instanceof MarkdownNoteInterface || !str_contains((string) $note->getContent(), $filename)) {
             return $this->jsonNotFound();
@@ -98,9 +97,9 @@ final class MarkdownNotesImagesController extends AbstractController
             return $this->jsonInvalidInput(['image' => 'Missing or invalid upload.']);
         }
 
-        // Une image rejoint le compartiment de l'espace de sa note, pour que
-        // tous ses lecteurs la voient : il faut pouvoir écrire dans cet
-        // espace. Sans espace dit, c'est son espace personnel.
+        // An image joins the bucket of its note's space, so that all its
+        // readers see it: you must be able to write in that space. With no
+        // space given, it is your personal space.
         $raw = $request->request->get('spaceId') ?? $request->query->get('spaceId');
         $space = is_numeric($raw) ? $this->spaceAccess->writableSpace($user, (int) $raw) : $this->spaceAccess->personalSpace($user);
         if (!$space instanceof NoteSpaceInterface) {
@@ -120,18 +119,17 @@ final class MarkdownNotesImagesController extends AbstractController
     }
 
     /**
-     * Sert une image à qui la possède.
+     * Serves an image to whoever owns it.
      *
-     * La règle d'accès tient dans la clé : elle est construite avec
-     * l'identifiant de **la personne connectée**, jamais avec celui que porte
-     * la demande. Réclamer l'image d'un autre revient donc à réclamer une clé
-     * qui n'existe pas, et la réponse est le même 404 que pour une image
-     * supprimée. Rien ne dit à qui demande si le fichier existe ailleurs.
+     * The access rule lies in the key: it is built with the id of **the
+     * logged-in person**, never with the one the request carries. Asking for
+     * someone else's image therefore amounts to asking for a key that does
+     * not exist, and the answer is the same 404 as for a deleted image.
+     * Nothing tells the requester whether the file exists elsewhere.
      *
-     * C'est plus court que ce qu'il y avait : un chemin absolu construit
-     * depuis le dossier de la personne, un `realpath`, et une comparaison à
-     * la racine pour empêcher une remontée. Une clé d'objet n'a pas de
-     * dossier parent.
+     * It is shorter than what was there: an absolute path built from the
+     * person's folder, a `realpath`, and a comparison with the root to
+     * prevent climbing up. An object key has no parent folder.
      */
     #[Route(
         '/{filename}',
@@ -144,9 +142,9 @@ final class MarkdownNotesImagesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Les espaces qu'on peut lire, le sien d'abord - la liste le met en
-        // tête : l'adresse d'une image ne porte que son nom, et une image d'un
-        // espace partagé a la même adresse chez tous ses lecteurs.
+        // The spaces you can read, your own first - the list puts it at the
+        // top: an image's address only carries its name, and an image of a
+        // shared space has the same address for all its readers.
         $this->spaceAccess->personalSpace($user);
         foreach ($this->spaces->findReadableFor($user) as $bucket) {
             $key = $this->imageService->keyOrNull($filename, $bucket);
@@ -156,11 +154,11 @@ final class MarkdownNotesImagesController extends AbstractController
             }
 
             try {
-                // Par le répondeur partagé plutôt qu'une réponse fabriquée ici :
-                // c'est lui qui pose `nosniff`, qui rend en téléchargement ce
-                // qu'un navigateur exécuterait comme un document, et qui sait
-                // servir un fichier local tel quel et diffuser un distant par
-                // morceaux.
+                // Through the shared responder rather than a response built
+                // here: it is the one that sets `nosniff`, that turns into a
+                // download what a browser would run as a document, and that
+                // knows how to serve a local file as is and stream a remote
+                // one in chunks.
                 return $this->storedFileResponder->respond($key);
             } catch (NotFoundHttpException) {
                 continue;

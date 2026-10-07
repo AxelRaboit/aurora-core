@@ -29,11 +29,23 @@ const props = defineProps({
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
     /**
-     * Si le lecteur peut changer l'équipe et les rôles. Réservé au chef de
-     * l'espace : les autres voient l'équipe sans pouvoir y toucher, le
-     * serveur refusant de toute façon.
+     * Whether the reader can change the team and the roles. Reserved to the
+     * space's lead: the others see the team without being able to touch it,
+     * the server refusing anyway.
      */
     canEditTeam: { type: Boolean, default: true },
+    /**
+     * Whether "nouveau prospect" is offered. It creates a customer sheet, so
+     * it requires the right to create one; the server refuses otherwise.
+     */
+    canCreateCustomer: { type: Boolean, default: false },
+    /**
+     * Which of the two groups to draw. The Settings tab of a space draws them
+     * as two sections, and the team only for its lead; the creation modal
+     * draws both.
+     */
+    withIdentity: { type: Boolean, default: true },
+    withTeam: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -47,21 +59,21 @@ function set(field, value) {
 }
 
 /**
- * La valeur du selecteur qui ne designe personne mais ouvre quelqu'un.
+ * The selector value that names nobody but opens someone.
  *
- * Une sentinelle plutot qu'une case a cocher a cote : le champ repond a une
- * seule question - pour qui est cet espace - et deux commandes pour un seul
- * creneau font hesiter sur celle qui compte.
+ * A sentinel rather than a checkbox next to it: the field answers a single
+ * question - who this space is for - and two controls for a single slot make
+ * people hesitate over which one counts.
  */
 const NEW_PROSPECT = "__prospect__";
 
 /**
- * Le mode choisi, tenu ici et pas deduit du formulaire.
+ * The chosen mode, held here and not derived from the form.
  *
- * Le deduire d'un `prospectName` non vide obligerait a y ecrire quelque chose
- * pour que les champs restent ouverts - et ce quelque chose partirait au
- * serveur. L'ouverture du panneau est un etat de l'ecran, il reste dans
- * l'ecran.
+ * Deriving it from a non-empty `prospectName` would force writing something
+ * there for the fields to stay open - and that something would go to the
+ * server. The panel being open is a state of the screen, it stays in the
+ * screen.
  */
 const prospectMode = ref(false);
 
@@ -69,9 +81,9 @@ const pickingProspect = computed(
     () => prospectMode.value || "" !== (form.value.prospectName ?? ""),
 );
 
-// La fenetre reste montee entre deux ouvertures : sans ca, ouvrir un prospect
-// puis modifier un espace existant rouvrirait les deux champs sur une fiche
-// qui a deja sa societe.
+// The dialog stays mounted between two openings: without this, opening a
+// prospect then editing an existing space would reopen the two fields on a
+// record that already has its company.
 watch(
     () => form.value.customerId,
     (customerId) => {
@@ -80,16 +92,18 @@ watch(
 );
 
 const customerChoices = computed(() => [
-    { value: NEW_PROSPECT, label: t("suite.studio.spaces.customer_new_prospect") },
+    ...(props.canCreateCustomer
+        ? [{ value: NEW_PROSPECT, label: t("suite.studio.spaces.customer_new_prospect") }]
+        : []),
     ...props.customerOptions,
 ]);
 
 /**
- * Choisir l'un efface l'autre.
+ * Choosing one clears the other.
  *
- * Sans ca, un formulaire ou l'on a tape un nom de prospect puis choisi une
- * societe existante partirait avec les deux, et le serveur devrait deviner
- * lequel l'emporte.
+ * Without this, a form where a prospect name was typed and then an existing
+ * company chosen would go out with both, and the server would have to guess
+ * which one wins.
  */
 function chooseCustomer(value) {
     if (NEW_PROSPECT === value) {
@@ -192,7 +206,7 @@ function removeMember(userId) {
 
 <template>
     <div class="space-y-5">
-        <section class="space-y-4">
+        <section v-if="withIdentity" class="space-y-4">
             <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
                 {{ t("suite.studio.spaces.group_identity") }}
             </h3>
@@ -207,10 +221,10 @@ function removeMember(userId) {
                 v-on:update:model-value="set('name', $event)"
             />
 
-            <!-- Une societe connue, ou un prospect ouvert dans la foulee.
-                 L'option est dans la meme liste plutot qu'a cote, parce que
-                 c'est une seule question - pour qui est cet espace - et que
-                 deux champs pour un seul creneau font hesiter. -->
+            <!-- A known company, or a prospect opened on the spot. The option
+                 is in the same list rather than next to it, because it is a
+                 single question - who this space is for - and two fields for
+                 a single slot make people hesitate. -->
             <AppSelect
                 :model-value="pickingProspect ? NEW_PROSPECT : String(form.customerId ?? '')"
                 :label="t('suite.studio.spaces.customer')"
@@ -305,7 +319,7 @@ function removeMember(userId) {
             </div>
         </section>
 
-        <section class="space-y-4">
+        <section v-if="withTeam" class="space-y-4">
             <div>
                 <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
                     {{ t("suite.studio.spaces.group_team") }}

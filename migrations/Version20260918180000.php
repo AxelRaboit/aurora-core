@@ -8,21 +8,21 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Des canaux dans la discussion d'un espace, et les gens qui y sont.
+ * Channels in a space conversation, and the people in them.
  *
- * Écrite à la main comme celles qui précèdent : `migrations:diff` sur cette
- * base de développement propose aussi de renommer deux douzaines d'index qu'il
- * n'a pas créés.
+ * Written by hand like the ones before it: `migrations:diff` on this
+ * development database also offers to rename two dozen indexes it did not
+ * create.
  *
- * **Le rattachement des messages se fait en trois temps, et c'est obligatoire.**
- * La colonne arrive nullable, chaque espace reçoit son canal principal, tous
- * ses messages y sont versés, et la colonne devient non nulle une fois qu'il
- * n'en reste aucun sans canal. L'ordre inverse refuserait la colonne sur toute
- * base qui contient déjà une conversation, c'est-à-dire sur la production.
+ * **Messages are attached in three steps, and that is mandatory.**
+ * The column arrives nullable, each space gets its main channel, all its
+ * messages are moved into it, and the column becomes not null once none is
+ * left without a channel. The reverse order would reject the column on any
+ * database that already holds a conversation, which means production.
  *
- * Le canal principal est créé pour **tout** espace, même muet : la discussion
- * s'ouvre sur un canal, et un espace sans canal obligerait chaque écran à
- * savoir en fabriquer un.
+ * The main channel is created for **every** space, even a silent one: the
+ * conversation opens on a channel, and a space without a channel would force
+ * every screen to know how to make one.
  */
 final class Version20260918180000 extends AbstractMigration
 {
@@ -50,19 +50,19 @@ final class Version20260918180000 extends AbstractMigration
         $this->addSql('ALTER TABLE core_studio_space_chat_channel_members ADD CONSTRAINT FK_B3E5D196A76ED395 FOREIGN KEY (user_id) REFERENCES core_users (id) ON DELETE SET NULL NOT DEFERRABLE');
         $this->addSql('ALTER TABLE core_studio_space_chat_channel_members ADD CONSTRAINT FK_B3E5D196ADA40271 FOREIGN KEY (link_id) REFERENCES core_studio_space_access_links (id) ON DELETE SET NULL NOT DEFERRABLE');
 
-        // 1. La colonne, nullable le temps du remplissage.
+        // 1. The column, nullable while it is filled.
         $this->addSql('ALTER TABLE core_studio_space_chat_messages ADD channel_id INT DEFAULT NULL');
 
-        // 2. Un canal principal par espace, ouvert au client comme l'était la
-        //    discussion qu'il remplace. Le nom est en français : c'est la
-        //    langue de l'application, et il se renomme.
+        // 2. One main channel per space, open to the client as the
+        //    conversation it replaces was. The name is in French: that is the
+        //    language of the application, and it can be renamed.
         $this->addSql(<<<'SQL'
             INSERT INTO core_studio_space_chat_channels (id, space_id, name, kind, position, open_to_client, created_at)
             SELECT nextval('seq_core_space_chat_channel_id'), s.id, 'Général', 'main', 0, true, NOW()
             FROM core_studio_customer_spaces s
             SQL);
 
-        // 3. Les messages rejoignent le canal principal de leur espace.
+        // 3. Messages join the main channel of their space.
         $this->addSql(<<<'SQL'
             UPDATE core_studio_space_chat_messages m
             SET channel_id = c.id
@@ -82,9 +82,9 @@ final class Version20260918180000 extends AbstractMigration
         $this->addSql('DROP INDEX idx_space_chat_channel_created');
         $this->addSql('DROP INDEX IDX_8D9F2C1172F5A1AA');
 
-        // Les messages des canaux qui ne sont pas le principal partiraient avec
-        // les canaux : ils sont versés dans la discussion d'origine, qui est ce
-        // que cette base savait représenter avant.
+        // Messages of the channels other than the main one would go with the
+        // channels: they are moved into the original conversation, which is
+        // what this database could represent before.
         $this->addSql('ALTER TABLE core_studio_space_chat_messages DROP COLUMN channel_id');
 
         $this->addSql('ALTER TABLE core_studio_space_chat_channel_members DROP CONSTRAINT FK_B3E5D196ADA40271');

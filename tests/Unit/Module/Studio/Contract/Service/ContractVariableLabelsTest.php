@@ -15,17 +15,17 @@ use function sprintf;
 use function str_replace;
 
 /**
- * Chaque jeton du catalogue a un libellé, dans chaque langue du back-office.
+ * Every token of the catalogue has a label, in every back office language.
  *
- * La clé de libellé est dérivée du jeton, ce qui évite une table de
- * correspondance mais ne prévient de rien : les douze jetons `provider.*` et
- * les trois `contract.amends_*` n'avaient aucune traduction, et le panneau
- * affichait leur clé brute, `suite.studio.contract_templates.variables
- * .provider_name`, à côté de sa valeur d'exemple. Personne ne l'avait vu
- * parce que le panneau se lit en diagonale.
+ * The label key is derived from the token, which avoids a lookup table but
+ * warns of nothing: the twelve `provider.*` tokens and the three
+ * `contract.amends_*` ones had no translation, and the panel showed their raw
+ * key, `suite.studio.contract_templates.variables
+ * .provider_name`, next to its sample value. Nobody had noticed because the
+ * panel is skimmed.
  *
- * L'espagnol est hors sujet ici : le back-office espagnol retombe sur le
- * français, et son fichier ne couvre que les pages publiques.
+ * Spanish is out of scope here: the Spanish back office falls back to French,
+ * and its file only covers the public pages.
  */
 final class ContractVariableLabelsTest extends TestCase
 {

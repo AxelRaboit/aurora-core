@@ -11,9 +11,8 @@ use Rector\Config\RectorConfig;
 $projectDir = getcwd() ?: __DIR__.'/../..';
 
 return RectorConfig::configure()
-    // fixtures/ n'existe que dans aurora-core ; ce fichier sert aussi de
-    // fallback aux clients, qui n'en ont pas, et Rector echoue sur un chemin
-    // absent.
+    // fixtures/ only exists in aurora-core; this file also serves as a fallback
+    // for clients, which do not have it, and Rector fails on a missing path.
     ->withPaths(array_values(array_filter(
         [$projectDir.'/src', $projectDir.'/fixtures'],
         is_dir(...),

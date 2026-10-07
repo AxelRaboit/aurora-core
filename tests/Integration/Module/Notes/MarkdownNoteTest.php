@@ -243,10 +243,10 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Une couleur se garde, et une couleur inventée se refuse.
+     * A colour is kept, and a made-up colour is refused.
      *
-     * Elle finit dans un attribut de style : tout ce qui n'est pas
-     * `#rrggbb` est un refus, pas une valeur qu'on nettoie en silence.
+     * It ends up in a style attribute: anything that is not `#rrggbb` is a
+     * refusal, not a value cleaned up silently.
      */
     public function testAFolderKeepsItsColour(): void
     {
@@ -278,10 +278,10 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Le bandeau d'une note, et la page qui ne montre qu'elle.
+     * A note's banner, and the page that shows only the note.
      *
-     * L'image reste chez celui qui l'héberge : la note n'en garde que
-     * l'adresse et le crédit, et **rien n'entre dans la médiathèque**.
+     * The image stays with whoever hosts it: the note only keeps its address
+     * and its credit, and **nothing enters the media library**.
      */
     public function testANoteKeepsItsCoverAndItsLook(): void
     {
@@ -310,9 +310,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * L'enregistrement renvoie l'extrait, par la même règle que la liste :
-     * c'est ce qui permet à la carte de la bibliothèque de suivre le texte
-     * sans recharger la page.
+     * Saving sends back the excerpt, by the same rule as the list: it is what
+     * lets the library card follow the text without reloading the page.
      */
     public function testSavingANoteSendsBackItsFreshExcerpt(): void
     {
@@ -328,7 +327,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertNotNull($response['note']['updatedAt'] ?? null);
     }
 
-    /** Une adresse qui n'est pas une adresse ne s'écrit pas. */
+    /** An address that is not an address is not written. */
     public function testACoverRefusesAnythingButAnHttpsAddress(): void
     {
         $note = $this->note($this->owner, 'Sans image');
@@ -349,12 +348,12 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Le lecteur : un espace épuré, avec tout le carnet à gauche.
+     * The reader: a clean space, with the whole notebook on the left.
      *
-     * Il montrait une note seule. Il porte maintenant sa propre
-     * arborescence - pas le menu du back-office, que la lecture n'a pas à
-     * traîner - et il tourne les pages dans l'ordre de l'arborescence. Seule la personne qui a le droit de lire y
-     * entre : c'est le compte qui fait la portée, il n'y a pas de jeton.
+     * It used to show a single note. It now carries its own tree - not the
+     * back office menu, which reading has no need to drag along - and it
+     * turns the pages in the tree's order. Only the person allowed to read
+     * gets in: the account sets the scope, there is no token.
      */
     public function testTheReadingModeKeepsTheNotebookAroundTheNote(): void
     {
@@ -374,8 +373,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $html = (string) $this->client->getResponse()->getContent();
         self::assertStringContainsString('notes/suite/markdown/NoteReadApp', $html);
-        // Un espace épuré : pas le menu du back-office, sa propre
-        // arborescence à la place.
+        // A clean space: not the back office menu, its own tree instead.
         self::assertStringNotContainsString('core/suite/sidemenu/AppSidemenu', $html);
 
         $props = $this->readProps($html);
@@ -396,8 +394,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Entrer dans le lecteur sans note : l'adresse qu'on met en favori.
-     * Elle ouvre la première note du carnet, ou la bibliothèque s'il est vide.
+     * Entering the reader without a note: the address one bookmarks.
+     * It opens the notebook's first note, or the library if it is empty.
      */
     public function testTheReaderHasAnEntryOfItsOwn(): void
     {
@@ -411,28 +409,28 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Réordonner les sous-dossiers d'un dossier les laisse dedans.
+     * Reordering a folder's subfolders leaves them inside it.
      *
-     * Le serveur ne rattachait un dossier qu'à un parent présent dans la
-     * requête ; le glisser n'envoie que les frères, sans leur parent, et
-     * ranger deux sous-dossiers l'un avant l'autre les renvoyait à la racine.
+     * The server only attached a folder to a parent present in the request;
+     * dragging only sends the siblings, without their parent, and putting two
+     * subfolders one before the other sent them back to the root.
      */
     public function testReorderingSubfoldersKeepsThemInTheirParent(): void
     {
         $parent = $this->folder($this->owner, 'Parent');
-        $a = $this->folder($this->owner, 'A', $parent);
-        $b = $this->folder($this->owner, 'B', $parent);
+        $folderA = $this->folder($this->owner, 'A', $parent);
+        $folderB = $this->folder($this->owner, 'B', $parent);
 
         $this->client->loginUser($this->owner, 'admin');
         $this->post('suite_notes_markdown_folders_reorder', ['entries' => [
-            ['id' => $b->getId(), 'parentId' => $parent->getId(), 'position' => 0],
-            ['id' => $a->getId(), 'parentId' => $parent->getId(), 'position' => 1],
+            ['id' => $folderB->getId(), 'parentId' => $parent->getId(), 'position' => 0],
+            ['id' => $folderA->getId(), 'parentId' => $parent->getId(), 'position' => 1],
         ]]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $freshA = $this->entityManager->find(NoteFolder::class, $a->getId());
-        $freshB = $this->entityManager->find(NoteFolder::class, $b->getId());
+        $freshA = $this->entityManager->find(NoteFolder::class, $folderA->getId());
+        $freshB = $this->entityManager->find(NoteFolder::class, $folderB->getId());
 
         self::assertSame($parent->getId(), $freshA?->getParent()?->getId());
         self::assertSame($parent->getId(), $freshB?->getParent()?->getId());
@@ -441,11 +439,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Dossiers et notes d'un dossier partagent un seul ordre.
+     * A folder's folders and notes share a single order.
      *
-     * Une note créée prenait le rang qui suivait les notes seulement : à côté
-     * de deux sous-dossiers de rangs 0 et 1, elle repartait de 0 et se glissait
-     * entre eux. Elle arrive maintenant après tout ce que le dossier contient.
+     * A created note took the rank following the notes only: next to two
+     * subfolders at ranks 0 and 1, it started again from 0 and slipped in
+     * between them. It now lands after everything the folder holds.
      */
     public function testANewNoteComesAfterTheFoldersOfItsFolder(): void
     {
@@ -465,7 +463,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame(2, $note->getPosition());
     }
 
-    /** Une note qui change de dossier arrive après tout ce qu'il contient. */
+    /** A note that changes folder lands after everything the folder holds. */
     public function testAMovedNoteLandsAfterEverythingInItsNewFolder(): void
     {
         $target = $this->folder($this->owner, 'Cible');
@@ -487,9 +485,9 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * L'ordre de lecture suit celui de l'arborescence, dossiers et notes
-     * mêlés : une note rangée avant un dossier se lit avant les notes de ce
-     * dossier. C'est l'ordre du précédent / suivant et de la page publique.
+     * The reading order follows the tree's, folders and notes mixed: a note
+     * placed before a folder is read before that folder's notes. It is the
+     * order of previous / next and of the public page.
      */
     public function testTheReadingOrderMixesFoldersAndNotes(): void
     {
@@ -522,8 +520,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Dupliquer range la copie juste sous l'original, comme Craft et Notion :
-     * les voisins d'après descendent d'un rang, dossiers compris.
+     * Duplicating places the copy right under the original, like Craft and
+     * Notion: the following siblings move down one rank, folders included.
      */
     public function testDuplicatingPutsTheCopyRightUnderTheOriginal(): void
     {
@@ -553,7 +551,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame(3, $this->entityManager->find(MarkdownNote::class, $after->getId())?->getPosition());
     }
 
-    /** Une note qu'on ne peut pas écrire ne se duplique pas. */
+    /** A note one cannot write is not duplicated. */
     public function testDuplicatingAnotherPersonsNoteIsRefused(): void
     {
         $note = $this->note($this->owner, 'Personnel');
@@ -565,8 +563,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Un modèle devient une note neuve, rangée en dernier là où on la crée,
-     * avec la date du jour à la place de son repère. Le modèle reste intact.
+     * A template becomes a new note, placed last where it is created, with
+     * today's date instead of its placeholder. The template stays intact.
      */
     public function testATemplateBecomesANewNoteWithTodaysDate(): void
     {
@@ -593,7 +591,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertStringContainsString('{{date}}', (string) $this->entityManager->find(MarkdownNote::class, $template->getId())?->getContent());
     }
 
-    /** Seule une note marquée comme modèle sert de modèle. */
+    /** Only a note marked as a template serves as a template. */
     public function testAnOrdinaryNoteIsNotATemplate(): void
     {
         $note = $this->note($this->owner, 'Ordinaire');
@@ -605,9 +603,9 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * L'historique : une modification garde l'état qu'elle remplace, mais pas
-     * à chaque frappe. Deux enregistrements à quelques secondes ne font
-     * qu'une version (l'intervalle des réglages).
+     * The history: an edit keeps the state it replaces, but not on every
+     * keystroke. Two saves a few seconds apart make only one version (the
+     * interval from the settings).
      */
     public function testEditingANoteKeepsThePreviousVersionOncePerInterval(): void
     {
@@ -628,7 +626,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame('Version 1', json_decode((string) $this->client->getResponse()->getContent(), true)['revision']['content']);
     }
 
-    /** Restaurer remet une version et garde d'abord l'état courant : rien ne se perd. */
+    /** Restoring puts a version back and keeps the current state first: nothing is lost. */
     public function testRestoringAVersionKeepsTheCurrentStateFirst(): void
     {
         $note = $this->note($this->owner, 'Brief', null, 'Ancien texte');
@@ -652,8 +650,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Une image retirée du texte reste tant qu'une version passée la montre :
-     * sinon restaurer cette version rendrait une image cassée.
+     * An image removed from the text stays as long as a past version shows it:
+     * otherwise restoring that version would give a broken image.
      */
     public function testAnImageOnlyAnOldVersionShowsIsKept(): void
     {
@@ -681,7 +679,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** L'historique d'une note se lit avec la note, pas sans. */
+    /** A note's history is read with the note, not without it. */
     public function testAnotherPersonCannotReadTheHistory(): void
     {
         $note = $this->note($this->owner, 'Personnel', null, 'Secret');
@@ -693,9 +691,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Un dossier ne se range pas sous son propre enfant, même quand l'enfant
-     * n'est pas dans la requête : la boucle se lit aussi dans les parents
-     * déjà enregistrés.
+     * A folder is not placed under its own child, even when the child is not
+     * in the request: the loop is also read from the parents already stored.
      */
     public function testReorderRefusesACycleThroughStoredParents(): void
     {
@@ -712,10 +709,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Un enregistrement parti d'une version dépassée est refusé.
+     * A save started from an outdated version is refused.
      *
-     * L'éditeur enregistre tout seul : sans ce contrôle, à deux sur une même
-     * note, le dernier qui tapait effaçait l'autre sans que personne le sache.
+     * The editor saves on its own: without this check, with two people on the
+     * same note, the last one typing wiped out the other without anyone
+     * knowing.
      */
     public function testASaveFromAnOutdatedVersionIsRefused(): void
     {
@@ -726,13 +724,13 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
         self::assertSame(2, $saved['note']['version']);
 
-        // Parti de la version 1 alors que la note est en 2 : refusé.
+        // Started from version 1 while the note is at 2: refused.
         $this->post('suite_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'écrasé', 'version' => 1], ['id' => $note->getId()]);
         self::assertResponseStatusCodeSame(409);
         $body = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertTrue($body['conflict']);
 
-        // Écraser en le sachant passe, et un appel sans version aussi.
+        // Overwriting knowingly goes through, and so does a call without a version.
         $this->post('suite_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'forcé', 'version' => 1, 'force' => true], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
         $this->post('suite_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'sans version'], ['id' => $note->getId()]);
@@ -764,10 +762,10 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Le carnet a une page à lui, et elle ne renvoie plus ailleurs.
+     * The notebook has a page of its own, and it no longer redirects elsewhere.
      *
-     * L'adresse redirigeait vers la première note, faute d'écran à montrer :
-     * ouvrir le module tombait sur un texte au lieu de montrer ce qu'il y a.
+     * The address redirected to the first note, for lack of a screen to show:
+     * opening the module landed on a text instead of showing what is there.
      */
     public function testTheLibraryIsAPageOfItsOwn(): void
     {
@@ -780,7 +778,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Un dossier est une adresse, avec son fil d'Ariane résolu côté serveur. */
+    /** A folder is an address, with its breadcrumb resolved on the server. */
     public function testAFolderHasItsOwnAddress(): void
     {
         $parent = $this->folder($this->owner, 'Clients');
@@ -796,14 +794,14 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $html = (string) $this->client->getResponse()->getContent();
 
-        // Le fil d'Ariane part de la racine : sans lui, un rechargement
-        // afficherait la racine le temps que le navigateur recalcule.
+        // The breadcrumb starts from the root: without it, a reload would show
+        // the root while the browser recalculates.
         self::assertStringContainsString('Studio Lumen', $html);
         self::assertStringContainsString('Clients', $html);
 
-        // Et surtout : la page dit au composant quel dossier elle est. Sans
-        // cette propriété, la bibliothèque s'ouvre sur la racine alors que
-        // l'adresse nomme un dossier - ce qu'Axel a vu.
+        // And above all: the page tells the component which folder it is.
+        // Without this prop, the library opens on the root while the address
+        // names a folder - which is what Axel saw.
         self::assertMatchesRegularExpression(
             '/&quot;folderId&quot;:\s*'.$child->getId().'\b/',
             $html,
@@ -811,7 +809,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         );
     }
 
-    /** Une note rangée porte son dossier dans la liste, pas un parent. */
+    /** A filed note carries its folder in the list, not a parent. */
     public function testTheFlatListCarriesTheFolder(): void
     {
         $folder = $this->folder($this->owner, 'Clients');
@@ -832,13 +830,13 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * L'extrait que montre la mosaïque, calculé côté serveur.
+     * The excerpt the grid shows, computed on the server.
      *
-     * Il vaut un déchiffrement par note : huit millisecondes de plus sur un
-     * carnet de cinq cents notes, mesuré, ce qui est le prix d'une carte qui
-     * montre autre chose qu'un titre. **Il part en Markdown**, pas aplati :
-     * la vignette le rend en petit, et c'est de voir un titre et une liste
-     * qu'on reconnaît une note.
+     * It costs one decryption per note: eight more milliseconds on a notebook
+     * of five hundred notes, measured, which is the price of a card that shows
+     * something other than a title. **It goes out as Markdown**, not
+     * flattened: the thumbnail renders it small, and seeing a heading and a
+     * list is how a note is recognised.
      */
     public function testTheListCarriesAnExcerpt(): void
     {
@@ -859,11 +857,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Une image ne part pas dans l'extrait, et un bloc de code coupé se
-     * referme.
+     * An image does not go into the excerpt, and a cut code block is closed
+     * again.
      *
-     * Une seule image en `data:` pèserait plus que toute la liste, et une
-     * clôture manquante ferait passer la fin de la vignette pour du code.
+     * A single `data:` image would weigh more than the whole list, and a
+     * missing fence would make the end of the thumbnail pass for code.
      */
     public function testTheExcerptDropsImagesAndClosesWhatItCuts(): void
     {
@@ -889,11 +887,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Épingler une note, et la décrocher.
+     * Pinning a note, and unpinning it.
      *
-     * Le panneau du menu ouvre là-dessus : un carnet a trois ou quatre
-     * endroits où l'on retourne tous les jours, et les chercher dans
-     * l'arborescence à chaque fois est la corvée que les favoris suppriment.
+     * The menu panel opens on this: a notebook has three or four places one
+     * goes back to every day, and looking for them in the tree every time is
+     * the chore favourites remove.
      */
     public function testANoteCanBePinnedAndUnpinned(): void
     {
@@ -905,7 +903,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertTrue($body['favorite']);
         self::assertNotNull($this->listedRow((int) $note->getId())['favoritedAt']);
 
-        // Le lecteur le sait aussi : son étoile s'allume.
+        // The reader knows it too: its star lights up.
         $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertTrue($this->readProps((string) $this->client->getResponse()->getContent())['favorited']);
 
@@ -915,8 +913,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Les favoris sont à la personne : on épingle ce qu'on peut lire, pour
-     * soi seul, et jamais ce qu'on ne voit pas.
+     * Favourites belong to the person: one pins what one can read, for
+     * oneself alone, and never what one cannot see.
      */
     public function testFavoritesBelongToWhoPinsThem(): void
     {
@@ -926,7 +924,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->post('suite_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
 
-        // Dans un espace ouvert à tous, chacun épingle pour lui.
+        // In a space open to everyone, each person pins for themselves.
         $space = new NoteSpace();
         $space->setOwner($this->owner)->setName('Équipe')->setAccess(NoteSpaceAccessEnum::Backoffice);
         $this->entityManager->persist($space);
@@ -961,13 +959,13 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Les dates de la liste partent en chaînes, pas en objets.
+     * The list's dates go out as strings, not objects.
      *
-     * L'hydratation en tableau de Doctrine rend des `DateTimeImmutable`, que
-     * `json_encode` écrit `{date, timezone_type, timezone}`. Le navigateur
-     * n'y voit pas une date : `Intl` lève, et l'exception emporte le
-     * composant entier - la page devient un cadre vide. Personne ne l'a vu
-     * tant qu'aucun écran n'affichait ces dates.
+     * Doctrine's array hydration returns `DateTimeImmutable` objects, which
+     * `json_encode` writes as `{date, timezone_type, timezone}`. The browser
+     * does not see a date in that: `Intl` throws, and the exception takes the
+     * whole component down - the page becomes an empty frame. Nobody saw it
+     * as long as no screen displayed these dates.
      */
     public function testTheFlatListSendsDatesAsStrings(): void
     {
@@ -1009,7 +1007,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame($secret, $fresh->getContent());
     }
 
-    /** Les propriétés passées à la page de lecture. */
+    /** The props passed to the reading page. */
     private function readProps(string $html): array
     {
         self::assertSame(1, preg_match('/data-symfony--ux-vue--vue-props-value="([^"]*readNotePath[^"]*)"/', $html, $match));
@@ -1064,11 +1062,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
      */
 
     /**
-     * **L'aller-retour, qui est la seule preuve qu'une exportation vaut.**.
+     * **The round trip, which is the only proof an export is worth anything.**.
      *
-     * Un carnet exporté puis réimporté doit redonner la même arborescence, les
-     * mêmes titres et les mêmes étiquettes. Sans ça, l'export est un tas de
-     * fichiers, pas une porte de sortie.
+     * A notebook exported then imported again must give back the same tree,
+     * the same titles and the same tags. Without that, the export is a pile of
+     * files, not a way out.
      */
     public function testTheNotebookSurvivesAnExportAndAnImport(): void
     {
@@ -1089,10 +1087,10 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        // La route rend un fichier, pas un corps : `getContent()` y répond faux.
-        // Et celui-ci s'efface une fois envoyé, ce qui est voulu. L'archive
-        // examinée est donc celle que le service refabrique, et la route est
-        // pesée sur ce qu'elle promet - un fichier, et deux cents.
+        // The route returns a file, not a body: `getContent()` answers false
+        // there. And this one is deleted once sent, on purpose. So the archive
+        // examined is the one the service builds again, and the route is
+        // judged on what it promises - a file, and a 200.
         self::assertInstanceOf(BinaryFileResponse::class, $this->client->getResponse());
 
         $path = static::getContainer()->get(MarkdownNoteArchive::class)->zipFor($this->owner);
@@ -1100,11 +1098,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $archive = new ZipArchive();
         self::assertTrue($archive->open($path));
 
-        // L'arborescence est dans les chemins : une note rangée est un
-        // fichier dans le répertoire du nom de son dossier.
+        // The tree is in the paths: a filed note is a file in the directory
+        // named after its folder.
         $entries = [];
-        for ($i = 0; $i < $archive->numFiles; ++$i) {
-            $entries[] = (string) $archive->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $archive->numFiles; ++$entryIndex) {
+            $entries[] = (string) $archive->getNameIndex($entryIndex);
         }
         $archive->close();
 
@@ -1121,8 +1119,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true);
 
-        // Un dossier et une note : le répertoire traversé compte pour le
-        // dossier qu'il est, une seule fois.
+        // A folder and a note: the directory walked through counts for the
+        // folder it is, only once.
         self::assertSame(2, $body['created']);
 
         foreach ($this->notes() as $note) {
@@ -1133,7 +1131,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
             $this->created[] = [NoteFolder::class, (int) $one->getId()];
         }
 
-        // Rien n'est écrasé : l'original et l'importé cohabitent.
+        // Nothing is overwritten: the original and the imported one coexist.
         self::assertSame(
             2,
             count(array_filter($this->folders(), static fn (NoteFolder $one): bool => 'Clients' === $one->getName())),
@@ -1150,7 +1148,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame('Clients', $imported->getFolder()?->getName(), 'et dans son dossier');
     }
 
-    /** Les étiquettes voyagent en préambule, et reviennent comme étiquettes. */
+    /** Tags travel in the front matter, and come back as tags. */
     public function testTagsSurviveTheRoundTrip(): void
     {
         $this->client->loginUser($this->owner, 'admin');
@@ -1193,7 +1191,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         self::assertInstanceOf(MarkdownNoteInterface::class, $imported);
         self::assertSame(['photo', 'méthode'], $imported->getTags());
-        // Le préambule n'est pas resté dans le texte.
+        // The front matter did not stay in the text.
         self::assertSame('Du texte.', mb_trim((string) $imported->getContent()));
     }
 
@@ -1218,21 +1216,21 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Une archive se suffit : les images partent avec le texte.
+     * An archive is self-contained: the images go with the text.
      *
-     * C'est ce qui manquait. Le markdown portait l'adresse du back-office,
-     * donc un carnet exporté s'ouvrait dans Obsidian avec ses images en
-     * icônes cassées - ou pire, en demandes de connexion. Le test fait
-     * l'aller **et** le retour, parce que la moitié qui compte est celle où
-     * l'archive revient : une image réimportée doit redevenir une image de la
-     * personne qui importe, pas un lien vers le fichier de quelqu'un d'autre.
+     * That is what was missing. The markdown carried the back office address,
+     * so an exported notebook opened in Obsidian with its images as broken
+     * icons - or worse, as login prompts. The test does the way out **and**
+     * the way back, because the half that matters is the one where the
+     * archive comes back: a re-imported image must become an image of the
+     * person importing again, not a link to someone else's file.
      */
     public function testAnExportCarriesItsImagesAndAnImportTakesThemBack(): void
     {
         $this->client->loginUser($this->owner, 'admin');
 
-        // Un PNG d'un pixel, écrit ici plutôt que lu d'un fichier : le test
-        // ne dépend d'aucune ressource à côté de lui.
+        // A one-pixel PNG, written here rather than read from a file: the test
+        // depends on no resource next to it.
         $pixel = (string) base64_decode(
             'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
             true,
@@ -1250,9 +1248,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $upload = json_decode((string) $this->client->getResponse()->getContent(), true);
         $url = $upload['url'];
 
-        // La note est rangée dans un dossier, pour que le chemin relatif ait
-        // un cran à remonter : c'est là que l'export se trompait le plus
-        // facilement.
+        // The note is filed in a folder, so the relative path has one level to
+        // climb: that is where the export went wrong most easily.
         $folder = $this->post('suite_notes_markdown_folders_create', ['name' => 'Illustré']);
         $this->created[] = [NoteFolder::class, (int) $folder['folder']['id']];
 
@@ -1269,8 +1266,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertTrue($archive->open($path));
 
         $entries = [];
-        for ($i = 0; $i < $archive->numFiles; ++$i) {
-            $entries[] = (string) $archive->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $archive->numFiles; ++$entryIndex) {
+            $entries[] = (string) $archive->getNameIndex($entryIndex);
         }
 
         $exported = (string) $archive->getFromName('Illustré/Une note illustrée.md');
@@ -1332,11 +1329,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
         unlink($path);
     }
 
-    private function post(string $route, array $payload = [], array $params = []): array
+    private function post(string $route, array $payload = [], array $parameters = []): array
     {
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate($route, $params),
+            $this->urlGenerator->generate($route, $parameters),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode($payload, JSON_THROW_ON_ERROR),
         );

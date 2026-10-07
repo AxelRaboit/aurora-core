@@ -40,14 +40,14 @@ const props = defineProps({
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "select-day", "move-event"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const today = new Date();
 
 /** Monday first, from the locale rather than written out. */
 const weekdays = computed(() =>
     Array.from({ length: 7 }, (_, index) =>
-        d(new Date(2026, 5, 1 + index), { weekday: "short" }),
+        formatDate(new Date(2026, 5, 1 + index), { weekday: "short" }),
     ),
 );
 
@@ -116,11 +116,11 @@ function timedOn(date) {
 function remindersOn(date) {
     return props.reminders
         .filter((reminder) => sameDay(new Date(reminder.dueAt), date))
-        .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+        .sort((left, right) => new Date(left.dueAt) - new Date(right.dueAt));
 }
 
 function timeOf(event) {
-    return d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
+    return formatDate(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
 }
 
 /**
@@ -206,12 +206,12 @@ function addOn(date) {
                                 :key="dot"
                                 class="h-1 w-1 rounded-full bg-secondary"
                             />
-                            <!-- `text-2xs`, et pas la classe `text-3xs` qui
-                                 était écrite ici : elle n'existe dans aucun
-                                 thème, donc le nombre héritait des seize pixels
-                                 du corps et pesait quatre fois ses pastilles de
-                                 quatre. Dix pixels le remettent sous le numéro
-                                 du jour, qui en fait douze. -->
+                            <!-- `text-2xs`, and not the `text-3xs` class that
+                                 was written here: it exists in no theme, so
+                                 the number inherited the sixteen pixels of
+                                 the body and weighed four times its four-pixel
+                                 dots. Ten pixels put it back under the day
+                                 number, which is twelve. -->
                             <span
                                 v-if="week.counts[week.cells.indexOf(cell)] > MAX_DOTS"
                                 class="text-2xs leading-none text-muted tabular-nums"

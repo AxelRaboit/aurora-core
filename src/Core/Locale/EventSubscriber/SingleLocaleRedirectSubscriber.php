@@ -13,16 +13,16 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use function in_array;
 
 /**
- * Quand le mode mono-langue est actif, redirige toute URL préfixée par un code
- * locale ≠ default vers son équivalent sur la locale par défaut (301).
+ * When single-language mode is on, redirects any URL prefixed with a locale
+ * code ≠ default to its equivalent on the default locale (301).
  *
- * Tourne après LocaleSubscriber (priorité 20) et avant le RouterListener de
- * Symfony (priorité 32 → exécuté plus tôt, mais priorité 32 < 20 ? Non : sur
- * KernelEvents::REQUEST, les priorités plus élevées tournent en premier. Donc
- * 18 < 20 : ce subscriber tourne juste après LocaleSubscriber. Le
- * RouterListener tourne avec priorité 32 → AVANT nous, mais avec priorité 16
- * → après, selon la version. Peu importe : on travaille uniquement sur le path
- * brut de la Request, indépendamment du routeur.
+ * Runs after LocaleSubscriber (priority 20) and before Symfony's
+ * RouterListener (priority 32 → runs earlier, but priority 32 < 20? No: on
+ * KernelEvents::REQUEST, higher priorities run first. So 18 < 20: this
+ * subscriber runs right after LocaleSubscriber. The RouterListener runs with
+ * priority 32 → BEFORE us, but with priority 16 → after, depending on the
+ * version. It does not matter: we only work on the Request's raw path,
+ * independently of the router.
  */
 final readonly class SingleLocaleRedirectSubscriber implements EventSubscriberInterface
 {
@@ -63,8 +63,8 @@ final readonly class SingleLocaleRedirectSubscriber implements EventSubscriberIn
             return;
         }
 
-        // On ne touche que les codes locale connus du bundle pour éviter de
-        // capter par erreur des paths comme `/ab/foo` qui ne sont pas des locales.
+        // Only locale codes known to the bundle are touched, to avoid catching
+        // by mistake paths like `/ab/foo` that are not locales.
         if (!in_array($urlLocale, $this->localeContext->getAllLocales(), true)) {
             return;
         }
@@ -72,8 +72,8 @@ final readonly class SingleLocaleRedirectSubscriber implements EventSubscriberIn
         $remainder = '' === $matches[2] ? '/' : $matches[2];
         $newPath = '/'.$defaultLocale.$remainder;
 
-        $qs = $request->getQueryString();
-        $target = $request->getBaseUrl().$newPath.(null !== $qs ? '?'.$qs : '');
+        $queryString = $request->getQueryString();
+        $target = $request->getBaseUrl().$newPath.(null !== $queryString ? '?'.$queryString : '');
 
         $event->setResponse(new RedirectResponse($target, 301));
     }

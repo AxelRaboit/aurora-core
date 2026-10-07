@@ -112,7 +112,7 @@ final readonly class PlanningEventSerializer
             ];
         }
 
-        usort($alerts, static fn (array $a, array $b): int => strcmp((string) $a['firesAt'], (string) $b['firesAt']));
+        usort($alerts, static fn (array $left, array $right): int => strcmp((string) $left['firesAt'], (string) $right['firesAt']));
 
         return $alerts;
     }
@@ -142,7 +142,7 @@ final readonly class PlanningEventSerializer
         }
 
         // By name, so the list does not reorder itself as people answer.
-        usort($rows, static fn (array $a, array $b): int => strcmp((string) $a['name'], (string) $b['name']));
+        usort($rows, static fn (array $left, array $right): int => strcmp((string) $left['name'], (string) $right['name']));
 
         return $rows;
     }

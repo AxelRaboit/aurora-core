@@ -1,12 +1,12 @@
-{# Les réglages du thème actif qui se posent en CSS au chargement de la page. #}
+{# The active theme's settings that are applied as CSS when the page loads. #}
 {# Inject in <head> so utility classes like bg-accent-600 / text-accent-400 pick it up app-wide. #}
-{# Le fichier garde son nom d'origine : il est inclus par une douzaine de gabarits
-   ici et par les projets qui consomment Aurora, et le renommer les casserait
-   en silence. C'est le point d'injection du thème, la couleur n'en est qu'une
-   partie. #}
+{# The file keeps its original name: it is included by a dozen templates here
+   and by the projects that consume Aurora, and renaming it would break them
+   silently. It is the theme's injection point, the colour is only one part of
+   it. #}
 <style>{{ themeStyles.primaryColorCss()|raw }}</style>
-{# La police du thème. Rien n'est émis tant qu'il est resté sur Poppins, qui est
-   déjà le défaut de `theme.css`. #}
+{# The theme's font. Nothing is emitted as long as it stays on Poppins, which is
+   already the default of `theme.css`. #}
 {% set fontCss = themeStyles.fontFamilyCss() %}
 {% if fontCss %}
     <style>{{ fontCss|raw }}</style>

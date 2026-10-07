@@ -143,8 +143,8 @@ describe("toggleCheckboxInContent", () => {
     });
 
     it("only toggles the matching index", () => {
-        const src = "- [ ] a\n- [ ] b\n- [x] c";
-        const out = toggleCheckboxInContent(src, 1);
+        const markdown = "- [ ] a\n- [ ] b\n- [x] c";
+        const out = toggleCheckboxInContent(markdown, 1);
         expect(out).toBe("- [ ] a\n- [x] b\n- [x] c");
     });
 

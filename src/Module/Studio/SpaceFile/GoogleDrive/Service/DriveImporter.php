@@ -21,25 +21,25 @@ use function tempnam;
 use function unlink;
 
 /**
- * Un fichier du Drive, rangé dans la médiathèque de l'espace.
+ * A Drive file, filed in the space's media library.
  *
- * **Une copie, et c'est voulu.** Le reste de l'intégration ne recopie rien :
- * un dossier partagé est une étagère vivante, et ce qu'on y retire disparaît
- * de l'espace. Une pièce jointe sur une carte est l'inverse, une décision
- * prise à un moment : le brief qu'on épingle sur une fiche doit rester celui
- * dont on a parlé, pas un lien qui se vide le jour où le client fait le
- * ménage dans son Drive.
+ * **A copy, on purpose.** The rest of the integration copies nothing: a
+ * shared folder is a living shelf, and what is removed from it disappears
+ * from the space. An attachment on a card is the opposite, a decision taken
+ * at a given moment: the brief pinned on a record must stay the one that was
+ * discussed, not a link that empties the day the client cleans up their
+ * Drive.
  *
- * **Et c'est ce qui la rend attachable partout sans rien inventer.** Une fois
- * dans la médiathèque, le fichier est un document comme un autre : les fiches
- * savent déjà en accrocher, les notes savent déjà en afficher, et le
- * calendrier montre les mêmes fiches. Un troisième genre de pièce jointe,
- * qui aurait pointé vers Google, aurait demandé à chacun de ces écrans de le
- * connaître.
+ * **And that is what makes it attachable anywhere without inventing
+ * anything.** Once in the media library, the file is a document like any
+ * other: records already know how to attach one, notes already know how to
+ * display one, and the calendar shows the same records. A third kind of
+ * attachment, pointing to Google, would have required each of these screens
+ * to know about it.
  *
- * Le nom vient de Google, comme pour un téléchargement : c'est le seul endroit
- * où il existe, et le laisser venir d'ailleurs ferait écrire un nom de fichier
- * à partir de ce qu'un navigateur envoie.
+ * The name comes from Google, as for a download: it is the only place it
+ * exists, and letting it come from elsewhere would mean writing a file name
+ * from what a browser sends.
  */
 final readonly class DriveImporter
 {
@@ -50,11 +50,11 @@ final readonly class DriveImporter
     ) {}
 
     /**
-     * Range le fichier et rend le document, ou null.
+     * Files the file and returns the document, or null.
      *
-     * Null quand Google ne le sert pas : un document natif n'a pas d'octets à
-     * télécharger, et un fichier retiré du partage n'en a plus. L'appelant en
-     * fait un 404 plutôt qu'une erreur au milieu d'un écran.
+     * Null when Google does not serve it: a native document has no bytes to
+     * download, and a file removed from sharing no longer has any. The caller
+     * turns it into a 404 rather than an error in the middle of a screen.
      */
     /**
      * @param string|null $folderId the folder the file must be in: the
@@ -67,8 +67,8 @@ final readonly class DriveImporter
         CustomerSpaceInterface $space,
         ?string $folderId = null,
     ): ?DocumentInterface {
-        // Seulement un fichier du dossier visé : le compte de service en lit
-        // d'autres, et un identifiant se devine ou se recopie.
+        // Only a file from the target folder: the service account reads
+        // others, and an id can be guessed or copied.
         $folderId ??= $space->getDriveFolderId();
 
         if (null === $folderId || !$this->drive->contains($account, $folderId, $fileId)) {
@@ -89,8 +89,8 @@ final readonly class DriveImporter
         }
 
         try {
-            // `test: true` : le fichier n'est pas arrivé par un formulaire, et
-            // sans cela Symfony refuse de le déplacer.
+            // `test: true`: the file did not arrive through a form, and
+            // without it Symfony refuses to move it.
             return $this->uploader->upload(
                 new UploadedFile($path, $metadata['name'], $metadata['mimeType'], null, true),
                 $space,
@@ -109,7 +109,7 @@ final readonly class DriveImporter
         }
     }
 
-    /** Par morceaux : un dossier partagé contient des vidéos. */
+    /** In chunks: a shared folder holds videos. */
     private function streamToFile(ResponseInterface $upstream): ?string
     {
         $path = (string) tempnam(sys_get_temp_dir(), 'aurora-drive-import-');

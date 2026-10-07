@@ -54,7 +54,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les dossiers vivants d'un espace, dans l'ordre du panneau.
+     * A space's living folders, in the panel's order.
      *
      * @return list<NoteFolderInterface>
      */
@@ -72,7 +72,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
 
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        // Un dossier qu'on peut écrire : c'est l'espace qui décide.
+        // A folder one can write to: the space decides.
         return $this->writableTo($this->createQueryBuilder('f'), 'f', $user)
             ->andWhere('f.id = :id')
             ->setParameter('id', $id)
@@ -81,7 +81,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les dossiers d'une personne, quel que soit leur propriétaire.
+     * A person's folders, whoever their owner is.
      *
      * @param list<int> $ids
      *
@@ -107,10 +107,10 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      * @return list<NoteFolderInterface>
      */
     /**
-     * Les enfants de ces dossiers, corbeille comprise : ce qui change
-     * d'espace avec sa branche doit emporter aussi ce qui dort à la
-     * corbeille, sinon sa restauration le rendrait dans un espace qui n'est
-     * plus celui de son dossier.
+     * The children of these folders, trash included: what changes space with
+     * its branch must also take along what sleeps in the trash, otherwise
+     * restoring it would put it back in a space that is no longer its
+     * folder's.
      *
      * @param list<int> $folderIds
      *
@@ -145,8 +145,8 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             return [];
         }
 
-        // Jointure externe : l'auteur d'un dossier peut avoir quitté
-        // l'instance, et son dossier reste dans la branche.
+        // Outer join: a folder's author may have left the instance, and their
+        // folder stays in the branch.
         return $this->createQueryBuilder('f')
             ->leftJoin('f.user', 'u')
             ->addSelect('u')
@@ -237,35 +237,35 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     /** Pushes every folder ranked after `$position` under a parent (or at a space's root) down by one. */
     public function shiftAfter(NoteSpaceInterface $space, ?int $parentId, int $position): void
     {
-        $qb = $this->createQueryBuilder('f')
+        $queryBuilder = $this->createQueryBuilder('f')
             ->update()
             ->set('f.position', 'f.position + 1')
             ->where('f.position > :position')
             ->setParameter('position', $position);
 
         if (null === $parentId) {
-            $qb->andWhere('f.space = :space')->andWhere('f.parent IS NULL')->setParameter('space', $space);
+            $queryBuilder->andWhere('f.space = :space')->andWhere('f.parent IS NULL')->setParameter('space', $space);
         } else {
-            $qb->andWhere('IDENTITY(f.parent) = :parentId')->setParameter('parentId', $parentId);
+            $queryBuilder->andWhere('IDENTITY(f.parent) = :parentId')->setParameter('parentId', $parentId);
         }
 
-        $qb->getQuery()->execute();
+        $queryBuilder->getQuery()->execute();
     }
 
     public function findMaxPositionForUserAndParent(NoteSpaceInterface $space, ?int $parentId): ?int
     {
-        $qb = $this->createQueryBuilder('f')
+        $queryBuilder = $this->createQueryBuilder('f')
             ->select('MAX(f.position)');
 
         if (null === $parentId) {
-            $qb->andWhere('f.space = :rootSpace')->setParameter('rootSpace', $space);
-            $qb->andWhere('f.parent IS NULL');
+            $queryBuilder->andWhere('f.space = :rootSpace')->setParameter('rootSpace', $space);
+            $queryBuilder->andWhere('f.parent IS NULL');
         } else {
-            $qb->andWhere('IDENTITY(f.parent) = :parentId')
+            $queryBuilder->andWhere('IDENTITY(f.parent) = :parentId')
                 ->setParameter('parentId', $parentId);
         }
 
-        $result = $qb->getQuery()->getSingleScalarResult();
+        $result = $queryBuilder->getQuery()->getSingleScalarResult();
 
         return null === $result ? null : (int) $result;
     }
@@ -281,7 +281,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      */
     public function countNotesPerFolderForUser(CoreUserInterface $user): array
     {
-        $qb = $this->getEntityManager()->createQueryBuilder()
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder()
             ->select('IDENTITY(n.folder) AS folderId', 'COUNT(n.id) AS total')
             ->from(MarkdownNoteInterface::class, 'n')
             ->andWhere(sprintf('IDENTITY(n.space) IN (%s)', NoteSpaceRepository::readableSubquery()))
@@ -290,7 +290,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             ->groupBy('n.folder');
 
         /** @var list<array{folderId: int|string|null, total: int|string}> $rows */
-        $rows = NoteSpaceRepository::bindViewer($qb, $user)
+        $rows = NoteSpaceRepository::bindViewer($queryBuilder, $user)
             ->getQuery()
             ->getArrayResult();
 
@@ -335,25 +335,25 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
-    /** Les dossiers des espaces qu'une personne peut lire. */
-    private function visibleTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    /** The folders of the spaces a person can read. */
+    private function visibleTo(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
+        $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
 
-        return NoteSpaceRepository::bindViewer($qb, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
     }
 
-    /** Les dossiers des espaces où une personne écrit. */
-    private function writableTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    /** The folders of the spaces where a person writes. */
+    private function writableTo(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
+        $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
 
-        return NoteSpaceRepository::bindViewer($qb, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
     }
 
-    /** La corbeille qu'une personne gère : celle des espaces où elle écrit. */
-    private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    /** The trash a person manages: the one of the spaces where they write. */
+    private function trashOf(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        return $this->writableTo($qb, $alias, $user);
+        return $this->writableTo($queryBuilder, $alias, $user);
     }
 }

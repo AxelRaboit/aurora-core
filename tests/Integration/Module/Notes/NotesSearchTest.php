@@ -71,8 +71,8 @@ final class NotesSearchTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        // L'espace personnel d'un compte part avec lui, par la base : Doctrine
-        // ne doit plus le suivre quand le compte est supprimé.
+        // An account's personal space goes with it, through the database:
+        // Doctrine must no longer track it when the account is deleted.
         $this->entityManager->clear();
 
         foreach (array_reverse($this->created) as $entity) {

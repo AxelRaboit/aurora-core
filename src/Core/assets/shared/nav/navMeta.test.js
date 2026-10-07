@@ -2,30 +2,33 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { FileText, Tag } from "lucide-vue-next";
-import { REPO_ROOT, phpSources } from "@/tests/helpers/phpSources.js";
+import { REPOSITORY_ROOT, phpSources } from "@/tests/helpers/phpSources.js";
 import { ICON_MAP, resolveNavIcon } from "./navMeta.js";
 
 /** The balanced `(...)` body of every `new NavItem(` call in one source. */
-function navItemBodies(src) {
+function navItemBodies(source) {
     const bodies = [];
     const opener = /new\s+NavItem\s*\(/g;
     let match;
-    while ((match = opener.exec(src)) !== null) {
+    while ((match = opener.exec(source)) !== null) {
         const start = opener.lastIndex;
-        let i = start;
+        let position = start;
         let depth = 1;
-        while (depth > 0) {
-            const c = src[i];
-            if ("([{".includes(c)) depth += 1;
-            else if (")]}".includes(c)) depth -= 1;
-            else if ("'\"".includes(c)) {
-                const quote = c;
-                i += 1;
-                while (src[i] !== quote) i += src[i] === "\\" ? 2 : 1;
+        // Bounded by the source: a stray quote (an apostrophe in a comment)
+        // must fail the test, not spin it for ever.
+        while (depth > 0 && position < source.length) {
+            const character = source[position];
+            if ("([{".includes(character)) depth += 1;
+            else if (")]}".includes(character)) depth -= 1;
+            else if ("'\"".includes(character)) {
+                const quote = character;
+                position += 1;
+                while (position < source.length && source[position] !== quote)
+                    position += source[position] === "\\" ? 2 : 1;
             }
-            i += 1;
+            position += 1;
         }
-        bodies.push(src.slice(start, i - 1));
+        bodies.push(source.slice(start, position - 1));
     }
 
     return bodies;
@@ -33,41 +36,41 @@ function navItemBodies(src) {
 
 /** Split an argument list on its top-level commas, quotes and nesting aside. */
 function splitArgs(body) {
-    const args = [];
+    const topLevelArguments = [];
     let current = "";
     let depth = 0;
-    for (let i = 0; i < body.length; i += 1) {
-        const c = body[i];
-        if ("([{".includes(c)) depth += 1;
-        else if (")]}".includes(c)) depth -= 1;
-        else if ("'\"".includes(c)) {
-            const quote = c;
-            current += c;
-            i += 1;
-            while (body[i] !== quote) {
-                current += body[i];
-                if (body[i] === "\\") {
-                    i += 1;
-                    current += body[i];
+    for (let position = 0; position < body.length; position += 1) {
+        const character = body[position];
+        if ("([{".includes(character)) depth += 1;
+        else if (")]}".includes(character)) depth -= 1;
+        else if ("'\"".includes(character)) {
+            const quote = character;
+            current += character;
+            position += 1;
+            while (position < body.length && body[position] !== quote) {
+                current += body[position];
+                if (body[position] === "\\") {
+                    position += 1;
+                    current += body[position];
                 }
-                i += 1;
+                position += 1;
             }
-            current += body[i];
+            current += body[position];
             continue;
         }
-        if ("," === c && 0 === depth) {
-            args.push(current.trim());
+        if ("," === character && 0 === depth) {
+            topLevelArguments.push(current.trim());
             current = "";
             continue;
         }
-        current += c;
+        current += character;
     }
-    if (current.trim()) args.push(current.trim());
+    if (current.trim()) topLevelArguments.push(current.trim());
 
-    return args;
+    return topLevelArguments;
 }
 
-const NAMED_ARG = /^[A-Za-z_]\w*\s*:(?!:)/;
+const NAMED_ARGUMENT = /^[A-Za-z_]\w*\s*:(?!:)/;
 
 /**
  * Icon names a module declares, read out of the PHP rather than restated here
@@ -86,28 +89,35 @@ function declaredIconNames() {
     const literal = /'([a-z0-9][a-z0-9-]*)'/g;
 
     for (const file of phpSources()) {
-        const src = fs.readFileSync(file, "utf8");
-        const where = path.relative(REPO_ROOT, file);
+        const source = fs.readFileSync(file, "utf8");
+        const where = path.relative(REPOSITORY_ROOT, file);
         const record = (name) => {
             if (!found.has(name)) found.set(name, where);
         };
 
-        for (const body of navItemBodies(src)) {
-            const args = splitArgs(body);
-            const named = args.find((a) => /^icon\s*:(?!:)/.test(a));
-            const positional = args.filter((a) => !NAMED_ARG.test(a));
+        for (const body of navItemBodies(source)) {
+            const callArguments = splitArgs(body);
+            const named = callArguments.find((argument) =>
+                /^icon\s*:(?!:)/.test(argument),
+            );
+            const positional = callArguments.filter(
+                (argument) => !NAMED_ARGUMENT.test(argument),
+            );
             const expr = named
                 ? named.split(":").slice(1).join(":")
                 : positional[2];
             if (!expr) continue;
 
-            for (const m of expr.matchAll(literal)) record(m[1]);
+            for (const iconMatch of expr.matchAll(literal))
+                record(iconMatch[1]);
         }
 
-        for (const m of src.matchAll(
+        for (const constantMatch of source.matchAll(
             /const\s+array\s+\w*ICONS\w*\s*=\s*\[([^\]]*)\]/g,
         )) {
-            for (const value of m[1].matchAll(/=>\s*'([a-z0-9][a-z0-9-]*)'/g)) {
+            for (const value of constantMatch[1].matchAll(
+                /=>\s*'([a-z0-9][a-z0-9-]*)'/g,
+            )) {
                 record(value[1]);
             }
         }

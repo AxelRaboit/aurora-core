@@ -3,23 +3,24 @@ suite:
         sections:
             spaces: Client spaces
             space_contents: Space content
+            space_resources: Space resources
+            space_files: Space files
+            space_messages: Space conversations
             deliverables: Deliverables
             customers: Customers
             contracts: Contracts
             contract_templates: Contract templates
-            decks: Presentations
     stats:
         studio:
             spaces: Active spaces
             missed: Missed publications
             late_review: Reviews overdue
-            changes_requested: To rework
+            changes_requested: "Changes requested"
             with_client: With the client
             upcoming: "Going out within 7 days"
             awaiting_countersignature: Contracts to countersign
             awaiting_signature: Contracts with the customer
             deliverables: Deliverables
-            decks: Decks
             scope_label: Spaces counted
             scopes:
                 mine: My spaces
@@ -29,28 +30,20 @@ suite:
     modules:
         studio: Studio
         studio_suite: Studio
-        studio_suite_description: "What you sell and what you deliver to a client: customers, contracts and presentations."
-        studio_decks: Presentations
-        studio_decks_description: Build slide decks, file them and duplicate them.
-        studio_deliverables: "Deliverables"
-        studio_deliverables_description: "Write documents outside a client space, personal or shared with the team."
+        studio_suite_description: "What you sell and what you deliver to a client: customers, the spaces you work in with them, contracts and deliverables, pages and presentations."
     nav:
         sections:
             studio: Studio
-        studio_contract_templates: Contract templates
-        studio_contract_templates_description: The model documents contracts are built from, and their versions.
         studio_customers: Customers
-        studio_customers_description: The companies you contract with, and their legal identity block.
+        studio_customers_description: "The prospects and customers you contract with, and their legal identity."
         studio_calendar: Editorial calendar
-        studio_calendar_description: What goes out for every client, on one month.
         studio_spaces: Client spaces
-        studio_spaces_description: One space per client engagement, with its team, its board and its calendar.
+        studio_spaces_description: "One client space per service, with its team, its board and its calendar."
         studio_contracts: Contracts
         studio_contracts_description: Contracts prepared, sealed and signed.
-        studio_decks: Presentations
-        studio_decks_description: The slide decks you show, filed and reusable.
         studio_deliverables: "Deliverables"
-        studio_deliverables_description: "The documents you write, for yourself or for the team."
+        studio_space_contents: "Content items"
+        studio_deliverables_description: "The pages and presentations you write, personal or shared."
     audit:
         actions:
             studio:
@@ -63,18 +56,22 @@ suite:
                 customer_space:
                     created: Client space created
                     updated: Client space updated
-                    deleted: Client space deleted
+                    trashed: Client space moved to the trash
+                    restored: Client space restored from the trash
+                    deleted: Client space deleted for good
                 space_content_item:
                     created: Content created
                     answered: Content answered by the client
                     updated: Content updated
-                    deleted: Content deleted
+                    trashed: Content moved to the trash
+                    restored: Content restored from the trash
+                    deleted: Content deleted for good
                 space_resource:
-                    created: Item pinned in a space
-                    updated: Space item updated
-                    shown: Space item shown to the client
-                    hidden: Space item hidden from the client
-                    deleted: Space item deleted
+                    created: "Resource pinned in a space"
+                    updated: "Space resource updated"
+                    shown: "Space resource shown to the client"
+                    hidden: "Space resource hidden from the client"
+                    deleted: "Space resource deleted"
                 deliverable:
                     trashed: "Deliverable moved to the trash"
                     restored: "Deliverable restored from the trash"
@@ -84,8 +81,8 @@ suite:
                     copied_to_studio: "Space deliverable copied to Studio"
                     deleted: "Deliverable deleted"
                     scope_changed: "Deliverable moved between personal and shared"
-                    shown_to_client: "Deliverable opened to the client"
-                    hidden_from_client: "Deliverable withdrawn from the client"
+                    shown_to_client: "Deliverable shown to the client"
+                    hidden_from_client: "Deliverable hidden from the client"
                 deliverable_link:
                     issued: "Deliverable reading link created"
                     revoked: "Deliverable reading link revoked"
@@ -98,13 +95,10 @@ suite:
                     opened: Space opened by a client
                 space_file:
                     added: File added to a space
+                    sent_by_client: File sent by the client to a space
                     removed: File removed from a space
-                space_note:
-                    created: Space note created
-                    updated: Space note edited
-                    pinned: Space note pinned or unpinned
-                    deleted: Space note deleted
-                    imported_from_craft: Space note imported from Craft
+                    shown: "Space file shown to the client"
+                    hidden: "Space file hidden from the client"
                 space_chat_channel:
                     created: Chat channel opened
                     renamed: Chat channel renamed
@@ -136,7 +130,7 @@ suite:
                 contract_template_version:
                     opened: Template version opened
                     updated: Template version edited
-                    published: Template version published
+                    published: "Contract template version put in force"
                     discarded: Template draft discarded
                 contract:
                     created: Contract created
@@ -168,7 +162,7 @@ suite:
                     create: Create a client space
                     edit: Edit a client space
                     delete: Delete a client space
-                    share: See and give the client accesses of a space
+                    share: "See and give the access links of a space"
                 contract_templates:
                     view: View contract templates
                     create: Create a contract template
@@ -181,14 +175,6 @@ suite:
                     delete: Delete a contract
                     send: 'Send a contract to the customer'
                     countersign: 'Countersign a contract'
-                decks:
-                    view: View presentations
-                    create: Create a presentation
-                    edit: Edit a presentation
-                    delete: Delete a presentation
-                    share: See and give the reading links of a presentation
-                deck_categories:
-                    manage: Manage presentation categories
                 deliverables:
                     view: "View deliverables"
                     create: "Create a deliverable"
@@ -201,21 +187,21 @@ suite:
             badges:
                 missed: "No missed publication | 1 missed publication | {count} missed publications"
                 late_review: "No overdue review | 1 overdue review | {count} overdue reviews"
-                changes_requested: "Nothing to rework | 1 to rework | {count} to rework"
+                changes_requested: "Nothing with changes requested | 1 with changes requested | {count} with changes requested"
                 with_client: "Nothing with the client | 1 with the client | {count} with the client"
         calendar:
             guide:
                 title: "How to read the calendar"
-                step_1: "It gathers on one month the publications of all your active spaces, one colour per space."
+                step_1: "It gathers on one month the content items of all your active spaces, one colour per space."
                 step_2: "“My spaces” or “All spaces” chooses what is shown; archived spaces are left out."
-                step_3: "Filter by client or by state: missed, late review, to rework, with the client, upcoming (seven days), published."
-                step_4: "In the list, with a state chosen, every date is gathered and undated items come last."
-                step_5: "The calendar is read only: click an item to edit it in its space."
+                step_3: "Filter by client or by state: missed, late review, changes requested, with the client, upcoming (seven days), published."
+                step_4: "In the list, with a state chosen, every date is gathered and undated content items come last."
+                step_5: "The calendar is read only: click a content item to edit it in its space."
             scope_label: Spaces shown
             scopes:
                 mine: My spaces
                 all: All spaces
-            search_placeholder: Search a publication…
+            search_placeholder: "Search a content item…"
             all_customers: All clients
             all_states: All states
             view_label: Display
@@ -225,13 +211,13 @@ suite:
             today: Today
             no_spaces: No space to show.
             empty_month: Nothing scheduled this month.
-            empty_state: "No card in this state."
+            empty_state: "No content item in this state."
             undated: "No date"
             all_months: "All months"
             states:
                 missed: Missed publication
                 late_review: Review overdue
-                changes_requested: To rework
+                changes_requested: "Changes requested"
                 with_client: With the client
                 upcoming: Upcoming
                 published: Published
@@ -254,7 +240,7 @@ suite:
                 title: "How a contract goes"
                 step_1: "Prepare it as a draft: the client, the template, the amount, the dates and the extra fields the template asks for."
                 step_2: "Seal it: the text is frozen, the contract gets its reference and can no longer be edited."
-                step_3: "Send it: the client gets a personal signing link by email, valid thirty days. A new send cancels the previous link."
+                step_3: "Send it: the client gets a personal signing link by email, valid {days} days. A new send cancels the previous link."
                 step_4: "The client reads, fills in their identity, signs, then confirms with a code sent by email; they can also decline."
                 step_5: "Countersign: the contract is concluded and both parties get the signed PDF. Declined, expired or revoked, it goes back to “To send”."
             wording:
@@ -300,7 +286,7 @@ suite:
                     title_too_long: 'The title cannot be longer than {max} characters.'
                     empty: The wording is empty.
             title: Contracts
-            add: Prepare a contract
+            add: "New contract"
             create: New contract
             edit: 'Edit the contract of {name}'
             created: Contract created.
@@ -309,13 +295,11 @@ suite:
             empty: No contracts yet.
             search_placeholder: Search by reference or customer…
             draft_title: Draft contract
-            in_preparation: In preparation
-            sealed: Sealed
             customer: Customer
             customer_placeholder: Pick a customer
             body: Contract body
             body_placeholder: Pick a template
-            body_hint: The version published today is pinned to the contract as soon as it is created.
+            body_hint: "The version in force that day is pinned to the contract as soon as it is created."
             annex: Annex
             annex_none: No annex
             annex_hint: Optional. This is where what varies between offers lives.
@@ -326,24 +310,16 @@ suite:
             effective_date: Effective date
             effective_date_placeholder: '2026-10-01'
             custom_fields: Contract complements
-            custom_fields_hint: 'The fields the chosen trames leave to this contract. They are written into the document when it is sealed, so they are required.'
+            custom_fields_hint: "The fields the chosen contract templates leave to this contract. They are written into the document when it is sealed, so they are required."
             custom_field_placeholder: 'For instance 40 %, 30 km, or Camille Durand'
             effective_date_hint: Used in the contract through the matching variable.
             locale: Contract language
             locale_hint: The language it will be written, read and signed in.
             version_label: 'version {number}'
             with_annex: 'With the {name} annex'
-            outdated_version: A newer version of the template has been published since. This contract stays on the one that was chosen.
-            freeze: Seal
+            outdated_version: "A newer version of the contract template has come into force since. This contract stays on the one that was chosen."
             freeze_confirm: 'Seal the contract of {name}?'
-            freeze_warning: 'The document becomes final: its wording, its amounts and its hash can no longer change. That is what makes the signature defensible, and it cannot be undone.'
             delete_confirm: 'Delete the contract of {name}?'
-            col_reference: Reference
-            col_customer: Customer
-            col_status: Status
-            col_sealed_at: Sealed on
-            col_link: Link
-            read_document: Read the document
             preview: Preview
             preview_notice: "The document as the client will read it, with this contract's real data. The reference and the signature mentions show in square brackets: they are written at the seal and at the signature."
             preview_unknown_tokens: 'Unknown variables, they will stop the seal: {tokens}'
@@ -356,12 +332,9 @@ suite:
             countersigned: 'Contract concluded.'
             send: Send to the customer
             send_confirm: 'Send the contract to {email}?'
-            send_warning: 'A secret link goes out by email. Any link sent before is revoked: there is never more than one valid address.'
             sent_to: 'Sent to {email}'
-            revoke_link: Revoke the link
             revoke_link_confirm: 'Revoke the link sent to {email}? The address stops working immediately.'
             link_expires: 'Valid until {date}'
-            link_never_opened: Never opened
             link_opened_at: 'Opened on {date}'
             no_link: No active link
             amends: 'Amendment to contract'
@@ -369,9 +342,8 @@ suite:
             amends_hint: 'An amendment is a document of its own, signed too. The original keeps its sealed text.'
             amends_short: 'amendment to {reference}'
             amends_long: 'This amendment modifies contract {reference}.'
-            amend: 'Create an amendment'
+            amend: "New amendment"
             chain: 'Amendments'
-            chain_leaf: 'No amendment on this contract.'
             customer_from_amended: 'Taken from contract {reference}: the customer of an amendment is the customer of what it amends.'
             terminate: 'Terminate'
             terminated: Termination recorded.
@@ -398,19 +370,9 @@ suite:
             refusal_no_reason: 'No reason given'
             refused_from: 'Refusal received from {ip}'
             retained_until: 'Kept until'
-            retention_hint: 'A sealed contract cannot be deleted before this date: it is the evidence of what was signed.'
             reminders: 'Reminders'
             reminders_none: 'No reminder'
             reminders_count: '{count} reminder(s), last on {date}'
-            row_actions:
-                edit_description: Edits the draft. Nothing is sealed until you ask for it.
-                freeze_description: Freezes the text, mints the reference and makes it sendable. Permanent.
-                delete_description: Deletes the draft. Nothing has been sent to the customer yet.
-                send_description: 'Sends the customer a signing link, valid for thirty days.'
-                revoke_description: Kills the current link. Its verification codes go with it.
-                preview_description: Shows the document as the client will read it, before sealing.
-                document_description: Opens the sealed document and its proof block.
-                export_description: Outputs the contract as a PDF. The signed document if there is one, a working copy marked as such otherwise.
             not_sealed_yet: This contract is not sealed yet. Its wording is frozen at the moment of sealing.
             seal_intact: The seal is intact
             seal_intact_hint: The stored document matches exactly the hash taken when it was sealed.
@@ -482,10 +444,10 @@ suite:
                         description: 'Fixes the text and draws the reference. Final.'
                     send:
                         title: Send to the customer
-                        description: 'A signing link, valid for thirty days.'
+                        description: 'A signing link, valid for {days} days.'
                     resend:
                         title: Send again
-                        description: 'A new link, valid for thirty days. The old one stops working.'
+                        description: 'A new link, valid for {days} days. The old one stops working.'
                     remind:
                         title: Send a reminder
                         description: 'A reminder with a new link. The old one stops working.'
@@ -502,7 +464,7 @@ suite:
                         title: Export as PDF
                         description: 'A working copy, marked as such.'
                     amend:
-                        title: Create an amendment
+                        title: "New amendment"
                         description: 'A separate document, signed too. This contract keeps its text.'
                     terminate:
                         title: Terminate
@@ -520,8 +482,8 @@ suite:
                         title: Delete
                         description: 'Permanent. A draft at any time, a sealed contract once its retention has run out.'
                 confirm:
-                    send: 'Send the contract to {email}? They will get a signing link valid for thirty days.'
-                    send_no_address: 'This customer has no contractual address: add it to their file before sending.'
+                    send: 'Send the contract to {email}? They will get a signing link valid for {days} days.'
+                    send_no_address: "This customer has no contractual email: add it to their record before sending."
                     remind: 'Send a reminder to {email}? They will get a new link; the old one will stop working.'
                     revoke: 'Revoke the link? The customer will no longer be able to open the contract, which becomes « Revoked ». You can send it again.'
                     cancel: 'Cancel this contract? It will have no effect and can no longer be sent. Its reference stays in the list.'
@@ -579,7 +541,7 @@ suite:
             errors:
                 preview_sealed: "This contract is already sealed: its stored document is the reference, and it is never re-rendered."
                 body_required: A contract needs a contract body.
-                version_not_published: 'Version {number} of "{template}" is not published. A draft cannot be sent.'
+                version_not_published: "Version {number} of \"{template}\" is still a draft: it cannot be sent."
                 locale_missing: '"{template}" carries no wording in {locale}.'
                 unknown_tokens: 'These variables stand for nothing and would reach the customer as they are: {tokens}'
                 customer_required: A contract needs a customer.
@@ -587,14 +549,14 @@ suite:
                 amount_invalid: The amount cannot be negative.
                 effective_date_invalid: This date is not valid.
                 template_not_found: This template does not exist, or is not of the expected kind.
-                template_never_published: '"{template}" has no published version.'
+                template_never_published: "\"{template}\" has no version in force yet."
                 already_frozen: 'This contract is sealed: it can no longer be changed.'
-                customer_has_no_address: "This customer has no contractual address. Fill it in on their record before sending."
+                customer_has_no_address: "This customer has no contractual email. Fill it in on their record before sending."
                 seal_before_sending: Seal the contract before sending it.
                 already_engaged: This contract is already signed. It cannot be sent again.
                 cannot_cancel: 'Only a sealed contract nobody has signed can be cancelled.'
                 nothing_to_remind: 'Only a contract that was sent and not yet signed can be chased.'
-                mail_failed: 'The mail could not be sent. Nothing changed: try again in a moment.'
+                mail_failed: "The email could not be sent. Nothing changed: try again in a moment."
                 no_active_link: No active link to revoke.
                 seal_before_signing: 'Seal the contract before it can be signed.'
                 already_concluded: 'This contract is already signed by both parties.'
@@ -609,7 +571,7 @@ suite:
                 amends_is_amendment: 'An amendment is not itself amended: attach this one to the original contract.'
                 amends_terminated: 'This contract is terminated: there is nothing left to modify.'
                 amends_other_customer: 'The customer of an amendment is the customer of what it amends.'
-                amendment_tokens_without_parent: 'This trame is written for an amendment ({fields}): name the contract it modifies.'
+                amendment_tokens_without_parent: "This contract template is written for an amendment ({fields}): name the contract it modifies."
                 terminate_not_concluded: 'Only a concluded contract is terminated. An unsigned one is revoked, or refused.'
                 already_terminated: 'This contract is already terminated.'
                 termination_noticed_required: 'The notice date is required.'
@@ -621,10 +583,12 @@ suite:
                 termination_reason_too_long: 'That reason is too long.'
                 retention_not_elapsed: 'This contract is kept until {date}. It cannot be deleted before then.'
                 governing_locale_conflict: 'The body and the annex name different governing languages ({locales}). A document cannot have two authoritative texts.'
-                custom_fields_missing: 'The chosen trames ask for these complements and they are empty: {fields}'
-                provider_settings_missing: 'These provider details are not set in the settings, and the trame prints them: {fields}'
+                custom_fields_missing: "The chosen contract templates ask for these complements and they are empty: {fields}"
+                provider_settings_missing: "These provider details are not set in the settings, and the contract template prints them: {fields}"
                 custom_field_too_long: A complement cannot exceed 500 characters.
         contract_templates:
+            tab: "Templates"
+            tabs_label: "Contracts and templates"
             editor_guide:
                 title: "How to write a template"
                 step_1: "Write the title and the text language by language, in their tabs; a green dot marks each written language."
@@ -644,17 +608,22 @@ suite:
             kind:
                 body: Contract body
                 annex: Annex
-            category:
-                community_management: CM
-                photography: Photography
-                development: Web development
+            categories:
+                manage: "Manage categories"
+                manage_hint: "Create, rename, colour and order the contract template categories."
+                manage_title: "Contract template categories"
+                manage_intro: "They file the contract templates, for the whole team: an offer, a trade, what you sell. Deleting a category deletes no contract template: they stay, unfiled."
+                errors:
+                    name_required: "Give the category a name."
+                    name_too_long: "The name cannot exceed 100 characters."
+                    color_invalid: "The colour must be hexadecimal, for example #6366f1."
             errors:
                 name_required: The template name is required.
                 name_too_long: The template name cannot exceed 180 characters.
                 translations_required: A version must carry at least one language.
                 draft_already_open: 'A draft is already open on this template (version {number}). Finish or discard it before opening another.'
                 nothing_to_publish: This version has no wording to publish.
-                already_published: 'This version is published: its wording can no longer be changed. Open a new version.'
+                already_published: "This version is no longer a draft: its wording can no longer be changed. Open a new version."
                 used_by_contracts: '{count} contract(s), drafts included, are built on this template: it cannot be deleted. Archive it instead; it will no longer be offered and these contracts keep their text.'
                 governing_locale_unknown: This language is not one the application offers.
                 governing_locale_not_written: 'The governing language ({locale}) is not written in this version.'
@@ -670,9 +639,9 @@ suite:
             kind_label: Type
             kind_hint: A body is signed on its own. An annex completes a body.
             category_label: Category
-            category_hint: Which trade this trame is for. It can be left unset.
+            category_hint: "What files this contract template in the library. It can be left unset."
             category_none: No category
-            category_none_hint: The trade has not been set yet. The trame stays usable.
+            category_none_hint: "No category has been chosen yet. The contract template stays usable."
             category_all: All categories
             preview: Preview
             preview_notice: 'The coloured text comes from variables.'
@@ -683,21 +652,21 @@ suite:
             preview_failed: The preview could not be produced.
             preview_unknown_tokens: 'Unknown variables, they will stop the publication: {tokens}'
             filter_category: 'Category: {name}'
-            add: Add a template
-            create: New template
+            add: "New contract template"
+            create: "New contract template"
             edit: 'Edit {name}'
             updated: Template updated.
             archived: Template archived.
             restored: Template restored.
             deleted: Template deleted.
             saved: Draft saved.
-            published: Version published.
+            published: "Version published: it is now in force."
             empty: No contract templates yet.
             search_placeholder: Search a template…
             delete_confirm: 'Delete {name}?'
             delete_warning: 'Permanent. A template any contract is built on, even a draft, cannot be deleted: archive it instead.'
             in_force: In force
-            never_published: Never published
+            never_published: "No version in force"
             no_draft: No draft
             view: View
             open_draft: Open a draft
@@ -709,7 +678,7 @@ suite:
             duplicate_suffix: (copy)
             duplicate_confirm: 'Duplicate {name}?'
             duplicate_hint: The copy takes the wording in force into a draft, under a new name. Nothing is published.
-            duplicated: Trame duplicated.
+            duplicated: "Contract template duplicated."
             col_locales: Languages
             col_contracts: Contracts
             archive: Archive
@@ -721,13 +690,12 @@ suite:
                 continue_draft_description: 'Back to the text being written.'
                 view_description: Opens the version in force, read only.
                 open_draft_description: Opens a new editable version, from the text in force.
-                discard_description: Deletes the draft and leaves the trame as it is published.
-                duplicate_description: Creates another trame, as a draft, with the same text.
+                discard_description: "Deletes the draft and leaves the contract template as it is in force."
+                duplicate_description: "Creates another contract template, as a draft, with the same text."
                 rename_description: Changes the name and the kind, leaving the text alone.
                 archive_description: Takes it out of the pickers. Signed contracts are untouched.
                 restore_description: Puts it back in the pickers.
                 delete_description: 'Permanent, and only for a template no contract is built on.'
-            state_published: Published
             state_draft: Draft
             state_archived: Archived
             state_in_force: In force
@@ -750,14 +718,14 @@ suite:
             publish: Publish
             publish_confirm: 'Publish version {number}?'
             publish_warning: 'A published version is final: its wording can no longer be changed. To change it afterwards, open a new version.'
-            published_notice: 'Version {number} is published. Its wording is final and can no longer be changed.'
+            published_notice: "Version {number} is in force. Its wording is final and can no longer be changed."
             discard: Discard
             discard_confirm: 'Discard the draft of version {number}? Its wording will be lost.'
             discard_hint: 'The version in force does not move and no contract is touched. Number {number} stays spent: the next draft will be version {next}.'
             discarded: Draft abandoned.
             draft_opened: Draft opened.
             filter_all_kinds: All
-            no_match: No trame matches.
+            no_match: "No contract template matches."
             variables:
                 custom: A field of one contract's own
                 custom_hint: 'Write this token with your own key (lowercase, digits, underscores). It is asked for when each contract is prepared, and sealing refuses to leave it empty.'
@@ -766,7 +734,7 @@ suite:
                 customer: 'The client, whom the contract is for'
                 provider: 'The provider, you'
                 contract: The contract
-                customer_legal_name: Company name
+                customer_legal_name: "Legal name"
                 customer_legal_form: Legal form
                 customer_share_capital: Share capital
                 customer_legal_status: 'Form and capital ("SARL with a share capital of €10,000", the form alone without one)'
@@ -778,7 +746,7 @@ suite:
                 customer_representative_full_name: Representative
                 customer_representative_role: Representative capacity
                 customer_contractual_email: Contractual email
-                customer_phone: Phone
+                customer_phone: "Mobile"
                 provider_name: Trading name
                 provider_representative: Representative
                 provider_address: Business address
@@ -801,651 +769,20 @@ suite:
                 contract_amends_rank: Amendment number
                 examples_notice: 'These values are examples. The contract will use the real ones: the chosen client''s and yours.'
                 example: 'e.g. {value}'
-        decks:
-            editor_guide:
-                title: "How to edit a presentation"
-                step_1: "The “Slides” column shows them in order: click a slide to edit it, and move it by its handle or its arrows."
-                step_2: "“Add a slide” offers the layouts; with “Free slide”, you place each element by hand."
-                step_3: "Fill in the layout's fields and the speaker notes, which the audience never sees: everything saves on its own."
-                step_4: "“Present” goes full screen; the menu beside it opens the presenter view, printing, sharing and the appearance."
-            guide:
-                title: "How presentations work"
-                step_1: "Create a presentation from scratch, from a template, or by importing a document where each heading opens a slide."
-                step_2: "In the editor, add slides, reorder them and write your speaker notes; everything saves on its own."
-                step_3: "“Present” goes full screen; the presenter view opens alongside with the notes, the next slide and a timer."
-                step_4: "“Share” creates a secret address that opens without an account, with an expiry and an optional password."
-                step_5: "Speaker notes are never shown through a link, and a link can be revoked at any time."
-            create: New presentation
-            created: Presentation created
-            updated: Presentation updated
-            deleted: "Presentation moved to the trash"
-            duplicated: Presentation duplicated
-            duplicate: Duplicate
-            duplicate_hint: Copies the slides, without the customer.
-            edit_hint: The title, the category and the customer.
-            delete_hint: "Moves it to the trash: it leaves the lists and its share links stop answering, until it is restored."
-            trash_action: "Move to the trash"
-            copy_of: '%title% (copy)'
-            title_column: Title
-            title_placeholder: Kick-off meeting, October
-            description_placeholder: One line, read in the list.
-            description: Description
-            category: Category
-            customer: Customer
-            slides: Slides
-            uncategorised: No category
-            no_customer: No customer
-            all_categories: All categories
-            filter_by_category: Filter by category
-            search_placeholder: Search a presentation…
-            empty_title: No presentation
-            empty_description: A presentation is a deck of slides you show somebody. Create the first one.
-            delete_confirm: "Move \"{title}\" to the trash? It leaves the lists and its share links stop answering. You will find it in the trash, where you can restore it, until it is deleted for good."
-            errors:
-                title_required: The title is required.
-                title_too_long: The title is too long.
-                layout_unknown: That layout does not exist.
-                theme_unknown: That theme does not exist.
-                import_empty: There is nothing in this document a slide could be made of.
-            share: Share
-            share_intro: A secret address that opens this presentation without an account. The speaker notes are never on it.
-            share_label: Label
-            share_label_placeholder: Sent to Marie, 12 September
-            share_expiry: Expiry
-            share_no_expiry: No expiry
-            share_days: '{count} days'
-            share_create: Create the link
-            share_created: Link created
-            share_none: No link yet.
-            share_untitled: Link with no label
-            share_copy: Copy the address
-            share_copied: Address copied
-            share_copy_manually: Copy the address shown; the browser refused the clipboard.
-            share_revoke: Revoke
-            share_revoked: Revoked
-            share_revoked_toast: Link revoked
-            share_delete: Delete this link
-            share_deleted_toast: Link deleted
-            share_hide: "Hide this link"
-            share_hidden_toast: "Link hidden"
-            share_show_hidden: "Show hidden links ({count})"
-            share_hide_hidden: "Hide the hidden links"
-            share_hidden: "Hidden"
-            share_expires_on: 'Expires on {date}'
-            share_last_used: 'Opened on {date}'
-            share_never_opened: Never opened
-            share_footer: This link is personal to you. Please do not pass it on.
-            present: Present
-            print: Print
-            print_hint: Use the browser's print dialog, then "Save as PDF". One slide per page, landscape.
-            previous_slide: Previous slide
-            next_slide: Next slide
-            layout: Layout
-            add_slide: Add a slide
-            slide_added: Slide added
-            slide_deleted: Slide deleted
-            delete_slide: Delete the slide
-            delete_slide_confirm: This slide and its contents will be lost.
-            move_up: Move up
-            move_down: Move down
-            saving: Saving…
-            saved: Saved
-            unsaved: Unsaved changes
-            no_slide_title: No slide
-            no_slide_description: Pick a layout on the left to start the presentation.
-            speaker_notes: Speaker notes
-            speaker_notes_hint: They are never shown to the audience.
-            speaker_notes_placeholder: What you will say while this slide is on screen.
-            bullets_placeholder: One bullet per line.
-            prose_placeholder: The text shown on the slide.
-            image_hint: Picked from the library, or uploaded from your machine.
-            appearance: Appearance
-            appearance_saved: Appearance saved
-            appearance_preview_hint: The preview follows your choices; the deck only changes once you save.
-            appearance_sample_title: Your deck's title
-            appearance_sample_subtitle: The subtitle, on one line
-            appearance_overrides_kept: Your own colours stay applied on top of this theme.
-            theme: Theme
-            themes:
-                slate: Slate
-                ink: Ink
-                paper: Paper
-                bold: Bold
-                midnight: Midnight
-                clay: Clay
-                chalk: Chalk
-                duo: Two tones
-            colours: Colours
-            colour_background: Background
-            colour_ink: Text
-            colour_accent: Accent
-            colour_inherited: From the theme
-            colour_reset: Back to the theme
-            colour_reset_all: All back to the theme
-            gradient_label: Gradient
-            gradient_hint: A wash of the accent colour over the ground, the same on every slide.
-            gradients:
-                none: None
-                top: From the top
-                bottom: From the bottom
-                corner: Diagonal
-                halo: Centre halo
-                duo: Accent into ink
-            pattern_label: Pattern
-            pattern_hint: A texture on the ground, hidden on slides that carry a photo.
-            patterns:
-                none: None
-                dots: Dots
-                grid: Grid
-                diagonals: Hatching
-            margins_label: Frame margins
-            margins:
-                tight: Tight
-                normal: Normal
-                wide: Wide
-            hairline: Frame hairline
-            hairline_hint: A thin rule in the accent colour, set in from the edges.
-            anchors:
-                center: Centred
-                top: Top
-                bottom: Bottom
-            aligns:
-                left: Left
-                center: Centre
-                right: Right
-            measures:
-                full: Full width
-                two_thirds: Two thirds
-                half: Half
-            vignette_hint: Darkens the corners a little and brings the eye back to the middle.
-            bg_treatments:
-                none: None
-                blur: Blur
-                mono: Black and white
-                duotone: Duotone in the accent
-                grain: Grain
-            bg_veils:
-                flat: Even
-                bottom: From the bottom
-                top: From the top
-            media_frames:
-                none: None
-                line: Accent rule
-                shadow: Soft shadow
-            title_case_label: Title case
-            title_cases:
-                normal: Normal
-                upper: Capitals
-            bullets_label: Bullet shape
-            bullet_shapes:
-                disc: Dot
-                dash: Dash
-                arrow: Arrow
-                number: Number
-                check: Check
-            media_bleed_hint: The picture leaves the margin and touches the edge of the frame.
-            rules: Separating rules
-            rules_hint: A line between the two columns and under the kicker.
-            bands:
-                none: None
-                left: Band on the left
-                bottom: Band at the bottom
-                edge: Thin edge
-            wash_from_theme: The theme's
-            looks_label: Start from a look
-            looks_hint: Applies a theme and its settings at once. Everything stays editable afterwards.
-            looks:
-                scene: Stage
-                atelier: Workshop
-                dossier: File
-                gallery: Gallery
-            look_descriptions:
-                scene: Shown in a room. Dark, titles in capitals.
-                atelier: It argues. Light and warm, hatched.
-                dossier: It is read. Quiet, squared, wide margins.
-                gallery: The pictures carry it. Near black, tight margins.
-            accent_from_logo: Tones from the logo
-            contrast_good: "Contrast {ratio} out of 21. Readable anywhere."
-            contrast_large: "Contrast {ratio} out of 21. Fine on a wall, tight on a printed document."
-            contrast_poor: "Contrast {ratio} out of 21. The text will be hard to read."
-            transition_from_deck: The deck's
-            slide_transition_hint: Applies to this slide only, and only in full screen.
-            drift_hint: A very slow travel across the photo while the slide is up. Full screen only.
-            title_scales:
-                normal: Normal
-                quiet: Quiet
-                loud: Loud
-            media_ids_hint: The order is the arrangement. Eight at most; emptying one closes the gap.
-            ground_hint: The slide stands on one of the deck's three colours. The text follows, the accent does not move.
-            grounds:
-                normal: The background
-                inverted: The ink
-                accent: The accent
-            reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
-            picture_rank: "Picture {rank}"
-            fonts_label: Typography
-            font_from_theme: The theme's own
-            fonts:
-                sans: Sans serif
-                serif: Serif
-                editorial: Serif headings, sans text
-                technical: Monospaced headings, sans text
-                report: Sans titles, serif text
-                soft: Rounded
-            signature: Signature
-            logo: Logo
-            logo_hint: Drawn small, in a corner of the slide.
-            logo_placement: Where to show it
-            logo_placements:
-                none: Nowhere
-                cover: On the cover
-                every: On every slide
-            footer_text: Footer line
-            footer_text_placeholder: Confidential, do not circulate
-            slide_numbers: Number the slides
-            slide_numbers_hint: The cover is never numbered.
-            common_slots: Backdrop and kicker
-            kicker_placeholder: Audit, Part two, Our proposal…
-            backdrop_hint: A photograph behind the text, on any layout.
-            backdrop_dim: Veil
-            backdrop_dim_hint: Dims the picture towards the background colour, so the text stays readable.
-            side_left: On the left
-            side_right: On the right
-            line_placeholders:
-                series: "One value per line. Label | figure"
-                bullets: One bullet per line.
-                items: "One card per line. Title | description | badge | icon"
-                steps: "One step per line. Name | detail | badge | icon"
-                rows: "One row per line, cells separated by |. The first row is the header."
-                figures: "One figure per line. Value | what it counts | share in %"
-                lines: One line per line. Address, phone, site.
-            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`, ==accented word==."
-            icons_hint: "Icons available: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
-            chart_types:
-                bar: Bars
-                line: Line
-                doughnut: Doughnut
-            duplicate_slide: Duplicate the slide
-            slide_duplicated: Slide duplicated
-            drag_hint: Drag to move
-            presenter: Presenter view
-            presenter_now: Current slide
-            presenter_next: Next slide
-            presenter_end: End of the deck.
-            presenter_no_note: No note for this slide.
-            presenter_linked: Linked to the full screen
-            presenter_alone: No presentation window open
-            timer_start: Start the timer
-            timer_pause: Pause
-            timer_reset: Reset
-            media_fit_contain: Whole, never cropped
-            media_fit_cover: Fill the frame
-            media_shape_soft: Soft corners
-            media_shape_round: Rounded
-            media_shape_arch: Arch
-            media_shape_circle: Circle
-            media_focus_hint: Click what has to stay visible when the picture is cropped.
-            import: Import a document
-            import_submit: Make the slides
-            imported: Deck built from the document
-            import_intro: Write or paste your document. A heading opens a slide, and what follows fills it.
-            import_document: The document
-            import_placeholder: Paste here, or write…
-            import_hint: Lists become bullet slides, quotes become quotes, tables become tables. Several blocks under one heading make several slides that repeat it.
-            is_template: This is a model
-            is_template_hint: Models are offered when a new deck is created.
-            template_badge: Model
-            from_template: Start from a model
-            from_nothing: Start from nothing
-            fold_chapter: Fold this chapter
-            unfold_chapter: Unfold this chapter
-            share_password: Password
-            share_password_placeholder: Leave empty for a link without one
-            share_password_hint: Send it by something other than the message carrying the link.
-            share_locked: Password protected
-            share_opened: 'Opened {count} times'
-            share_opened_once: Opened once
-            overview: Overview
-            pointer: Pointer
-            transition: Transition
-            transitions:
-                none: None
-                fade: Fade
-                slide: Slide
-            transition_hint: It only exists in the full screen. Paper and share links carry none.
-            withheld_title: "One picture on this deck is not published | {count} pictures on this deck are not published"
-            withheld_hint: A link's holder will not see them. Publish them in the library for them to appear.
-            usage_detail: Deck
-            slots:
-                mediaFit: How the picture fills
-                mediaShape: Image shape
-                mediaFocus: Focal point
-                chartType: Chart type
-                series: Data
-                value: The figure
-                label: What it counts
-                text: Text
-                side: Picture side
-                items: Cards
-                steps: Steps
-                rows: Rows
-                kicker: Kicker
-                reveal: Lines one at a time
-                ground: Slide ground
-                mediaIds: The pictures
-                titleScale: Title scale
-                transition: Transition into this slide
-                drift: Travel across the photo
-                role: Role
-                current: Current line
-                band: Colour band
-                mediaBleed: Picture to the edge
-                leftTitle: Left heading
-                rightTitle: Right heading
-                figures: The figures
-                lines: The lines
-                ghost: Watermark figure
-                bgTreatment: Photo treatment
-                bgVeil: Veil
-                vignette: Vignette
-                mediaFrame: Picture frame
-                captionOver: Caption on the picture
-                anchor: Vertical position
-                align: Alignment
-                measure: Text width
-                bgMediaId: Background picture
-                title: Title
-                subtitle: Subtitle
-                bullets: Bullets
-                left: Left column
-                right: Right column
-                quote: Quote
-                attribution: Attribution
-                caption: Caption
-                mediaId: Image
-            free:
-                convert: Make free-form
-                converted: "Slide made free-form. Cmd+Z to go back to the layout."
-                canvas: Free slide
-                insert: Add to slide
-                insert_title: Title
-                insert_subtitle: Subtitle
-                insert_body: Text
-                insert_image: Image
-                insert_video: Video
-                insert_embed: YouTube or Vimeo
-                insert_shape: Shape
-                insert_icon: Icon
-                insert_chart: Chart
-                insert_table: Table
-                text_presets:
-                    title: Your title
-                    subtitle: A subtitle
-                    body: Your text here
-                embed_url: Video link
-                embed_placeholder: "https://www.youtube.com/watch?v=..."
-                embed_add: Add
-                embed_hint: "YouTube, Vimeo or Dailymotion. The video plays inside the slide during the presentation."
-                icon_search: Search for an icon
-                undo: Undo
-                redo: Redo
-                shortcuts: "Double-click to type, Shift to keep proportions, Alt to ignore guides."
-                shortcuts_touch: "Tap a selected text to type, pinch with two fingers to resize and turn."
-                text_toolbar: Text formatting
-                bold: Bold
-                italic: Italic
-                underline: Underline
-                strike: Strikethrough
-                word_colour: Word colour
-                word_colour_apply: Apply this colour
-                highlight: Highlighter
-                highlight_apply: Apply this highlight
-                bullets: Bulleted list
-                numbers: Numbered list
-                clear_format: Clear formatting
-                slide: This slide
-                slide_fill: Slide background
-                slide_video: Background video
-                slide_video_hint: "Loops without sound behind the elements. On paper, its poster image is printed."
-                choose_video: Choose a video
-                replace: Replace
-                remove: Remove
-                nothing_selected: "Click an element to adjust it, or draw a frame around several."
-                duplicate: Duplicate
-                delete: Delete
-                lock: Lock
-                unlock: Unlock
-                bring_front: Bring to front
-                forward: Bring forward
-                backward: Send backward
-                send_back: Send to back
-                group: Group
-                ungroup: Ungroup
-                flip_x: Flip horizontally
-                flip_y: Flip vertically
-                align:
-                    left: Align left
-                    center: Center horizontally
-                    right: Align right
-                    top: Align top
-                    middle: Center vertically
-                    bottom: Align bottom
-                distribute_x: Distribute horizontally
-                distribute_y: Distribute vertically
-                width: Width
-                height: Height
-                rotation: Rotation
-                opacity: Opacity
-                font: Font
-                font_search: Search for a font
-                font_deck: Presentation fonts
-                font_heading: Heading font
-                font_body: Body font
-                font_uploaded: Your fonts
-                font_upload: Upload a font
-                font_uploaded_ok: "Font {name} added."
-                font_errors:
-                    required: Choose a font file.
-                    not_a_font: "This file is not a font a browser can read: woff2, woff, ttf or otf."
-                    refused: The font could not be added.
-                font_categories:
-                    sans: Sans serif
-                    serif: Serif
-                    display: Display
-                    script: Handwritten
-                    mono: Monospace
-                size: Size
-                weight: Weight
-                weights:
-                    "100": Thin
-                    "200": Extra light
-                    "300": Light
-                    "400": Regular
-                    "500": Medium
-                    "600": Semi-bold
-                    "700": Bold
-                    "800": Extra bold
-                    "900": Black
-                case: Case
-                cases:
-                    none: As typed
-                    upper: Uppercase
-                    lower: Lowercase
-                    title: Capitalize each word
-                spacing: Letter spacing
-                line_height: Line height
-                pad_x: Inner margin (sides)
-                pad_y: Inner margin (top and bottom)
-                aligns:
-                    left: Left
-                    center: Center
-                    right: Right
-                    justify: Justified
-                valigns:
-                    top: Top
-                    middle: Middle
-                    bottom: Bottom
-                text_colour: Text colour
-                autofit: Fit text to box
-                autofit_hint: "The text shrinks so it never overflows its box."
-                contrast_poor: "Hard to read on this background: contrast of {ratio} to 1, at least 3 is needed."
-                contrast_large: "Readable only when large: contrast of {ratio} to 1, 4.5 for running text."
-                text_hint: "Double-click inside the box to type. Select words to make them bold, coloured or a list."
-                fit: Fit
-                mask: Crop shape
-                masks:
-                    none: None
-                    circle: Circle
-                    arch: Arch
-                    triangle: Triangle
-                    diamond: Diamond
-                    hexagon: Hexagon
-                    star: Star
-                    blob: Pebble
-                zoom: Zoom
-                focus: Focal point
-                focus_hint: "The point that stays visible when the image is cropped."
-                adjust: Adjustments
-                filters:
-                    brightness: Brightness
-                    contrast: Contrast
-                    saturate: Saturation
-                    grayscale: Black and white
-                    sepia: Sepia
-                    hue: Hue
-                    blur: Blur
-                reset_filters: Reset adjustments
-                autoplay: Autoplay
-                autoplay_hint: "A video that starts on its own is muted. That is a browser rule."
-                loop: Loop
-                muted: Muted
-                controls: Show controls
-                shape: Shape
-                shapes:
-                    rect: Rectangle
-                    ellipse: Ellipse
-                    triangle: Triangle
-                    right_triangle: Right triangle
-                    diamond: Diamond
-                    pentagon: Pentagon
-                    hexagon: Hexagon
-                    octagon: Octagon
-                    star: Star
-                    star4: Four-point star
-                    heart: Heart
-                    cross: Cross
-                    parallelogram: Parallelogram
-                    trapezoid: Trapezoid
-                    arrow_right: Right arrow
-                    arrow_left: Left arrow
-                    chevron: Chevron
-                    speech: Speech bubble
-                    ring: Ring
-                    line: Line
-                head: Line ends
-                heads:
-                    none: No arrow
-                    end: Arrow at end
-                    both: Arrows at both ends
-                icon: Icon
-                colour: Colour
-                line_weight: Line thickness
-                theme_colours:
-                    ink: Presentation text colour
-                    accent: Presentation accent colour
-                    background: Presentation background colour
-                no_colour: No colour
-                paints:
-                    none: None
-                    solid: Colour
-                    linear: Gradient
-                    radial: Radial gradient
-                angle: Angle
-                add_stop: Add a colour
-                remove_stop: Remove this colour
-                fill: Fill
-                box_fill: Box background
-                stroke: Outline
-                text_outline: Letter outline
-                stroke_width: Thickness
-                stroke_style: Style
-                stroke_styles:
-                    solid: Solid
-                    dashed: Dashed
-                    dotted: Dotted
-                radius: Corner radius
-                shadow: Shadow
-                blur: Blur
-                enter: Entrance
-                enters:
-                    none: None
-                    fade: Fade
-                    rise: Rise
-                    fall: Drop
-                    left: From the left
-                    right: From the right
-                    zoom: Zoom
-                    pop: Pop
-                    blur: Focus in
-                reveal: On press no.
-                reveal_hint: "0: the element is there as soon as the slide appears. 1, 2, 3: it enters on the 1st, 2nd, 3rd press during the presentation."
-                duration: Duration
-                delay: Delay
-                link: Link on click
-                link_placeholder: "https://..."
-                layers: Layers
-                layers_empty: "No elements. Add one with the bar above the slide."
-                types:
-                    text: Text
-                    image: Image
-                    video: Video
-                    embed: Online video
-                    shape: Shape
-                    icon: Icon
-                    chart: Chart
-                    table: Table
-            layouts:
-                chart: Chart
-                stat: Key figure
-                image_text: Picture and text
-                cards: Cards
-                timeline: Timeline
-                table: Table
-                title: Title
-                bullets: Title and bullets
-                image: Full-page image
-                split: Two columns
-                quote: Quote
-                section: Section divider
-                compare: Comparison
-                figures: Figures
-                end: Closing
-                agenda: Agenda
-                portrait: Quote and portrait
-                logos: Logo grid
-                mosaic: Picture mosaic
-                free: Free slide
-            categories:
-                manage: "Manage categories"
-                manage_hint: "Create, rename, colour and order the presentation categories."
-                manage_title: "Presentation categories"
-                manage_intro: "They file the presentations, for the whole team. Deleting a category deletes no presentation: they stay, without a category."
-                errors:
-                    name_required: The name is required.
-                    color_invalid: The colour must be a hex value, for example #6366f1.
         customers:
             guide:
-                title: "How records work"
-                step_1: "A record starts as a prospect: a company you talk to, without its legal identity yet."
-                step_2: "“Convert to client” asks for the contractual address, where signing links will be sent."
+                title: "How customer records work"
+                step_1: "A record starts as a prospect: a potential customer you talk to, without its legal identity yet."
+                step_2: "“Convert to a customer” asks for the contractual email, where signing links will be sent."
                 step_3: "Then fill in the SIRET, the legal form, the registered office and the representative: contracts use them."
-                step_4: "The record belongs to the client, not to a space: editing it from a space changes it in all their spaces."
-                step_5: "A record with contracts or open spaces cannot be deleted."
+                step_4: "Open a record to complete it: legal identity, representative, contact, links and notes. It belongs to the client, not to a space: each of their spaces shows it as it is."
+                step_5: "A record with contracts or spaces, even in the trash, cannot be deleted."
             title: Customers
             spaces: Their spaces
-            spaces_description: Opens this company's spaces in the list.
+            spaces_description: "Opens this customer's spaces in the list."
+            open: Open
             status: Status
-            status_hint: "A prospect is a company you are already working for, without knowing its legal identity yet. Converting one to a customer is filling in the registration number, the legal form and the registered office."
+            status_hint: "A prospect is a potential customer you are already working for, without knowing its legal identity yet. Converting one to a customer asks for its contractual email; the registration number, the legal form and the registered office are filled in afterwards on its record."
             statuses:
                 prospect: Prospect
                 prospect_plural: Prospects
@@ -1455,30 +792,28 @@ suite:
             convert_title: 'Convert {name} to a customer'
             convert_hint: This is where their contract will be sent. The registration number, the legal form and the registered office are filled in afterwards on their record.
             converted: Prospect converted to a customer.
-            add: Add a customer
+            add: "New customer"
             create: New customer
-            edit: 'Edit {name}'
             empty: No customers yet.
-            search_placeholder: Search by company name, registration number, representative…
+            search_placeholder: "Search by legal name, registration number, representative…"
             created: Customer created.
             updated: Customer updated.
             deleted: Customer deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: 'A customer a contract names is not deleted: this will be refused for as long as one remains.'
-            linked_account: 'Account: {name}'
+            delete_warning: 'A customer a contract or a space names, even one in the trash, is not deleted: this will be refused for as long as one remains.'
 
             contracts_count: '{count} contract(s)'
-            col_company: Company
+            col_company: "Legal name"
             col_representative: Representative
             col_siret: Registration no.
             col_contact: Contact
 
-            group_identity: Company identity
+            group_identity: "Legal identity"
             group_representative: Legal representative
-            group_contact: Contact and access
+            group_contact: Contact
 
-            legal_name: Company name
-            legal_name_placeholder: Registered company name
+            legal_name: "Legal name"
+            legal_name_placeholder: "Atelier Dupont"
             legal_form: Legal form
             legal_form_placeholder: Ltd, LLC, sole trader, association…
             share_capital: Share capital
@@ -1506,48 +841,98 @@ suite:
             contractual_email: Contractual email
             contractual_email_placeholder: contact@company.com
             contractual_email_hint: This is where the signing link will be sent.
-            phone: Phone
+            phone: "Mobile"
             phone_placeholder: +33 6 12 34 56 78
-            account: User account
-            account_none: No account linked
-            account_hint: Optional. Only needed if this customer signs in to the site.
+
+            siren: SIREN
+            siren_placeholder: 123 456 789
+            siren_hint: "Nine digits. They are the first nine of the SIRET: when both are filled in, they have to agree."
+            landline: "Landline"
+            landline_placeholder: 01 23 45 67 89
+
+            group_links: Links and notes
+            group_links_hint: "The client reads both in the Information tab of their spaces."
+            links: Links
+            links_hint: "Their site, their socials, what they publish. For working links - a mockup, an access - a space's Resources tab is the place."
+            link_label_placeholder: 'e.g. Website'
+            link_url_placeholder: https://
+            link_add: Add a link
+            link_remove: Remove
+            notes: Notes
+            notes_placeholder: Whatever fits in no other field.
+            notes_hint: The client reads this field. What must stay within the team belongs in a space note.
+
+            page_guide:
+                title: "How a customer page works"
+                step_1: "The whole record is edited here: legal identity, representative, contact, links and notes. Save at the top right."
+                step_2: "This is the only place it is edited. The Information tab of each of their spaces shows it as it is, and that is what the client reads there."
+                step_3: "On the right, what surrounds them: their spaces, their contracts and the Studio deliverables written for them, one click away."
+                step_4: "A prospect is converted to a customer from the « … » button, which asks for their contractual email."
+            group_related: Around this client
+            related:
+                contracts: "This client's contracts"
+                deliverables: "This client's deliverables"
+                spaces: "This client's spaces"
+                other_spaces: "This client's other spaces"
+                empty: "No contract, deliverable or space for this client yet."
+                empty_other: "No contract, deliverable or other space for this client yet."
+                draft_contract: "Draft"
+                all_spaces: All their spaces
+                all_contracts: All their contracts
+            read_only: "You can read this record, not edit it."
 
             row_actions:
-                edit_description: Edit this customer's record
-                convert_description: Open the record to fill in its legal identity
+                open_description: "Open this customer's page: their record, their spaces, their contracts"
+                convert_description: "Enter the contractual email its contracts will go to"
                 delete_description: Delete this customer
 
             errors:
-                legal_name_required: The company name is required.
-                legal_name_too_long: The company name cannot exceed 180 characters.
+                legal_name_required: "The legal name is required."
+                legal_name_too_long: "The legal name cannot exceed 180 characters."
                 contractual_email_required: The contractual email is required.
                 contractual_email_invalid: This email is not valid.
                 share_capital_invalid: Share capital cannot be negative.
                 siret_invalid: 'This registration number is invalid: fourteen digits with a correct checksum are expected.'
                 has_contracts: '{count} contract(s) name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom.'
                 siret_taken: 'This registration number is already recorded for {name}.'
-                has_spaces: 'This client still has {count} open space(s). Delete or archive their work before deleting the record.'
+                has_spaces: 'This client still has {count} space(s), the trash included. Delete them for good before deleting the record.'
+                siren_invalid: 'This SIREN is invalid: nine digits and a correct check digit are expected.'
+                siren_mismatch: "This SIREN does not match the SIRET. The first nine digits of a SIRET are its SIREN."
+                phone_too_long: This number cannot exceed 30 characters.
+                notes_too_long: This field cannot exceed 5000 characters.
+                links_too_many: A record holds no more than 30 links.
+                link_label_required: This link has no name.
+                link_label_too_long: A link name cannot exceed 120 characters.
+                link_url_required: This link has no address.
+                link_url_invalid: "This address is not valid. It has to start with http:// or https://."
+                link_url_too_long: This address is too long.
         spaces:
             guide:
                 title: "How spaces work"
-                step_1: "A space gathers the work done for a client: create one per assignment, not one per company."
-                step_2: "“Add a space” asks for a name, an existing client or a new prospect, and the team working on it."
+                step_1: "A client space gathers the work done for a client: create one per service, not one per customer."
+                step_2: "“New space” asks for a name, an existing customer or a new prospect, and the team working on it."
                 step_3: "The Clients and Prospects tabs separate what you work on from what you are trying to win."
-                step_4: "“To handle” counts missed publications, late reviews, content to rework and what waits for the client."
-                step_5: "Archiving a space takes it out of the list without losing anything; deleting it erases its content, but keeps the client and their contracts."
+                step_4: "“To handle” counts missed publications, late reviews, content items with changes requested and what waits for the client."
+                step_5: "Archiving a space, from its Settings tab, takes it out of the list without losing anything; deleting it moves it to the trash, from where it comes back as it was until it is deleted for good. The client and their contracts stay."
             usage_detail: 'Space {space}'
+            usage_detail_trashed: 'Space {space}, in the trash'
             title: Client spaces
-            add: Add a space
+            add: "New space"
             create: New space
-            edit: 'Edit {name}'
             empty: No space yet.
-            empty_hint: A space holds the work done for one client. Create one per engagement, not one per company.
-            search_placeholder: Search by space name or company…
+            empty_hint: "A client space holds the work done for one client. Create one per service, not one per customer."
+            search_placeholder: "Search by space name or customer…"
+            tab_list: "Spaces"
+            tab_calendar: "Editorial calendar"
+            tabs_label: "Spaces and calendar"
+            customer_filter: 'Spaces of {name}'
+            customer_filter_clear: 'All spaces'
             created: Space created.
             updated: Space updated.
-            deleted: Space deleted.
-            delete_confirm: 'Delete {name}?'
-            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its notes, its deliverables with their reading links, and its access links. Its dates leave the calendar. The client, their contracts and the media library's documents stay."
+            deleted: Space moved to the trash.
+            trash_action: "Move to the trash"
+            delete_confirm: 'Move {name} to the trash?'
+            delete_warning: "The space leaves the lists, the search, the counts and the calendars, and its client page and access links stop answering. Nothing is erased: its content items, conversations, files, deliverables and note space wait for it in the trash, from where it comes back as it was. After the trash delay, or once deleted for good, it goes with everything in it. While it is in the trash, its customer cannot be deleted."
             show_archived: Show archived spaces
             sort_by_urgency: Sort by urgency
             archived_badge: Archived
@@ -1575,11 +960,11 @@ suite:
             customer: Client
             customer_none: Choose a client
             customer_new_prospect: "+ New prospect"
-            prospect_name: Company name
+            prospect_name: "Legal name"
             prospect_name_placeholder: Atelier Dupont
-            prospect_email: Contact email
+            prospect_email: "Contractual email"
             prospect_email_hint: This is where their access link will be sent.
-            customer_hint: The company this work is for. One client can have several spaces.
+            customer_hint: "The customer this work is for. One customer can have several spaces."
             status: Status
             status_hint: An archived space leaves the list without losing any of its content.
             colour: Colour
@@ -1599,6 +984,11 @@ suite:
 
             settings:
                 section_drive: Google Drive
+                section_general: "Space"
+                section_team: "Team"
+                general_intro: "What the space is: its name, customer, colour, timezone and status. An archived space leaves the calendar and takes no new deliverable."
+                team_intro: "Who works on this space, and each person's role. Only the lead and the administrators change the team."
+                saved: "Space settings saved"
                 howto_title: Linking a folder
                 howto_share: "The client shares their Google Drive folder, read only, with the service account's address:"
                 howto_share_unknown: "The client shares their Google Drive folder, read only, with the Drive service account's address (Configuration > Google Drive)."
@@ -1639,7 +1029,7 @@ suite:
                 folder_cleared: Folder unlinked.
                 drive_closes_now: "Saving closes the tab straight away, you included: you will have to type the password to open it."
                 drive_title: Drive tab password
-                drive_intro: "Closes this space's Drive tab. It applies to everyone, you included: a password that gets walked past protects nobody."
+                drive_intro: "Closes this space's Drive tab for the whole team, you included: a password that gets walked past protects nobody. The client keeps what their access link shows them."
                 current_password: Current password
                 new_password: New password
                 password: Password
@@ -1670,8 +1060,8 @@ suite:
             row_actions:
                 view_description: Open this space's board
                 convert_description: This space's customer has signed
-                edit_description: Edit this space
-                delete_description: Delete this space
+                edit_description: "Open the space's settings"
+                delete_description: Move this space to the trash
 
             errors:
                 name_required: The space name is required.
@@ -1682,14 +1072,15 @@ suite:
         space_access:
             guide:
                 title: "How access links work"
-                step_1: "“Create a link” makes a personal address for one recipient, which opens the space without an account."
+                step_1: "“New access link” makes a personal address for one recipient, which opens the space without an account."
                 step_2: "Copy it right away and send it yourself: it will never be shown again, and the app does not send it."
                 step_3: "The link expires after 90 days by default; its boxes set what the client can do: validate, comment, write in the chat, upload files, see the Drive."
                 step_4: "“Preview” opens the page exactly as that recipient sees it, without saving anything on their behalf."
                 step_5: "“Revoke” cuts the link and keeps its record; “Delete” erases it completely."
             tab: Client access
-            intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
-            issue: Create a link
+            intro: "A link opens this space to the client, with no account. What they can do there is chosen link by link: approve, comment, chat, send files, see the Drive. It is personal, it expires, and it can be revoked."
+            issue: "New access link"
+            issue_submit: "Create the link"
             issued: Link created.
             preview: Preview
             revoke: Revoke
@@ -1708,17 +1099,17 @@ suite:
             label_placeholder: 'Camille, marketing lead'
             label_hint: Optional. Useful when one client has several links.
             valid_for_days: Validity
-            valid_for_days_hint: 'In days, {max} at most. An access that outlives the engagement is one nobody remembers to close.'
+            valid_for_days_hint: "In days, {max} at most. An access that outlives the service is one nobody remembers to close."
             can_approve: May approve
             can_approve_hint: Unchecked, the link shows the plan without letting anybody answer. For a reader who looks but does not decide.
             read_only: read-only
             can_comment: "May comment on content"
-            can_comment_hint: "A card's thread: what is said about one particular post, and stays with it."
+            can_comment_hint: "A content item's thread: what is said about that particular content item, and stays with it."
             can_chat: "May write in the conversation"
-            can_chat_hint: "The thread of the relationship, outside any card. You may want one without the other: a partner agency annotates a plan without speaking in the client's room."
+            can_chat_hint: "The thread of the relationship, outside any content item. You may want one without the other: a partner agency annotates a plan without speaking in the client's room."
             no_chat: "no conversation"
             can_upload: May send files
-            can_upload_hint: "Off by default. Checked, the client can drop their own photos and documents onto the content. Images, PDF and common videos, 25 MB at most."
+            can_upload_hint: "Off by default. Checked, the client can drop their own photos and files onto the content items. Images, PDF and common videos, 25 MB at most."
             can_see_drive: See the Drive folder
             can_see_drive_hint: "Unchecked, this person sees neither the shared folder nor its download. Useful for a second reader the client's folder is not meant for."
             no_drive: without the Drive
@@ -1739,80 +1130,45 @@ suite:
             errors:
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
+        client_visibility:
+            share_needed: "Only someone who can share the space shows it to the client or hides it from them."
         space_files:
             guide:
                 title: "How files are organised"
-                step_1: "“On the cards” lists files attached to content, by you or by the client, newest first."
-                step_2: "“Of the space” gathers what serves the assignment without illustrating a publication: the guidelines, the logos, the brief."
-                step_3: "A space file is added here; a file for a publication is added from its card."
-                step_4: "The client sees both kinds of files; removing a file from the space keeps it in the media library."
+                step_1: "“On content items” lists files attached to content items, by you or by the client, newest first."
+                step_2: "“Of the space” gathers what serves the space without illustrating a content item: the guidelines, the logos, the brief."
+                step_3: "A space file is added here; a file for a content item is added from that content item."
+                step_4: "A space file starts hidden from the client; “Show to the client” opens it to them, with the right to share the space. What the client sends stays visible to them."
+                step_5: "The client also sees the files of the content items shown to them; removing a file from the space keeps it in the media library."
             # A space's own files, on no card.
             usage_detail: A file of the space
+            usage_detail_trashed: A file of a space in the trash
             label: Attachment
             tabs:
-                linked: On the cards
+                linked: "On content items"
                 space: Of the space
             upload: Upload a file
             pick: Pick from the library
             remove: Remove from the space
             added: File added to the space.
             removed: "File removed from the space. It stays in the library."
-            empty_linked: No file on this space's cards
+            visible: "Visible to the client"
+            hidden: "Hidden from the client"
+            show: "Show to the client"
+            hide: "Hide from the client"
+            now_visible: "The client now sees this file."
+            sent_by_client: "Sent by the client"
+            now_hidden: "This file is hidden from the client."
+            empty_linked: "No file on this space's content items"
             empty_linked_hint: "Files dropped on the content, by you or by the client, appear here newest first."
             empty_space: No file on this space
-            empty_space_hint: "The brand guide, the logos, the brief, a signed contract: what belongs to the mission without illustrating a post. The client sees them."
+            empty_space_hint: "The brand guide, the logos, the brief, a signed contract: what belongs to the space without illustrating a content item. Each stays hidden from the client until you show it to them."
             errors:
                 required: Choose a file.
-                unknown: This document cannot be found.
+                unknown: "This file cannot be found."
                 duplicate: This file is already on this space.
                 needs_account: You have to be signed in to add a file.
-        craft:
-            settings:
-                what_title: What this connection does
-                what_body: "It imports a Craft document into a client space's notes. It is a copy: the document stays in Craft, and the note does not change on its own afterwards."
-                how_title: How to open it
-                how_step_connection: "In Craft, sidebar, Connections tab: « Add your first API connection », then « API for selected documents ». A whole-space connection would give access to everything in it, including what has no business here."
-                how_step_select: "Pick the documents client spaces will be able to import. Craft exposes only those, and the list can be changed there at any time."
-                how_step_mode: "Set the connection to read-only and to « API key » mode. In public mode, the address alone would be enough to write and delete on your side."
-                how_step_paste: "Copy the address and the key, and paste them below. Craft shows the key only once."
-                scope_title: "What this key can do"
-                scope_body: "Read the documents you ticked, and nothing else. That is why read-only matters: a write connection would let this application modify and delete your Craft documents, when all it does is import."
-                then_title: "Then, space by space"
-                then_body: "The « Import from Craft » button appears in each client space's Notes tab. The import is a plain copy: the document stays in Craft, and the note will not follow its changes."
-                trouble_title: "When the list is empty or silent"
-                trouble_body: "An empty list means the connection exposes no document: go back to Craft and add some. No answer at all means the address or the key no longer fit, often because the connection was recreated in Craft, which then mints a new key."
-                how_link: Craft's own instructions
-                endpoint_label: Connection address
-                endpoint_hint: "The one Craft shows when the connection is created. Over https, otherwise the key travels in the clear."
-                token_label: API key
-                token_hint: "The one Craft shows once the connection is in API key mode."
-                token_stored: A key is saved. Leave the field empty to keep it.
-                enabled_label: Enable importing from Craft
-                enabled_hint: The button appears in every space's notes.
-                enabled_blocked: Enter an address and a key before enabling.
-            import:
-                action: Import from Craft
-                title: Import a Craft note
-                intro: "The document is copied into this space. It stays in Craft, and the note will not follow its changes."
-                empty: No document in this connection.
-                unreachable: "Craft did not answer."
-                unreachable_hint: "Check the address and the key in the settings, Craft tab."
-                empty_hint: "Go back to Craft to add documents to the connection."
-                disabled: "Importing from Craft is not enabled."
-                disabled_hint: "It is switched on in the settings, Craft tab."
-                imported: Note imported.
-                refresh: Update from Craft
-                refresh_confirm: "Put \"{title}\" back on the current version of the Craft document?"
-                refresh_warning: "The note's body is replaced. What you edited here will be lost; the colour, the pin and the visibility are kept."
-                refresh_submit: Update
-                refreshed: Note updated.
-                submit: Import
-            errors:
-                endpoint_https: "The connection address must start with https://."
-                connection_required: Enter an address and a key before enabling.
-                document_required: Pick a document to import.
-                unreachable: "Craft returned nothing for that document."
-                not_imported: This note does not come from Craft.
+                client_file_stays_visible: "This file came from the client: it stays visible to them."
         drive:
             settings:
                 what_title: What this connection does
@@ -1847,7 +1203,7 @@ suite:
                     step_1: "The client's folder is linked in the space Settings, once they have shared it read only with the service account."
                     step_2: "Their files stay with them: nothing is copied, and the client sees them without a Google account."
                     step_3: "The agency folder is the same in every space, and the client never sees it."
-                    step_4: "Attaching a Drive file to a card makes a copy in the media library, which no longer follows changes in the Drive."
+                    step_4: "Attaching a Drive file to a content item makes a copy in the media library, which no longer follows changes in the Drive."
                 title: Google Drive folder
                 intro: "The files stay with the client: nothing is copied, and they show in their space without them needing a Google account."
                 folder_label: Shared folder
@@ -1873,16 +1229,16 @@ suite:
                 archive_weight: "The folder weighs {weight}."
                 archive_too_large: "The folder weighs {weight}, which is too much for a single archive. Download the files one by one, or trim the shared folder."
                 import: File in the library
-                imported: "Filed in the library. It is now available in notes, cards and galleries."
+                imported: "Filed in the library. It is now available in notes, content items and galleries."
                 path_label: Path inside the folder
                 root: Shared folder
                 items: "1 file | {count} files"
                 open: Open the file
             picker:
                 title: Pick a file from the Drive
-                intro: "The file is copied into this space's library, then attached to the card."
+                intro: "The file is copied into this space's library, then attached to the content item."
                 copy_notice: "A copy: it no longer follows changes in the client's Drive, and it survives being unshared."
-                submit: Attach to the card
+                submit: "Attach to the content item"
             errors:
                 key_invalid: "That is not a service account key. Check that you copied the whole JSON file."
                 agency_folder_invalid: "The agency folder is not a Drive folder. Paste its address, or the identifier that follows /folders/."
@@ -1892,93 +1248,23 @@ suite:
         space_notes:
             guide:
                 title: "How notes work"
-                step_1: "Notes are the only part of the space the client never sees."
-                step_2: "A note “Shared with the team” is read by the whole team of the space."
-                step_3: "A “Personal” note is read by you only."
-                step_4: "Pin a note to keep it on top, and switch between wall and list as you prefer."
-            # A space's notes: the one surface a client never sees.
+                step_1: "Notes stay between you: the client never sees them."
+                step_2: "They live in the Notes module, in this client's note space, open to the space's team: the lead manages it, the members write in it."
+                step_3: "A note opens in the notes editor, with its folders, links between notes, history and search."
+                step_4: "A note for you alone is taken in your personal note space."
             add: New note
-            create: New note
-            edit: Edit the note
-            title: Title
-            title_placeholder: "Brief of 12 March"
-            body_placeholder: "What was said, what is left to do…"
-            colour: Colour
-            colour_hint: "To pick a note out on the wall. Left empty it carries none - a wall where everything is coloured distinguishes nothing."
-            pinned: Pin to the top
-            pin: Pin
-            unpin: Unpin
-            view_label: View
-            view_grid: Wall
-            view_list: List
-            visibility: Who reads it
-            visibility_hint_shared: "Everybody on the space's team. The client sees no note at all."
-            visibility_hint_personal: "You alone. It reaches nobody else, not even the space's team."
-            visibilities:
-                shared: Shared with the team
-                personal: Personal
-                shared_plural: Shared
-                personal_plural: Personal
-            someone_elses: Somebody's personal note
-            empty_shared: No shared note on this space
-            empty_shared_hint: "What the team needs to know about this client and no form carries. The client does not see notes."
-            empty_personal: No personal note on this space
-            empty_personal_hint: "The brief taken over the phone, an idea not ready to show, what went wrong last month. Nobody else reads them."
-            created: Note created.
-            updated: Note saved.
-            deleted: Note deleted.
-            delete_confirm: 'Delete "{title}"?'
-            delete_warning: "The images it holds stay in the library. Those nothing uses any more will be offered to you."
-            errors:
-                title_required: The title is required.
-                title_too_long: The title cannot be longer than 180 characters.
-                needs_account: You have to be signed in to take a note.
+            untitled: Untitled note
+            open_in_notes: Open in Notes
+            empty: No note on this space
+            empty_hint: "What the team needs to know about this client and no content item carries. The client does not see notes."
+            closed: These notes are not open to you
+            closed_hint: "This client's note space is open to its team. The space's lead can add you to it."
         space_information:
-            scope: "This sheet belongs to the customer, not to this project. Editing it here edits it in every space of theirs, deliberately: a SIRET is a company's."
+            scope: "This record belongs to the client, not to this space: all their spaces show the same one. It is edited on the customer's page."
             what_the_client_sees: What the client sees
             group_card: The record
             group_related: Around this client
             edit: Edit the record
-            edit_title: Edit the client's record
-            related_empty: "No contract, presentation or other space for this client yet."
-            related_contracts: "This client's contracts"
-            related_decks: "This client's decks"
-            related_spaces: "This client's other spaces"
-            draft_contract: "Draft"
-            saved: Sheet saved.
-            legal_name: Company name
-            legal_name_placeholder: 'e.g. Atelier Dupont'
-            siret_placeholder: 123 456 789 00012
-            siret_hint: Fourteen digits. Spaces are ignored, the check digit is verified.
-            siren_placeholder: 123 456 789
-            siren_hint: "Nine digits. They are the first nine of the SIRET: when both are filled in, they have to agree."
-            phone_placeholder: 06 12 34 56 78
-            landline_placeholder: 01 23 45 67 89
-            email_placeholder: contact@company.test
-            email_hint: "The same address the contracts use: this is where a signing link goes."
-            postal_address_placeholder: Full address, as it will appear on the contract
-            links_hint: "Their site, their socials, what they publish. For working links - a mockup, an access - the Links tab is the place."
-            link_label_placeholder: 'e.g. Website'
-            link_url_placeholder: https://
-            link_add: Add a link
-            link_remove: Remove
-            notes_placeholder: Whatever fits in no other field.
-            notes_hint: The client reads this field. What must stay within the team belongs in a space note.
-            errors:
-                legal_name_required: The company name is required.
-                legal_name_too_long: The name cannot exceed 180 characters.
-                siren_invalid: 'This SIREN is invalid: nine digits and a correct check digit are expected.'
-                siren_mismatch: "This SIREN does not match the SIRET. The first nine digits of a SIRET are its SIREN."
-                phone_too_long: This number cannot exceed 30 characters.
-                email_invalid: This email is not valid.
-                email_too_long: The email cannot exceed 180 characters.
-                notes_too_long: This field cannot exceed 5000 characters.
-                links_too_many: A sheet holds no more than 30 links.
-                link_label_required: This link has no name.
-                link_label_too_long: A link name cannot exceed 120 characters.
-                link_url_required: This link has no address.
-                link_url_invalid: "This address is not valid. It has to start with http:// or https://."
-                link_url_too_long: This address is too long.
         sharing:
             errors:
                 expiry_invalid: "A link lasts from 1 to 365 days."
@@ -1989,33 +1275,34 @@ suite:
             editor_guide:
                 title: "How to put a deliverable together"
                 step_1: "“Content” is built with the site's page grid: add zones and fill them in."
-                step_2: "“Appearance” sets the page and content colours for this document alone, in the client's colours if you like."
-                step_3: "“Settings” holds the title, the summary, the language and the header; tick “Visible to the client” so they can read it in their space."
+                step_2: "“Appearance” sets the page and content colours for this deliverable alone, in the client's colours if you like."
+                step_3: "“Settings” holds the title, the summary, the language and the header; tick “Visible to the client” so they can read it in their space, with the right to share the space."
                 step_4: "Save your changes, then “Preview”, in the menu, opens the page as the client will read it."
-                step_5: "“Reading links” creates a secret address that opens this document alone without an account, with an optional password and expiry."
-                step_3_studio: "“Settings” holds the title, the summary, the language and the header, and its visibility: personal, or shared with the team."
+                step_5: "“Share” creates a reading link, a secret address that opens this deliverable alone without an account, with an optional password and expiry."
+                step_3_studio: "“Settings” holds the title, the summary, the language and the header, and its visibility: personal or shared."
                 step_4_studio: "Save your changes, then “Preview”, in the menu, opens the page as its recipient will read it."
-                step_6: "In the menu, “Export as PDF” gives one page per slide. Passages in [brackets] are to be replaced before opening the deliverable to the client: a counter follows them."
+                step_6: "In the menu, “Export as PDF” gives one page per slide. Passages in [brackets] are to be replaced before showing the deliverable to the client: a counter follows them."
+                step_6_studio: "In the menu, “Export as PDF” gives one page per slide. Passages in [brackets] are to be replaced before sending it: a counter follows them."
             guide:
                 title: "How deliverables work"
-                step_1: "“New deliverable” creates a document (audit, strategy, report) built like a page, in your colours or the client's."
-                step_2: "It stays hidden from the client until you click “Show to the client”."
-                step_3: "“Reading links”, in a deliverable's ⋯ menu or in its editor, gives someone a secret address that opens this document only, without the space."
+                step_1: "“New deliverable” creates a page (audit, strategy, report) or a presentation, from scratch or from a Studio template, in your colours or the client's."
+                step_2: "It stays hidden from the client until someone who can share the space clicks “Show to the client”."
+                step_3: "“Share”, in a deliverable's ⋯ menu or in its editor, gives someone a reading link, a secret address that opens this deliverable only, without the space."
                 step_4: "A link can have a password and an expiry, and is revoked one by one; hiding the deliverable does not cut its links."
                 step_5: "“Duplicate” creates a copy hidden from the client, handy to start again from last month's report."
-                step_6: "“Copy to Studio” keeps this deliverable as a model. Passages in [brackets] are to be replaced before opening it to the client: the list asks again if any are left. Reading links need the right to share the space."
-            intro: "The documents written for this client: audits, strategies, reports. Each one is built like a page, in its own colours, and the client reads it in their space as soon as you open it to them."
+                step_6: "“Copy to Studio” keeps this deliverable as a template. Passages in [brackets] are to be replaced before showing it to the client: the list asks again if any are left. Reading links need the right to share the space."
+            intro: "The deliverables written for this client: audits, strategies, reports. Each one is a page or a presentation, in its own colours, and the client reads it in their space as soon as you show it to them."
             add: "New deliverable"
             empty: "No deliverables for this client."
-            empty_hint: "Start an audit, a strategy or a report: it is built with the page grid, and stays hidden from the client until you open it to them."
+            empty_hint: "Start an audit, a strategy, a report or a presentation: it stays hidden from the client until you show it to them."
             create_title: "New deliverable"
             create: "Create and open"
             title: "Title"
             title_placeholder: "Online presence audit"
-            title_hint: "What the client reads in their space's list and at the top of the document."
+            title_hint: "What the client reads in their space's list and at the top of the deliverable."
             updated_on: "Edited on {date} at {time}"
             open: "Open"
-            open_hint: "Build the document, set its colours and what the client sees."
+            open_hint: "Build the deliverable, set its colours and what the client sees."
             preview: "Preview"
             preview_hint: "The page as the client will read it, in a new tab."
             export_pdf: "Export as PDF"
@@ -2030,7 +1317,7 @@ suite:
             hidden_badge: "Hidden from the client"
             placeholders_badge: "to replace"
             duplicate: "Duplicate"
-            duplicate_hint: "A copy to rework, hidden from the client: last month's report to write this one."
+            duplicate_hint: "A copy to work on, hidden from the client: last month's report to write this one."
             duplicated: "Copy created."
             copy_title: "%title% (copy)"
             usage_detail: "Deliverable"
@@ -2064,7 +1351,7 @@ suite:
                     color_invalid: "The colour is not valid."
             copy_to_studio:
                 action: "Copy to Studio"
-                action_hint: "A copy in your Studio deliverables, to turn it into a template. This one stays in the space."
+                action_hint: "A copy in Studio's personal deliverables, to turn it into a template. This one stays in the space."
                 done: "Copy created in Studio."
             delete_hint: "Moves it to the trash: it leaves the lists and its reading links stop answering, until it is restored."
             trash_action: "Move to the trash"
@@ -2077,12 +1364,12 @@ suite:
             save_failed: "The deliverable could not be saved."
             archived_hint: "This space is archived: it takes no new deliverable. The ones it holds can still be edited."
             show_confirm:
-                title: "Open this deliverable to the client?"
+                title: "Show this deliverable to the client?"
                 intro: "“{title}” may not be ready: the client will read it right away."
                 placeholders: "{count} passage in [brackets] is left to replace | {count} passages in [brackets] are left to replace"
                 pictures: "One picture is not published in the library, the client will not see it | {count} pictures are not published in the library, the client will not see them"
-                keep_hidden: "Keep it closed"
-                confirm: "Open it anyway"
+                keep_hidden: "Keep it hidden"
+                confirm: "Show it anyway"
             gone: "This deliverable no longer exists: the list has just been refreshed."
             not_allowed: "You are no longer allowed to do that on this deliverable: the list has just been refreshed."
             read_only: "Read only"
@@ -2094,42 +1381,624 @@ suite:
                 reload: "Load their version"
                 overwrite: "Save anyway"
             unsaved: "Unsaved changes"
-            links_hint: "One secret address per recipient, to pass the document on without opening the space."
+            links_hint: "One reading link per recipient, to pass the deliverable on without opening the space."
+            share: "Share"
             back_to_list: "Deliverables"
             search_placeholder: "Search deliverables"
             no_match: "No deliverable matches the search."
-            studio_title_hint: "The title at the top of the document, and in the list."
+            studio_title_hint: "The title at the top of the deliverable, and in the list."
+            formats:
+                page: "Page"
+                slides: "Presentation"
+            format:
+                label: "Format"
+                page_hint: "Composed with the site's page grid, and read by scrolling."
+                slides_hint: "Composed slide by slide, presented full screen with its notes, and printable."
+                fixed_hint: "The format cannot be changed afterwards."
+                badge_slides: "Presentation"
+                filter_label: "Format"
+                filter_all: "All"
+                filter_page: "Pages"
+                filter_slides: "Presentations"
+            import:
+                action: "Import a text"
+                action_hint: "Paste a text: each heading opens a slide, and you land in the presentation."
+                title: "Import a text"
+                intro: "Write or paste your text. A heading opens a slide, and what follows fills it."
+                title_placeholder: "E.g. Kick-off meeting"
+                document: "The text"
+                placeholder: "Paste here, or write…"
+                hint: "Lists become bullet slides, quotes become quotes, tables become tables. Several blocks under one heading make several slides that repeat it."
+                submit: "Import"
+                done: "Presentation created from the text"
+            slides:
+                settings: "Settings"
+                editor_guide:
+                    title: "How to edit a presentation"
+                    step_1: "The “Slides” column shows them in order: click a slide to edit it, and move it by its handle or its arrows."
+                    step_2: "“New slide” offers the layouts; with “Free slide”, you place each element by hand."
+                    step_3: "Fill in the layout's fields and the speaker notes, which the audience never sees: everything saves on its own."
+                    step_4: "“Present” goes full screen; the menu beside it opens the presenter view, printing, sharing and the appearance."
+                slides: Slides
+                errors:
+                    layout_unknown: That layout does not exist.
+                    theme_unknown: That theme does not exist.
+                share: Share
+                share_expires_on: 'Expires on {date}'
+                share_footer: This link is personal to you. Please do not pass it on.
+                present: Present
+                print: Print
+                print_hint: Use the browser's print dialog, then "Save as PDF". One slide per page, landscape.
+                previous_slide: Previous slide
+                next_slide: Next slide
+                layout: Layout
+                add_slide: "New slide"
+                slide_added: Slide added
+                slide_deleted: Slide deleted
+                delete_slide: Delete the slide
+                delete_slide_confirm: This slide and its contents will be lost.
+                move_up: Move up
+                move_down: Move down
+                saving: Saving…
+                saved: Saved
+                unsaved: Unsaved changes
+                no_slide_title: No slide
+                no_slide_description: Pick a layout on the left to start the presentation.
+                speaker_notes: Speaker notes
+                speaker_notes_hint: They are never shown to the audience.
+                speaker_notes_placeholder: What you will say while this slide is on screen.
+                prose_placeholder: The text shown on the slide.
+                image_hint: Picked from the library, or uploaded from your machine.
+                appearance: Appearance
+                appearance_saved: Appearance saved
+                appearance_preview_hint: "The preview follows your choices; the presentation only changes once you save."
+                appearance_sample_title: "Your presentation's title"
+                appearance_sample_subtitle: The subtitle, on one line
+                appearance_overrides_kept: Your own colours stay applied on top of this theme.
+                theme: Theme
+                themes:
+                    slate: Slate
+                    ink: Ink
+                    paper: Paper
+                    bold: Bold
+                    midnight: Midnight
+                    clay: Clay
+                    chalk: Chalk
+                    duo: Two tones
+                colours: Colours
+                colour_background: Background
+                colour_ink: Text
+                colour_accent: Accent
+                colour_inherited: From the theme
+                colour_reset: Back to the theme
+                colour_reset_all: All back to the theme
+                gradient_label: Gradient
+                gradient_hint: A wash of the accent colour over the ground, the same on every slide.
+                gradients:
+                    none: None
+                    top: From the top
+                    bottom: From the bottom
+                    corner: Diagonal
+                    halo: Centre halo
+                    duo: Accent into ink
+                pattern_label: Pattern
+                pattern_hint: A texture on the ground, hidden on slides that carry a photo.
+                patterns:
+                    none: None
+                    dots: Dots
+                    grid: Grid
+                    diagonals: Hatching
+                margins_label: Frame margins
+                margins:
+                    tight: Tight
+                    normal: Normal
+                    wide: Wide
+                hairline: Frame hairline
+                hairline_hint: A thin rule in the accent colour, set in from the edges.
+                anchors:
+                    center: Centred
+                    top: Top
+                    bottom: Bottom
+                aligns:
+                    left: Left
+                    center: Centre
+                    right: Right
+                measures:
+                    full: Full width
+                    two_thirds: Two thirds
+                    half: Half
+                vignette_hint: Darkens the corners a little and brings the eye back to the middle.
+                bg_treatments:
+                    none: None
+                    blur: Blur
+                    mono: Black and white
+                    duotone: Duotone in the accent
+                    grain: Grain
+                bg_veils:
+                    flat: Even
+                    bottom: From the bottom
+                    top: From the top
+                media_frames:
+                    none: None
+                    line: Accent rule
+                    shadow: Soft shadow
+                title_case_label: Title case
+                title_cases:
+                    normal: Normal
+                    upper: Capitals
+                bullets_label: Bullet shape
+                bullet_shapes:
+                    disc: Dot
+                    dash: Dash
+                    arrow: Arrow
+                    number: Number
+                    check: Check
+                media_bleed_hint: The picture leaves the margin and touches the edge of the frame.
+                rules: Separating rules
+                rules_hint: A line between the two columns and under the kicker.
+                bands:
+                    none: None
+                    left: Band on the left
+                    bottom: Band at the bottom
+                    edge: Thin edge
+                wash_from_theme: The theme's
+                looks_label: Start from a look
+                looks_hint: Applies a theme and its settings at once. Everything stays editable afterwards.
+                looks:
+                    scene: Stage
+                    atelier: Workshop
+                    dossier: File
+                    gallery: Gallery
+                look_descriptions:
+                    scene: Shown in a room. Dark, titles in capitals.
+                    atelier: It argues. Light and warm, hatched.
+                    dossier: It is read. Quiet, squared, wide margins.
+                    gallery: The pictures carry it. Near black, tight margins.
+                accent_from_logo: Tones from the logo
+                contrast_good: "Contrast {ratio} out of 21. Readable anywhere."
+                contrast_large: "Contrast {ratio} out of 21. Fine on a wall, tight on a printed document."
+                contrast_poor: "Contrast {ratio} out of 21. The text will be hard to read."
+                transition_from_deck: "The presentation's"
+                slide_transition_hint: Applies to this slide only, and only in full screen.
+                drift_hint: A very slow travel across the photo while the slide is up. Full screen only.
+                title_scales:
+                    normal: Normal
+                    quiet: Quiet
+                    loud: Loud
+                media_ids_hint: The order is the arrangement. Eight at most; emptying one closes the gap.
+                ground_hint: "The slide stands on one of the presentation's three colours. The text follows, the accent does not move."
+                grounds:
+                    normal: The background
+                    inverted: The ink
+                    accent: The accent
+                reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
+                picture_rank: "Picture {rank}"
+                fonts_label: Typography
+                font_from_theme: The theme's own
+                fonts:
+                    sans: Sans serif
+                    serif: Serif
+                    editorial: Serif headings, sans text
+                    technical: Monospaced headings, sans text
+                    report: Sans titles, serif text
+                    soft: Rounded
+                signature: Signature
+                logo: Logo
+                logo_hint: Drawn small, in a corner of the slide.
+                logo_placement: Where to show it
+                logo_placements:
+                    none: Nowhere
+                    cover: On the cover
+                    every: On every slide
+                footer_text: Footer line
+                footer_text_placeholder: Confidential, do not circulate
+                slide_numbers: Number the slides
+                slide_numbers_hint: The cover is never numbered.
+                common_slots: Backdrop and kicker
+                kicker_placeholder: Audit, Part two, Our proposal…
+                backdrop_hint: A photograph behind the text, on any layout.
+                backdrop_dim: Veil
+                backdrop_dim_hint: Dims the picture towards the background colour, so the text stays readable.
+                side_left: On the left
+                side_right: On the right
+                line_placeholders:
+                    series: "One value per line. Label | figure"
+                    bullets: One bullet per line.
+                    items: "One card per line. Title | description | badge | icon"
+                    steps: "One step per line. Name | detail | badge | icon"
+                    rows: "One row per line, cells separated by |. The first row is the header."
+                    figures: "One figure per line. Value | what it counts | share in %"
+                    lines: One line per line. Address, phone, site.
+                emphasis_hint: "In a slide's text: **bold**, *italic*, `code`, ==accented word==."
+                icons_hint: "Icons available: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
+                chart_types:
+                    bar: Bars
+                    line: Line
+                    doughnut: Doughnut
+                duplicate_slide: Duplicate the slide
+                slide_duplicated: Slide duplicated
+                drag_hint: Drag to move
+                presenter: Presenter view
+                presenter_now: Current slide
+                presenter_next: Next slide
+                presenter_end: "End of the presentation."
+                presenter_no_note: No note for this slide.
+                presenter_linked: Linked to the full screen
+                presenter_alone: No presentation window open
+                timer_start: Start the timer
+                timer_pause: Pause
+                timer_reset: Reset
+                media_fit_contain: Whole, never cropped
+                media_fit_cover: Fill the frame
+                media_shape_soft: Soft corners
+                media_shape_round: Rounded
+                media_shape_arch: Arch
+                media_shape_circle: Circle
+                media_focus_hint: Click what has to stay visible when the picture is cropped.
+                fold_chapter: Fold this chapter
+                unfold_chapter: Unfold this chapter
+                overview: Overview
+                pointer: Pointer
+                transition: Transition
+                transitions:
+                    none: None
+                    fade: Fade
+                    slide: Slide
+                transition_hint: "It only exists in the full screen. Paper and reading links carry none."
+                slots:
+                    mediaFit: How the picture fills
+                    mediaShape: Image shape
+                    mediaFocus: Focal point
+                    chartType: Chart type
+                    series: Data
+                    value: The figure
+                    label: What it counts
+                    text: Text
+                    side: Picture side
+                    items: Cards
+                    steps: Steps
+                    rows: Rows
+                    kicker: Kicker
+                    reveal: Lines one at a time
+                    ground: Slide ground
+                    mediaIds: The pictures
+                    titleScale: Title scale
+                    transition: Transition into this slide
+                    drift: Travel across the photo
+                    role: Role
+                    current: Current line
+                    band: Colour band
+                    mediaBleed: Picture to the edge
+                    leftTitle: Left heading
+                    rightTitle: Right heading
+                    figures: The figures
+                    lines: The lines
+                    ghost: Watermark figure
+                    bgTreatment: Photo treatment
+                    bgVeil: Veil
+                    vignette: Vignette
+                    mediaFrame: Picture frame
+                    captionOver: Caption on the picture
+                    anchor: Vertical position
+                    align: Alignment
+                    measure: Text width
+                    bgMediaId: Background picture
+                    title: Title
+                    subtitle: Subtitle
+                    bullets: Bullets
+                    left: Left column
+                    right: Right column
+                    quote: Quote
+                    attribution: Attribution
+                    caption: Caption
+                    mediaId: Image
+                free:
+                    convert: Make free-form
+                    converted: "Slide made free-form. Cmd+Z to go back to the layout."
+                    canvas: Free slide
+                    insert: Add to slide
+                    insert_title: Title
+                    insert_subtitle: Subtitle
+                    insert_body: Text
+                    insert_image: Image
+                    insert_video: Video
+                    insert_embed: YouTube or Vimeo
+                    insert_shape: Shape
+                    insert_icon: Icon
+                    insert_chart: Chart
+                    insert_table: Table
+                    text_presets:
+                        title: Your title
+                        subtitle: A subtitle
+                        body: Your text here
+                    embed_url: Video link
+                    embed_placeholder: "https://www.youtube.com/watch?v=..."
+                    embed_add: Add
+                    embed_hint: "YouTube, Vimeo or Dailymotion. The video plays inside the slide during the presentation."
+                    icon_search: Search for an icon
+                    undo: Undo
+                    redo: Redo
+                    shortcuts: "Double-click to type, Shift to keep proportions, Alt to ignore guides."
+                    shortcuts_touch: "Tap a selected text to type, pinch with two fingers to resize and turn."
+                    text_toolbar: Text formatting
+                    bold: Bold
+                    italic: Italic
+                    underline: Underline
+                    strike: Strikethrough
+                    word_colour: Word colour
+                    word_colour_apply: Apply this colour
+                    highlight: Highlighter
+                    highlight_apply: Apply this highlight
+                    bullets: Bulleted list
+                    numbers: Numbered list
+                    clear_format: Clear formatting
+                    slide: This slide
+                    slide_fill: Slide background
+                    slide_video: Background video
+                    slide_video_hint: "Loops without sound behind the elements. On paper, its poster image is printed."
+                    choose_video: Choose a video
+                    replace: Replace
+                    remove: Remove
+                    nothing_selected: "Click an element to adjust it, or draw a frame around several."
+                    duplicate: Duplicate
+                    delete: Delete
+                    lock: Lock
+                    unlock: Unlock
+                    bring_front: Bring to front
+                    forward: Bring forward
+                    backward: Send backward
+                    send_back: Send to back
+                    group: Group
+                    ungroup: Ungroup
+                    flip_x: Flip horizontally
+                    flip_y: Flip vertically
+                    align:
+                        left: Align left
+                        center: Center horizontally
+                        right: Align right
+                        top: Align top
+                        middle: Center vertically
+                        bottom: Align bottom
+                    distribute_x: Distribute horizontally
+                    distribute_y: Distribute vertically
+                    width: Width
+                    height: Height
+                    rotation: Rotation
+                    opacity: Opacity
+                    font: Font
+                    font_search: Search for a font
+                    font_deck: Presentation fonts
+                    font_heading: Heading font
+                    font_body: Body font
+                    font_uploaded: Your fonts
+                    font_upload: Upload a font
+                    font_uploaded_ok: "Font {name} added."
+                    font_errors:
+                        required: Choose a font file.
+                        not_a_font: "This file is not a font a browser can read: woff2, woff, ttf or otf."
+                        refused: The font could not be added.
+                    font_categories:
+                        sans: Sans serif
+                        serif: Serif
+                        display: Display
+                        script: Handwritten
+                        mono: Monospace
+                    size: Size
+                    weight: Weight
+                    weights:
+                        "100": Thin
+                        "200": Extra light
+                        "300": Light
+                        "400": Regular
+                        "500": Medium
+                        "600": Semi-bold
+                        "700": Bold
+                        "800": Extra bold
+                        "900": Black
+                    case: Case
+                    cases:
+                        none: As typed
+                        upper: Uppercase
+                        lower: Lowercase
+                        title: Capitalize each word
+                    spacing: Letter spacing
+                    line_height: Line height
+                    pad_x: Inner margin (sides)
+                    pad_y: Inner margin (top and bottom)
+                    aligns:
+                        left: Left
+                        center: Center
+                        right: Right
+                        justify: Justified
+                    valigns:
+                        top: Top
+                        middle: Middle
+                        bottom: Bottom
+                    text_colour: Text colour
+                    autofit: Fit text to box
+                    autofit_hint: "The text shrinks so it never overflows its box."
+                    contrast_poor: "Hard to read on this background: contrast of {ratio} to 1, at least 3 is needed."
+                    contrast_large: "Readable only when large: contrast of {ratio} to 1, 4.5 for running text."
+                    text_hint: "Double-click inside the box to type. Select words to make them bold, coloured or a list."
+                    fit: Fit
+                    mask: Crop shape
+                    masks:
+                        none: None
+                        circle: Circle
+                        arch: Arch
+                        triangle: Triangle
+                        diamond: Diamond
+                        hexagon: Hexagon
+                        star: Star
+                        blob: Pebble
+                    zoom: Zoom
+                    focus: Focal point
+                    focus_hint: "The point that stays visible when the image is cropped."
+                    adjust: Adjustments
+                    filters:
+                        brightness: Brightness
+                        contrast: Contrast
+                        saturate: Saturation
+                        grayscale: Black and white
+                        sepia: Sepia
+                        hue: Hue
+                        blur: Blur
+                    reset_filters: Reset adjustments
+                    autoplay: Autoplay
+                    autoplay_hint: "A video that starts on its own is muted. That is a browser rule."
+                    loop: Loop
+                    muted: Muted
+                    controls: Show controls
+                    shape: Shape
+                    shapes:
+                        rect: Rectangle
+                        ellipse: Ellipse
+                        triangle: Triangle
+                        right_triangle: Right triangle
+                        diamond: Diamond
+                        pentagon: Pentagon
+                        hexagon: Hexagon
+                        octagon: Octagon
+                        star: Star
+                        star4: Four-point star
+                        heart: Heart
+                        cross: Cross
+                        parallelogram: Parallelogram
+                        trapezoid: Trapezoid
+                        arrow_right: Right arrow
+                        arrow_left: Left arrow
+                        chevron: Chevron
+                        speech: Speech bubble
+                        ring: Ring
+                        line: Line
+                    head: Line ends
+                    heads:
+                        none: No arrow
+                        end: Arrow at end
+                        both: Arrows at both ends
+                    icon: Icon
+                    colour: Colour
+                    line_weight: Line thickness
+                    theme_colours:
+                        ink: Presentation text colour
+                        accent: Presentation accent colour
+                        background: Presentation background colour
+                    no_colour: No colour
+                    paints:
+                        none: None
+                        solid: Colour
+                        linear: Gradient
+                        radial: Radial gradient
+                    angle: Angle
+                    add_stop: Add a colour
+                    remove_stop: Remove this colour
+                    fill: Fill
+                    box_fill: Box background
+                    stroke: Outline
+                    text_outline: Letter outline
+                    stroke_width: Thickness
+                    stroke_style: Style
+                    stroke_styles:
+                        solid: Solid
+                        dashed: Dashed
+                        dotted: Dotted
+                    radius: Corner radius
+                    shadow: Shadow
+                    blur: Blur
+                    enter: Entrance
+                    enters:
+                        none: None
+                        fade: Fade
+                        rise: Rise
+                        fall: Drop
+                        left: From the left
+                        right: From the right
+                        zoom: Zoom
+                        pop: Pop
+                        blur: Focus in
+                    reveal: On press no.
+                    reveal_hint: "0: the element is there as soon as the slide appears. 1, 2, 3: it enters on the 1st, 2nd, 3rd press during the presentation."
+                    duration: Duration
+                    delay: Delay
+                    link: Link on click
+                    link_placeholder: "https://..."
+                    layers: Layers
+                    layers_empty: "No elements. Add one with the bar above the slide."
+                    types:
+                        text: Text
+                        image: Image
+                        video: Video
+                        embed: Online video
+                        shape: Shape
+                        icon: Icon
+                        chart: Chart
+                        table: Table
+                layouts:
+                    chart: Chart
+                    stat: Key figure
+                    image_text: Picture and text
+                    cards: Cards
+                    timeline: Timeline
+                    table: Table
+                    title: Title
+                    bullets: Title and bullets
+                    image: Full-page image
+                    split: Two columns
+                    quote: Quote
+                    section: Section divider
+                    compare: Comparison
+                    figures: Figures
+                    end: Closing
+                    agenda: Agenda
+                    portrait: Quote and portrait
+                    logos: Logo grid
+                    mosaic: Picture mosaic
+                    free: Free slide
+            template:
+                badge: "Template"
+                filter: "Templates"
+                filter_hint: "Show templates only"
+                toggle: "This is a template"
+                toggle_hint: "It is offered under “Start from a template” when creating a deliverable. What comes out of it, a copy or a new deliverable, is not one."
+                from: "Start from a template"
+                from_nothing: "Blank page"
+                from_nothing_slides: "Empty presentation"
+                from_hint: "The new deliverable takes its content, appearance, image and category, under the title below."
+            customer:
+                label: "Client"
+                none: "No client"
+                hint: "Who this deliverable is written for, before the client has a space: a proposal to a prospect. Copied into a space, it takes the space's client."
             studio_guide:
                 title: "How deliverables work"
-                step_1: "A deliverable is a document written to be read: an audit, a strategy, a proposal. It is built with the page grid, and never appears on the site."
-                step_2: "“My deliverables” is seen by you alone. “Shared” is read by the whole team with access to deliverables; it is edited by those with the right, and by its author, even without it."
+                step_1: "A deliverable is written to be read or presented: an audit, a strategy, a proposal. A page is built with the page grid, and never appears on the site; a presentation, slide by slide, or from a pasted text with \"Import a text\"."
+                step_2: "“Personal” is seen by you alone. “Shared” is read by the whole team with access to deliverables; it is edited by those with the right, and by its author, even without it."
                 step_3: "A deliverable is created in the open tab; after that, only its author moves it between personal and shared, from its menu or its settings."
-                step_4: "A reading link sends it to whoever you want, with an expiry and a password if you like, no account or client space needed. Seeing the links and giving some needs the right to share."
+                step_4: "“Share” creates a reading link that sends it to whoever you want, with an expiry and a password if you like, no account or client space needed. Seeing the links and giving some needs the right to share."
                 step_5: "A client's deliverables are prepared in their space, Deliverables tab: that is where they read them."
-                step_6: "File them by category (audit, strategy, proposal…): filter the list or show it by category. A template is copied into a client's space, and a space deliverable comes back here with “Copy to Studio”."
+                step_6: "File them by category (audit, strategy, proposal…): filter the list or show it by category. Tick “This is a template” in a deliverable's settings: it is offered when creating one, and is copied into a client's space. A space deliverable comes back here with “Copy to Studio”."
             scope:
                 label: "Visibility"
                 personal: "Personal"
                 shared: "Shared"
                 personal_hint: "Only you can see it in Studio. A reading link already given stays valid."
                 shared_hint: "The whole team reads it; those with the right edit it."
-                tab_personal: "My deliverables"
+                tab_personal: "Personal"
                 tab_shared: "Shared"
-                intro_personal: "What you prepare for yourself: nobody else sees it until you share it."
+                intro_personal: "What you prepare for yourself: nobody else sees it while it stays personal."
                 intro_shared: "The team's deliverables: everyone reads them, and edits them if allowed to."
                 empty_personal: "No personal deliverables."
-                empty_personal_hint: "Start a proposal, a strategy or a draft: it stays yours until you share it."
+                empty_personal_hint: "Start a proposal, a strategy or a draft: it stays yours while it is personal."
                 empty_shared: "No shared deliverables."
-                empty_shared_hint: "A personal deliverable is shared from its menu, or from its settings."
+                empty_shared_hint: "A personal deliverable becomes shared from its menu, or from its settings."
                 by: "By {name}"
                 no_owner: "Author deleted"
                 orphan: "No author"
-                move_shared: "Share with the team"
+                move_shared: "Make shared"
                 move_shared_hint: "It moves to “Shared”: the whole team reads it, those with the right edit it."
-                move_personal: "Keep to myself"
-                move_personal_hint: "It moves back to “My deliverables”: nobody else sees it in Studio any more. Reading links already given keep working; revoke them in “Reading links” to withdraw them."
-                moved_shared: "Deliverable shared with the team."
-                moved_personal: "Deliverable kept to yourself."
+                move_personal: "Make personal"
+                move_personal_hint: "It moves back to “Personal”: nobody else sees it in Studio any more. Reading links already given keep working; revoke them from “Share” to withdraw them."
+                moved_shared: "Deliverable made shared."
+                moved_personal: "Deliverable made personal."
                 settings_hint: "Who sees this deliverable. Only its author changes this."
                 owner_only: "Only the deliverable's author changes this."
             tabs:
@@ -2147,13 +2016,13 @@ suite:
                 page_title: "Page colours"
                 page_hint: "The background, the header and the footer. Empty: the theme's colour. The text on top adjusts itself to stay readable."
                 background: "Background"
-                background_hint: "Behind the whole document."
+                background_hint: "Behind the whole deliverable."
                 header: "Header"
                 header_hint: "The top band: logo, \"prepared for\", date."
                 footer: "Footer"
                 footer_hint: "The bottom band."
                 content_title: "Content colours"
-                content_hint: "Over the theme's, for this document only: in the client's colours if you like."
+                content_hint: "Over the theme's, for this deliverable only: in the client's colours if you like."
                 accent: "Accent"
                 accent_hint: "Buttons, links and markers."
                 heading: "Headings"
@@ -2165,19 +2034,19 @@ suite:
                 highlight_color: "Hover colour"
                 title_section: "Title"
                 title_visible: "Show the title and summary at the top of the page"
-                title_visible_hint: "Untick it if the document opens on a header block that already carries its title. The title stays readable by screen readers."
+                title_visible_hint: "Untick it if the deliverable opens on a header block that already carries its title. The title stays readable by screen readers."
                 heading_style: "Large headings"
                 heading_style_hint: "The section headings of text zones. « Bold capitals » gives them the look of a report page title."
                 heading_styles:
                     theme: "As the theme"
                     display: "Bold capitals"
-                display: "Display"
-                display_hint: "« Web page » is read by scrolling. « Presentation » is turned section by section, like a slide show: one slide per large heading laid across the whole row."
+                display: "Reading"
+                display_hint: "« Read as a page » scrolls. « Read as a slideshow » turns this same page section by section, one slide per large heading laid across the whole row. To compose slides one by one, choose the Presentation format instead."
                 reader_pdf: "Let the reader download a PDF"
-                reader_pdf_hint: "Adds « Download as PDF » at the top of the page the client receives, on a link as in the space. Off by default: a document you do not want circulating as a file does not offer it."
+                reader_pdf_hint: "Adds « Download as PDF » at the top of the page the client receives, on a link as in the space. Off by default: a deliverable you do not want circulating as a file does not offer it."
                 displays:
-                    page: "Web page"
-                    slides: "Presentation"
+                    page: "Read as a page"
+                    slides: "Read as a slideshow"
                 presets:
                     title: "Looks"
                     hint: "A complete look in one click. The colours below can still be adjusted afterwards."
@@ -2189,7 +2058,7 @@ suite:
                     logo_applied: "Logo colours applied: the accent and the figures, then the headings."
             settings:
                 prepared_for_placeholder: "The recipient"
-                document_title: "The document"
+                document_title: "The deliverable"
                 summary: "Summary"
                 summary_placeholder: "Where your online presence stands, and what we suggest for the next three months."
                 summary_hint: "Under the title, in the client's list and at the top of the page."
@@ -2197,7 +2066,7 @@ suite:
                 thumbnail: "Image"
                 thumbnail_hint: "The deliverable's thumbnail in the lists, to spot it at a glance. Picked from the media library or uploaded."
                 locale: "Language"
-                locale_hint: "The document's own: it sets the page's dates and labels."
+                locale_hint: "The deliverable's own: it sets the page's dates and labels."
                 client_title: "What the client sees"
                 visible: "Visible to the client"
                 visible_hint: "Ticked, the deliverable appears in the client's space. Unticked, it stays a work in progress on your side; a reading link still opens it."
@@ -2244,7 +2113,7 @@ suite:
                 placeholders_hint: "Whoever holds the link will read them as they are. Replace them before giving the address out."
                 create_failed: "The link could not be created."
                 revoke_failed: "The link could not be revoked."
-                revoke_confirm: "Revoke this link? Whoever holds it will no longer open the document, and a revoked link is not restored."
+                revoke_confirm: "Revoke this link? Whoever holds it will no longer open the deliverable, and a revoked link is not restored."
                 delete: "Delete"
                 delete_confirm: "Delete this link? Nobody ever opened it: it leaves the list."
                 delete_failed: "This link could not be deleted."
@@ -2261,19 +2130,22 @@ suite:
                 locale_invalid: "This language is not active on the site."
                 grid_invalid: "The grid sent is unreadable."
                 scope_invalid: "That visibility does not exist: choose personal or shared."
+                format_invalid: "That format does not exist: choose a page or a presentation."
+                format_unavailable: "This format cannot be created yet: choose a page."
+                import_empty: "This text holds nothing a slide can be made from."
                 conflict: "A colleague saved this deliverable in the meantime. Reload the page to see their version, or save anyway to replace it."
         space_resources:
             guide:
                 title: "How resources work"
-                step_1: "“Add” pins a link (a mock-up, an access), a text (instructions) or a contact (the person who approves)."
-                step_2: "A new item is kept for the studio and filed under “For you only”."
-                step_3: "“Show to the client” moves it to “What the client sees”, readable by anyone with an access link."
-                step_4: "Never put a password in a visible item; the arrows set the display order."
-            intro: "What lives elsewhere and gets looked for every time: a mockup, an access, the person who signs off. Each item is shown or hidden from the client, one by one."
-            add: Add
+                step_1: "“New resource” pins a link (a mock-up, an access), a text (instructions) or a contact (the person who approves)."
+                step_2: "A new resource is hidden from the client and filed under “For you only”."
+                step_3: "“Show to the client” moves it to “What the client sees”, readable by anyone with an access link; it needs the right to share the space."
+                step_4: "Never put a password in a resource visible to the client; the arrows set the display order."
+            intro: "What lives elsewhere and gets looked for every time: a mockup, an access, the person who signs off. Each resource is shown to or hidden from the client, one by one."
+            add: "New resource"
             add_confirm: Add
             edit: Edit
-            delete: Delete this item
+            delete: "Delete this resource"
             delete_confirm: 'Delete "{label}"?'
             empty: Nothing is pinned on this space yet.
             empty_hint: "A Canva link, the host's dashboard, the name of the person who signs off: what you find here rather than in your bookmarks."
@@ -2281,8 +2153,8 @@ suite:
             group_hidden: For you only
             show: Show to the client
             hide: Hide from the client
-            now_visible: The client can see this item.
-            now_hidden: The client can no longer see this item.
+            now_visible: "The client can see this resource."
+            now_hidden: "The client can no longer see this resource."
             move_up: Move up
             move_down: Move down
             kind: What is it?
@@ -2304,9 +2176,9 @@ suite:
             body_hint_link: Optional. What to know before opening this link.
             body_hint_text: Whatever you want kept here.
             body_hint_contact: Optional. Their role, their hours, what to know.
-            visible_to_client: The client can see this item
+            visible_to_client: "Visible to the client"
             visible_hint_on: Anybody holding an access link to this space will see it.
-            visible_hint_off: The item stays between you. The client knows neither its name nor that it exists.
+            visible_hint_off: "The resource stays between you. The client knows neither its name nor that it exists."
             errors:
                 label_required: The name is required.
                 label_too_long: The name cannot exceed 180 characters.
@@ -2325,22 +2197,23 @@ suite:
             chat: '%who% wrote to you'
             comment: '%who% commented on "%item%"'
             upload: '%who% sent a file on "%item%"'
+            space_upload: '%who% sent "%file%" to the space files'
             approved: '%who% approved "%item%"'
-            approved_many: '%who% approved %count% items'
-            changes_requested: '%who% asked for a rewrite of "%item%"'
+            approved_many: "%who% approved %count% content items"
+            changes_requested: "%who% answered “Changes requested” on \"%item%\""
             late_review: '{1}One review overdue|]1,Inf[%count% reviews overdue'
         space_chat:
             guide:
                 title: "How the chat works"
-                step_1: "The chat is for what does not concern one card; what is about a publication goes in its card's thread."
-                step_2: "The “General” channel is always open to the client: they read it and can answer."
-                step_3: "A new channel stays internal; “Open to the client” makes it readable by anyone with an access link."
+                step_1: "The chat is for what does not concern one content item; what is about a content item goes in its own thread."
+                step_2: "The “General” channel is always visible to the client: they read it and can answer."
+                step_3: "A new channel stays internal; “Show to the client”, with the right to share the space, makes it readable by anyone with an access link."
                 step_4: "Private messages are between two team members, and nobody else reads them."
             channels:
                 main_name: General
                 notice_internal: "This channel is internal: the client does not read it."
             errors:
-                main_stays_open: "The main channel stays open to the client: it is the space's conversation."
+                main_stays_open: "The main channel stays visible to the client: it is the space's conversation."
                 direct_has_no_audience: A private conversation has no audience to set.
                 channel_not_deletable: Only channels opened here can be deleted.
                 direct_keeps_both: A private conversation keeps both of its people.
@@ -2356,22 +2229,23 @@ suite:
         space_content:
             guide:
                 title: "How the board works"
-                step_1: "Each column is a stage (Ideas, Writing, To validate, Scheduled, Published): drag a card to move it forward."
-                step_2: "A dated card, in a stage the client can see and not yet published, waits for their opinion."
-                step_3: "“Send for review” emails every recipient who can validate, with a fresh link to answer “Approved” or “To rework”."
-                step_4: "The client's answer does not move the card: you move it forward after reading it."
-                step_5: "Editing a card's text or files clears the client's answer: it needs reviewing again."
+                step_1: "Each column is a step (Ideas, Writing, To approve, Scheduled, Published): drag a content item to move it forward."
+                step_2: "A dated content item, in a step the client can see and not yet published, waits for their opinion."
+                step_3: "“Send for review” emails every recipient who can approve, with a fresh link to answer “Approved” or “Changes requested”."
+                step_4: "The client's answer does not move the content item: you move it forward after reading it."
+                step_5: "Editing a content item's text or files clears the client's answer: it needs reviewing again."
+                step_6: "A new step is hidden from the client; a new space shows them only “To approve” and “Published”. Showing or hiding a step needs the right to share the space."
             tab: Workspace
             view_label: View
             nav_open: Change section
             nav_title: Space sections
             nav_groups:
                 work: Work
-                documents: Documents
+                documents: "Files and deliverables"
                 client: Client
                 other: Other
             view_content: Content
-            shape_board: Kanban
+            shape_board: "Board"
             shape_list: List
             calendar_day_empty: Nothing scheduled that day.
             view_calendar: Calendar
@@ -2383,7 +2257,6 @@ suite:
             view_resources: Resources
             view_deliverables: 'Deliverables'
             view_settings: Settings
-            files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
             files_unknown_card: Deleted content
             files_open: Open
@@ -2394,8 +2267,6 @@ suite:
             orphaned_trashed: "Moved to the library's trash. | {count} files moved to the library's trash."
             files_as_cards: Show as cards
             files_as_rows: Show as a list
-            board: Board
-            calendar: Calendar
             today: Today
             unscheduled_rail: No date
             unscheduled_rail_empty: Everything is scheduled.
@@ -2403,19 +2274,20 @@ suite:
             row_actions:
                 edit_description: Edit this content
                 view_description: Read this content, its files and its thread
-                delete_description: Delete this content
+                delete_description: Move this content item to the trash
             calendar_name: Client content
             back_to_spaces: Back to spaces
             switch_space: "Switch space"
-            add_item: Add content
-            create_item: New content
+            add_item: "New content item"
+            create_item: "New content item"
             edit_item: 'Edit {title}'
             view_item: 'View {title}'
             item_created: Content created.
             item_updated: Content updated.
-            item_deleted: Content deleted.
-            delete_item_confirm: 'Delete {title}?'
-            delete_item_warning: The content and its text go. The other cards stay where they are.
+            item_deleted: Content item moved to the trash.
+            trash_action: "Move to the trash"
+            delete_item_confirm: 'Move {title} to the trash?'
+            delete_item_warning: "It leaves the board, the list, the calendar and the client's page. Its thread and files stay with it in the trash, from where it comes back to its step until it is deleted for good."
             empty_column: Nothing here yet.
             empty_board: No content in this space. Add one to get started.
             unscheduled: No date
@@ -2423,16 +2295,16 @@ suite:
             comment_posted: Message sent.
             comment_deleted: Message deleted.
             attachment_added: File added.
-            attachment_removed: File removed from the card.
+            attachment_removed: "File removed from the content item."
             approval_reset_warning: 'Changing the title or the text clears this answer: it was about what was shown.'
             approvals:
                 pending: Pending
                 approved: Approved
-                changes_requested: Needs changes
+                changes_requested: "Changes requested"
             scheduled_for: 'On {date}'
 
             title: Title
-            title_placeholder: 'What the post says, in one line'
+            title_placeholder: "What the content item says, in one line"
             body: Text
             body_placeholder: The content as it will go out.
             column: Step
@@ -2441,26 +2313,26 @@ suite:
             review_by: Answer needed before
             review_by_hint: 'Optional. The date you need the client answer by to hold the publication date. Nothing is blocked at the deadline: it just shows.'
             review:
-                banner_title: "Nothing is waiting for the client | 1 piece of content is waiting for the client's answer | {count} pieces of content are waiting for the client's answer"
-                banner_body: "Send them for review: the client gets an email with a link to approve them or ask for changes, with no account to create."
+                banner_title: "Nothing is waiting for the client | 1 content item is waiting for the client's answer | {count} content items are waiting for the client's answer"
+                banner_body: "Send them for review: the client gets an email with a link to approve them or answer “Changes requested”, with no account to create."
                 banner_action: Send for review
                 banner_hide: Hide this banner
                 confirm_title: Send for review?
-                confirm_body: '{count} piece(s) of content are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working.'
+                confirm_body: "{count} content item(s) are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working."
                 confirm_send: Send
                 sent: 'Sent to {count} recipient(s).'
                 nothing_awaiting: Nothing is waiting for an answer right now.
-                nobody_to_write_to: 'No link on this space can answer. Issue an access with the right to approve from the Access tab.'
+                nobody_to_write_to: "No link on this space can answer. Issue an access link with the right to approve from the Client access tab."
                 late: '{count} late'
-                late_hint: 'These have passed the date you needed an answer by. Nothing is blocked because of it.'
+                late_hint: "These content items have passed the date you needed an answer by. Nothing is blocked because of it."
                 due: "Answer by {date}"
                 late_since: "Answer was due {date}"
             show_on_calendar: Show on the calendar
-            show_on_calendar_hint: "Unchecked, the card keeps its date and stays on the board, but appears neither on your calendar nor on the client's."
+            show_on_calendar_hint: "Unchecked, the content item keeps its date and stays on the board, but appears neither on your calendar nor on the client's."
             scheduled_at_placeholder: '22/09/2026 09:00'
             timezone_notice: 'Times are in the space''s zone, {timezone}.'
 
-            add_column: Add a step
+            add_column: "New step"
             create_column: New step
             edit_column: Rename the step
             move_column: "Move the step"
@@ -2470,20 +2342,20 @@ suite:
             column_colour_hint: Optional. It marks the step on the board, and colours its content on the calendar.
             column_visible: Visible to the client
             column_visible_hint: "Unchecked, this step and its content do not appear in the space the client opens through their link. They stay on your board."
+            column_state_visible: "This step is visible to the client."
+            column_state_hidden: "This step is hidden from the client."
             column_created: Step added.
             column_updated: Step renamed.
             column_deleted: Step deleted.
             delete_column_confirm: 'Delete the step {name}?'
-            delete_column_warning: A step is only deleted when it is empty.
+            delete_column_warning: "A step is only deleted when it is empty. The content items in the trash that were on it move to the first step."
 
             column_role: Step role
-            column_role_hint: Optional. Says which common stage this step stands for, so the dashboard and the editorial calendar can count it.
+            column_role_hint: "Optional. “Review” marks the step where the client approves: only the content items waiting there count as “with the client”. “Published” marks what is out."
+            step_hidden_from_client: "Hidden from the client"
             column_role_none: None
             column_roles:
-                idea: Idea
-                production: Production
                 review: Review
-                scheduled: Scheduled
                 published: Published
             default_columns:
                 idea: Ideas
@@ -2500,15 +2372,15 @@ suite:
                 review_by_invalid: The review date is invalid.
                 column_name_required: The step name is required.
                 column_name_too_long: The name cannot be longer than 100 characters.
-                column_not_empty: 'This step holds {count} items. Move them before deleting it.'
+                column_not_empty: "This step holds {count} content item(s). Move them before deleting it."
                 column_last: A board keeps at least one step.
                 comment_required: The message cannot be empty.
                 comment_needs_account: You have to be signed in to write on a thread.
                 comment_from_client: A client's message is not deleted. It is what they asked you for.
                 not_in_space: This content does not belong to this space.
                 attachment_required: Choose a file.
-                attachment_unknown: That document does not exist any more.
-                attachment_duplicate: That file is already on this card.
+                attachment_unknown: "That file does not exist any more."
+                attachment_duplicate: "That file is already on this content item."
                 attachment_needs_account: You have to be signed in to add a file.
 
             attachments:
@@ -2627,12 +2499,13 @@ studio:
         space:
             guide:
                 title: "How to use your space"
-                step_calendar: "The calendar shows, month by month, what is planned for you: click a post to read it with its files."
-                step_answer: "In a post, answer “Approved” or “Needs changes”; the ones awaiting your opinion are one click away above the calendar."
-                step_comment_upload: "Under each post, write to your provider or attach an image, a PDF or a video of up to 25 MB."
-                step_comment: "Under each post, write to your provider to ask a question or say what needs reworking."
-                step_upload: "You can attach an image, a PDF or a video of up to 25 MB to a post."
-                step_chat: "The “Conversation” tab is for talking with your provider outside the posts."
+                step_calendar: "The calendar shows, month by month, what is planned for you: click a content item to read it with its files."
+                step_answer: "In a content item, answer “Approved” or “Changes requested”; the ones awaiting your opinion are one click away above the calendar."
+                step_comment_upload: "Under each content item, write to your provider or attach an image, a PDF or a video of up to 25 MB."
+                step_comment: "Under each content item, write to your provider to ask a question or say what needs changes."
+                step_upload: "You can attach an image, a PDF or a video of up to 25 MB to a content item."
+                step_files_upload: "In the “Files” tab, “Send a file” passes an image, a PDF or a video of up to 25 MB to your agency, without attaching it to a content item."
+                step_chat: "The “Conversation” tab is for talking with your provider outside the content items."
                 step_chat_read: "The “Conversation” tab shows your exchanges with your provider, read only."
                 step_tabs: "The other tabs, at the top of the page, gather what your provider shares with you, such as files or deliverables."
             unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
@@ -2642,12 +2515,12 @@ studio:
             nothing_awaiting: You have answered everything that was waiting.
             select_all: Select all
             approve_selected: 'Approve selection ({count})'
-            approved_many: '{count} piece(s) of content approved.'
+            approved_many: "{count} content item(s) approved."
             review_by: 'to review before {date}'
             approval:
                 approved: Approved
                 changes_requested: Changes requested
-            drive_title: Shared documents
+            drive_title: "Drive files"
             drive_download: Download the file
             preview_notice: "Preview: this is what the holder of this link sees. Nothing you click here reaches them, and this address expires in a few minutes."
             drive_archive: Download everything (.zip)
@@ -2659,24 +2532,29 @@ studio:
             tabs_label: What you want to see
             tab_calendar: Calendar
             tab_chat: Conversation
-            tab_files: Documents
-            tab_resources: Links
+            tab_files: "Files"
+            tab_resources: "Resources"
             tab_documents: 'Deliverables'
-            document_untitled: 'Untitled document'
+            document_untitled: "Untitled deliverable"
             document_updated_on: 'Updated on {date}'
+            document_presentation: 'Presentation'
             tab_information: Information
             files_title: This space's files
             files_open: Open
             upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."
+            files_upload: Send a file
+            files_uploaded: "File sent. Your agency finds it in your space."
+            files_sent_by: 'Sent by {author}'
+            files_empty: "No file yet. Send here what your agency expects from you: logo, photos, documents."
             approve: Approved
-            request_changes: Needs changes
-            answer_hint: 'To ask for changes, say what is wrong in the discussion above.'
+            request_changes: "Changes requested"
+            answer_hint: "To answer “Changes requested”, say what is wrong in the discussion above."
             answer_recorded: Your answer has been recorded.
             already_approved: 'You approved this content on {date}.'
-            already_changes_requested: 'You asked for changes on {date}.'
+            already_changes_requested: "You answered “Changes requested” on {date}."
             errors:
                 approval_invalid: Answer not recognised.
-                nothing_selected: Select at least one piece of content.
+                nothing_selected: "Select at least one content item."
                 comment_required: The message cannot be empty.
                 too_many_requests: Too many answers in a row. Try again in a few minutes.
                 upload_required: Choose a file to send.
@@ -2708,12 +2586,12 @@ studio:
             hash: 'Document hash'
             observed: 'Signed on {at}, from {ip}'
             code_verified: 'Confirmation code verified on {at}, sent to {email}'
-            authenticated: 'Signed from an authenticated suite account'
+            authenticated: "Signed from the Provider's authenticated account"
             notice: 'This hash identifies the signed wording. Any change to the document would produce a different one.'
     email:
         space_review:
             subject: 'Your answer is needed on {space}'
-            body: '{count} piece(s) of content are waiting for your answer in the {space} space. You can approve them or ask for changes, and comment on each one.'
+            body: "{count} content item(s) are waiting for your answer in the {space} space. You can approve them or answer “Changes requested”, and comment on each one."
             cta: Open my space
             replaces: 'This address replaces the previous one, which no longer works. It is personal, please do not pass it on.'
             expires: 'It stays valid until {date}.'

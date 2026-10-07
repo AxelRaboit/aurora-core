@@ -34,11 +34,11 @@ final class ImpersonateRedeemController extends AbstractController
             throw $this->createAccessDeniedException('Invalid or expired impersonation token.');
         }
 
-        $authToken = new PostAuthenticationToken($user, 'main', $user->getRoles());
-        $this->tokenStorage->setToken($authToken);
-        $request->getSession()->set('_security_front', serialize($authToken));
+        $authenticationToken = new PostAuthenticationToken($user, 'main', $user->getRoles());
+        $this->tokenStorage->setToken($authenticationToken);
+        $request->getSession()->set('_security_front', serialize($authenticationToken));
 
-        $this->dispatcher->dispatch(new InteractiveLoginEvent($request, $authToken));
+        $this->dispatcher->dispatch(new InteractiveLoginEvent($request, $authenticationToken));
 
         $front = $this->router->getDefault();
 

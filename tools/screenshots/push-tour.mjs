@@ -1,24 +1,24 @@
 /**
- * Envoie les captures du tour sur les cartes de la page publique.
+ * Sends the tour screenshots to the cards of the public page.
  *
- * **Les trois gestes étaient manuels et répétés vingt-quatre fois** : prendre
- * la capture, la copier sur le serveur, appeler `aurora:ged:replace` avec le
- * bon identifiant. Le dernier demandait de connaître cet identifiant, et il ne
- * vivait nulle part dans le dépôt - le scénario de capture affirme que « la
- * carte n'a rien à savoir » parce qu'elle montre un document nommé d'après la
- * prise, sauf que `aurora:ged:replace` change le nom stocké à chaque
- * remplacement. Le nom d'origine ne se retrouve donc plus.
+ * **The three steps were manual and repeated twenty-four times**: take the
+ * screenshot, copy it to the server, call `aurora:ged:replace` with the
+ * right identifier. The last one required knowing that identifier, and it
+ * lived nowhere in the repository - the capture script claims that "the
+ * card has nothing to know" because it shows a document named after the
+ * shot, except that `aurora:ged:replace` changes the stored name on every
+ * replacement. The original name can therefore no longer be found.
  *
- * La table vit maintenant dans `tour-cards.json`, à côté du scénario.
+ * The table now lives in `tour-cards.json`, next to the capture script.
  *
- * Usage :
- *   node tools/screenshots/capture-tour.mjs        # d'abord, contre la démo locale
- *   node tools/screenshots/push-tour.mjs --dry-run # ce qui partirait
- *   node tools/screenshots/push-tour.mjs           # envoyer
+ * Usage:
+ *   node tools/screenshots/capture-tour.mjs        # first, against the local demo
+ *   node tools/screenshots/push-tour.mjs --dry-run # what would be sent
+ *   node tools/screenshots/push-tour.mjs           # send
  *   node tools/screenshots/push-tour.mjs tour-contrats tour-espaces-clients
  *
- * Le serveur est nommé par `TOUR_SSH_HOST` et le projet par `TOUR_REMOTE_DIR`,
- * sans valeur par défaut : voir `lib/remote.mjs`.
+ * The server is named by `TOUR_SSH_HOST` and the project by `TOUR_REMOTE_DIR`,
+ * with no default value: see `lib/remote.mjs`.
  */
 
 import { execFile } from "node:child_process";
@@ -43,11 +43,11 @@ const only = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const { cards } = JSON.parse(await readFile(resolve(here, "tour-cards.json"), "utf8"));
 
 /**
- * Ce qui part : une capture prise, et une carte pour la recevoir.
+ * What gets sent: a screenshot taken, and a card to receive it.
  *
- * Les deux moitiés se vérifient avant d'envoyer quoi que ce soit, parce qu'un
- * envoi qui s'arrête au milieu laisse la page à moitié refaite, ce qui est
- * pire qu'une page entièrement périmée : on ne sait plus ce qu'on regarde.
+ * Both halves are checked before sending anything, because a send that
+ * stops halfway leaves the page half redone, which is worse than a page
+ * that is entirely out of date: you no longer know what you are looking at.
  */
 const wanted = Object.entries(cards).filter(([name]) => 0 === only.length || only.includes(name));
 
@@ -105,8 +105,8 @@ for (const { name, file, document, slug } of ready) {
     process.stdout.write(`  → ${name} (#${document}) `);
 
     try {
-        // Par l'entrée standard plutôt que par `scp` : un seul canal, et rien
-        // à nettoyer si la connexion tombe au milieu.
+        // Through standard input rather than `scp`: a single channel, and nothing
+        // to clean up if the connection drops halfway.
         await run("sh", ["-c", `ssh ${HOST} 'cat > ${REMOTE_TMP}/${name}.png' < ${JSON.stringify(file)}`]);
         await run("ssh", [
             HOST,
@@ -119,8 +119,8 @@ for (const { name, file, document, slug } of ready) {
     }
 }
 
-// Le transit est vidé : ce sont des captures d'un jeu de démonstration, mais
-// elles n'ont rien à faire dans un `/tmp` de production après l'envoi.
+// The transit directory is emptied: these are screenshots of a demo data
+// set, but they have no business in a production `/tmp` after the send.
 await run("ssh", [HOST, `rm -rf ${REMOTE_TMP}`]).catch(() => {});
 
 console.log(failed === 0 ? "\n✅ Toutes les cartes sont à jour." : `\n❌ ${failed} échec(s).`);

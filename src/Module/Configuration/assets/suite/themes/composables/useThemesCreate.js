@@ -18,7 +18,10 @@ export function useThemesCreate(themeList, createPath, options = {}) {
         slug: "",
         description: "",
         ...Object.fromEntries(
-            Object.entries(extraFields).map(([key, def]) => [key, def.default]),
+            Object.entries(extraFields).map(([key, definition]) => [
+                key,
+                definition.default,
+            ]),
         ),
     });
 
@@ -29,8 +32,8 @@ export function useThemesCreate(themeList, createPath, options = {}) {
         createForm.name = "";
         createForm.slug = "";
         createForm.description = "";
-        for (const [key, def] of Object.entries(extraFields)) {
-            createForm[key] = def.default;
+        for (const [key, definition] of Object.entries(extraFields)) {
+            createForm[key] = definition.default;
         }
         createModal.open = true;
     }

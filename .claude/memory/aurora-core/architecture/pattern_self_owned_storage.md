@@ -116,7 +116,7 @@ protected ?DocumentInterface $document = null;
 - `SpaceContentAttachment.document` - FK, `onDelete: CASCADE`
 - `Post.thumbnail` et `PostTranslation.ogImage` - FK, `SET NULL`
 - `Post.galleryLayout.items[].mediaId` - id **dans du JSON**
-- `Deck` : `mediaId` / `bgMediaId` / `bgVideoId` par slide, le `mediaId` de
+- `Slide` (d'un livrable au format présentation) : `mediaId` / `bgMediaId` / `bgVideoId` par slide, le `mediaId` de
   chaque élément d'une diapo libre (`elements[]`), et `logoMediaId` dans le
   style, également en JSON (`DeckPictures` est la seule liste qui sait où)
 
@@ -132,7 +132,7 @@ la suppression casse en silence - en `CASCADE` la pièce jointe disparaît
 de l'espace du client, en `SET NULL` le billet perd sa couverture.
 Deux formes selon le stockage : **query builder Doctrine** quand c'est une
 FK (exact, refactor-safe), **scan** quand l'id vit dans du JSON
-(`DeckDocumentUsageProvider`).
+(`DeliverableDocumentUsageProvider`, grille et diapositives).
 
 ## Re-traiter une image (crop/rotate/…) - toujours vers un NOUVEAU path
 

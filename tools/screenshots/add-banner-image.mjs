@@ -1,27 +1,27 @@
 /**
- * Ajouter une image au bandeau d'une page, sans toucher au reste.
+ * Add an image to a page's banner, without touching the rest.
  *
- * `set-tour-banner.mjs` **réécrit** un bandeau à partir du titre et du résumé
- * de la page : c'est ce qu'il faut pour les pages du tour, qui se ressemblent
- * toutes. Le sommaire, lui, a un bandeau écrit à la main, avec son argumentaire
- * et son bouton, et le refabriquer le perdrait.
+ * `set-tour-banner.mjs` **rewrites** a banner from the page's title and
+ * summary: that is what the tour pages need, since they all look alike. The
+ * index page, though, has a hand-written banner, with its pitch and its
+ * button, and rebuilding it would lose them.
  *
- * D'où cet outil-ci : il lit les éléments en place, en insère un de plus, et
- * repose le tout. Les éléments d'un bandeau se répartissent sur les mêmes 48
- * colonnes que le reste, donc la largeur choisie décide aussi de ce qui reste
- * sur la ligne.
+ * Hence this tool: it reads the elements in place, inserts one more, and
+ * puts everything back. A banner's elements are spread over the same 48
+ * columns as the rest, so the chosen width also decides what stays on the
+ * row.
  *
- * `--background` vise l'autre emplacement d'image d'un bandeau : le fond,
- * derrière tout le reste, qui n'est pas un élément de la liste. C'est là que
- * vit le visuel d'une entête ; `logoMediaId` rend une marque de 40 pixels en
- * haut à gauche et n'est pas ce qu'on cherche.
+ * `--background` targets the banner's other image slot: the background,
+ * behind everything else, which is not an element of the list. That is where
+ * a header's visual lives; `logoMediaId` renders a 40 pixel mark at the top
+ * left and is not what we want.
  *
- * Usage :
+ * Usage:
  *   node tools/screenshots/add-banner-image.mjs <postId> <capture> [--span 20] [--after <n>] [--dry-run]
  *   node tools/screenshots/add-banner-image.mjs <postId> <capture> --background
  *
- * `--after` est l'indice, à partir de zéro, de l'élément derrière lequel se
- * glisser ; par défaut l'image suit le premier élément.
+ * `--after` is the zero-based index of the element to slip in behind; by
+ * default the image follows the first element.
  */
 import { execFile } from "node:child_process";
 import { writeFile } from "node:fs/promises";
@@ -66,10 +66,10 @@ if (!Number.isInteger(postId) || (undefined === capture && null === remove)) {
 }
 
 /**
- * Une requête, par fichier.
+ * One query, per file.
  *
- * Jamais en ligne : psql lit la valeur d'un `\set` comme sa propre syntaxe,
- * et `execFile` ignore en silence une entrée standard passée en option.
+ * Never inline: psql reads the value of a `\set` as its own syntax, and
+ * `execFile` silently ignores a standard input passed as an option.
  */
 async function sql(query) {
     const local = resolve(tmpdir(), `aurora-q-${randomBytes(6).toString("hex")}.sql`);
@@ -97,10 +97,10 @@ if (0 === items.length) {
 
 console.log(`Bandeau de la page ${postId} : ${items.map((i) => `${i.type}/${i.span?.lg ?? "?"}`).join(", ")}`);
 
-// **Le retrait, parce qu'un ajout se juge une fois posé.** Celui du sommaire
-// est parti sur une page dont le bandeau portait déjà des captures en fond :
-// la petite image par-dessus encombrait au lieu d'ajouter, et il fallait
-// pouvoir défaire sans réécrire le bandeau à la main.
+// **Removal, because an addition is judged once it is in place.** The one on
+// the index page went onto a page whose banner already carried screenshots
+// in the background: the small image on top cluttered instead of adding, and
+// it had to be undoable without rewriting the banner by hand.
 if (null !== remove) {
     const kept = items.filter((i) => Number(i.mediaId) !== remove);
 
@@ -117,9 +117,9 @@ if (null !== remove) {
     process.exit(0);
 }
 
-// L'image part sur le serveur, puis dans la médiathèque, avant d'être
-// référencée : un bandeau qui pointerait un document inexistant s'afficherait
-// sans rien, et le corriger demanderait une seconde écriture en base.
+// The image goes to the server, then into the media library, before being
+// referenced: a banner pointing to a missing document would show nothing,
+// and fixing it would take a second database write.
 const source = resolve(shotsDir, `${capture}.png`);
 let mediaId = null;
 
@@ -146,10 +146,10 @@ if (asBackground) {
 
     console.log(`Fond : #${before ?? "aucun"} → ${dryRun ? "(import non joué en simulation)" : `#${mediaId}`}`);
 
-    // **Le `--dry-run` ne passe pas par ici sans cette garde.** La première
-    // version écrivait quand même, et comme l'import n'est pas joué en
-    // simulation le `mediaId` valait null : une simulation a effacé le fond
-    // de l'entête en production. Une simulation qui écrit n'est pas une
+    // **`--dry-run` does not get through here without this guard.** The
+    // first version wrote anyway, and since the import is not run in
+    // simulation the `mediaId` was null: a simulation erased the header's
+    // background in production. A simulation that writes is not a
     // simulation.
     if (dryRun) {
         console.log("Rien n'a été écrit.");
@@ -163,8 +163,8 @@ if (asBackground) {
     process.exit(0);
 }
 
-// Le modèle est un élément existant : ses clés sont celles que le
-// normaliseur écrit, et les recopier évite d'en inventer une de travers.
+// The model is an existing element: its keys are the ones the normalizer
+// writes, and copying them avoids inventing a wrong one.
 const model = items[0];
 
 const image = {
@@ -209,8 +209,8 @@ async function write(payload) {
             `sudo -u postgres psql -v ON_ERROR_STOP=1 -d $db -f ${REMOTE_TMP}/addimg-${postId}.sql`,
     ]);
 
-    // Une écriture en base ne traverse pas le cache applicatif : la page
-    // servirait son ancien HTML pendant une heure.
+    // A database write does not go through the application cache: the page
+    // would serve its old HTML for an hour.
     await run("ssh", [HOST, `cd ${REMOTE_DIR} && sudo -u www-data php bin/console cache:pool:clear cache.app --env=prod`]);
 
     console.log("✅ bandeau mis à jour, cache vidé.");

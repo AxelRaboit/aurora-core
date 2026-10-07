@@ -1,26 +1,26 @@
 /**
- * Le bloc QR code - `[data-qr-code]`.
+ * The QR code block - `[data-qr-code]`.
  *
- * Dessine le code dans un canvas à partir de `data-qr-text`, pose au centre
- * l'image de `data-qr-logo` sur un carré blanc, et propose de télécharger le
- * tout en PNG. Avec une image, le code est fait au niveau de correction le
- * plus haut (H, 30 %) : c'est ce qui laisse un lecteur le déchiffrer malgré
- * ce que l'image cache. L'image ne couvre jamais plus de 22 % de la largeur,
- * bien en dessous de ce que H tolère.
+ * Draws the code in a canvas from `data-qr-text`, places the image from
+ * `data-qr-logo` in the centre on a white square, and offers to download the
+ * whole thing as a PNG. With an image, the code is made at the highest
+ * correction level (H, 30%): that is what lets a reader decode it despite
+ * what the image hides. The image never covers more than 22% of the width,
+ * well below what H tolerates.
  *
- * La bibliothèque n'est chargée que sur une page qui a un QR code.
+ * The library is only loaded on a page that has a QR code.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_qr_code.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_qr_code.html.twig
  */
 const SELECTOR = "[data-qr-code]";
 
-/** Définition du dessin : assez pour une impression nette, quelle que soit la taille affichée. */
+/** Drawing resolution: enough for a sharp print, whatever the displayed size. */
 const PIXELS = 1024;
 
-/** Part de la largeur que l'image du centre peut prendre. */
+/** Share of the width the centre image may take. */
 export const LOGO_SHARE = 0.22;
 
-/** Le carré blanc du centre et l'image dedans, en pixels, pour un code de `size` pixels. */
+/** The white centre square and the image inside it, in pixels, for a code of `size` pixels. */
 export function logoBox(size) {
     const box = Math.round(size * LOGO_SHARE);
     const padding = Math.round(box * 0.12);
@@ -34,12 +34,12 @@ export function logoBox(size) {
     };
 }
 
-function loadImage(src) {
+function loadImage(source) {
     return new Promise((resolve, reject) => {
         const image = new Image();
         image.onload = () => resolve(image);
         image.onerror = reject;
-        image.src = src;
+        image.src = source;
     });
 }
 
@@ -70,8 +70,8 @@ async function draw(QRCode, zone) {
         color: { dark: "#000000", light: "#ffffff" },
     });
 
-    // La bibliothèque fixe la taille affichée en pixels, celle du dessin :
-    // retirée, c'est la largeur choisie pour le bloc qui décide.
+    // The library sets the displayed size in pixels, the drawing's size:
+    // removed, it is the width chosen for the block that decides.
     canvas.style.removeProperty("width");
     canvas.style.removeProperty("height");
 
@@ -85,8 +85,8 @@ async function draw(QRCode, zone) {
             roundedRect(context, x, y, box, box, box * 0.18);
             context.fill();
 
-            // Recadré au carré, centré : un logo large ou une photo en hauteur
-            // gardent leurs proportions au lieu d'être écrasés.
+            // Cropped to a centred square: a wide logo or a tall photo keep their
+            // proportions instead of being squashed.
             const crop = Math.min(image.naturalWidth, image.naturalHeight);
             context.save();
             roundedRect(
@@ -111,7 +111,7 @@ async function draw(QRCode, zone) {
             );
             context.restore();
         } catch {
-            // Sans l'image, le code reste lisible : il est seulement plus sobre.
+            // Without the image the code stays readable: it is only plainer.
         }
     }
 
@@ -147,7 +147,7 @@ async function arm() {
             await draw(QRCode, zone);
         }
     } catch {
-        // Le lien reste affiché à la place du code.
+        // The link stays displayed in place of the code.
     }
 }
 

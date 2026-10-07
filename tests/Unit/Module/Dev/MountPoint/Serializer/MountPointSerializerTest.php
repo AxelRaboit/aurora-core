@@ -18,24 +18,24 @@ final class MountPointSerializerTest extends TestCase
         ?DateTimeImmutable $lastTestedAt = null,
         ?bool $lastTestSuccessful = null,
     ): MountPointInterface {
-        $mp = $this->createStub(MountPointInterface::class);
-        $mp->method('getId')->willReturn(1);
-        $mp->method('getName')->willReturn('Prod DB');
-        $mp->method('getType')->willReturn(MountPointTypeEnum::Database);
-        $mp->method('getHost')->willReturn('db.example.com');
-        $mp->method('getPort')->willReturn(5432);
-        $mp->method('getUsername')->willReturn('admin');
-        $mp->method('getPassword')->willReturn($password);
-        $mp->method('getSshPrivateKey')->willReturn($sshPrivateKey);
-        $mp->method('getSshPublicKey')->willReturn('ssh-rsa AAAA...');
-        $mp->method('getDatabase')->willReturn('mydb');
-        $mp->method('getConfig')->willReturn([]);
-        $mp->method('getLastTestedAt')->willReturn($lastTestedAt);
-        $mp->method('isLastTestSuccessful')->willReturn($lastTestSuccessful);
-        $mp->method('getCreatedAt')->willReturn(new DateTimeImmutable('2026-01-01T10:00:00+00:00'));
-        $mp->method('getUpdatedAt')->willReturn(new DateTimeImmutable('2026-01-02T10:00:00+00:00'));
+        $mountPoint = $this->createStub(MountPointInterface::class);
+        $mountPoint->method('getId')->willReturn(1);
+        $mountPoint->method('getName')->willReturn('Prod DB');
+        $mountPoint->method('getType')->willReturn(MountPointTypeEnum::Database);
+        $mountPoint->method('getHost')->willReturn('db.example.com');
+        $mountPoint->method('getPort')->willReturn(5432);
+        $mountPoint->method('getUsername')->willReturn('admin');
+        $mountPoint->method('getPassword')->willReturn($password);
+        $mountPoint->method('getSshPrivateKey')->willReturn($sshPrivateKey);
+        $mountPoint->method('getSshPublicKey')->willReturn('ssh-rsa AAAA...');
+        $mountPoint->method('getDatabase')->willReturn('mydb');
+        $mountPoint->method('getConfig')->willReturn([]);
+        $mountPoint->method('getLastTestedAt')->willReturn($lastTestedAt);
+        $mountPoint->method('isLastTestSuccessful')->willReturn($lastTestSuccessful);
+        $mountPoint->method('getCreatedAt')->willReturn(new DateTimeImmutable('2026-01-01T10:00:00+00:00'));
+        $mountPoint->method('getUpdatedAt')->willReturn(new DateTimeImmutable('2026-01-02T10:00:00+00:00'));
 
-        return $mp;
+        return $mountPoint;
     }
 
     public function testSerializeReturnsExpectedShape(): void

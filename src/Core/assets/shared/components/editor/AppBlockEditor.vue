@@ -103,14 +103,14 @@ function offered(tools) {
 
 const emit = defineEmits(["update:modelValue"]);
 
-const holderEl = ref(null);
+const holderElement = ref(null);
 
 // Where the caret last was inside these blocks, so an emoji picked from the
 // button above lands there rather than nowhere.
 let lastRange = null;
 function rememberCaret() {
     const selection = document.getSelection();
-    if (selection?.rangeCount && holderEl.value?.contains(selection.anchorNode)) {
+    if (selection?.rangeCount && holderElement.value?.contains(selection.anchorNode)) {
         lastRange = selection.getRangeAt(0).cloneRange();
     }
 }
@@ -176,7 +176,7 @@ async function renderBlocks(blocks) {
 
 onMounted(async () => {
     editor = new EditorJS({
-        holder: holderEl.value,
+        holder: holderElement.value,
         placeholder: props.placeholder || t("suite.editor.placeholder"),
         data: { blocks: toPlainBlocks(props.modelValue) },
         i18n: {
@@ -265,7 +265,7 @@ onMounted(async () => {
                 config: { defaultStyle: "unordered" },
             },
 
-            // Médias
+            // Media
             image: {
                 class: Image,
                 config: {
@@ -311,10 +311,9 @@ onMounted(async () => {
                     },
                 },
             },
-            // HTML ecrit a la main, pour ce que les autres blocs ne savent pas
-            // faire. Rendu par RawHtmlSanitizer cote serveur : large, mais ferme
-            // aux scripts, aux gestionnaires d'evenements et aux cadres vers un
-            // hote non liste.
+            // HTML written by hand, for what the other blocks cannot do. Rendered by
+            // RawHtmlSanitizer on the server side: broad, but closed to scripts, event
+            // handlers and frames to an unlisted host.
             raw: {
                 class: Raw,
                 config: {
@@ -382,7 +381,7 @@ onMounted(async () => {
                 },
             },
 
-            // Une pastille au-dessus d'une colonne, le nom d'un concurrent.
+            // A badge above a column, the name of a competitor.
             label: {
                 class: LabelBlock,
                 config: {
@@ -391,7 +390,7 @@ onMounted(async () => {
                     toneLabels:  Object.fromEntries(LABEL_TONES.map((tone) => [tone, t(`suite.editor.label.tones.${tone}`)])),
                 },
             },
-            // Les comptes d'une marque, chacun avec le logo de son réseau.
+            // The accounts of a brand, each with the logo of its network.
             socials: {
                 class: SocialsBlock,
                 config: {
@@ -483,7 +482,7 @@ onBeforeUnmount(async () => {
         <div class="mb-1 flex justify-end">
             <AppEmojiPicker v-on:pick="insertEmoji" />
         </div>
-        <div ref="holderEl" class="editor-block-holder" v-on:keyup="rememberCaret" v-on:mouseup="rememberCaret" />
+        <div ref="holderElement" class="editor-block-holder" v-on:keyup="rememberCaret" v-on:mouseup="rememberCaret" />
     </div>
-    <div v-else ref="holderEl" class="editor-block-holder" />
+    <div v-else ref="holderElement" class="editor-block-holder" />
 </template>

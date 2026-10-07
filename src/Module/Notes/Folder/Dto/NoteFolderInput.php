@@ -20,19 +20,19 @@ class NoteFolderInput implements NoteFolderInputInterface
         #[Assert\Length(max: 150)]
         public readonly ?string $name = null,
         /**
-         * Une couleur refusée n'est pas silencieusement ignorée.
+         * A refused colour is not silently ignored.
          *
-         * Le nom est libre, la couleur non : elle finit dans un attribut de
-         * style, donc tout ce qui n'est pas `#rrggbb` est un refus et non
-         * une valeur nettoyée. La fabrique laisse passer ce qu'elle reçoit
-         * pour que ce soit cette contrainte qui le dise.
+         * The name is free, the colour is not: it ends up in a style
+         * attribute, so anything that is not `#rrggbb` is a refusal and not a
+         * cleaned value. The factory lets through what it receives so that
+         * this constraint is the one that says so.
          */
         #[Assert\Regex(pattern: '/^#[0-9a-fA-F]{6}$/', message: 'notes.markdown.folders.errors.bad_color')]
         public readonly ?string $color = null,
         public readonly ?int $parentId = null,
         #[Assert\PositiveOrZero]
         public readonly ?int $position = null,
-        /** L'espace d'une création à la racine ; null pour son espace personnel. Un dossier impose le sien. */
+        /** The space of a creation at the root; null for one's personal space. A folder imposes its own. */
         public readonly ?int $spaceId = null,
     ) {}
 

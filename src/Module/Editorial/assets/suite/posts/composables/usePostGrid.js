@@ -654,7 +654,7 @@ function newZone(type) {
         // A list with no filter is the whole site, newest first - the answer
         // that needs no setting up, which is what a zone should do on arrival.
         taxonomyId: null,
-        deckId: null,
+        deliverableId: null,
         postTypeId: null,
         termId: null,
         limit: 3,
@@ -705,8 +705,8 @@ function newZone(type) {
         // it one, so changing the page's moves everything that never
         // disagreed.
         reveal: "inherit",
-        // Personne ne colle une zone par défaut : c'est une décision de mise
-        // en page, pas un comportement.
+        // Nobody makes a zone sticky by default: it is a layout decision, not
+        // a behaviour.
         sticky: false,
         fullBleed: false,
         // A header zone's design - the banner's own layout, switched on since
@@ -844,9 +844,9 @@ export function usePostGrid(layout, content) {
         audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
         language: CODE_LANGUAGES.map((value) => ({ value, label: value })),
-        limit: Array.from({ length: MAX_LIST_LIMIT }, (_, i) => ({
-            value: i + 1,
-            label: String(i + 1),
+        limit: Array.from({ length: MAX_LIST_LIMIT }, (_, limitIndex) => ({
+            value: limitIndex + 1,
+            label: String(limitIndex + 1),
         })),
         // The figures are the same in every language, so they are their own label.
         columns: ITEM_COLUMNS.map((value) => ({ value, label: String(value) })),
@@ -1286,7 +1286,9 @@ export function usePostGrid(layout, content) {
      */
     function rebalance(index, changedIndex) {
         const list = childrenOf(index);
-        const others = list.filter((_, i) => i !== changedIndex);
+        const others = list.filter(
+            (_, siblingIndex) => siblingIndex !== changedIndex,
+        );
 
         if (0 === others.length) {
             return;
@@ -1300,7 +1302,7 @@ export function usePostGrid(layout, content) {
 
         let given = 0;
 
-        others.forEach((child, i) => {
+        others.forEach((child, otherIndex) => {
             const share =
                 0 === before
                     ? Math.round(left / others.length)
@@ -1309,7 +1311,7 @@ export function usePostGrid(layout, content) {
             // The last one takes what rounding left over, so the total is 48
             // exactly rather than 47 or 49.
             child.span.lg =
-                i === others.length - 1
+                otherIndex === others.length - 1
                     ? Math.max(1, left - given)
                     : Math.max(1, share);
 
@@ -1351,14 +1353,21 @@ export function usePostGrid(layout, content) {
      * Content follows without being touched: it is keyed by zone id, and the
      * ids travel with the zones.
      */
-    function swapZones(a, b) {
+    function swapZones(firstIndex, secondIndex) {
         const list = layout.value.zones;
 
-        if (a === b || undefined === list[a] || undefined === list[b]) {
+        if (
+            firstIndex === secondIndex ||
+            undefined === list[firstIndex] ||
+            undefined === list[secondIndex]
+        ) {
             return;
         }
 
-        [list[a], list[b]] = [list[b], list[a]];
+        [list[firstIndex], list[secondIndex]] = [
+            list[secondIndex],
+            list[firstIndex],
+        ];
     }
 
     /**
@@ -1629,7 +1638,7 @@ export function usePostGrid(layout, content) {
                 display: shared("display"),
                 columns: shared("columns"),
                 taxonomyId: shared("taxonomyId"),
-                deckId: shared("deckId"),
+                deliverableId: shared("deliverableId"),
                 postTypeId: shared("postTypeId"),
                 termId: shared("termId"),
                 limit: shared("limit"),

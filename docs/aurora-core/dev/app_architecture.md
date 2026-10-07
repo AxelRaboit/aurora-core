@@ -31,7 +31,8 @@ src/
     Planning/        -- calendars, events, reminders, recurrence, feeds, sync
     Platform/        -- auth, users, privileges
     Studio/          -- what is sold and what is delivered: customers, contracts,
-                       decks, client spaces and their content
+                       deliverables (pages and presentations), client spaces
+                       and their content
 
 migrations/          -- hand-written, one per change (see §6.3)
 config/              -- the app's own config; modules prepend theirs from the bundle
@@ -280,8 +281,8 @@ five-layer slice (Entity / Dto / Manager / Repository / Serializer) plus its
 `Controller`, `View`, `templates` and `assets`.
 
 `Studio` is the best current example of a module that is more than CRUD: it
-holds what is sold (`Customer`, `Contract`, `Deck`) and what is delivered
-(`CustomerSpace`, `SpaceContent`, `SpaceAccess`), with the delivery surface
+holds what is sold (`Customer`, `Contract`) and what is delivered
+(`Deliverable`, `CustomerSpace`, `SpaceContent`, `SpaceAccess`), with the delivery surface
 served under `/workspace` to people who are not staff.
 
 ---

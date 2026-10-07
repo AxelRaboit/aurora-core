@@ -6,7 +6,8 @@
     {{ include('@Shared/components/page_header.html.twig', {
         crumbs: [
             {label: 'suite.nav.sections.studio'|trans},
-            {label: 'suite.nav.studio_contract_templates'|trans, href: indexPath},
+            {label: 'suite.nav.studio_contracts'|trans, href: path('suite_studio_contracts')},
+            {label: 'suite.studio.contract_templates.tab'|trans, href: indexPath},
             {label: template.name},
         ],
     }) }}

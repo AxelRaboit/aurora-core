@@ -19,7 +19,7 @@ const props = defineProps({
     originalId: { type: Number, default: null },
 });
 
-const { t, te } = useI18n();
+const { t, te: translationExists } = useI18n();
 
 const used = computed(() => familyUsage(props.members.map((member) => ({
     ...member,
@@ -34,7 +34,7 @@ function nameOf(member) {
 function describe({ type, count }) {
     const key = `suite.ged.documents.family.usage_types.${type.replaceAll(".", "_")}`;
 
-    return t(te(key) ? key : "suite.ged.documents.family.usage_types.other", { count }, count);
+    return t(translationExists(key) ? key : "suite.ged.documents.family.usage_types.other", { count }, count);
 }
 </script>
 

@@ -30,15 +30,15 @@ use function sprintf;
 use const PHP_URL_PATH;
 
 /**
- * Les livrables d'un espace client : des pages composées pour un client, à
- * part des publications du site.
+ * A client space's deliverables: pages composed for a client, apart from the
+ * site's publications.
  *
- * Quatre promesses sont vérifiées ici. Un livrable naît caché, préparé pour
- * le client par son nom, et toujours en grille. Ses couleurs ne gardent que
- * des couleurs : elles finissent dans un `<style>` servi au client. Le client
- * ne lit que ce qu'on lui a ouvert, et jamais le livrable d'un autre espace.
- * Et un lien de lecture ouvre le livrable tant qu'il n'est ni coupé ni
- * fermé par son mot de passe.
+ * Four promises are checked here. A deliverable is born hidden, prepared for
+ * the client by name, and always as a grid. Its colors only keep colors: they
+ * end up in a `<style>` served to the client. The client only reads what was
+ * opened to them, and never another space's deliverable. And a reading link
+ * opens the deliverable as long as it is neither cut off nor locked by its
+ * password.
  */
 final class SpaceDeliverablesTest extends IntegrationTestCase
 {
@@ -101,7 +101,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertSame('Client Boulangerie', $deliverable->getReadingHeader()['preparedFor']);
         self::assertTrue($deliverable->getGridLayout()['enabled']);
 
-        // L'éditeur s'ouvre, sur la page même du livrable.
+        // The editor opens, on the deliverable's own page.
         $this->client->request('GET', $data['editPath']);
         self::assertResponseIsSuccessful();
     }
@@ -117,11 +117,11 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
     }
 
     /**
-     * Une couleur qui n'en est pas une n'est jamais gardée.
+     * A color that is not one is never kept.
      *
-     * Les couleurs d'un livrable sont écrites telles quelles dans la feuille
-     * de style de sa page : ce que la validation laisse passer, le client le
-     * reçoit dans un `<style>`.
+     * A deliverable's colors are written as they are into its page's
+     * stylesheet: whatever validation lets through, the client receives in a
+     * `<style>`.
      */
     public function testTheAppearanceKeepsOnlyColours(): void
     {
@@ -137,7 +137,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
                 'highlightColor' => null,
                 'titleVisible' => false,
             ],
-            // Une grille éteinte rendrait une page vide : elle reste allumée.
+            // A grid turned off would render an empty page: it stays on.
             'gridLayout' => ['enabled' => false],
         ]);
 
@@ -270,7 +270,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertArrayHasKey('title', $data['errors']);
     }
 
-    /** La case décide, dans la liste comme à l'adresse du livrable. */
+    /** The checkbox decides, in the list as at the deliverable's address. */
     public function testTheClientReadsWhatWasOpenedToThemAndNothingElse(): void
     {
         $space = $this->givenSpace();
@@ -298,13 +298,13 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
     }
 
     /**
-     * Le livrable d'un autre espace n'existe pas sous celui-ci, ni côté
-     * studio ni côté client.
+     * Another space's deliverable does not exist under this one, neither on
+     * the studio side nor on the client side.
      */
     /**
-     * Le client voit l'image d'un livrable quand elle est publiée dans la
-     * médiathèque ; une image privée ne lui est pas envoyée, elle ne
-     * s'afficherait pas chez lui.
+     * The client sees a deliverable's image when it is published in the media
+     * library; a private image is not sent to them, it would not display on
+     * their side.
      */
     public function testTheClientSeesAPublishedImageOnly(): void
     {
@@ -345,8 +345,8 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
     }
 
     /**
-     * Un lien de lecture est un envoi à part : il ouvre le livrable même
-     * caché dans l'espace, et plus rien une fois coupé.
+     * A reading link is a separate sending: it opens the deliverable even when
+     * hidden in the space, and nothing once cut off.
      */
     public function testAReadingLinkOpensTheDeliverableUntilItIsRevoked(): void
     {
@@ -377,8 +377,8 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $deliverable = $this->givenDeliverable($space, 'Proposition '.$this->suffix);
 
-        // Tirés au hasard : une phrase écrite en dur passe pour un secret
-        // aux yeux de l'analyse des secrets de la CI.
+        // Drawn at random: a hard-coded phrase passes for a secret in the
+        // eyes of the CI's secret scanning.
         $secret = bin2hex(random_bytes(6));
         $wrong = bin2hex(random_bytes(6));
 
@@ -399,7 +399,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertStringContainsString('Proposition '.$this->suffix, (string) $this->client->getResponse()->getContent());
     }
 
-    /** Une copie se reprend avant d'être montrée, et ne part pas avec les liens. */
+    /** A copy gets reworked before being shown, and does not take the links with it. */
     public function testACopyIsHiddenAndCarriesNoLink(): void
     {
         $space = $this->givenSpace();
@@ -426,7 +426,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertSame([], $this->entityManager->getRepository(DeliverableLink::class)->findBy(['deliverable' => $copy]));
     }
 
-    /** Un livrable n'a de sens que pour son client : il part avec l'espace. */
+    /** A deliverable only makes sense for its client: it goes with the space destroyed for good. */
     public function testDeletingTheSpaceDeletesItsDeliverables(): void
     {
         $space = $this->givenSpace();
@@ -435,7 +435,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
 
         $live = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
         self::assertInstanceOf(CustomerSpace::class, $live);
-        self::getContainer()->get(CustomerSpaceManagerInterface::class)->delete($live);
+        self::getContainer()->get(CustomerSpaceManagerInterface::class)->forceDelete($live);
 
         $this->entityManager->clear();
         self::assertNull($this->entityManager->find(Deliverable::class, $deliverable));
@@ -524,7 +524,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** @return array<string, mixed> ce que l'éditeur enverrait, sans rien changer */
+    /** @return array<string, mixed> what the editor would send, without changing anything */
     private function payload(int $deliverable): array
     {
         $entity = $this->find($deliverable);

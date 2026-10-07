@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import {
-    REPO_ROOT,
+    REPOSITORY_ROOT,
     phpSources,
     sourcesEndingWith,
 } from "@/tests/helpers/phpSources.js";
@@ -20,10 +20,10 @@ function declaredPanels() {
     for (const file of phpSources()) {
         if (!file.endsWith("Module.php")) continue;
 
-        const src = fs.readFileSync(file, "utf8");
-        for (const match of src.matchAll(PANEL_PATH)) {
+        const source = fs.readFileSync(file, "utf8");
+        for (const match of source.matchAll(PANEL_PATH)) {
             if (!found.has(match[1])) {
-                found.set(match[1], path.relative(REPO_ROOT, file));
+                found.set(match[1], path.relative(REPOSITORY_ROOT, file));
             }
         }
     }
@@ -37,10 +37,10 @@ function registeredPanels() {
     const call = /registerModulePanel\(\s*["']([^"']+)["']/g;
 
     for (const file of sourcesEndingWith([".register.js"])) {
-        const src = fs.readFileSync(file, "utf8");
-        for (const match of src.matchAll(call)) {
+        const source = fs.readFileSync(file, "utf8");
+        for (const match of source.matchAll(call)) {
             if (!found.has(match[1])) {
-                found.set(match[1], path.relative(REPO_ROOT, file));
+                found.set(match[1], path.relative(REPOSITORY_ROOT, file));
             }
         }
     }

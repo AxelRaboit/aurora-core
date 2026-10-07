@@ -18,8 +18,8 @@ const globalConfig = {
     stubs: { VueDatePicker: true },
 };
 
-// Un bouchon qui déclare les props qu'on veut lire : `stubs: true` les laisse
-// tomber dans les attributs, et un objet y arrive illisible.
+// A stub that declares the props we want to read: `stubs: true` drops them
+// into the attributes, and an object arrives there unreadable.
 const withProbe = {
     plugins: [i18n],
     stubs: {
@@ -96,10 +96,10 @@ describe("AppDatePicker", () => {
     });
 
     it("accepts a typed date, in the formats a person writes", async () => {
-        // Le comportement, pas la prop : le champ ressemble à un champ de
-        // texte, donc il se tape. Sans la saisie clavier le composant
-        // n'écoutait que les clics, et une date tapée disparaissait à la
-        // fermeture du calendrier sans un mot.
+        // The behaviour, not the prop: the field looks like a text field, so people
+        // type in it. Without keyboard input the component only listened to
+        // clicks, and a typed date disappeared when the calendar closed without a
+        // word.
         const wrapper = mount(AppDatePicker, {
             props: { modelValue: "" },
             global: { plugins: [i18n] },
@@ -130,10 +130,10 @@ describe("AppDatePicker", () => {
     });
 
     describe("with a timeZone", () => {
-        // Le serveur et l'ordinateur ne sont pas toujours dans le même fuseau :
-        // une publication programmée pour 9 h doit sortir à 9 h à l'heure du
-        // site. Les tests lisent les champs locaux, donc ils tiennent quel que
-        // soit le fuseau de la machine qui les lance.
+        // The server and the computer are not always in the same time zone: a
+        // publication scheduled for 9:00 must go out at 9:00 in the site's time.
+        // The tests read the local fields, so they hold whatever the time zone of
+        // the machine that runs them.
         const probe = { plugins: [i18n] };
 
         it("shows an instant at the zone's wall clock", () => {
@@ -199,8 +199,8 @@ describe("AppDatePicker", () => {
         ],
         [{ modelValue: "2026-11", monthOnly: true }, "11/2026"],
     ])("shows the date the French way %o", async (props, expected) => {
-        // Le vrai composant : la v12 ignore `format`, et un bouchon ne le
-        // verrait pas. Ce qui compte est le texte affiché dans le champ.
+        // The real component: v12 ignores `format`, and a stub would not see it.
+        // What counts is the text displayed in the field.
         const wrapper = mount(AppDatePicker, {
             props,
             global: { plugins: [createTestI18n({}, "fr")] },

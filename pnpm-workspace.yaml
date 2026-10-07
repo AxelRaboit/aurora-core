@@ -1,17 +1,27 @@
 allowBuilds:
   vue-demi: true
 
-# happy-dom, sous vitest, epingle un `ws` que deux avis de securite visent
-# (epuisement memoire, et lecture de memoire non initialisee). Rien dans
-# l'arbre n'en propose un plus recent de lui-meme, et c'est de l'outillage de
-# test : l'override est moins couteux qu'attendre que happy-dom bouge.
+# happy-dom, under vitest, pins a `ws` that two security advisories target
+# (memory exhaustion, and reading uninitialized memory). Nothing in the tree
+# offers a newer one on its own, and this is test tooling: the override costs
+# less than waiting for happy-dom to move.
 overrides:
   ws: '>=8.21.0'
-  # GHSA-vfj7-8cjw-p6xm : braces <= 3.0.3 epuise la pile sur des accolades
-  # imbriquees par milliers (sous sa limite de longueur), et aucune version
-  # corrigee n'existe. Copie de 3.0.3 avec une limite de profondeur
-  # d'imbrication dans lib/parse.js, comme celle qu'il a deja sur la longueur.
-  # Un `file:` plutot qu'un `pnpm patch` : pnpm 10 (la CI) et pnpm 11 (en
-  # local) n'ecrivent pas le patch de la meme facon dans le lockfile. A
-  # retirer des que braces publie une version corrigee.
+  # GHSA-68fv-2mgg-jv7q: source-map-js < 1.2.2 lets indexed source-map section
+  # offsets block the event loop. Pulled in by vue, vue-i18n and tailwind, none
+  # of which asks for the fixed version yet. Remove once they do.
+  source-map-js: '>=1.2.2'
+  # GHSA-rj75-hqrm-r3gf: postcss-selector-parser < 7.1.6 parses a long flat
+  # selector in quadratic time. @tailwindcss/typography pins 6.0.10 exactly
+  # (still in 0.5.20) and eslint-plugin-vue asks for 7.1.5. The only major
+  # change since 6 makes insertions during iteration safe, which typography
+  # does not rely on: the compiled CSS is byte for byte the same. Remove once
+  # both ask for 7.1.6 or later.
+  postcss-selector-parser: '>=7.1.6'
+  # GHSA-vfj7-8cjw-p6xm: braces <= 3.0.3 exhausts the stack on braces nested
+  # by the thousands (under its length limit), and no fixed version exists.
+  # Copy of 3.0.3 with a nesting depth limit in lib/parse.js, like the one it
+  # already has on length. A `file:` rather than a `pnpm patch`: pnpm 10 (CI)
+  # and pnpm 11 (local) do not write the patch the same way in the lockfile.
+  # Remove as soon as braces publishes a fixed version.
   braces: 'file:./tools/patched/braces'

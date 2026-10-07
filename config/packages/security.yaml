@@ -83,23 +83,22 @@ security:
         - { path: '^/[a-z]{2}/impersonate/', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/forgot-password', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/reset-password', roles: PUBLIC_ACCESS }
-        # Poser son mot de passe en arrivant sur invitation : la personne n'est
-        # pas encore connectée, par définition. Le fourre-tout `^/` plus bas la
-        # couvrirait, mais toutes les routes d'authentification sont listées
-        # explicitement ici - en omettre une la casserait le jour où ce
-        # fourre-tout est resserré.
+        # Setting one's password when arriving from an invitation: the person
+        # is not logged in yet, by definition. The `^/` catch-all below would
+        # cover it, but every authentication route is listed explicitly here -
+        # leaving one out would break it the day that catch-all is tightened.
         - { path: '^/[a-z]{2}/invitation', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/register', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/resend-verification', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/verify-email', roles: PUBLIC_ACCESS }
         - { path: ^/suite, roles: ROLE_USER }
         - { path: ^/dev, roles: ROLE_DEV }
-        # Le second mur des espaces clients. Le contrôleur porte déjà son
-        # `#[IsGranted]`, donc un anonyme est refusé sans cette ligne - mais le
-        # jour où une action arrive sous ce préfixe sans attribut, le fourre-tout
-        # `^/` plus bas la rendrait publique en silence. `/suite` a cette
-        # ceinture depuis toujours ; `/workspace` est sorti de `/suite` sans
-        # elle, et c'est tout ce que cette ligne répare.
+        # The client spaces' second wall. The controller already carries its
+        # `#[IsGranted]`, so an anonymous visitor is refused without this line -
+        # but the day an action arrives under this prefix without the
+        # attribute, the `^/` catch-all below would silently make it public.
+        # `/suite` has always had this belt; `/workspace` left `/suite` without
+        # it, and that is all this line repairs.
         - { path: ^/workspace, roles: ROLE_USER }
         - { path: '^/[a-z]{2}/account', roles: ROLE_USER }
         - { path: ^/, roles: PUBLIC_ACCESS }

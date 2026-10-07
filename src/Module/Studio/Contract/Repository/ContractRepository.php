@@ -145,12 +145,12 @@ class ContractRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Combien de contrats par état.
+     * How many contracts per state.
      *
-     * Les neuf états en une requête. Le tableau de bord n'en met en avant
-     * qu'un, celui qui attend une signature, mais la répartition entière est
-     * ce qui permet de le situer : deux contrats en attente sur trois n'est
-     * pas la même nouvelle que deux sur quarante.
+     * The nine states in one query. The dashboard only highlights one, the
+     * one awaiting a signature, but the whole breakdown is what puts it in
+     * context: two contracts pending out of three is not the same news as
+     * two out of forty.
      *
      * @return array<string, int>
      */
@@ -299,11 +299,11 @@ class ContractRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les contrats dont la référence, le client ou la trame contient le terme.
+     * The contracts whose reference, client or template contains the term.
      *
-     * Un contrat n'a pas de titre à lui : on le retrouve par sa référence, par
-     * la société pour qui il a été écrit, ou par la trame dont il part
-     * (« contrat mensuel »). Les plus récents d'abord, comme la liste.
+     * A contract has no title of its own: it is found by its reference, by the
+     * company it was written for, or by the template it starts from
+     * ("contrat mensuel"). The most recent first, like the list.
      *
      * @return list<ContractInterface>
      */

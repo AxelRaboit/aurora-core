@@ -8,18 +8,18 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une note est partagée avec l'équipe, ou personnelle.
+ * A note is either shared with the team or personal.
  *
- * Écrite à la main, comme celles qui précèdent : `migrations:diff` sur cette
- * base de développement propose aussi de renommer deux douzaines d'index qu'il
- * n'a pas créés.
+ * Written by hand, like the ones before it: `migrations:diff` on this
+ * development database also proposes renaming two dozen indexes it did not
+ * create.
  *
- * Les notes existantes deviennent partagées, et c'est la lecture juste : elles
- * ont été prises quand la seule façon d'en prendre était sur le mur commun.
+ * Existing notes become shared, and that is the right reading: they were
+ * taken when the only way to take one was on the common wall.
  *
- * Aucun index : le filtre ne s'applique jamais seul, toujours sous l'espace,
- * et l'index composite qui sert déjà la lecture amène assez peu de lignes pour
- * que le reste se lise en mémoire.
+ * No index: the filter never applies alone, always under the space, and the
+ * composite index that already serves the read brings back few enough rows
+ * for the rest to be read in memory.
  */
 final class Version20260917160000 extends AbstractMigration
 {

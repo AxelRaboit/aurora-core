@@ -38,18 +38,18 @@ export function shareHtml(
     html,
     { imagePrefix, shareImagePath, shareNotePath, titleIndex = {} },
 ) {
-    const doc = new DOMParser().parseFromString(
+    const parsedDocument = new DOMParser().parseFromString(
         `<div>${html}</div>`,
         "text/html",
     );
-    const root = doc.body.firstElementChild;
+    const root = parsedDocument.body.firstElementChild;
     if (!root) return html;
 
-    for (const img of root.querySelectorAll("img")) {
-        const src = img.getAttribute("src") ?? "";
-        if (imagePrefix && src.startsWith(imagePrefix)) {
-            const filename = src.slice(imagePrefix.length);
-            img.setAttribute(
+    for (const image of root.querySelectorAll("img")) {
+        const source = image.getAttribute("src") ?? "";
+        if (imagePrefix && source.startsWith(imagePrefix)) {
+            const filename = source.slice(imagePrefix.length);
+            image.setAttribute(
                 "src",
                 shareImagePath.replace("__filename__", filename),
             );
@@ -67,7 +67,9 @@ export function shareHtml(
         if (id === null) {
             // Unwrapped rather than removed: the words were part of the sentence
             // the author wrote, and deleting them would change what the note says.
-            anchor.replaceWith(doc.createTextNode(anchor.textContent ?? ""));
+            anchor.replaceWith(
+                parsedDocument.createTextNode(anchor.textContent ?? ""),
+            );
             continue;
         }
 

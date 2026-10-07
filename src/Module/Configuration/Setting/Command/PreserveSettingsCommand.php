@@ -28,26 +28,26 @@ use const JSON_PRETTY_PRINT;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * Met les réglages de côté le temps de reconstruire la démonstration.
+ * Sets the settings aside while the demonstration is rebuilt.
  *
- * **Reconstruire le jeu de démonstration effaçait la configuration.**
- * `make demo-reset` vide la base, et les réglages y vivent : la clé du compte
- * de service Google, la connexion Craft, le stockage distant. Tout ce qu'on a
- * collé à la main une fois repartait avec les fausses données, et il fallait
- * retourner chercher un fichier JSON que Google ne redonne pas.
+ * **Rebuilding the demo data set erased the configuration.**
+ * `make demo-reset` empties the database, and the settings live there: the
+ * Google service account key, the Craft connection, the remote storage.
+ * Everything pasted by hand once went away with the fake data, and one had to
+ * go and find again a JSON file that Google does not hand out twice.
  *
- * Ce qu'on garde n'est pas décidé par une liste de clés - une liste se périme
- * au premier réglage ajouté. La règle est : **un réglage repose s'il revient
- * vide**. Ce que les fixtures et l'installation ont écrit gagne donc toujours,
- * et ce que personne ne réécrit revient de lui-même. Un réglage qui pointe une
- * ligne de démonstration - la page d'accueil, le favori - est réécrit par les
- * fixtures, et ne repose donc pas sur un identifiant devenu faux.
+ * What is kept is not decided by a list of keys - a list goes stale at the
+ * first setting added. The rule is: **a setting is put back if it comes back
+ * empty**. What the fixtures and the installation wrote therefore always
+ * wins, and what nobody rewrites comes back by itself. A setting that points
+ * at a demo row - the home page, the favicon - is rewritten by the fixtures,
+ * and so is not put back on an identifier that has become wrong.
  *
- * **Les valeurs sont recopiées telles qu'elles sont stockées**, sans passer par
- * le service qui les déchiffre : une clé privée n'a pas à exister en clair sur
- * un disque, fût-ce une seconde.
+ * **The values are copied as they are stored**, without going through the
+ * service that decrypts them: a private key has no reason to exist in clear
+ * on a disk, even for a second.
  *
- * Le fichier de transit est supprimé après restitution.
+ * The transit file is deleted after restoring.
  */
 #[AsCommand(
     name: 'aurora:settings:preserve',
@@ -89,12 +89,12 @@ final class PreserveSettingsCommand extends Command
 
     private function dump(SymfonyStyle $io, string $file): int
     {
-        // La base n'existe pas encore au tout premier `demo-reset` : il n'y a
-        // alors rien à garder, et ce n'est pas une erreur.
+        // The database does not exist yet on the very first `demo-reset`:
+        // there is nothing to keep then, and that is not an error.
         try {
-            // La ligne entière, et non la seule valeur : un réglage d'une
-            // intégration n'existe pas tant que personne ne l'a enregistré,
-            // donc il faut pouvoir le recréer et pas seulement le remplir.
+            // The whole row, not just the value: an integration's setting
+            // does not exist until somebody has saved it, so it must be
+            // possible to recreate it and not only to fill it.
             $rows = $this->connection->fetchAllAssociative(
                 'SELECT setting_key, value, description, setting_type, setting_group FROM core_settings WHERE value IS NOT NULL AND value <> :empty',
                 ['empty' => ''],
@@ -143,11 +143,11 @@ final class PreserveSettingsCommand extends Command
                 ['key' => $row['setting_key']],
             );
 
-            // **Recréé quand il a disparu.** Les réglages d'une intégration -
-            // la clé Google, la connexion Craft - n'existent pas tant que
-            // personne ne les a enregistrés : l'installation ne les sème pas.
-            // Ne faire qu'un `UPDATE` ne remettait donc rien, et c'est ce que
-            // la première version faisait.
+            // **Recreated when it has disappeared.** An integration's settings
+            // - the Google key, the Craft connection - do not exist until
+            // somebody has saved them: the installation does not seed them.
+            // Doing only an `UPDATE` therefore put nothing back, and that is
+            // what the first version did.
             if (!$exists) {
                 $restored += $this->connection->insert('core_settings', [
                     'setting_key' => $row['setting_key'],
@@ -160,9 +160,9 @@ final class PreserveSettingsCommand extends Command
                 continue;
             }
 
-            // **Sinon, seulement s'il est revenu vide.** Ce que les fixtures ou
-            // l'installation ont écrit est la vérité du moment : une valeur
-            // d'avant qui pointe une ligne recréée pointerait à côté.
+            // **Otherwise, only if it came back empty.** What the fixtures or
+            // the installation wrote is the current truth: an earlier value
+            // pointing at a recreated row would point at the wrong one.
             $restored += $this->connection->executeStatement(
                 'UPDATE core_settings SET value = :value WHERE setting_key = :key AND (value IS NULL OR value = :empty)',
                 ['value' => $row['value'], 'key' => $row['setting_key'], 'empty' => ''],

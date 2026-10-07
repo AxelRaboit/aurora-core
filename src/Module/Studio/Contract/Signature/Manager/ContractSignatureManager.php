@@ -274,7 +274,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
                 'contract' => $contract,
                 'signature' => $signature,
             ],
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }
 
@@ -313,7 +313,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
             // The provider's copy links to the back office; the customer's
             // has no back office to link to.
             context: ['contract' => $contract, 'forProvider' => true],
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }
 
@@ -323,16 +323,17 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
     protected function sendConcludedMail(ContractInterface $contract, array $attachments): void
     {
         $this->mail->send(
-            // Une signature s'enregistre meme si le mail ne part pas :
-            // `MailService` renvoie sans rien faire sur une adresse vide, et
-            // refuser d'enregistrer un engagement parce qu'on ne peut pas en
-            // accuser reception serait perdre le fait pour l'annonce.
+            // A signature is recorded even if the mail does not go out:
+            // `MailService` returns without doing anything on an empty
+            // address, and refusing to record a commitment because its
+            // receipt cannot be acknowledged would lose the fact for the
+            // announcement.
             to: $contract->getCustomer()->getContractualEmail() ?? '',
             subjectKey: 'studio.email.concluded.subject',
             template: '@Studio/email/concluded.html.twig',
             context: ['contract' => $contract],
             locale: $contract->getLocale(),
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
             attachments: $attachments,
         );
     }

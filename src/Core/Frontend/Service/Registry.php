@@ -15,7 +15,7 @@ final readonly class Registry
     public function __construct(iterable $fronts)
     {
         $sorted = iterator_to_array($fronts, false);
-        usort($sorted, static fn (FrontendInterface $a, FrontendInterface $b): int => $b->getPriority() <=> $a->getPriority());
+        usort($sorted, static fn (FrontendInterface $left, FrontendInterface $right): int => $right->getPriority() <=> $left->getPriority());
         $this->fronts = $sorted;
     }
 

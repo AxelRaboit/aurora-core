@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Contract\Dto;
 
-use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -17,7 +16,7 @@ class ContractTemplateInput implements ContractTemplateInputInterface
         public readonly ContractTemplateKindEnum $kind = ContractTemplateKindEnum::Body,
         // Null is a value here, not a missing one: it is how a template says
         // nobody has classified it yet.
-        public readonly ?ContractTemplateCategoryEnum $category = null,
+        public readonly ?int $categoryId = null,
     ) {}
 
     public function getName(): string
@@ -30,8 +29,8 @@ class ContractTemplateInput implements ContractTemplateInputInterface
         return $this->kind;
     }
 
-    public function getCategory(): ?ContractTemplateCategoryEnum
+    public function getCategoryId(): ?int
     {
-        return $this->category;
+        return $this->categoryId;
     }
 }

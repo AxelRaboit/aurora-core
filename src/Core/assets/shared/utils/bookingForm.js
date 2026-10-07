@@ -1,11 +1,11 @@
 /**
- * La prise de rendez-vous - `[data-booking]`.
+ * Appointment booking - `[data-booking]`.
  *
- * Trois pas : choisir un jour, choisir un créneau, remplir nom et e-mail.
- * L'envoi revérifie le créneau côté serveur ; s'il vient d'être pris, le
- * message le dit et rien d'autre n'est perdu de ce qui a été tapé.
+ * Three steps: pick a day, pick a slot, fill in name and email. The
+ * submission checks the slot again on the server side; if it has just been
+ * taken, the message says so and nothing else that was typed is lost.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_appointment_booking.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_appointment_booking.html.twig
  */
 const SELECTOR = "[data-booking]";
 
@@ -51,8 +51,8 @@ async function submit(booking, at, label) {
             form.hidden = true;
             booking
                 .querySelectorAll("[data-booking-day], [data-booking-slot]")
-                .forEach((el) => {
-                    el.disabled = true;
+                .forEach((control) => {
+                    control.disabled = true;
                 });
             const success = booking.querySelector("[data-booking-success]");
             success.textContent =
@@ -84,8 +84,8 @@ function wire(booking) {
 
     booking.querySelectorAll("[data-booking-slot]").forEach((button) => {
         button.addEventListener("click", () => {
-            // Le jour avec l'heure : « 10:30 » seul, au-dessus du nom à
-            // saisir, ne dit pas quel jour on est en train de réserver.
+            // The day with the time: "10:30" alone, above the name to type in, does
+            // not say which day is being booked.
             const day = booking.querySelector(
                 "[data-booking-day][data-active]",
             );

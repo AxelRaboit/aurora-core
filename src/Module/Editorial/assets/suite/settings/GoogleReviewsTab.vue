@@ -84,7 +84,7 @@ async function save() {
     }
 }
 
-/** Allumée, prête mais éteinte, ou encore à configurer. */
+/** On, ready but off, or still to be configured. */
 const status = computed(() => {
     if (enabled.value) return "active";
 

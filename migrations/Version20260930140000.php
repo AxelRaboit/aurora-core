@@ -8,32 +8,32 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les espaces de notes.
+ * Note spaces.
  *
- * Une note vivait dans le carnet de son auteur, et le partage s'ajoutait par
- * une date posée sur un dossier ou une note. Elle vit maintenant dans un
- * espace, qui dit seul qui la lit et qui l'écrit.
+ * A note lived in its author's notebook, and sharing was added through a
+ * date set on a folder or a note. It now lives in a space, which alone says
+ * who reads it and who writes it.
  *
- * **Rien ne devient plus visible qu'avant.**
+ * **Nothing becomes more visible than before.**
  *
- * - Chaque personne qui a des notes reçoit son espace personnel, privé, et
- *   tout ce qu'elle possède y entre tel quel : dossiers, positions, étiquettes.
- * - Un dossier partagé en lecture devient un espace ouvert à tout le
- *   back-office, en lecture, au nom du dossier, avec tout ce qu'il contient ;
- *   il en devient la racine. Ceux qui le lisaient le lisent encore, et rien
- *   de plus.
- * - Une note partagée seule reste dans l'espace personnel : la date reste en
- *   base, plus rien ne la lit. Personne d'autre ne la verra désormais.
- * - Les épinglages passent sur la personne : une ligne par note ou dossier
- *   épinglé, à l'heure où il l'avait été.
+ * - Each person who has notes gets their personal space, private, and
+ *   everything they own moves into it as is: folders, positions, tags.
+ * - A folder shared for reading becomes a space open to the whole
+ *   back office, read-only, named after the folder, with everything it holds;
+ *   it becomes its root. Those who read it still read it, and nothing
+ *   more.
+ * - A note shared on its own stays in the personal space: the date stays in
+ *   the database, nothing reads it any more. Nobody else will see it from now.
+ * - Pins move onto the person: one row per pinned note or folder, at the
+ *   time it was pinned.
  *
- * **L'auteur devient facultatif** : supprimer un compte ne supprime plus ce
- * qu'il a écrit dans un espace partagé. Son espace personnel, lui, part avec
- * lui, par la cascade de l'espace.
+ * **The author becomes optional**: deleting an account no longer deletes
+ * what it wrote in a shared space. Its personal space goes with it, through
+ * the space's cascade.
  *
- * Les contraintes sur `user_id` sont retrouvées par leur colonne et non par
- * leur nom : deux bases créées à des moments différents ne les ont pas
- * forcément nommées pareil.
+ * The constraints on `user_id` are found by their column, not by their name:
+ * two databases created at different times did not necessarily name them the
+ * same.
  */
 final class Version20260930140000 extends AbstractMigration
 {
@@ -44,7 +44,7 @@ final class Version20260930140000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // Les tables.
+        // The tables.
         $this->addSql('CREATE SEQUENCE seq_core_notes_space_id INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE seq_core_notes_space_member_id INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE seq_core_notes_favorite_id INCREMENT BY 1 MINVALUE 1 START 1');
@@ -75,12 +75,12 @@ final class Version20260930140000 extends AbstractMigration
         $this->addSql('ALTER TABLE core_notes_favorites ADD CONSTRAINT FK_3828379026ED0855 FOREIGN KEY (note_id) REFERENCES core_notes_markdown_notes (id) ON DELETE CASCADE NOT DEFERRABLE');
         $this->addSql('ALTER TABLE core_notes_favorites ADD CONSTRAINT FK_38283790162CB942 FOREIGN KEY (folder_id) REFERENCES core_notes_markdown_folders (id) ON DELETE CASCADE NOT DEFERRABLE');
 
-        // Où vit chaque ligne : d'abord sans contrainte, le temps de remplir.
+        // Where each row lives: first without a constraint, while filling in.
         $this->addSql('ALTER TABLE core_notes_markdown_folders ADD space_id INT DEFAULT NULL');
         $this->addSql('ALTER TABLE core_notes_markdown_notes ADD space_id INT DEFAULT NULL');
 
-        // Un espace personnel pour chaque personne qui a des notes ou des
-        // dossiers, corbeille comprise.
+        // A personal space for each person who has notes or folders, trash
+        // included.
         $this->addSql(<<<'SQL'
             INSERT INTO core_notes_spaces (id, personal_user_id, owner_id, access, default_role, indexable, position, created_at, updated_at)
             SELECT nextval('seq_core_notes_space_id'), u.id, u.id, 'private', 'reader', false, 0, NOW(), NOW()
@@ -90,8 +90,8 @@ final class Version20260930140000 extends AbstractMigration
             SQL);
         $this->addSql('UPDATE core_notes_markdown_folders f SET space_id = s.id FROM core_notes_spaces s WHERE s.personal_user_id = f.user_id');
 
-        // Chaque dossier partagé en lecture, le plus haut de sa branche,
-        // devient un espace ouvert à tout le back-office, en lecture.
+        // Each folder shared for reading, the highest of its branch, becomes a
+        // space open to the whole back office, read-only.
         $this->addSql(<<<'SQL'
             CREATE TEMPORARY TABLE tmp_notes_shared_roots AS
             SELECT f.id AS folder_id, nextval('seq_core_notes_space_id') AS space_id, f.user_id, f.name
@@ -122,16 +122,16 @@ final class Version20260930140000 extends AbstractMigration
         $this->addSql('UPDATE core_notes_markdown_folders SET parent_id = NULL WHERE id IN (SELECT folder_id FROM tmp_notes_shared_roots)');
         $this->addSql('DROP TABLE tmp_notes_shared_roots');
 
-        // Une note rangée prend l'espace de son dossier ; une note à la racine,
-        // celui de son auteur.
+        // A note in a folder takes its folder's space; a note at the root, its
+        // author's.
         $this->addSql('UPDATE core_notes_markdown_notes n SET space_id = f.space_id FROM core_notes_markdown_folders f WHERE n.folder_id = f.id');
         $this->addSql('UPDATE core_notes_markdown_notes n SET space_id = s.id FROM core_notes_spaces s WHERE n.space_id IS NULL AND s.personal_user_id = n.user_id');
 
-        // Les épinglages, sur la personne.
+        // Pins, on the person.
         $this->addSql("INSERT INTO core_notes_favorites (id, user_id, note_id, created_at) SELECT nextval('seq_core_notes_favorite_id'), n.user_id, n.id, n.favorited_at FROM core_notes_markdown_notes n WHERE n.favorited_at IS NOT NULL");
         $this->addSql("INSERT INTO core_notes_favorites (id, user_id, folder_id, created_at) SELECT nextval('seq_core_notes_favorite_id'), f.user_id, f.id, f.favorited_at FROM core_notes_markdown_folders f WHERE f.favorited_at IS NOT NULL");
 
-        // Toute ligne a maintenant son espace.
+        // Every row now has its space.
         $this->addSql('ALTER TABLE core_notes_markdown_folders ALTER space_id SET NOT NULL');
         $this->addSql('ALTER TABLE core_notes_markdown_notes ALTER space_id SET NOT NULL');
         $this->addSql('ALTER TABLE core_notes_markdown_folders ADD CONSTRAINT FK_834B380523575340 FOREIGN KEY (space_id) REFERENCES core_notes_spaces (id) ON DELETE CASCADE NOT DEFERRABLE');
@@ -139,7 +139,7 @@ final class Version20260930140000 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_834B380523575340 ON core_notes_markdown_folders (space_id)');
         $this->addSql('CREATE INDEX IDX_C58B874623575340 ON core_notes_markdown_notes (space_id)');
 
-        // L'auteur survit à son compte : la clé passe à SET NULL.
+        // The author outlives their account: the key becomes SET NULL.
         foreach (['core_notes_markdown_folders' => 'FK_834B3805A76ED395', 'core_notes_markdown_notes' => 'FK_C58B8746A76ED395'] as $table => $name) {
             $this->addSql($this->dropForeignKeyOn($table, 'user_id'));
             $this->addSql(sprintf('ALTER TABLE %s ALTER user_id DROP NOT NULL', $table));
@@ -149,8 +149,8 @@ final class Version20260930140000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Les lignes sans auteur ne peuvent pas revenir à une clé obligatoire :
-        // elles sont rendues au propriétaire de leur espace, quand il existe.
+        // Rows without an author cannot go back to a mandatory key: they are
+        // handed to their space's owner, when there is one.
         foreach (['core_notes_markdown_folders' => 'FK_834B3805A76ED395', 'core_notes_markdown_notes' => 'FK_C58B8746A76ED395'] as $table => $name) {
             $this->addSql(sprintf('UPDATE %s t SET user_id = s.owner_id FROM core_notes_spaces s WHERE t.user_id IS NULL AND t.space_id = s.id', $table));
             $this->addSql(sprintf('DELETE FROM %s WHERE user_id IS NULL', $table));
@@ -174,7 +174,7 @@ final class Version20260930140000 extends AbstractMigration
     }
 
     /**
-     * Supprime la clé étrangère portée par une colonne, quel que soit son nom.
+     * Drops the foreign key carried by a column, whatever its name.
      */
     private function dropForeignKeyOn(string $table, string $column): string
     {

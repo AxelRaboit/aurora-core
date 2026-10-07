@@ -87,9 +87,9 @@ export function useFormRender(props) {
     async function submit() {
         if (sending.value) return;
 
-        // L'aperçu du back-office monte ce même composant pour que l'auteur
-        // voie exactement ce que verra le visiteur. Il ne doit rien envoyer :
-        // une réponse de test arriverait dans la boîte et dans les exports.
+        // The back office preview mounts this same component so that the
+        // author sees exactly what the visitor will see. It must send nothing:
+        // a test answer would land in the inbox and in the exports.
         if (props.preview) {
             notice.value = {
                 type: "info",

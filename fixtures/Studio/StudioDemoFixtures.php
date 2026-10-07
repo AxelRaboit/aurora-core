@@ -13,6 +13,13 @@ use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
+use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
+use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
+use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -21,6 +28,8 @@ use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategory;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateCategoryInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslationInterface;
@@ -45,12 +54,6 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
-use Aurora\Module\Studio\Deck\Entity\DeckCategory;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
-use Aurora\Module\Studio\Deck\Manager\DeckManager;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
-use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
@@ -67,8 +70,7 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
-use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
-use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
 use Aurora\Module\Studio\SpaceResource\Dto\SpaceResourceInput;
 use Aurora\Module\Studio\SpaceResource\Enum\SpaceResourceKindEnum;
 use Aurora\Module\Studio\SpaceResource\Manager\SpaceResourceManagerInterface;
@@ -81,6 +83,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 
+use function implode;
 use function mb_substr;
 use function sprintf;
 
@@ -151,8 +154,6 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly ContractTemplateRepository $templateRepository,
         private readonly ContractManagerInterface $contracts,
         private readonly ContractRepository $contractRepository,
-        private readonly DeckManager $decks,
-        private readonly DeckRepository $deckRepository,
         private readonly SettingRepository $settings,
         private readonly EntityManagerInterface $entityManager,
         private readonly SpaceResourceRepository $spaceResources,
@@ -163,6 +164,13 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly DriveLock $driveLock,
         private readonly AuditLogger $audit,
         private readonly ContractPdfGenerator $pdf,
+        private readonly SpaceNoteSpaceProvider $noteSpaces,
+        private readonly NoteSpaceAccess $noteSpaceAccess,
+        private readonly MarkdownNoteManagerInterface $markdownNotes,
+        private readonly MarkdownNoteInputFactoryInterface $markdownNoteInputs,
+        private readonly NoteFolderManagerInterface $noteFolders,
+        private readonly NoteFolderInputFactoryInterface $noteFolderInputs,
+        private readonly NoteFavoriteManagerInterface $noteFavorites,
     ) {}
 
     public static function getGroups(): array
@@ -249,6 +257,18 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $oneShot = $this->template('Contrat de prestation ponctuelle', ContractTemplateKindEnum::Body, $this->oneShotBody());
         $amendmentTrame = $this->template('Avenant', ContractTemplateKindEnum::Body, $this->amendmentBody());
 
+        // Two categories, and one trame left without: the list shows its
+        // coloured pills, its filter, and the "unclassified" state side by side.
+        $recurring = $this->templateCategory('Accompagnement mensuel', '#6366f1', 0);
+        $oneOff = $this->templateCategory('Prestations ponctuelles', '#f59e0b', 1);
+        foreach ([[$monthly, $recurring], [$annex, $recurring], [$oneShot, $oneOff]] as [$filed, $category]) {
+            if (!$filed->getCategory() instanceof ContractTemplateCategoryInterface) {
+                $filed->setCategory($category);
+            }
+        }
+
+        $this->entityManager->flush();
+
         // The draft that stays a draft. Opened after publication, so the trame
         // has both a version in force and a version being written - the pair
         // the version badge exists to tell apart. Only when there is not one
@@ -259,14 +279,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $this->entityManager->flush();
         }
 
-        // Before the contracts guard below, and not after it: the decks were
-        // seeded at the end of this method and therefore never seeded at all
-        // on an instance that already had contracts, which is every instance
-        // where `make demo` had been run once.
-        $this->seedDecks($marie);
-        $this->seedTrashedDeck();
+        // The presentations are slides deliverables now, seeded by
+        // `DeliverableDemoFixtures`.
         $this->seedSpaces($marie, $jean, $sophie);
         $this->seedApprovals();
+        $this->seedTrash($jean);
+        $this->seedClientFile();
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -368,28 +386,27 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         );
         $this->chronicle($ended, ['contract.created' => '-6 months -13 days', 'contract.frozen' => '-6 months -12 days', 'contract.link_sent' => '-6 months -12 days', 'contract.signed_by_customer' => '-6 months -9 days', 'contract.countersigned' => '-6 months -8 days', 'contract.terminated' => 'now']);
 
-        // 7 a 11. Les cinq etats qui manquaient, un par ligne.
+        // 7 to 11. The five missing states, one per row.
         //
-        // **Neuf etats existent, la demo en montrait quatre.** Les cinq autres
-        // ne se voyaient donc nulle part : ni a l'ecran quand on apprend le
-        // module, ni sur une capture, ni dans un parcours automatise - c'est
-        // l'absence d'un contrat « envoye mais pas encore ouvert » qui faisait
-        // echouer un flux entier, faute de ligne a cliquer.
+        // **Nine states exist, the demo showed four.** The other five were
+        // therefore seen nowhere: not on screen while learning the module, not
+        // in a screenshot, not in an automated run - it was the lack of a
+        // contract "sent but not yet opened" that made a whole flow fail, for
+        // want of a row to click.
         //
-        // Un enum de statut est une promesse faite au lecteur : chacun de ses
-        // cas doit etre representable, sans quoi personne ne sait de quoi il a
-        // l'air.
+        // A status enum is a promise made to the reader: each of its cases
+        // must be representable, otherwise nobody knows what it looks like.
 
-        // Scelle mais pas encore envoye : le document est fige, la reference
-        // est frappee, et rien n'est parti. L'etat d'un contrat relu avant
-        // d'appuyer.
+        // Sealed but not yet sent: the document is frozen, the reference is
+        // struck, and nothing has gone out. The state of a contract reviewed
+        // before pressing the button.
         $sealed = $this->contract($marie, $oneShot, null, 750_00, '+1 month', [
             'acompte' => '30 %',
         ]);
         $this->seal($sealed, ContractStatusEnum::Sealed);
 
-        // Ouvert : le client a cliqué le lien, il n'a pas répondu. C'est
-        // l'information qui change une relance en conversation.
+        // Opened: the client clicked the link and has not answered. That is
+        // the information that turns a reminder into a conversation.
         $opened = $this->contract($sophie, $monthly, $annex, 540_00, '+3 weeks', [
             'formule' => 'Suivi',
             'duree' => '12 mois',
@@ -398,8 +415,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->link($opened, sentAt: '-3 days', openedAt: '-1 day');
         $this->chronicle($opened, ['contract.created' => '-4 days', 'contract.frozen' => '-3 days', 'contract.link_sent' => '-3 days']);
 
-        // Signé par le client, en attente de contresignature : la balle est
-        // dans votre camp, et c'est le seul etat qui le dit.
+        // Signed by the client, waiting for countersignature: the ball is in
+        // your court, and this is the only state that says so.
         $waitingCountersign = $this->contract($jean, $monthly, $annex, 620_00, '+2 weeks', [
             'formule' => 'Suivi',
             'duree' => '18 mois',
@@ -409,8 +426,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->sign($waitingCountersign, ContractSignatureRoleEnum::Customer, $jean, '-3 days');
         $this->chronicle($waitingCountersign, ['contract.created' => '-8 days', 'contract.frozen' => '-7 days', 'contract.link_sent' => '-7 days', 'contract.signed_by_customer' => '-3 days']);
 
-        // Expire : personne n'a signe a temps. Une date d'effet passee, pour
-        // que la ligne se lise sans avoir a la deduire.
+        // Expired: nobody signed in time. A past effective date, so the row
+        // reads without having to work it out.
         $expired = $this->contract($sophie, $oneShot, null, 320_00, '-3 weeks', [
             'acompte' => '50 %',
         ]);
@@ -419,8 +436,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->link($expired, sentAt: '-40 days');
         $this->chronicle($expired, ['contract.created' => '-41 days', 'contract.frozen' => '-40 days', 'contract.link_sent' => '-40 days', 'contract.expired' => '-10 days']);
 
-        // Revoque : retire avant signature, de votre fait. A ne pas confondre
-        // avec un refus, qui vient du client.
+        // Revoked: withdrawn before signature, by you. Not to be confused with
+        // a refusal, which comes from the client.
         $revoked = $this->contract($marie, $monthly, $annex, 410_00, '+1 month', [
             'formule' => 'Essentiel',
             'duree' => '12 mois',
@@ -454,9 +471,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         CustomerInterface $jean,
         CustomerInterface $sophie,
     ): void {
-        // Built once, like the decks and the contracts. A space has no natural
-        // key to look one up by, so a second `make demo` would quietly double
-        // a list that is meant to be read.
+        // Built once, like the contracts. A space has no natural key to look
+        // one up by, so a second `make demo` would quietly double a list that
+        // is meant to be read.
         if (0 !== $this->spaceRepository->count([])) {
             return;
         }
@@ -481,10 +498,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seedAccessLinks($social);
         $this->seedChannels($social);
         $this->seedNotes($social);
-        // Un exemplaire de chaque genre, et les deux visibilités : un état
-        // qu'on ne voit jamais est un état dont personne ne sait de quoi il a
-        // l'air, et c'est précisément le cas de « le client ne voit pas
-        // celui-ci », qui n'a rien de visible par construction.
+        // One of each kind, and both visibilities: a state nobody ever sees is
+        // a state nobody knows the look of, and that is precisely the case of
+        // "the client does not see this one", which by construction has
+        // nothing visible.
         $this->seedResources($social, [
             ['link', 'Maquette Canva', 'https://canva.example.com/atelier-dupont-reseaux', null, true],
             ['contact', 'Léa, communication', null, 'Prépare les visuels. Disponible le lundi et le jeudi.', true, 'lea@atelier-dupont.example.com', '06 55 44 33 22'],
@@ -492,22 +509,23 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ['link', "Tableau de bord de l'hébergeur", 'https://panel.example.com/atelier-dupont', "Accès par le gestionnaire de mots de passe de l'agence.", false],
             ['text', 'Facturation', null, 'Mensuelle, le 5. Relance automatique à J+15, relance manuelle à J+30.', false],
         ]);
-        // Des fichiers qui n'illustrent rien : ce qu'on tend au client sans
-        // l'épingler à une publication.
+        // Files that illustrate nothing: what is handed to the client without
+        // pinning it to a post, and what is worked from without handing it
+        // over. Both states, for the reason of the resources above.
         $this->fileOnSpace($social, [
-            'Logo Aurora - Fond sombre',
-            'Plan des locaux - Étage 2',
-            'Charte Graphique Aurora - Brand Guidelines',
+            'Logo Aurora - Fond sombre' => true,
+            'Plan des locaux - Étage 2' => false,
+            'Charte Graphique Aurora - Brand Guidelines' => true,
         ]);
 
-        // Le seul espace dont l'onglet Drive est ferme, et le seul qui designe
-        // un dossier partage. Un reglage qu'aucun espace ne porte est un
-        // reglage que personne ne voit : l'ecran des reglages sortait toujours
-        // vide, et l'onglet Drive toujours ouvert.
+        // The only space whose Drive tab is locked, and the only one that
+        // names a shared folder. A setting no space carries is a setting
+        // nobody sees: the settings screen always came out empty, and the
+        // Drive tab always open.
         //
-        // Le mot de passe est `demonstration` - un litteral dans un depot
-        // public, comme le mot de passe du compte de developpement, et pour la
-        // meme raison : il n'ouvre rien d'autre qu'une demonstration locale.
+        // The password is `demonstration` - a literal in a public repository,
+        // like the development account's password, and for the same reason:
+        // it opens nothing but a local demonstration.
         $locked = $this->space(
             name: 'Atelier Dupont - Refonte du site',
             description: 'Reprise des textes et des photos de chantier, livraison au printemps.',
@@ -516,12 +534,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         );
 
         if (!$locked->isDriveLocked()) {
-            // **Un identifiant manifestement faux**, et c'est le sujet : celui
-            // d'un vrai dossier Drive a séjourné ici, et ce dépôt est public.
-            // Un identifiant de dossier n'ouvre rien à lui seul, mais il nomme
-            // une infrastructure réelle, ce qui n'a pas sa place dans une
-            // démonstration. Google le refusera, l'écran dira que le dossier
-            // ne répond pas, et c'est un état que la démo doit savoir montrer.
+            // **A plainly fake identifier**, and that is the point: a real
+            // Drive folder's identifier once sat here, and this repository is
+            // public. A folder identifier opens nothing on its own, but it
+            // names real infrastructure, which has no place in a
+            // demonstration. Google will refuse it, the screen will say the
+            // folder does not answer, and that is a state the demo must show.
             $locked->setDriveFolderId('dossier-de-demonstration-aurora');
             $this->driveLock->set($locked, 'demonstration');
         }
@@ -540,11 +558,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             members: [],
         );
 
-        // Un espace ouvert pour un prospect, et c'est la seule chose qui le
-        // distingue : même tableau, mêmes fiches, mêmes notes. On travaille
-        // avec quelqu'un avant qu'il signe, et l'écran doit le montrer - une
-        // démonstration où les prospects sont des coquilles vides enseignerait
-        // le contraire.
+        // A space opened for a prospect, and that is the only thing that sets
+        // it apart: same board, same cards, same notes. People work with
+        // somebody before they sign, and the screen must show it - a
+        // demonstration where prospects are empty shells would teach the
+        // opposite.
         $fabre = $this->prospect('Menuiserie Fabre');
 
         $launch = $this->space(
@@ -582,6 +600,83 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
+     * One content and one space in the trash, so the trash screen shows both
+     * Studio tabs filled.
+     *
+     * Outside `seedSpaces()`, which runs only once: found by their title and
+     * name, they are added to a demonstration already in place without
+     * touching anything else, and do not double on the next run. Trashed by
+     * the managers, as the screen would do, then dated a few days back: a
+     * trash where everything arrived just now does not say how long is left
+     * before the purge.
+     */
+    private function seedTrash(CustomerInterface $jean): void
+    {
+        $social = $this->spaceRepository->findOneBy(['name' => 'Atelier Dupont - Réseaux sociaux']);
+        $columns = $social instanceof CustomerSpaceInterface ? $this->contentColumns->findForSpace($social) : [];
+
+        if ($social instanceof CustomerSpaceInterface && [] !== $columns
+            && null === $this->entityManager->getRepository(SpaceContentItem::class)->findOneBy(['space' => $social, 'title' => 'Promo de printemps'])) {
+            $item = $this->contentItems->create($social, new SpaceContentItemInput(
+                title: 'Promo de printemps',
+                body: "Remise sur les tables en chêne. Abandonnée : l'atelier préfère ne pas annoncer de prix.",
+                columnId: $columns[0]->getId(),
+            ));
+            $this->contentItems->trash($item);
+            $item->setDeletedAt(new DateTimeImmutable('-2 days'));
+            $this->entityManager->flush();
+        }
+
+        if (null === $this->spaceRepository->findOneBy(['name' => 'Martin Documents - Salon 2025'])) {
+            $salon = $this->space(
+                name: 'Martin Documents - Salon 2025',
+                description: "Les publications autour du salon de l'archivage. Ouvert en double par erreur.",
+                customer: $jean,
+                members: [$this->suiteUser('jean.martin@aurora.app') => 'lead'],
+            );
+            $this->spaces->trash($salon);
+            $salon->setDeletedAt(new DateTimeImmutable('-6 days'));
+            $this->entityManager->flush();
+        }
+    }
+
+    /**
+     * One file the client sent to the space itself, from their page.
+     *
+     * Outside `seedSpaces()`, like the trash above, so an existing demo gains
+     * it on the next `make demo` and keeps a single copy afterwards. Sent by
+     * the photographer's link, the one that holds the right to send files, and
+     * dated two days back: the Files tab then shows the three states side by
+     * side - shown to the client, hidden from them, and sent by them.
+     */
+    private function seedClientFile(): void
+    {
+        $social = $this->spaceRepository->findOneBy(['name' => 'Atelier Dupont - Réseaux sociaux']);
+        $document = $this->documents->findOneBy(['title' => "Photo d'équipe - Séminaire 2025"]);
+
+        if (!$social instanceof CustomerSpaceInterface || !$document instanceof Document) {
+            return;
+        }
+
+        $link = $this->existingLinkFor($social, 'studio@lumiere-photo.test');
+
+        if (!$link instanceof SpaceAccessLinkInterface
+            || null !== $this->entityManager->getRepository(SpaceFile::class)->findOneBy(['space' => $social, 'document' => $document])) {
+            return;
+        }
+
+        $file = new SpaceFile();
+        $file->setSpace($social)->setDocument($document)->addedByClient($link);
+        $this->entityManager->persist($file);
+        $this->entityManager->flush();
+
+        $this->entityManager->createQuery('UPDATE '.SpaceFile::class.' f SET f.createdAt = :at WHERE f.id = :id')
+            ->setParameter('at', new DateTimeImmutable('-2 days 16:20'))
+            ->setParameter('id', $file->getId())
+            ->execute();
+    }
+
+    /**
      * A week of content on one board, spread across its steps.
      *
      * Dates are relative to today, like the contracts above: a calendar seeded
@@ -605,12 +700,25 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // whose posts go past a lawyer has one nobody else has. A demo that
         // only ever showed the default five would teach that they are the
         // product's, which is the opposite of what the table is for.
+        //
+        // Hidden from the client, like any added stage: a lawyer's review is
+        // an internal stage, and it is the example of the unticked box.
         $this->contentColumnManager->create($space, new SpaceContentColumnInput(
             name: 'Relecture juridique',
             colourSlot: 8,
         ));
 
         $columns = $this->contentColumns->findForSpace($space);
+
+        // "Programmé" shown by hand: a new space shows the client only the
+        // review and what is published, and this client wants to see the
+        // month ahead. Without this step, the demonstration would have no
+        // stage shown by somebody, and the card they approved yesterday would
+        // disappear from their page.
+        if (isset($columns[3])) {
+            $columns[3]->setVisibleToClient(true);
+            $this->entityManager->flush();
+        }
 
         // Keyed by the step's place, not its name: the names are translated at
         // creation and a demo that matched on "Idées" would seed nothing the
@@ -630,10 +738,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ],
             1 => [
                 ['Coulisses du chantier Morel', "Trois photos de l'escalier en cours.", '+3 days 09:00', ['Visuel de campagne - Automne 2025', 'Plan des locaux - Étage 2', 'Logo Aurora - Fond sombre']],
-                // La seule carte datée qui ne paraît pas dans le mois : une
-                // échéance de studio, pas une publication. Sans elle, la
-                // démonstration n'aurait aucun exemple de la case décochée, et
-                // le cas qu'elle existe pour porter resterait invisible.
+                // The only dated card that does not appear in the month: a
+                // studio deadline, not a post. Without it, the demonstration
+                // would have no example of the unticked box, and the case it
+                // exists to carry would stay invisible.
                 ['Relancer le photographe', 'Confirmer la date de la séance avant de programmer le reste.', '+2 days 10:00', [], false],
             ],
             2 => [
@@ -669,9 +777,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                     scheduledAt: null === $when
                         ? null
                         : new DateTimeImmutable($when)->format('Y-m-d\TH:i'),
-                    // Le cinquième élément, absent partout sauf sur la carte
-                    // interne : une liste de cartes reste lisible quand le cas
-                    // courant ne l'écrit pas.
+                    // The fifth element, absent everywhere except on the
+                    // internal card: a list of cards stays readable when the
+                    // common case does not write it.
                     showOnCalendar: $row[4] ?? true,
                 ));
 
@@ -690,9 +798,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * and should not grow one, because a conversation is a sequence of events
      * and events do not get re-dated.
      *
-     * Paramétrée parce que deux espaces en ont une : celui d'un client et celui
-     * d'un prospect, et faire parler le second avec les mots du premier serait
-     * une démonstration qui se contredit.
+     * Parameterised because two spaces have one: a client's and a prospect's,
+     * and making the second speak with the first one's words would be a
+     * demonstration that contradicts itself.
      *
      * **The client's side is signed by a real access link**, issued here like
      * the studio would: a message signed any other way would be data no code
@@ -700,46 +808,45 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * is also what the access screen needs to have something to show.
      */
     /**
-     * Les états qu'un lien d'accès peut prendre, un par ligne.
+     * The states an access link can take, one per row.
      *
-     * **Deux liens identiques n'apprennent rien.** L'écran d'accès client
-     * montrait deux destinataires aux mêmes droits, valides tous les deux :
-     * ni ce qu'un lien révoqué devient, ni qu'un lecteur peut n'avoir que le
-     * droit de lire, ni qu'un droit de dépôt existe, ni qu'on peut ouvrir un
-     * espace sans ouvrir son Drive.
+     * **Two identical links teach nothing.** The client access screen showed
+     * two recipients with the same rights, both valid: not what a revoked
+     * link becomes, not that a reader may have only the right to read, not
+     * that an upload right exists, not that a space can be opened without
+     * opening its Drive.
      *
-     * Un droit qu'on ne voit jamais coché ni décoché est un droit dont
-     * personne ne sait qu'il existe.
+     * A right nobody ever sees ticked or unticked is a right nobody knows
+     * exists.
      */
     private function seedAccessLinks(CustomerSpaceInterface $space): void
     {
-        // Un lecteur, et rien de plus : l'associé du client, le supérieur, une
-        // agence partenaire. Il regarde, il ne décide pas.
+        // A reader, and nothing more: the client's partner, a superior, a
+        // partner agency. They look, they do not decide.
         $this->accessLink($space, 'lea@atelier-dupont.fr', 'Léa, communication', 90, false, false);
 
-        // Le droit de déposer un fichier, qui est décoché par défaut : le
-        // client envoie ses visuels au lieu de les mettre en pièce jointe d'un
-        // courriel.
+        // The right to upload a file, unticked by default: the client sends
+        // their visuals instead of attaching them to an email.
         $this->accessLink($space, 'studio@lumiere-photo.test', 'Studio Lumière, photographe', 60, false, true, canUpload: true);
 
-        // Un lien qui n'a pas le droit de voir le dossier Drive. Le partage
-        // contient parfois des pièces qui ne regardent pas tout le monde.
+        // A link without the right to see the Drive folder. The share
+        // sometimes holds documents that are not everybody's business.
         $this->accessLink($space, 'audit@cabinet-verrier.test', 'Cabinet Verrier, audit', 30, false, true, canSeeDrive: false);
 
-        // Révoqué : retiré à la main. La ligne reste, barrée, parce qu'effacer
-        // un accès effacerait aussi qui avait répondu quoi.
+        // Revoked: withdrawn by hand. The row stays, struck through, because
+        // erasing an access would also erase who had answered what.
         $this->accessLink($space, 'ancien.stagiaire@atelier-dupont.fr', 'Thomas, stage terminé', 90, false, true)
             ?->revoke(new DateTimeImmutable('-6 days'));
 
-        // Expiré de lui-même. Un accès qui survit à la mission est un accès que
-        // personne ne pense à fermer, d'où la date de fin obligatoire.
+        // Expired on its own. An access that outlives the engagement is an
+        // access nobody thinks of closing, hence the mandatory end date.
         $this->accessLink($space, 'salon@expo-artisans.test', "Salon des artisans, édition d'avril", 90, false, true)
             ?->setExpiresAt(new DateTimeImmutable('-3 days'));
 
         $this->entityManager->flush();
     }
 
-    /** Un lien, une seule fois, quel que soit le nombre de rechargements. */
+    /** One link, once, however many reloads there are. */
     private function accessLink(
         CustomerSpaceInterface $space,
         string $recipient,
@@ -754,8 +861,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return null;
         }
 
-        // Nommés plutôt que positionnels : la signature porte six droits, et
-        // en insérer un au milieu décalerait silencieusement tous les autres.
+        // Named rather than positional: the signature carries six rights, and
+        // inserting one in the middle would silently shift all the others.
         return $this->accessLinks->issue(
             $space,
             $recipient,
@@ -781,12 +888,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return null;
         }
 
-        // **Un lien par personne, quel que soit le nombre de passages.**
-        // `issue()` en crée un à chaque appel, donc trois `make demo` donnaient
-        // trois fois Camille dans l'écran d'accès client : une liste qui dit
-        // qu'on a envoyé trois adresses à la même personne, ce qui n'est pas
-        // ce que la démonstration décrit et ce qu'un lecteur prend pour un
-        // défaut du produit.
+        // **One link per person, however many runs there are.**
+        // `issue()` creates one on every call, so three `make demo` gave
+        // Camille three times in the client access screen: a list saying
+        // three addresses were sent to the same person, which is not what the
+        // demonstration describes and what a reader takes for a product
+        // defect.
         $link = $this->existingLinkFor($space, $recipient) ?? $this->accessLinks->issue(
             $space,
             $recipient,
@@ -807,9 +914,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $dates = [];
 
-        // Le canal principal de l'espace : un message appartient à un canal
-        // depuis que la discussion en a plusieurs, et l'espace est né avec
-        // celui-là.
+        // The space's main channel: a message belongs to a channel since the
+        // conversation has had several, and the space was born with this
+        // one.
         $channel = $this->chatChannels->ensureMain($space);
 
         foreach ($exchange as [$when, $fromClient, $body]) {
@@ -838,11 +945,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Le lien déjà émis pour cette adresse, s'il y en a un.
+     * The link already issued for this address, if there is one.
      *
-     * Cherché dans les liens de l'espace plutôt que par une requête à part :
-     * la démonstration en pose deux ou trois par espace, et le dépôt sait déjà
-     * les rendre.
+     * Looked up among the space's links rather than with a separate query:
+     * the demonstration sets two or three per space, and the repository
+     * already knows how to return them.
      */
     private function existingLinkFor(CustomerSpaceInterface $space, string $recipient): ?SpaceAccessLinkInterface
     {
@@ -856,22 +963,21 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Deux canaux de plus sur l'espace le mieux rempli.
+     * Two more channels on the best-filled space.
      *
-     * Un interne et un ouvert, parce que c'est la distinction que la
-     * fonctionnalité existe pour porter : une démonstration qui n'aurait que
-     * des canaux ouverts ne montrerait pas où l'agence parle entre elle, et une
-     * qui n'aurait que des canaux fermés ferait croire que le client n'en voit
-     * jamais.
+     * One internal and one open, because that is the distinction the feature
+     * exists to carry: a demonstration with only open channels would not show
+     * where the agency talks among itself, and one with only closed channels
+     * would suggest the client never sees any.
      *
-     * Le canal principal n'est pas créé ici : un espace naît avec.
+     * The main channel is not created here: a space is born with it.
      */
     private function seedChannels(CustomerSpaceInterface $space): void
     {
-        // Les deux comptes, et le compte de démonstration d'abord : un canal
-        // n'est vu que par ceux qui y sont, donc un canal créé sans personne
-        // dedans est un canal que le studio ne retrouve jamais - y compris
-        // celui qui vient de le créer.
+        // Both accounts, and the demonstration account first: a channel is
+        // seen only by those in it, so a channel created with nobody inside
+        // is a channel the studio never finds again - including whoever just
+        // created it.
         $accounts = array_filter([
             $this->userRepository->find($this->suiteUser('dev@aurora.app')),
             $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app')),
@@ -885,9 +991,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $this->chatChannels->invite($upcoming, $account);
         }
 
-        // Et une conversation privée entre les deux comptes : c'est la seconde
-        // moitié de la discussion, et une démonstration où la section est vide
-        // laisse croire qu'elle ne sert à rien.
+        // And a private conversation between the two accounts: that is the
+        // second half of the conversation, and a demonstration where the
+        // section is empty suggests it serves no purpose.
         if (2 === count($accounts)) {
             [$first, $second] = array_values($accounts);
             $this->chatChannels->openDirect($space, $first, null, $second, null);
@@ -895,17 +1001,15 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Deux fiches commentées, studio et client mêlés.
+     * Two commented cards, studio and client mixed.
      *
-     * La table était vide, donc le fil d'une fiche s'ouvrait toujours sur
-     * « aucun commentaire » : la fonctionnalité existait et ne se voyait
-     * nulle part. Deux fiches sur huit, pas huit sur huit - une fiche sans
-     * discussion est l'état le plus courant du tableau et il faut qu'il se
-     * voie aussi.
+     * The table was empty, so a card's thread always opened on "no comment":
+     * the feature existed and was seen nowhere. Two cards out of eight, not
+     * eight out of eight - a card without discussion is the board's most
+     * common state and it has to be seen too.
      *
-     * Le client signe avec le lien d'accès de la conversation, pas avec un
-     * autre : deux liens pour un même interlocuteur donneraient deux
-     * personnes à l'écran.
+     * The client signs with the conversation's access link, not with another
+     * one: two links for the same person would put two people on screen.
      */
     private function seedCardComments(CustomerSpaceInterface $space, ?SpaceAccessLinkInterface $link): void
     {
@@ -954,9 +1058,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             }
         }
 
-        // Comme la conversation : l'entité horodate à la création et n'a pas
-        // de setter pour ça, ce qui est juste - un commentaire ne se
-        // rédate pas.
+        // Like the conversation: the entity timestamps on creation and has no
+        // setter for it, which is right - a comment does not get
+        // re-dated.
         foreach ($dates as $id => $at) {
             $this->entityManager->createQuery(
                 'UPDATE '.SpaceContentComment::class.' c SET c.createdAt = :at WHERE c.id = :id'
@@ -965,13 +1069,13 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Deux avis du client sur le tableau : un contenu validé, un à reprendre.
+     * Two client opinions on the board: one content approved, one to redo.
      *
-     * Sans eux, la pastille de l'avis ne s'affichait sur aucune carte et la
-     * fiche n'avait jamais de réponse à montrer, alors que c'est le geste que
-     * l'espace existe pour recueillir. Hors du garde des espaces, et rejoué
-     * sans doublon : un avis déjà donné est laissé tel quel, et le fil de la
-     * fiche à reprendre ne s'écrit qu'une fois.
+     * Without them, the opinion badge showed on no card and the card never
+     * had an answer to show, although that is the act the space exists to
+     * collect. Outside the spaces guard, and replayed without duplicates: an
+     * opinion already given is left as it is, and the thread of the card to
+     * redo is written only once.
      */
     private function seedApprovals(): void
     {
@@ -1042,15 +1146,16 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Ce qu'un espace épingle : un lien, un texte, un contact.
+     * What a space pins: a link, a text, a contact.
      *
-     * Les adresses sont en `example.com` et les personnes sont inventées,
-     * comme partout ailleurs dans la démonstration : rien ici ne doit désigner
-     * une infrastructure ou quelqu'un de réel.
+     * The addresses are on `example.com` and the people are made up, as
+     * everywhere else in the demonstration: nothing here may name real
+     * infrastructure or a real person.
      *
-     * **Les coordonnées sont écrites, pas dérivées du libellé.** Les déduire
-     * donnait `léa.communication@…` : une adresse que le validateur refuse, et
-     * que la démonstration affichait pourtant comme si on pouvait l'écrire.
+     * **The contact details are written, not derived from the label.**
+     * Deriving them gave `léa.communication@…`: an address the validator
+     * refuses, and that the demonstration still showed as if it could be
+     * typed.
      *
      * @param list<array{0: string, 1: string, 2: string|null, 3: string|null, 4: bool, 5?: string, 6?: string}> $rows
      */
@@ -1076,12 +1181,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Une fiche ouverte pour quelqu'un dont on n'a rien d'autre que le nom.
+     * A record opened for somebody of whom nothing but the name is known.
      *
-     * Sans adresse ni SIRET, parce que c'est l'état qu'un prospect décrit : on
-     * rencontre quelqu'un, on ouvre un espace pour structurer le travail, et
-     * tout le reste attend. Une démonstration où les prospects arrivent avec
-     * leur identité légale complète montrerait un client déguisé.
+     * No address and no SIRET, because that is the state a prospect
+     * describes: you meet somebody, open a space to structure the work, and
+     * everything else waits. A demonstration where prospects arrive with
+     * their full legal identity would show a client in disguise.
      */
     private function prospect(string $legalName): CustomerInterface
     {
@@ -1092,11 +1197,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Le tableau d'un prospect : moins avancé, et c'est tout.
+     * A prospect's board: less advanced, and that is all.
      *
-     * Trois fiches au lieu de huit, rien de publié, aucun avis rendu. Un
-     * chantier qui n'a pas encore commencé ressemble à ça, et le mettre à côté
-     * du tableau plein de l'autre espace est ce qui montre les deux états.
+     * Three cards instead of eight, nothing published, no opinion given. A
+     * project that has not started yet looks like this, and putting it next
+     * to the other space's full board is what shows both states.
      */
     private function seedProspectBoard(CustomerSpaceInterface $space): void
     {
@@ -1106,13 +1211,19 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
+        // The logo directions wait for their opinion, at the stage the client
+        // sees: that is what the conversation announces to them, and the only
+        // part of the board their link shows. The rest is internal work,
+        // hidden like any ideas or writing stage.
         $cards = [
             0 => [
-                ['Pistes de logo', "Trois directions : menuisier d'art, atelier familial, bois brut.", null, ['Logo Aurora - Fond sombre', 'Visuel de campagne - Automne 2025']],
                 ['Palette et typographie', 'À caler une fois la direction choisie.', null, []],
             ],
             1 => [
                 ["Photos de l'atelier", 'Prévoir une demi-journée sur place, lumière du matin.', '+6 days 10:00', ["Photo d'équipe - Séminaire 2025"]],
+            ],
+            2 => [
+                ['Pistes de logo', "Trois directions : menuisier d'art, atelier familial, bois brut.", '+4 days 18:00', ['Logo Aurora - Fond sombre', 'Visuel de campagne - Automne 2025']],
             ],
         ];
 
@@ -1137,80 +1248,85 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Des notes sur un espace : la seule surface que le client ne voit pas.
+     * Notes on a space: the only surface the client does not see.
      *
-     * Écrites comme on les écrit - le brief pris au téléphone, ce qu'il reste à
-     * décider, ce qui a coincé - parce qu'une démonstration où les notes sont
-     * des paragraphes de remplissage n'apprend pas à quoi elles servent.
+     * Written the way people write them - the brief taken on the phone, what
+     * is left to decide, what got stuck - because a demonstration where notes
+     * are filler paragraphs does not teach what they are for.
      *
-     * Persistées directement, comme la discussion : le Manager signe avec le
-     * compte connecté, et une fixture n'en a pas.
+     * **In the Notes module, through its managers**: the note space of the
+     * client space, opened the way the tab would, receives the team's notes;
+     * private notes go into their author's personal space, filed in a folder
+     * named after the client space - where the migration files the older
+     * ones. A pinned note becomes a favourite of its author.
      */
     private function seedNotes(CustomerSpaceInterface $space): void
     {
         $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
-        // Les notes personnelles sont prises par le compte de développement,
-        // et c'est le seul choix qui montre quelque chose : une note
-        // personnelle ne remonte qu'à son auteur, donc signée par quelqu'un
-        // d'autre elle laisserait l'onglet vide pour celui qui regarde.
+        // The personal notes are taken by the development account, and that
+        // is the only choice that shows anything: a personal note is read only
+        // in its author's space, so signed by somebody else it would stay
+        // invisible to whoever is looking.
         $admin = $this->userRepository->find($this->suiteUser('dev@aurora.app'));
 
         if (!$marie instanceof User || !$admin instanceof User) {
             return;
         }
 
-        foreach ($this->noteContents() as [$title, $colour, $pinned, $visibility, $paragraphs]) {
-            $author = $visibility->isPersonal() ? $admin : $marie;
+        $team = $this->noteSpaces->resolve($space);
+        $folder = null;
 
-            $note = new SpaceNote();
-            $note
-                ->setSpace($space)
-                ->setTitle($title)
-                ->setColourSlot($colour)
-                ->setPinned($pinned)
-                ->setVisibility($visibility)
-                ->setBody(array_map(
-                    static fn (string $text): array => ['type' => 'paragraph', 'data' => ['text' => $text]],
-                    $paragraphs,
-                ))
-                ->takenBy($author, $author->getName());
+        foreach ($this->noteContents() as [$title, $pinned, $personal, $paragraphs]) {
+            $author = $personal ? $admin : $marie;
 
-            $this->entityManager->persist($note);
+            if ($personal && !$folder instanceof NoteFolderInterface) {
+                $folder = $this->noteFolders->create($admin, $this->noteFolderInputs->fromArray([
+                    'name' => $space->getName(),
+                    'spaceId' => $this->noteSpaceAccess->personalSpace($admin)->getId(),
+                ]));
+            }
+
+            $note = $this->markdownNotes->create($author, $this->markdownNoteInputs->fromArray([
+                'title' => $title,
+                'content' => implode("\n\n", $paragraphs),
+                'spaceId' => $personal ? null : $team->getId(),
+                'folderId' => $personal ? $folder?->getId() : null,
+            ]));
+
+            if ($pinned) {
+                $this->noteFavorites->toggle($author, $note);
+            }
         }
-
-        $this->entityManager->flush();
     }
 
     /**
-     * Trois notes partagées et une personnelle.
+     * Three team notes and two private ones, pinned ones first.
      *
-     * La personnelle n'est pas un quatrième exemple du même objet : c'est la
-     * seule qui montre pourquoi les deux onglets existent, et elle dit ce qu'on
-     * n'écrit pas sur un mur que l'équipe lit.
+     * The personal ones are not one more example of the same object: they are
+     * the only ones that show a private note belongs somewhere other than the
+     * space the team reads.
      *
-     * @return list<array{0: string, 1: ?int, 2: bool, 3: SpaceNoteVisibilityEnum, 4: list<string>}>
+     * @return list<array{0: string, 1: bool, 2: bool, 3: list<string>}>
      */
     private function noteContents(): array
     {
         return [
-            ['Brief téléphonique', 4, true, SpaceNoteVisibilityEnum::Shared, [
-                'Le client veut <b>éviter le vert</b> : trop proche de son concurrent de la zone.',
+            ['Brief téléphonique', true, false, [
+                'Le client veut **éviter le vert** : trop proche de son concurrent de la zone.',
                 'Livraison souhaitée avant les portes ouvertes. Marge réelle : trois semaines.',
                 'Contact technique : son neveu, qui gère le site. Passer par lui pour les accès.',
             ]],
-            ['À décider', null, false, SpaceNoteVisibilityEnum::Shared, [
-                'Format des visuels : carré pour Instagram, ou 4:5 partout ?',
-                "Est-ce qu'on reprend les photos existantes ou on refait une séance ?",
+            ['À décider', false, false, [
+                "- Format des visuels : carré pour Instagram, ou 4:5 partout ?\n- Est-ce qu'on reprend les photos existantes ou on refait une séance ?",
             ]],
-            ['Ce qui a coincé en mars', 9, false, SpaceNoteVisibilityEnum::Shared, [
+            ['Ce qui a coincé en mars', false, false, [
                 "Les validations partaient par mail et se perdaient. D'où l'espace.",
                 'Deux allers-retours sur un texte déjà validé, faute de trace écrite.',
             ]],
-            ['À relancer', 2, true, SpaceNoteVisibilityEnum::Personal, [
-                "Le devis photo avant la fin du mois : c'est passé deux fois à la trappe.",
-                'Ne pas proposer le mardi pour les points, je suis en formation.',
+            ['À relancer', true, true, [
+                "- [ ] Le devis photo avant la fin du mois : c'est passé deux fois à la trappe.\n- [ ] Ne pas proposer le mardi pour les points, je suis en formation.",
             ]],
-            ['Ce que je ne dirai pas comme ça', 6, false, SpaceNoteVisibilityEnum::Personal, [
+            ['Ce que je ne dirai pas comme ça', false, true, [
                 'La direction « artisanale » ne prend pas. Trouver comment le dire sans dire « ça ne marche pas ».',
                 'Préparer deux planches avant le point, pas une seule à défendre.',
             ]],
@@ -1270,242 +1386,16 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Two decks: one written to be looked at, one written to be duplicated.
+     * The files of the space itself, on no card.
      *
-     * The first is a real talk, in the sense that it has a beginning, a claim
-     * and an end - a dozen slides that could be given to a client without
-     * anybody apologising for the demo. That is what the module's screenshots
-     * need: a deck built to fill a page shows the editor, not the thing the
-     * editor is for.
+     * The counterpart of `hangPictures` for the other attachment: the brand
+     * guidelines, the logo, the floor plan. Taken from the media library by
+     * their title, for the same reason, and signed by the same account.
      *
-     * The second stays four slides on purpose. A trame is a skeleton somebody
-     * duplicates and fills, and dressing it up would hide what it is.
+     * Each title says whether it is shown to the client: a space file is born
+     * hidden, like everything a space can show them.
      *
-     * Neither is an audit nor a strategy: those are written documents, and
-     * they live in the deliverables (since 04/10/2026, Axel's call). A deck is
-     * what is shown in a meeting - a kick-off, a monthly review.
-     *
-     * Between them they use every layout, images included: the full-page
-     * picture reads nothing from the deck itself, it points at a document in
-     * the library, so the two slides that carry one pull it by reference from
-     * the GED fixtures rather than inventing a file of their own.
-     */
-    /**
-     * Une présentation que l'équipe a mise à la corbeille, pour l'onglet des
-     * présentations. À part de `seedDecks()`, qui ne joue qu'une fois sur une
-     * base vide : celle-ci se pose aussi sur une démo déjà chargée, et une seule
-     * fois, retrouvée par son titre.
-     */
-    private function seedTrashedDeck(): void
-    {
-        if (null !== $this->deckRepository->findOneBy(['title' => 'Trame de bilan trimestriel'])) {
-            return;
-        }
-
-        $deck = $this->decks->create('Trame de bilan trimestriel');
-        $deck->setDescription('Remplacée par la trame de point mensuel.');
-        $this->slide($deck, SlideLayoutEnum::Title, ['title' => 'Bilan du trimestre', 'subtitle' => '{client}'], null);
-        $deck->setDeletedAt(new DateTimeImmutable('-5 days'));
-    }
-
-    private function seedDecks(CustomerInterface $customer): void
-    {
-        // Built once, like the contracts above. Nothing here is looked up
-        // before it is created - a deck has no natural key to look it up by -
-        // so a second run would silently double a list meant to be read.
-        if (0 !== $this->deckRepository->count([])) {
-            return;
-        }
-
-        $kickOff = new DeckCategory();
-        $kickOff->setName('Lancement')->setColor('#f59e0b')->setPosition(0);
-
-        $review = new DeckCategory();
-        $review->setName('Suivi')->setColor('#6366f1')->setPosition(1);
-
-        $this->entityManager->persist($kickOff);
-        $this->entityManager->persist($review);
-
-        $this->seedKickOffDeck($customer, $kickOff);
-        $this->seedMonthlyReviewTemplate($review);
-    }
-
-    /**
-     * The deck that gets shown: a kick-off meeting, from what the client asked
-     * for to the first date in the calendar.
-     *
-     * Ordered the way the meeting actually goes. What we heard comes first,
-     * so the client recognises their own words; then how we will work, then
-     * when. The quote at the end is the sentence everybody leaves the room
-     * with, which is what a deck is for.
-     */
-    private function seedKickOffDeck(CustomerInterface $customer, DeckCategory $category): void
-    {
-        $deck = $this->decks->create('Réunion de lancement, refonte du site');
-        $deck->setDescription('Ce que vous attendez du nouveau site, comment on travaille ensemble, et les six semaines qui viennent.');
-        $deck->setCategory($category);
-        $deck->setCustomer($customer);
-
-        $this->slide($deck, SlideLayoutEnum::Title, [
-            'title' => 'Réunion de lancement',
-            'subtitle' => 'Atelier Dupont, octobre 2026',
-        ], 'Remercier pour le temps pris. Annoncer quarante minutes, questions comprises.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Ce que vous nous avez dit',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Trois attentes, dans vos mots',
-            'bullets' => [
-                'Être trouvé par les gens de la région qui cherchent un menuisier',
-                "Montrer l'atelier et les chantiers, pas seulement le catalogue",
-                'Recevoir des demandes de devis plutôt que des appels à toute heure',
-            ],
-        ], 'Faire valider chaque ligne : si une seule est fausse, tout le reste se décale.');
-
-        // La photo de la médiathèque de démonstration, légendée pour ce
-        // qu'elle est réellement : une image de bannière. Une légende qui
-        // promettrait une capture d'écran mentirait sur la seule chose que
-        // cette slide montre.
-        $this->slide($deck, SlideLayoutEnum::Image, [
-            'mediaId' => $this->mediaId(1),
-            'caption' => "Le ton visé pour l'accueil : une grande image, peu de mots",
-        ], "Laisser l'image dix secondes avant de commenter.");
-
-        $this->slide($deck, SlideLayoutEnum::Quote, [
-            'quote' => "Un site qui ressemble à l'atelier, et qui ramène des demandes de devis.",
-            'attribution' => 'Votre objectif, en une phrase',
-        ], 'Marquer un temps ici : tout ce qui suit sert cette phrase.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Comment on travaille',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Qui fait quoi',
-            'bullets' => [
-                'Vous : les photos des chantiers, les textes sur le métier, une personne pour valider',
-                'Nous : les maquettes, la rédaction finale, la mise en ligne et les mesures',
-                'Ensemble : un point de trente minutes chaque semaine, à heure fixe',
-            ],
-        ], 'Insister sur « une personne pour valider » : c\'est ce qui tient les délais.');
-
-        $this->slide($deck, SlideLayoutEnum::Split, [
-            'title' => "Ce qu'on vous demande, ce que vous recevez",
-            'left' => 'Une vingtaine de photos de chantiers, trois textes sur votre métier, et une réponse sous deux jours à chaque validation.',
-            'right' => 'Un site rapide sur téléphone, une page par type de chantier, un formulaire de devis qui arrive dans votre boîte, et un point de mesure un mois après.',
-        ], 'Les deux colonnes se lisent en parallèle : laisser le temps.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Le calendrier',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Six semaines, trois étapes',
-            'bullets' => [
-                'Semaines 1 et 2 : les maquettes, présentées puis ajustées une fois',
-                'Semaines 3 et 4 : les contenus, rédigés à partir de vos photos et de vos notes',
-                'Semaines 5 et 6 : la mise en ligne, puis les premières mesures',
-            ],
-        ], 'Dire tout de suite la date de mise en ligne visée, et ce qui la ferait glisser.');
-
-        // Une slide libre, composée à la main : la démonstration de ce que le
-        // canevas sait faire que les gabarits ne font pas. Un dégradé tiré des
-        // couleurs du deck, une photo découpée en cercle, trois cartes groupées
-        // qui entrent une à une, et une flèche posée en biais.
-        $this->slide($deck, SlideLayoutEnum::Free, [
-            'fill' => ['type' => 'linear', 'angle' => 160, 'stops' => [
-                ['color' => 'background', 'at' => 0],
-                ['color' => 'background', 'at' => 55],
-                ['color' => 'accent', 'at' => 100],
-            ]],
-            'elements' => [
-                ['id' => 'title', 'type' => 'text', 'html' => "Le projet, en un coup d'œil", 'font' => 'heading', 'size' => 64, 'weight' => 700, 'lineHeight' => 1.05, 'x' => 6, 'y' => 9, 'w' => 62, 'h' => 14, 'enter' => 'rise'],
-                ['id' => 'subtitle', 'type' => 'text', 'html' => 'Six semaines, et <span style="color: #f2b33d">une validation</span> à chaque étape', 'size' => 28, 'x' => 6, 'y' => 24, 'w' => 60, 'h' => 8, 'enter' => 'fade', 'delay' => 200],
-                ['id' => 'photo', 'type' => 'image', 'mediaId' => $this->mediaId(1), 'mask' => 'circle', 'x' => 76, 'y' => 6, 'w' => 18, 'h' => 32, 'shadow' => ['x' => 0, 'y' => 12, 'blur' => 40, 'color' => '#00000066']],
-                ['id' => 'arrow', 'type' => 'shape', 'shape' => 'line', 'head' => 'end', 'x' => 66, 'y' => 30, 'w' => 9, 'h' => 4, 'rotate' => -24, 'stroke' => ['color' => 'accent', 'width' => 6, 'style' => 'solid']],
-                ['id' => 'card-1', 'type' => 'shape', 'shape' => 'rect', 'x' => 6, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'icon-1', 'type' => 'icon', 'icon' => 'palette', 'color' => 'accent', 'x' => 8.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'head-1', 'type' => 'text', 'html' => 'Les maquettes', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 8.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'body-1', 'type' => 'text', 'html' => "L'accueil et une page de chantier, ajustées ensemble.", 'size' => 20, 'lineHeight' => 1.35, 'x' => 8.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'card-2', 'type' => 'shape', 'shape' => 'rect', 'x' => 36.5, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'icon-2', 'type' => 'icon', 'icon' => 'pen-line', 'color' => 'accent', 'x' => 39.0, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'head-2', 'type' => 'text', 'html' => 'Les contenus', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 39.0, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'body-2', 'type' => 'text', 'html' => 'Vos photos et vos mots, mis en forme par nous.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 39.0, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'card-3', 'type' => 'shape', 'shape' => 'rect', 'x' => 67, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'icon-3', 'type' => 'icon', 'icon' => 'rocket', 'color' => 'accent', 'x' => 69.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'head-3', 'type' => 'text', 'html' => 'La mise en ligne', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 69.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'body-3', 'type' => 'text', 'html' => 'Puis un point de mesure un mois après.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 69.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-            ],
-        ], 'Une carte par pression : laisser lire chacune avant la suivante.');
-
-        $this->slide($deck, SlideLayoutEnum::Quote, [
-            'quote' => 'Six semaines, une validation à chaque étape, et un site qui ramène des devis.',
-            'attribution' => "Ce qu'il faut retenir",
-        ], 'Fin. Fixer ensemble la date du premier point avant de se quitter.');
-
-        // Un lien de partage, parce que l'écran qui les liste n'en montrait
-        // aucun : un deck envoyé, ouvert une fois et qui expire dans deux
-        // mois est l'état ordinaire d'un partage, pas un cas limite. La
-        // lecture est posée à la main, aucune fixture n'ouvrant réellement
-        // le lien.
-        $link = new DeckShareLink($deck);
-        $link
-            ->setLabel('Atelier Dupont - envoi du 12')
-            ->setExpiresAt(new DateTimeImmutable('+60 days'))
-            ->touch(new DateTimeImmutable('-2 days 14:05'));
-
-        $this->entityManager->persist($link);
-    }
-
-    /**
-     * The other kind of deck: a skeleton, addressed to nobody.
-     *
-     * Deliberately short and deliberately vague, because it exists to be
-     * duplicated per client rather than presented as it stands. The nullable
-     * customer is the decision worth seeing on screen: a deck written for
-     * oneself is the ordinary internal case, not a degraded one.
-     */
-    private function seedMonthlyReviewTemplate(DeckCategory $category): void
-    {
-        $deck = $this->decks->create('Trame de point mensuel');
-        $deck->setDescription('La forme que prend le point du mois avec un client. À dupliquer, puis à remplir.');
-        $deck->setCategory($category);
-
-        $this->slide($deck, SlideLayoutEnum::Title, [
-            'title' => 'Point du mois',
-            'subtitle' => '{client}, {mois}',
-        ], 'Remplacer les deux mentions avant de présenter.');
-
-        $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Le mois écoulé',
-        ], null);
-
-        $this->slide($deck, SlideLayoutEnum::Split, [
-            'title' => 'Prévu, fait',
-            'left' => 'Ce qui était prévu ce mois-ci.',
-            'right' => "Ce qui a été fait, et ce qui ne l'a pas été.",
-        ], "La colonne de droite d'abord : c'est celle qu'on attend.");
-
-        $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Le mois qui vient',
-            'bullets' => [
-                'Trois priorités, pas plus',
-                'Ce que chacune demande de votre côté',
-                'La date du prochain point',
-            ],
-        ], null);
-    }
-
-    /**
-     * Les fichiers de l'espace lui-même, sur aucune fiche.
-     *
-     * Le pendant de `hangPictures` pour l'autre rattachement : la charte, le
-     * logo, le plan des locaux. Pris dans la médiathèque par leur titre, pour
-     * la même raison, et signés par le même compte.
-     *
-     * @param list<string> $titles
+     * @param array<string, bool> $titles
      */
     private function fileOnSpace(CustomerSpaceInterface $space, array $titles): void
     {
@@ -1515,7 +1405,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
-        foreach ($titles as $title) {
+        foreach ($titles as $title => $visible) {
             $document = $this->documents->findOneBy(['title' => $title]);
 
             if (!$document instanceof Document) {
@@ -1523,7 +1413,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             }
 
             $file = new SpaceFile();
-            $file->setSpace($space)->setDocument($document)->addedByStudio($author, $author->getName());
+            $file->setSpace($space)->setDocument($document)->addedByStudio($author, $author->getName())->setVisibleToClient($visible);
 
             $this->entityManager->persist($file);
         }
@@ -1572,26 +1462,6 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * The id of a demo picture from the media library.
-     *
-     * By reference rather than by a hardcoded id: the fixtures run in whatever
-     * order the loader chooses, and a number written here would point at
-     * whatever happened to be created first.
-     */
-    private function mediaId(int $index): int
-    {
-        return (int) $this->getReference(GedDemoFixtures::mediaRef($index), Document::class)->getId();
-    }
-
-    /** @param array<string, mixed> $content */
-    private function slide(DeckInterface $deck, SlideLayoutEnum $layout, array $content, ?string $notes): void
-    {
-        $slide = $this->decks->addSlide($deck, $layout);
-        $this->decks->writeContent($slide, $content);
-        $slide->setSpeakerNotes($notes);
-    }
-
-    /**
      * Twelve settings, overwritten whatever was there.
      *
      * Deliberately not "only when empty", which is what this did first and
@@ -1612,15 +1482,15 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
-     * Une société sous contrat, avec la fiche que son espace montre.
+     * A company under contract, with the record its space shows.
      *
-     * **Le SIREN est les neuf premiers chiffres du SIRET**, parce que c'est ce
-     * qu'il est. La saisie refuse les deux quand ils ne s'accordent pas, donc
-     * une démonstration où ils divergeraient montrerait un état que l'écran
-     * n'accepte pas de produire.
+     * **The SIREN is the first nine digits of the SIRET**, because that is
+     * what it is. The form refuses both when they disagree, so a
+     * demonstration where they diverged would show a state the screen refuses
+     * to produce.
      *
-     * La fiche est posée après la création : `CustomerInput` porte l'identité
-     * contractuelle, et ces colonnes-là appartiennent à l'autre saisie.
+     * The record is set after creation: `CustomerInput` carries the
+     * contractual identity, and these columns belong to the other form.
      *
      * @param list<array{label: string, url: string}> $links
      */
@@ -1659,10 +1529,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             representativeLastName: $lastName,
             representativeRole: $role,
             contractualEmail: $email,
-            // Des sociétés sous contrat : elles ont leur SIRET, leur siège et
-            // leur représentant, donc elles ne sont pas des prospects - le
-            // défaut du DTO décrit une fiche qu'on vient d'ouvrir, pas
-            // celles-ci.
+            // Companies under contract: they have their SIRET, their head
+            // office and their representative, so they are not prospects - the
+            // DTO's default describes a record just opened, not these.
             status: CustomerStatusEnum::Client,
         ));
 
@@ -1685,9 +1554,23 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * Returning the existing one rather than skipping matters on a database
      * that has been seeded from elsewhere: the demo has to be able to run on
      * top of whatever is already there without doubling it.
-     *
-     * @param list<array<string, mixed>> $blocks
      */
+    /** A trame category, or the one already there under that name. */
+    private function templateCategory(string $name, string $color, int $position): ContractTemplateCategoryInterface
+    {
+        $existing = $this->entityManager->getRepository(ContractTemplateCategory::class)->findOneBy(['name' => $name]);
+
+        if ($existing instanceof ContractTemplateCategoryInterface) {
+            return $existing;
+        }
+
+        $category = new ContractTemplateCategory();
+        $category->setName($name)->setColor($color)->setPosition($position);
+        $this->entityManager->persist($category);
+
+        return $category;
+    }
+
     private function template(string $name, ContractTemplateKindEnum $kind, array $blocks): ContractTemplateInterface
     {
         $existing = $this->templateRepository->findOneBy(['name' => $name]);

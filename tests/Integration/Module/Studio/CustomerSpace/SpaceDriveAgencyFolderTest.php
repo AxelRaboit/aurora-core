@@ -193,8 +193,8 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
     }
 
     /**
-     * Le dossier de l'agence se règle depuis les réglages d'un espace, dans
-     * une fenêtre : l'écran reçoit l'adresse où l'enregistrer.
+     * The agency folder is set from a space's settings, in a dialog: the
+     * screen receives the address to save it to.
      */
     public function testTheSpaceSettingsCanSetTheAgencyFolderInPlace(): void
     {
@@ -211,9 +211,9 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
     }
 
     /**
-     * Ce geste ne touche que le dossier. L'enregistrement général lit
-     * `enabled` absent comme « éteint » : passer par lui depuis un espace
-     * éteindrait le Drive de toute l'installation.
+     * This action only touches the folder. The general save reads a missing
+     * `enabled` as "off": going through it from a space would turn off the
+     * Drive for the whole install.
      */
     public function testSettingTheAgencyFolderAloneLeavesTheDriveSwitchedOn(): void
     {

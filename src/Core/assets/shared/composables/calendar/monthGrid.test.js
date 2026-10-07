@@ -15,7 +15,7 @@ import {
     timedEventsOn,
 } from "./monthGrid.js";
 
-const iso = (s) => new Date(s).toISOString();
+const iso = (dateTime) => new Date(dateTime).toISOString();
 
 function event(startAt, endAt, extra = {}) {
     return {
@@ -66,7 +66,7 @@ describe("monthGrid", () => {
 
         expect(cells[0].inMonth).toBe(false);
         expect(cells[0].dayOfMonth).toBe(27);
-        expect(cells.filter((c) => c.inMonth)).toHaveLength(31);
+        expect(cells.filter((cell) => cell.inMonth)).toHaveLength(31);
     });
 });
 
@@ -144,7 +144,7 @@ describe("layOutWeek", () => {
             event("2026-08-04T00:00", "2026-08-06T23:59", { allDay: true }),
         ]);
 
-        expect(bars.map((b) => b.lane)).toEqual([0, 1]);
+        expect(bars.map((placedBar) => placedBar.lane)).toEqual([0, 1]);
     });
 
     /** Greedy allocation: a lane is free again the moment its bar has ended. */
@@ -154,7 +154,7 @@ describe("layOutWeek", () => {
             event("2026-08-05T00:00", "2026-08-05T23:59", { allDay: true }),
         ]);
 
-        expect(bars.map((b) => b.lane)).toEqual([0, 0]);
+        expect(bars.map((placedBar) => placedBar.lane)).toEqual([0, 0]);
     });
 
     /**
@@ -185,10 +185,10 @@ describe("layOutWeek", () => {
      * the right day instead of the week saying it once in the wrong place.
      */
     it("counts what did not fit, day by day", () => {
-        const many = Array.from({ length: MAX_LANES + 2 }, (_, i) =>
+        const many = Array.from({ length: MAX_LANES + 2 }, (_, index) =>
             event("2026-08-04T00:00", "2026-08-05T23:59", {
                 allDay: true,
-                id: `e${i}`,
+                id: `e${index}`,
             }),
         );
 
@@ -284,8 +284,8 @@ describe("lanesPerDay", () => {
     it("ignores the bars it does not draw", () => {
         // Past MAX_LANES a bar becomes a "+n" instead, so reserving height for it
         // would leave a gap where nothing is drawn.
-        const overlapping = Array.from({ length: 5 }, (_, i) =>
-            bar(i + 1, "2026-08-24T00:00", "2026-08-26T23:59:59"),
+        const overlapping = Array.from({ length: 5 }, (_, index) =>
+            bar(index + 1, "2026-08-24T00:00", "2026-08-26T23:59:59"),
         );
 
         const { lanesPerDay } = layOutWeek(monday, overlapping);
@@ -367,8 +367,8 @@ describe("itemsOn", () => {
     });
 
     it("counts what each day of a week holds", () => {
-        const cells = Array.from({ length: 7 }, (_, i) => ({
-            date: new Date(2026, 7, 24 + i),
+        const cells = Array.from({ length: 7 }, (_, index) => ({
+            date: new Date(2026, 7, 24 + index),
         }));
 
         const counts = countsPerDay(

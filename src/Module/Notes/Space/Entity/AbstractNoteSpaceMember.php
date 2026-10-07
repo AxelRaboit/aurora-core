@@ -10,10 +10,10 @@ use Aurora\Module\Platform\User\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Une personne inscrite sur un espace, avec son rôle.
+ * A person who is a member of a space, with their role.
  *
- * Les deux côtés en cascade : sans l'espace, l'inscription ne veut rien dire,
- * et sans le compte elle nommerait quelqu'un qui n'existe plus.
+ * Both sides cascade: without the space, the membership means nothing, and
+ * without the account it would name somebody who no longer exists.
  */
 #[ORM\MappedSuperclass]
 #[ORM\UniqueConstraint(name: 'uniq_notes_space_member', columns: ['space_id', 'user_id'])]

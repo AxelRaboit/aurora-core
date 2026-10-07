@@ -63,66 +63,66 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
     ): array {
         // The original rides along: an alternate names it on its row, and
         // reading it lazily would cost one query per alternate on the page.
-        $qb = $this->createQueryBuilder('d')
+        $queryBuilder = $this->createQueryBuilder('d')
             ->leftJoin('d.category', 'c')
             ->leftJoin('d.folder', 'folder')
             ->leftJoin('d.original', 'original')
             ->addSelect('c', 'folder', 'original');
-        $this->orderByFamily($qb, $trashed, $sort, $direction);
-        $countQb = $this->createQueryBuilder('d')->select('COUNT(d.id)');
+        $this->orderByFamily($queryBuilder, $trashed, $sort, $direction);
+        $countQueryBuilder = $this->createQueryBuilder('d')->select('COUNT(d.id)');
 
         // The trash is the same listing with the condition flipped, not a
         // second finder: every filter above keeps working inside it, and a
         // document can only ever be on one side of this line.
         $trashCondition = $trashed ? 'd.deletedAt IS NOT NULL' : 'd.deletedAt IS NULL';
-        $qb->andWhere($trashCondition);
-        $countQb->andWhere($trashCondition);
+        $queryBuilder->andWhere($trashCondition);
+        $countQueryBuilder->andWhere($trashCondition);
 
         if (null !== $search && '' !== $search) {
             $pattern = '%'.mb_strtolower($search).'%';
             $match = $this->searchMatch($filters->searchIn, $originalsOnly);
 
-            $qb->andWhere($match)->setParameter('search', $pattern);
-            $countQb->andWhere($match)->setParameter('search', $pattern);
+            $queryBuilder->andWhere($match)->setParameter('search', $pattern);
+            $countQueryBuilder->andWhere($match)->setParameter('search', $pattern);
         }
 
-        $this->applySearchFilters($qb, $filters);
-        $this->applySearchFilters($countQb, $filters);
+        $this->applySearchFilters($queryBuilder, $filters);
+        $this->applySearchFilters($countQueryBuilder, $filters);
 
         if (null !== $categoryId) {
-            $qb->andWhere('d.category = :cat')->setParameter('cat', $categoryId);
-            $countQb->andWhere('d.category = :cat')->setParameter('cat', $categoryId);
+            $queryBuilder->andWhere('d.category = :cat')->setParameter('cat', $categoryId);
+            $countQueryBuilder->andWhere('d.category = :cat')->setParameter('cat', $categoryId);
         }
 
         if (null !== $tagId) {
-            $qb->innerJoin('d.tags', 'tagFilter')->andWhere('tagFilter.id = :tagId')->setParameter('tagId', $tagId);
-            $countQb->innerJoin('d.tags', 'tagFilter')->andWhere('tagFilter.id = :tagId')->setParameter('tagId', $tagId);
+            $queryBuilder->innerJoin('d.tags', 'tagFilter')->andWhere('tagFilter.id = :tagId')->setParameter('tagId', $tagId);
+            $countQueryBuilder->innerJoin('d.tags', 'tagFilter')->andWhere('tagFilter.id = :tagId')->setParameter('tagId', $tagId);
         }
 
         if (null !== $folderId) {
-            $qb->andWhere('d.folder = :folder')->setParameter('folder', $folderId);
-            $countQb->andWhere('d.folder = :folder')->setParameter('folder', $folderId);
+            $queryBuilder->andWhere('d.folder = :folder')->setParameter('folder', $folderId);
+            $countQueryBuilder->andWhere('d.folder = :folder')->setParameter('folder', $folderId);
         } elseif ($rootOnly) {
             // Sidebar "Root" navigation: only docs without a folder, mirroring
             // Media's root-folder view. When neither folderId nor rootOnly is
             // set, the listing falls back to cross-folder (existing behavior).
-            $qb->andWhere('d.folder IS NULL');
-            $countQb->andWhere('d.folder IS NULL');
+            $queryBuilder->andWhere('d.folder IS NULL');
+            $countQueryBuilder->andWhere('d.folder IS NULL');
         }
 
         if ($status instanceof DocumentStatusEnum) {
-            $qb->andWhere('d.status = :status')->setParameter('status', $status);
-            $countQb->andWhere('d.status = :status')->setParameter('status', $status);
+            $queryBuilder->andWhere('d.status = :status')->setParameter('status', $status);
+            $countQueryBuilder->andWhere('d.status = :status')->setParameter('status', $status);
         }
 
         if ($mimeGroup instanceof MimeGroupEnum) {
-            $mimeGroup->applyTo($qb, 'd');
-            $mimeGroup->applyTo($countQb, 'd');
+            $mimeGroup->applyTo($queryBuilder, 'd');
+            $mimeGroup->applyTo($countQueryBuilder, 'd');
         }
 
         if ($storageDisk instanceof StorageDiskEnum) {
-            $qb->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
-            $countQb->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
+            $queryBuilder->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
+            $countQueryBuilder->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
         }
 
         // A family shown as its original alone: the alternates are one click
@@ -131,11 +131,11 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
         // until the original comes back: hidden here, it would be shown
         // nowhere at all.
         if ($originalsOnly) {
-            $qb->andWhere('d.original IS NULL OR original.deletedAt IS NOT NULL');
-            $countQb->leftJoin('d.original', 'original')->andWhere('d.original IS NULL OR original.deletedAt IS NOT NULL');
+            $queryBuilder->andWhere('d.original IS NULL OR original.deletedAt IS NOT NULL');
+            $countQueryBuilder->leftJoin('d.original', 'original')->andWhere('d.original IS NULL OR original.deletedAt IS NOT NULL');
         }
 
-        $result = $this->paginate($qb, $countQb, $page, $limit);
+        $result = $this->paginate($queryBuilder, $countQueryBuilder, $page, $limit);
         $this->hydrateDocumentTags($result['items']);
 
         return $result;
@@ -655,39 +655,39 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
      * The filters that came with the wider search. Each one leaves the query
      * alone when unset, so a listing that passes none is unchanged.
      */
-    private function applySearchFilters(QueryBuilder $qb, DocumentSearchFilters $filters): void
+    private function applySearchFilters(QueryBuilder $queryBuilder, DocumentSearchFilters $filters): void
     {
         if ($filters->uncategorized) {
-            $qb->andWhere('d.category IS NULL');
+            $queryBuilder->andWhere('d.category IS NULL');
         }
 
         if ($filters->untagged) {
-            $qb->andWhere('d.tags IS EMPTY');
+            $queryBuilder->andWhere('d.tags IS EMPTY');
         }
 
         if ($filters->addedFrom instanceof DateTimeImmutable) {
-            $qb->andWhere('d.createdAt >= :addedFrom')->setParameter('addedFrom', $filters->addedFrom);
+            $queryBuilder->andWhere('d.createdAt >= :addedFrom')->setParameter('addedFrom', $filters->addedFrom);
         }
 
         if ($filters->addedTo instanceof DateTimeImmutable) {
-            $qb->andWhere('d.createdAt <= :addedTo')->setParameter('addedTo', $filters->addedTo);
+            $queryBuilder->andWhere('d.createdAt <= :addedTo')->setParameter('addedTo', $filters->addedTo);
         }
 
         // Square within two percent: a 1080 x 1079 crop is square to anyone
         // looking at it, and would otherwise be filed as landscape.
         match ($filters->orientation) {
-            DocumentOrientationEnum::Landscape => $qb->andWhere('d.width > d.height * 1.02'),
-            DocumentOrientationEnum::Portrait => $qb->andWhere('d.height > d.width * 1.02'),
-            DocumentOrientationEnum::Square => $qb->andWhere('d.width > 0 AND d.height > 0 AND d.width <= d.height * 1.02 AND d.height <= d.width * 1.02'),
+            DocumentOrientationEnum::Landscape => $queryBuilder->andWhere('d.width > d.height * 1.02'),
+            DocumentOrientationEnum::Portrait => $queryBuilder->andWhere('d.height > d.width * 1.02'),
+            DocumentOrientationEnum::Square => $queryBuilder->andWhere('d.width > 0 AND d.height > 0 AND d.width <= d.height * 1.02 AND d.height <= d.width * 1.02'),
             null => null,
         };
 
         match ($filters->weight) {
-            DocumentWeightEnum::Light => $qb->andWhere('d.size < :weightLight')->setParameter('weightLight', DocumentWeightEnum::LIGHT_MAX),
-            DocumentWeightEnum::Medium => $qb->andWhere('d.size >= :weightLight AND d.size <= :weightHeavy')
+            DocumentWeightEnum::Light => $queryBuilder->andWhere('d.size < :weightLight')->setParameter('weightLight', DocumentWeightEnum::LIGHT_MAX),
+            DocumentWeightEnum::Medium => $queryBuilder->andWhere('d.size >= :weightLight AND d.size <= :weightHeavy')
                 ->setParameter('weightLight', DocumentWeightEnum::LIGHT_MAX)
                 ->setParameter('weightHeavy', DocumentWeightEnum::HEAVY_MIN),
-            DocumentWeightEnum::Heavy => $qb->andWhere('d.size > :weightHeavy')->setParameter('weightHeavy', DocumentWeightEnum::HEAVY_MIN),
+            DocumentWeightEnum::Heavy => $queryBuilder->andWhere('d.size > :weightHeavy')->setParameter('weightHeavy', DocumentWeightEnum::HEAVY_MIN),
             null => null,
         };
     }
@@ -705,12 +705,12 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
      * The trash keeps its own order, most recently deleted first: there the
      * question is what was just thrown away, not what belongs together.
      */
-    private function orderByFamily(QueryBuilder $qb, bool $trashed, string $sort, string $direction): void
+    private function orderByFamily(QueryBuilder $queryBuilder, bool $trashed, string $sort, string $direction): void
     {
         $order = 'asc' === $direction ? Order::Ascending->value : Order::Descending->value;
 
         if ($trashed) {
-            $qb->orderBy('d.deletedAt', Order::Descending->value);
+            $queryBuilder->orderBy('d.deletedAt', Order::Descending->value);
 
             return;
         }
@@ -721,7 +721,7 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
             default => 'COALESCE(original.createdAt, d.createdAt)',
         };
 
-        $qb->addSelect($key.' AS HIDDEN familyKey')
+        $queryBuilder->addSelect($key.' AS HIDDEN familyKey')
             ->addSelect('COALESCE(IDENTITY(d.original), d.id) AS HIDDEN familyId')
             ->addSelect('CASE WHEN d.original IS NULL THEN 0 ELSE 1 END AS HIDDEN familyRank')
             ->orderBy('familyKey', $order)
@@ -802,16 +802,16 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
             return [];
         }
 
-        $qb = $this->createQueryBuilder('d')
+        $queryBuilder = $this->createQueryBuilder('d')
             ->select('d.id')
             ->where('d.original IN (:ids)')
             ->setParameter('ids', $ids);
 
         if (!$includeTrashed) {
-            $qb->andWhere('d.deletedAt IS NULL');
+            $queryBuilder->andWhere('d.deletedAt IS NULL');
         }
 
-        return array_map(intval(...), array_column($qb->getQuery()->getScalarResult(), 'id'));
+        return array_map(intval(...), array_column($queryBuilder->getQuery()->getScalarResult(), 'id'));
     }
 
     /**
@@ -827,17 +827,17 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
             return [];
         }
 
-        $qb = $this->createQueryBuilder('d')
+        $queryBuilder = $this->createQueryBuilder('d')
             ->select('IDENTITY(d.original) AS originalId', 'COUNT(d.id) AS total')
             ->where('d.original IN (:ids)')
             ->groupBy('d.original')
             ->setParameter('ids', $ids);
 
         if (!$includeTrashed) {
-            $qb->andWhere('d.deletedAt IS NULL');
+            $queryBuilder->andWhere('d.deletedAt IS NULL');
         }
 
-        $rows = $qb->getQuery()->getArrayResult();
+        $rows = $queryBuilder->getQuery()->getArrayResult();
 
         $counts = [];
         foreach ($rows as $row) {

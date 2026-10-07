@@ -80,12 +80,12 @@ final class MarkdownNotesController extends AbstractController
     ) {}
 
     /**
-     * Tous les documents : le carnet, à sa racine.
+     * All documents: the notebook, at its root.
      *
-     * L'adresse rendait la première note, faute de page à montrer. Le carnet
-     * a maintenant la sienne, et c'est elle qui accueille : ce qu'on cherche
-     * en arrivant est le plus souvent une note qu'on n'a pas sous les yeux,
-     * pas celle qu'on a ouverte en dernier.
+     * The address used to render the first note, for lack of a page to show.
+     * The notebook now has its own, and that is what greets you: what you
+     * look for on arrival is most often a note you do not have in front of
+     * you, not the one you opened last.
      */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
@@ -97,12 +97,12 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Le contenu d'un dossier, à son adresse.
+     * The content of a folder, at its address.
      *
-     * Une adresse par dossier, comme une adresse par note : elle se
-     * transmet, le clic du milieu ouvre un onglet, et le fil d'Ariane est
-     * calculé côté serveur pour que le rechargement n'affiche pas la racine
-     * une fraction de seconde.
+     * One address per folder, like one address per note: it can be passed
+     * on, a middle click opens a tab, and the breadcrumb is computed on the
+     * server side so that a reload does not show the root for a fraction of
+     * a second.
      */
     #[Route('/folder/{id}', name: '_folder', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
     public function folder(int $id): Response
@@ -110,7 +110,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Un dossier d'un espace qu'on peut lire.
+        // A folder of a space you can read.
         $folder = $this->spaceAccess->readableFolder($user, $id);
 
         if (!$folder instanceof NoteFolderInterface) {
@@ -124,12 +124,11 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Toutes les notes de la personne, à plat, sans leur texte.
+     * All of the person's notes, flat, without their text.
      *
-     * Avec leur premier paragraphe quand même : c'est ce que la vue en
-     * mosaïque montre sur une carte, et le faire ici évite une requête par
-     * carte. Le reste du corps ne quitte pas le serveur tant qu'une note
-     * n'est pas ouverte.
+     * With their first paragraph all the same: it is what the grid view shows
+     * on a card, and doing it here avoids one query per card. The rest of the
+     * body does not leave the server until a note is opened.
      */
     #[Route('/list', name: '_list', methods: [HttpMethodEnum::Get->value])]
     public function list(): JsonResponse
@@ -148,24 +147,22 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * La note, seule, sans le back-office autour.
+     * The note, alone, without the back office around it.
      *
-     * Une adresse à part plutôt qu'un mode d'affichage : on la garde ouverte
-     * dans un onglet, on la partage à soi-même, et le navigateur y revient.
-     * C'est le gabarit du partage public qui la dessine - il est déjà fait
-     * pour rendre une note sans menu ni fil d'Ariane - mais lue par son
-     * propriétaire : les images passent par la route ordinaire, et un
-     * wiki-lien mène à cette même vue plutôt que d'être neutralisé, puisque
-     * tout le carnet est à portée.
+     * A separate address rather than a display mode: you keep it open in a
+     * tab, you share it with yourself, and the browser comes back to it. The
+     * public share template draws it - it is already made to render a note
+     * without menu or breadcrumb - but read by its owner: images go through
+     * the ordinary route, and a wiki link leads to this same view rather than
+     * being neutralized, since the whole notebook is within reach.
      */
-    // `__id__` est admis pour que la page reçoive un gabarit d'adresse à
-    // remplir plutôt qu'une adresse par note : il arrive ici en zéro, qui
-    // n'appartient à personne, donc il répond 404 comme n'importe quel
-    // identifiant inconnu.
+    // `__id__` is allowed so that the page receives an address template to
+    // fill rather than one address per note: it arrives here as zero, which
+    // belongs to nobody, so it answers 404 like any unknown id.
     /**
-     * Entrer dans le lecteur sans choisir de note : par un favori du
-     * navigateur ou par le raccourci. On arrive sur la première note du
-     * carnet ; un carnet vide renvoie à la bibliothèque, où l'on en écrit une.
+     * Enter the reader without choosing a note: through a browser bookmark
+     * or through the shortcut. You land on the first note of the notebook;
+     * an empty notebook sends you to the library, where you write one.
      */
     #[Route('/read', name: '_read_entry', methods: [HttpMethodEnum::Get->value])]
     public function readEntry(): Response
@@ -187,8 +184,8 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Tout ce que l'espace de la note laisse lire ; écrire se décide
-        // ailleurs, par le rôle.
+        // Everything the note's space lets you read; writing is decided
+        // elsewhere, by the role.
         $note = $this->spaceAccess->readableNote($user, $id);
 
         if (!$note instanceof MarkdownNoteInterface) {
@@ -202,25 +199,25 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Des photos pour le bandeau d'une note, cherchées chez Pexels.
+     * Photos for a note's banner, searched on Pexels.
      *
-     * Un relais et non un appel direct : la clé reste sur le serveur, comme
-     * pour le sélecteur de la médiathèque. Mais ce relais-ci s'arrête là -
-     * **rien n'est téléchargé, rien n'entre dans la GED**. La note ne garde
-     * que l'adresse de l'image et le crédit de son auteur, et si la photo
-     * disparaît un jour de chez eux, on en choisit une autre.
+     * A relay and not a direct call: the key stays on the server, as for the
+     * media library picker. But this relay stops there - **nothing is
+     * downloaded, nothing goes into the GED**. The note only keeps the image's
+     * address and its author's credit, and if the photo disappears from their
+     * side one day, you pick another one.
      *
-     * Sa propre route plutôt que celle de la médiathèque : celle-là exige le
-     * droit `ged.documents.view`, que quelqu'un qui prend des notes n'a pas
-     * forcément, et lui demander de l'obtenir pour choisir une image
-     * décorative serait un droit de trop.
+     * Its own route rather than the media library one: that one requires the
+     * `ged.documents.view` right, which someone taking notes does not
+     * necessarily have, and asking them to get it to pick a decorative image
+     * would be one right too many.
      */
     #[Route('/covers/search', name: '_covers_search', methods: [HttpMethodEnum::Get->value])]
     public function searchCovers(Request $request, PexelsClient $pexels): JsonResponse
     {
-        // Annoncé plutôt qu'échoué : le sélecteur affiche « non configuré »,
-        // ce qui dit à un administrateur quoi faire. Un 500 ne dirait que
-        // « quelque chose a cassé ».
+        // Announced rather than failed: the picker shows "not configured",
+        // which tells an administrator what to do. A 500 would only say
+        // "something broke".
         if (!$pexels->isConfigured()) {
             return $this->jsonSuccess(['configured' => false, 'results' => []]);
         }
@@ -282,8 +279,8 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         $deleted = 0;
-        // Vider une corbeille est définitif : seulement dans les espaces qu'on
-        // gère. Le rédacteur restaure, il ne détruit pas.
+        // Emptying a trash is final: only in the spaces you manage. The
+        // editor restores, they do not destroy.
         foreach ($this->repository->findTrashedRootsForUser($user) as $note) {
             if (!$this->spaceAccess->canManage($user, $note->getSpace())) {
                 continue;
@@ -297,16 +294,16 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Le carnet entier, en Markdown, dans un zip.
+     * The whole notebook, in Markdown, in a zip.
      *
-     * **La porte de sortie.** Un carnet en base est un enfermement tant qu'on
-     * ne peut pas le reprendre : ceci rend des fichiers `.md` qu'un éditeur de
-     * texte ouvre et qu'Obsidian lit, dans l'arborescence des notes, avec les
-     * étiquettes en préambule. Rien n'y est propre à Aurora.
+     * **The way out.** A notebook in a database is a trap as long as you
+     * cannot take it back: this returns `.md` files that a text editor opens
+     * and Obsidian reads, in the notes tree, with the tags in front matter.
+     * Nothing in it is specific to Aurora.
      *
-     * Le fichier temporaire est supprimé après l'envoi : `deleteFileAfterSend`
-     * le fait une fois la réponse écrite, pas avant, sinon un gros carnet part
-     * dans le vide.
+     * The temporary file is deleted after sending: `deleteFileAfterSend` does
+     * it once the response is written, not before, otherwise a big notebook
+     * goes out into the void.
      */
     #[Route('/export', name: '_export', methods: [HttpMethodEnum::Get->value])]
     public function export(Request $request): Response
@@ -314,7 +311,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // `spaceId` n'emporte que cet espace, s'il est lisible.
+        // `spaceId` only takes that space, if it is readable.
         $space = null;
         $spaceId = $request->query->get('spaceId');
         if (is_numeric($spaceId)) {
@@ -330,17 +327,17 @@ final class MarkdownNotesController extends AbstractController
         return $this->file($path, sprintf('notes-%s.zip', date('Y-m-d')))->deleteFileAfterSend(true);
     }
 
-    /** Une note seule, pour l'emporter sans emporter le reste. */
-    // `__id__` accepté comme sur `_show` : la vue reçoit un gabarit d'adresse
-    // dans lequel elle substitue l'identifiant, donc le générateur doit savoir
-    // produire l'adresse avec le marqueur dedans.
+    /** A single note, to take it away without taking the rest. */
+    // `__id__` accepted as on `_show`: the view receives an address template
+    // in which it substitutes the id, so the generator must be able to
+    // produce the address with the marker in it.
     #[Route('/{id}/export', name: '_export_one', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
     public function exportOne(int $id): Response
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Emporter une note, c'est la lire : l'équipe s'emporte aussi.
+        // Taking a note away means reading it: the team's notes can be taken too.
         $note = $this->spaceAccess->readableNote($user, $id);
 
         if (!$note instanceof MarkdownNoteInterface) {
@@ -349,10 +346,10 @@ final class MarkdownNotesController extends AbstractController
 
         $response = new Response($this->archive->fileFor($note));
         $response->headers->set('Content-Type', 'text/markdown; charset=UTF-8');
-        // Un repli ASCII est obligatoire : le titre d'une note est écrit par
-        // quelqu'un, donc il a des accents, et `makeDisposition` refuse d'en
-        // deviner un tout seul. Le nom accentué reste, dans le paramètre que
-        // les navigateurs lisent depuis quinze ans.
+        // An ASCII fallback is required: a note's title is written by
+        // someone, so it has accents, and `makeDisposition` refuses to guess
+        // one on its own. The accented name stays, in the parameter browsers
+        // have read for fifteen years.
         $name = $this->archive->nameOf($note).'.md';
 
         $response->headers->set(
@@ -368,11 +365,11 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Des fichiers Markdown, ou un zip, remis en notes.
+     * Markdown files, or a zip, turned back into notes.
      *
-     * Dans le dossier nommé, ou à la racine. Rien n'est écrasé : une note du
-     * même nom donne une seconde note, parce que fusionner demanderait de
-     * décider ce qui gagne et que personne ne l'a demandé ici.
+     * In the named folder, or at the root. Nothing is overwritten: a note
+     * with the same name gives a second note, because merging would mean
+     * deciding what wins and nobody asked for that here.
      */
     #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
     public function import(Request $request): JsonResponse
@@ -399,7 +396,7 @@ final class MarkdownNotesController extends AbstractController
             }
         }
 
-        // Sans dossier, la racine d'un espace où l'on écrit ; la sienne à défaut.
+        // Without a folder, the root of a space you write in; your own otherwise.
         $space = null;
         $spaceId = $request->request->get('spaceId');
         if (!$folder instanceof NoteFolderInterface && is_numeric($spaceId)) {
@@ -430,11 +427,11 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Le même nom, réduit à ce qu'un vieux client sait lire.
+     * The same name, reduced to what an old client can read.
      *
-     * Translittéré plutôt que tronqué : « Séance en extérieur » devient
-     * « Seance en exterieur » et reste reconnaissable, là où un filtre brutal
-     * rendrait « S ance en ext rieur ».
+     * Transliterated rather than truncated: "Séance en extérieur" becomes
+     * "Seance en exterieur" and stays recognizable, where a blunt filter
+     * would return "S ance en ext rieur".
      */
     private function asciiName(string $name): string
     {
@@ -455,8 +452,8 @@ final class MarkdownNotesController extends AbstractController
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
-        // Là où l'on crée, on doit pouvoir écrire : le dossier demandé, la
-        // racine de l'espace demandé, ou son espace personnel.
+        // Where you create, you must be able to write: the requested folder,
+        // the root of the requested space, or your personal space.
         $folderId = $input->getFolderId();
         $spaceId = $input->getSpaceId();
         $allowed = match (true) {
@@ -491,11 +488,10 @@ final class MarkdownNotesController extends AbstractController
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
-        // Parti d'une version dépassée : quelqu'un a écrit entre-temps, et
-        // enregistrer maintenant effacerait son texte sans qu'il le sache.
-        // On refuse, et c'est la personne qui choisit - recharger, ou écraser
-        // en connaissance de cause. Un appel qui ne dit pas sa version passe,
-        // comme avant.
+        // Started from an outdated version: someone wrote in the meantime,
+        // and saving now would erase their text without them knowing.
+        // We refuse, and the person chooses - reload, or overwrite knowingly.
+        // A call that does not state its version goes through, as before.
         if (!$input->isForce() && null !== $input->getVersion() && $input->getVersion() !== $note->getVersion()) {
             return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true, 'version' => $note->getVersion()]);
         }
@@ -505,14 +501,14 @@ final class MarkdownNotesController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
-        // L'état qu'on va remplacer devient une version, si la dernière est
-        // assez ancienne (réglages > Notes) : de quoi revenir en arrière.
+        // The state about to be replaced becomes a version, if the last one
+        // is old enough (settings > Notes): a way to go back.
         $this->history->beforeChange($note, $input->getTitle(), $input->getContent(), $user);
 
         $this->manager->update($note, $input);
 
-        // L'extrait voyage avec la note enregistrée : la carte de la
-        // bibliothèque suit le texte sans attendre un rechargement.
+        // The excerpt travels with the saved note: the library card follows
+        // the text without waiting for a reload.
         $excerpt = $this->repository->excerptOf((string) $note->getContent());
         $serializer = $this->serializer->withFavorites($this->favorites->mapFor($user)['notes']);
         if ('' !== $excerpt) {
@@ -538,7 +534,7 @@ final class MarkdownNotesController extends AbstractController
         return $this->jsonSuccess();
     }
 
-    /** Les versions passées d'une note qu'on peut lire, les plus récentes d'abord. */
+    /** The past versions of a note you can read, most recent first. */
     #[Route('/{id}/revisions', name: '_revisions', methods: [HttpMethodEnum::Get->value])]
     public function revisions(int $id): JsonResponse
     {
@@ -561,7 +557,7 @@ final class MarkdownNotesController extends AbstractController
         )]);
     }
 
-    /** Une version passée, son titre et son texte. */
+    /** A past version, its title and its text. */
     #[Route('/{id}/revisions/{revisionId}', name: '_revision', requirements: ['revisionId' => '\d+|__revisionId__'], methods: [HttpMethodEnum::Get->value])]
     public function revision(int $id, int $revisionId): JsonResponse
     {
@@ -584,9 +580,9 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Revenir à une version : l'état courant devient d'abord une version à
-     * son tour, pour que restaurer ne fasse rien perdre. Il faut pouvoir
-     * écrire la note.
+     * Go back to a version: the current state first becomes a version in
+     * turn, so that restoring loses nothing. You must be able to write the
+     * note.
      */
     #[Route('/{id}/revisions/{revisionId}/restore', name: '_revision_restore', requirements: ['revisionId' => '\d+|__revisionId__'], methods: [HttpMethodEnum::Post->value])]
     public function restoreRevision(int $id, int $revisionId): JsonResponse
@@ -606,9 +602,9 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Une copie de la note, juste sous elle : même dossier, même texte, même
-     * apparence, nommée « Copie de … ». Il faut pouvoir lire la note et
-     * écrire là où elle est rangée.
+     * A copy of the note, right below it: same folder, same text, same
+     * appearance, named "Copie de …". You must be able to read the note and
+     * write where it is filed.
      */
     #[Route('/{id}/duplicate', name: '_duplicate', methods: [HttpMethodEnum::Post->value])]
     public function duplicate(int $id): JsonResponse
@@ -627,7 +623,7 @@ final class MarkdownNotesController extends AbstractController
         return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($copy)]);
     }
 
-    /** Faire d'une note un modèle, ou la rendre à l'ordinaire. */
+    /** Make a note a template, or turn it back into an ordinary one. */
     #[Route('/{id}/template', name: '_template', methods: [HttpMethodEnum::Post->value])]
     public function template(int $id, Request $request): JsonResponse
     {
@@ -645,9 +641,9 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Une note neuve depuis un modèle qu'on peut lire, rangée là où l'on peut
-     * écrire : le dossier demandé, la racine de l'espace demandé, ou son
-     * espace personnel. `{{date}}` y devient la date du jour.
+     * A new note from a template you can read, filed where you can write:
+     * the requested folder, the root of the requested space, or your personal
+     * space. `{{date}}` becomes today's date in it.
      */
     #[Route('/from-template/{id}', name: '_from_template', methods: [HttpMethodEnum::Post->value])]
     public function fromTemplate(int $id, Request $request): JsonResponse
@@ -706,9 +702,9 @@ final class MarkdownNotesController extends AbstractController
         $data = $this->decodeJson($request);
         $raw = $data['folderId'] ?? null;
 
-        // Un dossier où l'on peut écrire, ou la racine d'un espace où l'on
-        // peut écrire : `spaceId` dit laquelle, et vaut par défaut celle où
-        // la note est déjà.
+        // A folder you can write in, or the root of a space you can write
+        // in: `spaceId` says which, and defaults to the one where the note
+        // already is.
         $folder = null;
         $space = $note->getSpace();
         if (null !== $raw && '' !== $raw) {
@@ -729,9 +725,9 @@ final class MarkdownNotesController extends AbstractController
     }
 
     /**
-     * Ajouter une note à ses favoris, ou l'en retirer.
+     * Add a note to your favorites, or remove it.
      *
-     * Lire suffit : les favoris sont à la personne, pas à la note.
+     * Reading is enough: favorites belong to the person, not to the note.
      */
     #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function favorite(int $id): JsonResponse
@@ -826,9 +822,9 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // L'éditeur s'ouvre sur ce qu'on peut écrire. Une note qu'on peut
-        // lire sans l'écrire - l'équipe sans le droit, le partage d'un
-        // collègue - s'ouvre dans le lecteur, qui est fait pour ça.
+        // The editor opens on what you can write. A note you can read
+        // without writing it - the team without the right, a colleague's
+        // share - opens in the reader, which is made for that.
         $note = $this->spaceAccess->writableNote($user, $id);
         if ($note instanceof MarkdownNoteInterface && $note->isTrashed()) {
             $note = null;
@@ -843,9 +839,9 @@ final class MarkdownNotesController extends AbstractController
                 throw $this->createNotFoundException();
             }
 
-            // Le dossier de la note voyage avec elle : le fil d'Ariane le
-            // montre, et le retour à la bibliothèque rend l'endroit où la
-            // note est rangée plutôt que la racine.
+            // The note's folder travels with it: the breadcrumb shows it,
+            // and going back to the library returns to where the note is
+            // filed rather than to the root.
             return $this->render(
                 '@Notes/suite/markdown/index.html.twig',
                 $this->viewBuilder->indexView($user, $id, $note->getFolder()),

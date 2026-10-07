@@ -73,7 +73,7 @@ describe("le mode lecture", () => {
         );
     });
 
-    /** Les flèches font la même chose, sauf quand on tape quelque part. */
+    /** The arrow keys do the same, except when typing somewhere. */
     it("turns the page with the arrow keys", () => {
         const assign = vi.fn();
         vi.spyOn(window, "location", "get").mockReturnValue({
@@ -90,7 +90,7 @@ describe("le mode lecture", () => {
         expect(assign).toHaveBeenCalledWith("/notes/6/read");
     });
 
-    /** La note d'un autre se lit, elle ne se modifie pas. */
+    /** Someone else's note is read, it is not edited. */
     it("offers to edit only one's own note", () => {
         expect(
             render({ canEdit: true }).find("[data-read-edit]").exists(),
@@ -102,7 +102,7 @@ describe("le mode lecture", () => {
 });
 
 describe("l'espace du lecteur", () => {
-    /** Ni menu du back-office, ni barre : l'arborescence et le texte. */
+    /** No back-office menu, no bar: the tree and the text. */
     it("carries its own tree, opened on the note being read", () => {
         const wrapper = render();
         const sidebar = wrapper.find("[data-reader-sidebar]");
@@ -114,13 +114,13 @@ describe("l'espace du lecteur", () => {
         expect(sidebar.find('[data-note-row="5"] a').attributes("href")).toBe(
             "/notes/5/read",
         );
-        // En lecture, rien ne s'écrit : ni plus, ni glisser.
+        // In reading, nothing is written: no plus, no drag.
         expect(sidebar.find("[data-folder-row]").attributes("draggable")).toBe(
             "false",
         );
     });
 
-    /** Sur téléphone, l'arbre vit dans un tiroir derrière « Sommaire ». */
+    /** On a phone, the tree lives in a drawer behind "Sommaire". */
     it("opens the tree in a drawer on a phone", async () => {
         window.matchMedia = vi.fn().mockReturnValue({ matches: false });
 
@@ -151,7 +151,7 @@ describe("l'espace du lecteur", () => {
 });
 
 describe("le retour", () => {
-    /** Un retour, pas le nom du site, en haut à gauche. */
+    /** A back link, not the site name, at the top left. */
     it("goes back to editing one's own note", () => {
         const wrapper = render({ canEdit: true });
 
@@ -170,7 +170,7 @@ describe("le retour", () => {
 });
 
 describe("la recherche du lecteur", () => {
-    /** Comme dans le panneau : un mot du texte trouve la note, pas seulement son titre. */
+    /** As in the panel: a word of the text finds the note, not only its title. */
     it("finds a note by a word of its text", async () => {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
@@ -199,8 +199,9 @@ describe("la recherche du lecteur", () => {
 
 describe("la lecture publique d'un espace", () => {
     /**
-     * Sans compte, rien ne mène au back-office : le nom de l'espace remplace
-     * le retour, un dossier se lit sans lien, et ni édition ni étoile.
+     * Without an account, nothing leads to the back-office: the space name
+     * replaces the back link, a folder reads without a link, and there is
+     * neither editing nor star.
      */
     it("names the space and leads nowhere into the back office", () => {
         const wrapper = render({
@@ -234,7 +235,7 @@ describe("l'espace de la note, dans l'arbre du lecteur", () => {
         expect(headers[0].text()).toContain("notes.markdown.spaces.my_space");
     });
 
-    /** La lecture publique ne reçoit pas d'espaces, et n'en montre pas. */
+    /** Public reading receives no spaces, and shows none. */
     it("shows no space header on the public page", () => {
         const wrapper = render({
             treeSpaces: [],

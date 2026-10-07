@@ -20,11 +20,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * Le cycle de vie d'un espace et de ses inscriptions.
+ * The life cycle of a space and its memberships.
  *
- * Qui a le droit de faire quoi se décide avant, dans le contrôleur, par
- * {@see NoteSpaceAccess} : ce manager
- * écrit, il ne juge pas.
+ * Who may do what is decided beforehand, in the controller, by
+ * {@see NoteSpaceAccess}: this manager
+ * writes, it does not judge.
  */
 #[AsAlias(NoteSpaceManagerInterface::class)]
 class NoteSpaceManager implements NoteSpaceManagerInterface
@@ -47,6 +47,107 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
         $this->auditCreated($space);
 
         return $space;
+    }
+
+    /**
+     * A space configured by something else: without an owner, open to its
+     * members only, whom {@see self::syncManaged()} keeps up to date.
+     *
+     * Without an owner, because nobody owns it: its access follows a team
+     * defined elsewhere, and the first member added has no reason to become
+     * its master the day they leave that team.
+     */
+    public function createManaged(string $name, string $managedBy): NoteSpaceInterface
+    {
+        $space = $this->createSpace();
+        $space
+            ->setName($name)
+            ->setManagedBy($managedBy)
+            ->setAccess(NoteSpaceAccessEnum::Members)
+            ->setDefaultRole(NoteSpaceRoleEnum::Reader);
+
+        $this->entityManager->persist($space);
+        $this->entityManager->flush();
+
+        $this->auditCreated($space);
+
+        return $space;
+    }
+
+    /**
+     * The name and the members of a space configured elsewhere, reset to
+     * what it is given.
+     *
+     * Reconciled rather than emptied and rebuilt, like a client space's team:
+     * a membership that stays keeps its row, and only its role moves. Nothing
+     * is written, and nothing enters the audit log, when nothing changes -
+     * the sync runs on every save of whatever configures it.
+     */
+    public function syncManaged(NoteSpaceInterface $space, string $name, array $members): void
+    {
+        $changed = $space->getName() !== $name;
+        $space->setName($name);
+
+        $wanted = [];
+        foreach ($members as $member) {
+            $wanted[(int) $member['user']->getId()] = $member;
+        }
+
+        foreach ($space->getMembers()->toArray() as $membership) {
+            $userId = (int) $membership->getUser()->getId();
+
+            if (!isset($wanted[$userId])) {
+                $space->getMembers()->removeElement($membership);
+                $this->entityManager->remove($membership);
+                $changed = true;
+
+                continue;
+            }
+
+            if ($membership->getRole() !== $wanted[$userId]['role']) {
+                $membership->setRole($wanted[$userId]['role']);
+                $changed = true;
+            }
+
+            unset($wanted[$userId]);
+        }
+
+        foreach ($wanted as $member) {
+            $membership = $this->createMember();
+            $membership->setSpace($space)->setUser($member['user'])->setRole($member['role']);
+            $space->getMembers()->add($membership);
+            $this->entityManager->persist($membership);
+            $changed = true;
+        }
+
+        if (!$changed) {
+            return;
+        }
+
+        $this->entityManager->flush();
+
+        $this->auditUpdated($space);
+    }
+
+    /**
+     * What configured the space is gone: it goes to the trash, and becomes an
+     * ordinary space again.
+     *
+     * Without an owner, it falls to the administrators, who can bring it back
+     * ({@see NoteSpaceAccess::adopts()}). Its members stay members: restoring
+     * it gives the space back to those who wrote in it.
+     */
+    public function releaseManaged(NoteSpaceInterface $space): void
+    {
+        $space->setManagedBy(null);
+
+        if (!$space->getDeletedAt() instanceof DateTimeImmutable) {
+            $space->setDeletedAt(new DateTimeImmutable());
+        }
+
+        $this->entityManager->flush();
+
+        $this->auditDeleted($space);
     }
 
     public function update(NoteSpaceInterface $space, NoteSpaceInputInterface $input): void
@@ -139,10 +240,10 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
     }
 
     /**
-     * L'espace personnel ne se renomme pas et ne s'ouvre à personne : il
-     * garde seulement sa couleur et sa place. Le reste est ignoré plutôt
-     * que refusé, comme le cycle d'un dossier : un point d'extension qui
-     * lève sur un envoi hostile, personne ne peut le surcharger sans risque.
+     * The personal space is not renamed and opens to nobody: it only keeps
+     * its colour and its place. The rest is ignored rather than refused, like
+     * a folder's cycle: an extension point that throws on a hostile payload
+     * is one nobody can override safely.
      */
     protected function applyInput(NoteSpaceInterface $space, NoteSpaceInputInterface $input): void
     {
@@ -152,7 +253,10 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
             $space->setPosition($input->getPosition());
         }
 
-        if ($space->isPersonal()) {
+        // A space configured elsewhere keeps its name and its access: the
+        // controller already refuses, and this holds for a call that would
+        // go around it.
+        if ($space->isPersonal() || $space->isManaged()) {
             return;
         }
 
@@ -177,8 +281,8 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
     }
 
     /**
-     * Ce que le journal garde d'un espace : pas son nom, chiffré pour la même
-     * raison que celui d'un dossier.
+     * What the audit log keeps of a space: not its name, encrypted for the
+     * same reason as a folder's.
      *
      * @return array<string, mixed>
      */
@@ -191,6 +295,7 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
             'deleted' => $space->getDeletedAt() instanceof DateTimeImmutable,
             'published' => $space->isPublished(),
             'indexable' => $space->isIndexable(),
+            'managedBy' => $space->getManagedBy(),
         ];
     }
 }

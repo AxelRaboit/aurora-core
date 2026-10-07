@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * La génération des sessions ouvertes sur le Drive d'un espace.
+ * The generation of the sessions open on a space's Drive.
  *
- * Nulle partout au départ, ce qui referme les sessions en cours : elles
- * retiennent une génération qui ne correspond plus à rien. C'est l'effet
- * voulu, et il ne coûte qu'une ressaisie.
+ * Null everywhere at first, which closes the current sessions: they hold a
+ * generation that no longer matches anything. That is the intended effect,
+ * and it only costs typing the password again.
  */
 final class Version20260920130000 extends AbstractMigration
 {

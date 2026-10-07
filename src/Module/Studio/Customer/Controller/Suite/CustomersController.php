@@ -42,6 +42,19 @@ class CustomersController extends AbstractController
         return $this->render('@Studio/suite/customers/index.html.twig', $this->viewBuilder->indexView());
     }
 
+    /**
+     * A customer's page: their whole sheet, and what surrounds it.
+     *
+     * Readable with the right to view customers; the form only opens for
+     * writing to whoever can edit them, and the save checks it on its own
+     * side.
+     */
+    #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function show(Customer $customer): Response
+    {
+        return $this->render('@Studio/suite/customers/show.html.twig', $this->viewBuilder->showView($customer));
+    }
+
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.customers.create')]
     public function create(Request $request): JsonResponse
@@ -51,26 +64,30 @@ class CustomersController extends AbstractController
         ));
     }
 
-    #[Route('/{id}/update', name: '_update', methods: [HttpMethodEnum::Post->value])]
+    /**
+     * The whole sheet, from the customer's page: the only path that writes it.
+     */
+    #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.customers.edit')]
     public function update(Customer $customer, Request $request): JsonResponse
     {
         return $this->withInput($request, function ($input) use ($customer): JsonResponse {
             $this->customerManager->update($customer, $input);
 
-            return $this->jsonSuccess($this->viewBuilder->customerPayload($customer));
+            return $this->jsonSuccess($this->viewBuilder->showPayload($customer));
         });
     }
 
     /**
-     * Un prospect devient client.
+     * A prospect becomes a customer.
      *
-     * Sa propre route plutot qu'un `update` : le formulaire de conversion ne
-     * connait qu'un champ, et passer par la mise a jour aurait demande de
-     * renvoyer la raison sociale et le reste pour changer une colonne.
+     * Its own route rather than an `update`: the conversion form only knows
+     * one field, and going through the update would have meant sending the
+     * company name and the rest again to change one column.
      *
-     * Repond avec la liste entiere : le rang change d'onglet, et les deux
-     * ecrans qui offrent ce bouton comptent les leurs.
+     * Answers with the whole list: the row changes tab, and the screens that
+     * offer this button (the list, the spaces list, the customer's page) each
+     * read again what concerns them.
      */
     #[Route('/{id}/convert', name: '_convert', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.customers.edit')]

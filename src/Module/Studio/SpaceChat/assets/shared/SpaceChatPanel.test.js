@@ -43,7 +43,9 @@ function render(props = {}) {
 
 /** The message bubbles, ignoring the day separators between them. */
 function bodies(panel) {
-    return panel.findAll("p.whitespace-pre-line").map((p) => p.text());
+    return panel
+        .findAll("p.whitespace-pre-line")
+        .map((paragraph) => paragraph.text());
 }
 
 beforeEach(() => {
@@ -56,6 +58,37 @@ afterEach(() => {
 });
 
 describe("SpaceChatPanel", () => {
+    it("marks the message a search result names, and only that one", () => {
+        const panel = render({ focusMessageId: 1 });
+
+        const marked = panel
+            .findAll("[data-message-id] > div")
+            .filter((bubble) => bubble.classes().includes("ring-2"));
+
+        expect(marked).toHaveLength(1);
+        expect(marked[0].text()).toContain("Le brief est prêt.");
+        expect(render().findAll(".ring-2")).toHaveLength(0);
+    });
+
+    it("scrolls to the named message once the box has a height", async () => {
+        const scrolled = vi.fn();
+        Element.prototype.scrollIntoView = scrolled;
+        vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(
+            300,
+        );
+
+        const panel = render({ focusMessageId: 1 });
+        await flushPromises();
+
+        expect(scrolled).toHaveBeenCalledTimes(1);
+        expect(scrolled.mock.contexts[0].getAttribute("data-message-id")).toBe(
+            "1",
+        );
+
+        panel.unmount();
+        delete Element.prototype.scrollIntoView;
+    });
+
     it("reads oldest first, whatever order it was handed", () => {
         expect(bodies(render())).toEqual([
             "Le brief est prêt.",
@@ -80,7 +113,7 @@ describe("SpaceChatPanel", () => {
         const studio = render();
         const rows = studio.findAll(".flex.justify-end, .flex.justify-start");
 
-        expect(rows[0].classes()).toContain("justify-end"); // du studio
+        expect(rows[0].classes()).toContain("justify-end"); // from the studio
         expect(rows[1].classes()).toContain("justify-start"); // du client
 
         const client = render({ ownSide: "client" });
@@ -128,7 +161,7 @@ describe("SpaceChatPanel", () => {
             class {
                 constructor() {
                     Object.defineProperty(this, "onmessage", {
-                        set: (fn) => (listeners.message = fn),
+                        set: (handler) => (listeners.message = handler),
                     });
                     Object.defineProperty(this, "onopen", { set: () => {} });
                     Object.defineProperty(this, "onerror", { set: () => {} });
@@ -156,9 +189,9 @@ describe("SpaceChatPanel", () => {
 
         // The same message down two roads - the hub and a reload - is one row.
         // That is the whole reason the server sends one shape down both.
-        expect(bodies(panel).filter((b) => "Une question." === b)).toHaveLength(
-            1,
-        );
+        expect(
+            bodies(panel).filter((body) => "Une question." === body),
+        ).toHaveLength(1);
     });
 
     it("removes a message the studio deleted", async () => {
@@ -168,7 +201,7 @@ describe("SpaceChatPanel", () => {
             class {
                 constructor() {
                     Object.defineProperty(this, "onmessage", {
-                        set: (fn) => (listeners.message = fn),
+                        set: (handler) => (listeners.message = handler),
                     });
                     Object.defineProperty(this, "onopen", { set: () => {} });
                     Object.defineProperty(this, "onerror", { set: () => {} });

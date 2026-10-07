@@ -1,8 +1,8 @@
 import hljs from "@/shared/utils/format/highlighter.js";
 
-// La liste des langages a demenage dans le module partage le jour ou le
-// front en a eu besoin lui aussi : deux copies, c'etait un langage ajoute
-// pour un lecteur et manquant pour un redacteur.
+// The language list moved to the shared module the day the front end needed
+// it too: two copies meant a language added for a reader and missing for a
+// writer.
 
 function escapeHtml(text) {
     return text
@@ -20,19 +20,22 @@ function escapeHtml(text) {
  */
 export function createHighlightRenderer() {
     return {
-        code({ text, lang }) {
-            const language = lang && hljs.getLanguage(lang) ? lang : null;
+        code({ text, lang: requestedLanguage }) {
+            const language =
+                requestedLanguage && hljs.getLanguage(requestedLanguage)
+                    ? requestedLanguage
+                    : null;
             const highlighted = language
                 ? hljs.highlight(text, { language }).value
                 : escapeHtml(text);
-            const langLabel = language || "";
-            const langClass = language ? ` language-${language}` : "";
+            const languageLabel = language || "";
+            const languageClass = language ? ` language-${language}` : "";
 
             return `<div class="code-block">${
-                langLabel
-                    ? `<div class="code-block-lang">${langLabel}</div>`
+                languageLabel
+                    ? `<div class="code-block-lang">${languageLabel}</div>`
                     : ""
-            }<pre><code class="hljs${langClass}">${highlighted}</code></pre></div>\n`;
+            }<pre><code class="hljs${languageClass}">${highlighted}</code></pre></div>\n`;
         },
     };
 }

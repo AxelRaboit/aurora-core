@@ -20,7 +20,7 @@ const props = defineProps({
     stats: { type: Object, default: () => ({}) },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const overdue = computed(() => props.stats.overdue ?? 0);
 
@@ -28,8 +28,8 @@ const upcoming = computed(() =>
     (props.stats.upcoming ?? []).map((row) => ({
         ...row,
         when: row.allDay
-            ? d(new Date(row.at), { weekday: "short", day: "numeric", month: "short" })
-            : d(new Date(row.at), {
+            ? formatDate(new Date(row.at), { weekday: "short", day: "numeric", month: "short" })
+            : formatDate(new Date(row.at), {
                 weekday: "short",
                 day: "numeric",
                 month: "short",
@@ -95,8 +95,8 @@ const upcoming = computed(() =>
             <AppNoData v-if="!upcoming.length" :message="t('suite.plannings.nothing_upcoming')" />
 
             <div v-else class="flex flex-col gap-2">
-                <!-- Chaque ligne ouvre son jour dans le calendrier. La date dans
-                     la clé : deux occurrences d'une série ont le même id. -->
+                <!-- Each row opens its day in the calendar. The date in the
+                     key: two occurrences of a series have the same id. -->
                 <a
                     v-for="row in upcoming"
                     :key="`${row.kind}-${row.id}-${row.at}`"

@@ -20,17 +20,17 @@ use function sprintf;
 use function vsprintf;
 
 /**
- * Les couleurs des e-mails, réglées dans Réglages > Emails.
+ * The email colours, set in Réglages > Emails.
  *
- * Les défauts sont les couleurs que `email.css` code en dur : tant qu'un
- * réglage n'en change aucune, `css()` est vide et un e-mail sort à l'octet près
- * comme avant. L'accent suit par défaut la couleur principale du thème actif ;
- * un thème qui n'en pose pas laisse le vert d'origine. Seul un hexadécimal à six chiffres passe, la valeur finit dans
- * le HTML du message.
+ * The defaults are the colours `email.css` hard-codes: as long as no setting
+ * changes any of them, `css()` is empty and an email goes out byte for byte as
+ * before. The accent follows the active theme's main colour by default; a
+ * theme that sets none leaves the original green. Only a six-digit hexadecimal gets through, the value ends up in
+ * the message's HTML.
  */
 final readonly class EmailColors
 {
-    /** Le départ du dégradé de la pastille quand l'accent est celui d'origine. */
+    /** The start of the badge's gradient when the accent is the original one. */
     private const string DEFAULT_ACCENT_LIGHT = '#10b981';
 
     private const string HEX_PATTERN = '/^#[0-9a-fA-F]{6}$/';
@@ -59,8 +59,8 @@ final readonly class EmailColors
     }
 
     /**
-     * Les règles qui repeignent `email.css`, mêmes sélecteurs et posées après
-     * lui : l'inliner les fait gagner à spécificité égale.
+     * The rules that repaint `email.css`, same selectors and placed after it:
+     * the inliner makes them win at equal specificity.
      */
     public function css(): string
     {
@@ -114,7 +114,7 @@ final readonly class EmailColors
         return $color !== $parameter->getDefaultValue();
     }
 
-    /** Un hexadécimal mélangé au blanc, en hexadécimal : les messageries ne lisent pas `color-mix`. */
+    /** A hexadecimal mixed with white, as hexadecimal: mail clients do not read `color-mix`. */
     private function towardWhite(string $hex, float $share): string
     {
         $channels = [];

@@ -61,10 +61,11 @@ export class FontSizeTool {
         const existing = this.api.selection.findParentTag(TAG, CSS_CLASS);
         if (existing) this.api.selection.expandToTag(existing);
 
-        const sel = window.getSelection();
-        if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount || selection.isCollapsed)
+            return;
 
-        const range = sel.getRangeAt(0);
+        const range = selection.getRangeAt(0);
 
         if (existing) {
             existing.style.fontSize = size;
@@ -91,10 +92,10 @@ export class FontSizeTool {
         if (!span) return;
 
         this.api.selection.expandToTag(span);
-        const sel = window.getSelection();
-        if (!sel || !sel.rangeCount) return;
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount) return;
 
-        const range = sel.getRangeAt(0);
+        const range = selection.getRangeAt(0);
         const fragment = range.extractContents();
         span.replaceWith(fragment);
     }

@@ -13,10 +13,10 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Une version passée d'une note : son titre et son texte à un moment donné.
+ * A past version of a note: its title and its text at a given moment.
  *
- * Chiffrés comme ceux de la note : une version n'est pas moins privée que la
- * note qu'elle a été. Elle meurt avec la note.
+ * Encrypted like the note's: a version is no less private than the note it
+ * was. It dies with the note.
  */
 #[ORM\Entity(repositoryClass: MarkdownNoteRevisionRepository::class)]
 #[ORM\Table(name: 'core_notes_markdown_revisions')]
@@ -35,7 +35,7 @@ class MarkdownNoteRevision
     #[ORM\Column(type: EncryptedTextType::NAME, nullable: true)]
     protected ?string $content = null;
 
-    /** La version de la note qu'elle a été (le compteur des conflits). */
+    /** The version of the note it was (the conflict counter). */
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     protected int $noteVersion = 0;
 
@@ -44,7 +44,7 @@ class MarkdownNoteRevision
 
     public function __construct(#[ORM\ManyToOne(targetEntity: MarkdownNoteInterface::class)]
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-        protected MarkdownNoteInterface $note, /** Qui l'a enregistrée : celui qui s'apprêtait à la remplacer. */
+        protected MarkdownNoteInterface $note, /** Who saved it: the one who was about to replace it. */
         #[ORM\ManyToOne(targetEntity: User::class)]
         #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
         protected ?CoreUserInterface $author = null)

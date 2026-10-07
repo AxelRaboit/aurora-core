@@ -32,10 +32,9 @@ class CustomerSpaceSerializer implements CustomerSpaceSerializerInterface
             // The company's name travels, and nothing else of it does: this
             // payload reaches a page about work, not about legal identity.
             'customerName' => $customer->getLegalName(),
-            // Prospect ou client, parce que la liste des espaces se separe
-            // dessus : c'est l'ecran de tous les jours, et « ce sur quoi je
-            // travaille » et « ce que j'essaie de decrocher » ne se lisent pas
-            // dans la meme minute.
+            // Prospect or customer, because the spaces list splits on it: it
+            // is the everyday screen, and "what I am working on" and "what I
+            // am trying to land" are not read in the same minute.
             'customerStatus' => $customer->getStatus()->value,
             'status' => $space->getStatus()->value,
             'archived' => $space->isArchived(),

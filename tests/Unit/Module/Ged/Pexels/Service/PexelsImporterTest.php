@@ -49,17 +49,17 @@ final class PexelsImporterTest extends TestCase
     /** @var array<string, mixed>|null */
     private ?array $captured = null;
 
-    private string $workDir;
+    private string $workDirectory;
 
     protected function setUp(): void
     {
-        $this->workDir = sys_get_temp_dir().'/aurora-pexels-'.uniqid();
-        (new Filesystem())->mkdir($this->workDir);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-pexels-'.uniqid();
+        (new Filesystem())->mkdir($this->workDirectory);
     }
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove($this->workDir);
+        (new Filesystem())->remove($this->workDirectory);
     }
 
     /** @param array<string, mixed> $photo */
@@ -179,7 +179,7 @@ final class PexelsImporterTest extends TestCase
         $this->import($this->photo());
 
         self::assertNotNull($this->captured['filePath']);
-        self::assertFileExists($this->workDir.'/'.$this->captured['filePath']);
+        self::assertFileExists($this->workDirectory.'/'.$this->captured['filePath']);
         self::assertSame('image/png', $this->captured['mimeType']);
         self::assertSame(1, $this->captured['width']);
     }
@@ -239,7 +239,7 @@ final class PexelsImporterTest extends TestCase
             new VideoPosterGenerator($workspace),
             new ImageCropper($filesystem),
             new StorageManager(
-                [new LocalStorageAdapter($filesystem, $this->workDir)],
+                [new LocalStorageAdapter($filesystem, $this->workDirectory)],
                 new class implements ActiveStorageDiskProviderInterface {
                     public function activeDisk(): StorageDiskEnum
                     {

@@ -8,20 +8,20 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les fichiers d'un espace, ceux qui ne sont sur aucune fiche.
+ * A space's files, those that are on no card.
  *
- * Écrite à la main, comme celles qui précèdent : `migrations:diff` sur cette
- * base de développement propose aussi de renommer deux douzaines d'index qu'il
- * n'a pas créés.
+ * Written by hand, like the ones before it: `migrations:diff` on this
+ * development database also offers to rename two dozen indexes it did not
+ * create.
  *
- * Sa propre table plutôt qu'une fiche facultative sur les pièces jointes : une
- * ligne de pièce jointe dit « ce document est sur cette fiche » et casse des
- * deux côtés, un `null` lui ferait dire deux choses.
+ * Its own table rather than an optional card on the attachments: an attachment
+ * row says "this document is on this card" and breaks on both sides, a `null`
+ * would make it say two things.
  *
- * Les deux clés cascadent. L'espace parce que ses fichiers n'existent pas sans
- * lui ; le document parce que cette ligne est le rattachement lui-même, et
- * qu'un document nul s'afficherait comme un fichier que personne ne peut
- * ouvrir. Le registre d'usages de la médiathèque prévient avant d'en arriver là.
+ * Both keys cascade. The space because its files do not exist without it; the
+ * document because this row is the attachment itself, and a null document
+ * would show as a file nobody can open. The media library's usage registry
+ * warns before it comes to that.
  */
 final class Version20260917200000 extends AbstractMigration
 {

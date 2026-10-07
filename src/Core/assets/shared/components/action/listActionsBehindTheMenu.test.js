@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO_ROOT, sourcesEndingWith } from "@/tests/helpers/phpSources.js";
+import {
+    REPOSITORY_ROOT,
+    sourcesEndingWith,
+} from "@/tests/helpers/phpSources.js";
 
 /**
  * A list's actions sit behind the « … » button, everywhere.
@@ -15,9 +18,9 @@ import { REPO_ROOT, sourcesEndingWith } from "@/tests/helpers/phpSources.js";
  */
 
 /** A `v-for` over an action list whose element is a button. */
-function laidOutActions(src) {
+function laidOutActions(source) {
     return [
-        ...src.matchAll(
+        ...source.matchAll(
             /<(AppButton|AppActionButton|button)\b[^>]*v-for="\s*\w+\s+in\s+([^"]*[Aa]ctions[^"]*)"/g,
         ),
     ].map((match) => match[2].trim());
@@ -35,7 +38,8 @@ describe("list actions", () => {
             )
             .flatMap((file) =>
                 laidOutActions(fs.readFileSync(file, "utf8")).map(
-                    (list) => `${path.relative(REPO_ROOT, file)}: ${list}`,
+                    (list) =>
+                        `${path.relative(REPOSITORY_ROOT, file)}: ${list}`,
                 ),
             );
 

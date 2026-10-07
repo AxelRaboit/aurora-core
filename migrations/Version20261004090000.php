@@ -8,13 +8,13 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les livrables quittent l'espace client : un livrable de Studio n'a pas
- * d'espace, il a un auteur et une portée (perso ou partagée).
+ * Deliverables leave the client space: a Studio deliverable has no space, it
+ * has an author and a scope (personal or shared).
  *
- * Les tables perdent leur préfixe « space » avec le module, renommées et pas
- * recréées : les livrables et leurs liens de lecture déjà envoyés restent ce
- * qu'ils sont, jetons compris. Tout livrable existant appartient à un espace
- * et reste partagé, sans auteur connu.
+ * The tables lose their "space" prefix along with the module, renamed and
+ * not recreated: the deliverables and their read links already sent stay
+ * what they are, tokens included. Every existing deliverable belongs to a
+ * space and stays shared, with no known author.
  */
 final class Version20261004090000 extends AbstractMigration
 {
@@ -43,7 +43,7 @@ final class Version20261004090000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Un livrable sans espace n'a nulle part où revenir : on les retire.
+        // A deliverable without a space has nowhere to go back to: they are removed.
         $this->addSql('DELETE FROM core_studio_deliverables WHERE space_id IS NULL');
         $this->addSql('ALTER TABLE core_studio_deliverables DROP CONSTRAINT FK_154B06C37E3C61F9');
         $this->addSql('DROP INDEX idx_deliverable_owner');

@@ -15,19 +15,18 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Un espace de notes : un endroit où ranger, et une réponse à « qui le voit ».
+ * A note space: a place to file things, and an answer to "who sees it".
  *
- * **Deux réglages indépendants.** L'accès dans le back-office - le
- * propriétaire seul, des personnes inscrites, ou tout le back-office - et la
- * publication sur le web, en lecture, sans connexion. Une documentation
- * publique qu'on écrit seul est un cas courant, et un choix unique parmi
- * quatre ne savait pas le dire.
+ * **Two independent settings.** Access in the back office - the owner alone,
+ * members, or the whole back office - and publication on the web, read-only,
+ * without logging in. Public documentation written alone is a common case,
+ * and a single choice among four could not express it.
  *
- * **L'espace personnel** est un espace comme un autre, marqué par
- * `personalUser` : un par personne, créé tout seul, jamais ouvert aux autres
- * ni supprimé. Il part avec le compte, par la clé en cascade ; un espace
- * partagé, lui, survit au départ de son propriétaire, dont la clé passe à
- * null - le contenu d'une équipe n'appartient pas qu'à celui qui l'a créé.
+ * **The personal space** is a space like any other, marked by
+ * `personalUser`: one per person, created automatically, never opened to
+ * others nor deleted. It leaves with the account, through the cascading key;
+ * a shared space survives its owner's departure, whose key becomes null - a
+ * team's content does not belong only to whoever created it.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -43,7 +42,7 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?CoreUserInterface $owner = null;
 
-    /** Chiffré comme le nom d'un dossier : un nom d'espace dit déjà quelque chose. */
+    /** Encrypted like a folder's name: a space's name already says something. */
     #[ORM\Column(type: EncryptedTextType::NAME, nullable: true)]
     protected ?string $name = null;
 
@@ -59,7 +58,7 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $publishedAt = null;
 
-    /** L'adresse publique ; en clair, puisqu'elle est faite pour être lue. */
+    /** The public address; in clear, since it is meant to be read. */
     #[ORM\Column(length: 120, unique: true, nullable: true)]
     protected ?string $slug = null;
 
@@ -71,6 +70,24 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
 
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
+
+    /**
+     * What configures the space instead of its managers, when something
+     * does: `studio.customer_space` for the note space of a client space.
+     *
+     * **A marker and not a relation.** The Notes module does not know
+     * Studio: Studio points at the note space, and the note space only says
+     * "my name, my access and my members come from elsewhere". The notes
+     * screen therefore refuses to configure them (rename, open, add members,
+     * publish, remove), and that is the only consequence. People write, file
+     * and share a note through a link there as in any other space.
+     *
+     * Reset to null when whatever configured it disappears: the space becomes
+     * an ordinary shared space again, without an owner, which the
+     * administrators take over.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    protected ?string $managedBy = null;
 
     public function getPersonalUser(): ?CoreUserInterface
     {
@@ -212,5 +229,22 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
         $this->deletedAt = $at;
 
         return $this;
+    }
+
+    public function getManagedBy(): ?string
+    {
+        return $this->managedBy;
+    }
+
+    public function setManagedBy(?string $managedBy): static
+    {
+        $this->managedBy = $managedBy;
+
+        return $this;
+    }
+
+    public function isManaged(): bool
+    {
+        return null !== $this->managedBy;
     }
 }

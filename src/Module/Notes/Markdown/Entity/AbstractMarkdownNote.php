@@ -31,9 +31,9 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     use TimestampableTrait;
 
     /**
-     * L'auteur. Null quand son compte a été supprimé : dans un espace partagé,
-     * ce qu'il a écrit reste à l'équipe. Son espace personnel, lui, part avec
-     * lui, par la cascade de l'espace.
+     * The author. Null when their account has been deleted: in a shared
+     * space, what they wrote stays with the team. Their personal space, for
+     * its part, goes with them, through the space's cascade.
      */
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -51,8 +51,8 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     protected ?NoteFolderInterface $folder = null;
 
     /**
-     * L'espace où vit la ligne. Toujours celui de son dossier : c'est lui qui
-     * dit qui la lit et qui l'écrit. Supprimer l'espace emporte ce qu'il range.
+     * The space where the row lives. Always the one of its folder: it is what
+     * says who reads it and who writes it. Deleting the space takes what it holds.
      */
     #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -72,44 +72,44 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     protected int $position = 0;
 
     /**
-     * Une note qui sert de point de départ : « Nouvelle note depuis un
-     * modèle » en fait une copie. Elle reste une note comme les autres, qu'on
-     * lit, range et modifie.
+     * A note that serves as a starting point: "Nouvelle note depuis un
+     * modèle" makes a copy of it. It stays a note like the others, which you
+     * read, file and edit.
      */
     #[ORM\Column(name: 'is_template', type: Types::BOOLEAN, options: ['default' => false])]
     protected bool $template = false;
 
     /**
-     * Avance à chaque écriture du contenu, et seulement là.
+     * Moves forward on each write of the content, and only there.
      *
-     * Pas le verrou de Doctrine : lui avance à chaque écriture de la ligne,
-     * et déplacer ou épingler la note ouverte aurait fait refuser son
-     * enregistrement suivant pour un conflit qui n'existe pas. Ce qui compte
-     * ici, c'est que deux personnes n'écrasent pas le texte l'une de l'autre.
+     * Not Doctrine's lock: it moves forward on each write of the row, and
+     * moving or pinning the open note would have refused its next save for a
+     * conflict that does not exist. What matters here is that two people do
+     * not overwrite each other's text.
      */
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
     protected int $version = 1;
 
     /**
-     * L'image d'entête, chez celui qui l'héberge.
+     * The header image, at whoever hosts it.
      *
-     * **Une adresse, pas un fichier.** La photo reste chez Pexels : rien
-     * n'entre dans la médiathèque, qui n'a pas à se remplir d'illustrations
-     * décoratives dont personne ne redemandera jamais une seule. Le prix
-     * assumé est qu'une image retirée de chez eux laisse un cadre vide ; on
-     * en choisit une autre, et c'est tout.
+     * **An address, not a file.** The photo stays at Pexels: nothing goes
+     * into the media library, which has no need to fill up with decorative
+     * illustrations nobody will ever ask for again. The accepted price is that
+     * an image removed on their side leaves an empty frame; you pick another
+     * one, and that is all.
      *
-     * En clair, comme la couleur d'un dossier : une adresse d'image ne dit
-     * rien de ce que la note raconte.
+     * In plain text, like a folder's color: an image address says nothing
+     * about what the note tells.
      */
     #[ORM\Column(length: 1024, nullable: true)]
     protected ?string $coverUrl = null;
 
     /**
-     * Qui a pris la photo, et où le voir.
+     * Who took the photo, and where to see them.
      *
-     * Pas du zèle : la licence Pexels demande de créditer, et une fois
-     * l'image sortie de la médiathèque il n'y a plus qu'ici pour le faire.
+     * Not overzealousness: the Pexels license asks for credit, and once the
+     * image is out of the media library this is the only place left to do it.
      */
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $coverCreditName = null;
@@ -118,16 +118,16 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     protected ?string $coverCreditUrl = null;
 
     /**
-     * Où couper la photo, en pourcentage de sa hauteur.
+     * Where to crop the photo, as a percentage of its height.
      *
-     * Un bandeau montre une bande d'une image qui n'a pas été cadrée pour
-     * ça : sans ce réglage, une photo de portrait montre un front ou un
-     * menton, jamais un visage.
+     * A banner shows a strip of an image that was not framed for it: without
+     * this setting, a portrait photo shows a forehead or a chin, never a
+     * face.
      */
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 50])]
     protected int $coverPosition = 50;
 
-    /** {@see NoteAppearanceEnum} - le fond de la note et son encre. */
+    /** {@see NoteAppearanceEnum} - the note's background and its ink. */
     #[ORM\Column(length: 20, options: ['default' => 'plain'])]
     protected string $appearance = NoteAppearanceEnum::Plain->value;
 
@@ -144,6 +144,21 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
      */
     #[ORM\Column(nullable: true)]
     protected ?int $trashedWithFolderId = null;
+
+    /**
+     * The Craft document this note is a copy of, when it comes from one.
+     *
+     * **Kept so that it can be brought back to the current version of the
+     * document.** The note is a one-off copy and not a mirror: nothing comes
+     * back to change it on its own. But without this id, reimporting the same
+     * document would create a second note next to the first, and finding the
+     * source would mean searching for it by title.
+     *
+     * In plain text, like the banner address: a Craft block id says nothing
+     * about what the note tells.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    protected ?string $craftDocumentId = null;
 
     public function getUser(): ?CoreUserInterface
     {
@@ -234,7 +249,7 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
         return $this->coverPosition;
     }
 
-    /** Borné ici plutôt qu'au bord : c'est un pourcentage, rien d'autre. */
+    /** Clamped here rather than at the edge: it is a percentage, nothing else. */
     public function setCoverPosition(int $percent): static
     {
         $this->coverPosition = max(0, min(100, $percent));
@@ -337,6 +352,18 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     public function setTrashedWithFolderId(?int $trashedWithFolderId): static
     {
         $this->trashedWithFolderId = $trashedWithFolderId;
+
+        return $this;
+    }
+
+    public function getCraftDocumentId(): ?string
+    {
+        return $this->craftDocumentId;
+    }
+
+    public function setCraftDocumentId(?string $craftDocumentId): static
+    {
+        $this->craftDocumentId = $craftDocumentId;
 
         return $this;
     }

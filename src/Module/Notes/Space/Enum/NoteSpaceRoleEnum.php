@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Space\Enum;
 
 /**
- * Ce qu'une personne peut faire dans un espace.
+ * What a person can do in a space.
  *
- * Trois rôles, et le propriétaire au-dessus - lui seul supprime ou cède
- * l'espace. Deux rôles ne suffisaient pas : confier les membres à quelqu'un
- * obligeait à lui donner aussi la suppression.
+ * Three roles, and the owner above them - only the owner deletes or hands
+ * over the space. Two roles were not enough: entrusting the members to
+ * somebody meant giving them deletion too.
  */
 enum NoteSpaceRoleEnum: string
 {
     /** Lire, chercher, exporter. */
     case Reader = 'reader';
 
-    /** Et écrire, créer, ranger, mettre à la corbeille. */
+    /** Plus write, create, file, move to the trash. */
     case Editor = 'editor';
 
-    /** Et vider la corbeille, régler l'espace, gérer les membres, publier. */
+    /** Plus empty the trash, configure the space, manage members, publish. */
     case Manager = 'manager';
 
     public function canWrite(): bool
@@ -32,7 +32,7 @@ enum NoteSpaceRoleEnum: string
         return self::Manager === $this;
     }
 
-    /** Le plus fort de deux rôles : un membre inscrit garde le sien s'il dépasse celui de tous. */
+    /** The stronger of two roles: a member keeps their own if it exceeds everyone's. */
     public function atLeast(self $other): self
     {
         return $this->rank() >= $other->rank() ? $this : $other;

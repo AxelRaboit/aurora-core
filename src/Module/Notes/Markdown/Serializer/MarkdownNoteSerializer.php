@@ -18,11 +18,10 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
     protected array $favorites = [];
 
     /**
-     * Les extraits à joindre aux lignes, venus d'une requête groupée.
+     * The excerpts to attach to the rows, from a grouped query.
      *
-     * Un clone plutôt qu'un état posé sur le service : le sérialiseur est
-     * partagé, et une liste d'extraits laissée derrière suivrait la requête
-     * suivante.
+     * A clone rather than state set on the service: the serializer is shared,
+     * and a list of excerpts left behind would follow the next query.
      *
      * @param array<int, string> $excerpts
      */
@@ -57,8 +56,8 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'excerpt' => $this->excerpts[(int) $note->getId()] ?? null,
             'favoritedAt' => $this->favorites[(int) $note->getId()] ?? null,
             'spaceId' => $note->getSpace()->getId(),
-            // Qui l'a écrite, pour que l'écran puisse dire « partagé par ».
-            // L'identifiant seul ne dit rien à personne.
+            // Who wrote it, so that the screen can say "partagé par".
+            // The id alone says nothing to anyone.
             'ownerId' => $note->getUser()?->getId(),
             'ownerName' => $note->getUser()?->getName(),
             'coverUrl' => $note->getCoverUrl(),
@@ -66,6 +65,9 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'coverCreditUrl' => $note->getCoverCreditUrl(),
             'coverPosition' => $note->getCoverPosition(),
             'appearance' => $note->getAppearance()->value,
+            // Where it was copied from, to offer to bring it back to the
+            // current version of the document.
+            'craftDocumentId' => $note->getCraftDocumentId(),
         ];
     }
 

@@ -46,16 +46,16 @@ class SpaceAccessController extends AbstractController
     ) {}
 
     /**
-     * Demande au client d'aller relire ce qui attend son avis.
+     * Asks the client to go and review what is waiting for their opinion.
      *
-     * Sous `studio.spaces.share` et pas `view` : l'action émet des adresses et
-     * en révoque, donc elle relève du droit de partager un espace et pas de
-     * celui de le regarder.
+     * Under `studio.spaces.share` and not `view`: the action issues addresses
+     * and revokes some, so it belongs to the right to share a space and not to
+     * the right to look at it.
      *
-     * La réponse porte les deux nombres plutôt qu'un simple succès : « envoyé »
-     * ne dit pas si quelqu'un l'a reçu. Un espace sans lien capable de répondre
-     * renvoie zéro destinataire, et l'écran le dit au lieu d'annoncer un envoi
-     * qui n'a eu lieu pour personne.
+     * The response carries both numbers rather than a plain success: "sent"
+     * does not say whether anyone received it. A space without a link able to
+     * answer returns zero recipients, and the screen says so instead of
+     * announcing a send that reached nobody.
      */
     #[Route('/review', name: '_review', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.share')]
@@ -64,26 +64,32 @@ class SpaceAccessController extends AbstractController
         return $this->jsonSuccess($this->reviewInviter->invite($space));
     }
 
+    /**
+     * Under `studio.spaces.share`, like the rest of the page: it lists the
+     * email addresses the space is open to, and the right is called "Voir et
+     * donner les accès client". The plain `view` used to open it.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
+    #[IsGranted('studio.spaces.share')]
     public function index(CustomerSpace $space): Response
     {
         return $this->render('@Studio/suite/space-content/access.html.twig', $this->viewBuilder->accessView($space));
     }
 
     /**
-     * Ouvre la page du client, telle que ce lien la rend.
+     * Opens the client's page, as this link renders it.
      *
-     * **Un vrai lien temporaire, et non une page fabriquée.** Le jeton en clair
-     * n'existe qu'à la création ; reconstruire la page avec un jeton inventé
-     * donne un écran qui s'affiche et dont rien ne répond, donc ni dossier
-     * Drive ni fichiers - c'est-à-dire tout ce qu'on venait vérifier. L'aperçu
-     * émet donc un lien pour de bon, valable quelques minutes, invisible dans
-     * la liste, et incapable d'écrire quoi qu'il autorise.
+     * **A real temporary link, and not a made-up page.** The clear-text token
+     * only exists at creation; rebuilding the page with an invented token gives
+     * a screen that displays and where nothing answers, so no Drive folder and
+     * no files - that is, everything one came to check. The preview therefore
+     * issues a link for real, valid for a few minutes, invisible in the list,
+     * and unable to write whatever it allows.
      *
-     * Une redirection plutôt qu'un rendu : la page du client est servie par sa
-     * propre route, avec son cookie de discussion et ses en-têtes. La rendre
-     * une seconde fois ici serait une seconde façon de la produire, et les
-     * deux finiraient par ne plus dire la même chose.
+     * A redirect rather than a render: the client's page is served by its own
+     * route, with its chat cookie and its headers. Rendering it a second time
+     * here would be a second way of producing it, and the two would end up no
+     * longer saying the same thing.
      */
     #[Route('/{linkId}/preview', name: '_preview', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     #[IsGranted('studio.spaces.share')]

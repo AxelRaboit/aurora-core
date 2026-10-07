@@ -20,6 +20,8 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\View\SpaceInformationViewBuilder;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
+use Aurora\Module\Studio\CustomerSpace\View\CustomerSpacesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
@@ -33,7 +35,6 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInter
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
-use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
@@ -88,7 +89,6 @@ class SpaceContentController extends AbstractController
         protected readonly DocumentRepository $documents,
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
-        protected readonly SpaceContentAttachmentRepository $attachmentRepository,
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
@@ -101,6 +101,11 @@ class SpaceContentController extends AbstractController
         protected readonly PayloadValidator $payloadValidator,
         protected readonly StoredFileResponder $responder,
         protected readonly UploadPolicyProvider $uploadPolicies,
+        protected readonly ClientVisibility $clientVisibility,
+        // Optional and last, so a client project extending this controller
+        // with its own constructor keeps booting: without it the Settings tab
+        // only carries the Drive, as before.
+        protected readonly ?CustomerSpacesViewBuilder $spacesViewBuilder = null,
     ) {}
 
     /**
@@ -131,12 +136,15 @@ class SpaceContentController extends AbstractController
 
         $response = $this->render('@Studio/suite/space-content/content.html.twig', [
             ...$this->viewBuilder->contentView($space),
-            ...$this->chatViewBuilder->view($space, $reader, $rooms),
+            // `?channel=` opens the conversation on the room a search result
+            // points at; the builder keeps it only if the reader has that room.
+            ...$this->chatViewBuilder->view($space, $reader, $rooms, $request->query->getInt('channel') ?: null),
             ...$this->notesViewBuilder->view($space),
             ...$this->filesViewBuilder->view($space),
             ...$this->informationViewBuilder->view($space),
             ...$this->resourcesViewBuilder->view($space),
             ...$this->deliverablesViewBuilder->view($space),
+            ...($this->spacesViewBuilder?->settingsView($space) ?? ['spaceSettings' => null]),
         ]);
 
         // **Being signed in is not being authorised at the hub.** The hub has
@@ -146,9 +154,9 @@ class SpaceContentController extends AbstractController
         // refused, and a refused connection looks exactly like a hub that is
         // down - which is how this line came to be missing long enough to be
         // noticed on screen rather than in a test.
-        // Les canaux que ce lecteur entend, pas ceux de l'espace : le jeton
-        // nomme ses sujets un par un, et un canal interne dont il n'est pas
-        // n'y figure pas.
+        // The channels this reader hears, not the space's: the token names its
+        // topics one by one, and an internal channel they are not part of is
+        // not among them.
         $cookie = $this->chatHub->subscriptionCookie($request, $rooms);
 
         if ($cookie instanceof Cookie) {
@@ -238,18 +246,12 @@ class SpaceContentController extends AbstractController
     ): JsonResponse {
         $this->assertOwned($space, $item->getSpace()->getId());
 
-        $documents = [];
+        // To the trash, not destroyed: its thread and files stay attached for
+        // a restore, so no file is left unused and there is nothing to offer
+        // to throw away.
+        $this->itemManager->trash($item);
 
-        foreach ($this->attachmentRepository->findForItem($item) as $attachment) {
-            $documents[] = $attachment->getDocument();
-        }
-
-        $this->itemManager->delete($item);
-
-        return $this->jsonSuccess(
-            $this->viewBuilder->boardPayload($space)
-            + $this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
-        );
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
     }
 
     #[Route('/content/reorder', name: '_item_reorder', methods: [HttpMethodEnum::Post->value])]
@@ -356,10 +358,9 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'suite.studio.space_content.errors.attachment_required']);
         }
 
-        // La même règle que sur une note et que sur un dépôt d'invité : ce qui
-        // monte passe par la politique de l'administrateur. Sans elle, le seul
-        // plafond était celui de PHP, et un type refusé partout ailleurs
-        // entrait ici.
+        // The same rule as on a note and on a guest upload: what is uploaded
+        // goes through the administrator's policy. Without it, the only cap
+        // was PHP's, and a type refused everywhere else got in here.
         $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
@@ -481,8 +482,8 @@ class SpaceContentController extends AbstractController
     ): Response {
         $this->assertOwned($space, $attachment->getItem()->getSpace()->getId());
 
-        // Servi par le service commun : local déchargé par le serveur
-        // web, distant diffusé par morceaux, privé une heure.
+        // Served by the common service: local offloaded to the web server,
+        // remote streamed in chunks, private for an hour.
         return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
     }
 
@@ -495,6 +496,12 @@ class SpaceContentController extends AbstractController
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
+        }
+
+        // A stage is born hidden from the client; creating it shown means
+        // showing it, and that requires the right to share the space.
+        if (!$this->clientVisibility->allowsChange(false, $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
         }
 
         $this->columnManager->create($space, $input);
@@ -517,6 +524,13 @@ class SpaceContentController extends AbstractController
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
+        }
+
+        // Renaming or recolouring stays with the right to edit; showing or
+        // hiding the stage requires the right to share, even slipped into the
+        // same save.
+        if (!$this->clientVisibility->allowsChange($column->isVisibleToClient(), $input->isVisibleToClient())) {
+            return $this->jsonForbidden();
         }
 
         $this->columnManager->update($column, $input);
@@ -571,10 +585,10 @@ class SpaceContentController extends AbstractController
     }
 
     /**
-     * La clé du fichier ou de sa vignette.
+     * The key of the file or of its thumbnail.
      *
-     * Le service ne connaît pas les documents, et c'est voulu : il sert une
-     * clé de stockage, quelle que soit la chose qui l'a produite.
+     * The service does not know about documents, and that is deliberate: it
+     * serves a storage key, whatever produced it.
      */
     private function keyOf(DocumentInterface $document, string $variant): string
     {

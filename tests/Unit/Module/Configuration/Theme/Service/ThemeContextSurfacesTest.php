@@ -18,10 +18,10 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Le CSS produit ici est la seule chose qui sépare une couleur choisie dans le
- * suite d'une page publique illisible. Ce qui se vérifie : qu'une surface non
- * configurée n'émette rien, et qu'une surface configurée emporte avec elle tout
- * son jeu de jetons plutôt que le seul fond.
+ * The CSS produced here is the only thing that separates a color chosen in
+ * the suite from an unreadable public page. What is checked: that an
+ * unconfigured surface emits nothing, and that a configured surface takes its
+ * whole set of tokens with it rather than the background alone.
  */
 #[AllowMockObjectsWithoutExpectations]
 final class ThemeContextSurfacesTest extends TestCase
@@ -38,8 +38,8 @@ final class ThemeContextSurfacesTest extends TestCase
         return new ThemeContext(
             $repository,
             $this->createMock(DocumentRepository::class),
-            // Les deux suivants sont `final` donc non doublables, et la méthode
-            // testée ne les touche pas : de vraies instances font l'affaire.
+            // The next two are `final` so they cannot be doubled, and the
+            // tested method does not touch them: real instances will do.
             new PrimaryColorPalette(),
             new SurfaceContrast(),
             new DocumentUrlGenerator($this->createMock(UrlGeneratorInterface::class)),
@@ -48,7 +48,7 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testAThemeWithoutColoursEmitsNothing(): void
     {
-        // L'apparence historique reste le défaut, sans valeur à maintenir.
+        // The historical look stays the default, with no value to maintain.
         self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->frontendSurfacesCss());
     }
 
@@ -58,8 +58,8 @@ final class ThemeContextSurfacesTest extends TestCase
     }
 
     /**
-     * La config d'un thème n'est validée nulle part à l'écriture, et ce CSS
-     * part dans un `<style>` public : une valeur libre y fermerait la balise.
+     * A theme's config is validated nowhere on write, and this CSS goes into
+     * a public `<style>`: a free value there would close the tag.
      */
     public function testASurfaceColourThatIsNotHexNeverReachesTheStyleTag(): void
     {
@@ -174,8 +174,8 @@ final class ThemeContextSurfacesTest extends TestCase
     {
         $css = $this->stylesOf($this->contextWithConfig(['background_color' => '#0f172a']))->frontendSurfacesCss();
 
-        // Sans ces trois-là, les libellés de menu et les séparateurs
-        // disparaîtraient sur le fond sombre sans que rien ne le signale.
+        // Without these three, the menu labels and the separators would
+        // disappear on the dark background without anything flagging it.
         self::assertStringContainsString('--th-primary: rgb(243 244 246);', $css);
         self::assertStringContainsString('--th-secondary: rgb(156 163 175);', $css);
         self::assertStringContainsString('--color-border: oklch(0.451 0.040 265.755);', $css);
@@ -193,16 +193,16 @@ final class ThemeContextSurfacesTest extends TestCase
         $css = $this->stylesOf($this->contextWithConfig(['header_color' => '#111827']))->frontendSurfacesCss();
 
         self::assertStringContainsString('html[data-theme] .aurora-surface-header{', $css);
-        // --th-surface-bg peint la barre, --th-bg suit les panneaux de menu
-        // déroulant, qui sont rendus en `bg-bg`.
+        // --th-surface-bg paints the bar, --th-bg follows the dropdown menu
+        // panels, which are rendered in `bg-bg`.
         self::assertStringContainsString('--th-surface-bg: #111827;', $css);
         self::assertStringContainsString('--th-bg: #111827;', $css);
     }
 
     public function testEachSurfaceIsDecidedOnItsOwn(): void
     {
-        // Une topbar sombre sur une page claire : les deux règles coexistent et
-        // ne portent pas le même jeu de texte.
+        // A dark topbar on a light page: the two rules coexist and do not
+        // carry the same set of text colors.
         $css = $this->stylesOf($this->contextWithConfig([
             'background_color' => '#ffffff',
             'header_color' => '#0f172a',
@@ -229,7 +229,7 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testAnUnrelatedConfigKeyIsIgnored(): void
     {
-        // `config` porte aussi primary_color, le logo, la largeur de contenu.
+        // `config` also carries primary_color, the logo, the content width.
         $css = $this->stylesOf($this->contextWithConfig([
             'primary_color' => '#10b981',
             'content_width' => 'wide',
@@ -259,7 +259,7 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testANullOverrideLeavesTheThemeStanding(): void
     {
-        // Le contrat du champ : vide veut dire « hérite », pas « éteins ».
+        // The field's contract: empty means "inherit", not "turn off".
         $css = $this->stylesOf($this->contextWithConfig(['header_color' => '#0f172a']))
             ->frontendSurfacesCss(['header_color' => null]);
 
@@ -268,8 +268,8 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testABlankOverrideLeavesTheThemeStandingToo(): void
     {
-        // Le vide n'est pas un choix, même arrivé sous forme de chaîne : sans
-        // ça une publication effacerait la couleur du thème sans le demander.
+        // Empty is not a choice, even when it arrives as a string: without
+        // that a post would erase the theme color without asking for it.
         $css = $this->stylesOf($this->contextWithConfig(['header_color' => '#0f172a']))
             ->frontendSurfacesCss(['header_color' => '   ']);
 
@@ -278,8 +278,8 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testOverridingOneSurfaceLeavesTheOthersToTheTheme(): void
     {
-        // Une publication qui ne choisit que sa topbar garde le fond du thème,
-        // ce qui est ce qui rend la surcharge par surface utilisable.
+        // A post that only picks its topbar keeps the theme background,
+        // which is what makes the per-surface override usable.
         $css = $this->stylesOf($this->contextWithConfig([
             'background_color' => '#ffffff',
             'footer_color' => '#1f2937',
@@ -293,8 +293,8 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testAnOverriddenSurfaceCarriesItsContrastTokens(): void
     {
-        // Le contraste est ce qui distingue « repeindre » de « rendre
-        // illisible » : la surcharge doit passer par le même calcul.
+        // Contrast is what tells "repaint" apart from "make unreadable": the
+        // override must go through the same computation.
         $css = $this->stylesOf($this->contextWithConfig([]))->frontendSurfacesCss(['background_color' => '#0f172a']);
 
         self::assertStringContainsString('--th-primary: rgb(243 244 246);', $css);
@@ -367,8 +367,8 @@ final class ThemeContextSurfacesTest extends TestCase
     }
 
     /**
-     * `--th-accent` est résolu sur :root puis hérité comme une valeur : la
-     * palette seule laissait `text-accent` et `bg-accent` à la couleur du thème.
+     * `--th-accent` is resolved on :root then inherited as a value: the
+     * palette alone left `text-accent` and `bg-accent` at the theme color.
      */
     public function testAnAccentColourAlsoRepointsTheUnnumberedAccent(): void
     {

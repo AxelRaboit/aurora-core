@@ -43,7 +43,7 @@ final readonly class LocalStorageAdapter implements StorageAdapterInterface, Loc
     public function __construct(
         private Filesystem $filesystem,
         #[Autowire(param: 'app.upload_dir')]
-        private string $rootDir,
+        private string $rootDirectory,
     ) {}
 
     public function disk(): StorageDiskEnum
@@ -197,7 +197,7 @@ final readonly class LocalStorageAdapter implements StorageAdapterInterface, Loc
 
     public function list(string $prefix): Generator
     {
-        $root = '' === $prefix ? $this->rootDir : $this->resolve($prefix);
+        $root = '' === $prefix ? $this->rootDirectory : $this->resolve($prefix);
 
         if (!is_dir($root)) {
             return;
@@ -240,8 +240,8 @@ final readonly class LocalStorageAdapter implements StorageAdapterInterface, Loc
      */
     private function resolve(string $key): string
     {
-        $normalised = Path::canonicalize($this->rootDir.DIRECTORY_SEPARATOR.$key);
-        $root = mb_rtrim(Path::canonicalize($this->rootDir), '/').'/';
+        $normalised = Path::canonicalize($this->rootDirectory.DIRECTORY_SEPARATOR.$key);
+        $root = mb_rtrim(Path::canonicalize($this->rootDirectory), '/').'/';
 
         if (!str_starts_with($normalised.'/', $root)) {
             throw StorageException::writeFailed($key, 'key escapes the storage root');
@@ -252,7 +252,7 @@ final readonly class LocalStorageAdapter implements StorageAdapterInterface, Loc
 
     private function relativise(string $absolutePath): string
     {
-        return Path::makeRelative(Path::canonicalize($absolutePath), Path::canonicalize($this->rootDir));
+        return Path::makeRelative(Path::canonicalize($absolutePath), Path::canonicalize($this->rootDirectory));
     }
 
     private function describe(string $key, SplFileInfo $file): StoredObject

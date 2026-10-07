@@ -53,11 +53,11 @@ final class DevPrerequisiteChecker
         $required = ['pdo_pgsql', 'intl', 'mbstring', 'gd', 'zip', 'curl'];
         $warnings = [];
 
-        foreach ($required as $ext) {
-            if (!extension_loaded($ext)) {
+        foreach ($required as $extension) {
+            if (!extension_loaded($extension)) {
                 $warnings[] = new PrerequisiteWarning(
-                    message: 'Extension PHP manquante : '.$ext,
-                    fix: 'sudo apt install php8.4-'.$ext,
+                    message: 'Extension PHP manquante : '.$extension,
+                    fix: 'sudo apt install php8.4-'.$extension,
                     level: 'warning',
                 );
             }

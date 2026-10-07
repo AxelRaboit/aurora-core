@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-// Le module s'arme au chargement et interroge `matchMedia`, absent de jsdom.
+// The module arms itself on load and queries `matchMedia`, missing from jsdom.
 vi.stubGlobal("matchMedia", (query) => ({
     matches: false,
     media: query,
@@ -28,7 +28,7 @@ describe("readFigure", () => {
     });
 
     it("relit le séparateur de milliers de la page plutôt que de le deviner", () => {
-        // U+202F, ce que PHP écrit en français.
+        // U+202F, what PHP writes in French.
         const figure = readFigure("1 250");
 
         expect(figure.value).toBe(1250);
@@ -51,8 +51,8 @@ describe("readFigure", () => {
     });
 
     it("traite une plage comme un nombre suivi de texte, pas comme deux", () => {
-        // On préfère compter jusqu'à 2 et garder « à 3 » que d'animer de
-        // travers ou de refuser d'afficher.
+        // Counting up to 2 and keeping "à 3" is better than animating wrong or
+        // refusing to display.
         expect(readFigure("2 à 3")).toMatchObject({ value: 2, suffix: " à 3" });
     });
 });

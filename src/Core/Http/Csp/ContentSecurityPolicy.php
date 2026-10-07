@@ -100,12 +100,11 @@ final readonly class ContentSecurityPolicy
             $script[] = $this->viteDevServer;
             $connect[] = $this->viteDevServer;
             $connect[] = str_replace('http', 'ws', $this->viteDevServer);
-            // Les polices aussi : en développement, Vite sert Poppins depuis
-            // `node_modules`, donc depuis son origine à lui. Sans cette ligne,
-            // soixante-seize refus s'empilent dans la console et la page
-            // s'affiche dans la police du système, ce qui donne à chaque écran
-            // regardé en local une graisse et une chasse que la production
-            // n'aura pas.
+            // Fonts too: in development, Vite serves Poppins from `node_modules`, so
+            // from its own origin. Without this line, seventy-six refusals pile up in
+            // the console and the page shows in the system font, which gives every
+            // screen viewed locally a weight and a width that production will not
+            // have.
             $font[] = $this->viteDevServer;
         }
 

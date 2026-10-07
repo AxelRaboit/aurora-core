@@ -27,14 +27,14 @@ import {
  *
  * @param {string[]} [modes=["grid", "list"]] Allowed values; anything else is discarded.
  * @param {string}   [defaultMode="grid"]
- * @param {string}   [param="view"]           Query parameter name.
+ * @param {string}   [parameter="view"]       Query parameter name.
  */
 export function useListViewMode(
     modes = ["grid", "list"],
     defaultMode = "grid",
-    param = "view",
+    parameter = "view",
 ) {
-    const { value, set } = useQueryState(param, {
+    const { value, set } = useQueryState(parameter, {
         defaultValue: defaultMode,
         valid: modes,
     });

@@ -1,20 +1,19 @@
 /*
- * Une note imprimée : le texte, sans l'écran autour.
+ * A printed note: the text, without the screen around it.
  *
- * Ce qui entoure la note (l'arborescence du lecteur, sa barre, la liste d'un
- * partage) se cache par `print:hidden` là où il est écrit ; ce fichier-ci
- * règle la note elle-même. Le thème clair se pose à l'impression par
- * `useNotePrint.js` : une feuille de style ne sait pas retirer la classe
- * `dark` de la page.
+ * What surrounds the note (the reader's tree, its bar, a share's list) is
+ * hidden by `print:hidden` where it is written; this file styles the note
+ * itself. The light theme is set for printing by `useNotePrint.js`: a
+ * stylesheet cannot remove the page's `dark` class.
  */
 @media print {
     @page {
         margin: 16mm 14mm;
     }
 
-    /* La carte est une carte d'écran : sur papier, son liseré et son ombre
-       encadrent la page entière, et son `overflow: hidden` coupait un long
-       texte à la première page. */
+    /* The card is a screen card: on paper, its border and its shadow frame
+       the whole page, and its `overflow: hidden` cut a long text off at the
+       first page. */
     .note-print-article {
         overflow: visible !important;
         border: 0 !important;
@@ -22,20 +21,20 @@
         box-shadow: none !important;
     }
 
-    /* Le navigateur retire les fonds à l'impression : sans cela, un encadré
-       perd sa couleur, un bloc de code son fond, et une note sépia redevient
-       blanche. Ce qu'on a choisi d'habiller s'imprime habillé. */
+    /* The browser drops backgrounds when printing: without this, a callout
+       loses its colour, a code block its background, and a sepia note turns
+       white again. What was chosen to be styled prints styled. */
     .note-look,
     .note-preview {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
 
-    /* Sauf la nuit. Une page entière d'encre sombre, c'est une cartouche
-       pour une note, et rien ne s'y lit mieux : l'ardoise et la nuit
-       s'impriment sur le papier blanc de l'apparence « Papier ». Deux classes
-       et non une : à spécificité égale, l'apparence gagnait selon l'ordre
-       où le bundle range les deux feuilles. */
+    /* Except night. A whole page of dark ink is a cartridge per note, and
+       nothing reads better on it: slate and night print on the white paper
+       of the "Papier" appearance. Two classes and not one: at equal
+       specificity, the appearance won depending on the order in which the
+       bundle puts the two stylesheets. */
     .note-look.note-look-slate,
     .note-look.note-look-midnight {
         --th-surface: #ffffff;
@@ -48,8 +47,8 @@
         --color-border-strong: #d3d7dd;
     }
 
-    /* Un titre ne reste pas seul en bas d'une page, et un tableau, un bloc
-       de code, une image ou un encadré ne se coupent pas en deux. */
+    /* A heading is not left alone at the bottom of a page, and a table, a
+       code block, an image or a callout is not split in two. */
     .note-preview :is(h1, h2, h3, h4, h5, h6) {
         break-after: avoid;
     }

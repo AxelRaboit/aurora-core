@@ -58,8 +58,9 @@ export function useNoteImageDragResize({ onResize, minWidth = 40 }) {
             window.removeEventListener("pointerup", onUp);
             window.removeEventListener("pointercancel", onUp);
             handle.classList.remove("is-active");
-            const src = image.dataset.mdSrc ?? image.getAttribute("src");
-            if (src) onResize({ src, width: lastWidth });
+            const imageSource =
+                image.dataset.mdSrc ?? image.getAttribute("src");
+            if (imageSource) onResize({ src: imageSource, width: lastWidth });
         }
 
         window.addEventListener("pointermove", onMove);

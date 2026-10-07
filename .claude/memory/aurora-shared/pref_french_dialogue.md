@@ -13,6 +13,10 @@ L'utilisateur communique en français. Les réponses Claude sont en français.
 
 - **Texte conversationnel** : français.
 - **Code (variables, classes, commentaires)** : anglais (convention du projet).
+  Les commentaires et docblocks compris : la règle avait dérivé (4 200
+  commentaires en français au 06/10/2026, tous traduits), elle est désormais
+  tenue par `tests/Unit/Core/CommentsAreInEnglishTest.php` et écrite dans
+  `CLAUDE.md` (section 4).
 - **Commit messages** : anglais (convention du projet).
 - **Documentation** : français pour la prose, anglais pour le code/exemples.
 

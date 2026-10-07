@@ -25,17 +25,17 @@ use function sprintf;
 use function str_repeat;
 
 /**
- * La serrure de l'onglet Drive.
+ * The Drive tab's lock.
  *
- * **Trois règles, et chacune est une décision qu'on pourrait défaire sans
- * s'en apercevoir.** Elle vaut pour tout le monde, y compris le rôle qui
- * court-circuite tous les privilèges ; la retirer demande de la saisir ; et
- * configurer n'est pas ouvrir, donc un équipier qui n'est pas référent peut
- * déverrouiller sans pouvoir toucher au mot de passe.
+ * **Three rules, and each one is a decision that could be undone without
+ * anyone noticing.** It applies to everyone, including the role that
+ * bypasses every privilege; removing it requires typing it; and configuring
+ * is not opening, so a team member who is not the lead can unlock without
+ * being able to touch the password.
  *
- * S'y ajoute celle qu'un écran ne montre pas : **poser le mot de passe ferme
- * aussitôt, pour celui qui le pose**. Garder sa session ouverte était plus
- * confortable et se lisait comme un réglage qui n'avait pas pris.
+ * Add to that the one a screen does not show: **setting the password locks
+ * at once, for whoever sets it**. Keeping their session open was more
+ * comfortable and read like a setting that had not taken.
  */
 final class SpaceDriveLockTest extends IntegrationTestCase
 {
@@ -63,9 +63,9 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le navigateur pose cet en-tête sur chaque appel, et les routes
-        // publiques l'exigent : ce qui les protège est un secret dans
-        // l'adresse, et une adresse se transfère.
+        // The browser sets this header on every call, and public routes
+        // require it: what protects them is a secret in the address, and an
+        // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
@@ -82,7 +82,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    /** Un mot de passe trop court n'est pas un mot de passe. */
+    /** A password that is too short is not a password. */
     public function testAShortPasswordIsRefusedAndClosesNothing(): void
     {
         $space = $this->givenSpace();
@@ -94,10 +94,10 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * Poser le mot de passe ferme tout de suite, y compris pour soi.
+     * Setting the password locks right away, including for oneself.
      *
-     * C'est le revirement qui compte : une serrure qu'on pose et qui ne change
-     * rien à l'écran ressemble à un réglage qui n'a pas pris.
+     * That reversal is what matters: a lock that is set and changes nothing on
+     * screen looks like a setting that has not taken.
      */
     public function testSettingThePasswordClosesTheTabForTheOneWhoSetIt(): void
     {
@@ -110,8 +110,8 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * Dix essais le quart d'heure, puis plus rien, même le bon : un mot de
-     * passe qu'on peut essayer sans fin n'en est pas un.
+     * Ten tries per quarter of an hour, then nothing, not even the right one:
+     * a password that can be tried endlessly is not one.
      */
     public function testGuessingThePasswordIsCutShort(): void
     {
@@ -129,7 +129,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         self::assertFalse($this->driveOpen($space));
     }
 
-    /** Le retirer demande de le saisir, sinon ce n'est qu'un ralentisseur. */
+    /** Removing it requires typing it, otherwise it is only a speed bump. */
     public function testRemovingThePasswordRequiresTypingIt(): void
     {
         $space = $this->givenSpace();
@@ -146,7 +146,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         self::assertFalse($this->reload($space)->isDriveLocked());
     }
 
-    /** Le changer aussi : un écran laissé ouvert ne doit pas suffire. */
+    /** Changing it too: a screen left open must not be enough. */
     public function testChangingThePasswordRequiresTheOldOne(): void
     {
         $space = $this->givenSpace();
@@ -158,11 +158,11 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * Configurer n'est pas ouvrir.
+     * Configuring is not opening.
      *
-     * Un équipier membre mais pas référent ne voit pas les réglages, et peut
-     * malgré tout ouvrir l'onglet s'il connaît le mot de passe. C'est
-     * exactement ce qu'un mot de passe veut dire.
+     * A team member who is a member but not the lead does not see the
+     * settings, and can still open the tab if they know the password. That is
+     * exactly what a password means.
      */
     public function testATeammateCannotConfigureButCanUnlock(): void
     {
@@ -184,10 +184,10 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * Le référent, lui, configure.
+     * The lead, on the other hand, configures.
      *
-     * Sans ce test, le précédent passerait aussi si les réglages étaient
-     * fermés à tout le monde.
+     * Without this test, the previous one would also pass if the settings
+     * were closed to everyone.
      */
     public function testTheLeadCanOpenTheSettings(): void
     {
@@ -203,12 +203,12 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * Redemander le mot de passe referme les sessions déjà ouvertes.
+     * Asking for the password again locks the sessions already open.
      *
-     * **La garantie qu'aucune session ne peut constater seule.** Celui qui
-     * appuie est refermé, ce qui se voit ; les autres le sont aussi, ce qui ne
-     * se voit qu'en tenant deux sessions à la fois. Sans ce test, le bouton
-     * pourrait ne refermer que la sienne et personne ne s'en apercevrait.
+     * **The guarantee no single session can observe on its own.** Whoever
+     * presses it is locked out, which can be seen; the others are too, which
+     * can only be seen by holding two sessions at once. Without this test,
+     * the button could lock only its own session and nobody would notice.
      */
     public function testRevokingClosesSessionsThatWereAlreadyOpen(): void
     {
@@ -221,7 +221,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
 
         $premiere = $this->currentSession();
 
-        // Une autre session, qui n'a jamais eu à saisir quoi que ce soit.
+        // Another session, which never had to type anything.
         $this->openAnotherSession();
         $this->post($space, '/drive-revoke', []);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -229,14 +229,14 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         $this->backTo($premiere);
         self::assertFalse($this->driveOpen($space), 'la première session est restée ouverte');
 
-        // Et le mot de passe n'a pas bougé : c'est tout l'intérêt du bouton.
+        // And the password has not changed: that is the whole point of the button.
         $this->post($space, '/drive-unlock', ['password' => self::PASSWORD]);
         self::assertSame(200, $this->client->getResponse()->getStatusCode(), 'le mot de passe a changé');
     }
 
     /**
-     * Changer le mot de passe referme aussi les sessions ouvertes avec
-     * l'ancien, sans quoi remplacer un mot de passe éventé ne servirait à rien.
+     * Changing the password also locks the sessions opened with the old one,
+     * otherwise replacing a leaked password would be pointless.
      */
     public function testChangingThePasswordEvictsTheSessionsOpenedWithTheOldOne(): void
     {
@@ -256,7 +256,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         self::assertFalse($this->driveOpen($space));
     }
 
-    /** Sur un onglet ouvert, il n'y a rien à redemander. */
+    /** On an open tab, there is nothing to ask for again. */
     public function testRevokingAnOpenTabIsRefused(): void
     {
         $space = $this->givenSpace();
@@ -267,13 +267,13 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * Le secours, quand le mot de passe est perdu.
+     * The rescue, when the password is lost.
      *
-     * **La seule porte de sortie d'un oubli**, et celle qu'on n'essaie
-     * jamais : quand on en a besoin, un client attend, et découvrir à ce
-     * moment-là qu'elle ne marche pas ne laisse plus aucune issue. Elle
-     * referme aussi les sessions en cours, sans quoi effacer un mot de passe
-     * depuis le serveur laisserait dedans ceux qui y étaient.
+     * **The only way out of a forgotten password**, and the one nobody ever
+     * tries: when it is needed, a client is waiting, and finding out at that
+     * moment that it does not work leaves no way out at all. It also locks the
+     * current sessions, otherwise clearing a password from the server would
+     * leave inside whoever was already there.
      */
     public function testTheRescueCommandReopensTheTabAndClosesTheSessions(): void
     {
@@ -296,7 +296,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         self::assertNotSame($generation, $fresh->getDriveLockGeneration(), 'la génération n\'a pas bougé');
     }
 
-    /** Sur un espace qui n\'existe pas, elle le dit plutôt que de ne rien faire. */
+    /** On a space that does not exist, it says so rather than doing nothing. */
     public function testTheRescueCommandFailsOnAnUnknownSpace(): void
     {
         $command = new CommandTester(
@@ -308,12 +308,12 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * Deux sessions avec un seul client.
+     * Two sessions with a single client.
      *
-     * Un second `createClient()` redémarre le noyau, ce que ce cas de test
-     * interdit ; le pot à biscuits, lui, est la session. Le vider et se
-     * reconnecter en ouvre une autre, et remettre les biscuits de côté rend
-     * la première.
+     * A second `createClient()` reboots the kernel, which this test case
+     * forbids; the cookie jar, on the other hand, is the session. Emptying it
+     * and logging in again opens another one, and putting the cookies back
+     * restores the first.
      */
     private function currentSession(): array
     {
@@ -338,13 +338,13 @@ final class SpaceDriveLockTest extends IntegrationTestCase
     }
 
     /**
-     * L'onglet Drive, tel que l'écran l'interroge.
+     * The Drive tab, as the screen queries it.
      *
-     * **La liste et non l'archive.** L'archive répond 404 dès que
-     * l'intégration Google n'est pas branchée, ce qui est le cas en test :
-     * l'interroger donnerait un test vert quoi qu'il arrive, y compris sur
-     * une serrure qui ne ferme rien. La liste, elle, est la seule route que
-     * la serrure laisse passer, justement pour qu'elle annonce `locked`.
+     * **The listing and not the archive.** The archive answers 404 as soon as
+     * the Google integration is not connected, which is the case in tests:
+     * querying it would give a green test whatever happens, including on a
+     * lock that locks nothing. The listing is the only route the lock lets
+     * through, precisely so that it can announce `locked`.
      */
     private function driveOpen(CustomerSpace $space): bool
     {

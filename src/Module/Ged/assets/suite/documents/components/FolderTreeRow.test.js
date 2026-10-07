@@ -28,7 +28,7 @@ const render = (props = {}) =>
 const titles = (wrapper) =>
     wrapper
         .findAll("button")
-        .map((b) => b.attributes("title"))
+        .map((button) => button.attributes("title"))
         .filter(Boolean);
 
 describe("a folder row", () => {

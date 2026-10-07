@@ -30,17 +30,17 @@ use function openssl_pkey_new;
 use function sprintf;
 
 /**
- * Un fichier du Drive qui devient un document de la médiathèque.
+ * A Drive file that becomes a media library document.
  *
- * **Le nom est ce qui se serait perdu.** Google ne le donne pas avec le
- * contenu : sa réponse porte une pièce jointe sans `filename`, donc un import
- * qui ne le redemande pas range « 1BxY_…Kp3 » dans la bibliothèque d'un
- * client, où plus personne ne le retrouve. Le vrai déposeur est monté ici pour
- * cette raison - un double aurait rendu le nom qu'on lui aurait appris.
+ * **The name is what would have been lost.** Google does not give it with
+ * the content: its response carries an attachment without a `filename`, so
+ * an import that does not ask for it again files "1BxY_…Kp3" in a client's
+ * library, where nobody finds it again. The real uploader is wired in here
+ * for that reason - a double would have returned whatever name it was
+ * taught.
  *
- * C'est aussi ce qui rend le fichier attachable partout : une fois dans la
- * médiathèque, il n'est plus un cas particulier pour les fiches, les notes ni
- * les galeries.
+ * It is also what makes the file attachable everywhere: once in the media
+ * library, it is no longer a special case for items, notes or galleries.
  */
 final class SpaceDriveImportTest extends IntegrationTestCase
 {
@@ -61,9 +61,9 @@ final class SpaceDriveImportTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le navigateur pose cet en-tête sur chaque appel, et les routes
-        // publiques l'exigent : ce qui les protège est un secret dans
-        // l'adresse, et une adresse se transfère.
+        // The browser sets this header on every call, and public routes
+        // require it: what protects them is a secret in the address, and an
+        // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
@@ -80,8 +80,8 @@ final class SpaceDriveImportTest extends IntegrationTestCase
     {
         $space = $this->givenSpaceWithDrive();
 
-        // Un PNG d'un pixel : le déposeur refuse ce qui n'est pas un fichier
-        // qu'il sait traiter, et un contenu inventé ne prouverait rien.
+        // A one-pixel PNG: the uploader refuses anything that is not a file it
+        // knows how to handle, and made-up content would prove nothing.
         $pixel = (string) base64_decode(
             'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
             true,
@@ -106,9 +106,8 @@ final class SpaceDriveImportTest extends IntegrationTestCase
     }
 
     /**
-     * Un fichier que le dossier de l'espace ne contient pas n'est pas rangé,
-     * même si le compte de service peut le lire : il appartient peut-être au
-     * Drive d'un autre client.
+     * A file the space's folder does not contain is not filed, even if the
+     * service account can read it: it may belong to another client's Drive.
      */
     public function testAFileOutsideTheSpacesFolderIsNotImported(): void
     {
@@ -122,11 +121,11 @@ final class SpaceDriveImportTest extends IntegrationTestCase
     }
 
     /**
-     * Un document Google n'a pas d'octets à télécharger.
+     * A Google document has no bytes to download.
      *
-     * Refusé avec un message plutôt qu'avec un document vide : c'est le seul
-     * cas où l'écran doit dire quelque chose, et le confondre avec une panne
-     * enverrait chercher la cause dans les réglages.
+     * Refused with a message rather than with an empty document: it is the
+     * only case where the screen must say something, and mistaking it for an
+     * outage would send people looking for the cause in the settings.
      */
     public function testAFileGoogleWillNotServeIsRefusedAndFilesNothing(): void
     {
@@ -147,7 +146,7 @@ final class SpaceDriveImportTest extends IntegrationTestCase
         self::assertCount(0, $this->entityManager->getRepository(Document::class)->findAll());
     }
 
-    /** Sans dossier branché, la route n'existe pas pour cet espace. */
+    /** Without a connected folder, the route does not exist for this space. */
     public function testAnImportIsNotFoundOnASpaceWithNoFolder(): void
     {
         $space = $this->givenSpaceWithDrive(folder: null);
@@ -159,7 +158,7 @@ final class SpaceDriveImportTest extends IntegrationTestCase
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
 
-    /** Le dossier de l'espace tel que Google le liste. */
+    /** The space's folder as Google lists it. */
     private function listing(string ...$ids): MockResponse
     {
         return new MockResponse((string) json_encode(['files' => array_map(
@@ -178,8 +177,8 @@ final class SpaceDriveImportTest extends IntegrationTestCase
     /** @param list<MockResponse> $responses */
     private function givenDrive(array $responses): void
     {
-        // Sans cela, le noyau redémarre à la requête suivante et le service
-        // posé ici disparaît avec lui.
+        // Without this, the kernel reboots on the next request and the
+        // service set here disappears with it.
         $this->client->disableReboot();
 
         static::getContainer()->set(DriveClient::class, new DriveClient(

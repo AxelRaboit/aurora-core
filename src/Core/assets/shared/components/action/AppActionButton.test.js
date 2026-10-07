@@ -68,7 +68,9 @@ describe("AppActionButton", () => {
             props: { title: "Supprimer", color: "rose" },
         });
 
-        expect(wrapper.classes().some((c) => c.includes("rose"))).toBe(true);
+        expect(
+            wrapper.classes().some((className) => className.includes("rose")),
+        ).toBe(true);
     });
 
     it("cannot be pressed when disabled", () => {

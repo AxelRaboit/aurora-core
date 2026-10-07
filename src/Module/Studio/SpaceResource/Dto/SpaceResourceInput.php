@@ -9,13 +9,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
- * Une ressource, telle que la modale l'envoie.
+ * A resource, as the modal sends it.
  *
- * **Ce qui est exigé dépend du genre**, et c'est le rappel qui le dit plutôt
- * que des contraintes posées sur chaque champ : un lien sans adresse n'est pas
- * un lien, un texte sans corps n'est pas un texte, et les deux champs sont
- * pourtant facultatifs pour les autres genres. Des `NotBlank` fixes auraient
- * obligé à remplir un corps pour enregistrer un contact.
+ * **What is required depends on the kind**, and the callback says so rather
+ * than constraints set on each field: a link without an address is not a
+ * link, a text without a body is not a text, and yet both fields are
+ * optional for the other kinds. Fixed `NotBlank` constraints would have
+ * forced filling in a body to save a contact.
  */
 class SpaceResourceInput implements SpaceResourceInputInterface
 {
@@ -24,13 +24,12 @@ class SpaceResourceInput implements SpaceResourceInputInterface
         #[Assert\NotBlank(message: 'suite.studio.space_resources.errors.label_required')]
         #[Assert\Length(max: 180, maxMessage: 'suite.studio.space_resources.errors.label_too_long')]
         public readonly string $label = '',
-        // **Les deux schémas web seulement** : ce champ finit dans un `href`,
-        // et `javascript:` y serait une adresse que quelqu'un a pu enregistrer.
+        // **The two web schemes only**: this field ends up in an `href`, and
+        // `javascript:` there would be an address someone managed to save.
         //
-        // Sans exiger de domaine de premier niveau, comme les deux autres
-        // adresses saisies dans l'application : une ressource qu'on garde pour
-        // soi peut pointer une machine interne, et le contrôle qui compte ici
-        // est le schéma.
+        // Without requiring a top-level domain, like the two other addresses typed
+        // in the application: a resource kept for yourself can point to an internal
+        // machine, and the check that matters here is the scheme.
         #[Assert\Url(message: 'suite.studio.space_resources.errors.url_invalid', protocols: ['http', 'https'], requireTld: false)]
         #[Assert\Length(max: 2048, maxMessage: 'suite.studio.space_resources.errors.url_too_long')]
         public readonly ?string $url = null,
@@ -41,12 +40,12 @@ class SpaceResourceInput implements SpaceResourceInputInterface
         public readonly ?string $email = null,
         #[Assert\Length(max: 30, maxMessage: 'suite.studio.space_resources.errors.phone_too_long')]
         public readonly ?string $phone = null,
-        // Fermé par défaut, jusque dans la saisie : une requête qui ne dit
-        // rien de la visibilité ne publie pas.
+        // Closed by default, down to the input: a request that says nothing about
+        // visibility does not publish.
         public readonly bool $visibleToClient = false,
     ) {}
 
-    /** Ce que le genre exige, et que rien d'autre ne peut poser. */
+    /** What the kind requires, and that nothing else can set. */
     #[Assert\Callback]
     public function validateKindHasWhatItNeeds(ExecutionContextInterface $context): void
     {

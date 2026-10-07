@@ -1,27 +1,26 @@
 /**
- * Les diapositives d'un en-tête qui tournent - `[data-banner-carousel]`.
+ * The slides of a banner that rotate - `[data-banner-carousel]`.
  *
- * Le gabarit empile toutes les diapositives au même endroit et n'en montre
- * qu'une, marquée `data-active` ; sans ce module, c'est la première, et les
- * commandes restent cachées. Ce module ajoute :
- * - le passage automatique, toutes les `data-interval` secondes, quand
- *   `data-autoplay` le demande, arrêté sous le pointeur (`data-pause-on-hover`),
- *   quand une commande a le focus, quand l'onglet est caché, et par le bouton
- *   pause ;
- * - les flèches, les points, les flèches du clavier et le glissement au doigt ;
- * - la couleur du point courant, prise sur l'accent de la diapositive.
+ * The template stacks every slide in the same place and shows only one,
+ * marked `data-active`; without this module, it is the first one, and the
+ * controls stay hidden. This module adds:
+ * - automatic advance, every `data-interval` seconds, when `data-autoplay`
+ *   asks for it, stopped under the pointer (`data-pause-on-hover`), when a
+ *   control has focus, when the tab is hidden, and by the pause button;
+ * - the arrows, the dots, the keyboard arrows and the finger swipe;
+ * - the colour of the current dot, taken from the slide's accent.
  *
- * Quelqu'un qui a demandé moins d'animations à son système n'a pas de
- * passage automatique : il garde les commandes.
+ * Someone who asked their system for fewer animations gets no automatic
+ * advance: they keep the controls.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/_banner.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/_banner.html.twig
  */
 const SELECTOR = "[data-banner-carousel]";
 
-/** Distance, en pixels, au-delà de laquelle un glissement change de diapositive. */
+/** Distance, in pixels, beyond which a swipe changes slide. */
 export const SWIPE_THRESHOLD = 40;
 
-/** L'indice atteint en avançant de `step` depuis `current`, en bouclant. */
+/** The index reached by moving `step` from `current`, wrapping around. */
 export function stepIndex(current, step, count) {
     if (count <= 0) {
         return 0;
@@ -31,9 +30,9 @@ export function stepIndex(current, step, count) {
 }
 
 /**
- * Le sens d'un passage de `from` à `to` : 1 vers la droite, -1 vers la
- * gauche. Un point cliqué va dans le sens de sa place ; un pas au-delà du
- * bout, qui boucle, garde le sens du pas.
+ * The direction of a move from `from` to `to`: 1 to the right, -1 to the
+ * left. A clicked dot goes in the direction of its position; a step past the
+ * end, which wraps around, keeps the direction of the step.
  */
 export function direction(from, to, step = 0) {
     if (0 !== step) {
@@ -43,16 +42,16 @@ export function direction(from, to, step = 0) {
     return to >= from ? 1 : -1;
 }
 
-/** Le pas demandé par un glissement horizontal, ou 0 s'il est trop court ou trop vertical. */
-export function swipeStep(dx, dy, threshold = SWIPE_THRESHOLD) {
-    if (Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy)) {
+/** The step a horizontal swipe asks for, or 0 when it is too short or too vertical. */
+export function swipeStep(deltaX, deltaY, threshold = SWIPE_THRESHOLD) {
+    if (Math.abs(deltaX) < threshold || Math.abs(deltaX) < Math.abs(deltaY)) {
         return 0;
     }
 
-    return dx < 0 ? 1 : -1;
+    return deltaX < 0 ? 1 : -1;
 }
 
-/** La durée d'une diapositive en millisecondes, bornée comme au serveur. */
+/** The duration of a slide in milliseconds, bounded as on the server. */
 export function intervalMs(raw) {
     const seconds = Number.parseInt(raw, 10);
 
@@ -66,7 +65,7 @@ function wire(root) {
     const slides = [...root.querySelectorAll("[data-banner-slide]")];
     const dots = [...root.querySelectorAll("[data-banner-dot]")];
     const controls = root.querySelector("[data-banner-controls]");
-    const prev = root.querySelector("[data-banner-prev]");
+    const previous = root.querySelector("[data-banner-prev]");
     const next = root.querySelector("[data-banner-next]");
     const pause = root.querySelector("[data-banner-pause]");
 
@@ -109,7 +108,7 @@ function wire(root) {
         });
     }
 
-    function show(target, dir) {
+    function show(target, slideDirection) {
         if (target === current) {
             return;
         }
@@ -118,13 +117,19 @@ function wire(root) {
         const entering = slides[target];
 
         if (sliding) {
-            // L'entrante est posée du côté d'où elle vient, sans transition,
-            // puis relâchée : c'est ce qui la fait glisser dans le bon sens.
+            // The incoming slide is placed on the side it comes from, without a
+            // transition, then released: that is what makes it slide the right way.
             entering.setAttribute("data-banner-staging", "");
-            entering.style.setProperty("--banner-to", `${dir * 100}%`);
+            entering.style.setProperty(
+                "--banner-to",
+                `${slideDirection * 100}%`,
+            );
             void entering.offsetWidth;
             entering.removeAttribute("data-banner-staging");
-            leaving.style.setProperty("--banner-to", `${-dir * 100}%`);
+            leaving.style.setProperty(
+                "--banner-to",
+                `${-slideDirection * 100}%`,
+            );
         }
 
         leaving.removeAttribute("data-active");
@@ -175,13 +180,13 @@ function wire(root) {
     if (controls) {
         controls.hidden = false;
     }
-    [prev, next].forEach((button) => {
+    [previous, next].forEach((button) => {
         if (button) {
             button.hidden = false;
         }
     });
 
-    prev?.addEventListener("click", () => go(-1));
+    previous?.addEventListener("click", () => go(-1));
     next?.addEventListener("click", () => go(1));
     dots.forEach((dot) =>
         dot.addEventListener("click", () =>
@@ -191,8 +196,8 @@ function wire(root) {
 
     if (pause) {
         if (!autoplay) {
-            // Rien à arrêter : pas de passage automatique demandé, ou le
-            // système en a demandé moins.
+            // Nothing to stop: no automatic advance was asked for, or the system asked
+            // for less of it.
             pause.hidden = true;
         }
 
@@ -242,8 +247,8 @@ function wire(root) {
         }
     });
 
-    // Au doigt et au stylet seulement : à la souris, un glisser sélectionne
-    // le texte du titre, et les flèches sont là.
+    // Finger and stylus only: with the mouse, a drag selects the title text,
+    // and the arrows are there.
     let start = null;
     root.addEventListener(
         "pointerdown",

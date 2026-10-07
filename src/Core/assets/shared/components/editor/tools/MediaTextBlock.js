@@ -60,36 +60,36 @@ export default class MediaTextBlock {
     #createToolbar() {
         const toolbar = document.createElement("div");
         toolbar.className = "mt-block__toolbar";
-        const flipBtn = this.#createButton(
+        const flipButton = this.#createButton(
             this.#data.flip ? this.#config.flipRight : this.#config.flipLeft,
             () => {
                 this.#data.flip = !this.#data.flip;
                 this.#rebuild();
             },
         );
-        toolbar.appendChild(flipBtn);
+        toolbar.appendChild(flipButton);
         return toolbar;
     }
 
     #createRow() {
         const row = document.createElement("div");
         row.className = "mt-block__row";
-        const imgCol = this.#createImageCol();
-        const textCol = this.#createTextCol();
-        row.appendChild(this.#data.flip ? textCol : imgCol);
-        row.appendChild(this.#data.flip ? imgCol : textCol);
+        const imageColumn = this.#createImageCol();
+        const textColumn = this.#createTextCol();
+        row.appendChild(this.#data.flip ? textColumn : imageColumn);
+        row.appendChild(this.#data.flip ? imageColumn : textColumn);
         return row;
     }
 
     #createImageCol() {
-        const col = document.createElement("div");
-        col.className = "mt-block__img-col";
+        const column = document.createElement("div");
+        column.className = "mt-block__img-col";
 
         if (this.#data.url) {
-            const img = document.createElement("img");
-            img.src = this.#data.url;
-            img.alt = this.#data.caption;
-            img.className = "mt-block__img";
+            const image = document.createElement("img");
+            image.src = this.#data.url;
+            image.alt = this.#data.caption;
+            image.className = "mt-block__img";
 
             const cap = document.createElement("p");
             cap.className = "mt-block__caption";
@@ -101,15 +101,15 @@ export default class MediaTextBlock {
             });
             cap.addEventListener("paste", handlePlainTextPaste);
 
-            col.appendChild(img);
-            col.appendChild(cap);
-            col.appendChild(
+            column.appendChild(image);
+            column.appendChild(cap);
+            column.appendChild(
                 this.#createButton(this.#config.changeUrl, () =>
-                    this.#promptUrl(col),
+                    this.#promptUrl(column),
                 ),
             );
         } else {
-            col.appendChild(
+            column.appendChild(
                 this.#createUrlForm((url, mediaId = null) => {
                     this.#data.url = url;
                     this.#data.mediaId = mediaId;
@@ -118,12 +118,12 @@ export default class MediaTextBlock {
             );
         }
 
-        return col;
+        return column;
     }
 
     #createTextCol() {
-        const col = document.createElement("div");
-        col.className = "mt-block__text-col";
+        const column = document.createElement("div");
+        column.className = "mt-block__text-col";
 
         const editable = document.createElement("div");
         editable.contentEditable = "true";
@@ -135,13 +135,13 @@ export default class MediaTextBlock {
         });
         editable.addEventListener("paste", handlePlainTextPaste);
 
-        col.appendChild(editable);
-        return col;
+        column.appendChild(editable);
+        return column;
     }
 
-    #promptUrl(col) {
-        col.innerHTML = "";
-        col.appendChild(
+    #promptUrl(column) {
+        column.innerHTML = "";
+        column.appendChild(
             this.#createUrlForm((url, mediaId = null) => {
                 this.#data.url = url;
                 this.#data.mediaId = mediaId;
@@ -154,12 +154,17 @@ export default class MediaTextBlock {
         const wrapper = document.createElement("div");
         wrapper.className = "mt-block__url-form";
 
-        const browseBtn = this.#createButton(this.#config.browse, async () => {
-            const doc = await openDocumentPicker({ imagesOnly: true });
-            const url = doc?.fileUrl ?? doc?.url;
-            if (url) onConfirm(url, doc.id ?? null);
-        });
-        browseBtn.classList.add("mt-block__url-browse");
+        const browseButton = this.#createButton(
+            this.#config.browse,
+            async () => {
+                const pickedDocument = await openDocumentPicker({
+                    imagesOnly: true,
+                });
+                const url = pickedDocument?.fileUrl ?? pickedDocument?.url;
+                if (url) onConfirm(url, pickedDocument.id ?? null);
+            },
+        );
+        browseButton.classList.add("mt-block__url-browse");
 
         const separator = document.createElement("span");
         separator.className = "mt-block__url-or";
@@ -202,23 +207,23 @@ export default class MediaTextBlock {
         // the editor. Hiding the button beats a 403 with nothing to explain it.
         const canUpload = usePrivileges().can("ged.documents.create");
 
-        const uploadBtn = this.#createButton(this.#config.upload, () =>
+        const uploadButton = this.#createButton(this.#config.upload, () =>
             fileInput.click(),
         );
-        uploadBtn.classList.add("mt-block__url-upload");
+        uploadButton.classList.add("mt-block__url-upload");
 
         fileInput.addEventListener("change", async (event) => {
             const file = event.target.files?.[0];
             if (!file) return;
 
             error.style.display = "none";
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = this.#config.uploading;
+            uploadButton.disabled = true;
+            uploadButton.textContent = this.#config.uploading;
 
             const uploaded = await uploadImageFile(file);
 
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = this.#config.upload;
+            uploadButton.disabled = false;
+            uploadButton.textContent = this.#config.upload;
             fileInput.value = "";
 
             if (!uploaded) {
@@ -231,10 +236,10 @@ export default class MediaTextBlock {
             onConfirm(uploaded.url, uploaded.id);
         });
 
-        wrapper.appendChild(browseBtn);
+        wrapper.appendChild(browseButton);
 
         if (canUpload) {
-            wrapper.appendChild(uploadBtn);
+            wrapper.appendChild(uploadButton);
             wrapper.appendChild(fileInput);
         }
 
@@ -246,12 +251,12 @@ export default class MediaTextBlock {
     }
 
     #createButton(text, onClick) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "mt-block__btn";
-        btn.textContent = text;
-        btn.addEventListener("click", onClick);
-        return btn;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mt-block__btn";
+        button.textContent = text;
+        button.addEventListener("click", onClick);
+        return button;
     }
 
     save() {

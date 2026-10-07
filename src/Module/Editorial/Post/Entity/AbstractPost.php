@@ -222,8 +222,8 @@ abstract class AbstractPost implements PostInterface
     protected ?string $accentColor = null;
 
     /**
-     * Survols et repères des cartes de cette publication : `accent`, `neutral`
-     * ou `custom`. Null hérite du thème.
+     * Hovers and card markers of this post: `accent`, `neutral` or `custom`.
+     * Null inherits from the theme.
      */
     #[ORM\Column(length: 16, nullable: true)]
     protected ?string $highlight = null;
@@ -232,10 +232,10 @@ abstract class AbstractPost implements PostInterface
     protected ?string $highlightColor = null;
 
     /**
-     * Les autres couleurs du thème que cette publication repeint : texte,
-     * traits, cartes, titres, chiffres. Clés du thème, valeurs `#rrggbb` ; une
-     * clé absente garde la couleur du thème. Forme et garde-fous dans
-     * {@see PostColorOverrides}, par où passe toute écriture.
+     * The other theme colours this post repaints: text, lines, cards,
+     * headings, figures. Theme keys, `#rrggbb` values; a missing key keeps the
+     * theme colour. Shape and safeguards in {@see PostColorOverrides}, which
+     * every write goes through.
      *
      * @var array<string, string>
      */
@@ -243,9 +243,9 @@ abstract class AbstractPost implements PostInterface
     protected array $colorOverrides = [];
 
     /**
-     * Si la topbar et le pied de page prennent l'accent et les survols de
-     * cette publication. Faux par défaut : ils gardent ceux du thème, comme
-     * avant, et une page qui ne repeint que son contenu reste comme elle était.
+     * Whether the topbar and the footer take this post's accent and hovers.
+     * False by default: they keep the theme's, as before, and a page that only
+     * repaints its content stays as it was.
      */
     #[ORM\Column(options: ['default' => false])]
     protected bool $chromeFollowsPage = false;

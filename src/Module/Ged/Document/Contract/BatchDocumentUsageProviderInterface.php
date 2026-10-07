@@ -12,7 +12,7 @@ namespace Aurora\Module\Ged\Document\Contract;
  * file and wants the list of things that would break. It is the wrong shape
  * for the library's own listing, where fifty rows each want to know whether
  * anything is drawing them. Asked one at a time, that page costs fifty
- * lookups per provider, and the providers that walk their source - decks,
+ * lookups per provider, and the providers that walk their source - deliverables,
  * posts, space notes - would walk it fifty times over.
  *
  * So a provider that can answer in bulk declares it here, and the listing

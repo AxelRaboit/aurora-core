@@ -15,9 +15,12 @@ document.addEventListener(
 // When @hotwired/turbo handles form submissions, send the CSRF token in a header in addition to a cookie
 // The `framework.csrf_protection.check_header` config option needs to be enabled for the header to be checked
 document.addEventListener("turbo:submit-start", function (event) {
-    const h = generateCsrfHeaders(event.detail.formSubmission.formElement);
-    Object.keys(h).map(function (k) {
-        event.detail.formSubmission.fetchRequest.headers[k] = h[k];
+    const csrfHeaders = generateCsrfHeaders(
+        event.detail.formSubmission.formElement,
+    );
+    Object.keys(csrfHeaders).map(function (headerName) {
+        event.detail.formSubmission.fetchRequest.headers[headerName] =
+            csrfHeaders[headerName];
     });
 });
 

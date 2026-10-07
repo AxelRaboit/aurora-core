@@ -5,47 +5,47 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Enum;
 
 /**
- * L'habillage d'une note : son fond et l'encre qui va avec.
+ * The look of a note: its background and the ink that goes with it.
  *
- * **Des apparences déclarées, pas une couleur libre.** Une couleur choisie à
- * la pipette est écrite telle quelle dans mille notes : le jour où le fond
- * du back-office change, elles gardent toutes l'ancien, et personne ne va
- * les reprendre une par une. Une apparence nommée se fait évoluer - on
- * change ce qu'elle veut dire, et les notes qui la portent suivent.
+ * **Declared appearances, not a free color.** A color picked with the
+ * eyedropper is written as is into a thousand notes: the day the back office
+ * background changes, they all keep the old one, and nobody is going to redo
+ * them one by one. A named appearance can evolve - you change what it means,
+ * and the notes that carry it follow.
  *
- * C'est le même arbitrage que `DeckThemeEnum`, pour la même raison, et
- * l'inverse de la couleur d'un dossier : là-bas, la valeur ne sert qu'à
- * reconnaître une ligne dans une liste, elle ne dessine pas un écran.
+ * It is the same trade-off as `DeckThemeEnum`, for the same reason, and the
+ * opposite of a folder's color: there, the value only serves to recognize a
+ * row in a list, it does not draw a screen.
  *
- * `Plain` est ce qu'une note a toujours été, et reste le défaut, pour
- * qu'aucune note ne change d'allure le jour où la colonne apparaît.
+ * `Plain` is what a note has always been, and stays the default, so that no
+ * note changes its look the day the column appears.
  */
 enum NoteAppearanceEnum: string
 {
-    /** Le fond du back-office. Ce à quoi toutes les notes ressemblaient. */
+    /** The back office background. What every note used to look like. */
     case Plain = 'plain';
 
-    /** Papier chaud, encre brune. Pour lire longtemps. */
+    /** Warm paper, brown ink. For reading at length. */
     case Sepia = 'sepia';
 
-    /** Ardoise. Plus sombre que le reste de l'écran, pour s'en détacher. */
+    /** Slate. Darker than the rest of the screen, to stand out from it. */
     case Slate = 'slate';
 
-    /** Presque blanc, encre noire. Le registre d'un document imprimé. */
+    /** Almost white, black ink. The register of a printed document. */
     case Paper = 'paper';
 
-    /** Nuit profonde, encre claire. */
+    /** Deep night, light ink. */
     case Midnight = 'midnight';
 
-    /** Vert d'eau très pâle. */
+    /** Very pale aqua green. */
     case Mint = 'mint';
 
     /**
-     * Lit une valeur venue du dehors sans jamais échouer.
+     * Reads a value coming from outside without ever failing.
      *
-     * Une apparence inconnue - une note écrite par une version plus récente,
-     * un payload bricolé - vaut le défaut plutôt qu'une exception : une note
-     * doit toujours pouvoir s'afficher, quitte à l'être sans habillage.
+     * An unknown appearance - a note written by a newer version, a tampered
+     * payload - is worth the default rather than an exception: a note must
+     * always be displayable, even without its look.
      */
     public static function fromNullable(?string $value): self
     {

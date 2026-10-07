@@ -59,7 +59,7 @@ describe("useNoteTagManager", () => {
         await Promise.resolve();
 
         query.value = "ALPH";
-        expect(filteredTags.value.map((e) => e.tag)).toEqual(["alpha"]);
+        expect(filteredTags.value.map((entry) => entry.tag)).toEqual(["alpha"]);
     });
 
     it("toggles selection and exposes selectedTags as a list", () => {

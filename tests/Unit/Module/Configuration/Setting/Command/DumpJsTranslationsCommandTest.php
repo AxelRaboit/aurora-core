@@ -20,17 +20,17 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final class DumpJsTranslationsCommandTest extends TestCase
 {
-    private string $auroraDir;
+    private string $auroraDirectory;
 
     protected function setUp(): void
     {
-        $this->auroraDir = sys_get_temp_dir().'/aurora-dump-js-'.bin2hex(random_bytes(6));
-        (new Filesystem())->mkdir($this->auroraDir.'/src/Core/translations');
+        $this->auroraDirectory = sys_get_temp_dir().'/aurora-dump-js-'.bin2hex(random_bytes(6));
+        (new Filesystem())->mkdir($this->auroraDirectory.'/src/Core/translations');
     }
 
     protected function tearDown(): void
     {
-        (new Filesystem())->remove($this->auroraDir);
+        (new Filesystem())->remove($this->auroraDirectory);
     }
 
     public function testBracesThatNameNothingAreEscaped(): void
@@ -97,15 +97,15 @@ final class DumpJsTranslationsCommandTest extends TestCase
     private function dump(array $messages): array
     {
         file_put_contents(
-            $this->auroraDir.'/src/Core/translations/messages.fr.yaml',
+            $this->auroraDirectory.'/src/Core/translations/messages.fr.yaml',
             json_encode($messages, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         );
 
-        $tester = new CommandTester(new DumpJsTranslationsCommand($this->auroraDir));
+        $tester = new CommandTester(new DumpJsTranslationsCommand($this->auroraDirectory));
         self::assertSame(0, $tester->execute([]));
 
         $decoded = json_decode(
-            (string) file_get_contents($this->auroraDir.'/src/Core/assets/locales/generated/fr.json'),
+            (string) file_get_contents($this->auroraDirectory.'/src/Core/assets/locales/generated/fr.json'),
             true,
             512,
             JSON_THROW_ON_ERROR,

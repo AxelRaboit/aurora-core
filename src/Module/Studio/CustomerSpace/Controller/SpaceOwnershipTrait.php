@@ -7,21 +7,22 @@ namespace Aurora\Module\Studio\CustomerSpace\Controller;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 
 /**
- * La seule chose qui sépare le tableau de deux clients.
+ * The only thing that separates the boards of two customers.
  *
- * Chaque écran d'un espace nomme l'espace dans son adresse, puis reçoit la
- * carte, la note, le message ou le fichier comme sa propre entité par son
- * identifiant. Rien n'empêche alors une requête fabriquée de désigner la note
- * d'un client sous l'espace d'un autre : c'est cette ligne qui l'empêche, et
- * elle vivait recopiée dans cinq contrôleurs.
+ * Each screen of a space names the space in its address, then receives the
+ * card, the note, the message or the file as its own entity by its id.
+ * Nothing then stops a forged request from pointing at one customer's note
+ * under another's space: this line is what stops it, and it used to live
+ * copied in five controllers.
  *
- * **404 et pas 403.** Distinguer les deux dirait à qui tient une adresse ce
- * qu'il tient, ce que les routes publiques de ce module refusent déjà de dire.
+ * **404 and not 403.** Telling the two apart would tell whoever holds an
+ * address what they hold, which the public routes of this module already
+ * refuse to say.
  */
 trait SpaceOwnershipTrait
 {
     /**
-     * @param int|null $ownerId l'espace auquel appartient ce qu'on a reçu
+     * @param int|null $ownerId the space that what was received belongs to
      */
     protected function assertOwned(CustomerSpace $space, ?int $ownerId): void
     {

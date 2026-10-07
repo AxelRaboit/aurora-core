@@ -58,7 +58,7 @@ const props = defineProps({
     deleteEventPathTemplate: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 const { can } = usePrivileges();
 
 const {
@@ -80,7 +80,7 @@ const {
     cells,
     days,
     load,
-    go,
+    go: pageBy,
     goToToday,
     setView,
     toggleCalendar,
@@ -98,11 +98,11 @@ const {
  */
 const rangeLabel = computed(() => {
     if (usesMonthRange.value) {
-        return d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
+        return formatDate(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
     }
 
     if ("day" === view.value) {
-        return d(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        return formatDate(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     }
 
     const first = days.value[0];
@@ -114,15 +114,15 @@ const rangeLabel = computed(() => {
 
     const sameMonth = first.getMonth() === last.getMonth();
 
-    return `${d(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
-        + `${d(last, { day: "numeric", month: "long", year: "numeric" })}`;
+    return `${formatDate(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
+        + `${formatDate(last, { day: "numeric", month: "long", year: "numeric" })}`;
 });
 
 const viewOptions = computed(() =>
-    // La semaine est refusée sous `md`, où elle retombe sur le jour : sept
-    // colonnes ne tiennent pas dans trois cent soixante pixels. L'onglet
-    // restait allumé en montrant un seul jour ; il s'efface là et revient avec
-    // la place, le choix gardé.
+    // The week is refused below `md`, where it falls back to the day: seven
+    // columns do not fit in three hundred and sixty pixels. The tab stayed lit
+    // while showing a single day; it goes away there and comes back with the
+    // room, the choice kept.
     ["day", "week", "month", "agenda"]
         .filter((value) => !(narrow.value && "week" === value))
         .map((value) => ({
@@ -160,8 +160,8 @@ const canManageCalendars = computed(() => can("planning.calendars.manage"));
 
 /** An event needs a calendar to live in, so an empty sidebar closes this too. */
 const canCreateEvents = computed(() => can("planning.events.create") && calendars.value.length > 0);
-// Les droits d'écriture des événements et des rappels, comme le serveur les
-// exige : modifier, déplacer et cocher demandent `edit`, supprimer `delete`.
+// The write rights for events and reminders, as the server requires them:
+// editing, moving and ticking require `edit`, deleting `delete`.
 const canEditEvents = computed(() => can("planning.events.edit"));
 const canDeleteEvents = computed(() => can("planning.events.delete"));
 
@@ -225,7 +225,7 @@ const {
     canCreate: canCreateEvents,
 });
 
-/** Cocher un rappel le modifie : sans le droit, la case ne fait rien. */
+/** Ticking a reminder edits it: without the right, the checkbox does nothing. */
 function toggleReminderGuarded(reminder) {
     if (!canEditEvents.value) return;
     toggleReminderItem(reminder);
@@ -259,7 +259,7 @@ function isBusy() {
 usePlanningShortcuts({
     isBusy,
     setView,
-    go,
+    go: pageBy,
     goToToday,
     createEvent: () => create(),
     createReminder: () => createReminder(),
@@ -278,12 +278,12 @@ usePlanningShortcuts({
  */
 const PANEL_INTENTS = {
     "set-zone": (value) => setZone(value),
-    "create-event": (...a) => create(...a),
-    "create-reminder": (...a) => createReminder(...a),
-    "create-calendar": (...a) => createCalendar(...a),
-    "edit-calendar": (...a) => editCalendar(...a),
-    "share-calendar": (...a) => openShareFor(...a),
-    "toggle-calendar": (...a) => toggleCalendar(...a),
+    "create-event": (...intentArguments) => create(...intentArguments),
+    "create-reminder": (...intentArguments) => createReminder(...intentArguments),
+    "create-calendar": (...intentArguments) => createCalendar(...intentArguments),
+    "edit-calendar": (...intentArguments) => editCalendar(...intentArguments),
+    "share-calendar": (...intentArguments) => openShareFor(...intentArguments),
+    "toggle-calendar": (...intentArguments) => toggleCalendar(...intentArguments),
 };
 
 const stopListening = [];
@@ -304,7 +304,7 @@ function announce() {
 onMounted(() => {
     for (const [intent, run] of Object.entries(PANEL_INTENTS)) {
         stopListening.push(
-            onPanelRequest(`planning:${intent}`, ({ args = [] }) => run(...args)),
+            onPanelRequest(`planning:${intent}`, ({ args: intentArguments = [] }) => run(...intentArguments)),
         );
     }
 
@@ -332,8 +332,8 @@ onUnmounted(() => {
         <AppLoader :active="loading" />
 
         <div class="min-w-0 aurora-stack">
-            <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-                 replié ou déplié, le choix vaut pour tous les encarts. -->
+            <!-- The guide to the screen, next to what it explains;
+                 collapsed or expanded, the choice applies to all panels. -->
             <AppGuide :title="t('suite.plannings.guide.title')" storage-key="planning">
                 <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                     <li v-for="step in 5" :key="step">{{ t(`suite.plannings.guide.step_${step}`) }}</li>
@@ -348,10 +348,10 @@ onUnmounted(() => {
                  pixels of controls at 375 of viewport, so the label truncated to
                  nothing and the switcher wrapped under the chevrons. -->
             <div class="flex flex-wrap items-center gap-2">
-                <AppIconButton :title="t('shared.common.previous')" v-on:click="go(-1)">
+                <AppIconButton :title="t('shared.common.previous')" v-on:click="pageBy(-1)">
                     <ChevronLeft class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton :title="t('shared.common.next')" v-on:click="go(1)">
+                <AppIconButton :title="t('shared.common.next')" v-on:click="pageBy(1)">
                     <ChevronRight class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
                 <!-- Capitalised by the locale's own rules, so "août 2026" reads

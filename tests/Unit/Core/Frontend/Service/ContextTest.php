@@ -41,7 +41,7 @@ final class ContextTest extends TestCase
         return $locale;
     }
 
-    /** Un generateur dont le contexte de routage ne dit rien : DEFAULT_URI non renseigne. */
+    /** A generator whose routing context says nothing: DEFAULT_URI not set. */
     private function makeUrlGenerator(string $host = '', string $scheme = 'http', int $httpPort = 80, int $httpsPort = 443): UrlGeneratorInterface
     {
         $context = new RequestContext();
@@ -106,7 +106,7 @@ final class ContextTest extends TestCase
             $this->makeUrlGenerator(),
         );
 
-        $codes = array_map(static fn (LocaleInterface $l) => $l->getCode(), $context->activeLocales());
+        $codes = array_map(static fn (LocaleInterface $locale) => $locale->getCode(), $context->activeLocales());
         self::assertSame(['fr'], $codes);
     }
 

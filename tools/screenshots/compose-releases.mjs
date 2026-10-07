@@ -1,28 +1,27 @@
 /**
- * Les deux images de la page « Livraison et mises à jour », dessinées plutôt
- * que photographiées.
+ * The two images of the "Livraison et mises à jour" page, drawn rather than
+ * captured.
  *
- * **Elles étaient des captures de GitHub** (la liste des releases et les notes
- * de la dernière), les deux seules prises du tour qui ne venaient pas de
- * l'application. Axel n'en voulait plus : une page de GitHub en anglais, avec
- * son menu et ses boutons « Sign up », ne dit rien de ce que le client
- * reçoit.
+ * **They used to be GitHub screenshots** (the list of releases and the notes
+ * of the latest one), the only two shots of the tour that did not come from
+ * the application. Axel no longer wanted them: a GitHub page in English, with
+ * its menu and its "Sign up" buttons, says nothing about what the client
+ * receives.
  *
- * **Aucun mot dans les images**, seulement des numéros de version, des
- * chiffres et des pictogrammes : la page existe en trois langues et une image
- * ne se traduit pas. Les textes alternatifs de la page portent le sens.
+ * **No words in the images**, only version numbers, figures and pictograms:
+ * the page exists in three languages and an image cannot be translated. The
+ * page's alternative texts carry the meaning.
  *
- * **Des versions fictives, choisies pour montrer la règle.** La première
- * mouture lisait les huit dernières entrées du CHANGELOG : c'était la série
- * 0.9.x, où une fonctionnalité faisait monter le dernier chiffre comme un
- * correctif, et la page affichait le défaut qu'elle prétend éviter. La suite
- * ci-dessous suit le versionnage sémantique : un correctif seul monte le
- * troisième chiffre, un ajout ou une amélioration le deuxième, un changement
- * qui demande un geste au client le premier. Le chiffre qui monte prend la
- * couleur de ce qui l'a fait monter, et l'image n'a plus à être reprise après
- * chaque release.
+ * **Fictional versions, chosen to show the rule.** The first draft read the
+ * last eight CHANGELOG entries: that was the 0.9.x series, where a feature
+ * bumped the last digit like a fix, and the page displayed the flaw it claims
+ * to avoid. The series below follows semantic versioning: a fix alone bumps
+ * the third digit, an addition or an improvement the second, a change that
+ * asks the client to act the first. The digit that goes up takes the colour
+ * of what made it go up, and the image no longer has to be redone after every
+ * release.
  *
- * Usage :
+ * Usage:
  *   node tools/screenshots/compose-releases.mjs
  *   node tools/screenshots/push-tour.mjs tour-releases tour-release-notes
  */
@@ -40,18 +39,17 @@ const WIDTH = 1600;
 const HEIGHT = 1000;
 const TESTS = "12 000+";
 
-/** Les couleurs de la charte, dans l'ordre des métiers : dev, photo, CM. */
+/** The brand colours, in the order of the trades: dev, photo, CM. */
 const GREEN = "#34d399";
 const YELLOW = "#cd8f31";
 const RED = "#bd4a55";
 const BLUE = "#60a5fa";
 
 /**
- * La suite montrée, de la plus ancienne à la plus récente. `bump` dit quel
- * chiffre a monté, et il découle de ce que la version contient : `breaking`
- * fait une majeure, `added` ou `improved` une mineure, `fixed` seul un
- * correctif. Vérifié au lancement, pour que l'illustration ne puisse pas
- * contredire la règle qu'elle illustre.
+ * The series shown, from oldest to newest. `bump` says which digit went up,
+ * and it follows from what the version contains: `breaking` makes a major,
+ * `added` or `improved` a minor, `fixed` alone a patch. Checked at launch, so
+ * that the illustration cannot contradict the rule it illustrates.
  */
 const SERIES = [
     { version: "1.4.0", added: 2, improved: 1, fixed: 0, breaking: 0 },
@@ -64,10 +62,10 @@ const SERIES = [
     { version: "2.1.0", added: 0, improved: 2, fixed: 1, breaking: 0 },
 ];
 
-/** Le chiffre qu'une version a dû faire monter, d'après ce qu'elle contient. */
+/** The digit a version should have bumped, based on what it contains. */
 const expectedBump = (v) => (v.breaking ? 0 : v.added || v.improved ? 1 : 2);
 
-/** Le chiffre qu'elle fait monter, d'après son numéro et celui d'avant. */
+/** The digit it bumps, based on its number and the previous one. */
 function actualBump(previous, current) {
     const a = previous.split(".").map(Number);
     const b = current.split(".").map(Number);
@@ -82,7 +80,7 @@ function actualBump(previous, current) {
 
 const BUMP_COLORS = [RED, BLUE, YELLOW];
 
-/** Le numéro, chiffre monté en couleur. */
+/** The number, with the bumped digit in colour. */
 function label(v, bump) {
     const parts = v.version.split(".").map((n, i) => (i === bump ? `<b style="color:${BUMP_COLORS[i]}">${n}</b>` : n));
 
@@ -124,9 +122,9 @@ const base = `
 `;
 
 /**
- * Le logo d'Aurora, « Lever du jour » (choisi par Axel le 03/10/2026) : deux
- * arcs et un soleil au-dessus de l'horizon, vert, jaune, rouge de l'extérieur
- * vers le centre. Le logo à bandes est celui du site d'Axel, pas d'Aurora.
+ * The Aurora logo, "Lever du jour" (chosen by Axel on 03/10/2026): two arcs
+ * and a sun above the horizon, green, yellow, red from the outside towards the
+ * centre. The striped logo is the one of Axel's site, not Aurora's.
  */
 const LOGO = `<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><g transform="translate(0 -7.5)">
     <path d="M8.5,50 A23.5 23.5 0 0 1 55.5,50" fill="none" stroke="${GREEN}" stroke-width="7"/>
@@ -135,7 +133,7 @@ const LOGO = `<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><g transf
     <rect x="4" y="53" width="56" height="3" rx="1.5" fill="#ece2d0" fill-opacity=".35"/>
 </g></svg>`;
 
-/** La version part du cœur, passe ses contrôles et arrive sur chaque site. */
+/** The version leaves the core, passes its checks and reaches every site. */
 function pipeline(list) {
     const [current, ...previous] = list;
 
@@ -238,7 +236,7 @@ ${sites}
 `;
 }
 
-/** Ce que chaque version a apporté, version après version. */
+/** What each version brought, version after version. */
 function timeline(ordered) {
     const max = Math.max(...ordered.map((v) => v.breaking + v.added + v.improved + v.fixed), 1);
     const step = (WIDTH - 260) / (ordered.length - 1);
@@ -293,7 +291,7 @@ for (const [i, v] of SERIES.entries()) {
     }
 }
 
-// Le cœur et les sites montrent la plus récente, l'historique les précédentes.
+// The core and the sites show the latest one, the history the earlier ones.
 const list = [...SERIES].reverse();
 
 const work = await mkdtemp(join(tmpdir(), "aurora-releases-"));

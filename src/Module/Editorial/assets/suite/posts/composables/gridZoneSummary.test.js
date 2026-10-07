@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { plainText, zoneBadges, zoneSummary } from "./gridZoneSummary.js";
 
-const t = (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key);
+const t = (key, parameters) =>
+    parameters ? `${key}:${JSON.stringify(parameters)}` : key;
 
 describe("zoneSummary", () => {
     it("names a text zone by its first heading, whatever comes before it", () => {

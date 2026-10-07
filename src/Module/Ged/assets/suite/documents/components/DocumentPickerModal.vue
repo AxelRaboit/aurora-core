@@ -91,10 +91,10 @@ const importing = ref(false);
 const visibleItems = computed(() => {
     let list = items.value;
     if (props.mimeFilter) {
-        list = list.filter((doc) => doc.fileMime === props.mimeFilter);
+        list = list.filter((gedDocument) => gedDocument.fileMime === props.mimeFilter);
     }
     if (props.mimePrefix) {
-        list = list.filter((doc) => (doc.fileMime ?? "").startsWith(props.mimePrefix));
+        list = list.filter((gedDocument) => (gedDocument.fileMime ?? "").startsWith(props.mimePrefix));
     }
     return list;
 });
@@ -105,20 +105,20 @@ async function load() {
         // Families folded, as in the library: each visual once, its
         // alternates chosen from its card. A caller lifts it with
         // `{ originalsOnly: "" }`.
-        const params = new URLSearchParams({
+        const parameters = new URLSearchParams({
             page: String(page.value),
             status: "published",
             originalsOnly: "1",
         });
         for (const [key, value] of Object.entries(props.query)) {
-            if ("" === value || null === value) params.delete(key);
-            else params.set(key, String(value));
+            if ("" === value || null === value) parameters.delete(key);
+            else parameters.set(key, String(value));
         }
-        if (search.value) params.set("search", search.value);
-        const res = await fetch(`${props.listPath}?${params}`, {
+        if (search.value) parameters.set("search", search.value);
+        const response = await fetch(`${props.listPath}?${parameters}`, {
             headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
         });
-        const data = await res.json();
+        const data = await response.json();
         items.value = data.items ?? [];
         page.value = data.page ?? 1;
         totalPages.value = data.totalPages ?? 1;
@@ -145,11 +145,11 @@ async function loadPexels() {
 
     pexelsLoading.value = true;
     try {
-        const params = new URLSearchParams({
+        const parameters = new URLSearchParams({
             q: pexelsQuery.value,
             page: String(pexelsPage.value),
         });
-        const data = await request(`${props.pexelsSearchPath}?${params}`, null, {
+        const data = await request(`${props.pexelsSearchPath}?${parameters}`, null, {
             method: HttpMethod.Get,
             noGuard: true,
         });
@@ -168,8 +168,8 @@ function onPexelsSearch(value) {
     loadPexels();
 }
 
-function goToPexelsPage(p) {
-    pexelsPage.value = p;
+function goToPexelsPage(pageNumber) {
+    pexelsPage.value = pageNumber;
     loadPexels();
 }
 
@@ -180,15 +180,15 @@ function pickPhoto(photo) {
         return;
     }
     const list = Array.isArray(pexelsSelected.value) ? [...pexelsSelected.value] : [];
-    const idx = list.findIndex((p) => p.id === photo.id);
-    if (idx === -1) list.push(photo);
-    else list.splice(idx, 1);
+    const index = list.findIndex((chosen) => chosen.id === photo.id);
+    if (index === -1) list.push(photo);
+    else list.splice(index, 1);
     pexelsSelected.value = list;
 }
 
 function isPhotoSelected(photo) {
     if (props.multiple) {
-        return Array.isArray(pexelsSelected.value) && pexelsSelected.value.some((p) => p.id === photo.id);
+        return Array.isArray(pexelsSelected.value) && pexelsSelected.value.some((chosen) => chosen.id === photo.id);
     }
 
     return pexelsSelected.value?.id === photo.id;
@@ -252,39 +252,39 @@ function onSearch(value) {
     load();
 }
 
-function goToPage(p) {
-    page.value = p;
+function goToPage(pageNumber) {
+    page.value = pageNumber;
     load();
 }
 
 // The member each family card offers, chosen with its chips.
 const previewed = ref({});
 
-function memberOf(doc) {
-    const id = previewed.value[doc.id];
-    if (!id || id === doc.id) return doc;
+function memberOf(gedDocument) {
+    const id = previewed.value[gedDocument.id];
+    if (!id || id === gedDocument.id) return gedDocument;
 
-    return doc.alternates?.find((member) => member.id === id) ?? doc;
+    return gedDocument.alternates?.find((member) => member.id === id) ?? gedDocument;
 }
 
-function pickMember(doc, id) {
-    previewed.value = { ...previewed.value, [doc.id]: id };
-    pick(memberOf(doc));
+function pickMember(gedDocument, id) {
+    previewed.value = { ...previewed.value, [gedDocument.id]: id };
+    pick(memberOf(gedDocument));
 }
 
-function isFamilySelected(doc) {
-    return isSelected(doc) || (doc.alternates ?? []).some((member) => isSelected(member));
+function isFamilySelected(gedDocument) {
+    return isSelected(gedDocument) || (gedDocument.alternates ?? []).some((member) => isSelected(member));
 }
 
-function pick(doc) {
+function pick(gedDocument) {
     if (!props.multiple) {
-        selected.value = doc;
+        selected.value = gedDocument;
         return;
     }
     const list = Array.isArray(selected.value) ? [...selected.value] : [];
-    const idx = list.findIndex((d) => d.id === doc.id);
-    if (idx === -1) list.push(doc);
-    else list.splice(idx, 1);
+    const index = list.findIndex((chosen) => chosen.id === gedDocument.id);
+    if (index === -1) list.push(gedDocument);
+    else list.splice(index, 1);
     selected.value = list;
 }
 
@@ -315,11 +315,11 @@ const confirmDisabled = computed(() => {
     return props.multiple ? !(Array.isArray(selected.value) && selected.value.length > 0) : !selected.value;
 });
 
-function isSelected(doc) {
+function isSelected(gedDocument) {
     if (props.multiple) {
-        return Array.isArray(selected.value) && selected.value.some((d) => d.id === doc.id);
+        return Array.isArray(selected.value) && selected.value.some((chosen) => chosen.id === gedDocument.id);
     }
-    return selected.value?.id === doc.id;
+    return selected.value?.id === gedDocument.id;
 }
 </script>
 
@@ -411,60 +411,60 @@ function isSelected(doc) {
                 <div class="relative min-h-64">
                     <ul v-if="visibleItems.length > 0" class="space-y-1.5">
                         <li
-                            v-for="doc in visibleItems"
-                            :key="doc.id"
+                            v-for="gedDocument in visibleItems"
+                            :key="gedDocument.id"
                             :class="[
                                 'flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors',
-                                isFamilySelected(doc)
+                                isFamilySelected(gedDocument)
                                     ? 'border-accent bg-accent-500/10'
                                     : 'border-line bg-surface-2 hover:border-accent-500/40 hover:bg-surface-2/60',
                             ]"
-                            v-on:click="pick(memberOf(doc))"
+                            v-on:click="pick(memberOf(gedDocument))"
                         >
-                            <!-- Un aperçu plutôt qu'une icône : choisir une image
-                                 sur son seul nom de fichier obligeait à la
-                                 retrouver ailleurs. La petite taille générée
-                                 d'abord, plus légère que le fichier entier. -->
+                            <!-- A preview rather than an icon: picking an image
+                                 from its file name alone meant finding it
+                                 somewhere else. The small generated size
+                                 first, lighter than the whole file. -->
                             <AppThumbnail
-                                :src="memberOf(doc).renditions?.thumbnail ?? memberOf(doc).thumbnailUrl ?? null"
-                                :alt="memberOf(doc).alt ?? memberOf(doc).title ?? ''"
+                                :src="memberOf(gedDocument).renditions?.thumbnail ?? memberOf(gedDocument).thumbnailUrl ?? null"
+                                :alt="memberOf(gedDocument).alt ?? memberOf(gedDocument).title ?? ''"
                                 size="md"
                             >
                                 <span class="flex h-full w-full items-center justify-center">
                                     <FileText
                                         class="w-5 h-5"
-                                        :class="'application/pdf' === doc.fileMime ? 'text-rose-400' : 'text-secondary'"
+                                        :class="'application/pdf' === gedDocument.fileMime ? 'text-rose-400' : 'text-secondary'"
                                         :stroke-width="1.5"
                                     />
                                 </span>
                             </AppThumbnail>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="font-medium text-primary truncate">{{ doc.title }}</span>
-                                    <AppBadge v-if="doc.categoryName" color="sky">{{ doc.categoryName }}</AppBadge>
-                                    <AppBadge v-if="doc.folderName" color="slate">
-                                        <Folder class="w-3 h-3" :stroke-width="2" /> {{ doc.folderName }}
+                                    <span class="font-medium text-primary truncate">{{ gedDocument.title }}</span>
+                                    <AppBadge v-if="gedDocument.categoryName" color="sky">{{ gedDocument.categoryName }}</AppBadge>
+                                    <AppBadge v-if="gedDocument.folderName" color="slate">
+                                        <Folder class="w-3 h-3" :stroke-width="2" /> {{ gedDocument.folderName }}
                                     </AppBadge>
                                 </div>
-                                <p v-if="doc.description" class="text-xs text-secondary line-clamp-1 mt-0.5">{{ doc.description }}</p>
+                                <p v-if="gedDocument.description" class="text-xs text-secondary line-clamp-1 mt-0.5">{{ gedDocument.description }}</p>
                                 <DocumentFamilyChips
-                                    v-if="familyMembers(doc).length"
+                                    v-if="familyMembers(gedDocument).length"
                                     class="mt-1"
-                                    :model-value="previewed[doc.id] ?? doc.id"
-                                    :members="familyMembers(doc)"
-                                    v-on:choose="(id) => pickMember(doc, id)"
+                                    :model-value="previewed[gedDocument.id] ?? gedDocument.id"
+                                    :members="familyMembers(gedDocument)"
+                                    v-on:choose="(id) => pickMember(gedDocument, id)"
                                 />
                                 <!-- The stored name is 32 random characters with no
                                      space to break at: on a phone it ran out of
                                      the card and pushed the list sideways. It
                                      is cut short; the size and type stay whole. -->
                                 <p class="flex min-w-0 text-xs text-muted mt-0.5">
-                                    <span class="truncate">{{ doc.fileName }}</span>
-                                    <span v-if="doc.fileSize" class="shrink-0 whitespace-nowrap">&nbsp;· {{ formatSize(doc.fileSize) }}</span>
-                                    <span v-if="doc.fileMime" class="shrink-0 whitespace-nowrap max-sm:hidden">&nbsp;· {{ doc.fileMime }}</span>
+                                    <span class="truncate">{{ gedDocument.fileName }}</span>
+                                    <span v-if="gedDocument.fileSize" class="shrink-0 whitespace-nowrap">&nbsp;· {{ formatSize(gedDocument.fileSize) }}</span>
+                                    <span v-if="gedDocument.fileMime" class="shrink-0 whitespace-nowrap max-sm:hidden">&nbsp;· {{ gedDocument.fileMime }}</span>
                                 </p>
                             </div>
-                            <Check v-if="isFamilySelected(doc)" class="w-5 h-5 text-accent shrink-0" :stroke-width="2.5" />
+                            <Check v-if="isFamilySelected(gedDocument)" class="w-5 h-5 text-accent shrink-0" :stroke-width="2.5" />
                         </li>
                     </ul>
                     <AppNoData v-else-if="!loading" :message="t('suite.ged.documents.picker_empty')" />

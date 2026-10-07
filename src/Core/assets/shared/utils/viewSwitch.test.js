@@ -2,18 +2,18 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { currentSection, revealSection, switchHref } from "./viewSwitch.js";
 
 /**
- * Passer d'une vue à l'autre d'un livrable sans perdre sa place : les deux
- * vues partagent `#diapo-N`.
+ * Switching from one view of a deliverable to the other without losing your
+ * place: the two views share `#diapo-N`.
  */
 function sections(tops) {
     document.body.innerHTML = tops
-        .map((_, i) => `<div data-section="${i + 1}"></div>`)
+        .map((_, index) => `<div data-section="${index + 1}"></div>`)
         .join("");
-    document.querySelectorAll("[data-section]").forEach((element, i) => {
+    document.querySelectorAll("[data-section]").forEach((element, index) => {
         element.getBoundingClientRect = () =>
-            null === tops[i]
+            null === tops[index]
                 ? { top: 0, width: 0, height: 0 }
-                : { top: tops[i], width: 300, height: 200 };
+                : { top: tops[index], width: 300, height: 200 };
     });
 }
 

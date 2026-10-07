@@ -62,12 +62,12 @@ export function useNoteImageResize({
                       width: targetWidth,
                       height: targetHeight,
                   });
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
+        const context = canvas.getContext("2d");
+        if (!context) {
             bitmap.close?.();
             return file;
         }
-        ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+        context.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
         bitmap.close?.();
 
         try {

@@ -143,33 +143,32 @@
 .prose :is(h2, h3, h4) {
     margin-bottom: 0.5em;
     /*
-     * Ou s'arrete un saut d'ancre.
+     * Where an anchor jump stops.
      *
-     * Un sommaire pointe sur `#un-titre`, et le navigateur amene ce titre tout
-     * en haut de la fenetre, c'est-a-dire derriere l'en-tete colle : on
-     * atterrissait sur le deuxieme paragraphe, sans avoir vu le titre qu'on
-     * venait de demander. Vrai des deux cotes, l'administration comme le site
-     * public, qui ont chacun leur barre.
+     * A table of contents points at `#a-heading`, and the browser brings that
+     * heading to the very top of the window, that is, behind the sticky
+     * header: one landed on the second paragraph, without having seen the
+     * heading just asked for. True on both sides, the admin as well as the
+     * public site, which each have their own bar.
      *
-     * `scroll-margin-top` deplace la ligne d'arrivee, pas l'element : la mise
-     * en page ne bouge pas, seul le saut s'arrete plus bas. Chaque cote
-     * declare la hauteur de sa propre barre dans `--aurora-topbar`.
+     * `scroll-margin-top` moves the arrival line, not the element: the layout
+     * does not move, only the jump stops lower. Each side declares the height
+     * of its own bar in `--aurora-topbar`.
      */
     scroll-margin-top: calc(var(--aurora-topbar) + 1rem);
 }
 
 /*
- * Rangee de liens sociaux, ecrite depuis un bloc HTML de l'editeur.
+ * A row of social links, written from an HTML block in the editor.
  *
- * Le nettoyeur de contenu laisse passer `class` et `style` mais supprime
- * `<style>` - ce qui condamnait ces cartes aux styles en ligne, donc a
- * n'avoir aucun etat au survol. Tout ce qui suit existe pour que le bloc
- * n'ait plus qu'a nommer ses classes : la couleur de chaque reseau, son
- * icone et le comportement vivent ici.
+ * The content sanitizer lets `class` and `style` through but strips
+ * `<style>` - which condemned these cards to inline styles, and so to having
+ * no hover state. Everything below exists so that the block only has to name
+ * its classes: each network's colour, its icon and the behaviour live here.
  *
- * Les icones sont des masques plutot que des images : un masque prend la
- * couleur du texte, donc la meme icone sert sur le fond sombre comme sur
- * l'etat survole sans avoir deux fichiers.
+ * The icons are masks rather than images: a mask takes the text colour, so
+ * the same icon works on the dark background as well as on the hovered state
+ * without two files.
  */
 .aurora-social-grid {
     display: grid;
@@ -179,7 +178,7 @@
 }
 
 .aurora-social-link {
-    /* Repli sur l'accent : un reseau sans classe de marque reste lisible. */
+    /* Falls back on the accent: a network without a brand class stays readable. */
     --brand: var(--color-accent-500);
 
     display: flex;
@@ -191,9 +190,9 @@
     border-radius: 14px;
     background: var(--th-surface);
     color: var(--th-primary);
-    /* Un libelle de reseau est une etiquette, pas un titre : plus petit et
-       moins gras que le corps de texte, pour que la rangee se lise d'un coup
-       d'oeil sans tirer l'oeil hors de la page. */
+    /* A network's label is a tag, not a heading: smaller and lighter than the
+       body text, so the row reads at a glance without pulling the eye off
+       the page. */
     font-size: 0.8125rem;
     font-weight: 500;
     text-decoration: none;
@@ -221,7 +220,7 @@
         color 0.2s ease;
 }
 
-/* Le carre porte la teinte, le masque a l'interieur porte le dessin. */
+/* The square carries the tint, the mask inside it carries the drawing. */
 .aurora-social-link__icon::before {
     content: "";
     margin: auto;
@@ -248,7 +247,7 @@
 
 
 
-/* Une marque par reseau : sa couleur et son icone. */
+/* One brand per network: its colour and its icon. */
 
 .aurora-social-link--linkedin {
     --brand: #0a66c2;
@@ -286,13 +285,13 @@
 }
 
 /*
- * Couleurs des jetons d'une zone Code sur le site public.
+ * Token colours of a Code zone on the public site.
  *
- * Les memes teintes que l'apercu Markdown du back-office, qui les porte sous
- * `.note-preview` : deux publics, un vocabulaire. Elles ne s'appliquent
- * qu'une fois highlight.js passe - avant, et sans JavaScript du tout, le
- * bloc reste un `<pre>` lisible en une seule couleur, ce qui est le
- * comportement voulu et non un repli honteux.
+ * The same tints as the back office's Markdown preview, which carries them
+ * under `.note-preview`: two audiences, one vocabulary. They only apply once
+ * highlight.js has run - before that, and with no JavaScript at all, the
+ * block stays a `<pre>` readable in a single colour, which is the intended
+ * behaviour and not a shameful fallback.
  */
 pre code.hljs {
     color: var(--th-primary);
@@ -343,13 +342,13 @@ pre .hljs-attribute {
 
 
 /*
- * Le manuel du produit, rendu depuis les fichiers Markdown livrés avec lui.
+ * The product manual, rendered from the Markdown files shipped with it.
  *
- * Une capture d'écran de mille six cents pixels posée nue dans un texte se
- * lit comme un trou : le cadre et le fond disent que c'est une image de
- * l'application et non la suite de la page. Le titre numéroté de chaque
- * étape est détaché de ce qui précède, parce qu'une page de documentation
- * se parcourt en sautant d'une étape à l'autre avant de se lire.
+ * A sixteen-hundred-pixel screenshot set bare in a text reads as a hole: the
+ * frame and the background say it is a picture of the application and not
+ * the rest of the page. Each step's numbered heading is set apart from what
+ * precedes it, because a documentation page is skimmed from one step to the
+ * next before it is read.
  */
 .doc-prose figure {
     margin: 1.75em 0;
@@ -371,7 +370,7 @@ pre .hljs-attribute {
     font-size: 1.15em;
 }
 
-/* Le premier titre ouvre la page : rien au-dessus dont il faille le séparer. */
+/* The first heading opens the page: nothing above it to separate it from. */
 .doc-prose > h2:first-child {
     margin-top: 0;
     padding-top: 0;
@@ -389,18 +388,18 @@ pre .hljs-attribute {
     font-weight: 400;
 }
 
-/* Typography colle des guillemets autour du code en ligne. */
+/* Typography sticks quotes around inline code. */
 .doc-prose code::before,
 .doc-prose code::after {
     content: none;
 }
 
 /*
- * La capture, devenue bouton.
+ * The screenshot, turned into a button.
  *
- * Le cadre et le fond restent ceux de l'image ; ce qui s'ajoute est le
- * curseur et la teinte au survol, pour que le lecteur sache qu'il peut
- * l'ouvrir avant d'avoir essayé.
+ * The frame and the background stay the image's; what is added is the cursor
+ * and the tint on hover, so the reader knows they can open it before having
+ * tried.
  */
 .doc-prose .doc-figure {
     display: block;
@@ -621,7 +620,7 @@ pre .hljs-attribute {
     background: transparent;
     color: var(--th-primary, inherit);
     cursor: pointer;
-    /* Une ancre aussi (« Lire en page web ») : sans soulignement, comme les boutons. */
+    /* An anchor too ("Lire en page web"): no underline, like the buttons. */
     text-decoration: none;
 }
 .aurora-slides__button:hover { background: var(--th-surface-2, rgb(243 244 246)); }

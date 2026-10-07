@@ -8,10 +8,10 @@ use Aurora\Module\Configuration\Setting\Configuration\ConfigurationTab;
 use Aurora\Module\Configuration\Setting\Configuration\ConfigurationTabProviderInterface;
 
 /**
- * Pose l'onglet « GitHub » sur l'écran des réglages.
+ * Puts the "GitHub" tab on the settings screen.
  *
- * Aucun champ déclaré : l'onglet se dessine lui-même, pour vérifier chaque
- * identifiant avant de l'enregistrer.
+ * No declared field: the tab draws itself, to check each identifier before
+ * saving it.
  */
 final readonly class GitHubConfigurationTabProvider implements ConfigurationTabProviderInterface
 {

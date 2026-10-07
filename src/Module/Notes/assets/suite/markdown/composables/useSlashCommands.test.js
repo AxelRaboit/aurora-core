@@ -65,7 +65,7 @@ describe("useSlashCommands", () => {
         } catch {
             /* ignore */
         }
-        const ids = slash.filteredCommands.value.map((c) => c.id);
+        const ids = slash.filteredCommands.value.map((command) => command.id);
         expect(ids).toContain("h1");
         expect(ids).toContain("h2");
         expect(ids).not.toContain("table");
@@ -99,8 +99,8 @@ describe("useSlashCommands", () => {
         } catch {
             /* ignore */
         }
-        const evt = { key: "ArrowDown", preventDefault: () => {} };
-        slash.onKeydown(evt);
+        const keydownEvent = { key: "ArrowDown", preventDefault: () => {} };
+        slash.onKeydown(keydownEvent);
         expect(slash.slashIndex.value).toBe(1);
         slash.onKeydown({ key: "ArrowUp", preventDefault: () => {} });
         expect(slash.slashIndex.value).toBe(0);
@@ -138,7 +138,9 @@ describe("useSlashCommands", () => {
         } catch {
             /* ignore */
         }
-        const command = slash.filteredCommands.value.find((c) => c.id === "h1");
+        const command = slash.filteredCommands.value.find(
+            (candidate) => candidate.id === "h1",
+        );
         const textarea = { value: "foo\n/h1", selectionStart: 7 };
         const { newContent, newCaret } = slash.applyCommand(
             textarea,
@@ -157,7 +159,7 @@ describe("useSlashCommands", () => {
             /* ignore */
         }
         expect(slash.showSlash.value).toBe(true);
-        const ids = slash.filteredCommands.value.map((c) => c.id);
+        const ids = slash.filteredCommands.value.map((command) => command.id);
         expect(ids).toContain("h1");
     });
 
@@ -196,7 +198,9 @@ describe("useSlashCommands", () => {
         } catch {
             /* ignore */
         }
-        const command = slash.filteredCommands.value.find((c) => c.id === "h1");
+        const command = slash.filteredCommands.value.find(
+            (candidate) => candidate.id === "h1",
+        );
         const textarea = { value: content, selectionStart: content.length };
         const { newContent, newCaret } = slash.applyCommand(
             textarea,
@@ -215,7 +219,7 @@ describe("useSlashCommands", () => {
             /* ignore */
         }
         const command = slash.filteredCommands.value.find(
-            (c) => c.id === "bold",
+            (candidate) => candidate.id === "bold",
         );
         const textarea = { value: "/bold", selectionStart: 5 };
         const { newContent, newCaret } = slash.applyCommand(
@@ -231,9 +235,9 @@ describe("useSlashCommands", () => {
 describe("the table command", () => {
     function open(text) {
         const slash = useSlashCommands({
-            t: (key, params) =>
+            t: (key, parameters) =>
                 key === "notes.markdown.slash.table_column"
-                    ? `Column ${params.n}`
+                    ? `Column ${parameters.n}`
                     : makeT()(key),
         });
         try {
@@ -246,7 +250,7 @@ describe("the table command", () => {
 
     function apply(slash, text) {
         const command = slash.filteredCommands.value.find(
-            (c) => c.id === "table",
+            (candidate) => candidate.id === "table",
         );
         return slash.applyCommand(
             { value: text, selectionStart: text.length },
@@ -281,9 +285,9 @@ describe("the table command", () => {
     it("stays open while a size is typed, and only offers the table", () => {
         const slash = open("/tab 3x4");
         expect(slash.showSlash.value).toBe(true);
-        expect(slash.filteredCommands.value.map((c) => c.id)).toEqual([
-            "table",
-        ]);
+        expect(
+            slash.filteredCommands.value.map((command) => command.id),
+        ).toEqual(["table"]);
         expect(slash.filteredCommands.value[0].label).toBe("Table 3 × 4");
     });
 
@@ -307,7 +311,10 @@ describe("the table command", () => {
     });
 
     it("builds the table text on its own", () => {
-        const table = buildTable({ cols: 1, rows: 1 }, (n) => `C${n}`);
+        const table = buildTable(
+            { cols: 1, rows: 1 },
+            (columnNumber) => `C${columnNumber}`,
+        );
         expect(table.text).toBe("| C1 |\n| --- |\n|  |\n");
         expect([table.selectStart, table.selectEnd]).toEqual([2, 4]);
     });

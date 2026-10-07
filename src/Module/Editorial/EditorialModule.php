@@ -189,7 +189,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     labelKey: 'suite.nav.taxonomies',
                     icon: 'tags',
                     requiredPrivilege: 'editorial.taxonomies.view',
-                    routeParams: ['id' => $taxonomy->getId()],
+                    routeParameters: ['id' => $taxonomy->getId()],
                     key: sprintf('editorial.taxonomy.%d', $taxonomy->getId()),
                     label: $this->taxonomyLabel($taxonomy),
                     description: $this->taxonomyDescription($taxonomy),
@@ -210,7 +210,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     labelKey: 'suite.nav.menus',
                     icon: 'menu',
                     requiredPrivilege: 'editorial.menus.view',
-                    routeParams: ['id' => $menu->getId()],
+                    routeParameters: ['id' => $menu->getId()],
                     key: sprintf('editorial.menu.%d', $menu->getId()),
                     label: $menu->getName(),
                     description: $menu->getDescription() ?? '',
@@ -233,7 +233,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     labelKey: 'suite.nav.post_types',
                     icon: 'layout-template',
                     requiredPrivilege: 'editorial.post_types.view',
-                    routeParams: ['id' => $postType->getId()],
+                    routeParameters: ['id' => $postType->getId()],
                     // Every entry shares one route name, so the route name
                     // cannot identify them: without a key of its own, hiding
                     // one post type from the menu would hide all of them, and
@@ -271,10 +271,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             $items[] = $this->commentsNavItem();
         }
 
-        // Une seule entrée, et la liste derrière elle. Un formulaire par ligne
-        // de menu poussait le menu à chaque création, et rien n'y disait ce
-        // qu'un formulaire reçoit ni s'il est en ligne : c'est le travail d'une
-        // liste, qui a des colonnes pour ça.
+        // A single entry, and the list behind it. One form per menu line grew
+        // the menu with every creation, and nothing there said what a form
+        // receives or whether it is live: that is the job of a list, which has
+        // columns for it.
         if ($this->editorialContext->isFormsEnabled()) {
             $items[] = $this->formsNavItem();
         }

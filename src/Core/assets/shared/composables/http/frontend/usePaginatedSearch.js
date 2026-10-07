@@ -30,12 +30,12 @@ export function usePaginatedSearch({
 
     const { loading, request } = useRequest();
 
-    async function fetchPage(q, p) {
-        const params = new URLSearchParams({ page: p });
-        if (q.trim()) params.set("q", q.trim());
+    async function fetchPage(searchTerm, pageNumber) {
+        const searchParameters = new URLSearchParams({ page: pageNumber });
+        if (searchTerm.trim()) searchParameters.set("q", searchTerm.trim());
 
         const data = await request(
-            `${searchPath}?${params}`,
+            `${searchPath}?${searchParameters}`,
             null,
             HttpMethod.Get,
         );
@@ -47,16 +47,19 @@ export function usePaginatedSearch({
         total.value = data.total;
     }
 
-    const debouncedSearch = useDebounce((q) => fetchPage(q, 1), 300);
+    const debouncedSearch = useDebounce(
+        (searchTerm) => fetchPage(searchTerm, 1),
+        300,
+    );
 
-    function onSearch(q) {
-        query.value = q;
-        debouncedSearch(q);
+    function onSearch(searchTerm) {
+        query.value = searchTerm;
+        debouncedSearch(searchTerm);
     }
 
-    function goToPage(p) {
-        page.value = p;
-        fetchPage(query.value, p);
+    function goToPage(pageNumber) {
+        page.value = pageNumber;
+        fetchPage(query.value, pageNumber);
     }
 
     return {

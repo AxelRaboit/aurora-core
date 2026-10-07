@@ -28,21 +28,22 @@ use function str_replace;
 use function usort;
 
 /**
- * La grille de contributions d'un compte GitHub, sur les douze derniers mois.
+ * The contribution grid of a GitHub account, over the last twelve months.
  *
- * **Lue sur la page publique du profil**, `/users/{login}/contributions` : le
- * fragment que GitHub affiche lui-même, sans clé ni compte. Ce n'est pas une
- * API documentée, son format peut changer sans prévenir. D'où les deux
- * filets : une grille qui ne se lit plus rend `null`, et la dernière grille
- * lue reste servie trente jours plutôt que de laisser un trou dans la page.
+ * **Read on the public page of the profile**, `/users/{login}/contributions`:
+ * the fragment GitHub displays itself, without a key or an account. It is
+ * not a documented API, its format can change without warning. Hence the
+ * two safety nets: a grid that no longer parses returns `null`, and the last
+ * grid read keeps being served for thirty days rather than leaving a hole in
+ * the page.
  *
- * **Le compte exact d'un jour n'est pas sur la case**, qui ne porte qu'une
- * intensité de 0 à 4 : il est dans l'infobulle associée, « 20 contributions
- * on April 5th. ».
+ * **The exact count of a day is not on the cell**, which only carries an
+ * intensity from 0 to 4: it is in the associated tooltip, "20 contributions
+ * on April 5th.".
  *
- * Rien ne se demande à GitHub plus d'une fois toutes les six heures par compte,
- * et une panne n'est pas redemandée à chaque visite : une page publique ne
- * doit pas attendre GitHub à chaque affichage parce que GitHub ne répond pas.
+ * Nothing is asked of GitHub more than once every six hours per account,
+ * and an outage is not asked again on every visit: a public page must not
+ * wait for GitHub on every display because GitHub does not answer.
  */
 final readonly class GitHubContributions
 {
@@ -52,10 +53,10 @@ final readonly class GitHubContributions
 
     private const int TTL_SECONDS = 21_600;
 
-    /** Le délai avant de réessayer un compte qui n'a pas répondu. */
+    /** The delay before retrying an account that did not answer. */
     private const int RETRY_SECONDS = 600;
 
-    /** Combien de temps une ancienne grille remplace une grille illisible. */
+    /** How long an old grid replaces an unreadable grid. */
     private const int STALE_SECONDS = 2_592_000;
 
     private const int TIMEOUT_SECONDS = 5;
@@ -193,7 +194,7 @@ final readonly class GitHubContributions
             return null;
         }
 
-        usort($days, static fn (array $a, array $b): int => [$a['col'], $a['row']] <=> [$b['col'], $b['row']]);
+        usort($days, static fn (array $left, array $right): int => [$left['col'], $left['row']] <=> [$right['col'], $right['row']]);
 
         return [
             'total' => array_sum(array_column($days, 'count')),

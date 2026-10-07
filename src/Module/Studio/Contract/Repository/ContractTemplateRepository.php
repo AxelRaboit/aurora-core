@@ -90,14 +90,14 @@ class ContractTemplateRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les trames dont le nom contient le terme, avec leurs versions.
+     * The templates whose name contains the term, with their versions.
      *
-     * En deux temps : la limite s'applique aux trames, et une jointure sur une
-     * collection la ferait porter sur les lignes (une trame à trois versions
-     * en compterait trois). Les versions viennent ensuite en une requête,
-     * parce que la ligne de résultat ouvre la version en vigueur ou le
-     * brouillon, et les chercher trame par trame coûterait une requête
-     * chacune. Les archivées passent après les autres.
+     * In two steps: the limit applies to the templates, and a join on a
+     * collection would make it apply to the rows (a template with three
+     * versions would count as three). The versions then come in one query,
+     * because the result row opens the current version or the draft, and
+     * fetching them template by template would cost one query each. Archived
+     * ones come after the others.
      *
      * @return list<ContractTemplateInterface>
      */
@@ -135,7 +135,7 @@ class ContractTemplateRepository extends ResolveTargetEntityRepository
         $position = array_flip(array_map(intval(...), $ids));
         usort(
             $templates,
-            static fn (ContractTemplateInterface $a, ContractTemplateInterface $b): int => $position[(int) $a->getId()] <=> $position[(int) $b->getId()],
+            static fn (ContractTemplateInterface $left, ContractTemplateInterface $right): int => $position[(int) $left->getId()] <=> $position[(int) $right->getId()],
         );
 
         return $templates;

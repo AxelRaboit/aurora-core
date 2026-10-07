@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceContent\Scheduler;
 use Aurora\Core\Scheduler\RecurringMessageProviderInterface;
 use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Studio\SpaceContent\Message\NotifyLateReviewsMessage;
+use Aurora\Module\Studio\SpaceContent\Message\PurgeTrashedSpaceContentsMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
 
 /**
@@ -14,6 +15,9 @@ use Symfony\Component\Scheduler\RecurringMessage;
  *
  * At the site's time (Settings > Localisation): 09:30, where "07:30" read in
  * UTC used to give 09:30 in a Paris summer and 08:30 in its winter.
+ *
+ * And the nightly purge of the contents' trash, at the hour every other trash
+ * empties.
  */
 final readonly class SpaceContentRecurringMessageProvider implements RecurringMessageProviderInterface
 {
@@ -24,5 +28,6 @@ final readonly class SpaceContentRecurringMessageProvider implements RecurringMe
     public function getRecurringMessages(): iterable
     {
         yield RecurringMessage::cron('30 9 * * *', new NotifyLateReviewsMessage(), $this->siteTimezone->get());
+        yield RecurringMessage::cron('0 3 * * *', new PurgeTrashedSpaceContentsMessage());
     }
 }

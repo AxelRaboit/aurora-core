@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
-// `usePrivileges` lit `window.__isAdmin__` **au chargement du module**, pas au
-// montage : posé plus bas, le drapeau arriverait après le composant qui s'en
-// sert, l'écran se croirait en lecture seule et les boutons n'existeraient
-// pas - un test qui passerait sans rien éprouver.
+// `usePrivileges` reads `window.__isAdmin__` **when the module loads**, not
+// on mount: set further down, the flag would arrive after the component that
+// uses it, the screen would think it is read-only and the buttons would not
+// exist - a test that would pass without testing anything.
 vi.hoisted(() => {
     window.__isAdmin__ = true;
 });
@@ -14,16 +14,16 @@ import SpaceResourcesView from "./SpaceResourcesView.vue";
 const i18n = createTestI18n();
 
 /**
- * Les ressources d'un espace, vues du studio.
+ * The resources of a space, seen from the studio.
  *
- * **Ce qui est cassable en silence ici est la séparation des deux listes.**
- * L'écran range au même endroit ce qui se partage et ce qui ne se partage pas ;
- * un élément fermé qui passerait du mauvais côté aurait l'air de marcher, et
- * ne se verrait qu'en comparant avec la page du client.
+ * **What can break silently here is the separation of the two lists.** The
+ * screen files what is shared and what is not in the same place; a closed
+ * item that ended up on the wrong side would look like it works, and would
+ * only show when compared with the client's page.
  *
- * Le serveur a ses propres tests pour la garantie elle-même : un élément fermé
- * ne sort pas du serveur. Ceci vérifie ce que le studio lit, qui est l'autre
- * moitié - il doit pouvoir savoir d'un coup d'œil ce qu'il a publié.
+ * The server has its own tests for the guarantee itself: a closed item does
+ * not leave the server. This checks what the studio reads, which is the
+ * other half - it must be able to tell at a glance what it has published.
  */
 const PATHS = {
     resourceCreatePath: "/workspace/1/resources/create",
@@ -77,12 +77,14 @@ describe("SpaceResourcesView", () => {
         const wrapper = monter({ resources: [OUVERT, FERME] });
         await flushPromises();
 
-        const titres = wrapper.findAll("section h3").map((h) => h.text());
+        const titres = wrapper
+            .findAll("section h3")
+            .map((heading) => heading.text());
         expect(titres).toHaveLength(2);
         expect(titres[0]).toContain("group_shown");
         expect(titres[1]).toContain("group_hidden");
 
-        // Chacun sous son titre, et non mélangés avec une pastille à repérer.
+        // Each under its own heading, and not mixed with a badge to spot.
         const sections = wrapper.findAll("section");
         expect(sections[0].text()).toContain("Maquette Canva");
         expect(sections[0].text()).not.toContain("Facturation");
@@ -103,9 +105,9 @@ describe("SpaceResourcesView", () => {
 
         const sections = wrapper.findAll("section");
 
-        // Une ligne ouverte propose de la retirer, une ligne fermée de la
-        // montrer. Un libellé unique aurait obligé à lire l'icône pour savoir
-        // dans quel sens on va, sur le seul geste de l'écran qui publie.
+        // An open row offers to withdraw it, a closed row to show it. A single
+        // label would have forced reading the icon to know which way it goes, on
+        // the only gesture of the screen that publishes.
         expect(sections[0].text()).toContain("space_resources.hide");
         expect(sections[1].text()).toContain("space_resources.show");
     });
@@ -114,9 +116,11 @@ describe("SpaceResourcesView", () => {
         const wrapper = monter({ resources: [FERME] });
         await flushPromises();
 
-        // Un titre « ce que le client voit » au-dessus d'une liste vide
-        // annoncerait une publication qui n'a pas eu lieu.
-        const titres = wrapper.findAll("section h3").map((h) => h.text());
+        // A "what the client sees" heading above an empty list would announce a
+        // publication that did not happen.
+        const titres = wrapper
+            .findAll("section h3")
+            .map((heading) => heading.text());
         expect(titres).toHaveLength(1);
         expect(titres[0]).toContain("group_hidden");
     });

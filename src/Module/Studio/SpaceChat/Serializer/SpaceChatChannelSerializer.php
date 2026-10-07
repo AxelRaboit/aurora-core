@@ -61,9 +61,10 @@ class SpaceChatChannelSerializer implements SpaceChatChannelSerializerInterface
             return $view;
         }
 
-        // Le nom de l'autre, jamais le sien. Une conversation privée s'appelle
-        // « Marie Dupont » pour le client et du nom du client pour Marie : une
-        // liste où chacun se voit soi-même n'aide personne à retrouver un fil.
+        // The other person's name, never one's own. A private conversation is
+        // called "Marie Dupont" for the client and by the client's name for
+        // Marie: a list where everyone sees themselves helps nobody find a
+        // thread again.
         foreach ($channel->getMembers() as $member) {
             $isViewer = ($viewerUser instanceof CoreUserInterface && $member->getUser()?->getId() === $viewerUser->getId())
                 || ($viewerLink instanceof SpaceAccessLinkInterface && $member->getLink()?->getId() === $viewerLink->getId());

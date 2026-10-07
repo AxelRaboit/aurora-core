@@ -27,7 +27,7 @@ const props = defineProps({
     initialData: { type: Object, default: null },
 });
 
-const mp = useMountPoints(
+const mountPointsState = useMountPoints(
     props.mountPointsPath,
     props.mountPointCreatePath,
     props.mountPointUpdatePath,
@@ -37,7 +37,7 @@ const mp = useMountPoints(
 );
 
 onMounted(() => {
-    if (!mp.mountPoints.value.length) mp.load();
+    if (!mountPointsState.mountPoints.value.length) mountPointsState.load();
 });
 
 
@@ -54,22 +54,22 @@ function actionsFor(mountPoint) {
             key: "test",
             icon: Wifi,
             title: t("suite.mount_points.test"),
-            disabled: mp.testModal.value.testing,
-            onSelect: () => mp.openTestModal(mountPoint),
+            disabled: mountPointsState.testModal.value.testing,
+            onSelect: () => mountPointsState.openTestModal(mountPoint),
         },
         {
             key: "edit",
             color: "accent",
             icon: Pencil,
             title: t("shared.common.edit"),
-            onSelect: () => mp.openEdit(mountPoint),
+            onSelect: () => mountPointsState.openEdit(mountPoint),
         },
         {
             key: "delete",
             color: "rose",
             icon: Trash2,
             title: t("shared.common.delete"),
-            onSelect: () => mp.confirmDelete(mountPoint),
+            onSelect: () => mountPointsState.confirmDelete(mountPoint),
         },
     ];
 }
@@ -83,7 +83,7 @@ const pageActions = computed(() => {
             color: "accent",
             icon: Plus,
             title: t("suite.mount_points.add"),
-            onSelect: mp.openCreate,
+            onSelect: mountPointsState.openCreate,
         },
     ];
 });
@@ -95,7 +95,7 @@ const pageActions = computed(() => {
 
         <div class="flex items-center gap-2">
             <AppSearchInput
-                v-model="mp.searchInput.value"
+                v-model="mountPointsState.searchInput.value"
                 class="flex-1"
                 :placeholder="t('suite.mount_points.search_placeholder')"
             />
@@ -103,7 +103,7 @@ const pageActions = computed(() => {
         </div>
 
         <div class="aurora-card overflow-x-auto scrollbar-thin">
-            <p v-if="!mp.filteredMountPoints.value.length" class="py-8 text-center text-sm text-muted">
+            <p v-if="!mountPointsState.filteredMountPoints.value.length" class="py-8 text-center text-sm text-muted">
                 {{ t("suite.mount_points.empty") }}
             </p>
 
@@ -119,7 +119,7 @@ const pageActions = computed(() => {
                 </thead>
                 <tbody class="divide-y divide-line/40">
                     <tr
-                        v-for="mountPoint in mp.filteredMountPoints.value"
+                        v-for="mountPoint in mountPointsState.filteredMountPoints.value"
                         :key="mountPoint.id"
                         class="hover:bg-surface-2/40 transition-colors"
                     >
@@ -149,34 +149,34 @@ const pageActions = computed(() => {
 
         <!-- Create modal -->
         <AppModal
-            :show="mp.showCreateModal.value"
+            :show="mountPointsState.showCreateModal.value"
             :title="t('suite.mount_points.add')"
             :icon="Network"
             max-width="4xl"
             :closeable="false"
-            v-on:close="mp.closeCreate"
+            v-on:close="mountPointsState.closeCreate"
         >
-            <form class="space-y-4" v-on:submit.prevent="mp.submitCreate">
+            <form class="space-y-4" v-on:submit.prevent="mountPointsState.submitCreate">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <AppInput
-                        v-model="mp.createForm.value.name"
+                        v-model="mountPointsState.createForm.value.name"
                         :label="t('suite.mount_points.name')"
                         :placeholder="t('suite.mount_points.name_placeholder')"
-                        :error="mp.createErrors.value.name"
+                        :error="mountPointsState.createErrors.value.name"
                         required
                     />
-                    <AppSelect v-model="mp.createForm.value.type" :label="t('suite.mount_points.type')" :options="mp.types.value" />
+                    <AppSelect v-model="mountPointsState.createForm.value.type" :label="t('suite.mount_points.type')" :options="mountPointsState.types.value" />
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-4">
                     <AppInput
-                        v-model="mp.createForm.value.host"
+                        v-model="mountPointsState.createForm.value.host"
                         :label="t('suite.mount_points.host')"
                         :placeholder="t('suite.mount_points.host_placeholder')"
-                        :error="mp.createErrors.value.host"
+                        :error="mountPointsState.createErrors.value.host"
                         required
                     />
                     <AppInput
-                        v-model="mp.createForm.value.port"
+                        v-model="mountPointsState.createForm.value.port"
                         :label="t('suite.mount_points.port')"
                         :placeholder="t('suite.mount_points.port_placeholder')"
                         type="number"
@@ -184,13 +184,13 @@ const pageActions = computed(() => {
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <AppInput
-                        v-model="mp.createForm.value.username"
+                        v-model="mountPointsState.createForm.value.username"
                         :label="t('suite.mount_points.username')"
                         :placeholder="t('suite.mount_points.username_placeholder')"
                         autocomplete="off"
                     />
                     <AppInput
-                        v-model="mp.createForm.value.password"
+                        v-model="mountPointsState.createForm.value.password"
                         :label="t('suite.mount_points.password')"
                         :placeholder="t('shared.placeholders.password')"
                         toggleable
@@ -198,12 +198,12 @@ const pageActions = computed(() => {
                     />
                 </div>
                 <AppInput
-                    v-model="mp.createForm.value.database"
+                    v-model="mountPointsState.createForm.value.database"
                     :label="t('suite.mount_points.database')"
                     :placeholder="t('suite.mount_points.database_placeholder')"
                 />
                 <AppInput
-                    v-model="mp.createForm.value.sshPublicKey"
+                    v-model="mountPointsState.createForm.value.sshPublicKey"
                     :label="t('suite.mount_points.ssh_public_key')"
                     :placeholder="t('suite.mount_points.ssh_public_key_placeholder')"
                 />
@@ -215,32 +215,32 @@ const pageActions = computed(() => {
                             <p class="text-xs text-muted mt-0.5">{{ t("suite.mount_points.ssh_tunnel_hint") }}</p>
                         </div>
                         <AppToggle
-                            :model-value="mp.createForm.value.config.sshTunnel"
-                            v-on:update:model-value="mp.createForm.value.config.sshTunnel = $event"
+                            :model-value="mountPointsState.createForm.value.config.sshTunnel"
+                            v-on:update:model-value="mountPointsState.createForm.value.config.sshTunnel = $event"
                         />
                     </div>
-                    <template v-if="mp.createForm.value.config.sshTunnel">
+                    <template v-if="mountPointsState.createForm.value.config.sshTunnel">
                         <div class="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-4">
                             <AppInput
-                                v-model="mp.createForm.value.config.sshHost"
+                                v-model="mountPointsState.createForm.value.config.sshHost"
                                 :label="t('suite.mount_points.ssh_host')"
                                 :placeholder="t('suite.mount_points.ssh_host_placeholder')"
                             />
                             <AppInput
-                                v-model="mp.createForm.value.config.sshPort"
+                                v-model="mountPointsState.createForm.value.config.sshPort"
                                 :label="t('suite.mount_points.ssh_port')"
                                 type="number"
                                 placeholder="22"
                             />
                         </div>
                         <AppInput
-                            v-model="mp.createForm.value.config.sshUser"
+                            v-model="mountPointsState.createForm.value.config.sshUser"
                             :label="t('suite.mount_points.ssh_user')"
                             :placeholder="t('suite.mount_points.ssh_user_placeholder')"
                             autocomplete="off"
                         />
                         <AppTextarea
-                            v-model="mp.createForm.value.sshPrivateKey"
+                            v-model="mountPointsState.createForm.value.sshPrivateKey"
                             :label="t('suite.mount_points.ssh_private_key')"
                             :placeholder="t('suite.mount_points.ssh_private_key_placeholder')"
                             :rows="5"
@@ -251,10 +251,10 @@ const pageActions = computed(() => {
             </form>
             <template #footer>
                 <AppModalFooter>
-                    <AppButton variant="ghost" size="md" type="button" v-on:click="mp.closeCreate">
+                    <AppButton variant="ghost" size="md" type="button" v-on:click="mountPointsState.closeCreate">
                         <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton variant="primary" size="md" type="submit" :loading="mp.saving.value">
+                    <AppButton variant="primary" size="md" type="submit" :loading="mountPointsState.saving.value">
                         <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.create") }}
                     </AppButton>
                 </AppModalFooter>
@@ -263,34 +263,34 @@ const pageActions = computed(() => {
 
         <!-- Edit modal -->
         <AppModal
-            :show="mp.showEditModal.value"
-            :title="mp.editingMountPoint.value?.name ?? t('suite.mount_points.edit')"
+            :show="mountPointsState.showEditModal.value"
+            :title="mountPointsState.editingMountPoint.value?.name ?? t('suite.mount_points.edit')"
             :icon="Pencil"
             max-width="4xl"
             :closeable="false"
-            v-on:close="mp.closeEdit"
+            v-on:close="mountPointsState.closeEdit"
         >
-            <form class="space-y-4" v-on:submit.prevent="mp.submitEdit">
+            <form class="space-y-4" v-on:submit.prevent="mountPointsState.submitEdit">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <AppInput
-                        v-model="mp.editForm.value.name"
+                        v-model="mountPointsState.editForm.value.name"
                         :label="t('suite.mount_points.name')"
                         :placeholder="t('suite.mount_points.name_placeholder')"
-                        :error="mp.editErrors.value.name"
+                        :error="mountPointsState.editErrors.value.name"
                         required
                     />
-                    <AppSelect v-model="mp.editForm.value.type" :label="t('suite.mount_points.type')" :options="mp.types.value" />
+                    <AppSelect v-model="mountPointsState.editForm.value.type" :label="t('suite.mount_points.type')" :options="mountPointsState.types.value" />
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-4">
                     <AppInput
-                        v-model="mp.editForm.value.host"
+                        v-model="mountPointsState.editForm.value.host"
                         :label="t('suite.mount_points.host')"
                         :placeholder="t('suite.mount_points.host_placeholder')"
-                        :error="mp.editErrors.value.host"
+                        :error="mountPointsState.editErrors.value.host"
                         required
                     />
                     <AppInput
-                        v-model="mp.editForm.value.port"
+                        v-model="mountPointsState.editForm.value.port"
                         :label="t('suite.mount_points.port')"
                         :placeholder="t('suite.mount_points.port_placeholder')"
                         type="number"
@@ -298,13 +298,13 @@ const pageActions = computed(() => {
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <AppInput
-                        v-model="mp.editForm.value.username"
+                        v-model="mountPointsState.editForm.value.username"
                         :label="t('suite.mount_points.username')"
                         :placeholder="t('suite.mount_points.username_placeholder')"
                         autocomplete="off"
                     />
                     <AppInput
-                        v-model="mp.editForm.value.password"
+                        v-model="mountPointsState.editForm.value.password"
                         :label="t('suite.mount_points.password')"
                         :placeholder="t('suite.mount_points.password_placeholder')"
                         toggleable
@@ -312,12 +312,12 @@ const pageActions = computed(() => {
                     />
                 </div>
                 <AppInput
-                    v-model="mp.editForm.value.database"
+                    v-model="mountPointsState.editForm.value.database"
                     :label="t('suite.mount_points.database')"
                     :placeholder="t('suite.mount_points.database_placeholder')"
                 />
                 <AppInput
-                    v-model="mp.editForm.value.sshPublicKey"
+                    v-model="mountPointsState.editForm.value.sshPublicKey"
                     :label="t('suite.mount_points.ssh_public_key')"
                     :placeholder="t('suite.mount_points.ssh_public_key_placeholder')"
                 />
@@ -329,34 +329,34 @@ const pageActions = computed(() => {
                             <p class="text-xs text-muted mt-0.5">{{ t("suite.mount_points.ssh_tunnel_hint") }}</p>
                         </div>
                         <AppToggle
-                            :model-value="mp.editForm.value.config.sshTunnel"
-                            v-on:update:model-value="mp.editForm.value.config.sshTunnel = $event"
+                            :model-value="mountPointsState.editForm.value.config.sshTunnel"
+                            v-on:update:model-value="mountPointsState.editForm.value.config.sshTunnel = $event"
                         />
                     </div>
-                    <template v-if="mp.editForm.value.config.sshTunnel">
+                    <template v-if="mountPointsState.editForm.value.config.sshTunnel">
                         <div class="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-4">
                             <AppInput
-                                v-model="mp.editForm.value.config.sshHost"
+                                v-model="mountPointsState.editForm.value.config.sshHost"
                                 :label="t('suite.mount_points.ssh_host')"
                                 :placeholder="t('suite.mount_points.ssh_host_placeholder')"
                             />
                             <AppInput
-                                v-model="mp.editForm.value.config.sshPort"
+                                v-model="mountPointsState.editForm.value.config.sshPort"
                                 :label="t('suite.mount_points.ssh_port')"
                                 type="number"
                                 placeholder="22"
                             />
                         </div>
                         <AppInput
-                            v-model="mp.editForm.value.config.sshUser"
+                            v-model="mountPointsState.editForm.value.config.sshUser"
                             :label="t('suite.mount_points.ssh_user')"
                             :placeholder="t('suite.mount_points.ssh_user_placeholder')"
                             autocomplete="off"
                         />
                         <AppTextarea
-                            v-model="mp.editForm.value.sshPrivateKey"
+                            v-model="mountPointsState.editForm.value.sshPrivateKey"
                             :label="t('suite.mount_points.ssh_private_key')"
-                            :placeholder="mp.editingMountPoint.value?.hasSshPrivateKey ? t('suite.mount_points.ssh_private_key_hint') : t('suite.mount_points.ssh_private_key_placeholder')"
+                            :placeholder="mountPointsState.editingMountPoint.value?.hasSshPrivateKey ? t('suite.mount_points.ssh_private_key_hint') : t('suite.mount_points.ssh_private_key_placeholder')"
                             :rows="5"
                             class="font-mono text-xs"
                         />
@@ -365,10 +365,10 @@ const pageActions = computed(() => {
             </form>
             <template #footer>
                 <AppModalFooter>
-                    <AppButton variant="ghost" size="md" type="button" v-on:click="mp.closeEdit">
+                    <AppButton variant="ghost" size="md" type="button" v-on:click="mountPointsState.closeEdit">
                         <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton variant="primary" size="md" type="submit" :loading="mp.saving.value">
+                    <AppButton variant="primary" size="md" type="submit" :loading="mountPointsState.saving.value">
                         {{ t("shared.common.save") }}
                     </AppButton>
                 </AppModalFooter>
@@ -377,38 +377,38 @@ const pageActions = computed(() => {
 
         <!-- Test connection modal -->
         <AppModal
-            :show="mp.testModal.value.show"
-            :title="t('suite.mount_points.test_title', { name: mp.testModal.value.mountPoint?.name ?? '' })"
+            :show="mountPointsState.testModal.value.show"
+            :title="t('suite.mount_points.test_title', { name: mountPointsState.testModal.value.mountPoint?.name ?? '' })"
             :icon="Network"
             max-width="sm"
             :closeable="false"
-            v-on:close="mp.testModal.value.testing ? mp.cancelTest() : mp.closeTestModal()"
+            v-on:close="mountPointsState.testModal.value.testing ? mountPointsState.cancelTest() : mountPointsState.closeTestModal()"
         >
             <div class="flex flex-col items-center gap-4 py-2">
-                <template v-if="mp.testModal.value.testing">
+                <template v-if="mountPointsState.testModal.value.testing">
                     <LoaderCircle class="w-10 h-10 text-accent animate-spin" :stroke-width="1.5" />
                     <p class="text-sm text-secondary">{{ t("suite.mount_points.testing") }}</p>
                 </template>
-                <template v-else-if="mp.testModal.value.result">
-                    <CheckCircle v-if="mp.testModal.value.result.success" class="w-10 h-10 text-success" :stroke-width="1.5" />
+                <template v-else-if="mountPointsState.testModal.value.result">
+                    <CheckCircle v-if="mountPointsState.testModal.value.result.success" class="w-10 h-10 text-success" :stroke-width="1.5" />
                     <XCircle v-else class="w-10 h-10 text-danger" :stroke-width="1.5" />
-                    <p class="text-sm font-medium" :class="mp.testModal.value.result.success ? 'text-success' : 'text-danger'">
-                        {{ mp.testModal.value.result.success ? t("suite.mount_points.test_success") : t("suite.mount_points.test_failure") }}
+                    <p class="text-sm font-medium" :class="mountPointsState.testModal.value.result.success ? 'text-success' : 'text-danger'">
+                        {{ mountPointsState.testModal.value.result.success ? t("suite.mount_points.test_success") : t("suite.mount_points.test_failure") }}
                     </p>
-                    <p v-if="mp.testModal.value.result.message" class="text-xs text-muted text-center font-mono bg-surface-2 rounded-lg px-3 py-2 w-full">
-                        {{ mp.testModal.value.result.message }}
+                    <p v-if="mountPointsState.testModal.value.result.message" class="text-xs text-muted text-center font-mono bg-surface-2 rounded-lg px-3 py-2 w-full">
+                        {{ mountPointsState.testModal.value.result.message }}
                     </p>
                 </template>
             </div>
             <template #footer>
                 <AppModalFooter>
-                    <AppButton v-if="mp.testModal.value.result" variant="ghost" size="md" v-on:click="mp.retryTest()">
+                    <AppButton v-if="mountPointsState.testModal.value.result" variant="ghost" size="md" v-on:click="mountPointsState.retryTest()">
                         <RotateCcw class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("suite.mount_points.retry") }}
                     </AppButton>
-                    <AppButton v-if="mp.testModal.value.testing" variant="ghost" size="md" v-on:click="mp.cancelTest">
+                    <AppButton v-if="mountPointsState.testModal.value.testing" variant="ghost" size="md" v-on:click="mountPointsState.cancelTest">
                         <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton v-else variant="ghost" size="md" v-on:click="mp.closeTestModal">
+                    <AppButton v-else variant="ghost" size="md" v-on:click="mountPointsState.closeTestModal">
                         {{ t("shared.common.close") }}
                     </AppButton>
                 </AppModalFooter>
@@ -416,17 +416,17 @@ const pageActions = computed(() => {
         </AppModal>
 
         <!-- Delete confirm modal -->
-        <AppModal :show="mp.showDeleteModal.value" max-width="sm" :closeable="false" v-on:close="mp.showDeleteModal.value = false">
+        <AppModal :show="mountPointsState.showDeleteModal.value" max-width="sm" :closeable="false" v-on:close="mountPointsState.showDeleteModal.value = false">
             <p class="text-sm text-primary">
                 {{ t("suite.mount_points.delete_confirm") }}
-                <strong v-if="mp.pendingDelete.value"> « {{ mp.pendingDelete.value.name }} »</strong>
+                <strong v-if="mountPointsState.pendingDelete.value"> « {{ mountPointsState.pendingDelete.value.name }} »</strong>
             </p>
             <template #footer>
                 <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="mp.showDeleteModal.value = false">
+                    <AppButton variant="ghost" size="md" v-on:click="mountPointsState.showDeleteModal.value = false">
                         <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton variant="danger" size="md" v-on:click="mp.doDelete">
+                    <AppButton variant="danger" size="md" v-on:click="mountPointsState.doDelete">
                         <Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}
                     </AppButton>
                 </AppModalFooter>

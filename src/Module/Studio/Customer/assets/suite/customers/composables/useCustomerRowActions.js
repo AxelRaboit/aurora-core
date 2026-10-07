@@ -1,5 +1,11 @@
 import { useI18n } from "vue-i18n";
-import { BadgeCheck, LayoutDashboard, Pencil, Trash2 } from "lucide-vue-next";
+import {
+    BadgeCheck,
+    Building2,
+    LayoutDashboard,
+    Trash2,
+} from "lucide-vue-next";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 /**
  * What the menu on a customer row offers.
@@ -13,31 +19,49 @@ import { BadgeCheck, LayoutDashboard, Pencil, Trash2 } from "lucide-vue-next";
  * and an entry that would be greyed out on two rows in three is noise in a menu
  * that has to be read quickly.
  *
- * **Et une porte vers ses espaces.** Un client existe pour ce qu'on fait avec
- * lui, et ce qu'on fait avec lui vit dans ses espaces ; depuis cette liste,
- * aucun chemin n'y menait - il fallait passer par le menu, ouvrir la liste des
- * espaces et retaper le nom. L'entrée le tape pour vous : elle ouvre la liste
- * filtrée sur la société.
+ * **And a door to their spaces.** A customer exists for what is done with
+ * them, and what is done with them lives in their spaces; from this list, no
+ * path led there - you had to go through the menu, open the spaces list and
+ * type the name again. The entry types it for you: it opens the list
+ * filtered on the company.
+ *
+ * **And first their page.** The sheet is no longer edited in a dialog of the
+ * list: "Ouvrir" leads to the customer's page, where it fits whole, with what
+ * surrounds it. Offered to anyone who sees the list, since the page is read
+ * with the same right.
  *
  * @param {object} deps
- * @param {string} [deps.spacesPath] L'adresse de la liste des espaces.
+ * @param {string} deps.showPath The address of a customer's page, with `__id__`.
+ * @param {string} [deps.spacesPath] The address of the spaces list.
  * @param {(permission: string) => boolean} deps.can
- * @param {(record: object) => void} deps.openEdit
  * @param {(record: object) => void} deps.convertToClient
  * @param {(record: object) => void} deps.confirmDelete
  */
 export function useCustomerRowActions({
+    showPath,
     spacesPath = "",
     can,
-    openEdit,
     convertToClient,
     confirmDelete,
 }) {
     const { t } = useI18n();
 
     return function actionsFor(record) {
-        const actions = [];
         const editable = can("studio.customers.edit");
+        const actions = [
+            {
+                key: "open",
+                color: "accent",
+                icon: Building2,
+                title: t("suite.studio.customers.open"),
+                description: t(
+                    "suite.studio.customers.row_actions.open_description",
+                ),
+                // A link and not a gesture: it must be able to open in another
+                // tab.
+                href: buildPath(showPath, { id: record.id }),
+            },
+        ];
 
         if (spacesPath && can("studio.spaces.view")) {
             actions.push({
@@ -45,22 +69,11 @@ export function useCustomerRowActions({
                 icon: LayoutDashboard,
                 title: t("suite.studio.customers.spaces"),
                 description: t("suite.studio.customers.spaces_description"),
-                // Un lien et non un geste : c'est une navigation, elle doit
-                // pouvoir s'ouvrir dans un autre onglet.
-                href: `${spacesPath}?search=${encodeURIComponent(record.legalName ?? "")}`,
-            });
-        }
-
-        if (editable) {
-            actions.push({
-                key: "edit",
-                color: "accent",
-                icon: Pencil,
-                title: t("shared.common.edit"),
-                description: t(
-                    "suite.studio.customers.row_actions.edit_description",
-                ),
-                onSelect: () => openEdit(record),
+                // A link and not a gesture: it is a navigation, it must be
+                // able to open in another tab.
+                // By id: the company name as a search also brought back the
+                // companies whose name contains it.
+                href: `${spacesPath}?customer=${encodeURIComponent(record.id)}`,
             });
         }
 

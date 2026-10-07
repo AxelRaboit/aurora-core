@@ -9,9 +9,9 @@
     <span class="text-accent-500">{{ 'suite.auth.hero.heading_accent'|trans({'{siteName}': siteName}) }}</span>
 </h1>
 <p class="text-secondary text-base leading-relaxed lg:mb-8">{{ 'suite.auth.hero.description'|trans }}</p>
-{# Sur téléphone, le titre et la phrase seuls : ils disent où l'on est sans
-   repousser le formulaire, que les quatre atouts faisaient passer sous le
-   pli. Ils reviennent à côté du formulaire à partir de `lg`. #}
+{# On a phone, the title and the sentence alone: they say where one is
+   without pushing the form down, which the four selling points pushed below
+   the fold. They come back next to the form from `lg` on. #}
 <ul class="hidden space-y-3 lg:block">
     {% for feature in features %}
         <li class="flex items-center gap-3 text-secondary text-sm">

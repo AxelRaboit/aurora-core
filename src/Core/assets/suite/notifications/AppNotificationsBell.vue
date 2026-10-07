@@ -36,10 +36,10 @@ const {
 
 function formatDate(iso) {
     const date = new Date(iso);
-    const diffSeconds = Math.round((Date.now() - date.getTime()) / 1000);
-    if (diffSeconds < 60) return t("suite.notifications.just_now");
-    if (diffSeconds < 3600) return t("suite.notifications.minutes_ago", { n: Math.floor(diffSeconds / 60) });
-    if (diffSeconds < 86400) return t("suite.notifications.hours_ago", { n: Math.floor(diffSeconds / 3600) });
+    const elapsedSeconds = Math.round((Date.now() - date.getTime()) / 1000);
+    if (elapsedSeconds < 60) return t("suite.notifications.just_now");
+    if (elapsedSeconds < 3600) return t("suite.notifications.minutes_ago", { n: Math.floor(elapsedSeconds / 60) });
+    if (elapsedSeconds < 86400) return t("suite.notifications.hours_ago", { n: Math.floor(elapsedSeconds / 3600) });
     return formatDateNumeric(date.toISOString());
 }
 

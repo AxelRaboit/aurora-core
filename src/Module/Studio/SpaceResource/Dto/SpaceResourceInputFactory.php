@@ -19,14 +19,13 @@ class SpaceResourceInputFactory implements SpaceResourceInputFactoryInterface
         return new SpaceResourceInput(
             kind: $kind,
             label: Str::trimFromArray($data, 'label'),
-            // Les champs des autres genres ne sont pas repris : la modale les
-            // garde à l'écran pendant qu'on hésite, et enregistrer un contact
-            // après avoir commencé un lien ne doit pas laisser une adresse
-            // orpheline dans la ligne.
+            // The fields of the other kinds are not carried over: the modal keeps them
+            // on screen while someone hesitates, and saving a contact after starting a
+            // link must not leave an orphan address in the row.
             url: $kind->needsUrl() ? Str::trimOrNullFromArray($data, 'url') : null,
-            // Le corps traverse tous les genres : c'est le corps d'un texte,
-            // et une précision sur un lien ou un contact - « le mot de passe
-            // est chez le client », « ne répond pas le vendredi ».
+            // The body goes across every kind: it is the body of a text, and a detail
+            // on a link or a contact - "the password is with the client", "does not
+            // answer on Fridays".
             body: Str::trimOrNullFromArray($data, 'body'),
             email: SpaceResourceKindEnum::Contact === $kind ? Str::emailOrNullFromArray($data, 'email') : null,
             phone: SpaceResourceKindEnum::Contact === $kind ? Str::trimOrNullFromArray($data, 'phone') : null,

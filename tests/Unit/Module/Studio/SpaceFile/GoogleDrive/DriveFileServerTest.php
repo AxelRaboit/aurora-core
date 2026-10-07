@@ -22,13 +22,13 @@ use function openssl_pkey_new;
 use function str_contains;
 
 /**
- * Ce que le client reçoit vraiment quand il clique.
+ * What the client really receives when they click.
  *
- * Trois choses se décident ici et ne se voient pas à l'œil : le nom que porte
- * le fichier téléchargé, qui ne peut venir que de Google ; le fait qu'un
- * aperçu ne paie pas l'appel qui sert à ce nom ; et le sort d'un HTML posé
- * dans un dossier partagé, qui s'exécuterait sous le domaine d'Aurora avec la
- * session de celui qui le regarde.
+ * Three things are decided here and cannot be seen by eye: the name the
+ * downloaded file carries, which can only come from Google; the fact that a
+ * preview does not pay for the call that fetches that name; and the fate of an
+ * HTML file dropped in a shared folder, which would run under Aurora's domain
+ * with the session of whoever looks at it.
  */
 final class DriveFileServerTest extends TestCase
 {
@@ -76,7 +76,7 @@ final class DriveFileServerTest extends TestCase
         ]);
     }
 
-    /** Le dossier de l'espace, tel que Google le liste : ces fichiers-là et aucun autre. */
+    /** The space's folder, as Google lists it: these files and no others. */
     private function listing(string ...$ids): MockResponse
     {
         $ids = [] === $ids ? ['fichier-1', 'fichier-42', 'disparu'] : $ids;
@@ -91,7 +91,7 @@ final class DriveFileServerTest extends TestCase
     {
         return new MockResponse('octets', ['response_headers' => [
             'content-type' => $type,
-            // Ce que Google renvoie vraiment : une pièce jointe sans nom.
+            // What Google really sends back: an attachment without a name.
             'content-disposition' => 'attachment',
             'content-length' => '6',
         ]]);
@@ -114,9 +114,9 @@ final class DriveFileServerTest extends TestCase
         self::assertFalse($response->headers->has('Content-Disposition'));
         self::assertSame('application/pdf', $response->headers->get('Content-Type'));
 
-        // Le jeton, la liste du dossier, puis le contenu. Rien de plus :
-        // redemander le nom pour un aperçu ajouterait un aller-retour à
-        // chaque ouverture.
+        // The token, the folder listing, then the content. Nothing more:
+        // asking for the name again for a preview would add a round trip to
+        // every opening.
         self::assertCount(3, $this->urls);
     }
 
@@ -139,10 +139,10 @@ final class DriveFileServerTest extends TestCase
     }
 
     /**
-     * Le nom manque, le fichier non.
+     * The name is missing, the file is not.
      *
-     * Renvoyer un 404 parce que la seconde requête a échoué priverait le
-     * client d'un fichier qui est là ; la pièce jointe part sans nom.
+     * Returning a 404 because the second request failed would deprive the
+     * client of a file that is there; the attachment goes out without a name.
      */
     public function testADownloadSurvivesAMissingName(): void
     {
@@ -160,11 +160,11 @@ final class DriveFileServerTest extends TestCase
     }
 
     /**
-     * **Un HTML dans un dossier partagé ne s'ouvre pas dans un onglet.**.
+     * **An HTML file in a shared folder does not open in a tab.**.
      *
-     * Le fichier sort sous le domaine d'Aurora : affiché, son script tournerait
-     * sur la page d'un espace avec la session de celui qui regarde. Il
-     * redevient un fichier même quand personne n'a demandé à le télécharger.
+     * The file goes out under Aurora's domain: displayed, its script would run
+     * on a space's page with the session of whoever is looking. It becomes a
+     * file again even when nobody asked to download it.
      */
     public function testAnExecutableTypeIsForcedToDownloadEvenWithoutAsking(): void
     {
@@ -189,8 +189,8 @@ final class DriveFileServerTest extends TestCase
         $response = $server->serve($this->account, 'dossier', 'fichier-1');
 
         self::assertInstanceOf(Response::class, $response);
-        // Symfony réordonne les directives : on vérifie ce qu'elles disent,
-        // pas la façon dont elles sont écrites.
+        // Symfony reorders the directives: what they say is checked, not the
+        // way they are written.
         $cacheControl = (string) $response->headers->get('Cache-Control');
         self::assertStringContainsString('no-store', $cacheControl);
         self::assertStringContainsString('private', $cacheControl);
@@ -220,9 +220,9 @@ final class DriveFileServerTest extends TestCase
     }
 
     /**
-     * **Le compte de service lit d'autres dossiers que celui de l'espace.**
-     * Un identifiant deviné ou recopié depuis l'espace d'un autre client ne
-     * sert rien, et Google n'est même pas sollicité pour le contenu.
+     * **The service account reads other folders than the space's one.**
+     * An id guessed or copied from another client's space serves nothing, and
+     * Google is not even asked for the content.
      */
     public function testAFileOutsideTheSpacesFolderIsNotServed(): void
     {

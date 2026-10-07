@@ -45,7 +45,7 @@ const providerOptions = [
     { value: "recaptcha", label: "suite.parameters.captcha.providers.recaptcha" },
 ];
 
-/** Allumé, prêt mais éteint, ou encore à configurer. */
+/** On, ready but off, or still to be configured. */
 const status = computed(() => {
     const ready = "" !== siteKey.value.trim() && (hasSecret.value || "" !== secretKey.value.trim());
     if (enabled.value && ready) return "active";
@@ -148,8 +148,8 @@ async function save() {
             </AppButton>
         </template>
 
-        <!-- Les étapes du service choisi, pas des deux : elles ne se
-             ressemblent que de loin. -->
+        <!-- The steps of the chosen service, not of both: they only look
+             alike from a distance. -->
         <template #guide>
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 3" :key="step">{{ t(`suite.parameters.captcha.guide_${provider}_${step}`) }}</li>

@@ -126,7 +126,7 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
                     icon: self::TAB_ICONS[$tab->id] ?? 'sliders-horizontal',
                     requiredPrivilege: 'configuration.settings.manage',
                     descriptionKey: sprintf('suite.settings.tabs.%s_description', $tab->id),
-                    routeParams: ['tab' => $tab->id],
+                    routeParameters: ['tab' => $tab->id],
                     // Eleven entries share one route name, so the route name
                     // cannot be the stable key: hiding one tab from the menu
                     // would hide all eleven, and the active row would be all of

@@ -9,23 +9,25 @@ namespace Aurora\Module\Studio\SpaceContent\Enum;
  *
  * **Optional, and the columns stay free.** A studio names its steps the way
  * it works - « À valider », « Chez Marc », « Prêt » - and nothing here renames
- * them. The role only says which of the stages every board shares a column
- * stands for, so the counts across spaces can be computed at all: without it,
- * « published » is a word in six spellings and « missed publication » a
- * question nobody can answer.
+ * them. A role says which of the two stages that count across spaces a column
+ * stands for:
+ *
+ * - **Review** is the step where the client answers. When a board has one, a
+ *   card there and awaiting an answer is « chez le client », and only there;
+ *   a board without one falls back to every step the client can see.
+ * - **Published** is what is out: it ends the card's life on the calendar and
+ *   is what a missed publication is measured against.
+ *
+ * Idea, production and scheduled were roles once and decided nothing: the
+ * counts never read them. They were removed in 2.0.x rather than kept as
+ * labels a reader would think did something.
  *
  * The values are persisted, so they are part of the schema: add and remove,
  * never rename.
  */
 enum SpaceContentColumnRoleEnum: string
 {
-    case Idea = 'idea';
-
-    case Production = 'production';
-
     case Review = 'review';
-
-    case Scheduled = 'scheduled';
 
     case Published = 'published';
 

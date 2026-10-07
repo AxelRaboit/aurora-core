@@ -530,6 +530,9 @@ suite:
         studio_contract_reminder_max:
             label: Nombre maximum de relances
             description: 'Au-delà, le contrat est laissé tranquille. Le silence est une réponse aussi.'
+        studio_contract_link_days:
+            label: Validité d'un lien de signature (jours)
+            description: "Combien de jours l'adresse envoyée au client reste ouverte. Entre 1 et 365 ; un nouvel envoi en crée une neuve."
         nav_section_aliases:
             label: Alias des sections de navigation
             description: 'Carte JSON des alias de sections (géré via l''interface).'
@@ -566,8 +569,8 @@ suite:
         search_placeholder: Rechercher par clé…
         all_groups: Tous les groupes
     title: Administration
-    # Coquille du dashboard uniquement - un module qui dessine un panneau
-    # embarque ses propres libellés.
+    # Dashboard shell only - a module that draws a panel ships its own
+    # labels.
     stats:
         guide:
             title: "Lire le tableau de bord"

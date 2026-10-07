@@ -41,16 +41,16 @@ export function useNoteFoldersApi(paths) {
                 color,
                 spaceId,
             }),
-        // `rename` écrit aussi la couleur : c'est la même modale et le même
-        // endpoint, et un appel qui ometterait la couleur l'effacerait,
-        // puisque le manager applique tout l'input.
+        // `rename` also writes the colour: it is the same modal and the same
+        // endpoint, and a call that left out the colour would erase it,
+        // since the manager applies the whole input.
         rename: (id, name, parentId = null, color = null) =>
             call(HttpMethod.Post, resolvePath(paths.update, id), {
                 name,
                 parentId,
                 color,
             }),
-        /** `spaceId` dit quelle racine quand `parentId` est nul. */
+        /** `spaceId` says which root when `parentId` is null. */
         move: (id, parentId, spaceId = null) =>
             call(HttpMethod.Post, resolvePath(paths.move, id), {
                 parentId,

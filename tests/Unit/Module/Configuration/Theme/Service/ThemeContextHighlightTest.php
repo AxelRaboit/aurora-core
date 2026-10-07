@@ -17,8 +17,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Un thème qui n'a rien choisi garde des survols en couleur principale : c'est
- * l'apparence de tous les sites existants, et elle ne doit pas bouger.
+ * A theme that has chosen nothing keeps hovers in the main color: that is the
+ * look of every existing site, and it must not move.
  */
 #[AllowMockObjectsWithoutExpectations]
 final class ThemeContextHighlightTest extends TestCase
@@ -95,8 +95,8 @@ final class ThemeContextHighlightTest extends TestCase
     }
 
     /**
-     * `initial` rend au jeton sa valeur invalide garantie : le repli sur
-     * l'accent reprend alors, même sous un thème neutre ou personnalisé.
+     * `initial` gives the token back its guaranteed invalid value: the
+     * fallback to the accent then resumes, even under a neutral or custom theme.
      */
     public function testAPublicationCanBringTheAccentBack(): void
     {
@@ -115,9 +115,9 @@ final class ThemeContextHighlightTest extends TestCase
     }
 
     /**
-     * La couleur part dans une balise `<style>` : tout ce qui n'est pas un
-     * hexadécimal est refusé, et le thème retombe sur l'accent plutôt que de
-     * rendre des survols sans couleur.
+     * The color goes into a `<style>` tag: anything that is not a hexadecimal
+     * is refused, and the theme falls back to the accent rather than rendering
+     * hovers without a color.
      */
     public function testACustomThemeWithoutAUsableColourKeepsTheAccent(): void
     {

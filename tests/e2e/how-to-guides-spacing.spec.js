@@ -1,22 +1,21 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Un encart « Comment ça marche » ne touche jamais le bord du bloc qui le
- * contient.
+ * A "How it works" panel never touches the edge of the block that contains
+ * it.
  *
- * L'encart ne porte pas de marge : c'est le conteneur qui l'espace, par son
- * `gap` ou son padding (voir `AppGuide.vue`). Le jour où l'un d'eux n'en a pas,
- * l'encart colle à la carte, et rien d'autre ne le dit : c'est arrivé à la
- * bibliothèque des notes, posée entre un entête et un contenu qui avaient
- * chacun leur padding, et lui aucun (1 pixel du bord, contre 13 une fois
- * corrigé).
+ * The panel carries no margin: the container spaces it, through its `gap`
+ * or its padding (see `AppGuide.vue`). The day one of them has none, the
+ * panel sticks to the card, and nothing else says so: it happened to the
+ * notes library, placed between a header and a content that each had their
+ * padding, and it had none (1 pixel from the edge, against 13 once fixed).
  *
- * Mesuré dans le navigateur plutôt que lu sur des classes, pour la même raison
- * que la visionneuse : ce qui casse, c'est la mise en page.
+ * Measured in the browser rather than read from classes, for the same reason
+ * as the viewer: what breaks is the layout.
  *
- * Contre la démonstration (`make demo`), avec le compte des fixtures. Un
- * encart volontairement encastré (`:rounded="false"`) est laissé de côté : il
- * est fait pour toucher un bord.
+ * Against the demo (`make demo`), with the fixtures account. A deliberately
+ * embedded panel (`:rounded="false"`) is left aside: it is made to touch an
+ * edge.
  */
 const SCREENS = [
     "/suite",
@@ -36,8 +35,8 @@ const SCREENS = [
     "/suite/studio/contracts",
     "/suite/studio/contract-templates",
     "/suite/studio/customers",
-    "/suite/studio/decks",
-    "/suite/studio/calendar",
+    "/suite/studio/deliverables",
+    "/suite/studio/spaces/calendar",
     "/suite/platform/users",
     "/suite/configuration/themes",
     "/suite/configuration/settings/general",
@@ -52,7 +51,7 @@ const SCREENS = [
     "/workspace/1?view=settings",
 ];
 
-/** Le moins d'air qu'on accepte entre un encart et le bord de son bloc. */
+/** The least room accepted between a panel and the edge of its block. */
 const MIN_GAP = 4;
 
 async function signIn(page) {
@@ -72,8 +71,8 @@ for (const screen of SCREENS) {
         await page.goto(screen, { waitUntil: "domcontentloaded" });
         await page.locator("[data-guide]").first().waitFor({ timeout: 15_000 });
 
-        // Pour chaque encart, l'écart avec le premier ancêtre qui a une
-        // bordure : c'est ce bord-là que l'œil voit toucher.
+        // For each panel, the gap with the first ancestor that has a border: that
+        // is the edge the eye sees it touch.
         const gaps = await page.evaluate(() =>
             [...document.querySelectorAll("[data-guide]")]
                 .filter((guide) => !guide.classList.contains("rounded-none"))

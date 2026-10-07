@@ -80,8 +80,8 @@ function removeOriginal() {
     label.value = "";
 }
 
-function thumbnailOf(doc) {
-    return doc.renditions?.thumbnail ?? doc.thumbnailUrl ?? null;
+function thumbnailOf(gedDocument) {
+    return gedDocument.renditions?.thumbnail ?? gedDocument.thumbnailUrl ?? null;
 }
 </script>
 

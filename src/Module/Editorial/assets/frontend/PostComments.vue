@@ -19,7 +19,7 @@ const props = defineProps({
     captcha: { type: Object, default: () => ({ enabled: false }) },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatLocalizedDate } = useI18n();
 
 const {
     comments, total, reactionTypes, loaded,
@@ -38,7 +38,7 @@ onMounted(() => {
 });
 
 function formatDate(value) {
-    return d(new Date(value), "short");
+    return formatLocalizedDate(new Date(value), "short");
 }
 
 function reactionCount(comment, type) {
@@ -190,9 +190,9 @@ function reactionCount(comment, type) {
                  stays empty and takes no room. -->
             <div v-if="captcha.enabled" ref="captchaBox" class="min-h-0" />
 
-            <!-- Pleine largeur sous `sm` : c'est la seule chose à faire au
-                 bout du formulaire, et un bouton de quatre-vingts pixels collé
-                 au bord gauche se cherche plus qu'il ne s'atteint. -->
+            <!-- Full width below `sm`: it is the only thing to do at the end
+                 of the form, and an eighty-pixel button stuck to the left edge
+                 is searched for more than it is reached. -->
             <AppButton type="submit" class="w-full sm:w-auto" :loading="sending">
                 {{ t("frontend.editorial.comments.submit") }}
             </AppButton>

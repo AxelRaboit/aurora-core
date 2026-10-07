@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,6 +38,9 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
      * list shows the company's name and the team's faces, and both are one
      * query here and one per space without it.
      *
+     * A space in the trash is not in it: it is waiting to be restored or
+     * destroyed, and nothing but the trash screen lists it.
+     *
      * @return list<CustomerSpaceInterface>
      */
     public function findAllOrdered(): array
@@ -46,6 +50,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->join('s.customer', 'c')
             ->leftJoin('s.members', 'm')
             ->leftJoin('m.user', 'u')
+            ->where('s.deletedAt IS NULL')
             ->orderBy('s.status', Order::Ascending->value)
             ->addOrderBy('s.name', Order::Ascending->value)
             ->getQuery()
@@ -53,16 +58,17 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les espaces qu'une personne voit.
+     * The spaces a person sees.
      *
-     * **Être membre décide enfin de quelque chose.** L'écran fait composer une
-     * équipe, ce qui se lit comme une attribution ; jusqu'ici ça n'en était
-     * pas une, et quiconque pouvait voir un espace les voyait tous. Un
-     * équipier ne voit plus que les siens.
+     * **Being a member finally decides something.** The screen has a team put
+     * together, which reads as an assignment; until now it was not one, and
+     * anyone who could see a space saw them all. A teammate now only sees
+     * their own.
      *
-     * `$seesAll` plutôt qu'un rôle lu ici : le dépôt n'a pas à connaître la
-     * sécurité, et l'appelant sait déjà si la personne court-circuite les
-     * privilèges. C'est aussi ce qui garde la méthode testable sans jeton.
+     * `$seesAll` rather than a role read here: the repository has no business
+     * knowing about security, and the caller already knows whether the person
+     * bypasses privileges. That is also what keeps the method testable
+     * without a token.
      *
      * @return list<CustomerSpaceInterface>
      */
@@ -72,13 +78,14 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             return $this->findAllOrdered();
         }
 
-        // Les identifiants d'abord, la liste ensuite : filtrer sur la jointure
-        // qui ramène les membres ne rendrait que les membres retenus par le
-        // filtre, donc une équipe amputée d'elle-même sur chaque carte.
+        // The ids first, the list next: filtering on the join that brings the
+        // members back would only return the members kept by the filter, so a
+        // team cut off from itself on every card.
         $ids = $this->createQueryBuilder('s')
             ->select('s.id')
             ->join('s.members', 'm')
             ->where('m.user = :user')
+            ->andWhere('s.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleColumnResult();
@@ -101,11 +108,11 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Cette personne voit-elle cet espace ?
+     * Does this person see this space?
      *
-     * Posée à part de la liste parce que l'écran d'un espace se demande la
-     * même chose pour une seule ligne, et qu'y répondre en chargeant les
-     * autres serait payer la liste pour une question fermée.
+     * Asked separately from the list because a space's screen asks the same
+     * thing for a single row, and answering it by loading the others would be
+     * paying for the list to answer a yes/no question.
      */
     public function isVisibleTo(CustomerSpaceInterface $space, CoreUserInterface $user, bool $seesAll): bool
     {
@@ -125,11 +132,11 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Combien d'espaces par état.
+     * How many spaces per status.
      *
-     * Groupé plutôt qu'un compte par état : le tableau de bord les affiche
-     * tous, et trois requêtes pour trois nombres qui sortent de la même table
-     * seraient trois allers-retours pour rien.
+     * Grouped rather than one count per status: the dashboard shows them all,
+     * and three queries for three numbers coming out of the same table would
+     * be three round trips for nothing.
      *
      * @return array<string, int>
      */
@@ -137,6 +144,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     {
         $rows = $this->createQueryBuilder('s')
             ->select('s.status AS status, COUNT(s.id) AS total')
+            ->where('s.deletedAt IS NULL')
             ->groupBy('s.status')
             ->getQuery()
             ->getScalarResult();
@@ -151,13 +159,6 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
-    /**
-     * How many spaces name this customer.
-     *
-     * Asked before a customer is deleted, so the refusal can say how many
-     * spaces stand in the way instead of letting the foreign key answer with a
-     * driver exception.
-     */
     /**
      * A space's team and each member's account, filled in place, unless they
      * are loaded already.
@@ -184,6 +185,15 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * How many spaces name this customer, those in the trash included.
+     *
+     * Asked before a customer is deleted, so the refusal can say how many
+     * spaces stand in the way instead of letting the foreign key answer with a
+     * driver exception. A space in the trash still names its customer, and
+     * still holds the work a restore would bring back: it stands in the way
+     * until it is destroyed for good.
+     */
     public function countForCustomer(CustomerInterface $customer): int
     {
         return (int) $this->createQueryBuilder('s')
@@ -232,12 +242,12 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Les identifiants des espaces dont cette personne est membre.
+     * The ids of the spaces this person is a member of.
      *
-     * La moitié « appartenance » de {@see findVisibleTo()}, sans charger les
-     * espaces : la recherche globale n'a besoin que de savoir où chercher, et
-     * charger chaque espace avec son équipe pour n'en garder que l'identifiant
-     * serait payer la liste entière à chaque frappe.
+     * The "membership" half of {@see findVisibleTo()}, without loading the
+     * spaces: the global search only needs to know where to look, and loading
+     * each space with its team to keep only the id would be paying for the
+     * whole list on every keystroke.
      *
      * @return list<int>
      */
@@ -247,17 +257,18 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->select('s.id')
             ->join('s.members', 'm')
             ->where('m.user = :user')
+            ->andWhere('s.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleColumnResult());
     }
 
     /**
-     * Les espaces dont le nom, ou celui du client, contient le terme.
+     * The spaces whose name, or the customer's, contains the term.
      *
-     * `$spaceIds` à null veut dire « tous » (quelqu'un qui voit tout) ; une
-     * liste restreint la recherche à ces espaces-là, et une liste vide ne rend
-     * rien. Rangés comme la liste des espaces : les actifs d'abord.
+     * `$spaceIds` null means "all" (someone who sees everything); a list
+     * narrows the search to those spaces, and an empty list returns nothing.
+     * Ordered like the spaces list: active ones first.
      *
      * @param list<int>|null $spaceIds
      *
@@ -273,6 +284,7 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->addSelect('c')
             ->join('s.customer', 'c')
             ->where('LOWER(s.name) LIKE :term OR LOWER(c.legalName) LIKE :term')
+            ->andWhere('s.deletedAt IS NULL')
             ->setParameter('term', LikePattern::contains($term))
             ->orderBy('s.status', Order::Ascending->value)
             ->addOrderBy('s.name', Order::Ascending->value)
@@ -283,5 +295,53 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
         }
 
         return $builder->getQuery()->getResult();
+    }
+
+    /** A space in the trash: what gets restored or destroyed for good. */
+    public function findTrashed(int $id): ?CustomerSpaceInterface
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.id = :id')
+            ->andWhere('s.deletedAt IS NOT NULL')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Everything the spaces trash holds, latest first, with the customer and
+     * the team: the screen names the customer, and the caller keeps the ones
+     * the person has the right to see.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function findAllTrashed(): array
+    {
+        return $this->createQueryBuilder('s')
+            ->addSelect('c', 'm', 'u')
+            ->join('s.customer', 'c')
+            ->leftJoin('s.members', 'm')
+            ->leftJoin('m.user', 'u')
+            ->where('s.deletedAt IS NOT NULL')
+            ->orderBy('s.deletedAt', Order::Descending->value)
+            ->addOrderBy('s.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * The ones in the trash since before this date: the scheduled purge
+     * destroys them.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function findTrashedBefore(DateTimeImmutable $cutoff): array
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.deletedAt IS NOT NULL')
+            ->andWhere('s.deletedAt < :cutoff')
+            ->setParameter('cutoff', $cutoff)
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -12,7 +12,9 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\EventSubscriber\SpaceVisibilitySubscriber;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
@@ -21,8 +23,12 @@ use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadiness;
+use Aurora\Module\Studio\Deliverable\Slides\Import\SlidesFromBlocks;
 use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
+use Aurora\Module\Studio\Deliverable\View\DeliverableSlidesViewBuilder;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
+use Aurora\Module\Studio\StudioContext;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,19 +37,23 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_values;
+use function is_array;
+use function is_int;
+use function is_numeric;
 use function is_string;
 use function mb_strlen;
 use function mb_substr;
 use function mb_trim;
 
 /**
- * Les livrables d'un espace, côté studio.
+ * A space's deliverables, studio side.
  *
- * Tout passe par l'espace dans l'adresse : l'abonné qui garde les espaces
- * ({@see SpaceVisibilitySubscriber})
- * refuse un espace dont on n'est pas membre, et chaque livrable reçu est
- * vérifié contre cet espace-là. Un identifiant d'un autre espace répond le
- * même 404 qu'un identifiant qui n'existe pas.
+ * Everything goes through the space in the address: the subscriber that
+ * guards spaces ({@see SpaceVisibilitySubscriber})
+ * refuses a space you are not a member of, and every deliverable received
+ * is checked against that space. An id from another space answers the same
+ * 404 as an id that does not exist.
  */
 #[Route('/workspace/{id}/deliverables', name: 'workspace_space_deliverables', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -66,39 +76,100 @@ final class SpaceDeliverablesController extends AbstractController
         private readonly DeliverableAccess $access,
         private readonly DeliverableSerializer $serializer,
         private readonly DeliverableReadiness $readiness,
+        private readonly ClientVisibility $clientVisibility,
+        private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly SlidesFromBlocks $fromBlocks,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly StudioContext $studioContext,
     ) {}
 
-    /** Les lignes de l'onglet telles qu'elles sont maintenant, pour rafraîchir une liste périmée. */
+    /** The tab's rows as they are now, to refresh a stale list. */
     #[Route('/lists', name: '_lists', methods: [HttpMethodEnum::Get->value])]
     public function lists(CustomerSpace $space): JsonResponse
     {
         return $this->jsonSuccess(['deliverables' => $this->viewBuilder->rows($space)]);
     }
 
-    /** Un titre, et on arrive dans l'éditeur. */
+    /**
+     * A title and a format, and one lands in the editor: a page or a
+     * presentation, as in Studio.
+     *
+     * Started from a Studio template (`fromTemplateId`), the deliverable is a
+     * copy of it dropped here: its grid, or its slides with their notes, theme
+     * and style, see {@see DeliverableManager::copyToSpace()}. A template one
+     * cannot read, that is no longer one, or of another format than the one
+     * asked gives an empty deliverable rather than a refusal, for the reason
+     * Studio's creation gives: the only way to send a stale id is a template
+     * withdrawn between opening the modal and sending it, and a refusal would
+     * lose the typed title.
+     */
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
     public function create(CustomerSpace $space, Request $request): JsonResponse
     {
-        // Les archives n'en reçoivent plus, comme elles ne reçoivent plus de copie.
+        // An archive takes no new deliverable, as it takes no copy.
         if (!$this->access->canAddTo($space)) {
             return $this->jsonForbidden();
         }
 
         $payload = $this->decodeJson($request);
-        $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
-
-        if ('' === $title) {
-            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_required']);
+        $title = $this->title($payload);
+        if (is_string($title)) {
+            return $this->jsonInvalidInput(['title' => $title]);
         }
 
-        if (mb_strlen($title) > DeliverableManager::TITLE_MAX) {
-            return $this->jsonInvalidInput(['title' => 'suite.studio.deliverables.errors.title_too_long']);
+        $format = DeliverableFormatEnum::fromInput($payload['format'] ?? null);
+        if (!$format instanceof DeliverableFormatEnum) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_invalid']);
         }
 
-        // À qui le crée, comme la copie d'un modèle : un livrable d'espace n'a
-        // plus un auteur nul, un auteur copié et l'ancien auteur selon la voie.
-        $deliverable = $this->manager->create($space, $title, $this->access->user());
+        if (!$format->isCreatable()) {
+            return $this->jsonInvalidInput(['format' => 'suite.studio.deliverables.errors.format_unavailable']);
+        }
+
+        $template = $this->template($payload['fromTemplateId'] ?? null, $format);
+        $name = mb_trim((string) $payload['title']);
+
+        // Owned by whoever creates it, whichever way it was made.
+        $deliverable = $template instanceof DeliverableInterface
+            ? $this->manager->copyToSpace($template, $space, $name, $this->access->user())
+            : $this->manager->create($space, $name, $this->access->user(), format: $format);
+
+        return $this->jsonSuccess([
+            'editPath' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
+            'deliverables' => $this->viewBuilder->rows($space),
+        ]);
+    }
+
+    /**
+     * A text written elsewhere that becomes a presentation of this space: a
+     * heading opens a slide, what follows fills it, see
+     * {@see SlidesFromBlocks}. The same conversion as in Studio, under the
+     * space's rights; a text nothing can be drawn from is refused before the
+     * deliverable exists.
+     */
+    #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function import(CustomerSpace $space, Request $request): JsonResponse
+    {
+        if (!$this->access->canAddTo($space)) {
+            return $this->jsonForbidden();
+        }
+
+        $payload = $this->decodeJson($request);
+        $title = $this->title($payload);
+        if (is_string($title)) {
+            return $this->jsonInvalidInput(['title' => $title]);
+        }
+
+        $plan = $this->fromBlocks->plan(is_array($payload['blocks'] ?? null) ? array_values($payload['blocks']) : []);
+        if ([] === $plan) {
+            return $this->jsonInvalidInput(['blocks' => 'suite.studio.deliverables.errors.import_empty']);
+        }
+
+        $deliverable = $this->manager->create($space, mb_trim((string) $payload['title']), $this->access->user(), format: DeliverableFormatEnum::Slides);
+        $this->fromBlocks->apply($deliverable, $plan);
+        $this->entityManager->flush();
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
@@ -112,6 +183,12 @@ final class SpaceDeliverablesController extends AbstractController
         int $deliverableId,
     ): Response {
         $deliverable = $this->owned($space, $deliverableId);
+
+        // A presentation is composed in the slide editor, inside the space
+        // shell like a page.
+        if ($deliverable->isSlides()) {
+            return $this->render('@Studio/suite/space-deliverables/slides.html.twig', $this->slidesView->spaceEditorView($deliverable));
+        }
 
         return $this->render('@Studio/suite/space-deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
     }
@@ -130,6 +207,13 @@ final class SpaceDeliverablesController extends AbstractController
             return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true]);
         }
 
+        // The editor saves everything at once, the "Visible par le client"
+        // box included: changing it takes the right to share the space, the
+        // same as the list's button.
+        if (!$this->clientVisibility->allowsChange($deliverable->isVisibleToClient(), true === ($payload['visibleToClient'] ?? false))) {
+            return $this->jsonForbidden();
+        }
+
         $errors = $this->manager->update($deliverable, $payload);
 
         if ([] !== $errors) {
@@ -139,9 +223,10 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess(['deliverable' => $this->viewBuilder->editorView($deliverable)['deliverable']]);
     }
 
-    /** Ouvert ou fermé au client, depuis la liste. */
+    /** Shown or hidden from the client, from the list: the right to share the space. */
     #[Route('/{deliverableId}/visibility', name: '_visibility', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
     public function visibility(
         CustomerSpace $space,
         int $deliverableId,
@@ -152,9 +237,9 @@ final class SpaceDeliverablesController extends AbstractController
         $payload = $this->decodeJson($request);
         $visible = true === ($payload['visible'] ?? false);
 
-        // Ouvrir au client est le moment où un modèle mal rempli lui parvient :
-        // l'éditeur prévient, la liste doit le faire aussi. Refusé tant que
-        // l'auteur n'a pas dit qu'il le sait (`confirm`), avec ce qui reste.
+        // Opening to the client is the moment a badly filled template reaches
+        // them: the editor warns, the list must too. Refused until the author
+        // has said they know (`confirm`), with what is left.
         if ($visible && true !== ($payload['confirm'] ?? false)) {
             $report = $this->readiness->report($deliverable);
             if ($report['placeholders'] > 0 || [] !== $report['withheldPictures']) {
@@ -193,8 +278,8 @@ final class SpaceDeliverablesController extends AbstractController
     }
 
     /**
-     * Une copie dans Studio, pour garder ce livrable comme modèle : elle
-     * arrive dans « Mes livrables », et l'on ouvre son éditeur.
+     * A copy in Studio, to keep this deliverable as a template: it lands in
+     * "Mes livrables", and its editor opens.
      */
     #[Route('/{deliverableId}/copy-to-studio', name: '_copy_to_studio', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function copyToStudio(
@@ -226,9 +311,10 @@ final class SpaceDeliverablesController extends AbstractController
     }
 
     /**
-     * La page telle que le client la lira, ouverte par le studio.
+     * The page as the client will read it, opened by the studio.
      *
-     * Visible ou non au client : c'est ce qui permet de relire avant d'ouvrir.
+     * Visible to the client or not: that is what allows reviewing before
+     * opening.
      */
     #[Route('/{deliverableId}/preview', name: '_preview', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function preview(
@@ -237,6 +323,16 @@ final class SpaceDeliverablesController extends AbstractController
         Request $request,
     ): Response {
         $deliverable = $this->owned($space, $deliverableId);
+
+        // A presentation previews as the client will read it: its slides,
+        // without the speaker notes.
+        if ($deliverable->isSlides()) {
+            return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
+                'deck' => $this->slidesView->readerDeck($deliverable),
+                'expiresAt' => null,
+            ]));
+        }
+
         $print = $request->query->getBoolean('print');
 
         return $this->privately($this->renderer->render(
@@ -249,8 +345,8 @@ final class SpaceDeliverablesController extends AbstractController
     }
 
     /**
-     * L'aperçu de la grille pendant qu'on la compose : le même gabarit de
-     * zones que la page, rendu à partir de ce que l'éditeur tient.
+     * The grid preview while it is being composed: the same zone template as
+     * the page, rendered from what the editor holds.
      */
     #[Route('/grid-preview', name: '_grid_preview', methods: [HttpMethodEnum::Post->value])]
     public function gridPreview(CustomerSpace $space, Request $request): JsonResponse
@@ -258,7 +354,7 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->json(['success' => true, 'html' => $this->previews->grid($this->decodeJson($request))]);
     }
 
-    /** L'aperçu d'un bloc d'entête posé dans la grille. */
+    /** The preview of a banner block placed in the grid. */
     #[Route('/banner-preview', name: '_banner_preview', methods: [HttpMethodEnum::Post->value])]
     public function bannerPreview(CustomerSpace $space, Request $request): JsonResponse
     {
@@ -266,9 +362,9 @@ final class SpaceDeliverablesController extends AbstractController
     }
 
     /**
-     * Les liens de lecture, adresses comprises : sous le droit de partager
-     * l'espace, comme l'accès de l'espace lui-même, et pas sous celui de le
-     * modifier. Les lire, c'est pouvoir les transmettre.
+     * The reading links, addresses included: under the right to share the
+     * space, like access to the space itself, and not under the right to edit
+     * it. Reading them means being able to pass them on.
      */
     #[Route('/{deliverableId}/links', name: '_links', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     #[IsGranted(DeliverableAccess::SPACE_SHARE)]
@@ -282,8 +378,8 @@ final class SpaceDeliverablesController extends AbstractController
     }
 
     /**
-     * Une adresse de plus : un intitulé pour s'y retrouver, une expiration et
-     * un mot de passe au choix.
+     * One more address: a label to find your way, an optional expiry and an
+     * optional password.
      */
     #[Route('/{deliverableId}/links/create', name: '_links_create', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted(DeliverableAccess::SPACE_SHARE)]
@@ -305,7 +401,7 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
-    /** Révoquer date la ligne ; elle n'est jamais supprimée. */
+    /** Revoking dates the row; it is never deleted. */
     #[Route('/{deliverableId}/links/{linkId}/revoke', name: '_links_revoke', requirements: ['deliverableId' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted(DeliverableAccess::SPACE_SHARE)]
     public function revokeLink(
@@ -322,7 +418,7 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
-    /** Masquer de la liste un lien retiré ou expiré : sa ligne reste, un lien vivant ne se masque pas. */
+    /** Hide a revoked or expired link from the list: its row stays, a live link cannot be hidden. */
     #[Route('/{deliverableId}/links/{linkId}/hide', name: '_links_hide', requirements: ['deliverableId' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted(DeliverableAccess::SPACE_SHARE)]
     public function hideLink(
@@ -344,7 +440,7 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
-    /** Supprimer une adresse que personne n'a jamais ouverte ; une adresse déjà ouverte se révoque seulement. */
+    /** Delete an address nobody has ever opened; an address already opened can only be revoked. */
     #[Route('/{deliverableId}/links/{linkId}/delete', name: '_links_delete', requirements: ['deliverableId' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted(DeliverableAccess::SPACE_SHARE)]
     public function deleteLink(
@@ -367,11 +463,51 @@ final class SpaceDeliverablesController extends AbstractController
     }
 
     /**
-     * Le livrable de cet espace, ou 404 : l'identifiant d'un autre espace, ou
-     * d'un livrable de Studio, répond comme un identifiant qui n'existe pas.
+     * The error key refusing the title sent, or null when it is fine.
      *
-     * Résolu par le dépôt et rendu en interface, pas par un `MapEntity` sur la
-     * classe du cœur : un projet qui substitue l'entité garde ses routes.
+     * @param array<string, mixed> $payload
+     */
+    private function title(array $payload): ?string
+    {
+        $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
+
+        if ('' === $title) {
+            return 'suite.studio.deliverables.errors.title_required';
+        }
+
+        return mb_strlen($title) > DeliverableManager::TITLE_MAX ? 'suite.studio.deliverables.errors.title_too_long' : null;
+    }
+
+    /**
+     * The Studio template a space deliverable starts from: live, readable,
+     * still a template, of the format asked, with the Deliverables module on.
+     * Otherwise nothing, and the deliverable starts from scratch.
+     */
+    private function template(mixed $id, DeliverableFormatEnum $format): ?DeliverableInterface
+    {
+        $id = is_int($id) || (is_string($id) && is_numeric($id)) ? (int) $id : null;
+        if (null === $id || !$this->studioContext->areDeliverablesEnabled()) {
+            return null;
+        }
+
+        $template = $this->deliverables->findStandalone($id);
+
+        return $template instanceof DeliverableInterface
+            && $template->isTemplate()
+            && $template->getFormat() === $format
+            && $this->access->canRead($template)
+            ? $template
+            : null;
+    }
+
+    /**
+     * This space's deliverable, or 404: the id of another space's
+     * deliverable, or of a Studio deliverable, answers like an id that does
+     * not exist.
+     *
+     * Resolved by the repository and returned as the interface, not through a
+     * `MapEntity` on the core class: a project that substitutes the entity
+     * keeps its routes.
      */
     private function owned(CustomerSpace $space, int $deliverableId): DeliverableInterface
     {

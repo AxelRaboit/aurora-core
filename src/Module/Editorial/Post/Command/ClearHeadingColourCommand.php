@@ -20,18 +20,17 @@ use function preg_quote;
 use function sprintf;
 
 /**
- * Retire la couleur posée à la main sur des titres entiers.
+ * Removes the colour set by hand on whole headings.
  *
- * Avant le réglage « Titres du contenu » du thème, la seule façon d'avoir des
- * intertitres de couleur était de les colorer un par un dans l'éditeur. Sur
- * un site monté ainsi, changer la couleur des titres voulait dire rouvrir des
- * dizaines de pages. Une fois le réglage choisi, cette couleur posée à la
- * main n'est plus qu'un obstacle : elle passe devant lui, titre par titre.
+ * Before the theme's "Titres du contenu" setting, the only way to get
+ * coloured subheadings was to colour them one by one in the editor. On a site
+ * built that way, changing the heading colour meant reopening dozens of
+ * pages. Once the setting is chosen, that hand-set colour is only an
+ * obstacle: it wins over the setting, heading by heading.
  *
- * **Seul un titre coloré d'un bout à l'autre est touché**, et seulement dans
- * la couleur demandée. Un mot mis en couleur au milieu d'une phrase, ou un
- * titre dont une partie seulement est colorée, est un choix d'écriture : il
- * reste tel quel.
+ * **Only a heading coloured from end to end is touched**, and only in the
+ * requested colour. A word coloured in the middle of a sentence, or a heading
+ * only part of which is coloured, is a writing choice: it stays as it is.
  */
 #[AsCommand(
     name: 'aurora:editorial:headings:clear-colour',
@@ -41,7 +40,7 @@ final class ClearHeadingColourCommand extends Command
 {
     public function __construct(
         private readonly PostRepository $posts,
-        private readonly EntityManagerInterface $em,
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
@@ -97,7 +96,7 @@ final class ClearHeadingColourCommand extends Command
             return Command::SUCCESS;
         }
 
-        $this->em->flush();
+        $this->entityManager->flush();
         $io->success(sprintf('%d heading(s) now follow the theme heading colour.', $total));
 
         return Command::SUCCESS;

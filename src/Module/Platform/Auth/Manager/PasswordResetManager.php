@@ -30,7 +30,7 @@ class PasswordResetManager implements PasswordResetManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly UserRepository $userRepository,
-        protected readonly ResetPasswordRequestRepository $resetRepo,
+        protected readonly ResetPasswordRequestRepository $resetRequestRepository,
         protected readonly UserPasswordHasherInterface $passwordHasher,
         protected readonly MailerInterface $mailer,
         protected readonly SettingRepository $settingRepository,
@@ -70,7 +70,7 @@ class PasswordResetManager implements PasswordResetManagerInterface
      */
     public function createRequestForUser(User $user): array
     {
-        $this->resetRepo->deleteByUser($user);
+        $this->resetRequestRepository->deleteByUser($user);
 
         $selector = bin2hex(random_bytes(10));
         $plainToken = bin2hex(random_bytes(32));
@@ -108,7 +108,7 @@ class PasswordResetManager implements PasswordResetManagerInterface
 
     public function validateToken(string $selector, string $token, ?UserTypeEnum $expectedType = UserTypeEnum::Suite): ?ResetPasswordRequest
     {
-        $resetRequest = $this->resetRepo->findBySelector($selector);
+        $resetRequest = $this->resetRequestRepository->findBySelector($selector);
 
         if (!$resetRequest instanceof ResetPasswordRequest || $resetRequest->isExpired()) {
             return null;

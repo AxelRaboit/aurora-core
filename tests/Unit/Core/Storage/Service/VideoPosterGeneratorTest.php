@@ -14,21 +14,21 @@ use Symfony\Component\Process\ExecutableFinder;
 
 final class VideoPosterGeneratorTest extends TestCase
 {
-    private string $workDir;
+    private string $workDirectory;
     private VideoPosterGenerator $generator;
     private InMemoryStorageAdapter $adapter;
 
     protected function setUp(): void
     {
-        $this->workDir = sys_get_temp_dir().'/aurora-poster-'.uniqid();
-        mkdir($this->workDir, 0o777, true);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-poster-'.uniqid();
+        mkdir($this->workDirectory, 0o777, true);
         $this->generator = new VideoPosterGenerator(new LocalWorkspace(new Filesystem()));
         $this->adapter = new InMemoryStorageAdapter();
     }
 
     protected function tearDown(): void
     {
-        new Filesystem()->remove($this->workDir);
+        new Filesystem()->remove($this->workDirectory);
     }
 
     public function testACapturedFrameIsStoredUnderTheThumbnailPrefix(): void
@@ -70,7 +70,7 @@ final class VideoPosterGeneratorTest extends TestCase
      */
     public function testSomethingThatIsNotARasterImageIsRefused(): void
     {
-        $path = $this->workDir.'/not-an-image.png';
+        $path = $this->workDirectory.'/not-an-image.png';
         file_put_contents($path, 'MZ definitely not a picture');
 
         $key = $this->generator->fromCapture(
@@ -90,7 +90,7 @@ final class VideoPosterGeneratorTest extends TestCase
      */
     public function testAnImageTypeOverBytesThatDoNotDecodeIsRefused(): void
     {
-        $path = $this->workDir.'/corrupt.png';
+        $path = $this->workDirectory.'/corrupt.png';
         file_put_contents($path, 'not really a png');
 
         $key = $this->generator->fromCapture(
@@ -117,7 +117,7 @@ final class VideoPosterGeneratorTest extends TestCase
             new LocalWorkspace(new Filesystem()),
             new Filesystem(),
             new class extends ExecutableFinder {
-                public function find(string $name, ?string $default = null, array $extraDirs = []): ?string
+                public function find(string $name, ?string $default = null, array $extraDirectories = []): ?string
                 {
                     return null;
                 }
@@ -140,7 +140,7 @@ final class VideoPosterGeneratorTest extends TestCase
             new LocalWorkspace(new Filesystem()),
             new Filesystem(),
             new class extends ExecutableFinder {
-                public function find(string $name, ?string $default = null, array $extraDirs = []): ?string
+                public function find(string $name, ?string $default = null, array $extraDirectories = []): ?string
                 {
                     return null;
                 }
@@ -167,7 +167,7 @@ final class VideoPosterGeneratorTest extends TestCase
      */
     private function upload(string $name, string $mimeType): UploadedFile
     {
-        $path = $this->workDir.'/'.$name;
+        $path = $this->workDirectory.'/'.$name;
         $image = imagecreatetruecolor(16, 9);
 
         if ('image/webp' === $mimeType) {

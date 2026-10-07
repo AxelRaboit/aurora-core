@@ -19,29 +19,30 @@ use function in_array;
 use function sprintf;
 
 /**
- * Les images collées dans une note, rangées là où va tout le reste.
+ * The images pasted into a note, stored where everything else goes.
  *
- * Elles allaient dans `var/uploads/notes-markdown/` par un `Filesystem` posé
- * en direct, sans passer par la couche de stockage. C'était le seul module à
- * faire ça : la médiathèque, les photos de profil et les contrats écrivent
- * tous par `StorageManager`, et le disque actif en production est R2 depuis le
- * 12 septembre. Les images de note restaient donc sur le disque du serveur,
- * seules de leur espèce.
+ * They went into `var/uploads/notes-markdown/` through a `Filesystem` used
+ * directly, without going through the storage layer. It was the only module
+ * doing that: the media library, profile photos and contracts all write
+ * through `StorageManager`, and the active disk in production has been R2
+ * since 12 September. Note images therefore stayed on the server disk, the
+ * only ones of their kind.
  *
- * Le plus parlant : `StorageAreaEnum` déclarait déjà la zone `notes-markdown`,
- * ajoutée en 0.9.188 pour qu'un garde d'accès puisse revendiquer le préfixe.
- * La zone existait, l'adaptateur existait, l'écriture n'était pas branchée.
+ * The most telling part: `StorageAreaEnum` already declared the
+ * `notes-markdown` zone, added in 0.9.188 so that an access guard could claim
+ * the prefix. The zone existed, the adapter existed, the write was not
+ * plugged in.
  *
- * **La clé porte le propriétaire** : `notes-markdown/{idUtilisateur}/{uuid}.ext`.
- * C'est elle qui tient la règle d'accès, et elle la tient mieux que l'ancien
- * calcul de chemin : le contrôleur la construit avec l'identifiant de la
- * personne connectée, donc demander l'image d'un autre revient à demander une
- * clé qui n'existe pas. Il n'y a plus de `realpath` à comparer, plus de
- * remontée possible par `..`, plus de racine à faire respecter.
+ * **The key carries the owner**: `notes-markdown/{userId}/{uuid}.ext`.
+ * It is what holds the access rule, and it holds it better than the old path
+ * computation: the controller builds it with the id of the logged-in person,
+ * so asking for someone else's image amounts to asking for a key that does
+ * not exist. There is no more `realpath` to compare, no more climbing up
+ * through `..`, no more root to enforce.
  *
- * Toujours pas d'entité Doctrine, pour la raison d'avant : une image de note
- * n'a ni alt, ni dimensions, ni empreinte à retenir. Le jour où il faudra des
- * quotas ou de la déduplication, ce sera une autre discussion.
+ * Still no Doctrine entity, for the earlier reason: a note image has no alt,
+ * no dimensions, no fingerprint to keep. The day quotas or deduplication are
+ * needed, that will be another discussion.
  */
 final readonly class MarkdownNoteImageService
 {
@@ -70,23 +71,22 @@ final readonly class MarkdownNoteImageService
     public const string FILENAME_PATTERN = '#/suite/notes/markdown/images/([A-Za-z0-9._-]+)#';
 
     /**
-     * Un nom de fichier tel que ce service en fabrique : un uuid, un point,
-     * une extension. Tout le reste est refusé avant de devenir une clé.
+     * A file name as this service makes them: a uuid, a dot, an extension.
+     * Everything else is refused before becoming a key.
      *
-     * La route qui sert une image accepte `[A-Za-z0-9._-]+`, ce qui laisse
-     * passer `..`. Sur une clé d'objet, deux points ne sont qu'un segment de
-     * plus ; sur le disque local, ils remonteraient d'un cran. L'adaptateur
-     * local canonicalise et compare à sa racine, donc il tiendrait, mais on ne
-     * fait pas reposer une règle d'accès sur la vigilance de la couche d'en
-     * dessous.
+     * The route that serves an image accepts `[A-Za-z0-9._-]+`, which lets
+     * `..` through. On an object key, two dots are just one more segment; on
+     * the local disk, they would climb up one level. The local adapter
+     * canonicalizes and compares with its root, so it would hold, but an
+     * access rule is not made to rest on the vigilance of the layer below.
      *
-     * **Deux formes, parce qu'il y a eu deux époques.** Les images d'avant la
-     * 0.9.230 portent un uuid v4 écrit en toutes lettres, avec ses tirets ;
-     * celles d'après portent les trente-deux caractères que `StoredFileName`
-     * fabrique, seize octets du générateur du système et rien d'autre. Refuser
-     * la première forme rendrait illisible tout ce qui a été collé avant, et
-     * la commande d'adoption ne peut pas renommer sans réécrire les notes qui
-     * citent ces fichiers.
+     * **Two forms, because there were two eras.** Images from before 0.9.230
+     * carry a v4 uuid written out in full, with its hyphens; those after carry
+     * the thirty-two characters that `StoredFileName` makes, sixteen bytes
+     * from the system generator and nothing else. Refusing the first form
+     * would make everything pasted before unreadable, and the adoption
+     * command cannot rename without rewriting the notes that cite those
+     * files.
      */
     private const string FILENAME_SHAPE = '/^(?:[0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.[a-z0-9]{1,5}$/';
 
@@ -95,9 +95,9 @@ final readonly class MarkdownNoteImageService
     ) {}
 
     /**
-     * Écrit le fichier téléversé sous la clé de la personne, renommé en uuid
-     * pour que le nom choisi par le navigateur ne touche jamais le stockage.
-     * Rend le nom nu (uuid.ext), qui est ce que le markdown porte.
+     * Writes the uploaded file under the person's key, renamed to a uuid so
+     * that the name chosen by the browser never touches the storage.
+     * Returns the bare name (uuid.ext), which is what the markdown carries.
      *
      * @throws FileException when validation fails (bad MIME, too big)
      */
@@ -116,9 +116,9 @@ final readonly class MarkdownNoteImageService
 
         $filename = StoredFileName::withExtension($imageMime->extension());
 
-        // Le fichier est déjà quelque part sur cette machine, PHP l'y a mis :
-        // passer son chemin plutôt que son contenu fait une copie au lieu de
-        // deux. C'est ce que fait la photo de profil, pour la même raison.
+        // The file is already somewhere on this machine, PHP put it there:
+        // passing its path rather than its content makes one copy instead of
+        // two. That is what the profile photo does, for the same reason.
         $this->storageManager->active()->writeFromLocalFile(
             $this->keyFor($filename, $user),
             $file->getPathname(),
@@ -128,13 +128,13 @@ final readonly class MarkdownNoteImageService
     }
 
     /**
-     * La clé de stockage d'une image, ou null si le nom n'a pas la forme que
-     * ce service produit.
+     * The storage key of an image, or null if the name does not have the
+     * shape this service produces.
      *
-     * Null plutôt qu'une exception : l'appelant en fait un 404, ce qui est la
-     * bonne réponse aussi bien pour un nom malformé que pour une image qui
-     * n'existe pas. Distinguer les deux dirait à qui demande si le fichier
-     * existe chez quelqu'un d'autre.
+     * Null rather than an exception: the caller turns it into a 404, which is
+     * the right answer for a malformed name as well as for an image that
+     * does not exist. Telling the two apart would tell the requester whether
+     * the file exists for someone else.
      */
     public function keyOrNull(string $filename, CoreUserInterface|NoteSpaceInterface $user): ?string
     {
@@ -146,14 +146,14 @@ final readonly class MarkdownNoteImageService
     }
 
     /**
-     * Supprime une image, sur tous les disques.
+     * Deletes an image, on every disk.
      *
-     * Sur tous, et pas seulement sur l'actif : une image écrite avant une
-     * bascule de disque vit encore sur l'ancien, et ne la supprimer que sur le
-     * nouveau la laisserait là pour toujours, invisible et facturée. C'est la
-     * même raison qui fait boucler la photo de profil sur les disques.
+     * On every one, and not only on the active one: an image written before a
+     * disk switch still lives on the old one, and deleting it only on the new
+     * one would leave it there forever, invisible and billed. It is the same
+     * reason that makes the profile photo loop over the disks.
      *
-     * Silencieux sur un fichier absent, pour que le nettoyage reste rejouable.
+     * Silent on a missing file, so that the cleanup stays replayable.
      */
     public function delete(string $filename, CoreUserInterface|NoteSpaceInterface $user): void
     {
@@ -169,12 +169,12 @@ final readonly class MarkdownNoteImageService
     }
 
     /**
-     * Le contenu d'une image, pour qui a besoin des octets plutôt que d'une
-     * réponse HTTP - l'export zip, qui les range à côté du markdown.
+     * The content of an image, for whoever needs the bytes rather than an
+     * HTTP response - the zip export, which stores them next to the markdown.
      *
-     * Null quand l'image n'existe pas : une note peut citer une image
-     * supprimée entre-temps, et un export qui lèverait pour ça refuserait de
-     * sortir un carnet entier à cause d'un fichier manquant.
+     * Null when the image does not exist: a note can cite an image deleted in
+     * the meantime, and an export that threw for that would refuse to output
+     * a whole notebook because of one missing file.
      */
     public function contents(string $filename, CoreUserInterface|NoteSpaceInterface $user): ?string
     {
@@ -194,13 +194,12 @@ final readonly class MarkdownNoteImageService
     }
 
     /**
-     * Recopie les images d'un texte d'un compartiment à l'autre.
+     * Copies a text's images from one bucket to another.
      *
-     * Une note qui change d'espace garde ses adresses d'images telles quelles
-     * - elles ne portent que le nom du fichier -, donc le fichier doit exister
-     * dans le compartiment de son nouvel espace. Recopier plutôt que déplacer :
-     * une image citée ailleurs dans l'ancien espace ne disparaît pas sous une
-     * autre note.
+     * A note that changes space keeps its image addresses as they are
+     * - they only carry the file name -, so the file must exist in its new
+     * space's bucket. Copy rather than move: an image cited elsewhere in the
+     * old space does not disappear from under another note.
      */
     public function copyReferenced(?string $content, CoreUserInterface|NoteSpaceInterface $from, CoreUserInterface|NoteSpaceInterface $to): void
     {
@@ -220,12 +219,12 @@ final readonly class MarkdownNoteImageService
     }
 
     /**
-     * Le texte d'une note copiée, avec ses images copiées sous des noms neufs.
+     * The text of a copied note, with its images copied under new names.
      *
-     * Une copie (dupliquer, partir d'un modèle) ne partage pas ses fichiers
-     * avec l'original : retirer une image de l'une la supprime du stockage
-     * (le nettoyage des images orphelines), et l'autre afficherait une image
-     * cassée. Une image introuvable garde sa référence telle quelle.
+     * A copy (duplicate, start from a template) does not share its files with
+     * the original: removing an image from one deletes it from storage (the
+     * orphan image cleanup), and the other would show a broken image. An
+     * image that cannot be found keeps its reference as is.
      */
     public function copyAsNew(?string $content, CoreUserInterface|NoteSpaceInterface $from, CoreUserInterface|NoteSpaceInterface $to): ?string
     {
@@ -278,11 +277,10 @@ final readonly class MarkdownNoteImageService
 
     private function keyFor(string $filename, CoreUserInterface|NoteSpaceInterface $user): string
     {
-        // Le compartiment d'un espace. Celui d'un espace personnel est le
-        // compartiment historique de la personne : aucun fichier n'a eu à
-        // bouger quand les carnets sont devenus des espaces. Un espace
-        // partagé a le sien, pour que ses images s'affichent chez tous ses
-        // lecteurs et pas seulement chez qui les a posées.
+        // The bucket of a space. A personal space's one is the person's
+        // historical bucket: no file had to move when notebooks became
+        // spaces. A shared space has its own, so that its images show for
+        // all its readers and not only for whoever put them there.
         $bucket = $user instanceof NoteSpaceInterface
             ? ($user->getPersonalUser() instanceof CoreUserInterface ? (string) $user->getPersonalUser()->getId() : 'space-'.$user->getId())
             : (string) $user->getId();
@@ -290,7 +288,7 @@ final readonly class MarkdownNoteImageService
         return sprintf('%s/%s/%s', StorageAreaEnum::NotesMarkdown->value, $bucket, $filename);
     }
 
-    /** Le compartiment des images d'une note : celui de son espace. */
+    /** The bucket of a note's images: that of its space. */
     public function bucketOf(MarkdownNoteInterface $note): NoteSpaceInterface
     {
         return $note->getSpace();

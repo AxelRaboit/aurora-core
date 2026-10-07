@@ -10,6 +10,8 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
@@ -21,11 +23,15 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Les fichiers de l'espace lui-même, déposés ou choisis.
+ * The files of the space itself, dropped or picked.
  *
- * Le même téléverseur que les pièces jointes d'une fiche, donc le même dossier
- * et le même brouillon : un fichier d'espace n'est pas rangé ailleurs parce
- * qu'il n'est accroché à rien.
+ * The same uploader as a record's attachments, so the same folder and the
+ * same draft: a space file is not stored elsewhere because it is attached to
+ * nothing.
+ *
+ * A file dropped or picked by the studio is born hidden from the client, like
+ * everything a space can show them; showing it is a separate action,
+ * {@see setVisibleToClient()}, under the right to share the space.
  */
 #[AsAlias(SpaceFileManagerInterface::class)]
 class SpaceFileManager implements SpaceFileManagerInterface
@@ -37,6 +43,10 @@ class SpaceFileManager implements SpaceFileManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly Security $security,
         protected readonly TranslatorInterface $translator,
+        // Optional and last, so a client project extending this Manager with
+        // its own constructor keeps booting: without it a file the client
+        // sends is stored and audited, and nobody is told.
+        protected readonly ?SpaceActivityNotifier $notifier = null,
     ) {}
 
     public function attachAsStudio(CustomerSpaceInterface $space, DocumentInterface $document): SpaceFileInterface
@@ -61,11 +71,38 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Retire le fichier de l'espace, et laisse le document tranquille.
+     * A file from the client, onto the space itself.
      *
-     * La même règle que sur une fiche : la ligne dit un rattachement, pas une
-     * possession. Le document reste dans la médiathèque, où sa suppression est
-     * un écran qui prévient et une corbeille qui rattrape.
+     * Filed by the same uploader as the studio's, so in the space's own GED
+     * folder and as a draft: the client reads it back through their link's
+     * route, never through the public catch-all. Signed as the client's and
+     * shown to them from the start (see {@see SpaceFileInterface::isShownToClient()}),
+     * then announced to the team, after the flush, like the client's other
+     * gestures: a notification that fails never loses the file.
+     */
+    public function uploadAsClient(SpaceAccessLinkInterface $link, UploadedFile $file): SpaceFileInterface
+    {
+        $space = $link->getSpace();
+
+        $spaceFile = $this->createFile();
+        $spaceFile->setSpace($space)->setDocument($this->uploader->upload($file, $space))->addedByClient($link);
+
+        $this->entityManager->persist($spaceFile);
+        $this->entityManager->flush();
+
+        $this->auditSentByClient($spaceFile);
+
+        $this->notifier?->clientSentFile($space, $spaceFile->getAuthorLabel(), $spaceFile->getDocument()->getTitle());
+
+        return $spaceFile;
+    }
+
+    /**
+     * Removes the file from the space, and leaves the document alone.
+     *
+     * The same rule as on a record: the row states an attachment, not
+     * ownership. The document stays in the media library, where deleting it is
+     * a screen that warns and a trash that catches.
      */
     public function remove(SpaceFileInterface $file): void
     {
@@ -76,11 +113,38 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Refuse deux fois le même document sur un espace.
+     * Shows the file to the client, or hides it from them.
      *
-     * Deux lignes vers un seul fichier se lisent comme une erreur de celui qui
-     * regarde, et c'en est une. Attrapé ici plutôt que par un index unique,
-     * pour que la réponse soit une phrase.
+     * **A file the client sent stays visible.** Hiding it would remove from
+     * their page what they just dropped there, and they would think the upload
+     * was lost: refused with a sentence rather than ignored.
+     */
+    public function setVisibleToClient(SpaceFileInterface $file, bool $visible): void
+    {
+        if (!$visible && $file->isFromClient()) {
+            throw new FieldException('visibleToClient', $this->translator->trans('suite.studio.space_files.errors.client_file_stays_visible'));
+        }
+
+        $file->setVisibleToClient($visible);
+        $this->entityManager->flush();
+
+        // Two branches and two literals: the audit log drift check reads the
+        // actions in the code, and a computed value escapes it.
+        if ($visible) {
+            $this->auditLogger->log('studio', 'space_file.shown', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+
+            return;
+        }
+
+        $this->auditLogger->log('studio', 'space_file.hidden', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+    }
+
+    /**
+     * Refuses the same document twice on a space.
+     *
+     * Two rows pointing to a single file read as a mistake by whoever looks,
+     * and it is one. Caught here rather than by a unique index, so the
+     * response is a sentence.
      */
     protected function refuseDuplicate(CustomerSpaceInterface $space, DocumentInterface $document): void
     {
@@ -100,9 +164,9 @@ class SpaceFileManager implements SpaceFileManagerInterface
     }
 
     /**
-     * Instancie l'entité concrète. À surcharger pour rendre une classe
-     * substituée côté client - `resolve_target_entities` ne touche que les
-     * relations Doctrine, pas les `new` directs.
+     * Instantiates the concrete entity. Override it to return a class
+     * substituted on the client side - `resolve_target_entities` only touches
+     * Doctrine relations, not direct `new` calls.
      */
     protected function createFile(): SpaceFileInterface
     {
@@ -119,18 +183,23 @@ class SpaceFileManager implements SpaceFileManagerInterface
         $this->auditLogger->log('studio', 'space_file.added', 'SpaceFile', $file->getId(), $this->auditPayload($file));
     }
 
+    protected function auditSentByClient(SpaceFileInterface $file): void
+    {
+        $this->auditLogger->log('studio', 'space_file.sent_by_client', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+    }
+
     protected function auditRemoved(SpaceFileInterface $file): void
     {
         $this->auditLogger->log('studio', 'space_file.removed', 'SpaceFile', $file->getId(), $this->auditPayload($file));
     }
 
     /**
-     * Ce que porte chaque entrée du journal.
+     * What each audit log entry carries.
      *
-     * L'action, elle, est écrite en toutes lettres dans chaque hook plutôt que
-     * passée en paramètre : le contrôle de dérive des libellés lit le code à la
-     * recherche de `log('module', 'action')`, et une action passée en variable
-     * est un angle mort qu'il refuse d'avoir.
+     * The action itself is spelled out in each hook rather than passed as a
+     * parameter: the label drift check reads the code looking for
+     * `log('module', 'action')`, and an action passed as a variable is a blind
+     * spot it refuses to have.
      *
      * @return array<string, mixed>
      */
@@ -143,6 +212,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
             'documentTitle' => $file->getDocument()->getTitle(),
             'author' => $file->getAuthorLabel(),
             'fromClient' => $file->isFromClient(),
+            'visibleToClient' => $file->isVisibleToClient(),
         ];
     }
 }

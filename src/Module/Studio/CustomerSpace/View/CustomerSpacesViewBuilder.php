@@ -19,6 +19,7 @@ use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterfa
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use DateTimeZone;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class CustomerSpacesViewBuilder
 {
@@ -31,6 +32,7 @@ final readonly class CustomerSpacesViewBuilder
         private StorageUsageProbe $storageUsage,
         private SpaceVisibility $visibility,
         private SpaceWorkload $workload,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {}
 
     /**
@@ -47,37 +49,86 @@ final readonly class CustomerSpacesViewBuilder
     {
         return [
             'spaces' => $this->spaces(),
-            // Ce que chaque espace a fait déposer, en une requête. Sans ce
-            // chiffre, « quel client remplit mon disque » se répond en ouvrant
-            // les espaces un par un, donc ne se répond pas.
+            // What each space has had uploaded, in one query. Without this
+            // number, "which customer fills my disk" is answered by opening
+            // the spaces one by one, so it is not answered.
             'storage' => $this->storageUsage->bySpace(),
+            ...$this->formOptions(),
+            'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
+            'createPath' => $this->urlGenerator->generate('suite_studio_spaces_create'),
+            'spacesPath' => $this->urlGenerator->generate('suite_studio_spaces'),
+            'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
+            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplates->generate('suite_studio_spaces_delete', ['id' => '__id__']),
+        ];
+    }
+
+    /**
+     * What the space form offers, for the creation modal of the list and the
+     * Settings tab of a space: the customers, the accounts, the statuses, the
+     * roles and the timezones.
+     *
+     * @return array{customers: list<array{id: int, name: string}>, canCreateCustomer: bool, users: list<array{id: int, name: string, email: string}>, statuses: list<array{value: string, labelKey: string}>, roles: list<array{value: string, labelKey: string}>, timezones: list<string>}
+     */
+    public function formOptions(): array
+    {
+        return [
             'customers' => $this->customerOptions(),
+            // Opening a space for someone unknown creates their customer
+            // sheet: the form only offers this path to whoever can create a
+            // customer.
+            'canCreateCustomer' => $this->authorizationChecker->isGranted('studio.customers.create'),
             'users' => $this->userOptions(),
             'statuses' => $this->statusOptions(),
             'roles' => $this->roleOptions(),
             // The whole list, as the calendar's own screen does it: a
             // shortlist would be right until the first client abroad.
             'timezones' => DateTimeZone::listIdentifiers(),
-            'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
-            'createPath' => $this->urlGenerator->generate('suite_studio_spaces_create'),
-            'updatePath' => $this->pathTemplates->generate('suite_studio_spaces_update', ['id' => '__id__']),
-            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('suite_studio_spaces_delete', ['id' => '__id__']),
         ];
+    }
+
+    /**
+     * The Settings tab of a space: the space as the form edits it, the form's
+     * options, and where to save it.
+     *
+     * Null for a reader without `studio.spaces.edit`: the tab then only shows
+     * to the lead for the Drive, and the account and customer lists are not
+     * read on every opening of a space for nothing. `canConfigure` says
+     * whether the team and roles (and the Drive) are the reader's to change,
+     * the same rule `CustomerSpaceManager::refuseTeamChangeUnlessLead()`
+     * enforces on save.
+     *
+     * Saved through `suite_studio_spaces_update`, the route the list's modal
+     * used: the same input, validation, rights and manager path.
+     *
+     * @return array{spaceSettings: array<string, mixed>|null}
+     */
+    public function settingsView(CustomerSpaceInterface $space): array
+    {
+        if (!$this->authorizationChecker->isGranted('studio.spaces.edit')) {
+            return ['spaceSettings' => null];
+        }
+
+        return ['spaceSettings' => [
+            'space' => $this->spaceSerializer->serialize($space),
+            'canConfigure' => $this->visibility->canConfigure($space),
+            ...$this->formOptions(),
+            'updatePath' => $this->urlGenerator->generate('suite_studio_spaces_update', ['id' => $space->getId()]),
+        ]];
     }
 
     /** @return list<array<string, mixed>> */
     public function spaces(): array
     {
-        // Les siens, ou tous pour un administrateur : la règle vit dans
-        // `SpaceVisibility`, pas ici, parce que trois écrans se la posent.
-        // `canConfigure` par ligne : l'équipe et les rôles d'un espace sont
-        // l'affaire de son chef, et le formulaire les montre en lecture seule
-        // aux autres plutôt que de laisser le serveur refuser après coup.
+        // Their own, or all for an administrator: the rule lives in
+        // `SpaceVisibility`, not here, because three screens ask it.
+        // `canConfigure` per row: a space's team and roles are its lead's
+        // business, and the form shows them read-only to the others rather
+        // than letting the server refuse afterwards.
         //
-        // `workload` : ce qui attend dans chaque espace, compté par
-        // `SpaceWorkload` comme au tableau de bord, en une requête pour toute
-        // la liste. Null pour un espace archivé, dont le travail est fini.
+        // `workload`: what is waiting in each space, counted by
+        // `SpaceWorkload` as on the dashboard, in one query for the whole
+        // list. Null for an archived space, whose work is done.
         $spaces = $this->visibility->visibleSpaces();
         $workload = [];
         foreach ($this->workload->forSpaces($spaces) as $row) {

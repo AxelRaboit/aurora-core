@@ -6,15 +6,15 @@ const props = defineProps({
     variant: { type: String, default: "info" },
     icon: { type: [String, Boolean], default: true },
     /**
-     * Une croix pour le mettre de côté. Le message ne décide pas pour combien
-     * de temps : il émet `dismiss`, et c'est l'appelant qui le cache - pour la
-     * visite, le plus souvent, afin qu'il revienne au rechargement.
+     * A cross to set it aside. The message does not decide for how long: it
+     * emits `dismiss`, and the caller hides it - for the visit, most often, so
+     * that it comes back on reload.
      */
     dismissible: { type: Boolean, default: false },
     /**
-     * Le nom de la croix, pour l'infobulle et les lecteurs d'écran. Passé par
-     * l'appelant plutôt que traduit ici : le message se monte partout, y
-     * compris dans des tests qui n'installent pas les traductions.
+     * The name of the cross, for the tooltip and screen readers. Passed by the
+     * caller rather than translated here: the message is mounted everywhere,
+     * including in tests that do not install the translations.
      */
     dismissLabel: { type: String, default: "" },
 });
@@ -22,14 +22,14 @@ const props = defineProps({
 const emit = defineEmits(["dismiss"]);
 
 const VARIANTS = {
-    // Expliquer n'est pas alerter.
+    // Explaining is not alerting.
     //
-    // Les cinq autres variantes sont des couleurs d'état : il s'est passé
-    // quelque chose, et la couleur dit quoi. Une phrase qui explique comment
-    // marche l'écran qu'on a sous les yeux n'annonce rien, et une boîte bleue
-    // la fait crier plus fort qu'elle ne parle. La fiche client du workspace
-    // s'était écrit son propre bloc gris pour cette raison - à raison sur le
-    // fond, et seule de son espèce dans tout le code.
+    // The five other variants are state colours: something happened, and the
+    // colour says what. A sentence that explains how the screen in front of you
+    // works announces nothing, and a blue box makes it shout louder than it
+    // speaks. The workspace client card had written its own grey block for this
+    // reason - rightly so in substance, and the only one of its kind in the
+    // whole code.
     neutral: "border-line bg-surface-2/40 text-muted",
     info: "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700 dark:bg-sky-950/40 dark:text-sky-300",
     success: "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",

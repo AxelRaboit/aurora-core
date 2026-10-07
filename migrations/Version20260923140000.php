@@ -8,14 +8,14 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Le partage interne : une date sur le dossier et sur la note.
+ * Internal sharing: a date on the folder and on the note.
  *
- * Une date plutôt qu'un booléen, comme pour l'épinglage : « partagé le »
- * est une information qu'un booléen jette, et c'est la première qu'on
- * cherche devant une note qui n'est plus tout à fait à soi.
+ * A date rather than a boolean, as for pinning: "shared on" is information a
+ * boolean throws away, and it is the first one people look for in front of a
+ * note that is no longer quite their own.
  *
- * Toutes les lignes existantes restent à null, donc **rien ne change** : un
- * carnet reste privé tant que personne n'a rien partagé.
+ * All existing rows stay null, so **nothing changes**: a notebook stays
+ * private as long as nobody has shared anything.
  */
 final class Version20260923140000 extends AbstractMigration
 {
@@ -28,8 +28,8 @@ final class Version20260923140000 extends AbstractMigration
     {
         $this->addSql('ALTER TABLE core_notes_markdown_folders ADD shared_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL');
         $this->addSql('ALTER TABLE core_notes_markdown_notes ADD shared_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL');
-        // Ce qui est partagé se cherche par cette colonne à chaque
-        // affichage du panneau, et presque toutes les lignes sont nulles.
+        // What is shared is looked up by this column every time the panel
+        // shows, and nearly every row is null.
         $this->addSql('CREATE INDEX idx_notes_folders_shared ON core_notes_markdown_folders (shared_at)');
         $this->addSql('CREATE INDEX idx_notes_md_shared ON core_notes_markdown_notes (shared_at)');
     }

@@ -19,18 +19,18 @@ use function sprintf;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * Les gris du back-office et de l'espace client, en clair et en sombre.
+ * The greys of the back office and the client space, in light and dark.
  *
- * Chaque mode part d'une famille de gris (neutre, bleutée, chaude…) dont les
- * paliers alimentent les jetons de `theme.css`, puis chaque jeton peut être
- * repris à la main. La famille `gray` sans retouche reproduit `theme.css` au
- * pixel près : un mode resté au défaut n'émet aucune règle.
+ * Each mode starts from a family of greys (neutral, bluish, warm...) whose
+ * steps feed the `theme.css` tokens, then each token can be adjusted by hand.
+ * The `gray` family with no adjustment reproduces `theme.css` to the pixel: a
+ * mode left at the default emits no rule.
  *
- * Les quatre couleurs d'état (succès, attention, erreur, information) se
- * reprennent de la même façon ; leur fond pâle et leurs badges en sont tirés.
+ * The four state colours (success, warning, error, information) are adjusted
+ * the same way; their pale background and their badges are derived from them.
  *
- * **Toute couleur est vérifiée ici.** Elles finissent dans une balise
- * `<style>` : seul un hexadécimal à six chiffres passe.
+ * **Every colour is checked here.** They end up in a `<style>` tag: only a
+ * six-digit hexadecimal gets through.
  */
 final class SuitePalette
 {
@@ -38,7 +38,7 @@ final class SuitePalette
 
     public const array MODES = ['light', 'dark'];
 
-    /** Les paliers Tailwind de chaque famille, de 50 à 950. */
+    /** The Tailwind steps of each family, from 50 to 950. */
     public const array FAMILIES = [
         'gray' => [
             '50' => '#f9fafb', '100' => '#f3f4f6', '200' => '#e5e7eb', '300' => '#d1d5db', '400' => '#9ca3af',
@@ -63,8 +63,8 @@ final class SuitePalette
     ];
 
     /**
-     * Jeton => [variable CSS, palier en clair, palier en sombre]. Les paliers
-     * sont ceux que `theme.css` code en dur pour la famille `gray`.
+     * Token => [CSS variable, light step, dark step]. The steps are the ones
+     * `theme.css` hard-codes for the `gray` family.
      */
     public const array TOKENS = [
         'bg' => ['--th-bg', '50', '950'],
@@ -80,9 +80,9 @@ final class SuitePalette
     ];
 
     /**
-     * Couleur d'état => [variable CSS, défaut en clair, défaut en sombre], les
-     * valeurs de `theme.css`. Le fond pâle (`-soft`) et la paire du badge
-     * (`--th-badge-*-bg`/`-text`) se dérivent de la couleur retenue.
+     * State colour => [CSS variable, light default, dark default], the values
+     * of `theme.css`. The pale background (`-soft`) and the badge pair
+     * (`--th-badge-*-bg`/`-text`) are derived from the chosen colour.
      */
     public const array STATE_TOKENS = [
         'success' => ['--th-success', '#10b981', '#34d399'],
@@ -91,17 +91,17 @@ final class SuitePalette
         'info' => ['--th-info', '#38bdf8', '#7dd3fc'],
     ];
 
-    /** Opacité du fond pâle, celle de `theme.css` : 0.10 en clair, 0.15 en sombre. */
+    /** Opacity of the pale background, the one in `theme.css`: 0.10 in light, 0.15 in dark. */
     private const array SOFT_ALPHA = ['light' => '1a', 'dark' => '26'];
 
-    /** Paliers du badge [fond, texte], ceux que `theme.css` prend dans Tailwind. */
+    /** Badge steps [background, text], the ones `theme.css` takes from Tailwind. */
     private const array BADGE_STEPS = ['light' => [100, 700], 'dark' => [900, 300]];
 
     private const string HEX_PATTERN = '/^#[0-9a-fA-F]{6}$/';
 
     /**
-     * Lit la valeur stockée ; ce qui est inconnu ou mal formé retombe sur le
-     * défaut plutôt que d'échouer, la page doit s'afficher quoi qu'il arrive.
+     * Reads the stored value; anything unknown or malformed falls back to the
+     * default rather than failing, the page must render whatever happens.
      *
      * @return array<string, array{family: string, overrides: array<string, string>}>
      */
@@ -113,7 +113,7 @@ final class SuitePalette
     }
 
     /**
-     * Pour l'enregistrement : null quand la valeur n'est pas un objet JSON.
+     * For saving: null when the value is not a JSON object.
      */
     public static function normalizeForStorage(?string $raw): ?string
     {
@@ -153,8 +153,8 @@ final class SuitePalette
     }
 
     /**
-     * La couleur de chaque jeton pour un mode : celle reprise à la main, sinon
-     * le palier de la famille.
+     * The colour of each token for a mode: the one adjusted by hand, otherwise
+     * the family's step.
      *
      * @param array<string, array{family: string, overrides: array<string, string>}> $palette
      *
@@ -174,12 +174,12 @@ final class SuitePalette
     }
 
     /**
-     * Les règles à poser dans la page, vide quand rien n'a changé.
+     * The rules to put in the page, empty when nothing changed.
      *
-     * `:root:not(.dark)` et `:root.dark` pèsent plus lourd que le `:root` et le
-     * `.dark` de `theme.css`, donc l'ordre des feuilles ne compte pas ; et
-     * chacune ne vaut que pour son mode, si bien qu'un clair retouché ne
-     * déborde jamais sur un sombre resté au défaut.
+     * `:root:not(.dark)` and `:root.dark` weigh more than the `:root` and the
+     * `.dark` of `theme.css`, so the order of the stylesheets does not matter;
+     * and each applies only to its mode, so an adjusted light mode never
+     * spills over onto a dark mode left at the default.
      *
      * @param array<string, array{family: string, overrides: array<string, string>}> $palette
      */

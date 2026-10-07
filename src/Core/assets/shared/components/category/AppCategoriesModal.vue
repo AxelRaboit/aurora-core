@@ -1,14 +1,14 @@
 <script setup>
 /**
- * Des catégories qu'on gère soi-même : les créer, les renommer, leur donner
- * une couleur, les ranger et les supprimer. Partagée par les livrables et les
- * présentations de Studio ; chaque écran donne ses adresses, son titre et sa
- * phrase d'introduction.
+ * Categories you manage yourself: create them, rename them, give them a
+ * colour, order them and delete them. Shared by the deliverables and the
+ * presentations of Studio; each screen gives its addresses, its title and
+ * its introduction sentence.
  *
- * Chaque ligne s'enregistre seule, au bouton qui apparaît quand elle a
- * changé : renommer « Audit » ne doit pas attendre qu'on ait fini de ranger
- * les autres. Supprimer demande une confirmation sur la ligne même, et dit
- * que les livrables restent, sans catégorie.
+ * Each row saves on its own, with the button that appears when it has
+ * changed: renaming "Audit" must not wait until the others are done being
+ * ordered. Deleting asks for a confirmation on the row itself, and says that
+ * the deliverables remain, without a category.
  */
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -31,12 +31,12 @@ const props = defineProps({
     updatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
     reorderPath: { type: String, required: true },
-    /** Le titre de la fenêtre et la phrase qui dit à quoi servent ces catégories. */
+    /** The title of the window and the sentence that says what these categories are for. */
     title: { type: String, required: true },
     intro: { type: String, default: "" },
 });
 
-/** La réponse du serveur, telle quelle : au moins `categories`, et ce que l'écran voudra reprendre. */
+/** The server's response, as is: at least `categories`, and whatever the screen will want to pick up. */
 const emit = defineEmits(["close", "changed"]);
 
 const { t } = useI18n();
@@ -44,7 +44,7 @@ const { request } = useRequest();
 
 const DEFAULT_COLOR = "#8b6cff";
 
-/** Les lignes en cours d'édition, une copie de ce que dit le serveur. */
+/** The rows being edited, a copy of what the server says. */
 const rows = ref([]);
 const busy = ref(false);
 const confirmDelete = ref(null);
@@ -76,7 +76,7 @@ function isDirty(row) {
     return row.name.trim() !== row.saved.name || row.color !== row.saved.color;
 }
 
-/** Une réponse réussie remplace tout : noms, ordre, et les cartes derrière la fenêtre. */
+/** A successful response replaces everything: names, order, and the cards behind the window. */
 function apply(data) {
     reset(data.categories ?? []);
     emit("changed", data);
@@ -124,7 +124,7 @@ async function remove(row) {
     }
 }
 
-/** Monter ou descendre d'un cran, et l'ordre entier part au serveur. */
+/** Move up or down one notch, and the whole order goes to the server. */
 async function move(index, offset) {
     const target = index + offset;
     if (target < 0 || target >= rows.value.length) return;
@@ -203,7 +203,7 @@ function errorOf(key, field) {
                             </AppIconButton>
                         </div>
                     </div>
-                    <!-- La confirmation sur la ligne même : on voit ce qu'on supprime. -->
+                    <!-- The confirmation on the row itself: you see what you are deleting. -->
                     <div
                         v-if="confirmDelete === row.id"
                         class="mt-2 flex flex-col gap-2 rounded-md bg-surface-2 p-2 text-xs text-secondary sm:flex-row sm:items-center sm:justify-between"
@@ -221,7 +221,7 @@ function errorOf(key, field) {
                 </li>
             </ul>
 
-            <!-- La nouvelle catégorie, en bas : elle se range à la fin. -->
+            <!-- The new category, at the bottom: it is filed at the end. -->
             <form class="flex items-start gap-2 rounded-lg border border-dashed border-line p-2" v-on:submit.prevent="create">
                 <AppColorSwatch v-model="draft.color" size="md" class="mt-1 shrink-0" />
                 <AppInput

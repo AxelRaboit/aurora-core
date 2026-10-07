@@ -31,9 +31,9 @@ class SpaceContentItemInput implements SpaceContentItemInputInterface
             message: 'suite.studio.space_content.errors.review_by_invalid',
         )]
         public readonly ?string $reviewBy = null,
-        // Vrai par défaut : un formulaire ancien, ou un appel qui ne connaît
-        // pas ce champ, garde le comportement d'avant plutôt que de faire
-        // disparaître la carte du calendrier sans que personne l'ait demandé.
+        // True by default: an old form, or a call that does not know this
+        // field, keeps the previous behaviour rather than making the card
+        // disappear from the calendar without anybody asking for it.
         public readonly bool $showOnCalendar = true,
     ) {}
 

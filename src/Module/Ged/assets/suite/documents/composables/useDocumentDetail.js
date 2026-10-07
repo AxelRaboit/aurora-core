@@ -2,35 +2,35 @@ import { ref } from "vue";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 export function useDocumentDetail(versionsPath, usagePath) {
-    const viewingDoc = ref(null);
-    const viewingDocVersions = ref([]);
-    const viewingDocUsage = ref(null);
+    const viewingDocument = ref(null);
+    const viewingDocumentVersions = ref([]);
+    const viewingDocumentUsage = ref(null);
 
-    async function viewDoc(doc) {
-        viewingDoc.value = doc;
-        viewingDocVersions.value = [];
-        viewingDocUsage.value = null;
+    async function viewDocument(gedDocument) {
+        viewingDocument.value = gedDocument;
+        viewingDocumentVersions.value = [];
+        viewingDocumentUsage.value = null;
 
         if (versionsPath) {
-            fetch(buildPath(versionsPath, { id: doc.id }), {
+            fetch(buildPath(versionsPath, { id: gedDocument.id }), {
                 headers: { "X-Requested-With": "XMLHttpRequest" },
             })
-                .then((r) => r.json())
+                .then((response) => response.json())
                 .then((data) => {
                     if (data.success)
-                        viewingDocVersions.value = data.versions ?? [];
+                        viewingDocumentVersions.value = data.versions ?? [];
                 })
                 .catch(() => {});
         }
 
         if (usagePath) {
-            fetch(buildPath(usagePath, { id: doc.id }), {
+            fetch(buildPath(usagePath, { id: gedDocument.id }), {
                 headers: { "X-Requested-With": "XMLHttpRequest" },
             })
-                .then((r) => r.json())
+                .then((response) => response.json())
                 .then((data) => {
                     if (data.success)
-                        viewingDocUsage.value = {
+                        viewingDocumentUsage.value = {
                             total: data.total ?? 0,
                             groups: data.groups ?? [],
                         };
@@ -40,16 +40,16 @@ export function useDocumentDetail(versionsPath, usagePath) {
     }
 
     function closeDetail() {
-        viewingDoc.value = null;
-        viewingDocVersions.value = [];
-        viewingDocUsage.value = null;
+        viewingDocument.value = null;
+        viewingDocumentVersions.value = [];
+        viewingDocumentUsage.value = null;
     }
 
     return {
-        viewingDoc,
-        viewingDocVersions,
-        viewingDocUsage,
-        viewDoc,
+        viewingDocument,
+        viewingDocumentVersions,
+        viewingDocumentUsage,
+        viewDocument,
         closeDetail,
     };
 }

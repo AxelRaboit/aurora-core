@@ -21,16 +21,16 @@ use function json_decode;
 use function sprintf;
 
 /**
- * Ce qu'un élément fermé ne laisse pas passer.
+ * What a closed item does not let through.
  *
- * **La fonctionnalité est la case, pas la liste.** Ranger au même endroit ce
- * qui se partage et ce qui ne se partage pas ne vaut que si la case décide
- * vraiment ; une régression ici publierait chez le client un accès qu'on
- * gardait pour soi, et ne se verrait qu'en ouvrant sa page - ce que personne
- * ne fait à chaque déploiement.
+ * **The feature is the checkbox, not the list.** Keeping what is shared and
+ * what is not in the same place is only worth it if the checkbox really
+ * decides; a regression here would publish to the client an access that was
+ * kept private, and would only show by opening their page - which nobody
+ * does on every deploy.
  *
- * La garantie est vérifiée dans les deux sens, et dans le HTML servi plutôt
- * que dans un tableau intermédiaire : c'est ce que le client reçoit.
+ * The guarantee is checked both ways, and in the served HTML rather than in
+ * an intermediate array: that is what the client receives.
  */
 final class SpaceResourceVisibilityTest extends IntegrationTestCase
 {
@@ -75,10 +75,10 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
     {
         $space = $this->givenSpace();
 
-        // Des libellés sans accent, délibérément : les propriétés voyagent
-        // dans un attribut JSON, où un « è » s'écrit `\u00e8`. Une recherche
-        // de sous-chaîne accentuée échouerait sur une page correcte, et une
-        // recherche « absente » réussirait sur une page qui fuit.
+        // Labels without accents, on purpose: the props travel in a JSON
+        // attribute, where an "è" is written `\u00e8`. A search for an
+        // accented substring would fail on a correct page, and an "absent"
+        // search would succeed on a page that leaks.
         $this->givenResource($space, 'link', 'Maquette partagee', visible: true);
         $hiddenId = $this->givenResource($space, 'link', 'Acces hebergeur', visible: false);
 
@@ -88,9 +88,9 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
         self::assertStringContainsString('Maquette partagee', $page);
         self::assertStringNotContainsString('Acces hebergeur', $page);
 
-        // Le même lien, relu après l'ouverture : ce que voit le client change
-        // parce que la case a changé, et non parce qu'on lui a donné une
-        // autre adresse.
+        // The same link, read again after opening: what the client sees
+        // changes because the checkbox changed, and not because they were
+        // given another address.
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/resources/%d/visibility', $space->getId(), $hiddenId));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
@@ -98,10 +98,11 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * L'adresse d'un élément fermé ne voyage pas non plus.
+     * A closed item's address does not travel either.
      *
-     * Le libellé absent de la page ne prouve que la moitié : un lien dont le
-     * nom serait retiré mais l'adresse servie serait toujours un lien donné.
+     * The label missing from the page only proves half of it: a link whose
+     * name was removed but whose address was still served would still be a
+     * link given away.
      */
     public function testTheAddressOfAClosedElementNeverReachesThePage(): void
     {
@@ -113,11 +114,11 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * Le drapeau lui-même ne part pas.
+     * The flag itself is not sent.
      *
-     * Tout ce qui arrive sur la page du client est ouvert, donc `visibleToClient`
-     * ne pourrait dire que « oui » : un drapeau à une seule valeur n'informe
-     * personne et fait croire qu'il en a deux.
+     * Everything that reaches the client's page is open, so `visibleToClient`
+     * could only say "yes": a flag with a single value informs nobody and
+     * suggests it has two.
      */
     public function testTheFlagItselfDoesNotTravel(): void
     {
@@ -128,11 +129,11 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * Une ressource d'un autre espace, désignée sous celui-ci, n'existe pas.
+     * A resource of another space, named under this one, does not exist.
      *
-     * Elle arrive par l'URL comme sa propre entité, donc rien n'empêche une
-     * requête fabriquée de nommer la ressource d'un client sous l'espace d'un
-     * autre. C'est la seule chose qui sépare deux listes.
+     * It arrives through the URL as its own entity, so nothing stops a crafted
+     * request from naming one client's resource under another client's space.
+     * This is the only thing that separates two lists.
      */
     public function testAResourceOfAnotherSpaceIsNotFoundUnderThisOne(): void
     {
@@ -146,7 +147,7 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
 
-    /** Le genre décide de ce qui est exigé, et l'écran le dit champ par champ. */
+    /** The kind decides what is required, and the screen says so field by field. */
     public function testALinkWithoutAnAddressIsRefusedOnItsOwnField(): void
     {
         $space = $this->givenSpace();
@@ -162,7 +163,7 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
         self::assertArrayHasKey('url', $payload['errors']);
     }
 
-    /** Un texte, lui, veut un corps - et pas d'adresse. */
+    /** A text, on the other hand, needs a body - and no address. */
     public function testATextWithoutABodyIsRefusedOnItsOwnField(): void
     {
         $space = $this->givenSpace();
@@ -179,10 +180,10 @@ final class SpaceResourceVisibilityTest extends IntegrationTestCase
     }
 
     /**
-     * Une adresse `javascript:` n'est jamais enregistrée.
+     * A `javascript:` address is never saved.
      *
-     * Le champ finit dans un `href` sur la page d'un client, donc la question
-     * n'est pas esthétique : ce qui n'est pas refusé ici est cliquable là-bas.
+     * The field ends up in an `href` on a client's page, so the question is
+     * not cosmetic: what is not refused here is clickable there.
      */
     public function testAnAddressThatIsNotWebIsRefused(): void
     {

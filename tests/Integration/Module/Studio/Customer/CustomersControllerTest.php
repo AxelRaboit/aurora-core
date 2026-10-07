@@ -93,7 +93,32 @@ final class CustomersControllerTest extends IntegrationTestCase
         self::assertSame('73282932000074', $customer['siret']);
         self::assertSame('contact@durand.fr', $customer['contractualEmail']);
         self::assertSame('Camille Durand', $customer['representativeFullName']);
-        self::assertNull($customer['userId']);
+    }
+
+    /**
+     * A customer's "user account" is gone: displayed, saved, and read by
+     * nothing. Neither the response nor the table carries it any more, and a
+     * `userId` sent anyway is ignored.
+     */
+    public function testACustomerNoLongerHasAUserAccount(): void
+    {
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
+            'legalName' => 'Sans compte',
+            'userId' => 1,
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $customer = json_decode((string) $this->client->getResponse()->getContent(), true)['customer'];
+        self::assertArrayNotHasKey('userId', $customer);
+        self::assertArrayNotHasKey('userName', $customer);
+        self::assertArrayNotHasKey('userEmail', $customer);
+
+        $columns = $this->entityManager->getConnection()->fetchFirstColumn(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'core_customers'",
+        );
+        self::assertContains('legal_name', $columns, 'the query reads the right table');
+        self::assertNotContains('user_id', $columns);
     }
 
     public function testTheSameSiretCannotBeRecordedTwice(): void
@@ -209,11 +234,11 @@ final class CustomersControllerTest extends IntegrationTestCase
     }
 
     /**
-     * **La seule chose que le statut impose.**.
+     * **The only thing the status requires.**.
      *
-     * Un prospect peut n'etre qu'un nom : on le rencontre, on ouvre un espace,
-     * et on n'a rien d'autre. Un client est quelqu'un a qui on envoie un
-     * contrat, et un contrat part a une adresse.
+     * A prospect can be nothing but a name: you meet them, you open a space,
+     * and you have nothing else. A client is someone you send a contract to,
+     * and a contract goes to an address.
      */
     public function testAProspectNeedsNothingButItsName(): void
     {
@@ -237,8 +262,8 @@ final class CustomersControllerTest extends IntegrationTestCase
             'status' => 'client',
         ]);
 
-        // Signale sous l'adresse et pas sous le statut : c'est l'adresse qui
-        // manque, et c'est elle que le lecteur doit remplir.
+        // Reported under the address and not under the status: the address
+        // is what is missing, and it is what the reader has to fill in.
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -246,11 +271,11 @@ final class CustomersControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Convertir, c'est saisir ce qui manquait.
+     * Converting means entering what was missing.
      *
-     * Le formulaire de conversion ouvre la fiche avec le statut deja bascule ;
-     * l'enregistrer sans adresse doit echouer, sinon la conversion produirait
-     * un client vide de ce qui fait un client.
+     * The conversion form opens the record with the status already switched;
+     * saving it without an address must fail, otherwise the conversion would
+     * produce a client empty of what makes a client.
      */
     public function testConvertingAProspectWithoutAnAddressIsRefused(): void
     {
@@ -272,10 +297,11 @@ final class CustomersControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Le geste que la fonctionnalite existe pour permettre.
+     * The action the feature exists to allow.
      *
-     * Un espace ouvert pour un prospect, la societe signe, un clic. L'adresse
-     * est le seul champ demande parce que c'est le seul que le statut impose.
+     * A space opened for a prospect, the company signs, one click. The address
+     * is the only field asked for because it is the only one the status
+     * requires.
      */
     public function testAProspectIsConvertedWithItsAddress(): void
     {
@@ -294,7 +320,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $this->entityManager->refresh($prospect);
         self::assertFalse($prospect->isProspect());
-        // Normalisee comme partout ailleurs.
+        // Normalized like everywhere else.
         self::assertSame('direction@verrerie-lemoine.test', $prospect->getContractualEmail());
     }
 
@@ -321,7 +347,7 @@ final class CustomersControllerTest extends IntegrationTestCase
     }
 
     /**
-     * Une fiche qui porte deja une adresse se convertit sans rien saisir.
+     * A record that already carries an address converts without entering anything.
      */
     public function testAProspectThatAlreadyHasAnAddressConvertsWithNothingTyped(): void
     {

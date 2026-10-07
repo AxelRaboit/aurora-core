@@ -6,8 +6,8 @@ on:
   push:
     branches: [master, develop]
   pull_request:
-  # Le job `lowest` ci-dessous ne tourne pas sur les pushes ; ceci permet de
-  # le lancer a la demande sans ouvrir une PR vers master.
+  # The `lowest` job below does not run on pushes; this lets it be started
+  # on demand without opening a PR to master.
   workflow_dispatch:
 
 # A second push on the same ref cancels the previous in-flight run instead
@@ -16,13 +16,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Des jobs paralleles plutot qu'un seul qui fait tout a la suite. Jusqu'au
-# 27/09/2026, un job unique enchainait l'installation, les controles, les tests
-# front, les unitaires et l'integration : 10 minutes de mur, dont 4 pour
-# l'integration seule, alors que les controles et les tests front n'ont meme
-# pas besoin de la base. Chaque job paie son installation (une minute et
-# demie), mais ils tournent ensemble et le depot est public : les minutes ne
-# coutent rien, seule l'attente compte.
+# Parallel jobs rather than a single one doing everything in a row. Until
+# 27/09/2026, a single job chained the install, the checks, the front tests,
+# the unit tests and the integration tests: 10 minutes of wall time, 4 of them
+# for integration alone, while the checks and the front tests do not even need
+# the database. Each job pays for its install (a minute and a half), but they
+# run together and the repository is public: the minutes cost nothing, only
+# the wait counts.
 env:
   APP_ENV: test
   APP_SECRET: ci_secret_not_used_in_prod
@@ -42,20 +42,19 @@ jobs:
       - name: Validate composer.json and composer.lock
         run: composer validate
 
-      # -- Avis de securite 🔒 -------------------------------------------------
-      # Deux etapes, et la premiere n'echoue jamais : elle imprime tout, pour
-      # que les avis moderes et bas restent visibles dans le journal.
+      # -- Security advisories 🔒 ---------------------------------------------
+      # Two steps, and the first one never fails: it prints everything, so
+      # that moderate and low advisories stay visible in the log.
       #
-      # La seconde tranche. Jusqu'au 16/09/2026 il n'y avait que la premiere,
-      # avec `|| true`, donc l'audit tournait et son resultat partait a la
-      # poubelle : soixante-et-onze avis se sont accumules sans qu'aucun run ne
-      # rougisse, et c'est l'avertissement de GitHub au moment d'un `git push`
-      # qui les a fait remonter.
+      # The second one decides. Until 16/09/2026 there was only the first,
+      # with `|| true`, so the audit ran and its result went in the bin:
+      # seventy-one advisories piled up without a single run turning red, and
+      # it was GitHub's warning on a `git push` that brought them up.
       #
-      # Le seuil est `high`. Un avis bas ou modere publie en amont ferait
-      # rougir un build un matin ou personne n'a touche au code, ce qui apprend
-      # a ignorer la couleur. Un avis haut bloque la livraison, ce qui est le
-      # but.
+      # The threshold is `high`. A low or moderate advisory published upstream
+      # would turn a build red on a morning when nobody touched the code,
+      # which teaches people to ignore the colour. A high advisory blocks the
+      # delivery, which is the point.
       - name: Report every advisory (never fails)
         run: composer audit --locked || true
 
@@ -111,25 +110,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # PHP aussi : les tests front lisent le catalogue de traductions que la
-      # console exporte depuis les YAML.
+      # PHP too: the front tests read the translation catalogue that the
+      # console exports from the YAML files.
       - name: Setup PHP
         uses: ./.github/actions/setup-php
 
       - name: Setup Node
         uses: ./.github/actions/setup-node
 
-      # Le pendant JS, qui n'existait pas du tout : soixante-deux des
-      # soixante-et-onze avis etaient npm, et rien dans la CI ne les regardait.
+      # The JS counterpart, which did not exist at all: sixty-two of the
+      # seventy-one advisories were npm, and nothing in the CI looked at them.
       #
-      # Le lock fait davantage autorite ici que cote PHP : un projet qui
-      # consomme aurora-core installe ses dependances JS avec
-      # `pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile`, donc
-      # depuis **ce** lock. Les plages de `package.json` ne sont jamais
-      # resolues par personne, et auditer le lock est exactement auditer ce qui
-      # sera livre.
+      # The lock carries more authority here than on the PHP side: a project
+      # consuming aurora-core installs its JS dependencies with
+      # `pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile`, so
+      # from **this** lock. The ranges in `package.json` are never resolved by
+      # anybody, and auditing the lock is exactly auditing what will ship.
       #
-      # Audit et lint une seule fois, sur la premiere tranche.
+      # Audit and lint only once, on the first shard.
       - name: Report every JS advisory (never fails)
         if: matrix.shard == 1
         run: pnpm audit || true
@@ -158,10 +156,10 @@ jobs:
       - name: Setup PHP
         uses: ./.github/actions/setup-php
 
-      # Ni base ni assets : mesure le 27/09/2026, la suite passe entiere avec
-      # une base injoignable et sans `public/build`. Le catalogue de
-      # traductions exporte, lui, est verifie par un test : dans l'ancien job
-      # unique, l'etape des tests front l'avait produit juste avant.
+      # No database and no assets: measured on 27/09/2026, the whole suite
+      # passes with an unreachable database and without `public/build`. The
+      # exported translation catalogue, though, is checked by a test: in the
+      # old single job, the front tests step had produced it just before.
       - name: Export translations
         run: php bin/console app:translations:dump-js
 
@@ -196,8 +194,8 @@ jobs:
       - name: Setup PHP
         uses: ./.github/actions/setup-php
 
-      # Les tests d'integration rendent des pages, et le rendu d'un template
-      # passe par les tags Vite : sans manifeste, ils echouent.
+      # The integration tests render pages, and rendering a template goes
+      # through the Vite tags: without a manifest, they fail.
       - name: Setup Node
         uses: ./.github/actions/setup-node
 
@@ -209,36 +207,34 @@ jobs:
           php bin/console doctrine:database:create --if-not-exists
           php bin/console doctrine:migrations:migrate --no-interaction
 
-      # La tranche est calculee par tools/ci/shard.php depuis les fichiers du
-      # disque : un test neuf tombe toujours dans une tranche, et
-      # CiShardsCoverEveryIntegrationTestTest verifie qu'aucun ne se perd.
+      # The shard is computed by tools/ci/shard.php from the files on disk: a
+      # new test always lands in a shard, and
+      # CiShardsCoverEveryIntegrationTestTest checks that none gets lost.
       - name: Run backend integration tests
         run: php bin/phpunit --testdox $(php tools/ci/shard.php 3 ${{ matrix.shard }})
 
   lowest:
     name: Minimums declares (${{ matrix.shard }}/3)
-    # Une PR vers master est une release : c'est la que les contraintes de
-    # composer.json deviennent un contrat publie, et le seul moment ou il vaut
-    # la peine de payer un second run complet.
+    # A PR to master is a release: that is where the constraints in
+    # composer.json become a published contract, and the only time it is
+    # worth paying for a second full run.
     #
-    # **Ce que ce job repond, et que rien d'autre ne repondait.** La CI
-    # ci-dessus fait `composer install` depuis le lock commite, donc elle teste
-    # toujours une seule combinaison : celle qui a ete resolue le jour ou
-    # quelqu'un a lance `composer update`. Les minimums ecrits dans
-    # composer.json ne sont jamais exerces. Une contrainte qui dit `^3.0` alors
-    # que le code appelle une methode apparue en 3.4 passe donc au vert ici et
-    # casse chez le projet qui consomme la bibliotheque, puisque lui resout les
-    # contraintes et non le lock.
+    # **What this job answers, and nothing else did.** The CI above runs
+    # `composer install` from the committed lock, so it always tests a single
+    # combination: the one resolved on the day somebody ran `composer update`.
+    # The minimums written in composer.json are never exercised. A constraint
+    # saying `^3.0` while the code calls a method that appeared in 3.4 thus
+    # goes green here and breaks in the project consuming the library, since
+    # that project resolves the constraints and not the lock.
     #
-    # Le reglage `bump-after-update` a longtemps masque ce trou en remontant
-    # mecaniquement les planchers a chaque update. Il enregistrait ce qui etait
-    # installe ce jour-la, pas ce dont le code a besoin, et il interdisait donc
-    # au consommateur des versions qui marchent. Mesure le 16/09/2026 : les
-    # 7496 tests passent aux minimums declares. Il est retire, et ce job est ce
-    # qui garde la question ouverte.
+    # The `bump-after-update` setting long hid this gap by mechanically
+    # raising the floors on every update. It recorded what was installed that
+    # day, not what the code needs, and so it denied the consumer versions
+    # that work. Measured on 16/09/2026: the 7496 tests pass on the declared
+    # minimums. It is removed, and this job is what keeps the question open.
     #
-    # En trois tranches comme l'integration, les unitaires sur la premiere :
-    # c'est le job le plus long d'une PR de release.
+    # In three shards like integration, the unit tests on the first one: it
+    # is the longest job of a release PR.
     if: github.event_name == 'workflow_dispatch' || github.base_ref == 'master'
     runs-on: ubuntu-latest
     strategy:
@@ -273,18 +269,18 @@ jobs:
         env:
           update: true
 
-      # Pas de cache composer : la resolution est justement ce qu'on veut
-      # refaire, et elle ne ramene pas les memes paquets que le job voisin.
+      # No composer cache: the resolution is precisely what has to be redone,
+      # and it does not bring back the same packages as the neighbouring job.
       - name: Install the declared minimums
         run: composer update --prefer-lowest --prefer-stable --no-ansi --no-interaction --prefer-dist --no-scripts
 
       - name: Show what was resolved
         run: composer show --direct
 
-      # Les assets sont construits parce que les tests d'integration rendent des
-      # pages, et le rendu d'un template passe par les tags Vite. Ils ne
-      # dependent pas de la resolution PHP, mais leur absence ferait echouer ce
-      # job pour une raison qui n'a rien a voir avec son sujet.
+      # The assets are built because the integration tests render pages, and
+      # rendering a template goes through the Vite tags. They do not depend on
+      # the PHP resolution, but their absence would fail this job for a reason
+      # that has nothing to do with its subject.
       - name: Setup Node
         uses: ./.github/actions/setup-node
 
@@ -296,8 +292,8 @@ jobs:
           php bin/console doctrine:database:create --if-not-exists
           php bin/console doctrine:migrations:migrate --no-interaction
 
-      # Ni lint ni analyse statique : ce job ne parle pas du style du code, il
-      # demande si le code tourne contre le plancher qu'on publie.
+      # No lint and no static analysis: this job is not about code style, it
+      # asks whether the code runs against the floor that is published.
       - name: Export translations
         if: matrix.shard == 1
         run: php bin/console app:translations:dump-js

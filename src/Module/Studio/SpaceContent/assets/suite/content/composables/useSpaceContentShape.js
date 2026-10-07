@@ -36,10 +36,10 @@ export function useSpaceContentShape() {
         /**
          * Whether the choice is currently being overruled.
          *
-         * Rendu à l'appelant pour qu'il cesse de dessiner le bouton : un
-         * interrupteur qu'on actionne et qui ne change rien à l'écran laisse
-         * croire à une panne. Ce qui est choisi reste gardé, et le bouton
-         * revient avec la place de dessiner un kanban.
+         * Returned to the caller so it stops drawing the button: a switch
+         * that is flipped and changes nothing on screen suggests a fault.
+         * The choice stays stored, and the button comes back with the room
+         * to draw a kanban.
          */
         overruled: isNarrow,
     };

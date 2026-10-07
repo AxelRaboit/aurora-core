@@ -37,7 +37,7 @@ import { Lock, RotateCcw, Save, X } from "lucide-vue-next";
 /** The blocks a contract can print, as in the trame editor. */
 const CONTRACT_BLOCKS = ["header", "paragraph", "list", "quote", "table"];
 
-const W = "suite.studio.contracts.wording";
+const WORDING_KEYS = "suite.studio.contracts.wording";
 
 /**
  * A plain copy. `structuredClone` refuses Vue's reactive proxies, and the
@@ -94,7 +94,7 @@ onMounted(() => window.addEventListener("beforeunload", warnBeforeLeaving));
 onBeforeUnmount(() => window.removeEventListener("beforeunload", warnBeforeLeaving));
 
 /* What differs from the trame, as the text changes. */
-const diff = computed(() => wordingDiff(props.original, wording.value));
+const difference = computed(() => wordingDiff(props.original, wording.value));
 
 const templateHref = computed(() =>
     props.template
@@ -142,7 +142,7 @@ async function save() {
             baseVersionId: data.contract?.[props.part]?.adaptedFromVersionId ?? props.template?.versionId ?? null,
         };
         savedSnapshot.value = JSON.stringify(wording.value);
-        toast.success(t(`${W}.saved`));
+        toast.success(t(`${WORDING_KEYS}.saved`));
     } finally {
         saving.value = false;
     }
@@ -173,7 +173,7 @@ async function reset() {
         wording.value = startingWording();
         savedSnapshot.value = JSON.stringify(wording.value);
         showReset.value = false;
-        toast.success(t(`${W}.reset_done`));
+        toast.success(t(`${WORDING_KEYS}.reset_done`));
     } finally {
         resetting.value = false;
     }
@@ -186,7 +186,7 @@ const pageActions = computed(() =>
                 key: "reset",
                 color: "rose",
                 icon: RotateCcw,
-                title: t(`${W}.reset`),
+                title: t(`${WORDING_KEYS}.reset`),
                 onSelect: () => (showReset.value = true),
             },
         ]
@@ -200,17 +200,17 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
     <div class="aurora-stack">
         <!-- The page's bar first: back on the left, the commands on the right
              (AppPageBar, 02/10/2026). -->
-        <AppPageBar :back-href="showPath" :back-label="t(`${W}.back`)">
+        <AppPageBar :back-href="showPath" :back-label="t(`${WORDING_KEYS}.back`)">
             <AppPageActions
                 v-if="pageActions.length"
                 :actions="pageActions"
-                :label="t(`${W}.title`)"
+                :label="t(`${WORDING_KEYS}.title`)"
                 icon-only-on-phone
             />
             <AppButton
                 v-if="canEdit"
                 :loading="saving"
-                :label="t(`${W}.save`)"
+                :label="t(`${WORDING_KEYS}.save`)"
                 icon-only-on-phone
                 v-on:click="save"
             >
@@ -218,8 +218,8 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
             </AppButton>
         </AppPageBar>
 
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contracts.wording.guide.title')" storage-key="contract-wording">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.contracts.wording.guide.step_${step}`) }}</li>
@@ -229,14 +229,14 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
         <AppMessage v-if="isFrozen" variant="info">
             <span class="flex items-center gap-2">
                 <Lock class="w-4 h-4 shrink-0" :stroke-width="2" />
-                {{ t(`${W}.frozen_notice`) }}
+                {{ t(`${WORDING_KEYS}.frozen_notice`) }}
             </span>
         </AppMessage>
-        <AppMessage v-else-if="!canEdit" variant="info">{{ t(`${W}.readonly_notice`) }}</AppMessage>
-        <AppMessage v-else-if="null === adaptation" variant="info">{{ t(`${W}.not_adapted`) }}</AppMessage>
+        <AppMessage v-else-if="!canEdit" variant="info">{{ t(`${WORDING_KEYS}.readonly_notice`) }}</AppMessage>
+        <AppMessage v-else-if="null === adaptation" variant="info">{{ t(`${WORDING_KEYS}.not_adapted`) }}</AppMessage>
 
         <AppMessage v-if="fromOlderVersion" variant="warning">
-            {{ t(`${W}.from_older_version`) }}
+            {{ t(`${WORDING_KEYS}.from_older_version`) }}
             <a v-if="templateHref" class="underline" :href="templateHref">{{ template.name }}</a>
         </AppMessage>
         <AppMessage v-if="errors.status" variant="danger">{{ errors.status }}</AppMessage>
@@ -246,17 +246,17 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
         <div class="min-w-0 space-y-1">
             <div class="flex flex-wrap items-baseline gap-2">
                 <h1 class="text-lg font-semibold text-primary">
-                    {{ t(`${W}.heading`, { customer: contract.customerName }) }}
+                    {{ t(`${WORDING_KEYS}.heading`, { customer: contract.customerName }) }}
                 </h1>
-                <span class="text-sm text-muted">{{ t(`${W}.parts.${part}`) }}</span>
-                <AppBadge v-if="adaptation" color="violet">{{ t(`${W}.badge`) }}</AppBadge>
-                <AppBadge v-if="isDirty" color="amber">{{ t(`${W}.unsaved`) }}</AppBadge>
+                <span class="text-sm text-muted">{{ t(`${WORDING_KEYS}.parts.${part}`) }}</span>
+                <AppBadge v-if="adaptation" color="violet">{{ t(`${WORDING_KEYS}.badge`) }}</AppBadge>
+                <AppBadge v-if="isDirty" color="amber">{{ t(`${WORDING_KEYS}.unsaved`) }}</AppBadge>
             </div>
             <p v-if="template" class="text-sm text-secondary">
-                {{ t(`${W}.intro`, { template: template.name, number: template.versionNumber }) }}
+                {{ t(`${WORDING_KEYS}.intro`, { template: template.name, number: template.versionNumber }) }}
             </p>
             <p v-if="adaptation?.adaptedAt" class="text-xs text-muted">
-                {{ t(`${W}.adapted_on`, { date: formatDateTimeNumeric(adaptation.adaptedAt) }) }}
+                {{ t(`${WORDING_KEYS}.adapted_on`, { date: formatDateTimeNumeric(adaptation.adaptedAt) }) }}
             </p>
         </div>
 
@@ -264,7 +264,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
              annex are adapted separately, each against its own trame. -->
         <div v-if="otherParts.length" class="flex flex-wrap gap-1 border-b border-line" role="tablist">
             <span class="px-3 py-2 text-sm border-b-2 -mb-px border-accent-500 text-primary" role="tab" aria-selected="true">
-                {{ t(`${W}.parts.${part}`) }}
+                {{ t(`${WORDING_KEYS}.parts.${part}`) }}
             </span>
             <a
                 v-for="each in otherParts"
@@ -274,8 +274,8 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                 aria-selected="false"
                 class="px-3 py-2 text-sm border-b-2 -mb-px border-transparent text-muted hover:text-primary flex items-center gap-1.5"
             >
-                {{ t(`${W}.parts.${each.key}`) }}
-                <span v-if="each.isAdapted" class="w-1.5 h-1.5 rounded-full bg-violet-400" :title="t(`${W}.badge`)" />
+                {{ t(`${WORDING_KEYS}.parts.${each.key}`) }}
+                <span v-if="each.isAdapted" class="w-1.5 h-1.5 rounded-full bg-violet-400" :title="t(`${WORDING_KEYS}.badge`)" />
             </a>
         </div>
 
@@ -283,12 +283,12 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
             <div class="min-w-0 space-y-3">
                 <AppInput
                     v-model="wording.title"
-                    :label="t(`${W}.document_title`)"
+                    :label="t(`${WORDING_KEYS}.document_title`)"
                     :placeholder="t('suite.studio.contract_templates.document_title_placeholder')"
                     :error="errors.title"
                     :readonly="!canEdit"
                 />
-                <!-- Un jeton long se coupe au lieu de sortir de la carte. -->
+                <!-- A long token breaks instead of spilling out of the card. -->
                 <div class="aurora-card p-3 [overflow-wrap:anywhere]" :class="{ 'opacity-80': !canEdit }">
                     <AppBlockEditor
                         v-model="wording.blocks"
@@ -300,15 +300,15 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
 
             <aside class="min-w-0 space-y-4">
                 <section class="aurora-card p-3 space-y-2 text-sm">
-                    <p class="text-xs font-medium uppercase tracking-wider text-muted">{{ t(`${W}.differences`) }}</p>
-                    <p v-if="!diff.changes.length" class="text-muted">{{ t(`${W}.differences_none`) }}</p>
+                    <p class="text-xs font-medium uppercase tracking-wider text-muted">{{ t(`${WORDING_KEYS}.differences`) }}</p>
+                    <p v-if="!difference.changes.length" class="text-muted">{{ t(`${WORDING_KEYS}.differences_none`) }}</p>
                     <template v-else>
                         <p class="text-xs text-secondary">
-                            {{ t(`${W}.differences_summary`, { added: diff.added, removed: diff.removed }) }}
+                            {{ t(`${WORDING_KEYS}.differences_summary`, { added: difference.added, removed: difference.removed }) }}
                         </p>
                         <ul class="space-y-1.5 max-h-[28rem] overflow-y-auto">
                             <li
-                                v-for="(change, index) in diff.changes"
+                                v-for="(change, index) in difference.changes"
                                 :key="index"
                                 class="rounded-md px-2 py-1 text-xs break-words"
                                 :class="
@@ -317,7 +317,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                                         : 'bg-rose-500/10 text-rose-300 line-through'
                                 "
                             >
-                                <span class="sr-only">{{ t(`${W}.diff_${change.type}`) }} :</span>
+                                <span class="sr-only">{{ t(`${WORDING_KEYS}.diff_${change.type}`) }} :</span>
                                 {{ change.text }}
                             </li>
                         </ul>
@@ -331,12 +331,12 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
         <AppModal
             :show="showReset"
             max-width="md"
-            :title="t(`${W}.reset_title`)"
+            :title="t(`${WORDING_KEYS}.reset_title`)"
             :icon="RotateCcw"
             v-on:close="showReset = false"
         >
             <p class="text-sm text-secondary">
-                {{ t(`${W}.reset_confirm`, { template: template?.name ?? "" }) }}
+                {{ t(`${WORDING_KEYS}.reset_confirm`, { template: template?.name ?? "" }) }}
             </p>
             <template #footer>
                 <AppModalFooter>
@@ -346,7 +346,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                     </AppButton>
                     <AppButton variant="danger" size="md" :loading="resetting" v-on:click="reset">
                         <RotateCcw class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t(`${W}.reset`) }}
+                        {{ t(`${WORDING_KEYS}.reset`) }}
                     </AppButton>
                 </AppModalFooter>
             </template>

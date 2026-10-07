@@ -6,7 +6,7 @@ namespace Aurora\Module\Studio\SpaceContent\Entity;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Studio\Deck\Service\DeckPicture;
+use Aurora\Module\Studio\Deliverable\Slides\Service\DeckPicture;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use DateTimeImmutable;
@@ -174,11 +174,11 @@ abstract class AbstractSpaceContentAttachment implements SpaceContentAttachmentI
     {
         $this->authorLink = $link;
         $this->authorUser = null;
-        // **Le libellé du lien, jamais son adresse.** Une adresse en
-        // signature est lue par tous les autres invités du même espace, et un
-        // espace en compte plusieurs. Le libellé est obligatoire depuis
-        // {@see SpaceAccessLinkInput}, le repli ne sert donc qu'aux liens
-        // émis avant cette règle.
+        // **The link's label, never its address.** An address as a signature
+        // is read by every other guest of the same space, and a space has
+        // several. The label has been mandatory since
+        // {@see SpaceAccessLinkInput}, so the fallback only serves links
+        // issued before that rule.
         $this->authorLabel = SpaceAccessLinkLabel::of($link);
         $this->fromClient = true;
 

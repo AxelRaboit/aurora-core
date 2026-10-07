@@ -44,8 +44,8 @@ final class AppearanceExtension implements ResetInterface
     }
 
     /**
-     * Les couleurs des e-mails, pour les valeurs écrites dans le HTML du
-     * gabarit (pastille du logo, bouton).
+     * The e-mail colours, for the values written into the template's HTML
+     * (logo badge, button).
      *
      * @return array{accent: string, accentLight: string, background: string, heading: string, text: string}
      */
@@ -55,7 +55,7 @@ final class AppearanceExtension implements ResetInterface
         return $this->emailColors->colors();
     }
 
-    /** Les règles ajoutées à `email.css` avant l'inlining, vide au défaut. */
+    /** The rules added to `email.css` before inlining, empty by default. */
     #[AsTwigFunction(name: 'app_email_css')]
     public function getEmailCss(): string
     {
@@ -89,8 +89,8 @@ final class AppearanceExtension implements ResetInterface
     }
 
     /**
-     * Les gris du back-office et de l'espace client, vide tant qu'ils sont
-     * ceux de `theme.css`.
+     * The greys of the back office and the client space, empty as long as
+     * they are those of `theme.css`.
      */
     #[AsTwigFunction(name: 'app_suite_palette_css')]
     public function getSuitePaletteCss(): string
@@ -99,8 +99,8 @@ final class AppearanceExtension implements ResetInterface
     }
 
     /**
-     * Ce que l'onglet Apparence doit connaître pour composer et prévisualiser
-     * la palette sans redemander les familles au serveur.
+     * What the Appearance tab needs to know to compose and preview the palette
+     * without asking the server for the families again.
      *
      * @return array<string, mixed>
      */

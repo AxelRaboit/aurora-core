@@ -28,12 +28,12 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
         $container = static::getContainer();
         $entityManager = $container->get(EntityManagerInterface::class);
         $manager = $container->get(DocumentManagerInterface::class);
-        $uploadDir = (string) $container->getParameter('app.upload_dir');
+        $uploadDirectory = (string) $container->getParameter('app.upload_dir');
 
         $livePath = 'ged/9999/01/live-'.uniqid().'.png';
         $previousPath = 'ged/9999/01/previous-'.uniqid().'.png';
-        $liveFile = $this->writePng($uploadDir, $livePath);
-        $previousFile = $this->writePng($uploadDir, $previousPath);
+        $liveFile = $this->writePng($uploadDirectory, $livePath);
+        $previousFile = $this->writePng($uploadDirectory, $previousPath);
 
         $document = new Document();
         $document->setTitle('Deletion probe')
@@ -94,15 +94,15 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
         $container = static::getContainer();
         $entityManager = $container->get(EntityManagerInterface::class);
         $manager = $container->get(DocumentManagerInterface::class);
-        $uploadDir = (string) $container->getParameter('app.upload_dir');
+        $uploadDirectory = (string) $container->getParameter('app.upload_dir');
 
         $versionedPath = 'ged/9999/01/versioned-'.uniqid().'.png';
         $previousPath = 'ged/9999/01/previous-'.uniqid().'.png';
         $plainPath = 'ged/9999/01/plain-'.uniqid().'.png';
 
-        $versionedFile = $this->writePng($uploadDir, $versionedPath);
-        $previousFile = $this->writePng($uploadDir, $previousPath);
-        $plainFile = $this->writePng($uploadDir, $plainPath);
+        $versionedFile = $this->writePng($uploadDirectory, $versionedPath);
+        $previousFile = $this->writePng($uploadDirectory, $previousPath);
+        $plainFile = $this->writePng($uploadDirectory, $plainPath);
 
         $versioned = $this->document('Versioned probe', $versionedPath);
         $entityManager->persist($versioned);
@@ -144,13 +144,13 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
         $container = static::getContainer();
         $entityManager = $container->get(EntityManagerInterface::class);
         $manager = $container->get(DocumentManagerInterface::class);
-        $uploadDir = (string) $container->getParameter('app.upload_dir');
+        $uploadDirectory = (string) $container->getParameter('app.upload_dir');
 
         $manager->emptyTrash();
 
         foreach (['un', 'deux', 'trois', 'quatre'] as $name) {
             $path = 'ged/9999/01/batch-'.$name.'-'.uniqid().'.png';
-            $this->writePng($uploadDir, $path);
+            $this->writePng($uploadDirectory, $path);
             $document = $this->document('Batch '.$name, $path);
             $entityManager->persist($document);
             $entityManager->flush();
@@ -176,10 +176,10 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
         $container = static::getContainer();
         $entityManager = $container->get(EntityManagerInterface::class);
         $manager = $container->get(DocumentManagerInterface::class);
-        $uploadDir = (string) $container->getParameter('app.upload_dir');
+        $uploadDirectory = (string) $container->getParameter('app.upload_dir');
 
         $livePath = 'ged/9999/01/restore-'.uniqid().'.png';
-        $liveFile = $this->writePng($uploadDir, $livePath);
+        $liveFile = $this->writePng($uploadDirectory, $livePath);
 
         $document = (new Document())
             ->setTitle('Restore probe')
@@ -211,9 +211,9 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
             ->setSize(1);
     }
 
-    private function writePng(string $uploadDir, string $relativePath): string
+    private function writePng(string $uploadDirectory, string $relativePath): string
     {
-        $absolute = $uploadDir.'/'.$relativePath;
+        $absolute = $uploadDirectory.'/'.$relativePath;
         if (!is_dir(dirname($absolute))) {
             mkdir(dirname($absolute), 0o777, true);
         }

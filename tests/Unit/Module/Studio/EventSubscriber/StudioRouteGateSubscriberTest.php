@@ -25,7 +25,7 @@ final class StudioRouteGateSubscriberTest extends TestCase
 {
     public function testEverythingIsOpenWhileStudioIsOn(): void
     {
-        foreach (['suite_studio_spaces', 'suite_studio_contracts', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deck_show'] as $route) {
+        foreach (['suite_studio_spaces', 'suite_studio_contracts', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deliverable_read', 'public_deliverable_from_deck'] as $route) {
             $this->assertGate($route, [], false);
         }
     }
@@ -34,7 +34,7 @@ final class StudioRouteGateSubscriberTest extends TestCase
     {
         $off = [ModuleParameterEnum::StudioSuite->value];
 
-        foreach (['suite_studio_customers', 'suite_studio_craft_settings', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deck_show'] as $route) {
+        foreach (['suite_studio_customers', 'suite_studio_deliverables', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deliverable_read', 'public_deliverable_from_deck'] as $route) {
             $this->assertGate($route, $off, true);
         }
     }
@@ -59,7 +59,22 @@ final class StudioRouteGateSubscriberTest extends TestCase
         $this->assertGate('suite_studio_spaces', $off, true);
         $this->assertGate('workspace_space_chat_post', $off, true);
         $this->assertGate('public_space_answer', $off, true);
-        $this->assertGate('suite_studio_decks', $off, false);
+        $this->assertGate('suite_studio_deliverables', $off, false);
+    }
+
+    /**
+     * The fonts of a presentation follow the two places presentations live,
+     * Studio deliverables and client spaces: switching another part off, or
+     * only one of the two, must not leave a reading link drawn in its
+     * fallback face.
+     */
+    public function testTheFontsFollowTheDeliverablesAndTheSpaces(): void
+    {
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioContracts->value], false);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioDeliverables->value], false);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioSpaces->value], false);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioDeliverables->value, ModuleParameterEnum::StudioSpaces->value], true);
+        $this->assertGate('public_deliverable_font', [ModuleParameterEnum::StudioSuite->value], true);
     }
 
     public function testRoutesOfAnotherModuleAreNotItsBusiness(): void

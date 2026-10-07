@@ -14,12 +14,11 @@ use function preg_match;
 final class SirenValidator extends ConstraintValidator
 {
     /**
-     * Le SIREN de La Poste, la même exception documentée que pour le SIRET :
-     * ses numéros suivent une règle à part. Un SIREN de neuf chiffres passe
-     * pourtant Luhn comme les autres - l'exception ne porte que sur les
-     * quatorze chiffres d'un établissement - donc rien de particulier ici.
-     * La constante n'existe pas : mentionner une exception qui ne s'applique
-     * pas ferait croire qu'elle s'applique.
+     * La Poste's SIREN, the same documented exception as for the SIRET: its
+     * numbers follow a rule of their own. A nine-digit SIREN still passes Luhn
+     * like the others - the exception only covers an establishment's fourteen
+     * digits - so nothing special here. The constant does not exist:
+     * mentioning an exception that does not apply would suggest it applies.
      */
     public function validate(mixed $value, Constraint $constraint): void
     {
@@ -27,8 +26,8 @@ final class SirenValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, Siren::class);
         }
 
-        // Un SIREN absent n'est pas un SIREN faux : le champ est facultatif,
-        // et `NotBlank` est la contrainte qui dirait le contraire.
+        // A missing SIREN is not a wrong SIREN: the field is optional, and
+        // `NotBlank` is the constraint that would say otherwise.
         if (null === $value || '' === $value) {
             return;
         }
@@ -40,7 +39,7 @@ final class SirenValidator extends ConstraintValidator
         }
     }
 
-    /** Luhn sur les neuf chiffres, de droite à gauche, un sur deux doublé. */
+    /** Luhn over the nine digits, right to left, every other one doubled. */
     private function passesLuhn(string $siren): bool
     {
         $total = 0;
@@ -48,9 +47,9 @@ final class SirenValidator extends ConstraintValidator
         foreach (mb_str_split($siren) as $index => $digit) {
             $digit = (int) $digit;
 
-            // Les positions se comptent depuis la gauche et la longueur est
-            // déjà garantie impaire : ce sont donc les indices impairs que
-            // Luhn double quand on compte depuis la droite.
+            // Positions are counted from the left and the length is already
+            // guaranteed odd: so the odd indexes are the ones Luhn doubles
+            // when counting from the right.
             if (1 === $index % 2) {
                 $digit *= 2;
 

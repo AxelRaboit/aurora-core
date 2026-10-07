@@ -159,11 +159,10 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
         $category->setName($input->getName());
         $category->setDescription($input->getDescription());
 
-        // Calculé à la création, puis laissé tel quel : d'autres parties de
-        // l'application retrouvent une catégorie par son identifiant
-        // (« medias-editoriaux » pour les images déposées depuis un
-        // formulaire). Le recalculer à chaque renommage la perdait, et la
-        // suivante était recréée sous l'ancien nom.
+        // Computed at creation, then left as is: other parts of the application
+        // find a category by its identifier ("medias-editoriaux" for images
+        // uploaded from a form). Recomputing it on every rename lost it, and the
+        // next one was recreated under the old name.
         if (null === $category->getId()) {
             $category->setSlug($this->uniqueSlug($input->getName(), null));
         }
@@ -218,9 +217,9 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
     {
         $base = mb_strtolower(new AsciiSlugger()->slug($name)->toString());
         $slug = $base;
-        $i = 2;
+        $suffix = 2;
         while ($this->slugExists($slug, $excludeId)) {
-            $slug = $base.'-'.$i++;
+            $slug = $base.'-'.$suffix++;
         }
 
         return $slug;
@@ -228,16 +227,16 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
 
     private function slugExists(string $slug, ?int $excludeId): bool
     {
-        $qb = $this->categoryRepository->createQueryBuilder('c')
+        $queryBuilder = $this->categoryRepository->createQueryBuilder('c')
             ->select('COUNT(c.id)')
             ->where('c.slug = :slug')
             ->andWhere('c.deletedAt IS NULL')
             ->setParameter('slug', $slug);
 
         if (null !== $excludeId) {
-            $qb->andWhere('c.id != :id')->setParameter('id', $excludeId);
+            $queryBuilder->andWhere('c.id != :id')->setParameter('id', $excludeId);
         }
 
-        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 }

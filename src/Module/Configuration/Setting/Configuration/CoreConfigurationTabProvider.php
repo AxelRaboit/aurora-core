@@ -174,7 +174,7 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
 
         if (ApplicationParameterEnum::Timezone === $parameter) {
             return array_map(
-                static fn (string $tz): array => ['value' => $tz, 'label' => $tz],
+                static fn (string $timezone): array => ['value' => $timezone, 'label' => $timezone],
                 DateTimeZone::listIdentifiers(),
             );
         }

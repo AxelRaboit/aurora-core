@@ -21,25 +21,25 @@ use function dirname;
 use function sprintf;
 
 /**
- * Reprend les images de notes restées sur le disque, et les range dans le
- * stockage actif.
+ * Takes back the note images left on the disk, and stores them in the active
+ * storage.
  *
- * Elles y étaient toutes avant la 0.9.230 : le module écrivait dans
- * `var/uploads/notes-markdown/{utilisateur}/` par un `Filesystem` posé en
- * direct, sans passer par la couche de stockage. Depuis, il écrit là où va
- * tout le reste, mais ce qui avait déjà été collé dans une note ne s'est pas
- * déplacé tout seul.
+ * They were all there before 0.9.230: the module wrote to
+ * `var/uploads/notes-markdown/{user}/` through a `Filesystem` used directly,
+ * without going through the storage layer. Since then, it writes where
+ * everything else goes, but what had already been pasted into a note did not
+ * move on its own.
  *
- * **Idempotente, et elle ne supprime rien par défaut.** Une image déjà
- * présente dans le stockage actif est laissée telle quelle ; l'original sur
- * le disque ne part qu'avec `--purge`, dans un second passage, une fois que
- * les notes ont été relues. Deux temps plutôt qu'un, parce qu'un déplacement
- * qui se trompe de clé perd des images que rien ne régénère.
+ * **Idempotent, and it deletes nothing by default.** An image already present
+ * in the active storage is left as it is; the original on the disk only goes
+ * with `--purge`, in a second pass, once the notes have been reread. Two
+ * steps rather than one, because a move that gets the key wrong loses images
+ * that nothing regenerates.
  *
- * Le chemin sur le disque **est** la clé, aux séparateurs près : les deux
- * s'écrivent `notes-markdown/{utilisateur}/{uuid}.ext`. La correspondance est
- * donc directe, et c'est voulu - la zone a été déclarée en 0.9.188 avec la
- * valeur que les fichiers portaient déjà, pour que rien n'échoue ici.
+ * The path on the disk **is** the key, give or take the separators: both are
+ * written `notes-markdown/{user}/{uuid}.ext`. The mapping is therefore
+ * direct, and on purpose - the zone was declared in 0.9.188 with the value the
+ * files already carried, so that nothing fails here.
  */
 #[AsCommand(
     name: 'aurora:notes:images:adopt',
@@ -50,7 +50,7 @@ final class AdoptNoteImagesCommand extends Command
     public function __construct(
         private readonly StorageManager $storageManager,
         #[Autowire('%kernel.project_dir%/var/uploads/notes-markdown')]
-        private readonly string $legacyDir,
+        private readonly string $legacyDirectory,
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {
         parent::__construct();
@@ -68,7 +68,7 @@ final class AdoptNoteImagesCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('Images de notes restées sur le disque');
 
-        if (!$this->filesystem->exists($this->legacyDir)) {
+        if (!$this->filesystem->exists($this->legacyDirectory)) {
             $io->success("Rien à reprendre : le dossier local n'existe pas.");
 
             return Command::SUCCESS;
@@ -82,7 +82,7 @@ final class AdoptNoteImagesCommand extends Command
         $deja = 0;
         $purgees = 0;
 
-        $finder = new Finder()->files()->in($this->legacyDir)->depth('== 1')->sortByName();
+        $finder = new Finder()->files()->in($this->legacyDirectory)->depth('== 1')->sortByName();
 
         foreach ($finder as $file) {
             $utilisateur = basename(dirname($file->getPathname()));

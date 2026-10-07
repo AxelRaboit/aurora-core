@@ -1,15 +1,16 @@
 <script setup>
 /**
- * Des livrables en cartes : le titre qui ouvre l'éditeur, la phrase de
- * résumé, une ligne d'informations et les gestes.
+ * Deliverables as cards: the title that opens the editor, the summary
+ * sentence, an information line and the actions.
  *
- * Partagé par l'onglet d'un espace et la page Livrables de Studio : seuls
- * changent les gestes, que chaque écran fournit, et ce que dit la ligne
- * d'informations, glissée par l'emplacement `meta`.
+ * Shared by a space's tab and Studio's Deliverables page: only the actions
+ * change, which each screen provides, and what the information line says,
+ * passed through the `meta` slot.
  *
- * L'image du livrable ouvre la carte, à gauche : on repère un modèle à sa
- * vignette avant de lire son titre. Sans image, une tuile neutre garde la
- * place, pour que les titres restent alignés d'une carte à l'autre.
+ * The deliverable's image opens the card, on the left: you spot a template
+ * by its thumbnail before reading its title. Without an image, a neutral
+ * tile holds the place, so that titles stay aligned from one card to the
+ * next.
  */
 import { useI18n } from "vue-i18n";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -18,7 +19,7 @@ import { FileText } from "lucide-vue-next";
 
 defineProps({
     deliverables: { type: Array, required: true },
-    /** `(deliverable) => actions`, au format des feuilles d'actions. */
+    /** `(deliverable) => actions`, in the action sheet format. */
     actionsFor: { type: Function, required: true },
 });
 
@@ -62,8 +63,8 @@ const { formatDateShort, formatTime } = useDateFormat();
                 </div>
             </div>
 
-            <!-- Le menu « … » sur tous les écrans, comme sur toutes les listes
-                 (décision d'Axel du 04/10/2026). -->
+            <!-- The "…" menu on every screen, as on every list
+                 (Axel's decision of 04/10/2026). -->
             <AppRowActions class="shrink-0" :actions="actionsFor(deliverable)" :label="deliverable.title" />
         </li>
     </ul>

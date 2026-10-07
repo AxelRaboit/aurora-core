@@ -1,19 +1,18 @@
 <script setup>
 /**
- * Le compte, en haut à droite, sous son avatar.
+ * The account, top right, under its avatar.
  *
- * Il occupait le pied de la colonne de navigation : un bloc de trois lignes
- * plus cinq entrées dépliables, pour une chose qu'on touche une fois par
- * jour. **Ce n'est pas de la navigation**, c'est l'identité de la personne
- * et les gestes qui s'y rapportent, et cette place coûtait au menu sa
- * hauteur utile.
+ * It used to fill the foot of the navigation column: a three-line block
+ * plus five expandable entries, for something touched once a day. **It is
+ * not navigation**, it is the person's identity and the actions that go
+ * with it, and that spot cost the menu its useful height.
  *
- * C'est le même déménagement que la recherche et les notifications, pour la
- * même raison, et la place est cohérente : l'avatar est ce qu'on cherche des
- * yeux pour savoir sous quel compte on travaille.
+ * It is the same move as search and notifications, for the same reason, and
+ * the spot makes sense: the avatar is what the eye looks for to know which
+ * account it is working under.
  *
- * Le menu se referme au clic dehors et à Échap, et le bouton reste
- * atteignable au clavier : c'est une feuille de commandes, pas un survol.
+ * The menu closes on an outside click and on Escape, and the button stays
+ * reachable from the keyboard: it is a command sheet, not a hover.
  */
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -48,12 +47,12 @@ function close() {
 }
 
 /**
- * Se refermer sur un clic ailleurs et sur Échap.
+ * Close on a click elsewhere and on Escape.
  *
- * Les deux écoutes vivent sur le document parce que le clic qui referme se
- * produit, par définition, hors du composant. Elles sont posées une fois et
- * retirées au démontage : une feuille qui laisse son écoute derrière elle
- * fait réagir un composant qui n'est plus à l'écran.
+ * Both listeners live on the document because the closing click happens, by
+ * definition, outside the component. They are added once and removed on
+ * unmount: a sheet that leaves its listener behind makes a component react
+ * that is no longer on screen.
  */
 function onDocumentClick(event) {
     if (!open.value) return;
@@ -100,9 +99,9 @@ onUnmounted(() => {
             class="aurora-card absolute right-0 top-full z-50 mt-1 w-64 overflow-hidden py-1 shadow-xl"
             role="menu"
         >
-            <!-- Qui l'on est, en tête : la même information qu'en pied de
-                 menu, mais elle n'a plus à rester affichée en permanence
-                 pour être trouvable. -->
+            <!-- Who you are, at the top: the same information as at the foot
+                 of the menu, but it no longer has to stay on screen at all
+                 times to be found. -->
             <div class="flex min-w-0 items-center gap-3 px-3 py-2">
                 <AppAvatar
                     variant="solid"

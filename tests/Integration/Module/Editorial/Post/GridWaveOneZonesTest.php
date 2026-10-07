@@ -251,9 +251,9 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
     {
         $entries = [];
         $held = [];
-        foreach (range(1, 8) as $n) {
-            $entries[] = ['id' => 's'.$n];
-            $held['s'.$n] = ['title' => 'Temps '.$n];
+        foreach (range(1, 8) as $stepNumber) {
+            $entries[] = ['id' => 's'.$stepNumber];
+            $held['s'.$stepNumber] = ['title' => 'Temps '.$stepNumber];
         }
 
         $html = $this->render(['type' => 'items', 'display' => 'process', 'items' => $entries], ['items' => $held]);

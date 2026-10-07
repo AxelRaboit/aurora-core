@@ -16,21 +16,21 @@ use function preg_split;
 use const PREG_SPLIT_NO_EMPTY;
 
 /**
- * Quels comptes GitHub la zone « Activité GitHub » affiche.
+ * Which GitHub accounts the "Activité GitHub" zone displays.
  *
- * **Éteinte tant que personne ne l'allume**, comme les autres intégrations :
- * Aurora est livrée à des clients, et les comptes affichés sont ceux de la
- * personne qui installe. Rien ne se demande à GitHub avant.
+ * **Off until someone turns it on**, like the other integrations: Aurora is
+ * delivered to clients, and the accounts displayed are those of the person
+ * who installs it. Nothing is asked of GitHub before that.
  *
- * Aucune clé : la grille se lit sur la page publique d'un profil, que
- * n'importe quel visiteur peut ouvrir. Il n'y a donc rien de secret ici, et
- * rien à chiffrer.
+ * No key: the grid is read on the public page of a profile, which any
+ * visitor can open. There is therefore nothing secret here, and nothing to
+ * encrypt.
  */
 final readonly class GitHubSettings
 {
     /**
-     * Au-delà, la zone devient un mur de grilles, et chaque compte est une
-     * requête de plus quand le cache se renouvelle.
+     * Beyond this, the zone turns into a wall of grids, and each account is one
+     * more request when the cache renews.
      */
     public const int MAX_LOGINS = 4;
 
@@ -38,7 +38,7 @@ final readonly class GitHubSettings
         private SettingRepository $settingRepository,
     ) {}
 
-    /** Allumée, et au moins un compte à montrer. */
+    /** Turned on, and at least one account to show. */
     public function isEnabled(): bool
     {
         return $this->settingRepository->getBoolean(GitHubSettingEnum::Enabled->value)
@@ -46,11 +46,10 @@ final readonly class GitHubSettings
     }
 
     /**
-     * Les identifiants enregistrés, dans l'ordre d'affichage.
+     * The saved identifiers, in display order.
      *
-     * Relus à travers {@see self::parse()} : une ligne écrite à la main en
-     * base, ou avant une règle plus stricte, ne doit jamais composer une
-     * adresse.
+     * Read back through {@see self::parse()}: a row written by hand in the
+     * database, or before a stricter rule, must never compose an address.
      *
      * @return list<string>
      */
@@ -62,16 +61,16 @@ final readonly class GitHubSettings
     }
 
     /**
-     * Découpe une saisie libre en identifiants.
+     * Splits a free input into identifiers.
      *
-     * Une ligne, une virgule ou un espace séparent ; un `@` en tête est
-     * toléré, c'est ainsi qu'on écrit un compte partout ailleurs. Les doublons
-     * sont ignorés sans casse, comme GitHub les traite.
+     * A line break, a comma or a space separates; a leading `@` is tolerated,
+     * since that is how an account is written everywhere else. Duplicates are
+     * ignored case-insensitively, as GitHub treats them.
      *
-     * Sans plafond : c'est à qui enregistre de refuser une liste trop longue,
-     * et à qui lit de ne jamais en afficher plus que {@see self::MAX_LOGINS}.
+     * No cap: it is up to whoever saves to refuse a list that is too long, and
+     * up to whoever reads never to display more than {@see self::MAX_LOGINS}.
      *
-     * @return array{0: list<string>, 1: list<string>} les valides, puis les refusés
+     * @return array{0: list<string>, 1: list<string>} the valid ones, then the refused ones
      */
     public static function parse(string $input): array
     {
@@ -82,8 +81,8 @@ final readonly class GitHubSettings
         foreach (preg_split('/[\s,;]+/u', $input, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $token) {
             $login = '@' === $token[0] ? mb_substr($token, 1) : $token;
 
-            // Les règles de GitHub : lettres, chiffres et tirets isolés, sans
-            // tiret au bord, 39 caractères au plus.
+            // GitHub's rules: letters, digits and single hyphens, no hyphen at the
+            // edges, 39 characters at most.
             if (1 !== preg_match('/^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/', $login)) {
                 $invalid[] = $token;
 
@@ -116,7 +115,7 @@ final readonly class GitHubSettings
     }
 
     /**
-     * @param list<string> $logins déjà passés par {@see self::parse()}
+     * @param list<string> $logins already run through {@see self::parse()}
      */
     public function save(bool $enabled, array $logins): void
     {

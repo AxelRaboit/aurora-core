@@ -110,7 +110,7 @@ final readonly class SpaceWorkload
             $states[] = 'upcoming';
         }
 
-        if ($onCalendar && $pending && $column->isVisibleToClient()) {
+        if ($onCalendar && $pending && $item->isAtClientStep()) {
             $states[] = 'with_client';
         }
 

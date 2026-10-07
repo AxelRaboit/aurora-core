@@ -118,11 +118,11 @@
             {% endembed %}
         {% endif %}
 
-        {# La marge de la page vit dans `spacing.css`, en deux variables que le
-           bandeau au-dessus lit aussi. Elle était écrite ici en Tailwind, et
-           le bandeau écrivait la sienne de son côté : les deux ont divergé sur
-           téléphone, huit pixels contre seize, et le titre ne tombait plus à
-           la verticale du contenu qu'il nomme. #}
+        {# The page margin lives in `spacing.css`, in two variables that the
+           banner above reads too. It was written here in Tailwind, and the
+           banner wrote its own on its side: the two diverged on a phone,
+           eight pixels against sixteen, and the title no longer lined up
+           vertically with the content it names. #}
         <main class="aurora-page flex-1">
             {% block body %}{% endblock %}
         </main>

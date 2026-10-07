@@ -315,8 +315,8 @@ final class BlocksRendererTest extends TestCase
 
     public function testARawBlockRendersItsHtmlThroughTheWiderFilter(): void
     {
-        // Le point du bloc : ce que le filtre du texte courant supprimerait
-        // passe ici, sans que les scripts passent pour autant.
+        // The point of the block: what the regular text filter would strip
+        // gets through here, without letting scripts through for all that.
         $out = $this->render([
             ['type' => 'raw', 'data' => ['html' => '<table class="t"><tr><td>1</td></tr></table><script>alert(1)</script>']],
         ]);

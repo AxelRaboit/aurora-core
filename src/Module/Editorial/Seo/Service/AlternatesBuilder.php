@@ -123,17 +123,17 @@ final readonly class AlternatesBuilder
      * For pages that exist in every locale by construction - the home page,
      * an archive - where there is no translation to check for.
      *
-     * @param array<string, string> $extraParams
+     * @param array<string, string> $extraParameters
      *
      * @return list<array{locale: string, url: string}>
      */
-    public function forRoute(string $route, array $extraParams = []): array
+    public function forRoute(string $route, array $extraParameters = []): array
     {
         $alternates = [];
         foreach ($this->context->activeLocaleCodes() as $code) {
             $alternates[] = [
                 'locale' => $code,
-                'url' => $this->urlGenerator->generate($route, [...$extraParams, 'locale' => $code]),
+                'url' => $this->urlGenerator->generate($route, [...$extraParameters, 'locale' => $code]),
             ];
         }
 

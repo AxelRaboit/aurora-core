@@ -10,10 +10,10 @@
             {{ contract.reference }}
         </p>
         <h1 class="text-xl font-semibold text-primary">
-            {{ 'studio.public.contract.heading'|trans({}, null, contract.locale) }}
+            {{ documentTitle ?? 'studio.public.contract.heading'|trans({}, null, contract.locale) }}
         </h1>
         <p class="text-sm text-secondary">
-            {{ 'studio.public.contract.intro'|trans({'{company}': customer.legalName}, null, contract.locale) }}
+            {{ 'studio.public.contract.intro'|trans({'{company}': siteName}, null, contract.locale) }}
         </p>
     </header>
 

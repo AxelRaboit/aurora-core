@@ -99,8 +99,8 @@ final class DocumentRecolorTest extends IntegrationTestCase
         self::assertStringContainsString('(rouge)', $red->getTitle());
         self::assertNotSame($green->getFilePath(), $red->getFilePath(), 'a file of its own');
 
-        [$r, $g] = $this->firstPixel($red);
-        self::assertGreaterThan($g, $r, 'and that file is red');
+        [$redChannel, $greenChannel] = $this->firstPixel($red);
+        self::assertGreaterThan($greenChannel, $redChannel, 'and that file is red');
     }
 
     public function testAskedFromAnAlternateItDeclinesTheOriginal(): void

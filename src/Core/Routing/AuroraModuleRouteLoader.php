@@ -27,7 +27,7 @@ use function mb_rtrim;
  */
 final class AuroraModuleRouteLoader extends Loader
 {
-    public function __construct(private readonly string $projectDir, ?string $env = null)
+    public function __construct(private readonly string $projectDirectory, ?string $env = null)
     {
         parent::__construct($env);
     }
@@ -36,14 +36,14 @@ final class AuroraModuleRouteLoader extends Loader
     {
         $collection = new RouteCollection();
 
-        foreach (glob($this->projectDir.'/vendor/axelraboit/aurora-*', GLOB_ONLYDIR) ?: [] as $dir) {
+        foreach (glob($this->projectDirectory.'/vendor/axelraboit/aurora-*', GLOB_ONLYDIR) ?: [] as $moduleDirectory) {
             // aurora-core's own controllers are loaded by the client's `aurora`
             // entry; skip it here to avoid double registration.
-            if ('aurora-core' === basename(mb_rtrim($dir, '/'))) {
+            if ('aurora-core' === basename(mb_rtrim($moduleDirectory, '/'))) {
                 continue;
             }
 
-            $imported = $this->import($dir, 'attribute');
+            $imported = $this->import($moduleDirectory, 'attribute');
             $collection->addCollection($imported);
         }
 

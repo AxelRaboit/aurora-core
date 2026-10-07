@@ -1,16 +1,16 @@
 /**
- * Le compte à rebours d'une zone - `[data-countdown-at]`.
+ * The countdown of a zone - `[data-countdown-at]`.
  *
- * La page arrive avec le temps restant au moment où elle a été faite ; ce
- * module le fait vivre, seconde par seconde, jusqu'à l'instant visé. L'instant
- * est absolu (une date ISO avec son décalage) : l'horloge et le fuseau du
- * lecteur ne déplacent pas la cible, ils ne décident que du « maintenant ».
+ * The page arrives with the time remaining at the moment it was made; this
+ * module brings it to life, second by second, until the target instant. The
+ * instant is absolute (an ISO date with its offset): the reader's clock and
+ * time zone do not move the target, they only decide what "now" is.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_countdown.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_countdown.html.twig
  */
 const SELECTOR = "[data-countdown-at]";
 
-/** Jours, heures, minutes et secondes entre maintenant et la cible, jamais négatifs. */
+/** Days, hours, minutes and seconds between now and the target, never negative. */
 export function remaining(targetMs, nowMs) {
     const left = Math.max(0, Math.floor((targetMs - nowMs) / 1000));
 
@@ -66,7 +66,7 @@ function arm() {
         }
 
         if (running) {
-            // Calé sur la seconde pleine, pour que les secondes ne sautent pas.
+            // Aligned on the full second, so that the seconds do not skip.
             window.setTimeout(tick, 1000 - (Date.now() % 1000));
         }
     };

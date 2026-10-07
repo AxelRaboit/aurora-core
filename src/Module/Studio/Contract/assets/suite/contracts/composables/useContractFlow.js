@@ -37,7 +37,7 @@ const PREFIX = "suite.studio.contracts.flow";
  * An action is `{ key, title, description, icon, color }`; the caller decides
  * what each key does (a modal, a request, a navigation).
  */
-export function useContractFlow() {
+export function useContractFlow({ linkDays = 30 } = {}) {
     const { t } = useI18n();
     const { can } = usePrivileges();
 
@@ -73,7 +73,10 @@ export function useContractFlow() {
         return {
             key,
             title: t(`${PREFIX}.actions.${key}.title`),
-            description: t(`${PREFIX}.actions.${key}.description`),
+            // `days` for the two that hand out an address; ignored by the rest.
+            description: t(`${PREFIX}.actions.${key}.description`, {
+                days: linkDays,
+            }),
             icon: ICONS[key],
             color: COLORS[key],
         };
@@ -230,7 +233,7 @@ export function useContractFlow() {
             (each) => "customer" === each.role,
         );
 
-        const params = {
+        const summaryParameters = {
             sealed: { date: date(contract.frozenAt) },
             refused: { date: date(contract.refusal?.refusedAt) },
             sent: {
@@ -250,7 +253,7 @@ export function useContractFlow() {
 
         return t(
             `${PREFIX}.summary.${contract.status}`,
-            params[contract.status] ?? {},
+            summaryParameters[contract.status] ?? {},
         );
     }
 

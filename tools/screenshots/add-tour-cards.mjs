@@ -1,45 +1,44 @@
 /**
- * Ajoute des images à une publication du tour public, d'un seul geste.
+ * Adds images to a post of the public tour, in one go.
  *
- * Poser une image de plus sur une carte demandait cinq gestes à la main :
- * copier la capture sur le serveur, l'importer dans la médiathèque, relever
- * l'identifiant rendu, ajouter une zone au gabarit de grille de la
- * publication, et écrire le texte de remplacement dans les trois langues. Je
- * l'ai fait sept fois pour la carte des notes ; le faire trente fois de plus
- * à la main, c'est se tromper au moins une fois sur un identifiant, et une
- * zone qui pointe vers le mauvais document est invisible jusqu'à ce que
- * quelqu'un regarde la page.
+ * Putting one more image on a card took five steps by hand: copy the
+ * screenshot to the server, import it into the media library, note the
+ * returned identifier, add a zone to the post's grid layout, and write the
+ * alternative text in the three languages. I did it seven times for the notes
+ * card; doing it thirty more times by hand means getting an identifier wrong
+ * at least once, and a zone pointing at the wrong document is invisible until
+ * somebody looks at the page.
  *
- * Usage :
+ * Usage:
  *   node tools/screenshots/add-tour-cards.mjs plan.json --dry-run
  *   node tools/screenshots/add-tour-cards.mjs plan.json
  *
- * Le plan, en JSON :
+ * The plan, in JSON:
  *   {
  *     "slug": "mediatheque",
- *     "after": "tour-mediatheque-grille",   // facultatif : où insérer
+ *     "after": "tour-mediatheque-grille",   // optional: where to insert
  *     "cards": [
  *       {"name": "tour-mediatheque-fiche", "alt": {"fr": "…", "en": "…", "es": "…"}}
  *     ]
  *   }
  *
- * La catégorie de la médiathèque où ranger les images se donne par
- * `TOUR_CATEGORY_ID` (comme le serveur, elle n'est pas écrite dans ce dépôt
- * public). Sans elle, les images arrivent sans catégorie et le script le dit :
- * il fallait les ranger à la main ensuite, et on l'oubliait.
+ * The media library category to file the images in is given by
+ * `TOUR_CATEGORY_ID` (like the server, it is not written in this public
+ * repository). Without it, the images arrive with no category and the script
+ * says so: they had to be filed by hand afterwards, and that got forgotten.
  *
- * Ce que le script garantit :
+ * What the script guarantees:
  *
- * - **Il ne touche à rien avant d'avoir tout vérifié.** Les captures doivent
- *   exister, les trois langues doivent être écrites, et la publication doit
- *   être trouvée. Un envoi qui s'arrête au milieu laisse une page à moitié
- *   refaite, ce qui est pire qu'une page inchangée.
- * - **La grille est écrite dans une transaction.** Le gabarit et les trois
- *   traductions partent ensemble ou pas du tout : une zone déclarée sans son
- *   texte de remplacement est une image sans description pour qui lit à
- *   l'oreille.
- * - **Il est rejouable.** Une carte déjà posée est reconnue par son nom dans
- *   `tour-cards.json` et remplacée plutôt que dupliquée.
+ * - **It touches nothing before checking everything.** The screenshots must
+ *   exist, the three languages must be written, and the post must be found.
+ *   An upload that stops halfway leaves a half-redone page, which is worse
+ *   than an unchanged page.
+ * - **The grid is written in a transaction.** The layout and the three
+ *   translations go together or not at all: a zone declared without its
+ *   alternative text is an image without a description for whoever reads by
+ *   ear.
+ * - **It can be replayed.** A card already placed is recognised by its name
+ *   in `tour-cards.json` and replaced rather than duplicated.
  */
 
 import { execFile } from "node:child_process";
@@ -81,11 +80,11 @@ const plan = JSON.parse(await readFile(resolve(planPath), "utf8"));
 const registry = JSON.parse(await readFile(cardsFile, "utf8"));
 
 /**
- * Une requête SQL sur la base de production, rendue en texte brut.
+ * An SQL query on the production database, returned as plain text.
  *
- * La requête voyage par fichier, comme dans les autres scripts : passée en
- * argument, elle traversait le shell distant entre guillemets doubles, où
- * `$(…)` et les accents graves s'exécutent.
+ * The query travels by file, as in the other scripts: passed as an argument,
+ * it went through the remote shell inside double quotes, where `$(…)` and
+ * backticks get executed.
  */
 async function sql(query) {
     const local = resolve(tmpdir(), `tour-q-${randomBytes(4).toString("hex")}.sql`);
@@ -101,7 +100,7 @@ async function sql(query) {
     return stdout.trim();
 }
 
-// ---- vérifications, toutes avant le premier octet envoyé -------------------
+// ---- checks, all before the first byte is sent ----------------------------
 
 const problemes = [];
 
@@ -137,7 +136,7 @@ if (dryRun) {
     process.exit(0);
 }
 
-// ---- l'import dans la médiathèque -----------------------------------------
+// ---- the import into the media library ------------------------------------
 
 await run("ssh", [HOST, `mkdir -p ${REMOTE_TMP}`]);
 
@@ -150,7 +149,7 @@ for (const carte of plan.cards) {
     await run("sh", ["-c", `ssh ${HOST} 'cat > ${REMOTE_TMP}/${carte.name}.png' < ${JSON.stringify(file)}`]);
 
     if (null !== connue) {
-        // Déjà posée une fois : on remplace le fichier, la zone reste.
+        // Already placed once: the file is replaced, the zone stays.
         await run("ssh", [HOST, `cd ${REMOTE_DIR} && php bin/console aurora:ged:replace ${connue} ${REMOTE_TMP}/${carte.name}.png`]);
         documents[carte.name] = connue;
         console.log(`  ↻ ${carte.name} → document #${connue}`);
@@ -174,16 +173,16 @@ for (const carte of plan.cards) {
     console.log(`  + ${carte.name} → document #${id}`);
 }
 
-// ---- la grille -------------------------------------------------------------
+// ---- the grid --------------------------------------------------------------
 
 const layout = JSON.parse(await sql(`SELECT grid_layout::text FROM core_posts WHERE id = ${postId}`));
 /**
- * La forme d'une zone média, telle que le normaliseur l'attend.
+ * The shape of a media zone, as the normaliser expects it.
  *
- * Reprise de la page si elle en a déjà une, écrite ici sinon. Le cas « sinon »
- * est devenu le cas courant le jour où le bandeau a été posé sur les
- * vingt-quatre pages : il emporte la première image dans l'entête, et le
- * corps se retrouve sans une seule zone média dont s'inspirer.
+ * Taken from the page if it already has one, written here otherwise. The
+ * "otherwise" case became the common one the day the banner was put on the
+ * twenty-four pages: it takes the first image into the header, and the body
+ * is left without a single media zone to copy from.
  */
 const MODELE_MEDIA = {
     anchor: "",
@@ -230,7 +229,7 @@ for (const carte of plan.cards) {
     nouvelles.push({ zone, alt: carte.alt });
 }
 
-// Insérées après la zone nommée par `after`, ou à la fin.
+// Inserted after the zone named by `after`, or at the end.
 const ancre = plan.after ? layout.zones.findIndex((z) => z.mediaId === registry.cards[plan.after]?.document) : -1;
 const position = -1 === ancre ? layout.zones.length : ancre + 1;
 layout.zones.splice(position, 0, ...nouvelles.map((n) => n.zone));
@@ -251,16 +250,16 @@ for (const locale of LOCALES) {
     grids[locale] = grid;
 }
 
-// Le JSON voyage par fichiers, jamais dans la ligne de commande ni dans un
-// `\\set` littéral : psql lit la valeur d'un `\\set` comme sa propre syntaxe,
-// et le premier guillemet d'un objet JSON y devient une commande inconnue.
-// `\\set x \`cat fichier\`` la lui donne telle quelle.
+// The JSON travels by files, never on the command line nor in a literal
+// `\\set`: psql reads the value of a `\\set` as its own syntax, and the
+// first quote of a JSON object becomes an unknown command there.
+// `\\set x \`cat file\`` hands it over as it is.
 const fichiers = { layout: JSON.stringify(layout) };
 for (const l of LOCALES) fichiers[`g${l}`] = JSON.stringify(grids[l]);
 
-// Écrits localement d'abord, puis versés par redirection : `execFile` ne
-// parle pas à l'entrée standard du processus qu'il lance, et un `input`
-// passé en option y est ignoré sans un mot.
+// Written locally first, then poured in by redirection: `execFile` does not
+// talk to the standard input of the process it starts, and an `input` passed
+// as an option is ignored there without a word.
 for (const [nom, contenu] of Object.entries(fichiers)) {
     const local = resolve(tmpdir(), `aurora-${nom}-${postId}.json`);
     await writeFile(local, contenu);
@@ -275,10 +274,10 @@ const envoi = [
     "COMMIT;",
 ].join("\n");
 
-// Par un fichier déposé sur le serveur, et non par l'entrée standard :
-// `execFile` n'écrit pas dans le processus qu'il lance, et un `input` passé
-// là est ignoré en silence - la transaction ne serait jamais jouée et le
-// script se féliciterait quand même.
+// Through a file put on the server, and not through standard input:
+// `execFile` does not write into the process it starts, and an `input`
+// passed there is silently ignored - the transaction would never run and the
+// script would congratulate itself anyway.
 const script = `${REMOTE_TMP}/grid-${postId}.sql`;
 const scriptLocal = resolve(tmpdir(), `aurora-grid-${postId}.sql`);
 await writeFile(scriptLocal, envoi);
@@ -289,7 +288,7 @@ await run("ssh", [
     `sudo -u postgres psql -v ON_ERROR_STOP=1 -d $db -f ${script} && rm -f ${script}`,
 ]);
 
-// ---- la table des cartes, pour que la prochaine campagne remplace ---------
+// ---- the card table, so the next campaign replaces ------------------------
 
 for (const carte of plan.cards) {
     registry.cards[carte.name] = { document: documents[carte.name], slug: plan.slug };

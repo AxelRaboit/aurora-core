@@ -11,8 +11,8 @@ vi.mock("@/shared/nav/navMeta.js", () => ({
 }));
 vi.mock("@/shared/composables/http/suite/useRequest.js", () => ({
     useRequest: () => ({
-        request: (url, body, opts) => {
-            requests.push({ url, body, method: opts?.method });
+        request: (url, body, options) => {
+            requests.push({ url, body, method: options?.method });
 
             return Promise.resolve(response);
         },

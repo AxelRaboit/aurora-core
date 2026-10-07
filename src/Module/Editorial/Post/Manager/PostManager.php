@@ -263,9 +263,9 @@ class PostManager implements PostManagerInterface
 
     public function demoteIfNotPublishable(PostInputInterface $input, ?PostInterface $post = null): PostInputInterface
     {
-        // « Programmée » est une publication différée : sans ce garde, qui n'a
-        // pas le droit de publier choisissait une date, et la tâche planifiée
-        // publiait la page à l'heure dite sans que personne ne l'ait relue.
+        // "Programmée" is a deferred publication: without this guard, someone
+        // without the right to publish picked a date, and the scheduled task
+        // published the page at that time without anyone having reviewed it.
         if (!in_array($input->getStatus(), [PostStatusEnum::Published->value, PostStatusEnum::Scheduled->value], true)) {
             return $input;
         }
@@ -317,9 +317,9 @@ class PostManager implements PostManagerInterface
         $status = PostStatusEnum::from($input->getStatus());
         $post->setStatus($status);
 
-        // Gardée aussi pendant la relecture : une publication programmée par
-        // quelqu'un qui n'a pas le droit de publier part en revue avec la date
-        // qu'il voulait, et l'approbation la reprogramme à cette date.
+        // Kept during review too: a post scheduled by someone without the
+        // right to publish goes to review with the date they wanted, and the
+        // approval schedules it again for that date.
         $post->setScheduledAt(
             in_array($status, [PostStatusEnum::Scheduled, PostStatusEnum::PendingReview], true) ? $this->hydrateDate($input->getScheduledAt()) : null,
         );

@@ -1,16 +1,16 @@
 /**
- * Le simulateur de devis - `[data-quote]`.
+ * The quote estimator - `[data-quote]`.
  *
- * Additionne le prix de base et celui des cases cochées à chaque changement,
- * et écrit un récapitulatif dans le premier champ de texte libre du
- * formulaire qui suit sur la page - c'est pourquoi le panneau de la zone
- * conseille d'en poser un juste après.
+ * Adds up the base price and the price of the ticked boxes on every change,
+ * and writes a summary into the first free text field of the form that
+ * follows on the page - which is why the zone's panel advises placing one
+ * right after it.
  *
- * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_quote_estimator.html.twig
+ * Template: templates/Frontend/themes/default/editorial/post/zones/_quote_estimator.html.twig
  */
 const SELECTOR = "[data-quote]";
 
-/** Le récapitulatif que le total écrit dans le formulaire suivant. */
+/** The summary that the total writes into the next form. */
 export function summarise(base, checked, currency) {
     const lines = checked.map(
         (item) => `- ${item.label} (+${item.price}${currency})`,
@@ -24,13 +24,18 @@ export function summarise(base, checked, currency) {
 }
 
 function nextForm(quote) {
-    let el = quote.nextElementSibling;
+    let sibling = quote.nextElementSibling;
 
-    while (el) {
-        if (el.matches("form, [data-form]") || el.querySelector?.("form")) {
-            return el.matches("form") ? el : el.querySelector("form");
+    while (sibling) {
+        if (
+            sibling.matches("form, [data-form]") ||
+            sibling.querySelector?.("form")
+        ) {
+            return sibling.matches("form")
+                ? sibling
+                : sibling.querySelector("form");
         }
-        el = el.nextElementSibling;
+        sibling = sibling.nextElementSibling;
     }
 
     return null;

@@ -1,15 +1,15 @@
 <script setup>
 /**
- * Choisir un dossier Drive : celui du client ou celui de l'agence.
+ * Choose a Drive folder: the client's or the agency's.
  *
- * Une seule fenêtre pour les deux, parce que c'est le même geste : coller
- * l'adresse d'un dossier partagé avec le compte de service, enregistrer, ou
- * débrancher. Les deux cartes des réglages ne diffèrent que par ce qu'elles
- * disent ; la fenêtre ne se dessine pas deux fois.
+ * A single dialog for both, because it is the same gesture: paste the address
+ * of a folder shared with the service account, save, or disconnect. The two
+ * settings cards only differ in what they say; the dialog is not drawn
+ * twice.
  *
- * L'adresse avec laquelle partager est rappelée sous le champ, avec un bouton
- * pour la copier : c'est elle qu'on va coller dans le partage de Google Drive,
- * ou envoyer au client.
+ * The address to share with is repeated under the field, with a button to
+ * copy it: it is what gets pasted into Google Drive's sharing, or sent to
+ * the client.
  */
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -24,7 +24,7 @@ const props = defineProps({
     show: { type: Boolean, default: false },
     title: { type: String, required: true },
     intro: { type: String, default: "" },
-    /** L'adresse du dossier branché, pour la reprendre ; vide s'il n'y en a pas. */
+    /** The address of the connected folder, to edit it; empty if there is none. */
     currentUrl: { type: String, default: "" },
     serviceAccountEmail: { type: String, default: null },
     error: { type: String, default: "" },
@@ -38,8 +38,8 @@ const { copy } = useClipboard();
 
 const value = ref("");
 
-// Repris à chaque ouverture : une saisie abandonnée ne revient pas la fois
-// suivante comme si elle avait été enregistrée.
+// Reset on every opening: an abandoned input does not come back the next
+// time as if it had been saved.
 watch(
     () => props.show,
     (open) => {

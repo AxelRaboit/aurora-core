@@ -7,18 +7,18 @@ namespace Aurora\Module\Notes\Space\Dto;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Ce qu'on règle d'un espace : son nom, sa couleur, qui y entre, et le rôle
- * de qui entre sans inscription.
+ * What is configured on a space: its name, its colour, who gets in, and the
+ * role of whoever gets in without being a member.
  *
- * Le nom est exigé, contrairement à un dossier : un espace partagé se
- * retrouve dans le panneau de plusieurs personnes, et « Sans titre » chez
- * chacune ne dirait à personne de quoi il s'agit.
+ * The name is required, unlike a folder's: a shared space shows up in the
+ * panel of several people, and "Sans titre" for each of them would tell
+ * nobody what it is about.
  */
 class NoteSpaceInput implements NoteSpaceInputInterface
 {
     public function __construct(
-        // Exigé pour un espace partagé seulement : le contrôleur le vérifie,
-        // l'espace personnel n'ayant pas de nom.
+        // Required for a shared space only: the controller checks it, since
+        // the personal space has no name.
         #[Assert\Length(max: 120)]
         public readonly ?string $name = null,
         #[Assert\Regex(pattern: '/^#[0-9a-fA-F]{6}$/', message: 'notes.markdown.folders.errors.bad_color')]

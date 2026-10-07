@@ -6,6 +6,7 @@
     {{ include('@Shared/components/page_header.html.twig', {
         crumbs: [
             {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_spaces'|trans, href: path('suite_studio_spaces')},
             {label: 'suite.nav.studio_calendar'|trans},
         ],
     }) }}
@@ -17,5 +18,7 @@
     hasScopeChoice: hasScopeChoice,
     spaces: spaces,
     itemsPath: itemsPath,
+    spacesPath: spacesPath,
+    calendarPath: calendarPath,
 }) }}></div>
 {% endblock %}

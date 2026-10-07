@@ -37,7 +37,7 @@ import { siteZone } from "@/shared/utils/format/zonedTime.js";
 // not at the time of the laptop that typed it.
 const timeZone = siteZone() ?? "";
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 // The page's own choice first, then the theme's modes - the same list the
 // theme screen offers, from the one place that mirrors the server's.
 const highlightOptions = computed(() => [
@@ -393,12 +393,12 @@ async function openPreview() {
 }
 
 /**
- * Les trois surfaces colorables, dans l'ordre où l'écran de thème les présente
- * - fond, topbar, pied - parce que c'est le même choix vu deux fois et qu'un
- * ordre différent entre les deux écrans se lit comme deux réglages différents.
+ * The three colourable surfaces, in the order the theme screen presents them
+ * - background, topbar, footer - because it is the same choice seen twice and
+ * a different order between the two screens reads as two different settings.
  *
- * `key` est le champ du formulaire, pas la clé de configuration du thème : ici
- * les couleurs sont trois colonnes sur la publication, pas un tableau JSON.
+ * `key` is the form field, not the theme's configuration key: here the
+ * colours are three columns on the post, not a JSON array.
  */
 const SURFACES = computed(() => [
     { key: "backgroundColor", label: t("suite.posts.appearance.surface_background") },
@@ -448,12 +448,12 @@ function termLabel(term) {
 
 <template>
     <div class="aurora-stack">
-        <!-- Deux rangs et pas un empilement.
-             Sur téléphone, les quatre commandes de cette barre se suivaient
-             sans hiérarchie : un bouton de retour aussi lourd qu'Enregistrer,
-             puis l'état, puis les actions, puis les langues. Le retour est
-             redevenu ce qu'il est - une navigation, pas une action - et ce qui
-             agit sur la publication tient ensemble à droite. -->
+        <!-- Two rows and not a stack.
+             On a phone, the four controls of this bar followed each other
+             with no hierarchy: a back button as heavy as Enregistrer, then the
+             state, then the actions, then the languages. Back has become what
+             it is again - navigation, not an action - and what acts on the
+             post stays together on the right. -->
         <AppPageBar :back-href="listPath" :back-label="t('suite.posts.back_to_list')">
             <!-- Status stays visible whatever section is open. Knowing you
                  are editing a live page should not require opening a tab. -->
@@ -491,7 +491,7 @@ function termLabel(term) {
             <p v-if="post?.reviewedByName" class="mt-1.5 text-2xs text-muted">
                 {{ post.reviewedByName }}
                 <template v-if="post.reviewedAt">
-                    &middot; {{ d(new Date(post.reviewedAt), { dateStyle: "medium", timeStyle: "short" }) }}
+                    &middot; {{ formatDate(new Date(post.reviewedAt), { dateStyle: "medium", timeStyle: "short" }) }}
                 </template>
             </p>
         </div>
@@ -521,12 +521,11 @@ function termLabel(term) {
 
         <div>
             <section class="space-y-4">
-                <!-- **Une bande qui défile, pas une page qui part de côté.**
-                     Les sept onglets font sept cents pixels : sans cette boîte,
-                     c'est la page entière qui se mettait à défiler
-                     horizontalement sur téléphone, éditeur compris. Bornée à la
-                     largeur disponible, elle défile seule et les onglets
-                     gardent leur taille. -->
+                <!-- **A strip that scrolls, not a page that slides sideways.**
+                     The seven tabs are seven hundred pixels wide: without this
+                     box, the whole page started scrolling horizontally on a
+                     phone, editor included. Bounded to the available width, it
+                     scrolls on its own and the tabs keep their size. -->
                 <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin">
                     <AppTab
                         v-for="tab in TABS"
@@ -559,9 +558,10 @@ function termLabel(term) {
                             />
                         </div>
 
-                        <!-- Le reste de ce que règle le thème : texte, traits,
-                             cartes, titres, chiffres. Mêmes clés que lui, et le
-                             même sens du vide : celle du thème. -->
+                        <!-- The rest of what the theme sets: text, lines,
+                             cards, titles, figures. The same keys as the
+                             theme, and the same meaning for empty: the
+                             theme's value. -->
                         <h4 class="text-xs font-semibold text-secondary uppercase tracking-wide pt-2">{{ t("suite.posts.appearance.ink_title") }}</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <BannerColorField
@@ -678,8 +678,8 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('settings')" class="space-y-4">
-                    <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-                         replié ou déplié, le choix vaut pour tous les encarts. -->
+                    <!-- The screen's how-to guide, next to what it explains;
+                         collapsed or expanded, the choice applies to every guide. -->
                     <AppGuide :title="t('suite.posts.settings_guide.title')" storage-key="post-settings">
                         <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                             <li v-for="step in 5" :key="step">{{ t(`suite.posts.settings_guide.step_${step}`) }}</li>
@@ -757,9 +757,9 @@ function termLabel(term) {
                             :hint="t(`suite.posts.visibility_hint.${form.visibility}`)"
                             :error="errors.visibility"
                         />
-                        <!-- Aussi en relecture quand une date est demandée : la
-                             publication part en revue avec elle, et l'approbation
-                             la programme à cette date. -->
+                        <!-- Also in review when a date is requested: the post
+                             goes to review with it, and approval schedules it
+                             for that date. -->
                         <AppDatePicker
                             v-if="form.status === 'scheduled' || (form.status === 'pending_review' && form.scheduledAt)"
                             v-model="form.scheduledAt"

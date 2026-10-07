@@ -1,0 +1,26 @@
+{# The presenter view, on its own page.
+
+   A standalone page and not an editor panel, like the print page and for the
+   same reason: it lives in a second window, on a second screen, and
+   everything the back office carries around a module would be scenery there,
+   taking the notes' room. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="noindex, nofollow">
+        <title>{{ deck.title }}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+    </head>
+    <body class="bg-body">
+        <div {{ vue_component('studio/suite/slides/DeckPresenterApp', {
+            deck: deck,
+        }) }}></div>
+    </body>
+</html>

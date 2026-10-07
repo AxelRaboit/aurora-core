@@ -15,12 +15,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use const DATE_ATOM;
 
 /**
- * Un fichier de l'espace, tel que les deux surfaces le lisent.
+ * A space file, as both surfaces read it.
  *
- * La même forme que {@see SpaceContentAttachmentSerializer}, volontairement :
- * la vue Fichiers dessine une seule liste à partir des deux, et deux formes
- * l'auraient obligée à savoir laquelle elle tient. Ce qui diffère est le
- * `itemId`, absent ici - c'est précisément ce que cet onglet dit.
+ * The same shape as {@see SpaceContentAttachmentSerializer}, on purpose: the
+ * Files view draws a single list from both, and two shapes would have forced
+ * it to know which one it holds. What differs is the `itemId`, absent here -
+ * that is precisely what this tab says.
  */
 #[AsAlias(SpaceFileSerializerInterface::class)]
 class SpaceFileSerializer implements SpaceFileSerializerInterface
@@ -36,10 +36,13 @@ class SpaceFileSerializer implements SpaceFileSerializerInterface
         ];
 
         return $this->shape($file) + [
-            // Par la route de l'espace et pas celle de la médiathèque : un
-            // fichier déposé ici est un brouillon, que `DocumentUrlGenerator`
-            // adresse par `suite_ged_files` derrière un privilège que
-            // quelqu'un qui gère des espaces clients n'a pas forcément.
+            // For the studio only: the client's page only receives what is
+            // shown to them, where the flag would only ever say "yes".
+            'visibleToClient' => $file->isShownToClient(),
+            // Through the space's route and not the media library's: a file
+            // dropped here is a draft, which `DocumentUrlGenerator` addresses
+            // through `suite_ged_files` behind a privilege someone who manages
+            // customer spaces does not necessarily have.
             'url' => $this->urlGenerator->generate('workspace_space_files_file', $parameters + ['variant' => 'file']),
             'preview' => $this->isImage($file->getDocument())
                 ? $this->urlGenerator->generate('workspace_space_files_file', $parameters + ['variant' => 'preview'])
@@ -56,9 +59,8 @@ class SpaceFileSerializer implements SpaceFileSerializerInterface
             'fileId' => $file->getId(),
         ];
 
-        // Sans `documentId` : l'identifiant du document dans la médiathèque
-        // n'est utile qu'au studio, et n'a rien à faire dans la page d'un
-        // client.
+        // Without `documentId`: the document's id in the media library is
+        // only useful to the studio, and has no business in a client's page.
         $shape = $this->shape($file);
         unset($shape['documentId']);
 
@@ -71,7 +73,7 @@ class SpaceFileSerializer implements SpaceFileSerializerInterface
     }
 
     /**
-     * Ce qui ne dépend pas de qui regarde.
+     * What does not depend on who is looking.
      *
      * @return array<string, mixed>
      */

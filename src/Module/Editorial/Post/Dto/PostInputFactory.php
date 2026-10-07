@@ -57,9 +57,8 @@ class PostInputFactory implements PostInputFactoryInterface
             highlightColor: AppearanceValues::color($data['highlightColor'] ?? null),
             colorOverrides: PostColorOverrides::normalize($data['colorOverrides'] ?? null),
             chromeFollowsPage: (bool) ($data['chromeFollowsPage'] ?? false),
-            // Un champ vidé arrive en chaîne vide, et vide veut dire "aucune
-            // position" - pas la position zéro, que l'entité refuse de toute
-            // façon.
+            // A cleared field arrives as an empty string, and empty means "no
+            // position" - not position zero, which the entity refuses anyway.
             position: '' === ($data['position'] ?? '') ? null : (int) $data['position'],
         );
     }

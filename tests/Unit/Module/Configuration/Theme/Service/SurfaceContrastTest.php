@@ -9,9 +9,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Ce service décide de la lisibilité d'une page publique à partir d'une couleur
- * choisie dans un écran d'administration. Une erreur ici ne casse rien : elle
- * rend un site illisible, ce que rien ne signale.
+ * This service decides the readability of a public page from a color chosen
+ * in an administration screen. A mistake here breaks nothing: it makes a site
+ * unreadable, which nothing reports.
  */
 final class SurfaceContrastTest extends TestCase
 {
@@ -24,7 +24,7 @@ final class SurfaceContrastTest extends TestCase
 
     public function testBlackOnWhiteIsTheMaximumRatio(): void
     {
-        // La borne connue de WCAG : 21:1. Si ce calcul dérive, tout le reste suit.
+        // The known WCAG bound: 21:1. If this computation drifts, everything else follows.
         self::assertEqualsWithDelta(21.0, $this->contrast->ratio('#000000', '#ffffff'), 0.01);
     }
 
@@ -52,8 +52,8 @@ final class SurfaceContrastTest extends TestCase
 
     public function testAMidGreyIsFlaggedAsFailingAaa(): void
     {
-        // Le ton moyen est le pire cas : le meilleur des deux textes y reste
-        // au-dessus d'AA mais sous AAA. C'est ce que l'écran de thème signale.
+        // The mid tone is the worst case: the better of the two texts stays
+        // above AA there but below AAA. That is what the theme screen flags.
         self::assertFalse($this->contrast->meetsAaa('#808080'));
     }
 
@@ -64,15 +64,15 @@ final class SurfaceContrastTest extends TestCase
     }
 
     /**
-     * L'invariant qui justifie de signaler AAA plutôt qu'AA : en retenant
-     * toujours le meilleur du noir et du blanc, aucune couleur ne peut passer
-     * sous le seuil AA. Balayage exhaustif des 256 gris, où se situe le pire cas.
+     * The invariant that justifies flagging AAA rather than AA: by always
+     * keeping the better of black and white, no color can fall below the AA
+     * threshold. Exhaustive sweep of the 256 grays, where the worst case lies.
      */
     public function testNoBackgroundCanEverFallBelowAa(): void
     {
         $worst = 21.0;
-        for ($v = 0; $v <= 255; ++$v) {
-            $worst = min($worst, $this->contrast->bestRatio(sprintf('#%02x%02x%02x', $v, $v, $v)));
+        for ($grey = 0; $grey <= 255; ++$grey) {
+            $worst = min($worst, $this->contrast->bestRatio(sprintf('#%02x%02x%02x', $grey, $grey, $grey)));
         }
 
         self::assertGreaterThan(4.5, $worst, 'AA est tenu par construction');
@@ -83,9 +83,9 @@ final class SurfaceContrastTest extends TestCase
     {
         $tokens = $this->contrast->tokensFor('#0f172a');
 
-        // Le point du service : pas seulement le texte fort, mais aussi les gris
-        // intermédiaires et les bordures, sans quoi menus et séparateurs
-        // disparaissent.
+        // The point of the service: not only the strong text, but also the
+        // intermediate grays and the borders, without which menus and
+        // separators disappear.
         self::assertSame('rgb(243 244 246)', $tokens['--th-primary']);
         self::assertSame('rgb(156 163 175)', $tokens['--th-secondary']);
         self::assertSame('oklch(0.451 0.040 265.755)', $tokens['--color-border']);
@@ -188,8 +188,8 @@ final class SurfaceContrastTest extends TestCase
 
     public function testBothSetsCoverTheSameTokens(): void
     {
-        // Un jeu incomplet laisserait une variable à la valeur de l'autre thème,
-        // et le défaut ne se verrait que sur la surface concernée.
+        // An incomplete set would leave a variable at the other theme's value,
+        // and the bug would only show on the surface concerned.
         self::assertSame(
             array_keys($this->contrast->tokensFor('#ffffff')),
             array_keys($this->contrast->tokensFor('#000000')),

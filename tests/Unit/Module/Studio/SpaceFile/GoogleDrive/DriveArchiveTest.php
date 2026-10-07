@@ -21,12 +21,12 @@ use function openssl_pkey_new;
 use function unlink;
 
 /**
- * Le lot, et ce qu'il fait des cas que Drive autorise et pas un zip.
+ * The batch, and what it does with the cases Drive allows and a zip does not.
  *
- * Deux fichiers du même nom dans un dossier sont légaux chez Drive ; extraits
- * d'une archive, l'un écraserait l'autre. Et un document Google n'a pas
- * d'octets à télécharger : il ne peut pas entrer, et se taire ferait croire à
- * un lot complet.
+ * Two files with the same name in a folder are legal at Drive; extracted from
+ * an archive, one would overwrite the other. And a Google document has no
+ * bytes to download: it cannot go in, and staying silent would suggest a
+ * complete batch.
  */
 final class DriveArchiveTest extends TestCase
 {
@@ -139,7 +139,7 @@ final class DriveArchiveTest extends TestCase
         $archive = $this->archive([
             $this->token(),
             new MockResponse('a'),
-            // Un document Google : Google refuse de servir des octets.
+            // A Google document: Google refuses to serve bytes.
             new MockResponse('', ['http_code' => 403]),
         ]);
 
@@ -156,7 +156,7 @@ final class DriveArchiveTest extends TestCase
         unlink($path);
     }
 
-    /** Une archive sans entrée est refusée par certains outils. */
+    /** An archive without entries is refused by some tools. */
     public function testAnEmptyFolderStillProducesAReadableArchive(): void
     {
         $archive = $this->archive([]);
@@ -183,7 +183,7 @@ final class DriveArchiveTest extends TestCase
         unlink($path);
     }
 
-    /** Les documents Google n'ont pas de taille, et ne pèsent donc rien. */
+    /** Google documents have no size, and therefore weigh nothing. */
     public function testTheAnnouncedWeightIgnoresWhatHasNoBytes(): void
     {
         $archive = $this->archive([]);

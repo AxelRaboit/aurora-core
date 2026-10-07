@@ -19,11 +19,9 @@ describe("AppChoiceRow", () => {
     it("marks the current option, and only it", () => {
         const options = mountRow().findAll('[role="radio"]');
 
-        expect(options.map((o) => o.attributes("aria-checked"))).toEqual([
-            "false",
-            "true",
-            "false",
-        ]);
+        expect(
+            options.map((option) => option.attributes("aria-checked")),
+        ).toEqual(["false", "true", "false"]);
     });
 
     it("emits the value of the option clicked", async () => {
@@ -37,7 +35,7 @@ describe("AppChoiceRow", () => {
     it("is one tab stop, resting on the current option", () => {
         const options = mountRow().findAll('[role="radio"]');
 
-        expect(options.map((o) => o.attributes("tabindex"))).toEqual([
+        expect(options.map((option) => option.attributes("tabindex"))).toEqual([
             "-1",
             "0",
             "-1",
@@ -50,11 +48,9 @@ describe("AppChoiceRow", () => {
         // author most needs it.
         const options = mountRow({ modelValue: 20 }).findAll('[role="radio"]');
 
-        expect(options.map((o) => o.attributes("aria-checked"))).toEqual([
-            "false",
-            "false",
-            "false",
-        ]);
+        expect(
+            options.map((option) => option.attributes("aria-checked")),
+        ).toEqual(["false", "false", "false"]);
         expect(options[0].attributes("tabindex")).toBe("0");
     });
 

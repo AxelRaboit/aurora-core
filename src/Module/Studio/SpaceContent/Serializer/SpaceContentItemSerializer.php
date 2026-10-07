@@ -35,23 +35,24 @@ class SpaceContentItemSerializer implements SpaceContentItemSerializerInterface
             'scheduledAtLocal' => $scheduledAt
                 ?->setTimezone(new DateTimeZone($item->getSpace()->getTimezone()))
                 ->format('Y-m-d\TH:i'),
-            // L'échéance de relecture, dans les deux mêmes formes et pour les
-            // mêmes raisons que la date de parution juste au-dessus.
+            // The review deadline, in the same two forms and for the same
+            // reasons as the publication date just above.
             'reviewBy' => $item->getReviewBy()?->format(DATE_ATOM),
             'reviewByLocal' => $item->getReviewBy()
                 ?->setTimezone(new DateTimeZone($item->getSpace()->getTimezone()))
                 ->format('Y-m-d\TH:i'),
-            // Calculé ici plutôt que dans le navigateur : « en retard » dépend
-            // de l'heure du serveur, et une horloge de poste mal réglée ferait
-            // apparaître ou disparaître le retard sans que rien n'ait bougé.
+            // Computed here rather than in the browser: "late" depends on the
+            // server's time, and a badly set workstation clock would make the
+            // delay appear or disappear without anything having moved.
             'lateForReview' => $item->isLateForReview(new DateTimeImmutable()),
             'showOnCalendar' => $item->isShownOnCalendar(),
             'approval' => $item->getApproval()->value,
             'approvalAt' => $item->getApprovalAt()?->format(DATE_ATOM),
-            // Qui a répondu, par le nom que porte son lien. C'était l'adresse,
-            // qui voyage jusque dans la page des autres invités du même
-            // espace : il n'y a pas de compte derrière un lien, mais il y a un
-            // nom, et il est obligatoire depuis qu'on le lit ici.
+            // Who answered, by the name their link carries. It used to be the
+            // address, which travels all the way into the page of the other
+            // guests of the same space: there is no account behind a link, but
+            // there is a name, and it has been mandatory since it is read
+            // here.
             'approvalBy' => $item->getApprovalByLink() instanceof SpaceAccessLinkInterface
                 ? SpaceAccessLinkLabel::of($item->getApprovalByLink())
                 : null,

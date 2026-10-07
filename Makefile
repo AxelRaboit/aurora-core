@@ -156,15 +156,15 @@ start: ## Start dev server
 	@$(MAKE) --no-print-directory hub-start
 	symfony server:start -d
 
-# Le hub temps reel des discussions d'espace client. Sa propre cible parce
-# qu'on le redemarre seul plus souvent qu'on ne redemarre tout, et appele par
-# `start` parce que personne ne devrait avoir a y penser pour voir la
-# fonctionnalite telle qu'elle est en production.
+# The real-time hub for client space discussions. Its own target because it
+# gets restarted alone more often than everything gets restarted, and called
+# by `start` because nobody should have to think about it to see the feature
+# as it is in production.
 #
-# Son absence n'est pas une panne : sans hub les messages sont enregistres et
-# postes normalement, la page les demande toutes les vingt secondes au lieu de
-# les recevoir. C'est ce que dit la ligne ci-dessous plutot que de laisser
-# quelqu'un chercher pourquoi le voyant est orange.
+# Its absence is not an outage: without the hub, messages are saved and
+# posted normally, and the page asks for them every twenty seconds instead of
+# receiving them. The line below says so, rather than leaving someone to
+# search for why the indicator is orange.
 hub-start: ## Start the local Mercure hub (live chat on client spaces)
 	@if docker compose up -d mercure >/dev/null 2>&1; then \
 		echo "✅ Hub Mercure sur http://localhost:3000 - les discussions arrivent en direct"; \
@@ -254,23 +254,23 @@ demo: ## Load demo fixtures + run all syncs (idempotent, keeps stored files)
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
-# Le geste a faire avant toute campagne de captures, et quand la demo a
-# vieilli.
+# The step to take before any screenshot campaign, and when the demo has
+# aged.
 #
-# **`make demo` ne rafraichit pas, par construction.** Ses fixtures sont
-# idempotentes : elles retrouvent un document par son titre, un espace par son
-# nom, et le laissent tel quel. Planning va plus loin et n'ensemence rien des
-# qu'un calendrier existe, parce qu'un ensemencement partiel serait pire que
-# rien. Comme toutes les dates sont relatives a aujourd'hui, la demo se decale
-# d'un jour par jour et aucun rechargement ne la remet d'aplomb.
+# **`make demo` does not refresh, by design.** Its fixtures are idempotent:
+# they find a document by its title, a space by its name, and leave it as it
+# is. Planning goes further and seeds nothing as soon as a calendar exists,
+# because a partial seed would be worse than nothing. Since every date is
+# relative to today, the demo drifts by one day per day and no reload puts it
+# right again.
 #
-# Celle-ci repart de rien : base, fichiers deposes, sequences. C'est la seule
-# facon d'obtenir deux fois de suite le meme etat.
+# This one starts from nothing: database, uploaded files, sequences. It is the
+# only way to get the same state twice in a row.
 demo-reset: stop-dev-worker ## Rebuild the demo from scratch (drops the DB and the stored files)
-	# Les reglages vivent en base : la cle du compte de service Google, la
-	# connexion Craft, le stockage distant. Sans cette mise de cote, chaque
-	# reconstruction de la demo effaçait ce qu'on avait colle a la main une
-	# fois - et Google ne redonne pas un fichier de cle.
+	# Settings live in the database: the Google service account key, the Craft
+	# connection, the remote storage. Without setting them aside, every rebuild
+	# of the demo erased what had been pasted by hand once - and Google does not
+	# hand out a key file twice.
 	$(CONSOLE) aurora:settings:preserve --dump
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 	$(CONSOLE) doctrine:database:create --if-not-exists
@@ -281,9 +281,9 @@ demo-reset: stop-dev-worker ## Rebuild the demo from scratch (drops the DB and t
 	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
 	$(CONSOLE) aurora:sequences:resync
-	# Reposes seulement la ou le rechargement a laisse vide : ce que les
-	# fixtures ont ecrit gagne, et un reglage qui pointait une ligne recreee
-	# ne revient pas pointer a cote.
+	# Put back only where the reload left a gap: what the fixtures wrote wins,
+	# and a setting that pointed to a recreated row does not come back pointing
+	# beside it.
 	$(CONSOLE) aurora:settings:preserve --restore
 	@echo "✅ Demo rebuilt from scratch"
 	@echo "↻  Restart the worker: make start-dev-worker"
@@ -392,9 +392,8 @@ test-frontend: translation ## Run frontend unit tests (Vitest)
 test-e2e: ## Run end-to-end tests (Playwright)
 	$(PNPM) --dir=$(AURORA) run test:e2e
 
-# Les rapports sont nommés ici et non dans `phpunit.dist.xml` : declares
-# la-bas, ils etaient produits a chaque lancement de la suite, y compris pour
-# un seul fichier de test.
+# The reports are named here and not in `phpunit.dist.xml`: declared there,
+# they were produced on every run of the suite, even for a single test file.
 coverage: db-test ## Generate PHP code coverage report (requires php8.4-pcov)
 	$(PHP_BIN) -d pcov.enabled=1 -d memory_limit=-1 $(AURORA)/bin/phpunit \
 		--coverage-html=var/coverage \
@@ -406,9 +405,9 @@ db-test: ## Create and migrate the test database
 
 # === Code Quality ===
 stan: ## Run PHPStan
-	# Chemins passes en CLI (ils remplacent ceux du neon) : la config est
-	# partagee avec les projets clients, qui n'ont pas de fixtures/ et sur
-	# lesquels PHPStan echouerait sur un chemin absent.
+	# Paths passed on the CLI (they replace those of the neon): the config is
+	# shared with client projects, which have no fixtures/ and on which PHPStan
+	# would fail on a missing path.
 	$(PHPSTAN) analyse -c $(AURORA)/tools/phpstan/phpstan.neon --memory-limit 1G config src fixtures
 
 lint-php: ## Check PHP code style (dry-run)

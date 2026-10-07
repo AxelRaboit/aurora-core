@@ -1,0 +1,50 @@
+{% extends '@Studio/suite/space-content/layout.html.twig' %}
+
+{# A space's presentation is composed in the slide editor, inside the space
+   shell like a page: its header, its tabs, the content tab lit. The editor's
+   back link leads to the Deliverables tab; the shell's, to the spaces list. #}
+{% set activeTab = 'content' %}
+
+{% block title %}{{ deck.title }} - {{ space.name }}{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/deliverables/DeliverableSlidesEditorApp', {
+    deck: deck,
+    deliverable: deliverable,
+    space: space,
+    backPath: deliverablesPath,
+    canEdit: canEdit,
+    canShare: canShare,
+    canChangeScope: canChangeScope,
+    locales: locales,
+    updatePath: updatePath,
+    linksPath: linksPath,
+    categories: categories,
+    customers: customers,
+    canPickCustomer: canPickCustomer,
+    layouts: layouts,
+    commonSlots: commonSlots,
+    listSlots: listSlots,
+    freeOptions: freeOptions,
+    uploadedFonts: uploadedFonts,
+    fontUploadPath: fontUploadPath,
+    themes: themes,
+    fontPairs: fontPairs,
+    logoPlacements: logoPlacements,
+    looks: looks,
+    gradients: gradients,
+    patterns: patterns,
+    margins: margins,
+    titleCases: titleCases,
+    bulletShapes: bulletShapes,
+    transitions: transitions,
+    appearancePath: appearancePath,
+    slideCreatePath: slideCreatePath,
+    slideUpdatePath: slideUpdatePath,
+    slideDeletePath: slideDeletePath,
+    slideDuplicatePath: slideDuplicatePath,
+    slideReorderPath: slideReorderPath,
+    printPath: printPath,
+    presenterPath: presenterPath,
+}) }} class="min-w-0"></div>
+{% endblock %}

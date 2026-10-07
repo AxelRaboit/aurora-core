@@ -24,7 +24,7 @@ const props = defineProps({
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const today = new Date();
 
@@ -51,10 +51,10 @@ function isToday(date) {
                     class="text-sm tabular-nums leading-tight"
                     :class="isToday(day.date) ? 'font-semibold text-accent-600' : 'text-primary'"
                 >
-                    {{ d(day.date, { day: "numeric", month: "short" }) }}
+                    {{ formatDate(day.date, { day: "numeric", month: "short" }) }}
                 </p>
                 <p class="text-2xs uppercase tracking-wider text-muted">
-                    {{ d(day.date, { weekday: "short" }) }}
+                    {{ formatDate(day.date, { weekday: "short" }) }}
                 </p>
             </div>
 
@@ -108,7 +108,7 @@ function isToday(date) {
                         >
                             {{ entry.whole
                                 ? t("suite.plannings.events.all_day")
-                                : d(entry.at, { hour: "2-digit", minute: "2-digit" }) }}
+                                : formatDate(entry.at, { hour: "2-digit", minute: "2-digit" }) }}
                         </span>
                     </button>
                 </div>

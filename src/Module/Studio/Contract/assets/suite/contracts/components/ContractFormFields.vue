@@ -58,15 +58,15 @@ function byCategory(options) {
 
     return [...options]
         .sort(
-            (a, b) =>
-                rank(a) - rank(b) ||
-                (a.category ?? "").localeCompare(b.category ?? "") ||
-                a.label.localeCompare(b.label),
+            (left, right) =>
+                rank(left) - rank(right) ||
+                (left.category ?? "").localeCompare(right.category ?? "") ||
+                left.label.localeCompare(right.label),
         )
         .map((option) => ({
             value: option.value,
             label: option.category
-                ? `${option.label} · ${t(`suite.studio.contract_templates.category.${option.category}`)}`
+                ? `${option.label} · ${option.category}`
                 : `${option.label} · ${t("suite.studio.contract_templates.category_none")}`,
         }));
 }

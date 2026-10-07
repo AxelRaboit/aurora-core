@@ -51,12 +51,31 @@ class SpaceContentColumnRepository extends ResolveTargetEntityRepository
         return null === $highest ? 0 : (int) $highest + 1;
     }
 
-    /** How many items stand in the way of deleting this column. */
+    /**
+     * How many items stand in the way of deleting this column.
+     *
+     * The live ones: a card in the trash is moved to another step when its
+     * own goes, rather than keeping a step nobody can see on the board.
+     */
     public function countItems(SpaceContentColumnInterface $column): int
     {
         return (int) $this->getEntityManager()
-            ->createQuery('SELECT COUNT(i.id) FROM '.SpaceContentItem::class.' i WHERE i.column = :column')
+            ->createQuery('SELECT COUNT(i.id) FROM '.SpaceContentItem::class.' i WHERE i.column = :column AND i.deletedAt IS NULL')
             ->setParameter('column', $column)
             ->getSingleScalarResult();
+    }
+
+    /**
+     * Moves this stage's trashed contents into another stage, and says how
+     * many: the stage is about to disappear, and a restored content must have
+     * a stage to come back to.
+     */
+    public function moveTrashedItems(SpaceContentColumnInterface $from, SpaceContentColumnInterface $to): int
+    {
+        return (int) $this->getEntityManager()
+            ->createQuery('UPDATE '.SpaceContentItem::class.' i SET i.column = :to WHERE i.column = :from AND i.deletedAt IS NOT NULL')
+            ->setParameter('to', $to)
+            ->setParameter('from', $from)
+            ->execute();
     }
 }

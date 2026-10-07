@@ -6,9 +6,6 @@ namespace Aurora\Module\Studio\Customer\View;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Routing\PathTemplateGenerator;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Platform\User\Entity\User;
-use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
@@ -23,13 +20,13 @@ final readonly class CustomersViewBuilder
     public function __construct(
         private CustomerRepository $customerRepository,
         private CustomerSerializerInterface $customerSerializer,
-        private UserRepository $userRepository,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private SpaceVisibility $visibility,
         private StudioContext $studioContext,
         private ContractRepository $contractRepository,
         private AuthorizationCheckerInterface $authorizationChecker,
+        private CustomerRelatedViewBuilder $relatedViewBuilder,
     ) {}
 
     /**
@@ -47,10 +44,10 @@ final readonly class CustomersViewBuilder
     {
         return [
             'customers' => $this->customers(),
-            'users' => $this->userOptions(),
             'currencies' => $this->currencyOptions(),
             'createPath' => $this->urlGenerator->generate('suite_studio_customers_create'),
-            'updatePath' => $this->pathTemplates->generate('suite_studio_customers_update', ['id' => '__id__']),
+            // Each customer's page: the list no longer edits, it leads there.
+            'showPath' => $this->pathTemplates->generate('suite_studio_customers_show', ['id' => '__id__']),
             'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
         ];
@@ -59,8 +56,8 @@ final readonly class CustomersViewBuilder
     /** @return list<array<string, mixed>> */
     public function customers(): array
     {
-        // Ses espaces avec lui, ceux que le lecteur voit : une fiche client
-        // ne disait pas quels projets tournaient pour lui.
+        // Their spaces along with them, the ones the reader sees: a customer
+        // sheet did not say which projects were running for them.
         $spacesByCustomer = [];
         foreach ($this->studioContext->areSpacesEnabled() ? $this->visibility->visibleSpaces() : [] as $space) {
             $spacesByCustomer[(int) $space->getCustomer()->getId()][] = [
@@ -71,8 +68,8 @@ final readonly class CustomersViewBuilder
             ];
         }
 
-        // Ses contrats aussi, en nombre, et la liste des contrats filtrée sur
-        // lui d'un clic : la fiche ne disait rien de ce qui avait été signé.
+        // Their contracts too, as a count, and the contracts list filtered on
+        // them in one click: the sheet said nothing of what had been signed.
         $contractsShown = $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view');
         $contractCounts = $contractsShown ? $this->contractRepository->countByCustomer() : [];
 
@@ -86,27 +83,6 @@ final readonly class CustomersViewBuilder
                 ] : null,
             ],
             $this->customerRepository->findAllOrdered(),
-        );
-    }
-
-    /**
-     * The accounts a customer can be attached to.
-     *
-     * Id, name and email only. The picker has to let someone tell two people
-     * called Martin apart, and nothing else about an account belongs on a page
-     * about companies.
-     *
-     * @return list<array{id: int, name: string, email: string}>
-     */
-    private function userOptions(): array
-    {
-        return array_map(
-            static fn (CoreUserInterface $user): array => [
-                'id' => (int) $user->getId(),
-                'name' => $user instanceof User ? $user->getName() : $user->getUserIdentifier(),
-                'email' => $user->getUserIdentifier(),
-            ],
-            $this->userRepository->findAllFrontUsersAlphabetical(),
         );
     }
 
@@ -128,11 +104,59 @@ final readonly class CustomersViewBuilder
         return ['success' => true, 'customers' => $this->customers()];
     }
 
+    /** @return array<string, mixed> */
     public function customerPayload(CustomerInterface $customer): array
     {
         return [
             'customer' => $this->customerSerializer->serialize($customer),
             'customers' => $this->customers(),
         ];
+    }
+
+    /**
+     * A customer's page: their whole sheet in a form, and what surrounds it
+     * (their spaces, contracts, Studio deliverables) read-only.
+     *
+     * **The only place where the sheet is written.** It had two forms that did
+     * not carry the same fields, the list's and the one of a space's
+     * Informations tab; the latter now only shows it and leads here.
+     *
+     * @return array<string, mixed>
+     */
+    public function showView(CustomerInterface $customer): array
+    {
+        $id = $customer->getId();
+
+        return [
+            'customer' => $this->customerSerializer->serialize($customer),
+            'related' => $this->relatedViewBuilder->related($customer),
+            'currencies' => $this->currencyOptions(),
+            'indexPath' => $this->urlGenerator->generate('suite_studio_customers'),
+            'updatePath' => $this->urlGenerator->generate('suite_studio_customers_update', ['id' => $id]),
+            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
+            // The spaces list filtered on them, and the contracts one: their
+            // complete lists, beyond what the page summarizes.
+            'spacesPath' => $this->studioContext->areSpacesEnabled() && $this->authorizationChecker->isGranted('studio.spaces.view')
+                ? $this->urlGenerator->generate('suite_studio_spaces', ['customer' => $id])
+                : null,
+            'contractsPath' => $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view')
+                ? $this->urlGenerator->generate('suite_studio_contracts', ['customer' => $id])
+                : null,
+        ];
+    }
+
+    /**
+     * What the save from the page answers: the sheet read again.
+     *
+     * Read again rather than echoed from the input: a SIRET's digits are
+     * normalized on the way, and a screen keeping what was typed would show
+     * spaces the database does not have.
+     *
+     * @return array<string, mixed>
+     */
+    public function showPayload(CustomerInterface $customer): array
+    {
+        return ['customer' => $this->customerSerializer->serialize($customer)];
     }
 }

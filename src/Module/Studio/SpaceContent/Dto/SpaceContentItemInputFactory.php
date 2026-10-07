@@ -21,8 +21,8 @@ class SpaceContentItemInputFactory implements SpaceContentItemInputFactoryInterf
             columnId: $this->idOrNull($data, 'columnId'),
             scheduledAt: Str::trimOrNullFromArray($data, 'scheduledAt'),
             reviewBy: Str::trimOrNullFromArray($data, 'reviewBy'),
-            // Absent vaut coché : seule une valeur explicitement fausse
-            // retire la carte du calendrier.
+            // Missing means ticked: only an explicitly false value removes
+            // the card from the calendar.
             showOnCalendar: false !== ($data['showOnCalendar'] ?? true),
         );
     }

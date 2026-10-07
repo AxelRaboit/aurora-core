@@ -8,18 +8,17 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les livrables d'un espace client quittent les publications.
+ * A client space's deliverables leave the publications.
  *
- * Un audit, une stratégie, un bilan écrits pour un client deviennent une table
- * à eux, à côté de l'espace : la même grille de zones que les pages du site,
- * une langue, une apparence, une case « visible par le client », et leurs
- * propres liens de lecture. Les publications perdent la colonne qui les
- * rattachait à un espace.
+ * An audit, a strategy, a report written for a client get a table of their
+ * own, next to the space: the same grid of zones as the site's pages, a
+ * language, an appearance, a "visible to the client" box, and their own
+ * reading links. The publications lose the column that tied them to a space.
  *
- * Aucune publication n'était rattachée à un espace en production au moment de
- * ce changement (0.9.322) : rien à recopier. Une installation qui en aurait
- * les perd de vue dans l'espace, et les garde dans les publications, partagées
- * par lien.
+ * No publication was tied to a space in production at the time of this
+ * change (0.9.322): nothing to copy over. An installation that had some loses
+ * sight of them in the space, and keeps them in the publications, shared by
+ * link.
  */
 final class Version20261002120000 extends AbstractMigration
 {

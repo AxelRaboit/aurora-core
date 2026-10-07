@@ -7,23 +7,29 @@ namespace Aurora\Fixtures\Studio;
 use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableFormatEnum;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deliverable\Slides\SlidesManager;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -46,34 +52,47 @@ use const JSON_THROW_ON_ERROR;
 use const PASSWORD_DEFAULT;
 
 /**
- * Les livrables de la démo : quatre documents qui montrent ce qu'un livrable
- * sait être, finis et habillés.
+ * The demo deliverables: four documents that show what a deliverable can be,
+ * finished and dressed.
  *
- * - **L'audit** d'Atelier Dupont, aux couleurs de l'atelier (noyer et cuivre) :
- *   chiffres clés, graphique, constats, plan en étapes, une citation. Ouvert
- *   au client, avec un lien de lecture déjà envoyé.
- * - **Le bilan de septembre**, en sombre : un rapport mensuel, avec sa courbe
- *   de portée et les contenus qui ont le mieux marché. Ouvert au client.
- * - **La stratégie du trimestre**, encore en cours : fermée au client, pour
- *   montrer qu'un livrable se prépare chez soi avant de s'ouvrir.
- * - **La proposition** faite à la Menuiserie Fabre, prospect : démarche, deux
- *   formules et calendrier, en vert forêt. Ouverte au prospect.
+ * - **The audit** for Atelier Dupont, in the workshop's colours (walnut and
+ *   copper): key figures, a chart, findings, a plan in steps, a quote. Open
+ *   to the client, with a read link already sent.
+ * - **The September review**, in dark: a monthly report, with its reach
+ *   curve and the content that worked best. Open to the client.
+ * - **The quarter's strategy**, still in progress: closed to the client, to
+ *   show that a deliverable is prepared in-house before it opens.
+ * - **The proposal** made to Menuiserie Fabre, a prospect: approach, two
+ *   packages and a schedule, in forest green. Open to the prospect.
  *
- * Et deux **modèles d'audit des réseaux sociaux** dans Studio, ceux que
- * l'équipe duplique pour chaque client : l'un en page continue, l'autre en
- * présentation aux couleurs du site. Quinze sections, des cartes colorées, un
- * camembert, des [passages à remplacer] : le plus complet de ce que la grille
- * sait faire pour un livrable. Leur grille est dans `data/*.json`, les images
- * désignées par leur nom (`@doc:`) puisque les identifiants changent à chaque
- * chargement.
+ * And two **social media audit templates** in Studio, the ones the team
+ * duplicates for each client: one as a continuous page, the other as a
+ * presentation in the site's colours. Fifteen sections, coloured cards, a
+ * pie chart, [passages to replace]: the most complete of what the grid can
+ * do for a deliverable. They, the strategy that follows them, the team's
+ * audit template and the standard proposal are marked as templates: they are
+ * what "Start from a template" offers, in both lists. The editorial line
+ * written for a carpenter names its client, Menuiserie Fabre. Their grid is
+ * in `data/*.json`, the images designated by their name (`@doc:`) since the
+ * identifiers change on every load.
  *
- * En français seulement : un livrable a une langue, celle de son client.
+ * And four **presentations**, deliverables in slideshow format: the outline
+ * of a kickoff meeting (template), the Atelier Dupont kickoff meeting with
+ * its read link, the outline of the monthly check-in (template) and a review
+ * outline in the trash. The last three were the Studio presentations before
+ * they became deliverables.
  *
- * Rejouable : `make fixtures` charge tous les groupes, `make demo` recharge
- * celui-ci, et un livrable déjà présent dans son espace (même titre) est
- * laissé tel quel.
+ * And one presentation inside a client space: Atelier Dupont's October
+ * check-in, shown to the client, so their page lists a presentation and opens
+ * it in the slide reader (the speaker notes stay on the studio's side).
  *
- * Dev/test seulement, groupe `demo`.
+ * French only: a deliverable has a language, the one of its client.
+ *
+ * Replayable: `make fixtures` loads every group, `make demo` reloads this
+ * one, and a deliverable already present in its space (same title) is left
+ * as it is.
+ *
+ * Dev/test only, `demo` group.
  */
 class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
@@ -81,7 +100,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
     private const string FABRE = 'Menuiserie Fabre - Identité visuelle';
 
-    /** Toute la largeur, sur chaque écran. */
+    /** Full width, on every screen. */
     private const array FULL = ['base' => 48, 'md' => null, 'lg' => 48];
 
     private const array HALF = ['base' => 48, 'md' => null, 'lg' => 24];
@@ -94,6 +113,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         private readonly DeliverableCategoryRepository $categories,
         private readonly DocumentRepository $documents,
         private readonly DeliverableLinkRepository $links,
+        private readonly SlidesManager $slides,
     ) {}
 
     public static function getGroups(): array
@@ -103,8 +123,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
     public function getDependencies(): array
     {
-        // La médiathèque de démonstration : les deux modèles d'audit montrent
-        // ses images, retrouvées par leur nom.
+        // The demo media library: the two audit templates show its images, found
+        // by their name.
         return [StudioDemoFixtures::class, GedDemoFixtures::class];
     }
 
@@ -117,17 +137,18 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $this->deliverable($manager, $dupont, ...$this->monthlyReport());
         $this->deliverable($manager, $dupont, ...$this->strategy());
         $this->deliverable($manager, $fabre, ...$this->proposal());
+        $this->spacePresentation($manager, $dupont);
 
-        // Les catégories des livrables de Studio, dans l'ordre où l'équipe les
-        // range : chaque modèle ci-dessous en reçoit une.
+        // The Studio deliverable categories, in the order the team files them:
+        // each template below gets one.
         $proposals = $this->category($manager, 'Propositions', '#34d399', 1);
         $audits = $this->category($manager, 'Audits', '#bd4a55', 2);
         $strategies = $this->category($manager, 'Stratégies', '#8b6cff', 3);
         $reports = $this->category($manager, 'Bilans', '#cd8f31', 4);
 
-        // Deux livrables de Studio, hors de tout espace : une proposition que
-        // le compte de démo garde pour lui, et un modèle d'audit que l'équipe
-        // partage et reprend pour chaque prospect.
+        // Two Studio deliverables, outside any space: a proposal the demo account
+        // keeps to itself, and an audit template the team shares and reuses for
+        // each prospect.
         $author = $this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $proposalLook, $proposalZones, $proposalContent] = $this->proposal();
         $this->deliverable(
@@ -142,6 +163,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $author instanceof CoreUserInterface ? $author : null,
             DeliverableScopeEnum::Personal,
             $proposals,
+            template: true,
         );
         [, , , $auditLook, $auditZones, $auditContent] = $this->audit();
         $this->deliverable(
@@ -156,11 +178,11 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $author instanceof CoreUserInterface ? $author : null,
             DeliverableScopeEnum::Shared,
             $audits,
+            template: true,
         );
 
-        // Un partagé écrit par une collègue, et un second brouillon perso :
-        // chaque rayon a de quoi se lire, et la liste des partagés dit qui a
-        // écrit quoi.
+        // A shared one written by a colleague, and a second personal draft: each
+        // list has something to read, and the shared list says who wrote what.
         $colleague = $this->users->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $strategyLook, $strategyZones, $strategyContent] = $this->strategy();
         $this->deliverable(
@@ -175,6 +197,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $colleague instanceof CoreUserInterface ? $colleague : null,
             DeliverableScopeEnum::Shared,
             $strategies,
+            customer: $fabre->getCustomer(),
         );
         [, , , $reportLook, $reportZones, $reportContent] = $this->monthlyReport();
         $this->deliverable(
@@ -191,14 +214,29 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $reports,
         );
 
-        // Les deux modèles d'audit, partagés avec l'équipe et rangés dans les audits.
+        // The two audit templates, shared with the team and filed under audits.
         $this->model($manager, 'deliverable-audit-model.json', $author, $audits);
         $this->model($manager, 'deliverable-audit-presentation.json', $author, $audits);
-        // La stratégie qui suit l'audit, au même habillage, rangée dans les stratégies.
+        // The strategy that follows the audit, in the same dress, filed under strategies.
         $this->model($manager, 'deliverable-strategy-presentation.json', $author, $strategies);
 
-        // Un livrable que l'équipe a mis à la corbeille : de quoi montrer
-        // l'onglet des livrables, et qu'on peut le reprendre.
+        // A presentation among the deliverables: slides rather than a page, a
+        // template the team reuses for each kickoff.
+        $this->kickOffSlides($manager, $author instanceof CoreUserInterface ? $author : null, $proposals);
+
+        // The demo presentations, which were Studio "presentations" before being
+        // deliverables: the one shown to a client, with its link, the outline that
+        // gets duplicated, and one in the trash.
+        $this->presentations(
+            $manager,
+            $author instanceof CoreUserInterface ? $author : null,
+            $dupont->getCustomer(),
+            $this->category($manager, 'Lancement', '#f59e0b', 5),
+            $this->category($manager, 'Suivi', '#6366f1', 6),
+        );
+
+        // A deliverable the team put in the trash: enough to show the trash tab of
+        // the deliverables, and that it can be restored.
         $abandoned = $this->deliverable(
             $manager,
             null,
@@ -227,10 +265,10 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Les trois états d'un lien de lecture, sur le modèle d'audit de l'équipe :
-     * un lien déjà ouvert (qui ne peut plus que se retirer), un lien protégé qui
-     * expire et que personne n'a ouvert, et un lien neuf (qui peut encore se
-     * supprimer). Posés une fois : un rechargement ne les double pas.
+     * The three states of a read link, on the team's audit template: a link
+     * already opened (which can now only be revoked), a protected link that
+     * expires and that nobody has opened, and a new link (which can still be
+     * deleted). Set once: a reload does not duplicate them.
      */
     private function readingLinks(ObjectManager $manager): void
     {
@@ -273,13 +311,13 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Un livrable, s'il n'existe pas déjà dans cet espace.
+     * A deliverable, unless it already exists in this space.
      *
-     * @param list<array<string, mixed>> $zones      la disposition, zone par zone
-     * @param array<string, mixed>       $content    le contenu, par identifiant de zone
+     * @param list<array<string, mixed>> $zones      the layout, zone by zone
+     * @param array<string, mixed>       $content    the content, by zone identifier
      * @param array<string, string|bool> $appearance
      *
-     * @return Deliverable|null le nouveau, ou null quand il était déjà là
+     * @return Deliverable|null the new one, or null when it was already there
      */
     private function deliverable(
         ObjectManager $manager,
@@ -293,10 +331,12 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         ?CoreUserInterface $owner = null,
         DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
         ?DeliverableCategoryInterface $category = null,
+        bool $template = false,
+        ?CustomerInterface $customer = null,
     ): ?Deliverable {
         $existing = $this->deliverables->findOneBy(['space' => $space, 'title' => $title]);
         if (null !== $existing) {
-            $this->fileIfUnfiled($existing, $category);
+            $this->catchUp($existing, $category, $template, $customer);
 
             return null;
         }
@@ -313,7 +353,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space?->getCustomer()->getLegalName() ?? '']))
             ->setOwner($owner)
             ->setScope($scope)
-            ->setCategory($category);
+            ->setCategory($category)
+            ->setTemplate($template)
+            ->setCustomer($customer);
 
         $manager->persist($deliverable);
 
@@ -321,23 +363,366 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Range un livrable déjà là dans sa catégorie, s'il n'en a pas encore.
-     *
-     * Les fixtures s'arrêtaient à « existe déjà » : une catégorie ajoutée après
-     * le premier chargement ne rangeait jamais les livrables chargés avant.
-     * Seulement quand il n'en a pas : un rangement fait à la main n'est pas
-     * défait par un rechargement.
+     * A deliverable in slideshow format: the outline of a kickoff meeting, with
+     * the speaker notes that only the presenter view shows. Set once: a reload
+     * finds it by its title.
      */
-    private function fileIfUnfiled(object $deliverable, ?DeliverableCategoryInterface $category): void
+    private function kickOffSlides(ObjectManager $manager, ?CoreUserInterface $owner, DeliverableCategoryInterface $category): void
     {
-        if ($deliverable instanceof Deliverable && $category instanceof DeliverableCategoryInterface && $deliverable->isStandalone() && !$deliverable->getCategory() instanceof DeliverableCategoryInterface) {
-            $deliverable->setCategory($category);
+        $title = 'Présentation type, réunion de lancement';
+        $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $title]);
+        if (null !== $existing) {
+            $this->catchUp($existing, $category, template: true);
+
+            return;
+        }
+
+        $deliverable = new Deliverable(null, $title, 'fr', DeliverableFormatEnum::Slides);
+        $deliverable
+            ->setSummary('Le déroulé d\'un premier rendez-vous de projet, à reprendre pour chaque client.')
+            ->setOwner($owner)
+            ->setScope(DeliverableScopeEnum::Shared)
+            ->setCategory($category)
+            ->setTemplate(true)
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => '']))
+            ->setAppearance(DeliverableAppearance::normalize([]));
+        $manager->persist($deliverable);
+
+        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => 'Réunion de lancement']);
+
+        $slides = [
+            [SlideLayoutEnum::Title, ['title' => 'Réunion de lancement', 'subtitle' => '[Nom du client], [date]'], 'Remercier pour le temps pris. Annoncer quarante minutes, questions comprises.'],
+            [SlideLayoutEnum::Section, ['title' => 'Ce que vous nous avez dit'], null],
+            [SlideLayoutEnum::Bullets, ['title' => 'Trois attentes, dans vos mots', 'bullets' => ['[Première attente]', '[Deuxième attente]', '[Troisième attente]']], 'Faire valider chaque ligne : si une seule est fausse, tout le reste se décale.'],
+            [SlideLayoutEnum::Split, [
+                'title' => "Ce qu'on vous demande, ce que vous recevez",
+                'left' => 'Des photos, quelques textes sur votre métier, et une réponse sous deux jours à chaque validation.',
+                'right' => 'Les maquettes, la rédaction finale, la mise en ligne et un point de mesure un mois après.',
+            ], 'Les deux colonnes se lisent en parallèle : laisser le temps.'],
+            [SlideLayoutEnum::Quote, ['quote' => 'Une personne pour valider, un point par semaine : c\'est ce qui tient les délais.', 'attribution' => 'Notre seule règle'], null],
+        ];
+
+        foreach ($slides as [$layout, $content, $notes]) {
+            $slide = $this->slides->addSlide($deliverable, $layout);
+            $this->slides->writeContent($slide, $content);
+            $slide->setSpeakerNotes($notes);
         }
     }
 
     /**
-     * Un modèle complet, lu dans `data/` : le titre, le résumé, l'apparence, la
-     * grille entière et son contenu, avec les images retrouvées par leur nom.
+     * Three presentations, in slideshow format.
+     *
+     * - **The kickoff meeting** of Atelier Dupont: a real presentation, with a
+     *   beginning, a thesis and an end, a dozen slides that could be shown to
+     *   the client without apologising for the demo. Every template goes
+     *   through it, images and free slide included, and a read link already
+     *   sent, opened once.
+     * - **The monthly check-in outline**, a template of four slides on
+     *   purpose: a skeleton to duplicate and fill in, without a client.
+     * - **The quarterly review outline**, in the trash: replaced by the
+     *   previous one.
+     *
+     * Neither audit nor strategy: those are pages (Axel's decision of
+     * 04/10/2026). A presentation is what gets shown in a meeting.
+     *
+     * Set once, found by their title: a reload does not duplicate them, and a
+     * demo migrated from the old presentations keeps them as they are.
+     */
+    private function presentations(
+        ObjectManager $manager,
+        ?CoreUserInterface $owner,
+        CustomerInterface $customer,
+        DeliverableCategoryInterface $kickOff,
+        DeliverableCategoryInterface $review,
+    ): void {
+        $deliverable = $this->slidesDeliverable(
+            $manager,
+            'Réunion de lancement, refonte du site',
+            'Ce que vous attendez du nouveau site, comment on travaille ensemble, et les six semaines qui viennent.',
+            $owner,
+            $kickOff,
+            customer: $customer,
+        );
+
+        if ($deliverable instanceof Deliverable) {
+            $this->slide($deliverable, SlideLayoutEnum::Title, [
+                'title' => 'Réunion de lancement',
+                'subtitle' => 'Atelier Dupont, octobre 2026',
+            ], 'Remercier pour le temps pris. Annoncer quarante minutes, questions comprises.');
+
+            $this->slide($deliverable, SlideLayoutEnum::Section, [
+                'title' => 'Ce que vous nous avez dit',
+            ], null);
+
+            $this->slide($deliverable, SlideLayoutEnum::Bullets, [
+                'title' => 'Trois attentes, dans vos mots',
+                'bullets' => [
+                    'Être trouvé par les gens de la région qui cherchent un menuisier',
+                    "Montrer l'atelier et les chantiers, pas seulement le catalogue",
+                    'Recevoir des demandes de devis plutôt que des appels à toute heure',
+                ],
+            ], 'Faire valider chaque ligne : si une seule est fausse, tout le reste se décale.');
+
+            // The photo from the demo media library, captioned for what it really is:
+            // a banner image. A caption that promised a screenshot would lie about the
+            // only thing this slide shows.
+            $this->slide($deliverable, SlideLayoutEnum::Image, [
+                'mediaId' => $this->mediaId(1),
+                'caption' => "Le ton visé pour l'accueil : une grande image, peu de mots",
+            ], "Laisser l'image dix secondes avant de commenter.");
+
+            $this->slide($deliverable, SlideLayoutEnum::Quote, [
+                'quote' => "Un site qui ressemble à l'atelier, et qui ramène des demandes de devis.",
+                'attribution' => 'Votre objectif, en une phrase',
+            ], 'Marquer un temps ici : tout ce qui suit sert cette phrase.');
+
+            $this->slide($deliverable, SlideLayoutEnum::Section, [
+                'title' => 'Comment on travaille',
+            ], null);
+
+            $this->slide($deliverable, SlideLayoutEnum::Bullets, [
+                'title' => 'Qui fait quoi',
+                'bullets' => [
+                    'Vous : les photos des chantiers, les textes sur le métier, une personne pour valider',
+                    'Nous : les maquettes, la rédaction finale, la mise en ligne et les mesures',
+                    'Ensemble : un point de trente minutes chaque semaine, à heure fixe',
+                ],
+            ], 'Insister sur « une personne pour valider » : c\'est ce qui tient les délais.');
+
+            $this->slide($deliverable, SlideLayoutEnum::Split, [
+                'title' => "Ce qu'on vous demande, ce que vous recevez",
+                'left' => 'Une vingtaine de photos de chantiers, trois textes sur votre métier, et une réponse sous deux jours à chaque validation.',
+                'right' => 'Un site rapide sur téléphone, une page par type de chantier, un formulaire de devis qui arrive dans votre boîte, et un point de mesure un mois après.',
+            ], 'Les deux colonnes se lisent en parallèle : laisser le temps.');
+
+            $this->slide($deliverable, SlideLayoutEnum::Section, [
+                'title' => 'Le calendrier',
+            ], null);
+
+            $this->slide($deliverable, SlideLayoutEnum::Bullets, [
+                'title' => 'Six semaines, trois étapes',
+                'bullets' => [
+                    'Semaines 1 et 2 : les maquettes, présentées puis ajustées une fois',
+                    'Semaines 3 et 4 : les contenus, rédigés à partir de vos photos et de vos notes',
+                    'Semaines 5 et 6 : la mise en ligne, puis les premières mesures',
+                ],
+            ], 'Dire tout de suite la date de mise en ligne visée, et ce qui la ferait glisser.');
+
+            // A free slide, composed by hand: the demonstration of what the canvas can
+            // do that the templates cannot. A gradient drawn from the colours of the
+            // presentation, a photo cropped into a circle, three grouped cards that
+            // enter one by one, and an arrow set at an angle.
+            $this->slide($deliverable, SlideLayoutEnum::Free, [
+                'fill' => ['type' => 'linear', 'angle' => 160, 'stops' => [
+                    ['color' => 'background', 'at' => 0],
+                    ['color' => 'background', 'at' => 55],
+                    ['color' => 'accent', 'at' => 100],
+                ]],
+                'elements' => [
+                    ['id' => 'title', 'type' => 'text', 'html' => "Le projet, en un coup d'œil", 'font' => 'heading', 'size' => 64, 'weight' => 700, 'lineHeight' => 1.05, 'x' => 6, 'y' => 9, 'w' => 62, 'h' => 14, 'enter' => 'rise'],
+                    ['id' => 'subtitle', 'type' => 'text', 'html' => 'Six semaines, et <span style="color: #f2b33d">une validation</span> à chaque étape', 'size' => 28, 'x' => 6, 'y' => 24, 'w' => 60, 'h' => 8, 'enter' => 'fade', 'delay' => 200],
+                    ['id' => 'photo', 'type' => 'image', 'mediaId' => $this->mediaId(1), 'mask' => 'circle', 'x' => 76, 'y' => 6, 'w' => 18, 'h' => 32, 'shadow' => ['x' => 0, 'y' => 12, 'blur' => 40, 'color' => '#00000066']],
+                    ['id' => 'arrow', 'type' => 'shape', 'shape' => 'line', 'head' => 'end', 'x' => 66, 'y' => 30, 'w' => 9, 'h' => 4, 'rotate' => -24, 'stroke' => ['color' => 'accent', 'width' => 6, 'style' => 'solid']],
+                    ['id' => 'card-1', 'type' => 'shape', 'shape' => 'rect', 'x' => 6, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                    ['id' => 'icon-1', 'type' => 'icon', 'icon' => 'palette', 'color' => 'accent', 'x' => 8.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                    ['id' => 'head-1', 'type' => 'text', 'html' => 'Les maquettes', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 8.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                    ['id' => 'body-1', 'type' => 'text', 'html' => "L'accueil et une page de chantier, ajustées ensemble.", 'size' => 20, 'lineHeight' => 1.35, 'x' => 8.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                    ['id' => 'card-2', 'type' => 'shape', 'shape' => 'rect', 'x' => 36.5, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                    ['id' => 'icon-2', 'type' => 'icon', 'icon' => 'pen-line', 'color' => 'accent', 'x' => 39.0, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                    ['id' => 'head-2', 'type' => 'text', 'html' => 'Les contenus', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 39.0, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                    ['id' => 'body-2', 'type' => 'text', 'html' => 'Vos photos et vos mots, mis en forme par nous.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 39.0, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                    ['id' => 'card-3', 'type' => 'shape', 'shape' => 'rect', 'x' => 67, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                    ['id' => 'icon-3', 'type' => 'icon', 'icon' => 'rocket', 'color' => 'accent', 'x' => 69.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                    ['id' => 'head-3', 'type' => 'text', 'html' => 'La mise en ligne', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 69.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                    ['id' => 'body-3', 'type' => 'text', 'html' => 'Puis un point de mesure un mois après.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 69.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                ],
+            ], 'Une carte par pression : laisser lire chacune avant la suivante.');
+
+            $this->slide($deliverable, SlideLayoutEnum::Quote, [
+                'quote' => 'Six semaines, une validation à chaque étape, et un site qui ramène des devis.',
+                'attribution' => "Ce qu'il faut retenir",
+            ], 'Fin. Fixer ensemble la date du premier point avant de se quitter.');
+
+            // A read link, the ordinary state of a sent presentation: opened once, it
+            // expires in two months. The read is recorded by hand, since no fixture
+            // actually opens the link.
+            $link = new DeliverableLink($deliverable);
+            $link
+                ->setLabel('Atelier Dupont - envoi du 12')
+                ->setExpiresAt(new DateTimeImmutable('+60 days'))
+                ->touch(new DateTimeImmutable('-2 days 14:05'));
+            $manager->persist($link);
+        }
+
+        $deliverable = $this->slidesDeliverable(
+            $manager,
+            'Trame de point mensuel',
+            'La forme que prend le point du mois avec un client. À dupliquer, puis à remplir.',
+            $owner,
+            $review,
+            template: true,
+        );
+
+        if ($deliverable instanceof Deliverable) {
+            $this->slide($deliverable, SlideLayoutEnum::Title, [
+                'title' => 'Point du mois',
+                'subtitle' => '{client}, {mois}',
+            ], 'Remplacer les deux mentions avant de présenter.');
+
+            $this->slide($deliverable, SlideLayoutEnum::Section, [
+                'title' => 'Le mois écoulé',
+            ], null);
+
+            $this->slide($deliverable, SlideLayoutEnum::Split, [
+                'title' => 'Prévu, fait',
+                'left' => 'Ce qui était prévu ce mois-ci.',
+                'right' => "Ce qui a été fait, et ce qui ne l'a pas été.",
+            ], "La colonne de droite d'abord : c'est celle qu'on attend.");
+
+            $this->slide($deliverable, SlideLayoutEnum::Bullets, [
+                'title' => 'Le mois qui vient',
+                'bullets' => [
+                    'Trois priorités, pas plus',
+                    'Ce que chacune demande de votre côté',
+                    'La date du prochain point',
+                ],
+            ], null);
+        }
+
+        $deliverable = $this->slidesDeliverable(
+            $manager,
+            'Trame de bilan trimestriel',
+            'Remplacée par la trame de point mensuel.',
+            $owner,
+            null,
+        );
+
+        if ($deliverable instanceof Deliverable) {
+            $this->slide($deliverable, SlideLayoutEnum::Title, ['title' => 'Bilan du trimestre', 'subtitle' => '{client}'], null);
+            $deliverable->setDeletedAt(new DateTimeImmutable('-5 days'));
+        }
+    }
+
+    /**
+     * A presentation kept in a client space and shown to the client: a short
+     * monthly check-in with speaker notes the client never sees. Laid once:
+     * a reload finds it by its title in that space.
+     */
+    private function spacePresentation(ObjectManager $manager, CustomerSpaceInterface $space): void
+    {
+        $title = 'Point d\'étape, octobre';
+        if (null !== $this->deliverables->findOneBy(['space' => $space, 'title' => $title])) {
+            return;
+        }
+
+        $deliverable = new Deliverable($space, $title, 'fr', DeliverableFormatEnum::Slides);
+        $deliverable
+            ->setSummary('Le point du mois en cinq diapos : ce qui a marché, ce qui change, ce qu\'on attend de vous.')
+            ->setOwner($this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]))
+            ->setVisibleToClient(true)
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space->getCustomer()->getLegalName()]))
+            ->setAppearance(DeliverableAppearance::normalize([]));
+        $manager->persist($deliverable);
+
+        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => $space->getCustomer()->getLegalName()]);
+
+        $this->slide($deliverable, SlideLayoutEnum::Title, ['title' => 'Point d\'étape', 'subtitle' => 'Octobre, réseaux sociaux'], "Rappeler l'objectif du trimestre avant les chiffres.");
+        $this->slide($deliverable, SlideLayoutEnum::Bullets, ['title' => 'Ce qui a marché', 'bullets' => ['Les coulisses de l\'atelier, trois fois plus partagées', "Deux demandes de devis venues d'Instagram", 'Un rythme tenu : douze publications sur douze']], "Insister sur les devis : c'est ce qui compte pour eux.");
+        $this->slide($deliverable, SlideLayoutEnum::Split, [
+            'title' => 'Ce qui change en novembre',
+            'left' => 'Moins de visuels produits seuls, plus de mains au travail.',
+            'right' => 'Une vidéo courte par semaine, tournée le mardi à l\'atelier.',
+        ], null);
+        $this->slide($deliverable, SlideLayoutEnum::Bullets, ['title' => "Ce qu'on attend de vous", 'bullets' => ['Vos retours sur le calendrier avant le 25', 'Dix photos de la nouvelle collection', 'Un créneau pour le tournage']], 'Proposer deux dates de tournage, pas une.');
+        $this->slide($deliverable, SlideLayoutEnum::End, ['title' => 'Merci', 'subtitle' => 'Prochain point début décembre'], null);
+    }
+
+    /**
+     * A Studio deliverable in slideshow format, shared with the team, unless it
+     * already exists under this title; null when it was there, brought up to
+     * date by {@see self::catchUp()}.
+     */
+    private function slidesDeliverable(
+        ObjectManager $manager,
+        string $title,
+        string $summary,
+        ?CoreUserInterface $owner,
+        ?DeliverableCategoryInterface $category,
+        bool $template = false,
+        ?CustomerInterface $customer = null,
+    ): ?Deliverable {
+        $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $title]);
+        if (null !== $existing) {
+            $this->catchUp($existing, $category, $template, $customer);
+
+            return null;
+        }
+
+        $deliverable = new Deliverable(null, $title, 'fr', DeliverableFormatEnum::Slides);
+        $deliverable
+            ->setSummary($summary)
+            ->setOwner($owner)
+            ->setScope(DeliverableScopeEnum::Shared)
+            ->setCategory($category)
+            ->setTemplate($template)
+            ->setCustomer($customer)
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => '']))
+            ->setAppearance(DeliverableAppearance::normalize([]));
+        $manager->persist($deliverable);
+
+        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Slate, []);
+
+        return $deliverable;
+    }
+
+    /** @param array<string, mixed> $content */
+    private function slide(Deliverable $deliverable, SlideLayoutEnum $layout, array $content, ?string $notes): void
+    {
+        $slide = $this->slides->addSlide($deliverable, $layout);
+        $this->slides->writeContent($slide, $content);
+        $slide->setSpeakerNotes($notes);
+    }
+
+    /**
+     * The identifier of an image from the demo media library, by its reference
+     * rather than hard-coded: the fixtures load in the order the loader picks.
+     */
+    private function mediaId(int $index): int
+    {
+        return (int) $this->getReference(GedDemoFixtures::mediaRef($index), Document::class)->getId();
+    }
+
+    /**
+     * Brings a deliverable that is already there up to the demo's level: its
+     * category, its "template" box and its client, if it does not have them yet.
+     *
+     * The fixtures stopped at "already exists": a category, a template or a
+     * client added after the first load never reached the deliverables loaded
+     * before. Only what is missing: a filing or a client chosen by hand is not
+     * undone by a reload.
+     */
+    private function catchUp(object $deliverable, ?DeliverableCategoryInterface $category, bool $template = false, ?CustomerInterface $customer = null): void
+    {
+        if (!$deliverable instanceof Deliverable || !$deliverable->isStandalone()) {
+            return;
+        }
+
+        if ($category instanceof DeliverableCategoryInterface && !$deliverable->getCategory() instanceof DeliverableCategoryInterface) {
+            $deliverable->setCategory($category);
+        }
+
+        if ($template) {
+            $deliverable->setTemplate(true);
+        }
+
+        if ($customer instanceof CustomerInterface && !$deliverable->getCustomer() instanceof CustomerInterface) {
+            $deliverable->setCustomer($customer);
+        }
+    }
+
+    /**
+     * A complete template, read from `data/`: the title, the summary, the
+     * appearance, the whole grid and its content, with the images found by name.
      */
     private function model(ObjectManager $manager, string $file, ?CoreUserInterface $owner, DeliverableCategoryInterface $category): void
     {
@@ -346,7 +731,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
         $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $model['title']]);
         if (null !== $existing) {
-            $this->fileIfUnfiled($existing, $category);
+            $this->catchUp($existing, $category, template: true);
 
             return;
         }
@@ -362,16 +747,17 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => '']))
             ->setOwner($owner)
             ->setScope(DeliverableScopeEnum::Shared)
-            ->setCategory($category);
+            ->setCategory($category)
+            ->setTemplate(true);
 
         $manager->persist($deliverable);
     }
 
     /**
-     * Les `@doc:Nom d'origine` d'un modèle remplacés par l'identifiant du
-     * document de la médiathèque qui porte ce nom : les identifiants changent à
-     * chaque chargement, les noms non. Une image absente laisse un trou plutôt
-     * que de faire échouer tout le chargement.
+     * The `@doc:Nom d'origine` of a template replaced by the identifier of the
+     * media library document that carries that name: identifiers change on
+     * every load, names do not. A missing image leaves a hole rather than
+     * failing the whole load.
      */
     private function resolveImages(mixed $value): mixed
     {
@@ -384,7 +770,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         return is_array($value) ? array_map($this->resolveImages(...), $value) : $value;
     }
 
-    /** Une catégorie de livrables, si elle n'existe pas déjà sous ce nom. */
+    /** A deliverable category, unless it already exists under this name. */
     private function category(ObjectManager $manager, string $name, string $color, int $position): DeliverableCategoryInterface
     {
         $category = $this->categories->findOneBy(['name' => $name]);
@@ -400,8 +786,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Une zone de texte posée sur un dégradé, en contraste clair : l'ouverture
-     * d'un document, comme un bloc d'entête sans image.
+     * A text zone set on a gradient, in light contrast: the opening of a
+     * document, like a banner block without an image.
      *
      * @return array<string, mixed>
      */
@@ -454,8 +840,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     }
 
     /**
-     * Les textes d'une liste d'éléments, dans l'ordre : `[titre, description]`
-     * ou `[titre, description, légende]`.
+     * The texts of a list of items, in order: `[title, description]` or
+     * `[title, description, caption]`.
      *
      * @param array<string, list<string>> $entries
      *
@@ -494,7 +880,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             'Audit de présence en ligne',
             'Instagram et Facebook, septembre 2026 : où en est Atelier Dupont, et ce que nous proposons pour les trois prochains mois.',
             true,
-            // Noyer et cuivre : les couleurs de l'atelier, pas celles du studio.
+            // Walnut and copper: the workshop's colours, not the studio's.
             [
                 'backgroundColor' => '#fbf7f1',
                 'headerColor' => '#3d2b1f',
@@ -560,8 +946,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             'Bilan de septembre',
             'Le mois en chiffres, les trois contenus qui ont le mieux marché, et ce que nous ajustons pour octobre.',
             true,
-            // Le bilan en sombre : un rapport se lit d'un coup d'œil, chiffres
-            // en clair sur fond nuit.
+            // The review in dark: a report reads at a glance, light figures on a night
+            // background.
             [
                 'backgroundColor' => '#0f172a',
                 'headerColor' => '#0b1120',
@@ -620,7 +1006,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         return [
             'Stratégie de contenus, dernier trimestre',
             'Les trois axes et le calendrier proposés pour octobre à décembre.',
-            // En cours : le client ne le voit pas encore.
+            // In progress: the client does not see it yet.
             false,
             ['accentColor' => '#b5652b', 'figureColor' => '#b5652b'],
             [
@@ -669,8 +1055,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             "Proposition d'accompagnement",
             'Une identité visuelle pour la Menuiserie Fabre : la démarche, deux formules et le calendrier.',
             true,
-            // Vert forêt : la piste de couleurs dont nous avons parlé au
-            // premier rendez-vous.
+            // Forest green: the colour direction we talked about at the first meeting.
             [
                 'backgroundColor' => '#f4f7f3',
                 'headerColor' => '#1f3a2e',

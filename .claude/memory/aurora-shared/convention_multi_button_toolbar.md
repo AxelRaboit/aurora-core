@@ -62,5 +62,5 @@ Le wrapper `flex flex-col sm:flex-row gap-2 w-full sm:w-auto` :
   lui-même.
 - Lien : [[convention_action_sheet]] - le cas à trois actions et plus.
 - Exemples en code : `ContractTemplatesApp.vue` (archivées + ajouter, avec
-  wrapper). `DecksApp.vue` a deux boutons **sans** wrapper : c'est un écart
-  à la règle, pas un exemple.
+  wrapper). L'écart qu'était `DecksApp.vue` (deux boutons **sans** wrapper)
+  a disparu avec l'écran des présentations, devenues des livrables.

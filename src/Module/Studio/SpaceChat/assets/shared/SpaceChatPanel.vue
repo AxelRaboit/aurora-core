@@ -17,7 +17,7 @@
  * surfaces mount it: a key under `suite.` rendered on a page a customer reads
  * is a namespace that has stopped meaning anything.
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { MoreHorizontal, PanelLeft, Radio, Send, Trash2, WifiOff, X } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
@@ -51,6 +51,10 @@ const props = defineProps({
     /** Null on the client's page: the rooms are the studio's to arrange. */
     channelCreatePath: { type: String, default: null },
     channelRenamePath: { type: String, default: null },
+    /**
+     * Null without the right to share the space: showing a room to the client
+     * or hiding it is that right, the same one that hands out access links.
+     */
     channelAudiencePath: { type: String, default: null },
     channelDeletePath: { type: String, default: null },
     channelInvitePath: { type: String, default: null },
@@ -68,12 +72,12 @@ const props = defineProps({
      */
     notice: { type: String, default: "" },
     /**
-     * Prend toute la hauteur de son conteneur, au lieu de sa hauteur fixe.
+     * Takes the full height of its container instead of its fixed height.
      *
-     * C'est le conteneur qui décide, pas le panneau : dans un espace, la
-     * discussion occupe l'écran parce qu'elle est l'écran, et sur la page du
-     * client elle est un bloc parmi d'autres sous le calendrier. Le même
-     * composant, deux places, et la place qui tranche.
+     * The container decides, not the panel: in a space, the conversation fills
+     * the screen because it is the screen, and on the client's page it is one
+     * block among others under the calendar. The same component, two places,
+     * and the place settles it.
      */
     fill: { type: Boolean, default: false },
     /**
@@ -90,9 +94,17 @@ const props = defineProps({
         default: "studio",
         validator: (value) => ["studio", "client"].includes(value),
     },
+    /**
+     * A message to open on rather than the end of the conversation.
+     *
+     * Set by the address a search result leads to. Scrolled to and marked
+     * once it is on screen; when it is older than what the room loaded, the
+     * panel opens at the end as usual.
+     */
+    focusMessageId: { type: [Number, null], default: null },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const {
     messages,
@@ -118,18 +130,18 @@ const {
     props.channelId,
 );
 
-/** Ce que les trois points ouvrent, et la question que pose la liste de gens. */
+/** What the three dots open, and the question the list of people asks. */
 const roomModal = ref(false);
 const peopleFor = ref(null);
-/** Le formulaire d'un nouveau canal, ouvert depuis le rail. */
+/** The form for a new channel, opened from the rail. */
 const newChannel = ref(false);
 /**
- * Le canal dont la suppression attend une réponse.
+ * The channel whose deletion is waiting for an answer.
  *
- * **Demandé, parce que ça n'est pas un rangement.** Retirer une conversation la
- * garde, retirer quelqu'un garde ce qu'il a écrit ; supprimer un canal emporte
- * ses messages, et c'est le seul geste de ce panneau qui ne se rattrape pas. Un
- * bouton rouge dans une liste de réglages n'est pas une question posée.
+ * **Asked, because it is not tidying up.** Putting a conversation away keeps
+ * it, removing someone keeps what they wrote; deleting a channel takes its
+ * messages with it, and it is the only action in this panel that cannot be
+ * undone. A red button in a list of settings is not a question asked.
  */
 const pendingDrop = ref(null);
 
@@ -146,10 +158,10 @@ const { channels, create, rename, setAudience, drop, invite, removeMember, openD
     });
 
 /**
- * Ouvre la conversation privée et s'y rend.
+ * Opens the private conversation and goes to it.
  *
- * Ouvrir sans y aller demanderait un second geste pour voir ce qu'on vient de
- * créer, ce qu'aucune application de discussion ne fait.
+ * Opening without going there would take a second action to see what was just
+ * created, which no chat application does.
  */
 async function startDirect(userId) {
     const id = await openDirect(userId);
@@ -175,14 +187,14 @@ const openChannel = computed(
 );
 
 /**
- * Qui lit ce qui s'écrit ici, dit au-dessus de la boîte.
+ * Who reads what is written here, said above the box.
  *
- * **Par salon et non par page.** « Ce que vous écrivez ici est lu par le
- * client » est vrai du salon principal et faux des deux autres sortes : un
- * canal interne ne sort pas de l'agence, une conversation privée ne sort pas
- * des deux personnes qui l'ont. Une phrase fausse sous une zone de saisie est
- * pire que pas de phrase du tout - elle fait taire ceux qui la croient, et
- * délie la langue de ceux qui ne la lisent plus.
+ * **Per room and not per page.** "Ce que vous écrivez ici est lu par le
+ * client" is true of the main room and false of the two other kinds: an
+ * internal channel does not leave the agency, a private conversation does not
+ * leave the two people who have it. A false sentence under an input is worse
+ * than no sentence at all - it silences those who believe it, and loosens the
+ * tongue of those who no longer read it.
  */
 const roomNotice = computed(() => {
     const room = openChannel.value;
@@ -195,15 +207,15 @@ const roomNotice = computed(() => {
 });
 
 /**
- * Qui la liste propose, selon la question posée.
+ * Who the list offers, depending on the question asked.
  *
- * Parler à quelqu'un : ceux avec qui il n'y a pas déjà une conversation.
- * Ajouter au canal : ceux qui n'y sont pas encore. Deux questions, une liste,
- * calculée là où l'on sait laquelle est posée.
+ * Talking to someone: those there is not already a conversation with. Adding
+ * to the channel: those who are not in it yet. Two questions, one list,
+ * computed where it is known which one is asked.
  */
 const peopleChoices = computed(() => {
     if ("invite" === peopleFor.value) {
-        const inside = new Set((openChannel.value?.members ?? []).map((m) => m.label));
+        const inside = new Set((openChannel.value?.members ?? []).map((member) => member.label));
 
         return props.team.filter((person) => !inside.has(person.label));
     }
@@ -216,11 +228,11 @@ const peopleChoices = computed(() => {
 });
 
 /**
- * Le titre de la modale, calculé ici plutôt que dans le gabarit.
+ * The modal's title, computed here rather than in the template.
  *
- * `t(condition ? 'a' : 'b')` se lit mal pour l'outil qui vérifie que chaque clé
- * existe : il prend le premier littéral pour la clé, et « invite » n'en est pas
- * une. Deux appels séparés disent la même chose et restent vérifiables.
+ * `t(condition ? 'a' : 'b')` reads badly for the tool that checks every key
+ * exists: it takes the first literal for the key, and "invite" is not one. Two
+ * separate calls say the same thing and stay checkable.
  */
 const pickTitle = computed(() =>
     "invite" === peopleFor.value
@@ -229,16 +241,16 @@ const pickTitle = computed(() =>
 );
 
 /**
- * L'état du direct en toutes lettres, pour l'infobulle et le lecteur d'écran.
+ * The live state spelled out, for the tooltip and the screen reader.
  *
- * Deux appels séparés plutôt qu'un ternaire dans `t()`, pour la même raison que
- * {@link pickTitle} : l'outil qui vérifie les clés ne lit pas les conditions.
+ * Two separate calls rather than a ternary inside `t()`, for the same reason as
+ * {@link pickTitle}: the tool that checks the keys does not read conditions.
  */
 const liveLabel = computed(() =>
     live.value ? t("shared.space_chat.live") : t("shared.space_chat.reconnecting"),
 );
 
-/** Ce qu'on fait du nom choisi dépend de la question qui l'a posé. */
+/** What is done with the chosen name depends on the question that asked it. */
 async function onPick({ id, purpose }) {
     peopleFor.value = null;
 
@@ -251,7 +263,7 @@ async function onPick({ id, purpose }) {
     await startDirect(id);
 }
 
-/** Range la conversation ouverte, et se replie sur la première de la liste. */
+/** Puts the open conversation away, and falls back on the first in the list. */
 async function onHide(channel) {
     roomModal.value = false;
     await hide(channel);
@@ -349,18 +361,18 @@ function onScroll() {
     following.value =
         element.scrollHeight - element.scrollTop - element.clientHeight < 80;
 
-    // Le haut approche : on va chercher ce qui précède avant d'y arriver, pour
-    // que la remontée ne s'arrête pas net sur un mur blanc.
+    // The top is getting close: fetch what comes before ahead of reaching it,
+    // so scrolling up does not stop dead on a blank wall.
     if (element.scrollTop < 120) void fetchOlder();
 }
 
 /**
- * Remonte d'une page, en rendant au lecteur sa place.
+ * Goes back one page, giving the reader their place back.
  *
- * Ajouter des lignes au-dessus de ce qu'on regarde pousse la vue vers le bas
- * d'autant : sans correction, le pouce arrive en haut et l'écran saute
- * ailleurs. On mesure la hauteur avant, on la remesure après, et on redonne la
- * différence au défilement - ce que fait toute application de discussion.
+ * Adding lines above what is being looked at pushes the view down by as much:
+ * without a correction, the thumb reaches the top and the screen jumps
+ * elsewhere. The height is measured before, measured again after, and the
+ * difference is handed back to the scroll - what every chat application does.
  */
 async function fetchOlder() {
     const element = scroller.value;
@@ -393,14 +405,47 @@ async function fetchOlder() {
  */
 let observer = null;
 
+/** The message the address names, marked while it is the one being read. */
+const focused = ref(props.focusMessageId);
+/** Whether it still has to be scrolled to: once, on the first layout that can. */
+let focusPending = null !== props.focusMessageId;
+
+/**
+ * Scrolls the named message into the middle of the box, once.
+ *
+ * Asked on the same layout events as the end of the conversation, for the
+ * reason given above: before the box has a height, there is nothing to scroll.
+ * Returns whether it did, so the caller does not then jump to the end.
+ */
+function revealFocus() {
+    if (!focusPending || !scroller.value || 0 === scroller.value.clientHeight) return false;
+
+    const target = scroller.value.querySelector(`[data-message-id="${focused.value}"]`);
+    focusPending = false;
+
+    if (!target) return false;
+
+    following.value = false;
+    target.scrollIntoView?.({ block: "center" });
+
+    return true;
+}
+
+// Another room, another reading: the mark belongs to the room it was found in.
+watch(currentChannel, () => {
+    focused.value = null;
+    focusPending = false;
+});
+
 onMounted(() => {
     if (typeof ResizeObserver === "undefined") {
-        void nextTick().then(toBottom);
+        void nextTick().then(() => revealFocus() || toBottom());
 
         return;
     }
 
     observer = new ResizeObserver(() => {
+        if (revealFocus()) return;
         if (following.value) toBottom();
     });
 
@@ -461,15 +506,15 @@ function onKeydown(event) {
             v-on:close="railOpen = false"
         />
 
-        <!-- `min-w-0` sur la colonne : sans lui un message d'un seul mot très
-             long pousse la conversation au-delà de la boîte et c'est le rail
-             qui se fait écraser. -->
+        <!-- `min-w-0` on the column: without it a message of a single very
+             long word pushes the conversation past the box and the rail is
+             the one that gets crushed. -->
         <div class="flex min-h-0 min-w-0 flex-1 flex-col">
             <header class="flex items-center gap-2 border-b border-line px-2 py-2.5 sm:px-4">
-                <!-- Sur téléphone le titre est la poignée du tiroir : c'est le
-                     nom du salon qu'on touche pour en changer, ce qui économise
-                     un bouton et dit où mène le geste. À partir de `md` il
-                     redevient un titre, la liste étant déjà à côté. -->
+                <!-- On a phone the title is the drawer's handle: the room's
+                     name is what one touches to change rooms, which saves a
+                     button and says where the gesture leads. From `md` it is
+                     a title again, the list being already beside it. -->
                 <button
                     v-if="hasRail"
                     type="button"
@@ -485,13 +530,13 @@ function onKeydown(event) {
                     {{ openChannel?.name ?? t("shared.space_chat.title") }}
                 </h2>
 
-                <!-- Dit dans l'en-tête et pas seulement sur la pastille : c'est la
-                 phrase à lire avant d'écrire, et l'en-tête est là où le regard
-                 revient entre deux messages.
+                <!-- Said in the header and not only on the badge: it is the
+                 sentence to read before writing, and the header is where the
+                 eye comes back between two messages.
 
-                 Pas sur une conversation privée : « interne » y répondrait à
-                 une question que personne ne se pose, et la phrase sous la
-                 boîte dit déjà qui la lit. -->
+                 Not on a private conversation: "internal" would answer a
+                 question nobody asks there, and the sentence under the box
+                 already says who reads it. -->
                 <span
                     v-if="channelCreatePath && openChannel && !openChannel.openToClient && !openChannel.isDirect"
                     class="rounded bg-surface-2/60 px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted"
@@ -499,16 +544,17 @@ function onKeydown(event) {
                     {{ t("shared.space_chat.channels.internal") }}
                 </span>
 
-                <!-- Dit, parce que la différence est invisible sinon : celui
-                     qui écrit dans une discussion qui a perdu le direct mérite
-                     de savoir que l'autre ne le verra pas apparaître.
+                <!-- Said, because the difference is invisible otherwise:
+                     someone writing in a conversation that has lost the live
+                     link deserves to know the other side will not see it
+                     appear.
 
-                     **L'icône seule.** « reconnexion… » prend cent trente
-                     pixels sur trois cent soixante, et les prend au nom du
-                     salon, qui passait à la ligne pour un mot qu'on lit une
-                     fois par heure. L'antenne barrée et la couleur disent la
-                     même chose ; le mot reste à l'infobulle et au lecteur
-                     d'écran, où il n'a jamais coûté de place. -->
+                     **The icon alone.** "reconnexion…" takes a hundred and
+                     thirty pixels out of three hundred and sixty, and takes
+                     them from the room's name, which wrapped for a word read
+                     once an hour. The crossed-out antenna and the colour say
+                     the same thing; the word stays in the tooltip and for the
+                     screen reader, where it never cost any room. -->
                 <span
                     v-if="expectsLive"
                     class="ml-auto shrink-0"
@@ -524,9 +570,9 @@ function onKeydown(event) {
                     <span class="sr-only">{{ liveLabel }}</span>
                 </span>
 
-                <!-- Trois points plutôt que quatre boutons sous le titre : ce
-                     sont des gestes rares, ils n'ont pas à occuper une ligne
-                     au-dessus de ce qu'on est venu lire. -->
+                <!-- Three dots rather than four buttons under the title: these
+                     are rare actions, they have no business taking a line
+                     above what one came to read. -->
                 <button
                     v-if="openChannel"
                     type="button"
@@ -539,22 +585,23 @@ function onKeydown(event) {
                 </button>
             </header>
 
-            <!-- `flex flex-col` sur le défilement, `mt-auto` sur les entrées : une
-             conversation courte se pose en bas de la boîte plutôt que de
-             flotter en haut d'un grand vide. Quand elle déborde, la marge
-             automatique vaut zéro et le défilement redevient ordinaire. -->
+            <!-- `flex flex-col` on the scroller, `mt-auto` on the entries: a
+             short conversation sits at the bottom of the box rather than
+             floating at the top of a large void. When it overflows, the auto
+             margin is zero and scrolling is ordinary again. -->
             <div
                 ref="scroller"
                 class="flex flex-1 flex-col overflow-y-auto px-2 py-3 sm:px-4"
                 v-on:scroll="onScroll"
             >
-                <!-- Un conteneur pour les entrées, et c'est lui qu'on observe : sa
-                 hauteur est celle du contenu, la seule mesure qui dise qu'il y
-                 a du nouveau sous le pli. -->
+                <!-- A container for the entries, and it is the one observed: its
+                 height is the content's, the only measure that says there is
+                 something new below the fold. -->
                 <div ref="content" class="mt-auto space-y-2">
-                    <!-- Le seul signe que la remontée travaille. Pas de bouton :
-                         le défilement le déclenche lui-même, et un bouton qui
-                         double un geste automatique fait douter des deux. -->
+                    <!-- The only sign that loading older messages is at work.
+                         No button: scrolling triggers it by itself, and a
+                         button doubling an automatic action casts doubt on
+                         both. -->
                     <p v-if="loadingOlder" class="py-1 text-center text-xs text-muted">
                         {{ t("shared.space_chat.channels.older") }}
                     </p>
@@ -573,48 +620,52 @@ function onKeydown(event) {
                              "17/09/2026 00:48" on a line whose whole job is to
                              say which day the messages under it belong to. -->
                             <span class="text-xs text-muted">
-                                {{ d(entry.at, "long") }}
+                                {{ formatDate(entry.at, "long") }}
                             </span>
                             <span class="h-px flex-1 bg-line/60" />
                         </div>
 
-                        <!-- Le cote decide l'alignement, la couleur le suit. Deux
-                         signaux pour la meme chose plutot qu'un, parce que
-                         l'alignement seul se perd sur un message d'une ligne et
-                         que la couleur seule se perd pour qui la distingue mal. -->
+                        <!-- The side decides the alignment, the colour follows
+                         it. Two signals for the same thing rather than one,
+                         because alignment alone gets lost on a one-line
+                         message and colour alone gets lost on whoever tells
+                         it apart poorly. -->
                         <div
                             v-else
                             class="flex"
                             :class="mine(entry.message) ? 'justify-end' : 'justify-start'"
+                            :data-message-id="entry.message.id"
                         >
+                            <!-- The ring marks the message a search result
+                                 led here, so the eye lands on it. -->
                             <div
                                 class="group max-w-[min(42rem,80%)] rounded-lg px-3 py-2"
-                                :class="
+                                :class="[
                                     mine(entry.message)
                                         ? 'border border-accent-500/20 bg-accent-500/5'
-                                        : 'bg-surface-2/60'
-                                "
+                                        : 'bg-surface-2/60',
+                                    focused === entry.message.id ? 'ring-2 ring-accent-500/60' : '',
+                                ]"
                             >
-                                <!-- `flex-wrap` et pas une ligne : un nom, une
-                                     date et la pastille « client » font 130
-                                     pixels, et une fenêtre de 250 les poussait
-                                     hors de la bulle - la pastille sortait de
-                                     l'écran par la droite. Ils se replient
-                                     plutôt que de déborder. -->
+                                <!-- `flex-wrap` and not one line: a name, a
+                                     date and the "client" badge take 130
+                                     pixels, and a 250-pixel window pushed
+                                     them out of the bubble - the badge left
+                                     the screen on the right. They wrap
+                                     rather than overflow. -->
                                 <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                                    <!-- Le nom reste des deux cotes : un studio a
-                                     plusieurs personnes, et « qui a repondu » est
-                                     une question qu'on se pose de son propre cote
-                                     aussi. -->
+                                    <!-- The name stays on both sides: a studio has
+                                     several people, and "who answered" is a
+                                     question one asks on one's own side too. -->
                                     <span class="min-w-0 break-all text-xs font-medium text-primary">
                                         {{ entry.message.author }}
                                     </span>
                                     <span class="text-xs text-muted">
-                                        {{ d(new Date(entry.message.createdAt), "short") }}
+                                        {{ formatDate(new Date(entry.message.createdAt), "short") }}
                                     </span>
-                                    <!-- Seulement quand ca apprend quelque chose : sur
-                                     sa propre page, le client n'a pas besoin qu'on
-                                     lui dise qu'il est le client. -->
+                                    <!-- Only when it tells something: on their
+                                     own page, the client does not need to be
+                                     told they are the client. -->
                                     <span
                                         v-if="entry.message.fromClient && 'studio' === ownSide"
                                         class="text-xs text-accent-500"
@@ -654,17 +705,17 @@ function onKeydown(event) {
                         v-on:update:model-value="draft = $event"
                     />
                 </div>
-                <!-- Pleine largeur sous le pouce, à sa taille dès qu'il y a la
-                     place : sur téléphone le seul geste de la zone mérite toute
-                     la ligne plutôt qu'un bouton de quatre-vingt-dix pixels
-                     collé dans un coin. -->
+                <!-- Full width under the thumb, its own size as soon as there
+                     is room: on a phone the area's only action deserves the
+                     whole line rather than a ninety-pixel button stuck in a
+                     corner. -->
                 <div class="flex items-center justify-end gap-3">
-                    <!-- Le raccourci, là où il existe. Il vivait entre
-                         parenthèses dans le champ lui-même, où il allongeait de
-                         soixante caractères la phrase qu'on lit avant
-                         d'écrire ; il occupe maintenant le vide à gauche du
-                         bouton, qui ne servait à rien, et il se tait sur les
-                         écrans sans clavier. -->
+                    <!-- The shortcut, where it exists. It used to live in
+                         parentheses in the field itself, where it made the
+                         sentence read before writing sixty characters longer;
+                         it now fills the empty space left of the button,
+                         which served no purpose, and it stays silent on
+                         screens without a keyboard. -->
                     <p class="mr-auto hidden text-xs text-muted md:block">
                         {{ t("shared.space_chat.shortcut_hint") }}
                     </p>
@@ -688,6 +739,7 @@ function onKeydown(event) {
             :show="roomModal"
             :channel="openChannel"
             :can-arrange="!!channelCreatePath"
+            :can-set-audience="!!channelAudiencePath"
             :can-invite="!!channelInvitePath"
             :can-uninvite="!!channelUninvitePath"
             :can-hide="!!hidePath"
@@ -731,6 +783,7 @@ function onKeydown(event) {
 
         <SpaceChatNewChannelModal
             :show="newChannel"
+            :can-show-to-client="!!channelAudiencePath"
             v-on:close="newChannel = false"
             v-on:create="create"
         />

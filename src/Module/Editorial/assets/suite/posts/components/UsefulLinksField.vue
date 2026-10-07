@@ -49,11 +49,11 @@ function commit(next) {
 }
 
 function update(index, patch) {
-    commit(entries.value.map((link, i) => (i === index ? { ...link, ...patch } : link)));
+    commit(entries.value.map((link, entryIndex) => (entryIndex === index ? { ...link, ...patch } : link)));
 }
 
 function remove(index) {
-    commit(entries.value.filter((_, i) => i !== index));
+    commit(entries.value.filter((_, entryIndex) => entryIndex !== index));
 }
 
 function add() {

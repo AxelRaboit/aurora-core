@@ -1,11 +1,11 @@
-{# La porte d'un lien de lecture de livrable protégé : la même que celle
-   des publications, gardée à part avec le module.
+{# The gate of a protected deliverable reading link: the same as the posts'
+   one, kept separately with the module.
 
-   Cette page ne dit rien de la publication qu'elle garde : ni son titre, ni
-   pour qui elle a été préparée, ni de quel site elle vient. Une adresse
-   devinée ne doit rien apprendre, et un mot de passe faux répond exactement
-   ce que répond une adresse fausse. Même forme que la porte d'une
-   présentation, pour la même raison. #}
+   This page says nothing about the publication it guards: not its title, not
+   who it was prepared for, not which site it comes from. A guessed address
+   must teach nothing, and a wrong password answers exactly what a wrong
+   address answers. Same shape as a presentation's gate, for the same
+   reason. #}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
     <head>
@@ -33,8 +33,8 @@
                     <span class="text-xs uppercase tracking-wide text-muted">
                         {{ 'frontend.reading.locked_password'|trans }}
                     </span>
-                    {# `autofocus` : la page n'a qu'un champ et une seule chose
-                       à faire, et le lecteur arrive d'un mail. #}
+                    {# `autofocus`: the page has only one field and one thing
+                       to do, and the reader arrives from an email. #}
                     <input
                         type="password"
                         name="password"

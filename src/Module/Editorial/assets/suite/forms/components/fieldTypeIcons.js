@@ -11,9 +11,9 @@ import {
 } from "lucide-vue-next";
 
 /**
- * Une icône par type de question, la même partout : dans le choix du type,
- * sur chaque ligne de la liste, dans le panneau. On reconnaît une question à
- * sa forme avant de lire son libellé.
+ * One icon per question type, the same everywhere: in the type picker, on
+ * each row of the list, in the panel. A question is recognised by its shape
+ * before its label is read.
  */
 export const FIELD_TYPE_ICONS = {
     text: Type,

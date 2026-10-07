@@ -15,7 +15,7 @@ function mountWithDebounce(callback, delay) {
         },
     });
     const wrapper = mount(Comp);
-    return { wrapper, fn: () => debounced };
+    return { wrapper, getDebounced: () => debounced };
 }
 
 describe("useDebounce", () => {
@@ -29,15 +29,15 @@ describe("useDebounce", () => {
 
     it("does not call the callback immediately", () => {
         const callback = vi.fn();
-        const { fn } = mountWithDebounce(callback, 300);
-        fn()("hello");
+        const { getDebounced } = mountWithDebounce(callback, 300);
+        getDebounced()("hello");
         expect(callback).not.toHaveBeenCalled();
     });
 
     it("calls the callback after the delay", () => {
         const callback = vi.fn();
-        const { fn } = mountWithDebounce(callback, 300);
-        fn()("hello");
+        const { getDebounced } = mountWithDebounce(callback, 300);
+        getDebounced()("hello");
         vi.runAllTimers();
         expect(callback).toHaveBeenCalledOnce();
         expect(callback).toHaveBeenCalledWith("hello");
@@ -45,10 +45,10 @@ describe("useDebounce", () => {
 
     it("only fires once when called multiple times within the delay", () => {
         const callback = vi.fn();
-        const { fn } = mountWithDebounce(callback, 300);
-        fn()("a");
-        fn()("b");
-        fn()("c");
+        const { getDebounced } = mountWithDebounce(callback, 300);
+        getDebounced()("a");
+        getDebounced()("b");
+        getDebounced()("c");
         vi.runAllTimers();
         expect(callback).toHaveBeenCalledOnce();
         expect(callback).toHaveBeenCalledWith("c");
@@ -56,10 +56,10 @@ describe("useDebounce", () => {
 
     it("fires again for a second burst after the first settles", () => {
         const callback = vi.fn();
-        const { fn } = mountWithDebounce(callback, 300);
-        fn()("first");
+        const { getDebounced } = mountWithDebounce(callback, 300);
+        getDebounced()("first");
         vi.runAllTimers();
-        fn()("second");
+        getDebounced()("second");
         vi.runAllTimers();
         expect(callback).toHaveBeenCalledTimes(2);
         expect(callback).toHaveBeenLastCalledWith("second");
@@ -67,8 +67,8 @@ describe("useDebounce", () => {
 
     it("clears the timer on component unmount", () => {
         const callback = vi.fn();
-        const { fn, wrapper } = mountWithDebounce(callback, 300);
-        fn()("will-be-cancelled");
+        const { getDebounced, wrapper } = mountWithDebounce(callback, 300);
+        getDebounced()("will-be-cancelled");
         wrapper.unmount();
         vi.runAllTimers();
         expect(callback).not.toHaveBeenCalled();

@@ -5,8 +5,8 @@
 {% block title %}{{ space.name }}{% endblock %}
 
 {% block body %}
-{# Maillon de la colonne : la hauteur descend du corps jusqu'à l'écran
-   ouvert, et une div sans classe l'aurait coupée ici. #}
+{# A link in the column chain: the height flows down from the body to the open
+   screen, and a div without a class would have cut it here. #}
 <div class="flex flex-1 flex-col" {{ vue_component('studio/suite/content/SpaceContentApp', {
     space: space,
     columns: columns,
@@ -48,20 +48,12 @@
     chatOlderPath: chatOlderPath,
     chatHidePath: chatHidePath,
     chatPeople: chatPeople,
-    notes: notes,
-    noteCreatePath: noteCreatePath,
-    noteUpdatePath: noteUpdatePath,
-    noteDeletePath: noteDeletePath,
-    notePinPath: notePinPath,
-    noteImagePath: noteImagePath,
-    craftEnabled: craftEnabled,
-    craftDocumentsPath: craftDocumentsPath,
-    craftImportPath: craftImportPath,
-    craftRefreshPath: craftRefreshPath,
+    spaceNotes: spaceNotes,
     spaceFiles: spaceFiles,
     spaceFileUploadPath: spaceFileUploadPath,
     spaceFileAttachPath: spaceFileAttachPath,
     spaceFileRemovePath: spaceFileRemovePath,
+    spaceFileVisibilityPath: spaceFileVisibilityPath,
     driveEnabled: driveEnabled,
     driveFolderId: driveFolderId,
     driveListPath: driveListPath,
@@ -77,10 +69,11 @@
     driveLocked: driveLocked,
     canConfigure: canConfigure,
     settingsPath: settingsPath,
+    spaceSettings: spaceSettings|default(null),
     driveAgencyFolderPath: driveAgencyFolderPath,
     driveServiceAccountEmail: driveServiceAccountEmail,
     information: information,
-    informationSavePath: informationSavePath,
+    customerPath: customerPath,
     related: related,
     resources: resources,
     resourceCreatePath: resourceCreatePath,
@@ -94,6 +87,8 @@
     canAddDeliverables: canAddDeliverables,
     deliverableListPath: deliverableListPath,
     deliverableCreatePath: deliverableCreatePath,
+    deliverableImportPath: deliverableImportPath|default(''),
+    deliverableTemplates: deliverableTemplates|default([]),
     deliverableVisibilityPathTemplate: deliverableVisibilityPathTemplate,
     deliverableDuplicatePathTemplate: deliverableDuplicatePathTemplate,
     deliverableDeletePathTemplate: deliverableDeletePathTemplate,

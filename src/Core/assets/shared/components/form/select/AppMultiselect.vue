@@ -28,13 +28,13 @@ const props = defineProps({
 });
 
 /**
- * `open` et `close` sont relayés parce que rien d'autre ne peut les voir.
+ * `open` and `close` are relayed because nothing else can see them.
  *
- * Les écouteurs posés sur ce composant tombent sur son `<div>` racine, pas
- * sur le sélecteur qu'il enveloppe, et le panneau de celui-ci est téléporté
- * dans le `body` : un appelant qui veut savoir quand la liste se referme -
- * pour replier le contrôle autour, par exemple - n'a ni l'événement ni un
- * `focusout` qui dise la vérité.
+ * Listeners set on this component land on its root `<div>`, not on the
+ * select it wraps, and the panel of that select is teleported into the
+ * `body`: a caller that wants to know when the list closes - to collapse the
+ * surrounding control, for example - has neither the event nor a `focusout`
+ * that tells the truth.
  */
 const emit = defineEmits(["update:modelValue", "open", "close"]);
 
@@ -146,10 +146,10 @@ function onSelect(value) {
     border-color: rgb(239 68 68);
 }
 
-/* Sur le site public (formulaires), les couleurs du thème du site plutôt que
-   l'indigo du back-office : le survol suit `highlight`, comme tous les survols
-   du site, et l'angle celui des autres champs du formulaire. La liste est
-   téléportée dans le `body`, d'où la classe posée sur celui-ci. */
+/* On the public site (forms), the colours of the site theme rather than the
+   back office indigo: the hover follows `highlight`, like every hover of the
+   site, and the corner radius follows the other fields of the form. The list
+   is teleported into the `body`, hence the class set on it. */
 .aurora-front .multiselect__tags {
     border-radius: 0.5rem;
 }

@@ -1,21 +1,21 @@
 <script setup>
 /**
- * Ajouter quelque chose au carnet : une note, un dossier, ou un espace.
+ * Add something to the notebook: a note, a folder, or a space.
  *
- * Le plus d'un dossier créait une note, et seulement une note : pour ranger un
- * sous-dossier, il fallait passer par la bibliothèque, qui n'existe pas quand
- * une note est ouverte. Craft et Notion posent la question au moment du geste,
- * « quoi, et où », et c'est ce que fait cette modale : un choix, un nom, et
- * l'endroit écrit en toutes lettres pour qu'on ne range pas à l'aveugle.
+ * A folder's plus created a note, and only a note: to file a subfolder, one
+ * had to go through the library, which does not exist when a note is open.
+ * Craft and Notion ask the question at the moment of the gesture, "what, and
+ * where", and that is what this modal does: a choice, a name, and the place
+ * written out in full so that nothing is filed blindly.
  *
- * **Le nom est facultatif pour une note.** Une note sans titre s'ouvre et se
- * nomme en écrivant, comme avant ; un dossier et un espace, eux, se rangent
- * par leur nom, donc ils en demandent un.
+ * **The name is optional for a note.** An untitled note opens and gets named
+ * while writing, as before; a folder and a space are filed by their name, so
+ * they ask for one.
  *
- * **Un espace se crée ici aussi**, pour qui en a le droit : c'est au moment
- * où l'on veut ranger quelque chose à part qu'on se demande qui le verra. Le
- * nom, puis qui y entre - personne d'autre, des personnes choisies, ou tout
- * le back-office -, et ce qu'on y fait quand on y entre sans y être inscrit.
+ * **A space is created here too**, for whoever is allowed to: it is when one
+ * wants to file something apart that one wonders who will see it. The name,
+ * then who gets in - nobody else, chosen people, or the whole back-office -,
+ * and what one does there when entering without being a member.
  */
 import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,19 +32,19 @@ import { spaceLabel } from "../composables/noteSpaces.js";
 
 const props = defineProps({
     show: { type: Boolean, default: false },
-    /** Où ranger ; `null` pour la racine d'un espace. */
+    /** Where to file; `null` for a space's root. */
     folderId: { type: Number, default: null },
-    /** La racine visée quand il n'y a pas de dossier ; celle de son espace à défaut. */
+    /** The targeted root when there is no folder; one's own space's otherwise. */
     spaceId: { type: Number, default: null },
-    /** Les dossiers lisibles, pour écrire l'endroit. */
+    /** The readable folders, to write out the place. */
     folders: { type: Array, default: () => [] },
-    /** Les espaces lisibles, avec le rôle de la personne dans chacun. */
+    /** The readable spaces, with the person's role in each. */
     spaces: { type: Array, default: () => [] },
-    /** Le droit de créer un espace partagé. */
+    /** The right to create a shared space. */
     canCreateSpace: { type: Boolean, default: false },
-    /** Ce que la modale propose en premier. */
+    /** What the modal offers first. */
     initialKind: { type: String, default: "note" },
-    /** Les modèles qu'on peut lire, `{id, title}` : une note peut partir de l'un d'eux. */
+    /** The templates one can read, `{id, title}`: a note can start from one of them. */
     templates: { type: Array, default: () => [] },
     saving: { type: Boolean, default: false },
 });
@@ -59,10 +59,10 @@ const color = ref(null);
 const access = ref("backoffice");
 const defaultRole = ref("reader");
 const chosenSpaceId = ref(null);
-/** Le repère qu'un modèle remplace par la date du jour (côté serveur). */
+/** The marker a template replaces with today's date (server side). */
 const DATE_MARKER = "{{date}}";
 
-/** Le modèle choisi, `null` pour une note vide. */
+/** The chosen template, `null` for an empty note. */
 const templateId = ref(null);
 const nameInput = ref(null);
 
@@ -70,12 +70,12 @@ const isFolder = computed(() => "folder" === kind.value);
 const isSpace = computed(() => "space" === kind.value);
 const path = computed(() => folderPath(props.folders, props.folderId));
 
-/** Les espaces où l'on peut écrire : les seuls où ranger. */
+/** The spaces one can write in: the only ones to file into. */
 const writableSpaces = computed(() => props.spaces.filter((space) => space.canWrite));
 
 /**
- * L'espace de destination : celui du dossier quand il y en a un, sinon celui
- * qu'on a choisi, sinon le sien.
+ * The destination space: the folder's when there is one, otherwise the one
+ * chosen, otherwise one's own.
  */
 const targetSpaceId = computed(() => {
     if (null !== props.folderId) {
@@ -91,7 +91,7 @@ const targetSpace = computed(() =>
     props.spaces.find((space) => Number(space.id) === targetSpaceId.value) ?? null,
 );
 
-/** Plusieurs espaces où écrire, et rien qui impose le sien : on laisse choisir. */
+/** Several spaces to write in, and nothing imposing one's own: we let the person choose. */
 const canPickSpace = computed(() => null === props.folderId && writableSpaces.value.length > 1);
 
 const spaceOptions = computed(() =>
@@ -106,8 +106,8 @@ function defaultSpaceId() {
     return null == personal ? null : Number(personal.id);
 }
 
-// Chaque ouverture repart de zéro : une modale qui garde le nom d'un dossier
-// créé il y a cinq minutes invite à en créer un second par erreur.
+// Each opening starts from scratch: a modal that keeps the name of a folder
+// created five minutes ago invites creating a second one by mistake.
 watch(
     () => props.show,
     async (open) => {
@@ -127,7 +127,7 @@ watch(
     { immediate: true },
 );
 
-// Changer de nature garde le curseur dans le champ : on choisit, on tape.
+// Changing kind keeps the cursor in the field: one chooses, one types.
 function pick(value) {
     kind.value = value;
     nextTick(() => nameInput.value?.focus());
@@ -151,7 +151,7 @@ function submit() {
     });
 }
 
-/** « Une note vide », puis chaque modèle par son titre. */
+/** "Une note vide", then each template by its title. */
 const templateOptions = computed(() => [
     { value: "", label: t("notes.markdown.template.blank") },
     ...props.templates.map((one) => ({ value: String(one.id), label: one.title || t("notes.markdown.untitled") })),
@@ -203,7 +203,7 @@ const placeholder = computed(() => {
         :icon="FolderPlus"
         v-on:close="emit('close')"
     >
-        <!-- Le groupe d'onglets de la maison, pas deux boutons improvisés. -->
+        <!-- The house tab group, not two improvised buttons. -->
         <div
             class="inline-flex rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="radiogroup"
@@ -244,8 +244,9 @@ const placeholder = computed(() => {
             />
             <p class="mt-1 text-xs text-muted">{{ accessHint }}</p>
 
-            <!-- Le rôle de qui entre sans être inscrit n'a de sens que quand
-                 tout le back-office entre : ailleurs, chacun a le sien. -->
+            <!-- The role of whoever enters without being a member only makes
+                 sense when the whole back-office gets in: elsewhere, each has
+                 their own. -->
             <AppChoiceRow
                 v-if="'backoffice' === access"
                 v-model="defaultRole"
@@ -257,9 +258,9 @@ const placeholder = computed(() => {
         </template>
 
         <template v-else>
-            <!-- Partir d'un modèle : un brief, un compte rendu, une procédure
-                 prêts à remplir. Le nom tapé devient le titre, celui du
-                 modèle à défaut. -->
+            <!-- Start from a template: a brief, meeting notes, a procedure
+                 ready to fill. The typed name becomes the title, the
+                 template's one otherwise. -->
             <template v-if="'note' === kind && templates.length">
                 <AppSelect
                     data-add-template
@@ -284,8 +285,8 @@ const placeholder = computed(() => {
                 v-on:update:model-value="chosenSpaceId = Number($event)"
             />
 
-            <!-- L'endroit, écrit : on range là où l'on a cliqué, et le dire
-                 évite de chercher ensuite où la note est partie. -->
+            <!-- The place, written out: we file where one clicked, and saying
+                 it avoids searching afterwards for where the note went. -->
             <p class="mt-3 flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted" data-add-where>
                 <span>{{ t('notes.markdown.add.where') }}</span>
                 <span class="font-medium text-secondary">

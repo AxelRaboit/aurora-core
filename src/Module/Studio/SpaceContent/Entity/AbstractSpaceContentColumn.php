@@ -7,7 +7,9 @@ namespace Aurora\Module\Studio\SpaceContent\Entity;
 use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManager;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -65,25 +67,26 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
     protected ?int $colourSlot = null;
 
     /**
-     * Si le client voit cette étape.
+     * Whether the client sees this stage.
      *
-     * **La colonne est la bonne granularité, pas la fiche.** Un tableau dit
-     * déjà « ce qui est à ce stade » ; « ce stade ne regarde pas le client »
-     * se pose donc naturellement dessus. Marquer fiche par fiche obligerait à
-     * y repenser à chaque carte créée, ce que personne ne fait, et la première
-     * oubliée annulerait la protection.
+     * **The column is the right granularity, not the card.** A board already
+     * says "what is at this stage"; "this stage is none of the client's
+     * business" therefore sits naturally on it. Marking card by card would
+     * mean thinking of it at every card created, which nobody does, and the
+     * first one forgotten would cancel the protection.
      *
-     * Le modèle existe déjà sur les canaux de discussion, qui portent le même
-     * interrupteur, avec le défaut inverse : un salon naît interne parce qu'on
-     * y parle entre soi, une étape naît visible parce que le tableau est fait
-     * pour être montré.
+     * **Hidden by default**, like everything a space can show the client (the
+     * common rule of {@see ClientVisibility}): a stage added to the board is a
+     * work stage until somebody with the right to share has shown it. The
+     * board a space receives at birth makes an exception for two stages,
+     * Relecture, where the client answers, and Publié, what has gone out: see
+     * {@see SpaceContentColumnManager::seedDefaults()}.
      *
-     * Vrai par défaut. Fermé d'office aurait fait disparaître le contenu des
-     * espaces existants le jour de la mise à jour, ce qu'aucun client
-     * n'aurait compris.
+     * Stages from before the rule kept their state: the migration only
+     * changes the default, so nothing the client saw disappears.
      */
-    #[ORM\Column(options: ['default' => true])]
-    protected bool $visibleToClient = true;
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $visibleToClient = false;
 
     /**
      * Which shared stage this step stands for, or none.

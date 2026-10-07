@@ -33,10 +33,10 @@ final class ContentSecurityPolicyTest extends TestCase
     public function testScriptSrcNeverAdmitsInlineOrEval(): void
     {
         foreach ([true, false] as $devMode) {
-            $scriptSrc = $this->directive(new ContentSecurityPolicy($devMode)->header('abc'), 'script-src');
+            $scriptSources = $this->directive(new ContentSecurityPolicy($devMode)->header('abc'), 'script-src');
 
-            self::assertStringNotContainsString("'unsafe-inline'", $scriptSrc, sprintf('devMode=%s', var_export($devMode, true)));
-            self::assertStringNotContainsString("'unsafe-eval'", $scriptSrc, sprintf('devMode=%s', var_export($devMode, true)));
+            self::assertStringNotContainsString("'unsafe-inline'", $scriptSources, sprintf('devMode=%s', var_export($devMode, true)));
+            self::assertStringNotContainsString("'unsafe-eval'", $scriptSources, sprintf('devMode=%s', var_export($devMode, true)));
         }
     }
 
@@ -70,10 +70,10 @@ final class ContentSecurityPolicyTest extends TestCase
      */
     public function testStyleSrcAllowsInlineAndCarriesNoNonce(): void
     {
-        $styleSrc = $this->directive(new ContentSecurityPolicy()->header('abc'), 'style-src');
+        $styleSources = $this->directive(new ContentSecurityPolicy()->header('abc'), 'style-src');
 
-        self::assertStringContainsString("'unsafe-inline'", $styleSrc);
-        self::assertStringNotContainsString('nonce-', $styleSrc);
+        self::assertStringContainsString("'unsafe-inline'", $styleSources);
+        self::assertStringNotContainsString('nonce-', $styleSources);
     }
 
     /**
@@ -86,12 +86,12 @@ final class ContentSecurityPolicyTest extends TestCase
      */
     public function testFrameSrcFollowsTheSanitisersOwnList(): void
     {
-        $frameSrc = $this->directive(new ContentSecurityPolicy()->header(null), 'frame-src');
+        $frameSources = $this->directive(new ContentSecurityPolicy()->header(null), 'frame-src');
 
-        self::assertStringContainsString("'self'", $frameSrc);
+        self::assertStringContainsString("'self'", $frameSources);
 
         foreach (RawHtmlSanitizer::IFRAME_HOSTS as $host) {
-            self::assertStringContainsString('https://'.$host, $frameSrc);
+            self::assertStringContainsString('https://'.$host, $frameSources);
         }
     }
 

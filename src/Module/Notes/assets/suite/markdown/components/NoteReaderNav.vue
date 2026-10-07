@@ -1,15 +1,14 @@
 <script setup>
 /**
- * L'arborescence du lecteur : tout le carnet, en lecture.
+ * The reader's tree: the whole notebook, for reading.
  *
- * Les mêmes lignes que le panneau du menu, en lecture seule : un dossier se
- * déplie, une note mène à sa lecture, rien ne s'ajoute, ne se glisse ni ne se
- * renomme. Le dépliage est le même que celui du panneau - on retrouve les
- * dossiers ouverts d'un espace à l'autre - et la note lue s'allume, son
- * dossier ouvert.
+ * The same rows as the menu panel, read-only: a folder expands, a note leads
+ * to its reading, nothing is added, dragged or renamed. Expansion is the
+ * same as the panel's - the open folders carry over from one space to the
+ * other - and the note being read lights up, its folder open.
  *
- * Rangé par espace, comme le panneau : le sien d'abord, puis chaque espace
- * partagé sous son nom. Un seul espace n'a pas besoin d'en-tête.
+ * Grouped by space, like the panel: one's own first, then each shared space
+ * under its name. A single space needs no header.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -27,10 +26,10 @@ const props = defineProps({
     noteId: { type: Number, required: true },
     folders: { type: Array, default: () => [] },
     notes: { type: Array, default: () => [] },
-    /** Les espaces lisibles ; l'arbre se découpe par eux. */
+    /** The readable spaces; the tree is split by them. */
     spaces: { type: Array, default: () => [] },
     readNotePath: { type: String, required: true },
-    /** La recherche dans le texte, côté serveur : les corps sont chiffrés. */
+    /** The search in the text, server side: the bodies are encrypted. */
     searchPath: { type: String, default: "" },
 });
 
@@ -44,9 +43,9 @@ const searching = computed(() => "" !== query.value.trim());
 const foldersRef = computed(() => props.folders);
 const notesRef = computed(() => props.notes);
 /**
- * Le texte des notes, cherché côté serveur, comme dans le panneau : sans lui
- * la même boîte de recherche trouvait par le corps d'un côté et seulement par
- * le titre de l'autre.
+ * The notes' text, searched on the server side, as in the panel: without it
+ * the same search box found by body on one side and only by title on the
+ * other.
  */
 const { request } = useRequest();
 const contentMatchIds = ref(new Set());
@@ -78,12 +77,12 @@ const readUrl = (id) => props.readNotePath.replace("__id__", String(id));
 const hrefFor = (node) => ("note" === node.kind ? readUrl(node.id) : "#");
 
 /**
- * Ce qui est ouvert : ce que la personne a déplié, plus le chemin de la note
- * lue - on arrive sur une note, on doit la voir dans l'arbre.
+ * What is open: what the person expanded, plus the path of the note being
+ * read - one lands on a note, one must see it in the tree.
  */
 function initialOpen() {
     const open = readExpanded();
-    const parents = new Map(props.folders.map((f) => [Number(f.id), null == f.parentId ? null : Number(f.parentId)]));
+    const parents = new Map(props.folders.map((folder) => [Number(folder.id), null == folder.parentId ? null : Number(folder.parentId)]));
     const note = props.notes.find((one) => Number(one.id) === props.noteId);
 
     let id = null == note?.folderId ? null : Number(note.folderId);
@@ -110,7 +109,7 @@ function toggle(node) {
     storeExpanded(next);
 }
 
-/** Une note s'ouvre en lecture, un dossier se déplie. */
+/** A note opens for reading, a folder expands. */
 function onSelect(node) {
     if ("note" !== node.kind) {
         toggle(node);
@@ -122,7 +121,7 @@ function onSelect(node) {
     window.location.assign(readUrl(node.id));
 }
 
-/** L'arbre découpé par espace ; une ligne de premier niveau dit le sien. */
+/** The tree split by space; a top-level row tells its own. */
 const groups = computed(() => {
     const spaces = sortSpaces(props.spaces);
 
@@ -141,8 +140,8 @@ const groups = computed(() => {
     return list.filter((group) => group.nodes.length);
 });
 
-// Toujours, comme le panneau : sans en-tête, rien ne disait dans quel
-// espace on lisait. La lecture publique n'en reçoit pas, et n'en montre pas.
+// Always, like the panel: without a header, nothing said which space one was
+// reading in. Public reading receives none, and shows none.
 const showHeaders = computed(() => groups.value.some((group) => null !== group.space));
 </script>
 

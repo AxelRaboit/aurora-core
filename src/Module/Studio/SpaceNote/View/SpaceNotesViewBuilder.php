@@ -4,83 +4,138 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceNote\View;
 
-use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Notes\Craft\Service\CraftClient;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
+use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\NotesContext;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
-use Aurora\Module\Studio\SpaceNote\Craft\Service\CraftClient;
-use Aurora\Module\Studio\SpaceNote\Repository\SpaceNoteRepository;
-use Aurora\Module\Studio\SpaceNote\Serializer\SpaceNoteSerializerInterface;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use function array_map;
+use function array_reverse;
+use function implode;
+
+/**
+ * A client space's Notes tab: a door onto its notes space.
+ *
+ * **Notes are no longer written here.** They live in the Notes module, in the
+ * client space's notes space; the tab shows their list and leads there - a
+ * note opens in the notes editor, which knows everything the old wall did not
+ * (folders, links between notes, history, search, sharing a note).
+ *
+ * **Absent for whoever does not have notes.** Module turned off, or a person
+ * without the `notes.markdown.use` right: the tab does not show, rather than
+ * leading to screens that would answer 404. The right is not granted in
+ * passing, it is set with the others.
+ */
 final readonly class SpaceNotesViewBuilder
 {
     public function __construct(
-        private SpaceNoteRepository $notes,
-        private SpaceNoteSerializerInterface $serializer,
-        private UrlGeneratorInterface $urlGenerator,
-        private PathTemplateGenerator $pathTemplates,
+        private SpaceNoteSpaceProvider $provider,
+        private NoteSpaceAccess $spaceAccess,
+        private MarkdownNoteRepository $notes,
+        private NoteFolderRepository $folders,
+        private NotesContext $notesContext,
         private Security $security,
+        private UrlGeneratorInterface $urlGenerator,
         private CraftClient $craft,
     ) {}
 
     /**
-     * Ce dont la vue a besoin, envoyé avec le reste de la page.
+     * What the tab needs, sent with the rest of the page.
      *
      * @return array<string, mixed>
      */
     public function view(CustomerSpaceInterface $space): array
     {
-        return [
-            'notes' => $this->notes($space),
-            'noteCreatePath' => $this->urlGenerator->generate('workspace_space_notes_create', ['id' => $space->getId()]),
-            'noteUpdatePath' => $this->pathTemplates->generate('workspace_space_notes_update', ['id' => $space->getId(), 'noteId' => '__id__']),
-            'noteDeletePath' => $this->pathTemplates->generate('workspace_space_notes_delete', ['id' => $space->getId(), 'noteId' => '__id__']),
-            'notePinPath' => $this->pathTemplates->generate('workspace_space_notes_pin', ['id' => $space->getId(), 'noteId' => '__id__']),
-            // L'adresse où l'éditeur dépose ses images. Propre à l'espace, donc
-            // le fichier se range dans son dossier au lieu d'aller dans le tas
-            // générique des images d'édition.
-            'noteImagePath' => $this->urlGenerator->generate('workspace_space_notes_image', ['id' => $space->getId()]),
-            // L'import Craft n'existe dans l'écran que si l'installation a
-            // ouvert la connexion. Un bouton qui mène à une liste vide et à
-            // une explication est un bouton qui déçoit chaque fois.
-            'craftEnabled' => $this->craft->isConfigured(),
-            'craftDocumentsPath' => $this->urlGenerator->generate('workspace_space_notes_craft', ['id' => $space->getId()]),
-            'craftImportPath' => $this->urlGenerator->generate('workspace_space_notes_craft_import', ['id' => $space->getId()]),
-            'craftRefreshPath' => $this->pathTemplates->generate('workspace_space_notes_craft_refresh', ['id' => $space->getId(), 'noteId' => '__id__']),
-        ];
+        return ['spaceNotes' => $this->payload($space)];
     }
 
     /**
-     * Ce que renvoie chaque écriture : le mur entier.
-     *
-     * Plutôt que la seule note modifiée, pour la raison que le tableau donne
-     * déjà : épingler réordonne tout, et une page qui rafistolerait sa copie
-     * s'écarterait du serveur en trois gestes. Un mur de notes est petit.
+     * The tab's state: rendered with the page, then after the notes space is
+     * opened.
      *
      * @return array<string, mixed>
      */
     public function payload(CustomerSpaceInterface $space): array
     {
-        return ['success' => true, 'notes' => $this->notes($space)];
+        $reader = $this->security->getUser();
+        $enabled = $reader instanceof CoreUserInterface && $this->enabled();
+
+        if (!$enabled) {
+            return ['enabled' => false];
+        }
+
+        $noteSpace = $this->provider->existing($space);
+        $role = $noteSpace instanceof NoteSpaceInterface ? $this->spaceAccess->roleIn($reader, $noteSpace) : null;
+
+        return [
+            'enabled' => true,
+            'noteSpace' => $noteSpace instanceof NoteSpaceInterface ? [
+                'id' => $noteSpace->getId(),
+                'name' => $noteSpace->getName(),
+                'readable' => $role instanceof NoteSpaceRoleEnum,
+                'canWrite' => true === $role?->canWrite(),
+            ] : null,
+            'notes' => $noteSpace instanceof NoteSpaceInterface && $role instanceof NoteSpaceRoleEnum ? $this->notes($noteSpace) : [],
+            'paths' => [
+                'open' => $this->urlGenerator->generate('workspace_space_notes_open', ['id' => $space->getId()]),
+                'library' => $this->urlGenerator->generate('suite_notes_markdown'),
+                'create' => $this->urlGenerator->generate('suite_notes_markdown_create'),
+                'show' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => '__id__']),
+            ],
+            // The Craft import only exists in the tab if the installation has
+            // opened the connection.
+            'craftEnabled' => $this->craft->isConfigured(),
+            'craftPaths' => [
+                'documents' => $this->urlGenerator->generate('suite_notes_craft_documents'),
+                'import' => $this->urlGenerator->generate('suite_notes_craft_import'),
+            ],
+        ];
+    }
+
+    /** The module turned on, and the right to use it. */
+    public function enabled(): bool
+    {
+        return $this->notesContext->isSuiteEnabled()
+            && $this->notesContext->isMarkdownEnabled()
+            && $this->security->isGranted('notes.markdown.use');
     }
 
     /**
-     * Le mur tel que celui qui regarde a le droit de le voir.
-     *
-     * Les notes personnelles des autres ne sont pas filtrees ici : elles ne
-     * sont jamais remontees. C'est la meme requete pour la premiere page et
-     * pour chaque ecriture, donc il n'y a pas deux endroits ou se tromper.
+     * The space's notes, with their folder path to place them.
      *
      * @return list<array<string, mixed>>
      */
-    public function notes(CustomerSpaceInterface $space): array
+    private function notes(NoteSpaceInterface $noteSpace): array
     {
-        $reader = $this->security->getUser();
+        $folders = [];
+        foreach ($this->folders->findLivingInSpace($noteSpace) as $folder) {
+            $folders[(int) $folder->getId()] = $folder;
+        }
 
-        return array_map(
-            $this->serializer->serialize(...),
-            $this->notes->findForSpace($space, $reader instanceof CoreUserInterface ? $reader : null),
-        );
+        return array_map(fn (array $note): array => [
+            ...$note,
+            'folder' => null === $note['folderId'] ? null : $this->pathOf($folders[$note['folderId']] ?? null),
+        ], $this->notes->findListInSpace($noteSpace));
+    }
+
+    private function pathOf(?NoteFolderInterface $folder): ?string
+    {
+        $names = [];
+
+        while ($folder instanceof NoteFolderInterface) {
+            $names[] = (string) $folder->getName();
+            $folder = $folder->getParent();
+        }
+
+        return [] === $names ? null : implode(' / ', array_reverse($names));
     }
 }

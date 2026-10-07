@@ -12,11 +12,12 @@
  * @returns {string|null}
  */
 export function viewFromAddress(search, viewKeys) {
-    const params = new URLSearchParams(search);
-    const named = params.get("view");
+    const searchParameters = new URLSearchParams(search);
+    const named = searchParameters.get("view");
 
     if (named && viewKeys.includes(named)) return named;
-    if (params.has("item") || params.has("state")) return "content";
+    if (searchParameters.has("item") || searchParameters.has("state"))
+        return "content";
 
     return null;
 }

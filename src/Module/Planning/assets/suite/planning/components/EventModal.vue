@@ -57,7 +57,7 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "edit", "save", "delete", "respond"]);
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const form = ref(blank());
 
@@ -241,7 +241,7 @@ function toggleWeekday(day) {
 
     form.value.recurrence = {
         ...form.value.recurrence,
-        byDay: days.includes(day) ? days.filter((d) => d !== day) : [...days, day],
+        byDay: days.includes(day) ? days.filter((selectedDay) => selectedDay !== day) : [...days, day],
     };
 }
 
@@ -256,7 +256,7 @@ const alertSummary = computed(() =>
     (props.event?.alerts ?? [])
         .map((alert) =>
             null === alert.minutes
-                ? d(new Date(alert.at), { dateStyle: "medium", timeStyle: "short" })
+                ? formatDate(new Date(alert.at), { dateStyle: "medium", timeStyle: "short" })
                 : alertLabel(alert.minutes, t),
         )
         .join(" · "),
@@ -282,13 +282,13 @@ const when = computed(() => {
     const inZone = eventZone ? { timeZone: eventZone } : {};
 
     if (props.event.allDay) {
-        return `${d(start, { dateStyle: "long", ...inZone })} · ${t("suite.plannings.events.all_day")}`;
+        return `${formatDate(start, { dateStyle: "long", ...inZone })} · ${t("suite.plannings.events.all_day")}`;
     }
 
-    const clock = d(start, { hour: "2-digit", minute: "2-digit", ...inZone });
+    const clock = formatDate(start, { hour: "2-digit", minute: "2-digit", ...inZone });
     const suffix = zoneDiffersFromViewer(eventZone) ? ` (${eventZone})` : "";
 
-    return `${d(start, { dateStyle: "long", ...inZone })} · ${clock}${suffix}`;
+    return `${formatDate(start, { dateStyle: "long", ...inZone })} · ${clock}${suffix}`;
 });
 </script>
 

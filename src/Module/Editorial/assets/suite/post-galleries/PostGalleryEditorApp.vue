@@ -101,8 +101,8 @@ async function save() {
                 <Save class="h-4 w-4" :stroke-width="2" />
             </AppButton>
         </AppPageBar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.post_galleries.editor_guide.title')" storage-key="post-gallery-editor">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.post_galleries.editor_guide.step_${step}`) }}</li>

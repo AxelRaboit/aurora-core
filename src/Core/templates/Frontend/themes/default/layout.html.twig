@@ -9,12 +9,12 @@
     {{ include('Frontend/themes/default/partials/head.html.twig') }}
 </head>
 <body class="aurora-front min-h-screen bg-bg text-primary flex flex-col">
-    {# La barre de lecture, sur toutes les pages du site et plus seulement sur
-       les publications : la liste d'un type de contenu ou d'une rubrique se
-       lit et se fait défiler pareil, et l'absence de la barre y passait pour
-       un oubli. Fixe, posée hors du flux qu'elle mesure ; sur une page trop
-       courte pour défiler elle reste vide. Le thème actif peut la couper
-       (réglage « Barre de lecture »). #}
+    {# The reading bar, on every page of the site and no longer only on
+       publications: the list of a content type or a section is read and
+       scrolled the same way, and the missing bar looked like an oversight
+       there. Fixed, placed outside the flow it measures; on a page too short
+       to scroll it stays empty. The active theme can turn it off
+       ("Barre de lecture" setting). #}
     {% block reading_progress %}
         {% if themeContext.readingProgress() %}
             <div {{ vue_component('editorial/frontend/ReadingProgress', {}) }}></div>
@@ -22,8 +22,8 @@
     {% endblock %}
 
     {% set alternatesByLocale = {} %}
-    {% for alt in alternates %}
-        {% set alternatesByLocale = alternatesByLocale|merge({(alt.locale): alt.url}) %}
+    {% for alternate in alternates %}
+        {% set alternatesByLocale = alternatesByLocale|merge({(alternate.locale): alternate.url}) %}
     {% endfor %}
 
     {# Chrome stays module-independent by asking rather than knowing: `menu_items()`
@@ -42,29 +42,30 @@
        back for. `supports-[backdrop-filter]` is what keeps the fallback
        honest - without the test, a browser that cannot blur would render the
        header at 80% opacity over the moving content underneath. #}
-    {# `chromeClass` : posé par une publication qui veut sa topbar et son pied
-       à ses couleurs (accent et survols), vide partout ailleurs. #}
+    {# `chromeClass`: set by a publication that wants its topbar and footer
+       in its colors (accent and hovers), empty everywhere else. #}
     <header class="sticky top-0 z-40 border-b border-line{{ chromeClass|default('') ? ' ' ~ chromeClass }}">
-        {# Le flou est posé sur une couche à lui plutôt que sur l'en-tête.
-           `backdrop-filter` fait de son élément le bloc conteneur de ses
-           descendants `fixed` : le panneau du tiroir, en `inset-y-0`, s'arrêtait
-           aux cent trente-sept pixels de la barre au lieu de tenir la hauteur de
-           l'écran. La couche rend exactement la même chose sans rien contenir. #}
+        {# The blur sits on a layer of its own rather than on the header.
+           `backdrop-filter` makes its element the containing block of its
+           `fixed` descendants: the drawer panel, in `inset-y-0`, stopped at
+           the bar's one hundred and thirty-seven pixels instead of filling the
+           screen height. The layer renders exactly the same without holding
+           anything. #}
         <div class="aurora-surface aurora-surface-header absolute inset-0 -z-10 supports-[backdrop-filter]:bg-surface/80 supports-[backdrop-filter]:backdrop-blur" aria-hidden="true"></div>
 
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
             <a href="{{ default_front_home_path(locale) }}" class="flex items-center gap-2 text-lg font-semibold text-primary hover:opacity-80 transition-opacity">
                 {% set headerLogoUrl = themeContext.headerLogoUrl() %}
                 {% if headerLogoUrl %}<img src="{{ headerLogoUrl }}" alt="" class="h-8 w-8 object-cover rounded-lg shrink-0">{% endif %}
-                {# Le réglage « logo seul sur téléphone » du thème : le nom
-                   reste lu par les lecteurs d'écran, il ne se voit qu'à partir
-                   de `sm`. #}
+                {# The theme's "logo seul sur téléphone" setting: the name is
+                   still read by screen readers, it only shows from `sm`
+                   up. #}
                 <span class="{{ themeContext.headerTextHiddenOnPhone() ? 'sr-only sm:not-sr-only' : '' }}">{{ themeContext.headerCustomText() ?: context.siteName }}</span>
             </a>
 
-            {# Le menu déplié ne vit qu'à partir de `md`. En dessous il passe
-               dans le tiroir, en bas de ce bloc, et la barre garde une rangée
-               quel que soit le nombre de rubriques. #}
+            {# The expanded menu only lives from `md` up. Below that it moves
+               into the drawer, at the bottom of this block, and the bar keeps
+               one row whatever the number of sections. #}
             {% if primaryMenu is not empty %}
                 <nav class="hidden md:flex flex-wrap items-center gap-5 text-sm">
                     {{ include('Frontend/themes/default/partials/menu.html.twig', {items: primaryMenu}) }}
@@ -79,9 +80,9 @@
                 {% endif %}
                 {% if context.activeLocales|length > 1 %}
                     {% set localeUrls = {} %}
-                    {% for loc in context.activeLocales %}
+                    {% for activeLocale in context.activeLocales %}
                         {% set localeUrls = localeUrls|merge({
-                            (loc.code): alternatesByLocale[loc.code] ?? default_front_home_path(loc.code),
+                            (activeLocale.code): alternatesByLocale[activeLocale.code] ?? default_front_home_path(activeLocale.code),
                         }) %}
                     {% endfor %}
                     {{ include('Frontend/themes/default/partials/locale_switcher.html.twig', {
@@ -91,9 +92,9 @@
                     }) }}
                 {% endif %}
 
-                {# La langue reste dans la barre, visible : un visiteur qui ne
-                   lit pas la langue de la page ne va pas la chercher derrière
-                   un bouton. Le tiroir arrive après elle, contre le bord. #}
+                {# The language stays in the bar, visible: a visitor who does
+                   not read the page's language will not look for it behind a
+                   button. The drawer comes after it, against the edge. #}
                 {% if primaryMenu is not empty %}
                     {{ include('Frontend/themes/default/partials/nav_drawer.html.twig', {
                         primaryMenu: primaryMenu,
@@ -124,9 +125,9 @@
                 </nav>
             {% endif %}
             <p class="text-center text-sm text-muted">{{ themeContext.footerText(context.siteName) }}</p>
-            {# Crédit visible, masqué par défaut (réglage « Crédit Aurora » du
-               thème). Le texte reprend mot pour mot le marqueur du <head>, pour
-               qu'une seule recherche repère l'un comme l'autre. Voir LICENSE. #}
+            {# Visible credit, hidden by default (the theme's "Crédit Aurora"
+               setting). The text repeats the <head> marker word for word, so
+               a single search finds both. See LICENSE. #}
             {% if themeContext.watermarkVisible() %}
                 <p class="text-center text-xs text-muted">
                     <a href="https://axelraboit.fr" rel="noopener" target="_blank" class="hover:opacity-80 transition-opacity">Aurora by axelraboit</a>

@@ -1,7 +1,8 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import ContractsSectionTabs from "../components/ContractsSectionTabs.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useContractTemplatesList } from "./composables/useContractTemplatesList.js";
@@ -20,6 +21,7 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
+import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
 import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
 import {
     Archive,
@@ -31,6 +33,7 @@ import {
     Plus,
     Save,
     ScrollText,
+    Tags,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -40,6 +43,9 @@ const { t } = useI18n();
 const { can } = usePrivileges();
 
 const props = defineProps({
+    /** The section's two tabs: contracts and templates. */
+    contractsPath: { type: String, default: "" },
+    templatesPath: { type: String, default: "" },
     templates: { type: Array, default: () => [] },
     kinds: { type: Array, default: () => [] },
     categories: { type: Array, default: () => [] },
@@ -52,6 +58,10 @@ const props = defineProps({
     duplicatePath: { type: String, required: true },
     discardDraftPath: { type: String, required: true },
     editorPath: { type: String, required: true },
+    categoryCreatePath: { type: String, default: "" },
+    categoryUpdatePath: { type: String, default: "" },
+    categoryDeletePath: { type: String, default: "" },
+    categoryReorderPath: { type: String, default: "" },
 });
 
 const {
@@ -114,10 +124,24 @@ function kindLabel(value) {
     return kindOptions.find((kind) => kind.value === value)?.label ?? value;
 }
 
-const categoryOptions = props.categories.map((category) => ({
-    value: category.value,
-    label: t(category.labelKey),
-}));
+/**
+ * The studio's own categories, kept here so the management window can change
+ * them without a reload.
+ */
+const categories = ref([...props.categories]);
+const managingCategories = ref(false);
+
+function applyCategories(list) {
+    categories.value = list;
+}
+
+const categoryOptions = computed(() =>
+    categories.value.map((category) => ({
+        value: category.value ?? String(category.id),
+        label: category.label ?? category.name,
+        color: category.color ?? null,
+    })),
+);
 
 /**
  * The form's list, with the empty option first.
@@ -126,10 +150,10 @@ const categoryOptions = props.categories.map((category) => ({
  * decided how the library was organised has a legitimate answer, and it is
  * this one.
  */
-const categorySelectOptions = [
+const categorySelectOptions = computed(() => [
     { value: "", label: t("suite.studio.contract_templates.category_none") },
-    ...categoryOptions,
-];
+    ...categoryOptions.value,
+]);
 
 /**
  * The filter's list, "all" first.
@@ -146,7 +170,7 @@ const categoryFilterOptions = computed(() => [
         value: NO_CATEGORY,
         label: `${t("suite.studio.contract_templates.category_none")} (${categoryCounts.value[NO_CATEGORY] ?? 0})`,
     },
-    ...categoryOptions.map((option) => ({
+    ...categoryOptions.value.map((option) => ({
         value: option.value,
         label: `${option.label} (${categoryCounts.value[option.value] ?? 0})`,
     })),
@@ -162,29 +186,15 @@ function setCategoryFilter(value) {
     setCategory(value ?? "");
 }
 
-/**
- * A colour per trade, picked against what the row already holds.
- *
- * Emerald is the version in force and amber the open draft, two columns away,
- * so neither can be spent here without saying something they do not mean.
- * Sky, violet and rose are free, and grey is the absence - a trade nobody has
- * chosen should read as quieter than the three that were.
- */
-const CATEGORY_COLORS = {
-    community_management: "sky",
-    photography: "violet",
-    development: "rose",
-};
-
-/** An unknown trade keeps the neutral badge rather than losing its pill. */
+/** The colour the studio gave a category, or none for the unclassified. */
 function categoryColor(value) {
-    return CATEGORY_COLORS[value] ?? "gray";
+    return categoryOptions.value.find((category) => category.value === value)?.color ?? null;
 }
 
-/** Null, undefined and "" all read as unclassified; anything else names a trade. */
+/** Null, undefined and "" all read as unclassified; anything else names a category. */
 function categoryLabel(value) {
     return (
-        categoryOptions.find((category) => category.value === value)?.label ??
+        categoryOptions.value.find((category) => category.value === value)?.label ??
         t("suite.studio.contract_templates.category_none")
     );
 }
@@ -273,6 +283,17 @@ const pageActions = computed(() => {
         });
     }
 
+    // Arranging the library: the right to edit a template, as on the server.
+    if (can("studio.contract_templates.edit") && props.categoryReorderPath) {
+        actions.push({
+            key: "categories",
+            icon: Tags,
+            title: t("suite.studio.contract_templates.categories.manage"),
+            description: t("suite.studio.contract_templates.categories.manage_hint"),
+            onSelect: () => (managingCategories.value = true),
+        });
+    }
+
     if (archivedCount.value) {
         actions.push({
             key: "archived",
@@ -292,6 +313,12 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
+        <ContractsSectionTabs
+            v-if="contractsPath && templatesPath"
+            current="templates"
+            :contracts-path="contractsPath"
+            :templates-path="templatesPath"
+        />
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -327,8 +354,8 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
-        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <!-- The screen's how-to, next to what it explains; collapsed or
+             expanded, the choice applies to every guide box. -->
         <AppGuide :title="t('suite.studio.contract_templates.guide.title')" storage-key="contract-templates-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`suite.studio.contract_templates.guide.step_${step}`) }}</li>
@@ -477,7 +504,13 @@ const pageActions = computed(() => {
                              a bug, and grey against three colours says plainly
                              that nobody has chosen yet. -->
                         <td class="px-4 py-2 whitespace-nowrap">
-                            <AppBadge :color="categoryColor(template.category)">
+                            <AppBadge color="gray">
+                                <span
+                                    v-if="categoryColor(template.category)"
+                                    class="mr-1 inline-block h-2 w-2 rounded-full"
+                                    :style="{ backgroundColor: categoryColor(template.category) }"
+                                    aria-hidden="true"
+                                />
                                 {{ categoryLabel(template.category) }}
                             </AppBadge>
                         </td>
@@ -590,7 +623,13 @@ const pageActions = computed(() => {
                             >
                                 {{ kindLabel(template.kind) }}
                             </span>
-                            <AppBadge :color="categoryColor(template.category)">
+                            <AppBadge color="gray">
+                                <span
+                                    v-if="categoryColor(template.category)"
+                                    class="mr-1 inline-block h-2 w-2 rounded-full"
+                                    :style="{ backgroundColor: categoryColor(template.category) }"
+                                    aria-hidden="true"
+                                />
                                 {{ categoryLabel(template.category) }}
                             </AppBadge>
                             <AppBadge
@@ -608,8 +647,8 @@ const pageActions = computed(() => {
                     >
                         {{ t("suite.studio.contract_templates.state_archived") }}
                     </span>
-                    <!-- Les mêmes gestes que la ligne du tableau, derrière le
-                         même bouton « … » (décision d'Axel du 04/10/2026). -->
+                    <!-- The same actions as the table row, behind the same
+                         "…" button (Axel's decision of 04/10/2026). -->
                     <AppRowActions class="shrink-0" :actions="rowActions(template)" :label="template.name" />
                 </div>
 
@@ -880,5 +919,19 @@ const pageActions = computed(() => {
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <AppCategoriesModal
+            v-if="can('studio.contract_templates.edit') && categoryReorderPath"
+            :show="managingCategories"
+            :categories="categories"
+            :title="t('suite.studio.contract_templates.categories.manage_title')"
+            :intro="t('suite.studio.contract_templates.categories.manage_intro')"
+            :create-path="categoryCreatePath"
+            :update-path-template="categoryUpdatePath"
+            :delete-path-template="categoryDeletePath"
+            :reorder-path="categoryReorderPath"
+            v-on:close="managingCategories = false"
+            v-on:changed="applyCategories($event.categories ?? [])"
+        />
     </div>
 </template>

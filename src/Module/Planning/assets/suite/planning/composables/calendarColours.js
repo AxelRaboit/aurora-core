@@ -10,7 +10,7 @@ export const MAX_COLOUR_SLOT = 8;
 
 export const COLOUR_SLOTS = Array.from(
     { length: MAX_COLOUR_SLOT },
-    (_, i) => i + 1,
+    (_, index) => index + 1,
 );
 
 /**

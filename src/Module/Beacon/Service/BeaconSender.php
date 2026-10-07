@@ -49,7 +49,7 @@ final readonly class BeaconSender
         #[Autowire(param: 'app.beacon_enabled')]
         private bool $enabled,
         #[Autowire(param: 'kernel.project_dir')]
-        private string $projectDir,
+        private string $projectDirectory,
     ) {}
 
     public function send(?string $domain): void
@@ -104,7 +104,7 @@ final readonly class BeaconSender
 
     private function version(): string
     {
-        $file = $this->projectDir.'/VERSION';
+        $file = $this->projectDirectory.'/VERSION';
 
         return file_exists($file) ? mb_trim((string) file_get_contents($file)) : AppVersionEnum::Dev->value;
     }

@@ -14,17 +14,17 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Les versions passées d'une note.
+ * The past versions of a note.
  *
- * **Une version est l'état qu'on s'apprête à remplacer**, gardé juste avant
- * l'enregistrement qui le change. Pas une par enregistrement : l'éditeur
- * enregistre toutes les quelques secondes pendant qu'on écrit, et l'historique
- * serait une version par phrase. Une nouvelle n'est prise que si la dernière
- * a plus de `RevisionIntervalMinutes` minutes (réglages > Notes), et il en
- * reste au plus `RevisionsLimit` par note, les plus anciennes partant d'abord.
+ * **A version is the state about to be replaced**, kept just before the save
+ * that changes it. Not one per save: the editor saves every few seconds while
+ * you write, and the history would be one version per sentence. A new one is
+ * only taken if the last one is more than `RevisionIntervalMinutes` minutes
+ * old (settings > Notes), and at most `RevisionsLimit` remain per note, the
+ * oldest going first.
  *
- * Restaurer une version garde d'abord l'état courant, toujours, intervalle ou
- * pas : revenir en arrière ne doit rien faire perdre.
+ * Restoring a version first keeps the current state, always, interval or
+ * not: going back must lose nothing.
  */
 final readonly class MarkdownNoteHistory
 {
@@ -35,9 +35,8 @@ final readonly class MarkdownNoteHistory
     ) {}
 
     /**
-     * À appeler avant d'enregistrer un nouveau titre ou un nouveau texte :
-     * garde l'état courant s'il change et que la dernière version est assez
-     * ancienne.
+     * To call before saving a new title or a new text: keeps the current
+     * state if it changes and the last version is old enough.
      */
     public function beforeChange(MarkdownNoteInterface $note, ?string $title, ?string $content, ?CoreUserInterface $author): void
     {
@@ -55,7 +54,7 @@ final readonly class MarkdownNoteHistory
         $this->keep($note, $author);
     }
 
-    /** Garde l'état courant de la note, quoi qu'il arrive. */
+    /** Keeps the note's current state, no matter what. */
     public function keep(MarkdownNoteInterface $note, ?CoreUserInterface $author): MarkdownNoteRevision
     {
         $revision = new MarkdownNoteRevision($note, $author);
@@ -70,15 +69,15 @@ final readonly class MarkdownNoteHistory
         return $revision;
     }
 
-    /** Remet le titre et le texte d'une version, après avoir gardé l'état courant. */
+    /** Puts back the title and text of a version, after keeping the current state. */
     public function restore(MarkdownNoteInterface $note, MarkdownNoteRevision $revision, ?CoreUserInterface $author): void
     {
         $this->keep($note, $author);
 
         $note->setTitle($revision->getTitle());
         $note->setContent($revision->getContent());
-        // Un éditeur resté ouvert sur l'ancien texte verra le conflit au lieu
-        // d'écraser la version restaurée.
+        // An editor left open on the old text will see the conflict instead
+        // of overwriting the restored version.
         $note->bumpVersion();
 
         $this->entityManager->flush();

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Contract\Dto;
 
-use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 
 interface ContractTemplateInputInterface
@@ -13,5 +12,5 @@ interface ContractTemplateInputInterface
 
     public function getKind(): ContractTemplateKindEnum;
 
-    public function getCategory(): ?ContractTemplateCategoryEnum;
+    public function getCategoryId(): ?int;
 }

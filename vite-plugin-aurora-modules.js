@@ -26,8 +26,8 @@ const RESOLVED_BOOT = "\0" + BOOT_ID;
 // `aurora-personal-finance` → `personalfinance` (matches the lowercased
 // PascalCase module key used by the monorepo glob, e.g. Module/PersonalFinance
 // → `personalfinance`). Strip the `aurora-` prefix and all dashes.
-function moduleKeyFromPackage(pkgDir) {
-    return pkgDir
+function moduleKeyFromPackage(packageName) {
+    return packageName
         .replace(/^aurora-/, "")
         .replace(/-/g, "")
         .toLowerCase();
@@ -40,8 +40,11 @@ const MERGE_PACKAGES = new Set(["aurora-commerce"]);
 
 function moduleKeyForFile(pkg, pkgRoot, file) {
     if (MERGE_PACKAGES.has(pkg)) {
-        const rel = file.slice(pkgRoot.length).split(path.sep).filter(Boolean);
-        return (rel[0] || "").toLowerCase();
+        const relativeParts = file
+            .slice(pkgRoot.length)
+            .split(path.sep)
+            .filter(Boolean);
+        return (relativeParts[0] || "").toLowerCase();
     }
 
     return moduleKeyFromPackage(pkg);
@@ -49,27 +52,27 @@ function moduleKeyForFile(pkg, pkgRoot, file) {
 
 // Collect every assets/**/*<suffix> file under a package dir (any depth of
 // feature folders before `assets/`, mirroring the monorepo `**/assets/**`).
-function collectFiles(dir, suffix, acc = []) {
+function collectFiles(directory, suffix, collected = []) {
     let entries;
     try {
-        entries = fs.readdirSync(dir, { withFileTypes: true });
+        entries = fs.readdirSync(directory, { withFileTypes: true });
     } catch {
-        return acc;
+        return collected;
     }
     for (const entry of entries) {
-        const full = path.join(dir, entry.name);
+        const full = path.join(directory, entry.name);
         if (entry.isDirectory()) {
             if (entry.name === "node_modules" || entry.name === ".git")
                 continue;
-            collectFiles(full, suffix, acc);
+            collectFiles(full, suffix, collected);
         } else if (
             entry.name.endsWith(suffix) &&
             full.includes(`${path.sep}assets${path.sep}`)
         ) {
-            acc.push(full);
+            collected.push(full);
         }
     }
-    return acc;
+    return collected;
 }
 
 // Map an absolute file path to the exposed component key the rest of the app
@@ -83,26 +86,26 @@ function exposedKey(moduleKey, file) {
 
 // Sibling aurora-* package dirs next to aurora-core (vendor/axelraboit/aurora-*),
 // excluding aurora-core itself. Returns null in the monorepo (not under vendor/).
-function vendoredSiblings(packageDir) {
-    if (!packageDir.split(path.sep).includes("vendor")) return null;
+function vendoredSiblings(packageDirectory) {
+    if (!packageDirectory.split(path.sep).includes("vendor")) return null;
 
-    const orgDir = path.resolve(packageDir, "..");
+    const organizationDirectory = path.resolve(packageDirectory, "..");
     try {
         return fs
-            .readdirSync(orgDir, { withFileTypes: true })
+            .readdirSync(organizationDirectory, { withFileTypes: true })
             .filter(
-                (e) =>
-                    e.isDirectory() &&
-                    /^aurora-/.test(e.name) &&
-                    e.name !== "aurora-core",
+                (entry) =>
+                    entry.isDirectory() &&
+                    /^aurora-/.test(entry.name) &&
+                    entry.name !== "aurora-core",
             )
-            .map((e) => path.join(orgDir, e.name));
+            .map((entry) => path.join(organizationDirectory, entry.name));
     } catch {
         return [];
     }
 }
 
-export function auroraVendorModules({ packageDir }) {
+export function auroraVendorModules({ packageDir: packageDirectory }) {
     return {
         name: "aurora-vendor-modules",
         resolveId(id) {
@@ -113,7 +116,7 @@ export function auroraVendorModules({ packageDir }) {
         load(id) {
             if (id !== RESOLVED_ID && id !== RESOLVED_BOOT) return null;
 
-            const siblings = vendoredSiblings(packageDir);
+            const siblings = vendoredSiblings(packageDirectory);
 
             // Monorepo dev → no-op (modules come from src/Module via app.js globs).
             if (siblings === null) {

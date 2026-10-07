@@ -707,7 +707,7 @@ suite:
                 qrCode: 'Código QR'
                 chart: Gráfico
                 videoWall: 'Muro de vídeos'
-                editorialCalendar: 'Calendario editorial'
+                editorialCalendar: 'Calendario de publicación'
                 activityFeed: 'Última actividad'
                 priceList: 'Carta y tarifas'
                 poll: Encuesta
@@ -982,7 +982,7 @@ suite:
             zone_document_label: 'Texto del enlace'
             zone_document_label_placeholder: 'Nuestro folleto 2026'
             terms_taxonomy: Taxonomía
-            terms_taxonomy_hint: 'Se muestran todos sus términos, en el orden dla suite, cada uno hacia su página. Un término añadido después aparece solo.'
+            terms_taxonomy_hint: 'Se muestran todos sus términos, en el orden de la suite, cada uno hacia su página. Un término añadido después aparece solo.'
             terms_taxonomy_none: 'Elegir una taxonomía…'
             terms_caption: 'Título encima'
             terms_caption_placeholder: 'Nuestros ámbitos'
@@ -1401,7 +1401,7 @@ suite:
             comments_hint: 'Nada que ajustar: el hilo es el de esta publicación. Cuando existe esta zona, el pie de página deja de dibujarlo.'
             zone_deck: Presentación
             zone_deck_none: 'Elegir una presentación…'
-            zone_deck_hint: 'Se muestra en la página mediante su enlace para compartir. Una presentación sin enlace activo, revocado, caducado o protegido por contraseña no dibuja nada.'
+            zone_deck_hint: 'Una presentación de Studio (un entregable en formato presentación), mostrada en la página mediante su enlace de lectura. Sin enlace activo, o si el enlace está revocado, caducado o protegido por contraseña, la zona no dibuja nada.'
             visibility: 'Cuándo y para quién'
             visibility_hint: 'Sin nada aquí, la zona se ve siempre y para todos. Es lo que ya hace una zona que no dice nada.'
             visible_from: 'Desde el'
@@ -2018,7 +2018,7 @@ frontend:
         next: "Diapositiva siguiente"
         fullscreen: "Pantalla completa"
         view_page: "Leer como página web"
-        view_slides: "Ver como presentación"
+        view_slides: "Leer como diapositivas"
     reading:
         download_pdf: "Descargar en PDF"
         prepared_for: 'Preparado para %name%'

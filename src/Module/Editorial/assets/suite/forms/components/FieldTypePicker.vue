@@ -7,13 +7,13 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { iconForType } from "./fieldTypeIcons.js";
 
 /**
- * Le premier geste d'une question : dire de quelle forme elle est.
+ * A question's first gesture: saying what shape it is.
  *
- * **Avant le libellé, et en cartes.** Le type décidait de tout le reste du
- * réglage (des choix à saisir ou non, un texte d'exemple ou non), et il était
- * caché dans une liste déroulante en haut d'une fenêtre déjà pleine. Ici on le
- * choisit en voyant chaque forme et ce qu'elle fait, puis le panneau s'ouvre
- * sur ce qui lui est propre.
+ * **Before the label, and as cards.** The type decided all the rest of the
+ * settings (choices to enter or not, a placeholder text or not), and it was
+ * hidden in a dropdown at the top of an already full dialog. Here it is chosen
+ * while seeing each shape and what it does, then the panel opens on what is
+ * specific to it.
  */
 defineProps({
     show: { type: Boolean, default: false },

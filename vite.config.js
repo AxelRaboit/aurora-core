@@ -85,13 +85,13 @@ export default defineConfig({
         dedupe: sharedDeps,
     },
     server: {
-        // **`localhost` et pas la valeur par defaut, sinon la page sort nue.**
-        // Sans hote fixe, Vite s'annonce en `http://[::1]:5173` dans
-        // `entrypoints.json`, et la CSP de l'application n'autorise que
-        // `http://localhost:5173` : chaque script et chaque feuille de style du
-        // serveur de developpement est bloque, sans erreur ailleurs que dans la
-        // console. Le port est fixe pour la meme raison - la CSP nomme un port,
-        // donc un repli sur 5174 casserait autant.
+        // **`localhost` and not the default, otherwise the page comes out bare.**
+        // Without a fixed host, Vite announces itself as `http://[::1]:5173` in
+        // `entrypoints.json`, and the application's CSP only allows
+        // `http://localhost:5173`: every script and stylesheet of the dev
+        // server is blocked, with no error anywhere but in the console. The
+        // port is fixed for the same reason - the CSP names a port, so a
+        // fallback to 5174 would break just as much.
         host: 'localhost',
         port: 5173,
         strictPort: true,

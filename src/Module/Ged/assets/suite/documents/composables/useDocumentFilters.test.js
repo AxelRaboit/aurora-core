@@ -59,14 +59,14 @@ describe("useDocumentFilters - hasActiveFilter", () => {
     });
 });
 
-describe("useDocumentFilters - extraParams", () => {
+describe("useDocumentFilters - extraParameters", () => {
     it("returns undefined for null filters", () => {
-        const { extraParams } = useDocumentFilters(vi.fn());
-        const params = extraParams();
-        expect(params.categoryId).toBeUndefined();
-        expect(params.tagId).toBeUndefined();
-        expect(params.folderId).toBeUndefined();
-        expect(params.status).toBeUndefined();
+        const { extraParameters } = useDocumentFilters(vi.fn());
+        const parameters = extraParameters();
+        expect(parameters.categoryId).toBeUndefined();
+        expect(parameters.tagId).toBeUndefined();
+        expect(parameters.folderId).toBeUndefined();
+        expect(parameters.status).toBeUndefined();
     });
 
     it("includes set filter values", () => {
@@ -75,7 +75,7 @@ describe("useDocumentFilters - extraParams", () => {
             filterTagId,
             filterFolderId,
             filterStatus,
-            extraParams,
+            extraParameters,
         } = useDocumentFilters(vi.fn());
 
         filterCategoryId.value = 2;
@@ -83,18 +83,20 @@ describe("useDocumentFilters - extraParams", () => {
         filterFolderId.value = 8;
         filterStatus.value = "archived";
 
-        const params = extraParams();
-        expect(params.categoryId).toBe(2);
-        expect(params.tagId).toBe(5);
-        expect(params.folderId).toBe(8);
-        expect(params.status).toBe("archived");
+        const parameters = extraParameters();
+        expect(parameters.categoryId).toBe(2);
+        expect(parameters.tagId).toBe(5);
+        expect(parameters.folderId).toBe(8);
+        expect(parameters.status).toBe("archived");
     });
 
     it("excludes filter that is back to null", () => {
-        const { filterCategoryId, extraParams } = useDocumentFilters(vi.fn());
+        const { filterCategoryId, extraParameters } = useDocumentFilters(
+            vi.fn(),
+        );
         filterCategoryId.value = 3;
         filterCategoryId.value = null;
-        expect(extraParams().categoryId).toBeUndefined();
+        expect(extraParameters().categoryId).toBeUndefined();
     });
 });
 
@@ -139,34 +141,34 @@ describe("useDocumentFilters - applyFilter / resetFilters", () => {
 
 describe("useDocumentFilters - the trash is not here any more", () => {
     it("never asks the server for trashed rows", () => {
-        const { extraParams } = useDocumentFilters(vi.fn());
+        const { extraParameters } = useDocumentFilters(vi.fn());
 
         // The listing shows the library, full stop. What was deleted lives on
         // the Trash screen, which reads it from its own sources.
-        expect(extraParams().trashed).toBeUndefined();
+        expect(extraParameters().trashed).toBeUndefined();
     });
 });
 
 describe("useDocumentFilters - families", () => {
     it("folds families by default, without a word in the address", () => {
         window.history.replaceState(null, "", "/suite/ged/documents");
-        const { filterOriginalsOnly, extraParams, hasActiveFilter } =
+        const { filterOriginalsOnly, extraParameters, hasActiveFilter } =
             useDocumentFilters(vi.fn());
 
         expect(filterOriginalsOnly.value).toBe(true);
-        expect(extraParams().originalsOnly).toBe(1);
+        expect(extraParameters().originalsOnly).toBe(1);
         expect(hasActiveFilter.value).toBe(false);
         expect(window.location.search).not.toContain("familles");
     });
 
     it("keeps the flat view in the address, and counts it as a filter", () => {
         window.history.replaceState(null, "", "/suite/ged/documents");
-        const { filterOriginalsOnly, extraParams, hasActiveFilter } =
+        const { filterOriginalsOnly, extraParameters, hasActiveFilter } =
             useDocumentFilters(vi.fn());
 
         filterOriginalsOnly.value = false;
 
-        expect(extraParams().originalsOnly).toBeUndefined();
+        expect(extraParameters().originalsOnly).toBeUndefined();
         expect(hasActiveFilter.value).toBe(true);
         expect(window.location.search).toContain("familles=0");
     });
@@ -201,14 +203,14 @@ describe("useDocumentFilters - families", () => {
 
 describe("useDocumentFilters - wider search", () => {
     it("sends nothing new while everything is at rest", () => {
-        const { extraParams, moreFiltersCount, hasActiveFilter } =
+        const { extraParameters, moreFiltersCount, hasActiveFilter } =
             useDocumentFilters(vi.fn());
-        const params = extraParams();
+        const parameters = extraParameters();
 
-        expect(params.searchIn).toBeUndefined();
-        expect(params.addedFrom).toBeUndefined();
-        expect(params.orientation).toBeUndefined();
-        expect(params.weight).toBeUndefined();
+        expect(parameters.searchIn).toBeUndefined();
+        expect(parameters.addedFrom).toBeUndefined();
+        expect(parameters.orientation).toBeUndefined();
+        expect(parameters.weight).toBeUndefined();
         expect(moreFiltersCount.value).toBe(0);
         expect(hasActiveFilter.value).toBe(false);
     });
@@ -220,7 +222,7 @@ describe("useDocumentFilters - wider search", () => {
             filterAddedTo,
             filterOrientation,
             filterWeight,
-            extraParams,
+            extraParameters,
             moreFiltersCount,
             hasActiveFilter,
         } = useDocumentFilters(vi.fn());
@@ -230,7 +232,7 @@ describe("useDocumentFilters - wider search", () => {
         filterOrientation.value = "portrait";
         filterWeight.value = "heavy";
 
-        expect(extraParams()).toMatchObject({
+        expect(extraParameters()).toMatchObject({
             searchIn: "file",
             addedFrom: "2026-09-01",
             addedTo: "2026-09-30",
@@ -242,12 +244,12 @@ describe("useDocumentFilters - wider search", () => {
     });
 
     it("passes « none » through for documents without a category or a tag", () => {
-        const { filterCategoryId, filterTagId, extraParams } =
+        const { filterCategoryId, filterTagId, extraParameters } =
             useDocumentFilters(vi.fn());
         filterCategoryId.value = NONE;
         filterTagId.value = NONE;
 
-        expect(extraParams()).toMatchObject({
+        expect(extraParameters()).toMatchObject({
             categoryId: "none",
             tagId: "none",
         });

@@ -39,15 +39,15 @@ const { t } = useI18n();
          after `.mt-1`, so the panel's own class won and the override was
          dead. -->
     <section v-if="!failed" class="mt-1 border-t border-line pt-2">
-        <!-- Les commandes passent à la ligne quand elles ne tiennent pas.
+        <!-- The commands wrap onto a new line when they do not fit.
              
-             Le nom du module et quatre icônes sur une seule ligne, dans une
-             colonne de trois cents pixels, laissaient au nom de quoi écrire
-             « NOTES MARKDO… ». Une seconde ligne imposée à tout le monde
-             aurait coûté un rang à un panneau qui ne porte qu'une icône, et
-             ils n'ont pas tous le même nombre. D'où le repli : le titre
-             réclame dix rem, et les commandes descendent d'elles-mêmes
-             quand la place manque. -->
+             The module name and four icons on a single line, in a
+             three-hundred-pixel column, left the name room to write
+             "NOTES MARKDO…". A second line forced on everyone would have
+             cost a row to a panel that carries only one icon, and they do
+             not all have the same number. Hence the wrapping: the title
+             claims ten rem, and the commands drop down by themselves when
+             room runs out. -->
         <header class="flex flex-wrap items-center gap-x-1.5 gap-y-1 px-3 pb-1">
             <h2
                 class="min-w-0 flex-1 basis-40 truncate text-xs font-semibold uppercase tracking-wide text-muted"

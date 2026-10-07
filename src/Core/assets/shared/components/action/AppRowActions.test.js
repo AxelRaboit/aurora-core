@@ -48,7 +48,7 @@ describe("AppRowActions", () => {
         const rows = wrapper.findAll(
             '[data-test="sheet"] button, [data-test="sheet"] a',
         );
-        expect(rows.map((r) => r.text())).toEqual([
+        expect(rows.map((row) => row.text())).toEqual([
             "Voir",
             "Modifier",
             "Supprimer",

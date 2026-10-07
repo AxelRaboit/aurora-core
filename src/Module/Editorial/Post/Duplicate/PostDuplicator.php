@@ -83,8 +83,8 @@ final readonly class PostDuplicator
             // of the site: it keeps where the original could be read.
             'visibility' => $source->getVisibility()->value,
             'readingPage' => $source->getReadingPage(),
-            // Pas la position de l'originale : deux publications au même rang
-            // se départagent par la date, et la copie passerait devant.
+            // Not the original's position: two posts at the same rank are
+            // ordered by date, and the copy would come first.
             'position' => null,
             'bannerLayout' => $source->getBannerLayout(),
             'gridLayout' => $source->getGridLayout(),

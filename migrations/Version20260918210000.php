@@ -8,12 +8,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Une conversation privée rangée par l'un reste entière pour l'autre.
+ * A private conversation put away by one person stays whole for the other.
  *
- * La colonne est portée par la personne et non par le salon : ranger une
- * conversation est un geste de classement, pas une suppression, et l'autre
- * côté continue de la voir. Nulle partout au départ, ce qui est l'état de
- * toutes les conversations existantes - aucune n'a été rangée.
+ * The column is carried by the person and not by the room: putting a
+ * conversation away is a filing gesture, not a deletion, and the other side
+ * still sees it. Null everywhere at first, which is the state of every
+ * existing conversation - none has been put away.
  */
 final class Version20260918210000 extends AbstractMigration
 {

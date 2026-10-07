@@ -31,7 +31,7 @@ final class WikiLinkParserMirrorTest extends TestCase
         // the PHP side does not carry because it scans a whole body.
         self::assertSame(
             1,
-            preg_match('/src\.match\(\/\^(.+?)\/\)/', $js, $matches),
+            preg_match('/source\.match\(\/\^(.+?)\/\)/', $js, $matches),
             'The tokenizer regex could not be found in markedWikiLinks.js - if it moved, this test has to follow it rather than be deleted.',
         );
 

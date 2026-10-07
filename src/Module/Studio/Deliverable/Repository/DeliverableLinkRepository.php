@@ -28,8 +28,8 @@ class DeliverableLinkRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Toutes ses adresses, la plus récente d'abord, révoquées comprises : la
-     * liste dit aussi ce qui a été coupé.
+     * All its addresses, most recent first, revoked ones included: the list
+     * also says what was cut off.
      *
      * @return list<DeliverableLinkInterface>
      */

@@ -1,15 +1,15 @@
 <script setup>
 /**
- * Une ressource épinglée, telle qu'on la lit.
+ * A pinned resource, as it is read.
  *
- * **Le même composant des deux côtés.** Le studio l'entoure de ses boutons, le
- * client la lit seule : ce qui est écrit dedans est donc littéralement ce que
- * le client a sous les yeux, et non une seconde version. La seule chose que le
- * studio ajoute est autour, jamais dedans.
+ * **The same component on both sides.** The studio surrounds it with its
+ * buttons, the client reads it alone: what is written inside is therefore
+ * literally what the client has in front of them, and not a second version.
+ * The only thing the studio adds is around it, never inside.
  *
- * Chaque genre se dessine pour ce qu'il est : un lien s'ouvre, un texte se
- * lit, un contact se compose. Un rendu unique aurait donné une liste de titres
- * dont il aurait fallu deviner le contenu.
+ * Each kind is drawn for what it is: a link opens, a text is read, a contact
+ * is dialled. A single rendering would have given a list of titles whose
+ * content would have had to be guessed.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -33,8 +33,8 @@ const body = computed(() => ("string" === typeof props.resource.body && "" !== p
         <div class="flex items-start gap-2">
             <component :is="icon" class="mt-0.5 h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
 
-            <!-- `noopener` avec `_blank` : sans lui la page ouverte garde une
-                 poignée sur celle-ci par `window.opener`. -->
+            <!-- `noopener` with `_blank`: without it the opened page keeps a
+                 handle on this one through `window.opener`. -->
             <a
                 v-if="'link' === resource.kind && resource.url"
                 :href="resource.url"
@@ -52,8 +52,8 @@ const body = computed(() => ("string" === typeof props.resource.body && "" !== p
 
         <p v-if="body" class="whitespace-pre-line break-words pl-6 text-sm text-muted">{{ body }}</p>
 
-        <!-- Composables sur téléphone : c'est ce qui fait la différence entre
-             une fiche de contact et une liste de coordonnées à recopier. -->
+        <!-- Dialable on a phone: that is what makes the difference between
+             a contact card and a list of details to copy out. -->
         <div v-if="'contact' === resource.kind && (resource.email || resource.phone)" class="flex flex-col gap-1 pl-6 sm:flex-row sm:gap-4">
             <a
                 v-if="resource.email"

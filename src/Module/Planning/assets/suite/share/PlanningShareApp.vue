@@ -35,7 +35,7 @@ const props = defineProps({
     eventsPath: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatDate } = useI18n();
 
 const {
     visibleEvents,
@@ -50,18 +50,18 @@ const {
     anchor,
     cells,
     days,
-    go,
+    go: pageBy,
     goToToday,
     setView,
     zone,
 } = usePlanningCalendar(props, { fixedZone: props.zone });
 
 /**
- * Le jour dont la liste est ouverte sous la grille du mois, sur téléphone.
+ * The day whose list is open under the month grid, on a phone.
  *
- * Même comportement que côté studio : aujourd'hui par défaut, et le premier du
- * mois quand on page vers un mois où l'on n'est pas - « le 23 » d'un mois qu'on
- * vient d'ouvrir ne veut rien dire.
+ * Same behaviour as on the studio side: today by default, and the first of
+ * the month when paging to a month you are not in - "the 23rd" of a month
+ * you have just opened means nothing.
  */
 const selectedDay = ref(new Date());
 
@@ -76,11 +76,11 @@ watch([year, month], () => {
 /** The same three shapes the suite's toolbar uses, for the same reasons. */
 const rangeLabel = computed(() => {
     if (usesMonthRange.value) {
-        return d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
+        return formatDate(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
     }
 
     if ("day" === view.value) {
-        return d(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        return formatDate(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     }
 
     const first = days.value[0];
@@ -92,15 +92,15 @@ const rangeLabel = computed(() => {
 
     const sameMonth = first.getMonth() === last.getMonth();
 
-    return `${d(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
-        + `${d(last, { day: "numeric", month: "long", year: "numeric" })}`;
+    return `${formatDate(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
+        + `${formatDate(last, { day: "numeric", month: "long", year: "numeric" })}`;
 });
 
 const viewOptions = computed(() =>
-    // La semaine est refusée sous `md` : `usePlanningCalendar` la ramène au
-    // jour, faute de place pour sept colonnes. L'onglet restait allumé en
-    // montrant autre chose, ce qui est la définition d'un bouton cassé. Il
-    // revient dès qu'il y a la largeur, et le choix gardé avec lui.
+    // The week is refused below `md`: `usePlanningCalendar` brings it back to
+    // the day, for lack of room for seven columns. The tab stayed lit while
+    // showing something else, which is the definition of a broken button. It
+    // comes back as soon as there is the width, and the choice kept with it.
     ["day", "week", "month", "agenda"]
         .filter((value) => !(narrow.value && "week" === value))
         .map((value) => ({
@@ -124,10 +124,10 @@ const legend = computed(() => props.calendars);
         <AppLoader :active="loading" />
 
         <div class="flex flex-wrap items-center gap-2">
-            <AppIconButton :title="t('shared.common.previous')" v-on:click="go(-1)">
+            <AppIconButton :title="t('shared.common.previous')" v-on:click="pageBy(-1)">
                 <ChevronLeft class="h-4 w-4" :stroke-width="2" />
             </AppIconButton>
-            <AppIconButton :title="t('shared.common.next')" v-on:click="go(1)">
+            <AppIconButton :title="t('shared.common.next')" v-on:click="pageBy(1)">
                 <ChevronRight class="h-4 w-4" :stroke-width="2" />
             </AppIconButton>
             <h2 class="min-w-0 truncate text-sm font-semibold text-primary first-letter:uppercase sm:text-base">
@@ -187,11 +187,11 @@ const legend = computed(() => props.calendars);
             v-on:select-day="selectedDay = $event"
         />
 
-        <!-- **Ce que la case compacte ne peut pas dire.** Sur téléphone, une
-             case de la grille tient trois pastilles et un nombre : on voit
-             qu'il se passe quelque chose, jamais quoi. Sans cette liste, le
-             client tape sur un jour chargé et rien ne répond. Rien à créer ici,
-             il lit. -->
+        <!-- **What the compact cell cannot say.** On a phone, a grid
+             cell holds three dots and a number: you see that something is
+             happening, never what. Without this list, the client taps a
+             busy day and nothing answers. Nothing to create here, they
+             read. -->
         <CalendarDayList
             v-if="'month' === effectiveView && narrow"
             :date="selectedDay"

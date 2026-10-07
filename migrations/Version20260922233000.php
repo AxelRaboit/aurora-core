@@ -8,17 +8,16 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les favoris : une date d'épinglage sur une note et sur un dossier.
+ * Favourites: a pin date on a note and on a folder.
  *
- * Une date plutôt qu'un booléen, sur les deux tables : elle donne l'ordre du
- * panneau sans colonne de plus, et « épinglé le » est une information qu'un
- * booléen jette.
+ * A date rather than a boolean, on both tables: it gives the order of the
+ * panel without an extra column, and "pinned on" is information that a
+ * boolean throws away.
  *
- * L'index est déclaré sur l'entité comme les autres : un index partiel
- * (`WHERE favorited_at IS NOT NULL`) irait mieux à une colonne presque
- * toujours vide, mais il ne s'écrit pas dans les attributs Doctrine, et
- * `doctrine:schema:validate` proposerait de le supprimer à chaque
- * exécution.
+ * The index is declared on the entity like the others: a partial index
+ * (`WHERE favorited_at IS NOT NULL`) would suit a column that is almost
+ * always empty better, but it cannot be written in Doctrine attributes, and
+ * `doctrine:schema:validate` would offer to drop it on every run.
  */
 final class Version20260922233000 extends AbstractMigration
 {

@@ -1,22 +1,22 @@
 /**
- * Deux captures du même écran, l'une sombre l'autre claire, en une image.
+ * Two screenshots of the same screen, one dark and one light, in one image.
  *
- * Le bandeau du sommaire dispose ses éléments sur les mêmes 48 colonnes que
- * le reste : y poser deux images côte à côte leur laisserait dix colonnes
- * chacune, soit deux cent cinquante pixels, où un tableau de bord n'est plus
- * qu'une texture. **Une seule image coupée en diagonale occupe la place
- * d'une et montre les deux**, et la coupure se lit d'un coup d'œil parce que
- * les deux moitiés sont le même écran.
+ * The index page banner lays out its elements on the same 48 columns as the
+ * rest: putting two images side by side there would leave them ten columns
+ * each, so two hundred and fifty pixels, where a dashboard is nothing but a
+ * texture. **A single image cut diagonally takes the room of one and shows
+ * both**, and the cut reads at a glance because the two halves are the same
+ * screen.
  *
- * La composition se fait dans le navigateur qui a pris les captures, plutôt
- * qu'avec un outil d'image de plus : la diagonale est un `clip-path`, la
- * couture un dégradé, et le résultat se relit avec les mêmes yeux que le
- * reste du tour.
+ * The composition happens in the browser that took the screenshots, rather
+ * than with one more image tool: the diagonal is a `clip-path`, the seam a
+ * gradient, and the result is reviewed with the same eyes as the rest of the
+ * tour.
  *
- * Usage :
- *   node tools/screenshots/compose-themes.mjs <sombre> <clair> <sortie>
+ * Usage:
+ *   node tools/screenshots/compose-themes.mjs <dark> <light> <output>
  *
- * Les trois arguments sont des noms de prises, sans chemin ni extension.
+ * The three arguments are shot names, without path or extension.
  */
 import { chromium } from "@playwright/test";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
@@ -40,13 +40,12 @@ const WIDTH = 1600;
 const HEIGHT = 1000;
 
 /**
- * La coupure part d'en haut à droite et descend vers la gauche.
+ * The cut starts at the top right and goes down to the left.
  *
- * Penchée et non verticale : une verticale se lirait comme deux captures
- * collées, une diagonale comme une seule image révélant son envers. Les
- * pourcentages laissent le menu latéral entier du côté sombre et les
- * graphiques entiers du côté clair, ce qui est ce que chaque moitié a de
- * plus reconnaissable.
+ * Slanted and not vertical: a vertical line would read as two screenshots
+ * stuck together, a diagonal as a single image revealing its other side. The
+ * percentages leave the whole side menu on the dark side and the whole charts
+ * on the light side, which is what each half has that is most recognizable.
  */
 const SEAM_TOP = 62;
 const SEAM_BOTTOM = 38;
@@ -95,8 +94,8 @@ const tab = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } }
 
 await tab.goto(pathToFileURL(html).href, { waitUntil: "load" });
 
-// Les deux images viennent du disque, mais `load` ne promet pas qu'elles
-// soient décodées : une capture prise trop tôt sort à moitié vide.
+// Both images come from the disk, but `load` does not promise they are
+// decoded: a screenshot taken too early comes out half empty.
 await tab.evaluate(() =>
     Promise.all(
         Array.from(document.images)

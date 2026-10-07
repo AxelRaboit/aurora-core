@@ -44,7 +44,7 @@ final readonly class ModulesViewBuilder
         $topLevel = $this->moduleToggleRegistry->getDisplayTopLevel();
         usort(
             $topLevel,
-            static fn (ModuleToggle $a, ModuleToggle $b): int => ($priorityByModuleId[$a->moduleId] ?? PHP_INT_MAX) <=> ($priorityByModuleId[$b->moduleId] ?? PHP_INT_MAX),
+            static fn (ModuleToggle $left, ModuleToggle $right): int => ($priorityByModuleId[$left->moduleId] ?? PHP_INT_MAX) <=> ($priorityByModuleId[$right->moduleId] ?? PHP_INT_MAX),
         );
 
         // Single registry-driven path: every module (core or aurora-client)

@@ -45,8 +45,8 @@ const recipientEmail = ref("");
 const label = ref("");
 const expiresAt = ref("");
 
-const active = computed(() => links.value.filter((l) => !l.revokedAt));
-const revoked = computed(() => links.value.filter((l) => l.revokedAt));
+const active = computed(() => links.value.filter((link) => !link.revokedAt));
+const revoked = computed(() => links.value.filter((link) => link.revokedAt));
 
 // Reloaded on every open rather than cached: a link may have been revoked from
 // another tab, and a revoked link still shown as live is the one mistake this
@@ -121,7 +121,7 @@ async function create() {
 async function revoke(id) {
     const payload = await api.revoke(id);
     if (!payload) return;
-    const index = links.value.findIndex((l) => l.id === id);
+    const index = links.value.findIndex((link) => link.id === id);
     if (index !== -1) links.value[index] = payload.link;
     toast.success(t("notes.markdown.share.revoked"));
 }
@@ -176,13 +176,12 @@ function openedLabel(link) {
                     :error="errors.expiresAt"
                 />
 
-                <!-- Un seul commutateur depuis que les dossiers existent :
-                     les sous-notes n'existent plus, et un dossier ne se
-                     partage pas.
+                <!-- A single switch since folders exist: sub-notes no longer
+                     exist, and a folder is not shared.
 
-                     `AppCheckbox` apporte son propre <label> ; l'envelopper
-                     dans un second empilait deux étiquettes sur le même
-                     champ, si bien qu'un clic le cochait deux fois. -->
+                     `AppCheckbox` brings its own <label>; wrapping it in a
+                     second one stacked two labels on the same field, so that
+                     a click ticked it twice. -->
                 <AppCheckbox
                     v-model="includeLinked"
                     :label="t('notes.markdown.share.include_linked')"
@@ -202,11 +201,11 @@ function openedLabel(link) {
                     </p>
                     <ul class="max-h-32 space-y-0.5 overflow-auto">
                         <li
-                            v-for="n in previewNotes"
-                            :key="n.id"
+                            v-for="previewNote in previewNotes"
+                            :key="previewNote.id"
                             class="truncate text-xs text-muted"
                         >
-                            {{ n.title?.trim() || t("notes.markdown.untitled") }}
+                            {{ previewNote.title?.trim() || t("notes.markdown.untitled") }}
                         </li>
                     </ul>
                 </div>

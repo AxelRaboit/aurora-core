@@ -18,10 +18,10 @@
     <nav class="not-prose mt-12 border-t border-line pt-6" aria-label="{{ 'frontend.sequence.summary'|trans }}">
         <p class="m-0 mb-4 text-xs font-semibold uppercase tracking-wider text-accent">{{ 'frontend.sequence.summary'|trans }}</p>
 
-        {# Au-dessus du sommaire, parce qu'un sommaire répond « qu'est-ce
-           qu'il y a » et une recherche « où est la chose qui parle de ».
-           Sur cent trente pages, la seconde question est la plus fréquente
-           des deux. #}
+        {# Above the table of contents, because a table of contents answers
+           "what is there" and a search "where is the thing about". Over one
+           hundred and thirty pages, the second question is the more frequent
+           of the two. #}
         {% if sequence.searchUrl is defined %}
             <div class="mb-6" {{ vue_component('editorial/frontend/SequenceSearch', {
                 searchUrl: sequence.searchUrl,
@@ -29,10 +29,10 @@
             }) }}></div>
         {% endif %}
 
-        {# Nommé pour que la recherche puisse le masquer pendant qu'elle
-           répond. Le sommaire reste rendu par le serveur : c'est cent trente
-           liens que les moteurs doivent voir et qu'un lecteur sans
-           JavaScript doit pouvoir suivre. #}
+        {# Named so the search can hide it while it answers. The table of
+           contents stays rendered by the server: that is one hundred and
+           thirty links that search engines must see and that a reader
+           without JavaScript must be able to follow. #}
         <div data-sequence-summary class="grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
             {% for section in sequence.summary %}
                 <div class="flex flex-col gap-3">

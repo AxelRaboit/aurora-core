@@ -188,8 +188,8 @@ final class PexelsClientTest extends TestCase
             // The original, not the 940x650 rendition next to it.
             'url' => 'https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg',
             'thumbUrl' => 'https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg?auto=compress&cs=tinysrgb&h=130&w=280',
-            // Ce qu'on affiche quand l'image reste chez eux : `large2x`
-            // d'abord, `large` ensuite, et l'originale en dernier recours.
+            // What is displayed when the image stays on their side: `large2x`
+            // first, then `large`, and the original as a last resort.
             'largeUrl' => 'https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
             'width' => 4000,
             'height' => 3000,

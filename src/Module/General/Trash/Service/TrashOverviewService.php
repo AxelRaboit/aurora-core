@@ -63,7 +63,7 @@ final readonly class TrashOverviewService
         // What is waiting first, and the fullest of those at the top: the page
         // exists to say what there is to deal with, and an empty trash has
         // nothing to say.
-        usort($summaries, static fn (TrashSummary $a, TrashSummary $b): int => [0 === $b->count ? 0 : 1, $b->count] <=> [0 === $a->count ? 0 : 1, $a->count]);
+        usort($summaries, static fn (TrashSummary $left, TrashSummary $right): int => [0 === $right->count ? 0 : 1, $right->count] <=> [0 === $left->count ? 0 : 1, $left->count]);
 
         return $summaries;
     }

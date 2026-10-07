@@ -10,9 +10,9 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Une note écrite à la main dans un test doit vivre quelque part : dans son
- * dossier quand elle en a un, sinon dans l'espace personnel de son auteur,
- * comme une note créée par l'écran.
+ * A note written by hand in a test has to live somewhere: in its folder when
+ * it has one, otherwise in its author's personal space, like a note created
+ * from the screen.
  */
 trait PersonalSpaceTrait
 {
@@ -21,8 +21,8 @@ trait PersonalSpaceTrait
         $access = static::getContainer()->get(NoteSpaceAccess::class);
         self::assertInstanceOf(NoteSpaceAccess::class, $access);
 
-        // Le compte tenu par le test peut ne plus être suivi : une requête
-        // remet le gestionnaire d'entités à zéro.
+        // The account held by the test may no longer be tracked: a request
+        // resets the entity manager.
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
         self::assertInstanceOf(EntityManagerInterface::class, $entityManager);
         $managed = $entityManager->getReference($user::class, $user->getId());

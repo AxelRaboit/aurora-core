@@ -6,7 +6,7 @@ import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
 vi.mock("vue-i18n", () => ({
     useI18n: () => ({
         t: (key) => key,
-        d: (date, opts) => (opts?.weekday ? "lun." : String(date)),
+        d: (date, options) => (options?.weekday ? "lun." : String(date)),
     }),
 }));
 

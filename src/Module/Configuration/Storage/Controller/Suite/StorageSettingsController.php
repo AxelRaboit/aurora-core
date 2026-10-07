@@ -49,8 +49,8 @@ final class StorageSettingsController extends AbstractController
     #[Route('', name: '_show', methods: [HttpMethodEnum::Get->value])]
     public function show(): JsonResponse
     {
-        // L'occupation est mesurée, pas réglée : elle est jointe ici plutôt que
-        // portée par les réglages, qui n'ont pas à savoir compter des octets.
+        // Usage is measured, not set: it is attached here rather than carried
+        // by the settings, which have no business counting bytes.
         return $this->jsonSuccess($this->settings->state() + ['usage' => $this->usage->byDisk()]);
     }
 

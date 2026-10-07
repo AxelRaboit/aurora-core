@@ -3,25 +3,24 @@ import { buildTree as buildHierarchicalTree } from "@/shared/composables/tree/us
 import { compareSiblings } from "./noteSiblingOrder.js";
 
 /**
- * L'arborescence du menu : des dossiers, et ce qu'ils contiennent.
+ * The menu tree: folders, and what they contain.
  *
- * Elle n'a porté que des dossiers pendant une version, ce qui était une
- * demi-réponse : on voyait le rangement sans voir ce qui est rangé, et
- * atteindre une note demandait d'ouvrir le dossier dans la bibliothèque. Un
- * dossier se déplie ici et montre ses notes, comme dans n'importe quel
- * explorateur - la différence avec l'ancien arbre étant qu'une note est une
- * feuille, jamais un rangement.
+ * For one version it only carried folders, which was half an answer: one
+ * saw the filing without seeing what is filed, and reaching a note required
+ * opening the folder in the library. A folder expands here and shows its
+ * notes, as in any file explorer - the difference with the old tree being
+ * that a note is a leaf, never a container.
  *
- * Chaque nœud porte son `kind`, `folder` ou `note`, parce que les deux se
- * ressemblent à l'écran et ne font pas la même chose : l'un s'ouvre, l'autre
- * se lit. Les identifiants se recoupent d'une table à l'autre, donc les clés
- * de rendu valent `kind:id`.
+ * Each node carries its `kind`, `folder` or `note`, because the two look
+ * alike on screen and do not do the same thing: one opens, the other is
+ * read. Ids overlap from one table to the other, so the render keys are
+ * `kind:id`.
  *
- * **Le filtre garde les porteurs.** Un dossier dont le nom ne correspond pas
- * reste affiché quand il contient un résultat, sinon le résultat n'aurait
- * plus de branche à laquelle se rattacher. `contentMatchIdsRef` apporte les
- * notes trouvées par leur texte, que le navigateur n'a pas : les corps sont
- * chiffrés et restent au serveur.
+ * **The filter keeps the carriers.** A folder whose name does not match
+ * stays shown when it contains a result, otherwise the result would have no
+ * branch left to hang from. `contentMatchIdsRef` brings the notes found by
+ * their text, which the browser does not have: the bodies are encrypted and
+ * stay on the server.
  */
 function siblingOrder(nodes) {
     return [...nodes].sort(compareSiblings);
@@ -62,8 +61,8 @@ export function useNoteTree(
             decorate(node, notesByFolder),
         );
 
-        // Dossiers et notes d'un même niveau partagent un seul ordre : une
-        // note peut passer avant un dossier, comme dans Craft ou Notion.
+        // Folders and notes of the same level share a single order: a note
+        // can come before a folder, as in Craft or Notion.
         const full = siblingOrder([
             ...folders,
             ...(notesByFolder.get(0) ?? []),
@@ -129,12 +128,12 @@ export function useNoteTree(
 }
 
 /**
- * Les dossiers d'un arbre filtré, pour les déplier tous.
+ * The folders of a filtered tree, to expand them all.
  *
- * Une recherche qui laisse les branches fermées ne montre rien : ce qu'elle
- * a trouvé est justement ce qui est replié.
+ * A search that leaves the branches closed shows nothing: what it found is
+ * precisely what is folded.
  *
- * @returns {Set<number>} les identifiants des dossiers rencontrés
+ * @returns {Set<number>} the ids of the folders met
  */
 export function folderIdsIn(nodes) {
     const ids = new Set();

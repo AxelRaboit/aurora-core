@@ -1,16 +1,16 @@
 <script setup>
 /**
- * Poser son mot de passe en arrivant sur invitation.
+ * Setting your password when arriving through an invitation.
  *
- * La même forme que ResetPasswordApp - un jeton dans l'adresse, un mot de passe
- * à choisir - mais pas la même page, et c'est délibéré : « réinitialiser » est
- * faux pour quelqu'un qui n'a jamais eu de mot de passe, et la personne arrive
- * ici parce qu'on l'a invitée, pas parce qu'elle a oublié quelque chose.
+ * The same shape as ResetPasswordApp - a token in the URL, a password to
+ * choose - but not the same page, on purpose: "reset" is wrong for someone
+ * who never had a password, and the person arrives here because they were
+ * invited, not because they forgot something.
  *
- * D'où aussi le repli différent quand le lien est mort : la réinitialisation
- * renvoie vers « mot de passe oublié », qui ne sert à rien ici - un compte
- * invité n'a pas encore d'accès à récupérer. On renvoie vers la connexion, et le
- * texte dit de redemander une invitation.
+ * Hence also the different fallback when the link is dead: the reset sends to
+ * "forgot password", which is useless here - an invited account has no access
+ * to recover yet. We send to the login page, and the text says to ask for a
+ * new invitation.
  */
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -29,7 +29,7 @@ const props = defineProps({
     loginPath: { type: String, required: true },
     invalid: { type: Boolean, default: false },
     initialErrors: { type: Object, default: () => ({}) },
-    /** Le prénom saisi par l'administrateur, pour accueillir la personne par son nom. */
+    /** The first name entered by the administrator, to greet the person by name. */
     userName: { type: String, default: "" },
 });
 

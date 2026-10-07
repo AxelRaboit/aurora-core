@@ -63,7 +63,7 @@ final class MailServiceTest extends TestCase
             ->willReturn('Hello');
         $this->twig->expects(self::once())
             ->method('render')
-            ->with('@tpl.html.twig', self::callback(fn (array $ctx): bool => 'Aurora Site' === $ctx['siteName']))
+            ->with('@tpl.html.twig', self::callback(fn (array $context): bool => 'Aurora Site' === $context['siteName']))
             ->willReturn('<p>body</p>');
 
         $this->mailer->expects(self::once())
@@ -89,7 +89,7 @@ final class MailServiceTest extends TestCase
         $this->localeSwitcher->expects(self::once())
             ->method('runWithLocale')
             ->with('en', self::callback('is_callable'))
-            ->willReturnCallback(static fn (string $_, callable $cb) => $cb());
+            ->willReturnCallback(static fn (string $_, callable $callback) => $callback());
 
         $this->service->send('to@example.com', 'k', '@t.html.twig', locale: 'en');
     }
@@ -109,7 +109,7 @@ final class MailServiceTest extends TestCase
         $this->localeSwitcher->expects(self::once())
             ->method('runWithLocale')
             ->with('fr', self::callback('is_callable'))
-            ->willReturnCallback(static fn (string $_, callable $cb) => $cb());
+            ->willReturnCallback(static fn (string $_, callable $callback) => $callback());
 
         $this->service->send('to@example.com', 'k', '@t.html.twig');
     }
@@ -136,7 +136,7 @@ final class MailServiceTest extends TestCase
             'to@example.com',
             'photo.subject_invite',
             '@t.html.twig',
-            subjectParams: ['{title}' => 'My Gallery'],
+            subjectParameters: ['{title}' => 'My Gallery'],
         );
     }
 
@@ -163,7 +163,7 @@ final class MailServiceTest extends TestCase
                 return true;
             }));
 
-        $this->service->send('to@example.com', 'k', '@t.html.twig', cc: ['to@example.com']);
+        $this->service->send('to@example.com', 'k', '@t.html.twig', carbonCopies: ['to@example.com']);
     }
 
     public function testSendCcKeepsValidAndDropsEmpty(): void
@@ -176,7 +176,7 @@ final class MailServiceTest extends TestCase
         $this->mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(function (Email $email): bool {
-                $addresses = array_map(static fn ($a) => $a->getAddress(), $email->getCc());
+                $addresses = array_map(static fn ($address) => $address->getAddress(), $email->getCc());
                 // Empty CC entries are filtered, valid distinct ones remain.
                 self::assertSame(['cc1@example.com', 'cc2@example.com'], $addresses);
 
@@ -187,7 +187,7 @@ final class MailServiceTest extends TestCase
             'to@example.com',
             'k',
             '@t.html.twig',
-            cc: ['cc1@example.com', '', 'cc2@example.com'],
+            carbonCopies: ['cc1@example.com', '', 'cc2@example.com'],
         );
     }
 
@@ -233,7 +233,7 @@ final class MailServiceTest extends TestCase
         self::assertSame('admin@aurora.test', $this->service->adminEmail());
     }
 
-    /** Le meme service, mais avec un ADMIN_EMAIL renseigne au deploiement. */
+    /** The same service, but with an ADMIN_EMAIL set at deploy time. */
     private function serviceWithDeploymentAdminEmail(string $adminEmail): MailService
     {
         return new MailService(
@@ -250,8 +250,8 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailFallsBackToTheDeploymentAddressWhenTheSettingIsUnset(): void
     {
-        // Personne n'a rempli l'ecran de reglages, mais l'installateur du
-        // serveur a renseigne ADMIN_EMAIL. C'est une adresse qui existe.
+        // Nobody filled in the settings screen, but whoever installed the
+        // server set ADMIN_EMAIL. It is an address that exists.
         $this->settings->method('get')->willReturn(null);
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
@@ -261,8 +261,8 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailIgnoresTheLegacyPlaceholder(): void
     {
-        // Une installation anterieure porte encore `admin@aurora.app` en base.
-        // Le domaine n'existe pas : les notifications rebondissaient en silence.
+        // An older install still carries `admin@aurora.app` in the database.
+        // The domain does not exist: notifications bounced silently.
         $this->settings->method('get')->willReturn('admin@aurora.app');
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
@@ -272,8 +272,8 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailPrefersTheSettingOverTheDeploymentAddress(): void
     {
-        // Un choix explicite d'administrateur gagne : c'est tout l'interet
-        // d'avoir un reglage editable sans redeploiement.
+        // An explicit administrator choice wins: that is the whole point of
+        // having a setting that can be edited without redeploying.
         $this->settings->method('get')->willReturn('editor@aurora.test');
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');

@@ -14,25 +14,25 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 /**
- * Inviter quelqu'un sur le site public.
+ * Inviting somebody to the public site.
  *
- * Deux choses se vérifient ici, et la seconde est la plus importante.
+ * Two things are checked here, and the second one matters most.
  *
- * D'abord qu'un compte frontend invité est bien un compte frontend : type,
- * rôle unique, et une adresse d'acceptation qui mène au site public et non à
- * l'administration.
+ * First, that an invited frontend account really is a frontend account: type,
+ * single role, and an acceptance address that leads to the public site and not
+ * to the administration.
  *
- * Ensuite, et surtout, **qu'aucune des deux pages d'acceptation n'accepte le
- * jeton de l'autre population**. `findValidInvitation` ne filtre pas le type -
- * la mécanique du jeton est commune - donc le filtrage appartient aux routes.
- * Sans lui, un invité frontend suivant l'adresse de la suite serait connecté sur
- * le firewall d'administration : `admin_user_provider` ne résoudrait pas son
- * compte au rafraîchissement suivant, mais il aurait vu le tableau de bord
- * entre-temps.
+ * Then, and above all, **that neither acceptance page accepts the other
+ * population's token**. `findValidInvitation` does not filter the type - the
+ * token mechanics are shared - so the filtering belongs to the routes. Without
+ * it, a frontend invitee following the suite's address would be logged in on
+ * the administration firewall: `admin_user_provider` would not resolve their
+ * account on the next refresh, but they would have seen the dashboard in the
+ * meantime.
  */
 final class FrontendInvitationTest extends IntegrationTestCase
 {
-    /** Celui de CreatesTestUsers, pour ne pas introduire un littéral de plus. */
+    /** The one from CreatesTestUsers, so as not to introduce one more literal. */
     private const string TEST_PASSWORD = 'verysecure123';
 
     private KernelBrowser $client;
@@ -76,11 +76,11 @@ final class FrontendInvitationTest extends IntegrationTestCase
     }
 
     /**
-     * Le rôle demandé est ignoré pour un compte frontend.
+     * The requested role is ignored for a frontend account.
      *
-     * Le sélecteur est masqué dans l'écran, mais une charge utile trafiquée
-     * arriverait quand même : la frontière d'écriture est le seul endroit où le
-     * refus compte.
+     * The selector is hidden on screen, but a tampered payload would still get
+     * through: the write boundary is the only place where the refusal
+     * counts.
      */
     public function testAskingForAdminOnAFrontendAccountGrantsNothing(): void
     {
@@ -90,7 +90,7 @@ final class FrontendInvitationTest extends IntegrationTestCase
         self::assertSame([UserRoleEnum::User->value], $user->getRoles());
     }
 
-    /** La page d'acceptation publique s'ouvre pour un compte frontend. */
+    /** The public acceptance page opens for a frontend account. */
     public function testTheFrontendAcceptancePageOpensForAFrontendInvite(): void
     {
         $user = $this->invite('ouvre@exemple.com', UserTypeEnum::Frontend);
@@ -101,7 +101,7 @@ final class FrontendInvitationTest extends IntegrationTestCase
     }
 
     /**
-     * Le garde qui compte : un jeton frontend ne passe pas par l'administration.
+     * The guard that matters: a frontend token does not get through the administration.
      */
     public function testTheSuitePageRefusesAFrontendInvite(): void
     {
@@ -109,25 +109,26 @@ final class FrontendInvitationTest extends IntegrationTestCase
 
         $this->client->request('GET', $this->suiteUrl($user));
 
-        // Renvoyé vers la connexion de l'administration, comme un jeton expiré.
+        // Sent back to the administration login, like an expired token.
         self::assertResponseRedirects();
         self::assertStringContainsString('/suite/platform/login', (string) $this->client->getResponse()->headers->get('Location'));
     }
 
-    /** Et la réciproque : un jeton suite ne passe pas par le site public. */
+    /** And the reverse: a suite token does not get through the public site. */
     public function testTheFrontendPageRefusesASuiteInvite(): void
     {
         $user = $this->invite('admin@exemple.com', UserTypeEnum::Suite);
 
         $this->client->request('GET', $this->frontendUrl($user));
 
-        // La page répond, mais en annonçant un lien mort - elle ne dit pas qu'un
-        // compte existe ailleurs.
+        // The page answers, but announcing a dead link - it does not say that
+        // an account exists elsewhere.
         //
-        // L'assertion porte sur la prop `invalid` et pas sur le texte affiché :
-        // c'est la décision du serveur, et le message lui-même est résolu par
-        // Vue côté navigateur. Chercher la phrase traduite dans ce HTML
-        // testerait le rendu client, qui n'a pas lieu ici.
+        // The assertion is on the `invalid` prop and not on the displayed
+        // text: that is the server's decision, and the message itself is
+        // resolved by Vue in the browser. Looking for the translated sentence
+        // in this HTML would test the client rendering, which does not happen
+        // here.
         self::assertResponseIsSuccessful();
         self::assertStringContainsString(
             '&quot;invalid&quot;:true',
@@ -136,17 +137,17 @@ final class FrontendInvitationTest extends IntegrationTestCase
     }
 
     /**
-     * Poser son mot de passe active le compte et connecte la personne.
+     * Setting one's password activates the account and logs the person in.
      */
     public function testAcceptingActivatesTheAccount(): void
     {
         $user = $this->invite('accepte@exemple.com', UserTypeEnum::Frontend);
         $id = (int) $user->getId();
 
-        // Le même littéral que le reste de la suite (cf. CreatesTestUsers), et
-        // passé par une variable : la forme `'password' => '<littéral>'` est
-        // celle que le détecteur de secrets cible, et un mot de passe de test
-        // n'a pas à faire échouer la CI.
+        // The same literal as the rest of the suite (see CreatesTestUsers), and
+        // passed through a variable: the `'password' => '<literal>'` form is
+        // what the secret detector targets, and a test password has no
+        // business failing the CI.
         $plainPassword = self::TEST_PASSWORD;
 
         $this->client->request('POST', $this->frontendUrl($user), [
@@ -161,7 +162,7 @@ final class FrontendInvitationTest extends IntegrationTestCase
 
         self::assertInstanceOf(User::class, $reloaded);
         self::assertSame(UserStatusEnum::Active, $reloaded->getStatus());
-        // Le jeton est consommé : le lien ne resert pas.
+        // The token is consumed: the link does not work twice.
         self::assertNull($reloaded->getInvitationSelector());
     }
 
@@ -181,11 +182,10 @@ final class FrontendInvitationTest extends IntegrationTestCase
     }
 
     /**
-     * Reconstruit l'adresse à partir d'un jeton neuf.
+     * Rebuilds the address from a fresh token.
      *
-     * Le jeton en clair n'est jamais stocké, donc il faut en émettre un et
-     * capter celui-là : c'est exactement la contrainte que vit le renvoi
-     * d'invitation.
+     * The plain token is never stored, so one has to be issued and captured:
+     * that is exactly the constraint the invitation resend lives with.
      */
     private function frontendUrl(User $user): string
     {
@@ -206,7 +206,7 @@ final class FrontendInvitationTest extends IntegrationTestCase
         );
     }
 
-    /** Émet un jeton connu de ce test en réutilisant le renvoi d'invitation. */
+    /** Issues a token known to this test by reusing the invitation resend. */
     private function freshToken(User $user): string
     {
         $plain = bin2hex(random_bytes(32));

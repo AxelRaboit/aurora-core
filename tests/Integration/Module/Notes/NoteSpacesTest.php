@@ -14,6 +14,7 @@ use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
+use Aurora\Module\Notes\Space\Manager\NoteSpaceManagerInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -40,12 +41,12 @@ use function sys_get_temp_dir;
 use function tempnam;
 
 /**
- * Les espaces : chacun dit qui le lit et qui l'écrit, et rien d'autre ne
- * décide.
+ * Spaces: each one says who reads it and who writes it, and nothing else
+ * decides.
  *
- * Des comptes sans rôle d'administrateur, exprès : un administrateur a tous
- * les droits d'Aurora, et un test fait avec lui ne prouverait rien sur les
- * rôles d'un espace.
+ * Accounts without an administrator role, on purpose: an administrator has
+ * every right in Aurora, and a test run with one would prove nothing about a
+ * space's roles.
  */
 final class NoteSpacesTest extends IntegrationTestCase
 {
@@ -59,10 +60,10 @@ final class NoteSpacesTest extends IntegrationTestCase
 
     private UrlGeneratorInterface $urlGenerator;
 
-    /** Crée l'espace partagé : il en est le propriétaire. */
+    /** Creates the shared space: they are its owner. */
     private User $owner;
 
-    /** Inscrit comme rédacteur. */
+    /** Added as an editor. */
     private User $editor;
 
     /** Inscrit comme lecteur. */
@@ -78,8 +79,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     {
         parent::setUp();
         $this->client = static::createClient();
-        // Un seul noyau pour tout le test : les comptes et les espaces créés
-        // ici restent ceux que les requêtes voient.
+        // A single kernel for the whole test: the accounts and spaces created
+        // here stay the ones the requests see.
         $this->client->disableReboot();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
@@ -91,9 +92,9 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Supprimer les comptes suffit : leurs espaces personnels partent avec
-     * eux par la base, et les espaces partagés dont ils sont propriétaires
-     * sont supprimés à part, avec ce qu'ils contiennent.
+     * Deleting the accounts is enough: their personal spaces go with them
+     * through the database, and the shared spaces they own are deleted
+     * separately, with what they hold.
      */
     protected function tearDown(): void
     {
@@ -129,9 +130,9 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Un espace ouvert au back-office se lit par tous, et s'écrit selon le
-     * rôle : lire veut dire lire, pas modifier, et l'éditeur conduit au
-     * lecteur.
+     * A space open to the back office is read by everyone, and written
+     * according to the role: reading means reading, not editing, and the
+     * editor role includes the reader's.
      */
     public function testABackofficeSpaceIsReadByEverybodyAndWrittenByItsEditors(): void
     {
@@ -156,7 +157,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertSame('Relue', $this->entityManager->find(MarkdownNote::class, $note->getId())?->getContent());
     }
 
-    /** Un espace aux membres n'existe pas pour qui n'y est pas inscrit. */
+    /** A members-only space does not exist for anyone not added to it. */
     public function testAMembersSpaceIsInvisibleToEverybodyElse(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Members);
@@ -177,9 +178,9 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Écrire suit le rôle, pas l'auteur : un lecteur n'écrit pas la note
-     * qu'il a écrite quand il était rédacteur, un rédacteur écrit celle d'un
-     * autre.
+     * Writing follows the role, not the author: a reader does not write the
+     * note they wrote when they were an editor, an editor writes someone
+     * else's.
      */
     public function testWritingFollowsTheRoleNotTheAuthor(): void
     {
@@ -195,7 +196,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Créer dans un espace demande d'y écrire. */
+    /** Creating in a space requires writing in it. */
     public function testCreatingInASpaceNeedsTheEditorRole(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Backoffice);
@@ -211,15 +212,15 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
         self::assertSame($space->getId(), $body['note']['spaceId']);
 
-        // Sans espace dit, une note naît dans son espace personnel.
+        // Without a space given, a note is born in the personal space.
         $mine = $this->post('suite_notes_markdown_create', ['title' => 'Pour moi']);
         self::assertResponseIsSuccessful();
         self::assertSame($this->personalSpaceOf($this->editor)->getId(), $mine['note']['spaceId']);
     }
 
     /**
-     * Un dossier change d'espace avec toute sa branche ; seul celui qui peut
-     * écrire aux deux bouts le déplace.
+     * A folder changes space with its whole branch; only someone who can
+     * write at both ends moves it.
      */
     public function testAFolderChangesSpaceWithEverythingInIt(): void
     {
@@ -237,12 +238,12 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertSame($team->getId(), $this->entityManager->find(NoteFolder::class, $sub->getId())?->getSpace()->getId());
         self::assertSame($team->getId(), $this->entityManager->find(MarkdownNote::class, $note->getId())?->getSpace()->getId());
 
-        // Le lecteur ne l'emporte pas dans son carnet...
+        // The reader does not take it into their notebook...
         $this->client->loginUser($this->reader, 'admin');
         $this->post('suite_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $this->personalSpaceOf($this->reader)->getId()], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
 
-        // ... et personne ne range rien dans le carnet d'un autre.
+        // ... and nobody files anything in someone else's notebook.
         $this->client->loginUser($this->editor, 'admin');
         $this->post('suite_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $this->personalSpaceOf($this->reader)->getId()], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
@@ -255,9 +256,9 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Un wiki-lien se résout dans l'espace de la note lue : ni chez le
-     * lecteur, ni dans le carnet privé de l'auteur. Et la lecture ne donne
-     * ni l'écriture ni le carnet de l'auteur.
+     * A wiki link resolves in the space of the note being read: neither in
+     * the reader's, nor in the author's private notebook. And reading gives
+     * neither writing nor the author's notebook.
      */
     public function testLinksResolveInsideTheSpaceOfTheNote(): void
     {
@@ -280,8 +281,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Les images d'un espace s'affichent chez tous ses lecteurs, et chez
-     * eux seuls ; seul qui écrit dans l'espace en pose.
+     * A space's images show for all its readers, and for them alone; only
+     * someone who writes in the space adds them.
      */
     public function testSpaceImagesAreSeenByItsReadersOnly(): void
     {
@@ -303,7 +304,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->client->request('GET', $url);
         self::assertResponseIsSuccessful();
 
-        // Une image que la note ne cite pas reste fermée, même par elle.
+        // An image the note does not cite stays closed, even through it.
         $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => 'autre-'.$filename]));
         self::assertResponseStatusCodeSame(404);
 
@@ -313,8 +314,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Le lien de partage d'une note d'espace sert ses images : elles vivent
-     * dans le compartiment de l'espace, pas chez l'auteur.
+     * The share link of a space note serves its images: they live in the
+     * space's compartment, not with the author.
      */
     public function testAShareLinkServesTheImagesOfASpaceNote(): void
     {
@@ -337,8 +338,9 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Un espace s'emporte seul, à la racine de l'archive, et une archive se
-     * verse à la racine d'un espace où l'on écrit - jamais d'un autre.
+     * A space is exported on its own, at the root of the archive, and an
+     * archive is poured into the root of a space one writes in - never
+     * another.
      */
     public function testASpaceIsExportedAndImportedOnItsOwn(): void
     {
@@ -359,8 +361,8 @@ final class NoteSpacesTest extends IntegrationTestCase
         $archive = new ZipArchive();
         self::assertTrue($archive->open($path));
         $entries = [];
-        for ($i = 0; $i < $archive->numFiles; ++$i) {
-            $entries[] = (string) $archive->getNameIndex($i);
+        for ($entryIndex = 0; $entryIndex < $archive->numFiles; ++$entryIndex) {
+            $entries[] = (string) $archive->getNameIndex($entryIndex);
         }
         $archive->close();
 
@@ -369,7 +371,7 @@ final class NoteSpacesTest extends IntegrationTestCase
 
         $target = $this->space(NoteSpaceAccessEnum::Members);
 
-        // Un lecteur ne verse rien dans l'espace.
+        // A reader pours nothing into the space.
         $this->client->loginUser($this->reader, 'admin');
         $this->client->request('POST', $this->urlGenerator->generate('suite_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'espace.zip', 'application/zip', null, true)]]);
         self::assertResponseStatusCodeSame(404);
@@ -386,8 +388,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Ce qui dort à la corbeille suit sa branche : restauré, il retrouve son
-     * dossier dans le même espace.
+     * What sleeps in the trash follows its branch: restored, it finds its
+     * folder again in the same space.
      */
     public function testATrashedNoteFollowsItsFolderAcrossSpaces(): void
     {
@@ -407,8 +409,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Un espace dont le propriétaire est parti revient aux administrateurs :
-     * sinon plus personne ne pourrait le régler ni le faire revenir.
+     * A space whose owner has left goes back to the administrators: otherwise
+     * nobody could configure it or bring it back any more.
      */
     public function testAnOrphanedSpaceIsAdoptedByAdministrators(): void
     {
@@ -433,7 +435,81 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Un gestionnaire ne ferme pas l'espace à « moi seul » : il s'en fermerait la porte. */
+    /**
+     * A space configured from elsewhere: its members write in it, but nobody
+     * configures it from here - not its name, its access, its members, its
+     * publication or its removal. Its team follows what it is given, and when
+     * what configured it disappears it goes to the trash, from where an
+     * administrator brings it back.
+     */
+    public function testAManagedSpaceIsSetFromElsewhere(): void
+    {
+        $manager = static::getContainer()->get(NoteSpaceManagerInterface::class);
+        $space = $manager->createManaged('Boulangerie Martin', 'studio.customer_space');
+        $manager->syncManaged($space, 'Boulangerie Martin', [
+            ['user' => $this->managed($this->owner), 'role' => NoteSpaceRoleEnum::Manager],
+            ['user' => $this->managed($this->editor), 'role' => NoteSpaceRoleEnum::Editor],
+        ]);
+        $spaceId = (int) $space->getId();
+
+        $this->client->loginUser($this->managed($this->editor), 'admin');
+        $this->post('suite_notes_markdown_create', ['title' => 'Brief', 'spaceId' => $spaceId]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->loginUser($this->managed($this->owner), 'admin');
+        foreach ([
+            ['suite_notes_spaces_update', ['name' => 'Renommé', 'access' => 'backoffice'], ['id' => $spaceId]],
+            ['suite_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'reader'], ['id' => $spaceId]],
+            ['suite_notes_spaces_members_remove', [], ['id' => $spaceId, 'userId' => $this->editor->getId()]],
+            ['suite_notes_spaces_delete', [], ['id' => $spaceId]],
+        ] as [$route, $payload, $parameters]) {
+            $body = $this->post($route, $payload, $parameters);
+            self::assertResponseStatusCodeSame(409, $route);
+            self::assertSame('notes.markdown.spaces.errors.managed', $body['error'] ?? null, $route);
+        }
+
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_list'));
+        $listed = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['spaces'];
+        $row = array_values(array_filter($listed, static fn (array $one): bool => $spaceId === (int) $one['id']))[0] ?? [];
+        self::assertTrue($row['managed'] ?? false);
+        self::assertSame('manager', $row['role'] ?? null);
+
+        // The team changes over there: the editor leaves, the outsider arrives.
+        $this->entityManager->clear();
+        $manager->syncManaged($this->entityManager->find(NoteSpace::class, $spaceId), 'Boulangerie Martin - Instagram', [
+            ['user' => $this->managed($this->owner), 'role' => NoteSpaceRoleEnum::Manager],
+            ['user' => $this->managed($this->outsider), 'role' => NoteSpaceRoleEnum::Editor],
+        ]);
+        $this->entityManager->clear();
+        $synced = $this->entityManager->find(NoteSpace::class, $spaceId);
+        self::assertSame('Boulangerie Martin - Instagram', $synced?->getName());
+        $members = $this->entityManager->getRepository(NoteSpaceMember::class)->findBy(['space' => $spaceId]);
+        self::assertEqualsCanonicalizing(
+            [$this->owner->getId(), $this->outsider->getId()],
+            array_map(static fn (NoteSpaceMember $member): ?int => $member->getUser()->getId(), $members),
+        );
+
+        // What configured it disappears: to the trash, and no longer configured from elsewhere.
+        self::assertInstanceOf(NoteSpace::class, $synced);
+        $manager->releaseManaged($synced);
+        $this->entityManager->clear();
+        $released = $this->entityManager->find(NoteSpace::class, $spaceId);
+        self::assertFalse($released?->isManaged());
+        self::assertNotNull($released?->getDeletedAt());
+
+        $admin = $this->user('admin');
+        $this->managed($admin)->setRoles([UserRoleEnum::Admin->value]);
+        $this->entityManager->flush();
+        $this->client->loginUser($this->managed($admin), 'admin');
+        $this->post('suite_notes_spaces_restore', [], ['id' => $spaceId]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $this->entityManager->remove($this->entityManager->getReference(NoteSpace::class, $spaceId));
+        $this->entityManager->flush();
+    }
+
+    /** A manager does not close the space to "only me": they would shut themselves out. */
     public function testOnlyTheOwnerKeepsASpaceToThemselves(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Members);
@@ -452,7 +528,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** La liste des personnes ne sert qu'à qui peut inscrire quelqu'un. */
+    /** The people list only serves someone who can add someone. */
     public function testThePeopleListIsForThoseWhoCanAddSomeone(): void
     {
         $this->client->loginUser($this->reader, 'admin');
@@ -465,7 +541,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertNotSame([], json_decode((string) $this->client->getResponse()->getContent(), true)['people']);
     }
 
-    /** Un lien public ne suit jamais un wiki-lien hors de son espace. */
+    /** A public link never follows a wiki link out of its space. */
     public function testAPublicLinkNeverWalksOutOfItsSpace(): void
     {
         $personal = $this->personalSpaceOf($this->owner);
@@ -481,8 +557,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Ce qu'une personne a écrit dans un espace partagé lui survit ; son
-     * carnet personnel part avec elle.
+     * What a person wrote in a shared space outlives them; their personal
+     * notebook goes with them.
      */
     public function testAnAuthorsDepartureLeavesTheirSharedNotesBehind(): void
     {
@@ -501,7 +577,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertNull($this->entityManager->find(MarkdownNote::class, $private->getId()));
     }
 
-    /** Créer un espace partagé est un droit ; qui le crée le gère. */
+    /** Creating a shared space is a right; whoever creates it manages it. */
     public function testCreatingASpaceNeedsTheRight(): void
     {
         $this->client->loginUser($this->reader, 'admin');
@@ -526,7 +602,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertContains($body['space']['id'], array_column($list['spaces'], 'id'));
     }
 
-    /** La liste dit le rôle de chacun dans chaque espace. */
+    /** The list says each person's role in each space. */
     public function testTheListCarriesEachRole(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Members);
@@ -547,8 +623,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Seul qui gère règle l'espace et ses inscrits ; une inscription ouvre
-     * l'espace, la retirer le referme.
+     * Only a manager configures the space and its members; a membership opens
+     * the space, removing it closes it again.
      */
     public function testOnlyManagersChangeSettingsAndMembers(): void
     {
@@ -584,7 +660,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    /** Son espace personnel ne s'ouvre à personne et ne se retire pas. */
+    /** One's personal space opens to nobody and cannot be removed. */
     public function testThePersonalSpaceStaysClosed(): void
     {
         $personal = $this->personalSpaceOf($this->owner);
@@ -602,7 +678,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    /** Un espace retiré disparaît pour tout le monde, et son propriétaire le fait revenir. */
+    /** A removed space disappears for everyone, and its owner brings it back. */
     public function testARemovedSpaceComesBackWithItsNotes(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Backoffice);
@@ -627,7 +703,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Publier est un droit à part, en plus de gérer l'espace ; jamais son espace personnel. */
+    /** Publishing is a separate right, on top of managing the space; never one's personal space. */
     public function testPublishingNeedsItsOwnRight(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Members);
@@ -652,9 +728,9 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Un espace publié se lit sans compte : son entrée mène à sa première
-     * note, les liens restent dans l'espace, et les moteurs sont tenus à
-     * l'écart par défaut.
+     * A published space is read without an account: its entry leads to its
+     * first note, links stay inside the space, and search engines are kept
+     * out by default.
      */
     public function testAPublishedSpaceIsReadWithoutAnAccount(): void
     {
@@ -685,7 +761,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertSame($tarifs->getId(), $props['next']['id'] ?? null);
     }
 
-    /** Rien d'autre ne s'ouvre par l'adresse d'un espace publié. */
+    /** Nothing else opens through a published space's address. */
     public function testNothingOutsideThePublishedSpaceLeaks(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Members);
@@ -710,7 +786,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->client->request('GET', '/p/inconnu');
         self::assertResponseStatusCodeSame(404);
 
-        // Dépublié, il disparaît comme s'il n'avait jamais existé.
+        // Unpublished, it disappears as if it had never existed.
         $this->client->loginUser($this->owner, 'admin');
         $this->post('suite_notes_spaces_publish', ['published' => false], ['id' => $space->getId()]);
         self::assertResponseIsSuccessful();
@@ -719,7 +795,7 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
-    /** Un espace qui le demande laisse les moteurs l'indexer. */
+    /** A space that asks for it lets search engines index it. */
     public function testAnIndexableSpaceLetsEnginesIn(): void
     {
         $space = $this->space(NoteSpaceAccessEnum::Members);
@@ -730,13 +806,13 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->client->request('GET', '/p/'.$slug.'/'.$note->getId());
 
         self::assertResponseIsSuccessful();
-        // Le mode debug de Symfony pose `noindex` sur toute réponse, en dev
-        // comme en test ; ce qui compte ici est que la page ne pose pas le sien.
+        // Symfony's debug mode sets `noindex` on every response, in dev as in
+        // test; what matters here is that the page does not set its own.
         self::assertNotSame('noindex, nofollow, noarchive', $this->client->getResponse()->headers->get('X-Robots-Tag'));
         self::assertStringContainsString('<meta name="robots" content="index, follow">', (string) $this->client->getResponse()->getContent());
     }
 
-    /** Le propriétaire reçoit le droit de publier, et l'espace est publié ; rend son adresse. */
+    /** The owner gets the right to publish, and the space is published; returns its address. */
     private function publish(NoteSpaceInterface $space, bool $indexable = false): string
     {
         $this->grantPublishing();
@@ -755,8 +831,8 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * Un espace partagé, dont le propriétaire est `owner`, où `editor` est
-     * rédacteur et `reader` lecteur.
+     * A shared space, owned by `owner`, where `editor` is an editor and
+     * `reader` a reader.
      */
     private function space(NoteSpaceAccessEnum $access): NoteSpaceInterface
     {
@@ -803,10 +879,10 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
-     * L'entité suivie par le gestionnaire d'entités.
+     * The entity as tracked by the entity manager.
      *
-     * Le noyau le remet à zéro après chaque requête : ce que le test tient
-     * depuis avant n'est plus suivi, et Doctrine le prendrait pour du neuf.
+     * The kernel resets it after each request: what the test has held since
+     * before is no longer tracked, and Doctrine would take it for something new.
      *
      * @template T of object
      *
@@ -870,15 +946,15 @@ final class NoteSpacesTest extends IntegrationTestCase
 
     /**
      * @param array<string, mixed>  $payload
-     * @param array<string, scalar> $params
+     * @param array<string, scalar> $parameters
      *
      * @return array<string, mixed>
      */
-    private function post(string $route, array $payload = [], array $params = []): array
+    private function post(string $route, array $payload = [], array $parameters = []): array
     {
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate($route, $params),
+            $this->urlGenerator->generate($route, $parameters),
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode($payload, JSON_THROW_ON_ERROR),
         );

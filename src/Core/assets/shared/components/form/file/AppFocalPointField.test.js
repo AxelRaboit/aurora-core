@@ -5,7 +5,7 @@ import AppFocalPointField from "./AppFocalPointField.vue";
 
 const i18n = createTestI18n({}, "en");
 
-const SRC = "https://example.com/photo.jpg";
+const PHOTO_SOURCE = "https://example.com/photo.jpg";
 
 describe("AppFocalPointField", () => {
     it("renders nothing without a picture to aim at", () => {
@@ -18,12 +18,14 @@ describe("AppFocalPointField", () => {
 
     it("renders hint text under the control instead of leaking it as an attribute", () => {
         const wrapper = mount(AppFocalPointField, {
-            props: { src: SRC, hint: "Click the part that matters" },
+            props: { src: PHOTO_SOURCE, hint: "Click the part that matters" },
             global: { plugins: [i18n] },
         });
-        expect(wrapper.findAll("p.text-muted").map((p) => p.text())).toContain(
-            "Click the part that matters",
-        );
+        expect(
+            wrapper
+                .findAll("p.text-muted")
+                .map((paragraph) => paragraph.text()),
+        ).toContain("Click the part that matters");
         expect(wrapper.attributes("hint")).toBeUndefined();
     });
 });

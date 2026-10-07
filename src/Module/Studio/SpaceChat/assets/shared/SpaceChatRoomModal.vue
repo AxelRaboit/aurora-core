@@ -1,21 +1,20 @@
 <script setup>
 /**
- * Ce qu'on peut faire d'un salon, et qui s'y trouve.
+ * What can be done with a room, and who is in it.
  *
- * **Une modale derrière trois points, plutôt que quatre boutons sous le
- * titre.** La barre disait « Renommer, Ouvrir au client, Ajouter quelqu'un,
- * Supprimer le canal » en permanence : quatre gestes rares occupant une ligne
- * au-dessus de ce qu'on est venu lire, et sur téléphone ils passaient à la
- * ligne. Ils sont maintenant là où l'on va les chercher, avec la place de dire
- * ce qu'ils font.
+ * **A modal behind three dots, rather than four buttons under the title.** The
+ * bar said "Renommer, Ouvrir au client, Ajouter quelqu'un, Supprimer le canal"
+ * all the time: four rare actions taking a line above what one came to read,
+ * and on a phone they wrapped. They are now where one goes looking for them,
+ * with room to say what they do.
  *
- * **Les participants sont dedans, pas ailleurs.** « 2 personnes » était un
- * chiffre sans réponse à la seule question qu'il pose. La liste est ici, au
- * même endroit que ce qui la modifie.
+ * **The participants are inside, not elsewhere.** "2 personnes" was a number
+ * with no answer to the only question it raises. The list is here, in the same
+ * place as what changes it.
  *
- * Une conversation privée n'offre qu'un geste : la retirer de sa liste. Elle ne
- * se renomme pas - elle porte le nom de l'autre - et elle ne se supprime pas,
- * parce qu'effacer ce que quelqu'un vous a écrit n'est pas un rangement.
+ * A private conversation offers only one action: removing it from one's list.
+ * It is not renamed - it carries the other person's name - and it is not
+ * deleted, because erasing what someone wrote to you is not tidying up.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -29,6 +28,8 @@ const props = defineProps({
     channel: { type: Object, default: null },
     /** Null when this reader only looks: the client, or a read-only member. */
     canArrange: { type: Boolean, default: false },
+    /** Show the room to the client or hide it: the right to share the space. */
+    canSetAudience: { type: Boolean, default: false },
     canInvite: { type: Boolean, default: false },
     canUninvite: { type: Boolean, default: false },
     canHide: { type: Boolean, default: false },
@@ -59,7 +60,7 @@ watch(
 const isMain = computed(() => !!props.channel?.isMain);
 const isDirect = computed(() => !!props.channel?.isDirect);
 
-/** Le nom se règle sur un canal ouvert ici, jamais sur le principal ni sur une conversation. */
+/** The name is set on a channel opened here, never on the main one nor on a conversation. */
 const renameable = computed(() => props.canArrange && !isMain.value && !isDirect.value);
 
 function rename() {
@@ -97,9 +98,9 @@ function rename() {
                 </AppButton>
             </div>
 
-            <!-- Qui est là, en toutes lettres. Le canal principal n'a pas de
-                 liste : tout le monde y est, et une liste vide dirait le
-                 contraire. -->
+            <!-- Who is there, spelled out. The main channel has no list:
+                 everybody is in it, and an empty list would say the
+                 opposite. -->
             <div class="space-y-2">
                 <h3 class="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted">
                     <Users class="h-3.5 w-3.5" :stroke-width="2" />
@@ -126,10 +127,10 @@ function rename() {
                             {{ t("shared.space_chat.from_client") }}
                         </span>
 
-                        <!-- Le pendant d'« Ajouter quelqu'un », sur la ligne de
-                             la personne : c'est là qu'on la cherche, et une
-                             seconde liste ailleurs dirait la même chose deux
-                             fois. Rien ne s'efface de ce qu'elle a écrit. -->
+                        <!-- The counterpart of "Ajouter quelqu'un", on the
+                             person's line: that is where one looks for them,
+                             and a second list elsewhere would say the same
+                             thing twice. Nothing they wrote is erased. -->
                         <button
                             v-if="canUninvite && !isMain && !isDirect"
                             type="button"
@@ -158,6 +159,7 @@ function rename() {
                     }}
                 </p>
                 <AppButton
+                    v-if="canSetAudience"
                     size="sm"
                     variant="secondary"
                     class="w-full sm:w-auto"
@@ -174,10 +176,10 @@ function rename() {
                 </AppButton>
             </div>
 
-            <!-- Empilés et pleine largeur sur téléphone : côte à côte, trois
-                 boutons se partageaient trois cents pixels, donc chacun tenait
-                 sur deux lignes et aucun n'offrait une cible franche. Ils
-                 reprennent leur largeur naturelle dès qu'il y a la place. -->
+            <!-- Stacked and full width on a phone: side by side, three
+                 buttons shared three hundred pixels, so each took two lines
+                 and none offered a clear target. They return to their natural
+                 width as soon as there is room. -->
             <div class="flex flex-col gap-2 border-t border-line pt-4 sm:flex-row sm:flex-wrap">
                 <AppButton
                     v-if="canInvite && !isDirect && !isMain"

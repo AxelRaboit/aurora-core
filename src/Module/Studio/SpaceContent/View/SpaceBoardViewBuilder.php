@@ -60,15 +60,14 @@ final readonly class SpaceBoardViewBuilder
             'backPath' => $this->urlGenerator->generate('suite_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
-            // L'invitation à relire vit sur le tableau parce que c'est là que
-            // le studio se trouve quand son lot est prêt, même si la route
-            // appartient aux accès : ce qu'elle fait, c'est émettre des liens.
+            // The review invitation lives on the board because that is where
+            // the studio is when its batch is ready, even though the route
+            // belongs to access: what it does is issue links.
             'reviewPath' => $this->urlGenerator->generate('workspace_space_access_review', ['id' => $space->getId()]),
-            // Combien, et depuis combien de temps c'est dû : « trois en
-            // attente » et « trois en attente dont deux en retard » ne
-            // décrivent pas la même journée. Comptés comme partout ailleurs,
-            // par `SpaceWorkload` : ce que la page du client montre et
-            // attend, étapes internes exclues.
+            // How many, and how long overdue: "three waiting" and "three
+            // waiting, two of them late" do not describe the same day.
+            // Counted as everywhere else, by `SpaceWorkload`: what the client
+            // page shows and waits for, internal stages excluded.
             'awaitingApproval' => $workload->withClient,
             'lateForReview' => $workload->lateReview,
             'itemCreatePath' => $this->urlGenerator->generate('workspace_space_content_item_create', ['id' => $space->getId()]),
@@ -141,8 +140,8 @@ final readonly class SpaceBoardViewBuilder
     public function items(CustomerSpaceInterface $space): array
     {
         return array_map(
-            // Avec ses états, calculés par `SpaceWorkload` comme les compteurs
-            // du tableau de bord : l'espace filtre par la même règle.
+            // With its states, computed by `SpaceWorkload` like the dashboard
+            // counters: the space filters by the same rule.
             fn (SpaceContentItemInterface $item): array => [
                 ...$this->itemSerializer->serialize($item),
                 'states' => $this->workload->statesOf($item),

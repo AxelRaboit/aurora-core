@@ -8,11 +8,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Un contrat peut porter un texte adapté pour son client.
+ * A contract can carry a text adapted for its client.
  *
- * Le texte d'une partie (corps, annexe) modifié pour ce contrat seul, sans
- * créer de trame : il est scellé avec le contrat et disparaît avec lui. Vide
- * pour tous les contrats existants, qui gardent le texte de leur trame.
+ * The text of a part (body, appendix) changed for this contract alone, without
+ * creating a template: it is sealed with the contract and goes away with it.
+ * Empty for every existing contract, which keeps the text of its template.
  */
 final class Version20261001090000 extends AbstractMigration
 {

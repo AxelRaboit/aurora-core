@@ -471,11 +471,11 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         // One meeting with everybody on it, so the modal's attendee list is long
         // enough to show how it wraps.
         //
-        // Et une réponse différente par personne. Les entretiens juste
-        // au-dessus donnent une réponse unique chacun, ce qui montre bien
-        // chaque état mais jamais le cas ordinaire : on invite trois
-        // personnes, on en reçoit trois réponses qui ne sont pas les mêmes.
-        // La liste ne dit ce qu'elle sert à dire qu'à ce moment-là.
+        // And a different answer per person. The interviews just above give a
+        // single answer each, which shows every state well but never the
+        // ordinary case: you invite three people and get three answers that
+        // are not the same. Only then does the list say what it is there to
+        // say.
         $allHands = $this->event(
             $manager,
             $team,
@@ -497,8 +497,8 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
             $attendee = new PlanningEventAttendee();
             $attendee->setUser($person);
 
-            // Sans réponse veut dire sans réponse : `respond()` poserait une
-            // date, et la liste afficherait un état répondu.
+            // No answer means no answer: `respond()` would set a date, and the
+            // list would show an answered state.
             if (PlanningAttendeeStatusEnum::NeedsAction !== $status) {
                 $attendee->respond($status, $monday->setTime(8, 0));
             }
@@ -623,16 +623,16 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         $maybe = $this->event($manager, $work, 'Déjeuner à confirmer', $monday->modify('+3 days')->setTime(12, 30), $monday->modify('+3 days')->setTime(13, 30));
         $maybe->setStatus(PlanningEventStatusEnum::Tentative);
 
-        // Rien ici ne se présente comme venant d'un autre module.
+        // Nothing here presents itself as coming from another module.
         //
-        // Il y avait une « Échéance facture F-2043 » marquée `billing`, pour
-        // que l'écran ait un événement en lecture seule à refuser de déplacer.
-        // Mais `billing` n'existe pas : le seul module qui dépose vraiment une
-        // date est l'éditorial, quand une publication est programmée. Une
-        // démo qui invente un module enseigne une fonctionnalité qui n'existe
-        // pas, et c'est par elle que la documentation a failli l'enseigner.
+        // There used to be an "Échéance facture F-2043" tagged `billing`, so
+        // the screen had a read-only event to refuse to move. But `billing`
+        // does not exist: the only module that really drops a date is the
+        // editorial one, when a post is scheduled. A demo that invents a
+        // module teaches a feature that does not exist, and that is how the
+        // documentation nearly taught it.
         //
-        // Le cas lecture seule reste couvert là où il doit l'être :
+        // The read-only case stays covered where it should be:
         // `PlanningModuleSyncTest::testASyncedEntryIsReadOnlyAndPointsAtItsSource`.
 
         // Early and late in the day, so the grid's scroll has something at both

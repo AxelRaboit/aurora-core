@@ -85,8 +85,8 @@ final readonly class PostPictures
      * the reminder that the comparison has to be strict.
      */
     /**
-     * Les documents qu'une disposition de grille seule utilise : pour une
-     * page composée ailleurs qu'une publication, un livrable d'espace client.
+     * The documents a grid layout alone uses: for a page composed somewhere
+     * other than a post, a customer space deliverable.
      *
      * @param array<string, mixed> $layout
      *

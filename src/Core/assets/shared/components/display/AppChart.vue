@@ -27,7 +27,7 @@ ChartJS.register(
 );
 
 const props = defineProps({
-    type: { type: String, required: true, validator: (v) => ["doughnut", "bar", "line"].includes(v) },
+    type: { type: String, required: true, validator: (type) => ["doughnut", "bar", "line"].includes(type) },
     data: { type: Object, required: true },
     options: { type: Object, default: () => ({}) },
 });

@@ -57,17 +57,17 @@ describe("AppPagination", () => {
 
     it("disables prev on first page", () => {
         const wrapper = mountPagination({ page: 1, totalPages: 5 });
-        const prevButton = wrapper
+        const previousButton = wrapper
             .findAll("button")
-            .find((b) => b.text().includes("pagination.previous"));
-        expect(prevButton.attributes("disabled")).toBeDefined();
+            .find((button) => button.text().includes("pagination.previous"));
+        expect(previousButton.attributes("disabled")).toBeDefined();
     });
 
     it("disables next on last page", () => {
         const wrapper = mountPagination({ page: 5, totalPages: 5 });
         const nextButton = wrapper
             .findAll("button")
-            .find((b) => b.text().includes("pagination.next"));
+            .find((button) => button.text().includes("pagination.next"));
         expect(nextButton.attributes("disabled")).toBeDefined();
     });
 });

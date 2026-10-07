@@ -11,8 +11,8 @@ vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 vi.mock("vue-sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 /**
- * Ce qu'une action de liste dit quand le serveur refuse : elle recevait
- * `success: false` et ne disait rien, la ligne périmée restant à l'écran.
+ * What a list action says when the server refuses: it got `success: false`
+ * and said nothing, the stale row staying on screen.
  */
 describe("useDeliverableRequest", () => {
     beforeEach(() => {

@@ -19,9 +19,9 @@ use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermTranslationInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyTermRepository;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
-use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use DateTimeImmutable;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -39,8 +39,8 @@ final readonly class ZoneSiteViews
         private PostTypeRepository $postTypeRepository,
         private PostRepository $postRepository,
         private UrlGeneratorInterface $urlGenerator,
-        private DeckRepository $deckRepository,
-        private DeckShareLinkRepository $deckShareLinkRepository,
+        private DeliverableRepository $deliverableRepository,
+        private DeliverableLinkRepository $deliverableLinkRepository,
         private TaxonomyRepository $taxonomyRepository,
         private TaxonomyTermRepository $taxonomyTermRepository,
         private BlocksRenderer $blocksRenderer,
@@ -166,49 +166,47 @@ final readonly class ZoneSiteViews
     /**
      * A presentation, but only one somebody has actually published.
      *
-     * A deck is an internal document until a share link exists for it, so a
-     * zone naming one with no live link draws nothing. A revoked link, an
-     * expired one and one behind a password are all "no": the last because a
-     * page cannot ask for a password on the deck's behalf, and an iframe onto
-     * the unlock form would be a locked door drawn inside an article.
+     * Presentations are Studio deliverables in the slides format: the zone
+     * keeps its stored type, `deck`, and names a deliverable. Only a Studio
+     * one (a space's deliverable belongs to its client), alive, in the slides
+     * format, and read through a link that is live: a deliverable is an
+     * internal document until a reading link exists for it, so a zone naming
+     * one with no live link draws nothing. A revoked link, an expired one and
+     * one behind a password are all "no": the last because a page cannot ask
+     * for a password on the deliverable's behalf, and an iframe onto the
+     * unlock form would be a locked door drawn inside an article.
      *
      * Same origin, so nothing here loads a third party - this is the site
      * showing its own page inside its own page.
      *
      * @return array{url: string, title: string}|null
      */
-    public function deckView(?int $deckId): ?array
+    public function deckView(?int $deliverableId): ?array
     {
-        if (null === $deckId) {
+        if (null === $deliverableId) {
             return null;
         }
 
-        $deck = $this->deckRepository->findLive($deckId);
+        $deliverable = $this->deliverableRepository->findStandalone($deliverableId);
 
-        if (!$deck instanceof DeckInterface) {
+        if (!$deliverable instanceof DeliverableInterface || !$deliverable->isSlides()) {
             return null;
         }
 
         $now = new DateTimeImmutable();
 
-        foreach ($this->deckShareLinkRepository->findForDeck($deck) as $link) {
-            if (null !== $link->getRevokedAt()) {
+        foreach ($this->deliverableLinkRepository->findForDeliverable($deliverable) as $link) {
+            if (!$link->isUsable($now)) {
                 continue;
             }
 
-            if (null !== $link->getPasswordHash()) {
-                continue;
-            }
-
-            $expiresAt = $link->getExpiresAt();
-
-            if (null !== $expiresAt && $expiresAt < $now) {
+            if ($link->isLocked()) {
                 continue;
             }
 
             return [
-                'url' => $this->urlGenerator->generate('public_deck_show', ['token' => $link->getToken()]),
-                'title' => $deck->getTitle(),
+                'url' => $this->urlGenerator->generate('public_deliverable_read', ['token' => $link->getToken()]),
+                'title' => $deliverable->getTitle(),
             ];
         }
 

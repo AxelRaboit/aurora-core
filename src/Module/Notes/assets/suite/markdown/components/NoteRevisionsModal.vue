@@ -1,15 +1,15 @@
 <script setup>
 /**
- * L'historique d'une note : ses versions passées, ce qui a changé depuis, et
- * le moyen d'y revenir.
+ * A note's history: its past versions, what has changed since, and the way
+ * back to them.
  *
- * Même gabarit que l'historique des publications (la liste à gauche, la
- * version à droite), mais une note est du texte : plutôt que deux colonnes à
- * relire, les lignes retirées et ajoutées depuis cette version, en rouge et en
- * vert. « Voir la version entière » montre son texte tel quel.
+ * Same template as the publications history (the list on the left, the
+ * version on the right), but a note is text: rather than two columns to
+ * reread, the lines removed and added since that version, in red and in
+ * green. "Voir la version entière" shows its text as is.
  *
- * Restaurer garde d'abord l'état courant comme une version : revenir en
- * arrière ne fait rien perdre, et se défait de la même façon.
+ * Restoring first keeps the current state as a version: going back loses
+ * nothing, and is undone the same way.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -24,7 +24,7 @@ import { diffStats, lineDiff } from "../composables/noteLineDiff.js";
 const props = defineProps({
     show: { type: Boolean, default: false },
     noteId: { type: Number, default: null },
-    /** L'état courant de la note, `{title, content}`, pour comparer. */
+    /** The note's current state, `{title, content}`, to compare. */
     current: { type: Object, default: () => ({}) },
     /** `revisions(id)`, `revision(id, revisionId)`, `restoreRevision(id, revisionId)`. */
     api: { type: Object, required: true },
@@ -45,8 +45,8 @@ const restoring = ref(false);
 const confirming = ref(false);
 const whole = ref(false);
 
-const diff = computed(() => (detail.value ? lineDiff(detail.value.content ?? "", props.current?.content ?? "") : null));
-const stats = computed(() => diffStats(diff.value));
+const lineDifference = computed(() => (detail.value ? lineDiff(detail.value.content ?? "", props.current?.content ?? "") : null));
+const stats = computed(() => diffStats(lineDifference.value));
 const titleChanged = computed(() => detail.value && (detail.value.title ?? "") !== (props.current?.title ?? ""));
 
 async function load() {
@@ -89,8 +89,8 @@ async function restore() {
     }
 }
 
-// `immediate` : une fenêtre montée déjà ouverte ne voit jamais le passage de
-// fermée à ouverte, et resterait vide.
+// `immediate`: a dialog mounted already open never sees the switch from
+// closed to open, and would stay empty.
 watch(
     () => props.show,
     (open) => {
@@ -106,7 +106,7 @@ watch(selected, (id) => {
     if (null !== id) loadDetail(id);
 });
 
-// Les couleurs de sens du thème, lisibles en clair comme en sombre.
+// The theme's semantic colours, readable in light as in dark.
 const LINE_CLASSES = {
     added: "bg-success-soft text-success",
     removed: "bg-danger-soft text-danger line-through",
@@ -164,7 +164,7 @@ const LINE_CLASSES = {
                     </p>
 
                     <pre
-                        v-if="whole || null === diff"
+                        v-if="whole || null === lineDifference"
                         class="m-0 max-h-[24rem] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-surface-2/40 p-3 text-xs text-secondary"
                     >{{ detail.content }}</pre>
                     <div
@@ -173,7 +173,7 @@ const LINE_CLASSES = {
                         data-revision-diff
                     >
                         <div
-                            v-for="(line, index) in diff"
+                            v-for="(line, index) in lineDifference"
                             :key="index"
                             class="whitespace-pre-wrap break-words px-3 py-px"
                             :class="LINE_CLASSES[line.kind]"

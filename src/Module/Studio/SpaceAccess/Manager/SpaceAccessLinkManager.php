@@ -38,7 +38,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         protected readonly SpaceAccessLinkRepository $links,
     ) {}
 
-    /** Ce que dure un aperçu. Assez pour regarder, trop peu pour oublier. */
+    /** How long a preview lasts. Enough to look, too short to forget. */
     protected const int PREVIEW_MINUTES = 15;
 
     public function issue(
@@ -76,21 +76,21 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
     }
 
     /**
-     * Un aperçu de ce lien, ouvert pour quelques minutes.
+     * A preview of this link, open for a few minutes.
      *
-     * **Un vrai lien, parce qu'un faux ne montrerait rien.** Le jeton en clair
-     * n'existe qu'à la création ; une page fabriquée avec un jeton inventé
-     * s'affiche et ne répond à rien, donc ni le dossier Drive ni les fichiers
-     * n'y apparaissent - c'est-à-dire précisément ce qu'on venait vérifier.
+     * **A real link, because a fake one would show nothing.** The clear-text
+     * token only exists at creation; a page built with an invented token
+     * displays and answers nothing, so neither the Drive folder nor the files
+     * appear in it - that is, precisely what one came to check.
      *
-     * Il recopie les droits pour que l'écran soit le même, **et n'écrit
-     * rien** : ce refus-là ne tient pas aux droits mais à sa nature, et vit
-     * dans le contrôleur public. Sans cette règle, un clic distrait sur
-     * « Validé » enregistrerait une réponse au nom du client.
+     * It copies the rights so that the screen is the same, **and writes
+     * nothing**: that refusal does not come from the rights but from what it
+     * is, and lives in the public controller. Without this rule, a careless
+     * click on "Validé" would record an answer in the client's name.
      *
-     * Un seul à la fois par lien : le précédent est supprimé, ce qui évite
-     * qu'une adresse encore valide traîne après qu'on a changé les droits
-     * qu'elle était censée montrer.
+     * Only one at a time per link: the previous one is deleted, which keeps a
+     * still valid address from lingering after the rights it was meant to show
+     * have changed.
      */
     public function preview(SpaceAccessLinkInterface $source): SpaceAccessLinkInterface
     {
@@ -113,14 +113,14 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setCanUpload($source->canUpload())
             ->setCanSeeDrive($source->canSeeDrive())
             ->setPreviewOf($source)
-            // Quelques minutes : le temps de regarder, pas celui d'oublier.
+            // A few minutes: time to look, not time to forget.
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d minutes', static::PREVIEW_MINUTES)));
 
         $this->entityManager->persist($link);
         $this->entityManager->flush();
 
-        // Pas d'audit « lien émis » : personne n'a reçu d'adresse, et une
-        // ligne par coup d'œil noierait celles qui comptent.
+        // No "link issued" audit: nobody received an address, and one line
+        // per glance would drown the ones that matter.
         return $link;
     }
 
@@ -164,6 +164,12 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         }
 
         if (!$link->isUsable(new DateTimeImmutable())) {
+            return null;
+        }
+
+        // A space in the trash no longer answers its links, like an unknown
+        // link; they resume as they were if it is restored.
+        if ($link->getSpace()->isTrashed()) {
             return null;
         }
 

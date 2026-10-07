@@ -9,23 +9,23 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { useFormSubmissions } from "../composables/useFormSubmissions.js";
 
 /**
- * Ce que les visiteurs ont envoyé, du plus récent au plus ancien.
+ * What visitors sent, newest first.
  *
- * Chargé à l'ouverture de l'onglet, et pas avec la page : on vient le plus
- * souvent pour les questions, et une boîte de réception chargée pour rien
- * ralentit l'écran qu'on voulait.
+ * Loaded when the tab opens, and not with the page: people most often come
+ * for the questions, and an inbox loaded for nothing slows down the screen
+ * they wanted.
  */
 const props = defineProps({
     submissionsPath: { type: String, required: true },
     exportPath: { type: String, required: true },
 });
 
-const { t, d } = useI18n();
+const { t, d: formatLocalizedDate } = useI18n();
 const { submissions, total, page, totalPages, loading, load, goToPage, exportUrl } = useFormSubmissions(props);
 
 onMounted(load);
 
-const formatDate = (value) => d(new Date(value), { dateStyle: "medium", timeStyle: "short" });
+const formatDate = (value) => formatLocalizedDate(new Date(value), { dateStyle: "medium", timeStyle: "short" });
 </script>
 
 <template>
@@ -76,7 +76,7 @@ const formatDate = (value) => d(new Date(value), { dateStyle: "medium", timeStyl
             </article>
         </div>
 
-        <!-- La pagination commune à toutes les listes (02/10/2026). -->
+        <!-- The pagination shared by every list (02/10/2026). -->
         <AppPagination :page="page" :total-pages="totalPages" class="pt-1" v-on:change="goToPage" />
     </div>
 </template>

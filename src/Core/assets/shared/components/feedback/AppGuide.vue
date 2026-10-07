@@ -1,19 +1,19 @@
 <script setup>
 /**
- * Un encart « Comment ça marche », à côté de ce qu'il explique.
+ * A "How it works" panel, next to what it explains.
  *
- * **À côté, pas dans une aide à part.** Une documentation qu'on va chercher
- * ailleurs n'est pas lue au moment où l'on hésite ; un encart posé près du
- * geste l'est. Il dit ce que fait l'écran, dans l'ordre où on s'en sert, et
- * confirme ce qui va se passer avant qu'on clique.
+ * **Next to it, not in a separate help.** Documentation that has to be
+ * fetched elsewhere is not read at the moment of hesitation; a panel placed
+ * near the action is. It says what the screen does, in the order it is used,
+ * and confirms what is about to happen before the click.
  *
- * **Un seul choix pour tous les encarts** (`useGuidePreference`) : replier
- * celui-ci les replie tous, et le choix est retenu. Tant que le lecteur n'a
- * rien choisi, l'encart suit `open` ; un mode d'emploi d'intégration reste
- * ainsi ouvert tant que rien n'est branché.
+ * **One choice for all panels** (`useGuidePreference`): collapsing this one
+ * collapses them all, and the choice is remembered. As long as the reader
+ * has chosen nothing, the panel follows `open`; an integration guide thus
+ * stays open as long as nothing is connected.
  *
- * Le contenu est libre : des étapes (`<ol>`), une phrase, un lien. Le style
- * du texte est posé ici, pour que tous les encarts se lisent pareil.
+ * The content is free: steps (`<ol>`), a sentence, a link. The text style is
+ * set here, so that every panel reads the same.
  */
 import { computed } from "vue";
 import { BookOpen, ChevronDown } from "lucide-vue-next";
@@ -21,15 +21,15 @@ import { useGuidePreference } from "@/shared/composables/useGuidePreference.js";
 
 const props = defineProps({
     title: { type: String, required: true },
-    /** Ouvert au départ, tant que le lecteur n'a rien choisi. */
+    /** Open at first, as long as the reader has chosen nothing. */
     open: { type: Boolean, default: true },
-    /** Accepté et ignoré : le choix d'ouvrir ou de replier est commun à tous les encarts. */
+    /** Accepted and ignored: the choice to open or collapse is shared by all panels. */
     storageKey: { type: String, default: "" },
     /**
-     * Les coins arrondis, par défaut. `false` les retire, pour un encart
-     * encastré dans un autre bloc (contre un bord, sous un entête) plutôt que
-     * posé à côté : un arrondi contre un bord droit se voit comme un défaut.
-     * Posé seul, l'encart reste arrondi et prend ses marges de l'appelant.
+     * Rounded corners, by default. `false` removes them, for a panel embedded in
+     * another block (against an edge, under a header) rather than placed next to
+     * it: a rounded corner against a straight edge looks like a defect. Placed
+     * on its own, the panel stays rounded and takes its margins from the caller.
      */
     rounded: { type: Boolean, default: true },
 });
@@ -39,8 +39,9 @@ const { choice, remember } = useGuidePreference();
 const isOpen = computed(() => choice.value ?? props.open);
 
 /**
- * `toggle` part aussi quand l'état change par le code (un autre encart vient
- * d'être replié) : seul un écart avec l'état attendu vient du lecteur.
+ * `toggle` also fires when the state changes through code (another panel has
+ * just been collapsed): only a gap with the expected state comes from the
+ * reader.
  */
 function onToggle(event) {
     if (event.target.open === isOpen.value) return;
@@ -50,9 +51,9 @@ function onToggle(event) {
 </script>
 
 <template>
-    <!-- Une région nommée plutôt qu'un <aside> ou une <section> : les écrans
-         gardent ces balises pour leurs volets et leurs groupes, et leurs
-         tests les comptent. `data-guide` le désigne sans ambiguïté. -->
+    <!-- A named region rather than an <aside> or a <section>: the screens
+         keep those tags for their side panels and their groups, and their
+         tests count them. `data-guide` points to it without ambiguity. -->
     <div
         data-guide
         role="region"

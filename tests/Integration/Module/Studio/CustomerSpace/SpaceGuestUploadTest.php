@@ -63,7 +63,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
     private DocumentRepository $documents;
 
-    private string $workDir;
+    private string $workDirectory;
 
     private User $admin;
 
@@ -94,17 +94,17 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         // the test never meant to exercise.
         $this->resetRateLimiter('space_guest_upload');
 
-        $this->workDir = sys_get_temp_dir().'/aurora-guest-upload-'.bin2hex(random_bytes(4));
-        mkdir($this->workDir);
+        $this->workDirectory = sys_get_temp_dir().'/aurora-guest-upload-'.bin2hex(random_bytes(4));
+        mkdir($this->workDirectory);
     }
 
     protected function tearDown(): void
     {
-        foreach (glob($this->workDir.'/*') ?: [] as $file) {
+        foreach (glob($this->workDirectory.'/*') ?: [] as $file) {
             unlink($file);
         }
-        if (is_dir($this->workDir)) {
-            rmdir($this->workDir);
+        if (is_dir($this->workDirectory)) {
+            rmdir($this->workDirectory);
         }
 
         foreach ([
@@ -170,7 +170,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canUpload: true);
         $item = $this->givenItem($space);
 
-        $svg = $this->workDir.'/innocent.jpg';
+        $svg = $this->workDirectory.'/innocent.jpg';
         file_put_contents($svg, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
 
         $this->upload($url, $item['id'], new UploadedFile($svg, 'innocent.jpg', 'image/jpeg', null, true));
@@ -196,7 +196,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canUpload: true);
         $item = $this->givenItem($space);
 
-        $big = $this->workDir.'/big.jpg';
+        $big = $this->workDirectory.'/big.jpg';
         file_put_contents($big, $this->jpegBytes().str_repeat("\0", static::getContainer()->get(UploadPolicyProvider::class)->forSpaceGuests()->maxBytes));
 
         $this->upload($url, $item['id'], new UploadedFile($big, 'big.jpg', 'image/jpeg', null, true));
@@ -347,10 +347,9 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
-        // L'en-tête que le composant de requête du navigateur pose sur
-        // chaque appel, et que les routes publiques exigent : sans lui,
-        // un formulaire hébergé ailleurs pourrait faire poster le
-        // navigateur d'un client vers ces adresses.
+        // The header the browser's request helper sets on every call, and
+        // that public routes require: without it, a form hosted elsewhere
+        // could make a client's browser post to these addresses.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
@@ -373,10 +372,9 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function upload(string $url, int $itemId, UploadedFile $file): void
     {
         $this->client->getCookieJar()->clear();
-        // L'en-tête que le composant de requête du navigateur pose sur
-        // chaque appel, et que les routes publiques exigent : sans lui,
-        // un formulaire hébergé ailleurs pourrait faire poster le
-        // navigateur d'un client vers ces adresses.
+        // The header the browser's request helper sets on every call, and
+        // that public routes require: without it, a form hosted elsewhere
+        // could make a client's browser post to these addresses.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         $path = (string) parse_url($url, PHP_URL_PATH);
@@ -391,7 +389,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
     private function aFile(string $name): UploadedFile
     {
-        $path = $this->workDir.'/'.$name;
+        $path = $this->workDirectory.'/'.$name;
         file_put_contents($path, $this->jpegBytes());
 
         return new UploadedFile($path, $name, 'image/jpeg', null, true);
@@ -454,13 +452,15 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function givenItem(CustomerSpace $space): array
     {
-        $column = $this->columns->findForSpace($space)[0];
+        // Relecture (third step): a new space only shows the client the
+        // Relecture and Publié columns, and this item must be on their page.
+        $column = $this->columns->findForSpace($space)[2];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Un contenu à illustrer',
             'columnId' => $column->getId(),
-            // Datée : la page du client ne montre que son calendrier, et
-            // n'accepte de fichier que sur ce qu'elle montre.
+            // Dated: the client's page only shows its calendar, and only
+            // accepts a file on what it shows.
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 

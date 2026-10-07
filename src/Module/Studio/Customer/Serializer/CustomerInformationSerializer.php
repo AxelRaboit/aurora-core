@@ -8,17 +8,17 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * La fiche d'un client, dans la forme que les deux côtés lisent.
+ * A customer's sheet, in the shape both sides read.
  *
- * **Une seule forme pour le studio et pour le client**, parce que c'est ce qui
- * permet au récapitulatif d'être le même composant des deux côtés. Le studio
- * voit un formulaire au-dessus ; ce que le client voit est exactement ce que
- * le studio voit en dessous, et non une seconde version qui pourrait en
- * différer sans que personne s'en aperçoive.
+ * **A single shape for the studio and for the customer**, because that is
+ * what lets the summary be the same component on both sides. The studio sees
+ * a form above it; what the customer sees is exactly what the studio sees
+ * below, and not a second version that could differ from it without anyone
+ * noticing.
  *
- * Rien de contractuel ne voyage : ni capital, ni RCS, ni TVA, ni représentant.
- * Ce sont les mentions d'un contrat, elles vivent sur la fiche client, et la
- * page d'un projet n'a pas à les porter.
+ * Nothing contractual travels: no capital, no RCS, no VAT, no representative.
+ * Those are a contract's mentions, they live on the customer sheet, and a
+ * project's page has no business carrying them.
  */
 #[AsAlias(CustomerInformationSerializerInterface::class)]
 class CustomerInformationSerializer implements CustomerInformationSerializerInterface
@@ -32,10 +32,10 @@ class CustomerInformationSerializer implements CustomerInformationSerializerInte
             'siren' => $customer->getSiren(),
             'phone' => $customer->getPhone(),
             'landline' => $customer->getLandline(),
-            // `email` et non `contractualEmail` : la colonne s'appelle ainsi
-            // parce que c'est là que part un lien de signature, mais sur cette
-            // fiche c'est l'adresse du client, et la nommer d'après un usage
-            // qui n'est pas celui de l'écran embrouille qui la lit.
+            // `email` and not `contractualEmail`: the column is named that way
+            // because it is where a signing link goes, but on this sheet it is
+            // the customer's address, and naming it after a use that is not
+            // the screen's confuses whoever reads it.
             'email' => $customer->getContractualEmail(),
             'postalAddress' => $customer->getRegisteredOffice(),
             'links' => $customer->getLinks(),

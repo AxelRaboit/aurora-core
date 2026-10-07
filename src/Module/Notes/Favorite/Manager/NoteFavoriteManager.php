@@ -14,13 +14,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * Les favoris d'une personne.
+ * A person's favourites.
  *
- * **Ils sont à elle, pas à la note.** Une date posée sur la note épinglait
- * pour tout le monde : dans un espace partagé, épingler une procédure
- * l'aurait mise dans le panneau de chacun. Chaque personne épingle donc ce
- * qu'elle peut lire, pour elle seule, et l'ordre du panneau est celui de ses
- * gestes.
+ * **They belong to the person, not to the note.** A date set on the note
+ * pinned it for everyone: in a shared space, pinning a procedure would have
+ * put it in everyone's panel. So each person pins what they can read, for
+ * themselves alone, and the panel's order is the order of their actions.
  */
 #[AsAlias(NoteFavoriteManagerInterface::class)]
 class NoteFavoriteManager implements NoteFavoriteManagerInterface

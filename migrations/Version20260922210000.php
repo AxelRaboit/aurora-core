@@ -8,25 +8,26 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Les notes passent de l'arbre aux dossiers.
+ * Notes move from the tree to folders.
  *
- * Jusqu'ici une note pouvait en contenir d'autres, et une note qui avait des
- * enfants tenait lieu de dossier. Cette migration crée les dossiers, y range
- * les notes, et retire le `parent_id` qui portait les deux sens à la fois.
+ * Until now a note could contain other notes, and a note with children acted
+ * as a folder. This migration creates the folders, files the notes in them,
+ * and removes the `parent_id` that carried both meanings at once.
  *
- * **La conversion se fait en SQL, sans déchiffrer quoi que ce soit.** Le nom
- * d'un dossier est chiffré comme le titre d'une note, avec la même clé et le
- * même format autonome (nonce + message, en base64), donc copier la colonne
- * suffit : la migration n'a besoin ni de la clé ni du conteneur Symfony, et
- * elle tient dans une transaction.
+ * **The conversion is done in SQL, without decrypting anything.** A folder
+ * name is encrypted like a note title, with the same key and the same
+ * self-contained format (nonce + message, in base64), so copying the column
+ * is enough: the migration needs neither the key nor the Symfony container,
+ * and it fits in a transaction.
  *
- * **Une note qui avait des enfants devient un dossier et une note dedans**, du
- * même nom, ce que l'export en zip écrivait déjà. Son texte n'est donc jamais
- * perdu : il reste dans la note, rangée dans le dossier qui porte son nom.
+ * **A note that had children becomes a folder and a note inside it**, with
+ * the same name, which is what the zip export already wrote. Its text is
+ * therefore never lost: it stays in the note, filed in the folder that bears
+ * its name.
  *
- * La colonne `converted_from_note_id` n'existe que le temps de la migration :
- * c'est la table de correspondance entre l'ancienne note-dossier et le
- * dossier créé, et elle disparaît avant la fin.
+ * The `converted_from_note_id` column only exists during the migration: it is
+ * the mapping between the old folder-note and the created folder, and it is
+ * dropped before the end.
  */
 final class Version20260922210000 extends AbstractMigration
 {
@@ -65,9 +66,8 @@ final class Version20260922210000 extends AbstractMigration
         $this->addSql('ALTER TABLE core_notes_markdown_notes ADD folder_id INT DEFAULT NULL');
         $this->addSql('ALTER TABLE core_notes_markdown_notes ADD trashed_with_folder_id INT DEFAULT NULL');
 
-        // Un dossier par note qui avait des enfants, à plat : les liens de
-        // parenté entre dossiers sont rétablis juste après, quand tous les
-        // identifiants existent.
+        // One folder per note that had children, flat: the parent links
+        // between folders are restored right after, once all the ids exist.
         $this->addSql(<<<'SQL'
             INSERT INTO core_notes_markdown_folders
                 (id, user_id, parent_id, name, position, deleted_at, trashed_with_folder_id, created_at, updated_at, converted_from_note_id)
@@ -88,7 +88,7 @@ final class Version20260922210000 extends AbstractMigration
             )
             SQL);
 
-        // L'arborescence des dossiers, reprise de celle des notes.
+        // The folder tree, taken from the note tree.
         $this->addSql(<<<'SQL'
             UPDATE core_notes_markdown_folders f
             SET parent_id = parent_folder.id
@@ -98,7 +98,7 @@ final class Version20260922210000 extends AbstractMigration
             WHERE f.converted_from_note_id = n.id
             SQL);
 
-        // Les enfants d'une note-dossier entrent dans le dossier.
+        // The children of a folder-note go into the folder.
         $this->addSql(<<<'SQL'
             UPDATE core_notes_markdown_notes n
             SET folder_id = f.id
@@ -106,9 +106,9 @@ final class Version20260922210000 extends AbstractMigration
             WHERE f.converted_from_note_id = n.parent_id
             SQL);
 
-        // Et la note-dossier elle-même entre dans le sien, comme le fait
-        // l'export : le fichier et le dossier du même nom deviennent une note
-        // dans un dossier du même nom.
+        // And the folder-note itself goes into its own folder, as the export
+        // does: the file and the folder of the same name become a note in a
+        // folder of the same name.
         $this->addSql(<<<'SQL'
             UPDATE core_notes_markdown_notes n
             SET folder_id = f.id, position = 0
@@ -116,9 +116,8 @@ final class Version20260922210000 extends AbstractMigration
             WHERE f.converted_from_note_id = n.id
             SQL);
 
-        // Ce qui était tombé avec une note-dossier tombe désormais avec le
-        // dossier : la restauration d'une branche continue de rendre la
-        // branche entière.
+        // What was trashed with a folder-note is now trashed with the folder:
+        // restoring a branch still brings back the whole branch.
         $this->addSql(<<<'SQL'
             UPDATE core_notes_markdown_notes n
             SET trashed_with_folder_id = f.id
@@ -146,27 +145,26 @@ final class Version20260922210000 extends AbstractMigration
         $this->addSql('CREATE INDEX idx_notes_markdown_folder ON core_notes_markdown_notes (folder_id)');
         $this->addSql('CREATE INDEX idx_notes_md_trashed_with ON core_notes_markdown_notes (trashed_with_folder_id)');
 
-        // Le partage n'a plus de sous-notes à inclure : une note est une
-        // feuille, et un dossier ne se partage pas.
+        // Sharing no longer has sub-notes to include: a note is a leaf, and a
+        // folder cannot be shared.
         $this->addSql('ALTER TABLE core_notes_markdown_share_links DROP include_descendants');
     }
 
     /**
-     * Le chemin inverse, sans perte de rangement.
+     * The reverse path, without losing how things were filed.
      *
-     * Les dossiers redeviennent des notes-dossiers : celui qui vient d'une
-     * note y retourne, et celui créé après la migration donne une note
-     * nouvelle, sinon ses notes remonteraient à la racine.
+     * Folders become folder-notes again: one that came from a note goes back
+     * to it, and one created after the migration gives a new note, otherwise
+     * its notes would move up to the root.
      *
-     * **L'aller-retour n'est pas l'identité, et ne peut pas l'être.** Un
-     * dossier vide redevient une note sans enfant, que le `up()` ne saura
-     * plus distinguer d'une note ordinaire : sur un carnet de 81 dossiers
-     * dont 12 vides, un down suivi d'un up rend 69 dossiers et 12 notes de
-     * plus. Rien n'est perdu - le nom du dossier vit dans la note - mais le
-     * rangement vide, lui, ne revient pas. Mesuré le 22/09/2026 ; c'est le
-     * prix d'un `down()` sur une refonte de forme, et la raison pour
-     * laquelle il sert à revenir en arrière tout de suite, pas des semaines
-     * plus tard.
+     * **The round trip is not the identity, and cannot be.** An empty folder
+     * becomes a note without children, which `up()` can no longer tell apart
+     * from an ordinary note: on a notebook of 81 folders of which 12 are
+     * empty, a down followed by an up gives 69 folders and 12 extra notes.
+     * Nothing is lost - the folder name lives in the note - but the empty
+     * filing does not come back. Measured on 22/09/2026; it is the price of a
+     * `down()` on a change of shape, and the reason it is meant for rolling
+     * back right away, not weeks later.
      */
     public function down(Schema $schema): void
     {
@@ -176,12 +174,12 @@ final class Version20260922210000 extends AbstractMigration
         $this->addSql('ALTER TABLE core_notes_markdown_notes ADD trashed_with_note_id INT DEFAULT NULL');
         $this->addSql('ALTER TABLE core_notes_markdown_folders ADD note_id INT DEFAULT NULL');
 
-        // Une note par dossier, qui reprend son nom et sa place.
+        // One note per folder, which takes its name and its place.
         //
-        // L'identifiant est réservé avant l'insertion plutôt que deviné
-        // après : `INSERT ... SELECT` ne rend pas la ligne source, et
-        // rapprocher les deux tables sur les dates aurait confondu deux
-        // dossiers créés dans la même seconde.
+        // The id is reserved before the insert rather than guessed after:
+        // `INSERT ... SELECT` does not return the source row, and matching
+        // the two tables on dates would have confused two folders created in
+        // the same second.
         $this->addSql("UPDATE core_notes_markdown_folders SET note_id = nextval('seq_core_notes_markdown_note_id')");
 
         $this->addSql(<<<'SQL'

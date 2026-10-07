@@ -7,11 +7,15 @@ namespace Aurora\Module\Studio\CustomerSpace\Entity;
 use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceDocumentFolderProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
+use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceSync;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -93,6 +97,29 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentFolderInterface $documentFolder = null;
 
+    /**
+     * The notes space where the team keeps what it knows about this customer.
+     *
+     * **A customer space's notes live in the Notes module**, and no longer
+     * here: one notes space per customer space, open to its team, which
+     * {@see SpaceNoteSpaceProvider} opens the first time it is needed and
+     * {@see SpaceNoteSpaceSync} keeps up to date (its name, its members). That
+     * is what gives these notes everything the module can do - folders, links
+     * between notes, history, search, sharing a note - without redoing it in
+     * Studio.
+     *
+     * **One direction only.** The notes space does not know Studio: it carries
+     * a marker (`managedBy`) that only says its name, access and members come
+     * from elsewhere.
+     *
+     * **Nullable, and `SET NULL`**, like the media library folder: created on
+     * demand, and a notes space someone removed must not be a deletion the
+     * database refuses.
+     */
+    #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
+    #[ORM\JoinColumn(unique: true, nullable: true, onDelete: 'SET NULL')]
+    protected ?NoteSpaceInterface $noteSpace = null;
+
     #[ORM\Column(length: 20, enumType: CustomerSpaceStatusEnum::class, options: ['default' => 'active'])]
     protected CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active;
 
@@ -123,47 +150,65 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     protected string $timezone = 'Europe/Paris';
 
     /**
-     * Le dossier Drive que le client a partagé pour cet espace.
+     * The Drive folder the customer shared for this space.
      *
-     * **L'identifiant, pas l'adresse.** C'est ce que Google attend, et c'est
-     * la fin de l'adresse d'un dossier - ce qui suit `/folders/`. Le stocker
-     * entier obligerait à le découper à chaque appel, et à redécouper le jour
-     * où Google change la forme de ses adresses.
+     * **The id, not the address.** That is what Google expects, and it is the
+     * end of a folder's address - what follows `/folders/`. Storing it whole
+     * would force splitting it on every call, and splitting it differently
+     * the day Google changes the shape of its addresses.
      *
-     * Nul par défaut : un espace n'a pas de Drive tant que personne n'en
-     * branche un, et la plupart n'en auront jamais.
+     * Null by default: a space has no Drive until someone connects one, and
+     * most never will.
      */
     #[ORM\Column(length: 128, nullable: true)]
     protected ?string $driveFolderId = null;
 
     /**
-     * Le mot de passe qui ferme l'onglet Drive, haché.
+     * The password that locks the Drive tab, hashed.
      *
-     * **Haché et non chiffré**, contrairement à la clé du compte de service :
-     * une clé doit être relue pour signer, un mot de passe n'a jamais besoin
-     * d'être relu, seulement comparé. Personne ne peut donc le retrouver, pas
-     * même depuis la base, et c'est la propriété qu'on veut.
+     * **Hashed and not encrypted**, unlike the service account key: a key
+     * must be read back to sign, a password never needs to be read back, only
+     * compared. Nobody can therefore recover it, not even from the database,
+     * and that is the property wanted.
      *
-     * Nul par défaut : l'onglet est ouvert tant que personne ne le ferme.
+     * Null by default: the tab is open until someone locks it.
      */
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $drivePassword = null;
 
     /**
-     * La génération en cours des sessions ouvertes sur le Drive.
+     * The current generation of the sessions open on the Drive.
      *
-     * **Ce qui permet de tout refermer sans changer le mot de passe.** Une
-     * session qui a saisi le bon mot de passe retient cette valeur ; elle
-     * reste ouverte tant que l'espace montre la même. En tirer une nouvelle
-     * referme donc toutes les sessions d'un coup, celle qui appuie comprise,
-     * sans que personne ait à changer quoi que ce soit.
+     * **What allows locking everything again without changing the password.**
+     * A session that entered the right password keeps this value; it stays
+     * open as long as the space shows the same one. Drawing a new one
+     * therefore locks every session at once, the one pressing included,
+     * without anyone having to change anything.
      *
-     * Elle change aussi quand le mot de passe change ou disparaît : sans
-     * cela, celui qui avait ouvert avec l'ancien resterait dedans, et
-     * remplacer un mot de passe compromis n'aurait servi à rien.
+     * It also changes when the password changes or goes away: otherwise,
+     * whoever had opened with the old one would stay in, and replacing a
+     * compromised password would have achieved nothing.
      */
     #[ORM\Column(length: 32, nullable: true)]
     protected ?string $driveLockGeneration = null;
+
+    /**
+     * When the space was moved to the trash; null, it is alive.
+     *
+     * A soft delete, like the deliverables': a space carries months of a
+     * customer's work, and deleting it by mistake took everything with it,
+     * with no way back. In the trash, it leaves the lists, the search, the
+     * counts, the editorial calendar and the Planning; its screens, its
+     * customer page and its access links answer like an unknown address.
+     * Nothing is destroyed: restoring puts everything back as it was, and only
+     * permanent deletion and the scheduled purge do what the old deletion
+     * did.
+     *
+     * A space in the trash still counts for its customer: the sheet cannot be
+     * deleted until it is destroyed for good.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $deletedAt = null;
 
     /** @var Collection<int, CustomerSpaceMemberInterface> */
     #[ORM\OneToMany(targetEntity: CustomerSpaceMemberInterface::class, mappedBy: 'space', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -248,6 +293,23 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
         return CustomerSpaceStatusEnum::Archived === $this->status;
     }
 
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isTrashed(): bool
+    {
+        return $this->deletedAt instanceof DateTimeImmutable;
+    }
+
     public function getColourSlot(): int
     {
         return $this->colourSlot;
@@ -295,7 +357,7 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
         return $this;
     }
 
-    /** L'onglet Drive est-il fermé par un mot de passe ? */
+    /** Is the Drive tab locked by a password? */
     public function isDriveLocked(): bool
     {
         return null !== $this->drivePassword && '' !== $this->drivePassword;
@@ -358,6 +420,18 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static
     {
         $this->documentFolder = $documentFolder;
+
+        return $this;
+    }
+
+    public function getNoteSpace(): ?NoteSpaceInterface
+    {
+        return $this->noteSpace;
+    }
+
+    public function setNoteSpace(?NoteSpaceInterface $noteSpace): static
+    {
+        $this->noteSpace = $noteSpace;
 
         return $this;
     }

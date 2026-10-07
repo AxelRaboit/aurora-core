@@ -13,12 +13,12 @@
  *     → "/suite/parameters/site%2Fname"
  *
  * @param {string} template
- * @param {Record<string, string|number>} params
+ * @param {Record<string, string|number>} parameters
  * @returns {string}
  */
-export function buildPath(template, params) {
+export function buildPath(template, parameters) {
     let result = template;
-    for (const [name, value] of Object.entries(params ?? {})) {
+    for (const [name, value] of Object.entries(parameters ?? {})) {
         result = result.replaceAll(
             `__${name}__`,
             encodeURIComponent(String(value)),

@@ -1,20 +1,20 @@
 <script setup>
 /**
- * La fiche d'un client, telle qu'on la lit.
+ * A customer's sheet, as it is read.
  *
- * **Le même composant des deux côtés, et c'est le point.** Le studio voit un
- * formulaire, puis ceci en dessous ; le client ne voit que ceci. Ce que le
- * studio relit est donc exactement ce que le client a sous les yeux, et non
- * une seconde version qui pourrait en différer sans que personne s'en
- * aperçoive - la raison pour laquelle il n'existe qu'une sérialisation de la
- * fiche côté serveur.
+ * **The same component on both sides, and that is the point.** The studio
+ * sees a form, then this below it; the customer only sees this. What the
+ * studio reads back is therefore exactly what the customer has in front of
+ * them, and not a second version that could differ from it without anyone
+ * noticing - the reason there is only one serialization of the sheet on the
+ * server side.
  *
- * **Les champs vides n'apparaissent pas.** Une fiche où tout est facultatif et
- * où chaque ligne est dessinée quand même est une fiche faite de tirets : on
- * lit surtout ce qui manque. Ce qui est rempli se lit, le reste n'existe pas.
+ * **Empty fields do not appear.** A sheet where everything is optional and
+ * every row is drawn anyway is a sheet made of dashes: what you mostly read
+ * is what is missing. What is filled in is read, the rest does not exist.
  *
- * Les numéros et les adresses sont cliquables : sur téléphone, c'est la
- * différence entre une fiche et un carnet d'adresses.
+ * Numbers and addresses are clickable: on a phone, that is the difference
+ * between a sheet and an address book.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -22,7 +22,7 @@ import { AtSign, Building2, ExternalLink, FileText, Hash, MapPin, Phone, Smartph
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 
 const props = defineProps({
-    /** La forme que `CustomerInformationSerializer` rend, ou `null`. */
+    /** The shape `CustomerInformationSerializer` returns, or `null`. */
     information: { type: Object, default: null },
 });
 
@@ -31,18 +31,18 @@ const { t } = useI18n();
 const info = computed(() => props.information ?? {});
 
 /**
- * Les lignes à dessiner, dans l'ordre où on les lit.
+ * The rows to draw, in the order they are read.
  *
- * Une table plutôt qu'une suite de `v-if` : l'ordre se lit d'un coup, ajouter
- * un champ est une ligne, et rien ne peut être dessiné deux fois.
+ * A table rather than a series of `v-if`: the order reads at a glance, adding
+ * a field is one line, and nothing can be drawn twice.
  */
 const ROWS = [
     { key: "siret", labelKey: "shared.space_information.siret", icon: Hash },
     { key: "siren", labelKey: "shared.space_information.siren", icon: Hash },
-    { key: "phone", labelKey: "shared.space_information.phone", icon: Smartphone, href: (v) => `tel:${v.replace(/\s/g, "")}` },
-    { key: "landline", labelKey: "shared.space_information.landline", icon: Phone, href: (v) => `tel:${v.replace(/\s/g, "")}` },
-    { key: "email", labelKey: "shared.space_information.email", icon: AtSign, href: (v) => `mailto:${v}` },
-    { key: "postalAddress", labelKey: "shared.space_information.postal_address", icon: MapPin, multiline: true },
+    { key: "phone", labelKey: "shared.space_information.phone", icon: Smartphone, href: (value) => `tel:${value.replace(/\s/g, "")}` },
+    { key: "landline", labelKey: "shared.space_information.landline", icon: Phone, href: (value) => `tel:${value.replace(/\s/g, "")}` },
+    { key: "email", labelKey: "shared.space_information.email", icon: AtSign, href: (value) => `mailto:${value}` },
+    { key: "postalAddress", labelKey: "shared.space_information.registered_office", icon: MapPin, multiline: true },
 ];
 
 const rows = computed(() => ROWS.filter((row) => {
@@ -71,9 +71,9 @@ const empty = computed(() => 0 === rows.value.length && 0 === links.value.length
             :hint="t('shared.space_information.empty_hint')"
         />
 
-        <!-- Une colonne sur téléphone, deux à partir de `sm` : une fiche
-             d'identité se lit en paires libellé / valeur, et deux colonnes sur
-             375 px coupent les adresses au milieu d'un mot. -->
+        <!-- One column on phones, two from `sm` up: an identity sheet reads
+             as label / value pairs, and two columns on 375 px cut addresses
+             in the middle of a word. -->
         <dl v-if="rows.length" class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
             <div v-for="row in rows" :key="row.key" class="min-w-0">
                 <dt class="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted">
@@ -97,8 +97,8 @@ const empty = computed(() => 0 === rows.value.length && 0 === links.value.length
             <p class="text-xs uppercase tracking-wide text-muted">{{ t("shared.space_information.links") }}</p>
             <ul class="space-y-1.5">
                 <li v-for="(link, index) in links" :key="index">
-                    <!-- `noopener` avec `_blank` : sans lui la page ouverte
-                         garde une poignée sur celle-ci par `window.opener`. -->
+                    <!-- `noopener` with `_blank`: without it the opened page
+                         keeps a handle on this one through `window.opener`. -->
                     <a
                         :href="link.url"
                         target="_blank"

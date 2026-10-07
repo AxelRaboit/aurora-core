@@ -4,41 +4,41 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Configuration\Theme\Enum;
 
-use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckFontPairEnum;
 
 /**
- * La famille dans laquelle un thème compose toute l'application.
+ * The family in which a theme sets the whole application.
  *
- * **Une liste close, et pas un champ libre.** La CSP d'Aurora pose
- * `font-src 'self' data:` : une police appelée par son nom seul n'arrive
- * jamais, elle est résolue par le système du visiteur ou pas du tout. Les
- * familles proposées ici sont donc celles qu'`app.css` embarque, une par
- * paquet `@fontsource`, et un champ où on taperait un nom produirait des sites
- * composés dans une police que personne n'a. C'est la même raison que pour
- * {@see DeckFontPairEnum}, à une autre échelle.
+ * **A closed list, not a free field.** Aurora's CSP sets
+ * `font-src 'self' data:`: a font called by its name alone never arrives, it
+ * is resolved by the visitor's system or not at all. The families offered
+ * here are therefore the ones `app.css` bundles, one per `@fontsource`
+ * package, and a field where a name is typed would produce sites set in a
+ * font nobody has. It is the same reason as for {@see DeckFontPairEnum}, at
+ * another scale.
  *
- * **Cinq, choisies pour se distinguer les unes des autres.** Une géométrique,
- * une neutre d'interface, une grotesque, une arrondie et une à empattements :
- * le choix ne vaut que si passer de l'une à l'autre se voit.
+ * **Five, chosen to stand apart from each other.** A geometric, a neutral
+ * interface one, a grotesque, a rounded one and a serif: the choice is only
+ * worth something if switching from one to another shows.
  *
- * Ajouter une famille veut dire trois gestes qui vont ensemble : le cas ici,
- * ses six graisses importées dans `app.css`, et son paquet en dépendance.
+ * Adding a family means three steps that go together: the case here, its six
+ * weights imported in `app.css`, and its package as a dependency.
  */
 enum ThemeFontEnum: string
 {
-    /** Géométrique. La police historique d'Aurora, et son défaut. */
+    /** Geometric. Aurora's historical font, and its default. */
     case Poppins = 'poppins';
 
-    /** Neutre, dessinée pour les écrans. Se fait oublier. */
+    /** Neutral, drawn for screens. Goes unnoticed. */
     case Inter = 'inter';
 
-    /** Grotesque, un peu plus large et plus chaleureuse qu'Inter. */
+    /** Grotesque, a little wider and warmer than Inter. */
     case WorkSans = 'work-sans';
 
-    /** Arrondie. Le ton le moins institutionnel de la liste. */
+    /** Rounded. The least institutional tone of the list. */
     case Nunito = 'nunito';
 
-    /** À empattements. Fait lire la page comme un texte plutôt qu'un écran. */
+    /** Serif. Makes the page read as a text rather than a screen. */
     case Lora = 'lora';
 
     case PlayfairDisplay = 'playfair-display';
@@ -46,20 +46,19 @@ enum ThemeFontEnum: string
     case SpaceGrotesk = 'space-grotesk';
 
     /**
-     * Les piles de secours servent deux fois : le temps que le fichier arrive,
-     * et pour toujours si la requête échoue.
+     * The fallback stacks serve twice: while the file arrives, and forever if
+     * the request fails.
      */
     private const string SANS_FALLBACK = 'ui-sans-serif, system-ui, sans-serif';
 
     private const string SERIF_FALLBACK = 'ui-serif, Georgia, "Times New Roman", serif';
 
     /**
-     * La famille qu'une configuration de thème désigne, ou le défaut.
+     * The family a theme configuration names, or the default.
      *
-     * Tolère tout ce que `Theme::config` peut contenir : la colonne est un
-     * JSON libre, une clé peut y avoir été écrite à la main ou avoir survécu à
-     * la suppression d'un cas, et un écran composé dans Poppins vaut mieux
-     * qu'une page d'erreur.
+     * Tolerates anything `Theme::config` can hold: the column is free JSON, a
+     * key may have been written there by hand or have survived the removal of
+     * a case, and a screen set in Poppins is better than an error page.
      */
     public static function fromConfig(mixed $raw): self
     {
@@ -72,11 +71,11 @@ enum ThemeFontEnum: string
     }
 
     /**
-     * La valeur CSS complète, telle qu'elle est posée sur `--th-font-sans`.
+     * The full CSS value, as it is set on `--th-font-sans`.
      *
-     * Le nom de la famille est celui que déclarent les `@font-face` de
-     * `@fontsource`, guillemets compris : « Work Sans » ne se résout pas sans
-     * eux.
+     * The family name is the one declared by the `@font-face` rules of
+     * `@fontsource`, quotes included: "Work Sans" does not resolve without
+     * them.
      */
     public function stack(): string
     {
@@ -92,8 +91,8 @@ enum ThemeFontEnum: string
     }
 
     /**
-     * Le nom de la famille, qui est un nom propre : il ne se traduit pas et
-     * ne passe donc pas par le catalogue.
+     * The family name, which is a proper name: it is not translated and so
+     * does not go through the catalogue.
      */
     public function label(): string
     {
@@ -108,7 +107,7 @@ enum ThemeFontEnum: string
         };
     }
 
-    /** La ligne qui dit à quoi la famille ressemble, elle traduite. */
+    /** The line that says what the family looks like, which is translated. */
     /**
      * Space Grotesk is drawn without an italic: its package ships none, and
      * the browser slants the upright when a page asks for one.
@@ -124,9 +123,9 @@ enum ThemeFontEnum: string
     }
 
     /**
-     * De quoi peupler le sélecteur du back-office : la valeur stockée, le nom
-     * affiché, la clé de description et la pile, pour que l'aperçu se compose
-     * dans la police proposée sans que le JavaScript redéclare les piles.
+     * What to fill the back-office selector with: the stored value, the
+     * displayed name, the description key and the stack, so the preview is set
+     * in the offered font without the JavaScript declaring the stacks again.
      *
      * @return list<array{value: string, label: string, descriptionKey: string, stack: string}>
      */

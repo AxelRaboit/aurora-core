@@ -334,7 +334,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
-    /** Neither « nobody », nor the previous author, nor the author, depending on the road taken. */
+    /** Neither "nobody", nor the previous author, nor the author, depending on the road taken. */
     public function testASpaceDeliverableBelongsToWhoCreatedOrDuplicatedIt(): void
     {
         $space = $this->givenSpace();
@@ -432,13 +432,13 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $this->client->loginUser($this->admin, 'admin');
 
         // More successes than the hourly limit: they do not count.
-        for ($i = 0; $i < 25; ++$i) {
+        for ($attempt = 0; $attempt < 25; ++$attempt) {
             $this->client->request('POST', sprintf('/deliverables/%s/unlock', $token), ['password' => 'phrase secrète ']);
             self::assertResponseRedirects(sprintf('/deliverables/%s', $token));
         }
 
         // Twenty failures, then the wall.
-        for ($i = 0; $i < 20; ++$i) {
+        for ($attempt = 0; $attempt < 20; ++$attempt) {
             $this->client->request('POST', sprintf('/deliverables/%s/unlock', $token), ['password' => 'faux']);
             self::assertResponseIsSuccessful();
         }
@@ -611,7 +611,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         self::fail(sprintf('Le livrable « %s » n\'est pas revenu dans la liste.', $title));
     }
 
-    /** @return array<string, mixed> ce que l'éditeur enverrait, sans rien changer */
+    /** @return array<string, mixed> what the editor would send, without changing anything */
     private function editorPayload(int $id, ?CustomerSpace $space = null): array
     {
         $entity = $this->find($id);

@@ -13,6 +13,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
@@ -63,6 +64,7 @@ class SpaceChatController extends AbstractController
         protected readonly SpaceChatViewBuilder $viewBuilder,
         protected readonly UserRepository $users,
         protected readonly Security $security,
+        protected readonly ClientVisibility $clientVisibility,
     ) {}
 
     /**
@@ -86,11 +88,11 @@ class SpaceChatController extends AbstractController
     }
 
     /**
-     * Ce qui précède ce que la page tient déjà.
+     * What comes before what the page already holds.
      *
-     * Le repère est le plus vieux message affiché, pas un numéro de page : une
-     * conversation où quelqu'un écrit pendant qu'on remonte décalerait tout, et
-     * le lecteur verrait deux fois la même ligne.
+     * The marker is the oldest message shown, not a page number: a
+     * conversation where someone writes while the reader scrolls up would shift
+     * everything, and the reader would see the same line twice.
      */
     #[Route('/{channelId}/older/{beforeId}', name: '_older', requirements: ['channelId' => '\d+', 'beforeId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function older(
@@ -105,7 +107,7 @@ class SpaceChatController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->olderPayload($channel, $beforeId));
     }
 
-    /** Retire une conversation privée de sa propre liste, sans rien effacer. */
+    /** Removes a private conversation from one's own list, without erasing anything. */
     #[Route('/{channelId}/hide', name: '_hide', requirements: ['channelId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
     public function hide(
@@ -116,14 +118,14 @@ class SpaceChatController extends AbstractController
         $this->assertOwned($space, $channel->getSpace()->getId());
         $this->assertInRoom($channel);
 
-        $me = $this->security->getUser();
+        $currentUser = $this->security->getUser();
 
-        if (!$me instanceof CoreUserInterface) {
+        if (!$currentUser instanceof CoreUserInterface) {
             return $this->jsonInvalidInput(['channel' => 'suite.studio.space_chat.errors.needs_account']);
         }
 
         try {
-            $this->channels->hideDirect($channel, $me, null);
+            $this->channels->hideDirect($channel, $currentUser, null);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
@@ -177,8 +179,8 @@ class SpaceChatController extends AbstractController
         $this->assertInRoom($channel);
         $this->assertOwned($space, $message->getSpace()->getId());
 
-        // Un message d'un autre salon, nommé sous celui-ci : l'appartenance au
-        // salon de l'adresse ne dirait rien de celui du message.
+        // A message from another room, named under this one: belonging to the
+        // address's room would say nothing about the message's room.
         if ($message->getChannel()->getId() !== $channel->getId()) {
             throw $this->createNotFoundException();
         }
@@ -198,9 +200,16 @@ class SpaceChatController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $name = Str::trimFromArray($payload, 'name');
+        $openToClient = true === ($payload['openToClient'] ?? false);
+
+        // A channel is born internal; creating it shown to the client is
+        // showing it to them, and that requires the right to share the space.
+        if (!$this->clientVisibility->allowsChange(false, $openToClient)) {
+            return $this->jsonForbidden();
+        }
 
         try {
-            $channel = $this->channels->create($space, $name, (bool) ($payload['openToClient'] ?? false));
+            $channel = $this->channels->create($space, $name, $openToClient);
 
             // Whoever opened the room is in it. Without this the room would
             // vanish from its author's own list, which reads as a room that
@@ -237,9 +246,14 @@ class SpaceChatController extends AbstractController
         return $this->jsonSuccess($this->channelsPayload($space));
     }
 
-    /** Whether the client reads this room. The one setting that lets something out of the studio. */
+    /**
+     * Whether the client reads this room: shown to the client or hidden from
+     * them, under the right to share the space like everything else a space
+     * can show.
+     */
     #[Route('/channels/{channelId}/audience', name: '_channel_audience', requirements: ['channelId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(ClientVisibility::PRIVILEGE)]
     public function channelAudience(
         CustomerSpace $space,
         #[MapEntity(id: 'channelId')]
@@ -250,7 +264,7 @@ class SpaceChatController extends AbstractController
         $this->assertInRoom($channel);
 
         try {
-            $this->channels->setOpenToClient($channel, (bool) ($this->decodeJson($request)['openToClient'] ?? false));
+            $this->channels->setOpenToClient($channel, true === ($this->decodeJson($request)['openToClient'] ?? false));
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
@@ -312,19 +326,19 @@ class SpaceChatController extends AbstractController
     }
 
     /**
-     * Retire quelqu'un d'un canal.
+     * Removes someone from a channel.
      *
-     * Le pendant d'inviter, qui manquait : une équipe change, et un canal dont
-     * on ne peut que grossir la liste finit par n'en être plus un.
+     * The counterpart of inviting, which was missing: a team changes, and a
+     * channel whose list can only grow ends up no longer being one.
      *
-     * **Rien ne s'efface.** Ce que la personne a écrit reste dans le canal, avec
-     * son nom : un message est un fait daté, pas une propriété qu'on emporte en
-     * partant. Elle cesse simplement de le voir et d'y écrire, et la
-     * réinviter la remet où elle était.
+     * **Nothing is erased.** What the person wrote stays in the channel, with
+     * their name: a message is a dated fact, not a property one takes away when
+     * leaving. They simply stop seeing it and writing in it, and inviting them
+     * again puts them back where they were.
      *
-     * Le membre arrive par son identifiant et non par son compte, parce que
-     * c'est la ligne qu'on retire et non la personne : elle peut être dans
-     * d'autres canaux du même espace, et y rester.
+     * The member comes by its id and not by its account, because it is the row
+     * being removed and not the person: they can be in other channels of the
+     * same space, and stay there.
      */
     #[Route('/channels/{channelId}/members/{memberId}/remove', name: '_channel_uninvite', requirements: ['channelId' => '\\d+', 'memberId' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
@@ -338,8 +352,8 @@ class SpaceChatController extends AbstractController
         $this->assertOwned($space, $channel->getSpace()->getId());
         $this->assertInRoom($channel);
 
-        // Le membre d'un autre salon nommé sous celui-ci : deux entités que
-        // l'URL apporte séparément, donc deux vérifications.
+        // The member of another room named under this one: two entities the
+        // URL brings separately, so two checks.
         if ($member->getChannel()->getId() !== $channel->getId()) {
             throw $this->createNotFoundException();
         }
@@ -363,11 +377,11 @@ class SpaceChatController extends AbstractController
     #[IsGranted('studio.spaces.edit')]
     public function openDirect(CustomerSpace $space, Request $request): JsonResponse
     {
-        $me = $this->security->getUser();
+        $currentUser = $this->security->getUser();
         $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
         $other = $userId > 0 ? $this->users->find($userId) : null;
 
-        if (!$me instanceof CoreUserInterface) {
+        if (!$currentUser instanceof CoreUserInterface) {
             return $this->jsonInvalidInput(['participant' => 'suite.studio.space_chat.errors.needs_account']);
         }
 
@@ -376,7 +390,7 @@ class SpaceChatController extends AbstractController
         }
 
         try {
-            $channel = $this->channels->openDirect($space, $me, null, $other, null);
+            $channel = $this->channels->openDirect($space, $currentUser, null, $other, null);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
@@ -415,11 +429,11 @@ class SpaceChatController extends AbstractController
             return;
         }
 
-        $me = $this->security->getUser();
+        $currentUser = $this->security->getUser();
 
-        if ($me instanceof CoreUserInterface) {
+        if ($currentUser instanceof CoreUserInterface) {
             foreach ($channel->getMembers() as $member) {
-                if ($member->getUser()?->getId() === $me->getId()) {
+                if ($member->getUser()?->getId() === $currentUser->getId()) {
                     return;
                 }
             }

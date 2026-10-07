@@ -44,6 +44,9 @@ class SpaceContentAttachmentRepository extends ResolveTargetEntityRepository
             ->join('a.item', 'i')
             ->join('a.document', 'd')
             ->where('i.space = :space')
+            // Not the threads of contents in the trash: they stay in the
+            // database, and come back with their content.
+            ->andWhere('i.deletedAt IS NULL')
             ->setParameter('space', $space)
             ->orderBy('a.position', Order::Ascending->value)
             ->addOrderBy('a.id', Order::Ascending->value)

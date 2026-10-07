@@ -124,8 +124,8 @@ final class SettingsController extends AbstractController
             $value = $normalised;
         }
 
-        // Une couleur finit dans le HTML d'un e-mail ou d'une page : un
-        // hexadécimal à six chiffres, rien d'autre.
+        // A colour ends up in the HTML of an email or a page: a six-digit
+        // hexadecimal, nothing else.
         if ('color' === $field->type) {
             $value = mb_strtolower(mb_trim((string) $value));
             if (1 !== preg_match('/^#[0-9a-f]{6}$/', $value)) {
@@ -167,7 +167,7 @@ final class SettingsController extends AbstractController
             'key' => $key,
             'value' => $value,
             'mediaUrl' => 'media' === $field->type ? $this->viewBuilder->resolveMediaUrl($value) : null,
-            // Les règles à jour, que l'écran pose aussitôt dans la page.
+            // The updated rules, which the screen puts in the page straight away.
             'css' => ApplicationParameterEnum::SuitePalette->value === $key ? SuitePalette::css(SuitePalette::fromStored($value)) : null,
         ]);
     }

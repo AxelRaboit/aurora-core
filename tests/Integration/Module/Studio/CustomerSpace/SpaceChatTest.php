@@ -66,15 +66,15 @@ final class SpaceChatTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        // Le compteur du limiteur survit au processus : une classe qui écrit
-        // comme un invité dépense un budget horaire partagé, et vire au
-        // rouge au troisième lancement de l'heure - par un 429 sur une
-        // route que le test ne voulait pas éprouver.
+        // The rate limiter's counter outlives the process: a class that writes
+        // as a guest spends a shared hourly budget, and turns red on the
+        // third run within the hour - through a 429 on a route the test did
+        // not mean to exercise.
         $this->resetRateLimiter('space_guest_write');
 
-        // Le navigateur pose cet en-tête sur chaque appel, et les routes
-        // publiques l'exigent : ce qui les protège est un secret dans
-        // l'adresse, et une adresse se transfère.
+        // The browser sets this header on every call, and public routes
+        // require it: what protects them is a secret in the address, and an
+        // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
@@ -171,7 +171,7 @@ final class SpaceChatTest extends IntegrationTestCase
      * nothing: the same 404 a stranger gets, so a leaked address does not
      * reveal what it holds.
      */
-    /** Sans le droit d'écrire ici, le même refus qu'un inconnu. */
+    /** Without the right to write here, the same refusal as a stranger. */
     public function testALinkThatMayNotChatIsRefused(): void
     {
         [, $url] = $this->givenLinkedSpace(canComment: true, canChat: false);
@@ -182,12 +182,12 @@ final class SpaceChatTest extends IntegrationTestCase
     }
 
     /**
-     * Commenter une fiche et parler dans la discussion sont deux droits.
+     * Commenting on an item and talking in the conversation are two rights.
      *
-     * **C'est tout le sujet de la séparation.** Un seul droit commandait les
-     * deux : cocher une case pour autoriser une remarque sous une publication
-     * ouvrait aussi le fil de la relation. Une agence partenaire peut annoter
-     * un plan sans parler dans le salon du client, et l'inverse existe aussi.
+     * **That is the whole point of the split.** A single right controlled
+     * both: ticking a box to allow a remark under a publication also opened
+     * the relationship thread. A partner agency can annotate a plan without
+     * talking in the client's channel, and the reverse exists too.
      */
     public function testALinkMayChatWithoutBeingAbleToComment(): void
     {
@@ -362,7 +362,9 @@ final class SpaceChatTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
         $this->givenMember($space);
 
-        $column = static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space)[0];
+        // Relecture (third step): a new space only shows the client the
+        // Relecture and Publié columns, and this item must be on their page.
+        $column = static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space)[2];
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Visuel de rentrée',
             'columnId' => $column->getId(),
@@ -498,7 +500,7 @@ final class SpaceChatTest extends IntegrationTestCase
     }
 
     /** @return array{0: CustomerSpace, 1: string} */
-    /** @param bool|null $canChat null = le même que `canComment`, comme avant la séparation. */
+    /** @param bool|null $canChat null = the same as `canComment`, as before the split. */
     private function givenLinkedSpace(bool $canComment, ?bool $canChat = null): array
     {
         $space = $this->givenSpace();

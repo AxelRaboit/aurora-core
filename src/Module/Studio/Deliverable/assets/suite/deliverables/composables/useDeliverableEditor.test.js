@@ -13,12 +13,12 @@ vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 vi.mock("vue-sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 /**
- * L'enregistrement d'un livrable, tel que l'éditeur le vit.
+ * Saving a deliverable, as the editor experiences it.
  *
- * Ce qui se casserait sans bruit : un lecteur seul dont Ctrl+S part au
- * serveur pour y recevoir un 403, un enregistrement fondé sur une version
- * périmée qui efface le travail d'un collègue, et un message d'erreur qui
- * dit « n'a pas pu être enregistré » quand la vraie raison est lisible.
+ * What would break silently: a read-only user whose Ctrl+S goes to the server
+ * to get a 403, a save based on a stale version that erases a colleague's
+ * work, and an error message that says "n'a pas pu être enregistré" when the
+ * real reason is readable.
  */
 const DELIVERABLE = {
     id: 1,
@@ -86,6 +86,37 @@ describe("useDeliverableEditor", () => {
         // It then holds the version the server answered, for the next save.
         expect(editor.form.value.updatedAt).toBe("2026-10-05T10:05:00+00:00");
         expect(editor.dirty.value).toBe(false);
+        wrapper.unmount();
+    });
+
+    it("sends the template flag and the client of a Studio deliverable, and counts them as changes", async () => {
+        request.mockResolvedValue({ success: true, deliverable: {} });
+        const wrapper = mountEditor();
+
+        editor.form.value.template = true;
+        await nextTick();
+        expect(editor.dirty.value).toBe(true);
+        editor.form.value.customerId = 12;
+        await editor.save();
+
+        const sent = request.mock.calls[0][1];
+        expect(sent.template).toBe(true);
+        expect(sent.customerId).toBe(12);
+        wrapper.unmount();
+    });
+
+    it("sends neither for a space deliverable: its space says both", async () => {
+        request.mockResolvedValue({ success: true, deliverable: {} });
+        const wrapper = mountEditor({
+            deliverable: { ...DELIVERABLE, scope: null },
+        });
+
+        editor.form.value.title = "Audit du client";
+        await editor.save();
+
+        const sent = request.mock.calls[0][1];
+        expect(sent).not.toHaveProperty("template");
+        expect(sent).not.toHaveProperty("customerId");
         wrapper.unmount();
     });
 

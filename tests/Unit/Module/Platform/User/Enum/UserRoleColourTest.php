@@ -35,8 +35,8 @@ final class UserRoleColourTest extends TestCase
      */
     public function testNoTwoRolesShareAColour(): void
     {
-        $badges = array_map(static fn (UserRoleEnum $r): string => $r->badgeColor(), UserRoleEnum::cases());
-        $slots = array_map(static fn (UserRoleEnum $r): int => $r->chartSlot(), UserRoleEnum::cases());
+        $badges = array_map(static fn (UserRoleEnum $role): string => $role->badgeColor(), UserRoleEnum::cases());
+        $slots = array_map(static fn (UserRoleEnum $role): int => $role->chartSlot(), UserRoleEnum::cases());
 
         self::assertSame($badges, array_values(array_unique($badges)));
         self::assertSame($slots, array_values(array_unique($slots)));

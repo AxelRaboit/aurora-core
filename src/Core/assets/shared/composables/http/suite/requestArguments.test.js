@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO_ROOT, sourcesEndingWith } from "@/tests/helpers/phpSources.js";
+import {
+    REPOSITORY_ROOT,
+    sourcesEndingWith,
+} from "@/tests/helpers/phpSources.js";
 
 /**
  * The second argument of `request()` is the body, not the options.
@@ -14,20 +17,24 @@ import { REPO_ROOT, sourcesEndingWith } from "@/tests/helpers/phpSources.js";
  */
 
 /** Where each `request(` call's first argument ends, strings and nesting skipped. */
-function secondArguments(src) {
+function secondArguments(source) {
     const found = [];
     const pattern = /(?<![\w.$])request\(/g;
     let match;
 
-    while ((match = pattern.exec(src)) !== null) {
+    while ((match = pattern.exec(source)) !== null) {
         let depth = 0;
         let quote = null;
 
-        for (let i = match.index + match[0].length; i < src.length; i += 1) {
-            const char = src[i];
+        for (
+            let position = match.index + match[0].length;
+            position < source.length;
+            position += 1
+        ) {
+            const char = source[position];
 
             if (quote) {
-                if ("\\" === char) i += 1;
+                if ("\\" === char) position += 1;
                 else if (char === quote) quote = null;
                 continue;
             }
@@ -38,8 +45,11 @@ function secondArguments(src) {
                 if (0 === depth) break;
                 depth -= 1;
             } else if ("," === char && 0 === depth) {
-                const line = src.slice(0, match.index).split("\n").length;
-                found.push({ line, rest: src.slice(i + 1, i + 80) });
+                const line = source.slice(0, match.index).split("\n").length;
+                found.push({
+                    line,
+                    rest: source.slice(position + 1, position + 80),
+                });
                 break;
             }
         }
@@ -57,7 +67,7 @@ describe("request() arguments", () => {
                     .filter(({ rest }) => /^\s*\{\s*method\s*:/.test(rest))
                     .map(
                         ({ line }) =>
-                            `${path.relative(REPO_ROOT, file)}:${line}`,
+                            `${path.relative(REPOSITORY_ROOT, file)}:${line}`,
                     ),
             );
 

@@ -132,12 +132,12 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
     }
 
     /**
-     * Une échéance de studio, pas une parution.
+     * A studio deadline, not a publication.
      *
-     * La carte garde sa date et reste sur le tableau ; ce qui change est
-     * qu'elle ne s'invite ni dans le mois de l'espace ni dans l'agenda
-     * partagé. C'est ce second point qui se serait oublié : un calendrier sur
-     * deux aurait continué de la montrer, et la case aurait menti.
+     * The card keeps its date and stays on the board; what changes is that it
+     * shows up neither in the space's month nor in the shared calendar. The
+     * second point is the one that would have been forgotten: one calendar
+     * out of two would have kept showing it, and the checkbox would have lied.
      */
     public function testACardKeptOffTheCalendarIsNeverAnnounced(): void
     {
@@ -145,12 +145,12 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         $item = $this->givenItem($space, 'Relancer le photographe', '2026-11-12T10:00', showOnCalendar: false);
 
         self::assertFalse($item['showOnCalendar']);
-        // La date est bien gardée : c'est une échéance, pas rien.
+        // The date is indeed kept: it is a deadline, not nothing.
         self::assertNotNull($item['scheduledAt']);
         self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
     }
 
-    /** Recocher la remet dans les deux calendriers, sans retaper la date. */
+    /** Ticking it again puts it back in both calendars, without retyping the date. */
     public function testCheckingItBackPutsTheCardOnTheCalendarAgain(): void
     {
         $space = $this->givenSpace('Espace repris', 6);
@@ -170,11 +170,11 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
     }
 
     /**
-     * Un appel qui ne connaît pas le champ ne fait disparaître personne.
+     * A call that does not know the field makes nothing disappear.
      *
-     * C'est le défaut qu'un booléen ajouté à une entrée existante produit :
-     * absent du corps, il vaudrait faux, et toutes les cartes enregistrées par
-     * un écran non mis à jour quitteraient le calendrier en silence.
+     * That is the defect a boolean added to an existing input produces: absent
+     * from the body, it would be false, and every card saved by a screen that
+     * was not updated would silently leave the calendar.
      */
     public function testAPayloadWithoutTheFieldLeavesTheCardOnTheCalendar(): void
     {

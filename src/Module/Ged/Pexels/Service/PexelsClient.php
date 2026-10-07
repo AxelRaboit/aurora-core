@@ -172,17 +172,17 @@ final readonly class PexelsClient
      */
     private function normalizePhoto(array $photo): array
     {
-        $src = (array) ($photo['src'] ?? []);
+        $sources = (array) ($photo['src'] ?? []);
 
         return [
             'id' => (string) ($photo['id'] ?? ''),
-            'url' => (string) ($src['original'] ?? ''),
+            'url' => (string) ($sources['original'] ?? ''),
             // Their smallest rendition, and only ever drawn in the picker's grid.
-            'thumbUrl' => (string) ($src['tiny'] ?? ''),
-            // Ce qu'on affiche quand l'image reste chez eux, comme le bandeau
-            // d'une note : l'originale fait souvent cinq mille pixels de
-            // large, ce qui est absurde pour une bande de deux cents.
-            'largeUrl' => (string) ($src['large2x'] ?? $src['large'] ?? $src['original'] ?? ''),
+            'thumbUrl' => (string) ($sources['tiny'] ?? ''),
+            // What is displayed when the image stays on their side, like a
+            // note's banner: the original is often five thousand pixels wide,
+            // which is absurd for a strip of two hundred.
+            'largeUrl' => (string) ($sources['large2x'] ?? $sources['large'] ?? $sources['original'] ?? ''),
             'width' => (int) ($photo['width'] ?? 0),
             'height' => (int) ($photo['height'] ?? 0),
             // Pexels writes an alt for most photos; it becomes our title and

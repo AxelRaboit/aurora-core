@@ -18,8 +18,8 @@ const PARTS = {
     hour12: false,
 };
 
-function pad(n) {
-    return String(n).padStart(2, "0");
+function pad(number) {
+    return String(number).padStart(2, "0");
 }
 
 function partsIn(instant, zone) {
@@ -55,9 +55,9 @@ export function toDisplay(iso, zone) {
         return iso;
     }
 
-    const p = partsIn(at, zone);
+    const wallClock = partsIn(at, zone);
 
-    return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}`;
+    return `${wallClock.year}-${pad(wallClock.month)}-${pad(wallClock.day)}T${pad(wallClock.hour)}:${pad(wallClock.minute)}:${pad(wallClock.second)}`;
 }
 
 /**
@@ -87,11 +87,17 @@ export function fromDisplay(local, zone) {
     );
 
     const offsetAt = (instant) => {
-        const p = partsIn(new Date(instant), zone);
+        const wallClock = partsIn(new Date(instant), zone);
 
         return (
-            Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) -
-            instant
+            Date.UTC(
+                wallClock.year,
+                wallClock.month - 1,
+                wallClock.day,
+                wallClock.hour,
+                wallClock.minute,
+                wallClock.second,
+            ) - instant
         );
     };
 
@@ -143,14 +149,21 @@ export function siteZone() {
  */
 export function offsetIn(iso, zone) {
     const at = new Date(iso);
-    const p = partsIn(at, zone);
+    const wallClock = partsIn(at, zone);
     const minutes = Math.round(
-        (Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) -
+        (Date.UTC(
+            wallClock.year,
+            wallClock.month - 1,
+            wallClock.day,
+            wallClock.hour,
+            wallClock.minute,
+            wallClock.second,
+        ) -
             Math.floor(at.getTime() / 1000) * 1000) /
             60000,
     );
     const sign = minutes < 0 ? "-" : "+";
-    const abs = Math.abs(minutes);
+    const absoluteMinutes = Math.abs(minutes);
 
-    return `${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
+    return `${sign}${pad(Math.floor(absoluteMinutes / 60))}:${pad(absoluteMinutes % 60)}`;
 }

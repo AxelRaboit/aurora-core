@@ -17,18 +17,18 @@ use Symfony\Component\Console\Tester\CommandTester;
 use function uniqid;
 
 /**
- * La pose en masse de l'effet d'apparition.
+ * Setting the reveal effect in bulk.
  *
- * Le réglage ne se met pas tout seul sur quarante pages publiées avant lui,
- * et ce que la commande doit surtout garantir tient en deux phrases : elle
- * n'écrase jamais l'avis d'une zone, et elle demande les lignes au
- * normaliseur plutôt que de les deviner.
+ * The setting does not apply itself to forty pages published before it, and
+ * what the command must above all guarantee fits in two sentences: it never
+ * overwrites a zone's own choice, and it asks the normalizer for the rows
+ * rather than guessing them.
  *
- * La seconde vient d'une vraie erreur : lire `newRow` paraissait suffisant.
- * Il dit qu'une zone *ouvre* une ligne, pas qu'elle en partage une, et une
- * page peut n'en porter aucun tout en plaçant deux zones côte à côte par
- * leurs seules largeurs - ce qui était le cas de toute la démonstration
- * locale. D'où le test d'une paire écrite sans un seul `newRow`.
+ * The second comes from a real mistake: reading `newRow` looked sufficient.
+ * It says a zone *opens* a row, not that it shares one, and a page can carry
+ * none at all while placing two zones side by side by their widths alone -
+ * which was the case for the whole local demo. Hence the test of a pair
+ * written without a single `newRow`.
  */
 final class SetPostRevealCommandTest extends IntegrationTestCase
 {

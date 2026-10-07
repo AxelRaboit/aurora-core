@@ -18,44 +18,43 @@ use function random_bytes;
 use function sprintf;
 
 /**
- * La serrure de l'onglet Drive d'un espace.
+ * The lock on a space's Drive tab.
  *
- * **Elle vaut pour tout le monde, développeur compris**, et c'est la seule
- * façon qu'elle veuille dire quelque chose. Un mot de passe que le rôle le
- * plus élevé contourne ne protège de personne : il décore un écran.
+ * **It applies to everyone, developer included**, and that is the only way
+ * it means anything. A password the highest role bypasses protects from
+ * nobody: it decorates a screen.
  *
- * **Le désactiver demande de le saisir.** Sans cette règle, quiconque atteint
- * les réglages l'enlève en un clic, et la protection ne vaut plus que contre
- * un écran laissé ouvert. Avec elle, l'oubli devient possible : le secours est
- * `aurora:space:drive-password:clear`, sur le serveur. L'autorité qui débloque
- * est donc l'accès à la machine, qui est un vrai niveau d'autorité et pas une
- * case à cocher.
+ * **Turning it off requires entering it.** Without this rule, anyone
+ * reaching the settings removes it in one click, and the protection only
+ * holds against a screen left open. With it, forgetting becomes possible: the
+ * fallback is `aurora:space:drive-password:clear`, on the server. The
+ * authority that unlocks is therefore access to the machine, which is a real
+ * level of authority and not a checkbox.
  *
- * **Déverrouillé pour une session, pas pour toujours.** Se fermer avec le
- * navigateur est ce qu'on attend d'une serrure ; un cookie qui durerait des
- * semaines rendrait la saisie initiale décorative. Et par espace : en ouvrir
- * un n'ouvre pas les autres.
+ * **Unlocked for a session, not forever.** Closing with the browser is what
+ * is expected of a lock; a cookie lasting weeks would make the initial entry
+ * decorative. And per space: opening one does not open the others.
  *
- * **Et refermable pour tout le monde d'un coup.** Une session ne retient pas
- * « ouvert » mais la génération qu'elle a ouverte ; l'espace en porte une, et
- * en tirer une nouvelle périme toutes les sessions à la fois. C'est ce qui
- * permet de tout refermer sans changer le mot de passe, et ce qui fait qu'en
- * changer un referme vraiment.
+ * **And lockable again for everyone at once.** A session does not remember
+ * "open" but the generation it opened; the space carries one, and drawing a
+ * new one expires every session at once. That is what allows locking
+ * everything again without changing the password, and what makes changing
+ * one really lock.
  */
 final readonly class DriveLock
 {
     private const string SESSION_PREFIX = 'studio.drive.unlocked.';
 
     /**
-     * Ce qu'un mot de passe doit peser au minimum.
+     * The minimum a password must weigh.
      *
-     * **Ici et non dans le contrôleur qui le lisait.** La serrure est ce qui
-     * sait ce qu'est un mot de passe d'espace ; l'écran ne fait que le
-     * demander. Le jour où un second appelant en pose un, il n'aura pas à
-     * retrouver le chiffre pour être d'accord.
+     * **Here and not in the controller that used to read it.** The lock is
+     * what knows what a space password is; the screen only asks for it. The
+     * day a second caller sets one, it will not have to find the number again
+     * to agree.
      *
-     * Huit, le même plancher que partout ailleurs : plus sévère pour une
-     * porte intérieure que pour la porte d'entrée ne se justifierait pas.
+     * Eight, the same floor as everywhere else: stricter for an inner door
+     * than for the front door could not be justified.
      */
     public const int MIN_LENGTH = 8;
 
@@ -69,7 +68,7 @@ final readonly class DriveLock
         return $space->isDriveLocked();
     }
 
-    /** Fermé, et pas encore ouvert dans cette session. */
+    /** Locked, and not yet opened in this session. */
     public function isClosedFor(CustomerSpaceInterface $space): bool
     {
         return $this->isLocked($space) && !$this->isUnlocked($space);
@@ -87,11 +86,11 @@ final readonly class DriveLock
     }
 
     /**
-     * Ouvre pour cette session, si le mot de passe est le bon.
+     * Opens for this session, if the password is right.
      *
-     * Rend faux sans rien dire de plus : « mauvais mot de passe » est la seule
-     * réponse utile, et distinguer les cas n'apprendrait qu'à celui qui
-     * essaie.
+     * Returns false without saying anything more: "wrong password" is the
+     * only useful answer, and telling the cases apart would only teach
+     * whoever is trying.
      */
     public function unlock(CustomerSpaceInterface $space, string $password): bool
     {
@@ -99,9 +98,9 @@ final readonly class DriveLock
             return false;
         }
 
-        // Une génération au besoin : les espaces déjà fermés avant que
-        // celle-ci existe n'en portent aucune, et sans cet amorçage la bonne
-        // saisie n'ouvrirait jamais rien. L'appelant enregistre.
+        // A generation if needed: spaces already locked before it existed
+        // carry none, and without this seeding the right entry would never
+        // open anything. The caller saves.
         if (null === $space->getDriveLockGeneration()) {
             $space->setDriveLockGeneration(bin2hex(random_bytes(8)));
         }
@@ -111,13 +110,13 @@ final readonly class DriveLock
         return true;
     }
 
-    /** Referme dans cette session, sans toucher au mot de passe. */
+    /** Locks again in this session, without touching the password. */
     public function lock(CustomerSpaceInterface $space): void
     {
         $this->session()?->remove($this->key($space));
     }
 
-    /** Assez long pour être posé. */
+    /** Long enough to be set. */
     public function isAcceptable(string $password): bool
     {
         return mb_strlen($password) >= self::MIN_LENGTH;
@@ -135,19 +134,18 @@ final readonly class DriveLock
     }
 
     /**
-     * Pose ou remplace le mot de passe, et referme aussitôt.
+     * Sets or replaces the password, and locks right away.
      *
-     * **Y compris pour celui qui vient de le choisir**, et c'est un
-     * revirement assumé. Garder sa session ouverte était plus confortable :
-     * il venait de prouver qu'il connaissait le mot de passe, lui redemander
-     * semblait bureaucratique. Sauf qu'on ferme une porte pour la voir se
-     * fermer. Une serrure qu'on pose et qui ne change rien à l'écran ressemble
-     * à un réglage qui n'a pas pris, et le premier réflexe est de douter du
-     * produit.
+     * **Including for whoever just chose it**, and that is a deliberate
+     * reversal. Keeping their session open was more comfortable: they had
+     * just proved they knew the password, asking again seemed bureaucratic.
+     * Except that you lock a door to see it lock. A lock that is set and
+     * changes nothing on screen looks like a setting that did not take, and
+     * the first reflex is to doubt the product.
      *
-     * La ressaisie coûte cinq secondes et prouve trois choses d'un coup : que
-     * le mot de passe est bien enregistré, qu'il est celui qu'on croit, et
-     * qu'il ferme quelque chose.
+     * Typing it again costs five seconds and proves three things at once: that
+     * the password is indeed saved, that it is the one you think, and that it
+     * locks something.
      */
     public function set(CustomerSpaceInterface $space, string $password): void
     {
@@ -156,16 +154,15 @@ final readonly class DriveLock
     }
 
     /**
-     * Referme partout, sans toucher au mot de passe.
+     * Locks again everywhere, without touching the password.
      *
-     * **Le geste qu'on veut avoir sous la main sans rien avoir à changer.**
-     * Un écran resté ouvert sur un poste qu'on ne contrôle plus, quelqu'un à
-     * qui on a montré l'onglet, un doute : il faut pouvoir redemander la
-     * saisie à tout le monde sans imposer un nouveau mot de passe à ceux qui
-     * le connaissent déjà.
+     * **The gesture you want at hand without having to change anything.**
+     * A screen left open on a machine no longer under control, someone who
+     * was shown the tab, a doubt: it must be possible to ask everyone to enter
+     * it again without imposing a new password on those who already know it.
      *
-     * Celui qui appuie est refermé comme les autres : ne pas l'être ferait
-     * douter que le bouton ait agi, et il connaît le mot de passe.
+     * Whoever presses it is locked out like the others: not being so would
+     * cast doubt on whether the button worked, and they know the password.
      */
     public function revoke(CustomerSpaceInterface $space): void
     {
@@ -173,7 +170,7 @@ final readonly class DriveLock
         $this->lock($space);
     }
 
-    /** Rouvre l'onglet pour de bon. L'appelant a déjà vérifié le mot de passe. */
+    /** Reopens the tab for good. The caller has already checked the password. */
     public function clear(CustomerSpaceInterface $space): void
     {
         $space->setDrivePassword(null);
@@ -181,11 +178,11 @@ final readonly class DriveLock
     }
 
     /**
-     * Le hacheur que le projet configure, et non un choix local.
+     * The hasher the project configures, and not a local choice.
      *
-     * Un mot de passe d'espace n'a pas de raison d'être plus faible qu'un mot
-     * de passe de compte : en nommer un ici le ferait diverger le jour où le
-     * projet change le sien.
+     * A space password has no reason to be weaker than an account password:
+     * naming one here would make it drift the day the project changes its
+     * own.
      */
     private function hasher(): PasswordHasherInterface
     {
@@ -193,12 +190,12 @@ final readonly class DriveLock
     }
 
     /**
-     * La session, s'il y en a une.
+     * The session, if there is one.
      *
-     * **Nulle en console**, et c'est ce qui permet à la commande de secours
-     * d'appeler `clear()` comme l'écran plutôt que de rouvrir la porte à sa
-     * façon. Deux manières d'effacer un mot de passe finissent toujours par
-     * diverger, et c'est la moins souvent exécutée qui a tort.
+     * **Null in the console**, and that is what lets the fallback command call
+     * `clear()` like the screen rather than reopening the door its own way.
+     * Two ways of clearing a password always end up drifting apart, and the
+     * one run less often is the one that is wrong.
      */
     private function session(): ?SessionInterface
     {

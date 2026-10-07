@@ -39,6 +39,7 @@ use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFileServer;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
+use Aurora\Module\Studio\SpaceFile\Manager\SpaceFileManagerInterface;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -113,6 +114,7 @@ final class PublicSpaceController extends AbstractController
         private readonly DriveClient $drive,
         private readonly DriveFileServer $driveRelay,
         private readonly DriveArchive $driveArchives,
+        private readonly SpaceFileManagerInterface $spaceFileManager,
     ) {}
 
     /**
@@ -191,12 +193,11 @@ final class PublicSpaceController extends AbstractController
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        // **`isPreview()` avant le droit, et sur les six écritures.** Un
-        // aperçu recopie les droits du lien qu'il montre pour que l'écran soit
-        // le même ; il ne doit pas pour autant pouvoir répondre. Sans cette
-        // ligne, un clic distrait sur « Validé » enregistrerait une réponse au
-        // nom du client, et rien dans l'espace ne dirait qu'elle vient d'un
-        // aperçu.
+        // **`isPreview()` before the right, and on all six writes.** A
+        // preview copies the rights of the link it shows so that the screen is
+        // the same; that does not mean it may answer. Without this line, a
+        // careless click on "Validé" would record an answer in the client's
+        // name, and nothing in the space would say it came from a preview.
         if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canApprove()) {
             throw $this->createNotFoundException();
         }
@@ -228,21 +229,21 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * Valider plusieurs cartes d'un geste.
+     * Approve several cards in one gesture.
      *
-     * **La validation en lot existe, la demande de modification non.** Approuver
-     * dix contenus d'un coup dit une seule chose, dix fois ; demander une
-     * modification sans dire laquelle n'apprend rien au studio et l'oblige à
-     * rappeler le client pour comprendre. Une demande de modification reste donc
-     * attachée à une carte et à son commentaire, sur la route au singulier.
+     * **Batch approval exists, batch change requests do not.** Approving ten
+     * items at once says one thing, ten times; asking for a change without
+     * saying which one teaches the studio nothing and forces it to call the
+     * client back to understand. A change request therefore stays attached to
+     * one card and its comment, on the singular route.
      *
-     * Le même limiteur que la réponse unitaire, et une seule consommation pour
-     * l'appel : c'est un geste de l'utilisateur, pas dix, et le facturer dix
-     * fois fermerait la porte à celui qui range sa semaine.
+     * The same limiter as the single answer, and one consumption for the call:
+     * it is one user gesture, not ten, and charging it ten times would shut the
+     * door on someone sorting out their week.
      *
-     * Les cartes d'un autre espace sont ignorées en silence plutôt que
-     * refusées : la boucle ne s'arrête pas sur une, et un identifiant fabriqué
-     * n'apprend rien de plus qu'un 404.
+     * Cards from another space are silently ignored rather than refused: the
+     * loop does not stop on one, and a forged id teaches nothing more than a
+     * 404 would.
      */
     #[Route(
         '/{selector}/{token}/content/approve',
@@ -409,6 +410,63 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
+     * A file from the client, onto the space itself rather than a card.
+     *
+     * The same three walls as {@see self::attach()}, in the same order and for
+     * the same reasons: the upload limiter by address, the link's `canUpload`
+     * (answered like a stranger without it, and for a preview whatever it
+     * copied, since a preview never sends anything in the client's name), then
+     * {@see UploadPolicy::forSpaceGuests()} on the sniffed bytes, refused with
+     * a sentence the client can act on. The header guard of the other public
+     * writes comes first: a multipart form is exactly what another site could
+     * make the client's browser post.
+     *
+     * The answer is the space's files as this page lists them, so the page
+     * replaces its list rather than guessing what its own write did.
+     */
+    #[Route(
+        '/{selector}/{token}/files',
+        name: '_file_upload',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function uploadFile(string $selector, string $token, Request $request): JsonResponse
+    {
+        if (!$this->spaceGuestUploadLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $this->assertFromThisPage($request);
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canUpload()) {
+            throw $this->createNotFoundException();
+        }
+
+        $file = $request->files->get('file');
+
+        if (!$file instanceof UploadedFile) {
+            return $this->jsonInvalidInput(['file' => 'studio.public.space.errors.upload_required']);
+        }
+
+        $refusal = $this->uploadPolicies->forSpaceGuests()->refusalFor($file);
+
+        if ($refusal instanceof UploadRefusalEnum) {
+            return $this->jsonInvalidInput(['file' => match ($refusal) {
+                UploadRefusalEnum::TooLarge => 'studio.public.space.errors.upload_too_large',
+                UploadRefusalEnum::TypeRefused => 'studio.public.space.errors.upload_type_refused',
+                UploadRefusalEnum::Broken => 'studio.public.space.errors.upload_failed',
+            }]);
+        }
+
+        $this->spaceFileManager->uploadAsClient($link, $file);
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess($this->filesViewBuilder->publicView($link, $token));
+    }
+
+    /**
      * The space's own conversation, as it stands.
      *
      * **A read, and the reason the live layer is allowed to be absent.** A page
@@ -438,7 +496,7 @@ final class PublicSpaceController extends AbstractController
         return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
     }
 
-    /** Ce qui précède ce que la page du client tient déjà. */
+    /** What comes before what the client's page already holds. */
     #[Route(
         '/{selector}/{token}/chat/{channelId}/older/{beforeId}',
         name: '_chat_older',
@@ -458,22 +516,21 @@ final class PublicSpaceController extends AbstractController
         );
     }
 
-    // Il n'y a plus de conversation privée sans compte.
+    // There is no longer any private conversation without an account.
     //
-    // **Une route est partie d'ici, et c'est une décision de fond.** Un
-    // invité pouvait ouvrir une conversation avec n'importe quel membre de
-    // l'équipe, et recevait pour cela l'annuaire nominatif de l'espace. Le
-    // droit qui l'autorisait était « peut commenter » : cocher une case pour
-    // permettre une remarque sous une publication ouvrait en réalité une
-    // messagerie vers les salariés et donnait leurs noms.
+    // **A route left this place, and it is a deliberate decision.** A guest
+    // could open a conversation with any member of the team, and received the
+    // space's named directory to do so. The right that allowed it was "may
+    // comment": ticking a box to allow a remark under a post actually opened a
+    // messaging line to the employees and gave out their names.
     //
-    // Ce qu'un client a à dire passe donc par un canal, que le studio ouvre
-    // quand il le décide. Le studio garde ses conversations privées entre
-    // collaborateurs : seul le côté invité est fermé.
+    // What a client has to say therefore goes through a channel, which the
+    // studio opens when it decides to. The studio keeps its private
+    // conversations between colleagues: only the guest side is closed.
     //
-    // La garde qui compte n'est pas cette absence mais
-    // {@see SpaceChatChannelRepository::findForLink()}, qui ne rend plus aucun
-    // canal direct à un lien - y compris ceux ouverts avant ce changement.
+    // The guard that matters is not this absence but
+    // {@see SpaceChatChannelRepository::findForLink()}, which no longer returns
+    // any direct channel to a link - including those opened before this change.
 
     /**
      * The room behind an id, or a 404.
@@ -523,9 +580,9 @@ final class PublicSpaceController extends AbstractController
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        // `canChat` et non `canComment` : commenter une fiche et parler dans
-        // la discussion de l'espace sont deux conversations, et un seul droit
-        // les commandait toutes les deux.
+        // `canChat` and not `canComment`: commenting on a card and talking in
+        // the space's chat are two conversations, and a single right used to
+        // control both.
         if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canChat()) {
             throw $this->createNotFoundException();
         }
@@ -552,10 +609,13 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * Un fichier de l'espace lui-même, lu par le lien.
+     * A file of the space itself, read through the link.
      *
-     * Le même 404 pour tout - jeton faux, lien révoqué, fichier d'un autre
-     * espace - que la route voisine, et pour la même raison.
+     * The same 404 for everything - wrong token, revoked link, file of another
+     * space, file hidden from the client - as the neighbouring route, and for
+     * the same reason. The last case counts as much as the others: removing a
+     * file from the page without closing its address would only have hidden
+     * the link, and the id is a small integer.
      */
     #[Route(
         '/{selector}/{token}/files/{fileId}/{variant}',
@@ -579,7 +639,7 @@ final class PublicSpaceController extends AbstractController
 
         $file = $this->spaceFiles->find($fileId);
 
-        if (!$file instanceof SpaceFileInterface || $file->getSpace()->getId() !== $link->getSpace()->getId()) {
+        if (!$file instanceof SpaceFileInterface || $file->getSpace()->getId() !== $link->getSpace()->getId() || !$file->isShownToClient()) {
             throw $this->createNotFoundException();
         }
 
@@ -587,14 +647,14 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * Le dossier Drive de l'espace, lu par le lien.
+     * The space's Drive folder, read through the link.
      *
-     * **C'est ici que tout ce chantier prend son sens.** Le client n'a pas de
-     * compte Google : sans cette route, les fichiers que son prestataire a
-     * branchés ne seraient visibles que du studio.
+     * **This is where the whole feature makes sense.** The client has no
+     * Google account: without this route, the files their provider connected
+     * would be visible to the studio only.
      *
-     * Le même 404 pour tout, et derrière le même `resolveUsable()` que la
-     * page : révoquer un lien referme le dossier à l'instant où il referme la
+     * The same 404 for everything, and behind the same `resolveUsable()` as
+     * the page: revoking a link closes the folder the moment it closes the
      * page.
      */
     #[Route(
@@ -607,9 +667,9 @@ final class PublicSpaceController extends AbstractController
     {
         $link = $this->links->resolveUsable($selector, $token);
 
-        // **Le même refus qu'un lien inconnu**, et la même raison que pour les
-        // écritures : dire « vous pouvez lire mais pas ceci » apprend à celui
-        // qui tient une adresse fuitée ce qu'il tient.
+        // **The same refusal as an unknown link**, and the same reason as for
+        // the writes: saying "you may read but not this" tells whoever holds a
+        // leaked address what they hold.
         if (!$link instanceof SpaceAccessLinkInterface || !$link->canSeeDrive()) {
             throw $this->createNotFoundException();
         }
@@ -625,13 +685,13 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * Tout le dossier partagé, en un seul fichier.
+     * The whole shared folder, in a single file.
      *
-     * **C'est le geste que le client vient faire.** Trente visuels partagés se
-     * récupéraient en trente clics ; le lot répond à « je prends tout ».
+     * **This is the gesture the client comes to make.** Thirty shared visuals
+     * took thirty clicks to fetch; the batch answers "I'll take everything".
      *
-     * `priority` et non l'ordre d'écriture : sans elle, la route du fichier
-     * accepterait « archive » comme identifiant.
+     * `priority` and not the order of declaration: without it, the file route
+     * would accept "archive" as an id.
      */
     #[Route(
         '/{selector}/{token}/drive/archive',
@@ -642,20 +702,20 @@ final class PublicSpaceController extends AbstractController
     )]
     public function driveArchive(string $selector, string $token, Request $request): Response
     {
-        // **La route publique la plus chère, et la seule qui n'avait pas de
-        // limite.** Elle télécharge chaque fichier chez Google et construit un
-        // zip avant d'envoyer le premier octet : un lot de cent cinquante
-        // mégaoctets occupe le serveur près de quatre minutes. « Je prends
-        // tout » se fait une fois.
+        // **The most expensive public route, and the only one that had no
+        // limit.** It downloads every file from Google and builds a zip before
+        // sending the first byte: a batch of a hundred and fifty megabytes
+        // keeps the server busy for nearly four minutes. "I'll take
+        // everything" happens once.
         if (!$this->spaceGuestArchiveLimiter->create($request->getClientIp())->consume()->isAccepted()) {
             throw $this->createNotFoundException();
         }
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        // **Le même refus qu'un lien inconnu**, et la même raison que pour les
-        // écritures : dire « vous pouvez lire mais pas ceci » apprend à celui
-        // qui tient une adresse fuitée ce qu'il tient.
+        // **The same refusal as an unknown link**, and the same reason as for
+        // the writes: saying "you may read but not this" tells whoever holds a
+        // leaked address what they hold.
         if (!$link instanceof SpaceAccessLinkInterface || !$link->canSeeDrive()) {
             throw $this->createNotFoundException();
         }
@@ -670,9 +730,9 @@ final class PublicSpaceController extends AbstractController
         $files = $this->drive->files($account, $folderId);
 
         if ([] === $files || $this->driveArchives->weightOf($files) > DriveArchive::MAX_BYTES) {
-            // Trop lourd n'est pas une erreur à expliquer ici : l'écran ne
-            // propose pas le bouton dans ce cas, et une adresse tapée à la
-            // main n'a pas à recevoir un message.
+            // Too heavy is not an error to explain here: the screen does not
+            // offer the button in that case, and an address typed by hand
+            // does not need to get a message.
             throw $this->createNotFoundException();
         }
 
@@ -682,16 +742,16 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * Un fichier du dossier Drive, relayé au client.
+     * A file of the Drive folder, relayed to the client.
      *
-     * Le serveur le lit avec le compte de service et le renvoie sous une
-     * adresse d'ici : une adresse Drive donnerait à ce lecteur un mur
-     * d'authentification, puisque le dossier n'est partagé qu'avec le compte
-     * de service et pas avec lui.
+     * The server reads it with the service account and sends it back under an
+     * address of its own: a Drive address would give this reader an
+     * authentication wall, since the folder is shared only with the service
+     * account and not with them.
      *
-     * `?download=1` pour l'emporter plutôt que le regarder : le nom du
-     * fichier est alors redemandé à Google, parce que sa réponse au contenu
-     * ne le porte pas.
+     * `?download=1` to take it away rather than look at it: the file name is
+     * then asked of Google again, because its content response does not carry
+     * it.
      */
     #[Route(
         '/{selector}/{token}/drive/{fileId}',
@@ -707,9 +767,9 @@ final class PublicSpaceController extends AbstractController
     {
         $link = $this->links->resolveUsable($selector, $token);
 
-        // **Le même refus qu'un lien inconnu**, et la même raison que pour les
-        // écritures : dire « vous pouvez lire mais pas ceci » apprend à celui
-        // qui tient une adresse fuitée ce qu'il tient.
+        // **The same refusal as an unknown link**, and the same reason as for
+        // the writes: saying "you may read but not this" tells whoever holds a
+        // leaked address what they hold.
         if (!$link instanceof SpaceAccessLinkInterface || !$link->canSeeDrive()) {
             throw $this->createNotFoundException();
         }
@@ -777,16 +837,16 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        // **Et sa fiche doit être sur la page du client.** Retirer ces
-        // fichiers de la page sans fermer leur adresse n'aurait fait que
-        // cacher le lien : l'identifiant est un petit entier, et une étape
-        // marquée interne l'est pour de bon ou ne l'est pas.
+        // **And its card must be on the client's page.** Removing these files
+        // from the page without closing their address would only have hidden
+        // the link: the id is a small integer, and a step marked internal is
+        // internal for real or not at all.
         if (!$attachment->getItem()->isShownToClient()) {
             throw $this->createNotFoundException();
         }
 
-        // Servi par le service commun : local déchargé par le serveur
-        // web, distant diffusé par morceaux, privé une heure.
+        // Served by the shared service: local files offloaded to the web
+        // server, remote ones streamed in chunks, private for an hour.
         return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
     }
 
@@ -815,25 +875,24 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * L'écriture vient bien de la page, et non d'un autre site.
+     * The write really comes from the page, and not from another site.
      *
-     * **Ce qui protège cette page est un secret dans son adresse**, et une
-     * adresse se transfère, se colle dans un message, finit dans un
-     * presse-papier. Qui la connaît peut, depuis n'importe quel site, faire
-     * poster le navigateur d'un client vers ces routes : un formulaire
-     * inter-site part sans demander la permission, du moment que son type de
-     * contenu est ordinaire. Le dépôt de fichier, en `multipart`, est
-     * exactement ce cas ; les routes JSON, elles, sont déjà retenues par le
-     * contrôle préalable que le navigateur impose à un type de contenu qui
-     * n'est pas ordinaire.
+     * **What protects this page is a secret in its address**, and an address
+     * gets forwarded, pasted into a message, ends up in a clipboard. Whoever
+     * knows it can, from any site, make a client's browser post to these
+     * routes: a cross-site form goes out without asking permission, as long as
+     * its content type is a simple one. The file upload, in `multipart`, is
+     * exactly that case; the JSON routes are already held back by the
+     * preflight check the browser imposes on a content type that is not a
+     * simple one.
      *
-     * L'en-tête maison referme le trou restant, et ne coûte rien : un
-     * formulaire ne peut pas le poser, et un `fetch` qui le pose déclenche ce
-     * même contrôle préalable. Toutes les écritures passent par le même
-     * composant côté navigateur, qui l'envoie déjà.
+     * The house header closes the remaining hole, and costs nothing: a form
+     * cannot set it, and a `fetch` that sets it triggers that same preflight.
+     * Every write goes through the same component on the browser side, which
+     * already sends it.
      *
-     * Le 404 des autres refus, pour la même raison : ne rien apprendre à qui
-     * tâtonne.
+     * The 404 of the other refusals, for the same reason: teach nothing to
+     * whoever is probing.
      */
     private function assertFromThisPage(Request $request): void
     {
@@ -843,10 +902,10 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * La clé du fichier ou de sa vignette.
+     * The key of the file or of its thumbnail.
      *
-     * Le service ne connaît pas les documents, et c'est voulu : il sert une
-     * clé de stockage, quelle que soit la chose qui l'a produite.
+     * The service knows nothing about documents, on purpose: it serves a
+     * storage key, whatever produced it.
      */
     private function keyOf(DocumentInterface $document, string $variant): string
     {

@@ -1,25 +1,25 @@
 <script setup>
 const props = defineProps({
     color: { type: String, default: "default" },
-    // Une seule taille : trente pixels au doigt, l'ancien serrage à la souris.
-    // Une variante `compact` a existé et n'a jamais été appelée - zéro fois sur
-    // quatre-vingt-dix-sept boutons - donc elle promettait un choix que
-    // personne ne faisait et qu'il aurait fallu maintenir.
+    // A single size: thirty pixels for a finger, the old tight fit for a mouse.
+    // A `compact` variant existed and was never called - zero times out of
+    // ninety-seven buttons - so it promised a choice nobody made and that would
+    // have had to be maintained.
     size: { type: String, default: "md" },
     title: { type: String, default: null },
     ariaLabel: { type: String, default: null },
     href: { type: String, default: null },
     /**
-     * Un interrupteur allumé (panneau ouvert, vue choisie) : l'icône prend la
-     * couleur d'accent sur un fond teinté. Remplace les `variant="primary"`
-     * que des appels passaient et que ce composant n'a jamais lus.
+     * A switch that is on (panel open, view selected): the icon takes the
+     * accent colour on a tinted background. Replaces the `variant="primary"`
+     * that some calls passed and that this component never read.
      */
     active: { type: Boolean, default: false },
     /**
-     * L'icône, quand l'appel ne la passe pas dans le slot. Quinze boutons de
-     * l'éditeur de grille (monter, descendre, retirer un onglet, une image,
-     * une diapositive) passaient `:icon` à un composant qui ne le lisait pas :
-     * ils s'affichaient vides (vu le 02/10/2026).
+     * The icon, when the call does not pass it in the slot. Fifteen buttons of
+     * the grid editor (move up, move down, remove a tab, an image, a slide)
+     * passed `:icon` to a component that did not read it: they showed up empty
+     * (seen on 02/10/2026).
      */
     icon: { type: [Object, Function], default: null },
 });
@@ -29,8 +29,8 @@ const colors = {
     sky:     { text: "text-secondary hover:text-sky-400",     bg: "hover:bg-surface-2" },
     accent:  { text: "text-secondary hover:text-accent-400",  bg: "hover:bg-surface-2" },
     rose:    { text: "text-secondary hover:text-rose-400",    bg: "hover:bg-rose-500/10" },
-    // Le nom que cinq appels de l'éditeur de grille utilisaient : il retombait
-    // sur `default` et leurs corbeilles ne rougissaient jamais.
+    // The name that five calls of the grid editor used: it fell back to
+    // `default` and their trash buttons never turned red.
     danger:  { text: "text-secondary hover:text-rose-400",    bg: "hover:bg-rose-500/10" },
     emerald: { text: "text-secondary hover:text-emerald-400", bg: "hover:bg-emerald-500/10" },
     amber:   { text: "text-secondary hover:text-amber-400",   bg: "hover:bg-surface-2" },
@@ -42,17 +42,17 @@ const colors = {
 };
 
 /**
- * **Trente pixels sous le pouce, la taille d'avant à la souris.**
+ * **Thirty pixels under the thumb, the previous size with a mouse.**
  *
- * Six pixels de rembourrage autour d'une icône de quatorze font une cible de
- * vingt-six, ce qui va très bien à un curseur et mal à un doigt : c'est la
- * mesure qui a fait passer les onglets d'un espace à trente ce matin, et ces
- * quatre-vingt-dix-sept boutons y échappaient encore.
+ * Six pixels of padding around a fourteen-pixel icon make a target of
+ * twenty-six, which suits a cursor very well and a finger badly: it is the
+ * measurement that moved the tabs of a space to thirty this morning, and
+ * these ninety-seven buttons still escaped it.
  *
- * Un minimum et non une taille fixe : une icône de seize pixels garde son air
- * autour d'elle au lieu d'être rognée. Et seulement sous `sm`, parce que
- * grossir toutes les barres d'outils du back-office pour une précision que la
- * souris a déjà serait payer un problème que personne n'a.
+ * A minimum and not a fixed size: a sixteen-pixel icon keeps its air around
+ * it instead of being clipped. And only below `sm`, because enlarging every
+ * toolbar of the back office for a precision the mouse already has would be
+ * paying for a problem nobody has.
  */
 const sizes = {
     md: "p-1.5 min-h-7.5 min-w-7.5 justify-center sm:min-h-0 sm:min-w-0",

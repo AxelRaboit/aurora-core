@@ -49,8 +49,8 @@ class AccessRequestRepository extends ResolveTargetEntityRepository
 
         if (null !== $search && '' !== mb_trim($search)) {
             $term = '%'.mb_trim($search).'%';
-            foreach ([$queryBuilder, $countQueryBuilder] as $qb) {
-                $qb->andWhere('a.requesterEmail LIKE :search OR a.requesterName LIKE :search OR a.message LIKE :search')
+            foreach ([$queryBuilder, $countQueryBuilder] as $builder) {
+                $builder->andWhere('a.requesterEmail LIKE :search OR a.requesterName LIKE :search OR a.message LIKE :search')
                     ->setParameter('search', $term);
             }
         }

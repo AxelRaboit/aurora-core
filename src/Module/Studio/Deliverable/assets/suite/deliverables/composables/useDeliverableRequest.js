@@ -4,29 +4,29 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * Les requêtes d'une liste de livrables, et ce qu'on dit quand le serveur
- * refuse.
+ * The requests of a deliverable list, and what is said when the server
+ * refuses.
  *
- * Une action de liste (changer de rayon, dupliquer, supprimer, ouvrir au
- * client) qui recevait `success: false` ne disait rien : le 404 d'un livrable
- * supprimé entre-temps par un collègue laissait sa ligne à l'écran avec le seul
- * message générique, et un 422 n'en laissait aucun. Ici, une réponse refusée
- * dit pourquoi, et quand la liste est périmée (le livrable n'existe plus, ou
- * n'est plus à nous), elle se recharge.
+ * A list action (change shelf, duplicate, delete, open to the client) that
+ * got `success: false` said nothing: the 404 of a deliverable deleted in the
+ * meantime by a colleague left its row on screen with only the generic
+ * message, and a 422 left none at all. Here, a refused response says why,
+ * and when the list is stale (the deliverable no longer exists, or is no
+ * longer ours), it reloads.
  *
- * `send` rend la réponse du serveur, refusée ou non, et rien quand la requête
- * elle-même a échoué (réseau, 5xx) : `useRequest` a déjà dit son message. Un
- * code que l'appelant traite lui-même (`own`) ne fait pas de message d'ici.
+ * `send` returns the server response, refused or not, and nothing when the
+ * request itself failed (network, 5xx): `useRequest` has already shown its
+ * message. A code the caller handles itself (`own`) gets no message from here.
  *
  * @param {object}   options
- * @param {string}   [options.listPath] La route qui rend la liste à jour.
- * @param {Function} [options.onList]   Reçoit cette réponse, pour redessiner.
+ * @param {string}   [options.listPath] The route that returns the list up to date.
+ * @param {Function} [options.onList]   Receives that response, to redraw.
  */
 export function useDeliverableRequest({ listPath = "", onList = null } = {}) {
     const { t } = useI18n();
     const { request } = useRequest();
 
-    /** Le premier message d'erreur de champ, traduit. */
+    /** The first field error message, translated. */
     function fieldError(data) {
         const key = Object.values(data?.errors ?? {}).find(
             (value) => "string" === typeof value && "" !== value,
@@ -46,8 +46,8 @@ export function useDeliverableRequest({ listPath = "", onList = null } = {}) {
     }
 
     async function send(path, body = {}, { own = [] } = {}) {
-        // 403 et 404 sont des réponses, pas des pannes : le serveur dit que ce
-        // livrable n'existe plus ou n'est plus à nous, et la liste en tient compte.
+        // 403 and 404 are answers, not failures: the server says this
+        // deliverable no longer exists or is no longer ours, and the list adapts.
         const data = await request(path, body, { accept: [403, 404] });
 
         if (null === data || data.success) return data;

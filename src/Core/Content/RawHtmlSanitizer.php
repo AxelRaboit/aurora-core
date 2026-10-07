@@ -13,35 +13,33 @@ use DOMXPath;
 use function in_array;
 
 /**
- * Nettoie le HTML du bloc « code source », plus permissif que
- * {@see BlockHtmlSanitizer} mais toujours fermé aux scripts.
+ * Cleans the HTML of the "source code" block, more permissive than
+ * {@see BlockHtmlSanitizer} but still closed to scripts.
  *
- * Deux filtres coexistent parce que deux besoins coexistent. Le texte courant
- * ne doit accepter que ce que la barre d'outils produit : une poignée de balises
- * en ligne, rien d'autre. Le bloc source existe au contraire pour écrire ce que
- * l'éditeur ne sait pas faire, une mise en page, un tableau complexe, un
- * lecteur intégré. Lui appliquer le filtre du texte courant le viderait, et le
- * rendrait donc inutile.
+ * Two filters coexist because two needs coexist. Running text must accept
+ * only what the toolbar produces: a handful of inline tags, nothing else. The
+ * source block exists, on the contrary, to write what the editor cannot do: a
+ * layout, a complex table, an embedded player. Applying the running-text
+ * filter to it would empty it, and therefore make it useless.
  *
- * Ce qui ne passe jamais, quelle que soit la permissivité :
+ * What never gets through, whatever the permissiveness:
  *
- * - `<script>`, et `<style>` qui pourrait repeindre toute la page ;
- * - `<form>` et ses champs, qui inviteraient à saisir un mot de passe sur une
- *   page publique sans que rien ne le trahisse ;
- * - `<object>`, `<embed>`, `<link>`, `<meta>`, `<base>` ;
- * - tout attribut `on*`, donc tout gestionnaire d'événement ;
- * - les URL `javascript:`, et les `data:` sauf images.
+ * - `<script>`, and `<style>` which could repaint the whole page;
+ * - `<form>` and its fields, which would invite people to type a password on
+ *   a public page with nothing to give it away;
+ * - `<object>`, `<embed>`, `<link>`, `<meta>`, `<base>`;
+ * - any `on*` attribute, so any event handler;
+ * - `javascript:` URLs, and `data:` URLs except images.
  *
- * Les `<iframe>` ne sont acceptées que vers les hôtes listés : un cadre vers
- * n'importe où est une page entière qu'on ne contrôle pas, posée dans la
- * sienne.
+ * `<iframe>` elements are only accepted towards the listed hosts: a frame to
+ * anywhere is a whole page you do not control, set inside your own.
  */
 final class RawHtmlSanitizer
 {
-    /** Attributs acceptés sur n'importe quelle balise. */
+    /** Attributes accepted on any tag. */
     private const array GLOBAL_ATTRIBUTES = ['class', 'style', 'id', 'title', 'lang', 'dir', 'role'];
 
-    /** Balise => attributs propres, en plus des globaux. */
+    /** Tag => its own attributes, on top of the global ones. */
     private const array ALLOWED = [
         'div' => [], 'section' => [], 'article' => [], 'aside' => [], 'header' => [], 'footer' => [],
         'p' => [], 'br' => [], 'hr' => [],
@@ -60,10 +58,10 @@ final class RawHtmlSanitizer
         'picture' => [], 'source' => ['src', 'srcset', 'type', 'media'],
         'iframe' => ['src', 'width', 'height', 'allow', 'allowfullscreen', 'loading', 'referrerpolicy'],
 
-        // Sous-ensemble SVG suffisant pour une icone tracee, et rien de plus.
-        // Sont volontairement absents : `use`, qui reference un document
-        // exterieur ; `foreignObject`, qui reintroduirait du HTML arbitraire au
-        // milieu du SVG ; `image`, `style`, et toutes les balises d'animation.
+        // SVG subset sufficient for a drawn icon, and nothing more. Deliberately
+        // absent: `use`, which references an external document; `foreignObject`,
+        // which would bring arbitrary HTML back in the middle of the SVG; `image`,
+        // `style`, and every animation tag.
         'svg' => ['viewBox', 'width', 'height', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'xmlns', 'aria-hidden', 'focusable', 'preserveAspectRatio'],
         'g' => ['fill', 'stroke', 'stroke-width', 'transform', 'opacity'],
         'path' => ['d', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'fill-rule', 'clip-rule', 'transform', 'opacity'],
@@ -76,13 +74,12 @@ final class RawHtmlSanitizer
     ];
 
     /**
-     * Attributs SVG dont la casse compte, remise apres coup.
+     * SVG attributes whose case matters, restored afterwards.
      *
-     * Le parseur HTML de PHP met tous les noms d'attributs en minuscules, ce qui
-     * est correct en HTML et faux en SVG : un `viewbox` est ignore par les
-     * navigateurs, et l'icone perd son cadrage sans qu'aucune erreur ne le
-     * signale. La correction se fait a la serialisation, `setAttribute`
-     * reminusculant de toute facon.
+     * The PHP HTML parser lowercases every attribute name, which is correct in
+     * HTML and wrong in SVG: a `viewbox` is ignored by browsers, and the icon
+     * loses its framing without any error reporting it. The fix happens at
+     * serialisation, since `setAttribute` lowercases again anyway.
      */
     private const array SVG_CASED_ATTRIBUTES = [
         'viewbox' => 'viewBox',
@@ -90,17 +87,17 @@ final class RawHtmlSanitizer
     ];
 
     /**
-     * Hôtes acceptés dans un `<iframe>`.
+     * Hosts accepted in an `<iframe>`.
      *
-     * Volontairement court. Un cadre charge une page entière avec ses propres
-     * scripts : la liste doit rester celle des services qu'on a choisi de faire
-     * confiance, pas une commodité qu'on élargit au fil des demandes.
+     * Deliberately short. A frame loads a whole page with its own scripts: the
+     * list must remain that of the services we chose to trust, not a convenience
+     * that gets widened request after request.
      *
-     * Publique depuis la 0.9.189 parce que la `Content-Security-Policy` la lit
-     * pour son `frame-src`. Une seule liste, deux applications : celle-ci
-     * retire le cadre du HTML enregistré, la politique empêche le navigateur
-     * d'en charger un autre. Deux listes auraient divergé, et la divergence se
-     * serait vue le jour où l'une aurait autorisé ce que l'autre refuse.
+     * Public since 0.9.189 because the `Content-Security-Policy` reads it for its
+     * `frame-src`. One list, two enforcements: this one removes the frame from
+     * the saved HTML, the policy prevents the browser from loading another one.
+     * Two lists would have diverged, and the divergence would have shown the day
+     * one of them allowed what the other refuses.
      */
     public const array IFRAME_HOSTS = [
         'www.youtube.com', 'www.youtube-nocookie.com', 'youtube.com',
@@ -112,7 +109,7 @@ final class RawHtmlSanitizer
         'w.soundcloud.com',
     ];
 
-    /** Schémas d'URL acceptés hors images. */
+    /** URL schemes accepted outside images. */
     private const array URL_PREFIXES = ['/', '#', 'http://', 'https://', 'mailto:', 'tel:'];
 
     public function safe(mixed $value): string
@@ -124,9 +121,9 @@ final class RawHtmlSanitizer
 
         $document = new DOMDocument();
         $previous = libxml_use_internal_errors(true);
-        // Le fragment est enveloppé pour que DOMDocument ne lui invente ni
-        // <html> ni <body>, et l'entête force l'UTF-8 que le parseur suppose
-        // sinon latin-1.
+        // The fragment is wrapped so that DOMDocument invents neither <html> nor
+        // <body> for it, and the header forces the UTF-8 that the parser would
+        // otherwise assume to be latin-1.
         $document->loadHTML(
             '<?xml encoding="UTF-8"><div id="aurora-raw">'.$html.'</div>',
             LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD,
@@ -163,10 +160,9 @@ final class RawHtmlSanitizer
             $tag = mb_strtolower($element->nodeName);
 
             if (!array_key_exists($tag, self::ALLOWED)) {
-                // On supprime la balise mais on garde son texte : un lecteur
-                // doit obtenir un paragraphe sans mise en forme, pas un
-                // paragraphe amputé. Sauf pour les balises dont le contenu n'est
-                // pas du texte destiné à être lu.
+                // The tag is removed but its text is kept: a reader must get a paragraph
+                // without formatting, not a truncated paragraph. Except for tags whose
+                // content is not text meant to be read.
                 $this->unwrapOrRemove($element, $tag);
                 continue;
             }
@@ -187,13 +183,13 @@ final class RawHtmlSanitizer
             return;
         }
 
-        // Le contenu d'un script ou d'une feuille de style n'est pas de la prose :
-        // le déballer afficherait du code au lecteur.
+        // The content of a script or a stylesheet is not prose: unwrapping it would
+        // show code to the reader.
         if (in_array($tag, [
             'script', 'style', 'link', 'meta', 'base', 'object', 'embed',
             'form', 'input', 'button', 'select', 'textarea',
-            // Cote SVG : `use` pointe ailleurs, `foreignObject` rouvre le HTML,
-            // les animations peuvent declencher des comportements.
+            // On the SVG side: `use` points elsewhere, `foreignObject` reopens HTML,
+            // animations can trigger behaviours.
             'use', 'foreignobject', 'image', 'animate', 'animatetransform', 'animatemotion', 'set', 'script',
         ], true)) {
             $parent->removeChild($element);
@@ -234,16 +230,16 @@ final class RawHtmlSanitizer
             }
         }
 
-        // Un lien qui s'ouvre ailleurs sans `rel` laisse la page ouvrante
-        // accessible à la cible. On le pose plutôt que de refuser `target`.
+        // A link that opens elsewhere without `rel` leaves the opening page
+        // reachable by the target. We set it rather than refusing `target`.
         if ('a' === $tag && '' !== $element->getAttribute('target')) {
             $element->setAttribute('rel', 'noopener noreferrer');
         }
     }
 
-    private function allowedFrame(string $src): bool
+    private function allowedFrame(string $source): bool
     {
-        $host = parse_url($src, PHP_URL_HOST);
+        $host = parse_url($source, PHP_URL_HOST);
 
         return is_string($host) && in_array(mb_strtolower($host), self::IFRAME_HOSTS, true);
     }
@@ -257,8 +253,8 @@ final class RawHtmlSanitizer
 
         $lower = mb_strtolower($url);
 
-        // Les images en ligne sont un usage legitime ; les autres `data:`
-        // servent surtout a faire passer du script.
+        // Inline images are a legitimate use; other `data:` URLs mostly serve to
+        // smuggle script in.
         if ($imageContext && str_starts_with($lower, 'data:image/')) {
             return $url;
         }

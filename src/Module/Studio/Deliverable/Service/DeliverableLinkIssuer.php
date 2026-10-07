@@ -23,17 +23,18 @@ use function sprintf;
 use const PASSWORD_DEFAULT;
 
 /**
- * Les liens de lecture d'un livrable : en donner un, en retirer un.
+ * A deliverable's reading links: give one, revoke one.
  *
- * Un livrable d'espace et un livrable de Studio s'envoient de la même façon ;
- * seul change qui a le droit de le faire, et c'est au contrôleur d'en juger.
+ * A space deliverable and a Studio deliverable are sent the same way; only
+ * who has the right to do it changes, and the controller is the judge of
+ * that.
  */
 readonly class DeliverableLinkIssuer
 {
-    /** Un an : la règle de tous les liens de Studio, {@see ShareLinkRules}. */
+    /** One year: the rule for every Studio link, {@see ShareLinkRules}. */
     public const int MAX_EXPIRY_DAYS = ShareLinkRules::MAX_EXPIRY_DAYS;
 
-    /** Ce que lit bcrypt, en octets : {@see ShareLinkRules::PASSWORD_MAX_BYTES}. */
+    /** What bcrypt reads, in bytes: {@see ShareLinkRules::PASSWORD_MAX_BYTES}. */
     public const int PASSWORD_MAX_BYTES = ShareLinkRules::PASSWORD_MAX_BYTES;
 
     public function __construct(
@@ -42,22 +43,22 @@ readonly class DeliverableLinkIssuer
         private AuditLogger $auditLogger,
     ) {}
 
-    /** Le lien qu'on crée, à un seul endroit : un projet qui étend l'entité surcharge ceci. */
+    /** The link being created, in one place: a project that extends the entity overrides this. */
     protected function instantiate(DeliverableInterface $deliverable): DeliverableLinkInterface
     {
         return new DeliverableLink($deliverable);
     }
 
     /**
-     * Ce que la création d'un lien refuserait dans cet envoi.
+     * What creating a link would refuse in this request.
      *
-     * Une durée qu'on ne sait pas lire ne devient pas « sans fin » : un lien
-     * qui n'expire jamais est le contraire de ce qu'on a voulu poser en
-     * tapant une durée. Absente ou nulle, elle veut bien dire « sans fin ».
+     * A duration that cannot be read does not become "endless": a link that
+     * never expires is the opposite of what typing a duration meant to set.
+     * Absent or null, it does mean "endless".
      *
      * @param array<string, mixed> $payload
      *
-     * @return array<string, string> les erreurs par champ, vide quand tout passe
+     * @return array<string, string> the errors by field, empty when everything passes
      */
     public function errors(array $payload): array
     {
@@ -65,8 +66,8 @@ readonly class DeliverableLinkIssuer
     }
 
     /**
-     * Le mot de passe tel qu'il est retenu, et tel qu'on le compare : sans les
-     * espaces de bord, des deux côtés.
+     * The password as it is stored, and as it is compared: without leading
+     * and trailing spaces, on both sides.
      *
      * @param array<string, mixed> $payload
      */
@@ -76,8 +77,8 @@ readonly class DeliverableLinkIssuer
     }
 
     /**
-     * Une adresse de plus : un intitulé pour s'y retrouver, une expiration et
-     * un mot de passe au choix.
+     * One more address: a label to find your way, an optional expiry and an
+     * optional password.
      *
      * @param array<string, mixed> $payload
      */
@@ -86,15 +87,15 @@ readonly class DeliverableLinkIssuer
         $link = $this->instantiate($deliverable);
         $link->setLabel(is_string($payload['label'] ?? null) ? mb_substr(mb_trim($payload['label']), 0, 120) : '');
 
-        // Validée par {@see self::errors()} : ici, la durée est un entier de 1
-        // à l'année, ou rien.
+        // Validated by {@see self::errors()}: here, the duration is an integer
+        // from 1 to a year, or nothing.
         $days = $payload['expiresInDays'] ?? null;
         if (is_int($days)) {
             $link->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
         }
 
-        // `password_hash`, comme pour une présentation : c'est une phrase
-        // choisie par quelqu'un, et les gens réutilisent leurs phrases.
+        // `password_hash`, as for a presentation: it is a phrase someone
+        // chose, and people reuse their phrases.
         $password = self::password($payload);
         if ('' !== $password) {
             $link->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
@@ -111,10 +112,11 @@ readonly class DeliverableLinkIssuer
     }
 
     /**
-     * Révoquer date la ligne ; elle n'est jamais supprimée.
+     * Revoking dates the row; it is never deleted.
      *
-     * Vérifié contre le livrable reçu : le lien d'un autre livrable ne se
-     * révoque pas par celui-ci. Faux quand il n'y a rien à révoquer ici.
+     * Checked against the deliverable received: another deliverable's link
+     * cannot be revoked through this one. False when there is nothing to
+     * revoke here.
      */
     public function revoke(DeliverableInterface $deliverable, int $linkId): bool
     {
@@ -132,11 +134,11 @@ readonly class DeliverableLinkIssuer
     }
 
     /**
-     * Masquer de la liste un lien qui n'ouvre plus rien (retiré ou expiré). Sa
-     * ligne reste : elle dit encore qui a pu lire. Un lien vivant ne se masque
-     * pas, il faut d'abord le retirer.
+     * Hide from the list a link that no longer opens anything (revoked or
+     * expired). Its row stays: it still says who may have read. A live link
+     * cannot be hidden, it has to be revoked first.
      *
-     * @return bool|null null quand le lien n'est pas à ce livrable, faux quand il est encore vivant
+     * @return bool|null null when the link does not belong to this deliverable, false when it is still live
      */
     public function hide(DeliverableInterface $deliverable, int $linkId): ?bool
     {
@@ -159,11 +161,12 @@ readonly class DeliverableLinkIssuer
     }
 
     /**
-     * Supprimer l'adresse, seulement si personne ne l'a jamais ouverte : il n'y
-     * a alors rien à se rappeler. Une adresse ouverte se révoque, et sa ligne
-     * garde qui a pu lire. Vérifié contre le livrable reçu, comme la révocation.
+     * Delete the address, only if nobody has ever opened it: there is then
+     * nothing to remember. An opened address is revoked, and its row keeps
+     * who may have read. Checked against the deliverable received, like
+     * revocation.
      *
-     * @return bool|null null quand le lien n'est pas à ce livrable, faux quand il a déjà servi
+     * @return bool|null null when the link does not belong to this deliverable, false when it has already been used
      */
     public function delete(DeliverableInterface $deliverable, int $linkId): ?bool
     {
@@ -185,10 +188,10 @@ readonly class DeliverableLinkIssuer
     }
 
     /**
-     * Donner ou retirer une adresse, c'est ouvrir ou fermer un accès à un
-     * document client : une ligne du journal, comme pour l'accès d'un espace.
-     * Le jeton n'y figure jamais. Chaque appel écrit son action en toutes
-     * lettres, pour le test des libellés du journal.
+     * Giving or revoking an address opens or closes access to a client
+     * document: an audit log line, as for access to a space. The token never
+     * appears in it. Each call writes its action out in full, for the audit
+     * label test.
      *
      * @param array<string, mixed> $extra
      *

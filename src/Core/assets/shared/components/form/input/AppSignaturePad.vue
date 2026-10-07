@@ -46,29 +46,29 @@ let observer = null;
  * in the middle of signing.
  */
 function fit() {
-    const el = canvas.value;
+    const canvasElement = canvas.value;
 
-    if (!el) return;
+    if (!canvasElement) return;
 
     const ratio = window.devicePixelRatio || 1;
-    const { width, height } = el.getBoundingClientRect();
+    const { width, height } = canvasElement.getBoundingClientRect();
 
     if (width === 0 || height === 0) return;
 
     const previous =
-        hasDrawing.value && el.width > 0 ? el.toDataURL("image/png") : null;
+        hasDrawing.value && canvasElement.width > 0 ? canvasElement.toDataURL("image/png") : null;
 
-    el.width = Math.round(width * ratio);
-    el.height = Math.round(height * ratio);
+    canvasElement.width = Math.round(width * ratio);
+    canvasElement.height = Math.round(height * ratio);
 
-    context = el.getContext("2d");
+    context = canvasElement.getContext("2d");
     context.scale(ratio, ratio);
     context.lineWidth = 2;
     context.lineCap = "round";
     context.lineJoin = "round";
     // Read from the computed style so the stroke follows the theme rather than
     // being a hardcoded black that disappears on a dark ground.
-    context.strokeStyle = window.getComputedStyle(el).color;
+    context.strokeStyle = window.getComputedStyle(canvasElement).color;
 
     if (previous) {
         const image = new Image();

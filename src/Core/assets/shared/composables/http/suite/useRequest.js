@@ -7,7 +7,7 @@ import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
 /**
  * Generic HTTP composable.
  *
- * request(url, body?, methodOrOpts?)
+ * request(url, body?, methodOrOptions?)
  *
  * The third argument accepts either a method string (backward-compatible)
  * or an options object:
@@ -32,17 +32,21 @@ export function useRequest() {
     const { t } = useI18n();
     const loading = ref(false);
 
-    async function request(url, body = null, methodOrOpts = HttpMethod.Post) {
-        const isOpts =
-            methodOrOpts !== null && typeof methodOrOpts === "object";
-        const method = isOpts
-            ? (methodOrOpts.method ?? HttpMethod.Post)
-            : methodOrOpts;
-        const signal = isOpts ? (methodOrOpts.signal ?? null) : null;
-        const noGuard = isOpts ? (methodOrOpts.noGuard ?? false) : false;
-        const rawBody = isOpts ? (methodOrOpts.rawBody ?? null) : null;
-        const silent = isOpts ? (methodOrOpts.silent ?? false) : false;
-        const accept = isOpts ? (methodOrOpts.accept ?? []) : [];
+    async function request(
+        url,
+        body = null,
+        methodOrOptions = HttpMethod.Post,
+    ) {
+        const hasOptions =
+            methodOrOptions !== null && typeof methodOrOptions === "object";
+        const method = hasOptions
+            ? (methodOrOptions.method ?? HttpMethod.Post)
+            : methodOrOptions;
+        const signal = hasOptions ? (methodOrOptions.signal ?? null) : null;
+        const noGuard = hasOptions ? (methodOrOptions.noGuard ?? false) : false;
+        const rawBody = hasOptions ? (methodOrOptions.rawBody ?? null) : null;
+        const silent = hasOptions ? (methodOrOptions.silent ?? false) : false;
+        const accept = hasOptions ? (methodOrOptions.accept ?? []) : [];
 
         if (!noGuard && loading.value) return null;
         if (!noGuard) loading.value = true;
@@ -80,8 +84,8 @@ export function useRequest() {
             )
                 throw new Error(`HTTP ${response.status}`);
             return await response.json();
-        } catch (err) {
-            if (err?.name === "AbortError") return null;
+        } catch (error) {
+            if (error?.name === "AbortError") return null;
             if (!silent) toast.error(t("shared.common.error"));
             return null;
         } finally {

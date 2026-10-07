@@ -21,8 +21,8 @@
         {% endif %}
     })();
 </script>
-{# Les gris du clair et du sombre choisis dans Réglages > Apparence. Posés ici
-   parce que chaque gabarit qui a le clair/sombre inclut ce fichier, et le site
-   public non. La balise reste même vide : l'onglet Apparence la remplit
-   après un enregistrement, sans recharger la page. #}
+{# The light and dark greys chosen in Réglages > Apparence. Set here because
+   every template with light/dark includes this file, and the public site does
+   not. The tag stays even when empty: the Apparence tab fills it after a
+   save, without reloading the page. #}
 <style id="aurora-suite-palette">{{ app_suite_palette_css()|raw }}</style>

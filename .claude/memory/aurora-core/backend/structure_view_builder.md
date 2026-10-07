@@ -75,7 +75,7 @@ final readonly class AgenciesViewBuilder
 ```php
 public function buildListPayload(PaginationRequest $pagination): array
 {
-    $result = $this->repo->findPaginated($pagination->page, $pagination->limit, $pagination->search);
+    $result = $this->repository->findPaginated($pagination->page, $pagination->limit, $pagination->search);
 
     return [
         'success' => true,
