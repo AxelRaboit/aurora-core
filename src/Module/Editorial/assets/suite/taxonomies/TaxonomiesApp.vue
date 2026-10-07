@@ -224,7 +224,7 @@ const pageActions = computed(() => {
                             <AppIconButton :title="t('suite.taxonomies.terms.move_down')" v-on:click="move(term, 1)">
                                 <ChevronDown class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
-                            <AppRowActions :actions="termActions(term)" :label="term.label ?? term.name ?? ''" />
+                            <AppRowActions :actions="termActions(term)" :label="nameOf(term)" />
                         </div>
                     </div>
                 </div>

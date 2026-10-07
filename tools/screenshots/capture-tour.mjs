@@ -146,6 +146,19 @@ async function hideZonesAbove(element) {
     });
 }
 
+/**
+ * Opens a row's action sheet and picks one of its actions.
+ *
+ * The sheet is a window of its own, outside `main`, and its buttons carry a
+ * description under their label: matched on the start of the name.
+ */
+async function rowAction(page, row, action) {
+    await page.locator("main").getByTitle(row).first().click();
+    const sheet = page.locator(".fixed.inset-0.z-50");
+    await sheet.getByRole("button", { name: action }).first().click();
+    await page.waitForTimeout(1_500);
+}
+
 async function placeAt(page, element, top) {
     await element.scrollIntoViewIfNeeded();
     const box = await element.boundingBox();
@@ -460,8 +473,36 @@ const SHOTS = [
     { name: "tour-publications", path: "/suite/editorial/posts" },
     { name: "tour-grille", path: "/suite", prepare: postTab(/^Contenu$/) },
     { name: "tour-entete", path: "/suite", prepare: postTab(/En-tête/) },
-    { name: "tour-seo", path: "/suite", prepare: postTab(/Moteurs/) },
+    {
+        // The site-wide SEO settings, and no longer the post tab: the banner
+        // and the body of the card showed that same tab twice. The post tab
+        // stays in the body (`tour-seo-onglet`); the banner shows what every
+        // page inherits. The demo leaves these fields empty, so they are
+        // typed in and not saved.
+        name: "tour-seo",
+        path: "/suite/configuration/settings/seo",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            const fields = page.locator("main input[type='text'], main textarea");
+            await fields.nth(0).fill("{title} · {siteName}");
+            await fields.nth(1).fill("Le site de démonstration d'Aurora : publications, médiathèque, formulaires et espaces clients.");
+            await fields.nth(2).fill("@aurora");
+            await fields.nth(2).blur();
+            await page.waitForTimeout(800);
+        },
+    },
     { name: "tour-galerie", path: "/suite", prepare: postTab(/Galerie/) },
+    {
+        // The gallery as a visitor sees it, under the page: the banner of the
+        // card, since the editor tab already illustrates its body.
+        name: "tour-galerie-site",
+        path: "/fr/page/bienvenue",
+        anonymous: true,
+        async prepare(page) {
+            const gallery = page.locator("section.not-prose").filter({ has: page.locator("[data-gallery-open]") }).last();
+            await placeAt(page, gallery, 120);
+        },
+    },
     {
         name: "tour-traductions",
         path: "/suite",
@@ -479,8 +520,31 @@ const SHOTS = [
 
     { name: "tour-types", path: "/suite/editorial/post-types" },
     { name: "tour-taxonomies", path: "/suite/editorial/taxonomies" },
-    { name: "tour-menus", path: "/suite/editorial/menus" },
-    { name: "tour-commentaires", path: "/suite/editorial/comments" },
+    {
+        // The main navigation, the menu a visitor sees on every page. The
+        // list opens on the first menu, "Compte", whose two entries say
+        // little.
+        name: "tour-menus",
+        path: "/suite/editorial/menus",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("#sidemenu").getByRole("link", { name: /Navigation principale/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // The comments as a visitor reads them, under an article: replies in
+        // a thread and reactions. Moderation, the suite side, illustrates
+        // the body of the card (`tour-commentaires-moderation`); both used to
+        // show the moderation list.
+        name: "tour-commentaires",
+        path: "/fr/article/ecrire-premier-article",
+        anonymous: true,
+        async prepare(page) {
+            const title = page.getByRole("heading", { name: /^Commentaires/ }).first();
+            await placeAt(page, title, 120);
+        },
+    },
     {
         // The list of forms, since 0.9.320: a menu entry, and behind it a
         // table that says for each one whether it is online, how many
@@ -632,7 +696,14 @@ const SHOTS = [
         // The trash, which spans the modules: deleting does not erase right
         // away, and the screen says how much time is left.
         name: "tour-publications-corbeille",
-        path: "/suite/trash",
+        path: "/suite/editorial/posts",
+        // Deleting a post, from its row: the window says it goes to the
+        // trash. The trash itself is the banner of its own card, and this
+        // used to be the same picture. Never confirmed.
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour Les tarifs de l'an dernier", /^Supprimer/);
+        },
     },
     // The card promises the header settings and the shot showed none: the
     // preview fills the whole window and the controls (placement, height,
@@ -734,6 +805,9 @@ const SHOTS = [
             await page.waitForTimeout(2_500);
             await page.getByRole("link", { name: /Navigation principale/ }).first().click();
             await page.waitForTimeout(2_500);
+            // An entry open, with what it can point to: the banner of the
+            // card already shows the list of this same menu.
+            await rowAction(page, "Actions pour Accueil", /^Modifier/);
         },
     },
     {
@@ -748,6 +822,9 @@ const SHOTS = [
             // never photograph another list while believing it shows this one.
             await page.locator("main h2", { hasText: "Catégories" }).first().waitFor();
             await page.waitForTimeout(2_500);
+            // A term open, its name and address in each language: the list
+            // of terms is the banner of the card.
+            await rowAction(page, "Actions pour Guides", /^Modifier/);
         },
     },
     {
@@ -759,6 +836,9 @@ const SHOTS = [
             await page.waitForTimeout(2_500);
             await page.locator('#sidemenu a[href*="/suite/editorial/post-types/"]', { hasText: "Article" }).first().click();
             await page.waitForTimeout(2_500);
+            // A field open, a list of choices: its type, its choices, required
+            // or not, per language or not. The list of fields is the banner.
+            await rowAction(page, "Actions pour Niveau", /^Modifier/);
         },
     },
     {
@@ -1501,6 +1581,19 @@ const SHOTS = [
      */
     { name: "tour-espaces-clients", path: SPACES, prepare: contents("Tableau") },
 
+    /**
+     * The list of spaces on the Clients tab: the banner of the card, which
+     * used to be the board, already in its body.
+     */
+    {
+        name: "tour-espaces-clients-liste",
+        path: SPACES,
+        async prepare(page) {
+            await page.getByRole("button", { name: /^Clients/ }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+
     /** The same plan as a list: the card promises "en kanban ou en liste". */
     { name: "espace-liste", path: SPACES, prepare: contents("Liste") },
 
@@ -1535,8 +1628,11 @@ const SHOTS = [
         path: SPACES,
         async prepare(page) {
             await contents("Tableau")(page);
-            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().waitFor();
-            await page.waitForTimeout(800);
+            // The window, opened from the banner: who receives the email.
+            // Closed, the picture was the board itself, the card's banner.
+            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_200);
         },
     },
 
@@ -1842,7 +1938,10 @@ const SHOTS = [
     { name: "tour-utilisateurs", path: "/suite/platform/users" },
     { name: "tour-audit", path: "/dev/dashboard/audit" },
     { name: "tour-themes", path: "/suite/configuration/themes" },
-    { name: "tour-reglages", path: "/suite/configuration/settings/general" },
+    // The modules, switched on and off: the card's title promises them and
+    // its body already shows the settings (`tour-reglages-onglets`), which
+    // open on the same General tab.
+    { name: "tour-reglages", path: "/dev/dashboard/modules" },
 
     {
         name: "tour-calendrier-semaine",

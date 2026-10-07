@@ -186,10 +186,12 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      */
     private function createCustomFields(EntityManagerInterface $entityManager, PostTypeInterface $article): void
     {
+        // Options in the shape the field form writes: a select keeps its
+        // choices under `choices`, which is where the editor reads them.
         $definitions = [
             ['reading_time', 'Temps de lecture (min)', 'number', false, false, []],
             ['source_url', 'Source', 'url', false, false, []],
-            ['level', 'Niveau', 'select', false, true, ['Débutant', 'Intermédiaire', 'Avancé']],
+            ['level', 'Niveau', 'select', false, true, ['choices' => ['Débutant', 'Intermédiaire', 'Avancé']]],
             ['featured', 'Mettre en avant', 'checkbox', false, false, []],
         ];
 

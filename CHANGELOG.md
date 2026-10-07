@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.6.1] - 2026-10-07
+
+### Corrigé
+- Le bouton « … » d'un terme de taxonomie et d'une entrée de menu s'annonçait « Actions pour » sans nom : il porte le nom du terme ou le libellé de l'entrée, comme partout ailleurs.
+- Dans la démonstration, le champ « Niveau » des articles ouvrait une liste de choix vide : ses trois choix sont rangés là où l'éditeur les lit.
+- Tour : sept pages montraient deux fois la même capture. Le référencement, les types de contenu, les taxonomies, les commentaires, les menus, les réglages, les galeries, les espaces clients et la corbeille ont chacun une seconde prise distincte (réglages SEO du site, un champ ouvert, un terme ouvert, les commentaires côté visiteur, la navigation principale, une entrée ouverte, les modules, la galerie côté visiteur, la liste des espaces, la fenêtre « Envoyer à relire », la mise à la corbeille d'une publication).
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` et `make deploy-prod`.
+
+---
+
 ## [3.6.0] - 2026-10-07
 
 ### Modifié
