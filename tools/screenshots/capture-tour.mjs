@@ -948,6 +948,26 @@ const SHOTS = [
         },
     },
     {
+        // Taking notes away (3.4.0): a folder's menu, open on « Exporter ce
+        // dossier (zip) », over the library by folder, whose title row
+        // carries the export of what is shown. By folder and not flat: the
+        // previous scenarios leave the library flat, and a flat library
+        // shows no folder card to open a menu on.
+        name: "tour-notes-export",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            const byFolder = page.getByTitle("Afficher par dossiers").first();
+            if (await byFolder.count() > 0) {
+                await byFolder.click();
+                await page.waitForTimeout(1_200);
+            }
+
+            await page.locator("main").getByRole("button", { name: "Actions pour Clients" }).first().click();
+            await page.getByText("Exporter ce dossier (zip)", { exact: true }).first().waitFor();
+            await page.waitForTimeout(600);
+        },
+    },
+    {
         // A note's styling, where both things are decided in the same
         // place: the header image, searched on Pexels and cropped with the
         // scroll wheel, and the six appearances. A single window for both,
