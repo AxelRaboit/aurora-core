@@ -299,6 +299,8 @@ suite:
         filter_nav: Filtrer le menu…
         breadcrumb: Fil d'Ariane
         show_descriptions: Afficher les descriptions
+        collapse_all: Tout replier
+        expand_all: Tout déplier
         filter_nav_empty: Aucun élément trouvé
         view_site: Voir le site
         counts:

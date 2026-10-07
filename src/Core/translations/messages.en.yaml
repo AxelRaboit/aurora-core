@@ -299,6 +299,8 @@ suite:
         filter_nav: Filter menu…
         breadcrumb: Breadcrumb
         show_descriptions: Show descriptions
+        collapse_all: Collapse all
+        expand_all: Expand all
         filter_nav_empty: No items found
         view_site: View site
         counts:

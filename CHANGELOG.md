@@ -5,6 +5,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.3.0] - 2026-10-07
+
+### Ajouté
+- **Tout replier, tout déplier dans le menu latéral** : une icône à droite de « Filtrer le menu… » (et de « Rechercher… » dans le tiroir du téléphone) plie toutes les sections de la vue affichée, groupes compris, ou les rouvre toutes quand rien n'est ouvert, comme l'arbre des notes. Le choix est retenu comme le pliage section par section.
+- **Écran Déploiements** (`/dev/beacon`) : 5 instances par page au-delà de 5, et le geste « Oublier cette instance » réduit à son icône de corbeille. `AppRowActions` gagne pour cela l'option `icon-only`, qui dessine une action seule par son icône sur tous les écrans.
+
+### Corrigé
+
+#### Le serveur de production signalé comme une copie inconnue
+Le beacon annonçait comme domaine l'hôte de la première requête du jour : un robot qui appelait le serveur par son adresse IP faisait apparaître la production sous « 72.60.130.238 », en piste à vérifier. Il annonce désormais l'adresse configurée du site (`DEFAULT_URI`), et ne retombe sur l'hôte de la requête que si celle-ci vaut `localhost` ou une IP.
+
+#### Une instance nouvelle à chaque livraison, et la liste blanche remise à zéro
+`aurora:application-parameter` supprimait à chaque déploiement l'identifiant d'instance du beacon et sa liste blanche de domaines, faute de propriétaire déclaré : la production apparaissait une fois par version, et une liste blanche modifiée à l'écran revenait aux valeurs par défaut. Les deux clés sont désormais déclarées (`BeaconSettingEnum`, `BeaconOwnedSettingProvider`) et gardées par `OwnedSettingCoverageTest`.
+
+#### Le nom d'un bouton-icône figé à son premier rendu
+`AppIconButton` calculait son nom accessible une seule fois : un bouton dont le titre suit son état gardait son premier libellé pour les lecteurs d'écran, alors que l'infobulle changeait. Le nom et la couleur suivent maintenant leurs props.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` et `make deploy-prod`. Après le déploiement, la production se signalera une dernière fois sous un nouvel identifiant, qu'elle gardera : les anciennes lignes de `/dev/beacon` peuvent être oubliées.
+
+---
+
 ## [3.2.0] - 2026-10-07
 
 ### Ajouté

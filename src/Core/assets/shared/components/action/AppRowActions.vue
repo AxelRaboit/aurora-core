@@ -21,6 +21,10 @@
  * phone it stays behind the « … » button all the same (Axel, 04/10/2026): the
  * card keeps one trigger in one place, whatever it offers. No action at all,
  * and nothing is drawn.
+ *
+ * `icon-only` draws that single action as its bare icon, on every screen, for
+ * a dense table whose one gesture is obvious - the beacon's trash (Axel,
+ * 07/10/2026). The word moves into the tooltip and the accessible name.
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -34,6 +38,8 @@ const props = defineProps({
     actions: { type: Array, required: true },
     /** Names the row in the trigger's label and the sheet's title. */
     label: { type: String, default: "" },
+    /** The single action as its icon alone, phone included. */
+    iconOnly: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -58,8 +64,19 @@ defineExpose({ open: () => sheet.value?.show() });
     <div v-if="actions.length" class="flex items-center justify-end">
         <AppActionSheet ref="sheet" :actions="actions" :label="label">
             <template #trigger="{ open }">
+                <AppIconButton
+                    v-if="single && iconOnly"
+                    :color="single.color ?? 'default'"
+                    :href="single.href ?? null"
+                    :disabled="single.disabled || single.loading"
+                    :title="single.description || single.title"
+                    :aria-label="label ? `${single.title} - ${label}` : single.title"
+                    v-on:click="single.href ? undefined : runSingle()"
+                >
+                    <component :is="single.icon" class="w-4 h-4" :stroke-width="2" />
+                </AppIconButton>
                 <!-- One action, from `sm`: the button itself, its icon and its word. -->
-                <span v-if="single" class="hidden sm:block">
+                <span v-else-if="single" class="hidden sm:block">
                     <AppButton
                         :variant="'rose' === single.color ? 'danger-outline' : 'ghost'"
                         size="sm"
@@ -74,7 +91,7 @@ defineExpose({ open: () => sheet.value?.show() });
                     </AppButton>
                 </span>
                 <!-- Several actions, or a phone whatever their number: « … ». -->
-                <span :class="single ? 'sm:hidden' : ''">
+                <span v-if="!(single && iconOnly)" :class="single ? 'sm:hidden' : ''">
                     <AppIconButton
                         :title="t('shared.actions.open', { name: label })"
                         v-on:click="open"

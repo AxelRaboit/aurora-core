@@ -34,8 +34,11 @@ export function useSidemenuNav(
         toggle: toggleGroup,
         getRaw: getGroupRaw,
     } = usePersistedExpanded("aurora-sidemenu-groups");
-    const { isExpanded: isSectionExpandedById, toggle: toggleSectionById } =
-        usePersistedExpanded("aurora-sidemenu-sections");
+    const {
+        isExpanded: isSectionExpandedById,
+        set: setSectionById,
+        toggle: toggleSectionById,
+    } = usePersistedExpanded("aurora-sidemenu-sections");
 
     function isSectionExpanded(section) {
         return isSectionExpandedById(section.id);
@@ -205,6 +208,34 @@ export function useSidemenuNav(
         return results;
     });
 
+    /**
+     * Whether anything in the view on screen is unfolded: a section, or a
+     * group under an unfolded section. It decides which way the one fold-all
+     * button goes - folding while something is open, unfolding once nothing
+     * is - as the notes tree does with its own.
+     */
+    const anyExpanded = computed(() =>
+        activeSections.value.some(
+            (section) =>
+                false !== section.foldable && isSectionExpanded(section),
+        ),
+    );
+
+    /**
+     * Folds or unfolds every section of the view on screen, and the groups
+     * inside them. Written with `set`, never `toggle`: each one ends in the
+     * state asked for, whatever it was in before. The other view keeps its
+     * own state, the reader has not looked at it.
+     */
+    function setAllExpanded(value) {
+        for (const section of activeSections.value) {
+            if (false !== section.foldable) setSectionById(section.id, value);
+            for (const item of section.items) {
+                if (item.children?.length) setGroup(item.route, value);
+            }
+        }
+    }
+
     function isActive(route) {
         return activeRoute?.startsWith(route);
     }
@@ -316,6 +347,8 @@ export function useSidemenuNav(
         toggleGroup,
         isSectionExpanded,
         toggleSection,
+        anyExpanded,
+        setAllExpanded,
         isActive,
         isActiveExact,
         itemIsCurrent,
