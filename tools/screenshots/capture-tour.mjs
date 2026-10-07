@@ -2718,6 +2718,77 @@ const SHOTS = [
     },
     { name: "tour-dev-montage", path: "/dev/dashboard/mount-points" },
 
+    /** Lot 5: the smaller screens. */
+    ...[["tour-calendrier-jour", "Jour"], ["tour-calendrier-agenda", "Agenda"]].map(([name, view]) => ({
+        name,
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: view, exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+            if ("Jour" === view) {
+                // The day opens on the current hour: up, then to the morning,
+                // as for the week.
+                await page.mouse.move(1000, 600);
+                await page.mouse.wheel(0, -2_000);
+                await page.waitForTimeout(300);
+                await page.mouse.wheel(0, 300);
+                await page.waitForTimeout(600);
+            }
+        },
+    })),
+    {
+        name: "tour-mot-de-passe-oublie",
+        path: "/suite/platform/forgot-password",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(1_000);
+        },
+    },
+    { name: "tour-galeries-liste", path: "/suite/editorial/post-galleries" },
+    {
+        // A draft's preview, opened from its row: the page as it will be
+        // once published, at an address that works without a session.
+        name: "tour-brouillon-apercu",
+        path: `/suite/editorial/posts?search=${encodeURIComponent("Ce qui arrive ensuite")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            const [preview] = await Promise.all([
+                page.context().waitForEvent("page"),
+                rowAction(page, "Actions pour Ce qui arrive ensuite", /^Prévisualiser/),
+            ]);
+            await preview.waitForLoadState("domcontentloaded");
+            const address = preview.url();
+            await preview.close();
+            await page.goto(address, { waitUntil: "networkidle" });
+            await hideChrome(page);
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Two people on the same post: the second save is stopped and says
+        // why, instead of overwriting the first. The other tab saves the
+        // post unchanged, which only moves its version on.
+        name: "tour-conflit",
+        path: `/suite/editorial/posts/${DEMO_POST_ID}/edit`,
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            const other = await page.context().newPage();
+            await other.goto(`${BASE_URL}/suite/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" });
+            await other.getByRole("button", { name: "Enregistrer", exact: true }).first().waitFor();
+            await other.waitForTimeout(2_000);
+            await other.getByRole("button", { name: "Enregistrer", exact: true }).first().click();
+            await other.waitForTimeout(2_000);
+            await other.close();
+            await page.getByRole("button", { name: "Enregistrer", exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    { name: "tour-reglages-lecture", path: "/suite/configuration/settings/reading" },
+    { name: "tour-reglages-localisation", path: "/suite/configuration/settings/localization" },
+    { name: "tour-reglages-anti-robots", path: "/suite/configuration/settings/captcha" },
+
     // "tour-releases" and "tour-release-notes" are no longer photographed:
     // they were GitHub pages. They are drawn from the CHANGELOG with
     // `compose-releases.mjs`.
