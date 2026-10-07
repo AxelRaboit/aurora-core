@@ -8,7 +8,7 @@
   Aurora
 </h1>
 
-**Un site, son back-office et l'espace de travail d'une petite agence, dans un seul bundle Symfony**
+**Un site, sa suite d'administration et l'espace de travail d'une petite agence, dans un seul bundle Symfony**
 
 [![Symfony](https://img.shields.io/badge/Symfony-7.4-000000?style=flat-square&logo=symfony&logoColor=white)](https://symfony.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org)
@@ -28,9 +28,9 @@ bundle Symfony ; un site se construit dans un projet client
 ([aurora-client](https://github.com/AxelRaboit/aurora-client)) qui l'installe
 par Composer et y ajoute ce qui lui est propre.
 
-Les pages, du site comme du back-office, sont rendues par Symfony en Twig, et
+Les pages, du site comme de la suite (`/suite`), sont rendues par Symfony en Twig, et
 leurs parties interactives sont des composants Vue 3 montés dedans
-(`symfony/ux-vue`) : tout le back-office, et côté site les formulaires, les
+(`symfony/ux-vue`) : toute la suite, et côté site les formulaires, les
 galeries, les grilles de zones, la connexion et le compte. Tout se lit en
 trois langues : français, anglais, espagnol.
 
@@ -60,7 +60,7 @@ peut étendre ses entités, ses écrans et ses gabarits sans le forker.
 | Base de données | PostgreSQL |
 | Interface | Pages Twig, composants Vue 3 montés par `symfony/ux-vue`, vue-i18n |
 | Édition | Editor.js, grille de zones maison |
-| Style | Tailwind CSS 4, thèmes du site réglables depuis le back-office |
+| Style | Tailwind CSS 4, thèmes du site réglables depuis la suite |
 | Tâches de fond | Symfony Messenger et Scheduler (transport Doctrine, sans broker) |
 | Temps réel | Mercure (discussions des espaces clients) |
 | Build | Vite 8 |
