@@ -184,7 +184,7 @@ function postTabShot(name, tab, extra) {
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
-            await page.getByRole("button", { name: tab, exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: tab, exact: true }).first().click();
             await page.waitForTimeout(2_000);
 
             if (extra) await extra(page);
@@ -210,9 +210,7 @@ async function openPost(page) {
 /** The editor of a post, on the requested tab. */
 const postTab = (name) => async (page) => {
     await openPost(page);
-    await page.getByRole("tab", { name }).first().click().catch(async () => {
-        await page.getByRole("button", { name }).first().click();
-    });
+    await page.locator("main").getByRole("tab", { name }).first().click();
     await page.waitForTimeout(1_500);
 };
 
@@ -513,7 +511,7 @@ const SHOTS = [
             await openPost(page);
             await page.getByRole("button", { name: "es", exact: true }).first().click();
             await page.waitForTimeout(2_000);
-            await page.getByRole("tab", { name: /Paramétrage/ }).first().click().catch(() => {});
+            await page.locator("main").getByRole("tab", { name: /Paramétrage/ }).first().click();
             await page.waitForTimeout(1_200);
         },
     },
@@ -636,7 +634,7 @@ const SHOTS = [
             // contains "contenu", and it is what the first result points to.
             // The capture then came out on the Paramétrage tab, which is the
             // neighbouring one and looks close enough that nobody notices.
-            await page.getByRole("button", { name: "Contenu", exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: "Contenu", exact: true }).first().click();
             await page.waitForTimeout(2_000);
             // Down to the bottom of the palette: it holds 44 types, and the
             // top of the tab only showed three rows of them.
@@ -669,7 +667,7 @@ const SHOTS = [
             // the component is mounted, and the editor keeps a connection
             // open in dev, so `load` never fires.
             await page.waitForTimeout(4_000);
-            await page.getByRole("button", { name: "Paramétrage" }).first().click();
+            await page.locator("main").getByRole("tab", { name: "Paramétrage" }).first().click();
             await page.waitForTimeout(1_500);
         },
     },
@@ -753,7 +751,7 @@ const SHOTS = [
             // `exact: true` cannot help, the two labels are identical. The
             // menu lives outside `<main>`, so limiting the search to it
             // tells them apart for good.
-            await page.locator("main").getByRole("button", { name: "GED", exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: "GED", exact: true }).first().click();
             await page.waitForTimeout(1_500);
         },
     },
@@ -1262,7 +1260,7 @@ const SHOTS = [
         path: "/suite/editorial/posts/1/edit",
         async prepare(page) {
             await page.waitForTimeout(4_000);
-            await page.getByRole("button", { name: "En-tête", exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: "En-tête", exact: true }).first().click();
             await page.waitForTimeout(2_000);
             await page.locator("main").getByText("Diapositive 2", { exact: true }).first().click();
             await page.waitForTimeout(1_500);

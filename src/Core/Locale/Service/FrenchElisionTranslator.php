@@ -59,8 +59,8 @@ final readonly class FrenchElisionTranslator implements TranslatorInterface, Tra
         return $this->inner->getCatalogues();
     }
 
-    public function warmUp(string $cacheDir, ?string $buildDir = null): array
+    public function warmUp(string $cacheDirectory, ?string $buildDirectory = null): array
     {
-        return $this->inner instanceof WarmableInterface ? $this->inner->warmUp($cacheDir, $buildDir) : [];
+        return $this->inner instanceof WarmableInterface ? $this->inner->warmUp($cacheDirectory, $buildDirectory) : [];
     }
 }
