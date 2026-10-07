@@ -1057,6 +1057,8 @@ suite:
                 desktop: "Oculto en ordenador"
             row_gap: "Espacio entre filas"
             row_gap_hint: "El espacio entre dos filas de zonas, para toda la página."
+            picture_first: "En teléfono y tableta, la imagen antes de su texto"
+            picture_first_hint: "Cuando una fila coloca una imagen y un texto lado a lado, la imagen va primero una vez apiladas las zonas, aunque esté a la derecha en el ordenador. Desmárquelo para conservar el orden de la página."
             row_gaps:
                 tight: "Ajustado"
                 normal: "Normal"
@@ -1115,6 +1117,12 @@ suite:
                     title:
                         name: "Título de sección"
                         description: "Un título grande y una frase que anuncia lo que sigue."
+                    picture_text:
+                        name: "Imagen y texto"
+                        description: "Una captura a la izquierda, su explicación a la derecha."
+                    text_picture:
+                        name: "Texto e imagen"
+                        description: "La explicación a la izquierda, su captura a la derecha: para alternar con «Imagen y texto»."
                     card_phone:
                         name: "Tarjeta y teléfono"
                         description: "Una tarjeta en relieve centrada junto a un teléfono inclinado."

@@ -63,6 +63,10 @@
 .aurora-grid > * {
     grid-row: var(--row-base, auto);
     grid-column: var(--start-base, auto) / span var(--span-base, 48);
+    /* Below the large breakpoint, where zones stack: a row's picture before
+     * its text - see GridNormalizer::readingOrder. Unset, `0` for every
+     * zone, which is the plain sequence. */
+    order: var(--order-small, 0);
     padding-inline: var(--aurora-gutter, 1rem);
 
     /* Without this the grid overflows its container and the page scrolls
@@ -99,6 +103,7 @@
     --start-base: initial;
     --start-md: initial;
     --start-lg: initial;
+    --order-small: initial;
 }
 
 /*
@@ -140,6 +145,7 @@
 
 @media (min-width: 1024px) {
     .aurora-grid > * {
+        order: 0;
         grid-row: var(--row-lg, var(--row-md, var(--row-base, auto)));
         grid-column: var(--start-lg, var(--start-md, var(--start-base, auto))) /
             span var(--span-lg, var(--span-md, var(--span-base, 48)));

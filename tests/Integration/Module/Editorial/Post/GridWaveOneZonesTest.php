@@ -319,6 +319,38 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         return $twig->render('Frontend/themes/default/editorial/post/_grid.html.twig', ['grid' => $grid, 'locale' => 'fr']);
     }
 
+    /**
+     * A row whose picture sits on the right: on by default, the picture is
+     * given the earlier place once zones stack; off, nothing is emitted and
+     * the page keeps its sequence.
+     */
+    public function testAnAlternatingRowPutsItsPictureFirstOnceStackedUnlessTheAuthorKeepsTheOrder(): void
+    {
+        self::bootKernel();
+        $builder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
+        self::assertInstanceOf(Environment::class, $twig);
+
+        $zones = [
+            ['id' => 't1', 'type' => 'text', 'span' => ['lg' => 26], 'offset' => 0, 'newRow' => true],
+            ['id' => 'm1', 'type' => 'media', 'mediaUrl' => 'https://picsum.photos/800/500', 'span' => ['lg' => 20], 'offset' => 28],
+        ];
+        $held = ['zones' => ['t1' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Le texte']]]], 'm1' => []]];
+
+        $render = static function (array $page) use ($builder, $twig, $zones, $held): string {
+            $grid = $builder->build(['enabled' => true, ...$page, 'zones' => $zones], $held, 'fr');
+            self::assertNotNull($grid);
+
+            return $twig->render('Frontend/themes/default/editorial/post/_grid.html.twig', ['grid' => $grid, 'locale' => 'fr']);
+        };
+
+        $default = $render([]);
+        self::assertStringContainsString('--order-small: 1;', $default, 'le texte passe en second');
+        self::assertStringContainsString('--order-small: 0;', $default, "l'image passe en premier");
+
+        self::assertStringNotContainsString('--order-small', $render(['pictureFirst' => false]), "l'auteur garde l'ordre de sa page");
+    }
+
     /** A phone laid askew on the page, but upright on a phone itself. */
     public function testAPictureCanBeSetAskewFromTheTabletUp(): void
     {

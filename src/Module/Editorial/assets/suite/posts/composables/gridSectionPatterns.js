@@ -85,6 +85,43 @@ export const SECTION_PATTERNS = [
             return section.result();
         },
     },
+    // A picture and its text side by side, the two ways round. Inserted one
+    // after the other, they alternate; on a phone each row still reads
+    // picture then text, which GridNormalizer::readingOrder takes care of.
+    // The widths and columns are the ones the service pages settled on: 20
+    // for the picture, 26 for the text, two columns of air between them.
+    {
+        key: "picture_text",
+        rows: [[20, 26]],
+        build(t) {
+            const section = sheet();
+            section.add(zone("media", 20, { newRow: true, offset: 0 }), {});
+            section.add(zone("text", 26, { offset: 22 }), {
+                blocks: [
+                    heading(words(t, "heading"), 3),
+                    paragraph(words(t, "text")),
+                ],
+            });
+
+            return section.result();
+        },
+    },
+    {
+        key: "text_picture",
+        rows: [[26, 20]],
+        build(t) {
+            const section = sheet();
+            section.add(zone("text", 26, { newRow: true, offset: 0 }), {
+                blocks: [
+                    heading(words(t, "heading"), 3),
+                    paragraph(words(t, "text")),
+                ],
+            });
+            section.add(zone("media", 20, { offset: 28 }), {});
+
+            return section.result();
+        },
+    },
     {
         key: "card_phone",
         rows: [[28, 20]],

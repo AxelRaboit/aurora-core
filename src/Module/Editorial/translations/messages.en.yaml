@@ -1051,6 +1051,8 @@ suite:
                 desktop: "Hidden on desktop"
             row_gap: "Space between rows"
             row_gap_hint: "The space between two rows of zones, for the whole page."
+            picture_first: "On phones and tablets, the picture before its text"
+            picture_first_hint: "When a row sets a picture and a text side by side, the picture comes first once the zones stack, even when it sits on the right on a computer. Untick to keep the page's own order."
             row_gaps:
                 tight: "Tight"
                 normal: "Normal"
@@ -1109,6 +1111,12 @@ suite:
                     title:
                         name: "Section title"
                         description: "A large heading and a sentence announcing what follows."
+                    picture_text:
+                        name: "Picture and text"
+                        description: "A screenshot on the left, what it shows on the right."
+                    text_picture:
+                        name: "Text and picture"
+                        description: "The explanation on the left, its screenshot on the right: alternate it with “Picture and text”."
                     card_phone:
                         name: "Card and phone"
                         description: "A raised card centred beside a tilted phone."
