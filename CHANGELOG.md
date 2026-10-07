@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.3.3] - 2026-10-07
+
+### Corrigé
+
+#### Le README des projets clients parlait encore de « back-office »
+Le bloc commun du README d'un projet client, recopié par `make sync-readme` à chaque `make aurora-update`, dit maintenant « suite d'administration (`/suite`) ». La 3.3.2 n'avait corrigé que le README du cœur : celui du client revenait à l'ancien texte à la mise à jour suivante.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` : le README se met à jour tout seul.
+
+---
+
 ## [3.3.2] - 2026-10-07
 
 ### Corrigé
