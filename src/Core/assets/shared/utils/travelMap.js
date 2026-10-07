@@ -27,6 +27,24 @@ function popupFor(stop) {
     return wrapper;
 }
 
+/**
+ * A dot in the accent colour, drawn rather than Leaflet's default pin.
+ *
+ * The default pin is an image Leaflet looks for next to the page, by a
+ * relative address: on `/fr/page/…` it asked for `/fr/page/marker-icon.png`,
+ * got a 404, and every stop showed as a broken image. Drawn, there is no
+ * file to find, and the marker follows the theme.
+ */
+function stopIcon(Leaflet) {
+    return Leaflet.divIcon({
+        className: "",
+        html: '<span class="block h-4 w-4 rounded-full border-2 border-white bg-accent-500 shadow-md"></span>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+        popupAnchor: [0, -10],
+    });
+}
+
 async function arm() {
     const maps = [...document.querySelectorAll(SELECTOR)];
 
@@ -56,7 +74,7 @@ async function arm() {
         }).addTo(map);
 
         const markers = stops.map((stop) =>
-            Leaflet.marker([stop.lat, stop.lng])
+            Leaflet.marker([stop.lat, stop.lng], { icon: stopIcon(Leaflet) })
                 .bindPopup(popupFor(stop))
                 .addTo(map),
         );

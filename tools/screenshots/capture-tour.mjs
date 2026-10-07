@@ -573,7 +573,19 @@ const SHOTS = [
     },
 
     { name: "tour-publications", path: "/suite/editorial/posts" },
-    { name: "tour-grille", path: "/suite", prepare: postTab(/^Contenu$/) },
+    {
+        // The grid of the demo's richest page, twenty-five zones: on the
+        // welcome page, five zones said little of what a grid holds.
+        name: "tour-grille",
+        path: `/suite/editorial/posts?search=${encodeURIComponent("Nouveaux blocs")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour Nouveaux blocs", /^Modifier/);
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("tab", { name: "Contenu", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+        },
+    },
     { name: "tour-entete", path: "/suite", prepare: postTab(/En-tête/) },
     {
         // The site-wide SEO settings, and no longer the post tab: the banner
@@ -740,7 +752,7 @@ const SHOTS = [
             // neighbouring one and looks close enough that nobody notices.
             await page.locator("main").getByRole("tab", { name: "Contenu", exact: true }).first().click();
             await page.waitForTimeout(2_000);
-            // Down to the bottom of the palette: it holds 44 types, and the
+            // Down to the bottom of the palette: it holds 45 types, and the
             // top of the tab only showed three rows of them.
             await page
                 .locator("main")
@@ -751,13 +763,8 @@ const SHOTS = [
             await page.waitForTimeout(1_000);
         },
     },
-    // No shot of a zone's editor, and I tried three times. The editor
-    // opens below the grid, and the scroll does not hold until the
-    // shutter: the capture comes out on the grid, that is, a duplicate of
-    // the one above. Two identical pictures are worth less than one, and
-    // the palette one already says what the card promises: twenty-four
-    // kinds of zones to place. To be redone by targeting the container
-    // that actually scrolls, which is not the window.
+    // A zone's editor is `tour-grille-zone`, further down: three attempts
+    // here scrolled an inner box, when it is the window that scrolls.
 
     {
         // A post's settings: its status, its dates, its type and its URL.
@@ -2064,7 +2071,9 @@ const SHOTS = [
             await page.mouse.move(1000, 600);
             await page.mouse.wheel(0, -2_000);
             await page.waitForTimeout(300);
-            await page.mouse.wheel(0, 530);
+            // Down to about eight in the morning, where the demo's days
+            // start since its times are written in the calendar's zone.
+            await page.mouse.wheel(0, 300);
             await page.waitForTimeout(600);
         },
     },
@@ -2536,6 +2545,50 @@ const SHOTS = [
                 },
                 async (tab) => tab.goto(`${BASE_URL}/suite/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" }),
             ]);
+        },
+    },
+
+    /**
+     * Lot 4: blocks as a visitor sees them, on the demo page that holds one
+     * of each. Framed by their place in the grid: the public HTML carries no
+     * zone id. The zones above are hidden, as for the booking.
+     */
+    ...[
+        ["tour-blocs-pratiques", 1, "Disponibilité, compte à rebours, horaires, carte de visite"],
+        ["tour-blocs-reseaux", 5, "Une publication façon réseau social, une image dans un cadre d'ordinateur"],
+        ["tour-blocs-code", 9, "Un terminal et un diff"],
+        ["tour-blocs-graphiques", 13, "Trois graphiques"],
+        ["tour-blocs-calendrier", 17, "Un calendrier éditorial"],
+        ["tour-blocs-tarifs", 18, "Une carte et ses tarifs"],
+        ["tour-blocs-voyage", 22, "Une carte de voyage étape par étape"],
+        ["tour-blocs-devis", 23, "Un simulateur de devis"],
+        ["tour-blocs-recit", 25, "Un récit en images"],
+    ].map(([name, child]) => ({
+        name,
+        path: "/fr/page/nouveaux-blocs",
+        anonymous: true,
+        async prepare(page) {
+            const zone = page.locator(`.aurora-grid > div:nth-child(${child})`).first();
+            await hideZonesAbove(zone);
+            await placeAt(page, zone, 120);
+        },
+    })),
+
+    {
+        // The page a shared calendar opens on, for whoever holds the link:
+        // read in the share window, then followed.
+        name: "tour-agenda-partage",
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            const row = page.locator("#sidemenu").getByRole("button", { name: "Pro", exact: true }).first().locator("xpath=..");
+            await row.getByTitle("Partage par lien").evaluate((button) => button.click());
+            const dialog = page.getByRole("dialog").first();
+            await dialog.waitFor();
+            const link = await dialog.locator("input[readonly]").first().inputValue();
+            await page.goto(link, { waitUntil: "networkidle" });
+            await hideChrome(page);
+            await page.waitForTimeout(1_500);
         },
     },
 

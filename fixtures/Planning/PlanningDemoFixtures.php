@@ -20,10 +20,12 @@ use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Planning\Share\Entity\PlanningShare;
+use Aurora\Module\Planning\Time\PlanningClock;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -301,7 +303,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
 
         // Skipped once: the week after next has no Monday meeting, and the grid
         // has to leave that day empty rather than drawing it faintly.
-        $weekly->excludeOccurrence($monday->modify('+14 days')->setTime(9, 0));
+        $weekly->excludeOccurrence($this->utc($monday->modify('+14 days')->setTime(9, 0)));
 
         // And moved once. A detached occurrence is its own row pointing at the
         // date the rule would have produced, so the expander skips the generated
@@ -315,7 +317,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
             $monday->modify('+7 days')->setTime(12, 15),
         );
         $moved->setMaster($weekly);
-        $moved->setOccurrenceAt($monday->modify('+7 days')->setTime(9, 0));
+        $moved->setOccurrenceAt($this->utc($monday->modify('+7 days')->setTime(9, 0)));
 
         // The 31st, so the short months have to be skipped rather than rolled into
         // the 1st of the next one.
@@ -349,7 +351,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
             $monday->modify('+2 days')->setTime(16, 0),
         );
         $review->setRrule('FREQ=WEEKLY;BYDAY=WE');
-        $review->setRecurrenceUntil($monday->modify('+35 days')->setTime(23, 59));
+        $review->setRecurrenceUntil($this->utc($monday->modify('+35 days')->setTime(23, 59)));
     }
 
     /**
@@ -459,7 +461,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
                 $attendee = new PlanningEventAttendee();
                 $attendee->setUser($person);
                 if (PlanningAttendeeStatusEnum::NeedsAction !== $status) {
-                    $attendee->respond($status, $monday->setTime(8, 0));
+                    $attendee->respond($status, $this->utc($monday->setTime(8, 0)));
                 }
 
                 $event->addAttendee($attendee);
@@ -500,7 +502,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
             // No answer means no answer: `respond()` would set a date, and the
             // list would show an answered state.
             if (PlanningAttendeeStatusEnum::NeedsAction !== $status) {
-                $attendee->respond($status, $monday->setTime(8, 0));
+                $attendee->respond($status, $this->utc($monday->setTime(8, 0)));
             }
 
             $allHands->addAttendee($attendee);
@@ -823,7 +825,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         $reminder = new PlanningReminder();
         $reminder->setPlanning($planning);
         $reminder->setTitle($title);
-        $reminder->setDueAt($dueAt);
+        $reminder->setDueAt($this->utc($dueAt));
 
         $manager->persist($reminder);
 
@@ -841,7 +843,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         $event->setPlanning($planning);
         $event->setTitle($title);
         // Last, and in one call: the entity refuses an end before a start.
-        $event->setSpan($startAt, $endAt);
+        $event->setSpan($this->utc($startAt), $this->utc($endAt));
 
         $manager->persist($event);
 
@@ -868,8 +870,22 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
      * Monday because the grids start there, so a fixture anchored to it lands
      * predictably inside the visible month rather than half off the edge.
      */
+    /**
+     * Monday, in the zone the demo calendars are drawn in.
+     *
+     * Built in the server's UTC, "9:00" was stored as 9:00 UTC and showed at
+     * 11:00: the weekly meeting at eleven, a night flight at half past
+     * midnight. The times below are written as the calendar reads them, from
+     * this Monday, and `utc()` turns each into the instant the tables hold.
+     */
     private function startOfWeek(): DateTimeImmutable
     {
-        return new DateTimeImmutable('monday this week');
+        return new DateTimeImmutable('monday this week', new DateTimeZone('Europe/Paris'));
+    }
+
+    /** Every instant in the planning tables is UTC: see PlanningClock. */
+    private function utc(DateTimeImmutable $wallClock): DateTimeImmutable
+    {
+        return $wallClock->setTimezone(PlanningClock::utcZone());
     }
 }
