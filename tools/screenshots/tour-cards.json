@@ -529,6 +529,10 @@
         "tour-client-page": {
             "document": 809,
             "slug": "clients-et-contrats"
+        },
+        "tour-notes-export": {
+            "document": 810,
+            "slug": "notes-markdown"
         }
     }
 }

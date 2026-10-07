@@ -5,6 +5,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.4.1] - 2026-10-07
+
+### Ajouté
+- **Une capture de l'export des notes dans le tour** (`tour-notes-export`) : le menu d'un dossier ouvert sur « Exporter ce dossier (zip) », sur la bibliothèque rangée par dossiers dont la ligne du titre porte le bouton d'export. Elle est sur la page Notes du tour, avec son texte en trois langues.
+
+### Dans aurora-client
+Rien à faire : seul l'outillage des captures du tour change, aucune mise à jour n'est nécessaire.
+
+---
+
 ## [3.4.0] - 2026-10-07
 
 ### Ajouté
