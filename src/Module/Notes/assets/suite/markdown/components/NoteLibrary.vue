@@ -321,6 +321,9 @@ const sortLabel = computed(
  *
  * Set as a style rather than a class: it is a free value, chosen by the
  * reader, and Tailwind only generates the classes it sees written.
+ *
+ * Without one, the icon stays grey, as in the tree: the theme's accent read
+ * as a colour the reader had never chosen (seen on 07/10/2026).
  */
 function folderTint(folder) {
     return folder.color ? { color: folder.color } : null;
@@ -1650,7 +1653,7 @@ defineExpose({
                                     v-on:dblclick.stop="askForFolderName(folder)"
                                 >
                                     <Folder
-                                        class="w-5 h-5 shrink-0 text-accent-500"
+                                        class="w-5 h-5 shrink-0 text-muted"
                                         :style="folderTint(folder)"
                                         :stroke-width="2"
                                     />
@@ -1806,7 +1809,7 @@ defineExpose({
                                         v-on:dblclick.stop="askForFolderName(folder)"
                                     >
                                         <Folder
-                                            class="w-4 h-4 shrink-0 text-accent-500"
+                                            class="w-4 h-4 shrink-0 text-muted"
                                             :style="folderTint(folder)"
                                             :stroke-width="2"
                                         />

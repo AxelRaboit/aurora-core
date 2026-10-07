@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
+import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import AppColorPicker from "./AppColorPicker.vue";
+
+const i18n = createTestI18n();
 
 const DEFAULT_PRESETS = [
     "#ef4444",
@@ -23,7 +26,10 @@ const DEFAULT_PRESETS = [
 
 describe("AppColorPicker", () => {
     it("renders 16 preset color buttons by default", () => {
-        const wrapper = mount(AppColorPicker, { props: { modelValue: null } });
+        const wrapper = mount(AppColorPicker, {
+            global: { plugins: [i18n] },
+            props: { modelValue: null },
+        });
         const buttons = wrapper
             .findAll("button[type='button']")
             .filter((button) => button.attributes("title")?.startsWith("#"));
@@ -33,6 +39,7 @@ describe("AppColorPicker", () => {
     it("marks the active preset with border-primary class", () => {
         const activeColor = "#3b82f6";
         const wrapper = mount(AppColorPicker, {
+            global: { plugins: [i18n] },
             props: { modelValue: activeColor },
         });
         const activeButton = wrapper
@@ -43,6 +50,7 @@ describe("AppColorPicker", () => {
 
     it("non-active presets do not have border-primary class", () => {
         const wrapper = mount(AppColorPicker, {
+            global: { plugins: [i18n] },
             props: { modelValue: "#3b82f6" },
         });
         const inactiveButton = wrapper
@@ -52,7 +60,10 @@ describe("AppColorPicker", () => {
     });
 
     it("emits update:modelValue when a preset is clicked", async () => {
-        const wrapper = mount(AppColorPicker, { props: { modelValue: null } });
+        const wrapper = mount(AppColorPicker, {
+            global: { plugins: [i18n] },
+            props: { modelValue: null },
+        });
         const firstPreset = wrapper
             .findAll("button[type='button']")
             .find((button) => button.attributes("title")?.startsWith("#"));
@@ -62,11 +73,43 @@ describe("AppColorPicker", () => {
 
     it("displays error message when error prop is set", () => {
         const wrapper = mount(AppColorPicker, {
+            global: { plugins: [i18n] },
             props: { modelValue: null, error: "Please pick a color" },
         });
         expect(wrapper.find("p.text-red-500").exists()).toBe(true);
         expect(wrapper.find("p.text-red-500").text()).toBe(
             "Please pick a color",
+        );
+    });
+
+    /**
+     * The native input cannot be empty: left visible it showed black, and
+     * the placeholder a real blue. Both read as a colour that was not there.
+     */
+    it("says there is no colour instead of showing black", () => {
+        const wrapper = mount(AppColorPicker, {
+            global: { plugins: [i18n] },
+            props: { modelValue: null },
+        });
+
+        expect(wrapper.find("[data-color-picker-empty]").exists()).toBe(true);
+        expect(wrapper.find("input[type='color']").classes()).toContain(
+            "opacity-0",
+        );
+        expect(
+            wrapper.find("input:not([type='color'])").attributes("placeholder"),
+        ).not.toMatch(/^#/);
+    });
+
+    it("shows the colour itself once there is one", () => {
+        const wrapper = mount(AppColorPicker, {
+            global: { plugins: [i18n] },
+            props: { modelValue: "#22c55e" },
+        });
+
+        expect(wrapper.find("[data-color-picker-empty]").exists()).toBe(false);
+        expect(wrapper.find("input[type='color']").classes()).not.toContain(
+            "opacity-0",
         );
     });
 });

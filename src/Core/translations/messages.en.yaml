@@ -97,6 +97,7 @@ shared:
         count: 'No file | 1 file | {count} files'
     palette:
         no_colour: No colour
+        clear_colour: 'Remove the colour'
         colour_slot: 'Colour {slot}'
     placeholders:
         name: A short name
