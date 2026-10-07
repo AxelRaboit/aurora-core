@@ -254,3 +254,78 @@ describe("what the search palette is offered", () => {
         expect(routes).toEqual(["suite_dashboard", "suite_ged_documents"]);
     });
 });
+
+/**
+ * One button folds the whole menu, or unfolds it once nothing is open, the
+ * way the notes tree folds its own.
+ */
+describe("folding the whole menu", () => {
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    const WITH_GROUP = [
+        {
+            id: "editorial",
+            items: [
+                {
+                    route: "suite_posts",
+                    path: "/suite/posts",
+                    labelKey: "suite.nav.posts",
+                    icon: "file-text",
+                    children: [
+                        {
+                            route: "suite_posts_trash",
+                            path: "/suite/posts/trash",
+                            labelKey: "suite.nav.trash",
+                            icon: "trash",
+                        },
+                    ],
+                },
+            ],
+        },
+        ...PROJECT_SECTIONS,
+    ];
+
+    it("starts with something to fold", () => {
+        expect(makeNav().anyExpanded.value).toBe(true);
+    });
+
+    it("folds every section and every group, and remembers it", () => {
+        const nav = useSidemenuNav(WITH_GROUP, "suite_dashboard");
+
+        nav.setAllExpanded(false);
+
+        expect(nav.anyExpanded.value).toBe(false);
+        for (const section of nav.groupedSections.value) {
+            expect(nav.isSectionExpanded(section)).toBe(false);
+        }
+        expect(nav.isGroupExpanded("suite_posts")).toBe(false);
+
+        const reloaded = useSidemenuNav(WITH_GROUP, "suite_dashboard");
+        expect(reloaded.anyExpanded.value).toBe(false);
+    });
+
+    it("unfolds everything again, whatever was open before", () => {
+        const nav = useSidemenuNav(WITH_GROUP, "suite_dashboard");
+        nav.toggleSection(nav.groupedSections.value[0]);
+
+        nav.setAllExpanded(false);
+        nav.setAllExpanded(true);
+
+        for (const section of nav.groupedSections.value) {
+            expect(nav.isSectionExpanded(section)).toBe(true);
+        }
+        expect(nav.isGroupExpanded("suite_posts")).toBe(true);
+    });
+
+    it("acts on the module view alone while it is open", () => {
+        const nav = makeNav(GED_VIEW);
+
+        nav.setAllExpanded(false);
+
+        expect(nav.isSectionExpanded({ id: "ged:library" })).toBe(false);
+        expect(nav.isSectionExpanded({ id: "ged" })).toBe(true);
+        expect(nav.anyExpanded.value).toBe(false);
+    });
+});

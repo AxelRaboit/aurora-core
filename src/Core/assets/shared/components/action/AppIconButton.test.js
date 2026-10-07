@@ -68,4 +68,15 @@ describe("AppIconButton", () => {
         expect(wrapper.classes()).toContain("text-accent-400");
         expect(wrapper.attributes("aria-pressed")).toBe("true");
     });
+
+    it("follows a title that changes with the button's state", async () => {
+        const wrapper = mount(AppIconButton, {
+            props: { title: "Tout replier", color: "default" },
+        });
+
+        await wrapper.setProps({ title: "Tout déplier", color: "rose" });
+
+        expect(wrapper.attributes("aria-label")).toBe("Tout déplier");
+        expect(wrapper.classes()).toContain("hover:text-rose-400");
+    });
 });

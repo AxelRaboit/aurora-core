@@ -295,6 +295,8 @@ suite:
         filter_nav: 'Filtrar el menú…'
         breadcrumb: 'Ruta de navegación'
         show_descriptions: 'Mostrar las descripciones'
+        collapse_all: Plegar todo
+        expand_all: Desplegar todo
         filter_nav_empty: 'Ningún elemento encontrado'
         view_site: 'Ver el sitio'
         counts:

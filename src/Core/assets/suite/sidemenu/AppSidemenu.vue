@@ -34,6 +34,8 @@ import {
     ChevronDown,
     ChevronLeft,
     ChevronRight,
+    ChevronsDownUp,
+    ChevronsUpDown,
     Clock,
     FileText,
     Filter,
@@ -288,17 +290,30 @@ function openSearchFromMobile() {
         </button>
 
         <div class="sh-search-section px-3 py-2 border-b border-line shrink-0 space-y-1.5">
-            <div class="relative flex items-center">
-                <Filter class="absolute left-2.5 w-3 h-3 text-muted pointer-events-none" :stroke-width="2" />
-                <input
-                    v-model="navFilter"
-                    type="text"
-                    :placeholder="t('suite.nav.filter_nav')"
-                    class="w-full pl-7 pr-6 py-1.5 rounded-md text-xs bg-surface-2/60 border border-line/40 text-primary placeholder:text-muted focus:outline-none focus:border-line focus:bg-surface-2 transition-colors"
+            <div class="flex items-center gap-1">
+                <div class="relative flex flex-1 min-w-0 items-center">
+                    <Filter class="absolute left-2.5 w-3 h-3 text-muted pointer-events-none" :stroke-width="2" />
+                    <input
+                        v-model="navFilter"
+                        type="text"
+                        :placeholder="t('suite.nav.filter_nav')"
+                        class="w-full pl-7 pr-6 py-1.5 rounded-md text-xs bg-surface-2/60 border border-line/40 text-primary placeholder:text-muted focus:outline-none focus:border-line focus:bg-surface-2 transition-colors"
+                    >
+                    <button v-if="navFilter" type="button" class="absolute right-2 text-muted hover:text-primary transition-colors" v-on:click="navFilter = ''">
+                        <X class="w-3 h-3" :stroke-width="2.5" />
+                    </button>
+                </div>
+                <!-- Folds or unfolds the whole menu at once, the way the notes
+                     tree folds its own. Gone while filtering: the filter shows
+                     every match unfolded and draws no section header to fold. -->
+                <AppIconButton
+                    v-if="!navFilter"
+                    data-sidemenu-fold-all
+                    :title="nav.anyExpanded.value ? t('suite.nav.collapse_all') : t('suite.nav.expand_all')"
+                    v-on:click="nav.setAllExpanded(!nav.anyExpanded.value)"
                 >
-                <button v-if="navFilter" type="button" class="absolute right-2 text-muted hover:text-primary transition-colors" v-on:click="navFilter = ''">
-                    <X class="w-3 h-3" :stroke-width="2.5" />
-                </button>
+                    <component :is="nav.anyExpanded.value ? ChevronsDownUp : ChevronsUpDown" class="w-3.5 h-3.5" :stroke-width="2" />
+                </AppIconButton>
             </div>
 
             <!-- Beside the filter because both act on the menu itself rather
@@ -465,14 +480,25 @@ function openSearchFromMobile() {
             </div>
 
             <div class="shrink-0 px-3 pt-3 pb-1 space-y-1">
-                <button
-                    type="button"
-                    class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-muted border border-line hover:border-line hover:text-primary hover:bg-surface-2 transition-colors"
-                    v-on:click="openSearchFromMobile"
-                >
-                    <Search class="w-4 h-4 shrink-0" :stroke-width="2" />
-                    <span class="flex-1 text-left">{{ t("suite.search.button") }}</span>
-                </button>
+                <div class="flex items-center gap-1">
+                    <button
+                        type="button"
+                        class="flex-1 min-w-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-muted border border-line hover:border-line hover:text-primary hover:bg-surface-2 transition-colors"
+                        v-on:click="openSearchFromMobile"
+                    >
+                        <Search class="w-4 h-4 shrink-0" :stroke-width="2" />
+                        <span class="flex-1 text-left">{{ t("suite.search.button") }}</span>
+                    </button>
+                    <!-- The aside's fold-all, here beside the search since the
+                         drawer has no filter row to sit in. -->
+                    <AppIconButton
+                        data-sidemenu-fold-all
+                        :title="nav.anyExpanded.value ? t('suite.nav.collapse_all') : t('suite.nav.expand_all')"
+                        v-on:click="nav.setAllExpanded(!nav.anyExpanded.value)"
+                    >
+                        <component :is="nav.anyExpanded.value ? ChevronsDownUp : ChevronsUpDown" class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
                 <a
                     v-if="hasEnabledFronts"
                     :href="frontPath"

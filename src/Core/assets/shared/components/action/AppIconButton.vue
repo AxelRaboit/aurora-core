@@ -1,4 +1,6 @@
 <script setup>
+import { computed } from "vue";
+
 const props = defineProps({
     color: { type: String, default: "default" },
     // A single size: thirty pixels for a finger, the old tight fit for a mouse.
@@ -60,8 +62,11 @@ const sizes = {
 
 // Always project a label to assistive tech: prefer explicit ariaLabel, fall back to title.
 // Components that pass neither will render an unlabelled button - caught by lint:a11y in CI.
-const computedAriaLabel = props.ariaLabel ?? props.title ?? undefined;
-const resolvedColor = colors[props.color] ?? colors.default;
+// Computed, not read once: a button whose title follows its state (the side
+// menu's "Tout replier" / "Tout déplier") kept announcing its first word
+// while the tooltip moved on (07/10/2026).
+const computedAriaLabel = computed(() => props.ariaLabel ?? props.title ?? undefined);
+const resolvedColor = computed(() => colors[props.color] ?? colors.default);
 </script>
 
 <template>
