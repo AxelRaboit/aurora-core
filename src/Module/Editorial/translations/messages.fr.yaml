@@ -1051,6 +1051,8 @@ suite:
                 desktop: "Masqué sur ordinateur"
             row_gap: "Air entre les lignes"
             row_gap_hint: "L'espace entre deux lignes de zones, pour toute la page."
+            picture_first: "Sur téléphone et tablette, l'image avant son texte"
+            picture_first_hint: "Quand une ligne pose une image et un texte côte à côte, l'image passe en premier une fois les zones empilées, même si elle est à droite sur ordinateur. Décochez pour garder l'ordre de la page."
             row_gaps:
                 tight: "Serré"
                 normal: "Normal"
@@ -1109,6 +1111,12 @@ suite:
                     title:
                         name: "Titre de section"
                         description: "Un grand titre et une phrase qui annonce la suite."
+                    picture_text:
+                        name: "Image et texte"
+                        description: "Une capture à gauche, son explication à droite."
+                    text_picture:
+                        name: "Texte et image"
+                        description: "L'explication à gauche, sa capture à droite : à alterner avec « Image et texte »."
                     card_phone:
                         name: "Carte et téléphone"
                         description: "Une carte en relief centrée à côté d'un téléphone penché."

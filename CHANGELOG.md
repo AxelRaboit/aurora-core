@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.5.0] - 2026-10-07
+
+### Ajouté
+- **Sur téléphone et tablette, l'image d'une ligne passe avant son texte.** Une page qui alterne (image à gauche puis texte à gauche) écrivait une ligne sur deux le texte en premier, puisque l'ordre des zones décide de leur côté sur ordinateur. Une fois les zones empilées, on lisait image, texte, texte, image, sans savoir quelle légende allait avec quelle capture. Dans une ligne qui mêle une image et du texte, l'image passe désormais en premier sous 1024 px, sans jamais mélanger deux lignes ; l'ordinateur n'est pas touché. Actif par défaut, réglable par publication dans l'onglet Contenu (« Sur téléphone et tablette, l'image avant son texte »), en français, anglais et espagnol. Une page sans ligne de ce genre est rendue exactement comme avant.
+- **Deux sections toutes faites « Image et texte » et « Texte et image »** dans « Insérer une section » : une capture et son explication côte à côte (20 et 26 colonnes, deux colonnes d'air), un titre et un paragraphe entre [crochets] à remplacer. Insérées l'une après l'autre, elles alternent sans rien régler, et restent dans le bon ordre sur téléphone.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` et `make deploy-prod`.
+
+---
+
 ## [3.4.1] - 2026-10-07
 
 ### Ajouté

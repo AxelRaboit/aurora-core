@@ -413,6 +413,16 @@ final readonly class GridViewBuilder
             $zones[$index]['startStyle'] = self::startStyle($place['row'], $place['column']);
         }
 
+        // And the order they stack in below it: a row's picture before its
+        // text, so that an alternating page reads picture, text on a phone
+        // whichever side the picture took on a large screen. Nothing is added
+        // to a page where that order is already the sequence, nor to one
+        // whose author chose to keep its own.
+        $order = false !== ($layout['pictureFirst'] ?? true) ? GridNormalizer::readingOrder($layout['zones']) : null;
+        foreach ($order ?? [] as $index => $position) {
+            $zones[$index]['startStyle'] .= sprintf(' --order-small: %d;', $position);
+        }
+
         $zones = $this->summarise($zones);
 
         // A plain loop rather than `array_map`: an arrow function captures by

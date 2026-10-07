@@ -360,6 +360,38 @@ final class GridNormalizerTest extends TestCase
         );
     }
 
+    /**
+     * An alternating page writes its second row text first, since the
+     * sequence is what puts a zone on the left. Stacked, the picture of each
+     * row must still come before its text.
+     */
+    public function testAPictureComesBeforeItsTextOnceZonesStack(): void
+    {
+        self::assertSame(
+            [0, 1, 3, 2, 4],
+            GridNormalizer::readingOrder([
+                ['type' => 'media', 'span' => ['lg' => 20], 'offset' => 0, 'newRow' => true],
+                ['type' => 'text', 'span' => ['lg' => 26], 'offset' => 22],
+                ['type' => 'text', 'span' => ['lg' => 26], 'offset' => 0, 'newRow' => true],
+                ['type' => 'media', 'span' => ['lg' => 20], 'offset' => 28],
+                ['type' => 'text', 'span' => ['lg' => 48], 'newRow' => true],
+            ]),
+            'la rangée image à droite remonte son image, rien ne passe d\'une rangée à l\'autre',
+        );
+    }
+
+    /** A page that never puts text before a picture on a row emits nothing. */
+    public function testNothingMovesWhenNoRowPutsTextFirst(): void
+    {
+        self::assertNull(GridNormalizer::readingOrder([
+            ['type' => 'text', 'span' => ['lg' => 48]],
+            ['type' => 'media', 'span' => ['lg' => 20], 'newRow' => true],
+            ['type' => 'text', 'span' => ['lg' => 26], 'offset' => 22],
+            ['type' => 'text', 'span' => ['lg' => 24], 'newRow' => true],
+            ['type' => 'text', 'span' => ['lg' => 24]],
+        ]));
+    }
+
     public function testTheZoneCountIsCapped(): void
     {
         $layout = $this->normalizer->normalizeLayout([
