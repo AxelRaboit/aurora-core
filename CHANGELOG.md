@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.3.1] - 2026-10-07
+
+### Corrigé
+
+#### Des dossiers de notes violets sans qu'on leur ait donné de couleur
+Dans la bibliothèque des notes (grille, mosaïque, liste), un dossier sans couleur prenait la couleur d'accent du thème, violette en production, alors que l'arborescence du menu le laissait gris : on croyait voir une couleur choisie. Il est désormais gris partout, et seules les couleurs choisies ressortent.
+
+#### Un sélecteur de couleur qui affichait du noir et du bleu pour « aucune couleur »
+Sans couleur, `AppColorPicker` montrait une pastille noire (le sélecteur natif ne sait pas être vide) et l'exemple `#3b82f6` dans le champ, deux couleurs qui n'existaient pas. La pastille montre maintenant un symbole « aucune couleur » et le champ dit « Aucune couleur », traduit en anglais et en espagnol, comme le bouton qui retire la couleur, resté en français jusqu'ici. Touche aussi les étiquettes et la recoloration de la médiathèque, la couleur d'entête des publications et les espaces de notes.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` et `make deploy-prod`.
+
+---
+
 ## [3.3.0] - 2026-10-07
 
 ### Ajouté

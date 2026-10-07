@@ -927,6 +927,46 @@ describe("the library", () => {
     });
 
     /**
+     * Grey, as in the tree. The theme's accent made a folder without a
+     * colour look like one painted purple on purpose (07/10/2026).
+     */
+    it("draws a folder without a colour in grey, in the grid and the list", async () => {
+        const wrapper = render({
+            folders: [{ ...FOLDERS[0], color: null }],
+            notes: [],
+        });
+        const folderIcons = () =>
+            wrapper
+                .findAll("svg")
+                .filter(
+                    (svg) =>
+                        svg.classes().includes("lucide-folder-icon") ||
+                        svg.classes().includes("lucide-folder"),
+                );
+
+        expect(folderIcons().length).toBeGreaterThan(0);
+        folderIcons().forEach((svg) => {
+            expect(svg.classes()).toContain("text-muted");
+            expect(svg.classes()).not.toContain("text-accent-500");
+        });
+
+        await wrapper
+            .findAll("button")
+            .find(
+                (button) =>
+                    button.attributes("title") ===
+                    "notes.markdown.library.view.list",
+            )
+            .trigger("click");
+
+        expect(wrapper.find("table").exists()).toBe(true);
+        expect(folderIcons().length).toBeGreaterThan(0);
+        folderIcons().forEach((svg) => {
+            expect(svg.classes()).toContain("text-muted");
+        });
+    });
+
+    /**
      * The hover preview shows the rendering, not the source: that is what
      * sets it apart from the cards' excerpt, which is flattened text.
      */
