@@ -9,6 +9,7 @@ use Aurora\Module\Dev\MountPoint\Repository\MountPointRepository;
 use Aurora\Module\Dev\MountPoint\Serializer\MountPointSerializerInterface;
 use Aurora\Module\Dev\MountPoint\View\MountPointsViewBuilder;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Translation\IdentityTranslator;
 
 final class MountPointsViewBuilderTest extends TestCase
 {
@@ -20,7 +21,7 @@ final class MountPointsViewBuilderTest extends TestCase
         $serializer = $this->createStub(MountPointSerializerInterface::class);
         $serializer->method('serialize')->willReturn(['name' => 'X']);
 
-        $payload = (new MountPointsViewBuilder($repository, $serializer))->listPayload();
+        $payload = (new MountPointsViewBuilder($repository, $serializer, new IdentityTranslator()))->listPayload();
 
         self::assertArrayHasKey('mountPoints', $payload);
         self::assertArrayHasKey('types', $payload);
@@ -35,7 +36,7 @@ final class MountPointsViewBuilderTest extends TestCase
 
         $serializer = $this->createStub(MountPointSerializerInterface::class);
 
-        $payload = (new MountPointsViewBuilder($repository, $serializer))->listPayload();
+        $payload = (new MountPointsViewBuilder($repository, $serializer, new IdentityTranslator()))->listPayload();
 
         foreach ($payload['types'] as $type) {
             self::assertArrayHasKey('value', $type);
@@ -47,7 +48,7 @@ final class MountPointsViewBuilderTest extends TestCase
     {
         $repository = $this->createStub(MountPointRepository::class);
         $serializer = $this->createStub(MountPointSerializerInterface::class);
-        $builder = new MountPointsViewBuilder($repository, $serializer);
+        $builder = new MountPointsViewBuilder($repository, $serializer, new IdentityTranslator());
 
         $view = $builder->indexView(['mountPoints' => [], 'types' => []]);
 

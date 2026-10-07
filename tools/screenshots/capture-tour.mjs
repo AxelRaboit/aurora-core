@@ -2467,6 +2467,204 @@ const SHOTS = [
         },
     },
 
+    {
+        // Refusing is provided for as much as signing: a reason, and the
+        // studio is told. Opened, never sent.
+        name: "tour-signature-refus",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            await page.getByRole("button", { name: "Je ne signe pas" }).click();
+            const heading = page.getByText("Ne pas signer ce contrat", { exact: true }).first();
+            await heading.waitFor();
+            await placeAt(page, heading, 160);
+        },
+    },
+    {
+        // What is collected, why and for how long, at the moment it is.
+        name: "tour-signature-donnees",
+        url: SIGNING_URL,
+        anonymous: true,
+        before: stubSigningCalls,
+        async prepare(page) {
+            await page.locator("article.contract-document").first().waitFor();
+            const summary = page.locator("details summary").filter({ hasText: "Vos données" }).first();
+            await summary.click();
+            await placeAt(page, summary, 120);
+        },
+    },
+    {
+        // The client's side of the discussion.
+        name: "espace-cote-client-discussion",
+        path: SPACES,
+        async prepare(page) {
+            await openClientSide(page);
+            await page.getByRole("button", { name: "Discussion", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+        after: removeClientSideLinks,
+    },
+    {
+        // The client's side of the files: what was put on each content.
+        name: "espace-cote-client-fichiers",
+        path: SPACES,
+        async prepare(page) {
+            await openClientSide(page);
+            await page.getByRole("button", { name: "Fichiers", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+        after: removeClientSideLinks,
+    },
+    {
+        // The suite on a phone, by hand: a row's actions behind "…", the
+        // menu as a drawer, a post with its page bar.
+        name: "tour-telephone-gestes",
+        path: "/suite",
+        async prepare(page) {
+            await phoneTriptych(page, [
+                async (tab) => {
+                    await tab.goto(`${BASE_URL}/suite/platform/users`, { waitUntil: "networkidle" });
+                    await tab.getByTitle("Actions pour Jean Martin").first().click();
+                    await tab.waitForTimeout(800);
+                },
+                async (tab) => {
+                    await tab.goto(`${BASE_URL}/suite`, { waitUntil: "networkidle" });
+                    await tab.getByRole("button", { name: "Afficher le menu", exact: true }).first().click();
+                    await tab.waitForTimeout(800);
+                },
+                async (tab) => tab.goto(`${BASE_URL}/suite/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" }),
+            ]);
+        },
+    },
+
+    /** Lot 3: the rest of the suite the tour only described. */
+    {
+        // A form's settings: online or not, where answers go, the limits.
+        name: "tour-formulaire-reglages",
+        path: "/suite/editorial/forms/1#settings",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // A question that only shows after a given answer.
+        name: "tour-formulaire-condition",
+        path: "/suite/editorial/forms/1",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: /Nombre de références au catalogue/ }).first().click();
+            await page.waitForTimeout(1_000);
+            const when = page.locator("main").getByText("Quand l'afficher", { exact: false }).filter({ visible: true }).first();
+            await when.evaluate((node) => window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - 160, behavior: "instant" }));
+            await page.waitForTimeout(800);
+        },
+    },
+    { name: "tour-reglages-lettre", path: "/suite/configuration/settings/newsletter" },
+    { name: "tour-reglages-studio", path: "/suite/configuration/settings/studio" },
+    { name: "tour-reglages-stockage", path: "/suite/configuration/settings/storage" },
+    { name: "tour-reglages-systeme", path: "/suite/configuration/settings/system" },
+    { name: "tour-reglages-navigation", path: "/suite/configuration/settings/navigation" },
+    { name: "tour-reglages-marque", path: "/suite/configuration/settings/branding" },
+    {
+        // The document picker, opened from the logo field: the library and
+        // free photos, without leaving the screen. Closed, never chosen.
+        name: "tour-selecteur-document",
+        path: "/suite/configuration/settings/branding",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: /^Changer/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // The theme's font, in its edit window.
+        name: "tour-themes-police",
+        path: "/suite/configuration/themes",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.locator("main").getByRole("button", { name: "Actions pour Default" }).click();
+            await page.getByRole("button", { name: "Modifier", exact: true }).click();
+            await page.waitForTimeout(2_000);
+            const font = page.getByText("Police d'écriture", { exact: false }).filter({ visible: true }).first();
+            await font.scrollIntoViewIfNeeded();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Importing a text as a deliverable: pasted, kept with its titles.
+        // Never imported.
+        name: "tour-livrables-import",
+        path: "/suite/studio/deliverables?scope=shared",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.locator(".fixed.inset-0.z-50").getByRole("button", { name: /^Importer un texte/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // A model copied into a client space. Never copied.
+        name: "tour-livrables-copie",
+        path: "/suite/studio/deliverables?scope=shared",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await rowAction(page, `Actions pour ${AUDIT_MODEL}`, /^Copier dans un espace client/);
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // Who works on a space, and who leads it.
+        name: "tour-espaces-equipe",
+        path: SPACES,
+        async prepare(page) {
+            await page.getByRole("button", { name: /^Clients/ }).first().click();
+            await page.waitForTimeout(1_000);
+            // The social media space: two people, one of them leading.
+            await page.locator("main tr").filter({ hasText: "Réseaux sociaux" }).getByRole("button", { name: /^\d+ personnes?$/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // A new channel, shown to the client or kept between the team.
+        // Never opened.
+        name: "espace-nouveau-canal",
+        path: SPACES,
+        async prepare(page) {
+            await spaceView("Discussion")(page);
+            await page.locator("main").getByRole("button", { name: /Nouveau canal/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // Inviting someone: never sent.
+        name: "tour-utilisateur-invitation",
+        path: "/suite/platform/users",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await page.getByRole("button", { name: /^Inviter un utilisateur/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    { name: "tour-demandes-acces", path: "/dev/dashboard/access-requests" },
+    {
+        // The sign-in page, as somebody who is not signed in sees it.
+        name: "tour-connexion",
+        path: "/suite/platform/login",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(1_200);
+        },
+    },
+    { name: "tour-dev-montage", path: "/dev/dashboard/mount-points" },
+
     // "tour-releases" and "tour-release-notes" are no longer photographed:
     // they were GitHub pages. They are drawn from the CHANGELOG with
     // `compose-releases.mjs`.

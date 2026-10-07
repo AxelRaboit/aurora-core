@@ -74,6 +74,11 @@ function actionsFor(mountPoint) {
     ];
 }
 
+// The type's translated label, as the server sends it with the options.
+function typeLabel(type) {
+    return mountPointsState.types.value.find((option) => option.value === type)?.label ?? type;
+}
+
 // The create verb is marked `primary`: AppPageActions sets it beside the
 // sheet as the page's main button, and the sheet keeps whatever else there is.
 const pageActions = computed(() => {
@@ -125,7 +130,7 @@ const pageActions = computed(() => {
                         class="hover:bg-surface-2/40 transition-colors"
                     >
                         <td class="px-4 py-2 font-medium text-primary">{{ mountPoint.name }}</td>
-                        <td class="px-4 py-2 text-muted capitalize">{{ mountPoint.type }}</td>
+                        <td class="px-4 py-2 text-muted">{{ typeLabel(mountPoint.type) }}</td>
                         <td class="px-4 py-2 text-secondary hidden md:table-cell font-mono text-xs">
                             {{ mountPoint.host }}{{ mountPoint.port ? `:${mountPoint.port}` : "" }}
                         </td>
