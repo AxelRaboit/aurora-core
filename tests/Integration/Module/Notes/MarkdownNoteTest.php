@@ -1124,9 +1124,10 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true);
 
-        // The space's folder, its folder and the note: the directory walked
+        // A folder and a note: the personal space's folder is unwrapped on
+        // the way back into that same notebook, and the directory walked
         // through counts for the folder it is, only once.
-        self::assertSame(3, $body['created']);
+        self::assertSame(2, $body['created']);
 
         foreach ($this->notes() as $note) {
             $this->created[] = [MarkdownNote::class, (int) $note->getId()];
@@ -1151,6 +1152,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         self::assertInstanceOf(MarkdownNoteInterface::class, $imported, 'la note est revenue');
         self::assertSame('Clients', $imported->getFolder()?->getName(), 'et dans son dossier');
+        self::assertNull($imported->getFolder()?->getParent(), 'à la racine du carnet, sans le dossier « Mon espace de notes »');
     }
 
     /** Tags travel in the front matter, and come back as tags. */

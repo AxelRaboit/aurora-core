@@ -28,7 +28,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use ZipArchive;
 
 use function array_column;
+use function array_filter;
 use function array_map;
+use function array_values;
 use function base64_decode;
 use function bin2hex;
 use function file_put_contents;
@@ -410,6 +412,45 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertContains($mine.$shared->getName().'/Mes idées.md', $entries, 'le carnet perso dans son propre dossier');
         self::assertNotContains($shared->getName().'/Mes idées.md', $entries, "plus de mélange avec l'espace du même nom");
         self::assertContains($empty->getName().'/', $entries, "l'espace vide garde son dossier");
+    }
+
+    /**
+     * A full export's personal folder is unwrapped when it comes back into
+     * the personal notebook, whatever language wrote it; poured into a shared
+     * space, it stays the folder it is.
+     */
+    public function testAFullExportComesBackWithoutItsPersonalWrapper(): void
+    {
+        $path = (string) tempnam(sys_get_temp_dir(), 'aurora-test-notes-');
+        $archive = new ZipArchive();
+        self::assertTrue($archive->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE));
+        $archive->addEmptyDir('My note space');
+        $archive->addFromString('My note space/Rituels/Lundi.md', 'Le point du lundi.');
+        $archive->addFromString('Guide partagé/Accueil.md', 'Bienvenue.');
+        $archive->close();
+
+        $personal = $this->personalSpaceOf($this->editor);
+        $this->client->loginUser($this->editor, 'admin');
+        $this->client->request('POST', $this->urlGenerator->generate('suite_notes_markdown_import'), [], ['files' => [new UploadedFile($path, 'notes.zip', 'application/zip', null, true)]]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $folders = $this->entityManager->getRepository(NoteFolder::class)->findBy(['space' => $personal->getId()]);
+        $names = array_map(static fn (NoteFolder $one): string => (string) $one->getName(), $folders);
+        self::assertNotContains('My note space', $names, 'le dossier du carnet perso est déballé, même écrit en anglais');
+
+        $rituals = array_values(array_filter($folders, static fn (NoteFolder $one): bool => 'Rituels' === $one->getName()));
+        self::assertCount(1, $rituals);
+        self::assertNull($rituals[0]->getParent(), 'son contenu revient à la racine du carnet');
+        self::assertContains('Guide partagé', $names, "le dossier d'un espace partagé reste un dossier");
+
+        $target = $this->space(NoteSpaceAccessEnum::Members);
+        $this->client->request('POST', $this->urlGenerator->generate('suite_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'notes.zip', 'application/zip', null, true)]]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $inSpace = array_map(static fn (NoteFolder $one): string => (string) $one->getName(), $this->entityManager->getRepository(NoteFolder::class)->findBy(['space' => $target->getId()]));
+        self::assertContains('My note space', $inSpace, 'versé dans un espace partagé, il reste un dossier');
     }
 
     /**

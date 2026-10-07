@@ -13,7 +13,8 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - **L'encart « Comment s'organisent les notes » parle de l'export** (8e étape), en français, anglais et espagnol.
 
 ### Modifié
-- **L'export de toutes les notes range chaque espace dans son dossier**, l'espace personnel compris, sous le nom que lui donne le panneau (« Mon espace de notes »). Réimporter un export complet range donc tout sous ce dossier dans le carnet personnel, comme c'était déjà le cas pour les espaces partagés.
+- **L'export de toutes les notes range chaque espace dans son dossier**, l'espace personnel compris, sous le nom que lui donne le panneau (« Mon espace de notes »).
+- **Réimporter un export complet dans son carnet perso le retrouve tel qu'il était** : le dossier « Mon espace de notes » est déballé, son contenu revient à la racine du carnet, quelle que soit la langue dans laquelle l'export a été fait. Les dossiers des espaces partagés restent des dossiers, pour qu'un import ne verse jamais de notes en douce dans un espace que d'autres lisent ; importé dans un dossier ou un espace partagé, le zip garde tous ses dossiers.
 - **Le zip porte le nom de ce qu'il contient** : `notes-2026-10-07.zip` pour tout, `notes-guide-de-l-agence-2026-10-07.zip` pour un espace ou un dossier. Deux exports du même jour se distinguent dans les téléchargements.
 
 ### Corrigé
