@@ -196,7 +196,26 @@ const spaceView = (view) => async (page) => {
     await openSpace(page);
     await spaceSection(page, view).click();
     await page.waitForTimeout(2_000);
+    await hideReviewBanner(page);
 };
+
+/**
+ * Closes the "contenu attend l'avis du client" banner, for the visit.
+ *
+ * It sits above every view of a space while something waits for the client,
+ * and the demo has such a content since 3.0.0 (only the Review step counts).
+ * On the board it is the point of the picture; above the files, the notes or
+ * the discussion it only pushes what the card shows down the page. Closing it
+ * is not remembered, so the board shots still have it.
+ */
+async function hideReviewBanner(page) {
+    const close = page.locator("main").getByRole("button", { name: REVIEW_BANNER_HIDE });
+
+    if (await close.count() > 0) {
+        await close.first().click();
+        await page.waitForTimeout(500);
+    }
+}
 
 /**
  * An entry of a space's rail, by its label.
@@ -288,17 +307,20 @@ const contents = (shape) => async (page) => {
     await openSpace(page);
     await spaceSection(page, "Contenus").click();
     await page.waitForTimeout(1_500);
-    await page.locator("main").getByTitle(shape, { exact: true }).first().click();
+    await page.locator("main").getByRole("button", { name: shape, exact: true }).first().click();
     await page.waitForTimeout(1_500);
 };
 
 /** A board card opened, by its title. */
 const openCard = (title) => async (page) => {
-    await contents("Kanban")(page);
+    await contents("Tableau")(page);
     await page.locator("main").getByText(title, { exact: true }).first().click();
     await page.getByRole("dialog").first().waitFor();
     await page.waitForTimeout(1_500);
 };
+
+/** The accessible name of the review banner's close button. */
+const REVIEW_BANNER_HIDE = "Masquer ce bandeau";
 
 /** The spaces, where every shot of a space starts. */
 const SPACES = "/suite/studio/spaces";
@@ -321,7 +343,7 @@ async function openClientSide(page) {
     // enough on an idle machine and no longer on the same machine at
     // the sixty-eighth screen. So the wait is on what we really wait
     // for, the app mounted and its button present.
-    const ouvrir = page.getByRole("button", { name: "Créer un lien" }).first();
+    const ouvrir = page.getByRole("button", { name: "Nouveau lien d'accès" }).first();
     await ouvrir.waitFor({ state: "visible", timeout: 30_000 });
     await ouvrir.click();
     await page.waitForTimeout(1_000);
@@ -332,7 +354,7 @@ async function openClientSide(page) {
     await page.getByPlaceholder("camille@societe.fr").fill("camille@atelier-dupont.example.com");
     await page.getByPlaceholder(/^Camille, /).fill("Camille, gérante");
 
-    await page.getByRole("button", { name: "Créer un lien" }).last().click();
+    await page.getByRole("dialog").getByRole("button", { name: "Créer le lien" }).click();
     await page.waitForTimeout(2_500);
 
     const adresse = (await page.locator("code").first().innerText()).trim();
@@ -340,6 +362,9 @@ async function openClientSide(page) {
     await page.waitForTimeout(2_500);
 }
 
+
+/** Where presentations are listed since 3.0.0: the shared deliverables. */
+const PRESENTATIONS = "/suite/studio/deliverables?scope=shared";
 
 /**
  * A presentation opened from the list, by its title: ids change on every
@@ -404,7 +429,7 @@ const SHOTS = [
             // and it announces itself, which makes it findable here.
             await page.getByRole("button", { name: "Rechercher…" }).click();
 
-            const field = page.getByPlaceholder(/^Rechercher dans le back-office/);
+            const field = page.getByPlaceholder(/^Rechercher dans la suite/);
             await field.waitFor({ state: "visible", timeout: 5_000 });
             await field.fill(SEARCH_QUERY);
             await page.waitForTimeout(1_500);
@@ -1092,6 +1117,21 @@ const SHOTS = [
     { name: "tour-clients", path: "/suite/studio/customers" },
 
     /**
+     * A customer's page (3.0.0), the only place its record is written: the
+     * whole form on the left, its spaces, contracts and deliverables on the
+     * right. Atelier Dupont, the client with the most around it.
+     */
+    {
+        name: "tour-client-page",
+        path: "/suite/studio/customers",
+        async prepare(page) {
+            await page.locator("main").getByRole("link", { name: "Atelier Dupont", exact: true }).first().click();
+            await page.waitForLoadState("domcontentloaded");
+            await page.waitForTimeout(2_500);
+        },
+    },
+
+    /**
      * The header carousel: the demo's home page has three slides in it.
      * The second rather than the first, so it is visible that it is one.
      * "Diapositive 2" is a tab, not a button: targeted by its text.
@@ -1167,7 +1207,7 @@ const SHOTS = [
             await page.waitForTimeout(3_000);
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.waitForTimeout(500);
-            await page.getByText("Liens de lecture", { exact: true }).first().click();
+            await page.getByText("Partager", { exact: true }).last().click();
             await page.getByRole("dialog").first().waitFor();
             await page.waitForTimeout(1_500);
         },
@@ -1290,12 +1330,23 @@ const SHOTS = [
     /**
      * Presentations, through the kickoff meeting and by name: its twelve
      * slides go through every layout, whereas the template has only four.
+     *
+     * Since 3.0.0 a presentation is a deliverable in the Slides format: the
+     * list is the deliverables screen with its "Présentations" filter, and
+     * the kickoff meeting is a shared deliverable.
      */
-    { name: "tour-presentations", path: "/suite/studio/decks" },
-    { name: "tour-presentations-editeur", path: "/suite/studio/decks", prepare: openDeck("Réunion de lancement") },
+    {
+        name: "tour-presentations",
+        path: PRESENTATIONS,
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: /^Présentations/ }).first().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    { name: "tour-presentations-editeur", path: PRESENTATIONS, prepare: openDeck("Réunion de lancement") },
     {
         name: "tour-presentations-diaporama",
-        path: "/suite/studio/decks",
+        path: PRESENTATIONS,
         async prepare(page) {
             await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: "Présenter" }).click();
@@ -1315,10 +1366,10 @@ const SHOTS = [
      */
     {
         name: "tour-presentations-libre",
-        path: "/suite/studio/decks",
+        path: PRESENTATIONS,
         async prepare(page) {
             await openDeck("Réunion de lancement")(page);
-            await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
+            await page.locator("main").getByRole("button", { name: /^\d+\.\s*Diapo libre/i }).first().click();
             await page.waitForTimeout(1_500);
             await page.locator("main .fc-stage .fe-image").first().click();
             // The click scrolled the page down to the photo: scroll back up,
@@ -1329,10 +1380,10 @@ const SHOTS = [
     },
     {
         name: "tour-presentations-libre-diaporama",
-        path: "/suite/studio/decks",
+        path: PRESENTATIONS,
         async prepare(page) {
             await openDeck("Réunion de lancement")(page);
-            await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
+            await page.locator("main").getByRole("button", { name: /^\d+\.\s*Diapo libre/i }).first().click();
             await page.waitForTimeout(1_000);
             await page.locator("main").getByRole("button", { name: "Présenter" }).click();
             await page.waitForTimeout(1_500);
@@ -1406,7 +1457,7 @@ const SHOTS = [
      * to the next, so the space may open on Notes depending on what was
      * looked at before.
      */
-    { name: "tour-espaces-clients", path: SPACES, prepare: contents("Kanban") },
+    { name: "tour-espaces-clients", path: SPACES, prepare: contents("Tableau") },
 
     /** The same plan as a list: the card promises "en kanban ou en liste". */
     { name: "espace-liste", path: SPACES, prepare: contents("Liste") },
@@ -1441,7 +1492,7 @@ const SHOTS = [
         name: "espace-envoyer-relire",
         path: SPACES,
         async prepare(page) {
-            await contents("Kanban")(page);
+            await contents("Tableau")(page);
             await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().waitFor();
             await page.waitForTimeout(800);
         },
@@ -1536,7 +1587,7 @@ const SHOTS = [
             // Kept in the editor's "Actions" menu, with the preview.
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.waitForTimeout(500);
-            await page.getByText("Liens de lecture", { exact: true }).first().click();
+            await page.getByText("Partager", { exact: true }).last().click();
             await page.getByRole("dialog").first().waitFor();
             await page.waitForTimeout(1_500);
         },
@@ -1614,11 +1665,16 @@ const SHOTS = [
             await page.waitForTimeout(1_200);
         },
     },
+    /**
+     * A client space in the trash (3.0.0): deleting a space no longer
+     * destroys it. Presentations had their own tab until they became
+     * deliverables; this shot took over their picture.
+     */
     {
-        name: "tour-corbeille-presentations",
+        name: "tour-corbeille-espaces",
         path: "/suite/trash",
         async prepare(page) {
-            await page.locator("main").getByRole("button", { name: /Présentations/ }).first().click();
+            await page.locator("main").getByRole("button", { name: /Espaces clients/ }).first().click();
             await page.waitForTimeout(1_200);
         },
     },
