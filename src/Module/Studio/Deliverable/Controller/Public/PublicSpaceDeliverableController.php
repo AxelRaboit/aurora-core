@@ -73,6 +73,7 @@ final class PublicSpaceDeliverableController extends AbstractController
                 'deck' => $this->slidesView->readerDeck($deliverable),
                 'expiresAt' => null,
                 'backUrl' => $spaceUrl,
+                'backLabel' => $link->getSpace()->getName(),
             ]));
         }
 
@@ -88,6 +89,7 @@ final class PublicSpaceDeliverableController extends AbstractController
             $request->query->getBoolean('print'),
             $spaceUrl,
             $view,
+            $link->getSpace()->getName(),
         ));
     }
 }

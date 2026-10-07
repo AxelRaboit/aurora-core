@@ -93,24 +93,14 @@
            button on, which loses whatever they had open. #}
         <header class="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
             <div class="aurora-page-x flex flex-wrap items-center gap-x-2 gap-y-2 py-2 sm:gap-x-4 sm:py-2.5">
-                {# **An arrow alone on a phone.** The label takes a hundred and
-                   seventy-three pixels out of three hundred and seventy-five,
-                   nearly half the bar for a word the chevron already says; the
-                   space's name was left with a hundred and seventy. The text
-                   comes back as soon as there is room, and it stays readable
-                   by a screen reader in both cases. #}
-                <a
-                    href="{{ backPath }}"
-                    class="-ml-2 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:py-1"
-                    aria-label="{{ 'suite.studio.space_content.back_to_spaces'|trans }}"
-                >
-                    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="m15 18-6-6 6-6"/>
-                    </svg>
-                    <span class="hidden sm:inline">
-                        {{ 'suite.studio.space_content.back_to_spaces'|trans }}
-                    </span>
-                </a>
+                {# The way up: the list of spaces, or the space's
+                   Deliverables tab from a deliverable, named after where it
+                   leads (`backLabel`). The only one on the page: an editor
+                   shown inside this shell draws none of its own. #}
+                {{ include('@Shared/components/back_link.html.twig', {
+                    href: backPath,
+                    label: backLabel|default('suite.studio.space_content.back_to_spaces'|trans),
+                }) }}
 
                 <div class="flex min-w-0 flex-1 items-center gap-2.5">
                     {# The same palette slot the space wears everywhere else, so

@@ -34,6 +34,10 @@
    with the first card - this is the offset the two files each kept on their
    own side, sixteen pixels here against eight below.
 
+   `backLink`: the page draws its own way back (AppPageBar). Below `lg`, the
+   parent level then reads as plain text rather than a second link to the
+   same place.
+
    `strict_variables` is on, so the guard below matters: asking an empty list
    for `.label` raises an error instead of rendering nothing.
 #}
@@ -105,7 +109,13 @@
                     <span class="select-none shrink-0 text-muted {% if not isSeparatorNarrowVisible %}hidden sm:inline{% endif %}">/</span>
                 {% endif %}
                 <span class="min-w-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">
-                    {% if crumb.href is defined and crumb.href %}
+                    {% if backLink|default(false) and loop.index == trail|length - 1 and crumb.href is defined and crumb.href %}
+                        {# The page has its own way back to this level, a few
+                           pixels below: on a phone and a tablet the two were
+                           the same link twice. The name stays, as context. #}
+                        <a href="{{ crumb.href }}" class="hidden truncate text-secondary transition-colors hover:text-primary lg:block">{{ crumb.label }}</a>
+                        <span class="block truncate text-secondary lg:hidden">{{ crumb.label }}</span>
+                    {% elseif crumb.href is defined and crumb.href %}
                         <a href="{{ crumb.href }}" class="block truncate text-secondary transition-colors hover:text-primary">{{ crumb.label }}</a>
                     {% elseif loop.last %}
                         <span class="block truncate font-medium text-secondary" aria-current="page">{{ crumb.label }}</span>

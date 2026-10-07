@@ -146,7 +146,7 @@ const folderIconClasses = computed(() =>
         </div>
 
         <div
-            class="flex gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
+            class="flex gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 touch:opacity-100"
         >
             <AppIconButton
                 :class="

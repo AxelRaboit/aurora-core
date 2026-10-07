@@ -23,18 +23,16 @@
 import AppBackLink from "./AppBackLink.vue";
 
 defineProps({
-    /** Where the way back leads. Without an address, it emits `back`. */
+    /** Where the way back leads: the parent the breadcrumb names. */
     backHref: { type: String, default: null },
-    /** The name of the way back: visible from `sm`, always read by screen readers. */
+    /** The parent's name, never "Back": visible from `sm`, always read by screen readers. */
     backLabel: { type: String, default: null },
 });
-
-const emit = defineEmits(["back"]);
 </script>
 
 <template>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <AppBackLink v-if="backLabel" :href="backHref" :label="backLabel" v-on:back="emit('back')" />
+        <AppBackLink v-if="backLabel && backHref" :href="backHref" :label="backLabel" />
         <slot name="start" />
         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2">
             <slot />

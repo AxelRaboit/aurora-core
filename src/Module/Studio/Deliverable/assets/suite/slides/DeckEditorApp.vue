@@ -625,7 +625,7 @@ onBeforeUnmount(() => {
              column of slides on the left, it does not need a row of five
              buttons at the top. The bar every screen has: back on the left,
              commands on the right (02/10/2026). -->
-        <AppPageBar :back-href="backPath" :back-label="backPath ? t('shared.common.back') : null">
+        <AppPageBar :back-href="backPath" :back-label="t('suite.studio.deliverables.back_to_list')">
             <AppPageActions
                 :actions="deckActions"
                 :label="deck.title ?? ''"
@@ -736,7 +736,7 @@ onBeforeUnmount(() => {
 
                         <div
                             v-if="editable"
-                            class="absolute top-1 right-1 flex gap-0.5 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                            class="absolute top-1 right-1 flex gap-0.5 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch:opacity-100"
                         >
                             <!-- The arrows stay next to the handle: dragging
                                  takes a mouse and a hand, they do not, and
@@ -772,7 +772,7 @@ onBeforeUnmount(() => {
 
                         <span
                             v-if="editable"
-                            class="slide-drag-handle absolute bottom-1 right-1 cursor-grab rounded p-0.5 text-muted opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                            class="slide-drag-handle absolute bottom-1 right-1 cursor-grab rounded p-0.5 text-muted opacity-0 transition-opacity group-hover:opacity-100 touch:opacity-100 active:cursor-grabbing"
                             :title="t('suite.studio.deliverables.slides.drag_hint')"
                         >
                             <GripVertical class="h-3.5 w-3.5" :stroke-width="2" />

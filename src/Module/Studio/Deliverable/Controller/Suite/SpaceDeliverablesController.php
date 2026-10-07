@@ -330,6 +330,9 @@ final class SpaceDeliverablesController extends AbstractController
             return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
                 'deck' => $this->slidesView->readerDeck($deliverable),
                 'expiresAt' => null,
+                // Opened in a new tab: closing it is the way out, the editor
+                // only the fallback.
+                'closeUrl' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
             ]));
         }
 
@@ -341,6 +344,9 @@ final class SpaceDeliverablesController extends AbstractController
             markPlaceholders: !$print,
             print: $print,
             view: DeliverablePageRenderer::requestedView($request->query->all()['view'] ?? null),
+            // Opened in a new tab by the editor: its way out closes the tab
+            // rather than opening a second editor inside it.
+            closePreview: true,
         ));
     }
 

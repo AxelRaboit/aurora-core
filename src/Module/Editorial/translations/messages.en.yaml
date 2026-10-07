@@ -250,7 +250,7 @@ suite:
         empty: No publications
         untitled: Untitled
         edit: Gallery
-        back: All publications
+        back: "Galleries"
         locales: Languages
         saved: Saved
         no_photos: No photos
@@ -2015,6 +2015,7 @@ frontend:
         download_pdf: "Download as PDF"
         prepared_for: 'Prepared for %name%'
         back: 'Back to the space'
+        close_preview: 'Close the preview'
         updated_on: 'Updated on %date%'
         footer: 'This document was sent to you personally. Please do not share its link.'
         locked_title: 'Protected document'

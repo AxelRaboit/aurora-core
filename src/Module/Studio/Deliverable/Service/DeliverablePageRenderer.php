@@ -165,8 +165,13 @@ final readonly class DeliverablePageRenderer
      * @param string|null $view             the view the reader chose (`?view=`), among
      *                                      {@see DeliverableAppearance::DISPLAYS}; any other
      *                                      value, or none, keeps the author's
+     * @param string|null $backLabel        the name of where `backUrl` leads: the client's
+     *                                      space, never "Back"
+     * @param bool        $closePreview     the author's preview, opened in a new tab: the
+     *                                      way out closes it, `backUrl` being only the
+     *                                      fallback when the browser refuses
      */
-    public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false, bool $print = false, ?string $view = null): Response
+    public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false, bool $print = false, ?string $view = null, ?string $backLabel = null, bool $closePreview = false): Response
     {
         $locale = $deliverable->getLocale();
 
@@ -185,6 +190,8 @@ final readonly class DeliverablePageRenderer
             $markPlaceholders,
             $print,
             view: $view,
+            backLabel: $backLabel,
+            closePreview: $closePreview,
         ));
         $response->headers->set('Content-Language', $locale);
 
@@ -202,11 +209,12 @@ final readonly class DeliverablePageRenderer
      * author's decision: a document you do not want circulating as a file
      * does not offer the button.
      *
-     * @param string|null $backUrl where the reader goes back to, when they come from a page of their own
+     * @param string|null $backUrl   where the reader goes back to, when they come from a page of their own
+     * @param string|null $backLabel the name of that page
      */
-    public function renderForReader(DeliverableInterface $deliverable, bool $printRequested, ?string $backUrl = null, ?string $view = null): Response
+    public function renderForReader(DeliverableInterface $deliverable, bool $printRequested, ?string $backUrl = null, ?string $view = null, ?string $backLabel = null): Response
     {
-        return $this->render($deliverable, $backUrl, print: $printRequested && self::allowsReaderPdf($deliverable), view: $view);
+        return $this->render($deliverable, $backUrl, print: $printRequested && self::allowsReaderPdf($deliverable), view: $view, backLabel: $backLabel);
     }
 
     /**
@@ -258,7 +266,7 @@ final readonly class DeliverablePageRenderer
     /**
      * @param array{locale: string, title: string, summary: ?string, gridLayout: array<string, mixed>, gridContent: array<string, mixed>, appearance: mixed, readingHeader: mixed, updatedAt: DateTimeInterface} $source
      */
-    private function page(array $source, ?string $backUrl, bool $markPlaceholders, bool $print, bool $editorPreview = false, ?string $view = null): string
+    private function page(array $source, ?string $backUrl, bool $markPlaceholders, bool $print, bool $editorPreview = false, ?string $view = null, ?string $backLabel = null, bool $closePreview = false): string
     {
         $locale = $source['locale'];
         $layout = self::withoutHiddenLayoutZones($source['gridLayout']);
@@ -339,6 +347,8 @@ final readonly class DeliverablePageRenderer
                 // A single language: the selector is not drawn.
                 'localeUrls' => [],
                 'backUrl' => $backUrl,
+                'backLabel' => $backLabel,
+                'closePreview' => $closePreview,
             ],
         ]);
     }

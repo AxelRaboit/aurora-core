@@ -185,7 +185,7 @@ const tokenGroups = [
                     <AppColorSwatch :model-value="color" size="md" :disabled="true" />
                     <button
                         type="button"
-                        class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-surface border border-line text-muted hover:text-danger hover:border-danger flex items-center justify-center transition shadow-sm sm:opacity-0 sm:group-hover:opacity-100"
+                        class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-surface border border-line text-muted hover:text-danger hover:border-danger flex items-center justify-center transition shadow-sm sm:opacity-0 sm:group-hover:opacity-100 touch:opacity-100"
                         :title="t('suite.settings.appearance.color_presets.remove')"
                         v-on:click="colorPresets.remove(color)"
                     >

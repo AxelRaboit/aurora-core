@@ -5,12 +5,12 @@ import AppPageBar from "./AppPageBar.vue";
 describe("AppPageBar", () => {
     it("puts the back link first and the commands in a group pushed right", () => {
         const wrapper = mount(AppPageBar, {
-            props: { backHref: "/suite/posts", backLabel: "Retour" },
+            props: { backHref: "/suite/posts", backLabel: "Publications" },
             slots: { default: '<button data-test="save">Enregistrer</button>' },
         });
         const back = wrapper.find('a[href="/suite/posts"]');
         expect(back.exists()).toBe(true);
-        expect(back.attributes("aria-label")).toBe("Retour");
+        expect(back.text()).toBe("Publications");
 
         const group = wrapper.find('[data-test="save"]').element.parentElement;
         expect(group.className).toContain("ml-auto");

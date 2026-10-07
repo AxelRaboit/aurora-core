@@ -32,7 +32,6 @@ const props = defineProps({
     /** {@see NoteAppearanceEnum} - the note's background and its ink. */
     appearance: { type: String, default: "plain" },
     /** The way back to the editor, when reading one's own note. */
-    backPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -147,14 +146,6 @@ const lookClass = computed(() =>
                      the note read online no longer looked like the note
                      as written. Seen at 375 px on the shared page. -->
                 <div class="note-preview prose prose-sm dark:prose-invert max-w-none" v-html="html" />
-
-                <!-- The way back, only when reading one's own note: a guest
-                 has no editor to go back to. -->
-                <a
-                    v-if="backPath"
-                    :href="backPath"
-                    class="mt-6 inline-block text-xs text-muted no-underline transition-colors hover:text-primary print:hidden"
-                >{{ t("notes.markdown.read.back") }}</a>
             </div>
         </article>
     </div>

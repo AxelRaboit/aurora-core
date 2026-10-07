@@ -200,7 +200,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
     <div class="aurora-stack">
         <!-- The page's bar first: back on the left, the commands on the right
              (AppPageBar, 02/10/2026). -->
-        <AppPageBar :back-href="showPath" :back-label="t(`${WORDING_KEYS}.back`)">
+        <AppPageBar :back-href="showPath" :back-label="contract.reference ? t(`${WORDING_KEYS}.back`, { reference: contract.reference }) : t(`${WORDING_KEYS}.back_draft`)">
             <AppPageActions
                 v-if="pageActions.length"
                 :actions="pageActions"

@@ -6,6 +6,7 @@
 
 {% block page_header_slot %}
     {{ include('@Shared/components/page_header.html.twig', {
+        backLink: true,
         crumbs: [
             {label: 'suite.nav.sections.studio'|trans},
             {label: 'suite.nav.studio_deliverables'|trans, href: deliverablesPath},

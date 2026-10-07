@@ -276,7 +276,8 @@ suite:
                 diff_removed: Retiré
                 unsaved: Modifications non enregistrées
                 leave_warning: Des modifications ne sont pas enregistrées.
-                back: Retour au contrat
+                back: "Contrat {reference}"
+                back_draft: "Le contrat"
                 badge: Adapté
                 panel: Texte adapté pour ce contrat
                 open: Voir le texte
@@ -2288,7 +2289,7 @@ suite:
                 view_description: Lire ce contenu, ses fichiers et ses échanges
                 delete_description: Mettre ce contenu à la corbeille
             calendar_name: Contenus clients
-            back_to_spaces: Retour aux espaces
+            back_to_spaces: "Espaces clients"
             switch_space: "Changer d'espace"
             add_item: "Nouveau contenu"
             create_item: Nouveau contenu

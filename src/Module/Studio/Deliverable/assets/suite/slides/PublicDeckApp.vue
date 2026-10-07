@@ -18,7 +18,8 @@
  */
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, Play } from "lucide-vue-next";
+import { Play } from "lucide-vue-next";
+import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import SlideFrame from "./components/SlideFrame.vue";
 import DeckPlayer from "./components/DeckPlayer.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -29,24 +30,45 @@ const props = defineProps({
     expiresAt: { type: String, default: null },
     /** The client's space, when the deck was opened from it. */
     backUrl: { type: String, default: null },
+    /** That space's name: the way back names where it leads. */
+    backLabel: { type: String, default: null },
+    /**
+     * The author's preview, opened in a new tab by the editor: the way out
+     * closes the tab, this address being where to go when the browser
+     * refuses to close a tab it did not open.
+     */
+    closeUrl: { type: String, default: null },
 });
 
 const { t, d: formatDate } = useI18n();
 
 const playing = ref(false);
+
+function closePreview() {
+    window.close();
+    window.setTimeout(() => {
+        window.location.href = props.closeUrl;
+    }, 200);
+}
 const slides = props.deck.slides ?? [];
 </script>
 
 <template>
     <div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-5 px-2 py-2 sm:p-8">
-        <a
-            v-if="backUrl"
+        <AppBackLink
+            v-if="closeUrl"
+            class="self-start"
+            closes
+            :href="closeUrl"
+            :label="t('frontend.reading.close_preview')"
+            :on-back="closePreview"
+        />
+        <AppBackLink
+            v-else-if="backUrl"
+            class="self-start"
             :href="backUrl"
-            class="inline-flex min-h-[38px] items-center gap-1.5 self-start text-sm text-secondary no-underline hover:text-primary"
-        >
-            <ArrowLeft class="h-4 w-4" :stroke-width="2" />
-            {{ t("frontend.reading.back") }}
-        </a>
+            :label="backLabel || t('frontend.reading.back')"
+        />
 
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">

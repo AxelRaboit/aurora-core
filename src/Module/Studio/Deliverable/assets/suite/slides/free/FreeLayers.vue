@@ -118,7 +118,7 @@ function pick(element, event) {
                 <button
                     type="button"
                     class="cursor-pointer border-0 bg-transparent p-0.5 text-muted transition-opacity hover:text-primary"
-                    :class="element.locked ? '' : 'opacity-0 group-hover:opacity-100'"
+                    :class="element.locked ? '' : 'opacity-0 group-hover:opacity-100 touch:opacity-100'"
                     :title="element.locked ? t('suite.studio.deliverables.slides.free.unlock') : t('suite.studio.deliverables.slides.free.lock')"
                     v-on:click="editor.patch([element.id], { locked: element.locked ? null : true })"
                 >

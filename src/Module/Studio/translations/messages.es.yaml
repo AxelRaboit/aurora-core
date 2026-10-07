@@ -276,7 +276,8 @@ suite:
                 diff_removed: Retirado
                 unsaved: Cambios sin guardar
                 leave_warning: Hay cambios sin guardar.
-                back: Volver al contrato
+                back: "Contrato {reference}"
+                back_draft: "El contrato"
                 badge: Adaptado
                 panel: Texto adaptado para este contrato
                 open: Ver el texto
@@ -2256,7 +2257,7 @@ suite:
                 view_description: 'Leer este contenido, sus archivos y sus conversaciones'
                 delete_description: 'Enviar este contenido a la papelera'
             calendar_name: 'Contenidos de clientes'
-            back_to_spaces: 'Volver a los espacios'
+            back_to_spaces: "Espacios de cliente"
             switch_space: 'Cambiar de espacio'
             add_item: "Nuevo contenido"
             create_item: 'Nuevo contenido'
