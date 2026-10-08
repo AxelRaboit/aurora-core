@@ -5,7 +5,10 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [3.9.0] - 2026-10-08
+## [4.0.0] - 2026-10-08
+
+### Rompu
+- **27 propriétés `protected` de Managers et de Serializers changent de nom** (voir « Dans aurora-client » plus bas pour la table complète). Elles font partie de la surface d'extension documentée : un projet qui étend l'un de ces services et lit `$this-><ancien nom>` dans un hook surchargé cesse de fonctionner. Aucun usage de ce genre n'existe dans aurora-client, mais `^3.0` promet qu'une 3.x est sûre, et celle-ci ne l'était pas pour une sous-classe - d'où le majeur plutôt qu'un mineur avec un avertissement.
 
 ### Ajouté
 - **Deux personnes qui écrivent dans la même note ne se marchent plus dessus.** Quand une sauvegarde part d'une version qu'un autre a déjà remplacée, les deux textes sont remis ensemble au lieu de demander qui gagne : le titre et le corps ligne par ligne, les étiquettes comme l'ensemble qu'elles sont, et une valeur unique (bannière, apparence) quand un seul des deux l'a changée. On ne demande plus que lorsque les deux ont réécrit les mêmes lignes - ce qui est rare, parce qu'on écrit rarement dans la même phrase.
@@ -23,8 +26,35 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - Une note confiée n'entre jamais dans la corbeille de l'invité, qui pourrait sinon la détruire définitivement.
 - Un invité ne peut pas re-partager la note, ni à une personne ni par lien.
 
+### Modifié
+- **Une dépendance déclarée porte le nom de ce qu'elle est**, pas de ce qu'elle rend : `$noteRepository` et non `$notes`, `$pathTemplateGenerator` et non `$pathTemplates`. 371 propriétés renommées dans 217 fichiers, aucun comportement changé. Le pluriel se lisait comme la collection, et sept fichiers avaient atteint le point où le même mot désignait le service et sa sortie à une ligne d'intervalle. Tenu désormais par `tests/Unit/DependenciesAreNamedAfterTheirRoleTest.php`.
+
 ### Dans aurora-client
-Une migration à jouer (`make aurora-update` puis `php bin/console doctrine:migrations:migrate`) : la table `core_notes_markdown_note_members`, la colonne `can_write` des liens de partage de note, et la colonne `via_link_id` de leurs révisions. Rien d'autre à faire ; tous les liens existants restent en lecture seule.
+**Deux migrations à jouer**, et `make aurora-update` les joue lui-même : sauvegarder la base **avant**, pas après. La table `core_notes_markdown_note_members`, la colonne `can_write` des liens de partage de note, et la colonne `via_link_id` de leurs révisions. Les deux sont réversibles et ne perdent aucun contenu ; tous les liens existants restent en lecture seule.
+
+**Passer la contrainte à `"axelraboit/aurora": "^4.0"`** dans le `composer.json` du projet, puisque c'est un majeur.
+
+**Et 27 propriétés `protected` de Managers et de Serializers ont été renommées** par la passe de nommage - c'est la rupture qui justifie ce majeur. Une classe cliente qui étend l'un d'eux et lit `$this-><ancien nom>` dans un hook surchargé cesse de fonctionner. Rien de tel dans aurora-client, mais à vérifier dans tout projet qui étend l'un de ces services :
+
+| Classe | Avant | Après |
+|---|---|---|
+| `ContractSerializer` | `$links`, `$contracts`, `$signatures`, `$auditLogs`, `$retention` | `$accessLinkRepository`, `$contractRepository`, `$contractSignatureRepository`, `$auditLogRepository`, `$contractRetentionPolicy` |
+| `ContractManager` | `$variables`, `$retention` | `$contractVariableResolver`, `$contractRetentionPolicy` |
+| `ContractAccessLinkManager` | `$links`, `$mail` | `$accessLinkRepository`, `$mailService` |
+| `ContractSignatureManager` | `$signatures`, `$mail`, `$pdf` | `$contractSignatureRepository`, `$mailService`, `$pdfGenerator` |
+| `ContractSignatureChallengeManager` | `$challenges`, `$mail` | `$challengeRepository`, `$mailService` |
+| `ContractRefusalManager` | `$mail` | `$mailService` |
+| `SpaceAccessLinkManager` | `$links` | `$accessLinkRepository` |
+| `SpaceContentAttachmentManager` | `$attachments` | `$attachmentRepository` |
+| `SpaceContentAttachmentSerializer` | `$documentUrls` | `$documentUrlGenerator` |
+| `SpaceFileManager` | `$files` | `$spaceFileRepository` |
+| `SpaceResourceManager` | `$resources` | `$spaceResourceRepository` |
+| `CustomerSpaceSerializer` | `$spaces` | `$spaceRepository` |
+| `PostPreviewTokenManager` | `$tokens` | `$postPreviewTokenRepository` |
+| `PlanningShareLinkManager` | `$links` | `$shareLinkRepository` |
+| `PlanningEventManager`, `PlanningShareManager` | `$users` | `$userRepository` |
+| `NoteFavoriteManager` | `$favorites` | `$noteFavoriteRepository` |
+| `MarkdownNoteShareLinkManager` | `$links` | `$shareLinkRepository` |
 
 ---
 
