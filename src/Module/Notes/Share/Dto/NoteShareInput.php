@@ -28,6 +28,14 @@ final class NoteShareInput
     #[Assert\Length(max: 120)]
     public string $label = '';
 
+    /**
+     * Whether whoever holds the address may rewrite the note.
+     *
+     * Its own note only, whatever `includeLinked` says: see
+     * `AbstractMarkdownNoteShareLink`.
+     */
+    public bool $canWrite = false;
+
     /** ISO-8601 date, or null for a link that lasts until it is revoked. */
     public ?string $expiresAt = null;
 }

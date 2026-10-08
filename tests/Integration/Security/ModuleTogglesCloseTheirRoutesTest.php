@@ -66,6 +66,9 @@ final class ModuleTogglesCloseTheirRoutesTest extends IntegrationTestCase
         yield 'planning' => [ModuleParameterEnum::PlanningSuite, 'suite_planning_calendar', 404];
         yield 'notes' => [ModuleParameterEnum::NotesSuite, 'suite_notes_markdown', 404];
         yield 'markdown' => [ModuleParameterEnum::NotesMarkdown, 'suite_notes_markdown', 404];
+        // Sharing switched off closes the guest list - and, elsewhere, the
+        // unauthenticated write route, which is the half that matters most.
+        yield 'notes collaboration' => [ModuleParameterEnum::NotesCollaboration, 'suite_notes_markdown_people_list', 404];
         yield 'studio' => [ModuleParameterEnum::StudioSuite, 'suite_studio_customers', 404];
         yield 'customers' => [ModuleParameterEnum::StudioCustomers, 'suite_studio_customers', 404];
         yield 'spaces' => [ModuleParameterEnum::StudioSpaces, 'suite_studio_spaces', 404];

@@ -18,6 +18,18 @@ framework:
             limit: 15
             interval: '1 hour'
 
+        # A note whose share link was opened for writing. Unauthenticated by
+        # construction: the address *is* the identity, so a leaked one has
+        # nobody to block and revocation only arrives after the damage. Keyed
+        # on the client IP, which the attacker rotates - so this is the outer
+        # wall, and the inner ones are in the code: a link writes its own note
+        # and no other, and the previous state is kept as a version before
+        # every write, so nothing a flood does is unrecoverable.
+        notes_share_write:
+            policy: sliding_window
+            limit: 60
+            interval: '1 hour'
+
         # The password on a publication's reading link. Keyed on the client
         # IP, like the two above and with the same caveat: an attacker rotates
         # addresses, so this is the outer wall. The inner one is that a wrong

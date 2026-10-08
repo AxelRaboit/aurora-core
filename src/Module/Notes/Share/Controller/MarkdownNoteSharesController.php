@@ -9,7 +9,7 @@ use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
-use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\NotesContext;
 use Aurora\Module\Notes\Share\Dto\NoteShareInput;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
@@ -17,6 +17,7 @@ use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
 use Aurora\Module\Notes\Share\Serializer\MarkdownNoteShareLinkSerializer;
 use Aurora\Module\Notes\Share\Service\NoteShareNotifier;
 use Aurora\Module\Notes\Share\Service\SharedNoteScope;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,9 +29,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 /**
  * Opening and closing the addresses that reach one of your notes.
  *
- * Every action starts from the note *you own*: `findOneByUserAndId` is the only
- * way a note enters this controller, so a note belonging to somebody else is a
- * 404 here rather than a permission message that confirms it exists.
+ * Every action starts from a note **the space lets you administer**:
+ * {@see NoteSpaceAccess::administrableNote()} is the only way a note enters
+ * this controller, so a note belonging to somebody else is a 404 here rather
+ * than a permission message that confirms it exists.
+ *
+ * The space rule and not the note one, deliberately. Somebody who was handed
+ * this single note as an editor may rewrite its text; publishing it to anybody
+ * holding an address is a different act, and it is not one the person who
+ * shared a page with them agreed to.
  */
 #[Route('/suite/notes/markdown/shares', name: 'suite_notes_markdown_shares')]
 #[IsGranted('notes.markdown.use')]
@@ -40,13 +47,14 @@ final class MarkdownNoteSharesController extends AbstractController
     use JsonResponseTrait;
 
     public function __construct(
-        private readonly MarkdownNoteRepository $notes,
+        private readonly NoteSpaceAccess $spaceAccess,
         private readonly MarkdownNoteShareLinkRepository $links,
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly MarkdownNoteShareLinkSerializer $serializer,
         private readonly SharedNoteScope $scope,
         private readonly NoteShareNotifier $notifier,
         private readonly PayloadValidator $payloadValidator,
+        private readonly NotesContext $notesContext,
     ) {}
 
     /**
@@ -100,6 +108,15 @@ final class MarkdownNoteSharesController extends AbstractController
         $input = new NoteShareInput();
         $input->noteId = isset($payload['noteId']) ? (int) $payload['noteId'] : null;
         $input->includeLinked = (bool) ($payload['includeLinked'] ?? false);
+        // Refused rather than ignored: a link created as writable that comes
+        // back read-only would look like a bug on the screen that asked for
+        // it, and silence is how somebody ends up believing they opened
+        // writing when they did not.
+        $input->canWrite = (bool) ($payload['canWrite'] ?? false);
+        if ($input->canWrite && !$this->notesContext->isCollaborationEnabled()) {
+            return $this->jsonInvalidInput(['canWrite' => 'notes.markdown.share.errors.writing_disabled']);
+        }
+
         $input->label = mb_trim((string) ($payload['label'] ?? ''));
 
         $recipient = mb_trim((string) ($payload['recipientEmail'] ?? ''));
@@ -135,6 +152,7 @@ final class MarkdownNoteSharesController extends AbstractController
             $input->recipientEmail,
             $input->label,
             $expiresAt,
+            $input->canWrite,
         );
 
         if (null !== $input->recipientEmail) {
@@ -176,6 +194,6 @@ final class MarkdownNoteSharesController extends AbstractController
             return null;
         }
 
-        return $this->notes->findOneByUserAndId($user, $noteId);
+        return $this->spaceAccess->administrableNote($user, $noteId);
     }
 }

@@ -28,6 +28,8 @@ suite:
         # The module string an audit row carries, which is not the toggle key.
         notes_markdown: Notes Markdown
         notes_suite_description: Active la prise de notes en Markdown, avec liens entre notes et graphe.
+        notes_collaboration: Notes à plusieurs
+        notes_collaboration_description: Confier une note à une personne de l'équipe, ou ouvrir un lien de partage en écriture.
     nav:
         sections:
             notes: Notes
@@ -44,6 +46,9 @@ suite:
                     deleted: "Espace de notes retiré"
                 note:
                     imported_from_craft: Note importée depuis Craft
+                    text_updated: Texte de la note réécrit par un lien de partage
+                    shared_with_person: Note confiée à une personne
+                    unshared_with_person: Note retirée à une personne
                     trashed: Note mise à la corbeille
                     restored: Note restaurée
                     created: Note créée
@@ -125,9 +130,52 @@ notes:
             step_6: "Le menu Actions d'une note la duplique, en fait un modèle, revient à une version passée ou l'imprime en PDF."
             step_7: "Tapez « / » en début de ligne pour insérer un titre, une liste ou un tableau : « /tableau 3x4 » crée 3 colonnes et 4 lignes, et Tab passe d'une case à l'autre."
             step_8: "L'icône de téléchargement exporte en zip ce que vous regardez : tout, un espace ou un dossier. Un dossier par espace, un fichier Markdown par note, les étiquettes en tête : Obsidian l'ouvre tel quel."
+        live:
+            here: "{name} est aussi sur cette note"
+            here_many: "{names} sont aussi sur cette note"
+            editing: en écriture
+            reading: en lecture
+            streaming: Mise à jour en direct
+            polling: Mise à jour toutes les 20 secondes
+            behind: Cette note a été modifiée pendant que vous écriviez.
+            behind_by: "{name} a modifié cette note pendant que vous écriviez."
+            take_theirs: Reprendre leur version
+            keep_mine: Garder la mienne
+        people:
+            shared_with_me: Partagées avec moi
+            button: Partager avec des personnes
+            title: Les personnes qui ont cette note
+            hint: Elles ouvrent cette note, et rien d'autre de son espace.
+            none_yet: Cette note n'est partagée avec personne pour l'instant.
+            pick_person: Choisir une personne
+            add: Donner accès
+            added: '{name} a maintenant cette note'
+            role_changed: Rôle modifié
+            removed: "{name} n'a plus cette note"
+            remove: Retirer {name}
+            role:
+                label: Rôle
+                reader: Lecture
+                editor: Écriture
+            errors:
+                bad_role: Choisissez un rôle.
+                bad_person: Cette personne ne peut pas recevoir la note.
+                save_failed: L'enregistrement a échoué.
         share:
-            button: Partager par un lien
-            title: Partager cette note par un lien
+            can_write: Autoriser la modification
+            can_write_hint: Toute personne qui a l'adresse pourra réécrire le texte de cette note. Uniquement celle-ci, jamais les notes liées.
+            writable_badge: Écriture
+            edit: Modifier
+            editing_hint: Vos modifications remplacent le texte de la note pour tout le monde.
+            save: Enregistrer
+            saved: Note enregistrée
+            cancel_edit: Annuler
+            conflict: La note a changé depuis l'ouverture de cette page. Rechargez pour repartir du texte actuel.
+            reload: Recharger
+            button: Partager
+            title: Partager cette note
+            by_link: Par un lien, sans compte
+            by_link_hint: "Toute personne qui a l'adresse peut lire la note. En lecture seule."
             page_heading: Note partagée
             read_only: Lecture seule
             tree_label: Notes de ce partage
@@ -158,6 +206,8 @@ notes:
             unavailable_title: Note indisponible
             unavailable_body: Ce lien n'est plus valide, ou n'a jamais existé. Demandez-en un nouveau à la personne qui vous l'a envoyé.
             errors:
+                writing_disabled: L'écriture par lien est désactivée pour cette installation.
+                too_many_writes: Trop d'enregistrements d'affilée. Réessayez dans quelques minutes.
                 unknown_note: Note introuvable.
                 bad_date: Date invalide.
             mail:

@@ -12,6 +12,8 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
+use Aurora\Module\Notes\Share\Entity\MarkdownNoteMember;
+use Aurora\Module\Notes\Share\Enum\NoteMemberRoleEnum;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
@@ -57,6 +59,13 @@ use function assert;
  * a folder (breadcrumb, depth, flat view), folder colours, favourites,
  * appearances, banners, a task list so a card's thumbnail shows something
  * other than text, and a note in the trash so the trash screen is not empty.
+ *
+ * And since a note can be handed over on its own: one note shared with
+ * Marie as an editor and with Jean as a reader, so the guest list is not an
+ * empty panel and so those two accounts have a "Partagées avec moi" group
+ * with something in it; plus a share link opened for writing, so the badge
+ * exists on the share screen and the guest page shows its pencil. A feature
+ * nobody can see on screen is a feature nobody knows the shape of.
  *
  * Dev/test only, group `demo`.
  */
@@ -205,6 +214,10 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $this->pin($manager, $owner, $pinned);
 
         $this->shareLinkFor($notes['clients'] ?? null);
+
+        $this->handedToPeople($manager, $notes['verrier'] ?? null);
+
+        $this->writableLinkFor($notes['verrier'] ?? null);
 
         $this->teamSpace($manager, $owner);
     }
@@ -578,6 +591,76 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             recipientEmail: 'camille@studio-lumen.fr',
             label: 'Carnet clients - lecture seule',
             expiresAt: new DateTimeImmutable('+30 days'),
+        );
+    }
+
+    /**
+     * One note handed to two people, one who writes and one who reads.
+     *
+     * **Not a shared space**: that is the other half of the question and the
+     * demo already shows it. This is the half that says "just this page,
+     * just these two" - the note stays in a personal notebook neither of them
+     * can see, and it is the only thing of it they get.
+     *
+     * Marie writes, Jean reads: an exemplar of each role, because a role
+     * nobody ever sees on screen is a role nobody knows the effect of.
+     */
+    private function handedToPeople(EntityManagerInterface $manager, ?MarkdownNote $note): void
+    {
+        if (!$note instanceof MarkdownNote) {
+            return;
+        }
+
+        $roles = [
+            'marie.dupont@aurora.app' => NoteMemberRoleEnum::Editor,
+            'jean.martin@aurora.app' => NoteMemberRoleEnum::Reader,
+        ];
+
+        foreach ($roles as $email => $role) {
+            $person = $this->userRepository->findOneBy(['email' => $email, 'type' => UserTypeEnum::Suite->value]);
+            if (!$person instanceof User) {
+                continue;
+            }
+
+            // Found again on every run rather than added: `make demo` is
+            // idempotent, and a second row would fail the unique key anyway.
+            $member = $manager->getRepository(MarkdownNoteMember::class)
+                ->findOneBy(['note' => $note, 'user' => $person]) ?? new MarkdownNoteMember();
+
+            $member->setNote($note)->setUser($person)->setRole($role);
+            $manager->persist($member);
+        }
+
+        $manager->flush();
+    }
+
+    /**
+     * A share link that writes, so the screen shows one.
+     *
+     * The write badge in the list and the pencil on the guest page both only
+     * exist when a link carries the switch; without one, the only way to see
+     * either is to create a link by hand, which is exactly the kind of thing
+     * nobody does before a capture.
+     */
+    private function writableLinkFor(?MarkdownNote $note): void
+    {
+        if (!$note instanceof MarkdownNote) {
+            return;
+        }
+
+        foreach ($this->shareLinkRepository->findForNote($note) as $existing) {
+            if ($existing->canWrite()) {
+                return;
+            }
+        }
+
+        $this->shareLinks->create(
+            $note,
+            includeLinked: false,
+            recipientEmail: 'olivier@atelier-verrier.test',
+            label: 'Relecture du devis - écriture',
+            expiresAt: new DateTimeImmutable('+14 days'),
+            canWrite: true,
         );
     }
 

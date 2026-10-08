@@ -27,6 +27,15 @@ interface MarkdownNoteManagerInterface
 
     public function update(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void;
 
+    /**
+     * The note's text alone, for a write that arrives without an account.
+     *
+     * Narrower than {@see self::update()} by design, and it also leaves out
+     * the two side effects that reach other rows - the `[[links]]` rewrite
+     * and the erasing of orphaned images. See the implementation for why.
+     */
+    public function updateText(MarkdownNoteInterface $note, ?string $title, ?string $content): void;
+
     /** Remembers the Craft document the note was just copied from. */
     public function markImportedFromCraft(MarkdownNoteInterface $note, string $craftDocumentId): void;
 

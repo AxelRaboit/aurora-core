@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.9.0] - 2026-10-08
+
+### Ajouté
+- **Une note se partage avec des personnes.** Dans « Partager », on choisit un compte de la suite et un rôle, lecture ou écriture. L'invité ouvre **cette note et rien d'autre de son espace** : elle apparaît chez lui dans un groupe « Partagées avec moi », à côté de ses propres espaces. Mettre une note dans un espace partagé n'est plus la seule façon de la montrer à quelqu'un.
+- **Un lien de partage peut être ouvert en écriture.** Une case le dit, la liste des partages le signale par une étiquette « Écriture », et la page invitée gagne un crayon : le texte en markdown, enregistré, sans compte. Le lien écrit **sa propre note**, jamais les notes que ses `[[liens]]` ont amenées avec elle.
+- **On voit qui est sur la note.** Les autres personnes qui l'ont ouverte s'affichent à côté du titre, et quand l'une d'elles enregistre, l'écran suit : il recharge tout seul si rien n'est en train d'être tapé, et propose sinon de reprendre leur version ou de garder la sienne. En direct avec un hub Mercure, toutes les vingt secondes sans - exactement comme la discussion d'un espace client.
+- L'historique nomme les écritures venues d'un lien par les mots du lien, puisqu'il n'y a pas de compte derrière.
+- Un sous-module « Notes à plusieurs » dans `/dev/dashboard/modules` ferme la liste d'invités et l'écriture invitée. Actif par défaut ; l'éteindre ne retire pas une note à quelqu'un à qui elle a déjà été confiée.
+
+### Sécurité
+- Un droit accordé sur une note ne touche que **son texte**. Classer, déplacer, mettre à la corbeille, purger, dupliquer, en faire un modèle et créer un lien de partage restent à l'espace qui la contient : un invité qui pourrait déplacer la note dans son propre espace l'aurait simplement prise.
+- La route d'écriture invitée est limitée à soixante enregistrements par heure et par adresse IP (`notes_share_write`), et chaque écriture garde l'état précédent en version avant de remplacer.
+- Une note confiée n'entre jamais dans la corbeille de l'invité, qui pourrait sinon la détruire définitivement.
+- Un invité ne peut pas re-partager la note, ni à une personne ni par lien.
+
+### Dans aurora-client
+Une migration à jouer (`make aurora-update` puis `php bin/console doctrine:migrations:migrate`) : la table `core_notes_markdown_note_members`, la colonne `can_write` des liens de partage de note, et la colonne `via_link_id` de leurs révisions. Rien d'autre à faire ; tous les liens existants restent en lecture seule.
+
+---
+
 ## [3.8.0] - 2026-10-08
 
 ### Modifié

@@ -31,11 +31,12 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFoldable } from "@notes/suite/markdown/composables/useFoldable.js";
+import { useNoteLive } from "@notes/suite/markdown/composables/useNoteLive.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
 
 const { formatDateTime } = useDateFormat();
@@ -92,6 +93,19 @@ const props = defineProps({
     sharesPreviewPath: { type: String, required: true },
     sharesCreatePath: { type: String, required: true },
     sharesRevokePath: { type: String, required: true },
+    liveBeatPath: { type: String, required: true },
+    peopleListPath: { type: String, required: true },
+    peopleSetPath: { type: String, required: true },
+    peopleRemovePath: { type: String, required: true },
+    /**
+     * The notes handed to this reader one by one, as `id => role`.
+     *
+     * The only thing on screen that can say whether such a note may be
+     * written: its space is closed to them, so the usual question - what does
+     * the space allow - has no answer. Without it the page offered to edit by
+     * default, which is a save that fails after the typing.
+     */
+    sharedNotes: { type: Object, default: () => ({}) },
     imageUploadPath: { type: String, required: true },
     /** The address that shows a single note, without the back-office. */
     readPath: { type: String, default: '' },
@@ -154,6 +168,9 @@ const {
     refreshList,
     flushPendingSave,
     conflict,
+    loadedVersion,
+    isDirty,
+    reloadCurrent,
     saveAnyway,
     reloadDiscarding,
 } = useMarkdownNotesPage(props, t);
@@ -342,12 +359,117 @@ const openFolderId = ref(props.folderId);
 /** In the reader's favourites: the menu says the opposite of the state. */
 const isFavorite = computed(() => Boolean(selectedNote.value?.favoritedAt));
 
-/** Whether the open note can be written: its space says so (`canWrite`). */
-const canEditSelected = computed(() => {
+/**
+ * Whether the space of the open note lets one write in it.
+ *
+ * Unknown space - a note handed over on its own - is `false` here, and the
+ * grant answers below. Before the grants existed this fell back to `true`,
+ * which was right as long as an unknown space could only be one the list had
+ * not caught up with.
+ */
+const spaceWritesSelected = computed(() => {
     const spaceId = selectedNote.value?.spaceId ?? null;
+    const space = spaces.value.find((one) => Number(one.id) === Number(spaceId));
 
-    return Boolean(spaces.value.find((space) => Number(space.id) === Number(spaceId))?.canWrite ?? true);
+    if (space) return Boolean(space.canWrite);
+
+    // Handed over on its own: the space says nothing, so neither do we.
+    return !sharedRoleOf(selectedId.value);
 });
+
+/** The role of a note handed over on its own, or null. */
+function sharedRoleOf(noteId) {
+    if (null == noteId) return null;
+
+    return props.sharedNotes?.[noteId] ?? props.sharedNotes?.[String(noteId)] ?? null;
+}
+
+/**
+ * Whether the open note's **text** can be written: the space allows it, or it
+ * was handed over as editor.
+ */
+const canEditSelected = computed(
+    () => spaceWritesSelected.value || "editor" === sharedRoleOf(selectedId.value),
+);
+
+/**
+ * Whether one may decide who else reaches the note.
+ *
+ * The space rule, never the grant: somebody handed a page may rewrite it, and
+ * passing it on - to a named person or to anybody holding an address - is not
+ * what the person who shared it agreed to. Without this the action showed and
+ * answered 404.
+ */
+const canShareSelected = computed(() => spaceWritesSelected.value);
+
+/**
+ * Who else is on the open note, and whether it moved under us.
+ *
+ * The page is always the editor here, so `editing` is constant; the reader
+ * has its own page and tells the room the other thing.
+ */
+const alwaysEditing = computed(() => true);
+const {
+    people: roomPeople,
+    serverVersion: roomVersion,
+    changedBy: roomChangedBy,
+    live: roomLive,
+} = useNoteLive({
+    noteId: selectedId,
+    editing: alwaysEditing,
+    beatPath: props.liveBeatPath,
+});
+
+/**
+ * Somebody saved after us, and we still have unsaved keystrokes.
+ *
+ * **Two different situations, and only one of them is a problem.** With a
+ * clean form there is nothing to lose, so the note is reloaded quietly and
+ * the person simply sees the new text - which is what makes this feel live.
+ * With a dirty form, nothing happens on its own: reloading would throw away
+ * what they are typing, and saving would erase what the other person wrote.
+ * They choose, through the two answers the conflict already had.
+ */
+const behind = ref(false);
+
+watch(roomVersion, async (version) => {
+    if (null == version || null == loadedVersion.value) return;
+
+    // Our own save comes back through the same road: it is only news if the
+    // server is ahead of what this form started from.
+    if (version <= loadedVersion.value) {
+        behind.value = false;
+
+        return;
+    }
+
+    if (isDirty.value) {
+        behind.value = true;
+
+        return;
+    }
+
+    behind.value = false;
+    await reloadCurrent();
+});
+
+// Whoever is in the room, named. The list is small by nature - the people who
+// have this one note open - so it is drawn in full rather than counted.
+const roomNames = computed(() =>
+    roomPeople.value.map((person) => person.name).filter(Boolean),
+);
+
+/** Taking the server's version, dropping what could not be saved. */
+async function catchUp() {
+    behind.value = false;
+    await reloadDiscarding();
+}
+
+/** Keeping ours, knowingly, over what the other person wrote. */
+async function overrule() {
+    behind.value = false;
+    await saveAnyway();
+}
 
 /**
  * The Craft import: the space (and the folder) where the note will land, or
@@ -453,14 +575,16 @@ const noteActions = computed(() => {
                 coverModalOpen.value = true;
             },
         },
-        {
-            key: "share-link",
-            title: t('notes.markdown.share.button'),
-            icon: Share2,
-            onSelect: () => {
-                shareModalOpen.value = true;
-            },
-        },
+        ...(canShareSelected.value
+            ? [{
+                key: "share-link",
+                title: t('notes.markdown.share.button'),
+                icon: Share2,
+                onSelect: () => {
+                    shareModalOpen.value = true;
+                },
+            }]
+            : []),
         {
             // Favourites are one's own: the note is pinned from here, where
             // one is when thinking of coming back to it. Only the library
@@ -1132,6 +1256,7 @@ function announce() {
         notes: notes.value,
         folders: folders.value,
         spaces: spaces.value,
+        sharedNotes: props.sharedNotes,
         canCreateSpace: props.canCreateSpace,
         craftEnabled: props.craftEnabled,
         selectedId: selectedId.value,
@@ -1325,6 +1450,23 @@ onUnmounted(() => {
                                  leaves the title, and the gestures stay
                                  grouped at the edge of the screen. -->
                             <div class="flex items-center gap-3 shrink-0">
+                                <!-- Who else has this note open. Named rather
+                                     than counted: the whole point is to stop
+                                     two people rewriting the same paragraph,
+                                     and "2 personnes" does not do that. -->
+                                <span
+                                    v-if="roomNames.length"
+                                    data-note-room
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-secondary"
+                                    :title="roomLive ? t('notes.markdown.live.streaming') : t('notes.markdown.live.polling')"
+                                >
+                                    <Users class="h-3.5 w-3.5" :stroke-width="2" />
+                                    {{
+                                        1 === roomNames.length
+                                            ? t('notes.markdown.live.here', { name: roomNames[0] })
+                                            : t('notes.markdown.live.here_many', { names: roomNames.join(', ') })
+                                    }}
+                                </span>
                                 <span
                                     v-if="saveStatusDisplay"
                                     class="inline-flex items-center gap-1.5 text-xs"
@@ -1668,6 +1810,33 @@ onUnmounted(() => {
                     </AppModalFooter>
                 </template>
             </AppModal>
+
+            <!-- Someone saved while this form had unsaved keystrokes.
+                 Deliberately **not** a modal: nothing has failed, and
+                 nothing is lost yet - a dialog over the text somebody is
+                 still typing would be the interruption the feature exists
+                 to avoid. With a clean form this never shows, because the
+                 note is simply reloaded. -->
+            <div
+                v-if="behind"
+                data-note-behind
+                class="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-line bg-surface-2 px-3 py-2"
+            >
+                <TriangleAlert class="h-4 w-4 shrink-0 text-amber-500" :stroke-width="2" />
+                <p class="min-w-0 flex-1 text-sm text-primary">
+                    {{
+                        roomChangedBy
+                            ? t('notes.markdown.live.behind_by', { name: roomChangedBy })
+                            : t('notes.markdown.live.behind')
+                    }}
+                </p>
+                <AppButton variant="secondary" size="sm" data-behind-reload v-on:click="catchUp">
+                    {{ t('notes.markdown.live.take_theirs') }}
+                </AppButton>
+                <AppButton variant="ghost" size="sm" data-behind-keep v-on:click="overrule">
+                    {{ t('notes.markdown.live.keep_mine') }}
+                </AppButton>
+            </div>
 
             <!-- Someone wrote in the note in the meantime. We do not decide
                  for the person: take back their version, or overwrite it

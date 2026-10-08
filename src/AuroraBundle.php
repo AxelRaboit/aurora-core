@@ -88,6 +88,8 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Share\Entity\MarkdownNoteMember;
+use Aurora\Module\Notes\Share\Entity\MarkdownNoteMemberInterface;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLink;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
@@ -275,6 +277,7 @@ class AuroraBundle extends AbstractBundle
                     NoteSpaceMemberInterface::class => NoteSpaceMember::class,
                     NoteFavoriteInterface::class => NoteFavorite::class,
                     MarkdownNoteShareLinkInterface::class => MarkdownNoteShareLink::class,
+                    MarkdownNoteMemberInterface::class => MarkdownNoteMember::class,
                     PlanningShareLinkInterface::class => PlanningShareLink::class,
                     CommentInterface::class => Comment::class,
                     CommentReactionInterface::class => CommentReaction::class,
@@ -550,7 +553,7 @@ class AuroraBundle extends AbstractBundle
         ]);
 
         /*
-         * The nine limiters that aurora-core's controllers wire by their name.
+         * The ten limiters that aurora-core's controllers wire by their name.
          *
          * The list is checked again with `grep -oE '\$[a-zA-Z]+Limiter' src/`:
          * forgetting one only shows when a client project is deployed, on the
@@ -575,6 +578,11 @@ class AuroraBundle extends AbstractBundle
                 'contract_signature_code' => ['policy' => 'sliding_window', 'limit' => 15, 'interval' => '1 hour'],
                 // The password of a publication's reading link.
                 'post_reading_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
+                // A note whose share link was opened for writing. Unauthenticated
+                // by construction, so this is the outer wall; the inner ones are
+                // that a link writes its own note and no other, and that the
+                // previous state is kept as a version before every write.
+                'notes_share_write' => ['policy' => 'sliding_window', 'limit' => 60, 'interval' => '1 hour'],
                 // The password of a deliverable's reading link.
                 'deliverable_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
                 // A client's actions on the space a link opens to them:

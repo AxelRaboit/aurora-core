@@ -147,6 +147,37 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
+     * The note's text, and deliberately nothing else.
+     *
+     * **For a write that arrives without an account**, through a share link
+     * whose address is its only identity. `update()` would be the wrong door:
+     * it applies a whole input, so the same payload could refile the note,
+     * change its tags, its banner or its position - none of which anybody
+     * agreed to when they ticked "this link may write".
+     *
+     * Two side effects of the ordinary save are left out on purpose, and both
+     * for the same reason - they reach outside this note:
+     *
+     * - **`[[links]]` are not rewritten** after a title change. That rewrite
+     *   edits *other* notes, in a space the writer cannot see, and an
+     *   unauthenticated endpoint has no business doing that. The links keep
+     *   pointing at the old title, which is wrong in a readable way.
+     * - **Orphaned images are not erased.** A guest deleting a paragraph
+     *   would otherwise destroy stored files for good. An unused file costs
+     *   disk; a destroyed one costs the note.
+     */
+    public function updateText(MarkdownNoteInterface $note, ?string $title, ?string $content): void
+    {
+        $note->setTitle($title);
+        $note->setContent($content);
+        $note->bumpVersion();
+
+        $this->entityManager->flush();
+
+        $this->auditTextUpdated($note);
+    }
+
+    /**
      * Not a form field: the id only comes from the import, and letting it
      * through the ordinary save would let any call attach a note to a Craft
      * document that is not its own.
@@ -429,11 +460,13 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
         $ids = array_map(static fn (array $entry): int => (int) $entry['id'], $entries);
 
-        // What the person can write, in both spaces: a team note is filed by
-        // those who have the right to, not by its author.
+        // What the person files, in both spaces: a team note is filed by
+        // those who have the right to, not by its author. The space rule and
+        // not the note one - filing is about the notebook, and somebody who
+        // was handed a single page does not rearrange it.
         $byId = [];
         foreach ($this->noteRepository->findBy(['id' => $ids]) as $note) {
-            if ($this->spaceAccess->canWriteNote($user, $note)) {
+            if ($this->spaceAccess->canAdministerNote($user, $note)) {
                 $byId[(int) $note->getId()] = $note;
             }
         }
@@ -1014,19 +1047,34 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
      * The notes a person can rewrite in bulk: those of the spaces where they
      * write.
      *
+     * **The space rule, not the note one.** Renaming a tag across "my notes"
+     * must not reach into a page somebody shared with me: that tag is theirs,
+     * on their note, and a bulk rewrite is not the gesture anybody meant to
+     * authorise by handing over one page.
+     *
      * @return list<MarkdownNoteInterface>
      */
     protected function writableNotes(CoreUserInterface $user): array
     {
         return array_values(array_filter(
             $this->noteRepository->findAllWithContentForUser($user),
-            fn (MarkdownNoteInterface $note): bool => $this->spaceAccess->canWriteNote($user, $note),
+            fn (MarkdownNoteInterface $note): bool => $this->spaceAccess->canAdministerNote($user, $note),
         ));
     }
 
     protected function auditCreated(MarkdownNoteInterface $note): void
     {
         $this->auditLogger->log('notes_markdown', 'note.created', 'MarkdownNote', $note->getId(), $this->auditPayload($note));
+    }
+
+    /**
+     * A text rewritten by somebody holding an address, told apart from an
+     * ordinary save: the log is where "who changed this, with no account" is
+     * answered, so it must not read like a signed-in edit.
+     */
+    protected function auditTextUpdated(MarkdownNoteInterface $note): void
+    {
+        $this->auditLogger->log('notes_markdown', 'note.text_updated', 'MarkdownNote', $note->getId(), $this->auditPayload($note));
     }
 
     protected function auditUpdated(MarkdownNoteInterface $note): void

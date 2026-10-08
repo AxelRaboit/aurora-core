@@ -15,6 +15,7 @@ use Aurora\Module\Notes\Folder\Service\NoteFolderHierarchy;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
+use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Notes\Space\Serializer\NoteSpaceSerializerInterface;
@@ -35,6 +36,7 @@ final readonly class MarkdownNotesViewBuilder
         private NoteSpaceRepository $spaces,
         private NoteFavoriteManagerInterface $favorites,
         private NoteSpaceSerializerInterface $spaceSerializer,
+        private MarkdownNoteMemberRepository $memberRepository,
         private CraftClient $craft,
     ) {}
 
@@ -66,6 +68,10 @@ final readonly class MarkdownNotesViewBuilder
             'folderId' => $folder?->getId(),
             'notes' => $this->withExcerpts($this->noteRepository->findFlatListForUser($user), $user),
             'folders' => $folders,
+            // The notes handed to this person on their own, with their role.
+            // Their space is closed to the reader, so nothing on screen could
+            // say whether they may write them - see the repository.
+            'sharedNotes' => $this->memberRepository->findRolesFor($user),
             // The chain the breadcrumb draws, resolved server-side: the page
             // knows where it is before its first fetch, so a reload does not
             // flash the root.
@@ -126,6 +132,10 @@ final readonly class MarkdownNotesViewBuilder
                 $this->hierarchy->pathTo($note->getFolder()),
             ),
             'canEdit' => $this->spaceAccess->canWriteNote($user, $note),
+            // Handed to them on its own: the page says so rather than letting
+            // somebody wonder why a note of a notebook they do not know is
+            // sitting in their reader.
+            'sharedWithViewer' => $this->spaceAccess->noteRoleIn($user, $note)?->value,
             // Reading is enough to pin: favorites belong to the person.
             'favorited' => null !== $this->favorites->favoritedAt($user, $note),
             'favoritePath' => $this->urlGenerator->generate('suite_notes_markdown_favorite', ['id' => $note->getId()]),
@@ -169,7 +179,13 @@ final readonly class MarkdownNotesViewBuilder
      */
     private function readerTree(CoreUserInterface $user, array $folders, array $rows): array
     {
-        return [...$this->treeRows($folders, $rows), 'treeSpaces' => $this->spacesFor($user)];
+        return [
+            ...$this->treeRows($folders, $rows),
+            'treeSpaces' => $this->spacesFor($user),
+            // Like the library's: the tree groups the notes handed over one
+            // by one apart, and the roles are the only thing that marks them.
+            'sharedNotes' => $this->memberRepository->findRolesFor($user),
+        ];
     }
 
     /**
@@ -303,6 +319,7 @@ final readonly class MarkdownNotesViewBuilder
             'titleIndex' => $this->ownTitleIndex($rows),
             ...$this->treeRows($folders, $rows),
             'treeSpaces' => [],
+            'sharedNotes' => [],
         ];
     }
 
@@ -481,6 +498,10 @@ final readonly class MarkdownNotesViewBuilder
             'sharesPreviewPath' => $this->urlGenerator->generate('suite_notes_markdown_shares_preview', ['noteId' => '__id__']),
             'sharesCreatePath' => $this->urlGenerator->generate('suite_notes_markdown_shares_create'),
             'sharesRevokePath' => $this->urlGenerator->generate('suite_notes_markdown_shares_revoke', ['id' => '__id__']),
+            'liveBeatPath' => $this->urlGenerator->generate('suite_notes_markdown_live_beat', ['id' => '__id__']),
+            'peopleListPath' => $this->urlGenerator->generate('suite_notes_markdown_people_list', ['noteId' => '__id__']),
+            'peopleSetPath' => $this->urlGenerator->generate('suite_notes_markdown_people_set', ['noteId' => '__id__']),
+            'peopleRemovePath' => $this->urlGenerator->generate('suite_notes_markdown_people_remove', ['noteId' => '__id__', 'userId' => '__user__']),
             'imageUploadPath' => $this->urlGenerator->generate('suite_notes_markdown_images_upload'),
             'readPath' => $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => '__id__']),
             'coversSearchPath' => $this->urlGenerator->generate('suite_notes_markdown_covers_search'),

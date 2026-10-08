@@ -53,6 +53,10 @@ const PATHS = [
     "sharesPreviewPath",
     "sharesCreatePath",
     "sharesRevokePath",
+    "liveBeatPath",
+    "peopleListPath",
+    "peopleSetPath",
+    "peopleRemovePath",
     "imageUploadPath",
 ].reduce((all, name) => ({ ...all, [name]: `/notes/${name}` }), {});
 

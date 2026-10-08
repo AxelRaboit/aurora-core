@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Markdown\Entity;
 
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRevisionRepository;
+use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
@@ -17,6 +18,12 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * Encrypted like the note's: a version is no less private than the note it
  * was. It dies with the note.
+ *
+ * **Who wrote it is two columns, not one.** `author` names an account.
+ * `viaLink` names the share link a guest came through, who has no account at
+ * all - the address *was* their identity. Pointing at the link rather than
+ * copying its label means the name is not duplicated into a second table, and
+ * it survives revocation, which is exactly when somebody goes looking.
  */
 #[ORM\Entity(repositoryClass: MarkdownNoteRevisionRepository::class)]
 #[ORM\Table(name: 'core_notes_markdown_revisions')]
@@ -47,7 +54,10 @@ class MarkdownNoteRevision
         protected MarkdownNoteInterface $note, /** Who saved it: the one who was about to replace it. */
         #[ORM\ManyToOne(targetEntity: User::class)]
         #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-        protected ?CoreUserInterface $author = null)
+        protected ?CoreUserInterface $author = null, /** The share link a guest wrote through; null for a signed-in author. */
+        #[ORM\ManyToOne(targetEntity: MarkdownNoteShareLinkInterface::class)]
+        #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+        protected ?MarkdownNoteShareLinkInterface $viaLink = null)
     {
         $this->title = $this->note->getTitle();
         $this->content = $this->note->getContent();
@@ -83,6 +93,23 @@ class MarkdownNoteRevision
     public function getAuthor(): ?CoreUserInterface
     {
         return $this->author;
+    }
+
+    public function getViaLink(): ?MarkdownNoteShareLinkInterface
+    {
+        return $this->viaLink;
+    }
+
+    /**
+     * How the history names whoever wrote this version.
+     *
+     * An account's name, else the share link's own words - the address it was
+     * mailed to, or the label somebody gave it. Null when neither is left,
+     * which is an account deleted or a link deleted, not a gap in the record.
+     */
+    public function getAuthorLabel(): ?string
+    {
+        return $this->author?->getName() ?? ($this->viaLink?->getRecipientEmail() ?: ($this->viaLink?->getLabel() ?: null));
     }
 
     public function getCreatedAt(): DateTimeImmutable

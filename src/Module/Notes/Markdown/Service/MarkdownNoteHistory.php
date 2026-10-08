@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRevisionRepository;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
+use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,7 +39,7 @@ final readonly class MarkdownNoteHistory
      * To call before saving a new title or a new text: keeps the current
      * state if it changes and the last version is old enough.
      */
-    public function beforeChange(MarkdownNoteInterface $note, ?string $title, ?string $content, ?CoreUserInterface $author): void
+    public function beforeChange(MarkdownNoteInterface $note, ?string $title, ?string $content, ?CoreUserInterface $author, ?MarkdownNoteShareLinkInterface $viaLink = null): void
     {
         $unchanged = ($title ?? '') === ($note->getTitle() ?? '') && ($content ?? '') === ($note->getContent() ?? '');
         if ($unchanged || ('' === ($note->getTitle() ?? '') && '' === ($note->getContent() ?? ''))) {
@@ -51,13 +52,13 @@ final readonly class MarkdownNoteHistory
             return;
         }
 
-        $this->keep($note, $author);
+        $this->keep($note, $author, $viaLink);
     }
 
     /** Keeps the note's current state, no matter what. */
-    public function keep(MarkdownNoteInterface $note, ?CoreUserInterface $author): MarkdownNoteRevision
+    public function keep(MarkdownNoteInterface $note, ?CoreUserInterface $author, ?MarkdownNoteShareLinkInterface $viaLink = null): MarkdownNoteRevision
     {
-        $revision = new MarkdownNoteRevision($note, $author);
+        $revision = new MarkdownNoteRevision($note, $author, $viaLink);
         $this->entityManager->persist($revision);
         $this->entityManager->flush();
 

@@ -49,6 +49,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case GedFolders = 'modules_ged_folders';
     case GedFrontend = 'modules_ged_frontend';
     case NotesMarkdown = 'modules_notes_markdown';
+    case NotesCollaboration = 'modules_notes_collaboration';
 
     // Sub-modules - Studio
     case StudioCustomers = 'modules_studio_customers';
@@ -90,6 +91,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GedFrontend => 'suite.modules.ged_frontend',
             self::NotesSuite => 'suite.modules.notes_suite',
             self::NotesMarkdown => 'suite.nav.notes_markdown',
+            self::NotesCollaboration => 'suite.modules.notes_collaboration',
             self::StudioSuite => 'suite.modules.studio_suite',
             self::StudioCustomers => 'suite.nav.studio_customers',
             self::StudioSpaces => 'suite.nav.studio_spaces',
@@ -127,6 +129,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GedFrontend => 'suite.modules.ged_frontend_description',
             self::NotesSuite => 'suite.modules.notes_suite_description',
             self::NotesMarkdown => 'suite.nav.notes_markdown_description',
+            self::NotesCollaboration => 'suite.modules.notes_collaboration_description',
             self::StudioSuite => 'suite.modules.studio_suite_description',
             self::StudioCustomers => 'suite.nav.studio_customers_description',
             self::StudioSpaces => 'suite.nav.studio_spaces_description',
@@ -161,7 +164,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationSuite,
             self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialSuite,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedSuite,
-            self::NotesMarkdown => self::NotesSuite,
+            self::NotesMarkdown, self::NotesCollaboration => self::NotesSuite,
             self::StudioCustomers, self::StudioContracts, self::StudioDeliverables, self::StudioSpaces => self::StudioSuite,
             default => null,
         };
@@ -207,6 +210,9 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GedFolders => self::GedSuite->value,
             self::GedFrontend => self::GedSuite->value,
             self::NotesMarkdown => self::NotesSuite->value,
+            // Sharing a note needs a note: without the markdown screen
+            // there is nothing to share and nowhere to share it from.
+            self::NotesCollaboration => self::NotesMarkdown->value,
             // Studio sub-modules
             self::StudioCustomers => self::StudioSuite->value,
             // A contract is signed with somebody, and that somebody is a

@@ -62,6 +62,16 @@ const props = defineProps({
     treeNotes: { type: Array, default: () => [] },
     /** The readable spaces, one's own first: the tree is grouped by space. */
     treeSpaces: { type: Array, default: () => [] },
+    /** The notes handed to this reader one by one, as `id => role`. */
+    sharedNotes: { type: Object, default: () => ({}) },
+    /**
+     * This note's own role when it was handed over on its own, else null.
+     *
+     * Shown as a word on the page: a note from a notebook the reader knows
+     * nothing about, sitting in their reader, otherwise raises the question
+     * of where it came from.
+     */
+    sharedWithViewer: { type: String, default: null },
     searchPath: { type: String, default: "" },
     /**
      * The name of a published space, on its public page: it replaces the
@@ -238,6 +248,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 :folders="treeFolders"
                 :notes="treeNotes"
                 :spaces="treeSpaces"
+                :shared-notes="sharedNotes"
                 :read-note-path="readNotePath"
                 :search-path="searchPath"
             />
@@ -273,6 +284,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     :folders="treeFolders"
                     :notes="treeNotes"
                     :spaces="treeSpaces"
+                    :shared-notes="sharedNotes"
                     :read-note-path="readNotePath"
                     :search-path="searchPath"
                     v-on:navigate="drawerOpen = false"

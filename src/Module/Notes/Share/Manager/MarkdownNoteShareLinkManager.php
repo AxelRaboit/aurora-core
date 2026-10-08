@@ -43,6 +43,7 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
         ?string $recipientEmail = null,
         string $label = '',
         ?DateTimeImmutable $expiresAt = null,
+        bool $canWrite = false,
     ): MarkdownNoteShareLinkInterface {
         $link = $this->createLink();
         $link->setNote($note);
@@ -50,6 +51,7 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
         $link->setRecipientEmail($recipientEmail);
         $link->setLabel($label);
         $link->setExpiresAt($expiresAt);
+        $link->setCanWrite($canWrite);
 
         $this->entityManager->persist($link);
 
@@ -61,6 +63,10 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
             'includeLinked' => $includeLinked,
             'recipient' => $recipientEmail,
             'expiresAt' => $expiresAt?->format('c'),
+            // Logged because it is the one field that turns a read address
+            // into a write endpoint: "who opened writing on this note, and
+            // when" has to be answerable afterwards.
+            'canWrite' => $canWrite,
         ]);
 
         $this->entityManager->flush();

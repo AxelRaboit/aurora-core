@@ -1,7 +1,13 @@
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
- * HTTP layer for a note's share links: list, create, revoke.
+ * HTTP layer for sharing a note: with people who have an account, and with
+ * anybody holding an address.
+ *
+ * One composable because it is one screen. The two halves answer the same
+ * question - who else reaches this note - and the modal shows them one above
+ * the other; splitting them would have meant two loading flags and two error
+ * paths for one dialog.
  *
  * Kept apart from `useMarkdownNotesApi` because sharing is a different subject
  * from editing. Goes through `useRequest` like the rest of the module, so the
@@ -38,5 +44,20 @@ export function useNoteShareApi(props) {
             ),
         create: (body) => request(props.sharesCreatePath, body),
         revoke: (id) => request(withId(props.sharesRevokePath, id), {}),
+
+        /** The note's guest list, and the accounts that could join it. */
+        listPeople: (noteId) =>
+            request(withId(props.peopleListPath, noteId), null, "GET"),
+        /** Adds somebody, or changes the role they already had: one call. */
+        setPerson: (noteId, userId, role) =>
+            request(withId(props.peopleSetPath, noteId), { userId, role }),
+        removePerson: (noteId, userId) =>
+            request(
+                withId(props.peopleRemovePath, noteId).replace(
+                    "__user__",
+                    String(userId),
+                ),
+                {},
+            ),
     };
 }

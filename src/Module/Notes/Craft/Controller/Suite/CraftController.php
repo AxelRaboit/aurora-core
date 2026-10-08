@@ -133,7 +133,7 @@ final class CraftController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
 
         if (!$note instanceof MarkdownNoteInterface || $note->isTrashed()) {
             return $this->jsonNotFound();

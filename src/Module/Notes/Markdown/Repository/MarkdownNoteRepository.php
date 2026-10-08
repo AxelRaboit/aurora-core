@@ -8,6 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -82,28 +83,71 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * What a person can read: the notes of the spaces open to them,
-     * according to the single rule of {@see NoteSpaceRepository::readableSubquery()}.
+     * What a person can read: the notes of the spaces open to them, plus the
+     * notes handed to them one by one.
+     *
+     * **Two rules, each defined once.** The spaces come from
+     * {@see NoteSpaceRepository::readableSubquery()}, the single notes from
+     * {@see MarkdownNoteMemberRepository::grantedSubquery()}. They are joined
+     * by `OR` and never by anything else: a grant on a note widens what
+     * somebody sees and no path through it narrows what the space already
+     * gave.
      */
     private function visibleTo(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
+        $queryBuilder->andWhere(sprintf(
+            '(IDENTITY(%1$s.space) IN (%2$s) OR %1$s.id IN (%3$s))',
+            $alias,
+            NoteSpaceRepository::readableSubquery(),
+            MarkdownNoteMemberRepository::grantedSubquery(),
+        ));
+
+        MarkdownNoteMemberRepository::bindViewer($queryBuilder, $user);
 
         return NoteSpaceRepository::bindViewer($queryBuilder, $user);
     }
 
-    /** What a person can write: the spaces where they are editor or above. */
+    /**
+     * What a person can write: the spaces where they are editor or above,
+     * plus the notes handed to them as editor.
+     */
     private function writableTo(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
+    {
+        $queryBuilder->andWhere(sprintf(
+            '(IDENTITY(%1$s.space) IN (%2$s) OR %1$s.id IN (%3$s))',
+            $alias,
+            NoteSpaceRepository::writableSubquery(),
+            MarkdownNoteMemberRepository::grantedWritableSubquery(),
+        ));
+
+        MarkdownNoteMemberRepository::bindViewer($queryBuilder, $user);
+
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
+    }
+
+    /** The spaces where a person writes, without the notes handed to them. */
+    private function writableSpaceTo(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
         $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
 
         return NoteSpaceRepository::bindViewer($queryBuilder, $user);
     }
 
-    /** The trash a person manages: that of the spaces where they write. */
+    /**
+     * The trash a person manages: that of the spaces where they write, and
+     * **not** the notes shared with them one by one.
+     *
+     * The narrower of the two rules on purpose. Emptying the trash erases for
+     * good, and somebody given one page of a notebook has no business
+     * destroying a row of a space they cannot otherwise see - nor seeing it
+     * listed among their own deletions, which would show them the existence of
+     * what the space keeps from them. They can still trash the note they were
+     * given, like anybody who writes it; it then sits in the trash of the
+     * space that holds it, where its owner finds it.
+     */
     private function trashOf(QueryBuilder $queryBuilder, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        return $this->writableTo($queryBuilder, $alias, $user);
+        return $this->writableSpaceTo($queryBuilder, $alias, $user);
     }
 
     /** The root of a space. */

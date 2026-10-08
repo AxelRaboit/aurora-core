@@ -529,6 +529,9 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         saveStatus,
         lastSavedAt,
         conflict,
+        // What the open form started from. Read by the live room to tell
+        // "somebody saved after us" from "that save was ours".
+        loadedVersion,
         // actions
         refreshList,
         reloadCurrent,

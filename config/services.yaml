@@ -240,8 +240,12 @@ services:
                         - ['publish']
                         # One topic per channel since the conversation has
                         # had several: the pattern covers the space and the
-                        # channel.
-                        - urlpattern: ['https://aurora.invalid/studio/spaces/*/chat/*']
+                        # channel. The second pattern is one note - notes that
+                        # do not exist yet cannot be listed either, which is
+                        # the whole reason these are patterns.
+                        - urlpattern:
+                            - 'https://aurora.invalid/studio/spaces/*/chat/*'
+                            - 'https://aurora.invalid/notes/markdown/*'
 
 # Fixtures live in fixtures/, outside src/, precisely so that nothing scanning
 # src/ can reach them: the Doctrine attribute driver and the attribute route

@@ -28,6 +28,8 @@ suite:
         # The module string an audit row carries, which is not the toggle key.
         notes_markdown: Markdown notes
         notes_suite_description: Enables markdown note-taking, with links between notes and a graph.
+        notes_collaboration: Notes with other people
+        notes_collaboration_description: Hand a note to somebody on the team, or open a share link for writing.
     nav:
         sections:
             notes: Notes
@@ -44,6 +46,9 @@ suite:
                     deleted: "Note space removed"
                 note:
                     imported_from_craft: Note imported from Craft
+                    text_updated: Note text rewritten through a share link
+                    shared_with_person: Note handed to a person
+                    unshared_with_person: Note taken back from a person
                     trashed: Note moved to trash
                     restored: Note restored
                     created: Note created
@@ -121,9 +126,52 @@ notes:
             step_6: "A note's Actions menu duplicates it, makes it a template, goes back to a past version or prints it as PDF."
             step_7: "Type “/” at the start of a line to insert a heading, a list or a table: “/table 3x4” creates 3 columns and 4 rows, and Tab moves from one cell to the next."
             step_8: 'The download icon exports what you are looking at as a zip: everything, a space or a folder. One folder per space, one Markdown file per note, tags at the top: Obsidian opens it as is.'
+        live:
+            here: "{name} is on this note too"
+            here_many: "{names} are on this note too"
+            editing: writing
+            reading: reading
+            streaming: Updated live
+            polling: Updated every 20 seconds
+            behind: This note changed while you were writing.
+            behind_by: "{name} changed this note while you were writing."
+            take_theirs: Take their version
+            keep_mine: Keep mine
+        people:
+            shared_with_me: Shared with me
+            button: Share with people
+            title: The people who have this note
+            hint: They open this note, and nothing else from its space.
+            none_yet: This note is not shared with anybody yet.
+            pick_person: Pick somebody
+            add: Give access
+            added: '{name} now has this note'
+            role_changed: Role changed
+            removed: '{name} no longer has this note'
+            remove: Remove {name}
+            role:
+                label: Role
+                reader: Read
+                editor: Write
+            errors:
+                bad_role: Pick a role.
+                bad_person: This person cannot receive the note.
+                save_failed: Saving failed.
         share:
-            button: Share with a link
-            title: Share this note with a link
+            can_write: Allow editing
+            can_write_hint: Anybody holding the address will be able to rewrite this note's text. This one only, never the linked notes.
+            writable_badge: Write
+            edit: Edit
+            editing_hint: What you save replaces the note's text for everybody.
+            save: Save
+            saved: Note saved
+            cancel_edit: Cancel
+            conflict: The note changed since this page was opened. Reload to start from the current text.
+            reload: Reload
+            button: Share
+            title: Share this note
+            by_link: With a link, no account
+            by_link_hint: Anybody holding the address can read the note. Read only.
             page_heading: Shared note
             read_only: Read only
             tree_label: Notes in this share
@@ -154,6 +202,8 @@ notes:
             unavailable_title: Note unavailable
             unavailable_body: This link is no longer valid, or never existed. Ask whoever sent it to you for a new one.
             errors:
+                writing_disabled: Writing by link is switched off for this installation.
+                too_many_writes: Too many saves in a row. Try again in a few minutes.
                 unknown_note: Note not found.
                 bad_date: Invalid date.
             mail:

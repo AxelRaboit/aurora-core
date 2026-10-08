@@ -16,6 +16,7 @@ use Aurora\Module\Ged\Pexels\Service\PexelsClient;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
+use Aurora\Module\Notes\Live\Service\NoteLiveHub;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteReorderInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
@@ -29,6 +30,7 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
+use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -76,6 +78,8 @@ final class MarkdownNotesController extends AbstractController
         private readonly SiteDateFormatter $dates,
         private readonly MarkdownNoteHistory $history,
         private readonly MarkdownNoteRevisionRepository $revisions,
+        private readonly MarkdownNoteMemberRepository $memberRepository,
+        private readonly NoteLiveHub $liveHub,
     ) {}
 
     /**
@@ -142,6 +146,11 @@ final class MarkdownNotesController extends AbstractController
                 static fn (array $note): array => [...$note, 'excerpt' => $excerpts[(int) $note['id']] ?? null],
                 $this->repository->findFlatListForUser($user),
             ),
+            // Travels with the list, like the list travels with the page: the
+            // menu panel reloads through here, and without the roles it could
+            // not tell a note handed over on its own from one of its own
+            // spaces.
+            'sharedNotes' => $this->memberRepository->findRolesFor($user),
         ]);
     }
 
@@ -239,7 +248,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -255,7 +264,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -511,6 +520,12 @@ final class MarkdownNotesController extends AbstractController
 
         $this->manager->update($note, $input);
 
+        // Told to whoever else has the note open, after the row is committed
+        // and never before: a hub that is down must not be able to fail a
+        // save. The version only - the page asks for the note itself the
+        // ordinary way once it knows it is behind.
+        $this->liveHub->publishChanged($note, $user->getName());
+
         // The excerpt travels with the saved note: the library card follows
         // the text without waiting for a reload.
         $excerpt = $this->repository->excerptOf((string) $note->getContent());
@@ -528,7 +543,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -554,7 +569,10 @@ final class MarkdownNotesController extends AbstractController
             static fn (MarkdownNoteRevision $revision): array => [
                 'id' => $revision->getId(),
                 'createdAt' => $revision->getCreatedAt()->format(DateTimeInterface::ATOM),
-                'authorName' => $revision->getAuthor()?->getName(),
+                // The account's name, or the words of the link a guest wrote
+                // through: with no account behind such a write, the link is
+                // the only thing that can name whoever made it.
+                'authorName' => $revision->getAuthorLabel(),
                 'title' => $revision->getTitle(),
             ],
             $this->revisions->findForNote($note),
@@ -616,7 +634,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface || $note->isTrashed()) {
             return $this->jsonNotFound();
         }
@@ -634,7 +652,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -713,7 +731,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
