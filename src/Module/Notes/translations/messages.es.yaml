@@ -342,6 +342,9 @@ notes:
             mode: 'Modo lectura'
             mode_edit: 'Volver a la edición'
             contents: 'Índice'
+            shortcut: 'Alt + R'
+            export_markdown: 'Archivo Markdown (.md)'
+            export_pdf: 'PDF, sobre fondo claro'
             open: 'Leer solo la nota'
             subheading: 'Vista de lectura'
             back: 'Volver al editor'
@@ -436,6 +439,12 @@ notes:
             blank: 'Una nota vacía'
             hint: '{marker} se convierte en la fecha de hoy.'
             failed: 'No se ha podido crear la nota a partir de esta plantilla.'
+        # Today's note: the button, the template it looks for by that same
+        # name, and the folder of the personal space it is filed in.
+        daily:
+            title: 'Nota del día'
+            folder: 'Diario'
+            failed: 'No se ha podido abrir la nota del día.'
         add:
             space: "Espacio de notas"
             create_space: "Crear el espacio de notas"
@@ -513,6 +522,7 @@ notes:
             title: 'Grafo de enlaces'
             open: 'Abrir el grafo'
             loading: 'Construyendo el grafo…'
+            all_spaces: 'Todos los espacios'
             empty:
                 title: 'Ningún nodo que mostrar'
                 description: 'Cree algunas notas enlazadas con [[wiki-links]] para ver el grafo.'
@@ -521,6 +531,7 @@ notes:
             open: 'Mostrar el esquema y los enlaces'
             close: 'Cerrar el panel'
             backlinks: 'Enlaces entrantes'
+            backlinks_tab: Enlaces
             mentions: Menciones
             loading: Cargando…
             empty_backlinks: 'Ningún enlace entrante'

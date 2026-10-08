@@ -1,4 +1,5 @@
-import { ref, watch, onBeforeUnmount } from "vue";
+import { nextTick, ref, watch, onBeforeUnmount } from "vue";
+import { filterGraphBySpace, nodeColor } from "./noteGraphFamilies.js";
 
 /**
  * Render a wiki-link graph onto a `<canvas>` using a tiny custom
@@ -40,9 +41,17 @@ export function useNoteGraph({
 }) {
     const loading = ref(false);
     const empty = ref(false);
+    // The spaces present in the graph, as the server lists them, and the
+    // one shown ("" for all of them). Reactive: the screen draws the select
+    // and the legend from them.
+    const spaces = ref([]);
+    const spaceFilter = ref("");
 
     // Plain (non-reactive) state - drawing happens 60×/sec, reactivity
-    // would just churn proxies for no benefit.
+    // would just churn proxies for no benefit. `allNodes`/`allEdges` hold
+    // the whole graph, `nodes`/`edges` what the space filter keeps.
+    let allNodes = [];
+    let allEdges = [];
     let nodes = [];
     let edges = [];
     let animationFrame = null;
@@ -200,8 +209,15 @@ export function useNoteGraph({
 
         context.clearRect(0, 0, width, height);
 
-        // Edges - thin, low-opacity indigo. Match Onyx exactly.
-        context.strokeStyle = "rgba(129, 140, 248, 0.25)";
+        // The theme's muted text colour, read from the canvas (which carries
+        // `text-muted`) on every frame: a fixed grey read badly on the dark
+        // theme, and the theme can change while the graph is open.
+        const mutedColor =
+            getComputedStyle(canvas).color || "rgb(107, 114, 128)";
+
+        // Edges - thin and neutral: the colour belongs to the families.
+        context.strokeStyle = mutedColor;
+        context.globalAlpha = 0.35;
         context.lineWidth = 1;
         edges.forEach((edge) => {
             const source = nodeMap[edge.source];
@@ -212,21 +228,27 @@ export function useNoteGraph({
             context.lineTo(target.x, target.y);
             context.stroke();
         });
+        context.globalAlpha = 1;
+
+        const linkedIds = new Set();
+        edges.forEach((edge) => {
+            linkedIds.add(edge.source);
+            linkedIds.add(edge.target);
+        });
 
         nodes.forEach((node) => {
-            const hasEdges = edges.some(
-                (edge) => edge.source === node.id || edge.target === node.id,
-            );
+            const hasEdges = linkedIds.has(node.id);
 
+            // A note without links is the same colour, dimmed.
             context.beginPath();
             context.arc(node.x, node.y, hasEdges ? 6 : 4, 0, Math.PI * 2);
-            context.fillStyle = hasEdges
-                ? "#818cf8"
-                : "rgba(129, 140, 248, 0.4)";
+            context.fillStyle = node.color;
+            context.globalAlpha = hasEdges ? 1 : 0.45;
             context.fill();
+            context.globalAlpha = 1;
 
             context.font = "10px system-ui, sans-serif";
-            context.fillStyle = "rgba(107, 114, 128, 1)";
+            context.fillStyle = mutedColor;
             context.textAlign = "center";
             context.fillText(
                 truncate(node.title || untitledLabel, 20),
@@ -334,11 +356,35 @@ export function useNoteGraph({
         resizeObserver.observe(parent);
     }
 
+    /**
+     * Keep only the chosen space's notes and the links between them, from
+     * the graph already loaded. The node objects are the same, so the notes
+     * that stay keep their place and the simulation only settles the rest.
+     */
+    function applySpaceFilter() {
+        const filtered = filterGraphBySpace(
+            allNodes,
+            allEdges,
+            spaceFilter.value,
+        );
+        nodes = filtered.nodes;
+        edges = filtered.edges;
+        if (canvasRef.value) simulate();
+    }
+
+    watch(spaceFilter, () => {
+        if (allNodes.length > 0) applySpaceFilter();
+    });
+
     async function open() {
         loading.value = true;
         empty.value = false;
+        allNodes = [];
+        allEdges = [];
         nodes = [];
         edges = [];
+        spaces.value = [];
+        spaceFilter.value = "";
 
         const { ok, payload } = await fetchGraph();
         if (!ok) {
@@ -356,21 +402,29 @@ export function useNoteGraph({
 
         loading.value = false;
 
+        // The spaces first, and one render: the select they bring above the
+        // canvas takes height from it, and the canvas must be measured after
+        // that, or its drawing would be stretched and its clicks offset.
+        spaces.value = payload.spaces ?? [];
+        await nextTick();
+
         whenSized(() => {
             if (!resizeCanvas()) return;
             const { width, height } = canvasCssSize();
 
-            nodes = raw.map((rawNode) => ({
+            allNodes = raw.map((rawNode) => ({
                 id: rawNode.id,
                 title: rawNode.title,
+                color: nodeColor(rawNode),
+                spaceId: rawNode.spaceId ?? null,
                 x: Math.random() * (width - 80) + 40,
                 y: Math.random() * (height - 80) + 40,
                 vx: 0,
                 vy: 0,
             }));
-            edges = (payload.edges ?? []).slice();
+            allEdges = (payload.edges ?? []).slice();
 
-            simulate();
+            applySpaceFilter();
         });
     }
 
@@ -383,6 +437,8 @@ export function useNoteGraph({
             resizeObserver.disconnect();
             resizeObserver = null;
         }
+        allNodes = [];
+        allEdges = [];
         nodes = [];
         edges = [];
         dragNode = null;
@@ -408,6 +464,8 @@ export function useNoteGraph({
     return {
         loading,
         empty,
+        spaces,
+        spaceFilter,
         open,
         close,
         onMouseDown,

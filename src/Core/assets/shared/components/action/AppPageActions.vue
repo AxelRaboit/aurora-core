@@ -59,6 +59,12 @@ const props = defineProps({
     size: { type: String, default: "md" },
     /** Header bar that fits on one line: the word goes below `sm`. */
     iconOnlyOnPhone: { type: Boolean, default: false },
+    /**
+     * A bar made of icons at every width, like the note editor's: there the
+     * word was the only one, and it read as the odd one out (08/10/2026).
+     * The word stays the button's name and its tooltip.
+     */
+    iconOnly: { type: Boolean, default: false },
 });
 
 // AppActionSheet has two roots (the trigger and its modal): a `class` set on
@@ -86,11 +92,12 @@ function runPrimary(action) {
                      and keeps its square: a full-width bar with three dots in
                      the middle reads as nothing. -->
                 <AppButton
-                    :class="primaryActions.length ? 'shrink-0' : 'flex-1 sm:flex-none'"
+                    :class="primaryActions.length || iconOnly ? 'shrink-0' : 'flex-1 sm:flex-none'"
                     :variant="variant"
                     :size="size"
                     :loading="busy"
                     :label="t('shared.actions.plain_title')"
+                    :icon-only="iconOnly"
                     :icon-only-on-phone="iconOnlyOnPhone || primaryActions.length > 0"
                     :title="t('shared.actions.plain_title')"
                     v-on:click="open"

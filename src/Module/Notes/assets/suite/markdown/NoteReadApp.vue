@@ -20,12 +20,15 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, ArrowRight, ChevronRight, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, Printer, Star, X } from "lucide-vue-next";
+import { ArrowLeft, ArrowRight, ChevronRight, Clock, Download, FileText, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, Printer, Star, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppActionSheet from "@/shared/components/action/AppActionSheet.vue";
 import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import NoteShareApp from "@notes/share/NoteShareApp.vue";
 import NoteReaderNav from "./components/NoteReaderNav.vue";
+import NoteReaderOutline from "./components/NoteReaderOutline.vue";
+import { readingMinutes, wordCount } from "./composables/noteOutline.js";
 import { printWhenReady } from "@notes/share/useNotePrint.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
@@ -48,6 +51,8 @@ const props = defineProps({
     favorited: { type: Boolean, default: false },
     favoritePath: { type: String, default: "" },
     backPath: { type: String, default: "" },
+    /** The note as a Markdown file; empty on the public reading. */
+    exportPath: { type: String, default: "" },
     previous: { type: Object, default: null },
     next: { type: Object, default: null },
     libraryPath: { type: String, required: true },
@@ -75,11 +80,33 @@ const { t } = useI18n();
 
 const SIDEBAR_KEY = "aurora.notes.reader.sidebar";
 
-/** Where the back link leads: editing one's note, otherwise the library. */
-const exitPath = computed(() => (props.canEdit && props.backPath ? props.backPath : props.libraryPath));
-const exitLabel = computed(() =>
-    props.canEdit && props.backPath ? t('notes.markdown.read.back') : t('notes.markdown.library.title'),
-);
+/**
+ * Where the back link leads: the library, always (08/10/2026). It used to lead
+ * to the editor for one's own note, where the pencil in the bar already goes:
+ * two ways to the same place, and none back to the notes.
+ */
+const exitPath = computed(() => props.libraryPath);
+const exitLabel = computed(() => t('notes.markdown.library.title'));
+
+/** Alt+R, said where it is used: on the pencil, which it also presses. */
+const editTitle = computed(() => `${t('notes.markdown.read.edit')} (${t('notes.markdown.read.shortcut')})`);
+
+/** Its length, as the editor's panel gives it, said before one starts. */
+const words = computed(() => wordCount(props.content));
+const minutes = computed(() => readingMinutes(words.value));
+
+/**
+ * The note taken away: the Markdown file, or the PDF on a light background
+ * that printing gives. Printing left the bar for the export (08/10/2026),
+ * and this keeps it one choice away.
+ */
+const exportActions = computed(() => [
+    { key: "markdown", title: t('notes.markdown.read.export_markdown'), icon: FileText, href: props.exportPath },
+    { key: "pdf", title: t('notes.markdown.read.export_pdf'), icon: Printer, onSelect: print },
+]);
+
+/** The rendered note, where the outline looks for its headings. */
+const body = ref(null);
 
 /**
  * The star: one reads a note and thinks of coming back to it. Adding it to
@@ -190,9 +217,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             data-reader-sidebar
             class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-3 border-r border-line bg-surface p-3 md:flex print:hidden"
         >
-            <!-- A back link, not the site name: one leaves reading to go back
-                 where one came from - editing the note, or the library when
-                 the note belongs to someone else. -->
+            <!-- A back link, not the site name: one leaves reading for the
+                 library. Writing is the pencil's, in the bar. -->
             <a
                 v-if="publicTitle"
                 data-reader-public-title
@@ -202,7 +228,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             <AppBackLink
                 v-else
                 data-reader-back
-                class="self-start"
+                fill
                 :href="exitPath"
                 :label="exitLabel"
             />
@@ -268,15 +294,20 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     :href="exitPath"
                     :label="exitLabel"
                 />
-                <AppIconButton
+                <!-- A real button, framed like the commands on the right of
+                     the same bar (08/10/2026): it was the only bare icon. -->
+                <AppButton
+                    variant="secondary"
                     data-reader-nav-toggle
-                    :title="t('notes.markdown.read.contents')"
+                    :label="t('notes.markdown.read.contents')"
+                    icon-only
+                    :aria-pressed="sidebarOpen"
                     v-on:click="toggleNav"
                 >
                     <ListTree class="h-4 w-4 md:hidden" :stroke-width="2" />
                     <PanelLeftClose v-if="sidebarOpen" class="hidden h-4 w-4 md:block" :stroke-width="2" />
                     <PanelLeftOpen v-else class="hidden h-4 w-4 md:block" :stroke-width="2" />
-                </AppIconButton>
+                </AppButton>
 
                 <nav
                     data-read-breadcrumb
@@ -309,6 +340,16 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     <span class="min-w-0 truncate px-1 text-secondary" aria-current="page">{{ titleOf({ title: noteTitle }) }}</span>
                 </nav>
 
+                <span
+                    v-if="minutes"
+                    data-read-length
+                    class="hidden shrink-0 items-center gap-1.5 text-xs text-muted lg:inline-flex"
+                    :title="t('notes.markdown.outline.words', { count: words }, words)"
+                >
+                    <Clock class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t('notes.markdown.outline.minutes', { minutes }) }}
+                </span>
+
                 <!-- The bar's commands are real buttons, of the same size
                      (02/10/2026): the favourite was a bare star next to a
                      framed "Modifier", and the latter had no name left on a
@@ -329,7 +370,25 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     />
                 </AppButton>
 
+                <!-- Taking the note away rather than printing it (08/10/2026):
+                     the Markdown file is what a reader keeps, and printing
+                     stays in the editor's menu. The public reading has no
+                     account to export with, so it keeps the printer. -->
+                <AppActionSheet v-if="exportPath" :actions="exportActions" :label="titleOf({ title: noteTitle })">
+                    <template #trigger="{ open }">
+                        <AppButton
+                            variant="secondary"
+                            data-read-export
+                            :label="t('notes.markdown.export.one')"
+                            icon-only
+                            v-on:click="open"
+                        >
+                            <Download class="h-4 w-4" :stroke-width="2" />
+                        </AppButton>
+                    </template>
+                </AppActionSheet>
                 <AppButton
+                    v-else
                     variant="secondary"
                     data-read-print
                     :label="t('notes.markdown.print.action')"
@@ -339,65 +398,75 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     <Printer class="h-4 w-4" :stroke-width="2" />
                 </AppButton>
 
+                <!-- An icon like the two beside it (08/10/2026). -->
                 <AppButton
                     v-if="canEdit && backPath"
                     variant="secondary"
                     data-read-edit
                     :href="backPath"
                     :label="t('notes.markdown.read.edit')"
-                    icon-only-on-phone
+                    :title="editTitle"
+                    icon-only
                 >
                     <Pencil class="h-4 w-4" :stroke-width="2" />
                 </AppButton>
             </header>
 
-            <div class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-3 py-4 sm:px-6 sm:py-8 print:max-w-none print:p-0">
-                <NoteShareApp
-                    :image-prefix="imagePrefix"
-                    :share-image-path="noteImagePath"
-                    :share-note-path="readNotePath"
-                    :note-id="noteId"
-                    :note-title="noteTitle"
-                    :content="content"
-                    :cover="cover"
-                    :appearance="appearance"
-                    :title-index="titleIndex"
-                />
+            <!-- The text, and on a wide screen its outline to the right
+                 (08/10/2026), held in the reading column's width. -->
+            <div class="mx-auto flex w-full max-w-3xl gap-8 xl:max-w-[67rem] print:max-w-none">
+                <div ref="body" class="flex min-w-0 max-w-3xl flex-1 flex-col gap-4 px-3 py-4 sm:px-6 sm:py-8 print:max-w-none print:p-0">
+                    <NoteShareApp
+                        :image-prefix="imagePrefix"
+                        :share-image-path="noteImagePath"
+                        :share-note-path="readNotePath"
+                        :note-id="noteId"
+                        :note-title="noteTitle"
+                        :content="content"
+                        :cover="cover"
+                        :appearance="appearance"
+                        :title-index="titleIndex"
+                    />
 
-                <!-- Turn the page, as at the end of a chapter. -->
-                <nav
-                    v-if="previous || next"
-                    data-read-pager
-                    class="grid grid-cols-1 gap-2 sm:grid-cols-2 print:hidden"
-                    :aria-label="t('notes.markdown.read.pager')"
-                >
-                    <a
-                        v-if="previous"
-                        :href="readUrl(previous.id)"
-                        data-read-previous
-                        class="aurora-card flex min-w-0 items-center gap-3 p-3 no-underline transition-colors hover:bg-surface-2"
+                    <!-- Turn the page, as at the end of a chapter. -->
+                    <nav
+                        v-if="previous || next"
+                        data-read-pager
+                        class="grid grid-cols-1 gap-2 sm:grid-cols-2 print:hidden"
+                        :aria-label="t('notes.markdown.read.pager')"
                     >
-                        <ArrowLeft class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
-                        <span class="min-w-0">
-                            <span class="block text-xs text-muted">{{ t('notes.markdown.read.previous') }}</span>
-                            <span class="block truncate text-sm font-medium text-primary">{{ titleOf(previous) }}</span>
-                        </span>
-                    </a>
-                    <span v-else class="hidden sm:block" />
+                        <a
+                            v-if="previous"
+                            :href="readUrl(previous.id)"
+                            data-read-previous
+                            class="aurora-card flex min-w-0 items-center gap-3 p-3 no-underline transition-colors hover:bg-surface-2"
+                        >
+                            <ArrowLeft class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
+                            <span class="min-w-0">
+                                <span class="block text-xs text-muted">{{ t('notes.markdown.read.previous') }}</span>
+                                <span class="block truncate text-sm font-medium text-primary">{{ titleOf(previous) }}</span>
+                            </span>
+                        </a>
+                        <span v-else class="hidden sm:block" />
 
-                    <a
-                        v-if="next"
-                        :href="readUrl(next.id)"
-                        data-read-next
-                        class="aurora-card flex min-w-0 items-center justify-end gap-3 p-3 text-right no-underline transition-colors hover:bg-surface-2"
-                    >
-                        <span class="min-w-0">
-                            <span class="block text-xs text-muted">{{ t('notes.markdown.read.next') }}</span>
-                            <span class="block truncate text-sm font-medium text-primary">{{ titleOf(next) }}</span>
-                        </span>
-                        <ArrowRight class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
-                    </a>
-                </nav>
+                        <a
+                            v-if="next"
+                            :href="readUrl(next.id)"
+                            data-read-next
+                            class="aurora-card flex min-w-0 items-center justify-end gap-3 p-3 text-right no-underline transition-colors hover:bg-surface-2"
+                        >
+                            <span class="min-w-0">
+                                <span class="block text-xs text-muted">{{ t('notes.markdown.read.next') }}</span>
+                                <span class="block truncate text-sm font-medium text-primary">{{ titleOf(next) }}</span>
+                            </span>
+                            <ArrowRight class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
+                        </a>
+                    </nav>
+                </div>
+
+                <aside class="sticky top-16 hidden w-56 shrink-0 self-start py-8 pr-3 xl:block print:hidden">
+                    <NoteReaderOutline :root="body" />
+                </aside>
             </div>
         </main>
     </div>

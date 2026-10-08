@@ -537,16 +537,55 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
     public function graph(CoreUserInterface $user): array
     {
+        // Spaces and folders first, in one query each: the notes loaded after
+        // then point at entities already in memory, and climbing a folder
+        // tree for its colour costs no query per note nor per level.
+        $spacesById = [];
+        foreach ($this->spaceRepository->findReadableFor($user) as $space) {
+            $spacesById[(int) $space->getId()] = $space;
+        }
+
+        $folders = [];
+        foreach ($this->folderRepository->findAllForUser($user) as $folder) {
+            $folders[(int) $folder->getId()] = [
+                'parentId' => $folder->getParent()?->getId(),
+                'color' => $folder->getColor(),
+            ];
+        }
+
         $notes = $this->noteRepository->findAllWithContentForUser($user);
 
         $titleToId = [];
         $nodes = [];
+        $presentSpaceIds = [];
         foreach ($notes as $note) {
             $title = $note->getTitle() ?? '';
-            $nodes[] = ['id' => $note->getId(), 'title' => '' === $title ? 'Untitled' : $title];
+            $spaceId = (int) $note->getSpace()->getId();
+            $presentSpaceIds[$spaceId] = true;
+            $nodes[] = [
+                'id' => $note->getId(),
+                'title' => '' === $title ? 'Untitled' : $title,
+                'color' => $this->graphNodeColor($note->getFolder()?->getId(), $folders, $spacesById[$spaceId] ?? null),
+                'spaceId' => $spaceId,
+            ];
             if ('' !== $title) {
                 $titleToId[mb_strtolower($title)] = $note->getId();
             }
+        }
+
+        // In the panel's order, which the repository already gives.
+        $spaces = [];
+        foreach ($spacesById as $spaceId => $space) {
+            if (!isset($presentSpaceIds[$spaceId])) {
+                continue;
+            }
+
+            $spaces[] = [
+                'id' => $spaceId,
+                'name' => $space->getName(),
+                'color' => $space->getColor(),
+                'personal' => $space->isPersonal(),
+            ];
         }
 
         $edges = [];
@@ -584,7 +623,34 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             }
         }
 
-        return ['nodes' => $nodes, 'edges' => $edges];
+        return ['nodes' => $nodes, 'edges' => $edges, 'spaces' => $spaces];
+    }
+
+    /**
+     * The colour a note is drawn with in the graph: that of the nearest
+     * folder up its tree that has one, else its space's, else none and the
+     * screen picks its default.
+     *
+     * @param array<int, array{parentId: int|null, color: string|null}> $folders every folder the reader sees, by id
+     */
+    protected function graphNodeColor(?int $folderId, array $folders, ?NoteSpaceInterface $space): ?string
+    {
+        // The visited list guards against a loop in the tree, which nothing
+        // should produce but which would otherwise never end.
+        $visited = [];
+        while (null !== $folderId && isset($folders[$folderId]) && !isset($visited[$folderId])) {
+            $visited[$folderId] = true;
+            $color = $folders[$folderId]['color'];
+            if (null !== $color && '' !== $color) {
+                return $color;
+            }
+
+            $folderId = $folders[$folderId]['parentId'];
+        }
+
+        $color = $space?->getColor();
+
+        return null === $color || '' === $color ? null : $color;
     }
 
     public function tagCounts(CoreUserInterface $user): array

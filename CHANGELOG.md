@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Modifié
+- **Notes Markdown, barres en icônes.** Dans l'éditeur, « Actions » n'est plus qu'une icône, comme ses voisins. En lecture, « Modifier » devient un crayon, l'imprimante laisse la place à l'export de la note en Markdown (la lecture publique garde l'impression), et le bouton du sommaire est encadré comme les autres. « Retour à l'éditeur » prend toute la largeur de la colonne.
+- Le panneau « Sur cette note » nomme son onglet « Liens » : « Liens entrants » passait sur deux lignes. Le nom complet reste au survol.
+- **La lecture d'une note.** Le lien de la colonne mène à « Toutes les notes » ; écrire, c'est le crayon de la barre, qui dit son raccourci (Alt + R) au survol. L'export propose le fichier Markdown ou le PDF sur fond clair. La durée de lecture s'affiche dans la barre, et sur un grand écran le plan de la note se tient à droite du texte, le titre en cours surligné.
+- Dans l'éditeur, la lecture est la quatrième position du sélecteur de mode, après « Édition », « Édition + aperçu » et « Aperçu ».
+- **« + Nouvelle note » en vrai bouton** dans la bibliothèque, à côté de l'export et du nouveau dossier.
+- **La note du jour.** Un bouton calendrier de la bibliothèque ouvre la note datée d'aujourd'hui (« jeudi 8 octobre 2026 »), rangée dans un dossier « Journal » de son espace personnel, créée au premier clic de la journée. Un modèle nommé « Note du jour », s'il existe, lui donne son contenu, `{{date}}` compris.
+- **Le graphe par familles.** Chaque note prend la couleur de son dossier (le plus proche qui en a une), sinon celle de son espace ; un sélecteur ne montre qu'un espace, avec sa légende. Les libellés et les liens suivent le thème clair ou sombre.
+- `AppPageActions` accepte `icon-only`, et `AppBackLink` une variante `fill` pour une colonne.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [3.7.1] - 2026-10-08
 
 ### Modifié

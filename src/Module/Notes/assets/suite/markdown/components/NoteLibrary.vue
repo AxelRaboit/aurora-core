@@ -25,6 +25,7 @@ import {
     ArrowUp,
     ArrowUpDown,
     ArrowUpNarrowWide,
+    CalendarDays,
     ChevronRight,
     Download,
     FileDown,
@@ -102,11 +103,16 @@ const props = defineProps({
     exportUrlFor: { type: Function, default: null },
     /** What the server accepts as depth, to say it on refusal. */
     maxDepth: { type: Number, default: 8 },
+    /** The page knows where today's note is: the button shows. */
+    dailyEnabled: { type: Boolean, default: false },
+    /** Today's note is on its way: the button spins and waits. */
+    dailyOpening: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
     "open-note",
     "create-note",
+    "open-daily-note",
     "changed",
     "folder-changed",
 ]);
@@ -1373,46 +1379,66 @@ defineExpose({
                     </template>
                 </nav>
 
-                <!-- Icons only: the label took half the bar to say what a
-                     "+" says just as well, and the tooltip names it for
-                     whoever hesitates.
-
-                     Both are icon buttons, with the same design. The note's
-                     one was a solid green button, bigger and filled, set next
-                     to its outlined neighbour: two gestures of the same kind,
-                     one step from each other, that did not look like the
-                     same family. -->
+                <!-- Icons for the occasional gestures, the word for the
+                     frequent one. « Nouvelle note » is the verb of this
+                     screen, so it is the suite's main button, with its name,
+                     rightmost, like « + Nouvelle publication » on the other
+                     lists (UI audit of 07/10/2026, see AppPageActions); on a
+                     phone it keeps its square and loses the word. Export and
+                     new folder stay bare icons, named by their tooltip. -->
                 <div class="flex shrink-0 items-center gap-1">
                     <!-- In the title row, not in the toolbar below, which
                          already holds nine icons: it takes away what the row
                          names, everything at the root, the folder otherwise. -->
-                    <AppIconButton
+                    <!-- Framed like the day's note and the main button beside
+                         them (08/10/2026): two bare icons next to two real
+                         buttons read as two kinds of gesture. -->
+                    <AppButton
                         v-if="exportUrlFor"
+                        variant="secondary"
                         data-library-export
-                        :title="null === currentFolderId ? t('notes.markdown.export.all') : t('notes.markdown.folders.export')"
-                        :aria-label="null === currentFolderId ? t('notes.markdown.export.all') : t('notes.markdown.folders.export')"
+                        :label="null === currentFolderId ? t('notes.markdown.export.all') : t('notes.markdown.folders.export')"
+                        icon-only
                         v-on:click="exportShown"
                     >
                         <Download class="h-4 w-4" :stroke-width="2" />
-                    </AppIconButton>
+                    </AppButton>
 
-                    <AppIconButton
-                        color="accent"
-                        :title="t('notes.markdown.library.new_folder')"
-                        :aria-label="t('notes.markdown.library.new_folder')"
+                    <AppButton
+                        variant="secondary"
+                        :label="t('notes.markdown.library.new_folder')"
+                        icon-only
                         v-on:click="askForFolderName()"
                     >
                         <FolderPlus class="h-4 w-4" :stroke-width="2" />
-                    </AppIconButton>
+                    </AppButton>
 
-                    <AppIconButton
-                        color="accent"
-                        :title="t('notes.markdown.library.new_note')"
-                        :aria-label="t('notes.markdown.library.new_note')"
+                    <!-- Today's note, in the personal journal, written the
+                         first time. An icon at every width: next to the main
+                         button, a second word would compete with it. -->
+                    <AppButton
+                        v-if="dailyEnabled"
+                        data-library-daily-note
+                        class="ml-1"
+                        variant="secondary"
+                        :label="t('notes.markdown.daily.title')"
+                        :loading="dailyOpening"
+                        icon-only
+                        v-on:click="emit('open-daily-note')"
+                    >
+                        <CalendarDays v-if="!dailyOpening" class="h-4 w-4" :stroke-width="2" />
+                    </AppButton>
+
+                    <AppButton
+                        data-library-new-note
+                        class="ml-1"
+                        variant="primary"
+                        :label="t('notes.markdown.library.new_note')"
+                        icon-only-on-phone
                         v-on:click="emit('create-note', currentFolderId)"
                     >
                         <Plus class="h-4 w-4" :stroke-width="2" />
-                    </AppIconButton>
+                    </AppButton>
                 </div>
             </div>
 
