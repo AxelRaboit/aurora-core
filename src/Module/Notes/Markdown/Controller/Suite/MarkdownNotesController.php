@@ -565,14 +565,23 @@ final class MarkdownNotesController extends AbstractController
             return $this->jsonNotFound();
         }
 
+        // Who may be told which link a version came through. The history is
+        // open to anybody the note is open to - a member of its space,
+        // somebody it was handed to as a reader - and a link's recipient
+        // address belongs to whoever created the link, not to them. Those who
+        // administer the note already read that address on the share screen.
+        $namesTheLink = $this->spaceAccess->canAdministerNote($user, $note);
+
         return $this->jsonSuccess(['revisions' => array_map(
             static fn (MarkdownNoteRevision $revision): array => [
                 'id' => $revision->getId(),
                 'createdAt' => $revision->getCreatedAt()->format(DateTimeInterface::ATOM),
-                // The account's name, or the words of the link a guest wrote
-                // through: with no account behind such a write, the link is
-                // the only thing that can name whoever made it.
-                'authorName' => $revision->getAuthorLabel(),
+                'authorName' => $revision->getAuthor()?->getName()
+                    ?? ($namesTheLink ? $revision->getLinkLabel() : null),
+                // So the screen can say "through a share link" rather than
+                // leaving a version with no author at all, which reads like a
+                // gap in the record.
+                'viaShareLink' => $revision->wasWrittenThroughLink(),
                 'title' => $revision->getTitle(),
             ],
             $this->markdownNoteRevisionRepository->findForNote($note),

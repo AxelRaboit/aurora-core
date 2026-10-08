@@ -166,6 +166,11 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
     {
         return $this->canWrite
             && $this->isUsableAt($now)
+            // A note in the trash is the clearest statement there is that its
+            // owner no longer wants it changed. The reading page still serves
+            // it, as it always has, but nobody holding an address gets to keep
+            // writing into something that was deleted.
+            && !$note->isTrashed()
             && null !== $note->getId()
             && $note->getId() === $this->note->getId();
     }

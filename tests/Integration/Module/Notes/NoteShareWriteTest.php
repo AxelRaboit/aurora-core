@@ -7,9 +7,13 @@ namespace Aurora\Tests\Integration\Module\Notes;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRevisionRepository;
+use Aurora\Module\Notes\Share\Entity\MarkdownNoteMember;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLink;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
+use Aurora\Module\Notes\Share\Enum\NoteMemberRoleEnum;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserRoleEnum;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
@@ -17,8 +21,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use function bin2hex;
 use function json_decode;
 use function json_encode;
+use function random_bytes;
+use function sprintf;
 
 /**
  * A share link that may write, and the four things that hold it in place.
@@ -142,6 +149,27 @@ final class NoteShareWriteTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
+    /**
+     * A note in the trash stops being writable, link or no link.
+     *
+     * Deleting it is the clearest statement there is that its owner no longer
+     * wants it changed, and the guest has no way of knowing it happened.
+     */
+    public function testATrashedNoteIsNotWritableThroughALink(): void
+    {
+        $note = $this->note('Procédure', 'Le texte d\'origine');
+        $link = $this->link($note, canWrite: true);
+
+        $note->setDeletedAt(new DateTimeImmutable('-1 minute'));
+        $this->entityManager->flush();
+
+        $this->save($link, $note, ['content' => 'Détournée']);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->entityManager->clear();
+        self::assertSame('Le texte d\'origine', $this->entityManager->find(MarkdownNote::class, $note->getId())?->getContent());
+    }
+
     /** An expired one too, without anybody having to revoke it. */
     public function testAnExpiredLinkStopsWriting(): void
     {
@@ -217,9 +245,69 @@ final class NoteShareWriteTest extends IntegrationTestCase
 
         self::assertInstanceOf(MarkdownNoteRevision::class, $latest);
         self::assertSame('Le texte d\'origine', $latest->getContent());
-        // No account behind the write: the link's own words name it.
+        // No account behind the write: the link is what names it.
         self::assertNull($latest->getAuthor());
-        self::assertSame('Pour Marie, relecture', $latest->getAuthorLabel());
+        self::assertTrue($latest->wasWrittenThroughLink());
+        self::assertSame('Pour Marie, relecture', $latest->getLinkLabel());
+    }
+
+    /**
+     * The history does not hand a link's recipient to everybody the note is
+     * open to.
+     *
+     * That address belongs to whoever created the link. Somebody the note was
+     * handed to as a reader may see *that* a version came through a link -
+     * otherwise it reads as a gap in the record - and not which one.
+     */
+    public function testAReaderOfTheNoteIsNotToldWhichLinkWroteAVersion(): void
+    {
+        $note = $this->note('Procédure', 'Le texte d\'origine');
+        $link = $this->link($note, canWrite: true);
+        $link->setRecipientEmail('olivier@atelier-verrier.test');
+        $this->entityManager->flush();
+
+        $this->save($link, $note, ['content' => 'Relue par l\'invité']);
+        self::assertResponseIsSuccessful();
+
+        // Handed the note as a reader, and nothing more: the note lives in
+        // the owner's personal space, which is closed to them.
+        $reader = $this->reader();
+        $member = new MarkdownNoteMember();
+        $member->setNote($note)->setUser($reader)->setRole(NoteMemberRoleEnum::Reader);
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
+        $this->created[] = [MarkdownNoteMember::class, (int) $member->getId()];
+
+        $this->client->loginUser($reader, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => $note->getId()]));
+        self::assertResponseIsSuccessful();
+
+        $body = (string) $this->client->getResponse()->getContent();
+        self::assertStringNotContainsString('olivier@atelier-verrier.test', $body);
+        self::assertStringContainsString('"viaShareLink":true', $body);
+
+        // The owner, who made the link, still reads its words: they are
+        // already on the share screen.
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => $note->getId()]));
+        self::assertStringContainsString('olivier@atelier-verrier.test', (string) $this->client->getResponse()->getContent());
+    }
+
+    /** Somebody the note was handed to, as a reader and nothing more. */
+    private function reader(): User
+    {
+        $reader = new User();
+        $reader->setEmail(sprintf('lecteur-%s@aurora.test', bin2hex(random_bytes(4))))
+            ->setName('lecteur')
+            ->setType(UserTypeEnum::Suite)
+            ->setRoles([UserRoleEnum::User->value])
+            ->setPrivileges(['notes.markdown.use'])
+            ->setPassword('x');
+        $this->entityManager->persist($reader);
+        $this->entityManager->flush();
+        $this->created[] = [User::class, (int) $reader->getId()];
+
+        return $reader;
     }
 
     /**

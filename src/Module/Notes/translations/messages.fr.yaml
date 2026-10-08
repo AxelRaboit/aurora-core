@@ -468,6 +468,7 @@ notes:
             empty: 'Aucune version passée pour l''instant'
             empty_hint: 'Une version est gardée quand vous modifiez la note, au plus une toutes les quelques minutes (réglages, onglet Notes).'
             no_author: 'Auteur inconnu'
+            via_share_link: 'Par un lien de partage'
             since: "Depuis cette version, lignes ajoutées : {added} · retirées : {removed}"
             show_whole: 'Voir la version entière'
             show_changes: 'Voir les changements'

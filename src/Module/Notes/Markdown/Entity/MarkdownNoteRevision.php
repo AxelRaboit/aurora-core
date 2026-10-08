@@ -101,15 +101,25 @@ class MarkdownNoteRevision
     }
 
     /**
-     * How the history names whoever wrote this version.
+     * The share link's own words - the address it was mailed to, or the label
+     * somebody gave it.
      *
-     * An account's name, else the share link's own words - the address it was
-     * mailed to, or the label somebody gave it. Null when neither is left,
-     * which is an account deleted or a link deleted, not a gap in the record.
+     * **Not for everybody who may read the note.** A link's recipient address
+     * belongs to whoever created the link, and the history is readable by
+     * anybody the note is open to - a member of its space, somebody it was
+     * handed to as a reader. So this is deliberately *not* folded into one
+     * `getAuthorLabel()`: the caller has to know whose eyes it is for, and
+     * the only caller that does is the controller.
      */
-    public function getAuthorLabel(): ?string
+    public function getLinkLabel(): ?string
     {
-        return $this->author?->getName() ?? ($this->viaLink?->getRecipientEmail() ?: ($this->viaLink?->getLabel() ?: null));
+        return $this->viaLink?->getRecipientEmail() ?: ($this->viaLink?->getLabel() ?: null);
+    }
+
+    /** Whether this version was written through a share link rather than by an account. */
+    public function wasWrittenThroughLink(): bool
+    {
+        return $this->viaLink instanceof MarkdownNoteShareLinkInterface;
     }
 
     public function getCreatedAt(): DateTimeImmutable

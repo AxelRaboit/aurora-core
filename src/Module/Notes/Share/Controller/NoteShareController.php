@@ -214,10 +214,14 @@ final class NoteShareController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        // From the link's scope, never from the id alone - the same rule as
-        // reading. Then the write question, which is narrower still.
-        $note = $this->scope->noteInScope($this->scope->notesFor($link), $id);
-        if (!$note instanceof MarkdownNoteInterface || !$link->canWriteNote($note, new DateTimeImmutable())) {
+        // The link's own note, taken from the link and not from the id: the
+        // id is only ever checked against it. Deliberately **not** the share's
+        // scope - `notesFor()` reads and decrypts the owner's whole notebook
+        // to follow `[[links]]`, and no note it finds that way is writable
+        // anyway. An unauthenticated request should touch as little of
+        // somebody's notes as the answer needs.
+        $note = $link->getNote();
+        if (!$link->canWriteNote($note, new DateTimeImmutable()) || $note->getId() !== $id) {
             return $this->jsonNotFound();
         }
 
