@@ -504,7 +504,7 @@ const coeditAllowed = computed(() =>
             )?.coediting,
         ),
         canWrite: canEditSelected.value,
-        hasChannel: roomChannel.ready(),
+        hasChannel: roomChannel.ready.value,
         selfUserId: roomChannel.selfUserId(),
     }),
 );

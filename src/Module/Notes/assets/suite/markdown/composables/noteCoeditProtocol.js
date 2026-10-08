@@ -95,3 +95,50 @@ export function canCoedit({ spaceAllows, canWrite, hasChannel, selfUserId }) {
         null != selfUserId
     );
 }
+
+/**
+ * What changed between two versions of the same text, as one operation.
+ *
+ * **Why not simply replace the whole text.** A textarea reports its value,
+ * not the keystroke that produced it, so the difference has to be recovered
+ * before it can become an operation on the document. Replacing everything
+ * would read as "this person deleted the note and typed a new one", which a
+ * CRDT would merge faithfully: a neighbour typing at the same moment would
+ * lose their sentence, and both carets would jump to the end. The whole point
+ * of the document is to carry small operations, so a small operation is what
+ * it has to be handed.
+ *
+ * Common prefix, common suffix, and what sits between them - which for
+ * somebody typing is exactly one inserted character, and for a paste or a
+ * deletion is exactly the run that moved. Null when nothing changed, so the
+ * echo of a remote update applied into the form stops here rather than going
+ * back out as a local edit.
+ *
+ * @param {string} previous
+ * @param {string} next
+ * @returns {{index: number, remove: number, insert: string}|null}
+ */
+export function textDelta(previous, next) {
+    if (previous === next) return null;
+
+    const shortest = Math.min(previous.length, next.length);
+
+    let start = 0;
+    while (start < shortest && previous[start] === next[start]) start += 1;
+
+    // Bounded by what the prefix left, so the two never overlap on a text
+    // that repeats itself - "aa" becoming "a" is one deletion, not two.
+    let end = 0;
+    while (
+        end < shortest - start &&
+        previous[previous.length - 1 - end] === next[next.length - 1 - end]
+    ) {
+        end += 1;
+    }
+
+    return {
+        index: start,
+        remove: previous.length - start - end,
+        insert: next.slice(start, next.length - end),
+    };
+}

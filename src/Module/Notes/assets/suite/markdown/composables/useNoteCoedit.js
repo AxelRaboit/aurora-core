@@ -6,6 +6,7 @@ import {
     isForMe,
     isMine,
     joinAction,
+    textDelta,
 } from "./noteCoeditProtocol.js";
 
 /**
@@ -51,8 +52,21 @@ export function useNoteCoedit({
     writeBack,
     live,
 }) {
-    /** How long to wait for a peer to answer before giving up on the session. */
+    /** How long to wait for a peer to answer before asking again. */
     const STATE_TIMEOUT_MS = 4000;
+
+    /**
+     * How many times a newcomer asks for the state before standing down.
+     *
+     * More than one, because the first attempt can legitimately find nobody
+     * able to answer: the peer re-enters its own session whenever the note or
+     * the space setting changes, and for those few hundred milliseconds it
+     * holds no document to send. A newcomer that asked once and gave up
+     * stayed dead for as long as the note was open - the editor fell back to
+     * the autosave, which works, so the only sign was that two people typing
+     * never saw each other. It cost an afternoon to find.
+     */
+    const JOIN_ATTEMPTS = 3;
 
     /** How long after the last keystroke the elected client writes back. */
     const WRITE_BACK_MS = 3000;
@@ -60,6 +74,7 @@ export function useNoteCoedit({
     let sharedDocument = null;
     let body = null;
     let joining = null;
+    let joinAttempts = 0;
     let writeTimer = null;
     // Set while a remote update is being applied, so the observer that
     // publishes local edits does not publish them straight back.
@@ -194,20 +209,102 @@ export function useNoteCoedit({
 
         channel.publish({ kind: "doc-request" });
 
-        // A peer that never answers is a session that never starts. The
-        // editor stays on the autosave rather than seeding a second history,
-        // which would be the one failure that loses text.
         joining = setTimeout(() => {
             joining = null;
-            if (!live.value) teardown();
+            if (live.value) return;
+
+            const self = channel.selfUserId();
+
+            // **Nobody answered, so the elected client seeds.** This is what
+            // breaks the tie, and without it the protocol deadlocked: two
+            // people who both opened the note before either was allowed to
+            // co-edit each saw the other in the room, each therefore asked
+            // instead of seeding, and neither ever had a document to answer
+            // with. It lasted as long as the note stayed open, the editor
+            // quietly back on its autosave, and nothing on screen said so.
+            //
+            // Seeding from the stored text is safe here precisely because
+            // asking came first: a peer that holds a document answers in
+            // milliseconds, so reaching this line means there is no history
+            // to lose. And only the elected client may do it - a second
+            // client seeding would build a second history, and merging two
+            // histories of the same text duplicates every character of it.
+            if (isElected(self, room.value)) {
+                openSharedDocument(text.value ?? "");
+
+                return;
+            }
+
+            // Not elected: keep asking. The elected client is about to seed,
+            // and the next round is what collects its state.
+            if (joinAttempts < JOIN_ATTEMPTS) {
+                joinAttempts += 1;
+                enter();
+
+                return;
+            }
+
+            // Asked three times and the elected client never answered. The
+            // editor stays on the autosave, which works.
+            teardown();
         }, STATE_TIMEOUT_MS);
     }
+
+    /**
+     * What somebody typed, as an operation on the document.
+     *
+     * **This is the direction the feature is made of, and it was missing.**
+     * The textarea is bound to the form, not to the document: without this
+     * watcher the document only ever flowed outwards, so a session started,
+     * elected, seeded and wrote back - and carried not one keystroke. Nothing
+     * without a browser could notice, because every piece in isolation was
+     * right; the two-browser test is what found it.
+     *
+     * The no-op case carries its weight too: a remote update is applied into
+     * the form, which lands here as a change, and the delta against the
+     * document is then empty. That is what stops the echo, rather than a flag
+     * that has to be held correctly across a transaction.
+     */
+    watch(text, (value) => {
+        if (!sharedDocument || !body || null == value) return;
+
+        const delta = textDelta(body.toString(), value);
+        if (null === delta) return;
+
+        // One transaction, so a replaced run travels as a single update
+        // instead of a deletion the peers briefly render on its own.
+        sharedDocument.transact(() => {
+            if (0 < delta.remove) body.delete(delta.index, delta.remove);
+            if ("" !== delta.insert) body.insert(delta.index, delta.insert);
+        });
+    });
 
     const stopListening = channel.onMessage(onMessage);
 
     // The open note changes, or the right to co-edit it does - a space whose
     // setting was just switched, a hub that came back.
-    watch([noteId, allowed], () => enter());
+    watch([noteId, allowed], () => {
+        joinAttempts = 0;
+        enter();
+    });
+
+    /**
+     * Somebody joined or left, and we are not in a session.
+     *
+     * The other half of the retry, and the half that matters: who is in the
+     * room is what decides between seeding and asking, and that is the one
+     * input to the decision that arrives *after* it was taken. Someone who
+     * opened the note alone seeded and is the origin; someone who opened it
+     * while the first was between two documents asked, heard nothing, and has
+     * to be told that there is now somebody to ask again.
+     *
+     * Guarded on `live`, so a presence beat never interrupts a session that
+     * is working - re-entering one would throw away a document that is
+     * holding what people are typing.
+     */
+    watch(room, () => {
+        if (!live.value) enter();
+    });
 
     onBeforeUnmount(() => {
         // The last thing written is the text as it stands: a session ending

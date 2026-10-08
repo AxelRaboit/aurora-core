@@ -71,7 +71,18 @@ export function useNoteLive({ noteId, editing, beatPath }) {
     let beatSeconds = 20;
     // Who this reader is, as the beat reports it: a pushed room carries
     // everybody, so this is what drops oneself from it.
-    let selfUserId = null;
+    /**
+     * Reactive, and it has to be.
+     *
+     * Both of these arrive with the first beat, which is *after* the page is
+     * built - and something downstream decides whether to co-edit from them,
+     * through a `computed`. Held as plain closure variables they changed
+     * without telling anybody, so that computed evaluated once, saw nothing,
+     * and never looked again: the session silently never started. Found by the
+     * two-browser test, which is the only thing that could have found it.
+     */
+    const selfUserId = ref(null);
+    const awarenessReady = ref(false);
     let selfName = null;
     // The address, topic and token a browser needs to say where its cursor
     // is. Null without a hub, and then nothing is published or drawn.
@@ -115,10 +126,11 @@ export function useNoteLive({ noteId, editing, beatPath }) {
         people.value = payload.people ?? [];
         serverVersion.value = payload.version ?? serverVersion.value;
         beatSeconds = payload.beatSeconds ?? beatSeconds;
-        selfUserId = payload.selfUserId ?? selfUserId;
+        selfUserId.value = payload.selfUserId ?? selfUserId.value;
         selfName = payload.selfName ?? selfName;
         // Renewed on every beat, long before the publish token runs out.
         awareness = payload.awareness ?? null;
+        awarenessReady.value = null !== awareness;
 
         connect(payload.streamUrl ?? null);
     }
@@ -195,7 +207,8 @@ export function useNoteLive({ noteId, editing, beatPath }) {
      */
     function isSelf(person) {
         return (
-            null !== selfUserId && Number(person.userId) === Number(selfUserId)
+            null !== selfUserId.value &&
+            Number(person.userId) === Number(selfUserId.value)
         );
     }
 
@@ -209,7 +222,8 @@ export function useNoteLive({ noteId, editing, beatPath }) {
      */
     function rememberCursor(message) {
         const userId = Number(message.userId);
-        if (!Number.isFinite(userId) || userId === Number(selfUserId)) return;
+        if (!Number.isFinite(userId) || userId === Number(selfUserId.value))
+            return;
 
         heardAt.set(userId, Date.now());
         const others = cursors.value.filter((one) => one.userId !== userId);
@@ -260,7 +274,10 @@ export function useNoteLive({ noteId, editing, beatPath }) {
 
         const body = new URLSearchParams();
         body.append("topic", awareness.topic);
-        body.append("data", JSON.stringify({ ...message, from: selfUserId }));
+        body.append(
+            "data",
+            JSON.stringify({ ...message, from: selfUserId.value }),
+        );
         // Private, so the hub checks every subscriber's token against the
         // topic instead of handing one note's channel to whoever guesses it.
         body.append("private", "on");
@@ -288,7 +305,7 @@ export function useNoteLive({ noteId, editing, beatPath }) {
     async function publishCursor(index) {
         await publish({
             kind: "cursor",
-            userId: selfUserId,
+            userId: selfUserId.value,
             name: selfName,
             index: null == index ? null : Number(index),
         });
@@ -313,6 +330,7 @@ export function useNoteLive({ noteId, editing, beatPath }) {
         cursors.value = [];
         heardAt.clear();
         awareness = null;
+        awarenessReady.value = false;
         serverVersion.value = null;
         changedBy.value = null;
         disconnect();
@@ -361,8 +379,9 @@ export function useNoteLive({ noteId, editing, beatPath }) {
 
             return () => listeners.delete(listener);
         },
-        selfUserId: () => selfUserId,
-        ready: () => null !== awareness,
+        selfUserId: () => selfUserId.value,
+        // A ref, so a `computed` that depends on it is told when it changes.
+        ready: awarenessReady,
     };
 
     return {
