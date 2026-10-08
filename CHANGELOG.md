@@ -5,6 +5,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+- **On voit le curseur de l'autre pendant qu'il écrit.** Sa barre apparaît dans le texte, son nom au-dessus de la ligne, et la couleur reste la même d'une session à l'autre. En direct avec un hub Mercure ; sans hub, rien n'est dessiné plutôt qu'à moitié. Le navigateur ne peut publier que sur un sujet qui ne porte que les curseurs - il ne peut donc pas forger un « la note a changé » ni une liste de présences.
+
+---
+
 ## [4.0.0] - 2026-10-08
 
 ### Rompu
