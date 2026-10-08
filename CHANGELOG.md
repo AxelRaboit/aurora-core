@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.7.1] - 2026-10-08
+
+### Modifié
+- Tour : seize prises de plus, pour les écrans qui manquaient encore (modifier les privilèges d'un compte, ses accès aux modules et le compte lui-même, le panneau Plateforme du tableau de bord, une langue non traduite, les types de question, la médiathèque en liste, la page d'un document et la fenêtre d'ajout, les réglages des notes et des séquences, la création d'un calendrier, d'un espace, d'une ressource et d'un client, la vue d'ensemble de l'espace développeur). Les deux prises des liens de lecture partent désormais d'une publication, comme le dit leur texte.
+- Démonstration : le brouillon « Ce qui arrive ensuite » n'a plus de version espagnole, pour que l'état « non traduit » ait quelque chose à montrer.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [3.7.0] - 2026-10-08
 
 ### Modifié
