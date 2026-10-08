@@ -24,6 +24,7 @@ use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRevisionRepository;
 use Aurora\Module\Notes\Markdown\Serializer\MarkdownNoteSerializerInterface;
+use Aurora\Module\Notes\Markdown\Service\MarkdownDailyNote;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
@@ -689,6 +690,21 @@ final class MarkdownNotesController extends AbstractController
         );
 
         return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($note)]);
+    }
+
+    /**
+     * Today's note, in the "Journal" folder of your personal space: the one
+     * already written today, or a new one (from the "Note du jour" template
+     * when you can read one). Nothing to check beyond the module's right:
+     * it only ever writes into your own space.
+     */
+    #[Route('/daily', name: '_daily', methods: [HttpMethodEnum::Post->value])]
+    public function daily(MarkdownDailyNote $dailyNote): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($dailyNote->open($user))]);
     }
 
     #[Route('/{id}/move', name: '_move', methods: [HttpMethodEnum::Post->value])]

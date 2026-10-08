@@ -92,9 +92,15 @@ interface MarkdownNoteManagerInterface
      * Wiki-link graph for the whole user's notes. Edges are extracted
      * from [[target]] occurrences resolved against existing titles.
      *
+     * Each node carries its family: the colour of the nearest folder up its
+     * tree that has one, else its space's, else null (the screen's default),
+     * and the id of its space. `spaces` lists the spaces present in the
+     * graph, in the panel's order.
+     *
      * @return array{
-     *     nodes: list<array{id: int, title: string}>,
+     *     nodes: list<array{id: int, title: string, color: string|null, spaceId: int}>,
      *     edges: list<array{source: int, target: int}>,
+     *     spaces: list<array{id: int, name: string|null, color: string|null, personal: bool}>,
      * }
      */
     public function graph(CoreUserInterface $user): array;

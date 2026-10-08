@@ -141,6 +141,7 @@ final readonly class MarkdownNotesViewBuilder
             'imagePrefix' => str_replace('__filename__', '', $this->urlGenerator->generate('suite_notes_markdown_images_serve', ['filename' => '__filename__'])),
             'noteImagePath' => $this->urlGenerator->generate('suite_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => '__filename__']),
             'backPath' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $note->getId()]),
+            'exportPath' => $this->urlGenerator->generate('suite_notes_markdown_export_one', ['id' => $note->getId()]),
             'cover' => [
                 'url' => $note->getCoverUrl(),
                 'creditName' => $note->getCoverCreditName(),
@@ -461,6 +462,7 @@ final readonly class MarkdownNotesViewBuilder
             'duplicatePath' => $this->urlGenerator->generate('suite_notes_markdown_duplicate', ['id' => '__id__']),
             'templatePath' => $this->urlGenerator->generate('suite_notes_markdown_template', ['id' => '__id__']),
             'fromTemplatePath' => $this->urlGenerator->generate('suite_notes_markdown_from_template', ['id' => '__id__']),
+            'dailyPath' => $this->urlGenerator->generate('suite_notes_markdown_daily'),
             'revisionsPath' => $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => '__id__']),
             'revisionPath' => $this->urlGenerator->generate('suite_notes_markdown_revision', ['id' => '__id__', 'revisionId' => '__revisionId__']),
             'revisionRestorePath' => $this->urlGenerator->generate('suite_notes_markdown_revision_restore', ['id' => '__id__', 'revisionId' => '__revisionId__']),

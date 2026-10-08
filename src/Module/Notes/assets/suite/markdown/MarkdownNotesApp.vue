@@ -71,6 +71,8 @@ const props = defineProps({
     duplicatePath: { type: String, default: '' },
     templatePath: { type: String, default: '' },
     fromTemplatePath: { type: String, default: '' },
+    /** Today's note, in the personal space's journal. */
+    dailyPath: { type: String, default: '' },
     revisionsPath: { type: String, default: '' },
     revisionPath: { type: String, default: '' },
     revisionRestorePath: { type: String, default: '' },
@@ -405,6 +407,12 @@ async function refreshFromCraft() {
 /** The version history of the open note. */
 const historyOpen = ref(false);
 
+/** The reader, from the mode selector: the text is saved before leaving. */
+async function openReading() {
+    await flushPendingSave();
+    window.location.assign(readHref.value);
+}
+
 const noteActions = computed(() => {
     const actions = [
         {
@@ -615,6 +623,30 @@ async function duplicateNote() {
     await refreshList();
     await openNote(payload.note.id);
     toast.success(t('notes.markdown.duplicate.done'));
+}
+
+/**
+ * Today's note, opened like a note just created. The server finds the one
+ * already written today or writes it, and the "Journal" folder with it the
+ * first time: the folders are reloaded along with the notes.
+ */
+const dailyOpening = ref(false);
+
+async function openDailyNote() {
+    if (dailyOpening.value) return;
+
+    dailyOpening.value = true;
+    const { ok, reported, payload } = await api.daily();
+    dailyOpening.value = false;
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.daily.failed'));
+
+        return;
+    }
+
+    await Promise.all([refreshFolders(), refreshList()]);
+    await openNote(payload.note.id);
 }
 
 /** Make the open note a template, or turn it back into an ordinary one. */
@@ -1325,27 +1357,16 @@ onUnmounted(() => {
                                  and links are touched all the time. The
                                  house rule already says it for cards -
                                  beyond five, we keep the sheet. -->
-                            <!-- Read, in one click and in plain sight: it
-                                 was a line hidden in the menu, and switching
-                                 to reading meant searching for it every time. -->
                             <!-- Real buttons, all 38 px (02/10/2026): three
                                  bare icons sat next to a framed selector,
-                                 each at its own height. -->
-                            <AppButton
-                                v-if="readHref"
-                                variant="secondary"
-                                data-note-read
-                                :href="readHref"
-                                :label="t('notes.markdown.read.mode')"
-                                icon-only
-                            >
-                                <BookOpen class="h-4 w-4" :stroke-width="2" />
-                            </AppButton>
-
+                                 each at its own height. Reading is the last
+                                 position of the mode selector below. -->
+                            <!-- An icon like its neighbours (08/10/2026):
+                                 the only word in a bar of icons. -->
                             <AppPageActions
                                 :actions="noteActions"
                                 :label="form.title || t('notes.markdown.untitled')"
-                                icon-only-on-phone
+                                icon-only
                             />
 
                             <!-- The fold-out stays outside, to the right of
@@ -1379,6 +1400,23 @@ onUnmounted(() => {
                                     v-on:click="viewMode = opt.value"
                                 >
                                     <component :is="opt.icon" class="w-4 h-4" :stroke-width="2" />
+                                </AppTab>
+                                <!-- Reading, the fourth way to look at the
+                                     note (08/10/2026): it sat apart, to the
+                                     left of the menu, as if it were another
+                                     kind of gesture. It leaves the editor, so
+                                     it is never the active one. -->
+                                <AppTab
+                                    v-if="readHref"
+                                    data-note-read
+                                    size="sm"
+                                    align="center"
+                                    shape-class="rounded-none"
+                                    :active="false"
+                                    :title="`${t('notes.markdown.read.mode')} (${t('notes.markdown.read.shortcut')})`"
+                                    v-on:click="openReading"
+                                >
+                                    <BookOpen class="w-4 h-4" :stroke-width="2" />
                                 </AppTab>
                             </div>
                         </div>
@@ -1500,8 +1538,11 @@ onUnmounted(() => {
                     :note-export-url-for="noteExportUrlFor"
                     :export-url-for="exportUrl"
                     :max-depth="maxDepth"
+                    :daily-enabled="'' !== dailyPath"
+                    :daily-opening="dailyOpening"
                     v-on:open-note="openNote"
                     v-on:create-note="createNote"
+                    v-on:open-daily-note="openDailyNote"
                     v-on:changed="onLibraryChanged"
                     v-on:folder-changed="openFolderId = $event"
                 />

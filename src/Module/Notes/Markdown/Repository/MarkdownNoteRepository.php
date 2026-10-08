@@ -221,6 +221,24 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * The living templates a person can read, in the order of the spaces'
+     * trees. The title is encrypted: whoever looks for one by name filters
+     * here, in PHP.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findLivingTemplatesForUser(CoreUserInterface $user): array
+    {
+        return $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
+            ->andWhere('n.template = true')
+            ->andWhere('n.deletedAt IS NULL')
+            ->orderBy('n.position', Order::Ascending->value)
+            ->addOrderBy('n.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * The live notes of a space, flat and without their text: enough to draw
      * its tree and its reading order, for someone without an account - the
      * public reading of a space.

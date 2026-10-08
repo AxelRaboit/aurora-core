@@ -32,10 +32,13 @@ final readonly class SiteDateFormatter
 {
     public const array STYLES = ['short', 'medium', 'long'];
 
+    // `full` is not one of the setting's choices: it is asked for by name,
+    // where a day is the whole title (a daily note: "jeudi 8 octobre 2026").
     private const array ICU_STYLES = [
         'short' => IntlDateFormatter::SHORT,
         'medium' => IntlDateFormatter::MEDIUM,
         'long' => IntlDateFormatter::LONG,
+        'full' => IntlDateFormatter::FULL,
     ];
 
     public function __construct(

@@ -192,18 +192,37 @@ describe("the library", () => {
     it("asks the page for a new note in the folder being looked at", async () => {
         const wrapper = render({ initialFolderId: 1 });
 
-        // The button no longer carries its label, only its icon: its
-        // tooltip names it.
-        await wrapper
-            .findAll("button")
-            .find(
-                (button) =>
-                    button.attributes("title") ===
-                    "notes.markdown.library.new_note",
-            )
-            .trigger("click");
+        // The screen's main button: its word, and the same word as its
+        // tooltip for the phone, where only the icon is left.
+        const button = wrapper.find("[data-library-new-note]");
+        expect(button.text()).toContain("notes.markdown.library.new_note");
+        expect(button.attributes("title")).toBe(
+            "notes.markdown.library.new_note",
+        );
+
+        await button.trigger("click");
 
         expect(wrapper.emitted("create-note")?.[0]).toEqual([1]);
+    });
+
+    it("asks the page for today's note when the page knows where it is", async () => {
+        expect(render().find("[data-library-daily-note]").exists()).toBe(false);
+
+        const wrapper = render({ dailyEnabled: true });
+        const button = wrapper.find("[data-library-daily-note]");
+        expect(button.attributes("title")).toBe("notes.markdown.daily.title");
+
+        await button.trigger("click");
+
+        expect(wrapper.emitted("open-daily-note")).toHaveLength(1);
+    });
+
+    it("does not ask twice while today's note is on its way", async () => {
+        const wrapper = render({ dailyEnabled: true, dailyOpening: true });
+
+        expect(
+            wrapper.find("[data-library-daily-note]").attributes("disabled"),
+        ).toBeDefined();
     });
 
     /**

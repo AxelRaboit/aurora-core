@@ -347,6 +347,9 @@ notes:
             mode: 'Mode lecture'
             mode_edit: 'Revenir à l''édition'
             contents: 'Sommaire'
+            shortcut: 'Alt + R'
+            export_markdown: 'Fichier Markdown (.md)'
+            export_pdf: 'PDF, sur fond clair'
             open: Lire la note seule
             subheading: Vue de lecture
             back: Retour à l'éditeur
@@ -438,6 +441,12 @@ notes:
             blank: 'Une note vide'
             hint: '{marker} y devient la date du jour.'
             failed: 'La note n''a pas pu être créée depuis ce modèle.'
+        # Today's note: the button, the template it looks for by that same
+        # name, and the folder of the personal space it is filed in.
+        daily:
+            title: 'Note du jour'
+            folder: 'Journal'
+            failed: 'La note du jour n''a pas pu être ouverte.'
         add:
             space: "Espace de notes"
             create_space: "Créer l'espace de notes"
@@ -516,6 +525,7 @@ notes:
             title: Graphe des liens
             open: Ouvrir le graphe
             loading: Construction du graphe…
+            all_spaces: Tous les espaces
             empty:
                 title: Aucun nœud à afficher
                 description: Créez quelques notes reliées par [[wiki-links]] pour voir le graphe.
@@ -528,6 +538,7 @@ notes:
             # documentation calls it "les notes qui pointent ici". The jargon
             # teaches nothing to someone taking notes.
             backlinks: Liens entrants
+            backlinks_tab: Liens
             mentions: Mentions
             loading: Chargement…
             empty_backlinks: Aucun lien entrant
