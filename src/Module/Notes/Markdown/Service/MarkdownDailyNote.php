@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Markdown\Service;
 
+use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Module\Configuration\Setting\Service\SiteDateFormatter;
 use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
@@ -20,6 +21,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function in_array;
 use function mb_strtolower;
 use function mb_trim;
 use function sprintf;
@@ -41,6 +43,13 @@ use function sprintf;
  * The text comes from a template named like the button ("Note du jour") when
  * the person can read one, with `{{date}}` filled in as any template's;
  * otherwise a heading with the day, ready to be written under.
+ *
+ * **Whatever the suite's language.** The folder, the template and the day's
+ * note are recognised under their name in every language of the suite: a
+ * person who switches the suite to Spanish keeps writing in their "Journal"
+ * rather than starting a "Diario" beside it, and finds the morning's note
+ * again under its French date. What is written new takes the current
+ * language.
  */
 final readonly class MarkdownDailyNote
 {
@@ -62,9 +71,10 @@ final readonly class MarkdownDailyNote
         $space = $this->spaceAccess->personalSpace($user);
         $folder = $this->journalOf($user, $space);
         $title = $this->titleFor($now);
+        $titles = array_map(fn (string $locale): string => $this->dates->date($now, $locale, 'full'), LocaleEnum::values());
 
         foreach ($this->noteRepository->findLivingInFolder($space, (int) $folder->getId()) as $note) {
-            if ($title === $note->getTitle()) {
+            if (in_array($note->getTitle(), $titles, true)) {
                 return $note;
             }
         }
@@ -102,9 +112,10 @@ final readonly class MarkdownDailyNote
     private function journalOf(CoreUserInterface $user, NoteSpaceInterface $space): NoteFolderInterface
     {
         $name = $this->translator->trans('notes.markdown.daily.folder');
+        $names = $this->namesOf('notes.markdown.daily.folder');
 
         foreach ($this->folderRepository->findLivingInSpace($space) as $folder) {
-            if (null === $folder->getParent() && $this->sameName($name, $folder->getName())) {
+            if (null === $folder->getParent() && $this->knownName($names, $folder->getName())) {
                 return $folder;
             }
         }
@@ -121,11 +132,11 @@ final readonly class MarkdownDailyNote
      */
     private function templateFor(CoreUserInterface $user): ?MarkdownNoteInterface
     {
-        $name = $this->translator->trans('notes.markdown.daily.title');
+        $names = $this->namesOf('notes.markdown.daily.title');
         $shared = null;
 
         foreach ($this->noteRepository->findLivingTemplatesForUser($user) as $template) {
-            if (!$this->sameName($name, $template->getTitle())) {
+            if (!$this->knownName($names, $template->getTitle())) {
                 continue;
             }
 
@@ -139,9 +150,26 @@ final readonly class MarkdownDailyNote
         return $shared;
     }
 
-    /** Typed by somebody: neither the case nor a stray space should hide it. */
-    private function sameName(string $expected, ?string $actual): bool
+    /**
+     * A name in every language of the suite, lowercased for the comparison.
+     *
+     * @return list<string>
+     */
+    private function namesOf(string $key): array
     {
-        return mb_strtolower($expected) === mb_strtolower(mb_trim((string) $actual));
+        return array_values(array_unique(array_map(
+            fn (string $locale): string => mb_strtolower($this->translator->trans($key, [], null, $locale)),
+            LocaleEnum::values(),
+        )));
+    }
+
+    /**
+     * Typed by somebody: neither the case nor a stray space should hide it.
+     *
+     * @param list<string> $names
+     */
+    private function knownName(array $names, ?string $actual): bool
+    {
+        return in_array(mb_strtolower(mb_trim((string) $actual)), $names, true);
     }
 }

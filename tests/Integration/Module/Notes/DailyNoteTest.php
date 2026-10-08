@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
+use Aurora\Module\Notes\Markdown\Service\MarkdownDailyNote;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -17,6 +18,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Translation\LocaleSwitcher;
 
 /**
  * Today's note: one per day, in a "Journal" folder of the personal space,
@@ -114,6 +116,36 @@ final class DailyNoteTest extends IntegrationTestCase
 
         self::assertSame($first, $second);
         self::assertCount(1, $this->journalsOf($this->owner));
+    }
+
+    /**
+     * The suite switched to Spanish the same day: the morning's note is found
+     * again under its French date, in the same "Journal", and no "Diario"
+     * appears beside it.
+     */
+    public function testAnotherLanguageOpensTheSameJournalAndNote(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+        $morning = $this->openDaily();
+
+        $container = static::getContainer();
+        $owner = $this->entityManager->find(User::class, $this->owner->getId());
+        self::assertInstanceOf(User::class, $owner);
+        $daily = $container->get(MarkdownDailyNote::class);
+
+        $afternoon = $container->get(LocaleSwitcher::class)->runWithLocale('es', static function () use ($daily, $owner): int {
+            self::assertStringContainsString('de', $daily->titleFor(new DateTimeImmutable()), 'the Spanish date differs from the French one');
+
+            return (int) $daily->open($owner)->getId();
+        });
+
+        self::assertSame($morning, $afternoon);
+        self::assertCount(1, $this->journalsOf($this->owner));
+        $diaries = array_filter(
+            $container->get(NoteFolderRepository::class)->findLivingInSpace($this->personalSpaceOf($this->owner)),
+            static fn (NoteFolderInterface $folder): bool => 'Diario' === $folder->getName(),
+        );
+        self::assertSame([], $diaries);
     }
 
     /** A template named like the button gives the note its text, `{{date}}` filled in. */

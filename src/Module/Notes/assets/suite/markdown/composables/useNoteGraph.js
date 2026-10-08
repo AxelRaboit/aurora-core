@@ -60,6 +60,9 @@ export function useNoteGraph({
     let offsetY = 0;
     let dragged = false;
     let resizeObserver = null;
+    // Follows the modal's size once the graph is drawn: `resizeObserver`
+    // only waits for the first layout, then lets go.
+    let sizeObserver = null;
 
     function truncate(text, max) {
         return text.length > max ? `${text.slice(0, max)}…` : text;
@@ -425,7 +428,36 @@ export function useNoteGraph({
             allEdges = (payload.edges ?? []).slice();
 
             applySpaceFilter();
+            followSize();
         });
+    }
+
+    /**
+     * Redraws when the window, and the modal with it, changes size. The
+     * canvas kept its first measure: the drawing stretched, and the clicks
+     * landed beside the notes. The positions are scaled to the new size,
+     * so the graph keeps its shape instead of being laid out again.
+     */
+    function followSize() {
+        const parent = canvasRef.value?.parentElement;
+        if (!parent || "undefined" === typeof ResizeObserver) return;
+
+        sizeObserver?.disconnect();
+        sizeObserver = new ResizeObserver(() => {
+            const before = canvasCssSize();
+            if (!resizeCanvas()) return;
+            const after = canvasCssSize();
+            if (!before.width || !before.height) return;
+
+            const scaleX = after.width / before.width;
+            const scaleY = after.height / before.height;
+            allNodes.forEach((node) => {
+                node.x *= scaleX;
+                node.y *= scaleY;
+            });
+            draw();
+        });
+        sizeObserver.observe(parent);
     }
 
     function close() {
@@ -437,6 +469,8 @@ export function useNoteGraph({
             resizeObserver.disconnect();
             resizeObserver = null;
         }
+        sizeObserver?.disconnect();
+        sizeObserver = null;
         allNodes = [];
         allEdges = [];
         nodes = [];
