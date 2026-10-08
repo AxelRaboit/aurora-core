@@ -480,6 +480,13 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
      * demo to the next. Each version is built by removing from the current
      * text what was added to it since, so the three stay consistent with it
      * when it is edited.
+     *
+     * **The middle one was written by two people**, so the history shows what
+     * a co-editing session leaves behind: one version every few minutes, named
+     * after everybody who was typing rather than after the single browser that
+     * sent the save. A state nobody ever sees is a state nobody knows the look
+     * of, and this one only happens when two people are on the same note at
+     * the same moment - which no amount of clicking around a demo produces.
      */
     private function history(EntityManagerInterface $manager, User $owner, MarkdownNote $note): void
     {
@@ -508,9 +515,18 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         // the site's time zone. Without a time zone, "21:40" showed as 23:40.
         $paris = new DateTimeZone('Europe/Paris');
 
-        foreach ([[$twelveDays, '-12 days 10:30'], [$fiveDays, '-5 days 18:05'], [$yesterday, '-1 day 21:40']] as [$content, $when]) {
+        $marie = $this->userRepository->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Suite->value]);
+        $together = $marie instanceof User
+            ? [['id' => (int) $owner->getId(), 'name' => $owner->getName()], ['id' => (int) $marie->getId(), 'name' => $marie->getName()]]
+            : null;
+
+        foreach ([
+            [$twelveDays, '-12 days 10:30', null],
+            [$fiveDays, '-5 days 18:05', $together],
+            [$yesterday, '-1 day 21:40', null],
+        ] as [$content, $when, $writtenBy]) {
             $note->setContent($content);
-            $revision = new MarkdownNoteRevision($note, $owner);
+            $revision = new MarkdownNoteRevision($note, $owner, null, $writtenBy);
             $createdAt->setValue($revision, new DateTimeImmutable($when, $paris)->setTimezone(new DateTimeZone('UTC')));
             $manager->persist($revision);
         }

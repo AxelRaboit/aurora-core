@@ -66,6 +66,36 @@ final readonly class NoteLiveHub
     private const string TOPIC_TEMPLATE = 'https://aurora.invalid/notes/markdown/%d';
 
     /**
+     * Where the **browsers** publish, and the server never does.
+     *
+     * **Two topics, split by who may write to them.** Showing somebody else's
+     * cursor means a browser has to publish - a cursor is self-reported, there
+     * is nothing a server could know about it. But a browser that could
+     * publish on the topic above could also forge a `changed` event with a
+     * bogus version, or a presence list naming people who never opened the
+     * note. Neither destroys anything, and both are lies the page would
+     * believe.
+     *
+     * So the publish grant handed to a browser names *this* topic and nothing
+     * else. What a client can forge there is its own cursor, which is
+     * self-reported by nature - the worst it can do is point at a place it is
+     * not, in a note it already writes.
+     */
+    private const string AWARENESS_TOPIC_TEMPLATE = 'https://aurora.invalid/notes/markdown/%d/awareness';
+
+    /**
+     * How long a browser's right to publish its cursor lasts.
+     *
+     * Short on purpose, and shorter than the subscription: this token lives in
+     * the page's JavaScript rather than in an http-only cookie, because a
+     * publish is a `fetch` and not an `EventSource`. Fifteen minutes of the
+     * right to say where one's own cursor is, on one note, is a small thing to
+     * lose to a cross-site script - and the beat renews it long before it
+     * runs out.
+     */
+    private const int PUBLISH_TOKEN_LIFETIME = 900;
+
+    /**
      * How long a browser may keep listening before the page has to be
      * reopened. An hour, which is the component's own default.
      */
@@ -94,6 +124,50 @@ final readonly class NoteLiveHub
         return sprintf(self::TOPIC_TEMPLATE, (int) $note->getId());
     }
 
+    public function awarenessTopicFor(MarkdownNoteInterface $note): string
+    {
+        return sprintf(self::AWARENESS_TOPIC_TEMPLATE, (int) $note->getId());
+    }
+
+    /**
+     * What a browser needs to publish its own cursor, or null without a hub.
+     *
+     * The address to POST to, the topic to name, and a token that may publish
+     * **on that topic only**. Handed to the page rather than set as a cookie,
+     * because publishing is a `fetch` with an `Authorization` header and a
+     * cookie would not reach it.
+     *
+     * @return array{publishUrl: string, topic: string, token: string}|null
+     */
+    public function awarenessGrant(MarkdownNoteInterface $note): ?array
+    {
+        if (!$this->isEnabled()) {
+            return null;
+        }
+
+        $topic = $this->awarenessTopicFor($note);
+
+        try {
+            $token = $this->tokens->create(
+                [new Grant([Grant::ACTION_PUBLISH], [$topic])],
+                ['exp' => new DateTimeImmutable('+'.self::PUBLISH_TOKEN_LIFETIME.' seconds')],
+            );
+        } catch (Throwable $throwable) {
+            $this->logger->warning('Could not mint a Mercure publish token for a note.', [
+                'note' => $note->getId(),
+                'exception' => $throwable,
+            ]);
+
+            return null;
+        }
+
+        return [
+            'publishUrl' => $this->hub->getPublicUrl(),
+            'topic' => $topic,
+            'token' => $token,
+        ];
+    }
+
     /**
      * Where a page connects to hear this note, or null when no hub is running.
      *
@@ -113,7 +187,15 @@ final readonly class NoteLiveHub
         // understands.
         $parameter = ProtocolVersion::Legacy === $this->hub->getProtocolVersion() ? 'topic' : 'match';
 
-        return $this->hub->getPublicUrl().'?'.$parameter.'='.rawurlencode($this->topicFor($note));
+        // Both topics on one connection: what the server pushes, and what the
+        // other browsers publish. A browser holds six connections per host,
+        // and opening a second one per note would spend them on a note.
+        $query = implode('&', array_map(
+            static fn (string $topic): string => $parameter.'='.rawurlencode($topic),
+            [$this->topicFor($note), $this->awarenessTopicFor($note)],
+        ));
+
+        return $this->hub->getPublicUrl().'?'.$query;
     }
 
     /**
@@ -139,7 +221,7 @@ final readonly class NoteLiveHub
             $expiresAt = new DateTimeImmutable('+'.self::COOKIE_LIFETIME.' seconds');
 
             $token = $this->tokens->create(
-                [new Grant([Grant::ACTION_SUBSCRIBE], [$this->topicFor($note)])],
+                [new Grant([Grant::ACTION_SUBSCRIBE], [$this->topicFor($note), $this->awarenessTopicFor($note)])],
                 ['exp' => $expiresAt],
             );
 

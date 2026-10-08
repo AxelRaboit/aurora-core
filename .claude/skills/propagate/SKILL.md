@@ -6,10 +6,43 @@ scope: core-only
 
 # propagate
 
-Get a pushed aurora-core commit into the projects that consume it.
+Get a pushed aurora-core commit into the projects that consume it, and onto
+the server that serves them.
 
 `ship` stops at the push, on purpose: it says the propagation is owed and
 leaves the timing to the user. This skill starts exactly there.
+
+## First: `make release` does all of it
+
+Since 08/10/2026 the whole chain is one command in aurora-core -
+`tools/release/release.sh`, wired as `make release`. It publishes aurora-core,
+waits for the tag the workflow posts, bumps aurora-client, gates on `make ft`
+there, publishes aurora-client, deploys the server, and checks that `VERSION`
+moved and the application still boots.
+
+```bash
+make release DRY=1          # says what it would do, writes nothing
+make release                # the chain, production dump included
+make release NO_BACKUP=1    # skips the dump - a deliberate word, not a default
+make release STOP_AT=core   # publishes aurora-core and stops
+```
+
+**Run `DRY=1` first, every time.** The refusals are the point: it stops with a
+reason on a dirty tree, unpushed commits, a CI that is not green, a changelog
+with no closed section, a tag that already exists, a lock bump that touched
+more than the lock, a red canary, a tag that never appears, a `VERSION` that
+does not move, or an application that no longer boots. Nothing after a refusal
+is attempted.
+
+**The steps below are still the reference.** They are what the script does, and
+what you need to know how to redo by hand when it stops somewhere. Read them
+before running it the first time; after that, the script is the way.
+
+**Permissions.** Publishing needs `git merge` and a push to `master`. A session
+whose permission layer refuses those cannot release, and routing the same
+command through the script to get past the refusal is not the answer - say
+which gesture is blocked and let the user decide. Allow rules added mid-session
+are not picked up by the running session.
 
 ## The one thing that can hurt
 
@@ -140,6 +173,30 @@ The list lives in `docs/aurora-core/dev/propagating_updates.md`. Today it holds
 aurora-client alone; anything added there gets steps 3 and 4, in the same
 order, after the canary is green.
 
+## Step 6 - The server, which is the step everyone forgets
+
+**A bumped lock is not a deployed application.** On 08/10/2026 the production
+server was serving **v3.8.0** while v4.0.0 had been published that afternoon
+and aurora-client's lock already pinned it: the bump had been pushed and never
+deployed. A deploy at that point was not applying the two migrations of the
+version in hand but **four**, and crossing a major on the way.
+
+Nothing about that was visible without reading the server. So:
+
+```bash
+ssh vps 'cat /var/www/aurora-client/VERSION'   # before, and again after
+```
+
+**And aurora-client has a release of its own**, whose number is computed from
+its commit messages - it has no changelog. The server only ever deploys tags of
+*that* repository, so publishing aurora-core is not enough: the consumer has to
+be published too, which is a fast-forward push of its `develop` onto `master`.
+That is the hop that gets skipped, and it is what the lag above was.
+
+Then, on the server, `make deploy-prod` - it requires an exact tag on `HEAD`
+and runs the migrations itself. A deploy that leaves `VERSION` unchanged did
+not happen; say so rather than reporting success.
+
 ## Boundaries
 
 - **Don't commit in aurora-core.** `ship` owns that. If the core is not
@@ -151,8 +208,13 @@ order, after the canary is green.
   weekend of 2026-08-09 propagated eleven times, and the client caught the
   featured-media rename, a theme ignoring the grid, `setBlocks()` in fixtures
   and a non-extensible `DocumentCategory` - none of which failed in core.
-- **Don't touch production databases.** Say what needs backing up and let the
-  user do it.
+- **Back up production before migrations run, and say what you backed up.**
+  `make release` dumps by default and `--no-backup` takes a deliberate word,
+  because migrations running with nothing to go back to is the one combination
+  that loses data. If the user waives the dump, that is their call - record
+  that they waived it rather than staying silent about it.
+- **Never restore, drop or rewrite a production database on your own.** A dump
+  is additive and reversible; the rest is the user's decision.
 
 Voir aussi : `ship` (ce qui précède), `process_propagate_aurora_updates.md`
 et `docs/aurora-core/dev/propagating_updates.md` (la procédure de référence,

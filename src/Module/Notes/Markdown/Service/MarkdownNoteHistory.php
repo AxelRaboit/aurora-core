@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Service;
 
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Notes\Live\Service\NotePresence;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRevisionRepository;
@@ -26,6 +27,13 @@ use Doctrine\ORM\EntityManagerInterface;
  *
  * Restoring a version first keeps the current state, always, interval or
  * not: going back must lose nothing.
+ *
+ * **During a co-editing session the interval is what makes it work.** One
+ * elected client sends the write-back for the whole room, every few seconds,
+ * so without the interval a session of an hour would be a thousand versions.
+ * With it, a session leaves one version every `RevisionIntervalMinutes` - the
+ * timed snapshot such a session needs, and it needed no machinery of its own.
+ * What it did need is the right name on it, which is `handsOn()` below.
  */
 final readonly class MarkdownNoteHistory
 {
@@ -33,6 +41,7 @@ final readonly class MarkdownNoteHistory
         private EntityManagerInterface $entityManager,
         private MarkdownNoteRevisionRepository $markdownNoteRevisionRepository,
         private SettingRepository $settingRepository,
+        private NotePresence $notePresence,
     ) {}
 
     /**
@@ -58,7 +67,7 @@ final readonly class MarkdownNoteHistory
     /** Keeps the note's current state, no matter what. */
     public function keep(MarkdownNoteInterface $note, ?CoreUserInterface $author, ?MarkdownNoteShareLinkInterface $viaLink = null): MarkdownNoteRevision
     {
-        $revision = new MarkdownNoteRevision($note, $author, $viaLink);
+        $revision = new MarkdownNoteRevision($note, $author, $viaLink, $this->handsOn($note, $author));
         $this->entityManager->persist($revision);
         $this->entityManager->flush();
 
@@ -68,6 +77,42 @@ final readonly class MarkdownNoteHistory
         }
 
         return $revision;
+    }
+
+    /**
+     * Who was writing the note at this moment, the saver included.
+     *
+     * **Read from the server's own presence, never from the request.** Who
+     * else was in the room is exactly the kind of claim a browser must not be
+     * allowed to make about other people: a page could otherwise put a
+     * colleague's name on a version they never saw. Presence is written by the
+     * beat every page sends, so this holds whether or not a realtime hub is
+     * running.
+     *
+     * Readers are left out - only pages reported as being in the editor. And
+     * the saver is added explicitly rather than looked up, because their own
+     * beat may have gone stale in the seconds before the save, and a version
+     * missing the one name we are certain of would be the worst of both.
+     *
+     * @return list<array{id: int, name: ?string}>
+     */
+    private function handsOn(MarkdownNoteInterface $note, ?CoreUserInterface $author): array
+    {
+        $hands = [];
+
+        if ($author instanceof CoreUserInterface) {
+            $hands[(int) $author->getId()] = ['id' => (int) $author->getId(), 'name' => $author->getName()];
+        }
+
+        foreach ($this->notePresence->on($note) as $person) {
+            if (!$person['editing']) {
+                continue;
+            }
+
+            $hands[$person['userId']] = ['id' => $person['userId'], 'name' => $person['name']];
+        }
+
+        return array_values($hands);
     }
 
     /** Puts back the title and text of a version, after keeping the current state. */

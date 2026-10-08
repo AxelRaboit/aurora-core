@@ -11,6 +11,9 @@ interface NoteSpaceInputInterface
 {
     public function getName(): ?string;
 
+    /** Null when the screen did not say: the setting is then left alone. */
+    public function isCoediting(): ?bool;
+
     public function getColor(): ?string;
 
     /** {@see NoteSpaceAccessEnum}, en clair. */

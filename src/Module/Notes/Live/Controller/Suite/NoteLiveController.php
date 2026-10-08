@@ -83,9 +83,18 @@ final class NoteLiveController extends AbstractController
             // room: the beat's own answer already excludes them, but a push
             // carries everybody by design.
             'selfUserId' => $user->getId(),
+            // Carried by the cursor this page publishes, so the others can
+            // label it. The room already names everybody; this is the same
+            // name, said by the one page that is sure of it.
+            'selfName' => $user->getName(),
             // Null when no hub is running, which is what tells the page to
             // keep asking instead of opening a connection to nothing.
             'streamUrl' => $this->hub->subscribeUrl($note),
+            // What the page needs to say where its own cursor is: an address,
+            // a topic, and a token that may publish on that topic alone. Null
+            // without a hub, and the page then shows no cursors rather than
+            // half of them.
+            'awareness' => $this->hub->awarenessGrant($note),
             'beatSeconds' => NotePresence::BEAT_SECONDS,
             // So a page that just connected notices it is behind without
             // waiting for somebody else's save to be pushed.

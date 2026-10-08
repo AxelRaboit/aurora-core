@@ -263,6 +263,10 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
         $space->setName($input->getName());
         $space->setAccess(NoteSpaceAccessEnum::tryFrom((string) $input->getAccess()) ?? $space->getAccess());
         $space->setDefaultRole(NoteSpaceRoleEnum::tryFrom((string) $input->getDefaultRole()) ?? $space->getDefaultRole());
+
+        if (null !== $input->isCoediting()) {
+            $space->setCoediting($input->isCoediting());
+        }
     }
 
     protected function auditCreated(NoteSpaceInterface $space): void

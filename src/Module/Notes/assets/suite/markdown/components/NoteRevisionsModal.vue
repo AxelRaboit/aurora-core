@@ -38,12 +38,25 @@ const { t } = useI18n();
 /**
  * Who wrote a version.
  *
- * An account's name when there is one. A version written through a share link
- * says so rather than showing nothing: the server only names the link to
- * somebody who may see it - its recipient's address belongs to whoever
+ * **Several names first, when there were several.** A version kept during a
+ * co-editing session is saved by one elected browser on behalf of the room, so
+ * its `authorName` is whoever happened to be elected - a name that is true
+ * about the save and false about the writing. The server fills `writtenBy`
+ * only in that case, which is why it is read before anything else.
+ *
+ * Otherwise an account's name when there is one. A version written through a
+ * share link says so rather than showing nothing: the server only names the
+ * link to somebody who may see it - its recipient's address belongs to whoever
  * created the link, not to everybody the note is open to.
  */
 function authorOf(revision) {
+    const hands = revision.writtenBy ?? [];
+    if (1 < hands.length) {
+        return t("notes.markdown.revisions.several_hands", {
+            names: hands.join(", "),
+        });
+    }
+
     if (revision.authorName) return revision.authorName;
 
     return revision.viaShareLink

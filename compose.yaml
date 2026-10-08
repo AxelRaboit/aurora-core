@@ -11,9 +11,17 @@ services:
     # is down.
     #
     # Protocol 1.0, like the application: the trusted issuer is the Symfony
-    # server, and `resource_identifier` pins the tokens' audience so PHP can
-    # publish over the loopback while the browser connects through the public
-    # host.
+    # server, and `resource_identifier` pins the tokens' audience.
+    #
+    # **It has to be the loopback address, and that is not a style choice.**
+    # `symfony server:start` exposes the compose services to PHP itself, and
+    # what it exposes for this one is `http://127.0.0.1:3000/...` - for both
+    # `MERCURE_URL` and `MERCURE_PUBLIC_URL`, overriding `.env.dev`. The
+    # audience of every token therefore says `127.0.0.1`, and a hub pinned to
+    # `localhost` answers 401 to all of them: the chat silently falls back to
+    # polling and co-editing never starts. Measured with two browsers against
+    # this file on 08/10/2026, after an afternoon of believing the tokens were
+    # wrong.
     mercure:
         image: dunglas/mercure
         restart: unless-stopped
@@ -23,7 +31,7 @@ services:
             MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
             MERCURE_TRUSTED_ISSUERS: 'http://localhost:8000'
             MERCURE_EXTRA_DIRECTIVES: |
-                resource_identifier http://localhost:3000/.well-known/mercure
+                resource_identifier http://127.0.0.1:3000/.well-known/mercure
                 cors_origins http://localhost:8000 https://localhost:8000 http://127.0.0.1:8000 https://127.0.0.1:8000
         ports:
             - "3000:80"

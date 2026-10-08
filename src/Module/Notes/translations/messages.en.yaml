@@ -210,6 +210,10 @@ notes:
                 expires: 'This link expires on %date%.'
                 read_only: You can read this note, not edit it.
         spaces:
+            coediting:
+                title: Writing together
+                enable: Allow the notes of this space to be co-edited
+                hint: While a note is open, its text travels between the browsers of the people writing it, for the length of the session. Without a real-time hub the setting changes nothing.
             import_here: "Import into this note space"
             export: "Export this note space"
             publication:
@@ -462,6 +466,7 @@ notes:
             empty_hint: 'A version is kept when you edit the note, at most one every few minutes (settings, Notes tab).'
             no_author: 'Unknown author'
             via_share_link: Through a share link
+            several_hands: "Written together: {names}"
             since: "Since this version, lines added: {added} · removed: {removed}"
             show_whole: 'Show the whole version'
             show_changes: 'Show the changes'

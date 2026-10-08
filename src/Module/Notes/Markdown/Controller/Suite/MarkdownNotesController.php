@@ -588,6 +588,14 @@ final class MarkdownNotesController extends AbstractController
                 // leaving a version with no author at all, which reads like a
                 // gap in the record.
                 'viaShareLink' => $revision->wasWrittenThroughLink(),
+                // The names of everybody who was writing, when several were.
+                // Open to anybody the history is open to, like `authorName`
+                // and for the same reason: these are colleagues of the note's
+                // space, not an outside address somebody was mailed at.
+                'writtenBy' => array_values(array_filter(array_map(
+                    static fn (array $hand): ?string => $hand['name'],
+                    $revision->getWrittenBy(),
+                ))),
                 'title' => $revision->getTitle(),
             ],
             $this->markdownNoteRevisionRepository->findForNote($note),

@@ -21,6 +21,7 @@ import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppCheckbox from "@shared/components/form/toggle/AppCheckbox.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { useClipboard } from "@/shared/composables/useClipboard.js";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -49,6 +50,15 @@ const name = ref("");
 const color = ref(null);
 const access = ref("private");
 const defaultRole = ref("reader");
+
+/**
+ * Whether the notes of this space may be written by several people at once.
+ *
+ * Not offered on a personal space: a private notebook has nobody to
+ * co-edit with, and it does not change the promise it made about who can
+ * read it.
+ */
+const coediting = ref(false);
 
 const canPublish = ref(false);
 const slug = ref("");
@@ -95,6 +105,7 @@ watch(
         color.value = space.value.color ?? null;
         access.value = space.value.access;
         defaultRole.value = space.value.defaultRole;
+        coediting.value = Boolean(space.value.coediting);
     },
     { immediate: true },
 );
@@ -207,6 +218,7 @@ async function save() {
         color: color.value,
         access: access.value,
         defaultRole: defaultRole.value,
+        coediting: coediting.value,
     });
     saving.value = false;
 
@@ -293,6 +305,21 @@ async function removeSpace() {
             </template>
 
             <AppColorPicker v-model="color" class="mt-4" :label="t('notes.markdown.folders.color')" />
+
+            <!-- What the space allows beyond who gets in. Not on a personal
+                 one: there is nobody to co-edit with, and the notebook keeps
+                 the promise it made. -->
+            <section v-if="!isPersonal" class="mt-6 border-t border-line pt-4" data-space-coediting>
+                <h3 class="text-sm font-semibold text-primary">{{ t('notes.markdown.spaces.coediting.title') }}</h3>
+                <AppCheckbox
+                    v-model="coediting"
+                    class="mt-3"
+                    data-space-coediting-toggle
+                    :label="t('notes.markdown.spaces.coediting.enable')"
+                    :hint="t('notes.markdown.spaces.coediting.hint')"
+                    :disabled="saving"
+                />
+            </section>
 
             <!-- The members: each with their role, which is changed in place. -->
             <section v-if="takesMembers" class="mt-6 border-t border-line pt-4" data-space-members>
@@ -397,6 +424,15 @@ async function removeSpace() {
                 </div>
 
                 <div class="mt-3 flex flex-wrap gap-2">
+                    <!-- `space?.` and not `space.`, inside this slot only.
+                         The dialog's own guard keeps the whole block out
+                         while the space is still loading, but a slot body is
+                         run by the button, not here: saving clears the open
+                         space and the button renders its label once more on
+                         the way out, with nothing left to read. It threw a
+                         TypeError the error boundary turned into a failed
+                         page, and the save went through all the same, which
+                         is why nobody had reported it. -->
                     <AppButton
                         variant="secondary"
                         size="md"
@@ -405,7 +441,7 @@ async function removeSpace() {
                         v-on:click="applyPublication(true)"
                     >
                         <Globe class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ space.published ? t('notes.markdown.spaces.publication.update') : t('notes.markdown.spaces.publication.publish') }}
+                        {{ space?.published ? t('notes.markdown.spaces.publication.update') : t('notes.markdown.spaces.publication.publish') }}
                     </AppButton>
                     <AppButton
                         v-if="space.published"

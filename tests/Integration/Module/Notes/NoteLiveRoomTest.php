@@ -6,6 +6,7 @@ namespace Aurora\Tests\Integration\Module\Notes;
 
 use Aurora\Module\Notes\Live\Service\NotePresence;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
@@ -33,6 +34,11 @@ use function sprintf;
  * room works without a hub: the page is handed no address to connect to -
  * which is what tells it to keep asking - and every answer still carries the
  * room and the version.
+ *
+ * **The history lives here too**, because the room is what decides the names
+ * on a version: a version kept during a co-editing session is saved by one
+ * elected browser for everybody, and who was actually writing is read from
+ * this presence rather than taken from the request.
  */
 final class NoteLiveRoomTest extends IntegrationTestCase
 {
@@ -103,6 +109,9 @@ final class NoteLiveRoomTest extends IntegrationTestCase
 
         self::assertResponseIsSuccessful();
         self::assertNull($body['streamUrl']);
+        // And no right to publish a cursor either: the page shows no cursors
+        // rather than half of them.
+        self::assertNull($body['awareness']);
         self::assertSame(NotePresence::BEAT_SECONDS, $body['beatSeconds']);
         self::assertSame($note->getVersion(), $body['version']);
         self::assertSame($this->owner->getId(), $body['selfUserId']);
@@ -182,6 +191,111 @@ final class NoteLiveRoomTest extends IntegrationTestCase
 
         // Asked from the first person's point of view, the room is the other.
         self::assertSame([$teammate->getId()], array_column($presence->on($note, $owner), 'userId'));
+    }
+
+    /**
+     * A version kept while two people write names both of them.
+     *
+     * **The defect this closes put the wrong name on the record.** During a
+     * co-editing session one elected browser sends the write-back for the
+     * whole room, so `author` is whoever happened to be elected - possibly
+     * somebody who typed none of the text being kept. The room is read on the
+     * server, from the same presence these tests exercise above, so a browser
+     * never gets to claim who else was writing.
+     */
+    public function testAVersionKeptWhileTwoPeopleWriteNamesBothOfThem(): void
+    {
+        $note = $this->sharedNote();
+        $this->presence()->beat($note, $this->managedUser($this->owner), true);
+        $this->presence()->beat($note, $this->managedUser($this->teammate), true);
+
+        $revision = $this->history()->keep($note, $this->managedUser($this->owner));
+
+        self::assertTrue($revision->wasWrittenBySeveralHands());
+        self::assertSame(
+            [$this->owner->getId(), $this->teammate->getId()],
+            array_column($revision->getWrittenBy(), 'id'),
+        );
+        self::assertSame(['proprietaire', 'collegue'], array_column($revision->getWrittenBy(), 'name'));
+    }
+
+    /**
+     * Somebody reading the note did not write it.
+     *
+     * The room holds readers too - that is the point of saying "Marie is
+     * reading" - and putting their name on a version would be a worse record
+     * than putting none.
+     */
+    public function testSomebodyOnlyReadingIsNotNamedAsAWriter(): void
+    {
+        $note = $this->sharedNote();
+        $this->presence()->beat($note, $this->managedUser($this->owner), true);
+        $this->presence()->beat($note, $this->managedUser($this->teammate), false);
+
+        $revision = $this->history()->keep($note, $this->managedUser($this->owner));
+
+        self::assertFalse($revision->wasWrittenBySeveralHands());
+        self::assertSame([], $revision->getWrittenBy());
+    }
+
+    /**
+     * One person writing alone leaves the column empty.
+     *
+     * Which is almost every version there will ever be: `author` already says
+     * who saved it, and repeating that name in a second place would make the
+     * record longer without making it truer.
+     */
+    public function testAVersionWrittenAloneNamesNobodyBesidesItsAuthor(): void
+    {
+        $note = $this->sharedNote();
+        $this->presence()->beat($note, $this->managedUser($this->owner), true);
+
+        $revision = $this->history()->keep($note, $this->managedUser($this->owner));
+
+        self::assertFalse($revision->wasWrittenBySeveralHands());
+        self::assertSame([], $revision->getWrittenBy());
+        self::assertSame($this->owner->getId(), $revision->getAuthor()?->getId());
+    }
+
+    /** The history screen is handed the names, not only the saver's. */
+    public function testTheHistoryRouteCarriesEverybodyWhoWrote(): void
+    {
+        $note = $this->sharedNote();
+        $this->presence()->beat($note, $this->managedUser($this->owner), true);
+        $this->presence()->beat($note, $this->managedUser($this->teammate), true);
+        $this->history()->keep($note, $this->managedUser($this->owner));
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => $note->getId()]));
+
+        self::assertResponseIsSuccessful();
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true) ?? [];
+
+        self::assertSame(['proprietaire', 'collegue'], $body['revisions'][0]['writtenBy']);
+    }
+
+    private function presence(): NotePresence
+    {
+        $presence = static::getContainer()->get(NotePresence::class);
+        self::assertInstanceOf(NotePresence::class, $presence);
+
+        return $presence;
+    }
+
+    private function history(): MarkdownNoteHistory
+    {
+        $history = static::getContainer()->get(MarkdownNoteHistory::class);
+        self::assertInstanceOf(MarkdownNoteHistory::class, $history);
+
+        return $history;
+    }
+
+    private function managedUser(User $user): User
+    {
+        $managed = $this->entityManager->find(User::class, $user->getId());
+        self::assertInstanceOf(User::class, $managed);
+
+        return $managed;
     }
 
     /**

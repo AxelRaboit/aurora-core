@@ -29,11 +29,21 @@ class NoteSpaceInput implements NoteSpaceInputInterface
         public readonly ?string $defaultRole = null,
         #[Assert\PositiveOrZero]
         public readonly ?int $position = null,
+        /**
+         * Null when the screen did not say, so a save that predates the
+         * setting leaves it alone rather than switching it off.
+         */
+        public readonly ?bool $coediting = null,
     ) {}
 
     public function getName(): ?string
     {
         return $this->name;
+    }
+
+    public function isCoediting(): ?bool
+    {
+        return $this->coediting;
     }
 
     public function getColor(): ?string

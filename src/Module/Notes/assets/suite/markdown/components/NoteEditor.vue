@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useNoteEditorTextarea } from "@notes/suite/markdown/composables/useNoteEditorTextarea.js";
 import { useNoteImageUpload } from "@notes/suite/markdown/composables/useNoteImageUpload.js";
 import AppFloatingMenu from "@shared/components/overlay/AppFloatingMenu.vue";
+import NoteRemoteCarets from "@notes/suite/markdown/components/NoteRemoteCarets.vue";
 import AppSearchInput from "@shared/components/form/input/AppSearchInput.vue";
 import { FileText } from "lucide-vue-next";
 
@@ -26,9 +27,15 @@ const props = defineProps({
     imageMaxEdge: { type: Number, default: 2048 },
     /** WebP encoding quality (0-1). */
     imageQuality: { type: Number, default: 0.85 },
+    /**
+     * The other people's carets, as the live room reports them:
+     * `[{userId, name, index}]`. Empty without a hub, and then nothing is
+     * drawn.
+     */
+    cursors: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "caret"]);
 
 const { t } = useI18n();
 
@@ -61,6 +68,18 @@ const {
     untitledLabel: t("notes.markdown.untitled"),
 });
 
+/**
+ * Says where this reader's caret is, on every event that could have moved it.
+ *
+ * `selectionchange` would be the right event and it is not reliable on a
+ * textarea across engines, so the three that actually move a caret are
+ * listened to instead. Throttling belongs to the parent: it is the one that
+ * knows this goes on a network.
+ */
+function reportCaret() {
+    emit("caret", textareaRef.value?.selectionStart ?? null);
+}
+
 // Image upload (drag-drop + Ctrl+V). Only active when the parent
 // provides an upload hook - the editor degrades gracefully without it.
 if (props.uploadImage) {
@@ -86,6 +105,18 @@ if (props.uploadImage) {
             v-on:input="onInput"
             v-on:keydown="onKeydown"
             v-on:blur="onBlur"
+            v-on:keyup="reportCaret"
+            v-on:click="reportCaret"
+            v-on:select="reportCaret"
+        />
+
+        <!-- Over the field, never in it: a textarea cannot show a second
+             caret, so the others' are drawn beside it. -->
+        <NoteRemoteCarets
+            v-if="cursors.length"
+            :textarea="textareaRef"
+            :cursors="cursors"
+            :text="modelValue"
         />
 
         <!-- Slash command palette ('/' at line start) -->

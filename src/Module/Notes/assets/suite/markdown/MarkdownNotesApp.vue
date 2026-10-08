@@ -29,7 +29,7 @@ import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
-import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
 import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
@@ -37,6 +37,8 @@ import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFoldable } from "@notes/suite/markdown/composables/useFoldable.js";
 import { useNoteLive } from "@notes/suite/markdown/composables/useNoteLive.js";
+import { useNoteCoedit } from "@notes/suite/markdown/composables/useNoteCoedit.js";
+import { canCoedit } from "@notes/suite/markdown/composables/noteCoeditProtocol.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
 
 const { formatDateTime } = useDateFormat();
@@ -132,6 +134,15 @@ const props = defineProps({
 
 const { t } = useI18n();
 
+/**
+ * Whether a co-editing session is running on the open note.
+ *
+ * Declared here rather than returned by the session, because the editor's
+ * autosave is suspended by it and the editor is built first: a session that
+ * created its own flag could not be read by the thing that has to obey it.
+ */
+const coeditLive = ref(false);
+
 const {
     isMobile,
     api,
@@ -171,9 +182,10 @@ const {
     loadedVersion,
     isDirty,
     reloadCurrent,
+    saveNow,
     saveAnyway,
     reloadDiscarding,
-} = useMarkdownNotesPage(props, t);
+} = useMarkdownNotesPage(props, t, { autoSaveSuspended: coeditLive });
 
 // Local to this component rather than folded into `useMarkdownNotesPage`:
 // sharing is opened from the toolbar and closed by the modal, and nothing in
@@ -411,9 +423,12 @@ const canShareSelected = computed(() => spaceWritesSelected.value);
 const alwaysEditing = computed(() => true);
 const {
     people: roomPeople,
+    cursors: roomCursors,
     serverVersion: roomVersion,
     changedBy: roomChangedBy,
     live: roomLive,
+    publishCursor,
+    channel: roomChannel,
 } = useNoteLive({
     noteId: selectedId,
     editing: alwaysEditing,
@@ -439,6 +454,78 @@ watch(roomVersion, async (version) => {
     if (version <= loadedVersion.value || isDirty.value) return;
 
     await reloadCurrent();
+});
+
+/**
+ * Says where this reader's caret is, at most five times a second.
+ *
+ * A caret moves on every keystroke and this goes on a network, so the raw
+ * event is throttled here rather than in the editor - the editor has no
+ * reason to know that reporting a caret costs anything. Leading and trailing:
+ * the first move shows at once, and the last one is not the one that gets
+ * dropped, which is the one that matters when somebody stops typing.
+ */
+const CARET_THROTTLE_MS = 200;
+let caretTimer = null;
+let caretPending = null;
+
+function onCaretMoved(index) {
+    caretPending = index;
+
+    if (caretTimer) return;
+
+    void publishCursor(caretPending);
+    caretTimer = setTimeout(() => {
+        caretTimer = null;
+        // Only if it moved again while the gate was shut; otherwise the
+        // position already went out.
+        if (caretPending !== index) void publishCursor(caretPending);
+    }, CARET_THROTTLE_MS);
+}
+
+onBeforeUnmount(() => {
+    if (caretTimer) clearTimeout(caretTimer);
+});
+
+/**
+ * Writing the note together, letter by letter, when everything allows it.
+ *
+ * Four conditions, and all four are the server's word rather than a guess:
+ * the space allows it, this reader writes the note, a hub is running, and the
+ * page knows who it is. Any one missing and the editor stays on the autosave
+ * and the three-way merge - a mode that works, which is why declining is
+ * always the safe answer here.
+ */
+const coeditAllowed = computed(() =>
+    canCoedit({
+        spaceAllows: Boolean(
+            spaces.value.find(
+                (space) => Number(space.id) === Number(selectedNote.value?.spaceId),
+            )?.coediting,
+        ),
+        canWrite: canEditSelected.value,
+        hasChannel: roomChannel.ready.value,
+        selfUserId: roomChannel.selfUserId(),
+    }),
+);
+
+useNoteCoedit({
+    noteId: selectedId,
+    allowed: coeditAllowed,
+    live: coeditLive,
+    text: computed(() => form.value.content),
+    applyText: (value) => {
+        form.value.content = value;
+    },
+    room: roomPeople,
+    channel: roomChannel,
+    // The write-back is the ordinary save, asked for by the session instead of
+    // by the debounce. So the version check and the three-way merge still
+    // stand behind it, and a save from outside the session is caught the way
+    // any other is.
+    writeBack: async () => {
+        await saveNow();
+    },
 });
 
 // Whoever is in the room, named. The list is small by nature - the people who
@@ -1606,6 +1693,8 @@ onUnmounted(() => {
                                 :upload-image="api.uploadImage"
                                 :image-max-edge="imageMaxEdge"
                                 :image-quality="imageQuality"
+                                :cursors="roomCursors"
+                                v-on:caret="onCaretMoved"
                             />
                         </div>
 

@@ -185,7 +185,9 @@ silently - tell the user it is pending and let them decide when:
 
 The consumer list lives in `docs/aurora-core/dev/propagating_updates.md`.
 
-**`propagate` does all four.** Hand off to it rather than running them from
+**`propagate` does all four, and `make release` does them in one command** -
+including the step that gets forgotten, deploying the server, since a bumped
+lock is not a deployed application. Hand off rather than running them from
 here - it refuses to start on a CI that is red or still running, names the
 migrations the range carries *before* `make aurora-update` migrates on its
 own, and waits for the consumer's pipeline before calling the job done. This
