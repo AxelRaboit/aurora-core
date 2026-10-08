@@ -46,7 +46,7 @@ final class SpaceDeliverableSlidesController extends AbstractDeliverableSlidesCo
     use SpaceOwnershipTrait;
 
     public function __construct(
-        private readonly DeliverableRepository $deliverables,
+        private readonly DeliverableRepository $deliverableRepository,
         private readonly DeliverableAccess $access,
         SlidesManager $slides,
         SlidesSerializer $slidesSerializer,
@@ -123,7 +123,7 @@ final class SpaceDeliverableSlidesController extends AbstractDeliverableSlidesCo
      */
     private function readable(CustomerSpace $space, int $deliverableId): DeliverableInterface
     {
-        $deliverable = $this->deliverables->findLive($deliverableId);
+        $deliverable = $this->deliverableRepository->findLive($deliverableId);
         $this->assertOwned($space, $deliverable?->getSpace()?->getId());
 
         if (!$deliverable instanceof DeliverableInterface || !$deliverable->isSlides() || !$this->access->canRead($deliverable)) {

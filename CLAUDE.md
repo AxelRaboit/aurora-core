@@ -201,6 +201,14 @@ distribuée via composer aux clients.
   ailleurs. Restent tels quels : `props`, `emit`, le suffixe `Ref` des refs
   Vue, les unités `Ms`/`Px`. En JS, ne jamais nommer une variable `document`,
   `window` ou `event` (globales du navigateur) : `gedDocument`, `keyboardEvent`.
+- **Une dépendance déclarée porte le nom de ce qu'elle est**, pas de ce
+  qu'elle rend : `$noteRepository`, pas `$notes` ; `$pathTemplateGenerator`,
+  pas `$pathTemplates` ; `$dateFormatter`, pas `$dates`. Le pluriel se lit
+  comme la collection, et sept fichiers avaient atteint le point où le même
+  mot désignait le service et sa sortie à une ligne d'intervalle. Tenu par
+  `tests/Unit/DependenciesAreNamedAfterTheirRoleTest.php`, qui lit les 72
+  suffixes de rôle et les exceptions dans `tools/naming/full-word-names.json`.
+  Détail et exceptions : mémoire shared `convention_naming.md`.
 - **Repos: éviter le N+1** : `findBy(['id' => $ids])` plutôt que `find()`
   dans une boucle pour hydrater plusieurs entités.
 - **Manager vs Service** :

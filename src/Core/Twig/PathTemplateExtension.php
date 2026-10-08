@@ -16,12 +16,12 @@ use Twig\Attribute\AsTwigFunction;
  */
 final readonly class PathTemplateExtension
 {
-    public function __construct(private PathTemplateGenerator $pathTemplates) {}
+    public function __construct(private PathTemplateGenerator $pathTemplateGenerator) {}
 
     /** @param array<string, mixed> $parameters */
     #[AsTwigFunction(name: 'path_template')]
     public function pathTemplate(string $route, array $parameters = []): string
     {
-        return $this->pathTemplates->generate($route, $parameters);
+        return $this->pathTemplateGenerator->generate($route, $parameters);
     }
 }

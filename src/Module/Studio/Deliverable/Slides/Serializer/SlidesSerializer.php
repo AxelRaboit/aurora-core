@@ -30,7 +30,7 @@ class SlidesSerializer
         private readonly DeckAppearance $appearance,
         private readonly DeckPictures $deckPictures,
         private readonly DeckVideo $videos,
-        private readonly VideoEmbedResolver $embeds,
+        private readonly VideoEmbedResolver $videoEmbedResolver,
         private readonly DeckFonts $fonts,
     ) {}
 
@@ -239,7 +239,7 @@ class SlidesSerializer
                 }
 
                 if ('embed' === ($element['type'] ?? null)) {
-                    $resolved = $this->embeds->resolve($element['url'] ?? null);
+                    $resolved = $this->videoEmbedResolver->resolve($element['url'] ?? null);
 
                     $element['embedUrl'] = $resolved['embedUrl'] ?? null;
                     $element['provider'] = $resolved['provider'] ?? null;

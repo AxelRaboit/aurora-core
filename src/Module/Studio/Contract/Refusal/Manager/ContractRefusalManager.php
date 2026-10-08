@@ -52,7 +52,7 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
-        protected readonly MailService $mail,
+        protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
     ) {}
 
@@ -127,7 +127,7 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
      */
     protected function notifyProvider(ContractInterface $contract): void
     {
-        $this->mail->sendToAdmin(
+        $this->mailService->sendToAdmin(
             subjectKey: 'studio.email.customer_refused.subject',
             template: '@Studio/email/customer_refused.html.twig',
             context: [

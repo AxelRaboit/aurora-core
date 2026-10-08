@@ -89,6 +89,7 @@ final readonly class NotesModule implements ModuleInterface, ModuleNavViewProvid
         return [
             ModuleParameterEnum::NotesSuite->toToggle(),
             ModuleParameterEnum::NotesMarkdown->toToggle(),
+            ModuleParameterEnum::NotesCollaboration->toToggle(),
         ];
     }
 

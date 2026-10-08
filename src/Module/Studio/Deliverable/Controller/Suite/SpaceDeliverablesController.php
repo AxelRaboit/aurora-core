@@ -65,7 +65,7 @@ final class SpaceDeliverablesController extends AbstractController
     use SpaceOwnershipTrait;
 
     public function __construct(
-        private readonly DeliverableRepository $deliverables,
+        private readonly DeliverableRepository $deliverableRepository,
         private readonly DeliverableManager $manager,
         private readonly SpaceDeliverablesViewBuilder $viewBuilder,
         private readonly DeliverablePageRenderer $renderer,
@@ -77,7 +77,7 @@ final class SpaceDeliverablesController extends AbstractController
         private readonly DeliverableSerializer $serializer,
         private readonly DeliverableReadiness $readiness,
         private readonly ClientVisibility $clientVisibility,
-        private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly DeliverableSlidesViewBuilder $deliverableSlidesViewBuilder,
         private readonly SlidesFromBlocks $fromBlocks,
         private readonly EntityManagerInterface $entityManager,
         private readonly StudioContext $studioContext,
@@ -187,7 +187,7 @@ final class SpaceDeliverablesController extends AbstractController
         // A presentation is composed in the slide editor, inside the space
         // shell like a page.
         if ($deliverable->isSlides()) {
-            return $this->render('@Studio/suite/space-deliverables/slides.html.twig', $this->slidesView->spaceEditorView($deliverable));
+            return $this->render('@Studio/suite/space-deliverables/slides.html.twig', $this->deliverableSlidesViewBuilder->spaceEditorView($deliverable));
         }
 
         return $this->render('@Studio/suite/space-deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
@@ -328,7 +328,7 @@ final class SpaceDeliverablesController extends AbstractController
         // without the speaker notes.
         if ($deliverable->isSlides()) {
             return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
-                'deck' => $this->slidesView->readerDeck($deliverable),
+                'deck' => $this->deliverableSlidesViewBuilder->readerDeck($deliverable),
                 'expiresAt' => null,
                 // Opened in a new tab: closing it is the way out, the editor
                 // only the fallback.
@@ -496,7 +496,7 @@ final class SpaceDeliverablesController extends AbstractController
             return null;
         }
 
-        $template = $this->deliverables->findStandalone($id);
+        $template = $this->deliverableRepository->findStandalone($id);
 
         return $template instanceof DeliverableInterface
             && $template->isTemplate()
@@ -517,7 +517,7 @@ final class SpaceDeliverablesController extends AbstractController
      */
     private function owned(CustomerSpace $space, int $deliverableId): DeliverableInterface
     {
-        $deliverable = $this->deliverables->findLive($deliverableId);
+        $deliverable = $this->deliverableRepository->findLive($deliverableId);
         $this->assertOwned($space, $deliverable?->getSpace()?->getId());
 
         if (!$deliverable instanceof DeliverableInterface) {

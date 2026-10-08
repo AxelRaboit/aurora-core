@@ -2,6 +2,11 @@ import { ref, computed, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { useAutoSave } from "@/shared/composables/useAutoSave.js";
+import {
+    threeWayMerge,
+    threeWayTags,
+    threeWayValue,
+} from "@notes/suite/markdown/composables/noteThreeWayMerge.js";
 import { toggleCheckboxInContent } from "./markedExtensions/markedCheckboxes.js";
 import { updateImageDimensionInContent } from "./markedExtensions/markedImageDimensions.js";
 
@@ -106,6 +111,17 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     const loadedVersion = ref(null);
     const conflict = ref(false);
     let forceNextSave = false;
+
+    /**
+     * Guards the merge against repeating itself.
+     *
+     * A merge ends in a second save, and that save can be refused in turn -
+     * somebody saved again in the meantime. Merging from there would be
+     * correct but unbounded, and an editor that keeps resaving on its own is
+     * worse than one that asks. One attempt per save; the next keystroke
+     * starts a fresh one.
+     */
+    let mergeTried = false;
 
     const selectedNote = computed(
         () => notes.value.find((note) => note.id === selectedId.value) ?? null,
@@ -254,6 +270,74 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     }
 
     /**
+     * Puts our edits and theirs back together, when they do not overlap.
+     *
+     * **What this replaces.** The screen used to ask - take their version, or
+     * keep mine - and either answer throws somebody's paragraph away. Most of
+     * the time the two of us were writing in different places and nothing had
+     * to be thrown away at all.
+     *
+     * Each kind of field is merged as what it is: the title and the body line
+     * by line, the tags as a set, and a single value - a banner, an
+     * appearance - only when exactly one of us replaced it. Any one of them
+     * refusing stops the whole merge: a note half merged is not a note
+     * anybody agreed to.
+     *
+     * The form takes the result and the version becomes the server's, so the
+     * save that follows starts from where the note actually is.
+     *
+     * @returns {boolean} whether the merge happened
+     */
+    function mergeWithServer(mine, theirs) {
+        const base = loadedSnapshot.value;
+        if (!base || !theirs) return false;
+
+        const title = threeWayMerge(
+            base.title ?? "",
+            mine.title ?? "",
+            theirs.title ?? "",
+        );
+        const content = threeWayMerge(
+            base.content ?? "",
+            mine.content ?? "",
+            theirs.content ?? "",
+        );
+        if (null === title || null === content) return false;
+
+        const look = {};
+        for (const key of Object.keys(LOOK_DEFAULTS)) {
+            const value = threeWayValue(
+                base[key],
+                mine[key],
+                theirs[key] ?? LOOK_DEFAULTS[key],
+            );
+            if (null === value) return false;
+            look[key] = value.value;
+        }
+
+        const tags = threeWayTags(base.tags, mine.tags, theirs.tags);
+
+        form.value.title = title;
+        form.value.content = content;
+        form.value.tags = tags;
+        Object.assign(form.value, look);
+
+        // What the next save starts from: the note as the server has it. The
+        // merged text is the difference, so the form stays dirty and goes out
+        // on the next tick.
+        loadedSnapshot.value = {
+            ...base,
+            title: theirs.title ?? "",
+            content: theirs.content ?? "",
+            tags: [...(theirs.tags ?? [])],
+            ...pickLook(theirs),
+        };
+        loadedVersion.value = theirs.version ?? loadedVersion.value;
+
+        return true;
+    }
+
+    /**
      * Persist the currently selected note. Drives the actual HTTP call
      * from auto-save. Returns the success boolean so `useAutoSave` can
      * decide between the `saved` and `error` status.
@@ -287,10 +371,28 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
                 force,
             });
             if (!ok) {
-                if (payload?.conflict) conflict.value = true;
+                if (!payload?.conflict) return false;
+
+                // Somebody saved while this form was open. Put the two texts
+                // together rather than asking who wins; only a real overlap
+                // reaches the question.
+                if (!mergeTried && mergeWithServer(snapshot, payload.note)) {
+                    mergeTried = true;
+                    // Said once, without a name: who is on the note is
+                    // already on screen beside the title, and inventing a
+                    // field to repeat it here would be a field to keep up to
+                    // date for one sentence.
+                    toast.success(t("notes.markdown.conflict.merged"));
+
+                    return await performSave();
+                }
+
+                conflict.value = true;
 
                 return false;
             }
+
+            mergeTried = false;
 
             if (payload?.note?.version)
                 loadedVersion.value = payload.note.version;
@@ -529,6 +631,9 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         saveStatus,
         lastSavedAt,
         conflict,
+        // What the open form started from. Read by the live room to tell
+        // "somebody saved after us" from "that save was ours".
+        loadedVersion,
         // actions
         refreshList,
         reloadCurrent,

@@ -54,10 +54,10 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
     private const string PRIVILEGE = 'notes.markdown.use';
 
     public function __construct(
-        private MarkdownNoteRepository $notes,
+        private MarkdownNoteRepository $noteRepository,
         private NotesContext $notesContext,
         private Security $security,
-        private SearchSnippetBuilder $snippets,
+        private SearchSnippetBuilder $searchSnippetBuilder,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
@@ -87,7 +87,7 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
 
             // Already without the trashed ones: the repository filters on
             // `deletedAt`, as it does for the notebook's own search.
-            foreach ($this->notes->findAllWithContentForUser($user) as $note) {
+            foreach ($this->noteRepository->findAllWithContentForUser($user) as $note) {
                 if (str_contains(mb_strtolower((string) $note->getTitle()), $needle)) {
                     $byTitle[] = $note;
                 } elseif (str_contains(mb_strtolower((string) $note->getContent()), $needle)) {
@@ -152,6 +152,6 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
     {
         $flat = preg_replace('/\s+/u', ' ', $content) ?? $content;
 
-        return $this->snippets->build($flat, mb_trim($query), self::SNIPPET_RADIUS);
+        return $this->searchSnippetBuilder->build($flat, mb_trim($query), self::SNIPPET_RADIUS);
     }
 }

@@ -36,7 +36,7 @@ use function count;
 final readonly class DeliverablesTrashSource implements TrashSourceInterface
 {
     public function __construct(
-        private DeliverableRepository $deliverables,
+        private DeliverableRepository $deliverableRepository,
         private DeliverableAccess $access,
         private StudioContext $studioContext,
         private TranslatorInterface $translator,
@@ -54,7 +54,7 @@ final readonly class DeliverablesTrashSource implements TrashSourceInterface
 
     public function getSummary(int $limit): TrashSummary
     {
-        $rows = array_values(array_filter($this->deliverables->findAllTrashed(), $this->isVisible(...)));
+        $rows = array_values(array_filter($this->deliverableRepository->findAllTrashed(), $this->isVisible(...)));
 
         $oldest = null;
         foreach ($rows as $row) {

@@ -62,9 +62,9 @@ final class PlanningShareController extends AbstractController
     public function __construct(
         private readonly PlanningShareLinkManagerInterface $shareLinks,
         private readonly PlanningShareViewBuilder $viewBuilder,
-        private readonly PlanningOccurrenceFinder $occurrences,
+        private readonly PlanningOccurrenceFinder $planningOccurrenceFinder,
         private readonly PlanningEventSerializer $eventSerializer,
-        private readonly PlanningReminderRepository $reminders,
+        private readonly PlanningReminderRepository $reminderRepository,
         private readonly PlanningReminderSerializer $reminderSerializer,
         private readonly PlanningContext $planningContext,
     ) {}
@@ -127,8 +127,8 @@ final class PlanningShareController extends AbstractController
         );
 
         $response = new JsonResponse($this->viewBuilder->windowView(
-            $this->eventSerializer->serializeMany($this->occurrences->find($ids, $from, $to)),
-            $this->reminderSerializer->serializeMany($this->reminders->findInWindow($ids, $from, $to)),
+            $this->eventSerializer->serializeMany($this->planningOccurrenceFinder->find($ids, $from, $to)),
+            $this->reminderSerializer->serializeMany($this->reminderRepository->findInWindow($ids, $from, $to)),
         ));
 
         // The URL is a secret, so nothing in between may keep the answer.

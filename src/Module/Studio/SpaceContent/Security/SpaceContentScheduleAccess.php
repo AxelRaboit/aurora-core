@@ -25,7 +25,7 @@ final readonly class SpaceContentScheduleAccess implements ScheduledSourceAccess
 {
     public function __construct(
         private SpaceVisibility $visibility,
-        private SpaceContentItemRepository $items,
+        private SpaceContentItemRepository $itemRepository,
     ) {}
 
     public function supports(string $sourceType): bool
@@ -37,6 +37,6 @@ final readonly class SpaceContentScheduleAccess implements ScheduledSourceAccess
     {
         $spaceIds = array_map(static fn (CustomerSpaceInterface $space): int => (int) $space->getId(), $this->visibility->visibleSpaces());
 
-        return $this->items->idsInSpaces($sourceIds, $spaceIds);
+        return $this->itemRepository->idsInSpaces($sourceIds, $spaceIds);
     }
 }

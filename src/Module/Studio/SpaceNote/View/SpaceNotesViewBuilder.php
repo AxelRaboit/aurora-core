@@ -40,12 +40,12 @@ final readonly class SpaceNotesViewBuilder
     public function __construct(
         private SpaceNoteSpaceProvider $provider,
         private NoteSpaceAccess $spaceAccess,
-        private MarkdownNoteRepository $notes,
-        private NoteFolderRepository $folders,
+        private MarkdownNoteRepository $noteRepository,
+        private NoteFolderRepository $folderRepository,
         private NotesContext $notesContext,
         private Security $security,
         private UrlGeneratorInterface $urlGenerator,
-        private CraftClient $craft,
+        private CraftClient $craftClient,
     ) {}
 
     /**
@@ -93,7 +93,7 @@ final readonly class SpaceNotesViewBuilder
             ],
             // The Craft import only exists in the tab if the installation has
             // opened the connection.
-            'craftEnabled' => $this->craft->isConfigured(),
+            'craftEnabled' => $this->craftClient->isConfigured(),
             'craftPaths' => [
                 'documents' => $this->urlGenerator->generate('suite_notes_craft_documents'),
                 'import' => $this->urlGenerator->generate('suite_notes_craft_import'),
@@ -117,14 +117,14 @@ final readonly class SpaceNotesViewBuilder
     private function notes(NoteSpaceInterface $noteSpace): array
     {
         $folders = [];
-        foreach ($this->folders->findLivingInSpace($noteSpace) as $folder) {
+        foreach ($this->folderRepository->findLivingInSpace($noteSpace) as $folder) {
             $folders[(int) $folder->getId()] = $folder;
         }
 
         return array_map(fn (array $note): array => [
             ...$note,
             'folder' => null === $note['folderId'] ? null : $this->pathOf($folders[$note['folderId']] ?? null),
-        ], $this->notes->findListInSpace($noteSpace));
+        ], $this->noteRepository->findListInSpace($noteSpace));
     }
 
     private function pathOf(?NoteFolderInterface $folder): ?string

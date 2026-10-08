@@ -31,7 +31,7 @@ final readonly class ContractsViewBuilder
         private CustomerRepository $customerRepository,
         private ContractSerializerInterface $serializer,
         private LocaleOptionsProviderInterface $localeOptions,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private UrlGeneratorInterface $urlGenerator,
         private ContractCustomFieldScanner $customFields,
         private ContractVariableCatalogue $variables,
@@ -97,7 +97,7 @@ final readonly class ContractsViewBuilder
             'savePath' => $this->urlGenerator->generate('suite_studio_contracts_wording_save', ['id' => $id, 'part' => $part->value]),
             'resetPath' => $this->urlGenerator->generate('suite_studio_contracts_wording_reset', ['id' => $id, 'part' => $part->value]),
             'showPath' => $this->urlGenerator->generate('suite_studio_contracts_show', ['id' => $id]),
-            'templateVersionPath' => $this->pathTemplates->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'templateVersionPath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
         ];
     }
 
@@ -123,15 +123,15 @@ final readonly class ContractsViewBuilder
             'locales' => $this->localeOptions->getActiveOptions(),
             'currencies' => $this->currencyOptions(),
             'createPath' => $this->urlGenerator->generate('suite_studio_contracts_create'),
-            'updatePath' => $this->pathTemplates->generate('suite_studio_contracts_update', ['id' => '__id__']),
-            'previewPath' => $this->pathTemplates->generate('suite_studio_contracts_preview', ['id' => '__id__']),
-            'duplicatePath' => $this->pathTemplates->generate('suite_studio_contracts_duplicate', ['id' => '__id__']),
-            'pdfPath' => $this->pathTemplates->generate('suite_studio_contracts_pdf', ['id' => '__id__']),
+            'updatePath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_update', ['id' => '__id__']),
+            'previewPath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_preview', ['id' => '__id__']),
+            'duplicatePath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_duplicate', ['id' => '__id__']),
+            'pdfPath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_pdf', ['id' => '__id__']),
             // One address for every row, whatever state it is in: the signed
             // file when there is one, a working copy otherwise.
-            'exportPath' => $this->pathTemplates->generate('suite_studio_contracts_export', ['id' => '__id__']),
+            'exportPath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_export', ['id' => '__id__']),
             // The contract's own screen, where every other gesture is.
-            'showPath' => $this->pathTemplates->generate('suite_studio_contracts_show', ['id' => '__id__']),
+            'showPath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_show', ['id' => '__id__']),
             // What an amendment may be attached to. Only concluded, running,
             // non-amendment contracts, so the picker cannot offer a choice the
             // manager would refuse a second later.
@@ -175,9 +175,9 @@ final readonly class ContractsViewBuilder
             // already chosen. One screen creates contracts, and an amendment
             // is a contract.
             'amendPath' => $this->urlGenerator->generate('suite_studio_contracts', ['amends' => $id]),
-            'showPath' => $this->pathTemplates->generate('suite_studio_contracts_show', ['id' => '__id__']),
-            'templateVersionPath' => $this->pathTemplates->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
-            'wordingPath' => $this->pathTemplates->generate('suite_studio_contracts_wording', ['id' => $id, 'part' => '__part__']),
+            'showPath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_show', ['id' => '__id__']),
+            'templateVersionPath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'wordingPath' => $this->pathTemplateGenerator->generate('suite_studio_contracts_wording', ['id' => $id, 'part' => '__part__']),
             // What the edit form offers, as on the list: a draft is corrected
             // where it is read.
             'customers' => $contract->isFrozen() ? [] : $this->customerOptions(),

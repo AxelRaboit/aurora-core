@@ -2,6 +2,16 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
+ * The group that holds the notes handed over one by one.
+ *
+ * Not a space in the database, and never sent by the server: a note shared on
+ * its own lives in a space its reader cannot see, so there is no real group to
+ * file it under. A string rather than a number so it can never collide with a
+ * space id.
+ */
+export const SHARED_SPACE_ID = "shared";
+
+/**
  * A space's name as it is read.
  *
  * The personal space carries none: everyone reads "Mon espace" there in
@@ -9,9 +19,82 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
  */
 export function spaceLabel(space, t) {
     if (!space) return "";
+    if (space.shared) return t("notes.markdown.people.shared_with_me");
     if (space.personal) return t("notes.markdown.spaces.my_space");
 
     return space.name || t("notes.markdown.folders.untitled");
+}
+
+/**
+ * The pseudo-space the notes handed over are grouped under.
+ *
+ * Writes nothing and manages nothing, whatever role the grant carries: the
+ * group is heterogeneous - one note may be readable and the next writable -
+ * and the gestures this would enable act on the notebook anyway. Renaming,
+ * dragging and the space menu therefore stay off here, and editing happens
+ * inside the note, where the role is known.
+ */
+export function sharedSpace() {
+    return {
+        id: SHARED_SPACE_ID,
+        shared: true,
+        personal: false,
+        canWrite: false,
+        canManage: false,
+        published: false,
+        managed: false,
+        name: null,
+        position: Number.MAX_SAFE_INTEGER,
+    };
+}
+
+/**
+ * The notes as a tree can draw them, once some were handed over on their own.
+ *
+ * **Two things have to be undone.** Such a note is filed in a folder of a
+ * space the reader does not have, and the tree only emits notes whose folder
+ * it knows - so it would silently vanish with the folder holding it. And it
+ * carries that space's id, which would file it under a group the reader never
+ * sees. Both are rewritten here, towards the root of {@see sharedSpace}.
+ *
+ * The role rides along as `sharedRole`, which is the only thing on screen
+ * that can say whether the note may be written: its space says nothing to
+ * this reader.
+ *
+ * @param {Array}  notes       the flat list, as the server sends it
+ * @param {object} sharedRoles note id => "reader" | "editor"
+ */
+export function detachSharedNotes(notes, sharedRoles) {
+    const roles = sharedRoles ?? {};
+
+    if (!Object.keys(roles).length) return notes ?? [];
+
+    return (notes ?? []).map((note) => {
+        const role = roles[note.id] ?? roles[String(note.id)] ?? null;
+
+        return null === role
+            ? note
+            : {
+                  ...note,
+                  folderId: null,
+                  spaceId: SHARED_SPACE_ID,
+                  sharedRole: role,
+              };
+    });
+}
+
+/**
+ * The spaces to draw, with the handed-over group last when there is one.
+ *
+ * Last on purpose: it is somebody else's notebook showing through, and it
+ * belongs after one's own spaces rather than among them.
+ */
+export function spacesWithShared(spaces, sharedRoles) {
+    const list = spaces ?? [];
+
+    return Object.keys(sharedRoles ?? {}).length
+        ? [...list, sharedSpace()]
+        : list;
 }
 
 /**

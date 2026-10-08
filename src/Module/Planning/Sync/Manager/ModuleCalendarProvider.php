@@ -27,7 +27,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final readonly class ModuleCalendarProvider
 {
     public function __construct(
-        private PlanningRepository $plannings,
+        private PlanningRepository $planningRepository,
         private EntityManagerInterface $entityManager,
     ) {}
 
@@ -37,7 +37,7 @@ final readonly class ModuleCalendarProvider
      */
     public function forSource(string $sourceType, string $name): PlanningInterface
     {
-        $existing = $this->plannings->findOneBy(['sourceType' => $sourceType]);
+        $existing = $this->planningRepository->findOneBy(['sourceType' => $sourceType]);
         if (null !== $existing) {
             // Renamed if the module now calls it something else - a translation
             // changing should not leave the old wording on screen for ever.
@@ -69,7 +69,7 @@ final readonly class ModuleCalendarProvider
     private function nextFreeColourSlot(): int
     {
         $taken = array_column(
-            $this->plannings->createQueryBuilder('p')
+            $this->planningRepository->createQueryBuilder('p')
                 ->select('DISTINCT p.colourSlot AS slot')
                 ->getQuery()
                 ->getArrayResult(),

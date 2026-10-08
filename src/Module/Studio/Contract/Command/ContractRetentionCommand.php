@@ -36,8 +36,8 @@ use function sprintf;
 final class ContractRetentionCommand extends Command
 {
     public function __construct(
-        private readonly ContractRepository $contracts,
-        private readonly ContractRetentionPolicy $retention,
+        private readonly ContractRepository $contractRepository,
+        private readonly ContractRetentionPolicy $contractRetentionPolicy,
     ) {
         parent::__construct();
     }
@@ -45,7 +45,7 @@ final class ContractRetentionCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $years = $this->retention->years();
+        $years = $this->contractRetentionPolicy->years();
         $now = new DateTimeImmutable();
 
         $io->title(sprintf('Conservation des contrats scellés : %d ans', $years));
@@ -53,7 +53,7 @@ final class ContractRetentionCommand extends Command
         $rows = [];
         $elapsed = 0;
 
-        foreach ($this->contracts->findFrozen() as $contract) {
+        foreach ($this->contractRepository->findFrozen() as $contract) {
             $until = $contract->retainedUntil($years);
             $past = $until instanceof DateTimeImmutable && $until <= $now;
 

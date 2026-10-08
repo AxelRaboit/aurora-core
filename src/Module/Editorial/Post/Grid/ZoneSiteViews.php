@@ -44,7 +44,7 @@ final readonly class ZoneSiteViews
         private TaxonomyRepository $taxonomyRepository,
         private TaxonomyTermRepository $taxonomyTermRepository,
         private BlocksRenderer $blocksRenderer,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
     ) {}
 
     /**
@@ -156,7 +156,7 @@ final readonly class ZoneSiteViews
             // and the plain generator refused it while rendering the page -
             // a 500 in dev and in test, hidden in production by
             // `strict_requirements: null`.
-            'reactPathTemplate' => $this->pathTemplates->generate(
+            'reactPathTemplate' => $this->pathTemplateGenerator->generate(
                 'editorial_comment_react',
                 [...$parameters, 'commentId' => '__commentId__'],
             ),

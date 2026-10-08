@@ -44,7 +44,7 @@ final readonly class SpaceWorkload
     public const int HORIZON_DAYS = 7;
 
     public function __construct(
-        private SpaceContentItemRepository $items,
+        private SpaceContentItemRepository $itemRepository,
         private ?ClockInterface $clock = null,
     ) {}
 
@@ -65,7 +65,7 @@ final readonly class SpaceWorkload
 
         $now = $this->clock?->now() ?? new DateTimeImmutable();
         $ids = array_map(static fn (CustomerSpaceInterface $space): int => (int) $space->getId(), $active);
-        $counts = $this->items->workloadBySpace($ids, $now, $now->modify(sprintf('+%d days', self::HORIZON_DAYS)));
+        $counts = $this->itemRepository->workloadBySpace($ids, $now, $now->modify(sprintf('+%d days', self::HORIZON_DAYS)));
 
         return array_map(static function (int $id) use ($counts): SpaceWorkloadRow {
             $row = $counts[$id] ?? null;

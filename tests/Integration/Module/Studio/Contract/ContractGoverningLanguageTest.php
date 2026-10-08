@@ -57,9 +57,9 @@ use function str_contains;
  */
 final class ContractGoverningLanguageTest extends IntegrationTestCase
 {
-    private ContractManager $contracts;
+    private ContractManager $contractManager;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private ContractSeal $seal;
 
@@ -78,7 +78,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
         $canonicalizer = new ContractCanonicalizer();
         $this->seal = new ContractSeal($canonicalizer);
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -87,7 +87,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
             $container->get(ContractTemplatePreviewer::class),
         );
 
-        $this->contracts = new ContractManager(
+        $this->contractManager = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class), static::getContainer()->get(TranslatorInterface::class)),
@@ -119,7 +119,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     {
         $version = $this->draftVersion(['fr']);
 
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         self::assertTrue($version->isPublished());
         self::assertNull($version->getGoverningLocale());
@@ -132,7 +132,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
         $this->expectException(FieldException::class);
 
         try {
-            $this->templates->publish($version);
+            $this->contractTemplateManager->publish($version);
         } catch (FieldException $fieldException) {
             self::assertSame('governingLocale', $fieldException->getField());
 
@@ -144,7 +144,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     {
         $version = $this->draftVersion(['fr', 'en'], 'fr');
 
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         self::assertTrue($version->isPublished());
         self::assertSame('fr', $version->getGoverningLocale());
@@ -156,13 +156,13 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
      */
     public function testTheGoverningLanguageHasToBeWritten(): void
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         $this->expectException(FieldException::class);
 
         try {
-            $this->templates->updateDraft($version, new ContractTemplateVersionInput(
+            $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput(
                 translations: $this->wording(['fr', 'en']),
                 governingLocale: 'es',
             ));
@@ -179,9 +179,9 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     public function testOpeningADraftKeepsTheAnswer(): void
     {
         $version = $this->draftVersion(['fr', 'en'], 'fr');
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
-        $draft = $this->templates->openDraft($version->getTemplate());
+        $draft = $this->contractTemplateManager->openDraft($version->getTemplate());
 
         self::assertSame('fr', $draft->getGoverningLocale());
     }
@@ -193,10 +193,10 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     public function testTheClauseIsSealedIntoTheDocument(): void
     {
         $version = $this->draftVersion(['fr', 'en'], 'fr');
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         $contract = $this->contractFor($version, 'fr');
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         $html = (string) $contract->getRenderedHtml();
 
@@ -218,10 +218,10 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     public function testATranslationSaysSoInItsOwnLanguage(): void
     {
         $version = $this->draftVersion(['fr', 'es'], 'fr');
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         $contract = $this->contractFor($version, 'es');
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         $html = (string) $contract->getRenderedHtml();
 
@@ -236,10 +236,10 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     public function testASingleLanguageDocumentCarriesNoClause(): void
     {
         $version = $this->draftVersion(['fr']);
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         $contract = $this->contractFor($version, 'fr');
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertStringNotContainsString('contract-language', (string) $contract->getRenderedHtml());
         self::assertNull($contract->getContentSnapshot()['governingLocale']);
@@ -253,17 +253,17 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     public function testPartsThatDisagreeAreRefused(): void
     {
         $body = $this->draftVersion(['fr', 'en'], 'fr');
-        $this->templates->publish($body);
+        $this->contractTemplateManager->publish($body);
 
-        $annexTemplate = $this->templates->create(new ContractTemplateInput('Annexe tarifaire', ContractTemplateKindEnum::Annex));
+        $annexTemplate = $this->contractTemplateManager->create(new ContractTemplateInput('Annexe tarifaire', ContractTemplateKindEnum::Annex));
         $annex = $annexTemplate->getDraft();
-        $this->templates->updateDraft($annex, new ContractTemplateVersionInput(
+        $this->contractTemplateManager->updateDraft($annex, new ContractTemplateVersionInput(
             translations: $this->wording(['fr', 'en']),
             governingLocale: 'en',
         ));
-        $this->templates->publish($annex);
+        $this->contractTemplateManager->publish($annex);
 
-        $contract = $this->contracts->create(new ContractInput(
+        $contract = $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $body->getTemplate()->getId(),
             annexTemplateId: $annexTemplate->getId(),
@@ -273,7 +273,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
         $this->expectException(FieldException::class);
 
         try {
-            $this->contracts->freeze($contract);
+            $this->contractManager->freeze($contract);
         } catch (FieldException $fieldException) {
             self::assertSame('annexVersion', $fieldException->getField());
             self::assertFalse($contract->isFrozen());
@@ -285,12 +285,12 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
     /** @param list<string> $locales */
     private function draftVersion(array $locales, ?string $governing = null): ContractTemplateVersionInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         self::assertInstanceOf(ContractTemplateVersionInterface::class, $version);
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput(
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput(
             translations: $this->wording($locales),
             governingLocale: $governing,
         ));
@@ -334,7 +334,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
 
     private function contractFor(ContractTemplateVersionInterface $version, string $locale): ContractInterface
     {
-        return $this->contracts->create(new ContractInput(
+        return $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $this->templateOf($version)->getId(),
             locale: $locale,

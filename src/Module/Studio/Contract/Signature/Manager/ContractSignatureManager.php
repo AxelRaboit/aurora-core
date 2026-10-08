@@ -54,10 +54,10 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
-        protected readonly ContractSignatureRepository $signatures,
+        protected readonly ContractSignatureRepository $contractSignatureRepository,
         protected readonly ContractSignatureChallengeManagerInterface $challenges,
-        protected readonly MailService $mail,
-        protected readonly ContractPdfGenerator $pdf,
+        protected readonly MailService $mailService,
+        protected readonly ContractPdfGenerator $pdfGenerator,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractSeal $seal,
     ) {}
@@ -109,7 +109,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
 
         // The order, enforced rather than assumed: the countersignature is what
         // concludes, so there has to be something to conclude.
-        $customerSignature = $this->signatures->findOneForRole($contract, ContractSignatureRoleEnum::Customer);
+        $customerSignature = $this->contractSignatureRepository->findOneForRole($contract, ContractSignatureRoleEnum::Customer);
 
         if (!$customerSignature instanceof ContractSignatureInterface) {
             throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.customer_has_not_signed'));
@@ -134,7 +134,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         // status used to be stored first: a PDF that failed then left a
         // contract concluded with no file, and no way to make one, since a
         // second countersignature is refused.
-        $pdf = $this->pdf->generate($contract, [$customerSignature, $signature]);
+        $pdf = $this->pdfGenerator->generate($contract, [$customerSignature, $signature]);
         $contract->attachPdf($pdf['path'], $pdf['hash'], new DateTimeImmutable());
 
         try {
@@ -142,7 +142,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         } catch (Throwable $throwable) {
             // Nothing was concluded, so the file concludes nothing either, and
             // left behind it would refuse the next attempt as a collision.
-            $this->pdf->remove($pdf['path']);
+            $this->pdfGenerator->remove($pdf['path']);
 
             throw $throwable;
         }
@@ -198,7 +198,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
             throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.amends_terminated', [], null, $locale));
         }
 
-        if ($this->signatures->findOneForRole($contract, $role) instanceof ContractSignatureInterface) {
+        if ($this->contractSignatureRepository->findOneForRole($contract, $role) instanceof ContractSignatureInterface) {
             // The unique index says the same thing, as a driver exception. This
             // says it as a sentence.
             throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.role_already_signed', [], null, $locale));
@@ -267,7 +267,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
     {
         $contract = $signature->getContract();
 
-        $this->mail->sendToAdmin(
+        $this->mailService->sendToAdmin(
             subjectKey: 'studio.email.customer_signed.subject',
             template: '@Studio/email/customer_signed.html.twig',
             context: [
@@ -297,7 +297,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         // suite the file only exists for the length of the callback. On the
         // server's own disk nothing is copied and this costs nothing.
         if ($contract->hasPdf()) {
-            $this->pdf->withLocalCopy($contract, function (string $path) use ($contract): void {
+            $this->pdfGenerator->withLocalCopy($contract, function (string $path) use ($contract): void {
                 $this->sendConcludedMail($contract, [[
                     'path' => $path,
                     'name' => sprintf('%s.pdf', (string) $contract->getReference()),
@@ -307,7 +307,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
             $this->sendConcludedMail($contract, []);
         }
 
-        $this->mail->sendToAdmin(
+        $this->mailService->sendToAdmin(
             subjectKey: 'studio.email.concluded.subject',
             template: '@Studio/email/concluded.html.twig',
             // The provider's copy links to the back office; the customer's
@@ -322,7 +322,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
      */
     protected function sendConcludedMail(ContractInterface $contract, array $attachments): void
     {
-        $this->mail->send(
+        $this->mailService->send(
             // A signature is recorded even if the mail does not go out:
             // `MailService` returns without doing anything on an empty
             // address, and refusing to record a commitment because its

@@ -41,7 +41,7 @@ class PlanningShareLinkManager implements PlanningShareLinkManagerInterface
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly PlanningShareLinkRepository $links,
+        protected readonly PlanningShareLinkRepository $shareLinkRepository,
         protected readonly AuditLogger $auditLogger,
     ) {}
 
@@ -107,7 +107,7 @@ class PlanningShareLinkManager implements PlanningShareLinkManagerInterface
     ): ?PlanningShareLinkInterface {
         $now ??= new DateTimeImmutable();
 
-        $link = $this->links->findByToken($token);
+        $link = $this->shareLinkRepository->findByToken($token);
 
         if (!$link instanceof PlanningShareLinkInterface || $mode !== $link->getMode()) {
             return null;

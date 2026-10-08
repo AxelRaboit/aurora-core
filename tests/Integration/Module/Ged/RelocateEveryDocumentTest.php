@@ -24,14 +24,14 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final class RelocateEveryDocumentTest extends IntegrationTestCase
 {
-    private DocumentRepository $documents;
+    private DocumentRepository $documentRepository;
     private EntityManagerInterface $entityManager;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->documents = self::getContainer()->get(DocumentRepository::class);
+        $this->documentRepository = self::getContainer()->get(DocumentRepository::class);
         $this->entityManager = self::getContainer()->get('doctrine')->getManager();
     }
 
@@ -40,7 +40,7 @@ final class RelocateEveryDocumentTest extends IntegrationTestCase
         $here = $this->makeDocument(StorageDiskEnum::Local);
         $there = $this->makeDocument(StorageDiskEnum::R2);
 
-        $ids = $this->documents->idsNotOnDisk(StorageDiskEnum::R2);
+        $ids = $this->documentRepository->idsNotOnDisk(StorageDiskEnum::R2);
 
         self::assertContains((int) $here->getId(), $ids);
         self::assertNotContains(
@@ -63,7 +63,7 @@ final class RelocateEveryDocumentTest extends IntegrationTestCase
 
         self::assertNotContains(
             (int) $trashed->getId(),
-            $this->documents->idsNotOnDisk(StorageDiskEnum::R2),
+            $this->documentRepository->idsNotOnDisk(StorageDiskEnum::R2),
         );
     }
 
@@ -75,16 +75,16 @@ final class RelocateEveryDocumentTest extends IntegrationTestCase
      */
     public function testTheAlreadyThereCountIgnoresTheTrashToo(): void
     {
-        $before = $this->documents->countLivingOnDisk(StorageDiskEnum::R2);
+        $before = $this->documentRepository->countLivingOnDisk(StorageDiskEnum::R2);
 
         $trashed = $this->makeDocument(StorageDiskEnum::R2);
         $trashed->setDeletedAt(new DateTimeImmutable());
         $this->entityManager->flush();
 
-        self::assertSame($before, $this->documents->countLivingOnDisk(StorageDiskEnum::R2));
+        self::assertSame($before, $this->documentRepository->countLivingOnDisk(StorageDiskEnum::R2));
         self::assertSame(
             $before + 1,
-            $this->documents->countOnDisk(StorageDiskEnum::R2),
+            $this->documentRepository->countOnDisk(StorageDiskEnum::R2),
             'the guarding count still sees it, which is the difference between the two',
         );
     }

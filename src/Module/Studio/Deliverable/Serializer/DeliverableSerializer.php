@@ -21,7 +21,7 @@ final readonly class DeliverableSerializer
 {
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        private DocumentUrlGenerator $documentUrls,
+        private DocumentUrlGenerator $documentUrlGenerator,
     ) {}
 
     /** @return array<string, mixed> */
@@ -39,8 +39,8 @@ final readonly class DeliverableSerializer
             'category' => $deliverable->isStandalone() ? $this->category($deliverable->getCategory()) : null,
             'ownerName' => $deliverable->getOwner()?->getName(),
             // The thumbnail at reduced size, framed on the document's focal point.
-            'thumbnailUrl' => $this->documentUrls->thumbUrl($deliverable->getThumbnail()),
-            'thumbnailPosition' => $this->documentUrls->focalPositionCss($deliverable->getThumbnail()),
+            'thumbnailUrl' => $this->documentUrlGenerator->thumbUrl($deliverable->getThumbnail()),
+            'thumbnailPosition' => $this->documentUrlGenerator->focalPositionCss($deliverable->getThumbnail()),
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
             'editPath' => $this->path($deliverable, 'edit'),
             'previewPath' => $this->path($deliverable, 'preview'),
@@ -72,8 +72,8 @@ final readonly class DeliverableSerializer
             'scope' => null,
             'category' => null,
             'ownerName' => null,
-            'thumbnailUrl' => $this->documentUrls->thumbUrl($thumbnail),
-            'thumbnailPosition' => $this->documentUrls->focalPositionCss($thumbnail),
+            'thumbnailUrl' => $this->documentUrlGenerator->thumbUrl($thumbnail),
+            'thumbnailPosition' => $this->documentUrlGenerator->focalPositionCss($thumbnail),
             'updatedAt' => $row['updatedAt']->format(DATE_ATOM),
             'editPath' => $this->urlGenerator->generate('workspace_space_deliverables_edit', $parameters),
             'previewPath' => $this->urlGenerator->generate('workspace_space_deliverables_preview', $parameters),
@@ -113,7 +113,7 @@ final readonly class DeliverableSerializer
             'categoryId' => $deliverable->isStandalone() ? $deliverable->getCategory()?->getId() : null,
             'thumbnail' => [
                 'id' => $deliverable->getThumbnail()?->getId(),
-                'url' => $this->documentUrls->thumbUrl($deliverable->getThumbnail()),
+                'url' => $this->documentUrlGenerator->thumbUrl($deliverable->getThumbnail()),
             ],
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
         ];

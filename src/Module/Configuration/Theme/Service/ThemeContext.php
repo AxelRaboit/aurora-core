@@ -36,7 +36,7 @@ final class ThemeContext implements ResetInterface
     /** Strict `#rrggbb`: every colour of a theme ends up in a public `<style>`. */
     public const string HEX_COLOR = '/^#[0-9a-fA-F]{6}$/';
 
-    private ?ThemeStyleRenderer $styles = null;
+    private ?ThemeStyleRenderer $themeStyleRenderer = null;
 
     public function __construct(
         private readonly ThemeRepository $themeRepository,
@@ -345,6 +345,6 @@ final class ThemeContext implements ResetInterface
      */
     private function styles(): ThemeStyleRenderer
     {
-        return $this->styles ??= new ThemeStyleRenderer($this, $this->primaryColorPalette, $this->surfaceContrast);
+        return $this->themeStyleRenderer ??= new ThemeStyleRenderer($this, $this->primaryColorPalette, $this->surfaceContrast);
     }
 }

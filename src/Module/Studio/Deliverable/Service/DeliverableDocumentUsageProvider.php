@@ -44,7 +44,7 @@ use function in_array;
 final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
-        private DeliverableRepository $deliverables,
+        private DeliverableRepository $deliverableRepository,
         private PostPictures $pictures,
         private DeliverableAccess $access,
         private DeliverableSerializer $serializer,
@@ -62,7 +62,7 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
     {
         $usages = [];
 
-        foreach ($this->deliverables->findAllForUsage() as $deliverable) {
+        foreach ($this->deliverableRepository->findAllForUsage() as $deliverable) {
             if (!in_array($documentId, $this->idsUsedBy($deliverable), true)) {
                 continue;
             }
@@ -89,7 +89,7 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
         $wanted = array_fill_keys($documentIds, true);
         $counts = [];
 
-        foreach ($this->deliverables->findAllForUsage() as $deliverable) {
+        foreach ($this->deliverableRepository->findAllForUsage() as $deliverable) {
             foreach ($this->idsUsedBy($deliverable) as $documentId) {
                 if (isset($wanted[$documentId])) {
                     $counts[$documentId] = ($counts[$documentId] ?? 0) + 1;

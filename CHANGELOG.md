@@ -5,6 +5,59 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.0.0] - 2026-10-08
+
+### Rompu
+- **27 propriétés `protected` de Managers et de Serializers changent de nom** (voir « Dans aurora-client » plus bas pour la table complète). Elles font partie de la surface d'extension documentée : un projet qui étend l'un de ces services et lit `$this-><ancien nom>` dans un hook surchargé cesse de fonctionner. Aucun usage de ce genre n'existe dans aurora-client, mais `^3.0` promet qu'une 3.x est sûre, et celle-ci ne l'était pas pour une sous-classe - d'où le majeur plutôt qu'un mineur avec un avertissement.
+
+### Ajouté
+- **Deux personnes qui écrivent dans la même note ne se marchent plus dessus.** Quand une sauvegarde part d'une version qu'un autre a déjà remplacée, les deux textes sont remis ensemble au lieu de demander qui gagne : le titre et le corps ligne par ligne, les étiquettes comme l'ensemble qu'elles sont, et une valeur unique (bannière, apparence) quand un seul des deux l'a changée. On ne demande plus que lorsque les deux ont réécrit les mêmes lignes - ce qui est rare, parce qu'on écrit rarement dans la même phrase.
+- **Une note se partage avec des personnes.** Dans « Partager », on choisit un compte de la suite et un rôle, lecture ou écriture. L'invité ouvre **cette note et rien d'autre de son espace** : elle apparaît chez lui dans un groupe « Partagées avec moi », à côté de ses propres espaces. Mettre une note dans un espace partagé n'est plus la seule façon de la montrer à quelqu'un.
+- **Un lien de partage peut être ouvert en écriture.** Une case le dit, la liste des partages le signale par une étiquette « Écriture », et la page invitée gagne un crayon : le texte en markdown, enregistré, sans compte. Le lien écrit **sa propre note**, jamais les notes que ses `[[liens]]` ont amenées avec elle.
+- **On voit qui est sur la note.** Les autres personnes qui l'ont ouverte s'affichent à côté du titre, et quand l'une d'elles enregistre, l'écran suit : il recharge tout seul si rien n'est en train d'être tapé, et propose sinon de reprendre leur version ou de garder la sienne. En direct avec un hub Mercure, toutes les vingt secondes sans - exactement comme la discussion d'un espace client.
+- L'historique nomme les écritures venues d'un lien par les mots du lien, puisqu'il n'y a pas de compte derrière.
+- Un sous-module « Notes à plusieurs » dans `/dev/dashboard/modules` ferme la liste d'invités et l'écriture invitée. Actif par défaut ; l'éteindre ne retire pas une note à quelqu'un à qui elle a déjà été confiée.
+
+### Sécurité
+- Un lien de partage ne nomme son destinataire qu'à qui peut administrer la note. L'historique est ouvert à qui peut la **lire** : un collègue de son espace, ou quelqu'un à qui elle a été confiée en lecture, pouvait y lire l'adresse d'une personne extérieure. Les autres voient « Par un lien de partage ».
+- Une note mise à la corbeille n'est plus modifiable par un lien. La supprimer est la façon la plus claire de dire que personne ne doit plus y toucher, et l'invité n'a aucun moyen de savoir que c'est arrivé.
+- Un droit accordé sur une note ne touche que **son texte**. Classer, déplacer, mettre à la corbeille, purger, dupliquer, en faire un modèle et créer un lien de partage restent à l'espace qui la contient : un invité qui pourrait déplacer la note dans son propre espace l'aurait simplement prise.
+- La route d'écriture invitée est limitée à soixante enregistrements par heure et par adresse IP (`notes_share_write`), et chaque écriture garde l'état précédent en version avant de remplacer.
+- Une note confiée n'entre jamais dans la corbeille de l'invité, qui pourrait sinon la détruire définitivement.
+- Un invité ne peut pas re-partager la note, ni à une personne ni par lien.
+
+### Modifié
+- **Une dépendance déclarée porte le nom de ce qu'elle est**, pas de ce qu'elle rend : `$noteRepository` et non `$notes`, `$pathTemplateGenerator` et non `$pathTemplates`. 371 propriétés renommées dans 217 fichiers, aucun comportement changé. Le pluriel se lisait comme la collection, et sept fichiers avaient atteint le point où le même mot désignait le service et sa sortie à une ligne d'intervalle. Tenu désormais par `tests/Unit/DependenciesAreNamedAfterTheirRoleTest.php`.
+
+### Dans aurora-client
+**Deux migrations à jouer**, et `make aurora-update` les joue lui-même : sauvegarder la base **avant**, pas après. La table `core_notes_markdown_note_members`, la colonne `can_write` des liens de partage de note, et la colonne `via_link_id` de leurs révisions. Les deux sont réversibles et ne perdent aucun contenu ; tous les liens existants restent en lecture seule.
+
+**Passer la contrainte à `"axelraboit/aurora": "^4.0"`** dans le `composer.json` du projet, puisque c'est un majeur.
+
+**Et 27 propriétés `protected` de Managers et de Serializers ont été renommées** par la passe de nommage - c'est la rupture qui justifie ce majeur. Une classe cliente qui étend l'un d'eux et lit `$this-><ancien nom>` dans un hook surchargé cesse de fonctionner. Rien de tel dans aurora-client, mais à vérifier dans tout projet qui étend l'un de ces services :
+
+| Classe | Avant | Après |
+|---|---|---|
+| `ContractSerializer` | `$links`, `$contracts`, `$signatures`, `$auditLogs`, `$retention` | `$accessLinkRepository`, `$contractRepository`, `$contractSignatureRepository`, `$auditLogRepository`, `$contractRetentionPolicy` |
+| `ContractManager` | `$variables`, `$retention` | `$contractVariableResolver`, `$contractRetentionPolicy` |
+| `ContractAccessLinkManager` | `$links`, `$mail` | `$accessLinkRepository`, `$mailService` |
+| `ContractSignatureManager` | `$signatures`, `$mail`, `$pdf` | `$contractSignatureRepository`, `$mailService`, `$pdfGenerator` |
+| `ContractSignatureChallengeManager` | `$challenges`, `$mail` | `$challengeRepository`, `$mailService` |
+| `ContractRefusalManager` | `$mail` | `$mailService` |
+| `SpaceAccessLinkManager` | `$links` | `$accessLinkRepository` |
+| `SpaceContentAttachmentManager` | `$attachments` | `$attachmentRepository` |
+| `SpaceContentAttachmentSerializer` | `$documentUrls` | `$documentUrlGenerator` |
+| `SpaceFileManager` | `$files` | `$spaceFileRepository` |
+| `SpaceResourceManager` | `$resources` | `$spaceResourceRepository` |
+| `CustomerSpaceSerializer` | `$spaces` | `$spaceRepository` |
+| `PostPreviewTokenManager` | `$tokens` | `$postPreviewTokenRepository` |
+| `PlanningShareLinkManager` | `$links` | `$shareLinkRepository` |
+| `PlanningEventManager`, `PlanningShareManager` | `$users` | `$userRepository` |
+| `NoteFavoriteManager` | `$favorites` | `$noteFavoriteRepository` |
+| `MarkdownNoteShareLinkManager` | `$links` | `$shareLinkRepository` |
+
+---
+
 ## [3.8.0] - 2026-10-08
 
 ### Modifié

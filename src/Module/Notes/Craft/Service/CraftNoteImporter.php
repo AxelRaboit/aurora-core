@@ -53,11 +53,11 @@ final readonly class CraftNoteImporter
     private const string IMAGE_PATTERN = '/!\[([^\]]*)\]\((https:\/\/[^)\s]+)((?:\s+"[^"]*")?)\)/u';
 
     public function __construct(
-        private CraftClient $craft,
+        private CraftClient $craftClient,
         private CraftMarkdown $markdown,
         private MarkdownNoteManagerInterface $notes,
         private MarkdownNoteInputFactoryInterface $inputFactory,
-        private MarkdownNoteImageService $images,
+        private MarkdownNoteImageService $imageService,
         private UrlGeneratorInterface $urlGenerator,
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
@@ -77,7 +77,7 @@ final readonly class CraftNoteImporter
         string $rootBlockId,
         string $title,
     ): ?MarkdownNoteInterface {
-        $source = $this->craft->markdown($rootBlockId);
+        $source = $this->craftClient->markdown($rootBlockId);
 
         if (null === $source) {
             return null;
@@ -118,7 +118,7 @@ final readonly class CraftNoteImporter
             return false;
         }
 
-        $source = $this->craft->markdown($documentId);
+        $source = $this->craftClient->markdown($documentId);
 
         if (null === $source) {
             return false;
@@ -180,7 +180,7 @@ final readonly class CraftNoteImporter
 
             // `test: true`: the file did not arrive through a form, and
             // without it Symfony refuses to move it.
-            $filename = $this->images->store(new UploadedFile($path, '' !== $name ? $name : 'image', null, null, true), $space);
+            $filename = $this->imageService->store(new UploadedFile($path, '' !== $name ? $name : 'image', null, null, true), $space);
 
             return $this->urlGenerator->generate('suite_notes_markdown_images_serve', ['filename' => $filename]);
         } catch (Throwable $throwable) {

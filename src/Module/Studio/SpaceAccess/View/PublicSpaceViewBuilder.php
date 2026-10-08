@@ -43,8 +43,8 @@ use const DATE_ATOM;
 final readonly class PublicSpaceViewBuilder
 {
     public function __construct(
-        private SpaceContentItemRepository $items,
-        private SpaceContentColumnRepository $columns,
+        private SpaceContentItemRepository $itemRepository,
+        private SpaceContentColumnRepository $columnRepository,
         private SpaceContentItemSerializerInterface $itemSerializer,
         private SpaceContentColumnSerializerInterface $columnSerializer,
         private SpaceContentCommentRepository $commentRepository,
@@ -52,12 +52,12 @@ final readonly class PublicSpaceViewBuilder
         private SpaceContentAttachmentRepository $attachmentRepository,
         private SpaceContentAttachmentSerializerInterface $attachmentSerializer,
         private CustomerInformationSerializerInterface $informationSerializer,
-        private SpaceResourceRepository $resources,
+        private SpaceResourceRepository $spaceResourceRepository,
         private SpaceResourceSerializerInterface $resourceSerializer,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private UrlGeneratorInterface $urlGenerator,
-        private DeliverableRepository $deliverables,
-        private DocumentUrlGenerator $documentUrls,
+        private DeliverableRepository $deliverableRepository,
+        private DocumentUrlGenerator $documentUrlGenerator,
     ) {}
 
     /**
@@ -76,7 +76,7 @@ final readonly class PublicSpaceViewBuilder
     {
         $documents = [];
 
-        foreach ($this->deliverables->findForSpace($link->getSpace(), visibleOnly: true) as $deliverable) {
+        foreach ($this->deliverableRepository->findForSpace($link->getSpace(), visibleOnly: true) as $deliverable) {
             $thumbnail = $deliverable->getThumbnail();
             $public = $thumbnail instanceof DocumentInterface && DocumentStatusEnum::Published === $thumbnail->getStatus();
             $documents[] = [
@@ -91,8 +91,8 @@ final readonly class PublicSpaceViewBuilder
                     'token' => $token,
                     'deliverableId' => $deliverable->getId(),
                 ]),
-                'thumbnailUrl' => $public ? $this->documentUrls->thumbUrl($thumbnail) : null,
-                'thumbnailPosition' => $public ? $this->documentUrls->focalPositionCss($thumbnail) : null,
+                'thumbnailUrl' => $public ? $this->documentUrlGenerator->thumbUrl($thumbnail) : null,
+                'thumbnailPosition' => $public ? $this->documentUrlGenerator->focalPositionCss($thumbnail) : null,
             ];
         }
 
@@ -152,7 +152,7 @@ final readonly class PublicSpaceViewBuilder
             // preference and not a decision.
             'resources' => array_map(
                 $this->resourceSerializer->serializeForGuest(...),
-                $this->resources->findForSpace($space, visibleOnly: true),
+                $this->spaceResourceRepository->findForSpace($space, visibleOnly: true),
             ),
             // The documents written for this client and published: a draft
             // stays with the team until it is published. Each one opens through
@@ -169,7 +169,7 @@ final readonly class PublicSpaceViewBuilder
             // A reader who cannot answer is handed no endpoint at all rather
             // than a button that would be refused.
             'answerPath' => $link->canApprove()
-                ? $this->pathTemplates->generate('public_space_answer', [
+                ? $this->pathTemplateGenerator->generate('public_space_answer', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'itemId' => '__id__',
@@ -185,14 +185,14 @@ final readonly class PublicSpaceViewBuilder
                 ])
                 : null,
             'commentPath' => $link->canComment()
-                ? $this->pathTemplates->generate('public_space_comment', [
+                ? $this->pathTemplateGenerator->generate('public_space_comment', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'itemId' => '__id__',
                 ])
                 : null,
             'uploadPath' => $link->canUpload()
-                ? $this->pathTemplates->generate('public_space_attachment', [
+                ? $this->pathTemplateGenerator->generate('public_space_attachment', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'itemId' => '__id__',
@@ -218,7 +218,7 @@ final readonly class PublicSpaceViewBuilder
                 ]),
             'driveFilePath' => !$link->canSeeDrive() || null === $link->getSpace()->getDriveFolderId()
                 ? null
-                : $this->pathTemplates->generate('public_space_drive_file', [
+                : $this->pathTemplateGenerator->generate('public_space_drive_file', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'fileId' => '__id__',
@@ -367,7 +367,7 @@ final readonly class PublicSpaceViewBuilder
     {
         $cards = [];
 
-        foreach ($this->items->findForSpace($space) as $item) {
+        foreach ($this->itemRepository->findForSpace($space) as $item) {
             if ($item->isShownToClient()) {
                 $cards[(int) $item->getId()] = $item;
             }
@@ -388,7 +388,7 @@ final readonly class PublicSpaceViewBuilder
     private function visibleColumns(CustomerSpaceInterface $space): array
     {
         return array_values(array_filter(
-            $this->columns->findForSpace($space),
+            $this->columnRepository->findForSpace($space),
             static fn (SpaceContentColumnInterface $column): bool => $column->isVisibleToClient(),
         ));
     }

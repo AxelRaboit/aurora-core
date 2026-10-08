@@ -40,7 +40,7 @@ final readonly class GridViewBuilder
 {
     public function __construct(
         private GridNormalizer $gridNormalizer,
-        private ContentValueNormalizer $values,
+        private ContentValueNormalizer $contentValueNormalizer,
         private DocumentRepository $documentRepository,
         private PostRepository $postRepository,
         private BlocksRenderer $blocksRenderer,
@@ -54,7 +54,7 @@ final readonly class GridViewBuilder
         private ZoneListingViews $listingViews,
         private ZoneMediaViews $mediaViews,
         private ZoneSiteViews $siteViews,
-        private BannerViewBuilder $bannerViews,
+        private BannerViewBuilder $bannerViewBuilder,
     ) {}
 
     /**
@@ -133,7 +133,7 @@ final readonly class GridViewBuilder
             $held = $rawContent['zones'][$zone['id']] ?? null;
 
             if (is_array($held)) {
-                $rawContent['zones'][$zone['id']]['banner'] = $this->bannerViews->textsForEditor(
+                $rawContent['zones'][$zone['id']]['banner'] = $this->bannerViewBuilder->textsForEditor(
                     $zone['banner'] ?? [],
                     is_array($held['banner'] ?? null) ? $held['banner'] : [],
                 );
@@ -197,7 +197,7 @@ final readonly class GridViewBuilder
                 'highlightStyle' => 'custom' === $this->zoneHighlight($zone['highlight'] ?? 'inherit', $zone['highlightColor'] ?? null)
                     ? '--zone-highlight: '.$zone['highlightColor'].';'
                     : '',
-                'spanStyle' => $this->values->spanStyle($zone['span']),
+                'spanStyle' => $this->contentValueNormalizer->spanStyle($zone['span']),
                 'ratioStyle' => $this->mediaViews->ratioStyle($zone['ratio']),
                 // Empty at full width, which is every zone that has not asked
                 // for anything - so a theme reading this puts no style on the
@@ -390,8 +390,8 @@ final readonly class GridViewBuilder
                 // panel works on; the page gets it ready to draw, or nothing.
                 'banner' => GridNormalizer::ZONE_BANNER === $zone['type']
                     ? ($forEditor
-                        ? $this->bannerViews->buildForEditor($zone['banner'] ?? [], [])
-                        : $this->bannerViews->buildEmbedded($zone['banner'] ?? [], $held['banner'] ?? []))
+                        ? $this->bannerViewBuilder->buildForEditor($zone['banner'] ?? [], [])
+                        : $this->bannerViewBuilder->buildEmbedded($zone['banner'] ?? [], $held['banner'] ?? []))
                     : null,
                 'newsletterSignup' => GridNormalizer::ZONE_NEWSLETTER_SIGNUP === $zone['type']
                     ? $this->integrationViews->newsletterSignup($held, $locale)

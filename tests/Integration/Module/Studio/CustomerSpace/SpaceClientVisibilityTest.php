@@ -49,7 +49,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
     private SpaceAccessLinkManagerInterface $links;
 
@@ -83,7 +83,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         // address can be forwarded.
         $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
         $this->links = $container->get(SpaceAccessLinkManagerInterface::class);
     }
 
@@ -99,7 +99,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
     public function testAStepMarkedInternalTakesItsCardsOutOfTheClientPage(): void
     {
         $space = $this->givenSpace();
-        $columns = $this->columns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
 
         // The two steps a new space shows the client: Relecture and Publié.
         // All the others are born hidden.
@@ -153,7 +153,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
     public function testAnInternalStepTakesItsThreadAndItsFilesOutOfTheClientPage(): void
     {
         $space = $this->givenSpace();
-        $columns = $this->columns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
         $internal = $columns[1];
 
         $this->givenItem($space, $internal, 'Relecture juridique interne');
@@ -212,7 +212,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
     public function testACardOfAnInternalStepCannotBeAnsweredOrCommented(): void
     {
         $space = $this->givenSpace();
-        $internal = $this->columns->findForSpace($space)[1];
+        $internal = $this->columnRepository->findForSpace($space)[1];
         $this->givenItem($space, $internal, 'Brouillon interne');
         $item = $this->entityManager->getRepository(SpaceContentItem::class)->findOneBy(['title' => 'Brouillon interne']);
         self::assertInstanceOf(SpaceContentItem::class, $item);

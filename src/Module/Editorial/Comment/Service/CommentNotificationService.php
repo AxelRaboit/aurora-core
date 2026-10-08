@@ -19,13 +19,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 readonly class CommentNotificationService
 {
     public function __construct(
-        private MailService $mail,
+        private MailService $mailService,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
     public function notifyPendingToAdmin(CommentInterface $comment): void
     {
-        $this->mail->sendToAdmin(
+        $this->mailService->sendToAdmin(
             'editorial.mail.comment.subject_pending',
             '@Editorial/email/comment_pending.html.twig',
             [
@@ -51,7 +51,7 @@ readonly class CommentNotificationService
             return;
         }
 
-        $this->mail->send(
+        $this->mailService->send(
             $author->getEmail(),
             'editorial.mail.comment.subject_approved',
             '@Editorial/email/comment_approved.html.twig',

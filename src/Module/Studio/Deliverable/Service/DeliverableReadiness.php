@@ -27,7 +27,7 @@ final readonly class DeliverableReadiness
 {
     public function __construct(
         private PostPictures $pictures,
-        private DocumentRepository $documents,
+        private DocumentRepository $documentRepository,
         private DeliverablePlaceholders $placeholders,
         private DeckPictures $deckPictures,
     ) {}
@@ -73,7 +73,7 @@ final readonly class DeliverableReadiness
         }
 
         $withheld = [];
-        foreach ($this->documents->findBy(['id' => $ids]) as $document) {
+        foreach ($this->documentRepository->findBy(['id' => $ids]) as $document) {
             if (DocumentStatusEnum::Published === $document->getStatus()) {
                 continue;
             }

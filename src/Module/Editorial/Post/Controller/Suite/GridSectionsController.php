@@ -47,7 +47,7 @@ final class GridSectionsController extends AbstractController
     private const int MAX_NAME = 120;
 
     public function __construct(
-        private readonly GridSectionRepository $sections,
+        private readonly GridSectionRepository $gridSectionRepository,
         private readonly GridNormalizer $gridNormalizer,
         private readonly EntityManagerInterface $entityManager,
     ) {}
@@ -69,7 +69,7 @@ final class GridSectionsController extends AbstractController
             return $this->jsonInvalidInput(['name' => 'suite.posts.grid.sections.name_required']);
         }
 
-        if (count($this->sections->findOwnedBy($owner)) >= self::MAX_SECTIONS) {
+        if (count($this->gridSectionRepository->findOwnedBy($owner)) >= self::MAX_SECTIONS) {
             return $this->jsonInvalidInput(['name' => 'suite.posts.grid.sections.too_many']);
         }
 
@@ -95,7 +95,7 @@ final class GridSectionsController extends AbstractController
     #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function delete(int $id): JsonResponse
     {
-        $section = $this->sections->find($id);
+        $section = $this->gridSectionRepository->find($id);
         if (!$section instanceof GridSectionInterface || $section->getOwner()?->getId() !== $this->owner()->getId()) {
             return $this->jsonNotFound();
         }
@@ -116,7 +116,7 @@ final class GridSectionsController extends AbstractController
                 'zones' => $section->getLayout(),
                 'content' => $section->getContent(),
             ],
-            $this->sections->findOwnedBy($this->owner()),
+            $this->gridSectionRepository->findOwnedBy($this->owner()),
         );
     }
 

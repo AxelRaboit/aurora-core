@@ -49,7 +49,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceFileRepository $files;
+    private SpaceFileRepository $spaceFileRepository;
 
     private User $admin;
 
@@ -68,7 +68,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->files = $container->get(SpaceFileRepository::class);
+        $this->spaceFileRepository = $container->get(SpaceFileRepository::class);
 
         // The upload limiter counts per hour and outlives the process.
         $this->resetRateLimiter('space_guest_upload');
@@ -113,7 +113,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
         $this->send($url, $this->aFile('logo.jpg'));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertSame(0, $this->files->count(['space' => $space]));
+        self::assertSame(0, $this->spaceFileRepository->count(['space' => $space]));
     }
 
     /**
@@ -137,7 +137,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
         self::assertSame('Camille, gérante', $listed[0]['author'], 'the label, never the address');
         self::assertArrayNotHasKey('documentId', $listed[0]);
 
-        $file = $this->files->findOneBy(['space' => $space]);
+        $file = $this->spaceFileRepository->findOneBy(['space' => $space]);
         self::assertInstanceOf(SpaceFile::class, $file);
         self::assertTrue($file->isFromClient());
         self::assertTrue($file->isShownToClient());
@@ -203,7 +203,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
         $this->send(sprintf('/spaces/%s/%s', $preview->getSelector(), (string) $preview->getPlainToken()), $this->aFile('logo.jpg'));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertSame(0, $this->files->count(['space' => $space]));
+        self::assertSame(0, $this->spaceFileRepository->count(['space' => $space]));
     }
 
     /** Without the header the page's own requests carry, another site's form could post here. */
@@ -216,7 +216,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
         $this->client->request('POST', (string) parse_url($url, PHP_URL_PATH).'/files', [], ['file' => $this->aFile('logo.jpg')]);
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertSame(0, $this->files->count(['space' => $space]));
+        self::assertSame(0, $this->spaceFileRepository->count(['space' => $space]));
     }
 
     /** The guest policy reads the bytes: an SVG named like a photo is refused with a sentence. */
@@ -231,7 +231,7 @@ final class SpaceClientFileUploadTest extends IntegrationTestCase
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         self::assertSame('studio.public.space.errors.upload_type_refused', $this->payload()['errors']['file']);
-        self::assertSame(0, $this->files->count(['space' => $space]));
+        self::assertSame(0, $this->spaceFileRepository->count(['space' => $space]));
     }
 
     /**

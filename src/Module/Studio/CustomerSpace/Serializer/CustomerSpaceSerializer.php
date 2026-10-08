@@ -17,7 +17,7 @@ class CustomerSpaceSerializer implements CustomerSpaceSerializerInterface
 {
     // Optional so a project that builds this serializer by hand keeps working;
     // without it the team loads member by member, as it used to.
-    public function __construct(protected readonly ?CustomerSpaceRepository $spaces = null) {}
+    public function __construct(protected readonly ?CustomerSpaceRepository $spaceRepository = null) {}
 
     /** @return array<string, mixed> */
     public function serialize(CustomerSpaceInterface $space): array
@@ -50,7 +50,7 @@ class CustomerSpaceSerializer implements CustomerSpaceSerializerInterface
     /** @return list<array{userId: int|null, name: string, email: string, role: string}> */
     private function members(CustomerSpaceInterface $space): array
     {
-        $this->spaces?->warmTeam($space);
+        $this->spaceRepository?->warmTeam($space);
 
         return array_values(array_map(
             static function (CustomerSpaceMemberInterface $member): array {

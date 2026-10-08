@@ -153,24 +153,24 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly UserRepository $userRepository,
         private readonly SpaceContentItemManagerInterface $contentItems,
         private readonly SpaceContentAttachmentManagerInterface $contentAttachments,
-        private readonly DocumentRepository $documents,
+        private readonly DocumentRepository $documentRepository,
         private readonly SpaceContentColumnManagerInterface $contentColumnManager,
-        private readonly SpaceContentColumnRepository $contentColumns,
+        private readonly SpaceContentColumnRepository $columnRepository,
         private readonly ContractTemplateManagerInterface $templates,
         private readonly ContractTemplateRepository $templateRepository,
         private readonly ContractManagerInterface $contracts,
         private readonly ContractRepository $contractRepository,
-        private readonly SettingRepository $settings,
+        private readonly SettingRepository $settingRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly SpaceResourceRepository $spaceResources,
+        private readonly SpaceResourceRepository $spaceResourceRepository,
         private readonly SpaceResourceManagerInterface $spaceResourceManager,
         private readonly SpaceAccessLinkManagerInterface $accessLinks,
         private readonly SpaceAccessLinkRepository $accessLinkRepository,
         private readonly SpaceChatChannelManagerInterface $chatChannels,
         private readonly DriveLock $driveLock,
-        private readonly AuditLogger $audit,
-        private readonly ContractPdfGenerator $pdf,
-        private readonly SpaceNoteSpaceProvider $noteSpaces,
+        private readonly AuditLogger $auditLogger,
+        private readonly ContractPdfGenerator $pdfGenerator,
+        private readonly SpaceNoteSpaceProvider $spaceNoteSpaceProvider,
         private readonly NoteSpaceAccess $noteSpaceAccess,
         private readonly MarkdownNoteManagerInterface $markdownNotes,
         private readonly MarkdownNoteInputFactoryInterface $markdownNoteInputs,
@@ -656,7 +656,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     private function seedTrash(CustomerInterface $jean): void
     {
         $social = $this->spaceRepository->findOneBy(['name' => 'Atelier Dupont - Réseaux sociaux']);
-        $columns = $social instanceof CustomerSpaceInterface ? $this->contentColumns->findForSpace($social) : [];
+        $columns = $social instanceof CustomerSpaceInterface ? $this->columnRepository->findForSpace($social) : [];
 
         if ($social instanceof CustomerSpaceInterface && [] !== $columns
             && null === $this->entityManager->getRepository(SpaceContentItem::class)->findOneBy(['space' => $social, 'title' => 'Promo de printemps'])) {
@@ -695,7 +695,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     private function seedClientFile(): void
     {
         $social = $this->spaceRepository->findOneBy(['name' => 'Atelier Dupont - Réseaux sociaux']);
-        $document = $this->documents->findOneBy(['title' => "Photo d'équipe - Séminaire 2025"]);
+        $document = $this->documentRepository->findOneBy(['title' => "Photo d'équipe - Séminaire 2025"]);
 
         if (!$social instanceof CustomerSpaceInterface || !$document instanceof Document) {
             return;
@@ -733,7 +733,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function seedBoard(CustomerSpaceInterface $space): void
     {
-        if ([] === $this->contentColumns->findForSpace($space)) {
+        if ([] === $this->columnRepository->findForSpace($space)) {
             return;
         }
 
@@ -751,7 +751,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             colourSlot: 8,
         ));
 
-        $columns = $this->contentColumns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
 
         // "Programmé" shown by hand: a new space shows the client only the
         // review and what is published, and this client wants to see the
@@ -1209,7 +1209,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function seedResources(CustomerSpaceInterface $space, array $rows): void
     {
-        if ([] !== $this->spaceResources->findForSpace($space)) {
+        if ([] !== $this->spaceResourceRepository->findForSpace($space)) {
             return;
         }
 
@@ -1253,7 +1253,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function seedProspectBoard(CustomerSpaceInterface $space): void
     {
-        $columns = $this->contentColumns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
 
         if ([] === $columns) {
             return;
@@ -1324,7 +1324,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
-        $team = $this->noteSpaces->resolve($space);
+        $team = $this->spaceNoteSpaceProvider->resolve($space);
         $folder = null;
 
         foreach ($notes ?? $this->noteContents() as [$title, $pinned, $personal, $paragraphs]) {
@@ -1485,7 +1485,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         }
 
         foreach ($titles as $title => $visible) {
-            $document = $this->documents->findOneBy(['title' => $title]);
+            $document = $this->documentRepository->findOneBy(['title' => $title]);
 
             if (!$document instanceof Document) {
                 continue;
@@ -1530,7 +1530,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         }
 
         foreach ($titles as $title) {
-            $document = $this->documents->findOneBy(['title' => $title]);
+            $document = $this->documentRepository->findOneBy(['title' => $title]);
 
             if (!$document instanceof Document) {
                 continue;
@@ -1556,7 +1556,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     private function seedProviderIdentity(): void
     {
         foreach (self::PROVIDER as $key => $value) {
-            $this->settings->set(ApplicationParameterEnum::from($key)->value, $value);
+            $this->settingRepository->set(ApplicationParameterEnum::from($key)->value, $value);
         }
     }
 
@@ -1797,7 +1797,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     {
         $this->entityManager->flush();
 
-        $pdf = $this->pdf->generate($contract, $signatures);
+        $pdf = $this->pdfGenerator->generate($contract, $signatures);
         $contract->attachPdf($pdf['path'], $pdf['hash'], new DateTimeImmutable($at));
     }
 
@@ -1826,7 +1826,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $minute = 0;
         foreach ($events as $action => $at) {
             $at = new DateTimeImmutable($at)->modify(sprintf('+%d minutes', $minute++));
-            $this->audit->log('studio', $action, 'Contract', $contract->getId(), ['reference' => $contract->getReference()]);
+            $this->auditLogger->log('studio', $action, 'Contract', $contract->getId(), ['reference' => $contract->getReference()]);
 
             $connection->executeStatement(
                 "UPDATE core_audit_logs SET created_at = :at WHERE id = (SELECT MAX(id) FROM core_audit_logs WHERE entity_type = 'Contract' AND entity_id = :id AND action = :action)",

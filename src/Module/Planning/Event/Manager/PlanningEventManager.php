@@ -32,7 +32,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
         protected readonly RecurrenceEditor $recurrence,
-        protected readonly UserRepository $users,
+        protected readonly UserRepository $userRepository,
         protected readonly NotificationManagerInterface $notifications,
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly TranslatorInterface $translator,
@@ -395,7 +395,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         // nobody is dropped rather than refused: it means a stale list or a
         // hand-written request, and failing the save of an otherwise valid
         // event over it would be the wrong trade.
-        foreach ([] === $new ? [] : $this->users->findBy(['id' => $new]) as $user) {
+        foreach ([] === $new ? [] : $this->userRepository->findBy(['id' => $new]) as $user) {
             $attendee = new PlanningEventAttendee();
             $attendee->setUser($user);
             $event->addAttendee($attendee);

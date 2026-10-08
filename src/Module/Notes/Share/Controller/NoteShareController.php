@@ -5,14 +5,25 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Share\Controller;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
+use Aurora\Core\Http\JsonRequestTrait;
+use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\StoredFileResponder;
+use Aurora\Module\Notes\Live\Service\NoteLiveHub;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
+use Aurora\Module\Notes\NotesContext;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Service\SharedNoteScope;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
@@ -28,18 +39,41 @@ use Symfony\Component\Routing\Attribute\Route;
  * - **Every failure looks the same.** Unknown, expired and revoked tokens all
  *   render one page. Telling them apart tells a stranger which guesses landed.
  *
- * Read-only, and there is no write route to gate: see
- * `project_notes_share_link_read_only` for what is deliberately absent, the
- * rate limit included.
+ * **A link can now write**, if somebody ticked the box when making it. That
+ * makes this a write endpoint with no account behind it, so three things hold
+ * it in place and all three are enforced here:
+ *
+ * - **A writing link writes its own note, never its scope.** `includeLinked`
+ *   reaches most of a vault in three hops; it widens what a share *shows* and
+ *   nothing else. {@see MarkdownNoteShareLinkInterface::canWriteNote()} is the
+ *   single place that answers the question.
+ * - **A rate limit on the write route**, keyed on the client IP. The outer
+ *   wall only, since an attacker rotates addresses; the inner one is that
+ *   every write keeps the previous state as a version first, so nothing a
+ *   flood does is unrecoverable.
+ * - **Only the text.** Title and body go through
+ *   {@see MarkdownNoteManagerInterface::updateText()}, which cannot refile the
+ *   note, retag it, or reach another row.
  */
 #[Route('/notes/share', name: 'notes_share')]
 final class NoteShareController extends AbstractController
 {
+    use JsonRequestTrait;
+    use JsonResponseTrait;
+
     public function __construct(
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly SharedNoteScope $scope,
-        private readonly MarkdownNoteImageService $images,
+        private readonly MarkdownNoteImageService $imageService,
         private readonly StoredFileResponder $storedFileResponder,
+        private readonly MarkdownNoteManagerInterface $noteManager,
+        private readonly MarkdownNoteHistory $history,
+        // Autowired by parameter name: `$notesShareWriteLimiter` resolves to
+        // the `notes_share_write` limiter declared in config, the way the
+        // contract pages reach theirs.
+        private readonly RateLimiterFactoryInterface $notesShareWriteLimiter,
+        private readonly NoteLiveHub $liveHub,
+        private readonly NotesContext $notesContext,
     ) {}
 
     /**
@@ -130,7 +164,7 @@ final class NoteShareController extends AbstractController
         // The bucket is the one of the note's space: a note in a shared space
         // stores its images there, not with its author - who may no longer
         // exist anyway.
-        $key = $this->images->keyOrNull($filename, $this->images->bucketOf($link->getNote()));
+        $key = $this->imageService->keyOrNull($filename, $this->imageService->bucketOf($link->getNote()));
 
         if (null === $key) {
             throw $this->createNotFoundException();
@@ -140,10 +174,88 @@ final class NoteShareController extends AbstractController
     }
 
     /**
-     * @param list<MarkdownNoteInterface> $scope the link's notes, walked once by the caller
-     *
      * @return array<string, mixed>
      */
+    /**
+     * A guest rewriting the note their link opens.
+     *
+     * The order of the checks is the point. The limiter runs **before** the
+     * token is looked up, so a flood of guesses costs one counter rather than
+     * one query each. Then the link has to resolve, then it has to be the
+     * link's own note and the link has to be allowed to write - all three
+     * answered by the entity, not here. Only then is the payload read.
+     *
+     * Conflicts behave like the back office's: a save that started from an
+     * outdated version is refused with a 409 carrying the current one, and the
+     * page decides. `force` goes through, as it does inside.
+     */
+    #[Route(
+        '/{token}/{id}/save',
+        name: '_save',
+        requirements: ['token' => '[A-Za-z0-9]{32,64}', 'id' => '\d+'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function save(string $token, int $id, Request $request): JsonResponse
+    {
+        // Switched off for the installation: an unauthenticated write left
+        // running by accident is the one thing nobody wants, so it is refused
+        // before anything else - including before the limiter, which has
+        // nothing to protect once the door is shut.
+        if (!$this->notesContext->isCollaborationEnabled()) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$this->notesShareWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('notes.markdown.share.errors.too_many_writes', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $link = $this->shareLinks->resolveUsable($token);
+        if (!$link instanceof MarkdownNoteShareLinkInterface) {
+            return $this->jsonNotFound();
+        }
+
+        // The link's own note, taken from the link and not from the id: the
+        // id is only ever checked against it. Deliberately **not** the share's
+        // scope - `notesFor()` reads and decrypts the owner's whole notebook
+        // to follow `[[links]]`, and no note it finds that way is writable
+        // anyway. An unauthenticated request should touch as little of
+        // somebody's notes as the answer needs.
+        $note = $link->getNote();
+        if (!$link->canWriteNote($note, new DateTimeImmutable()) || $note->getId() !== $id) {
+            return $this->jsonNotFound();
+        }
+
+        $payload = $this->decodeJson($request);
+        $title = $this->text($payload['title'] ?? null);
+        $content = $this->text($payload['content'] ?? null);
+
+        $version = isset($payload['version']) && is_numeric($payload['version']) ? (int) $payload['version'] : null;
+        $force = true === ($payload['force'] ?? false);
+
+        if (!$force && null !== $version && $version !== $note->getVersion()) {
+            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true, 'version' => $note->getVersion()]);
+        }
+
+        // The state about to be replaced becomes a version first, and it is
+        // recorded as written through this link: with no account behind the
+        // write, the link is the only thing that can name whoever did it.
+        $this->history->beforeChange($note, $title, $content, null, $link);
+
+        $this->noteManager->updateText($note, $title, $content);
+
+        // The people inside see the guest's save arrive, named by the link
+        // they came through - which is the only name there is.
+        $this->liveHub->publishChanged($note, $link->getRecipientEmail() ?: ($link->getLabel() ?: null));
+
+        return $this->jsonSuccess(['version' => $note->getVersion()]);
+    }
+
+    /** A field of the payload as text, or null when it was not sent. */
+    private function text(mixed $value): ?string
+    {
+        return is_string($value) ? $value : null;
+    }
+
     private function pageView(MarkdownNoteShareLinkInterface $link, MarkdownNoteInterface $note, array $scope): array
     {
         $token = $link->getToken();
@@ -178,6 +290,15 @@ final class NoteShareController extends AbstractController
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            // Whether this page may write, and where to. Both come from the
+            // link, never from the request: the page is told what it may do
+            // rather than asked to find out.
+            'canWrite' => $this->notesContext->isCollaborationEnabled() && $link->canWriteNote($note, new DateTimeImmutable()),
+            'saveNotePath' => $this->generateUrl('notes_share_save', [
+                'token' => $token,
+                'id' => (int) $note->getId(),
+            ]),
+            'noteVersion' => $note->getVersion(),
             'noteCount' => count($scope),
             // The list is handed to the page so a share carrying several
             // notes can be navigated, and it carries titles and ids only -

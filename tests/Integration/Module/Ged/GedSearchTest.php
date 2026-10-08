@@ -39,7 +39,7 @@ final class GedSearchTest extends IntegrationTestCase
 
     private GedSuiteSearchProvider $provider;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     /** @var list<object> */
     private array $created = [];
@@ -54,7 +54,7 @@ final class GedSearchTest extends IntegrationTestCase
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->provider = $container->get(GedSuiteSearchProvider::class);
-        $this->settings = $container->get(SettingRepository::class);
+        $this->settingRepository = $container->get(SettingRepository::class);
 
         $this->needle = 'licorne'.bin2hex(random_bytes(4));
 
@@ -80,7 +80,7 @@ final class GedSearchTest extends IntegrationTestCase
         $this->entityManager->flush();
         $this->created = [];
 
-        $this->settings->set(ModuleParameterEnum::GedDocuments->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::GedDocuments->value, '1');
 
         parent::tearDown();
     }
@@ -104,7 +104,7 @@ final class GedSearchTest extends IntegrationTestCase
     public function testTheModuleSwitchedOffAnswersNothing(): void
     {
         $this->client->loginUser($this->accountWith(['ged.documents.view']), 'admin');
-        $this->settings->set(ModuleParameterEnum::GedDocuments->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::GedDocuments->value, '0');
 
         self::assertSame([], $this->provider->search($this->needle)['media'] ?? []);
     }

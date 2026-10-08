@@ -33,7 +33,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
 {
     private EntityManagerInterface $entityManager;
 
-    private PlanningEventRepository $events;
+    private PlanningEventRepository $eventRepository;
 
     private Planning $planning;
 
@@ -42,7 +42,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
         parent::setUp();
 
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->events = static::getContainer()->get(PlanningEventRepository::class);
+        $this->eventRepository = static::getContainer()->get(PlanningEventRepository::class);
 
         $this->planning = new Planning();
         $this->planning->setName('Test');
@@ -79,7 +79,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
      */
     private function titlesInAugust(): array
     {
-        $found = $this->events->findSinglesInWindow(
+        $found = $this->eventRepository->findSinglesInWindow(
             [(int) $this->planning->getId()],
             new DateTimeImmutable('2026-08-01 00:00'),
             new DateTimeImmutable('2026-09-01 00:00'),
@@ -144,7 +144,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
     {
         $this->event('Réunion', '2026-08-14 14:00', '2026-08-14 15:30');
 
-        self::assertSame([], $this->events->findSinglesInWindow(
+        self::assertSame([], $this->eventRepository->findSinglesInWindow(
             [],
             new DateTimeImmutable('2026-08-01 00:00'),
             new DateTimeImmutable('2026-09-01 00:00'),

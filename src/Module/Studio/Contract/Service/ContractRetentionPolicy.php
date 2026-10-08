@@ -33,12 +33,12 @@ final readonly class ContractRetentionPolicy
     public const int MINIMUM_YEARS = 5;
 
     public function __construct(
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
     ) {}
 
     public function years(): int
     {
-        return max(self::MINIMUM_YEARS, (int) $this->settings->getOrDefault(ApplicationParameterEnum::StudioContractRetentionYears));
+        return max(self::MINIMUM_YEARS, (int) $this->settingRepository->getOrDefault(ApplicationParameterEnum::StudioContractRetentionYears));
     }
 
     /** The day the evidence stops being required, or null before the seal. */

@@ -33,12 +33,12 @@ class ContractSerializer implements ContractSerializerInterface
 {
     public function __construct(
         protected readonly ContractSeal $seal,
-        protected readonly ContractAccessLinkRepository $links,
-        protected readonly ContractRetentionPolicy $retention,
-        protected readonly ContractRepository $contracts,
+        protected readonly ContractAccessLinkRepository $accessLinkRepository,
+        protected readonly ContractRetentionPolicy $contractRetentionPolicy,
+        protected readonly ContractRepository $contractRepository,
         protected readonly ContractSignedDocument $signedDocument,
-        protected readonly ContractSignatureRepository $signatures,
-        protected readonly AuditLogRepository $auditLogs,
+        protected readonly ContractSignatureRepository $contractSignatureRepository,
+        protected readonly AuditLogRepository $auditLogRepository,
         protected readonly TranslatorInterface $translator,
     ) {}
 
@@ -47,14 +47,14 @@ class ContractSerializer implements ContractSerializerInterface
     {
         return $this->row(
             $contract,
-            $this->links->findActiveFor($contract),
+            $this->accessLinkRepository->findActiveFor($contract),
             $this->activityOf([$contract])[(int) $contract->getId()] ?? [],
         );
     }
 
     public function serializeMany(array $contracts): array
     {
-        $links = $this->links->findActiveForContracts($contracts);
+        $links = $this->accessLinkRepository->findActiveForContracts($contracts);
         $activity = $this->activityOf($contracts);
 
         return array_map(
@@ -79,11 +79,11 @@ class ContractSerializer implements ContractSerializerInterface
     {
         $activity = [];
 
-        foreach ($this->links->latestActivityForContracts($contracts) as $id => $at) {
+        foreach ($this->accessLinkRepository->latestActivityForContracts($contracts) as $id => $at) {
             $activity[$id][] = $at;
         }
 
-        foreach ($this->signatures->latestSignedAtForContracts($contracts) as $id => $at) {
+        foreach ($this->contractSignatureRepository->latestSignedAtForContracts($contracts) as $id => $at) {
             $activity[$id][] = $at;
         }
 
@@ -110,7 +110,7 @@ class ContractSerializer implements ContractSerializerInterface
             'step' => $this->step($contract),
             // Sealed contracts can be deleted once their retention has run
             // out, drafts at any time; the screen only offers what will work.
-            'isDeletable' => !$contract->isFrozen() || $this->retention->hasElapsed($contract),
+            'isDeletable' => !$contract->isFrozen() || $this->contractRetentionPolicy->hasElapsed($contract),
             // Where a first send would go, so the confirmation can say it.
             'customerEmail' => $customer->getContractualEmail(),
             'lastActivityAt' => $this->lastActivity($contract, $activity)->format(DATE_ATOM),
@@ -146,7 +146,7 @@ class ContractSerializer implements ContractSerializerInterface
             // The day the evidence stops being required, computed from the
             // policy in force rather than stored: a retention that changed
             // would otherwise leave old rows quoting the old rule.
-            'retainedUntil' => $this->retention->until($contract)?->format(DATE_ATOM),
+            'retainedUntil' => $this->contractRetentionPolicy->until($contract)?->format(DATE_ATOM),
             // What this document changes, if anything. The reference comes
             // from the copy on the row rather than through the relation, so an
             // amendment whose parent was deleted after its retention still
@@ -193,7 +193,7 @@ class ContractSerializer implements ContractSerializerInterface
                     'statusLabel' => $amendment->getStatus()->getLabel(),
                     'frozenAt' => $amendment->getFrozenAt()?->format(DATE_ATOM),
                 ],
-                $this->contracts->findAmendmentsOf($contract),
+                $this->contractRepository->findAmendmentsOf($contract),
             ),
             'signatures' => $this->signatures($contract),
             'history' => $this->history($contract),
@@ -278,7 +278,7 @@ class ContractSerializer implements ContractSerializerInterface
             'codeVerifiedAt' => $signature->getChallengeVerifiedAt()?->format(DATE_ATOM),
             'byUser' => $signature->getUser()?->getName(),
             'hashMatches' => $signature->getSignedContentHash() === $contract->getContentHash(),
-        ], $this->signatures->findForContract($contract));
+        ], $this->contractSignatureRepository->findForContract($contract));
     }
 
     /**
@@ -292,7 +292,7 @@ class ContractSerializer implements ContractSerializerInterface
             return [];
         }
 
-        $page = $this->auditLogs->findPaginatedForEntity('Contract', $contract->getId(), 1, 50);
+        $page = $this->auditLogRepository->findPaginatedForEntity('Contract', $contract->getId(), 1, 50);
 
         return array_map(fn (AuditLogInterface $log): array => [
             'label' => $this->translator->trans('suite.audit.actions.'.$log->getModule().'.'.$log->getAction()),

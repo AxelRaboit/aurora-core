@@ -8,6 +8,9 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Share\Entity\AbstractMarkdownNoteMember;
+use Aurora\Module\Notes\Share\Enum\NoteMemberRoleEnum;
+use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMemberInterface;
@@ -34,6 +37,15 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
  * No special pass for administrators on the **content**: they have the
  * module's rights (create, publish), not other people's private notebooks.
  * Somebody's notebook stays theirs.
+ *
+ * **A note can also be handed over on its own**, to somebody who is not in
+ * its space at all - see {@see AbstractMarkdownNoteMember}.
+ * That grant only ever adds, and it only reaches the text: reading the note,
+ * and writing it when the grant says editor. Everything that decides where
+ * the note *lives* - filing it, moving it, trashing it, erasing it, making a
+ * template of it - stays with the space, through
+ * {@see self::canAdministerNote()}. Giving one page away is not giving away a
+ * row of a notebook nobody showed you.
  */
 final readonly class NoteSpaceAccess
 {
@@ -45,9 +57,10 @@ final readonly class NoteSpaceAccess
 
     public function __construct(
         private AuthorizationCheckerInterface $authorization,
-        private NoteSpaceRepository $spaces,
-        private MarkdownNoteRepository $notes,
-        private NoteFolderRepository $folders,
+        private NoteSpaceRepository $spaceRepository,
+        private MarkdownNoteRepository $noteRepository,
+        private NoteFolderRepository $folderRepository,
+        private MarkdownNoteMemberRepository $memberRepository,
         private EntityManagerInterface $entityManager,
     ) {}
 
@@ -55,7 +68,7 @@ final readonly class NoteSpaceAccess
     {
         $needsMembership = !$space->isPersonal() && !$this->isOwner($user, $space) && NoteSpaceAccessEnum::Private !== $space->getAccess();
 
-        return $this->roleWith($user, $space, $needsMembership ? $this->spaces->findMembership($space, $user) : null);
+        return $this->roleWith($user, $space, $needsMembership ? $this->spaceRepository->findMembership($space, $user) : null);
     }
 
     /**
@@ -71,7 +84,7 @@ final readonly class NoteSpaceAccess
     public function rolesFor(CoreUserInterface $user, array $spaces): array
     {
         $memberships = [];
-        foreach ($this->spaces->findMembershipsOf($user, $spaces) as $membership) {
+        foreach ($this->spaceRepository->findMembershipsOf($user, $spaces) as $membership) {
             $memberships[(int) $membership->getSpace()->getId()] = $membership;
         }
 
@@ -153,14 +166,51 @@ final readonly class NoteSpaceAccess
         return !$space->isPersonal() && $this->canManage($user, $space) && $this->authorization->isGranted(self::PUBLISH);
     }
 
+    /** The space opens it, or the note was handed over, whatever the role. */
     public function canReadNote(CoreUserInterface $user, MarkdownNoteInterface $note): bool
     {
-        return $this->canRead($user, $note->getSpace());
+        if ($this->canRead($user, $note->getSpace())) {
+            return true;
+        }
+
+        return $this->noteRoleIn($user, $note) instanceof NoteMemberRoleEnum;
     }
 
+    /**
+     * Writing the note's **text**: its title, its body, its tags, its banner.
+     *
+     * Not where it lives: see {@see self::canAdministerNote()}.
+     */
     public function canWriteNote(CoreUserInterface $user, MarkdownNoteInterface $note): bool
     {
+        if ($this->canWrite($user, $note->getSpace())) {
+            return true;
+        }
+
+        return true === $this->noteRoleIn($user, $note)?->canWrite();
+    }
+
+    /**
+     * Deciding what becomes of the note: filing it, moving it, trashing it,
+     * erasing it for good, making it a template, copying it.
+     *
+     * **The space alone, always.** Each of those acts on the notebook and not
+     * on the page: a move changes which space holds the row, a purge destroys
+     * it, a template adds it to a list somebody else reads. Somebody who was
+     * handed one note has no standing over any of that, and granting it would
+     * have turned "I shared a page with you" into "you may move it into your
+     * own space", which is how a note changes hands without anybody deciding
+     * it.
+     */
+    public function canAdministerNote(CoreUserInterface $user, MarkdownNoteInterface $note): bool
+    {
         return $this->canWrite($user, $note->getSpace());
+    }
+
+    /** A person's role on a note handed to them on its own, or null. */
+    public function noteRoleIn(CoreUserInterface $user, MarkdownNoteInterface $note): ?NoteMemberRoleEnum
+    {
+        return $this->memberRepository->roleFor($note, $user);
     }
 
     public function canWriteFolder(CoreUserInterface $user, NoteFolderInterface $folder): bool
@@ -171,53 +221,64 @@ final readonly class NoteSpaceAccess
     /** The note, not trashed, if the person can read it. */
     public function readableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        $note = $this->notes->findOneLiving($id);
+        $note = $this->noteRepository->findOneLiving($id);
 
         return $note instanceof MarkdownNoteInterface && $this->canReadNote($user, $note) ? $note : null;
     }
 
     /**
-     * The note if the person can write it - trash included: restoring or
-     * deleting for good is a write too.
+     * The note if the person can write its text - trash included, so that a
+     * restored note can be saved again right away.
      */
     public function writableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        $note = $this->notes->find($id);
+        $note = $this->noteRepository->find($id);
 
         return $note instanceof MarkdownNoteInterface && $this->canWriteNote($user, $note) ? $note : null;
     }
 
+    /**
+     * The note if the person decides what becomes of it - trash included:
+     * restoring and erasing for good are both answers to that question.
+     */
+    public function administrableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
+    {
+        $note = $this->noteRepository->find($id);
+
+        return $note instanceof MarkdownNoteInterface && $this->canAdministerNote($user, $note) ? $note : null;
+    }
+
     public function readableFolder(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        $folder = $this->folders->find($id);
+        $folder = $this->folderRepository->find($id);
 
         return $folder instanceof NoteFolderInterface && !$folder->isTrashed() && $this->canRead($user, $folder->getSpace()) ? $folder : null;
     }
 
     public function writableFolder(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        $folder = $this->folders->find($id);
+        $folder = $this->folderRepository->find($id);
 
         return $folder instanceof NoteFolderInterface && $this->canWriteFolder($user, $folder) ? $folder : null;
     }
 
     public function readableSpace(CoreUserInterface $user, int $id): ?NoteSpaceInterface
     {
-        $space = $this->spaces->find($id);
+        $space = $this->spaceRepository->find($id);
 
         return $space instanceof NoteSpaceInterface && $this->canRead($user, $space) ? $space : null;
     }
 
     public function writableSpace(CoreUserInterface $user, int $id): ?NoteSpaceInterface
     {
-        $space = $this->spaces->find($id);
+        $space = $this->spaceRepository->find($id);
 
         return $space instanceof NoteSpaceInterface && $this->canWrite($user, $space) ? $space : null;
     }
 
     public function managedSpace(CoreUserInterface $user, int $id): ?NoteSpaceInterface
     {
-        $space = $this->spaces->find($id);
+        $space = $this->spaceRepository->find($id);
 
         return $space instanceof NoteSpaceInterface && $this->canManage($user, $space) ? $space : null;
     }
@@ -231,7 +292,7 @@ final readonly class NoteSpaceAccess
      */
     public function personalSpace(CoreUserInterface $user): NoteSpaceInterface
     {
-        $space = $this->spaces->findPersonalFor($user);
+        $space = $this->spaceRepository->findPersonalFor($user);
 
         if ($space instanceof NoteSpaceInterface) {
             return $space;

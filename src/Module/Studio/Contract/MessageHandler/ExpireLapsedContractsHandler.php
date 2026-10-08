@@ -22,12 +22,12 @@ final readonly class ExpireLapsedContractsHandler
 {
     public function __construct(
         private ContractAccessLinkManagerInterface $links,
-        private StudioContext $studio,
+        private StudioContext $studioContext,
     ) {}
 
     public function __invoke(ExpireLapsedContractsMessage $message): void
     {
-        if (!$this->studio->areContractsEnabled()) {
+        if (!$this->studioContext->areContractsEnabled()) {
             return;
         }
 

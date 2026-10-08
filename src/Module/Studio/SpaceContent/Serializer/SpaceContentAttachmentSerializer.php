@@ -19,7 +19,7 @@ use const DATE_ATOM;
 class SpaceContentAttachmentSerializer implements SpaceContentAttachmentSerializerInterface
 {
     public function __construct(
-        protected readonly DocumentUrlGenerator $documentUrls,
+        protected readonly DocumentUrlGenerator $documentUrlGenerator,
         protected readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 

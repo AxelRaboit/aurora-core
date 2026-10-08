@@ -12,14 +12,14 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { User, Users } from "lucide-vue-next";
+import { Share2, User, Users } from "lucide-vue-next";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import { useDebounce } from "@/shared/composables/useDebounce.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import NoteTreeItem from "./NoteTreeItem.vue";
 import { folderIdsIn, useNoteTree } from "../composables/useNoteTree.js";
-import { sortSpaces, spaceLabel } from "../composables/noteSpaces.js";
+import { detachSharedNotes, sortSpaces, spaceLabel, spacesWithShared } from "../composables/noteSpaces.js";
 import { readExpanded, storeExpanded } from "../composables/expandedStore.js";
 
 const props = defineProps({
@@ -28,6 +28,13 @@ const props = defineProps({
     notes: { type: Array, default: () => [] },
     /** The readable spaces; the tree is split by them. */
     spaces: { type: Array, default: () => [] },
+    /**
+     * The notes handed to this reader one by one, as `id => role`.
+     *
+     * They live in spaces this reader does not have, so they are grouped
+     * apart rather than filed under a notebook that means nothing to them.
+     */
+    sharedNotes: { type: Object, default: () => ({}) },
     readNotePath: { type: String, required: true },
     /** The search in the text, server side: the bodies are encrypted. */
     searchPath: { type: String, default: "" },
@@ -41,7 +48,10 @@ const query = ref("");
 const searching = computed(() => "" !== query.value.trim());
 
 const foldersRef = computed(() => props.folders);
-const notesRef = computed(() => props.notes);
+// Detached first: a note handed over on its own is filed in a folder of a
+// space this reader does not have, and the tree only draws notes whose folder
+// it knows - so it would vanish with it.
+const notesRef = computed(() => detachSharedNotes(props.notes, props.sharedNotes));
 /**
  * The notes' text, searched on the server side, as in the panel: without it
  * the same search box found by body on one side and only by title on the
@@ -123,7 +133,7 @@ function onSelect(node) {
 
 /** The tree split by space; a top-level row tells its own. */
 const groups = computed(() => {
-    const spaces = sortSpaces(props.spaces);
+    const spaces = sortSpaces(spacesWithShared(props.spaces, props.sharedNotes));
 
     if (!spaces.length) return [{ space: null, nodes: tree.value }];
 
@@ -166,7 +176,7 @@ const showHeaders = computed(() => groups.value.some((group) => null !== group.s
                     class="mt-3 flex min-w-0 items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted first:mt-0"
                 >
                     <component
-                        :is="group.space.personal ? User : Users"
+                        :is="group.space.shared ? Share2 : (group.space.personal ? User : Users)"
                         class="h-3.5 w-3.5 shrink-0"
                         :style="group.space.color ? { color: group.space.color } : null"
                         :stroke-width="2"

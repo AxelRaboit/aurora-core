@@ -41,7 +41,7 @@ final readonly class BookingReserver
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private BookingSlotFinder $slots,
+        private BookingSlotFinder $bookingSlotFinder,
         private EventDispatcherInterface $dispatcher,
         private TranslatorInterface $translator,
         private LocaleContextInterface $localeContext,
@@ -59,7 +59,7 @@ final readonly class BookingReserver
         return $this->entityManager->wrapInTransaction(function () use ($booking, $name, $description, $url): bool {
             $this->lock();
 
-            if (!$this->slots->isFree($booking->getStartAt(), $booking->getEndAt())) {
+            if (!$this->bookingSlotFinder->isFree($booking->getStartAt(), $booking->getEndAt())) {
                 return false;
             }
 

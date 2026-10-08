@@ -49,8 +49,8 @@ use function sprintf;
 final class SetPostRevealCommand extends Command
 {
     public function __construct(
-        private readonly PostRepository $posts,
-        private readonly GridNormalizer $grid,
+        private readonly PostRepository $postRepository,
+        private readonly GridNormalizer $gridNormalizer,
         private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -88,7 +88,7 @@ final class SetPostRevealCommand extends Command
         $rows = [];
         $touched = 0;
 
-        foreach ($this->posts->findAll() as $post) {
+        foreach ($this->postRepository->findAll() as $post) {
             $type = $post->getPostType()->getSlug();
 
             if ([] !== $types && !in_array($type, $types, true)) {
@@ -109,7 +109,7 @@ final class SetPostRevealCommand extends Command
                 $layout['zones'] = $this->pairUp(is_array($layout['zones'] ?? null) ? $layout['zones'] : []);
             }
 
-            $layout = $this->grid->normalizeLayout($layout);
+            $layout = $this->gridNormalizer->normalizeLayout($layout);
             $after = $this->summarise($layout);
 
             if ($before === $after) {

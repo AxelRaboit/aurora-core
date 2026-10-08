@@ -34,9 +34,9 @@ final class SpaceBoardTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
-    private SpaceContentItemRepository $items;
+    private SpaceContentItemRepository $itemRepository;
 
     protected function setUp(): void
     {
@@ -52,8 +52,8 @@ final class SpaceBoardTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
-        $this->items = $container->get(SpaceContentItemRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
+        $this->itemRepository = $container->get(SpaceContentItemRepository::class);
     }
 
     protected function tearDown(): void
@@ -71,7 +71,7 @@ final class SpaceBoardTest extends IntegrationTestCase
     {
         $space = $this->givenSpace();
 
-        $columns = $this->columns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
 
         // Five steps, in order, seeded at creation rather than on first visit:
         // a screen that seeds itself on a GET makes two tabs race to create the
@@ -149,7 +149,7 @@ final class SpaceBoardTest extends IntegrationTestCase
     public function testAnIdeaIsRecordedWithoutADate(): void
     {
         $space = $this->givenSpace();
-        $column = $this->columns->findForSpace($space)[0];
+        $column = $this->columnRepository->findForSpace($space)[0];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Portrait de l\'équipe',
@@ -171,7 +171,7 @@ final class SpaceBoardTest extends IntegrationTestCase
     public function testATypedHourIsReadInTheSpaceZone(): void
     {
         $space = $this->givenSpace('Europe/Madrid');
-        $column = $this->columns->findForSpace($space)[0];
+        $column = $this->columnRepository->findForSpace($space)[0];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Lancement',
@@ -191,7 +191,7 @@ final class SpaceBoardTest extends IntegrationTestCase
     public function testACardMovesBetweenStepsAndKeepsTheOrderSent(): void
     {
         $space = $this->givenSpace();
-        $columns = $this->columns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
 
         $first = $this->givenItem($space, $columns[0], 'Un');
         $second = $this->givenItem($space, $columns[0], 'Deux');
@@ -220,7 +220,7 @@ final class SpaceBoardTest extends IntegrationTestCase
         $mine = $this->givenSpace();
         $theirs = $this->givenSpace(customerName: 'Autre client', siret: '39860733100024');
 
-        $foreignColumn = $this->columns->findForSpace($theirs)[0];
+        $foreignColumn = $this->columnRepository->findForSpace($theirs)[0];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $mine->getId()), [
             'title' => 'Carte égarée',
@@ -231,7 +231,7 @@ final class SpaceBoardTest extends IntegrationTestCase
         // field, and nothing written.
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         self::assertArrayHasKey('columnId', $this->payload()['errors']);
-        self::assertSame(0, $this->items->countForSpace($mine));
+        self::assertSame(0, $this->itemRepository->countForSpace($mine));
     }
 
     public function testACardOfAnotherSpaceIsNotFoundUnderThisOne(): void
@@ -239,31 +239,31 @@ final class SpaceBoardTest extends IntegrationTestCase
         $mine = $this->givenSpace();
         $theirs = $this->givenSpace(customerName: 'Client voisin', siret: '44306184100047');
 
-        $foreign = $this->givenItem($theirs, $this->columns->findForSpace($theirs)[0], 'Pas à moi');
+        $foreign = $this->givenItem($theirs, $this->columnRepository->findForSpace($theirs)[0], 'Pas à moi');
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/delete', $mine->getId(), $foreign['id']));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertSame(1, $this->items->countForSpace($theirs));
+        self::assertSame(1, $this->itemRepository->countForSpace($theirs));
     }
 
     public function testAStepHoldingCardsIsNotDeleted(): void
     {
         $space = $this->givenSpace();
-        $column = $this->columns->findForSpace($space)[0];
+        $column = $this->columnRepository->findForSpace($space)[0];
         $this->givenItem($space, $column, 'Occupée');
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/%d/delete', $space->getId(), $column->getId()));
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         self::assertArrayHasKey('column', $this->payload()['errors']);
-        self::assertCount(5, $this->columns->findForSpace($space));
+        self::assertCount(5, $this->columnRepository->findForSpace($space));
     }
 
     public function testAnEmptyStepIsDeleted(): void
     {
         $space = $this->givenSpace();
-        $column = $this->columns->findForSpace($space)[4];
+        $column = $this->columnRepository->findForSpace($space)[4];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/%d/delete', $space->getId(), $column->getId()));
 
@@ -282,7 +282,7 @@ final class SpaceBoardTest extends IntegrationTestCase
     public function testASpaceIsDeletedWithItsWholeBoard(): void
     {
         $space = $this->givenSpace();
-        $column = $this->columns->findForSpace($space)[0];
+        $column = $this->columnRepository->findForSpace($space)[0];
         $this->givenItem($space, $column, 'Emportée');
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/delete', $space->getId()));
@@ -290,8 +290,8 @@ final class SpaceBoardTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/force-delete', $space->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertSame([], $this->columns->findForSpace($space));
-        self::assertSame(0, $this->items->countForSpace($space));
+        self::assertSame([], $this->columnRepository->findForSpace($space));
+        self::assertSame(0, $this->itemRepository->countForSpace($space));
     }
 
     /** @return array<string, mixed> */

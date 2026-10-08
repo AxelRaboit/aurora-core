@@ -46,13 +46,13 @@ final class SignatureChallengeTest extends IntegrationTestCase
 {
     private KernelBrowser $client;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private ContractSignatureChallengeManagerInterface $challenges;
 
     private ContractSignatureChallengeRepository $challengeRepository;
 
-    private ContractAccessLinkRepository $links;
+    private ContractAccessLinkRepository $accessLinkRepository;
 
     private EntityManagerInterface $entityManager;
 
@@ -68,10 +68,10 @@ final class SignatureChallengeTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->links = $container->get(ContractAccessLinkRepository::class);
+        $this->accessLinkRepository = $container->get(ContractAccessLinkRepository::class);
         $this->challengeRepository = $container->get(ContractSignatureChallengeRepository::class);
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -161,7 +161,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
         }
 
         $this->entityManager->clear();
-        $stored = $this->challengeRepository->findLatestFor($this->links->findAll()[0]);
+        $stored = $this->challengeRepository->findLatestFor($this->accessLinkRepository->findAll()[0]);
         self::assertSame(AbstractContractSignatureChallenge::MAX_ATTEMPTS, $stored?->getAttempts());
     }
 
@@ -183,7 +183,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
         }
 
         $this->entityManager->clear();
-        $stored = $this->challengeRepository->findLatestFor($this->links->findAll()[0]);
+        $stored = $this->challengeRepository->findLatestFor($this->accessLinkRepository->findAll()[0]);
 
         self::assertGreaterThanOrEqual(1, $stored?->getAttempts());
     }
@@ -267,7 +267,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $fresh = $this->links->findActiveFor(
+        $fresh = $this->accessLinkRepository->findActiveFor(
             $this->entityManager->find(Contract::class, $contractId),
         );
 
@@ -303,7 +303,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/send', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
         self::assertInstanceOf(ContractAccessLinkInterface::class, $link);
 
         return $link;
@@ -311,10 +311,10 @@ final class SignatureChallengeTest extends IntegrationTestCase
 
     private function publishedTemplate(): ContractTemplateInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -322,7 +322,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
                 ]],
             ],
         ]));
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $template;
     }

@@ -38,9 +38,9 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceAccessLinkRepository $links;
+    private SpaceAccessLinkRepository $accessLinkRepository;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
     protected function setUp(): void
     {
@@ -56,8 +56,8 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->links = $container->get(SpaceAccessLinkRepository::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
+        $this->accessLinkRepository = $container->get(SpaceAccessLinkRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
     }
 
     protected function tearDown(): void
@@ -79,7 +79,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
         // The row keeps a hash and nothing else. Reading the list back cannot
         // reconstruct the address, which is the whole point of the design and
         // the reason the screen says "copy it now".
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
         self::assertSame(64, mb_strlen($link->getHashedToken()));
         self::assertStringNotContainsString($link->getHashedToken(), $url);
 
@@ -132,7 +132,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $url = $this->issue($space, 'camille@societe.test')['url'];
 
-        $selector = $this->links->findAll()[0]->getSelector();
+        $selector = $this->accessLinkRepository->findAll()[0]->getSelector();
 
         $guest = $this->asGuest();
         $guest->request('GET', sprintf('/spaces/%s/%s', $selector, str_repeat('a', 64)));
@@ -152,7 +152,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
     {
         $space = $this->givenSpace();
         $url = $this->issue($space, 'camille@societe.test')['url'];
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/%d/revoke', $space->getId(), $link->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -169,7 +169,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $url = $this->issue($space, 'camille@societe.test')['url'];
 
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
         $link->setExpiresAt(new DateTimeImmutable('-1 day'));
         $this->entityManager->flush();
 
@@ -188,7 +188,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
         $guest->request('GET', $this->pathOf($url));
 
         $this->entityManager->clear();
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
 
         // Two columns because they answer two questions: whether the mail ever
         // arrived, and whether somebody keeps coming back.
@@ -202,12 +202,12 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
         $theirs = $this->givenSpace('Voisin', '39860733100024');
 
         $this->issue($theirs, 'voisin@societe.test');
-        $foreign = $this->links->findForSpace($theirs)[0];
+        $foreign = $this->accessLinkRepository->findForSpace($theirs)[0];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/%d/revoke', $mine->getId(), $foreign->getId()));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertFalse($this->links->findForSpace($theirs)[0]->isRevoked());
+        self::assertFalse($this->accessLinkRepository->findForSpace($theirs)[0]->isRevoked());
     }
 
     public function testAnInvalidEmailIsRefusedUnderItsField(): void
@@ -221,7 +221,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         self::assertArrayHasKey('recipientEmail', $this->payload()['errors']);
-        self::assertSame([], $this->links->findAll());
+        self::assertSame([], $this->accessLinkRepository->findAll());
     }
 
     /**
@@ -286,7 +286,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
             'title' => $title,
             // Relecture: a new space only shows the client the Relecture
             // and Publié columns.
-            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
+            'columnId' => $this->columnRepository->findForSpace($space)[2]->getId(),
             'scheduledAt' => $scheduledAt,
         ]);
 

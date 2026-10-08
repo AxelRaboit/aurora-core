@@ -26,7 +26,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileInput, FileText, Folder, Globe, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
+import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileInput, FileText, Folder, Globe, Pin, PinOff, Plus, Settings2, Share2, Tag, Upload, User, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
@@ -39,7 +39,7 @@ import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { folderIdsIn, useNoteTree } from "./composables/useNoteTree.js";
 import { peekNoteDrag, readNoteDrag, startNoteDrag } from "./composables/noteDrag.js";
 import { dropZone, planDrop } from "./composables/noteDropPlan.js";
-import { sortSpaces, spaceLabel } from "./composables/noteSpaces.js";
+import { detachSharedNotes, sortSpaces, spaceLabel, spacesWithShared } from "./composables/noteSpaces.js";
 import { readExpanded, storeExpanded } from "./composables/expandedStore.js";
 import NoteTreeItem from "./components/NoteTreeItem.vue";
 
@@ -64,9 +64,10 @@ const {
     failed,
 } = useModulePanelData(FOLDERS_ENDPOINT, { key: "folders" });
 
-const { data: fetchedNotes } = useModulePanelData(NOTES_ENDPOINT, {
-    key: "notes",
-});
+// The whole payload rather than its `notes` key: the same answer carries the
+// roles of the notes handed over one by one, and a second call to the same
+// endpoint to read them would be a round trip for a field already in hand.
+const { data: fetchedList } = useModulePanelData(NOTES_ENDPOINT);
 
 /**
  * What the page announces wins over what the panel fetched.
@@ -77,9 +78,27 @@ const { data: fetchedNotes } = useModulePanelData(NOTES_ENDPOINT, {
  */
 const announcedFolders = ref(null);
 const announcedNotes = ref(null);
+const announcedSharedRoles = ref(null);
 
 const folders = computed(() => announcedFolders.value ?? fetchedFolders.value);
-const notes = computed(() => announcedNotes.value ?? fetchedNotes.value);
+
+/**
+ * The notes handed to this reader one by one, as `id => role`.
+ *
+ * Nothing else on screen can stand in for it: those notes live in spaces this
+ * reader does not have, so the usual question - what does the space allow -
+ * has no answer here.
+ */
+const sharedRoles = computed(
+    () => announcedSharedRoles.value ?? fetchedList.value?.sharedNotes ?? {},
+);
+
+const notes = computed(() =>
+    detachSharedNotes(
+        announcedNotes.value ?? fetchedList.value?.notes ?? [],
+        sharedRoles.value,
+    ),
+);
 
 const selectedKey = ref(null);
 const treeQuery = ref("");
@@ -296,7 +315,9 @@ const canCreateSpace = ref(false);
 /** Whether the Craft connection is open: a space's menu then offers the import. */
 const craftEnabled = ref(false);
 
-const spaces = computed(() => sortSpaces(announcedSpaces.value ?? fetchedSpaces.value ?? []));
+const spaces = computed(() =>
+    sortSpaces(spacesWithShared(announcedSpaces.value ?? fetchedSpaces.value ?? [], sharedRoles.value)),
+);
 
 onMounted(async () => {
     const payload = await request(SPACES_ENDPOINT, null, {
@@ -390,6 +411,16 @@ function spaceRoot(space) {
 }
 
 /** What a space header's menu offers. */
+/**
+ * What a group's header shows: one's own notebook, a shared space, or the
+ * notes somebody handed over one by one.
+ */
+function spaceIcon(space) {
+    if (space.shared) return Share2;
+
+    return space.personal ? User : Users;
+}
+
 function spaceActions(space) {
     return [
         ...(space.canWrite
@@ -853,6 +884,7 @@ onMounted(() => {
                 announcedFolders.value = detail.folders;
             }
             if (Array.isArray(detail?.spaces)) announcedSpaces.value = detail.spaces;
+            if (detail?.sharedNotes) announcedSharedRoles.value = detail.sharedNotes;
             if ("canCreateSpace" in (detail ?? {})) canCreateSpace.value = Boolean(detail.canCreateSpace);
             if ("craftEnabled" in (detail ?? {})) craftEnabled.value = Boolean(detail.craftEnabled);
 
@@ -1022,7 +1054,7 @@ onUnmounted(() => {
                         <ChevronDown v-if="isSpaceOpen(group.space)" class="h-3 w-3 shrink-0" :stroke-width="2" />
                         <ChevronRight v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
                         <component
-                            :is="group.space.personal ? User : Users"
+                            :is="spaceIcon(group.space)"
                             class="h-3.5 w-3.5 shrink-0"
                             :style="group.space.color ? { color: group.space.color } : null"
                             :stroke-width="2"
@@ -1070,8 +1102,12 @@ onUnmounted(() => {
                         <Settings2 class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
                     <!-- Take a single space away, or pour files into it: the
-                         two gestures of the panel's bar, limited to it. -->
+                         two gestures of the panel's bar, limited to it.
+
+                         Never on the handed-over group: it is not a space, so
+                         there is nothing to export and nowhere to import. -->
                     <AppRowActions
+                        v-if="!group.space.shared"
                         class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100 touch:opacity-100"
                         size="sm"
                         :data-space-menu="group.space.id"

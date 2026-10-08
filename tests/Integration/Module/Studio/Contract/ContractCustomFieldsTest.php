@@ -54,9 +54,9 @@ use function sprintf;
  */
 final class ContractCustomFieldsTest extends IntegrationTestCase
 {
-    private ContractManager $contracts;
+    private ContractManager $contractManager;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private EntityManagerInterface $entityManager;
 
@@ -69,7 +69,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
 
         $canonicalizer = new ContractCanonicalizer();
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -78,7 +78,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
             $container->get(ContractTemplatePreviewer::class),
         );
 
-        $this->contracts = new ContractManager(
+        $this->contractManager = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class), static::getContainer()->get(TranslatorInterface::class)),
@@ -110,7 +110,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
         $version = $this->publishedVersionAsking();
         $contract = $this->contractFor($version, ['acompte' => '40 %']);
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertStringContainsString('Un acompte de 40 % est dû à la signature.', (string) $contract->getRenderedHtml());
         // Recorded in the snapshot too: a later reader has to see the values
@@ -131,7 +131,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
         $this->expectException(FieldException::class);
 
         try {
-            $this->contracts->freeze($contract);
+            $this->contractManager->freeze($contract);
         } catch (FieldException $fieldException) {
             self::assertSame('customFields', $fieldException->getField());
             self::assertStringContainsString('acompte', $fieldException->getMessage());
@@ -151,7 +151,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
 
         $this->expectException(FieldException::class);
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
     }
 
     /**
@@ -163,7 +163,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
         $version = $this->publishedVersionAsking();
         $contract = $this->contractFor($version, ['acompte' => '<b>40 %</b>']);
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         $html = (string) $contract->getRenderedHtml();
 
@@ -177,7 +177,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
         $version = $this->publishedVersionAsking(false);
         $contract = $this->contractFor($version, []);
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertTrue($contract->isFrozen());
         self::assertSame([], $contract->getContentSnapshot()['customFields']);
@@ -185,7 +185,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
 
     private function publishedVersionAsking(bool $asking = true): ContractTemplateVersionInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         self::assertInstanceOf(ContractTemplateVersionInterface::class, $version);
@@ -194,7 +194,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
             ? 'Un acompte de {{contract.custom.acompte}} est dû à la signature.'
             : 'Le forfait est payable d\'avance.';
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -204,7 +204,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
             ],
         ]));
 
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $version;
     }
@@ -212,7 +212,7 @@ final class ContractCustomFieldsTest extends IntegrationTestCase
     /** @param array<string, string> $customFields */
     private function contractFor(ContractTemplateVersionInterface $version, array $customFields): ContractInterface
     {
-        return $this->contracts->create(new ContractInput(
+        return $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $version->getTemplate()->getId(),
             locale: 'fr',

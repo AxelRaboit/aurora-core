@@ -52,8 +52,8 @@ class ContractSignatureChallengeManager implements ContractSignatureChallengeMan
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly ContractSignatureChallengeRepository $challenges,
-        protected readonly MailService $mail,
+        protected readonly ContractSignatureChallengeRepository $challengeRepository,
+        protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
     ) {}
 
@@ -66,7 +66,7 @@ class ContractSignatureChallengeManager implements ContractSignatureChallengeMan
             throw new FieldException('code', $this->translator->trans('suite.studio.contracts.errors.contract_closed', [], null, $link->getContract()->getLocale()));
         }
 
-        $issued = $this->challenges->countIssuedSince($link, new DateTimeImmutable('-1 hour'));
+        $issued = $this->challengeRepository->countIssuedSince($link, new DateTimeImmutable('-1 hour'));
 
         if ($issued >= self::MAX_ISSUED_PER_HOUR) {
             throw new FieldException('code', $this->translator->trans('studio.public.sign.errors.too_many_codes', [], null, $link->getContract()->getLocale()));
@@ -87,7 +87,7 @@ class ContractSignatureChallengeManager implements ContractSignatureChallengeMan
 
         $contract = $link->getContract();
 
-        $this->mail->send(
+        $this->mailService->send(
             to: $challenge->getSentTo(),
             subjectKey: 'studio.email.signature_code.subject',
             template: '@Studio/email/signature_code.html.twig',
@@ -112,7 +112,7 @@ class ContractSignatureChallengeManager implements ContractSignatureChallengeMan
      */
     public function verify(ContractAccessLinkInterface $link, string $code): DateTimeImmutable
     {
-        $challenge = $this->challenges->findLatestFor($link);
+        $challenge = $this->challengeRepository->findLatestFor($link);
         $now = new DateTimeImmutable();
 
         if (!$challenge instanceof ContractSignatureChallengeInterface || !$challenge->isUsable($now)) {
@@ -151,7 +151,7 @@ class ContractSignatureChallengeManager implements ContractSignatureChallengeMan
      */
     public function recipientOf(ContractAccessLinkInterface $link): ?string
     {
-        return $this->challenges->findLatestFor($link)?->getSentTo();
+        return $this->challengeRepository->findLatestFor($link)?->getSentTo();
     }
 
     protected function createChallenge(): ContractSignatureChallengeInterface

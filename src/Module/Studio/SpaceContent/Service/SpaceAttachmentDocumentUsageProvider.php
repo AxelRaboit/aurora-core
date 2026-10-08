@@ -26,7 +26,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
-        private SpaceContentAttachmentRepository $attachments,
+        private SpaceContentAttachmentRepository $attachmentRepository,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
@@ -41,7 +41,7 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocume
     {
         $usages = [];
 
-        foreach ($this->attachments->findUsingDocument($documentId) as $attachment) {
+        foreach ($this->attachmentRepository->findUsingDocument($documentId) as $attachment) {
             $item = $attachment->getItem();
             // A card in the trash, or in a space in the trash, still holds its
             // files: a restore must find them. It is said, and not linked to,
@@ -77,6 +77,6 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocume
      */
     public function countUsagesFor(array $documentIds): array
     {
-        return $this->attachments->countByDocument($documentIds);
+        return $this->attachmentRepository->countByDocument($documentIds);
     }
 }

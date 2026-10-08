@@ -45,9 +45,9 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
-        protected readonly ContractAccessLinkRepository $links,
+        protected readonly ContractAccessLinkRepository $accessLinkRepository,
         protected readonly UrlGeneratorInterface $urlGenerator,
-        protected readonly MailService $mail,
+        protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractLinkLifetime $lifetime,
     ) {}
@@ -165,7 +165,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         // and the addresses handed out before are left alone until the mail
         // has gone: revoked first, a mail that failed left the customer's
         // only link dead and a new one nobody received.
-        $previousLinks = array_filter($this->links->findForContract($contract), static fn (ContractAccessLinkInterface $previous): bool => !$previous->isRevoked());
+        $previousLinks = array_filter($this->accessLinkRepository->findForContract($contract), static fn (ContractAccessLinkInterface $previous): bool => !$previous->isRevoked());
 
         $this->entityManager->persist($link);
         $this->entityManager->flush();
@@ -201,7 +201,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
 
     protected function sendLink(ContractAccessLinkInterface $link, ContractInterface $contract, string $url, string $subjectKey, string $template): void
     {
-        $this->mail->send(
+        $this->mailService->send(
             to: $link->getRecipientEmail(),
             subjectKey: $subjectKey,
             template: $template,
@@ -257,7 +257,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
     {
         $count = 0;
 
-        foreach ($this->links->findContractsWaitingWithoutActiveLink() as $contract) {
+        foreach ($this->accessLinkRepository->findContractsWaitingWithoutActiveLink() as $contract) {
             $contract->setStatus(ContractStatusEnum::Expired);
             ++$count;
 
@@ -280,7 +280,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
      */
     public function resolveUsable(string $selector, string $token): ?ContractAccessLinkInterface
     {
-        $link = $this->links->findBySelector($selector);
+        $link = $this->accessLinkRepository->findBySelector($selector);
 
         if (!$link instanceof ContractAccessLinkInterface) {
             return null;

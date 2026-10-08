@@ -43,11 +43,11 @@ final readonly class DeliverableEditorPreviews
 
     public function __construct(
         private Environment $twig,
-        private ThemeStyleRenderer $themeStyles,
+        private ThemeStyleRenderer $themeStyleRenderer,
         private GridViewBuilder $gridViewBuilder,
         private BannerViewBuilder $bannerViewBuilder,
         private LocaleContextInterface $localeContext,
-        private PlaceholderMarkExtension $placeholders,
+        private PlaceholderMarkExtension $placeholderMarkExtension,
         private DeliverablePageRenderer $pageRenderer,
     ) {}
 
@@ -73,7 +73,7 @@ final readonly class DeliverableEditorPreviews
 
         // The [passages to replace] highlighted, as in the page preview: the
         // author is the one looking.
-        return $this->placeholders->mark($this->twig->render(
+        return $this->placeholderMarkExtension->mark($this->twig->render(
             self::GRID_TEMPLATE,
             ['grid' => $this->gridViewBuilder->buildForPreview($layout, $content, $locale), 'locale' => $locale, 'editorPreview' => true],
         ));
@@ -86,7 +86,7 @@ final readonly class DeliverableEditorPreviews
         $texts = is_array($payload['texts'] ?? null) ? $payload['texts'] : [];
         $slide = is_int($payload['slide'] ?? null) ? $payload['slide'] : 0;
 
-        return '<style>'.$this->themeStyles->previewSurfaceCss(self::BANNER_PREVIEW_SELECTOR).'</style>'
+        return '<style>'.$this->themeStyleRenderer->previewSurfaceCss(self::BANNER_PREVIEW_SELECTOR).'</style>'
             .$this->twig->render(
                 self::BANNER_TEMPLATE,
                 ['banner' => $this->bannerViewBuilder->buildForEditor($layout, $texts, max(0, $slide))],

@@ -88,7 +88,7 @@ class ContractManager implements ContractManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
-        protected readonly ContractVariableResolver $variables,
+        protected readonly ContractVariableResolver $contractVariableResolver,
         protected readonly ContractDocumentRenderer $renderer,
         protected readonly ContractCanonicalizer $canonicalizer,
         protected readonly ContractSeal $seal,
@@ -98,7 +98,7 @@ class ContractManager implements ContractManagerInterface
         protected readonly ContractTemplateRepository $templateRepository,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractCustomFieldScanner $customFields,
-        protected readonly ContractRetentionPolicy $retention,
+        protected readonly ContractRetentionPolicy $contractRetentionPolicy,
         protected readonly ContractRepository $contractRepository,
     ) {}
 
@@ -414,7 +414,7 @@ class ContractManager implements ContractManagerInterface
 
     public function retentionYears(): int
     {
-        return $this->retention->years();
+        return $this->contractRetentionPolicy->years();
     }
 
     /**
@@ -428,8 +428,8 @@ class ContractManager implements ContractManagerInterface
      */
     protected function assertRetentionElapsed(ContractInterface $contract): void
     {
-        if (!$this->retention->hasElapsed($contract)) {
-            $until = $this->retention->until($contract);
+        if (!$this->contractRetentionPolicy->hasElapsed($contract)) {
+            $until = $this->contractRetentionPolicy->until($contract);
 
             throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.retention_not_elapsed', ['{date}' => $until?->format('d/m/Y') ?? '-']));
         }
@@ -462,8 +462,8 @@ class ContractManager implements ContractManagerInterface
      */
     public function preview(ContractInterface $contract): array
     {
-        $values = $this->variables->resolve($contract);
-        $deferred = $this->variables->deferredTokens();
+        $values = $this->contractVariableResolver->resolve($contract);
+        $deferred = $this->contractVariableResolver->deferredTokens();
         $shown = [...$values, ...$this->pendingPlaceholders($contract, $values, $deferred)];
 
         $html = '';
@@ -561,7 +561,7 @@ class ContractManager implements ContractManagerInterface
         // there is not something this screen can fix. Named as a settings
         // problem rather than as an unknown token, which is what it looks like
         // from the renderer's side.
-        $unsetProvider = $this->unsetProviderSettings($contract, $this->variables->providerValues());
+        $unsetProvider = $this->unsetProviderSettings($contract, $this->contractVariableResolver->providerValues());
 
         if ([] !== $unsetProvider) {
             throw new FieldException('bodyVersion', $this->translator->trans('suite.studio.contracts.errors.provider_settings_missing', ['{fields}' => implode(', ', $unsetProvider)]));
@@ -639,8 +639,8 @@ class ContractManager implements ContractManagerInterface
      */
     protected function renderDocument(ContractInterface $contract): array
     {
-        $values = $this->variables->resolve($contract);
-        $deferred = $this->variables->deferredTokens();
+        $values = $this->contractVariableResolver->resolve($contract);
+        $deferred = $this->contractVariableResolver->deferredTokens();
 
         $parts = [];
         $html = '';
@@ -990,7 +990,7 @@ class ContractManager implements ContractManagerInterface
      */
     protected function assertWordingPrintable(ContractInterface $contract, string $title, array $blocks): void
     {
-        $values = [...$this->variables->examples(), ...$this->variables->resolve($contract)];
+        $values = [...$this->contractVariableResolver->examples(), ...$this->contractVariableResolver->resolve($contract)];
 
         foreach ($this->customFields->keysInWording($title, ['blocks' => $blocks]) as $key) {
             $values[ContractCustomFieldScanner::PREFIX.$key] = sprintf('[%s]', $key);
@@ -1002,7 +1002,7 @@ class ContractManager implements ContractManagerInterface
             throw new FieldException('content', $unrenderableBlockException->describe($this->translator, $contract->getLocale()));
         }
 
-        $unknown = $this->renderer->unknownTokens($html, $values, $this->variables->deferredTokens());
+        $unknown = $this->renderer->unknownTokens($html, $values, $this->contractVariableResolver->deferredTokens());
 
         if ([] !== $unknown) {
             throw new FieldException('content', $this->translator->trans('suite.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown))]));

@@ -50,8 +50,8 @@ final class SpaceDriveController extends AbstractController
 
     public function __construct(
         private readonly DriveSettings $settings,
-        private readonly DriveClient $drive,
-        private readonly DriveFileServer $files,
+        private readonly DriveClient $driveClient,
+        private readonly DriveFileServer $driveFileServer,
         private readonly DriveArchive $archives,
         private readonly DriveImporter $importer,
         private readonly DocumentSerializerInterface $documents,
@@ -128,7 +128,7 @@ final class SpaceDriveController extends AbstractController
             ]);
         }
 
-        $files = $this->drive->files($account, $folderId);
+        $files = $this->driveClient->files($account, $folderId);
 
         return $this->jsonSuccess([
             'configured' => true,
@@ -164,7 +164,7 @@ final class SpaceDriveController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $files = $this->drive->files($account, $folderId);
+        $files = $this->driveClient->files($account, $folderId);
 
         // **A 404 and not a message.** This button is a link: the browser
         // navigates to this address, so a JSON response would be displayed
@@ -244,7 +244,7 @@ final class SpaceDriveController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $response = $this->files->serve($account, $folderId, $fileId, $request->query->getBoolean('download'));
+        $response = $this->driveFileServer->serve($account, $folderId, $fileId, $request->query->getBoolean('download'));
 
         if (!$response instanceof Response) {
             // Removed from sharing, or deleted. A 404 rather than an error:

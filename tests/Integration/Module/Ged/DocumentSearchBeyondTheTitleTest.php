@@ -46,7 +46,7 @@ final class DocumentSearchBeyondTheTitleTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private DocumentRepository $documents;
+    private DocumentRepository $documentRepository;
 
     /** @var list<object> */
     private array $created = [];
@@ -66,7 +66,7 @@ final class DocumentSearchBeyondTheTitleTest extends IntegrationTestCase
         $this->client = static::createClient();
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->documents = $container->get(DocumentRepository::class);
+        $this->documentRepository = $container->get(DocumentRepository::class);
         $this->marker = 'm'.bin2hex(random_bytes(4));
 
         $category = new DocumentCategory();
@@ -208,7 +208,7 @@ final class DocumentSearchBeyondTheTitleTest extends IntegrationTestCase
     /** @return list<string> */
     private function titles(string $search, DocumentSearchFilters $filters = new DocumentSearchFilters()): array
     {
-        $result = $this->documents->findPaginated(1, 50, search: $search, filters: $filters);
+        $result = $this->documentRepository->findPaginated(1, 50, search: $search, filters: $filters);
         // The name without the marker every title carries.
         $titles = array_map(static fn (DocumentInterface $document): string => explode(' ', $document->getTitle())[0], $result['items']);
         sort($titles);

@@ -36,8 +36,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 final readonly class EntityScheduleSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private PlanningEventRepository $events,
-        private ModuleCalendarProvider $calendars,
+        private PlanningEventRepository $eventRepository,
+        private ModuleCalendarProvider $moduleCalendarProvider,
         private EntityManagerInterface $entityManager,
         private PlanningContext $planningContext,
     ) {}
@@ -59,8 +59,8 @@ final readonly class EntityScheduleSubscriber implements EventSubscriberInterfac
             return;
         }
 
-        $existing = $this->events->findBySource($event->getSourceType(), $event->getSourceId());
-        $planning = $this->calendars->forSource($event->getSourceType(), $event->getCalendarName());
+        $existing = $this->eventRepository->findBySource($event->getSourceType(), $event->getSourceId());
+        $planning = $this->moduleCalendarProvider->forSource($event->getSourceType(), $event->getCalendarName());
 
         $entry = $existing ?? new PlanningEvent();
         $entry->setPlanning($planning);
@@ -105,7 +105,7 @@ final readonly class EntityScheduleSubscriber implements EventSubscriberInterfac
             return;
         }
 
-        $existing = $this->events->findBySource($event->getSourceType(), $event->getSourceId());
+        $existing = $this->eventRepository->findBySource($event->getSourceType(), $event->getSourceId());
         if (!$existing instanceof PlanningEventInterface) {
             // Not an error. A module announcing that something is no longer
             // scheduled has no way to know whether it ever was, and making it

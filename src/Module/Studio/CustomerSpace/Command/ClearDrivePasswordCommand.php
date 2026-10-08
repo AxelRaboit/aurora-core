@@ -39,7 +39,7 @@ use function sprintf;
 final class ClearDrivePasswordCommand extends Command
 {
     public function __construct(
-        private readonly CustomerSpaceRepository $spaces,
+        private readonly CustomerSpaceRepository $spaceRepository,
         private readonly DriveLock $lock,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -55,7 +55,7 @@ final class ClearDrivePasswordCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $space = $this->spaces->find((int) $input->getArgument('space'));
+        $space = $this->spaceRepository->find((int) $input->getArgument('space'));
 
         if (!$space instanceof CustomerSpaceInterface) {
             $io->error(sprintf('Aucun espace numéro %s.', $input->getArgument('space')));

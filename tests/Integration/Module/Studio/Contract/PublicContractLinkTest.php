@@ -49,9 +49,9 @@ final class PublicContractLinkTest extends IntegrationTestCase
 
     private ?CoreUserInterface $admin = null;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
-    private ContractAccessLinkRepository $links;
+    private ContractAccessLinkRepository $accessLinkRepository;
 
     private EntityManagerInterface $entityManager;
 
@@ -67,8 +67,8 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $this->login();
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->links = $container->get(ContractAccessLinkRepository::class);
-        $this->templates = new ContractTemplateManager(
+        $this->accessLinkRepository = $container->get(ContractAccessLinkRepository::class);
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -146,7 +146,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         // customer had read their mail.
         $guest->request('GET', $url);
         $this->entityManager->clear();
-        self::assertSame('sent', $this->links->findAll()[0]->getContract()->getStatus()->value);
+        self::assertSame('sent', $this->accessLinkRepository->findAll()[0]->getContract()->getStatus()->value);
 
         // The page, displayed in a browser, says so.
         $guest->jsonRequest('POST', $url.'/opened');
@@ -154,7 +154,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
 
         self::assertInstanceOf(ContractAccessLinkInterface::class, $link);
         self::assertNotNull($link->getFirstOpenedAt());
@@ -173,7 +173,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
     public function testAWrongSecretARevokedLinkAndAnExpiredOneAllLookTheSame(): void
     {
         $url = $this->sentContractUrl();
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
         $selector = $link->getSelector();
 
         $guest = $this->asGuest();
@@ -205,7 +205,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
     public function testTheSecretIsNotStoredAndTheHashIs(): void
     {
         $this->sentContractUrl();
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
 
         // 64 hex characters: a digest, not the 64-character secret itself. The
         // point of the split is that a database dump cannot open anything.
@@ -243,7 +243,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
     public function testResendingRevokesTheAddressSentBefore(): void
     {
         $first = $this->sentContractUrl();
-        $link = $this->links->findAll()[0];
+        $link = $this->accessLinkRepository->findAll()[0];
         $contractId = $link->getContract()->getId();
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/send', $contractId));
@@ -354,10 +354,10 @@ final class PublicContractLinkTest extends IntegrationTestCase
 
     private function publishedTemplate(): ContractTemplateInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -367,7 +367,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
                 ]],
             ],
         ]));
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $template;
     }

@@ -17,14 +17,14 @@ use DateTimeInterface;
 final readonly class BeaconViewBuilder
 {
     public function __construct(
-        private DeployedInstanceRepository $instances,
+        private DeployedInstanceRepository $deployedInstanceRepository,
         private KnownDomains $knownDomains,
     ) {}
 
     /** @return array<string, mixed> */
     public function indexView(): array
     {
-        $instances = array_map($this->serialize(...), $this->instances->findAllOrdered());
+        $instances = array_map($this->serialize(...), $this->deployedInstanceRepository->findAllOrdered());
 
         // Leads first, then by most-recently seen.
         usort($instances, static fn (array $left, array $right): int => [$left['known'], $right['lastSeenAt']] <=> [$right['known'], $left['lastSeenAt']]);

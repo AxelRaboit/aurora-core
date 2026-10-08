@@ -21,6 +21,19 @@ interface MarkdownNoteShareLinkInterface
 
     public function setIncludeLinked(bool $includeLinked): static;
 
+    /** Whether whoever holds the address may rewrite the link's own note. */
+    public function canWrite(): bool;
+
+    public function setCanWrite(bool $canWrite): static;
+
+    /**
+     * Whether this link may rewrite that note, at that moment.
+     *
+     * Its own note only: the `[[links]]` switch widens what a share *shows*,
+     * never what it lets anybody rewrite.
+     */
+    public function canWriteNote(MarkdownNoteInterface $note, DateTimeImmutable $now): bool;
+
     public function getRecipientEmail(): ?string;
 
     public function setRecipientEmail(?string $recipientEmail): static;

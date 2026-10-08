@@ -31,7 +31,7 @@ use function count;
 final readonly class SpaceContentsTrashSource implements TrashSourceInterface
 {
     public function __construct(
-        private SpaceContentItemRepository $items,
+        private SpaceContentItemRepository $itemRepository,
         private SpaceVisibility $visibility,
         private StudioContext $studioContext,
     ) {}
@@ -50,7 +50,7 @@ final readonly class SpaceContentsTrashSource implements TrashSourceInterface
     {
         $rows = $this->studioContext->areSpacesEnabled()
             ? array_values(array_filter(
-                $this->items->findAllTrashed(),
+                $this->itemRepository->findAllTrashed(),
                 fn (SpaceContentItemInterface $item): bool => $this->visibility->canSee($item->getSpace()),
             ))
             : [];

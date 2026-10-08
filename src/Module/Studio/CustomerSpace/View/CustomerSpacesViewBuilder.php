@@ -27,7 +27,7 @@ final readonly class CustomerSpacesViewBuilder
         private CustomerSpaceSerializerInterface $spaceSerializer,
         private CustomerRepository $customerRepository,
         private UserRepository $userRepository,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private UrlGeneratorInterface $urlGenerator,
         private StorageUsageProbe $storageUsage,
         private SpaceVisibility $visibility,
@@ -54,12 +54,12 @@ final readonly class CustomerSpacesViewBuilder
             // the spaces one by one, so it is not answered.
             'storage' => $this->storageUsage->bySpace(),
             ...$this->formOptions(),
-            'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
+            'boardPath' => $this->pathTemplateGenerator->generate('workspace_space_content', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('suite_studio_spaces_create'),
             'spacesPath' => $this->urlGenerator->generate('suite_studio_spaces'),
             'calendarPath' => $this->urlGenerator->generate('suite_studio_spaces_calendar'),
-            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('suite_studio_spaces_delete', ['id' => '__id__']),
+            'convertPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplateGenerator->generate('suite_studio_spaces_delete', ['id' => '__id__']),
         ];
     }
 

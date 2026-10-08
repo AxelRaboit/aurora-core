@@ -50,7 +50,7 @@ final class PostReadingController extends AbstractController
     private const string UNLOCKED = 'editorial.post_reading.unlocked';
 
     public function __construct(
-        private readonly PostReadingLinkRepository $links,
+        private readonly PostReadingLinkRepository $postReadingLinkRepository,
         private readonly PostPageRenderer $renderer,
         private readonly ReadingLocales $locales,
         private readonly EditorialContext $editorialContext,
@@ -103,7 +103,7 @@ final class PostReadingController extends AbstractController
             throw new TooManyRequestsHttpException();
         }
 
-        $link = $this->links->findByToken($token);
+        $link = $this->postReadingLinkRepository->findByToken($token);
         $password = (string) $request->request->get('password', '');
 
         if (!$link instanceof PostReadingLinkInterface
@@ -135,7 +135,7 @@ final class PostReadingController extends AbstractController
      */
     private function readable(string $token): PostReadingLinkInterface
     {
-        $link = $this->links->findByToken($token);
+        $link = $this->postReadingLinkRepository->findByToken($token);
 
         if (!$link instanceof PostReadingLinkInterface || !$this->isReadable($link)) {
             throw $this->createNotFoundException();

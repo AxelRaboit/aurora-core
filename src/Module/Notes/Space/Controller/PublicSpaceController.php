@@ -39,10 +39,10 @@ use function in_array;
 final class PublicSpaceController extends AbstractController
 {
     public function __construct(
-        private readonly NoteSpaceRepository $spaces,
-        private readonly MarkdownNoteRepository $notes,
+        private readonly NoteSpaceRepository $spaceRepository,
+        private readonly MarkdownNoteRepository $noteRepository,
         private readonly MarkdownNotesViewBuilder $viewBuilder,
-        private readonly MarkdownNoteImageService $images,
+        private readonly MarkdownNoteImageService $imageService,
         private readonly StoredFileResponder $storedFileResponder,
         private readonly NotesContext $context,
     ) {}
@@ -94,11 +94,11 @@ final class PublicSpaceController extends AbstractController
         $space = $this->published($slug);
         $note = $space instanceof NoteSpaceInterface ? $this->noteIn($space, $id) : null;
 
-        if (!$note instanceof MarkdownNoteInterface || !in_array($filename, $this->images->extractFilenames($note->getContent()), true)) {
+        if (!$note instanceof MarkdownNoteInterface || !in_array($filename, $this->imageService->extractFilenames($note->getContent()), true)) {
             throw $this->createNotFoundException();
         }
 
-        $key = $this->images->keyOrNull($filename, $this->images->bucketOf($note));
+        $key = $this->imageService->keyOrNull($filename, $this->imageService->bucketOf($note));
         if (null === $key) {
             throw $this->createNotFoundException();
         }
@@ -112,12 +112,12 @@ final class PublicSpaceController extends AbstractController
             return null;
         }
 
-        return $this->spaces->findPublishedBySlug($slug);
+        return $this->spaceRepository->findPublishedBySlug($slug);
     }
 
     private function noteIn(NoteSpaceInterface $space, int $id): ?MarkdownNoteInterface
     {
-        $note = $this->notes->findOneLiving($id);
+        $note = $this->noteRepository->findOneLiving($id);
 
         return $note instanceof MarkdownNoteInterface && $note->getSpace()->getId() === $space->getId() ? $note : null;
     }

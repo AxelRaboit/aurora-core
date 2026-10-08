@@ -27,8 +27,14 @@ use function random_bytes;
  * also why `expiresAt` exists - a forgotten share keeps publishing whatever
  * gets written into the note afterwards.
  *
- * Read-only, with no column claiming otherwise. See
- * `project_notes_share_link_read_only` for what is deliberately absent.
+ * **Writing is a second switch, off by default.** A link that writes is a
+ * write endpoint with no account behind it: the address *is* the identity, so
+ * a leaked one fills the note and there is nobody to block - revocation comes
+ * after the damage. Hence the rate limit on the route, and hence the one
+ * restriction that cannot be configured away: a writing link writes **its own
+ * note and nothing else**. The `includeLinked` switch reaches most of a vault
+ * in three hops, and handing that set to whoever holds an address is not a
+ * thing a checkbox should be able to do.
  */
 #[ORM\MappedSuperclass]
 abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInterface
@@ -58,6 +64,15 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
      */
     #[ORM\Column(options: ['default' => false])]
     protected bool $includeLinked = false;
+
+    /**
+     * Whether whoever holds the address may rewrite the note's text.
+     *
+     * Only ever the link's own note: see the class docblock. Off by default,
+     * and the screen says in words what it opens.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $canWrite = false;
 
     /** Null for a plain copy-the-link share; set when this link was mailed to somebody. */
     #[ORM\Column(length: 180, nullable: true)]
@@ -126,6 +141,38 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
         $this->includeLinked = $includeLinked;
 
         return $this;
+    }
+
+    public function canWrite(): bool
+    {
+        return $this->canWrite;
+    }
+
+    public function setCanWrite(bool $canWrite): static
+    {
+        $this->canWrite = $canWrite;
+
+        return $this;
+    }
+
+    /**
+     * Whether this link may rewrite that note, at that moment.
+     *
+     * The only place the question is answered, and it answers it about a
+     * **note** rather than about the link: the write switch opens the link's
+     * own note, never the ones its `[[links]]` dragged into the share.
+     */
+    public function canWriteNote(MarkdownNoteInterface $note, DateTimeImmutable $now): bool
+    {
+        return $this->canWrite
+            && $this->isUsableAt($now)
+            // A note in the trash is the clearest statement there is that its
+            // owner no longer wants it changed. The reading page still serves
+            // it, as it always has, but nobody holding an address gets to keep
+            // writing into something that was deleted.
+            && !$note->isTrashed()
+            && null !== $note->getId()
+            && $note->getId() === $this->note->getId();
     }
 
     public function getRecipientEmail(): ?string

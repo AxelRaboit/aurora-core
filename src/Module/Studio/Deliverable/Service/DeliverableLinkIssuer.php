@@ -39,7 +39,7 @@ readonly class DeliverableLinkIssuer
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private DeliverableLinkRepository $links,
+        private DeliverableLinkRepository $deliverableLinkRepository,
         private AuditLogger $auditLogger,
     ) {}
 
@@ -120,7 +120,7 @@ readonly class DeliverableLinkIssuer
      */
     public function revoke(DeliverableInterface $deliverable, int $linkId): bool
     {
-        $link = $this->links->find($linkId);
+        $link = $this->deliverableLinkRepository->find($linkId);
         if (null === $link || $link->getDeliverable()->getId() !== $deliverable->getId()) {
             return false;
         }
@@ -142,7 +142,7 @@ readonly class DeliverableLinkIssuer
      */
     public function hide(DeliverableInterface $deliverable, int $linkId): ?bool
     {
-        $link = $this->links->find($linkId);
+        $link = $this->deliverableLinkRepository->find($linkId);
         if (null === $link || $link->getDeliverable()->getId() !== $deliverable->getId()) {
             return null;
         }
@@ -170,7 +170,7 @@ readonly class DeliverableLinkIssuer
      */
     public function delete(DeliverableInterface $deliverable, int $linkId): ?bool
     {
-        $link = $this->links->find($linkId);
+        $link = $this->deliverableLinkRepository->find($linkId);
         if (null === $link || $link->getDeliverable()->getId() !== $deliverable->getId()) {
             return null;
         }

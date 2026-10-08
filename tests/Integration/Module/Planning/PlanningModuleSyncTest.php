@@ -34,9 +34,9 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
 
     private EventDispatcherInterface $dispatcher;
 
-    private PlanningEventRepository $events;
+    private PlanningEventRepository $eventRepository;
 
-    private PlanningRepository $plannings;
+    private PlanningRepository $planningRepository;
 
     protected function setUp(): void
     {
@@ -44,18 +44,18 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
         static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->dispatcher = static::getContainer()->get(EventDispatcherInterface::class);
-        $this->events = static::getContainer()->get(PlanningEventRepository::class);
-        $this->plannings = static::getContainer()->get(PlanningRepository::class);
+        $this->eventRepository = static::getContainer()->get(PlanningEventRepository::class);
+        $this->planningRepository = static::getContainer()->get(PlanningRepository::class);
     }
 
     protected function tearDown(): void
     {
-        $entry = $this->events->findBySource(self::SOURCE, 42);
+        $entry = $this->eventRepository->findBySource(self::SOURCE, 42);
         if (null !== $entry) {
             $this->entityManager->remove($entry);
         }
 
-        $calendar = $this->plannings->findOneBy(['sourceType' => self::SOURCE]);
+        $calendar = $this->planningRepository->findOneBy(['sourceType' => self::SOURCE]);
         if (null !== $calendar) {
             $this->entityManager->remove($calendar);
         }
@@ -69,7 +69,7 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
     {
         $this->dispatcher->dispatch($this->scheduled('Le truc', '2026-09-14 09:00'));
 
-        $entry = $this->events->findBySource(self::SOURCE, 42);
+        $entry = $this->eventRepository->findBySource(self::SOURCE, 42);
         self::assertInstanceOf(PlanningEvent::class, $entry);
         self::assertSame('Le truc', $entry->getTitle());
         self::assertSame('2026-09-14 09:00', $entry->getStartAt()->format('Y-m-d H:i'));
@@ -95,7 +95,7 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
     {
         $this->dispatcher->dispatch($this->scheduled('Le truc', '2026-09-14 09:00'));
 
-        $calendar = $this->plannings->findOneBy(['sourceType' => self::SOURCE]);
+        $calendar = $this->planningRepository->findOneBy(['sourceType' => self::SOURCE]);
         self::assertInstanceOf(Planning::class, $calendar);
         self::assertNull($calendar->getOwner());
         self::assertSame(PlanningVisibilityEnum::Shared, $calendar->getVisibility());
@@ -113,22 +113,22 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
         $this->dispatcher->dispatch($this->scheduled('Le truc', '2026-09-14 09:00'));
         $this->dispatcher->dispatch($this->scheduled('Le truc, déplacé', '2026-09-20 15:30'));
 
-        $entry = $this->events->findBySource(self::SOURCE, 42);
+        $entry = $this->eventRepository->findBySource(self::SOURCE, 42);
         self::assertInstanceOf(PlanningEvent::class, $entry);
         self::assertSame('Le truc, déplacé', $entry->getTitle());
         self::assertSame('2026-09-20 15:30', $entry->getStartAt()->format('Y-m-d H:i'));
 
-        self::assertCount(1, $this->plannings->findBy(['sourceType' => self::SOURCE]));
+        self::assertCount(1, $this->planningRepository->findBy(['sourceType' => self::SOURCE]));
     }
 
     public function testAnUnscheduledEntityLeavesTheCalendar(): void
     {
         $this->dispatcher->dispatch($this->scheduled('Le truc', '2026-09-14 09:00'));
-        self::assertNotNull($this->events->findBySource(self::SOURCE, 42));
+        self::assertNotNull($this->eventRepository->findBySource(self::SOURCE, 42));
 
         $this->dispatcher->dispatch(new EntityUnscheduledEvent(self::SOURCE, 42));
 
-        self::assertNull($this->events->findBySource(self::SOURCE, 42));
+        self::assertNull($this->eventRepository->findBySource(self::SOURCE, 42));
     }
 
     /**
@@ -141,7 +141,7 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
     {
         $this->dispatcher->dispatch(new EntityUnscheduledEvent(self::SOURCE, 42));
 
-        self::assertNull($this->events->findBySource(self::SOURCE, 42));
+        self::assertNull($this->eventRepository->findBySource(self::SOURCE, 42));
     }
 
     /**
@@ -154,7 +154,7 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
     {
         $this->dispatcher->dispatch($this->scheduled('Le truc', '2026-09-14 09:00'));
 
-        $entry = $this->events->findBySource(self::SOURCE, 42);
+        $entry = $this->eventRepository->findBySource(self::SOURCE, 42);
         self::assertInstanceOf(PlanningEvent::class, $entry);
         self::assertTrue($entry->isFromModule());
         self::assertTrue($entry->isReadOnly());
@@ -171,7 +171,7 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
     {
         $this->dispatcher->dispatch($this->handedOver());
 
-        $entry = $this->events->findBySource(self::SOURCE, 42);
+        $entry = $this->eventRepository->findBySource(self::SOURCE, 42);
         self::assertInstanceOf(PlanningEvent::class, $entry);
         self::assertTrue($entry->isFromModule());
         self::assertFalse($entry->isReadOnly());
@@ -200,7 +200,7 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
         self::assertSame([], $availability->busyPeriods(self::SOURCE, $day, $day->modify('+1 day')), 'no calendar yet, nothing taken');
 
         $this->dispatcher->dispatch($this->handedOver());
-        $entry = $this->events->findBySource(self::SOURCE, 42);
+        $entry = $this->eventRepository->findBySource(self::SOURCE, 42);
         self::assertInstanceOf(PlanningEvent::class, $entry);
 
         $blocked = new PlanningEvent();
@@ -237,7 +237,7 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
             calendarName: 'Choses testées',
         ));
 
-        $calendar = $this->plannings->findOneBy(['sourceType' => self::SOURCE]);
+        $calendar = $this->planningRepository->findOneBy(['sourceType' => self::SOURCE]);
         self::assertInstanceOf(Planning::class, $calendar);
         self::assertSame('Choses testées', $calendar->getName());
     }

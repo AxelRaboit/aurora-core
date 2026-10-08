@@ -22,7 +22,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
-        private SpaceFileRepository $files,
+        private SpaceFileRepository $spaceFileRepository,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
@@ -37,7 +37,7 @@ final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsag
     {
         $usages = [];
 
-        foreach ($this->files->findUsingDocument($documentId) as $file) {
+        foreach ($this->spaceFileRepository->findUsingDocument($documentId) as $file) {
             $space = $file->getSpace();
 
             $usages[] = [
@@ -69,6 +69,6 @@ final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsag
      */
     public function countUsagesFor(array $documentIds): array
     {
-        return $this->files->countByDocument($documentIds);
+        return $this->spaceFileRepository->countByDocument($documentIds);
     }
 }

@@ -41,7 +41,7 @@ final readonly class TrashViewBuilder
         private TrashOverviewService $trashOverviewService,
         private ModuleAccessChecker $moduleAccessChecker,
         private SettingRepository $settingRepository,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private TranslatorInterface $translator,
     ) {}
 
@@ -143,6 +143,6 @@ final readonly class TrashViewBuilder
             return null;
         }
 
-        return $this->pathTemplates->generate($route, $withId ? ['id' => '__id__'] : []);
+        return $this->pathTemplateGenerator->generate($route, $withId ? ['id' => '__id__'] : []);
     }
 }

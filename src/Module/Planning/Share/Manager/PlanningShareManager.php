@@ -23,7 +23,7 @@ class PlanningShareManager implements PlanningShareManagerInterface
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly UserRepository $users,
+        protected readonly UserRepository $userRepository,
     ) {}
 
     /**
@@ -54,7 +54,7 @@ class PlanningShareManager implements PlanningShareManagerInterface
         // Everybody new in one query rather than one each. An id that names
         // nobody is dropped rather than refused: it means a stale list, and
         // failing the whole change over it would be the wrong trade.
-        foreach ([] === $wanted ? [] : $this->users->findBy(['id' => array_keys($wanted)]) as $person) {
+        foreach ([] === $wanted ? [] : $this->userRepository->findBy(['id' => array_keys($wanted)]) as $person) {
             $share = new PlanningShare();
             $share->setUser($person);
             $share->setCanWrite($wanted[(int) $person->getId()]);

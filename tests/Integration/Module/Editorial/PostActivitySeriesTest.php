@@ -21,17 +21,17 @@ use DateTimeImmutable;
  */
 final class PostActivitySeriesTest extends IntegrationTestCase
 {
-    private PostRepository $posts;
+    private PostRepository $postRepository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->posts = static::getContainer()->get(PostRepository::class);
+        $this->postRepository = static::getContainer()->get(PostRepository::class);
     }
 
     public function testEveryMonthOfTheWindowIsPresent(): void
     {
-        $series = $this->posts->countPublishedByMonth(12);
+        $series = $this->postRepository->countPublishedByMonth(12);
 
         self::assertCount(12, $series);
 
@@ -47,7 +47,7 @@ final class PostActivitySeriesTest extends IntegrationTestCase
      */
     public function testTheMonthsAreContiguousAndEndOnThisOne(): void
     {
-        $months = array_keys($this->posts->countPublishedByMonth(6));
+        $months = array_keys($this->postRepository->countPublishedByMonth(6));
 
         self::assertSame((new DateTimeImmutable('first day of this month'))->format('Y-m'), end($months));
 
@@ -56,7 +56,7 @@ final class PostActivitySeriesTest extends IntegrationTestCase
             $expected[] = (new DateTimeImmutable(sprintf('first day of -%d month', $offset)))->format('Y-m');
         }
 
-        self::assertSame($expected, array_keys($this->posts->countPublishedByMonth(6)));
+        self::assertSame($expected, array_keys($this->postRepository->countPublishedByMonth(6)));
     }
 
     /**
@@ -66,8 +66,8 @@ final class PostActivitySeriesTest extends IntegrationTestCase
      */
     public function testAWindowIsNeverEmpty(): void
     {
-        self::assertCount(1, $this->posts->countPublishedByMonth(1));
-        self::assertCount(1, $this->posts->countPublishedByMonth(0));
-        self::assertCount(1, $this->posts->countPublishedByMonth(-3));
+        self::assertCount(1, $this->postRepository->countPublishedByMonth(1));
+        self::assertCount(1, $this->postRepository->countPublishedByMonth(0));
+        self::assertCount(1, $this->postRepository->countPublishedByMonth(-3));
     }
 }

@@ -34,7 +34,7 @@ final readonly class SpaceVisibility
 {
     public function __construct(
         private Security $security,
-        private CustomerSpaceRepository $spaces,
+        private CustomerSpaceRepository $spaceRepository,
     ) {}
 
     /**
@@ -60,7 +60,7 @@ final readonly class SpaceVisibility
             return [];
         }
 
-        return $this->spaces->findVisibleTo($user, $this->seesAll());
+        return $this->spaceRepository->findVisibleTo($user, $this->seesAll());
     }
 
     /**
@@ -81,13 +81,13 @@ final readonly class SpaceVisibility
             return [];
         }
 
-        $mine = $this->spaces->findVisibleTo($user, false);
+        $mine = $this->spaceRepository->findVisibleTo($user, false);
 
         if (!$this->seesAll()) {
             return $mine;
         }
 
-        return SpaceScopeEnum::Mine === $scope && [] !== $mine ? $mine : $this->spaces->findVisibleTo($user, true);
+        return SpaceScopeEnum::Mine === $scope && [] !== $mine ? $mine : $this->spaceRepository->findVisibleTo($user, true);
     }
 
     /**
@@ -98,7 +98,7 @@ final readonly class SpaceVisibility
     {
         $user = $this->security->getUser();
 
-        return $this->seesAll() && $user instanceof CoreUserInterface && [] !== $this->spaces->findVisibleTo($user, false);
+        return $this->seesAll() && $user instanceof CoreUserInterface && [] !== $this->spaceRepository->findVisibleTo($user, false);
     }
 
     /**
@@ -129,7 +129,7 @@ final readonly class SpaceVisibility
         $user = $this->security->getUser();
 
         return $user instanceof CoreUserInterface
-            && $this->spaces->isVisibleTo($space, $user, false);
+            && $this->spaceRepository->isVisibleTo($space, $user, false);
     }
 
     /**

@@ -35,15 +35,15 @@ use function sprintf;
 final readonly class ContractIntegrityChecker
 {
     public function __construct(
-        private ContractRepository $contracts,
-        private ContractSignatureRepository $signatures,
+        private ContractRepository $contractRepository,
+        private ContractSignatureRepository $contractSignatureRepository,
         private ContractSeal $seal,
-        private ContractPdfGenerator $pdf,
+        private ContractPdfGenerator $pdfGenerator,
     ) {}
 
     public function check(): ContractIntegrityReport
     {
-        $frozen = $this->contracts->findFrozen();
+        $frozen = $this->contractRepository->findFrozen();
         $altered = [];
         $unverifiable = [];
 
@@ -66,7 +66,7 @@ final readonly class ContractIntegrityChecker
             }
         }
 
-        foreach ($this->signatures->findWithDivergedHash() as $signature) {
+        foreach ($this->contractSignatureRepository->findWithDivergedHash() as $signature) {
             $altered[] = sprintf(
                 '%s: the %s signature was given on another version of the document',
                 $this->describe($signature->getContract()),
@@ -86,12 +86,12 @@ final readonly class ContractIntegrityChecker
         }
 
         try {
-            if (!$this->pdf->exists($contract)) {
+            if (!$this->pdfGenerator->exists($contract)) {
                 return 'the signed PDF is missing from the storage';
             }
 
             $context = hash_init('sha256');
-            foreach ($this->pdf->readStream($contract) as $chunk) {
+            foreach ($this->pdfGenerator->readStream($contract) as $chunk) {
                 hash_update($context, $chunk);
             }
         } catch (Throwable $throwable) {

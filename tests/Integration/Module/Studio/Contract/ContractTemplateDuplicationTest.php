@@ -34,7 +34,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
 {
     private ContractTemplateDuplicator $duplicator;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private EntityManagerInterface $entityManager;
 
@@ -45,7 +45,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -55,7 +55,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
         );
 
         $this->duplicator = new ContractTemplateDuplicator(
-            $this->templates,
+            $this->contractTemplateManager,
             $container->get(TranslatorInterface::class),
             $this->entityManager,
         );
@@ -107,7 +107,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
     public function testTheCopyStartsAtVersionOne(): void
     {
         $source = $this->publishedTemplate();
-        $this->templates->openDraft($source);
+        $this->contractTemplateManager->openDraft($source);
 
         $copy = $this->duplicator->duplicate($source);
 
@@ -141,7 +141,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
     public function testTheCopyOfAnArchivedTrameIsLive(): void
     {
         $source = $this->publishedTemplate();
-        $this->templates->archive($source);
+        $this->contractTemplateManager->archive($source);
 
         $copy = $this->duplicator->duplicate($source);
 
@@ -152,12 +152,12 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
     /** Nothing published yet: the open draft is what "this trame" means. */
     public function testAnUnpublishedTrameIsCopiedFromItsDraft(): void
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $draft = $template->getDraft();
 
         self::assertInstanceOf(ContractTemplateVersionInterface::class, $draft);
 
-        $this->templates->updateDraft($draft, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($draft, new ContractTemplateVersionInput([
             'fr' => ['title' => 'BROUILLON', 'content' => ['blocks' => []]],
         ]));
 
@@ -169,7 +169,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
     /** A long name keeps its suffix and fits its column. */
     public function testALongNameIsCutToFitWithItsSuffix(): void
     {
-        $source = $this->templates->create(new ContractTemplateInput(str_repeat('a', 178), ContractTemplateKindEnum::Body));
+        $source = $this->contractTemplateManager->create(new ContractTemplateInput(str_repeat('a', 178), ContractTemplateKindEnum::Body));
 
         $copy = $this->duplicator->duplicate($source);
 
@@ -179,12 +179,12 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
 
     private function publishedTemplate(ContractTemplateKindEnum $kind = ContractTemplateKindEnum::Body): ContractTemplateInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', $kind));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', $kind));
         $version = $template->getDraft();
 
         self::assertInstanceOf(ContractTemplateVersionInterface::class, $version);
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput(
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput(
             translations: [
                 'fr' => [
                     'title' => 'CONTRAT DE PRESTATION DE SERVICES',
@@ -203,7 +203,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
             governingLocale: 'fr',
         ));
 
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $template;
     }

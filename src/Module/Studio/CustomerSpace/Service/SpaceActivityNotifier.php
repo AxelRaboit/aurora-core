@@ -61,7 +61,7 @@ final readonly class SpaceActivityNotifier
         private TranslatorInterface $translator,
         private MessageBusInterface $bus,
         private EntityManagerInterface $entityManager,
-        private CustomerSpaceRepository $spaces,
+        private CustomerSpaceRepository $spaceRepository,
     ) {}
 
     public function clientWroteInChat(CustomerSpaceInterface $space, string $author): void
@@ -248,7 +248,7 @@ final readonly class SpaceActivityNotifier
      */
     private function recipients(CustomerSpaceInterface $space): array
     {
-        $this->spaces->warmTeam($space);
+        $this->spaceRepository->warmTeam($space);
         $users = [];
 
         foreach ($space->getMembers() as $member) {

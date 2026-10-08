@@ -55,6 +55,8 @@ export function useMarkdownNotesPage(props, t) {
         reloadCurrent,
         flushPendingSave,
         conflict,
+        loadedVersion,
+        isDirty,
         saveAnyway,
         reloadDiscarding,
     } = editor;
@@ -197,6 +199,13 @@ export function useMarkdownNotesPage(props, t) {
         refreshList,
         flushPendingSave,
         conflict,
+        // What the open form started from, and whether it has moved since:
+        // the live room reads both to tell "somebody saved after us" from
+        // "that save was ours", and to know whether reloading would cost
+        // anybody a sentence.
+        loadedVersion,
+        isDirty,
+        reloadCurrent,
         saveAnyway,
         reloadDiscarding,
         onWikiLinkClick,

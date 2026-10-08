@@ -86,7 +86,7 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceContentColumnManagerInterface $columnManager,
         protected readonly SpaceContentCommentManagerInterface $comments,
         protected readonly SpaceContentAttachmentManagerInterface $attachments,
-        protected readonly DocumentRepository $documents,
+        protected readonly DocumentRepository $documentRepository,
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
@@ -100,7 +100,7 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceDeliverablesViewBuilder $deliverablesViewBuilder,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly StoredFileResponder $responder,
-        protected readonly UploadPolicyProvider $uploadPolicies,
+        protected readonly UploadPolicyProvider $uploadPolicyProvider,
         protected readonly ClientVisibility $clientVisibility,
         // Optional and last, so a client project extending this controller
         // with its own constructor keeps booting: without it the Settings tab
@@ -361,7 +361,7 @@ class SpaceContentController extends AbstractController
         // The same rule as on a note and on a guest upload: what is uploaded
         // goes through the administrator's policy. Without it, the only cap
         // was PHP's, and a type refused everywhere else got in here.
-        $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+        $refusal = $this->uploadPolicyProvider->forStaffDocuments()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
             return $this->jsonInvalidInput(['file' => match ($refusal) {
@@ -410,7 +410,7 @@ class SpaceContentController extends AbstractController
         // Only somebody who may browse the media library may take from it:
         // an id is guessed as easily as it is picked, and a document on a
         // card is shown to the client. Answered like an unknown id.
-        $document = $this->isGranted('ged.documents.view') ? $this->documents->find((int) $documentId) : null;
+        $document = $this->isGranted('ged.documents.view') ? $this->documentRepository->find((int) $documentId) : null;
 
         if (!$document instanceof Document) {
             return $this->jsonInvalidInput(['documentId' => 'suite.studio.space_content.errors.attachment_unknown']);

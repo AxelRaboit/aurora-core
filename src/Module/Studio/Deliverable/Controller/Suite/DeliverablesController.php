@@ -71,7 +71,7 @@ final class DeliverablesController extends AbstractController
     use PrivateAddressResponseTrait;
 
     public function __construct(
-        private readonly DeliverableRepository $deliverables,
+        private readonly DeliverableRepository $deliverableRepository,
         private readonly DeliverableManager $manager,
         private readonly DeliverableAccess $access,
         private readonly DeliverablesViewBuilder $viewBuilder,
@@ -81,11 +81,11 @@ final class DeliverablesController extends AbstractController
         private readonly DeliverableLinkIssuer $linkIssuer,
         private readonly DeliverableLinksView $linksView,
         private readonly TranslatorInterface $translator,
-        private readonly CustomerSpaceRepository $spaces,
-        private readonly DeliverableCategoryRepository $categories,
+        private readonly CustomerSpaceRepository $spaceRepository,
+        private readonly DeliverableCategoryRepository $deliverableCategoryRepository,
         private readonly DeliverableCategoryManager $categoryManager,
         private readonly PayloadValidator $payloadValidator,
-        private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly DeliverableSlidesViewBuilder $deliverableSlidesViewBuilder,
         private readonly SlidesFromBlocks $fromBlocks,
         private readonly EntityManagerInterface $entityManager,
     ) {}
@@ -241,7 +241,7 @@ final class DeliverablesController extends AbstractController
         $deliverable = $this->readable($id);
 
         if ($deliverable->isSlides()) {
-            return $this->render('@Studio/suite/deliverables/slides.html.twig', $this->slidesView->editorView($deliverable));
+            return $this->render('@Studio/suite/deliverables/slides.html.twig', $this->deliverableSlidesViewBuilder->editorView($deliverable));
         }
 
         return $this->render('@Studio/suite/deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
@@ -344,7 +344,7 @@ final class DeliverablesController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $spaceId = $payload['spaceId'] ?? null;
-        $space = is_int($spaceId) || (is_string($spaceId) && is_numeric($spaceId)) ? $this->spaces->find((int) $spaceId) : null;
+        $space = is_int($spaceId) || (is_string($spaceId) && is_numeric($spaceId)) ? $this->spaceRepository->find((int) $spaceId) : null;
         if (!$space instanceof CustomerSpaceInterface || $space->isArchived() || !$this->access->canReadSpace($space)) {
             return $this->jsonNotFound();
         }
@@ -423,7 +423,7 @@ final class DeliverablesController extends AbstractController
     public function emptyTrash(): JsonResponse
     {
         $deleted = 0;
-        foreach ($this->deliverables->findAllTrashed() as $deliverable) {
+        foreach ($this->deliverableRepository->findAllTrashed() as $deliverable) {
             if (!$this->access->canRead($deliverable)) {
                 continue;
             }
@@ -449,7 +449,7 @@ final class DeliverablesController extends AbstractController
         // slides, without the speaker notes.
         if ($deliverable->isSlides()) {
             return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
-                'deck' => $this->slidesView->readerDeck($deliverable),
+                'deck' => $this->deliverableSlidesViewBuilder->readerDeck($deliverable),
                 'expiresAt' => null,
                 // Opened in a new tab: closing it is the way out, the editor
                 // only the fallback.
@@ -597,7 +597,7 @@ final class DeliverablesController extends AbstractController
             return $this->jsonForbidden();
         }
 
-        $category = $this->categories->find($id);
+        $category = $this->deliverableCategoryRepository->find($id);
         if (!$category instanceof DeliverableCategoryInterface) {
             return $this->jsonNotFound();
         }
@@ -621,7 +621,7 @@ final class DeliverablesController extends AbstractController
             return $this->jsonForbidden();
         }
 
-        $category = $this->categories->find($id);
+        $category = $this->deliverableCategoryRepository->find($id);
         if (!$category instanceof DeliverableCategoryInterface) {
             return $this->jsonNotFound();
         }
@@ -657,7 +657,7 @@ final class DeliverablesController extends AbstractController
     private function template(mixed $id): ?DeliverableInterface
     {
         $id = is_int($id) || (is_string($id) && is_numeric($id)) ? (int) $id : null;
-        $template = null === $id ? null : $this->deliverables->findStandalone($id);
+        $template = null === $id ? null : $this->deliverableRepository->findStandalone($id);
 
         return $template instanceof DeliverableInterface && $template->isTemplate() && $this->access->canRead($template) ? $template : null;
     }
@@ -665,7 +665,7 @@ final class DeliverablesController extends AbstractController
     /** A trashed deliverable the person can read, or 404. */
     private function trashed(int $id): DeliverableInterface
     {
-        $deliverable = $this->deliverables->findTrashed($id);
+        $deliverable = $this->deliverableRepository->findTrashed($id);
         if (!$deliverable instanceof DeliverableInterface || !$this->access->canRead($deliverable)) {
             throw new NotFoundHttpException();
         }
@@ -676,7 +676,7 @@ final class DeliverablesController extends AbstractController
     /** A Studio deliverable the person can read, or 404. */
     private function readable(int $id): DeliverableInterface
     {
-        $deliverable = $this->deliverables->findStandalone($id);
+        $deliverable = $this->deliverableRepository->findStandalone($id);
         if (!$deliverable instanceof DeliverableInterface || !$this->access->canRead($deliverable)) {
             throw new NotFoundHttpException();
         }

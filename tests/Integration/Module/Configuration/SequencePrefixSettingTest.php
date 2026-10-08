@@ -23,7 +23,7 @@ final class SequencePrefixSettingTest extends IntegrationTestCase
 
     private KernelBrowser $client;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     private ?string $original = null;
 
@@ -36,13 +36,13 @@ final class SequencePrefixSettingTest extends IntegrationTestCase
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($dev, 'admin');
 
-        $this->settings = static::getContainer()->get(SettingRepository::class);
-        $this->original = $this->settings->get(self::KEY);
+        $this->settingRepository = static::getContainer()->get(SettingRepository::class);
+        $this->original = $this->settingRepository->get(self::KEY);
     }
 
     protected function tearDown(): void
     {
-        $this->settings->set(self::KEY, $this->original);
+        $this->settingRepository->set(self::KEY, $this->original);
 
         parent::tearDown();
     }
@@ -56,7 +56,7 @@ final class SequencePrefixSettingTest extends IntegrationTestCase
             self::assertSame('invalid_prefix', json_decode((string) $this->client->getResponse()->getContent(), true)['error']);
         }
 
-        self::assertSame($this->original, $this->settings->get(self::KEY));
+        self::assertSame($this->original, $this->settingRepository->get(self::KEY));
     }
 
     public function testAPrefixIsKeptInCapitals(): void
@@ -65,6 +65,6 @@ final class SequencePrefixSettingTest extends IntegrationTestCase
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertSame('CM', json_decode((string) $this->client->getResponse()->getContent(), true)['value']);
-        self::assertSame('CM', $this->settings->get(self::KEY));
+        self::assertSame('CM', $this->settingRepository->get(self::KEY));
     }
 }

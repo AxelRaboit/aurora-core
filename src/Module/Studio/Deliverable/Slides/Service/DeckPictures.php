@@ -31,7 +31,7 @@ final readonly class DeckPictures
     /** The content slots that hold a document id. */
     private const array SLIDE_SLOTS = ['mediaId', 'bgMediaId', 'bgVideoId'];
 
-    public function __construct(private DocumentRepository $documents) {}
+    public function __construct(private DocumentRepository $documentRepository) {}
 
     /**
      * Every document id this deck draws, slides and style together, once each.
@@ -117,7 +117,7 @@ final readonly class DeckPictures
 
         $withheld = [];
 
-        foreach ($this->documents->findBy(['id' => $ids]) as $document) {
+        foreach ($this->documentRepository->findBy(['id' => $ids]) as $document) {
             if (DocumentStatusEnum::Published === $document->getStatus()) {
                 continue;
             }

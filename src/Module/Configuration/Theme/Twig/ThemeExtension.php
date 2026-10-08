@@ -21,11 +21,11 @@ final class ThemeExtension extends AbstractExtension implements GlobalsInterface
 {
     public function __construct(
         private readonly ThemeContext $themeContext,
-        private readonly ThemeStyleRenderer $themeStyles,
+        private readonly ThemeStyleRenderer $themeStyleRenderer,
     ) {}
 
     public function getGlobals(): array
     {
-        return ['themeContext' => $this->themeContext, 'themeStyles' => $this->themeStyles];
+        return ['themeContext' => $this->themeContext, 'themeStyles' => $this->themeStyleRenderer];
     }
 }

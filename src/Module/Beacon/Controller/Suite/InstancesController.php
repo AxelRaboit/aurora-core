@@ -33,9 +33,9 @@ use function mb_trim;
 final class InstancesController extends AbstractController
 {
     public function __construct(
-        private readonly DeployedInstanceRepository $instances,
+        private readonly DeployedInstanceRepository $deployedInstanceRepository,
         private readonly BeaconViewBuilder $viewBuilder,
-        private readonly SettingRepository $settings,
+        private readonly SettingRepository $settingRepository,
     ) {}
 
     #[Route('', name: 'beacon_instances', methods: ['GET'])]
@@ -67,7 +67,7 @@ final class InstancesController extends AbstractController
 
         $domains = array_keys($domains);
 
-        $this->settings->set(BeaconSettingEnum::KnownDomains->value, json_encode($domains));
+        $this->settingRepository->set(BeaconSettingEnum::KnownDomains->value, json_encode($domains));
 
         return $this->json(['success' => true, 'domains' => $domains]);
     }
@@ -75,12 +75,12 @@ final class InstancesController extends AbstractController
     #[Route('/{id}/forget', name: 'beacon_forget', methods: ['POST'])]
     public function forget(int $id): JsonResponse
     {
-        $instance = $this->instances->find($id);
+        $instance = $this->deployedInstanceRepository->find($id);
         if (!$instance instanceof DeployedInstanceInterface) {
             return $this->json(['success' => false], Response::HTTP_NOT_FOUND);
         }
 
-        $this->instances->remove($instance);
+        $this->deployedInstanceRepository->remove($instance);
 
         return $this->json(['success' => true]);
     }

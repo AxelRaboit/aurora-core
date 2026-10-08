@@ -30,9 +30,9 @@ use const DATE_ATOM;
 final readonly class PostReadingLinksViewBuilder
 {
     public function __construct(
-        private PostReadingLinkRepository $links,
+        private PostReadingLinkRepository $postReadingLinkRepository,
         private PostPictures $pictures,
-        private DocumentRepository $documents,
+        private DocumentRepository $documentRepository,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
@@ -42,7 +42,7 @@ final readonly class PostReadingLinksViewBuilder
         return [
             'readable' => $post->isPublished() && !$post->isTrashed(),
             'withheldPictures' => $this->withheldPictures($post),
-            'links' => array_map($this->link(...), $this->links->findForPost($post)),
+            'links' => array_map($this->link(...), $this->postReadingLinkRepository->findForPost($post)),
         ];
     }
 
@@ -77,7 +77,7 @@ final readonly class PostReadingLinksViewBuilder
 
         $withheld = [];
 
-        foreach ($this->documents->findBy(['id' => $ids]) as $document) {
+        foreach ($this->documentRepository->findBy(['id' => $ids]) as $document) {
             if (DocumentStatusEnum::Published === $document->getStatus()) {
                 continue;
             }

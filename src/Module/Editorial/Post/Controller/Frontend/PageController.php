@@ -51,7 +51,7 @@ class PageController extends AbstractController
         private readonly TaxonomyTermRepository $taxonomyTermRepository,
         private readonly Context $context,
         private readonly ThemeResolver $themeResolver,
-        private readonly HttpCacheService $httpCache,
+        private readonly HttpCacheService $httpCacheService,
         private readonly PostPageRenderer $postPageRenderer,
         private readonly PageViewBuilder $viewBuilder,
     ) {}
@@ -177,13 +177,13 @@ class PageController extends AbstractController
         }
 
         $lastModified = $post->getUpdatedAt();
-        $notModified = $this->httpCache->checkNotModified($request, $lastModified);
+        $notModified = $this->httpCacheService->checkNotModified($request, $lastModified);
         if ($notModified instanceof Response) {
             return $notModified;
         }
 
         $response = $this->postPageRenderer->render($post, $locale);
-        $this->httpCache->setPublicCache($response, $lastModified);
+        $this->httpCacheService->setPublicCache($response, $lastModified);
 
         return $response;
     }
@@ -220,7 +220,7 @@ class PageController extends AbstractController
             $this->themeResolver->resolve('editorial/term/index'),
             $this->viewBuilder->termView($locale, $taxonomy, $term, $result),
         );
-        $this->httpCache->setSharedCache($response);
+        $this->httpCacheService->setSharedCache($response);
 
         return $this->withLocaleHeader($response, $locale);
     }
@@ -242,7 +242,7 @@ class PageController extends AbstractController
             $this->themeResolver->resolve('editorial/archive/index'),
             $this->viewBuilder->archiveView($locale, $postType, $result),
         );
-        $this->httpCache->setSharedCache($response);
+        $this->httpCacheService->setSharedCache($response);
 
         return $this->withLocaleHeader($response, $locale);
     }

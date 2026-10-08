@@ -84,7 +84,7 @@ dessiner un écran.
 | Dev | `AuditLog` |
 | Editorial | `CommentReaction`, `FormFieldTranslation`, `FormSubmission`, `FormTranslation`, `MenuItemTranslation`, `PostPreviewToken`, `PostRevision`, `PostSlugHistory`, `TaxonomyTermTranslation`, `TaxonomyTranslation` |
 | Ged | `DocumentVersion` |
-| Notes | `MarkdownNoteShareLink` |
+| Notes | `MarkdownNoteShareLink`, `MarkdownNoteMember` |
 | Planning | `PlanningEventAlert`, `PlanningEventAttendee`, `PlanningShare` |
 | Platform | `ResetPasswordRequest` |
 | Studio | `ContractAccessLink`, `ContractSignatureChallenge`, `ContractTemplateVersionTranslation`, `CustomerSpaceMember`, `Slide`, `SpaceContentAttachment`, `SpaceContentComment` |
@@ -97,7 +97,7 @@ que la liste :
 | Traductions | toutes les `*Translation` | éditées dans le formulaire du parent, une langue par onglet |
 | Jetons et liens | `PostPreviewToken`, `ContractAccessLink`, `MarkdownNoteShareLink` | créés par une action, révoqués par une autre, jamais édités |
 | Historique auto-généré | `AuditLog`, `PostRevision`, `PostSlugHistory`, `DocumentVersion`, `FormSubmission` | écrits par le code, lus en liste, pas modifiables |
-| Lignes et membres inline | `CustomerSpaceMember`, `Slide`, `SpaceContentComment`, `SpaceContentAttachment`, `PlanningEventAttendee` | gérés depuis l'écran de leur parent |
+| Lignes et membres inline | `CustomerSpaceMember`, `MarkdownNoteMember`, `Slide`, `SpaceContentComment`, `SpaceContentAttachment`, `PlanningEventAttendee` | gérés depuis l'écran de leur parent |
 | Infrastructure | `Setting`, `Locale`, `Notification`, `SequenceCounter`, `ResetPasswordRequest` | pas de CRUD : un éditeur clé-valeur, des fixtures, ou un tunnel d'auth |
 
 Pour toutes, **seul le niveau 1 est requis** : `Interface + AbstractX + concrete`

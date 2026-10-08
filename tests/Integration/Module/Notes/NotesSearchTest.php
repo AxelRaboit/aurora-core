@@ -49,7 +49,7 @@ final class NotesSearchTest extends IntegrationTestCase
 
     private NotesSuiteSearchProvider $provider;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     private string $needle;
 
@@ -64,7 +64,7 @@ final class NotesSearchTest extends IntegrationTestCase
         $container = self::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->provider = $container->get(NotesSuiteSearchProvider::class);
-        $this->settings = $container->get(SettingRepository::class);
+        $this->settingRepository = $container->get(SettingRepository::class);
 
         $this->needle = 'licorne'.bin2hex(random_bytes(4));
     }
@@ -85,8 +85,8 @@ final class NotesSearchTest extends IntegrationTestCase
         $this->entityManager->flush();
         $this->created = [];
 
-        $this->settings->set(ModuleParameterEnum::NotesSuite->value, '1');
-        $this->settings->set(ModuleParameterEnum::NotesMarkdown->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::NotesSuite->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::NotesMarkdown->value, '1');
         $this->forgetSwitches();
 
         parent::tearDown();
@@ -178,12 +178,12 @@ final class NotesSearchTest extends IntegrationTestCase
 
         self::assertCount(1, $this->provider->search($this->needle)['notes']);
 
-        $this->settings->set(ModuleParameterEnum::NotesMarkdown->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::NotesMarkdown->value, '0');
         $this->forgetSwitches();
         self::assertSame([], $this->provider->search($this->needle));
 
-        $this->settings->set(ModuleParameterEnum::NotesMarkdown->value, '1');
-        $this->settings->set(ModuleParameterEnum::NotesSuite->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::NotesMarkdown->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::NotesSuite->value, '0');
         $this->forgetSwitches();
         self::assertSame([], $this->provider->search($this->needle));
     }

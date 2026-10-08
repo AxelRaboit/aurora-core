@@ -35,7 +35,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
-        protected readonly SpaceAccessLinkRepository $links,
+        protected readonly SpaceAccessLinkRepository $accessLinkRepository,
     ) {}
 
     /** How long a preview lasts. Enough to look, too short to forget. */
@@ -94,7 +94,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
      */
     public function preview(SpaceAccessLinkInterface $source): SpaceAccessLinkInterface
     {
-        $existing = $this->links->findPreviewOf($source);
+        $existing = $this->accessLinkRepository->findPreviewOf($source);
 
         if ($existing instanceof SpaceAccessLinkInterface) {
             $this->entityManager->remove($existing);
@@ -150,7 +150,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
 
     public function resolveUsable(string $selector, string $token): ?SpaceAccessLinkInterface
     {
-        $link = $this->links->findBySelector($selector);
+        $link = $this->accessLinkRepository->findBySelector($selector);
 
         if (!$link instanceof SpaceAccessLinkInterface) {
             return null;

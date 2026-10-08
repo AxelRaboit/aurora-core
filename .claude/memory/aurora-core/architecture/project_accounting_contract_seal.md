@@ -148,7 +148,7 @@ route serve un sosie. La route `/pdf` garde son sens exact - le fichier signé, 
 - **Import des trames réelles depuis Craft**, volontairement après la mise en
   production : les trames de production ne servent pas de jeu d'essai.
 
-Voir aussi [[project_notes_share_link_read_only]] et
+Voir aussi [[project_notes_collaboration]] et
 [[project_planning_share_link_write_access]] : même mécanique de lien invité,
 même arbitrage sur les limites de débit, arbitré ici dans le sens de l'écriture
 parce que la signature est justement une écriture.

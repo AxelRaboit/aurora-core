@@ -34,7 +34,7 @@ class SpaceContentTrashController extends AbstractController
     use JsonResponseTrait;
 
     public function __construct(
-        protected readonly SpaceContentItemRepository $items,
+        protected readonly SpaceContentItemRepository $itemRepository,
         protected readonly SpaceContentItemManagerInterface $itemManager,
         protected readonly SpaceVisibility $visibility,
     ) {}
@@ -60,7 +60,7 @@ class SpaceContentTrashController extends AbstractController
     public function emptyTrash(): JsonResponse
     {
         $deleted = 0;
-        foreach ($this->items->findAllTrashed() as $item) {
+        foreach ($this->itemRepository->findAllTrashed() as $item) {
             if (!$this->visibility->canSee($item->getSpace())) {
                 continue;
             }
@@ -75,7 +75,7 @@ class SpaceContentTrashController extends AbstractController
     /** A content in the trash, from a living space the person sees, or 404. */
     private function trashed(int $id): SpaceContentItemInterface
     {
-        $item = $this->items->findTrashed($id);
+        $item = $this->itemRepository->findTrashed($id);
         if (!$item instanceof SpaceContentItemInterface || !$this->visibility->canSee($item->getSpace())) {
             throw $this->createNotFoundException();
         }

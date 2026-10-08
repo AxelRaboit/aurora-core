@@ -25,7 +25,7 @@ final readonly class KnownDomains
     /** @var list<string> */
     private const array DEFAULTS = ['axelraboit.fr', 'app.axelraboit.fr'];
 
-    public function __construct(private SettingRepository $settings) {}
+    public function __construct(private SettingRepository $settingRepository) {}
 
     public function contains(string $domain): bool
     {
@@ -35,7 +35,7 @@ final readonly class KnownDomains
     /** @return list<string> */
     public function all(): array
     {
-        $raw = $this->settings->get(BeaconSettingEnum::KnownDomains->value);
+        $raw = $this->settingRepository->get(BeaconSettingEnum::KnownDomains->value);
         if (null === $raw || '' === $raw) {
             return self::DEFAULTS;
         }

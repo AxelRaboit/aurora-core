@@ -35,9 +35,9 @@ final class PublicSpaceDeliverableController extends AbstractController
 
     public function __construct(
         private readonly SpaceAccessLinkManagerInterface $links,
-        private readonly DeliverableRepository $deliverables,
+        private readonly DeliverableRepository $deliverableRepository,
         private readonly DeliverablePageRenderer $renderer,
-        private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly DeliverableSlidesViewBuilder $deliverableSlidesViewBuilder,
     ) {}
 
     #[Route(
@@ -53,7 +53,7 @@ final class PublicSpaceDeliverableController extends AbstractController
         // Looked up in the space the link opens, not everywhere and then
         // compared: another space's deliverable is never read for this link.
         $deliverable = $link instanceof SpaceAccessLinkInterface
-            ? $this->deliverables->findInSpace($link->getSpace(), $deliverableId)
+            ? $this->deliverableRepository->findInSpace($link->getSpace(), $deliverableId)
             : null;
 
         if (!$link instanceof SpaceAccessLinkInterface || !$deliverable instanceof DeliverableInterface || !$deliverable->isVisibleToClient()) {
@@ -70,7 +70,7 @@ final class PublicSpaceDeliverableController extends AbstractController
             $this->links->markOpened($link);
 
             return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
-                'deck' => $this->slidesView->readerDeck($deliverable),
+                'deck' => $this->deliverableSlidesViewBuilder->readerDeck($deliverable),
                 'expiresAt' => null,
                 'backUrl' => $spaceUrl,
                 'backLabel' => $link->getSpace()->getName(),

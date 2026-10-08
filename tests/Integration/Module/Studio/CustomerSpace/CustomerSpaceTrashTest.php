@@ -64,7 +64,7 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
 
     private User $admin;
 
-    private CustomerSpaceRepository $spaces;
+    private CustomerSpaceRepository $spaceRepository;
 
     /** @var list<int> */
     private array $users = [];
@@ -79,7 +79,7 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
         $this->client = self::createClient();
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $this->spaces = self::getContainer()->get(CustomerSpaceRepository::class);
+        $this->spaceRepository = self::getContainer()->get(CustomerSpaceRepository::class);
 
         $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
@@ -129,7 +129,7 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
         self::assertNotContains($id, array_column($this->json()['spaces'], 'id'), 'gone from the list it answers with');
 
         $this->entityManager->clear();
-        $trashed = $this->spaces->findTrashed($id);
+        $trashed = $this->spaceRepository->findTrashed($id);
         self::assertNotNull($trashed);
         self::assertTrue($trashed->isTrashed());
 
@@ -142,7 +142,7 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
 
         // Off the list, the search, the dashboard and the shared calendar.
-        self::assertNotContains($id, array_map(static fn ($row): ?int => $row->getId(), $this->spaces->findAllOrdered()));
+        self::assertNotContains($id, array_map(static fn ($row): ?int => $row->getId(), $this->spaceRepository->findAllOrdered()));
         $found = self::getContainer()->get(StudioSuiteSearchProvider::class)->search('Corbeille');
         self::assertSame([], $found['spaces'] ?? []);
         self::assertSame([], $found['space_contents'] ?? []);
@@ -159,10 +159,10 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $restored = $this->spaces->find($id);
+        $restored = $this->spaceRepository->find($id);
         self::assertNotNull($restored);
         self::assertFalse($restored->isTrashed());
-        self::assertContains($id, array_map(static fn ($row): ?int => $row->getId(), $this->spaces->findAllOrdered()));
+        self::assertContains($id, array_map(static fn ($row): ?int => $row->getId(), $this->spaceRepository->findAllOrdered()));
         self::assertNotNull($this->events()->findBySource(self::SOURCE, $itemId), 'its dates are back on the calendar');
         self::assertSame('opened', $this->guestOpens($guestPath), 'the same link answers again');
 
@@ -186,7 +186,7 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        self::assertNull($this->spaces->find($id));
+        self::assertNull($this->spaceRepository->find($id));
         self::assertSame([], $this->entityManager->getRepository(SpaceContentItem::class)->findBy(['space' => $id]));
     }
 
@@ -206,9 +206,9 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
         self::getContainer()->get(PurgeTrashedSpacesHandler::class)(new PurgeTrashedSpacesMessage());
 
         $this->entityManager->clear();
-        self::assertNull($this->spaces->find($old));
-        self::assertNotNull($this->spaces->find($recent));
-        self::assertNotNull($this->spaces->find($alive));
+        self::assertNull($this->spaceRepository->find($old));
+        self::assertNotNull($this->spaceRepository->find($recent));
+        self::assertNotNull($this->spaceRepository->find($alive));
     }
 
     /**
@@ -292,8 +292,8 @@ final class CustomerSpaceTrashTest extends IntegrationTestCase
         self::assertSame(1, $this->json()['deleted']);
 
         $this->entityManager->clear();
-        self::assertNull($this->spaces->find($ours->getId()));
-        self::assertNotNull($this->spaces->find($theirs->getId()));
+        self::assertNull($this->spaceRepository->find($ours->getId()));
+        self::assertNotNull($this->spaceRepository->find($theirs->getId()));
 
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request('GET', '/suite/trash/list');

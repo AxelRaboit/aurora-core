@@ -38,10 +38,10 @@ use Throwable;
 final readonly class SpaceReviewInviter
 {
     public function __construct(
-        private SpaceAccessLinkRepository $links,
+        private SpaceAccessLinkRepository $accessLinkRepository,
         private SpaceAccessLinkManagerInterface $linkManager,
         private SpaceWorkload $workload,
-        private MailService $mail,
+        private MailService $mailService,
         private UrlGeneratorInterface $urlGenerator,
         private LoggerInterface $logger,
     ) {}
@@ -66,7 +66,7 @@ final readonly class SpaceReviewInviter
         $now = new DateTimeImmutable();
         $notified = 0;
 
-        foreach ($this->links->findApproversForSpace($space, $now) as $previous) {
+        foreach ($this->accessLinkRepository->findApproversForSpace($space, $now) as $previous) {
             $fresh = $this->reissue($previous);
 
             try {
@@ -120,7 +120,7 @@ final readonly class SpaceReviewInviter
 
     private function write(CustomerSpaceInterface $space, SpaceAccessLinkInterface $link, int $awaiting): void
     {
-        $this->mail->send(
+        $this->mailService->send(
             to: $link->getRecipientEmail(),
             subjectKey: 'studio.email.space_review.subject',
             template: '@Studio/email/space_review.html.twig',

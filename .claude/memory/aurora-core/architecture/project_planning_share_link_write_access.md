@@ -16,6 +16,19 @@ vers un ou plusieurs calendriers. Deux surfaces : une page web
 L'écriture a été explicitement écartée par l'utilisateur : *« enfaite pour le
 moment, seulement la lecture, pas l'écriture »*.
 
+## Mise à jour du 08/10/2026 : les notes ont ouvert, Planning non
+
+Le partage de **note** a ouvert l'écriture (colonne `can_write`, route
+`notes_share_save`, limite `notes_share_write`) - voir
+[[project_notes_collaboration]], qui remplace l'ancienne mémoire jumelle de
+celle-ci.
+
+Les calendriers **restent en lecture seule**, et les deux manques ci-dessous
+restent donc entiers pour Planning. Ce qui a changé, c'est qu'il existe
+maintenant un précédent à copier plutôt qu'un arbitrage à refaire : la note
+montre comment on pose la colonne et la limite dans le même commit, et quelles
+trois choses un lien d'écriture ne doit surtout pas pouvoir faire.
+
 ## Les deux choses qui manquent volontairement
 
 ### 1. Pas de colonne `can_write`

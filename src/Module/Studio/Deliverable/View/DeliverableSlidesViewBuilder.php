@@ -41,10 +41,10 @@ final readonly class DeliverableSlidesViewBuilder
         private DeliverableAccess $access,
         private SlideEditorOptions $editorOptions,
         private UrlGeneratorInterface $urlGenerator,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private AuthorizationCheckerInterface $authorizationChecker,
-        private DeliverablesViewBuilder $deliverablesView,
-        private SpaceDeliverablesViewBuilder $spaceDeliverablesView,
+        private DeliverablesViewBuilder $deliverablesViewBuilder,
+        private SpaceDeliverablesViewBuilder $spaceDeliverablesViewBuilder,
     ) {}
 
     /**
@@ -62,7 +62,7 @@ final readonly class DeliverableSlidesViewBuilder
             // The document settings (title, summary, category, template,
             // client, shelf): the editor's "Réglages" dialog writes them
             // through a deliverable save, like a page's tab.
-            ...$this->deliverablesView->editorView($deliverable),
+            ...$this->deliverablesViewBuilder->editorView($deliverable),
             ...$this->slidePaths('suite_studio_deliverables_slides_', $parameters, $canWrite),
             'backPath' => $this->urlGenerator->generate('suite_studio_deliverables').'?scope='.$deliverable->getScope()->value,
         ];
@@ -87,7 +87,7 @@ final readonly class DeliverableSlidesViewBuilder
             throw new LogicException('A deliverable without a space opens in Studio, not in a space.');
         }
 
-        $page = $this->spaceDeliverablesView->editorView($deliverable);
+        $page = $this->spaceDeliverablesViewBuilder->editorView($deliverable);
         $canWrite = $this->access->canWrite($deliverable);
 
         return [
@@ -124,7 +124,7 @@ final readonly class DeliverableSlidesViewBuilder
     private function slidePaths(string $prefix, array $parameters, bool $canWrite): array
     {
         $route = fn (string $action): string => $this->urlGenerator->generate($prefix.$action, $parameters);
-        $slide = fn (string $action): string => $this->pathTemplates->generate($prefix.$action, [...$parameters, 'slideId' => '__slideId__']);
+        $slide = fn (string $action): string => $this->pathTemplateGenerator->generate($prefix.$action, [...$parameters, 'slideId' => '__slideId__']);
 
         return [
             ...$this->editorOptions->all(),

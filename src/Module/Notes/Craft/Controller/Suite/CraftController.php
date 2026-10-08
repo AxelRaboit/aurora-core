@@ -42,7 +42,7 @@ final class CraftController extends AbstractController
     use JsonResponseTrait;
 
     public function __construct(
-        private readonly CraftClient $craft,
+        private readonly CraftClient $craftClient,
         private readonly CraftNoteImporter $importer,
         private readonly NoteSpaceAccess $spaceAccess,
         private readonly MarkdownNoteSerializerInterface $serializer,
@@ -64,10 +64,10 @@ final class CraftController extends AbstractController
     #[Route('/documents', name: '_documents', methods: [HttpMethodEnum::Get->value])]
     public function documents(): JsonResponse
     {
-        $documents = $this->craft->documents();
+        $documents = $this->craftClient->documents();
 
         return $this->jsonSuccess([
-            'configured' => $this->craft->isConfigured(),
+            'configured' => $this->craftClient->isConfigured(),
             // Three states, not two: off, unreachable, and open but empty.
             // Each one is fixed in a different place.
             'reachable' => null !== $documents,
@@ -133,7 +133,7 @@ final class CraftController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
 
         if (!$note instanceof MarkdownNoteInterface || $note->isTrashed()) {
             return $this->jsonNotFound();

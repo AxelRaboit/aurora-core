@@ -26,7 +26,7 @@ use function count;
 final class BeaconListCommand extends Command
 {
     public function __construct(
-        private readonly DeployedInstanceRepository $instances,
+        private readonly DeployedInstanceRepository $deployedInstanceRepository,
         private readonly KnownDomains $knownDomains,
     ) {
         parent::__construct();
@@ -35,7 +35,7 @@ final class BeaconListCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $all = $this->instances->findAllOrdered();
+        $all = $this->deployedInstanceRepository->findAllOrdered();
 
         if ([] === $all) {
             $io->success('No instance has checked in yet.');

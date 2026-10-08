@@ -24,7 +24,7 @@ readonly class DeliverableCategoryManager
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private DeliverableCategoryRepository $categories,
+        private DeliverableCategoryRepository $deliverableCategoryRepository,
     ) {}
 
     /** A new category goes at the end: it can be moved up afterwards if wanted. */
@@ -37,7 +37,7 @@ readonly class DeliverableCategoryManager
     public function create(DeliverableCategoryInput $input): DeliverableCategoryInterface
     {
         $category = $this->instantiate();
-        $category->setPosition($this->categories->nextPosition());
+        $category->setPosition($this->deliverableCategoryRepository->nextPosition());
         $this->apply($category, $input);
         $this->entityManager->persist($category);
         $this->entityManager->flush();
@@ -70,7 +70,7 @@ readonly class DeliverableCategoryManager
         $rank = array_flip($ids);
         $next = count($ids);
 
-        foreach ($this->categories->findOrdered() as $category) {
+        foreach ($this->deliverableCategoryRepository->findOrdered() as $category) {
             $category->setPosition($rank[$category->getId()] ?? $next++);
         }
 

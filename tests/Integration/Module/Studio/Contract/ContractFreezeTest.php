@@ -55,9 +55,9 @@ use function sprintf;
  */
 final class ContractFreezeTest extends IntegrationTestCase
 {
-    private ContractManager $contracts;
+    private ContractManager $contractManager;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private ContractSeal $seal;
 
@@ -83,7 +83,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         // Built by hand: neither manager has a controller yet, so the container
         // removes them as unused private services. Their dependencies and the
         // database behind them are the real ones.
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -92,7 +92,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             $container->get(ContractTemplatePreviewer::class),
         );
 
-        $this->contracts = new ContractManager(
+        $this->contractManager = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $resolver,
@@ -123,7 +123,7 @@ final class ContractFreezeTest extends IntegrationTestCase
     {
         $contract = $this->draft();
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertTrue($contract->isFrozen());
         // Every part of the seal is written together: a contract can never hold
@@ -148,7 +148,7 @@ final class ContractFreezeTest extends IntegrationTestCase
 
         self::assertNull($contract->getReference());
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         $reference = (string) $contract->getReference();
         self::assertStringContainsString('-'.date('Y').'-', $reference);
@@ -164,7 +164,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             ['type' => 'paragraph', 'data' => ['text' => 'Fait à {{contract.signature_city}}, le {{contract.signature_date}}.']],
         ]);
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         $html = (string) $contract->getRenderedHtml();
 
@@ -188,7 +188,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         $soleTrader = $this->customer();
         $soleTrader->setLegalForm('Entreprise individuelle');
         $withoutCapital = $this->draft(body: $body, customer: $soleTrader);
-        $this->contracts->freeze($withoutCapital);
+        $this->contractManager->freeze($withoutCapital);
 
         self::assertStringContainsString('Boulangerie Durand, Entreprise individuelle, dont le siège', (string) $withoutCapital->getRenderedHtml());
 
@@ -202,7 +202,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         $this->entityManager->persist($company);
         $this->entityManager->flush();
         $withCapital = $this->draft(body: $body, customer: $company);
-        $this->contracts->freeze($withCapital);
+        $this->contractManager->freeze($withCapital);
 
         self::assertMatchesRegularExpression('/SARL au capital de 10.000[^,]*€, dont le siège/u', (string) $withCapital->getRenderedHtml());
     }
@@ -226,7 +226,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             ]]],
         ]);
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
         $html = (string) $contract->getRenderedHtml();
 
         self::assertStringContainsString('Boulangerie Durand', $html);
@@ -241,7 +241,7 @@ final class ContractFreezeTest extends IntegrationTestCase
     public function testAFrozenContractRefusesEveryWrite(): void
     {
         $contract = $this->draft();
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         $this->expectException(FrozenContractIsImmutableException::class);
 
@@ -251,11 +251,11 @@ final class ContractFreezeTest extends IntegrationTestCase
     public function testAFrozenContractCannotBeFrozenAgain(): void
     {
         $contract = $this->draft();
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
         $firstHash = $contract->getContentHash();
 
         try {
-            $this->contracts->freeze($contract);
+            $this->contractManager->freeze($contract);
             self::fail('A second freeze should have been refused.');
         } catch (FrozenContractIsImmutableException) {
             self::assertSame($firstHash, $contract->getContentHash());
@@ -264,10 +264,10 @@ final class ContractFreezeTest extends IntegrationTestCase
 
     public function testADraftVersionCannotBeSent(): void
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $draftVersion = $template->getDraft();
 
-        $this->templates->updateDraft($draftVersion, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($draftVersion, new ContractTemplateVersionInput([
             'fr' => ['title' => 'CONTRAT', 'content' => ['blocks' => []]],
         ]));
 
@@ -294,7 +294,7 @@ final class ContractFreezeTest extends IntegrationTestCase
     {
         $contract = $this->draft(title: 'Conditions <générales> & tarifs');
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertStringContainsString('Conditions &lt;générales&gt; &amp; tarifs', (string) $contract->getRenderedHtml());
     }
@@ -309,12 +309,12 @@ final class ContractFreezeTest extends IntegrationTestCase
     public function testARefusedFreezeConsumesNoReference(): void
     {
         $before = $this->draft();
-        $this->contracts->freeze($before);
+        $this->contractManager->freeze($before);
 
         $refused = $this->draft(body: [['type' => 'paragraph', 'data' => ['text' => 'SIRET {{client.siret}}']]], customer: $before->getCustomer());
 
         try {
-            $this->contracts->freeze($refused);
+            $this->contractManager->freeze($refused);
             self::fail('An unknown token should have refused the freeze.');
         } catch (FieldException) {
         }
@@ -322,7 +322,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         self::assertNull($refused->getReference());
 
         $after = $this->draft(customer: $before->getCustomer());
-        $this->contracts->freeze($after);
+        $this->contractManager->freeze($after);
 
         // Consecutive: the refusal in between took nothing.
         self::assertSame($this->sequenceOf($before) + 1, $this->sequenceOf($after));
@@ -334,7 +334,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         $contract = $this->draft();
 
         try {
-            $this->contracts->create(new ContractInput(
+            $this->contractManager->create(new ContractInput(
                 customerId: $contract->getCustomer()->getId(),
                 bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
                 locale: 'es',
@@ -351,7 +351,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         $contract = $this->draft();
 
         try {
-            $this->contracts->create(new ContractInput(
+            $this->contractManager->create(new ContractInput(
                 customerId: $contract->getCustomer()->getId(),
                 bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
                 locale: 'fr',
@@ -370,7 +370,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         ]);
 
         try {
-            $this->contracts->freeze($contract);
+            $this->contractManager->freeze($contract);
             self::fail('An unknown token should have refused the freeze.');
         } catch (FieldException $exception) {
             self::assertStringContainsString('client.siret', $exception->getMessage());
@@ -390,7 +390,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         ]);
 
         try {
-            $this->contracts->freeze($contract);
+            $this->contractManager->freeze($contract);
             self::fail('An unrenderable block should have refused the freeze.');
         } catch (FieldException $exception) {
             self::assertStringContainsString('image', $exception->getMessage());
@@ -402,7 +402,7 @@ final class ContractFreezeTest extends IntegrationTestCase
     public function testTamperingWithAStoredDocumentIsDetected(): void
     {
         $contract = $this->draft();
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertTrue($this->seal->verify($contract));
 
@@ -438,13 +438,13 @@ final class ContractFreezeTest extends IntegrationTestCase
     public function testATrameAFrozenContractCameFromCannotBeDeleted(): void
     {
         $contract = $this->draft();
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         $template = $contract->getBodyVersion()?->getTemplate();
         self::assertNotNull($template);
 
         try {
-            $this->templates->delete($template);
+            $this->contractTemplateManager->delete($template);
             self::fail('Deleting a trame a frozen contract came from should be refused.');
         } catch (FieldException $refusal) {
             self::assertStringContainsString('1', $refusal->getMessage(), 'the refusal counts what it is protecting');
@@ -469,10 +469,10 @@ final class ContractFreezeTest extends IntegrationTestCase
      */
     public function testATrameNoFrozenContractCameFromIsStillDeleted(): void
     {
-        $template = $this->templates->create(new ContractTemplateInput('Trame jamais utilisée', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Trame jamais utilisée', ContractTemplateKindEnum::Body));
         $id = $template->getId();
 
-        $this->templates->delete($template);
+        $this->contractTemplateManager->delete($template);
 
         $this->entityManager->clear();
         self::assertNull($this->entityManager->find(ContractTemplate::class, $id));
@@ -493,7 +493,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             ['type' => 'paragraph', 'data' => ['text' => 'Référence {{contract.reference}}.']],
         ]);
 
-        $preview = $this->contracts->preview($contract);
+        $preview = $this->contractManager->preview($contract);
 
         self::assertStringContainsString('Boulangerie Durand', $preview['html']);
         self::assertStringContainsString('850', $preview['html']);
@@ -520,7 +520,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             ['type' => 'paragraph', 'data' => ['text' => 'Objet : {{contract.objet_invente}}.']],
         ]);
 
-        $preview = $this->contracts->preview($contract);
+        $preview = $this->contractManager->preview($contract);
 
         self::assertSame(['contract.objet_invente'], $preview['unknownTokens']);
 
@@ -532,10 +532,10 @@ final class ContractFreezeTest extends IntegrationTestCase
     /** @param list<array<string, mixed>>|null $body */
     private function draft(?array $body = null, string $title = 'CONTRAT DE PRESTATION DE SERVICES', ?CustomerInterface $customer = null): ContractInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => $title,
                 'content' => ['blocks' => $body ?? [
@@ -550,7 +550,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         // a block a contract cannot print, and these tests are about the
         // freeze still refusing them in a version published before that rule.
         if (null === $body) {
-            $this->templates->publish($version);
+            $this->contractTemplateManager->publish($version);
         } else {
             $version->publish(new DateTimeImmutable());
             $this->entityManager->flush();
@@ -576,7 +576,7 @@ final class ContractFreezeTest extends IntegrationTestCase
 
     private function contractFor(CustomerInterface $customer, ContractTemplateVersionInterface $version): ContractInterface
     {
-        return $this->contracts->create(new ContractInput(
+        return $this->contractManager->create(new ContractInput(
             customerId: $customer->getId(),
             bodyTemplateId: $version->getTemplate()->getId(),
             locale: 'fr',

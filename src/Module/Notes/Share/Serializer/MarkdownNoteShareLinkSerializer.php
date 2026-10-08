@@ -29,6 +29,10 @@ final readonly class MarkdownNoteShareLinkSerializer
             'label' => $link->getLabel(),
             'recipientEmail' => $link->getRecipientEmail(),
             'includeLinked' => $link->includesLinked(),
+            // The one field that makes an address a write endpoint: the list
+            // has to show it, or a link opened for writing looks like any
+            // other and nobody notices it is still out there.
+            'canWrite' => $link->canWrite(),
             'expiresAt' => $link->getExpiresAt()?->format('c'),
             'revokedAt' => $link->getRevokedAt()?->format('c'),
             'sentAt' => $link->getSentAt()?->format('c'),

@@ -19,7 +19,7 @@ class PostPreviewTokenManager implements PostPreviewTokenManagerInterface
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly PostPreviewTokenRepository $tokens,
+        protected readonly PostPreviewTokenRepository $postPreviewTokenRepository,
     ) {}
 
     public function resolveOrCreate(
@@ -29,7 +29,7 @@ class PostPreviewTokenManager implements PostPreviewTokenManagerInterface
     ): PostPreviewTokenInterface {
         $now ??= new DateTimeImmutable();
 
-        $existing = $this->tokens->findLiveFor($post, $now);
+        $existing = $this->postPreviewTokenRepository->findLiveFor($post, $now);
 
         if ($existing instanceof PostPreviewTokenInterface) {
             return $existing;
@@ -56,7 +56,7 @@ class PostPreviewTokenManager implements PostPreviewTokenManagerInterface
     public function revoke(PostInterface $post, ?DateTimeImmutable $now = null): void
     {
         $now ??= new DateTimeImmutable();
-        $existing = $this->tokens->findLiveFor($post, $now);
+        $existing = $this->postPreviewTokenRepository->findLiveFor($post, $now);
 
         if (!$existing instanceof PostPreviewTokenInterface) {
             return;
@@ -75,7 +75,7 @@ class PostPreviewTokenManager implements PostPreviewTokenManagerInterface
     public function resolveUsable(string $token, ?DateTimeImmutable $now = null): ?PostPreviewTokenInterface
     {
         $now ??= new DateTimeImmutable();
-        $found = $this->tokens->findByToken($token);
+        $found = $this->postPreviewTokenRepository->findByToken($token);
 
         if (!$found instanceof PostPreviewTokenInterface || !$found->isUsableAt($now)) {
             return null;

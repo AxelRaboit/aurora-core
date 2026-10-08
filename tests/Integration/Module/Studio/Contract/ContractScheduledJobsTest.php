@@ -55,7 +55,7 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     /** @var array<string, string|null> */
     private array $originalSettings = [];
@@ -72,17 +72,17 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->settings = $container->get(SettingRepository::class);
+        $this->settingRepository = $container->get(SettingRepository::class);
 
         foreach (self::REMINDER_SETTINGS as $parameter) {
-            $this->originalSettings[$parameter->value] = $this->settings->get($parameter->value);
+            $this->originalSettings[$parameter->value] = $this->settingRepository->get($parameter->value);
         }
     }
 
     protected function tearDown(): void
     {
         foreach ($this->originalSettings as $key => $value) {
-            $this->settings->set($key, $value);
+            $this->settingRepository->set($key, $value);
         }
 
         $this->entityManager->createQuery(sprintf('DELETE FROM %s', Contract::class))->execute();
@@ -111,7 +111,7 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
 
     public function testNoReminderLeavesWhileTheSettingIsOff(): void
     {
-        $this->settings->set(ApplicationParameterEnum::StudioContractReminderEnabled->value, '0');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractReminderEnabled->value, '0');
         $id = $this->sentContract();
         $this->sentDaysAgo($id, 30);
 
@@ -179,9 +179,9 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
 
     private function remindAfter(int $days, int $max): void
     {
-        $this->settings->set(ApplicationParameterEnum::StudioContractReminderEnabled->value, '1');
-        $this->settings->set(ApplicationParameterEnum::StudioContractReminderDays->value, (string) $days);
-        $this->settings->set(ApplicationParameterEnum::StudioContractReminderMax->value, (string) $max);
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractReminderEnabled->value, '1');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractReminderDays->value, (string) $days);
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractReminderMax->value, (string) $max);
     }
 
     private function runReminders(): void

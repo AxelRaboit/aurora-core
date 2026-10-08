@@ -16,6 +16,7 @@ use Aurora\Module\Ged\Pexels\Service\PexelsClient;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
+use Aurora\Module\Notes\Live\Service\NoteLiveHub;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteReorderInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
@@ -29,6 +30,7 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
+use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -66,16 +68,18 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteReorderInputFactoryInterface $reorderInputFactory,
         private readonly PayloadValidator $payloadValidator,
         private readonly MarkdownNotesViewBuilder $viewBuilder,
-        private readonly NoteFolderRepository $folders,
+        private readonly NoteFolderRepository $folderRepository,
         private readonly MarkdownNoteArchive $archive,
         private readonly MarkdownNoteImporter $importer,
-        private readonly UploadPolicyProvider $uploadPolicies,
+        private readonly UploadPolicyProvider $uploadPolicyProvider,
         private readonly NoteSpaceAccess $spaceAccess,
         private readonly NoteFavoriteManagerInterface $favorites,
         private readonly TranslatorInterface $translator,
-        private readonly SiteDateFormatter $dates,
+        private readonly SiteDateFormatter $dateFormatter,
         private readonly MarkdownNoteHistory $history,
-        private readonly MarkdownNoteRevisionRepository $revisions,
+        private readonly MarkdownNoteRevisionRepository $markdownNoteRevisionRepository,
+        private readonly MarkdownNoteMemberRepository $memberRepository,
+        private readonly NoteLiveHub $liveHub,
     ) {}
 
     /**
@@ -142,6 +146,11 @@ final class MarkdownNotesController extends AbstractController
                 static fn (array $note): array => [...$note, 'excerpt' => $excerpts[(int) $note['id']] ?? null],
                 $this->repository->findFlatListForUser($user),
             ),
+            // Travels with the list, like the list travels with the page: the
+            // menu panel reloads through here, and without the roles it could
+            // not tell a note handed over on its own from one of its own
+            // spaces.
+            'sharedNotes' => $this->memberRepository->findRolesFor($user),
         ]);
     }
 
@@ -239,7 +248,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -255,7 +264,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -393,7 +402,7 @@ final class MarkdownNotesController extends AbstractController
         $folder = null;
 
         if (is_numeric($folderId)) {
-            $folder = $this->folders->findOneByUserAndId($user, (int) $folderId);
+            $folder = $this->folderRepository->findOneByUserAndId($user, (int) $folderId);
 
             if (!$folder instanceof NoteFolderInterface) {
                 return $this->jsonNotFound();
@@ -414,7 +423,7 @@ final class MarkdownNotesController extends AbstractController
         $created = 0;
 
         foreach ($files as $file) {
-            $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+            $refusal = $this->uploadPolicyProvider->forStaffDocuments()->refusalFor($file);
 
             if ($refusal instanceof UploadRefusalEnum) {
                 return $this->jsonInvalidInput(['files' => match ($refusal) {
@@ -493,11 +502,17 @@ final class MarkdownNotesController extends AbstractController
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
         // Started from an outdated version: someone wrote in the meantime,
-        // and saving now would erase their text without them knowing.
-        // We refuse, and the person chooses - reload, or overwrite knowingly.
+        // and saving now would erase their text without them knowing. We
+        // refuse - and hand back **the note as it stands**, so the page can
+        // try to put the two texts together instead of asking somebody to
+        // choose between them. Only when that fails does the person choose.
         // A call that does not state its version goes through, as before.
         if (!$input->isForce() && null !== $input->getVersion() && $input->getVersion() !== $note->getVersion()) {
-            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true, 'version' => $note->getVersion()]);
+            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, [
+                'conflict' => true,
+                'version' => $note->getVersion(),
+                'note' => $this->serializer->serializeDetail($note),
+            ]);
         }
 
         $errors = $this->payloadValidator->errors($input);
@@ -510,6 +525,12 @@ final class MarkdownNotesController extends AbstractController
         $this->history->beforeChange($note, $input->getTitle(), $input->getContent(), $user);
 
         $this->manager->update($note, $input);
+
+        // Told to whoever else has the note open, after the row is committed
+        // and never before: a hub that is down must not be able to fail a
+        // save. The version only - the page asks for the note itself the
+        // ordinary way once it knows it is behind.
+        $this->liveHub->publishChanged($note, $user->getName());
 
         // The excerpt travels with the saved note: the library card follows
         // the text without waiting for a reload.
@@ -528,7 +549,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -550,14 +571,26 @@ final class MarkdownNotesController extends AbstractController
             return $this->jsonNotFound();
         }
 
+        // Who may be told which link a version came through. The history is
+        // open to anybody the note is open to - a member of its space,
+        // somebody it was handed to as a reader - and a link's recipient
+        // address belongs to whoever created the link, not to them. Those who
+        // administer the note already read that address on the share screen.
+        $namesTheLink = $this->spaceAccess->canAdministerNote($user, $note);
+
         return $this->jsonSuccess(['revisions' => array_map(
             static fn (MarkdownNoteRevision $revision): array => [
                 'id' => $revision->getId(),
                 'createdAt' => $revision->getCreatedAt()->format(DateTimeInterface::ATOM),
-                'authorName' => $revision->getAuthor()?->getName(),
+                'authorName' => $revision->getAuthor()?->getName()
+                    ?? ($namesTheLink ? $revision->getLinkLabel() : null),
+                // So the screen can say "through a share link" rather than
+                // leaving a version with no author at all, which reads like a
+                // gap in the record.
+                'viaShareLink' => $revision->wasWrittenThroughLink(),
                 'title' => $revision->getTitle(),
             ],
-            $this->revisions->findForNote($note),
+            $this->markdownNoteRevisionRepository->findForNote($note),
         )]);
     }
 
@@ -569,7 +602,7 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         $note = $this->spaceAccess->readableNote($user, $id);
-        $revision = $note instanceof MarkdownNoteInterface ? $this->revisions->findOneForNote($note, $revisionId) : null;
+        $revision = $note instanceof MarkdownNoteInterface ? $this->markdownNoteRevisionRepository->findOneForNote($note, $revisionId) : null;
         if (!$revision instanceof MarkdownNoteRevision) {
             return $this->jsonNotFound();
         }
@@ -595,7 +628,7 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         $note = $this->spaceAccess->writableNote($user, $id);
-        $revision = $note instanceof MarkdownNoteInterface ? $this->revisions->findOneForNote($note, $revisionId) : null;
+        $revision = $note instanceof MarkdownNoteInterface ? $this->markdownNoteRevisionRepository->findOneForNote($note, $revisionId) : null;
         if (!$note instanceof MarkdownNoteInterface || !$revision instanceof MarkdownNoteRevision) {
             return $this->jsonNotFound();
         }
@@ -616,7 +649,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface || $note->isTrashed()) {
             return $this->jsonNotFound();
         }
@@ -634,7 +667,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -686,7 +719,7 @@ final class MarkdownNotesController extends AbstractController
             $folder,
             $space,
             '' !== $title ? $title : $template->getTitle() ?? '',
-            ['{{date}}' => $this->dates->date(new DateTimeImmutable())],
+            ['{{date}}' => $this->dateFormatter->date(new DateTimeImmutable())],
         );
 
         return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($note)]);
@@ -713,7 +746,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->administrableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }

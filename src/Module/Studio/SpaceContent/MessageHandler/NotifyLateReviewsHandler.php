@@ -27,7 +27,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final readonly class NotifyLateReviewsHandler
 {
     public function __construct(
-        private CustomerSpaceRepository $spaces,
+        private CustomerSpaceRepository $spaceRepository,
         private SpaceWorkload $workload,
         private SpaceActivityNotifier $notifier,
     ) {}
@@ -35,7 +35,7 @@ final readonly class NotifyLateReviewsHandler
     public function __invoke(NotifyLateReviewsMessage $message): void
     {
         $spaces = [];
-        foreach ($this->spaces->findAllOrdered() as $space) {
+        foreach ($this->spaceRepository->findAllOrdered() as $space) {
             $spaces[(int) $space->getId()] = $space;
         }
 

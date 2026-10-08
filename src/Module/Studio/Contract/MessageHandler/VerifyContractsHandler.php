@@ -27,7 +27,7 @@ final readonly class VerifyContractsHandler
 {
     public function __construct(
         private ContractIntegrityChecker $checker,
-        private MailService $mail,
+        private MailService $mailService,
         private LoggerInterface $logger,
     ) {}
 
@@ -49,7 +49,7 @@ final readonly class VerifyContractsHandler
             'unverifiable' => $report->unverifiable,
         ]);
 
-        $this->mail->sendToAdmin(
+        $this->mailService->sendToAdmin(
             subjectKey: 'studio.email.contracts_integrity.subject',
             template: '@Studio/email/contracts_integrity.html.twig',
             context: ['report' => $report],

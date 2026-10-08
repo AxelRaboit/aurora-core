@@ -59,9 +59,9 @@ use function sprintf;
  */
 final class ContractAmendmentTest extends IntegrationTestCase
 {
-    private ContractManager $contracts;
+    private ContractManager $contractManager;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private ContractRepository $repository;
 
@@ -80,7 +80,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
 
         $canonicalizer = new ContractCanonicalizer();
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -89,7 +89,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
             $container->get(ContractTemplatePreviewer::class),
         );
 
-        $this->contracts = new ContractManager(
+        $this->contractManager = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             new ContractVariableResolver(new ContractVariableCatalogue(), $settings, static::getContainer()->get(TranslatorInterface::class)),
@@ -135,7 +135,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
         $html = $original->getRenderedHtml();
 
         $amendment = $this->amendmentOf($original);
-        $this->contracts->freeze($amendment);
+        $this->contractManager->freeze($amendment);
 
         self::assertSame($reference, $original->getReference());
         self::assertSame($hash, $original->getContentHash());
@@ -154,10 +154,10 @@ final class ContractAmendmentTest extends IntegrationTestCase
         $original = $this->concludedContract();
 
         $first = $this->amendmentOf($original);
-        $this->contracts->freeze($first);
+        $this->contractManager->freeze($first);
 
         $second = $this->amendmentOf($original);
-        $this->contracts->freeze($second);
+        $this->contractManager->freeze($second);
 
         self::assertSame($original->getReference().'-A1', $first->getReference());
         self::assertSame($original->getReference().'-A2', $second->getReference());
@@ -171,10 +171,10 @@ final class ContractAmendmentTest extends IntegrationTestCase
         $original = $this->concludedContract();
 
         $abandoned = $this->amendmentOf($original);
-        $this->contracts->delete($abandoned);
+        $this->contractManager->delete($abandoned);
 
         $kept = $this->amendmentOf($original);
-        $this->contracts->freeze($kept);
+        $this->contractManager->freeze($kept);
 
         self::assertSame($original->getReference().'-A1', $kept->getReference());
     }
@@ -194,7 +194,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     {
         $original = $this->concludedContract();
         $amendment = $this->amendmentOf($original);
-        $this->contracts->freeze($amendment);
+        $this->contractManager->freeze($amendment);
         $amendment->setStatus(ContractStatusEnum::Countersigned);
         $this->entityManager->flush();
 
@@ -219,7 +219,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
 
         $this->expectException(FieldException::class);
 
-        $this->contracts->create(new ContractInput(
+        $this->contractManager->create(new ContractInput(
             customerId: $other->getId(),
             bodyTemplateId: $original->getBodyVersion()?->getTemplate()->getId(),
             locale: 'fr',
@@ -235,7 +235,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     {
         $template = $this->publishedTemplate('Le présent avenant modifie le contrat {{contract.amends_reference}}.');
 
-        $standalone = $this->contracts->create(new ContractInput(
+        $standalone = $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $template,
             locale: 'fr',
@@ -244,7 +244,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
         $this->expectException(FieldException::class);
 
         try {
-            $this->contracts->freeze($standalone);
+            $this->contractManager->freeze($standalone);
         } catch (FieldException $fieldException) {
             self::assertStringContainsString('contract.amends_reference', $fieldException->getMessage());
             // Nothing consumed: no reference minted on a refused freeze.
@@ -260,14 +260,14 @@ final class ContractAmendmentTest extends IntegrationTestCase
         $original = $this->concludedContract();
         $template = $this->publishedTemplate('Le présent avenant modifie le contrat {{contract.amends_reference}}.');
 
-        $amendment = $this->contracts->create(new ContractInput(
+        $amendment = $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $template,
             locale: 'fr',
             amendsId: $original->getId(),
         ));
 
-        $this->contracts->freeze($amendment);
+        $this->contractManager->freeze($amendment);
 
         self::assertStringContainsString(
             sprintf('modifie le contrat %s', (string) $original->getReference()),
@@ -280,7 +280,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
         $original = $this->concludedContract();
 
         $first = $this->amendmentOf($original);
-        $this->contracts->freeze($first);
+        $this->contractManager->freeze($first);
 
         self::assertCount(1, $this->repository->findAmendmentsOf($original));
         self::assertSame(1, $this->repository->countSealedAmendmentsOf($original));
@@ -290,7 +290,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     {
         $contract = $this->concludedContract();
 
-        $this->contracts->terminate($contract, new ContractTerminationInput(
+        $this->contractManager->terminate($contract, new ContractTerminationInput(
             noticedAt: '2026-09-30',
             effectiveAt: '2026-10-31',
             origin: ContractTerminationOriginEnum::Customer->value,
@@ -314,7 +314,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
         $contract = $this->concludedContract();
         $hash = $contract->getContentHash();
 
-        $this->contracts->terminate($contract, new ContractTerminationInput(
+        $this->contractManager->terminate($contract, new ContractTerminationInput(
             noticedAt: '2026-09-30',
             effectiveAt: '2026-10-31',
             origin: ContractTerminationOriginEnum::Mutual->value,
@@ -331,7 +331,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
 
         $this->expectException(FieldException::class);
 
-        $this->contracts->terminate($contract, new ContractTerminationInput(
+        $this->contractManager->terminate($contract, new ContractTerminationInput(
             noticedAt: '2026-10-31',
             effectiveAt: '2026-09-30',
             origin: ContractTerminationOriginEnum::Provider->value,
@@ -344,7 +344,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
 
         $this->expectException(FieldException::class);
 
-        $this->contracts->terminate($draft, new ContractTerminationInput(
+        $this->contractManager->terminate($draft, new ContractTerminationInput(
             noticedAt: '2026-09-30',
             effectiveAt: '2026-10-31',
             origin: ContractTerminationOriginEnum::Customer->value,
@@ -361,11 +361,11 @@ final class ContractAmendmentTest extends IntegrationTestCase
             origin: ContractTerminationOriginEnum::Customer->value,
         );
 
-        $this->contracts->terminate($contract, $input);
+        $this->contractManager->terminate($contract, $input);
 
         $this->expectException(FieldException::class);
 
-        $this->contracts->terminate($contract, $input);
+        $this->contractManager->terminate($contract, $input);
     }
 
     /** A terminated contract has nothing left to modify. */
@@ -373,7 +373,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     {
         $contract = $this->concludedContract();
 
-        $this->contracts->terminate($contract, new ContractTerminationInput(
+        $this->contractManager->terminate($contract, new ContractTerminationInput(
             noticedAt: '2026-08-01',
             effectiveAt: '2026-09-01',
             origin: ContractTerminationOriginEnum::Customer->value,
@@ -393,7 +393,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     {
         $contract = $this->concludedContract();
 
-        $this->contracts->terminate($contract, new ContractTerminationInput(
+        $this->contractManager->terminate($contract, new ContractTerminationInput(
             noticedAt: new DateTimeImmutable('today')->format('Y-m-d'),
             effectiveAt: new DateTimeImmutable('+2 months')->format('Y-m-d'),
             origin: ContractTerminationOriginEnum::Customer->value,
@@ -412,7 +412,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     {
         $contract = $this->concludedContract();
 
-        $this->contracts->terminate($contract, new ContractTerminationInput(
+        $this->contractManager->terminate($contract, new ContractTerminationInput(
             noticedAt: new DateTimeImmutable()->format('Y-m-d'),
             effectiveAt: new DateTimeImmutable('+30 days')->format('Y-m-d'),
             origin: ContractTerminationOriginEnum::Customer->value,
@@ -424,7 +424,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
 
     private function amendmentOf(ContractInterface $parent): ContractInterface
     {
-        return $this->contracts->create(new ContractInput(
+        return $this->contractManager->create(new ContractInput(
             customerId: $parent->getCustomer()->getId(),
             bodyTemplateId: $parent->getBodyVersion()?->getTemplate()->getId(),
             locale: 'fr',
@@ -435,7 +435,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     private function concludedContract(): ContractInterface
     {
         $contract = $this->draftContract();
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
         $contract->setStatus(ContractStatusEnum::Countersigned);
         $this->entityManager->flush();
 
@@ -444,7 +444,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
 
     private function draftContract(): ContractInterface
     {
-        return $this->contracts->create(new ContractInput(
+        return $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $this->publishedTemplate("Le forfait est payable d'avance."),
             locale: 'fr',
@@ -454,12 +454,12 @@ final class ContractAmendmentTest extends IntegrationTestCase
     /** @return int|null the template id, which is what the input takes */
     private function publishedTemplate(string $text): ?int
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         self::assertNotNull($version);
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -468,7 +468,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
             ],
         ]));
 
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $template->getId();
     }

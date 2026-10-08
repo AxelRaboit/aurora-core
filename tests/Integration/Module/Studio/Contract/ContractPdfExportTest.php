@@ -40,7 +40,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
 {
     private KernelBrowser $client;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private EntityManagerInterface $entityManager;
 
@@ -56,7 +56,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -185,10 +185,10 @@ final class ContractPdfExportTest extends IntegrationTestCase
 
     private function publishedTemplate(): ContractTemplateInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -197,7 +197,7 @@ final class ContractPdfExportTest extends IntegrationTestCase
                 ]],
             ],
         ]));
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $template;
     }

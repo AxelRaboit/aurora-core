@@ -28,7 +28,7 @@ final readonly class SpaceInformationViewBuilder
 {
     public function __construct(
         private CustomerInformationSerializerInterface $serializer,
-        private CustomerRelatedViewBuilder $related,
+        private CustomerRelatedViewBuilder $relatedViewBuilder,
         private UrlGeneratorInterface $urlGenerator,
         private AuthorizationCheckerInterface $authorizationChecker,
         private StudioContext $studioContext,
@@ -41,7 +41,7 @@ final readonly class SpaceInformationViewBuilder
 
         return [
             'information' => $this->serializer->serialize($customer),
-            'related' => $this->related->related($customer, $space),
+            'related' => $this->relatedViewBuilder->related($customer, $space),
             'customerPath' => $this->customerPath($space),
         ];
     }

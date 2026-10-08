@@ -29,7 +29,7 @@ final class ModulesController extends AbstractController
     use JsonResponseTrait;
 
     public function __construct(
-        private readonly SettingsService $settingsManager,
+        private readonly SettingsService $settingsService,
         private readonly ModulesViewBuilder $viewBuilder,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly ModuleToggleRegistry $moduleToggleRegistry,
@@ -80,7 +80,7 @@ final class ModulesController extends AbstractController
         }
 
         try {
-            $this->settingsManager->set($key, $value);
+            $this->settingsService->set($key, $value);
         } catch (CascadeViolationException $cascadeViolationException) {
             return $this->jsonFailure(
                 SettingErrorCodeEnum::CascadeViolation->value,

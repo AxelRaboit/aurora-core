@@ -96,7 +96,7 @@ final class PublicSpaceController extends AbstractController
         private readonly RateLimiterFactoryInterface $spaceGuestWriteLimiter,
         private readonly SpaceContentAttachmentManagerInterface $attachments,
         private readonly SpaceFilesViewBuilder $filesViewBuilder,
-        private readonly SpaceFileRepository $spaceFiles,
+        private readonly SpaceFileRepository $spaceFileRepository,
         // A limiter of its own rather than the one above. A verdict is a row; a
         // file is megabytes through the whole pipeline - storage, thumbnailing,
         // a poster frame for a video - and forty of those an hour from one
@@ -104,15 +104,15 @@ final class PublicSpaceController extends AbstractController
         private readonly RateLimiterFactoryInterface $spaceGuestUploadLimiter,
         private readonly RateLimiterFactoryInterface $spaceGuestArchiveLimiter,
         private readonly SpaceContentAttachmentRepository $attachmentRepository,
-        private readonly UploadPolicyProvider $uploadPolicies,
+        private readonly UploadPolicyProvider $uploadPolicyProvider,
         private readonly StoredFileResponder $responder,
         private readonly SpaceChatMessageManagerInterface $chat,
-        private readonly SpaceChatChannelRepository $chatChannels,
+        private readonly SpaceChatChannelRepository $channelRepository,
         private readonly SpaceChatViewBuilder $chatViewBuilder,
         private readonly SpaceChatHub $chatHub,
         private readonly DriveSettings $driveSettings,
-        private readonly DriveClient $drive,
-        private readonly DriveFileServer $driveRelay,
+        private readonly DriveClient $driveClient,
+        private readonly DriveFileServer $driveFileServer,
         private readonly DriveArchive $driveArchives,
         private readonly SpaceFileManagerInterface $spaceFileManager,
     ) {}
@@ -385,7 +385,7 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'studio.public.space.errors.upload_required']);
         }
 
-        $refusal = $this->uploadPolicies->forSpaceGuests()->refusalFor($file);
+        $refusal = $this->uploadPolicyProvider->forSpaceGuests()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
             // The reason is mapped to this surface's own words: the same rule
@@ -450,7 +450,7 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'studio.public.space.errors.upload_required']);
         }
 
-        $refusal = $this->uploadPolicies->forSpaceGuests()->refusalFor($file);
+        $refusal = $this->uploadPolicyProvider->forSpaceGuests()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
             return $this->jsonInvalidInput(['file' => match ($refusal) {
@@ -542,7 +542,7 @@ final class PublicSpaceController extends AbstractController
      */
     private function readableChannel(SpaceAccessLinkInterface $link, int $channelId): SpaceChatChannelInterface
     {
-        foreach ($this->chatChannels->findForLink($link->getSpace(), $link) as $channel) {
+        foreach ($this->channelRepository->findForLink($link->getSpace(), $link) as $channel) {
             if ($channel->getId() === $channelId) {
                 return $channel;
             }
@@ -637,7 +637,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $file = $this->spaceFiles->find($fileId);
+        $file = $this->spaceFileRepository->find($fileId);
 
         if (!$file instanceof SpaceFileInterface || $file->getSpace()->getId() !== $link->getSpace()->getId() || !$file->isShownToClient()) {
             throw $this->createNotFoundException();
@@ -681,7 +681,7 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonSuccess(['files' => []]);
         }
 
-        return $this->jsonSuccess(['files' => $this->drive->files($account, $folderId)]);
+        return $this->jsonSuccess(['files' => $this->driveClient->files($account, $folderId)]);
     }
 
     /**
@@ -727,7 +727,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $files = $this->drive->files($account, $folderId);
+        $files = $this->driveClient->files($account, $folderId);
 
         if ([] === $files || $this->driveArchives->weightOf($files) > DriveArchive::MAX_BYTES) {
             // Too heavy is not an error to explain here: the screen does not
@@ -780,7 +780,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $response = $this->driveRelay->serve($account, $link->getSpace()->getDriveFolderId(), $fileId, $request->query->getBoolean('download'));
+        $response = $this->driveFileServer->serve($account, $link->getSpace()->getDriveFolderId(), $fileId, $request->query->getBoolean('download'));
 
         if (!$response instanceof Response) {
             throw $this->createNotFoundException();

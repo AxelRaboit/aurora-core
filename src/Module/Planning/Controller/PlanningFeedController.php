@@ -48,7 +48,7 @@ final class PlanningFeedController extends AbstractController
         private readonly PlanningShareLinkManagerInterface $shareLinks,
         private readonly IcalWriter $writer,
         private readonly PlanningContext $planningContext,
-        private readonly PlanningRepository $plannings,
+        private readonly PlanningRepository $planningRepository,
     ) {}
 
     /**
@@ -85,7 +85,7 @@ final class PlanningFeedController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $this->plannings->warmForFeed(array_values($calendars));
+        $this->planningRepository->warmForFeed(array_values($calendars));
 
         // The link's own label names the feed, not the first calendar's name: a
         // link can carry several, and a subscription called "Pro" that also holds

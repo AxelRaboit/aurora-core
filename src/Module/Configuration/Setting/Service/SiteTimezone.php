@@ -32,7 +32,7 @@ use Throwable;
 final readonly class SiteTimezone
 {
     public function __construct(
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
     ) {}
 
     public function get(): DateTimeZone
@@ -49,7 +49,7 @@ final readonly class SiteTimezone
         $default = ApplicationParameterEnum::Timezone->getDefaultValue();
 
         try {
-            $value = $this->settings->getOrDefault(ApplicationParameterEnum::Timezone);
+            $value = $this->settingRepository->getOrDefault(ApplicationParameterEnum::Timezone);
         } catch (Throwable) {
             // No database yet (first boot, the schedule built before the
             // migrations ran): the default beats an outage.

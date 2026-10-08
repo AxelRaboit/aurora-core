@@ -34,6 +34,22 @@ const props = defineProps({
 const emit = defineEmits(["close", "restored"]);
 
 const { t } = useI18n();
+
+/**
+ * Who wrote a version.
+ *
+ * An account's name when there is one. A version written through a share link
+ * says so rather than showing nothing: the server only names the link to
+ * somebody who may see it - its recipient's address belongs to whoever
+ * created the link, not to everybody the note is open to.
+ */
+function authorOf(revision) {
+    if (revision.authorName) return revision.authorName;
+
+    return revision.viaShareLink
+        ? t("notes.markdown.revisions.via_share_link")
+        : t("notes.markdown.revisions.no_author");
+}
 const { formatDate } = useDateFormat();
 
 const revisions = ref([]);
@@ -140,7 +156,7 @@ const LINE_CLASSES = {
                     >
                         <span class="block">{{ formatDate(revision.createdAt) }}</span>
                         <span class="mt-0.5 block truncate text-xs text-muted">
-                            {{ revision.authorName || t('notes.markdown.revisions.no_author') }}
+                            {{ authorOf(revision) }}
                         </span>
                     </button>
                 </li>

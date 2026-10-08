@@ -42,7 +42,7 @@ final readonly class SiteDateFormatter
     ];
 
     public function __construct(
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
         private SiteTimezone $timezone,
         private LocaleSwitcher $localeSwitcher,
     ) {}
@@ -54,7 +54,7 @@ final readonly class SiteDateFormatter
     public function style(): string
     {
         try {
-            $value = $this->settings->getOrDefault(ApplicationParameterEnum::DateFormat);
+            $value = $this->settingRepository->getOrDefault(ApplicationParameterEnum::DateFormat);
         } catch (Throwable) {
             return 'short';
         }

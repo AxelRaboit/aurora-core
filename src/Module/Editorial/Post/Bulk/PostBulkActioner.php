@@ -31,7 +31,7 @@ use function count;
 final readonly class PostBulkActioner
 {
     public function __construct(
-        private PostRepository $posts,
+        private PostRepository $postRepository,
         private PostManagerInterface $postManager,
         private EntityManagerInterface $entityManager,
         private Security $security,
@@ -49,7 +49,7 @@ final readonly class PostBulkActioner
         $done = 0;
         $skipped = 0;
 
-        foreach ($this->posts->findBy(['id' => $ids]) as $post) {
+        foreach ($this->postRepository->findBy(['id' => $ids]) as $post) {
             if ($this->run($action, $post)) {
                 ++$done;
 

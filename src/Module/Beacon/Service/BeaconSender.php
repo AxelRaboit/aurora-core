@@ -39,7 +39,7 @@ final readonly class BeaconSender
 
     public function __construct(
         private HttpClientInterface $httpClient,
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
         private LoggerInterface $logger,
         #[Autowire(param: 'app.beacon_url')]
         private string $url,
@@ -92,10 +92,10 @@ final readonly class BeaconSender
 
     private function instanceId(): string
     {
-        $id = $this->settings->get(BeaconSettingEnum::InstanceId->value);
+        $id = $this->settingRepository->get(BeaconSettingEnum::InstanceId->value);
         if (null === $id || '' === $id) {
             $id = bin2hex(random_bytes(16));
-            $this->settings->set(BeaconSettingEnum::InstanceId->value, $id);
+            $this->settingRepository->set(BeaconSettingEnum::InstanceId->value, $id);
         }
 
         return $id;

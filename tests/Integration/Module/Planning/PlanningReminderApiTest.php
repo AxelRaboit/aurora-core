@@ -32,7 +32,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
 
     private UrlGeneratorInterface $urlGenerator;
 
-    private PlanningReminderRepository $reminders;
+    private PlanningReminderRepository $reminderRepository;
 
     private User $admin;
 
@@ -45,7 +45,7 @@ final class PlanningReminderApiTest extends IntegrationTestCase
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
-        $this->reminders = static::getContainer()->get(PlanningReminderRepository::class);
+        $this->reminderRepository = static::getContainer()->get(PlanningReminderRepository::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
