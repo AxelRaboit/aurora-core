@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [3.6.2] - 2026-10-08
 
 ### Modifié
 - Démonstration : la médiathèque n'a plus d'aplats de couleur. Le visuel de campagne, la photo d'équipe, l'illustration de bureau et le plan des locaux sont de vraies photos Pexels, créditées et décrites comme les autres ; la capture du tableau de bord est celle du produit. Les variantes de couleur se font à partir de la photo.
