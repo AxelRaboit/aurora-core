@@ -12,6 +12,7 @@ use Aurora\Core\Locale\Entity\LocaleInterface;
 use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Core\Notification\Entity\Notification;
 use Aurora\Core\Notification\Entity\NotificationInterface;
+use Aurora\Core\Storage\Message\DeleteStoredFilesMessage;
 use Aurora\Module\Beacon\Entity\DeployedInstance;
 use Aurora\Module\Beacon\Entity\DeployedInstanceInterface;
 use Aurora\Module\Configuration\Setting\Entity\Setting;
@@ -73,6 +74,7 @@ use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
 use Aurora\Module\Ged\Document\Entity\DocumentVersionInterface;
+use Aurora\Module\Ged\Document\Message\EraseDocumentFilesMessage;
 use Aurora\Module\Ged\Document\Message\RelocateDocumentMessage;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
@@ -532,11 +534,17 @@ class AuroraBundle extends AbstractBundle
                 'routing' => [
                     RelocateDocumentMessage::class => 'async',
                     DeliverFormSubmissionMessage::class => 'async',
-                    // The only one of the three that is routed for its delay
+                    // The only one routed for its delay
                     // rather than its cost: it is dispatched with a five minute
                     // stamp, and handled inline it would be sent immediately -
                     // which is precisely the mail it exists to avoid.
                     SpaceActivityDigestMessage::class => 'async',
+                    // Erasing what a trash emptied: the rows go in the request,
+                    // the bytes after it. On R2 each batch is a network call,
+                    // and a trash of a few hundred files kept the button
+                    // spinning for as long as they took.
+                    EraseDocumentFilesMessage::class => 'async',
+                    DeleteStoredFilesMessage::class => 'async',
                 ],
             ],
         ]);

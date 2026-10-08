@@ -19,8 +19,10 @@ use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
 use Aurora\Module\Ged\Document\Entity\DocumentVersionInterface;
+use Aurora\Module\Ged\Document\Message\EraseDocumentFilesMessage;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
+use Aurora\Module\Ged\Document\Service\DocumentFileEraser;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
@@ -32,6 +34,7 @@ use Aurora\Module\Ged\Setting\GedSettingEnum;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsAlias(DocumentManagerInterface::class)]
 class DocumentManager implements DocumentManagerInterface
@@ -52,6 +55,9 @@ class DocumentManager implements DocumentManagerInterface
         // Last and optional, so a project that builds this manager by hand
         // keeps working: without it, photographs simply carry no settings.
         protected readonly ?PhotoExifReader $exifReader = null,
+        // Same reason: without a bus, the bytes of a deleted document are
+        // erased in the request, as they always were.
+        protected readonly ?MessageBusInterface $messageBus = null,
     ) {}
 
     public function create(DocumentInputInterface $input): DocumentInterface
@@ -156,9 +162,7 @@ class DocumentManager implements DocumentManagerInterface
     /**
      * Deletes a document for good, bytes included.
      *
-     * The renditions go through the disk that holds them, and the original file
-     * only if no other row still points at it: a document can share its file
-     * with another after a copy, and one deletion must not blank the other.
+     * The row goes now, the bytes in the worker: see `eraseFiles()`.
      */
     public function forceDelete(DocumentInterface $document): void
     {
@@ -171,8 +175,7 @@ class DocumentManager implements DocumentManagerInterface
         $this->entityManager->remove($document);
         $this->entityManager->flush();
 
-        $this->renditionGenerator->deleteRenditions($this->storageManager->forDisk($disk), $renditions);
-        $this->deleteUnreferencedFiles($owned, $disk);
+        $this->eraseFiles($disk, $renditions, $owned);
     }
 
     public function emptyTrash(): int
@@ -355,15 +358,8 @@ class DocumentManager implements DocumentManagerInterface
 
         $this->entityManager->flush();
 
-        foreach ($renditionsByDisk as $disk => $renditions) {
-            $this->renditionGenerator->deleteRenditions(
-                $this->storageManager->forDisk(StorageDiskEnum::from($disk)),
-                $renditions,
-            );
-        }
-
         foreach ($pathsByDisk as $disk => $paths) {
-            $this->deleteUnreferencedFiles($paths, StorageDiskEnum::from($disk));
+            $this->eraseFiles(StorageDiskEnum::from($disk), $renditionsByDisk[$disk] ?? [], $paths);
         }
 
         return count($documents);
@@ -450,33 +446,31 @@ class DocumentManager implements DocumentManagerInterface
     }
 
     /**
-     * Erases the given files, minus any path a surviving row still points at.
+     * Erases the bytes of documents whose rows were just flushed away.
      *
-     * The check is not paranoia: `recordVersion()` deliberately makes a
-     * version row share the live document's `filePath`, so a naive delete
-     * would take a file another row still owns. Call this *after* the flush -
-     * the rows being deleted must already be gone for the query to answer
-     * about survivors only, and a failed flush must not cost anyone their
-     * bytes.
+     * Handed to the worker: on R2 every batch is a network call, and emptying
+     * a trash of a few hundred files kept the request open for as long as they
+     * took. The paths travel in the message because the rows they came from
+     * are gone. Call this *after* the flush, so that a failed flush costs
+     * nobody their bytes.
      *
-     * @param list<string> $paths
+     * @param array<array-key, string> $renditions
+     * @param list<string>             $paths
      */
-    protected function deleteUnreferencedFiles(array $paths, StorageDiskEnum $disk): void
+    protected function eraseFiles(StorageDiskEnum $disk, array $renditions, array $paths): void
     {
-        if ([] === $paths) {
+        if ([] === $renditions && [] === $paths) {
             return;
         }
 
-        $stillInUse = array_merge(
-            $this->documentRepository->filterPathsInUse($paths),
-            $this->versionRepository->filterPathsInUse($paths),
-        );
+        if ($this->messageBus instanceof MessageBusInterface) {
+            $this->messageBus->dispatch(new EraseDocumentFilesMessage($disk, array_values($renditions), $paths));
 
-        $adapter = $this->storageManager->forDisk($disk);
-
-        foreach (array_diff($paths, $stillInUse) as $path) {
-            $adapter->delete($path);
+            return;
         }
+
+        new DocumentFileEraser($this->documentRepository, $this->versionRepository, $this->renditionGenerator, $this->storageManager)
+            ->erase($disk, $renditions, $paths);
     }
 
     protected function createDocument(): DocumentInterface

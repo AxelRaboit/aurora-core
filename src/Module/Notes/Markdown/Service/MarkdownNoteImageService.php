@@ -146,6 +146,24 @@ final readonly class MarkdownNoteImageService
     }
 
     /**
+     * The storage keys of every image a text cites, in that bucket.
+     *
+     * @return list<string>
+     */
+    public function keysIn(?string $content, CoreUserInterface|NoteSpaceInterface $user): array
+    {
+        $keys = [];
+        foreach ($this->extractFilenames($content) as $filename) {
+            $key = $this->keyOrNull($filename, $user);
+            if (null !== $key) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
      * Deletes an image, on every disk.
      *
      * On every one, and not only on the active one: an image written before a

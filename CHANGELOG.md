@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [3.7.0] - 2026-10-08
+
+### Modifié
+- **Vider une corbeille ne fait plus attendre.** Les documents de la médiathèque et les notes supprimés pour de bon quittent la base tout de suite ; leurs fichiers (original, vignette, versions, tailles générées, images d'une note) sont effacés ensuite par le worker. Sur R2, chaque lot est un appel réseau, et une corbeille de quelques centaines de fichiers gardait le bouton en attente tout ce temps. Un fichier qu'une autre ligne cite encore reste en place, vérifié au moment de l'effacement.
+- Les images d'une note supprimée pour de bon sont effacées après l'enregistrement de la suppression, et non plus avant : un échec en base ne coûte plus ses images à une note.
+
+### Dans aurora-client
+Rien à faire : le worker `aurora-worker` consomme déjà `async`.
+
+---
+
 ## [3.6.2] - 2026-10-08
 
 ### Modifié

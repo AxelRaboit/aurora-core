@@ -63,7 +63,7 @@ sudo systemctl restart aurora-worker
 
 ## Notes
 
-- **`async`** : transport pour les messages asynchrones (notifications, jobs lourds)
+- **`async`** : transport pour les messages asynchrones (notifications, jobs lourds, déplacements de fichiers entre disques, effacement des fichiers d'une corbeille vidée). Sans worker, les lignes d'une corbeille vidée disparaissent mais leurs fichiers restent sur le disque jusqu'à ce qu'il tourne.
 - **`scheduler_main`** : transport pour les tâches planifiées (équivalent d'un cron géré par Messenger)
 - **`--time-limit=3600`** : le worker se relance proprement toutes les heures (évite les fuites mémoire)
 - **`--memory-limit=512M`** : arrêt automatique si le process dépasse 512 Mo
