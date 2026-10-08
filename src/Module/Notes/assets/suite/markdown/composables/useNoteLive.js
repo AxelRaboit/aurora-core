@@ -76,6 +76,8 @@ export function useNoteLive({ noteId, editing, beatPath }) {
     // The address, topic and token a browser needs to say where its cursor
     // is. Null without a hub, and then nothing is published or drawn.
     let awareness = null;
+    /** Whoever else reads this channel: the co-editing session subscribes here. */
+    const listeners = new Set();
     // When each person's cursor was last heard of.
     const heardAt = new Map();
     let sweeper = null;
@@ -167,7 +169,13 @@ export function useNoteLive({ noteId, editing, beatPath }) {
 
             if ("cursor" === message.kind) {
                 rememberCursor(message);
+
+                return;
             }
+
+            // Everything else on this channel belongs to whoever subscribed
+            // to it - the co-editing session, today.
+            for (const listener of listeners) listener(message);
         });
 
         source.addEventListener("error", () => {
@@ -247,22 +255,14 @@ export function useNoteLive({ noteId, editing, beatPath }) {
      * position published as the tab closes still goes out - which is what
      * makes a cursor disappear when somebody leaves rather than linger.
      */
-    async function publishCursor(index) {
+    async function publish(message) {
         if (!awareness || null == noteId.value) return;
 
         const body = new URLSearchParams();
         body.append("topic", awareness.topic);
-        body.append(
-            "data",
-            JSON.stringify({
-                kind: "cursor",
-                userId: selfUserId,
-                name: selfName,
-                index: null == index ? null : Number(index),
-            }),
-        );
+        body.append("data", JSON.stringify({ ...message, from: selfUserId }));
         // Private, so the hub checks every subscriber's token against the
-        // topic instead of handing one note's cursors to whoever guesses it.
+        // topic instead of handing one note's channel to whoever guesses it.
         body.append("private", "on");
 
         try {
@@ -273,13 +273,25 @@ export function useNoteLive({ noteId, editing, beatPath }) {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
                 body,
+                // So a message published as the tab closes still goes out -
+                // which is what makes a cursor disappear when somebody
+                // leaves, rather than linger.
                 keepalive: true,
             });
         } catch {
-            // A cursor that did not go out is a cursor nobody sees. The next
-            // keystroke publishes again, and nothing on screen should blink
-            // because of it.
+            // Nobody asked for this, so nothing on screen blinks because of
+            // it. A cursor publishes again on the next keystroke; a document
+            // update is carried by the next one, a CRDT being cumulative.
         }
+    }
+
+    async function publishCursor(index) {
+        await publish({
+            kind: "cursor",
+            userId: selfUserId,
+            name: selfName,
+            index: null == index ? null : Number(index),
+        });
     }
 
     function disconnect() {
@@ -334,5 +346,32 @@ export function useNoteLive({ noteId, editing, beatPath }) {
         void publishCursor(null);
     });
 
-    return { people, cursors, serverVersion, changedBy, live, publishCursor };
+    /**
+     * The channel, as something else can use it.
+     *
+     * Handed out as one object rather than four refs: a caller that needs to
+     * publish also needs to listen, to know who it is, and to know whether
+     * there is a hub at all - and passing those separately is how three of
+     * them end up wired and the fourth forgotten.
+     */
+    const channel = {
+        publish,
+        onMessage: (listener) => {
+            listeners.add(listener);
+
+            return () => listeners.delete(listener);
+        },
+        selfUserId: () => selfUserId,
+        ready: () => null !== awareness,
+    };
+
+    return {
+        people,
+        cursors,
+        serverVersion,
+        changedBy,
+        live,
+        publishCursor,
+        channel,
+    };
 }

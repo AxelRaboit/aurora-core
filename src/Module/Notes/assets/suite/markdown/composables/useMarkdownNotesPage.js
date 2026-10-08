@@ -23,7 +23,17 @@ import { useAutoSaveStatusDisplay } from "@shared/composables/useAutoSaveStatusD
  *   defineProps: the eleven suite paths + the initial flat note list.
  * @param {(key: string) => string} t - vue-i18n's `t`
  */
-export function useMarkdownNotesPage(props, t) {
+/**
+ * @param {object} [options]
+ * @param {import("vue").Ref<boolean>} [options.autoSaveSuspended]
+ *        Passed straight to the editor: true while a co-editing session owns
+ *        the saving.
+ */
+export function useMarkdownNotesPage(
+    props,
+    t,
+    { autoSaveSuspended = null } = {},
+) {
     const api = useMarkdownNotesApi(props);
     const tagsApi = useMarkdownTagsApi(props);
 
@@ -31,6 +41,7 @@ export function useMarkdownNotesPage(props, t) {
         api,
         initialNotes: props.notes,
         extraFields: props.extraFields ?? {},
+        autoSaveSuspended,
     });
     const {
         notes,
@@ -57,6 +68,7 @@ export function useMarkdownNotesPage(props, t) {
         conflict,
         loadedVersion,
         isDirty,
+        saveNow,
         saveAnyway,
         reloadDiscarding,
     } = editor;
@@ -206,6 +218,7 @@ export function useMarkdownNotesPage(props, t) {
         loadedVersion,
         isDirty,
         reloadCurrent,
+        saveNow,
         saveAnyway,
         reloadDiscarding,
         onWikiLinkClick,

@@ -24,7 +24,21 @@ import { updateImageDimensionInContent } from "./markedExtensions/markedImageDim
  * @param {object} options.api          - useMarkdownNotesApi() instance
  * @param {Array}  options.initialNotes - flat list passed in via props
  */
-export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
+/**
+ * @param {object} options
+ * @param {import("vue").Ref<boolean>} [options.autoSaveSuspended]
+ *        True while something else owns saving. A co-editing session does:
+ *        everybody in it holds the same text, so everybody saving it would be
+ *        the same save sent several times, each refused by the version check
+ *        for a conflict that does not exist. One elected client writes
+ *        instead, through this same route.
+ */
+export function useNotesEditor({
+    api,
+    initialNotes,
+    extraFields = {},
+    autoSaveSuspended = null,
+}) {
     const { t } = useI18n();
 
     // Client-extension points. Each entry of `extraFields` is
@@ -593,6 +607,9 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         form,
         () => {
             if (!isDirty.value || saving.value) return;
+            // Suspended while a co-editing session owns the saving: see the
+            // parameter's docblock.
+            if (true === autoSaveSuspended?.value) return;
             scheduleAutoSave();
         },
         { deep: true },
@@ -631,6 +648,9 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         saveStatus,
         lastSavedAt,
         conflict,
+        // Saves now, whatever the debounce was doing. The co-editing session
+        // calls it on its own rhythm, from the one client that was elected.
+        saveNow: performSave,
         // What the open form started from. Read by the live room to tell
         // "somebody saved after us" from "that save was ours".
         loadedVersion,

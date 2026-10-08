@@ -37,6 +37,8 @@ import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFoldable } from "@notes/suite/markdown/composables/useFoldable.js";
 import { useNoteLive } from "@notes/suite/markdown/composables/useNoteLive.js";
+import { useNoteCoedit } from "@notes/suite/markdown/composables/useNoteCoedit.js";
+import { canCoedit } from "@notes/suite/markdown/composables/noteCoeditProtocol.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
 
 const { formatDateTime } = useDateFormat();
@@ -132,6 +134,15 @@ const props = defineProps({
 
 const { t } = useI18n();
 
+/**
+ * Whether a co-editing session is running on the open note.
+ *
+ * Declared here rather than returned by the session, because the editor's
+ * autosave is suspended by it and the editor is built first: a session that
+ * created its own flag could not be read by the thing that has to obey it.
+ */
+const coeditLive = ref(false);
+
 const {
     isMobile,
     api,
@@ -171,9 +182,10 @@ const {
     loadedVersion,
     isDirty,
     reloadCurrent,
+    saveNow,
     saveAnyway,
     reloadDiscarding,
-} = useMarkdownNotesPage(props, t);
+} = useMarkdownNotesPage(props, t, { autoSaveSuspended: coeditLive });
 
 // Local to this component rather than folded into `useMarkdownNotesPage`:
 // sharing is opened from the toolbar and closed by the modal, and nothing in
@@ -416,6 +428,7 @@ const {
     changedBy: roomChangedBy,
     live: roomLive,
     publishCursor,
+    channel: roomChannel,
 } = useNoteLive({
     noteId: selectedId,
     editing: alwaysEditing,
@@ -472,6 +485,47 @@ function onCaretMoved(index) {
 
 onBeforeUnmount(() => {
     if (caretTimer) clearTimeout(caretTimer);
+});
+
+/**
+ * Writing the note together, letter by letter, when everything allows it.
+ *
+ * Four conditions, and all four are the server's word rather than a guess:
+ * the space allows it, this reader writes the note, a hub is running, and the
+ * page knows who it is. Any one missing and the editor stays on the autosave
+ * and the three-way merge - a mode that works, which is why declining is
+ * always the safe answer here.
+ */
+const coeditAllowed = computed(() =>
+    canCoedit({
+        spaceAllows: Boolean(
+            spaces.value.find(
+                (space) => Number(space.id) === Number(selectedNote.value?.spaceId),
+            )?.coediting,
+        ),
+        canWrite: canEditSelected.value,
+        hasChannel: roomChannel.ready(),
+        selfUserId: roomChannel.selfUserId(),
+    }),
+);
+
+useNoteCoedit({
+    noteId: selectedId,
+    allowed: coeditAllowed,
+    live: coeditLive,
+    text: computed(() => form.value.content),
+    applyText: (value) => {
+        form.value.content = value;
+    },
+    room: roomPeople,
+    channel: roomChannel,
+    // The write-back is the ordinary save, asked for by the session instead of
+    // by the debounce. So the version check and the three-way merge still
+    // stand behind it, and a save from outside the session is caught the way
+    // any other is.
+    writeBack: async () => {
+        await saveNow();
+    },
 });
 
 // Whoever is in the room, named. The list is small by nature - the people who

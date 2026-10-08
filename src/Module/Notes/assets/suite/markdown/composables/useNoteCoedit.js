@@ -1,8 +1,7 @@
-import { onBeforeUnmount, ref, watch } from "vue";
+import { onBeforeUnmount, watch } from "vue";
 import * as Y from "yjs";
 import {
     JOIN_SEED,
-    canCoedit,
     isElected,
     isForMe,
     isMine,
@@ -32,6 +31,10 @@ import {
  *
  * @param {object} options
  * @param {import("vue").Ref<number|null>} options.noteId
+ * @param {import("vue").Ref<boolean>}     options.allowed     the four conditions, decided outside
+ * @param {import("vue").Ref<boolean>}     options.live        written here, read by the editor: it has
+ *                                                             to exist before the editor is built, since
+ *                                                             the editor's autosave is suspended by it
  * @param {import("vue").Ref<string>}      options.text        the form's body
  * @param {Function}                       options.applyText   writes the body back into the form
  * @param {import("vue").Ref<Array>}       options.room        who else is here
@@ -40,20 +43,19 @@ import {
  */
 export function useNoteCoedit({
     noteId,
+    allowed,
     text,
     applyText,
     room,
     channel,
     writeBack,
+    live,
 }) {
     /** How long to wait for a peer to answer before giving up on the session. */
     const STATE_TIMEOUT_MS = 4000;
 
     /** How long after the last keystroke the elected client writes back. */
     const WRITE_BACK_MS = 3000;
-
-    /** Whether a session is actually running, which the editor reads. */
-    const live = ref(false);
 
     let sharedDocument = null;
     let body = null;
@@ -182,7 +184,7 @@ export function useNoteCoedit({
     function enter() {
         teardown();
 
-        if (null == noteId.value || !channel.ready()) return;
+        if (null == noteId.value || !allowed.value) return;
 
         if (JOIN_SEED === joinAction(room.value)) {
             openSharedDocument(text.value ?? "");
@@ -203,7 +205,9 @@ export function useNoteCoedit({
 
     const stopListening = channel.onMessage(onMessage);
 
-    watch(noteId, () => enter());
+    // The open note changes, or the right to co-edit it does - a space whose
+    // setting was just switched, a hub that came back.
+    watch([noteId, allowed], () => enter());
 
     onBeforeUnmount(() => {
         // The last thing written is the text as it stands: a session ending
@@ -216,7 +220,7 @@ export function useNoteCoedit({
         teardown();
     });
 
-    return { live, enter, canCoedit };
+    return { enter };
 }
 
 /** Yjs speaks bytes; the bus carries text. */
