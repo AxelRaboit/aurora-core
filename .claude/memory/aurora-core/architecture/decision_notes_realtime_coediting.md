@@ -148,20 +148,41 @@ Elles comptent plus que le choix de la bibliothèque.
    devenu obligatoire en pratique.
 2. ~~**Trancher l'arbitrage du chiffrement.**~~ **Fait** le 08/10/2026 : zéro
    persistance, périmètre par espace, personnel jamais éligible.
-3. **Le service, et les curseurs** - déploiement compris. Le service Node
-   arrive et ne relaie **que l'awareness** ; le texte continue de passer par
-   la sauvegarde et la fusion de l'étape 1.
+3. ~~**Le service, et les curseurs.**~~ **Les curseurs sont faits**
+   (`e27bb8cf1`), et **sans service Node** - la planification lui en
+   réservait un, et il n'en avait pas besoin.
 
-   **Rule:** la première livraison du service est celle qui ne transporte
-   aucun texte.
+   **Rule:** l'awareness passe par Mercure, pas par un service. Le navigateur
+   publie son propre curseur, sur un **sujet distinct** de celui du serveur.
 
-   **Why:** un curseur est un décalage, pas du contenu. Rien ne persiste, rien
-   ne se réécrit, aucun conflit de version - et le service **ne voit jamais le
-   contenu d'une note**, donc l'arbitrage du chiffrement ne s'y applique même
-   pas. Tout ce qui est risqué dans un service - le jeton, la reconnexion, la
-   supervision, le proxy, le mode dégradé - se règle sur une charge utile qui
-   ne peut rien casser. Le déploiement arrive ici parce qu'un service qui se
-   livre doit être déployable.
+   **Why:** « Mercure n'est pas un serveur Yjs » est vrai du *document* - un
+   état Yjs doit avoir un propriétaire autoritaire - et ne dit rien d'un
+   curseur, qui n'a aucun état dont il faille être autoritaire. Un caret est
+   auto-déclaré par nature : seul le navigateur qui le porte sait où il est.
+   C'est du pub/sub éphémère, ce qu'est Mercure, et le hub accepte les
+   publications d'un navigateur (`MERCURE_PUBLISHER_JWT_KEY`). J'avais tiré du
+   blocage sur le document une conclusion trop large, pour la deuxième fois -
+   c'est le même biais que sur le chiffrement.
+
+   **Deux sujets, séparés par qui a le droit d'y publier.** Un navigateur qui
+   pourrait publier sur le sujet de la note pourrait forger un `changed` avec
+   une version bidon ou une liste de présences inventée : rien de destructeur,
+   mais deux mensonges que la page croirait. Le grant confié au navigateur ne
+   nomme donc que `.../notes/markdown/{id}/awareness`. Ce qu'un client peut y
+   forger, c'est son propre curseur, dans une note qu'il écrit déjà.
+
+   **How to apply:** `NoteLiveHub::awarenessGrant()` rend l'adresse, le sujet
+   et un jeton de publication de 15 minutes - court parce qu'il vit dans le
+   JavaScript de la page et non dans un cookie http-only (publier est un
+   `fetch`, pas un `EventSource`). Le cookie d'abonnement couvre **les deux**
+   sujets, sinon les navigateurs ne s'entendent pas. Et le dessin passe par
+   `caretPositionIn`, sorti de `positionFloatingMenu` : un textarea ne peut
+   pas afficher un second caret, donc ils sont dessinés par-dessus, et la
+   mesure est la même que celle de la palette slash.
+
+   **Ce qui reste donc à l'étape 4 :** tout le service, son déploiement
+   compris. L'étape des curseurs a prouvé le jeton, la reconnexion et le mode
+   dégradé sur une charge utile qui ne pouvait rien casser.
 
 4. **Le texte, lettre par lettre.** Liaison `y-text` ↔ textarea et le contrat
    fixé plus haut. C'est **ici** qu'arrive le booléen de co-édition sur
