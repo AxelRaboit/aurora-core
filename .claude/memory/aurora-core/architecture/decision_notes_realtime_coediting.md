@@ -1,6 +1,6 @@
 ---
 name: decision_notes_realtime_coediting
-description: La co-édition caractère par caractère d'une note passera par un service y-websocket, pas par Mercure ni par les navigateurs. L'arbitrage décisif n'est pas technique : un CRDT côté serveur et « seul PHP détient la clé » sont incompatibles, et c'est tranché par un opt-in au niveau de la note.
+description: La co-édition caractère par caractère d'une note passera par un service y-websocket, qui ne persiste rien - les clients sont la sauvegarde, donc le chiffrement au repos est préservé. Activée par espace, jamais sur un espace personnel. Tranché le 08/10/2026.
 metadata:
   type: project
 ---
@@ -15,35 +15,84 @@ bougé ») est livré - voir [[project_notes_collaboration]]. Ce qui manque est 
 co-édition fine : voir le curseur de l'autre et son texte apparaître lettre par
 lettre.
 
-Cette mémoire existe pour que **l'arbitrage du chiffrement ne soit pas à
-refaire**, parce qu'il est contre-intuitif et qu'il décide de tout le reste.
+L'étape 1 de la feuille de route - la fusion à trois branches - **est livrée**
+(commit `e8375deaa`) : deux personnes qui écrivent dans la même note ne se
+marchent plus dessus, et c'est le mode dégradé sur lequel toute la suite
+s'appuie. L'arbitrage du chiffrement **est tranché**, ci-dessous.
 
-## L'arbitrage décisif, et il n'est pas technique
+Cette mémoire existe pour que cet arbitrage ne soit pas à refaire, parce qu'il
+est contre-intuitif et qu'il décide de tout le reste.
 
-**Rule:** un CRDT côté serveur et « seul PHP détient la clé de chiffrement »
-sont **incompatibles**. Il faut choisir, explicitement.
+## L'arbitrage, tranché le 08/10/2026
 
-**Why:** `AbstractMarkdownNote` chiffre titre et corps par
-`EncryptedTextType`, avec une clé d'installation unique dans
-`AURORA_ENCRYPTION_KEY` que seul PHP lit. Un état Yjs, lui, se décode en texte
-par quiconque a la bibliothèque. Donc :
+### Ce qui avait été mal posé
 
-- soit le service de co-édition détient le texte **en clair** - un process de
-  plus dans le périmètre de confiance, et ça affaiblit une propriété que le
-  produit annonce en toutes lettres (« people write things there they would not
-  put in a document they know is shared ») ;
-- soit on chiffre le blob d'état, et alors le service **ne peut plus le
-  fusionner**, ce qui annule sa raison d'être.
+Une première rédaction disait qu'un CRDT côté serveur et « seul PHP détient la
+clé » sont **incompatibles**, et donc que la propriété « chiffré au repos »
+devait tomber. C'est vrai du *merge* - un état Yjs se décode en texte par
+quiconque a la bibliothèque, donc un blob chiffré est un blob infusionnable -
+mais la conclusion était trop large.
 
-Il n'y a pas de troisième voie. Ce n'est pas un obstacle d'ingénierie, c'est
-une décision produit.
+### La règle 1 résout la moitié du problème
 
-**How to apply:** rendre l'arbitrage visible **au niveau de la chose
-partagée**. La co-édition est un opt-in par note ou par espace. Une note que
-personne ne co-édite garde la propriété d'aujourd'hui ; une note ouverte à
-l'équipe accepte déjà que d'autres la lisent, donc accepter qu'un service la
-tienne en vie pendant une session est cohérent avec ce qui a déjà été décidé
-d'elle. **Le carnet personnel ne change pas de promesse.**
+**Rule:** le service de co-édition **ne persiste rien**. Le markdown dérivé
+repart dans Aurora par la route normale, et le document est jeté.
+
+**Why:** c'est la règle 1 poussée au bout, et ça tient pour une raison propre
+aux CRDT : **les clients sont la sauvegarde.** Chaque navigateur détient le
+document complet, donc un service qui redémarre en pleine session est réamorcé
+sans perte par n'importe quel client encore là. La persistance n'est pas
+« acceptable à sacrifier », elle est **inutile** - et sans elle, rien de
+lisible ne s'ajoute au repos : pas de second entrepôt contenant les notes en
+clair.
+
+### Ce qui reste comme exposition, et qui a été accepté
+
+- **Un process tient en RAM le texte des notes ouvertes à cet instant.** À
+  comparer à aujourd'hui : PHP-FPM tient déjà le texte déchiffré en RAM le
+  temps d'une requête. L'écart est « une session » contre « une requête ».
+- **Le trafic navigateur ↔ service transporte du clair** : TLS obligatoire,
+  comme HTTP.
+- **Le service n'a aucune idée des permissions d'Aurora.** C'est Aurora qui
+  signe un jeton court par (personne, note), que le service vérifie - la forme
+  exacte du cookie Mercure déjà construit, avec le même
+  `aurora.mercure.token_factory`.
+
+### Le piège que « zéro persistance » ouvre, et qui est refermé
+
+**Rule:** zéro persistance dans le service **ne veut pas dire** écriture
+seulement à la fin de la session. Le markdown est réécrit dans Aurora sur un
+débounce, comme l'autosave d'aujourd'hui.
+
+**Why:** sans ça, une session de deux heures laisse Postgres deux heures en
+retard. Deux conséquences, et la seconde est la pire : l'extrait, la recherche,
+la page publique et les liens de partage servent un texte périmé pendant tout
+ce temps ; et si le service tombe au même moment que le dernier client, le
+travail n'a jamais été écrit nulle part. L'écriture périodique rend ce trou
+aussi petit que celui de l'autosave actuelle.
+
+**How to apply:** le service réécrit par la route de sauvegarde normale, avec
+la version qu'il a reçue en graine - donc le contrôle de version habituel
+s'applique, et une graine périmée est rattrapée par la fusion à trois
+branches.
+
+### Le périmètre : par espace, et l'espace personnel jamais
+
+**Rule:** la co-édition s'active **par espace**, et un espace personnel n'est
+**jamais** éligible.
+
+**Why:** un espace dit déjà « qui voit ce carnet ». Faire de la co-édition une
+de ses propriétés, réglée une fois par qui le gère, évite une décision à
+reprendre note par note - et surtout évite deux endroits à consulter pour
+savoir si une note est co-éditable, ce qui est le genre de réglage dont on ne
+sait plus lequel gagne six mois après. Une dérogation par note a été écartée
+pour ça. Le carnet privé, lui, **ne change pas de promesse** : il n'est pas
+éligible, point.
+
+**How to apply:** un booléen sur `NoteSpace`, l'inéligibilité du personnel
+posée là où `isPersonal()` l'est déjà. Et **la colonne arrive avec le
+service**, jamais avant - voir la section « ce qu'il ne faut surtout pas faire
+avant ».
 
 ## L'architecture retenue : un service `y-websocket`
 
@@ -92,16 +141,13 @@ Elles comptent plus que le choix de la bibliothèque.
 
 ## L'ordre du travail, et pourquoi le palier d'avant est un prérequis
 
-1. **La fusion à trois branches** (~1 jour). Au 409, au lieu de demander
-   « écraser ou recharger », fusionner : la base est le texte chargé par le
-   formulaire, les deux autres branches sont le mien et le serveur. Le LCS est
-   déjà écrit (`composables/noteLineDiff.js`). Deux personnes écrivent rarement
-   dans la même phrase, donc ça fusionne tout seul dans le cas courant.
-   **Ce n'est pas un détour : c'est le mode dégradé de la règle 2.** Sans lui,
-   une installation sans le service garde un conflit à arbitrer à la main, et
-   le service devient de fait obligatoire.
-2. **Trancher l'arbitrage du chiffrement** ci-dessus et écrire le périmètre de
-   l'opt-in.
+1. ~~**La fusion à trois branches.**~~ **Faite** (`e8375deaa`,
+   `composables/noteThreeWayMerge.js`, 17 tests). Ce n'était pas un détour :
+   c'est le mode dégradé de la règle 2. Sans lui, une installation sans le
+   service aurait gardé un conflit à arbitrer à la main, et le service serait
+   devenu obligatoire en pratique.
+2. ~~**Trancher l'arbitrage du chiffrement.**~~ **Fait** le 08/10/2026 : zéro
+   persistance, périmètre par espace, personnel jamais éligible.
 3. **Le service** : liaison `y-text` ↔ textarea, awareness sur le salon
    existant, blob jetable, instantané en révision à la fin de session.
 4. **Le déploiement** : supervision, proxy, cycle de mise à jour, doc côté
@@ -109,11 +155,14 @@ Elles comptent plus que le choix de la bibliothèque.
 
 ## Ce qu'il ne faut surtout pas faire avant
 
-**Ne pas ajouter la colonne d'état « pour plus tard ».** C'est exactement le
-piège décrit pour `can_write` dans [[project_notes_collaboration]] : une
-colonne qui annonce une capacité alors que rien ne la sert est un interrupteur
-que quelqu'un bascule, et il va chercher le bug ailleurs. Elle arrive avec son
-service ou pas du tout.
+**Ne pas ajouter les colonnes « pour plus tard »** - ni un état CRDT sur la
+note, ni le booléen de co-édition sur `NoteSpace`. C'est exactement le piège
+décrit pour `can_write` dans [[project_notes_collaboration]] : une colonne qui
+annonce une capacité alors que rien ne la sert est un interrupteur que
+quelqu'un bascule, et il va chercher le bug ailleurs. Et dans le cas de la
+co-édition, un espace coché « co-éditable » sans service derrière promet aussi
+une exposition qui n'existe pas, ce qui est pire qu'une promesse vide. Elles
+arrivent avec le service ou pas du tout.
 
 **Et le lien d'écriture invité reste dehors.** Un endpoint non authentifié plus
 un droit de publication sur un bus, c'est la combinaison à ne pas faire : les
