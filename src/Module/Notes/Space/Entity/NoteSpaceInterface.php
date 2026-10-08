@@ -44,6 +44,11 @@ interface NoteSpaceInterface extends TimestampableInterface
 
     public function setDefaultRole(NoteSpaceRoleEnum $role): static;
 
+    /** Whether this space allows co-editing, and is allowed to - never a personal one. */
+    public function allowsCoediting(): bool;
+
+    public function setCoediting(bool $coediting): static;
+
     public function getPublishedAt(): ?DateTimeImmutable;
 
     public function setPublishedAt(?DateTimeImmutable $at): static;

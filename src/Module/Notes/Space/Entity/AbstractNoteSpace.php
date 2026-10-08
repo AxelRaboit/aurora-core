@@ -55,6 +55,23 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
     #[ORM\Column(length: 16, enumType: NoteSpaceRoleEnum::class, options: ['default' => 'reader'])]
     protected NoteSpaceRoleEnum $defaultRole = NoteSpaceRoleEnum::Reader;
 
+    /**
+     * Whether the notes of this space may be written by several people at
+     * once, letter by letter.
+     *
+     * **Off by default, and never available on a personal space.** A
+     * co-editing session hands the note's text to a second place while it is
+     * open - the other browsers - and a private notebook does not change the
+     * promise it made. A space, on the other hand, already says who sees what
+     * it holds, so this is one more thing it says.
+     *
+     * Set once by whoever manages the space rather than per note: two places
+     * to consult to know whether a note is co-editable is the kind of setting
+     * nobody remembers the precedence of six months later.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $coediting = false;
+
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $publishedAt = null;
 
@@ -162,6 +179,26 @@ abstract class AbstractNoteSpace implements NoteSpaceInterface
     public function setDefaultRole(NoteSpaceRoleEnum $role): static
     {
         $this->defaultRole = $role;
+
+        return $this;
+    }
+
+    /**
+     * Whether this space allows co-editing **and** is allowed to.
+     *
+     * The personal space is refused here rather than at the edge, so that no
+     * screen and no route has to remember it: a notebook that belongs to one
+     * person has nobody to co-edit with anyway, and the promise it makes about
+     * who can read it is the reason it is not offered.
+     */
+    public function allowsCoediting(): bool
+    {
+        return $this->coediting && !$this->isPersonal();
+    }
+
+    public function setCoediting(bool $coediting): static
+    {
+        $this->coediting = $coediting;
 
         return $this;
     }

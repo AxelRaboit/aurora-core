@@ -210,6 +210,10 @@ notes:
                 expires: 'This link expires on %date%.'
                 read_only: You can read this note, not edit it.
         spaces:
+            coediting:
+                title: Writing together
+                enable: Allow the notes of this space to be co-edited
+                hint: While a note is open, its text travels between the browsers of the people writing it, for the length of the session. Without a real-time hub the setting changes nothing.
             import_here: "Import into this note space"
             export: "Export this note space"
             publication:

@@ -31,6 +31,9 @@ class NoteSpaceSerializer implements NoteSpaceSerializerInterface
             // name, access and members are not configured from here.
             'managed' => $space->isManaged(),
             'access' => $space->getAccess()->value,
+            // What the space allows, not just what somebody ticked: a
+            // personal space answers false whatever the column says.
+            'coediting' => $space->allowsCoediting(),
             'defaultRole' => $space->getDefaultRole()->value,
             'position' => $space->getPosition(),
             'published' => $space->isPublished(),

@@ -209,6 +209,10 @@ notes:
                 expires: 'Este enlace caduca el %date%.'
                 read_only: 'Puede leer esta nota, pero no editarla.'
         spaces:
+            coediting:
+                title: 'Escritura entre varios'
+                enable: 'Permitir la coedición de las notas de este espacio'
+                hint: 'Mientras una nota está abierta, su texto circula entre los navegadores de quienes la escriben, durante la sesión. Sin un hub en tiempo real, el ajuste no cambia nada.'
             import_here: "Importar en este espacio de notas"
             export: "Exportar este espacio de notas"
             publication:

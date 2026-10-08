@@ -119,6 +119,9 @@ describe("NoteSpaceSettingsModal", () => {
             color: null,
             access: "backoffice",
             defaultRole: "reader",
+            // Sent even when off: the server tells an absent field from a
+            // false one, and leaves the setting alone for the first.
+            coediting: false,
         });
         expect(wrapper.emitted("close")).toBeTruthy();
     });
