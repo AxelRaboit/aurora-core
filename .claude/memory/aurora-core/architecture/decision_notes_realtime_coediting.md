@@ -274,3 +274,54 @@ invités gardent la sauvegarde simple.
   l'éditeur garde **deux modes** - ce qu'il a déjà, par construction du salon.
 - Les révisions cessent d'avoir un sens par sauvegarde : il faut des
   instantanés sur minuterie ou en fin de session.
+
+## Ce que seuls deux navigateurs ont pu trouver (08/10/2026)
+
+La co-édition a été écrite, relue, couverte par 21 tests unitaires sur le
+protocole, un test d'intégration contre un vrai hub Mercure, et elle ne
+transportait **aucune frappe**. Les trois défauts, dans l'ordre où ils sont
+tombés, et ce qu'ils disent :
+
+1. **La direction manquante.** `useNoteCoedit` écrivait le document vers le
+   formulaire et jamais l'inverse. La zone de texte est liée au formulaire,
+   pas au document : sans un `watch(text)` qui transforme la frappe en
+   opération sur le `Y.Text`, la session démarrait, élisait un client,
+   amorçait le document et réécrivait en base - en ne véhiculant rien. Chaque
+   pièce était juste **séparément**, et c'est précisément pourquoi aucun test
+   sans navigateur ne pouvait le voir. La leçon : quand une fonctionnalité est
+   un aller-retour, un test qui n'en parcourt qu'un sens ne prouve pas le
+   trajet.
+
+2. **L'interblocage du rendez-vous.** `joinAction(room)` n'amorçait que sur
+   une salle vide. Deux personnes qui ouvrent la note avant que l'une ait le
+   droit de co-éditer se voient mutuellement : chacune demande l'état, aucune
+   n'en a, et l'attente dure autant que la note reste ouverte - sans rien à
+   l'écran pour le dire, puisque l'éditeur retombe proprement sur son
+   enregistrement automatique. **Le correctif est l'élection** : le client
+   désigné amorce quand personne ne répond, et lui seul, parce que deux
+   histoires fusionnées dupliquent chaque caractère. Demander d'abord reste
+   indispensable : sans cela, un arrivant désigné écraserait l'histoire de
+   celui qui tape déjà.
+
+3. **Un test vert pour la mauvaise raison.** La première version passait avec
+   la co-édition débranchée : la frappe partait par l'enregistrement
+   automatique, le hub poussait « la note a changé », et l'éditeur de l'autre
+   rechargeait. Le niveau 2 faisait son travail et le test applaudissait. Il
+   faut **fermer les autres routes** - ici refuser
+   `POST /suite/notes/markdown/*/update` pendant la frappe - puis vérifier que
+   le test rougit quand on retire le correctif. Un test qu'on n'a pas vu
+   échouer ne mesure rien de connu.
+
+## Le piège d'environnement, qui n'est pas propre aux notes
+
+`symfony server:start` expose lui-même les services de `compose.yaml` à PHP et
+**écrase `.env.dev`** : il impose `http://127.0.0.1:3000/...` pour
+`MERCURE_URL` *et* `MERCURE_PUBLIC_URL`. Le hub était épinglé sur `localhost`
+par son `resource_identifier`, donc l'audience des jetons ne concordait pas et
+le hub répondait **401 à tout**. La discussion des espaces clients était
+cassée en local pour la même raison, en silence, puisqu'elle retombe sur son
+sondage de vingt secondes.
+
+Les trois valeurs doivent dire la même adresse : `resource_identifier` dans
+`compose.yaml`, et les deux variables de `.env.dev`. Et un 403 du hub n'est pas
+un 401 : jeton valide mais sujet hors de la concession donne **403**.
