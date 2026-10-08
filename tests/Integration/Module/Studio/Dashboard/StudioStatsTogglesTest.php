@@ -23,14 +23,14 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
  */
 final class StudioStatsTogglesTest extends IntegrationTestCase
 {
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $container = static::getContainer();
-        $this->settings = $container->get(SettingRepository::class);
+        $this->settingRepository = $container->get(SettingRepository::class);
 
         $admin = $container->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $container->get(TokenStorageInterface::class)->setToken(new UsernamePasswordToken($admin, 'admin', $admin->getRoles()));
@@ -38,16 +38,16 @@ final class StudioStatsTogglesTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        $this->settings->set(ModuleParameterEnum::StudioDeliverables->value, '1');
-        $this->settings->set(ModuleParameterEnum::StudioContracts->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::StudioDeliverables->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::StudioContracts->value, '1');
 
         parent::tearDown();
     }
 
     public function testTheTilesFollowTheirModulesSwitch(): void
     {
-        $this->settings->set(ModuleParameterEnum::StudioDeliverables->value, '1');
-        $this->settings->set(ModuleParameterEnum::StudioContracts->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::StudioDeliverables->value, '1');
+        $this->settingRepository->set(ModuleParameterEnum::StudioContracts->value, '1');
 
         $this->switched();
         $on = static::getContainer()->get(StudioStatsProvider::class)->getStats()['studio'];
@@ -57,8 +57,8 @@ final class StudioStatsTogglesTest extends IntegrationTestCase
         self::assertNotNull($on['awaitingSignature']);
         self::assertNotNull($on['contractsPath']);
 
-        $this->settings->set(ModuleParameterEnum::StudioDeliverables->value, '0');
-        $this->settings->set(ModuleParameterEnum::StudioContracts->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::StudioDeliverables->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::StudioContracts->value, '0');
 
         $this->switched();
         $off = static::getContainer()->get(StudioStatsProvider::class)->getStats()['studio'];

@@ -68,16 +68,16 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteReorderInputFactoryInterface $reorderInputFactory,
         private readonly PayloadValidator $payloadValidator,
         private readonly MarkdownNotesViewBuilder $viewBuilder,
-        private readonly NoteFolderRepository $folders,
+        private readonly NoteFolderRepository $folderRepository,
         private readonly MarkdownNoteArchive $archive,
         private readonly MarkdownNoteImporter $importer,
-        private readonly UploadPolicyProvider $uploadPolicies,
+        private readonly UploadPolicyProvider $uploadPolicyProvider,
         private readonly NoteSpaceAccess $spaceAccess,
         private readonly NoteFavoriteManagerInterface $favorites,
         private readonly TranslatorInterface $translator,
-        private readonly SiteDateFormatter $dates,
+        private readonly SiteDateFormatter $dateFormatter,
         private readonly MarkdownNoteHistory $history,
-        private readonly MarkdownNoteRevisionRepository $revisions,
+        private readonly MarkdownNoteRevisionRepository $markdownNoteRevisionRepository,
         private readonly MarkdownNoteMemberRepository $memberRepository,
         private readonly NoteLiveHub $liveHub,
     ) {}
@@ -402,7 +402,7 @@ final class MarkdownNotesController extends AbstractController
         $folder = null;
 
         if (is_numeric($folderId)) {
-            $folder = $this->folders->findOneByUserAndId($user, (int) $folderId);
+            $folder = $this->folderRepository->findOneByUserAndId($user, (int) $folderId);
 
             if (!$folder instanceof NoteFolderInterface) {
                 return $this->jsonNotFound();
@@ -423,7 +423,7 @@ final class MarkdownNotesController extends AbstractController
         $created = 0;
 
         foreach ($files as $file) {
-            $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+            $refusal = $this->uploadPolicyProvider->forStaffDocuments()->refusalFor($file);
 
             if ($refusal instanceof UploadRefusalEnum) {
                 return $this->jsonInvalidInput(['files' => match ($refusal) {
@@ -575,7 +575,7 @@ final class MarkdownNotesController extends AbstractController
                 'authorName' => $revision->getAuthorLabel(),
                 'title' => $revision->getTitle(),
             ],
-            $this->revisions->findForNote($note),
+            $this->markdownNoteRevisionRepository->findForNote($note),
         )]);
     }
 
@@ -587,7 +587,7 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         $note = $this->spaceAccess->readableNote($user, $id);
-        $revision = $note instanceof MarkdownNoteInterface ? $this->revisions->findOneForNote($note, $revisionId) : null;
+        $revision = $note instanceof MarkdownNoteInterface ? $this->markdownNoteRevisionRepository->findOneForNote($note, $revisionId) : null;
         if (!$revision instanceof MarkdownNoteRevision) {
             return $this->jsonNotFound();
         }
@@ -613,7 +613,7 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         $note = $this->spaceAccess->writableNote($user, $id);
-        $revision = $note instanceof MarkdownNoteInterface ? $this->revisions->findOneForNote($note, $revisionId) : null;
+        $revision = $note instanceof MarkdownNoteInterface ? $this->markdownNoteRevisionRepository->findOneForNote($note, $revisionId) : null;
         if (!$note instanceof MarkdownNoteInterface || !$revision instanceof MarkdownNoteRevision) {
             return $this->jsonNotFound();
         }
@@ -704,7 +704,7 @@ final class MarkdownNotesController extends AbstractController
             $folder,
             $space,
             '' !== $title ? $title : $template->getTitle() ?? '',
-            ['{{date}}' => $this->dates->date(new DateTimeImmutable())],
+            ['{{date}}' => $this->dateFormatter->date(new DateTimeImmutable())],
         );
 
         return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($note)]);

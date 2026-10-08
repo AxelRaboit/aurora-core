@@ -50,10 +50,10 @@ final readonly class MarkdownNoteArchive
     private const string IMAGE_DIR = '_images';
 
     public function __construct(
-        private MarkdownNoteRepository $notes,
-        private NoteFolderRepository $folders,
-        private NoteSpaceRepository $spaces,
-        private MarkdownNoteImageService $images,
+        private MarkdownNoteRepository $noteRepository,
+        private NoteFolderRepository $folderRepository,
+        private NoteSpaceRepository $spaceRepository,
+        private MarkdownNoteImageService $imageService,
         private TranslatorInterface $translator,
     ) {}
 
@@ -93,7 +93,7 @@ final readonly class MarkdownNoteArchive
         // The root of a space is the negative key of its id.
         /** @var array<int, list<MarkdownNoteInterface>> $notesByFolder */
         $notesByFolder = [];
-        foreach ($this->notes->findAllWithContentForUser($user) as $note) {
+        foreach ($this->noteRepository->findAllWithContentForUser($user) as $note) {
             if ($onlySpace instanceof NoteSpaceInterface && $note->getSpace()->getId() !== $onlySpace->getId()) {
                 continue;
             }
@@ -103,7 +103,7 @@ final readonly class MarkdownNoteArchive
 
         /** @var array<int, list<NoteFolderInterface>> $foldersByParent */
         $foldersByParent = [];
-        foreach ($this->folders->findAllForUser($user) as $folder) {
+        foreach ($this->folderRepository->findAllForUser($user) as $folder) {
             if ($onlySpace instanceof NoteSpaceInterface && $folder->getSpace()->getId() !== $onlySpace->getId()) {
                 continue;
             }
@@ -123,7 +123,7 @@ final readonly class MarkdownNoteArchive
             // From the list of readable spaces, not from the notes found: an
             // empty space had no folder in the archive.
             $seenSpaces = [];
-            foreach ($this->spaces->findReadableFor($user) as $space) {
+            foreach ($this->spaceRepository->findReadableFor($user) as $space) {
                 $spaceDirectory = $this->uniqueName($this->safeName($this->spaceLabel($space), sprintf('espace-%d', $space->getId())), $seenSpaces);
                 $zip->addEmptyDir($spaceDirectory);
                 $this->addBranch($zip, $notesByFolder, $foldersByParent, -(int) $space->getId(), $spaceDirectory.'/', $user, $ajoutees);
@@ -287,7 +287,7 @@ final readonly class MarkdownNoteArchive
         array &$ajoutees,
     ): string {
         $tags = $note->getTags();
-        $content = $this->withImages((string) $note->getContent(), $prefix, $this->images->bucketOf($note), $zip, $ajoutees);
+        $content = $this->withImages((string) $note->getContent(), $prefix, $this->imageService->bucketOf($note), $zip, $ajoutees);
 
         if (0 === count($tags)) {
             return $content;
@@ -324,7 +324,7 @@ final readonly class MarkdownNoteArchive
         ZipArchive $zip,
         array &$ajoutees,
     ): string {
-        $filenames = $this->images->extractFilenames($content);
+        $filenames = $this->imageService->extractFilenames($content);
 
         if ([] === $filenames) {
             return $content;
@@ -335,7 +335,7 @@ final readonly class MarkdownNoteArchive
 
         foreach ($filenames as $filename) {
             if (!isset($ajoutees[$filename])) {
-                $octets = $this->images->contents($filename, $user);
+                $octets = $this->imageService->contents($filename, $user);
 
                 if (null === $octets) {
                     continue;

@@ -38,20 +38,20 @@ final class DeliverableFontsController extends AbstractController
 {
     public function __construct(
         private readonly DeckFonts $fonts,
-        private readonly DocumentRepository $documents,
-        private readonly StorageManager $storage,
+        private readonly DocumentRepository $documentRepository,
+        private readonly StorageManager $storageManager,
     ) {}
 
     #[Route('/deliverables/fonts/{id}', name: 'public_deliverable_font', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function serve(int $id): Response
     {
-        $document = $this->documents->find($id);
+        $document = $this->documentRepository->find($id);
 
         if (!$this->fonts->isFontDocument($document) || $document->isTrashed() || null === $document->getFilePath()) {
             throw new NotFoundHttpException();
         }
 
-        $adapter = $this->storage->forDisk($document->getStorageDisk());
+        $adapter = $this->storageManager->forDisk($document->getStorageDisk());
         $path = $document->getFilePath();
 
         $response = new StreamedResponse(static function () use ($adapter, $path): void {

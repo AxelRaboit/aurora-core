@@ -43,13 +43,13 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceAccessLinkRepository $links;
+    private SpaceAccessLinkRepository $accessLinkRepository;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
-    private SpaceContentItemRepository $items;
+    private SpaceContentItemRepository $itemRepository;
 
-    private SpaceContentCommentRepository $comments;
+    private SpaceContentCommentRepository $commentRepository;
 
     protected function setUp(): void
     {
@@ -71,10 +71,10 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         // not mean to exercise.
         $this->resetRateLimiter('space_guest_write');
 
-        $this->links = $container->get(SpaceAccessLinkRepository::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
-        $this->items = $container->get(SpaceContentItemRepository::class);
-        $this->comments = $container->get(SpaceContentCommentRepository::class);
+        $this->accessLinkRepository = $container->get(SpaceAccessLinkRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
+        $this->itemRepository = $container->get(SpaceContentItemRepository::class);
+        $this->commentRepository = $container->get(SpaceContentCommentRepository::class);
     }
 
     protected function tearDown(): void
@@ -101,14 +101,14 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $stored = $this->items->find($item['id']);
+        $stored = $this->itemRepository->find($item['id']);
 
         self::assertSame('approved', $stored->getApproval()->value);
         self::assertNotNull($stored->getApprovalAt());
 
         // The words are a message on the thread rather than a column on the
         // verdict, which is what lets the verdict be reset without losing them.
-        $thread = $this->comments->findForSpaceByItem($stored->getSpace())[$item['id']];
+        $thread = $this->commentRepository->findForSpaceByItem($stored->getSpace())[$item['id']];
         self::assertCount(1, $thread);
         self::assertSame('Parfait.', $thread[0]->getBody());
         self::assertTrue($thread[0]->isFromClient());
@@ -123,7 +123,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
     public function testTheAnswerNeverMovesTheCard(): void
     {
         $space = $this->givenSpace();
-        $columns = $this->columns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
         $item = $this->givenItem($space, 'À ne pas déplacer');
 
         $guest = $this->asGuest();
@@ -132,7 +132,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         ]);
 
         $this->entityManager->clear();
-        $stored = $this->items->find($item['id']);
+        $stored = $this->itemRepository->find($item['id']);
 
         // An opinion, not a state machine: a client clicking the wrong button
         // would otherwise have moved or rescheduled a publication.
@@ -151,14 +151,14 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->loginAdmin();
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte reecrit',
-            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
+            'columnId' => $this->columnRepository->findForSpace($space)[2]->getId(),
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $stored = $this->items->find($item['id']);
+        $stored = $this->itemRepository->find($item['id']);
 
         // An approval is of a wording. Keeping it after a rewrite would tell
         // the board a client agreed to something they never read.
@@ -178,7 +178,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $stored = function () use ($item): string {
             $this->entityManager->clear();
 
-            return $this->items->find($item['id'])->getApproval()->value;
+            return $this->itemRepository->find($item['id'])->getApproval()->value;
         };
 
         $answer();
@@ -213,21 +213,21 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->loginAdmin();
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte repris',
-            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
+            'columnId' => $this->columnRepository->findForSpace($space)[2]->getId(),
             'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $stored = $this->items->find($item['id']);
+        $stored = $this->itemRepository->find($item['id']);
 
         // This is the defect the thread exists to fix. The note used to live on
         // the verdict and was cleared with it - so the instruction disappeared
         // at the exact moment the studio was acting on it.
         self::assertSame('pending', $stored->getApproval()->value);
 
-        $thread = $this->comments->findForSpaceByItem($space)[$item['id']];
+        $thread = $this->commentRepository->findForSpaceByItem($space)[$item['id']];
         self::assertCount(1, $thread);
         self::assertSame('Le ton est trop formel.', $thread[0]->getBody());
     }
@@ -235,7 +235,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
     public function testMovingACardLeavesTheAnswerAlone(): void
     {
         $space = $this->givenSpace();
-        $columns = $this->columns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
         $item = $this->givenItem($space, 'Validé puis déplacé');
 
         $guest = $this->asGuest();
@@ -251,7 +251,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         // Only the title and the copy count: they are what the client was
         // shown. Scheduling it or moving it along the board is the studio
         // acting on the answer, not changing what was answered.
-        self::assertSame('approved', $this->items->find($item['id'])->getApproval()->value);
+        self::assertSame('approved', $this->itemRepository->find($item['id'])->getApproval()->value);
     }
 
     public function testALinkWithoutTheRightCannotAnswer(): void
@@ -268,7 +268,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         self::assertSame(404, $guest->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        self::assertSame('pending', $this->items->find($item['id'])->getApproval()->value);
+        self::assertSame('pending', $this->itemRepository->find($item['id'])->getApproval()->value);
     }
 
     public function testAReadOnlyLinkIsHandedNoEndpointAtAll(): void
@@ -300,7 +300,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         self::assertSame(404, $guest->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        self::assertSame('pending', $this->items->find($foreign['id'])->getApproval()->value);
+        self::assertSame('pending', $this->itemRepository->find($foreign['id'])->getApproval()->value);
     }
 
     public function testAWrongSecretCannotAnswer(): void
@@ -309,7 +309,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $item = $this->givenItem($space, 'Protégé');
         $this->issue($space);
 
-        $selector = $this->links->findAll()[0]->getSelector();
+        $selector = $this->accessLinkRepository->findAll()[0]->getSelector();
 
         $guest = $this->asGuest();
         $guest->jsonRequest(
@@ -424,7 +424,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
             'title' => $title,
             // Relecture, dated: a new space only shows the client the
             // Relecture and Publié columns.
-            'columnId' => $this->columns->findForSpace($space)[2]->getId(),
+            'columnId' => $this->columnRepository->findForSpace($space)[2]->getId(),
             // Dated: the client's page only shows its calendar, and only
             // accepts a verdict on what it shows.
             'scheduledAt' => '2026-12-01T10:00',

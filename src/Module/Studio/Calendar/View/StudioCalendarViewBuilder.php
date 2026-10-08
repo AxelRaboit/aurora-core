@@ -32,7 +32,7 @@ final readonly class StudioCalendarViewBuilder
 
     public function __construct(
         private SpaceVisibility $visibility,
-        private SpaceContentItemRepository $items,
+        private SpaceContentItemRepository $itemRepository,
         private SpaceWorkload $workload,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
@@ -68,7 +68,7 @@ final readonly class StudioCalendarViewBuilder
 
         $ids = array_map(static fn (CustomerSpaceInterface $space): int => (int) $space->getId(), $this->activeSpaces($scope));
 
-        return array_map($this->serialize(...), $this->items->findOnCalendar($ids, $from, $to));
+        return array_map($this->serialize(...), $this->itemRepository->findOnCalendar($ids, $from, $to));
     }
 
     /**
@@ -85,7 +85,7 @@ final readonly class StudioCalendarViewBuilder
         $ids = array_map(static fn (CustomerSpaceInterface $space): int => (int) $space->getId(), $this->activeSpaces($scope));
 
         return array_values(array_map($this->serialize(...), array_filter(
-            $this->items->findForSpaces($ids),
+            $this->itemRepository->findForSpaces($ids),
             fn (SpaceContentItemInterface $item): bool => in_array($state, $this->workload->statesOf($item), true),
         )));
     }

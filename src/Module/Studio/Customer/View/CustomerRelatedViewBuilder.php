@@ -40,8 +40,8 @@ final readonly class CustomerRelatedViewBuilder
 {
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        private ContractRepository $contracts,
-        private DeliverableRepository $deliverables,
+        private ContractRepository $contractRepository,
+        private DeliverableRepository $deliverableRepository,
         private DeliverableAccess $deliverableAccess,
         private SpaceVisibility $visibility,
         private AuthorizationCheckerInterface $authorizationChecker,
@@ -76,7 +76,7 @@ final readonly class CustomerRelatedViewBuilder
             'detail' => $this->translator->trans($contract->getStatus()->getLabel()),
             'status' => $contract->getStatus()->value,
             'url' => $this->urlGenerator->generate('suite_studio_contracts_show', ['id' => $contract->getId()]),
-        ], $this->contracts->findBy(['customer' => $customer], ['id' => 'DESC']));
+        ], $this->contractRepository->findBy(['customer' => $customer], ['id' => 'DESC']));
     }
 
     /** @return list<array<string, mixed>>|null */
@@ -92,7 +92,7 @@ final readonly class CustomerRelatedViewBuilder
             'detail' => $this->translator->trans($deliverable->getFormat()->labelKey()),
             'url' => $this->urlGenerator->generate('suite_studio_deliverables_edit', ['id' => $deliverable->getId()]),
         ], array_filter(
-            $this->deliverables->findLiveStandaloneForCustomer($customer),
+            $this->deliverableRepository->findLiveStandaloneForCustomer($customer),
             $this->deliverableAccess->canRead(...),
         )));
     }

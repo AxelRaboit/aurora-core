@@ -153,7 +153,7 @@ final readonly class BannerNormalizer
     private const int MAX_INTERVAL = 30;
 
     public function __construct(
-        private ContentValueNormalizer $values,
+        private ContentValueNormalizer $contentValueNormalizer,
         private BlockHtmlSanitizer $sanitizer = new BlockHtmlSanitizer(),
     ) {}
 
@@ -170,14 +170,14 @@ final readonly class BannerNormalizer
 
         return [
             'enabled' => (bool) ($data['enabled'] ?? false),
-            'height' => $this->values->oneOf($data['height'] ?? null, self::HEIGHTS, 'md'),
+            'height' => $this->contentValueNormalizer->oneOf($data['height'] ?? null, self::HEIGHTS, 'md'),
             // Where the banner sits: inside the article column like the rest of
             // the page, or spanning the viewport flush under the top bar.
             'width' => $this->width($data['width'] ?? null),
             // Where the content sits in a banner taller than it needs: pinned
             // to the top, centred, or dropped to the bottom.
-            'verticalAlign' => $this->values->oneOf($data['verticalAlign'] ?? null, self::VERTICAL_ALIGNMENTS, 'center'),
-            'logoMediaId' => $this->values->id($data['logoMediaId'] ?? null),
+            'verticalAlign' => $this->contentValueNormalizer->oneOf($data['verticalAlign'] ?? null, self::VERTICAL_ALIGNMENTS, 'center'),
+            'logoMediaId' => $this->contentValueNormalizer->id($data['logoMediaId'] ?? null),
             // Whether the foot of the banner dissolves into the page instead
             // of ending on a line. Off by default: a hard edge is what every
             // banner already published has, and a fade is a choice.
@@ -188,7 +188,7 @@ final readonly class BannerNormalizer
             // The colour this banner's words are accented in, in place of the
             // theme's: the `×` of a title and anything else written in the
             // accent. Null keeps the theme's, which is what every banner did.
-            'accentColor' => $this->values->color($data['accentColor'] ?? null),
+            'accentColor' => $this->contentValueNormalizer->color($data['accentColor'] ?? null),
             // The banner above is the first slide; these are the ones that
             // take their turn after it. Empty for every banner that is not a
             // carousel, which is every banner written before it existed.
@@ -279,10 +279,10 @@ final readonly class BannerNormalizer
 
             $texts[$id] = [
                 'title' => $this->title($entry['title'] ?? null),
-                'description' => $this->values->text($entry['description'] ?? null),
-                'alt' => $this->values->text($entry['alt'] ?? null),
-                'label' => $this->values->text($entry['label'] ?? null),
-                'url' => $this->values->url($entry['url'] ?? null),
+                'description' => $this->contentValueNormalizer->text($entry['description'] ?? null),
+                'alt' => $this->contentValueNormalizer->text($entry['alt'] ?? null),
+                'label' => $this->contentValueNormalizer->text($entry['label'] ?? null),
+                'url' => $this->contentValueNormalizer->url($entry['url'] ?? null),
             ];
         }
 
@@ -326,12 +326,12 @@ final readonly class BannerNormalizer
                 continue;
             }
 
-            $id = $this->values->itemId($entry['id'] ?? null, $used);
+            $id = $this->contentValueNormalizer->itemId($entry['id'] ?? null, $used);
             $used[$id] = true;
 
             $slides[] = [
                 'id' => $id,
-                'accentColor' => $this->values->color($entry['accentColor'] ?? null),
+                'accentColor' => $this->contentValueNormalizer->color($entry['accentColor'] ?? null),
                 'background' => $this->background(is_array($entry['background'] ?? null) ? $entry['background'] : []),
                 // Only `items` is read: the pre-split slots belong to banners
                 // that predate slides by a year.
@@ -364,7 +364,7 @@ final readonly class BannerNormalizer
             'pauseOnHover' => (bool) ($data['pauseOnHover'] ?? true),
             'arrows' => (bool) ($data['arrows'] ?? true),
             'dots' => (bool) ($data['dots'] ?? true),
-            'transition' => $this->values->oneOf($data['transition'] ?? null, self::TRANSITIONS, self::TRANSITION_FADE),
+            'transition' => $this->contentValueNormalizer->oneOf($data['transition'] ?? null, self::TRANSITIONS, self::TRANSITION_FADE),
         ];
     }
 
@@ -398,9 +398,9 @@ final readonly class BannerNormalizer
     private function localBackground(array $data): array
     {
         return [
-            'mediaId' => $this->values->id($data['mediaId'] ?? null),
-            'mobileMediaId' => $this->values->id($data['mobileMediaId'] ?? null),
-            'tabletMediaId' => $this->values->id($data['tabletMediaId'] ?? null),
+            'mediaId' => $this->contentValueNormalizer->id($data['mediaId'] ?? null),
+            'mobileMediaId' => $this->contentValueNormalizer->id($data['mobileMediaId'] ?? null),
+            'tabletMediaId' => $this->contentValueNormalizer->id($data['tabletMediaId'] ?? null),
         ];
     }
 
@@ -424,7 +424,7 @@ final readonly class BannerNormalizer
     {
         $colors = [];
         foreach (is_array($data['colors'] ?? null) ? $data['colors'] : [] as $color) {
-            $color = $this->values->color($color);
+            $color = $this->contentValueNormalizer->color($color);
             if (null !== $color && count($colors) < self::MAX_STRIPES) {
                 $colors[] = $color;
             }
@@ -434,7 +434,7 @@ final readonly class BannerNormalizer
             'enabled' => (bool) ($data['enabled'] ?? false),
             'colors' => [] !== $colors ? $colors : self::DEFAULT_STRIPE_COLORS,
             // Which edge of the banner the bands lean against.
-            'side' => $this->values->oneOf($data['side'] ?? null, self::ALIGNMENTS, 'end'),
+            'side' => $this->contentValueNormalizer->oneOf($data['side'] ?? null, self::ALIGNMENTS, 'end'),
             // Width of one band and of the gap between two, in pixels on a
             // wide screen; a phone and a tablet draw them smaller.
             'thickness' => max(4, min(240, (int) ($data['thickness'] ?? 48))),
@@ -463,22 +463,22 @@ final readonly class BannerNormalizer
             // silently strip a background someone chose. Absent *and* coloured
             // upgrades to solid; present but unknown still falls back to none.
             'type' => $this->fillType($data),
-            'color' => $this->values->color($data['color'] ?? null),
-            'gradientFrom' => $this->values->color($data['gradientFrom'] ?? null),
-            'gradientTo' => $this->values->color($data['gradientTo'] ?? null),
+            'color' => $this->contentValueNormalizer->color($data['color'] ?? null),
+            'gradientFrom' => $this->contentValueNormalizer->color($data['gradientFrom'] ?? null),
+            'gradientTo' => $this->contentValueNormalizer->color($data['gradientTo'] ?? null),
             // Degrees, the CSS sense: 0 points up, 180 down.
             'gradientAngle' => max(0, min(360, (int) ($data['gradientAngle'] ?? 180))),
-            'mediaId' => $this->values->id($data['mediaId'] ?? null),
+            'mediaId' => $this->contentValueNormalizer->id($data['mediaId'] ?? null),
             // The picture a phone gets instead. A wide header keeps only its
             // middle third on a narrow screen, so anything composed across the
             // width - words set in the picture, a subject off to one side - is
             // cut away there. Optional: without it the phone crops the main
             // picture, as it always has.
-            'mobileMediaId' => $this->values->id($data['mobileMediaId'] ?? null),
+            'mobileMediaId' => $this->contentValueNormalizer->id($data['mobileMediaId'] ?? null),
             // The same for a tablet, between the phone and the wide screen: the
             // header grows there to fit its title, and a picture composed across
             // the width loses its sides. Optional, like the phone one.
-            'tabletMediaId' => $this->values->id($data['tabletMediaId'] ?? null),
+            'tabletMediaId' => $this->contentValueNormalizer->id($data['tabletMediaId'] ?? null),
             // Percentage, so a background image can be darkened enough for
             // text to stay readable over it.
             'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),
@@ -525,12 +525,12 @@ final readonly class BannerNormalizer
             // An unknown type drops the item rather than defaulting to text:
             // a banner is better short one element than showing an empty box
             // where something else was meant to be.
-            $type = $this->values->oneOf($entry['type'] ?? null, self::ITEM_TYPES, '');
+            $type = $this->contentValueNormalizer->oneOf($entry['type'] ?? null, self::ITEM_TYPES, '');
             if ('' === $type) {
                 continue;
             }
 
-            $id = $this->values->itemId($entry['id'] ?? null, $used);
+            $id = $this->contentValueNormalizer->itemId($entry['id'] ?? null, $used);
             $used[$id] = true;
 
             // Every key is present whatever the type. Switching an item from
@@ -539,28 +539,28 @@ final readonly class BannerNormalizer
             $items[] = [
                 'id' => $id,
                 'type' => $type,
-                'span' => $this->values->span($entry['span'] ?? null),
-                'titleColor' => $this->values->color($entry['titleColor'] ?? null),
-                'descriptionColor' => $this->values->color($entry['descriptionColor'] ?? null),
-                'align' => $this->values->oneOf($entry['align'] ?? null, self::ALIGNMENTS, 'start'),
-                'titleSize' => $this->values->oneOf($entry['titleSize'] ?? null, self::TITLE_SIZES, 'md'),
+                'span' => $this->contentValueNormalizer->span($entry['span'] ?? null),
+                'titleColor' => $this->contentValueNormalizer->color($entry['titleColor'] ?? null),
+                'descriptionColor' => $this->contentValueNormalizer->color($entry['descriptionColor'] ?? null),
+                'align' => $this->contentValueNormalizer->oneOf($entry['align'] ?? null, self::ALIGNMENTS, 'start'),
+                'titleSize' => $this->contentValueNormalizer->oneOf($entry['titleSize'] ?? null, self::TITLE_SIZES, 'md'),
                 // Same four steps as the title. `md` is what every banner
                 // drew before the choice existed.
-                'descriptionSize' => $this->values->oneOf($entry['descriptionSize'] ?? null, self::TITLE_SIZES, 'md'),
+                'descriptionSize' => $this->contentValueNormalizer->oneOf($entry['descriptionSize'] ?? null, self::TITLE_SIZES, 'md'),
                 // Null follows the theme's font, which is what a banner did
                 // before it could choose.
                 'titleFont' => $this->font($entry['titleFont'] ?? null),
                 'descriptionFont' => $this->font($entry['descriptionFont'] ?? null),
-                'mediaId' => $this->values->id($entry['mediaId'] ?? null),
+                'mediaId' => $this->contentValueNormalizer->id($entry['mediaId'] ?? null),
                 // A picture set beside the title at the height of its letters,
                 // a brand's mark before its name. Its own id rather than
                 // `mediaId`, which an image item already uses for its picture:
                 // switching an item between text and image keeps both.
-                'titleIconId' => $this->values->id($entry['titleIconId'] ?? null),
-                'titleIconPosition' => $this->values->oneOf($entry['titleIconPosition'] ?? null, self::TITLE_ICON_POSITIONS, 'before'),
-                'titleIconSize' => $this->values->oneOf($entry['titleIconSize'] ?? null, self::TITLE_ICON_SIZES, 'md'),
-                'buttonColor' => $this->values->color($entry['buttonColor'] ?? null),
-                'buttonTextColor' => $this->values->color($entry['buttonTextColor'] ?? null),
+                'titleIconId' => $this->contentValueNormalizer->id($entry['titleIconId'] ?? null),
+                'titleIconPosition' => $this->contentValueNormalizer->oneOf($entry['titleIconPosition'] ?? null, self::TITLE_ICON_POSITIONS, 'before'),
+                'titleIconSize' => $this->contentValueNormalizer->oneOf($entry['titleIconSize'] ?? null, self::TITLE_ICON_SIZES, 'md'),
+                'buttonColor' => $this->contentValueNormalizer->color($entry['buttonColor'] ?? null),
+                'buttonTextColor' => $this->contentValueNormalizer->color($entry['buttonTextColor'] ?? null),
                 // The button in the site's own accent, read from the theme at
                 // render: a contact button is the site's, whichever trade the
                 // banner above it speaks for. Wins over `buttonColor`.
@@ -660,7 +660,7 @@ final readonly class BannerNormalizer
             return self::WIDTH_FULL_ALIGNED;
         }
 
-        return $this->values->oneOf($value, self::WIDTHS, self::WIDTH_CONTAINED);
+        return $this->contentValueNormalizer->oneOf($value, self::WIDTHS, self::WIDTH_CONTAINED);
     }
 
     /**
@@ -671,7 +671,7 @@ final readonly class BannerNormalizer
      */
     private function title(mixed $value): string
     {
-        $text = $this->values->text($value);
+        $text = $this->contentValueNormalizer->text($value);
 
         if (!str_contains($text, '<')) {
             return $text;
@@ -688,10 +688,10 @@ final readonly class BannerNormalizer
 
     private function fillType(array $data): string
     {
-        if (!array_key_exists('type', $data) && null !== $this->values->color($data['color'] ?? null)) {
+        if (!array_key_exists('type', $data) && null !== $this->contentValueNormalizer->color($data['color'] ?? null)) {
             return self::FILL_SOLID;
         }
 
-        return $this->values->oneOf($data['type'] ?? null, self::FILL_TYPES, self::FILL_NONE);
+        return $this->contentValueNormalizer->oneOf($data['type'] ?? null, self::FILL_TYPES, self::FILL_NONE);
     }
 }

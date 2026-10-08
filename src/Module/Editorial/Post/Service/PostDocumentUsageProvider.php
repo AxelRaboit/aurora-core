@@ -26,7 +26,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
-        private PostRepository $posts,
+        private PostRepository $postRepository,
         private LocaleContextInterface $localeContext,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
@@ -43,7 +43,7 @@ final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProv
         $locale = $this->localeContext->getDefaultLocale();
         $usages = [];
 
-        foreach ($this->posts->findUsingDocument($documentId) as $post) {
+        foreach ($this->postRepository->findUsingDocument($documentId) as $post) {
             $usages[] = [
                 'type' => $this->usageType(),
                 // A draft in a language that has no title yet still has to be
@@ -70,6 +70,6 @@ final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProv
      */
     public function countUsagesFor(array $documentIds): array
     {
-        return $this->posts->countUsagesByDocument($documentIds);
+        return $this->postRepository->countUsagesByDocument($documentIds);
     }
 }

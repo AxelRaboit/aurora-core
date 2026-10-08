@@ -90,7 +90,7 @@ final class StudioSearchTest extends IntegrationTestCase
 
     private StudioSuiteSearchProvider $provider;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     private User $admin;
 
@@ -110,7 +110,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $container = self::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->provider = $container->get(StudioSuiteSearchProvider::class);
-        $this->settings = $container->get(SettingRepository::class);
+        $this->settingRepository = $container->get(SettingRepository::class);
 
         $admin = $container->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
@@ -138,7 +138,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $this->templateIds = [];
 
         foreach ([ModuleParameterEnum::StudioSuite, ModuleParameterEnum::StudioSpaces, ModuleParameterEnum::StudioCustomers, ModuleParameterEnum::StudioContracts, ModuleParameterEnum::StudioDeliverables] as $toggle) {
-            $this->settings->set($toggle->value, '1');
+            $this->settingRepository->set($toggle->value, '1');
         }
 
         $this->forgetSwitches();
@@ -433,12 +433,12 @@ final class StudioSearchTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->admin, 'admin');
 
-        $this->settings->set(ModuleParameterEnum::StudioSpaces->value, '0');
-        $this->settings->set(ModuleParameterEnum::StudioContracts->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::StudioSpaces->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::StudioContracts->value, '0');
         $this->forgetSwitches();
         self::assertSame(['customers', 'deliverables'], array_keys($this->provider->search($this->needle)));
 
-        $this->settings->set(ModuleParameterEnum::StudioSuite->value, '0');
+        $this->settingRepository->set(ModuleParameterEnum::StudioSuite->value, '0');
         $this->forgetSwitches();
         self::assertSame([], $this->provider->search($this->needle));
     }

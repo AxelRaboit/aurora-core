@@ -45,7 +45,7 @@ final class BannerPreviewController extends AbstractController
     public function __construct(
         private readonly BannerViewBuilder $bannerViewBuilder,
         private readonly ThemeResolver $themeResolver,
-        private readonly ThemeStyleRenderer $themeStyles,
+        private readonly ThemeStyleRenderer $themeStyleRenderer,
     ) {}
 
     #[Route('/banner-preview', name: '_banner_preview', methods: [HttpMethodEnum::Post->value])]
@@ -73,7 +73,7 @@ final class BannerPreviewController extends AbstractController
             // selector rather than `html[data-theme]`: without it a title
             // carrying no colour of its own drew in the suite's ambient
             // text colour instead of the one the public page renders it in.
-            'html' => '<style>'.$this->themeStyles->previewSurfaceCss(self::PREVIEW_SELECTOR).'</style>'
+            'html' => '<style>'.$this->themeStyleRenderer->previewSurfaceCss(self::PREVIEW_SELECTOR).'</style>'
                 .$this->renderView(
                     $this->themeResolver->resolve('editorial/post/_banner'),
                     ['banner' => $banner],

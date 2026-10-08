@@ -25,14 +25,14 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class NoteFavoriteManager implements NoteFavoriteManagerInterface
 {
     public function __construct(
-        protected readonly NoteFavoriteRepository $favorites,
+        protected readonly NoteFavoriteRepository $noteFavoriteRepository,
         protected readonly EntityManagerInterface $entityManager,
     ) {}
 
     public function toggle(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): bool
     {
         $criteria = $item instanceof MarkdownNoteInterface ? ['user' => $user, 'note' => $item] : ['user' => $user, 'folder' => $item];
-        $existing = $this->favorites->findOneBy($criteria);
+        $existing = $this->noteFavoriteRepository->findOneBy($criteria);
 
         if (null !== $existing) {
             $this->entityManager->remove($existing);
@@ -57,12 +57,12 @@ class NoteFavoriteManager implements NoteFavoriteManagerInterface
 
     public function favoritedAt(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): ?string
     {
-        return $this->favorites->favoritedAt($user, $item);
+        return $this->noteFavoriteRepository->favoritedAt($user, $item);
     }
 
     public function mapFor(CoreUserInterface $user): array
     {
-        return $this->favorites->mapFor($user);
+        return $this->noteFavoriteRepository->mapFor($user);
     }
 
     protected function createFavorite(): NoteFavoriteInterface

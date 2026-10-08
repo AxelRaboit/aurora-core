@@ -44,7 +44,7 @@ use function unlink;
 final readonly class DriveImporter
 {
     public function __construct(
-        private DriveClient $drive,
+        private DriveClient $driveClient,
         private SpaceAttachmentUploader $uploader,
         private LoggerInterface $logger,
     ) {}
@@ -71,12 +71,12 @@ final readonly class DriveImporter
         // others, and an id can be guessed or copied.
         $folderId ??= $space->getDriveFolderId();
 
-        if (null === $folderId || !$this->drive->contains($account, $folderId, $fileId)) {
+        if (null === $folderId || !$this->driveClient->contains($account, $folderId, $fileId)) {
             return null;
         }
 
-        $metadata = $this->drive->metadata($account, $fileId);
-        $upstream = $this->drive->download($account, $fileId);
+        $metadata = $this->driveClient->metadata($account, $fileId);
+        $upstream = $this->driveClient->download($account, $fileId);
 
         if (null === $metadata || !$upstream instanceof ResponseInterface) {
             return null;
@@ -122,7 +122,7 @@ final readonly class DriveImporter
         }
 
         try {
-            foreach ($this->drive->stream($upstream) as $chunk) {
+            foreach ($this->driveClient->stream($upstream) as $chunk) {
                 fwrite($handle, $chunk);
             }
         } catch (Throwable $throwable) {

@@ -54,9 +54,9 @@ final readonly class ZoneWidgetViews
         // a test pin "now". A project without it reads the system clock.
         private ?ClockInterface $clock = null,
         private ?RequestStack $requestStack = null,
-        private ?PollVoteRepository $pollVotes = null,
+        private ?PollVoteRepository $pollVoteRepository = null,
         private ?UrlGeneratorInterface $urlGenerator = null,
-        private ?BookingSlotFinder $bookingSlots = null,
+        private ?BookingSlotFinder $bookingSlotFinder = null,
     ) {}
 
     private function now(): DateTimeImmutable
@@ -682,11 +682,11 @@ final readonly class ZoneWidgetViews
      */
     private function appointmentBooking(array $zone, array $options, array $held, string $locale, ?int $postId): ?array
     {
-        if (in_array(null, [$this->bookingSlots, $postId, $this->urlGenerator], true) || !$this->bookingSlots->isEnabled()) {
+        if (in_array(null, [$this->bookingSlotFinder, $postId, $this->urlGenerator], true) || !$this->bookingSlotFinder->isEnabled()) {
             return null;
         }
 
-        $days = $this->bookingSlots->days($options, $locale);
+        $days = $this->bookingSlotFinder->days($options, $locale);
 
         return [
             'title' => $held['label'],
@@ -766,7 +766,7 @@ final readonly class ZoneWidgetViews
             return null;
         }
 
-        $tally = null !== $postId && $this->pollVotes instanceof PollVoteRepository ? $this->pollVotes->tally($postId, $zone['id']) : [];
+        $tally = null !== $postId && $this->pollVoteRepository instanceof PollVoteRepository ? $this->pollVoteRepository->tally($postId, $zone['id']) : [];
         $results = $pollAnswers->results($answers, $tally);
 
         return [

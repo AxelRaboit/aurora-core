@@ -31,8 +31,8 @@ final readonly class MarkdownNoteHistory
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private MarkdownNoteRevisionRepository $revisions,
-        private SettingRepository $settings,
+        private MarkdownNoteRevisionRepository $markdownNoteRevisionRepository,
+        private SettingRepository $settingRepository,
     ) {}
 
     /**
@@ -46,8 +46,8 @@ final readonly class MarkdownNoteHistory
             return;
         }
 
-        $latest = $this->revisions->findLatestForNote($note);
-        $minutes = max(0, (int) $this->settings->getOrDefault(MarkdownNoteSettingEnum::RevisionIntervalMinutes));
+        $latest = $this->markdownNoteRevisionRepository->findLatestForNote($note);
+        $minutes = max(0, (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::RevisionIntervalMinutes));
         if ($latest instanceof MarkdownNoteRevision && $latest->getCreatedAt() > new DateTimeImmutable(sprintf('-%d minutes', $minutes))) {
             return;
         }
@@ -62,9 +62,9 @@ final readonly class MarkdownNoteHistory
         $this->entityManager->persist($revision);
         $this->entityManager->flush();
 
-        $limit = (int) $this->settings->getOrDefault(MarkdownNoteSettingEnum::RevisionsLimit);
+        $limit = (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::RevisionsLimit);
         if ($limit > 0) {
-            $this->revisions->pruneBeyond($note, $limit);
+            $this->markdownNoteRevisionRepository->pruneBeyond($note, $limit);
         }
 
         return $revision;

@@ -63,7 +63,7 @@ final class PlanningController extends AbstractController
 
     public function __construct(
         private readonly PlanningRepository $planningRepository,
-        private readonly PlanningOccurrenceFinder $occurrences,
+        private readonly PlanningOccurrenceFinder $planningOccurrenceFinder,
         private readonly PlanningSerializer $planningSerializer,
         private readonly PlanningEventSerializer $eventSerializer,
         private readonly PlanningManagerInterface $planningManager,
@@ -123,7 +123,7 @@ final class PlanningController extends AbstractController
         return $this->json([
             // Without the module events the reader may not see: a client's
             // publications go to the members of that client's space only.
-            'events' => $this->eventSerializer->serializeMany($this->moduleEvents->filter($this->occurrences->find($ids, $from, $to))),
+            'events' => $this->eventSerializer->serializeMany($this->moduleEvents->filter($this->planningOccurrenceFinder->find($ids, $from, $to))),
             'reminders' => $this->reminderSerializer->serializeMany($this->reminderRepository->findInWindow($ids, $from, $to)),
         ]);
     }

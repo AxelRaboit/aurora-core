@@ -13,10 +13,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final readonly class SpaceResourcesViewBuilder
 {
     public function __construct(
-        private SpaceResourceRepository $resources,
+        private SpaceResourceRepository $spaceResourceRepository,
         private SpaceResourceSerializerInterface $serializer,
         private UrlGeneratorInterface $urlGenerator,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
     ) {}
 
     /** @return array<string, mixed> */
@@ -25,9 +25,9 @@ final readonly class SpaceResourcesViewBuilder
         return [
             'resources' => $this->resources($space),
             'resourceCreatePath' => $this->urlGenerator->generate('workspace_space_resources_create', ['id' => $space->getId()]),
-            'resourceUpdatePath' => $this->pathTemplates->generate('workspace_space_resources_update', ['id' => $space->getId(), 'resourceId' => '__id__']),
-            'resourceVisibilityPath' => $this->pathTemplates->generate('workspace_space_resources_visibility', ['id' => $space->getId(), 'resourceId' => '__id__']),
-            'resourceDeletePath' => $this->pathTemplates->generate('workspace_space_resources_delete', ['id' => $space->getId(), 'resourceId' => '__id__']),
+            'resourceUpdatePath' => $this->pathTemplateGenerator->generate('workspace_space_resources_update', ['id' => $space->getId(), 'resourceId' => '__id__']),
+            'resourceVisibilityPath' => $this->pathTemplateGenerator->generate('workspace_space_resources_visibility', ['id' => $space->getId(), 'resourceId' => '__id__']),
+            'resourceDeletePath' => $this->pathTemplateGenerator->generate('workspace_space_resources_delete', ['id' => $space->getId(), 'resourceId' => '__id__']),
             'resourceReorderPath' => $this->urlGenerator->generate('workspace_space_resources_reorder', ['id' => $space->getId()]),
         ];
     }
@@ -51,7 +51,7 @@ final readonly class SpaceResourcesViewBuilder
     {
         return array_map(
             $this->serializer->serialize(...),
-            $this->resources->findForSpace($space),
+            $this->spaceResourceRepository->findForSpace($space),
         );
     }
 }

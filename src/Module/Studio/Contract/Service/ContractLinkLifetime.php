@@ -31,12 +31,12 @@ final readonly class ContractLinkLifetime
     public const int MAXIMUM_DAYS = 365;
 
     public function __construct(
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
     ) {}
 
     public function days(): int
     {
-        $days = (int) $this->settings->getOrDefault(ApplicationParameterEnum::StudioContractLinkDays);
+        $days = (int) $this->settingRepository->getOrDefault(ApplicationParameterEnum::StudioContractLinkDays);
 
         return min(self::MAXIMUM_DAYS, max(self::MINIMUM_DAYS, $days));
     }

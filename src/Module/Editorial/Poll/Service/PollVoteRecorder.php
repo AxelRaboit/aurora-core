@@ -26,7 +26,7 @@ final readonly class PollVoteRecorder
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private PollVoteRepository $votes,
+        private PollVoteRepository $pollVoteRepository,
         #[Autowire(param: 'kernel.secret')]
         private string $secret,
     ) {}
@@ -36,7 +36,7 @@ final readonly class PollVoteRecorder
         $postId = (int) $post->getId();
         $voter = hash_hmac('sha256', $clientIp.'|'.$userAgent.'|'.$postId.'|'.$zoneId, $this->secret);
 
-        if ($this->votes->hasVoted($postId, $zoneId, $voter)) {
+        if ($this->pollVoteRepository->hasVoted($postId, $zoneId, $voter)) {
             return;
         }
 

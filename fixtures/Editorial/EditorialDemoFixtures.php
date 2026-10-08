@@ -87,7 +87,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         private readonly GridNormalizer $gridNormalizer,
         private readonly GalleryNormalizer $galleryNormalizer,
         private readonly BannerNormalizer $bannerNormalizer,
-        private readonly SettingsService $settingsManager,
+        private readonly SettingsService $settingsService,
         private readonly FormManagerInterface $forms,
         private readonly FormTranslationRepository $formTranslationRepository,
         private readonly PostSnapshot $snapshot,
@@ -165,7 +165,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // what the parameter is for.
         $welcomeId = $posts['welcome']->getId();
         if (null !== $welcomeId) {
-            $this->settingsManager->set(
+            $this->settingsService->set(
                 ApplicationParameterEnum::HomepagePostId->value,
                 (string) $welcomeId,
             );

@@ -54,9 +54,9 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
-    private SpaceContentAttachmentRepository $attachments;
+    private SpaceContentAttachmentRepository $attachmentRepository;
 
     /** @var list<string> */
     private array $temporaryFiles = [];
@@ -75,8 +75,8 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
-        $this->attachments = $container->get(SpaceContentAttachmentRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
+        $this->attachmentRepository = $container->get(SpaceContentAttachmentRepository::class);
     }
 
     protected function tearDown(): void
@@ -187,7 +187,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $this->attach($mine, $item['id'], (int) $document->getId());
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertSame(0, $this->attachments->count([]));
+        self::assertSame(0, $this->attachmentRepository->count([]));
     }
 
     /**
@@ -209,7 +209,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $this->client->request('POST', sprintf('/workspace/%d/attachments/%d/detach', $space->getId(), $attachmentId));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertSame(0, $this->attachments->count([]));
+        self::assertSame(0, $this->attachmentRepository->count([]));
 
         $this->entityManager->clear();
         self::assertInstanceOf(
@@ -289,7 +289,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         self::assertInstanceOf(DocumentFolder::class, $folder);
         self::assertSame($reloaded->getName(), $folder->getName());
 
-        $document = $this->attachments->findForSpaceByItem($reloaded)[$item['id']][0]->getDocument();
+        $document = $this->attachmentRepository->findForSpaceByItem($reloaded)[$item['id']][0]->getDocument();
         self::assertSame($folder->getId(), $document->getFolder()?->getId());
     }
 
@@ -308,7 +308,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
 
         $folders = [];
 
-        foreach ($this->attachments->findForSpaceByItem($reloaded)[$item['id']] as $attachment) {
+        foreach ($this->attachmentRepository->findForSpaceByItem($reloaded)[$item['id']] as $attachment) {
             $folders[] = $attachment->getDocument()->getFolder()?->getId();
         }
 
@@ -362,11 +362,11 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $this->upload($space, $item['id'], 'photo.jpg');
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $documentId = $this->attachments->findForSpaceByItem($space)[$item['id']][0]->getDocument()->getId();
+        $documentId = $this->attachmentRepository->findForSpaceByItem($space)[$item['id']][0]->getDocument()->getId();
 
         $this->client->request('POST', sprintf('/workspace/%d/content/%d/delete', $space->getId(), $item['id']));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertSame(1, $this->attachments->count([]), 'in the trash, the card keeps its files');
+        self::assertSame(1, $this->attachmentRepository->count([]), 'in the trash, the card keeps its files');
 
         $this->client->request('POST', sprintf('/suite/studio/space-contents/%d/force-delete', $item['id']));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -374,7 +374,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $this->entityManager->clear();
 
         // The join is gone with the card.
-        self::assertSame(0, $this->attachments->count([]));
+        self::assertSame(0, $this->attachmentRepository->count([]));
 
         // The file is not: it is still in the library, in the space's folder.
         $document = $this->entityManager->getRepository(Document::class)->find($documentId);
@@ -498,7 +498,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
             self::assertSame(422, $this->client->getResponse()->getStatusCode());
             self::assertSame('suite.studio.space_files.errors.unknown', $this->payload()['errors']['documentId'] ?? null);
 
-            self::assertSame([], $this->attachments->findBy(['document' => $document]));
+            self::assertSame([], $this->attachmentRepository->findBy(['document' => $document]));
         } finally {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', CustomerSpaceMember::class))->execute();
             $this->entityManager->createQuery(sprintf("DELETE FROM %s u WHERE u.email = 'sans-ged@example.test'", User::class))->execute();
@@ -590,7 +590,7 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function givenItem(CustomerSpace $space, string $title): array
     {
-        $column = $this->columns->findForSpace($space)[0];
+        $column = $this->columnRepository->findForSpace($space)[0];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,

@@ -89,19 +89,19 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
         private StudioContext $studioContext,
         private Security $security,
         private SpaceVisibility $visibility,
-        private CustomerSpaceRepository $spaces,
-        private SpaceContentItemRepository $items,
-        private CustomerRepository $customers,
-        private ContractRepository $contracts,
-        private ContractTemplateRepository $templates,
-        private DeliverableRepository $deliverables,
+        private CustomerSpaceRepository $spaceRepository,
+        private SpaceContentItemRepository $itemRepository,
+        private CustomerRepository $customerRepository,
+        private ContractRepository $contractRepository,
+        private ContractTemplateRepository $templateRepository,
+        private DeliverableRepository $deliverableRepository,
         private DeliverableAccess $deliverableAccess,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
-        private SpaceResourceRepository $resources,
-        private SpaceFileRepository $files,
-        private SpaceChatMessageRepository $messages,
-        private SearchSnippetBuilder $snippets,
+        private SpaceResourceRepository $spaceResourceRepository,
+        private SpaceFileRepository $spaceFileRepository,
+        private SpaceChatMessageRepository $spaceChatMessageRepository,
+        private SearchSnippetBuilder $searchSnippetBuilder,
     ) {}
 
     public function search(string $query): array
@@ -175,7 +175,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
      */
     private function visibleSpaceIds(CoreUserInterface $user): ?array
     {
-        return $this->visibility->seesAll() ? null : $this->spaces->findIdsWhereMember($user);
+        return $this->visibility->seesAll() ? null : $this->spaceRepository->findIdsWhereMember($user);
     }
 
     /**
@@ -195,7 +195,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                 ]),
                 'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             ],
-            $this->spaces->searchByName($query, $spaceIds, self::LIMIT),
+            $this->spaceRepository->searchByName($query, $spaceIds, self::LIMIT),
         );
     }
 
@@ -218,7 +218,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                     'item' => $item->getId(),
                 ]),
             ],
-            $this->items->searchByTitle($query, $spaceIds, self::LIMIT),
+            $this->itemRepository->searchByTitle($query, $spaceIds, self::LIMIT),
         );
     }
 
@@ -239,7 +239,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                 ]),
                 'path' => $this->spaceTab($resource->getSpace(), 'resources'),
             ],
-            $this->resources->search($query, $spaceIds, self::LIMIT),
+            $this->spaceResourceRepository->search($query, $spaceIds, self::LIMIT),
         );
     }
 
@@ -268,7 +268,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                     'path' => $this->spaceTab($file->getSpace(), 'files'),
                 ];
             },
-            $this->files->search($query, $spaceIds, self::LIMIT),
+            $this->spaceFileRepository->search($query, $spaceIds, self::LIMIT),
         );
     }
 
@@ -302,7 +302,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                     'message' => $message->getId(),
                 ]),
             ],
-            $this->messages->search($query, $spaceIds, $reader, self::LIMIT),
+            $this->spaceChatMessageRepository->search($query, $spaceIds, $reader, self::LIMIT),
         );
     }
 
@@ -317,7 +317,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
     {
         $flat = preg_replace('/\s+/u', ' ', $body) ?? $body;
 
-        return $this->snippets->build($flat, mb_trim($query), self::SNIPPET_RADIUS);
+        return $this->searchSnippetBuilder->build($flat, mb_trim($query), self::SNIPPET_RADIUS);
     }
 
     /** @return list<array<string, mixed>> */
@@ -334,7 +334,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                 // Their page, where the whole sheet is read and edited.
                 'path' => $this->urlGenerator->generate('suite_studio_customers_show', ['id' => $customer->getId()]),
             ],
-            $this->customers->searchByNameOrNumber($query, self::LIMIT),
+            $this->customerRepository->searchByNameOrNumber($query, self::LIMIT),
         );
     }
 
@@ -354,7 +354,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                 ]),
                 'path' => $this->urlGenerator->generate('suite_studio_contracts_show', ['id' => $contract->getId()]),
             ],
-            $this->contracts->search($query, self::LIMIT),
+            $this->contractRepository->search($query, self::LIMIT),
         );
     }
 
@@ -377,7 +377,7 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
                     'path' => $this->templatePath($template),
                 ];
             },
-            $this->templates->searchByName($query, self::LIMIT),
+            $this->templateRepository->searchByName($query, self::LIMIT),
         );
     }
 
@@ -421,8 +421,8 @@ final readonly class StudioSuiteSearchProvider implements SuiteSearchProviderInt
         $rows = [];
         $seen = [];
         $candidates = [
-            ...$this->deliverables->searchByTitle($query, self::LIMIT * 5),
-            ...$this->deliverables->searchBySlideText($query, self::LIMIT * 5),
+            ...$this->deliverableRepository->searchByTitle($query, self::LIMIT * 5),
+            ...$this->deliverableRepository->searchBySlideText($query, self::LIMIT * 5),
         ];
 
         foreach ($candidates as $deliverable) {

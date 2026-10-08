@@ -33,7 +33,7 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly MarkdownNoteShareLinkRepository $links,
+        protected readonly MarkdownNoteShareLinkRepository $shareLinkRepository,
         protected readonly AuditLogger $auditLogger,
     ) {}
 
@@ -97,7 +97,7 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
     {
         $now ??= new DateTimeImmutable();
 
-        $link = $this->links->findByToken($token);
+        $link = $this->shareLinkRepository->findByToken($token);
 
         if (!$link instanceof MarkdownNoteShareLinkInterface || !$link->isUsableAt($now)) {
             return null;

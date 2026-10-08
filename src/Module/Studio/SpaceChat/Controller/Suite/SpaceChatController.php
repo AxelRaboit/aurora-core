@@ -62,7 +62,7 @@ class SpaceChatController extends AbstractController
         protected readonly SpaceChatChannelManagerInterface $channels,
         protected readonly SpaceChatChannelRepository $channelRepository,
         protected readonly SpaceChatViewBuilder $viewBuilder,
-        protected readonly UserRepository $users,
+        protected readonly UserRepository $userRepository,
         protected readonly Security $security,
         protected readonly ClientVisibility $clientVisibility,
     ) {}
@@ -310,7 +310,7 @@ class SpaceChatController extends AbstractController
         $this->assertInRoom($channel);
 
         $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
-        $user = $userId > 0 ? $this->users->find($userId) : null;
+        $user = $userId > 0 ? $this->userRepository->find($userId) : null;
 
         if (!$user instanceof CoreUserInterface || !$this->isOnTheTeam($space, $user)) {
             return $this->jsonInvalidInput(['userId' => 'suite.studio.space_chat.errors.not_on_the_team']);
@@ -379,7 +379,7 @@ class SpaceChatController extends AbstractController
     {
         $currentUser = $this->security->getUser();
         $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
-        $other = $userId > 0 ? $this->users->find($userId) : null;
+        $other = $userId > 0 ? $this->userRepository->find($userId) : null;
 
         if (!$currentUser instanceof CoreUserInterface) {
             return $this->jsonInvalidInput(['participant' => 'suite.studio.space_chat.errors.needs_account']);

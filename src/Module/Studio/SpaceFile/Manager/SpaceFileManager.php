@@ -38,7 +38,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly SpaceFileRepository $files,
+        protected readonly SpaceFileRepository $spaceFileRepository,
         protected readonly SpaceAttachmentUploader $uploader,
         protected readonly AuditLogger $auditLogger,
         protected readonly Security $security,
@@ -148,7 +148,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
      */
     protected function refuseDuplicate(CustomerSpaceInterface $space, DocumentInterface $document): void
     {
-        if ($this->files->has($space, $document)) {
+        if ($this->spaceFileRepository->has($space, $document)) {
             throw new FieldException('document', $this->translator->trans('suite.studio.space_files.errors.duplicate'));
         }
     }

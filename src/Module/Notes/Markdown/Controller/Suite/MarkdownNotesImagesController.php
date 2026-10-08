@@ -38,7 +38,7 @@ final class MarkdownNotesImagesController extends AbstractController
         private readonly StoredFileResponder $storedFileResponder,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly NoteSpaceAccess $spaceAccess,
-        private readonly NoteSpaceRepository $spaces,
+        private readonly NoteSpaceRepository $spaceRepository,
     ) {}
 
     /**
@@ -146,7 +146,7 @@ final class MarkdownNotesImagesController extends AbstractController
         // top: an image's address only carries its name, and an image of a
         // shared space has the same address for all its readers.
         $this->spaceAccess->personalSpace($user);
-        foreach ($this->spaces->findReadableFor($user) as $bucket) {
+        foreach ($this->spaceRepository->findReadableFor($user) as $bucket) {
             $key = $this->imageService->keyOrNull($filename, $bucket);
 
             if (null === $key) {

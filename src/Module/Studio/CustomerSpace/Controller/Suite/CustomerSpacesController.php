@@ -36,7 +36,7 @@ class CustomerSpacesController extends AbstractController
         protected readonly CustomerSpaceInputFactoryInterface $spaceInputFactory,
         protected readonly CustomerSpacesViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
-        protected readonly CustomerSpaceRepository $spaces,
+        protected readonly CustomerSpaceRepository $spaceRepository,
         protected readonly SpaceVisibility $visibility,
     ) {}
 
@@ -109,7 +109,7 @@ class CustomerSpacesController extends AbstractController
     public function emptyTrash(): JsonResponse
     {
         $deleted = 0;
-        foreach ($this->spaces->findAllTrashed() as $space) {
+        foreach ($this->spaceRepository->findAllTrashed() as $space) {
             if (!$this->visibility->reaches($space)) {
                 continue;
             }
@@ -124,7 +124,7 @@ class CustomerSpacesController extends AbstractController
     /** A space in the trash that the person can see, or 404. */
     private function trashed(int $id): CustomerSpaceInterface
     {
-        $space = $this->spaces->findTrashed($id);
+        $space = $this->spaceRepository->findTrashed($id);
         if (!$space instanceof CustomerSpaceInterface || !$this->visibility->reaches($space)) {
             throw $this->createNotFoundException();
         }

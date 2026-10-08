@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 readonly class FormNotificationService
 {
     public function __construct(
-        private MailService $mail,
+        private MailService $mailService,
         private FormFieldLabeler $labeler,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
@@ -40,14 +40,14 @@ readonly class FormNotificationService
         // used to arrive with its questions - and its subject line - in
         // Spanish, which says nothing about the message and makes the inbox
         // unsortable.
-        $readerLocale = $this->mail->emailLocale() ?? $locale;
+        $readerLocale = $this->mailService->emailLocale() ?? $locale;
         $context = $this->context($form, $submission, $readerLocale) + [
             'submissionUrl' => $this->submissionUrl($form),
         ];
         $replyTo = $this->submitterEmail($form, $submission);
 
         if ('' === $recipient) {
-            $this->mail->sendToAdmin(
+            $this->mailService->sendToAdmin(
                 'editorial.mail.form.subject_admin',
                 '@Editorial/email/form_submission.html.twig',
                 $context,
@@ -58,7 +58,7 @@ readonly class FormNotificationService
             return;
         }
 
-        $this->mail->send(
+        $this->mailService->send(
             $recipient,
             'editorial.mail.form.subject_admin',
             '@Editorial/email/form_submission.html.twig',
@@ -83,7 +83,7 @@ readonly class FormNotificationService
 
         $context = $this->context($form, $submission, $locale);
 
-        $this->mail->send(
+        $this->mailService->send(
             $email,
             'editorial.mail.form.subject_confirmation',
             '@Editorial/email/form_submission_confirmation.html.twig',

@@ -54,13 +54,13 @@ use function sprintf;
  */
 final class ContractProviderSettingsTest extends IntegrationTestCase
 {
-    private ContractManager $contracts;
+    private ContractManager $contractManager;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private EntityManagerInterface $entityManager;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     protected function setUp(): void
     {
@@ -68,11 +68,11 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
 
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->settings = $container->get(SettingRepository::class);
+        $this->settingRepository = $container->get(SettingRepository::class);
 
         $canonicalizer = new ContractCanonicalizer();
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -81,15 +81,15 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
             $container->get(ContractTemplatePreviewer::class),
         );
 
-        $this->contracts = new ContractManager(
+        $this->contractManager = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
-            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settings, static::getContainer()->get(TranslatorInterface::class)),
+            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settingRepository, static::getContainer()->get(TranslatorInterface::class)),
             new ContractDocumentRenderer(new BlockHtmlSanitizer()),
             $canonicalizer,
             new ContractSeal($canonicalizer),
             $container->get(SequenceGenerator::class),
-            $this->settings,
+            $this->settingRepository,
             $container->get(CustomerRepository::class),
             $container->get(ContractTemplateRepository::class),
             $container->get(TranslatorInterface::class),
@@ -114,7 +114,7 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
 
         $contract = $this->contractAskingForSiret();
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertStringContainsString('SIRET du prestataire : 904 512 336 00010', (string) $contract->getRenderedHtml());
     }
@@ -132,7 +132,7 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
         $this->expectException(FieldException::class);
 
         try {
-            $this->contracts->freeze($contract);
+            $this->contractManager->freeze($contract);
         } catch (FieldException $fieldException) {
             self::assertStringContainsString('provider.siret', $fieldException->getMessage());
             // Nothing consumed: no reference, no snapshot.
@@ -151,7 +151,7 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
         $version = $this->publishedVersion('Le forfait est payable d\'avance.');
         $contract = $this->contractFor($version);
 
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         self::assertTrue($contract->isFrozen());
     }
@@ -165,12 +165,12 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
 
     private function publishedVersion(string $text): ContractTemplateVersionInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         self::assertInstanceOf(ContractTemplateVersionInterface::class, $version);
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -179,14 +179,14 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
             ],
         ]));
 
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $version;
     }
 
     private function contractFor(ContractTemplateVersionInterface $version): ContractInterface
     {
-        return $this->contracts->create(new ContractInput(
+        return $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $version->getTemplate()->getId(),
             locale: 'fr',
@@ -197,7 +197,7 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
     {
         // Written through the repository, which is what the settings screen
         // writes through too, and which owns the cache the resolver reads.
-        $this->settings->set(ApplicationParameterEnum::StudioProviderSiret->value, $value);
+        $this->settingRepository->set(ApplicationParameterEnum::StudioProviderSiret->value, $value);
     }
 
     private function customer(): CustomerInterface

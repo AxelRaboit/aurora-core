@@ -37,7 +37,7 @@ final readonly class StorageSettings
     public function __construct(
         private SettingRepository $settingRepository,
         private EncryptionServiceInterface $encryption,
-        private EnvR2ConfigurationProvider $environment,
+        private EnvR2ConfigurationProvider $envR2ConfigurationProvider,
     ) {}
 
     /**
@@ -112,7 +112,7 @@ final readonly class StorageSettings
     public function effectiveR2Configuration(): R2Configuration
     {
         $stored = $this->r2Configuration();
-        $environment = $this->environment->current();
+        $environment = $this->envR2ConfigurationProvider->current();
 
         return new R2Configuration(
             endpoint: '' !== $environment->endpoint ? $environment->endpoint : $stored->endpoint,
@@ -238,7 +238,7 @@ final readonly class StorageSettings
      */
     public function isConfiguredByEnvironment(): bool
     {
-        $environment = $this->environment->current();
+        $environment = $this->envR2ConfigurationProvider->current();
 
         return '' !== $environment->endpoint
             || '' !== $environment->bucket

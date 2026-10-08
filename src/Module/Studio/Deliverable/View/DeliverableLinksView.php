@@ -18,7 +18,7 @@ use function array_map;
 final readonly class DeliverableLinksView
 {
     public function __construct(
-        private DeliverableLinkRepository $links,
+        private DeliverableLinkRepository $deliverableLinkRepository,
         private DeliverableSerializer $serializer,
         private DeliverableReadiness $readiness,
     ) {}
@@ -37,7 +37,7 @@ final readonly class DeliverableLinksView
             // The unpublished images and the [passages to replace] that would
             // go out with the address.
             ...$this->readiness->report($deliverable),
-            'links' => array_map($this->serializer->link(...), $this->links->findForDeliverable($deliverable)),
+            'links' => array_map($this->serializer->link(...), $this->deliverableLinkRepository->findForDeliverable($deliverable)),
         ];
     }
 }

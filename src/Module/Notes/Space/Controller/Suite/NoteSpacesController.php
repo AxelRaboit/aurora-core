@@ -65,7 +65,7 @@ final class NoteSpacesController extends AbstractController
         private readonly NoteSpaceSerializerInterface $serializer,
         private readonly PayloadValidator $payloadValidator,
         private readonly NoteSpaceAccess $spaceAccess,
-        private readonly CraftClient $craft,
+        private readonly CraftClient $craftClient,
     ) {}
 
     /** The spaces the person reads, their own first, with their role in each. */
@@ -88,7 +88,7 @@ final class NoteSpacesController extends AbstractController
             'canCreate' => $this->spaceAccess->canCreateShared(),
             // The panel offers the Craft import in a space's menu, only when
             // the connection is open.
-            'craftEnabled' => $this->craft->isConfigured(),
+            'craftEnabled' => $this->craftClient->isConfigured(),
         ]);
     }
 

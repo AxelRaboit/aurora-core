@@ -50,15 +50,15 @@ final class ContractSigningFlowTest extends IntegrationTestCase
 
     private ?CoreUserInterface $admin = null;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
-    private ContractAccessLinkRepository $links;
+    private ContractAccessLinkRepository $accessLinkRepository;
 
-    private ContractSignatureRepository $signatures;
+    private ContractSignatureRepository $contractSignatureRepository;
 
-    private ContractSignatureChallengeRepository $challenges;
+    private ContractSignatureChallengeRepository $challengeRepository;
 
-    private ContractRepository $contracts;
+    private ContractRepository $contractRepository;
 
     private EntityManagerInterface $entityManager;
 
@@ -82,12 +82,12 @@ final class ContractSigningFlowTest extends IntegrationTestCase
         $container->get('cache.rate_limiter')->clear();
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->links = $container->get(ContractAccessLinkRepository::class);
-        $this->signatures = $container->get(ContractSignatureRepository::class);
-        $this->challenges = $container->get(ContractSignatureChallengeRepository::class);
-        $this->contracts = $container->get(ContractRepository::class);
+        $this->accessLinkRepository = $container->get(ContractAccessLinkRepository::class);
+        $this->contractSignatureRepository = $container->get(ContractSignatureRepository::class);
+        $this->challengeRepository = $container->get(ContractSignatureChallengeRepository::class);
+        $this->contractRepository = $container->get(ContractRepository::class);
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -112,7 +112,7 @@ final class ContractSigningFlowTest extends IntegrationTestCase
     public function testACustomerSignsAndTheProviderConcludes(): void
     {
         $url = $this->sentContractUrl();
-        $contractId = $this->links->findAll()[0]->getContract()->getId();
+        $contractId = $this->accessLinkRepository->findAll()[0]->getContract()->getId();
 
         $guest = $this->asGuest();
 
@@ -133,11 +133,11 @@ final class ContractSigningFlowTest extends IntegrationTestCase
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $contract = $this->contracts->find($contractId);
+        $contract = $this->contractRepository->find($contractId);
 
         self::assertSame('signed_by_customer', $contract->getStatus()->value);
 
-        $signature = $this->signatures->findOneForRole($contract, ContractSignatureRoleEnum::Customer);
+        $signature = $this->contractSignatureRepository->findOneForRole($contract, ContractSignatureRoleEnum::Customer);
         self::assertNotNull($signature);
 
         // The three groups of evidence, all present.
@@ -172,11 +172,11 @@ final class ContractSigningFlowTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $contract = $this->contracts->find($contractId);
+        $contract = $this->contractRepository->find($contractId);
 
         self::assertSame('countersigned', $contract->getStatus()->value);
 
-        $provider = $this->signatures->findOneForRole($contract, ContractSignatureRoleEnum::Provider);
+        $provider = $this->contractSignatureRepository->findOneForRole($contract, ContractSignatureRoleEnum::Provider);
         self::assertNotNull($provider);
         // A session rather than a mailbox: a stronger link to a person, and
         // free.
@@ -235,7 +235,7 @@ final class ContractSigningFlowTest extends IntegrationTestCase
         self::assertArrayHasKey('firstName', $errors);
 
         $this->entityManager->clear();
-        $challenge = $this->challenges->findLatestFor($this->links->findAll()[0]);
+        $challenge = $this->challengeRepository->findLatestFor($this->accessLinkRepository->findAll()[0]);
         self::assertFalse($challenge->isConsumed(), 'A form error must not spend a credential.');
 
         // The same code, with a valid payload, still works.
@@ -331,7 +331,7 @@ final class ContractSigningFlowTest extends IntegrationTestCase
     public function testTheProviderCannotCountersignBeforeTheCustomerSigns(): void
     {
         $this->sentContractUrl();
-        $contractId = $this->links->findAll()[0]->getContract()->getId();
+        $contractId = $this->accessLinkRepository->findAll()[0]->getContract()->getId();
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/countersign', $contractId), [
             'firstName' => 'Axel',
@@ -359,7 +359,7 @@ final class ContractSigningFlowTest extends IntegrationTestCase
     public function testASignedContractCannotBeSentAgain(): void
     {
         $url = $this->sentContractUrl();
-        $contractId = $this->links->findAll()[0]->getContract()->getId();
+        $contractId = $this->accessLinkRepository->findAll()[0]->getContract()->getId();
 
         $guest = $this->asGuest();
         $guest->jsonRequest('POST', $url.'/code');
@@ -399,8 +399,8 @@ final class ContractSigningFlowTest extends IntegrationTestCase
     private function latestCode(): string
     {
         $this->entityManager->clear();
-        $link = $this->links->findAll()[0];
-        $challenge = $this->challenges->findLatestFor($link);
+        $link = $this->accessLinkRepository->findAll()[0];
+        $challenge = $this->challengeRepository->findLatestFor($link);
 
         self::assertNotNull($challenge);
 
@@ -479,10 +479,10 @@ final class ContractSigningFlowTest extends IntegrationTestCase
 
     private function publishedTemplate(): ContractTemplateInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -491,7 +491,7 @@ final class ContractSigningFlowTest extends IntegrationTestCase
                 ]],
             ],
         ]));
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $template;
     }

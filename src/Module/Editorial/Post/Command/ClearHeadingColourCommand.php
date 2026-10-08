@@ -39,7 +39,7 @@ use function sprintf;
 final class ClearHeadingColourCommand extends Command
 {
     public function __construct(
-        private readonly PostRepository $posts,
+        private readonly PostRepository $postRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -64,7 +64,7 @@ final class ClearHeadingColourCommand extends Command
         $rows = [];
         $total = 0;
 
-        foreach ($this->posts->findAll() as $post) {
+        foreach ($this->postRepository->findAll() as $post) {
             foreach ($post->getTranslations() as $translation) {
                 $count = 0;
                 $grid = $this->unwrap($translation->getGrid(), $pattern, $count);

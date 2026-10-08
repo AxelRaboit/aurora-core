@@ -44,7 +44,7 @@ final class PollVoteController extends AbstractController
 
     public function __construct(
         private readonly PostRepository $postRepository,
-        private readonly PollVoteRepository $votes,
+        private readonly PollVoteRepository $pollVoteRepository,
         private readonly GridNormalizer $gridNormalizer,
         private readonly PollVoteRecorder $recorder,
         private readonly RateLimiterFactoryInterface $editorialPollVoteLimiter,
@@ -77,7 +77,7 @@ final class PollVoteController extends AbstractController
 
         $this->recorder->record($post, $zoneId, $answer, $request->getClientIp(), (string) $request->headers->get('User-Agent', ''));
 
-        return $this->jsonSuccess($this->pollAnswers->results($answers, $this->votes->tally($postId, $zoneId)));
+        return $this->jsonSuccess($this->pollAnswers->results($answers, $this->pollVoteRepository->tally($postId, $zoneId)));
     }
 
     /**

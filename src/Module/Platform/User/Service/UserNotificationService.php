@@ -9,11 +9,11 @@ use Aurora\Module\Platform\User\Entity\User;
 
 final readonly class UserNotificationService
 {
-    public function __construct(private MailService $mail) {}
+    public function __construct(private MailService $mailService) {}
 
     public function notifyAccountDeleted(string $email, string $name, ?string $locale = null): void
     {
-        $this->mail->send(
+        $this->mailService->send(
             $email,
             'suite.mail.user.subject_account_deleted',
             '@Core/email/user_account_deleted.html.twig',
@@ -24,7 +24,7 @@ final readonly class UserNotificationService
 
     public function notifyRoleChanged(User $user, string $newRole): void
     {
-        $this->mail->send(
+        $this->mailService->send(
             $user->getEmail(),
             'suite.mail.user.subject_role_changed',
             '@Core/email/user_role_changed.html.twig',

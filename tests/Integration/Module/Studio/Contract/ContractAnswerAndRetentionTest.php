@@ -63,9 +63,9 @@ use function sprintf;
  */
 final class ContractAnswerAndRetentionTest extends IntegrationTestCase
 {
-    private ContractManager $contracts;
+    private ContractManager $contractManager;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
     private ContractRefusalManagerInterface $refusals;
 
@@ -75,7 +75,7 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     private ?CustomerInterface $customer = null;
 
@@ -85,14 +85,14 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
 
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->settings = $container->get(SettingRepository::class);
+        $this->settingRepository = $container->get(SettingRepository::class);
         $this->refusals = $container->get(ContractRefusalManagerInterface::class);
         $this->links = $container->get(ContractAccessLinkManagerInterface::class);
         $this->repository = $container->get(ContractRepository::class);
 
         $canonicalizer = new ContractCanonicalizer();
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -101,20 +101,20 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
             $container->get(ContractTemplatePreviewer::class),
         );
 
-        $this->contracts = new ContractManager(
+        $this->contractManager = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
-            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settings, static::getContainer()->get(TranslatorInterface::class)),
+            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settingRepository, static::getContainer()->get(TranslatorInterface::class)),
             new ContractDocumentRenderer(new BlockHtmlSanitizer()),
             $canonicalizer,
             new ContractSeal($canonicalizer),
             $container->get(SequenceGenerator::class),
-            $this->settings,
+            $this->settingRepository,
             $container->get(CustomerRepository::class),
             $container->get(ContractTemplateRepository::class),
             $container->get(TranslatorInterface::class),
             new ContractCustomFieldScanner(),
-            new ContractRetentionPolicy($this->settings),
+            new ContractRetentionPolicy($this->settingRepository),
             $container->get(ContractRepository::class),
         );
     }
@@ -308,8 +308,8 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
         $contract = $this->sentContract();
         $reference = $contract->getReference();
 
-        $this->contracts->cancel($contract);
-        $copy = $this->contracts->duplicate($contract);
+        $this->contractManager->cancel($contract);
+        $copy = $this->contractManager->duplicate($contract);
 
         self::assertSame(ContractStatusEnum::Cancelled, $contract->getStatus());
         self::assertSame($reference, $contract->getReference());
@@ -334,7 +334,7 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
 
         $this->expectException(FieldException::class);
 
-        $this->contracts->cancel($contract);
+        $this->contractManager->cancel($contract);
     }
 
     public function testAReminderIsRefusedOnceSomebodyHasSigned(): void
@@ -392,21 +392,21 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
         $contract = $this->draftContract();
         $id = $contract->getId();
 
-        $this->contracts->delete($contract);
+        $this->contractManager->delete($contract);
 
         self::assertNull($this->repository->find($id));
     }
 
     public function testASealedContractIsKeptForTheRetentionAndSaysUntilWhen(): void
     {
-        $this->settings->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '10');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '10');
 
         $contract = $this->sentContract();
 
         $this->expectException(FieldException::class);
 
         try {
-            $this->contracts->delete($contract);
+            $this->contractManager->delete($contract);
         } catch (FieldException $fieldException) {
             // The date is in the message: "not yet" alone leaves the reader
             // guessing whether they are a day or a decade early.
@@ -424,22 +424,22 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
      */
     public function testTheRetentionNeverFallsBelowFiveYears(): void
     {
-        $policy = new ContractRetentionPolicy($this->settings);
+        $policy = new ContractRetentionPolicy($this->settingRepository);
 
-        $this->settings->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '0');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '0');
         self::assertSame(ContractRetentionPolicy::MINIMUM_YEARS, $policy->years());
 
-        $this->settings->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '-4');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '-4');
         self::assertSame(ContractRetentionPolicy::MINIMUM_YEARS, $policy->years());
 
-        $this->settings->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '12');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '12');
         self::assertSame(12, $policy->years());
     }
 
     /** Once the retention has run out, the deletion becomes possible. */
     public function testASealedContractIsDeletableOnceTheRetentionHasElapsed(): void
     {
-        $this->settings->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '5');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '5');
 
         $contract = $this->sentContract();
         $id = $contract->getId();
@@ -455,7 +455,7 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
         $reloaded = $this->repository->find($id);
         self::assertInstanceOf(ContractInterface::class, $reloaded);
 
-        $this->contracts->delete($reloaded);
+        $this->contractManager->delete($reloaded);
 
         self::assertNull($this->repository->find($id));
     }
@@ -469,22 +469,22 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
      */
     public function testThePrivacyNoticeStatesTheRetentionThatIsEnforced(): void
     {
-        $this->settings->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '7');
+        $this->settingRepository->set(ApplicationParameterEnum::StudioContractRetentionYears->value, '7');
 
-        $notice = new ContractPrivacyNotice($this->settings, new ContractRetentionPolicy($this->settings));
+        $notice = new ContractPrivacyNotice($this->settingRepository, new ContractRetentionPolicy($this->settingRepository));
         $contract = $this->draftContract();
 
         self::assertSame(7, $notice->forContract($contract)['retentionYears']);
         self::assertSame(
             $notice->forContract($contract)['retentionYears'],
-            (new ContractRetentionPolicy($this->settings))->years(),
+            (new ContractRetentionPolicy($this->settingRepository))->years(),
         );
     }
 
     /** It is read by the person the document was addressed to, in its language. */
     public function testThePrivacyNoticeCarriesTheContractLocale(): void
     {
-        $notice = new ContractPrivacyNotice($this->settings, new ContractRetentionPolicy($this->settings));
+        $notice = new ContractPrivacyNotice($this->settingRepository, new ContractRetentionPolicy($this->settingRepository));
 
         self::assertSame('fr', $notice->forContract($this->draftContract())['locale']);
     }
@@ -497,10 +497,10 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
             ApplicationParameterEnum::StudioProviderAddress,
             ApplicationParameterEnum::StudioProviderEmail,
         ] as $parameter) {
-            $this->settings->set($parameter->value, '');
+            $this->settingRepository->set($parameter->value, '');
         }
 
-        $notice = new ContractPrivacyNotice($this->settings, new ContractRetentionPolicy($this->settings));
+        $notice = new ContractPrivacyNotice($this->settingRepository, new ContractRetentionPolicy($this->settingRepository));
         $built = $notice->forContract($this->draftContract());
 
         self::assertSame([], $built['controller']);
@@ -517,19 +517,19 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
     private function sentContract(): ContractInterface
     {
         $contract = $this->draftContract();
-        $this->contracts->freeze($contract);
+        $this->contractManager->freeze($contract);
 
         return $contract;
     }
 
     private function draftContract(): ContractInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         self::assertNotNull($version);
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -538,9 +538,9 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
             ],
         ]));
 
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
-        return $this->contracts->create(new ContractInput(
+        return $this->contractManager->create(new ContractInput(
             customerId: $this->customer()->getId(),
             bodyTemplateId: $template->getId(),
             locale: 'fr',

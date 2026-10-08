@@ -51,7 +51,7 @@ final class BookingController extends AbstractController
     public function __construct(
         private readonly PostRepository $postRepository,
         private readonly GridNormalizer $gridNormalizer,
-        private readonly BookingSlotFinder $slots,
+        private readonly BookingSlotFinder $bookingSlotFinder,
         private readonly BookingReserver $reserver,
         private readonly RateLimiterFactoryInterface $editorialBookingLimiter,
     ) {}
@@ -71,7 +71,7 @@ final class BookingController extends AbstractController
 
         // With the calendar switched off a booking would land nowhere: the
         // zone offers no slots then, and a request for one is refused alike.
-        if (!$post instanceof PostInterface || !$post->isPublished() || !$this->slots->isEnabled()) {
+        if (!$post instanceof PostInterface || !$post->isPublished() || !$this->bookingSlotFinder->isEnabled()) {
             return $this->jsonFailure('frontend.editorial.grid.booking.unavailable', 404);
         }
 
@@ -107,7 +107,7 @@ final class BookingController extends AbstractController
         // Only a slot the grid could have offered, asked of the service that
         // draws the grid, so a forged instant cannot book a Tuesday at 3 a.m.
         // - or at 10:17, or past closing - because nothing said it could not.
-        if (!$this->slots->isOffered($options, $start)) {
+        if (!$this->bookingSlotFinder->isOffered($options, $start)) {
             return $this->jsonFailure('frontend.editorial.grid.booking.invalid');
         }
 

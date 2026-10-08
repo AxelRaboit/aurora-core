@@ -39,7 +39,7 @@ final readonly class ContractPdfExporter
     public function __construct(
         private ContractPdfGenerator $generator,
         private ContractManagerInterface $contracts,
-        private ContractSignatureRepository $signatures,
+        private ContractSignatureRepository $contractSignatureRepository,
         private SluggerInterface $slugger,
         private TranslatorInterface $translator,
     ) {}
@@ -56,7 +56,7 @@ final readonly class ContractPdfExporter
         return $this->generator->renderProvisional(
             $contract,
             $this->documentHtml($contract),
-            $this->signatures->findForContract($contract),
+            $this->contractSignatureRepository->findForContract($contract),
         );
     }
 

@@ -24,8 +24,8 @@ use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 final readonly class DeckVideo
 {
     public function __construct(
-        private DocumentRepository $documents,
-        private DocumentUrlGenerator $documentUrls,
+        private DocumentRepository $documentRepository,
+        private DocumentUrlGenerator $documentUrlGenerator,
     ) {}
 
     /**
@@ -43,7 +43,7 @@ final readonly class DeckVideo
 
         $videos = [];
 
-        foreach ($this->documents->findBy(['id' => $ids]) as $document) {
+        foreach ($this->documentRepository->findBy(['id' => $ids]) as $document) {
             $video = $this->of($document);
 
             if (null !== $video) {
@@ -67,7 +67,7 @@ final readonly class DeckVideo
             return null;
         }
 
-        $url = $this->documentUrls->publicUrl($document);
+        $url = $this->documentUrlGenerator->publicUrl($document);
 
         if (null === $url) {
             return null;
@@ -75,7 +75,7 @@ final readonly class DeckVideo
 
         return [
             'url' => $url,
-            'poster' => $this->documentUrls->thumbnailPathUrl($document),
+            'poster' => $this->documentUrlGenerator->thumbnailPathUrl($document),
             'mimeType' => $mime,
         ];
     }

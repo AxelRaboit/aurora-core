@@ -14,13 +14,13 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final readonly class PurgeExpiredPreviewTokensHandler
 {
     public function __construct(
-        private PostPreviewTokenRepository $tokens,
+        private PostPreviewTokenRepository $postPreviewTokenRepository,
         private LoggerInterface $logger,
     ) {}
 
     public function __invoke(PurgeExpiredPreviewTokensMessage $message): void
     {
-        $deleted = $this->tokens->deleteExpired(new DateTimeImmutable());
+        $deleted = $this->postPreviewTokenRepository->deleteExpired(new DateTimeImmutable());
 
         if (0 === $deleted) {
             return;

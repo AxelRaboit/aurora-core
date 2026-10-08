@@ -43,8 +43,8 @@ final readonly class ContractPrivacyNotice
     ];
 
     public function __construct(
-        private SettingRepository $settings,
-        private ContractRetentionPolicy $retention,
+        private SettingRepository $settingRepository,
+        private ContractRetentionPolicy $contractRetentionPolicy,
     ) {}
 
     /**
@@ -60,7 +60,7 @@ final readonly class ContractPrivacyNotice
         $identity = [];
 
         foreach (self::IDENTITY as $parameter) {
-            $value = $this->settings->getOrDefault($parameter);
+            $value = $this->settingRepository->getOrDefault($parameter);
 
             // An unfilled setting is skipped rather than printed as a blank
             // line. The notice degrades to what is known instead of showing a
@@ -72,8 +72,8 @@ final readonly class ContractPrivacyNotice
 
         return [
             'controller' => $identity,
-            'email' => $this->settings->getOrDefault(ApplicationParameterEnum::StudioProviderEmail),
-            'retentionYears' => $this->retention->years(),
+            'email' => $this->settingRepository->getOrDefault(ApplicationParameterEnum::StudioProviderEmail),
+            'retentionYears' => $this->contractRetentionPolicy->years(),
             // The contract's language, not the browser's: this is read by the
             // person the document was addressed to, in the language it was
             // written in.

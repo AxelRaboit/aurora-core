@@ -71,7 +71,7 @@ final readonly class MarkdownNoteImporter
     public function __construct(
         private MarkdownNoteManagerInterface $notes,
         private NoteFolderManagerInterface $folders,
-        private MarkdownNoteImageService $images,
+        private MarkdownNoteImageService $imageService,
         private TranslatorInterface $translator,
         /** @var list<string> */
         #[Autowire(param: 'kernel.enabled_locales')]
@@ -280,7 +280,7 @@ final readonly class MarkdownNoteImporter
             $this->filesystem->dumpFile($temporaire, $octets);
 
             try {
-                $filename = $this->images->store(
+                $filename = $this->imageService->store(
                     new UploadedFile($temporaire, $base, null, null, true),
                     $bucket,
                 );

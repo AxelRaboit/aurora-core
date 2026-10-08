@@ -59,9 +59,9 @@ final class SpaceContentTrashTest extends IntegrationTestCase
 
     private User $admin;
 
-    private SpaceContentItemRepository $items;
+    private SpaceContentItemRepository $itemRepository;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
     protected function setUp(): void
     {
@@ -70,8 +70,8 @@ final class SpaceContentTrashTest extends IntegrationTestCase
         $this->client = self::createClient();
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $this->items = self::getContainer()->get(SpaceContentItemRepository::class);
-        $this->columns = self::getContainer()->get(SpaceContentColumnRepository::class);
+        $this->itemRepository = self::getContainer()->get(SpaceContentItemRepository::class);
+        $this->columnRepository = self::getContainer()->get(SpaceContentColumnRepository::class);
 
         $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
@@ -98,7 +98,7 @@ final class SpaceContentTrashTest extends IntegrationTestCase
     {
         $space = $this->givenSpace('Espace des contenus');
         $id = (int) $space->getId();
-        $review = $this->columns->findForSpace($space)[2];
+        $review = $this->columnRepository->findForSpace($space)[2];
         $itemId = $this->givenItem($id, (int) $review->getId(), 'Galette des rois', '+2 days 10:00');
         $other = $this->givenItem($id, (int) $review->getId(), 'Pain au levain', '+4 days 10:00');
         $this->post(sprintf('/workspace/%d/content/%d/comments', $id, $itemId), ['body' => 'Un mot du studio']);
@@ -117,14 +117,14 @@ final class SpaceContentTrashTest extends IntegrationTestCase
         self::assertArrayNotHasKey((string) $itemId, $this->json()['comments']);
 
         $this->entityManager->clear();
-        $trashed = $this->items->findTrashed($itemId);
+        $trashed = $this->itemRepository->findTrashed($itemId);
         self::assertNotNull($trashed);
         self::assertSame((int) $review->getId(), $trashed->getColumn()->getId());
         // Its thread is kept, for a restore.
         self::assertCount(1, $this->entityManager->getRepository(SpaceContentComment::class)->findBy(['item' => $itemId]));
 
         // Off the counts, the calendar, the planning and the client's page.
-        self::assertSame(1, $this->items->countForSpace($space));
+        self::assertSame(1, $this->itemRepository->countForSpace($space));
         self::assertSame(1, $this->workload($space)->withClient);
         self::assertNull($this->events()->findBySource(self::SOURCE, $itemId));
         self::assertStringNotContainsString('Galette des rois', $this->editorialCalendar());
@@ -145,11 +145,11 @@ final class SpaceContentTrashTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $restored = $this->items->find($itemId);
+        $restored = $this->itemRepository->find($itemId);
         self::assertNotNull($restored);
         self::assertFalse($restored->isTrashed());
         self::assertSame((int) $review->getId(), $restored->getColumn()->getId(), 'back to its own step');
-        self::assertSame(2, $this->items->countForSpace($space));
+        self::assertSame(2, $this->itemRepository->countForSpace($space));
         self::assertNotNull($this->events()->findBySource(self::SOURCE, $itemId), 'its date is back on the calendar');
         self::assertStringContainsString('Galette des rois', $this->guestPage($guestPath));
     }
@@ -159,7 +159,7 @@ final class SpaceContentTrashTest extends IntegrationTestCase
     {
         $space = $this->givenSpace('Espace sans étape');
         $id = (int) $space->getId();
-        $columns = $this->columns->findForSpace($space);
+        $columns = $this->columnRepository->findForSpace($space);
         $itemId = $this->givenItem($id, (int) $columns[1]->getId(), 'Rédigé puis jeté', null);
 
         $this->post(sprintf('/workspace/%d/content/%d/delete', $id, $itemId));
@@ -169,14 +169,14 @@ final class SpaceContentTrashTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $trashed = $this->items->findTrashed($itemId);
+        $trashed = $this->itemRepository->findTrashed($itemId);
         self::assertNotNull($trashed, 'the cascade of the step did not take it');
 
         $this->post(sprintf('/suite/studio/space-contents/%d/restore', $itemId));
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $restored = $this->items->find($itemId);
+        $restored = $this->itemRepository->find($itemId);
         self::assertNotNull($restored);
         self::assertSame((int) $columns[0]->getId(), $restored->getColumn()->getId());
     }
@@ -188,7 +188,7 @@ final class SpaceContentTrashTest extends IntegrationTestCase
 
         $space = $this->givenSpace('Espace purgé');
         $id = (int) $space->getId();
-        $column = (int) $this->columns->findForSpace($space)[0]->getId();
+        $column = (int) $this->columnRepository->findForSpace($space)[0]->getId();
         $forGood = $this->givenItem($id, $column, 'Détruit au bouton', null);
         $old = $this->givenItem($id, $column, 'Jeté il y a longtemps', null);
         $recent = $this->givenItem($id, $column, 'Jeté hier', null);
@@ -211,11 +211,11 @@ final class SpaceContentTrashTest extends IntegrationTestCase
         self::getContainer()->get(PurgeTrashedSpaceContentsHandler::class)(new PurgeTrashedSpaceContentsMessage());
 
         $this->entityManager->clear();
-        self::assertNull($this->items->find($forGood));
+        self::assertNull($this->itemRepository->find($forGood));
         self::assertSame([], $this->entityManager->getRepository(SpaceContentComment::class)->findBy(['item' => $forGood]));
-        self::assertNull($this->items->find($old));
-        self::assertNotNull($this->items->find($recent));
-        self::assertNotNull($this->items->find($alive));
+        self::assertNull($this->itemRepository->find($old));
+        self::assertNotNull($this->itemRepository->find($recent));
+        self::assertNotNull($this->itemRepository->find($alive));
     }
 
     /**
@@ -226,8 +226,8 @@ final class SpaceContentTrashTest extends IntegrationTestCase
     {
         $space = $this->givenSpace('Espace vivant');
         $gone = $this->givenSpace('Espace jeté');
-        $kept = $this->givenItem((int) $space->getId(), (int) $this->columns->findForSpace($space)[0]->getId(), 'Carte jetée', null);
-        $lost = $this->givenItem((int) $gone->getId(), (int) $this->columns->findForSpace($gone)[0]->getId(), 'Carte d\'un espace jeté', null);
+        $kept = $this->givenItem((int) $space->getId(), (int) $this->columnRepository->findForSpace($space)[0]->getId(), 'Carte jetée', null);
+        $lost = $this->givenItem((int) $gone->getId(), (int) $this->columnRepository->findForSpace($gone)[0]->getId(), 'Carte d\'un espace jeté', null);
         $this->post(sprintf('/workspace/%d/content/%d/delete', $space->getId(), $kept));
         $this->post(sprintf('/workspace/%d/content/%d/delete', $gone->getId(), $lost));
         $this->post(sprintf('/suite/studio/spaces/%d/delete', $gone->getId()));
@@ -250,7 +250,7 @@ final class SpaceContentTrashTest extends IntegrationTestCase
     {
         $space = $this->givenSpace('Espace tracé');
         $id = (int) $space->getId();
-        $itemId = $this->givenItem($id, (int) $this->columns->findForSpace($space)[0]->getId(), 'Tracé', null);
+        $itemId = $this->givenItem($id, (int) $this->columnRepository->findForSpace($space)[0]->getId(), 'Tracé', null);
         $this->post(sprintf('/workspace/%d/content/%d/delete', $id, $itemId));
         $this->post(sprintf('/suite/studio/space-contents/%d/restore', $itemId));
         $this->post(sprintf('/workspace/%d/content/%d/delete', $id, $itemId));

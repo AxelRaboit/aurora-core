@@ -20,7 +20,7 @@ final readonly class CustomersViewBuilder
     public function __construct(
         private CustomerRepository $customerRepository,
         private CustomerSerializerInterface $customerSerializer,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private UrlGeneratorInterface $urlGenerator,
         private SpaceVisibility $visibility,
         private StudioContext $studioContext,
@@ -47,9 +47,9 @@ final readonly class CustomersViewBuilder
             'currencies' => $this->currencyOptions(),
             'createPath' => $this->urlGenerator->generate('suite_studio_customers_create'),
             // Each customer's page: the list no longer edits, it leads there.
-            'showPath' => $this->pathTemplates->generate('suite_studio_customers_show', ['id' => '__id__']),
-            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
+            'showPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_show', ['id' => '__id__']),
+            'convertPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplateGenerator->generate('suite_studio_customers_delete', ['id' => '__id__']),
         ];
     }
 
@@ -133,8 +133,8 @@ final readonly class CustomersViewBuilder
             'currencies' => $this->currencyOptions(),
             'indexPath' => $this->urlGenerator->generate('suite_studio_customers'),
             'updatePath' => $this->urlGenerator->generate('suite_studio_customers_update', ['id' => $id]),
-            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
+            'convertPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplateGenerator->generate('suite_studio_customers_delete', ['id' => '__id__']),
             // The spaces list filtered on them, and the contracts one: their
             // complete lists, beyond what the page summarizes.
             'spacesPath' => $this->studioContext->areSpacesEnabled() && $this->authorizationChecker->isGranted('studio.spaces.view')

@@ -19,10 +19,10 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 final readonly class SpaceFilesViewBuilder
 {
     public function __construct(
-        private SpaceFileRepository $files,
+        private SpaceFileRepository $spaceFileRepository,
         private SpaceFileSerializerInterface $serializer,
         private UrlGeneratorInterface $urlGenerator,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private DriveSettings $drive,
         private DriveLock $lock,
         private SpaceVisibility $visibility,
@@ -40,8 +40,8 @@ final readonly class SpaceFilesViewBuilder
             'spaceFiles' => $this->files($space),
             'spaceFileUploadPath' => $this->urlGenerator->generate('workspace_space_files_upload', ['id' => $space->getId()]),
             'spaceFileAttachPath' => $this->urlGenerator->generate('workspace_space_files_attach', ['id' => $space->getId()]),
-            'spaceFileRemovePath' => $this->pathTemplates->generate('workspace_space_files_remove', ['id' => $space->getId(), 'fileId' => '__id__']),
-            'spaceFileVisibilityPath' => $this->pathTemplates->generate('workspace_space_files_visibility', ['id' => $space->getId(), 'fileId' => '__id__']),
+            'spaceFileRemovePath' => $this->pathTemplateGenerator->generate('workspace_space_files_remove', ['id' => $space->getId(), 'fileId' => '__id__']),
+            'spaceFileVisibilityPath' => $this->pathTemplateGenerator->generate('workspace_space_files_visibility', ['id' => $space->getId(), 'fileId' => '__id__']),
             // This space's Drive folder. `driveEnabled` says the installation
             // has a key; `driveFolderId` says this particular space has
             // designated a folder. Both, otherwise the screen offers a field
@@ -49,22 +49,22 @@ final readonly class SpaceFilesViewBuilder
             'driveEnabled' => $this->drive->isEnabled(),
             'driveFolderId' => $space->getDriveFolderId(),
             'driveListPath' => $this->urlGenerator->generate('workspace_space_drive_list', ['id' => $space->getId()]),
-            'driveFilePath' => $this->pathTemplates->generate('workspace_space_drive_file', ['id' => $space->getId(), 'fileId' => '__id__']),
+            'driveFilePath' => $this->pathTemplateGenerator->generate('workspace_space_drive_file', ['id' => $space->getId(), 'fileId' => '__id__']),
             'driveArchivePath' => $this->urlGenerator->generate('workspace_space_drive_archive', ['id' => $space->getId()]),
             // Filing a file writes to the media library: the button only shows
             // to someone who can edit the space, as the route requires.
             'driveImportPath' => $this->canEdit()
-                ? $this->pathTemplates->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
+                ? $this->pathTemplateGenerator->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
                 : '',
             // The agency's folder: the same for every space, chosen in the
             // Drive configuration. Reserved to the studio, it is never shown to
             // the client: nothing here goes to the portal.
             'driveAgencyFolderId' => $this->drive->agencyFolderId(),
             'driveAgencyListPath' => $this->urlGenerator->generate('workspace_space_drive_agency_list', ['id' => $space->getId()]),
-            'driveAgencyFilePath' => $this->pathTemplates->generate('workspace_space_drive_agency_file', ['id' => $space->getId(), 'fileId' => '__id__']),
+            'driveAgencyFilePath' => $this->pathTemplateGenerator->generate('workspace_space_drive_agency_file', ['id' => $space->getId(), 'fileId' => '__id__']),
             'driveAgencyArchivePath' => $this->urlGenerator->generate('workspace_space_drive_agency_archive', ['id' => $space->getId()]),
             'driveAgencyImportPath' => $this->canEdit()
-                ? $this->pathTemplates->generate('workspace_space_drive_agency_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
+                ? $this->pathTemplateGenerator->generate('workspace_space_drive_agency_import', ['id' => $space->getId(), 'fileId' => '__fileId__'])
                 : '',
             'driveUnlockPath' => $this->urlGenerator->generate('workspace_space_settings_drive_unlock', ['id' => $space->getId()]),
             // The lock as it stands for *this* session: closed but already
@@ -124,7 +124,7 @@ final readonly class SpaceFilesViewBuilder
         return [
             'spaceFiles' => array_map(
                 fn (SpaceFileInterface $file): array => $this->serializer->serializeForGuest($file, $link, $token),
-                $this->files->findShownForSpace($link->getSpace()),
+                $this->spaceFileRepository->findShownForSpace($link->getSpace()),
             ),
         ];
     }
@@ -132,7 +132,7 @@ final readonly class SpaceFilesViewBuilder
     /** @return list<array<string, mixed>> */
     public function files(CustomerSpaceInterface $space): array
     {
-        return array_map($this->serializer->serialize(...), $this->files->findForSpace($space));
+        return array_map($this->serializer->serialize(...), $this->spaceFileRepository->findForSpace($space));
     }
 
     private function canEdit(): bool

@@ -32,8 +32,8 @@ use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 final readonly class SharedNoteScope
 {
     public function __construct(
-        private MarkdownNoteRepository $notes,
-        private WikiLinkParser $wikiLinks,
+        private MarkdownNoteRepository $noteRepository,
+        private WikiLinkParser $wikiLinkParser,
     ) {}
 
     /**
@@ -69,7 +69,7 @@ final readonly class SharedNoteScope
         // The shared note's space, and only that one: a public link that
         // follows wiki links must never escape to another space, which
         // nobody outside has any business reading.
-        $all = $this->notes->findLivingInSpace($root->getSpace());
+        $all = $this->noteRepository->findLivingInSpace($root->getSpace());
 
         $byTitle = [];
         foreach ($all as $note) {
@@ -90,7 +90,7 @@ final readonly class SharedNoteScope
             $current = array_shift($queue);
             $next = [];
 
-            foreach ($this->wikiLinks->titlesIn($current->getContent()) as $title) {
+            foreach ($this->wikiLinkParser->titlesIn($current->getContent()) as $title) {
                 if (isset($byTitle[$title])) {
                     $next[] = $byTitle[$title];
                 }

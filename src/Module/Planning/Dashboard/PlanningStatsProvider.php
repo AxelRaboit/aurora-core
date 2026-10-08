@@ -41,9 +41,9 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
     private const int UPCOMING_DAYS = 60;
 
     public function __construct(
-        private PlanningRepository $plannings,
-        private PlanningOccurrenceFinder $occurrences,
-        private PlanningReminderRepository $reminders,
+        private PlanningRepository $planningRepository,
+        private PlanningOccurrenceFinder $planningOccurrenceFinder,
+        private PlanningReminderRepository $reminderRepository,
         private Security $security,
         private UrlGeneratorInterface $urlGenerator,
         private ModuleEventVisibility $moduleEvents,
@@ -65,7 +65,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
             return ['planning' => $this->empty()];
         }
 
-        $visible = $this->plannings->findVisibleTo($user);
+        $visible = $this->planningRepository->findVisibleTo($user);
         $ids = array_map(
             static fn (PlanningInterface $planning): int => (int) $planning->getId(),
             $visible,
@@ -76,7 +76,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
         return [
             'planning' => [
                 'calendars' => count($visible),
-                'overdue' => $this->reminders->countOverdue($ids, $now),
+                'overdue' => $this->reminderRepository->countOverdue($ids, $now),
                 // Merged and re-sorted here rather than in one query: they are
                 // two tables and a UNION would have to agree on a column list
                 // that the two do not share. Five plus five sorted in PHP is
@@ -108,7 +108,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
         // Filtered before being cut: a module event the reader may not see
         // must not take one of the few places either.
         $occurrences = array_filter(
-            $this->moduleEvents->filter($this->occurrences->find($ids, $now, $now->modify(sprintf('+%d days', self::UPCOMING_DAYS)))),
+            $this->moduleEvents->filter($this->planningOccurrenceFinder->find($ids, $now, $now->modify(sprintf('+%d days', self::UPCOMING_DAYS)))),
             static fn (PlanningOccurrence $occurrence): bool => PlanningEventStatusEnum::Cancelled !== $occurrence->event->getStatus(),
         );
         usort($occurrences, static fn (PlanningOccurrence $left, PlanningOccurrence $right): int => $left->startAt <=> $right->startAt);
@@ -127,7 +127,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
             ];
         }
 
-        foreach ($this->reminders->findUpcoming($ids, $now, self::UPCOMING) as $reminder) {
+        foreach ($this->reminderRepository->findUpcoming($ids, $now, self::UPCOMING) as $reminder) {
             $rows[] = [
                 'kind' => 'reminder',
                 'id' => $reminder->getId(),

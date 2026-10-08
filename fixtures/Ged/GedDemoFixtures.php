@@ -44,9 +44,9 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         #[Autowire(param: 'app.upload_dir')]
         private readonly string $uploadDirectory,
         private readonly PdfThumbnailGenerator $pdfThumbnailGenerator,
-        private readonly ImageRenditionGenerator $renditions,
+        private readonly ImageRenditionGenerator $renditionGenerator,
         private readonly StorageManager $storageManager,
-        private readonly SettingsService $settingsManager,
+        private readonly SettingsService $settingsService,
         private readonly DocumentColorAlternateCreator $colorAlternates,
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {}
@@ -86,8 +86,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $mark = $media[array_key_last($media)] ?? null;
         if (null !== $mark?->getId()) {
             $faviconId = (string) $mark->getId();
-            $this->settingsManager->set(ApplicationParameterEnum::FaviconMediaId->value, $faviconId);
-            $this->settingsManager->set(ApplicationParameterEnum::LogoMediaId->value, $faviconId);
+            $this->settingsService->set(ApplicationParameterEnum::FaviconMediaId->value, $faviconId);
+            $this->settingsService->set(ApplicationParameterEnum::LogoMediaId->value, $faviconId);
         }
 
         $manager->flush();
@@ -205,7 +205,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 // Left empty, every demo page served the full-size original
                 // to a phone - and the one claim the library makes about
                 // itself was the one thing the demo did not do.
-                ->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$month.'/'.$definition['name'], $definition['mime']));
+                ->setRenditions($this->renditionGenerator->generate($this->storageManager->active(), 'ged/'.$month.'/'.$definition['name'], $definition['mime']));
 
             if ($definition['w'] > 0) {
                 $document->setWidth($definition['w'])->setHeight($definition['h']);
@@ -540,7 +540,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                         $document->setWidth($dimensions[0])->setHeight($dimensions[1]);
                     }
 
-                    $document->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$gedMonth.'/'.$fileName, $mimeType));
+                    $document->setRenditions($this->renditionGenerator->generate($this->storageManager->active(), 'ged/'.$gedMonth.'/'.$fileName, $mimeType));
                 }
             }
 

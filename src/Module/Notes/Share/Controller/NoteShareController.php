@@ -64,7 +64,7 @@ final class NoteShareController extends AbstractController
     public function __construct(
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly SharedNoteScope $scope,
-        private readonly MarkdownNoteImageService $images,
+        private readonly MarkdownNoteImageService $imageService,
         private readonly StoredFileResponder $storedFileResponder,
         private readonly MarkdownNoteManagerInterface $noteManager,
         private readonly MarkdownNoteHistory $history,
@@ -164,7 +164,7 @@ final class NoteShareController extends AbstractController
         // The bucket is the one of the note's space: a note in a shared space
         // stores its images there, not with its author - who may no longer
         // exist anyway.
-        $key = $this->images->keyOrNull($filename, $this->images->bucketOf($link->getNote()));
+        $key = $this->imageService->keyOrNull($filename, $this->imageService->bucketOf($link->getNote()));
 
         if (null === $key) {
             throw $this->createNotFoundException();

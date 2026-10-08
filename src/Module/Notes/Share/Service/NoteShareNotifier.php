@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final readonly class NoteShareNotifier
 {
     public function __construct(
-        private MailService $mail,
+        private MailService $mailService,
         private UrlGeneratorInterface $urlGenerator,
         private EntityManagerInterface $entityManager,
     ) {}
@@ -39,7 +39,7 @@ final readonly class NoteShareNotifier
             $title = $untitledLabel ?? '';
         }
 
-        $this->mail->send(
+        $this->mailService->send(
             $recipient,
             'notes.markdown.share.mail.subject',
             '@Notes/email/note_shared.html.twig',

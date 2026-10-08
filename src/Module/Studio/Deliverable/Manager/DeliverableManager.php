@@ -52,12 +52,12 @@ readonly class DeliverableManager
         private EntityManagerInterface $entityManager,
         private GridNormalizer $gridNormalizer,
         private LocaleContextInterface $localeContext,
-        private DeliverableCategoryRepository $categories,
-        private DocumentRepository $documents,
+        private DeliverableCategoryRepository $deliverableCategoryRepository,
+        private DocumentRepository $documentRepository,
         private AuditLogger $auditLogger,
-        private DeliverableRepository $deliverables,
-        private CustomerRepository $customers,
-        private SlidesManager $slides,
+        private DeliverableRepository $deliverableRepository,
+        private CustomerRepository $customerRepository,
+        private SlidesManager $slidesManager,
     ) {}
 
     /**
@@ -353,7 +353,7 @@ readonly class DeliverableManager
     {
         $id = is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : null;
 
-        return null === $id ? null : $this->categories->find($id);
+        return null === $id ? null : $this->deliverableCategoryRepository->find($id);
     }
 
     /**
@@ -365,7 +365,7 @@ readonly class DeliverableManager
     {
         $id = is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : null;
 
-        return null === $id ? null : $this->customers->find($id);
+        return null === $id ? null : $this->customerRepository->find($id);
     }
 
     /**
@@ -376,7 +376,7 @@ readonly class DeliverableManager
     private function thumbnail(mixed $id): ?DocumentInterface
     {
         $id = is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : null;
-        $document = null === $id ? null : $this->documents->find($id);
+        $document = null === $id ? null : $this->documentRepository->find($id);
 
         return $document instanceof DocumentInterface && str_starts_with((string) $document->getMimeType(), 'image/') ? $document : null;
     }
@@ -397,7 +397,7 @@ readonly class DeliverableManager
         $this->entityManager->persist($copy);
 
         if ($source->isSlides() && $copy->isSlides()) {
-            $this->slides->copySlides($copy, $source);
+            $this->slidesManager->copySlides($copy, $source);
         }
 
         $this->entityManager->flush();
@@ -457,7 +457,7 @@ readonly class DeliverableManager
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
     {
         $purged = 0;
-        foreach ($this->deliverables->findTrashedBefore($cutoff) as $deliverable) {
+        foreach ($this->deliverableRepository->findTrashedBefore($cutoff) as $deliverable) {
             $this->forceDelete($deliverable);
             ++$purged;
         }

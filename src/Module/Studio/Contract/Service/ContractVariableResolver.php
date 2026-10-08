@@ -59,7 +59,7 @@ final readonly class ContractVariableResolver
 
     public function __construct(
         private ContractVariableCatalogue $catalogue,
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
         private TranslatorInterface $translator,
     ) {}
 
@@ -127,7 +127,7 @@ final readonly class ContractVariableResolver
         $values = [];
 
         foreach (self::PROVIDER as $token => $parameter) {
-            $value = mb_trim($this->settings->get($parameter->value, '') ?? '');
+            $value = mb_trim($this->settingRepository->get($parameter->value, '') ?? '');
 
             if ('' !== $value) {
                 $values[$token] = $value;

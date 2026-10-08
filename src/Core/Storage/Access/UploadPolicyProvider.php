@@ -29,7 +29,7 @@ final readonly class UploadPolicyProvider
 {
     private const int BYTES_PER_MB = 1024 * 1024;
 
-    public function __construct(private SettingRepository $settings) {}
+    public function __construct(private SettingRepository $settingRepository) {}
 
     public function forStaffDocuments(): UploadPolicy
     {
@@ -52,7 +52,7 @@ final readonly class UploadPolicyProvider
      */
     private function ceilingBytes(): int
     {
-        $configured = (int) $this->settings->getOrDefault(ApplicationParameterEnum::MaxUploadSizeMb);
+        $configured = (int) $this->settingRepository->getOrDefault(ApplicationParameterEnum::MaxUploadSizeMb);
 
         return max(1, $configured) * self::BYTES_PER_MB;
     }

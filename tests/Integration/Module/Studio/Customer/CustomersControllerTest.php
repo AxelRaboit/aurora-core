@@ -25,7 +25,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 {
     private KernelBrowser $client;
 
-    private CustomerRepository $customers;
+    private CustomerRepository $customerRepository;
 
     private EntityManagerInterface $entityManager;
 
@@ -41,7 +41,7 @@ final class CustomersControllerTest extends IntegrationTestCase
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
-        $this->customers = $container->get(CustomerRepository::class);
+        $this->customerRepository = $container->get(CustomerRepository::class);
         $this->entityManager = $container->get(EntityManagerInterface::class);
     }
 
@@ -160,7 +160,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertArrayHasKey('siret', $payload['errors']);
-        self::assertSame([], $this->customers->findAll());
+        self::assertSame([], $this->customerRepository->findAll());
     }
 
     public function testACustomerKeepsItsOwnSiretWhenEdited(): void
@@ -230,7 +230,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertArrayHasKey('customer', $payload['errors']);
-        self::assertNotNull($this->customers->find($customer->getId()), 'the row is still there');
+        self::assertNotNull($this->customerRepository->find($customer->getId()), 'the row is still there');
     }
 
     /**
@@ -249,7 +249,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $customer = $this->customers->findOneBy(['legalName' => 'Verrerie Lemoine']);
+        $customer = $this->customerRepository->findOneBy(['legalName' => 'Verrerie Lemoine']);
         self::assertInstanceOf(Customer::class, $customer);
         self::assertTrue($customer->isProspect());
         self::assertNull($customer->getContractualEmail());
@@ -385,6 +385,6 @@ final class CustomersControllerTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/delete', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertNull($this->customers->find($id));
+        self::assertNull($this->customerRepository->find($id));
     }
 }

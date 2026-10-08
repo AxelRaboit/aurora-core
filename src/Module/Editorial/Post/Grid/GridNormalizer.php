@@ -798,15 +798,15 @@ final readonly class GridNormalizer
      */
     public const array ZONE_TYPES = [...self::LEAF_ZONE_TYPES, self::ZONE_STACK];
 
-    private BannerNormalizer $banners;
+    private BannerNormalizer $bannerNormalizer;
 
     public function __construct(
-        private ContentValueNormalizer $values,
-        ?BannerNormalizer $banners = null,
+        private ContentValueNormalizer $contentValueNormalizer,
+        ?BannerNormalizer $bannerNormalizer = null,
     ) {
         // Optional so the tests that build this by hand keep working; the
         // container passes the shared one.
-        $this->banners = $banners ?? new BannerNormalizer($values);
+        $this->bannerNormalizer = $bannerNormalizer ?? new BannerNormalizer($contentValueNormalizer);
     }
 
     /**
@@ -826,9 +826,9 @@ final readonly class GridNormalizer
             // How the page's zones arrive, unless one of them says otherwise.
             // At the root because it is a decision about the page, and
             // because it is the only place an author can make it once.
-            'reveal' => $this->values->oneOf($data['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
+            'reveal' => $this->contentValueNormalizer->oneOf($data['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
             // `normal` is the gap every page had before it could be chosen.
-            'rowGap' => $this->values->oneOf($data['rowGap'] ?? null, self::ROW_GAPS, self::ROW_GAPS[1]),
+            'rowGap' => $this->contentValueNormalizer->oneOf($data['rowGap'] ?? null, self::ROW_GAPS, self::ROW_GAPS[1]),
             // Once zones stack, a row's picture before its text
             // ({@see self::readingOrder()}). On unless the author keeps the
             // page's own sequence: a grid saved before the choice existed
@@ -882,13 +882,13 @@ final readonly class GridNormalizer
                 'blocks' => in_array($zone['type'] ?? null, [self::ZONE_TEXT, self::ZONE_BUTTON], true) && is_array($entry['blocks'] ?? null)
                     ? array_values($entry['blocks'])
                     : [],
-                'alt' => $this->values->text($entry['alt'] ?? null),
-                'caption' => $this->values->text($entry['caption'] ?? null),
-                'url' => $this->values->url($entry['url'] ?? null),
+                'alt' => $this->contentValueNormalizer->text($entry['alt'] ?? null),
+                'caption' => $this->contentValueNormalizer->text($entry['caption'] ?? null),
+                'url' => $this->contentValueNormalizer->url($entry['url'] ?? null),
                 // What a button says. `url` above is where it goes: a
                 // localised page has a localised address, which is why both
                 // halves of a button are translated.
-                'label' => $this->values->text($entry['label'] ?? null),
+                'label' => $this->contentValueNormalizer->text($entry['label'] ?? null),
                 // Kept as typed - every space matters in a snippet, so this is
                 // the one text field that is not trimmed. It is escaped at
                 // render, never interpreted.
@@ -901,7 +901,7 @@ final readonly class GridNormalizer
                 // items and slides keyed by id, and the pictures this language
                 // puts behind them. Null on every other type.
                 'banner' => self::ZONE_BANNER === ($zone['type'] ?? null)
-                    ? $this->banners->normalizeTexts($entry['banner'] ?? null, is_array($zone['banner'] ?? null) ? $zone['banner'] : [])
+                    ? $this->bannerNormalizer->normalizeTexts($entry['banner'] ?? null, is_array($zone['banner'] ?? null) ? $zone['banner'] : [])
                     : null,
             ];
         }
@@ -960,7 +960,7 @@ final readonly class GridNormalizer
             // to a nested stack: depth stops at one, and the alternative - a
             // stack silently becoming a text zone - would be worse.
             $allowed = $allowStacks ? self::ZONE_TYPES : self::LEAF_ZONE_TYPES;
-            $type = $this->values->oneOf($entry['type'] ?? null, $allowed, '');
+            $type = $this->contentValueNormalizer->oneOf($entry['type'] ?? null, $allowed, '');
             if ('' === $type) {
                 continue;
             }
@@ -968,14 +968,14 @@ final readonly class GridNormalizer
             // Ids are unique across the whole tree, not per level: content is
             // keyed by id in one flat map, so two zones sharing one would share
             // their words in every language at once.
-            $id = $this->values->itemId($entry['id'] ?? null, $used);
+            $id = $this->contentValueNormalizer->itemId($entry['id'] ?? null, $used);
             $used[$id] = true;
 
             // The name a link may jump to. Separate from the id on purpose:
             // the id is the editor's handle on a zone and means nothing to a
             // reader, while this is written to be read in an address bar and
             // survives the zone being rebuilt.
-            $anchor = $this->values->anchor($entry['anchor'] ?? null, $anchors);
+            $anchor = $this->contentValueNormalizer->anchor($entry['anchor'] ?? null, $anchors);
 
             if ('' !== $anchor) {
                 $anchors[$anchor] = true;
@@ -1000,7 +1000,7 @@ final readonly class GridNormalizer
             // deciding it is two places to disagree.
             $span = $fullBleed
                 ? array_fill_keys(ContentValueNormalizer::BREAKPOINTS, self::COLUMNS)
-                : $this->values->span($entry['span'] ?? null);
+                : $this->contentValueNormalizer->span($entry['span'] ?? null);
 
             // On a phone a zone is alone on its row, whatever it stored.
             //
@@ -1040,13 +1040,13 @@ final readonly class GridNormalizer
                 'newRow' => $allowStacks && (bool) ($entry['newRow'] ?? false),
                 // Shared, like the span: how a picture is cropped is design,
                 // and the design is written once for every language.
-                'ratio' => $this->values->oneOf($entry['ratio'] ?? null, self::RATIOS, self::RATIO_NATURAL),
+                'ratio' => $this->contentValueNormalizer->oneOf($entry['ratio'] ?? null, self::RATIOS, self::RATIO_NATURAL),
                 // Shared for the same reason the ratio is: how big a picture
                 // is printed is design, written once for every language.
                 'scale' => $this->scale($entry['scale'] ?? null),
                 // Shared with the size it depends on: both are design.
-                'align' => $this->values->oneOf($entry['align'] ?? null, self::ALIGNMENTS, self::ALIGNMENTS[0]),
-                'mediaId' => $this->values->id($entry['mediaId'] ?? null),
+                'align' => $this->contentValueNormalizer->oneOf($entry['align'] ?? null, self::ALIGNMENTS, self::ALIGNMENTS[0]),
+                'mediaId' => $this->contentValueNormalizer->id($entry['mediaId'] ?? null),
                 // The pictures of a gallery, in the order they were arranged.
                 // Shared like the single id beside it: which photographs a page
                 // shows is not a matter of language.
@@ -1062,17 +1062,17 @@ final readonly class GridNormalizer
                 // image already hosted elsewhere. Shared like the id, and for
                 // the same reason: it is the same picture in every language.
                 'mediaUrl' => $this->imageUrl($entry['mediaUrl'] ?? null),
-                'postId' => $this->values->id($entry['postId'] ?? null),
+                'postId' => $this->contentValueNormalizer->id($entry['postId'] ?? null),
                 // How loudly a button is drawn, and how much room it or a
                 // separator takes. Design, so shared - a translated page does
                 // not restyle its own buttons.
-                'variant' => $this->values->oneOf($entry['variant'] ?? null, self::BUTTON_VARIANTS, self::BUTTON_VARIANTS[0]),
-                'size' => $this->values->oneOf($entry['size'] ?? null, self::SIZES, self::SIZES[1]),
-                'separatorStyle' => $this->values->oneOf($entry['separatorStyle'] ?? null, self::SEPARATOR_STYLES, self::SEPARATOR_STYLES[0]),
+                'variant' => $this->contentValueNormalizer->oneOf($entry['variant'] ?? null, self::BUTTON_VARIANTS, self::BUTTON_VARIANTS[0]),
+                'size' => $this->contentValueNormalizer->oneOf($entry['size'] ?? null, self::SIZES, self::SIZES[1]),
+                'separatorStyle' => $this->contentValueNormalizer->oneOf($entry['separatorStyle'] ?? null, self::SEPARATOR_STYLES, self::SEPARATOR_STYLES[0]),
                 // Which costume an item list wears, and how many
                 // entries stand side by side where the costume lays them in a
                 // row. Both are design, both shared.
-                'display' => $this->values->oneOf($entry['display'] ?? null, self::ITEM_DISPLAYS, self::ITEM_DISPLAYS[0]),
+                'display' => $this->contentValueNormalizer->oneOf($entry['display'] ?? null, self::ITEM_DISPLAYS, self::ITEM_DISPLAYS[0]),
                 'columns' => in_array((int) ($entry['columns'] ?? 0), self::ITEM_COLUMNS, true)
                     ? (int) $entry['columns']
                     : self::ITEM_COLUMNS[1],
@@ -1091,23 +1091,23 @@ final readonly class GridNormalizer
                 // other id here: a taxonomy carries its own translations, so
                 // the renderer picks the right ones rather than asking an
                 // author to name a different taxonomy per language.
-                'taxonomyId' => $this->values->id($entry['taxonomyId'] ?? null),
+                'taxonomyId' => $this->contentValueNormalizer->id($entry['taxonomyId'] ?? null),
                 // Which presentation a deck zone shows: a Studio deliverable
                 // in the slides format, since presentations became
                 // deliverables (the zone kept its type). Shared: a
                 // presentation carries its own slides, and which one a page
                 // shows is not a matter of language.
-                'deliverableId' => $this->values->id($entry['deliverableId'] ?? null),
-                'postTypeId' => $this->values->id($entry['postTypeId'] ?? null),
-                'termId' => $this->values->id($entry['termId'] ?? null),
+                'deliverableId' => $this->contentValueNormalizer->id($entry['deliverableId'] ?? null),
+                'postTypeId' => $this->contentValueNormalizer->id($entry['postTypeId'] ?? null),
+                'termId' => $this->contentValueNormalizer->id($entry['termId'] ?? null),
                 'limit' => min(self::MAX_LIST_LIMIT, max(1, (int) ($entry['limit'] ?? 3))),
                 // Read by the single-publication zone too: the two draw the
                 // same card, so they offer the same densities.
-                'cardVariant' => $this->values->oneOf($entry['cardVariant'] ?? null, self::CARD_VARIANTS, self::CARD_VARIANTS[0]),
+                'cardVariant' => $this->contentValueNormalizer->oneOf($entry['cardVariant'] ?? null, self::CARD_VARIANTS, self::CARD_VARIANTS[0]),
                 // Which form the zone poses. Shared: a form carries its own
                 // translations, so the page picks the right one rather than
                 // naming a different form per language.
-                'formId' => $this->values->id($entry['formId'] ?? null),
+                'formId' => $this->contentValueNormalizer->id($entry['formId'] ?? null),
                 // Which highlighter to ask for. Empty means "do not guess":
                 // a snippet with no language named is shown as it was typed.
                 'language' => in_array($entry['language'] ?? null, self::CODE_LANGUAGES, true)
@@ -1115,7 +1115,7 @@ final readonly class GridNormalizer
                     : null,
                 // How a text zone is set. Design, so shared - a standfirst is
                 // a standfirst in every language.
-                'textSize' => $this->values->oneOf($entry['textSize'] ?? null, self::TEXT_SIZES, self::TEXT_SIZES[0]),
+                'textSize' => $this->contentValueNormalizer->oneOf($entry['textSize'] ?? null, self::TEXT_SIZES, self::TEXT_SIZES[0]),
                 // Numbered lines down the side of a snippet. Off by default:
                 // a three-line example needs no coordinates, and a page that
                 // numbers everything makes the numbers mean nothing.
@@ -1129,7 +1129,7 @@ final readonly class GridNormalizer
                 // day is a question a server and a reader can agree on.
                 'visibleFrom' => $this->day($entry['visibleFrom'] ?? null),
                 'visibleUntil' => $this->day($entry['visibleUntil'] ?? null),
-                'audience' => $this->values->oneOf($entry['audience'] ?? null, self::AUDIENCES, self::AUDIENCES[0]),
+                'audience' => $this->contentValueNormalizer->oneOf($entry['audience'] ?? null, self::AUDIENCES, self::AUDIENCES[0]),
                 // One panel open at a time, for a list that folds. Off by
                 // default, which is the behaviour already published: a reader
                 // comparing two answers should not have the first close under
@@ -1137,7 +1137,7 @@ final readonly class GridNormalizer
                 'exclusiveOpen' => (bool) ($entry['exclusiveOpen'] ?? false),
                 // What the zone sits on. Every type can have one: a card of
                 // figures, a tinted FAQ, a call to action on accent.
-                'surface' => $this->values->oneOf($entry['surface'] ?? null, self::SURFACES, self::SURFACES[0]),
+                'surface' => $this->contentValueNormalizer->oneOf($entry['surface'] ?? null, self::SURFACES, self::SURFACES[0]),
                 // A colour, a gradient or a picture of the author's own
                 // choosing - read only when `surface` above is `custom`, but
                 // normalised unconditionally like the banner's own background:
@@ -1147,14 +1147,14 @@ final readonly class GridNormalizer
                 // Forces this zone's text/border tokens to one scheme
                 // regardless of the page's own. 'auto' - the default - means
                 // exactly what it means everywhere else here: follow the page.
-                'contrast' => $this->values->oneOf($entry['contrast'] ?? null, self::ZONE_CONTRASTS, self::ZONE_CONTRASTS[0]),
+                'contrast' => $this->contentValueNormalizer->oneOf($entry['contrast'] ?? null, self::ZONE_CONTRASTS, self::ZONE_CONTRASTS[0]),
                 // The colour of this zone's hovers and card markers, over the
                 // page's and the theme's. `inherit` - the default - follows them.
-                'highlight' => $this->values->oneOf($entry['highlight'] ?? null, self::ZONE_HIGHLIGHTS, self::ZONE_HIGHLIGHTS[0]),
-                'highlightColor' => $this->values->color($entry['highlightColor'] ?? null),
+                'highlight' => $this->contentValueNormalizer->oneOf($entry['highlight'] ?? null, self::ZONE_HIGHLIGHTS, self::ZONE_HIGHLIGHTS[0]),
+                'highlightColor' => $this->contentValueNormalizer->color($entry['highlightColor'] ?? null),
                 // The accent of this zone alone - its buttons, links and
                 // markers - over the page's. Null follows the page.
-                'accentColor' => $this->values->color($entry['accentColor'] ?? null),
+                'accentColor' => $this->contentValueNormalizer->color($entry['accentColor'] ?? null),
                 // The site's own accent, over the page's: for what speaks for
                 // the site rather than the page - a contact, a closing call to
                 // action - on a page dressed in one trade's colour. A switch
@@ -1165,7 +1165,7 @@ final readonly class GridNormalizer
                 // How the zone arrives when the reader reaches it. Beside the
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.
-                'reveal' => $this->values->oneOf($entry['reveal'] ?? null, self::ZONE_REVEALS, self::ZONE_REVEALS[0]),
+                'reveal' => $this->contentValueNormalizer->oneOf($entry['reveal'] ?? null, self::ZONE_REVEALS, self::ZONE_REVEALS[0]),
                 // A short zone that stays in place while its neighbour
                 // scrolls. A boolean and not an adjustable offset: the site
                 // header's height is the same everywhere, and letting people
@@ -1188,7 +1188,7 @@ final readonly class GridNormalizer
                 // every zone like the keys above, null unless it is one; and
                 // always switched on, since the zone being there is the switch.
                 'banner' => self::ZONE_BANNER === $type
-                    ? [...$this->banners->normalizeLayout($entry['banner'] ?? null), 'enabled' => true]
+                    ? [...$this->bannerNormalizer->normalizeLayout($entry['banner'] ?? null), 'enabled' => true]
                     : null,
                 // Present on every zone, empty unless it is a stack - same
                 // reasoning as the keys above, so nothing has to guard the read.
@@ -1237,10 +1237,10 @@ final readonly class GridNormalizer
             $entry = is_array($stored[$id] ?? null) ? $stored[$id] : [];
 
             $texts[$id] = [
-                'title' => $this->values->text($entry['title'] ?? null),
-                'description' => $this->values->text($entry['description'] ?? null),
-                'caption' => $this->values->text($entry['caption'] ?? null),
-                'url' => $this->values->url($entry['url'] ?? null),
+                'title' => $this->contentValueNormalizer->text($entry['title'] ?? null),
+                'description' => $this->contentValueNormalizer->text($entry['description'] ?? null),
+                'caption' => $this->contentValueNormalizer->text($entry['caption'] ?? null),
+                'url' => $this->contentValueNormalizer->url($entry['url'] ?? null),
                 // A panel's body, kept raw like a text zone's and sanitised at
                 // render by the same path. Only for tabs: giving every entry
                 // of every item list an empty array would be writing a key
@@ -1289,16 +1289,16 @@ final readonly class GridNormalizer
     private function zoneBackground(array $data): array
     {
         return [
-            'type' => $this->values->oneOf($data['type'] ?? null, self::ZONE_FILL_TYPES, self::ZONE_FILL_NONE),
-            'color' => $this->values->color($data['color'] ?? null),
-            'gradientFrom' => $this->values->color($data['gradientFrom'] ?? null),
-            'gradientTo' => $this->values->color($data['gradientTo'] ?? null),
+            'type' => $this->contentValueNormalizer->oneOf($data['type'] ?? null, self::ZONE_FILL_TYPES, self::ZONE_FILL_NONE),
+            'color' => $this->contentValueNormalizer->color($data['color'] ?? null),
+            'gradientFrom' => $this->contentValueNormalizer->color($data['gradientFrom'] ?? null),
+            'gradientTo' => $this->contentValueNormalizer->color($data['gradientTo'] ?? null),
             'gradientAngle' => max(0, min(360, (int) ($data['gradientAngle'] ?? 180))),
-            'mediaId' => $this->values->id($data['mediaId'] ?? null),
+            'mediaId' => $this->contentValueNormalizer->id($data['mediaId'] ?? null),
             // A film from the library, muted and looped behind the zone's
             // content - independent of `mediaId` above, which stays the
             // still picture shown while it loads or once autoplay is refused.
-            'videoId' => $this->values->id($data['videoId'] ?? null),
+            'videoId' => $this->contentValueNormalizer->id($data['videoId'] ?? null),
             'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),
         ];
     }
@@ -1325,7 +1325,7 @@ final readonly class GridNormalizer
         $ids = [];
 
         foreach (is_array($raw) ? $raw : [] as $value) {
-            $id = $this->values->id($value);
+            $id = $this->contentValueNormalizer->id($value);
             if (null === $id) {
                 continue;
             }
@@ -1378,7 +1378,7 @@ final readonly class GridNormalizer
 
             $items[] = [
                 'id' => $id,
-                'mediaId' => $this->values->id($entry['mediaId'] ?? null),
+                'mediaId' => $this->contentValueNormalizer->id($entry['mediaId'] ?? null),
                 // The one entry of an offer list drawn louder than the others.
                 // Shared like the picture: which plan is recommended is the
                 // same recommendation in every language.
@@ -1609,7 +1609,7 @@ final readonly class GridNormalizer
      */
     private function imageUrl(mixed $value): ?string
     {
-        $url = $this->values->url($value);
+        $url = $this->contentValueNormalizer->url($value);
 
         if (null === $url) {
             return null;

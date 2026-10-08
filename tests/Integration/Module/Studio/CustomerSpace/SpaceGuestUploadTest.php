@@ -53,15 +53,15 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
-    private SpaceContentAttachmentRepository $attachments;
+    private SpaceContentAttachmentRepository $attachmentRepository;
 
-    private SpaceAccessLinkRepository $links;
+    private SpaceAccessLinkRepository $accessLinkRepository;
 
     private SpaceAccessLinkManagerInterface $linkManager;
 
-    private DocumentRepository $documents;
+    private DocumentRepository $documentRepository;
 
     private string $workDirectory;
 
@@ -82,11 +82,11 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
-        $this->attachments = $container->get(SpaceContentAttachmentRepository::class);
-        $this->links = $container->get(SpaceAccessLinkRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
+        $this->attachmentRepository = $container->get(SpaceContentAttachmentRepository::class);
+        $this->accessLinkRepository = $container->get(SpaceAccessLinkRepository::class);
         $this->linkManager = $container->get(SpaceAccessLinkManagerInterface::class);
-        $this->documents = $container->get(DocumentRepository::class);
+        $this->documentRepository = $container->get(DocumentRepository::class);
 
         // The upload limiter allows twenty an hour per address and its
         // counters outlive the process, so a class that uploads once per test
@@ -137,7 +137,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $this->upload($url, $item['id'], $this->aFile('photo.jpg'));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertSame(0, $this->attachments->count([]));
+        self::assertSame(0, $this->attachmentRepository->count([]));
     }
 
     public function testALinkWithTheRightSendsAFileAndItIsSignedAsTheClient(): void
@@ -180,7 +180,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
             'studio.public.space.errors.upload_type_refused',
             $this->payload()['errors']['file'],
         );
-        self::assertSame(0, $this->attachments->count([]));
+        self::assertSame(0, $this->attachmentRepository->count([]));
     }
 
     /**
@@ -222,7 +222,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $this->upload($url, $item['id'], $this->aFile('photo.jpg'));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
-        self::assertSame(0, $this->attachments->count([]));
+        self::assertSame(0, $this->attachmentRepository->count([]));
     }
 
     /**
@@ -252,7 +252,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $this->asGuest()->request('GET', $fileUrl);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $link = $this->links->findOneBy(['space' => $space]);
+        $link = $this->accessLinkRepository->findOneBy(['space' => $space]);
         self::assertInstanceOf(SpaceAccessLink::class, $link);
         $this->linkManager->revoke($link);
 
@@ -274,7 +274,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
         $this->upload($url, $item['id'], $this->aFile('photo.jpg'));
 
-        $document = $this->documents->findOneBy([], ['id' => 'DESC']);
+        $document = $this->documentRepository->findOneBy([], ['id' => 'DESC']);
         self::assertInstanceOf(Document::class, $document);
         self::assertSame(DocumentStatusEnum::Draft, $document->getStatus());
 
@@ -454,7 +454,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     {
         // Relecture (third step): a new space only shows the client the
         // Relecture and Publié columns, and this item must be on their page.
-        $column = $this->columns->findForSpace($space)[2];
+        $column = $this->columnRepository->findForSpace($space)[2];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Un contenu à illustrer',

@@ -34,9 +34,9 @@ use Throwable;
 final readonly class PlanningSuiteSearchProvider implements SuiteSearchProviderInterface
 {
     public function __construct(
-        private PlanningRepository $plannings,
-        private PlanningEventRepository $events,
-        private PlanningReminderRepository $reminders,
+        private PlanningRepository $planningRepository,
+        private PlanningEventRepository $eventRepository,
+        private PlanningReminderRepository $reminderRepository,
         private Security $security,
         private UrlGeneratorInterface $urlGenerator,
         private ModuleEventVisibility $moduleEvents,
@@ -59,7 +59,7 @@ final readonly class PlanningSuiteSearchProvider implements SuiteSearchProviderI
 
             $ids = array_map(
                 static fn (PlanningInterface $planning): int => (int) $planning->getId(),
-                $this->plannings->findVisibleTo($user),
+                $this->planningRepository->findVisibleTo($user),
             );
 
             if ([] === $ids) {
@@ -83,7 +83,7 @@ final readonly class PlanningSuiteSearchProvider implements SuiteSearchProviderI
     private function serializeEvents(array $ids, string $query): array
     {
         $rows = [];
-        foreach ($this->moduleEvents->filter($this->events->searchVisible($ids, $query)) as $event) {
+        foreach ($this->moduleEvents->filter($this->eventRepository->searchVisible($ids, $query)) as $event) {
             $rows[] = [
                 'id' => $event->getId(),
                 'title' => $event->getTitle(),
@@ -106,7 +106,7 @@ final readonly class PlanningSuiteSearchProvider implements SuiteSearchProviderI
     private function serializeReminders(array $ids, string $query): array
     {
         $rows = [];
-        foreach ($this->reminders->searchVisible($ids, $query) as $reminder) {
+        foreach ($this->reminderRepository->searchVisible($ids, $query) as $reminder) {
             $rows[] = [
                 'id' => $reminder->getId(),
                 'title' => $reminder->getTitle(),

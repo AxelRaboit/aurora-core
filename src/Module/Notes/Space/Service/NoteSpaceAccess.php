@@ -57,9 +57,9 @@ final readonly class NoteSpaceAccess
 
     public function __construct(
         private AuthorizationCheckerInterface $authorization,
-        private NoteSpaceRepository $spaces,
-        private MarkdownNoteRepository $notes,
-        private NoteFolderRepository $folders,
+        private NoteSpaceRepository $spaceRepository,
+        private MarkdownNoteRepository $noteRepository,
+        private NoteFolderRepository $folderRepository,
         private MarkdownNoteMemberRepository $memberRepository,
         private EntityManagerInterface $entityManager,
     ) {}
@@ -68,7 +68,7 @@ final readonly class NoteSpaceAccess
     {
         $needsMembership = !$space->isPersonal() && !$this->isOwner($user, $space) && NoteSpaceAccessEnum::Private !== $space->getAccess();
 
-        return $this->roleWith($user, $space, $needsMembership ? $this->spaces->findMembership($space, $user) : null);
+        return $this->roleWith($user, $space, $needsMembership ? $this->spaceRepository->findMembership($space, $user) : null);
     }
 
     /**
@@ -84,7 +84,7 @@ final readonly class NoteSpaceAccess
     public function rolesFor(CoreUserInterface $user, array $spaces): array
     {
         $memberships = [];
-        foreach ($this->spaces->findMembershipsOf($user, $spaces) as $membership) {
+        foreach ($this->spaceRepository->findMembershipsOf($user, $spaces) as $membership) {
             $memberships[(int) $membership->getSpace()->getId()] = $membership;
         }
 
@@ -221,7 +221,7 @@ final readonly class NoteSpaceAccess
     /** The note, not trashed, if the person can read it. */
     public function readableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        $note = $this->notes->findOneLiving($id);
+        $note = $this->noteRepository->findOneLiving($id);
 
         return $note instanceof MarkdownNoteInterface && $this->canReadNote($user, $note) ? $note : null;
     }
@@ -232,7 +232,7 @@ final readonly class NoteSpaceAccess
      */
     public function writableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        $note = $this->notes->find($id);
+        $note = $this->noteRepository->find($id);
 
         return $note instanceof MarkdownNoteInterface && $this->canWriteNote($user, $note) ? $note : null;
     }
@@ -243,42 +243,42 @@ final readonly class NoteSpaceAccess
      */
     public function administrableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        $note = $this->notes->find($id);
+        $note = $this->noteRepository->find($id);
 
         return $note instanceof MarkdownNoteInterface && $this->canAdministerNote($user, $note) ? $note : null;
     }
 
     public function readableFolder(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        $folder = $this->folders->find($id);
+        $folder = $this->folderRepository->find($id);
 
         return $folder instanceof NoteFolderInterface && !$folder->isTrashed() && $this->canRead($user, $folder->getSpace()) ? $folder : null;
     }
 
     public function writableFolder(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        $folder = $this->folders->find($id);
+        $folder = $this->folderRepository->find($id);
 
         return $folder instanceof NoteFolderInterface && $this->canWriteFolder($user, $folder) ? $folder : null;
     }
 
     public function readableSpace(CoreUserInterface $user, int $id): ?NoteSpaceInterface
     {
-        $space = $this->spaces->find($id);
+        $space = $this->spaceRepository->find($id);
 
         return $space instanceof NoteSpaceInterface && $this->canRead($user, $space) ? $space : null;
     }
 
     public function writableSpace(CoreUserInterface $user, int $id): ?NoteSpaceInterface
     {
-        $space = $this->spaces->find($id);
+        $space = $this->spaceRepository->find($id);
 
         return $space instanceof NoteSpaceInterface && $this->canWrite($user, $space) ? $space : null;
     }
 
     public function managedSpace(CoreUserInterface $user, int $id): ?NoteSpaceInterface
     {
-        $space = $this->spaces->find($id);
+        $space = $this->spaceRepository->find($id);
 
         return $space instanceof NoteSpaceInterface && $this->canManage($user, $space) ? $space : null;
     }
@@ -292,7 +292,7 @@ final readonly class NoteSpaceAccess
      */
     public function personalSpace(CoreUserInterface $user): NoteSpaceInterface
     {
-        $space = $this->spaces->findPersonalFor($user);
+        $space = $this->spaceRepository->findPersonalFor($user);
 
         if ($space instanceof NoteSpaceInterface) {
             return $space;

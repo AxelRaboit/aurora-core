@@ -125,8 +125,8 @@ final readonly class FreeSlideNormalizer
     private const int MAX_HTML = 20000;
 
     public function __construct(
-        private FreeTextSanitizer $text,
-        private VideoEmbedResolver $embeds,
+        private FreeTextSanitizer $freeTextSanitizer,
+        private VideoEmbedResolver $videoEmbedResolver,
     ) {}
 
     /**
@@ -379,7 +379,7 @@ final readonly class FreeSlideNormalizer
     private function textElement(array $element, array $raw): array
     {
         $html = $raw['html'] ?? '';
-        $element['html'] = $this->text->safe(is_string($html) ? mb_substr($html, 0, self::MAX_HTML) : '');
+        $element['html'] = $this->freeTextSanitizer->safe(is_string($html) ? mb_substr($html, 0, self::MAX_HTML) : '');
 
         // The deck's two families by role, a family from the catalogue by its
         // key, or a font somebody uploaded, by its document. Which keys exist
@@ -540,7 +540,7 @@ final readonly class FreeSlideNormalizer
         // an iframe, and an address that belongs to no known provider would
         // be an author-supplied frame on a public page.
         $url = $raw['url'] ?? null;
-        if (null !== $this->embeds->resolve($url) && is_string($url)) {
+        if (null !== $this->videoEmbedResolver->resolve($url) && is_string($url)) {
             $element['url'] = mb_substr(mb_trim($url), 0, 500);
         }
 

@@ -34,7 +34,7 @@ final class ReadingOrderTest extends IntegrationTestCase
 {
     private EntityManagerInterface $entityManager;
 
-    private PostRepository $posts;
+    private PostRepository $postRepository;
 
     private PostType $type;
 
@@ -48,7 +48,7 @@ final class ReadingOrderTest extends IntegrationTestCase
         self::createClient();
         $container = self::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->posts = $container->get(PostRepository::class);
+        $this->postRepository = $container->get(PostRepository::class);
 
         $this->type = new PostType();
         $this->type->setSlug('ordered-type-'.bin2hex(random_bytes(3)))
@@ -130,7 +130,7 @@ final class ReadingOrderTest extends IntegrationTestCase
     /** @return list<string> */
     private function titles(): array
     {
-        $result = $this->posts->findPublishedByPostType((int) $this->type->getId(), 1, 20, 'fr');
+        $result = $this->postRepository->findPublishedByPostType((int) $this->type->getId(), 1, 20, 'fr');
 
         return array_map(
             static fn (Post $post): string => (string) $post->getTranslation('fr')?->getTitle(),

@@ -31,7 +31,7 @@ final readonly class SettingDocumentUsageProvider implements BatchDocumentUsageP
     ];
 
     public function __construct(
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
@@ -87,7 +87,7 @@ final readonly class SettingDocumentUsageProvider implements BatchDocumentUsageP
 
     private function documentIdOf(ApplicationParameterEnum $setting): ?int
     {
-        $id = (int) $this->settings->get($setting->value, '');
+        $id = (int) $this->settingRepository->get($setting->value, '');
 
         return $id > 0 ? $id : null;
     }

@@ -39,7 +39,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DeliverableSlidesController extends AbstractDeliverableSlidesController
 {
     public function __construct(
-        private readonly DeliverableRepository $deliverables,
+        private readonly DeliverableRepository $deliverableRepository,
         private readonly DeliverableAccess $access,
         SlidesManager $slides,
         SlidesSerializer $slidesSerializer,
@@ -112,7 +112,7 @@ final class DeliverableSlidesController extends AbstractDeliverableSlidesControl
     /** A Studio presentation the reader may read, or 404. */
     private function readable(int $id): DeliverableInterface
     {
-        $deliverable = $this->deliverables->findStandalone($id);
+        $deliverable = $this->deliverableRepository->findStandalone($id);
         if (!$deliverable instanceof DeliverableInterface || !$deliverable->isSlides() || !$this->access->canRead($deliverable)) {
             throw new NotFoundHttpException();
         }

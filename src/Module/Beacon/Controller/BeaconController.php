@@ -37,7 +37,7 @@ final readonly class BeaconController
     private const int MAX_PER_IP_PER_HOUR = 30;
 
     public function __construct(
-        private DeployedInstanceRepository $instances,
+        private DeployedInstanceRepository $deployedInstanceRepository,
         private KnownDomains $knownDomains,
         private CacheItemPoolInterface $cache,
         private LoggerInterface $logger,
@@ -79,7 +79,7 @@ final readonly class BeaconController
 
         $known = null !== $domain && $this->knownDomains->contains($domain);
 
-        $instance = $this->instances->findOneByInstanceId($instanceId);
+        $instance = $this->deployedInstanceRepository->findOneByInstanceId($instanceId);
         if ($instance instanceof DeployedInstance) {
             $instance->touch($domain, $hostname, $appVersion, $phpVersion, $signatureValid, $known, $ip);
         } else {
@@ -96,7 +96,7 @@ final readonly class BeaconController
             }
         }
 
-        $this->instances->save($instance);
+        $this->deployedInstanceRepository->save($instance);
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }

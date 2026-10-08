@@ -41,18 +41,18 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final readonly class SpaceActivityDigestHandler
 {
     public function __construct(
-        private NotificationRepository $notifications,
-        private UserRepository $users,
-        private CustomerSpaceRepository $spaces,
+        private NotificationRepository $notificationRepository,
+        private UserRepository $userRepository,
+        private CustomerSpaceRepository $spaceRepository,
         private EntityManagerInterface $entityManager,
-        private MailService $mail,
+        private MailService $mailService,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
     public function __invoke(SpaceActivityDigestMessage $message): void
     {
-        $recipient = $this->users->find($message->recipientId);
-        $space = $this->spaces->find($message->spaceId);
+        $recipient = $this->userRepository->find($message->recipientId);
+        $space = $this->spaceRepository->find($message->spaceId);
 
         // An account deleted, or a space deleted or put in the trash, between
         // the dispatch and here. Neither is an error: there is simply nobody
@@ -84,7 +84,7 @@ final readonly class SpaceActivityDigestHandler
 
         // Under the path and not equal to it: a notification on a record
         // points at `?item=…`, and it belongs to the same space to write to.
-        $unread = $this->notifications->findUnreadUnderPath($recipient, $path);
+        $unread = $this->notificationRepository->findUnreadUnderPath($recipient, $path);
 
         if ([] === $unread) {
             // Read in the meantime. The delay did its job.
@@ -98,7 +98,7 @@ final readonly class SpaceActivityDigestHandler
             }
         }
 
-        $this->mail->send(
+        $this->mailService->send(
             to: $recipient->getEmail(),
             subjectKey: 'studio.email.space_activity.subject',
             template: '@Studio/email/space_activity.html.twig',

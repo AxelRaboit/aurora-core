@@ -38,14 +38,14 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final readonly class SpaceChatViewBuilder
 {
     public function __construct(
-        private SpaceChatMessageRepository $messages,
-        private SpaceChatChannelRepository $channels,
+        private SpaceChatMessageRepository $spaceChatMessageRepository,
+        private SpaceChatChannelRepository $channelRepository,
         private SpaceChatChannelManagerInterface $channelManager,
         private SpaceChatMessageSerializerInterface $serializer,
         private SpaceChatChannelSerializerInterface $channelSerializer,
         private SpaceChatHub $hub,
         private UrlGeneratorInterface $urlGenerator,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
     ) {}
 
     /**
@@ -67,7 +67,7 @@ final readonly class SpaceChatViewBuilder
     {
         $this->channelManager->ensureMain($space);
 
-        return $this->channels->findForUser($space, $user);
+        return $this->channelRepository->findForUser($space, $user);
     }
 
     /**
@@ -79,7 +79,7 @@ final readonly class SpaceChatViewBuilder
     {
         $this->channelManager->ensureMain($link->getSpace());
 
-        return $this->channels->findForLink($link->getSpace(), $link);
+        return $this->channelRepository->findForLink($link->getSpace(), $link);
     }
 
     /**
@@ -102,7 +102,7 @@ final readonly class SpaceChatViewBuilder
             // Two holes in the same address: the room, and the message to go
             // back from. The route requires both, and a generation missing one
             // throws an exception when the page renders.
-            'chatOlderPath' => $this->pathTemplates->generate('workspace_space_chat_older', [
+            'chatOlderPath' => $this->pathTemplateGenerator->generate('workspace_space_chat_older', [
                 'id' => $space->getId(),
                 'channelId' => '__channel__',
                 'beforeId' => '__before__',
@@ -110,7 +110,7 @@ final readonly class SpaceChatViewBuilder
             'chatHidePath' => $this->channelTemplate('workspace_space_chat_hide', $space),
             'chatPostPath' => $this->channelTemplate('workspace_space_chat_post', $space),
             'chatReloadPath' => $this->channelTemplate('workspace_space_chat_messages', $space),
-            'chatDeletePath' => $this->pathTemplates->generate('workspace_space_chat_delete', [
+            'chatDeletePath' => $this->pathTemplateGenerator->generate('workspace_space_chat_delete', [
                 'id' => $space->getId(),
                 'channelId' => '__channel__',
                 'messageId' => '__id__',
@@ -123,7 +123,7 @@ final readonly class SpaceChatViewBuilder
             // Two holes again: the room, and the row being removed. It is the
             // member that is named and not the account, because the same person
             // can be in several channels of the same space.
-            'chatChannelUninvitePath' => $this->pathTemplates->generate('workspace_space_chat_channel_uninvite', [
+            'chatChannelUninvitePath' => $this->pathTemplateGenerator->generate('workspace_space_chat_channel_uninvite', [
                 'id' => $space->getId(),
                 'channelId' => '__channel__',
                 'memberId' => '__id__',
@@ -175,18 +175,18 @@ final readonly class SpaceChatViewBuilder
             // The right to write here is `canChat`, separate from the one to
             // comment on a card: they are two conversations.
             'chatPostPath' => $link->canChat()
-                ? $this->pathTemplates->generate('public_space_chat_post', [
+                ? $this->pathTemplateGenerator->generate('public_space_chat_post', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'channelId' => '__channel__',
                 ])
                 : null,
-            'chatReloadPath' => $this->pathTemplates->generate('public_space_chat_messages', [
+            'chatReloadPath' => $this->pathTemplateGenerator->generate('public_space_chat_messages', [
                 'selector' => $link->getSelector(),
                 'token' => $token,
                 'channelId' => '__channel__',
             ]),
-            'chatOlderPath' => $this->pathTemplates->generate('public_space_chat_older', [
+            'chatOlderPath' => $this->pathTemplateGenerator->generate('public_space_chat_older', [
                 'selector' => $link->getSelector(),
                 'token' => $token,
                 'channelId' => '__channel__',
@@ -207,7 +207,7 @@ final readonly class SpaceChatViewBuilder
      */
     private function channels(array $rooms, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): array
     {
-        $this->channels->warmMembers($rooms);
+        $this->channelRepository->warmMembers($rooms);
 
         return array_map(
             fn (SpaceChatChannelInterface $room): array => $this->channelSerializer->serializeFor($room, $user, $link),
@@ -220,7 +220,7 @@ final readonly class SpaceChatViewBuilder
     {
         return array_map(
             $this->serializer->serialize(...),
-            $this->messages->findRecentForChannel($channel),
+            $this->spaceChatMessageRepository->findRecentForChannel($channel),
         );
     }
 
@@ -235,7 +235,7 @@ final readonly class SpaceChatViewBuilder
      */
     public function olderPayload(SpaceChatChannelInterface $channel, int $beforeId): array
     {
-        $page = $this->messages->findBeforeInChannel($channel, $beforeId, SpaceChatMessageRepository::PAGE + 1);
+        $page = $this->spaceChatMessageRepository->findBeforeInChannel($channel, $beforeId, SpaceChatMessageRepository::PAGE + 1);
         $hasMore = count($page) > SpaceChatMessageRepository::PAGE;
 
         if ($hasMore) {
@@ -320,7 +320,7 @@ final readonly class SpaceChatViewBuilder
      */
     private function channelTemplate(string $route, CustomerSpaceInterface $space): string
     {
-        return $this->pathTemplates->generate($route, [
+        return $this->pathTemplateGenerator->generate($route, [
             'id' => $space->getId(),
             'channelId' => '__channel__',
         ]);

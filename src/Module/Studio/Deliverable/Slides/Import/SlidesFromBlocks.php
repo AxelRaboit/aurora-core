@@ -50,8 +50,8 @@ use const PHP_URL_PATH;
 final readonly class SlidesFromBlocks
 {
     public function __construct(
-        private SlidesManager $slides,
-        private DocumentRepository $documents,
+        private SlidesManager $slidesManager,
+        private DocumentRepository $documentRepository,
         private BlockText $text,
     ) {}
 
@@ -78,8 +78,8 @@ final readonly class SlidesFromBlocks
     public function apply(DeliverableInterface $owner, array $plan): void
     {
         foreach ($plan as $slide) {
-            $written = $this->slides->addSlide($owner, $slide['layout']);
-            $this->slides->writeContent($written, $slide['content']);
+            $written = $this->slidesManager->addSlide($owner, $slide['layout']);
+            $this->slidesManager->writeContent($written, $slide['content']);
         }
     }
 
@@ -343,6 +343,6 @@ final readonly class SlidesFromBlocks
 
         $filePath = mb_ltrim(mb_substr($path, 9), '/');
 
-        return '' === $filePath ? null : $this->documents->findOneBy(['filePath' => $filePath]);
+        return '' === $filePath ? null : $this->documentRepository->findOneBy(['filePath' => $filePath]);
     }
 }

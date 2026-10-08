@@ -106,14 +106,14 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     private const array HALF = ['base' => 48, 'md' => null, 'lg' => 24];
 
     public function __construct(
-        private readonly CustomerSpaceRepository $spaces,
-        private readonly DeliverableRepository $deliverables,
+        private readonly CustomerSpaceRepository $spaceRepository,
+        private readonly DeliverableRepository $deliverableRepository,
         private readonly GridNormalizer $gridNormalizer,
-        private readonly UserRepository $users,
-        private readonly DeliverableCategoryRepository $categories,
-        private readonly DocumentRepository $documents,
-        private readonly DeliverableLinkRepository $links,
-        private readonly SlidesManager $slides,
+        private readonly UserRepository $userRepository,
+        private readonly DeliverableCategoryRepository $deliverableCategoryRepository,
+        private readonly DocumentRepository $documentRepository,
+        private readonly DeliverableLinkRepository $deliverableLinkRepository,
+        private readonly SlidesManager $slidesManager,
     ) {}
 
     public static function getGroups(): array
@@ -149,7 +149,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         // Two Studio deliverables, outside any space: a proposal the demo account
         // keeps to itself, and an audit template the team shares and reuses for
         // each prospect.
-        $author = $this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
+        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $proposalLook, $proposalZones, $proposalContent] = $this->proposal();
         $this->deliverable(
             $manager,
@@ -183,7 +183,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
         // A shared one written by a colleague, and a second personal draft: each
         // list has something to read, and the shared list says who wrote what.
-        $colleague = $this->users->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Suite->value]);
+        $colleague = $this->userRepository->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Suite->value]);
         [, , , $strategyLook, $strategyZones, $strategyContent] = $this->strategy();
         $this->deliverable(
             $manager,
@@ -272,8 +272,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
      */
     private function readingLinks(ObjectManager $manager): void
     {
-        $model = $this->deliverables->findOneBy(['space' => null, 'title' => 'Modèle d\'audit de présence en ligne']);
-        if (!$model instanceof Deliverable || [] !== $this->links->findForDeliverable($model)) {
+        $model = $this->deliverableRepository->findOneBy(['space' => null, 'title' => 'Modèle d\'audit de présence en ligne']);
+        if (!$model instanceof Deliverable || [] !== $this->deliverableLinkRepository->findForDeliverable($model)) {
             return;
         }
 
@@ -301,7 +301,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
     private function space(string $name): CustomerSpaceInterface
     {
-        $space = $this->spaces->findOneBy(['name' => $name]);
+        $space = $this->spaceRepository->findOneBy(['name' => $name]);
 
         if (!$space instanceof CustomerSpaceInterface) {
             throw new RuntimeException(sprintf('The demo space "%s" is missing: load the Studio demo fixtures first.', $name));
@@ -334,7 +334,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         bool $template = false,
         ?CustomerInterface $customer = null,
     ): ?Deliverable {
-        $existing = $this->deliverables->findOneBy(['space' => $space, 'title' => $title]);
+        $existing = $this->deliverableRepository->findOneBy(['space' => $space, 'title' => $title]);
         if (null !== $existing) {
             $this->catchUp($existing, $category, $template, $customer);
 
@@ -370,7 +370,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     private function kickOffSlides(ObjectManager $manager, ?CoreUserInterface $owner, DeliverableCategoryInterface $category): void
     {
         $title = 'Présentation type, réunion de lancement';
-        $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $title]);
+        $existing = $this->deliverableRepository->findOneBy(['space' => null, 'title' => $title]);
         if (null !== $existing) {
             $this->catchUp($existing, $category, template: true);
 
@@ -388,7 +388,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setAppearance(DeliverableAppearance::normalize([]));
         $manager->persist($deliverable);
 
-        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => 'Réunion de lancement']);
+        $this->slidesManager->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => 'Réunion de lancement']);
 
         $slides = [
             [SlideLayoutEnum::Title, ['title' => 'Réunion de lancement', 'subtitle' => '[Nom du client], [date]'], 'Remercier pour le temps pris. Annoncer quarante minutes, questions comprises.'],
@@ -403,8 +403,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         ];
 
         foreach ($slides as [$layout, $content, $notes]) {
-            $slide = $this->slides->addSlide($deliverable, $layout);
-            $this->slides->writeContent($slide, $content);
+            $slide = $this->slidesManager->addSlide($deliverable, $layout);
+            $this->slidesManager->writeContent($slide, $content);
             $slide->setSpeakerNotes($notes);
         }
     }
@@ -611,20 +611,20 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     private function spacePresentation(ObjectManager $manager, CustomerSpaceInterface $space): void
     {
         $title = 'Point d\'étape, octobre';
-        if (null !== $this->deliverables->findOneBy(['space' => $space, 'title' => $title])) {
+        if (null !== $this->deliverableRepository->findOneBy(['space' => $space, 'title' => $title])) {
             return;
         }
 
         $deliverable = new Deliverable($space, $title, 'fr', DeliverableFormatEnum::Slides);
         $deliverable
             ->setSummary('Le point du mois en cinq diapos : ce qui a marché, ce qui change, ce qu\'on attend de vous.')
-            ->setOwner($this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]))
+            ->setOwner($this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Suite->value]))
             ->setVisibleToClient(true)
             ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space->getCustomer()->getLegalName()]))
             ->setAppearance(DeliverableAppearance::normalize([]));
         $manager->persist($deliverable);
 
-        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => $space->getCustomer()->getLegalName()]);
+        $this->slidesManager->writeAppearance($deliverable, DeckThemeEnum::Paper, ['slideNumbers' => true, 'footerText' => $space->getCustomer()->getLegalName()]);
 
         $this->slide($deliverable, SlideLayoutEnum::Title, ['title' => 'Point d\'étape', 'subtitle' => 'Octobre, réseaux sociaux'], "Rappeler l'objectif du trimestre avant les chiffres.");
         $this->slide($deliverable, SlideLayoutEnum::Bullets, ['title' => 'Ce qui a marché', 'bullets' => ['Les coulisses de l\'atelier, trois fois plus partagées', "Deux demandes de devis venues d'Instagram", 'Un rythme tenu : douze publications sur douze']], "Insister sur les devis : c'est ce qui compte pour eux.");
@@ -651,7 +651,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         bool $template = false,
         ?CustomerInterface $customer = null,
     ): ?Deliverable {
-        $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $title]);
+        $existing = $this->deliverableRepository->findOneBy(['space' => null, 'title' => $title]);
         if (null !== $existing) {
             $this->catchUp($existing, $category, $template, $customer);
 
@@ -670,7 +670,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setAppearance(DeliverableAppearance::normalize([]));
         $manager->persist($deliverable);
 
-        $this->slides->writeAppearance($deliverable, DeckThemeEnum::Slate, []);
+        $this->slidesManager->writeAppearance($deliverable, DeckThemeEnum::Slate, []);
 
         return $deliverable;
     }
@@ -678,8 +678,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     /** @param array<string, mixed> $content */
     private function slide(Deliverable $deliverable, SlideLayoutEnum $layout, array $content, ?string $notes): void
     {
-        $slide = $this->slides->addSlide($deliverable, $layout);
-        $this->slides->writeContent($slide, $content);
+        $slide = $this->slidesManager->addSlide($deliverable, $layout);
+        $this->slidesManager->writeContent($slide, $content);
         $slide->setSpeakerNotes($notes);
     }
 
@@ -729,7 +729,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         /** @var array{title: string, summary: ?string, appearance: array<string, mixed>, layout: array<string, mixed>, content: array<string, mixed>, locale?: string} $model */
         $model = $this->resolveImages(json_decode((string) file_get_contents(__DIR__.'/data/'.$file), true, flags: JSON_THROW_ON_ERROR));
 
-        $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $model['title']]);
+        $existing = $this->deliverableRepository->findOneBy(['space' => null, 'title' => $model['title']]);
         if (null !== $existing) {
             $this->catchUp($existing, $category, template: true);
 
@@ -762,7 +762,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     private function resolveImages(mixed $value): mixed
     {
         if (is_string($value) && str_starts_with($value, '@doc:')) {
-            $document = $this->documents->findOneBy(['originalName' => mb_substr($value, 5)]);
+            $document = $this->documentRepository->findOneBy(['originalName' => mb_substr($value, 5)]);
 
             return $document instanceof DocumentInterface ? $document->getId() : null;
         }
@@ -773,7 +773,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
     /** A deliverable category, unless it already exists under this name. */
     private function category(ObjectManager $manager, string $name, string $color, int $position): DeliverableCategoryInterface
     {
-        $category = $this->categories->findOneBy(['name' => $name]);
+        $category = $this->deliverableCategoryRepository->findOneBy(['name' => $name]);
         if ($category instanceof DeliverableCategoryInterface) {
             return $category;
         }

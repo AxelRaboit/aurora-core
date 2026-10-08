@@ -37,7 +37,7 @@ final class SettingsController extends AbstractController
     private const string PREFIX_PATTERN = '/^[A-Z0-9]{1,10}$/';
 
     public function __construct(
-        private readonly SettingsService $settingsManager,
+        private readonly SettingsService $settingsService,
         private readonly SettingsViewBuilder $viewBuilder,
         private readonly SettingDefinitionRegistry $definitionRegistry,
         private readonly SettingsTabAccess $tabAccess,
@@ -154,7 +154,7 @@ final class SettingsController extends AbstractController
         }
 
         try {
-            $this->settingsManager->set($key, $value);
+            $this->settingsService->set($key, $value);
         } catch (CascadeViolationException $cascadeViolationException) {
             return $this->jsonFailure(
                 SettingErrorCodeEnum::CascadeViolation->value,

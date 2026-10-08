@@ -70,19 +70,19 @@ final class ContractPdfTest extends IntegrationTestCase
 
     private ?CoreUserInterface $admin = null;
 
-    private ContractTemplateManager $templates;
+    private ContractTemplateManager $contractTemplateManager;
 
-    private ContractAccessLinkRepository $links;
+    private ContractAccessLinkRepository $accessLinkRepository;
 
-    private ContractSignatureChallengeRepository $challenges;
+    private ContractSignatureChallengeRepository $challengeRepository;
 
-    private ContractSignatureRepository $signatures;
+    private ContractSignatureRepository $contractSignatureRepository;
 
-    private ContractRepository $contracts;
+    private ContractRepository $contractRepository;
 
-    private ContractPdfGenerator $pdf;
+    private ContractPdfGenerator $pdfGenerator;
 
-    private StorageManager $storage;
+    private StorageManager $storageManager;
 
     private EntityManagerInterface $entityManager;
 
@@ -109,14 +109,14 @@ final class ContractPdfTest extends IntegrationTestCase
         $container->get('cache.rate_limiter')->clear();
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->links = $container->get(ContractAccessLinkRepository::class);
-        $this->challenges = $container->get(ContractSignatureChallengeRepository::class);
-        $this->signatures = $container->get(ContractSignatureRepository::class);
-        $this->contracts = $container->get(ContractRepository::class);
-        $this->pdf = $container->get(ContractPdfGenerator::class);
-        $this->storage = $container->get(StorageManager::class);
+        $this->accessLinkRepository = $container->get(ContractAccessLinkRepository::class);
+        $this->challengeRepository = $container->get(ContractSignatureChallengeRepository::class);
+        $this->contractSignatureRepository = $container->get(ContractSignatureRepository::class);
+        $this->contractRepository = $container->get(ContractRepository::class);
+        $this->pdfGenerator = $container->get(ContractPdfGenerator::class);
+        $this->storageManager = $container->get(StorageManager::class);
 
-        $this->templates = new ContractTemplateManager(
+        $this->contractTemplateManager = new ContractTemplateManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
@@ -144,7 +144,7 @@ final class ContractPdfTest extends IntegrationTestCase
         self::assertNotNull($contract->getPdfGeneratedAt());
         self::assertMatchesRegularExpression('#^contracts/\d{4}/[A-Z]+-\d{4}-\d{4}\.pdf$#', (string) $contract->getPdfPath());
 
-        self::assertTrue($this->pdf->exists($contract), 'The countersignature has to leave a file behind.');
+        self::assertTrue($this->pdfGenerator->exists($contract), 'The countersignature has to leave a file behind.');
 
         // The file's own hash, distinct from the document's: two artefacts, two
         // hashes, so a PDF swapped in storage is detectable even though the
@@ -169,7 +169,7 @@ final class ContractPdfTest extends IntegrationTestCase
 
         $this->expectException(ContractPdfAlreadyGeneratedException::class);
 
-        $this->pdf->generate($contract, $this->signatures->findForContract($contract));
+        $this->pdfGenerator->generate($contract, $this->contractSignatureRepository->findForContract($contract));
     }
 
     public function testTheEntityRefusesASecondFileToo(): void
@@ -193,7 +193,7 @@ final class ContractPdfTest extends IntegrationTestCase
         // signatures reached the template and the file has two pages' worth of
         // content rather than an empty shell.
         self::assertGreaterThan(3000, mb_strlen($bytes), 'A contract with two signatures and a seal block is not a 3 KB file.');
-        self::assertCount(2, $this->signatures->findForContract($contract));
+        self::assertCount(2, $this->contractSignatureRepository->findForContract($contract));
     }
 
     /**
@@ -218,7 +218,7 @@ final class ContractPdfTest extends IntegrationTestCase
     public function testBeforeAnySignatureTheCityAndDateAreADottedBlank(): void
     {
         $url = $this->sentContractUrl();
-        $contract = $this->links->findAll()[0]->getContract();
+        $contract = $this->accessLinkRepository->findAll()[0]->getContract();
 
         $html = static::getContainer()->get(ContractSignedDocument::class)->html($contract);
         self::assertStringContainsString(sprintf('Fait à %s, le %s.', ContractSignedDocument::BLANK, ContractSignedDocument::BLANK), $html);
@@ -251,7 +251,7 @@ final class ContractPdfTest extends IntegrationTestCase
     public function testTheSignatureKeepsTheAddressTheCodeWentTo(): void
     {
         $contract = $this->concludedContract();
-        $customer = $this->signatures->findForContract($contract)[0];
+        $customer = $this->contractSignatureRepository->findForContract($contract)[0];
 
         self::assertSame('contact@durand.test', $customer->getChallengeSentTo());
     }
@@ -266,24 +266,24 @@ final class ContractPdfTest extends IntegrationTestCase
     public function testAFailedPdfLeavesTheContractWaitingForTheCountersignature(): void
     {
         $contractId = $this->signedByCustomer();
-        $contract = $this->contracts->find($contractId);
+        $contract = $this->contractRepository->find($contractId);
 
         // A file already where the PDF goes: the generator refuses to write
         // over a signed document, which is the failure this simulates.
-        $this->storage->active()->write($this->pdf->relativePathFor($contract), 'in the way');
+        $this->storageManager->active()->write($this->pdfGenerator->relativePathFor($contract), 'in the way');
 
         $this->client->catchExceptions(true);
         $this->countersign($contractId);
         self::assertSame(500, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        $reloaded = $this->contracts->find($contractId);
+        $reloaded = $this->contractRepository->find($contractId);
 
         self::assertSame(ContractStatusEnum::SignedByCustomer, $reloaded->getStatus());
         self::assertFalse($reloaded->hasPdf());
-        self::assertCount(1, $this->signatures->findForContract($reloaded));
+        self::assertCount(1, $this->contractSignatureRepository->findForContract($reloaded));
 
-        $this->storage->active()->delete($this->pdf->relativePathFor($reloaded));
+        $this->storageManager->active()->delete($this->pdfGenerator->relativePathFor($reloaded));
     }
 
     /**
@@ -387,7 +387,7 @@ final class ContractPdfTest extends IntegrationTestCase
 
         $this->expectException(ContractPdfAlreadyGeneratedException::class);
 
-        $this->pdf->renderProvisional($contract, '<p>anything</p>', []);
+        $this->pdfGenerator->renderProvisional($contract, '<p>anything</p>', []);
     }
 
     /**
@@ -410,7 +410,7 @@ final class ContractPdfTest extends IntegrationTestCase
     public function testAContractWithNoPdfAnswers404(): void
     {
         $url = $this->sentContractUrl();
-        $contractId = $this->links->findAll()[0]->getContract()->getId();
+        $contractId = $this->accessLinkRepository->findAll()[0]->getContract()->getId();
 
         $this->login();
         $this->client->request('GET', sprintf('/suite/studio/contracts/%d/pdf', $contractId));
@@ -461,7 +461,7 @@ final class ContractPdfTest extends IntegrationTestCase
     public function testTheIntegrityCheckNamesAReplacedPdf(): void
     {
         $contract = $this->concludedContract();
-        $this->storage->active()->write((string) $contract->getPdfPath(), 'a different file');
+        $this->storageManager->active()->write((string) $contract->getPdfPath(), 'a different file');
 
         $altered = static::getContainer()->get(ContractIntegrityChecker::class)->check()->altered;
 
@@ -473,7 +473,7 @@ final class ContractPdfTest extends IntegrationTestCase
     public function testTheIntegrityCheckNamesAMissingPdf(): void
     {
         $contract = $this->concludedContract();
-        $this->storage->active()->delete((string) $contract->getPdfPath());
+        $this->storageManager->active()->delete((string) $contract->getPdfPath());
 
         $altered = static::getContainer()->get(ContractIntegrityChecker::class)->check()->altered;
 
@@ -541,7 +541,7 @@ final class ContractPdfTest extends IntegrationTestCase
         $connection->executeStatement("UPDATE core_contract_signatures SET signed_at = NOW() - INTERVAL '2 days' WHERE contract_id = :id", ['id' => $contractId]);
         $this->entityManager->clear();
 
-        $row = static::getContainer()->get(ContractSerializer::class)->serializeMany([$this->contracts->find($contractId)])[0];
+        $row = static::getContainer()->get(ContractSerializer::class)->serializeMany([$this->contractRepository->find($contractId)])[0];
 
         self::assertSame(new DateTimeImmutable('-2 days')->format('Y-m-d'), mb_substr((string) $row['lastActivityAt'], 0, 10));
     }
@@ -568,7 +568,7 @@ final class ContractPdfTest extends IntegrationTestCase
     private function readPdf(ContractInterface $contract): string
     {
         $bytes = '';
-        foreach ($this->pdf->readStream($contract) as $chunk) {
+        foreach ($this->pdfGenerator->readStream($contract) as $chunk) {
             $bytes .= $chunk;
         }
 
@@ -579,7 +579,7 @@ final class ContractPdfTest extends IntegrationTestCase
     private function signedByCustomer(): int
     {
         $url = $this->sentContractUrl();
-        $contractId = $this->links->findAll()[0]->getContract()->getId();
+        $contractId = $this->accessLinkRepository->findAll()[0]->getContract()->getId();
 
         $guest = $this->asGuest();
         $guest->jsonRequest('POST', $url.'/code');
@@ -622,13 +622,13 @@ final class ContractPdfTest extends IntegrationTestCase
 
         $this->entityManager->clear();
 
-        return $this->contracts->find($contractId);
+        return $this->contractRepository->find($contractId);
     }
 
     private function latestCode(): string
     {
         $this->entityManager->clear();
-        $challenge = $this->challenges->findLatestFor($this->links->findAll()[0]);
+        $challenge = $this->challengeRepository->findLatestFor($this->accessLinkRepository->findAll()[0]);
         self::assertNotNull($challenge);
 
         for ($candidate = 0; $candidate <= 999999; ++$candidate) {
@@ -701,10 +701,10 @@ final class ContractPdfTest extends IntegrationTestCase
 
     private function publishedTemplate(): ContractTemplateInterface
     {
-        $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
+        $template = $this->contractTemplateManager->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
-        $this->templates->updateDraft($version, new ContractTemplateVersionInput([
+        $this->contractTemplateManager->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
                 'title' => 'CONTRAT DE PRESTATION DE SERVICES',
                 'content' => ['blocks' => [
@@ -714,7 +714,7 @@ final class ContractPdfTest extends IntegrationTestCase
                 ]],
             ],
         ]));
-        $this->templates->publish($version);
+        $this->contractTemplateManager->publish($version);
 
         return $template;
     }

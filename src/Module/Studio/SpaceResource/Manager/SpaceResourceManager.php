@@ -27,14 +27,14 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly SpaceResourceRepository $resources,
+        protected readonly SpaceResourceRepository $spaceResourceRepository,
         protected readonly AuditLogger $auditLogger,
     ) {}
 
     public function create(CustomerSpaceInterface $space, SpaceResourceInputInterface $input): SpaceResourceInterface
     {
         $resource = $this->createResource();
-        $resource->setSpace($space)->setPosition($this->resources->nextPosition($space));
+        $resource->setSpace($space)->setPosition($this->spaceResourceRepository->nextPosition($space));
 
         $this->applyInput($resource, $input);
 
@@ -85,7 +85,7 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
     {
         $own = [];
 
-        foreach ($this->resources->findForSpace($space) as $resource) {
+        foreach ($this->spaceResourceRepository->findForSpace($space) as $resource) {
             $own[(int) $resource->getId()] = $resource;
         }
 

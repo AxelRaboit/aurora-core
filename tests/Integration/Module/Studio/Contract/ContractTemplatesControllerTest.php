@@ -31,7 +31,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 {
     private KernelBrowser $client;
 
-    private ContractTemplateRepository $templates;
+    private ContractTemplateRepository $templateRepository;
 
     private EntityManagerInterface $entityManager;
 
@@ -46,7 +46,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
-        $this->templates = $container->get(ContractTemplateRepository::class);
+        $this->templateRepository = $container->get(ContractTemplateRepository::class);
         $this->entityManager = $container->get(EntityManagerInterface::class);
     }
 

@@ -62,8 +62,8 @@ class ReadingLinkDemoFixtures extends Fixture implements DependentFixtureInterfa
     ];
 
     public function __construct(
-        private readonly PostTypeRepository $postTypes,
-        private readonly PostTranslationRepository $translations,
+        private readonly PostTypeRepository $postTypeRepository,
+        private readonly PostTranslationRepository $postTranslationRepository,
         private readonly GridNormalizer $gridNormalizer,
         private readonly PostTextExtractor $textExtractor,
     ) {}
@@ -80,11 +80,11 @@ class ReadingLinkDemoFixtures extends Fixture implements DependentFixtureInterfa
 
     public function load(ObjectManager $manager): void
     {
-        if (null !== $this->translations->findOneBy(['locale' => 'fr', 'slug' => self::TEXTS['fr']['slug']])) {
+        if (null !== $this->postTranslationRepository->findOneBy(['locale' => 'fr', 'slug' => self::TEXTS['fr']['slug']])) {
             return;
         }
 
-        $page = $this->postTypes->findOneBySlug('page');
+        $page = $this->postTypeRepository->findOneBySlug('page');
         if (!$page instanceof PostTypeInterface) {
             throw new RuntimeException('The page type is missing: load the Editorial demo fixtures first.');
         }

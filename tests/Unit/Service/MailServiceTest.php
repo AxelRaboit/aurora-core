@@ -21,7 +21,7 @@ final class MailServiceTest extends TestCase
 {
     private MailerInterface $mailer;
     private Environment $twig;
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
     private TranslatorInterface $translator;
     private LocaleSwitcher $localeSwitcher;
     private MailService $service;
@@ -30,13 +30,13 @@ final class MailServiceTest extends TestCase
     {
         $this->mailer = $this->createMock(MailerInterface::class);
         $this->twig = $this->createMock(Environment::class);
-        $this->settings = $this->createMock(SettingRepository::class);
+        $this->settingRepository = $this->createMock(SettingRepository::class);
         $this->translator = $this->createMock(TranslatorInterface::class);
         $this->localeSwitcher = $this->createMock(LocaleSwitcher::class);
         $this->service = new MailService(
             $this->mailer,
             $this->twig,
-            $this->settings,
+            $this->settingRepository,
             $this->translator,
             $this->localeSwitcher,
             // Only reached when an attachment cannot be read, which no test
@@ -55,8 +55,8 @@ final class MailServiceTest extends TestCase
 
     public function testSendBuildsBracketedSubjectAndDelegatesToMailer(): void
     {
-        $this->settings->method('getOrDefault')->willReturn('Aurora Site');
-        $this->settings->method('get')->willReturn(null); // no EmailLocale, no DefaultLocale
+        $this->settingRepository->method('getOrDefault')->willReturn('Aurora Site');
+        $this->settingRepository->method('get')->willReturn(null); // no EmailLocale, no DefaultLocale
         $this->translator->expects(self::once())
             ->method('trans')
             ->with('subject.key', [])
@@ -81,7 +81,7 @@ final class MailServiceTest extends TestCase
 
     public function testSendUsesExplicitLocaleOverEmailLocaleSetting(): void
     {
-        $this->settings->method('getOrDefault')->willReturn('Aurora');
+        $this->settingRepository->method('getOrDefault')->willReturn('Aurora');
         $this->translator->method('trans')->willReturn('Subject');
         $this->twig->method('render')->willReturn('body');
 
@@ -96,10 +96,10 @@ final class MailServiceTest extends TestCase
 
     public function testSendFallsBackToEmailLocaleSettingThenDefaultLocale(): void
     {
-        $this->settings->method('getOrDefault')->willReturnMap([
+        $this->settingRepository->method('getOrDefault')->willReturnMap([
             [ApplicationParameterEnum::SiteName, 'Aurora'],
         ]);
-        $this->settings->method('get')->willReturnMap([
+        $this->settingRepository->method('get')->willReturnMap([
             [ApplicationParameterEnum::EmailLocale->value, null, ''],
             [ApplicationParameterEnum::DefaultLocale->value, ApplicationParameterEnum::DefaultLocale->getDefaultValue(), 'fr'],
         ]);
@@ -116,8 +116,8 @@ final class MailServiceTest extends TestCase
 
     public function testSendInterpolatesSubjectParameters(): void
     {
-        $this->settings->method('getOrDefault')->willReturn('Aurora');
-        $this->settings->method('get')->willReturn(null);
+        $this->settingRepository->method('getOrDefault')->willReturn('Aurora');
+        $this->settingRepository->method('get')->willReturn(null);
         $this->translator->expects(self::once())
             ->method('trans')
             ->with('photo.subject_invite', ['{title}' => 'My Gallery'])
@@ -142,7 +142,7 @@ final class MailServiceTest extends TestCase
 
     public function testSendToAdminNoOpsWhenAdminEmailUnset(): void
     {
-        $this->settings->method('get')->willReturn(null);
+        $this->settingRepository->method('get')->willReturn(null);
         $this->mailer->expects(self::never())->method('send');
 
         $this->service->sendToAdmin('k', '@t.html.twig');
@@ -150,8 +150,8 @@ final class MailServiceTest extends TestCase
 
     public function testSendCcFiltersOutDuplicateOfRecipient(): void
     {
-        $this->settings->method('getOrDefault')->willReturn('Aurora');
-        $this->settings->method('get')->willReturn(null);
+        $this->settingRepository->method('getOrDefault')->willReturn('Aurora');
+        $this->settingRepository->method('get')->willReturn(null);
         $this->translator->method('trans')->willReturn('s');
         $this->twig->method('render')->willReturn('b');
 
@@ -168,8 +168,8 @@ final class MailServiceTest extends TestCase
 
     public function testSendCcKeepsValidAndDropsEmpty(): void
     {
-        $this->settings->method('getOrDefault')->willReturn('Aurora');
-        $this->settings->method('get')->willReturn(null);
+        $this->settingRepository->method('getOrDefault')->willReturn('Aurora');
+        $this->settingRepository->method('get')->willReturn(null);
         $this->translator->method('trans')->willReturn('s');
         $this->twig->method('render')->willReturn('b');
 
@@ -193,7 +193,7 @@ final class MailServiceTest extends TestCase
 
     public function testSiteNameReturnsTheSettingValue(): void
     {
-        $this->settings->expects(self::once())
+        $this->settingRepository->expects(self::once())
             ->method('getOrDefault')
             ->with(ApplicationParameterEnum::SiteName)
             ->willReturn('Aurora Test');
@@ -203,7 +203,7 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailReturnsNullWhenSettingIsUnset(): void
     {
-        $this->settings->expects(self::atLeastOnce())
+        $this->settingRepository->expects(self::atLeastOnce())
             ->method('get')
             ->with(ApplicationParameterEnum::AdminEmail->value)
             ->willReturn(null);
@@ -215,7 +215,7 @@ final class MailServiceTest extends TestCase
     {
         // Empty-string settings come from the UI when an admin clears the
         // field - caller must see this as "not configured", not "empty addr".
-        $this->settings->expects(self::atLeastOnce())
+        $this->settingRepository->expects(self::atLeastOnce())
             ->method('get')
             ->with(ApplicationParameterEnum::AdminEmail->value)
             ->willReturn('');
@@ -225,7 +225,7 @@ final class MailServiceTest extends TestCase
 
     public function testAdminEmailReturnsTheConfiguredAddress(): void
     {
-        $this->settings->expects(self::atLeastOnce())
+        $this->settingRepository->expects(self::atLeastOnce())
             ->method('get')
             ->with(ApplicationParameterEnum::AdminEmail->value)
             ->willReturn('admin@aurora.test');
@@ -239,7 +239,7 @@ final class MailServiceTest extends TestCase
         return new MailService(
             $this->mailer,
             $this->twig,
-            $this->settings,
+            $this->settingRepository,
             $this->translator,
             $this->localeSwitcher,
             new NullLogger(),
@@ -252,7 +252,7 @@ final class MailServiceTest extends TestCase
     {
         // Nobody filled in the settings screen, but whoever installed the
         // server set ADMIN_EMAIL. It is an address that exists.
-        $this->settings->method('get')->willReturn(null);
+        $this->settingRepository->method('get')->willReturn(null);
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
 
@@ -263,7 +263,7 @@ final class MailServiceTest extends TestCase
     {
         // An older install still carries `admin@aurora.app` in the database.
         // The domain does not exist: notifications bounced silently.
-        $this->settings->method('get')->willReturn('admin@aurora.app');
+        $this->settingRepository->method('get')->willReturn('admin@aurora.app');
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
 
@@ -274,7 +274,7 @@ final class MailServiceTest extends TestCase
     {
         // An explicit administrator choice wins: that is the whole point of
         // having a setting that can be edited without redeploying.
-        $this->settings->method('get')->willReturn('editor@aurora.test');
+        $this->settingRepository->method('get')->willReturn('editor@aurora.test');
 
         $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
 
@@ -285,12 +285,12 @@ final class MailServiceTest extends TestCase
     {
         // adminEmail set + siteName resolves + everything happens as a
         // normal send() to that address.
-        $this->settings->method('get')->willReturnMap([
+        $this->settingRepository->method('get')->willReturnMap([
             [ApplicationParameterEnum::AdminEmail->value, null, 'admin@aurora.test'],
             [ApplicationParameterEnum::EmailLocale->value, null, null],
             [ApplicationParameterEnum::DefaultLocale->value, ApplicationParameterEnum::DefaultLocale->getDefaultValue(), null],
         ]);
-        $this->settings->method('getOrDefault')->willReturn('Aurora');
+        $this->settingRepository->method('getOrDefault')->willReturn('Aurora');
         $this->translator->method('trans')->willReturn('Daily report');
         $this->twig->method('render')->willReturn('<p>report</p>');
 

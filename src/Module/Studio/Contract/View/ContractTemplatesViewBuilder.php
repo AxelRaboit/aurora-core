@@ -26,7 +26,7 @@ final readonly class ContractTemplatesViewBuilder
         private ContractTemplateSerializerInterface $serializer,
         private ContractVariableCatalogue $variables,
         private LocaleOptionsProviderInterface $localeOptions,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private UrlGeneratorInterface $urlGenerator,
         private ContractRepository $contractRepository,
         private ContractTemplateCategoryRepository $categoryRepository,
@@ -44,21 +44,21 @@ final readonly class ContractTemplatesViewBuilder
             // The categories are managed from this screen, in the window the
             // deliverables use for theirs.
             'categoryCreatePath' => $this->urlGenerator->generate('suite_studio_contract_templates_category_create'),
-            'categoryUpdatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_category_update', ['id' => '__id__']),
-            'categoryDeletePath' => $this->pathTemplates->generate('suite_studio_contract_templates_category_delete', ['id' => '__id__']),
+            'categoryUpdatePath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_category_update', ['id' => '__id__']),
+            'categoryDeletePath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_category_delete', ['id' => '__id__']),
             'categoryReorderPath' => $this->urlGenerator->generate('suite_studio_contract_templates_category_reorder'),
             'createPath' => $this->urlGenerator->generate('suite_studio_contract_templates_create'),
-            'updatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_update', ['id' => '__id__']),
-            'archivePath' => $this->pathTemplates->generate('suite_studio_contract_templates_archive', ['id' => '__id__']),
-            'restorePath' => $this->pathTemplates->generate('suite_studio_contract_templates_restore', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('suite_studio_contract_templates_delete', ['id' => '__id__']),
-            'openDraftPath' => $this->pathTemplates->generate('suite_studio_contract_templates_open_draft', ['id' => '__id__']),
-            'duplicatePath' => $this->pathTemplates->generate('suite_studio_contract_templates_duplicate', ['id' => '__id__']),
+            'updatePath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_update', ['id' => '__id__']),
+            'archivePath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_archive', ['id' => '__id__']),
+            'restorePath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_restore', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_delete', ['id' => '__id__']),
+            'openDraftPath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_open_draft', ['id' => '__id__']),
+            'duplicatePath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_duplicate', ['id' => '__id__']),
             // Abandoning a draft is offered from the list too, not only from
             // inside the editor: somebody who opened one by mistake should not
             // have to walk into it to walk back out.
-            'discardDraftPath' => $this->pathTemplates->generate('suite_studio_contract_templates_discard', ['id' => '__id__', 'versionId' => '__versionId__']),
-            'editorPath' => $this->pathTemplates->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'discardDraftPath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_discard', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'editorPath' => $this->pathTemplateGenerator->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
         ];
     }
 

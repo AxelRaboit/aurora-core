@@ -29,14 +29,14 @@ use function array_values;
 final readonly class DeliverablesViewBuilder
 {
     public function __construct(
-        private DeliverableRepository $deliverables,
+        private DeliverableRepository $deliverableRepository,
         private DeliverableSerializer $serializer,
         private DeliverableAccess $access,
         private UrlGeneratorInterface $urlGenerator,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private LocaleContextInterface $localeContext,
-        private DeliverableCategoryRepository $categories,
-        private CustomerRepository $customers,
+        private DeliverableCategoryRepository $deliverableCategoryRepository,
+        private CustomerRepository $customerRepository,
     ) {}
 
     /**
@@ -46,7 +46,7 @@ final readonly class DeliverablesViewBuilder
      */
     public function index(): array
     {
-        $template = fn (string $action): string => $this->pathTemplates->generate('suite_studio_deliverables_'.$action, ['id' => '__id__']);
+        $template = fn (string $action): string => $this->pathTemplateGenerator->generate('suite_studio_deliverables_'.$action, ['id' => '__id__']);
 
         return [
             ...$this->lists(),
@@ -86,7 +86,7 @@ final readonly class DeliverablesViewBuilder
     /** @return list<array<string, mixed>> */
     private function categoryList(): array
     {
-        return array_values(array_filter(array_map($this->serializer->category(...), $this->categories->findOrdered())));
+        return array_values(array_filter(array_map($this->serializer->category(...), $this->deliverableCategoryRepository->findOrdered())));
     }
 
     /**
@@ -99,8 +99,8 @@ final readonly class DeliverablesViewBuilder
         $user = $this->access->user();
 
         return [
-            'personal' => $user instanceof CoreUserInterface ? array_map($this->row(...), $this->deliverables->findPersonalFor($user)) : [],
-            'shared' => array_map($this->row(...), $this->deliverables->findShared()),
+            'personal' => $user instanceof CoreUserInterface ? array_map($this->row(...), $this->deliverableRepository->findPersonalFor($user)) : [],
+            'shared' => array_map($this->row(...), $this->deliverableRepository->findShared()),
         ];
     }
 
@@ -171,7 +171,7 @@ final readonly class DeliverablesViewBuilder
 
         return array_map(
             static fn (CustomerInterface $customer): array => ['id' => $customer->getId(), 'legalName' => $customer->getLegalName()],
-            $this->customers->findAllOrdered(),
+            $this->customerRepository->findAllOrdered(),
         );
     }
 

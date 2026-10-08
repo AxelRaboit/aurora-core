@@ -48,7 +48,7 @@ final class MarkdownNoteSharesController extends AbstractController
 
     public function __construct(
         private readonly NoteSpaceAccess $spaceAccess,
-        private readonly MarkdownNoteShareLinkRepository $links,
+        private readonly MarkdownNoteShareLinkRepository $shareLinkRepository,
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly MarkdownNoteShareLinkSerializer $serializer,
         private readonly SharedNoteScope $scope,
@@ -74,7 +74,7 @@ final class MarkdownNoteSharesController extends AbstractController
         }
 
         return $this->jsonSuccess([
-            'links' => array_map($this->serializer->serialize(...), $this->links->findForNote($note)),
+            'links' => array_map($this->serializer->serialize(...), $this->shareLinkRepository->findForNote($note)),
         ]);
     }
 
@@ -175,7 +175,7 @@ final class MarkdownNoteSharesController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        $link = $this->links->findOneOwnedBy($user, $id);
+        $link = $this->shareLinkRepository->findOneOwnedBy($user, $id);
 
         if (!$link instanceof MarkdownNoteShareLinkInterface) {
             return $this->jsonNotFound();

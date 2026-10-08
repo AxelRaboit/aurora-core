@@ -48,9 +48,9 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
-    private SpaceContentItemRepository $items;
+    private SpaceContentItemRepository $itemRepository;
 
     protected function setUp(): void
     {
@@ -60,8 +60,8 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
 
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
-        $this->items = $container->get(SpaceContentItemRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
+        $this->itemRepository = $container->get(SpaceContentItemRepository::class);
 
         $this->resetRateLimiter('space_guest_write');
         $this->loginAdmin();
@@ -92,11 +92,11 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         self::assertSame(2, $this->payload()['approved']);
 
         $this->entityManager->clear();
-        self::assertSame('approved', $this->items->find($first)->getApproval()->value);
-        self::assertSame('approved', $this->items->find($second)->getApproval()->value);
+        self::assertSame('approved', $this->itemRepository->find($first)->getApproval()->value);
+        self::assertSame('approved', $this->itemRepository->find($second)->getApproval()->value);
         // What was not ticked did not move: a bulk action applies to a
         // selection, not to a screen.
-        self::assertSame('pending', $this->items->find($untouched)->getApproval()->value);
+        self::assertSame('pending', $this->itemRepository->find($untouched)->getApproval()->value);
     }
 
     /**
@@ -214,8 +214,8 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         self::assertSame(1, $this->payload()['approved']);
 
         $this->entityManager->clear();
-        self::assertSame('approved', $this->items->find($mine)->getApproval()->value);
-        self::assertSame('pending', $this->items->find($foreign)->getApproval()->value);
+        self::assertSame('approved', $this->itemRepository->find($mine)->getApproval()->value);
+        self::assertSame('pending', $this->itemRepository->find($foreign)->getApproval()->value);
     }
 
     /**
@@ -235,7 +235,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        self::assertSame('pending', $this->items->find($item)->getApproval()->value);
+        self::assertSame('pending', $this->itemRepository->find($item)->getApproval()->value);
     }
 
     public function testAnEmptySelectionIsRefused(): void
@@ -371,7 +371,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         $this->loginAdmin();
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $itemId), [
-            'title' => $this->items->find($itemId)->getTitle(),
+            'title' => $this->itemRepository->find($itemId)->getTitle(),
             'columnId' => $this->reviewStep($space)->getId(),
             'scheduledAt' => $scheduledAt,
             'reviewBy' => $reviewBy,
@@ -390,7 +390,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
     /** The step where the client answers: the one cards awaiting a review sit on. */
     private function reviewStep(CustomerSpace $space): SpaceContentColumnInterface
     {
-        foreach ($this->columns->findForSpace($space) as $column) {
+        foreach ($this->columnRepository->findForSpace($space) as $column) {
             if (SpaceContentColumnRoleEnum::Review === $column->getRole()) {
                 return $column;
             }

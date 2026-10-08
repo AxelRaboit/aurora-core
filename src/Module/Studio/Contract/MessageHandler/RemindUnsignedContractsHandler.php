@@ -44,22 +44,22 @@ use function sprintf;
 final readonly class RemindUnsignedContractsHandler
 {
     public function __construct(
-        private ContractRepository $contracts,
+        private ContractRepository $contractRepository,
         private ContractAccessLinkManagerInterface $links,
-        private SettingRepository $settings,
+        private SettingRepository $settingRepository,
         private LoggerInterface $logger,
-        private StudioContext $studio,
+        private StudioContext $studioContext,
     ) {}
 
     public function __invoke(RemindUnsignedContractsMessage $message): void
     {
         // Contracts switched off answer 404 on the signing page, so a reminder
         // would mail a customer a link that leads nowhere.
-        if (!$this->studio->areContractsEnabled()) {
+        if (!$this->studioContext->areContractsEnabled()) {
             return;
         }
 
-        if (!$this->settings->getBoolean(ApplicationParameterEnum::StudioContractReminderEnabled->value)) {
+        if (!$this->settingRepository->getBoolean(ApplicationParameterEnum::StudioContractReminderEnabled->value)) {
             return;
         }
 
@@ -73,7 +73,7 @@ final readonly class RemindUnsignedContractsHandler
         }
 
         $before = new DateTimeImmutable(sprintf('-%d days', $days));
-        $due = $this->contracts->findDueForReminder($before, $max);
+        $due = $this->contractRepository->findDueForReminder($before, $max);
 
         foreach ($due as $contract) {
             try {
@@ -105,7 +105,7 @@ final readonly class RemindUnsignedContractsHandler
      */
     private function positiveInt(ApplicationParameterEnum $parameter): int
     {
-        $value = (int) $this->settings->getOrDefault($parameter);
+        $value = (int) $this->settingRepository->getOrDefault($parameter);
 
         return max($value, 0);
     }

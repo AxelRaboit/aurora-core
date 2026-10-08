@@ -24,10 +24,10 @@ use DateTimeZone;
 final readonly class PlanningViewBuilder
 {
     public function __construct(
-        private PlanningRepository $plannings,
+        private PlanningRepository $planningRepository,
         private PlanningSerializer $planningSerializer,
-        private UserRepository $users,
-        private PlanningShareLinkRepository $shareLinks,
+        private UserRepository $userRepository,
+        private PlanningShareLinkRepository $shareLinkRepository,
         private PlanningShareLinkSerializer $shareLinkSerializer,
     ) {}
 
@@ -35,7 +35,7 @@ final readonly class PlanningViewBuilder
     public function calendarView(CoreUserInterface $reader): array
     {
         return [
-            'calendars' => $this->planningSerializer->serializeMany($this->plannings->findVisibleTo($reader)),
+            'calendars' => $this->planningSerializer->serializeMany($this->planningRepository->findVisibleTo($reader)),
             // The zones the runtime can resolve, which is what the DTO validates
             // against. A list of our own would drift from PHP's, and a calendar
             // cutting its days in a zone the runtime cannot resolve puts every
@@ -46,7 +46,7 @@ final readonly class PlanningViewBuilder
             // Page-level rather than per calendar, because one link can point at
             // several and a per-calendar payload would carry the same row twice
             // with no way to tell it was one link.
-            'shareLinks' => $this->shareLinkSerializer->serializeMany($this->shareLinks->findForOwner($reader)),
+            'shareLinks' => $this->shareLinkSerializer->serializeMany($this->shareLinkRepository->findForOwner($reader)),
             // So the screen can tell which attendee is the reader, and which
             // calendar is theirs to share.
             'currentUserId' => $reader->getId(),
@@ -64,7 +64,7 @@ final readonly class PlanningViewBuilder
     private function invitablePeople(): array
     {
         $people = [];
-        foreach ($this->users->findBy(['type' => UserTypeEnum::Suite->value], ['name' => 'ASC']) as $user) {
+        foreach ($this->userRepository->findBy(['type' => UserTypeEnum::Suite->value], ['name' => 'ASC']) as $user) {
             $people[] = ['value' => (int) $user->getId(), 'label' => $user->getName()];
         }
 

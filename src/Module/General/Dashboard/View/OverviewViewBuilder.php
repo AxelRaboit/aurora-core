@@ -11,7 +11,7 @@ namespace Aurora\Module\General\Dashboard\View;
  */
 final readonly class OverviewViewBuilder
 {
-    public function __construct(private DashboardViewBuilder $dashboard) {}
+    public function __construct(private DashboardViewBuilder $dashboardViewBuilder) {}
 
     /**
      * @return array<string, mixed>
@@ -21,7 +21,7 @@ final readonly class OverviewViewBuilder
         // The same figures as the back-office dashboard, for the modules that
         // are on. It asked for none at all, from the days no module provided
         // any, and the tab always said there was nothing to show.
-        return $this->dashboard->indexView();
+        return $this->dashboardViewBuilder->indexView();
     }
 
     /**

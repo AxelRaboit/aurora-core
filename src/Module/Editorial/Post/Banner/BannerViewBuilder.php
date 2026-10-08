@@ -33,7 +33,7 @@ final readonly class BannerViewBuilder
         private DocumentUrlGenerator $documentUrlGenerator,
         private DocumentCreditPresenter $creditPresenter,
         private BannerNormalizer $bannerNormalizer,
-        private ContentValueNormalizer $values,
+        private ContentValueNormalizer $contentValueNormalizer,
     ) {}
 
     /**
@@ -312,7 +312,7 @@ final readonly class BannerViewBuilder
                         // Custom properties rather than classes: a span is a number
                         // between 1 and 48 chosen at runtime, and Tailwind only
                         // emits classes it can read in the source.
-                        'spanStyle' => $this->values->spanStyle($item['span']),
+                        'spanStyle' => $this->contentValueNormalizer->spanStyle($item['span']),
                         // The CSS stack, built from the enum so the template never
                         // writes a font name it was sent.
                         'titleFontStack' => ThemeFontEnum::tryFrom((string) $item['titleFont'])?->stack(),

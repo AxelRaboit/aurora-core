@@ -27,7 +27,7 @@ use function in_array;
 final readonly class DriveFileServer
 {
     public function __construct(
-        private DriveClient $drive,
+        private DriveClient $driveClient,
     ) {}
 
     /**
@@ -48,11 +48,11 @@ final readonly class DriveFileServer
     {
         // Here and not in the callers: two screens relay, and the day one of
         // them forgot to ask, it would serve someone else's Drive.
-        if (!$this->drive->contains($account, $folderId, $fileId)) {
+        if (!$this->driveClient->contains($account, $folderId, $fileId)) {
             return null;
         }
 
-        $upstream = $this->drive->download($account, $fileId);
+        $upstream = $this->driveClient->download($account, $fileId);
 
         if (!$upstream instanceof ResponseInterface) {
             return null;
@@ -62,7 +62,7 @@ final readonly class DriveFileServer
         $type = $headers['content-type'][0] ?? 'application/octet-stream';
 
         $response = new StreamedResponse(function () use ($upstream): void {
-            foreach ($this->drive->stream($upstream) as $chunk) {
+            foreach ($this->driveClient->stream($upstream) as $chunk) {
                 echo $chunk;
                 flush();
             }
@@ -93,7 +93,7 @@ final readonly class DriveFileServer
             return $response;
         }
 
-        $metadata = $this->drive->metadata($account, $fileId);
+        $metadata = $this->driveClient->metadata($account, $fileId);
 
         if (null === $metadata) {
             // The name is missing, not the file. An attachment without a name

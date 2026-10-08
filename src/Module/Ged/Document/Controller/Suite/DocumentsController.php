@@ -83,7 +83,7 @@ final class DocumentsController extends AbstractController
         private readonly MessageBusInterface $messageBus,
         private readonly StorageSettings $storageSettings,
         private readonly DocumentRepository $documentRepository,
-        private readonly UploadPolicyProvider $uploadPolicies,
+        private readonly UploadPolicyProvider $uploadPolicyProvider,
         private readonly DocumentFamilyRule $familyRule,
     ) {}
 
@@ -644,7 +644,7 @@ final class DocumentsController extends AbstractController
         // and what made the formats dangerous is closed where the file is
         // served rather than where it arrives. What it does now is cap the
         // disk, which nobody was doing.
-        if (($refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+        if (($refusal = $this->uploadPolicyProvider->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
             return $this->jsonFailure($this->uploadRefusalKey($refusal));
         }
 
@@ -723,7 +723,7 @@ final class DocumentsController extends AbstractController
             return $this->jsonFailure('suite.ged.documents.errors.image_required');
         }
 
-        if (($refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+        if (($refusal = $this->uploadPolicyProvider->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
             return $this->jsonFailure($this->uploadRefusalKey($refusal));
         }
 

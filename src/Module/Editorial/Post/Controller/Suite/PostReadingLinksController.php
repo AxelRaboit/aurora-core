@@ -47,7 +47,7 @@ final class PostReadingLinksController extends AbstractController
     private const int MAX_EXPIRY_DAYS = 365;
 
     public function __construct(
-        private readonly PostReadingLinkRepository $links,
+        private readonly PostReadingLinkRepository $postReadingLinkRepository,
         private readonly PostReadingLinksViewBuilder $viewBuilder,
         private readonly EntityManagerInterface $entityManager,
     ) {}
@@ -94,7 +94,7 @@ final class PostReadingLinksController extends AbstractController
     {
         $this->denyAccessUnlessGranted(PostVoter::PUBLISH, $post);
 
-        $link = $this->links->find($linkId);
+        $link = $this->postReadingLinkRepository->find($linkId);
 
         // Checked against the publication in the address: a link id from
         // another publication must not be revocable through this one.

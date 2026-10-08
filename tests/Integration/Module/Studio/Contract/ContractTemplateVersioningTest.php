@@ -37,7 +37,7 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
 {
     private ContractTemplateManagerInterface $manager;
 
-    private ContractTemplateRepository $templates;
+    private ContractTemplateRepository $templateRepository;
 
     private EntityManagerInterface $entityManager;
 
@@ -49,7 +49,7 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
         // for the container is what boots the kernel for them.
         $container = static::getContainer();
 
-        $this->templates = $container->get(ContractTemplateRepository::class);
+        $this->templateRepository = $container->get(ContractTemplateRepository::class);
         $this->entityManager = $container->get(EntityManagerInterface::class);
 
         // Built here rather than fetched. The manager has no consumer yet -
@@ -219,7 +219,7 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
         $this->manager->publish($archived->getDraft());
         $this->manager->archive($archived);
 
-        $selectable = $this->templates->findSelectable(ContractTemplateKindEnum::Body);
+        $selectable = $this->templateRepository->findSelectable(ContractTemplateKindEnum::Body);
         $names = array_map(static fn (ContractTemplateInterface $t): string => $t->getName(), $selectable);
 
         self::assertContains('Contrat mensuel', $names);

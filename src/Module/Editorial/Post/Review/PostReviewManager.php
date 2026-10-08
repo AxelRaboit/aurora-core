@@ -35,7 +35,7 @@ class PostReviewManager implements PostReviewManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly NotificationManagerInterface $notifications,
-        protected readonly UserRepository $users,
+        protected readonly UserRepository $userRepository,
         protected readonly TranslatorInterface $translator,
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly AuditLogger $auditLogger,
@@ -158,7 +158,7 @@ class PostReviewManager implements PostReviewManagerInterface
     {
         $found = [];
 
-        foreach ($this->users->findBy(['type' => UserTypeEnum::Suite->value]) as $user) {
+        foreach ($this->userRepository->findBy(['type' => UserTypeEnum::Suite->value]) as $user) {
             if ($user->hasPrivilege('editorial.posts.publish')) {
                 $found[] = $user;
             }

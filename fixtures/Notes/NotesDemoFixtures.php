@@ -75,8 +75,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         private readonly UserRepository $userRepository,
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly MarkdownNoteShareLinkRepository $shareLinkRepository,
-        private readonly MarkdownNoteImageService $images,
-        private readonly NoteSpaceAccess $spaces,
+        private readonly MarkdownNoteImageService $imageService,
+        private readonly NoteSpaceAccess $spaceAccess,
         private readonly HttpClientInterface $http,
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {}
@@ -108,7 +108,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         }
 
         // The whole demo notebook lives in the account's personal space.
-        $space = $this->spaces->personalSpace($owner);
+        $space = $this->spaceAccess->personalSpace($owner);
 
         $repository = $manager->getRepository(MarkdownNote::class);
 
@@ -740,7 +740,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             return $content;
         }
 
-        $already = $this->images->extractFilenames($note->getContent());
+        $already = $this->imageService->extractFilenames($note->getContent());
 
         foreach ($wanted as $index => $photoId) {
             $filename = $already[$index] ?? $this->fetchImage($photoId, $owner);
@@ -772,7 +772,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $octets = $this->http->request('GET', $this->pexels($photoId))->getContent();
             $this->filesystem->dumpFile($temporaire, $octets);
 
-            return $this->images->store(
+            return $this->imageService->store(
                 new UploadedFile($temporaire, sprintf('pexels-%d.jpg', $photoId), null, null, true),
                 $owner,
             );

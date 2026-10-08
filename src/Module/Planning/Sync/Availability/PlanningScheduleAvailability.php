@@ -28,8 +28,8 @@ final readonly class PlanningScheduleAvailability implements ScheduleAvailabilit
 {
     public function __construct(
         private PlanningContext $planningContext,
-        private PlanningRepository $plannings,
-        private PlanningEventRepository $events,
+        private PlanningRepository $planningRepository,
+        private PlanningEventRepository $eventRepository,
     ) {}
 
     public function isEnabled(): bool
@@ -39,7 +39,7 @@ final readonly class PlanningScheduleAvailability implements ScheduleAvailabilit
 
     public function busyPeriods(string $sourceType, DateTimeImmutable $from, DateTimeImmutable $to): array
     {
-        $planning = $this->plannings->findOneBy(['sourceType' => $sourceType]);
+        $planning = $this->planningRepository->findOneBy(['sourceType' => $sourceType]);
 
         // No calendar yet: nothing was ever booked, so nothing is taken.
         if (!$planning instanceof PlanningInterface) {
@@ -47,7 +47,7 @@ final readonly class PlanningScheduleAvailability implements ScheduleAvailabilit
         }
 
         $busy = [];
-        foreach ($this->events->findSinglesInWindow([(int) $planning->getId()], $from, $to) as $event) {
+        foreach ($this->eventRepository->findSinglesInWindow([(int) $planning->getId()], $from, $to) as $event) {
             if (PlanningEventStatusEnum::Cancelled !== $event->getStatus()) {
                 $busy[] = [$event->getStartAt(), $event->getEndAt()];
             }

@@ -36,13 +36,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 readonly class PlanningNotifier
 {
     public function __construct(
-        private PlanningEventAlertRepository $alerts,
-        private PlanningReminderRepository $reminders,
+        private PlanningEventAlertRepository $planningEventAlertRepository,
+        private PlanningReminderRepository $reminderRepository,
         private NotificationManagerInterface $notifications,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
         private UrlGeneratorInterface $urlGenerator,
-        private MailService $mail,
+        private MailService $mailService,
     ) {}
 
     /**
@@ -81,7 +81,7 @@ readonly class PlanningNotifier
     {
         $sent = 0;
 
-        foreach ($this->reminders->findDue($now) as $reminder) {
+        foreach ($this->reminderRepository->findDue($now) as $reminder) {
             $recipient = $reminder->getPlanning()->getOwner();
 
             if ($recipient instanceof CoreUserInterface) {
@@ -119,7 +119,7 @@ readonly class PlanningNotifier
     {
         $sent = 0;
 
-        foreach ($this->alerts->findDue($now) as $alert) {
+        foreach ($this->planningEventAlertRepository->findDue($now) as $alert) {
             $recipient = $alert->getEvent()->getPlanning()->getOwner();
 
             // A calendar with no owner has nobody to tell. Marked sent anyway,
@@ -183,7 +183,7 @@ readonly class PlanningNotifier
     {
         $event = $alert->getEvent();
 
-        $this->mail->send(
+        $this->mailService->send(
             $recipient->getEmail(),
             'suite.plannings.mail.alert_subject',
             '@Planning/email/alert.html.twig',
@@ -203,7 +203,7 @@ readonly class PlanningNotifier
 
     private function emailReminder(CoreUserInterface $recipient, PlanningReminderInterface $reminder): void
     {
-        $this->mail->send(
+        $this->mailService->send(
             $recipient->getEmail(),
             'suite.plannings.mail.reminder_subject',
             '@Planning/email/reminder.html.twig',

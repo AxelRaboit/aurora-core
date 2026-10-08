@@ -21,7 +21,7 @@ use DateTimeImmutable;
 final readonly class PlanningOccurrenceFinder
 {
     public function __construct(
-        private PlanningEventRepository $events,
+        private PlanningEventRepository $eventRepository,
         private OccurrenceExpander $expander,
     ) {}
 
@@ -34,11 +34,11 @@ final readonly class PlanningOccurrenceFinder
     {
         $occurrences = [];
 
-        foreach ($this->events->findSinglesInWindow($planningIds, $from, $to) as $event) {
+        foreach ($this->eventRepository->findSinglesInWindow($planningIds, $from, $to) as $event) {
             $occurrences[] = PlanningOccurrence::of($event);
         }
 
-        foreach ($this->events->findSeriesReaching($planningIds, $from, $to) as $series) {
+        foreach ($this->eventRepository->findSeriesReaching($planningIds, $from, $to) as $series) {
             $occurrences = [...$occurrences, ...$this->expander->expand($series, $from, $to)];
         }
 

@@ -30,7 +30,7 @@ final class FormSubmissionRetentionTest extends IntegrationTestCase
 
     private PurgeFormSubmissionsHandler $handler;
 
-    private FormSubmissionRepository $submissions;
+    private FormSubmissionRepository $submissionRepository;
 
     private Form $form;
 
@@ -44,7 +44,7 @@ final class FormSubmissionRetentionTest extends IntegrationTestCase
 
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->handler = static::getContainer()->get(PurgeFormSubmissionsHandler::class);
-        $this->submissions = static::getContainer()->get(FormSubmissionRepository::class);
+        $this->submissionRepository = static::getContainer()->get(FormSubmissionRepository::class);
 
         $this->form = new Form();
         $this->form->setActive(true);
@@ -80,7 +80,7 @@ final class FormSubmissionRetentionTest extends IntegrationTestCase
 
         ($this->handler)(new PurgeFormSubmissionsMessage());
 
-        self::assertNotNull($this->submissions->find($old), 'a submission was deleted without a retention being set');
+        self::assertNotNull($this->submissionRepository->find($old), 'a submission was deleted without a retention being set');
     }
 
     public function testWhatIsOlderThanTheDurationIsForgotten(): void
@@ -90,7 +90,7 @@ final class FormSubmissionRetentionTest extends IntegrationTestCase
 
         ($this->handler)(new PurgeFormSubmissionsMessage());
 
-        self::assertNull($this->submissions->find($old));
+        self::assertNull($this->submissionRepository->find($old));
     }
 
     /** The other half of the same rule: the cutoff has to hold. */
@@ -101,7 +101,7 @@ final class FormSubmissionRetentionTest extends IntegrationTestCase
 
         ($this->handler)(new PurgeFormSubmissionsMessage());
 
-        self::assertNotNull($this->submissions->find($recent));
+        self::assertNotNull($this->submissionRepository->find($recent));
     }
 
     private function retention(int $days): void

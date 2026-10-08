@@ -28,7 +28,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly SpaceContentAttachmentRepository $attachments,
+        protected readonly SpaceContentAttachmentRepository $attachmentRepository,
         protected readonly SpaceAttachmentUploader $uploader,
         protected readonly AuditLogger $auditLogger,
         protected readonly Security $security,
@@ -59,7 +59,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
         $attachment
             ->setItem($item)
             ->setDocument($document)
-            ->setPosition($this->attachments->nextPosition($item))
+            ->setPosition($this->attachmentRepository->nextPosition($item))
             ->addedByStudio($author, $authorLabel);
 
         $this->clearApprovalOf($item);
@@ -85,7 +85,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
         $attachment
             ->setItem($item)
             ->setDocument($this->uploader->upload($file, $item->getSpace()))
-            ->setPosition($this->attachments->nextPosition($item))
+            ->setPosition($this->attachmentRepository->nextPosition($item))
             ->addedByClient($link);
 
         $saved = $this->save($attachment);
@@ -150,7 +150,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
      */
     protected function refuseDuplicate(SpaceContentItemInterface $item, DocumentInterface $document): void
     {
-        foreach ($this->attachments->findForItem($item) as $existing) {
+        foreach ($this->attachmentRepository->findForItem($item) as $existing) {
             if ($existing->getDocument()->getId() === $document->getId()) {
                 throw new FieldException('document', $this->translator->trans('suite.studio.space_content.errors.attachment_duplicate'));
             }

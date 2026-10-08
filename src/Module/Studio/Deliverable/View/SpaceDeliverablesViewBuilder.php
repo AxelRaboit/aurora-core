@@ -33,15 +33,15 @@ use function array_values;
 final readonly class SpaceDeliverablesViewBuilder
 {
     public function __construct(
-        private DeliverableRepository $deliverables,
+        private DeliverableRepository $deliverableRepository,
         private DeliverableSerializer $serializer,
         private UrlGeneratorInterface $urlGenerator,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private LocaleContextInterface $localeContext,
         private Security $security,
         private CustomerSpaceSerializerInterface $spaceSerializer,
         private DeliverableAccess $access,
-        private DocumentRepository $documents,
+        private DocumentRepository $documentRepository,
         private StudioContext $studioContext,
     ) {}
 
@@ -70,16 +70,16 @@ final readonly class SpaceDeliverablesViewBuilder
             // pages and presentations; the modal filters by format. Only read
             // for whoever may create here: a space page loads on every tab.
             'deliverableTemplates' => $canAdd ? $this->templates() : [],
-            'deliverableVisibilityPathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_visibility', ['id' => $id, 'deliverableId' => '__id__']),
-            'deliverableDuplicatePathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_duplicate', ['id' => $id, 'deliverableId' => '__id__']),
-            'deliverableDeletePathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_delete', ['id' => $id, 'deliverableId' => '__id__']),
+            'deliverableVisibilityPathTemplate' => $this->pathTemplateGenerator->generate('workspace_space_deliverables_visibility', ['id' => $id, 'deliverableId' => '__id__']),
+            'deliverableDuplicatePathTemplate' => $this->pathTemplateGenerator->generate('workspace_space_deliverables_duplicate', ['id' => $id, 'deliverableId' => '__id__']),
+            'deliverableDeletePathTemplate' => $this->pathTemplateGenerator->generate('workspace_space_deliverables_delete', ['id' => $id, 'deliverableId' => '__id__']),
             // The reading links, from the list as from the editor: creating
             // one for a recipient should not mean opening the document first.
-            'deliverableLinksPathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_links', ['id' => $id, 'deliverableId' => '__id__']),
+            'deliverableLinksPathTemplate' => $this->pathTemplateGenerator->generate('workspace_space_deliverables_links', ['id' => $id, 'deliverableId' => '__id__']),
             // Empty when the person cannot create a Studio deliverable: the
             // "Copier dans Studio" action is not shown.
             'deliverableCopyToStudioPathTemplate' => $this->access->canCopyToStudio()
-                ? $this->pathTemplates->generate('workspace_space_deliverables_copy_to_studio', ['id' => $id, 'deliverableId' => '__id__'])
+                ? $this->pathTemplateGenerator->generate('workspace_space_deliverables_copy_to_studio', ['id' => $id, 'deliverableId' => '__id__'])
                 : '',
         ];
     }
@@ -108,7 +108,7 @@ final readonly class SpaceDeliverablesViewBuilder
                 'template' => true,
                 'category' => $this->serializer->category($template->getCategory()),
             ],
-            array_filter($this->deliverables->findLiveStandaloneTemplates(), $this->access->canRead(...)),
+            array_filter($this->deliverableRepository->findLiveStandaloneTemplates(), $this->access->canRead(...)),
         ));
     }
 
@@ -120,12 +120,12 @@ final readonly class SpaceDeliverablesViewBuilder
      */
     public function rows(CustomerSpaceInterface $space): array
     {
-        $rows = $this->deliverables->findRowsForSpace($space);
+        $rows = $this->deliverableRepository->findRowsForSpace($space);
 
         // The images of every row in one query, not one per row.
         $ids = array_values(array_unique(array_filter(array_column($rows, 'thumbnailId'))));
         $thumbnails = [];
-        foreach ([] === $ids ? [] : $this->documents->findBy(['id' => $ids]) as $document) {
+        foreach ([] === $ids ? [] : $this->documentRepository->findBy(['id' => $ids]) as $document) {
             $thumbnails[(int) $document->getId()] = $document;
         }
 

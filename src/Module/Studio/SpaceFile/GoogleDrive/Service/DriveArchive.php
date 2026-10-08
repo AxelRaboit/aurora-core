@@ -67,7 +67,7 @@ final readonly class DriveArchive
     public const int MAX_BYTES = 150 * 1024 * 1024;
 
     public function __construct(
-        private DriveClient $drive,
+        private DriveClient $driveClient,
     ) {}
 
     /**
@@ -198,7 +198,7 @@ final readonly class DriveArchive
      */
     private function downloadToFile(GoogleServiceAccount $account, string $fileId): ?string
     {
-        $upstream = $this->drive->download($account, $fileId);
+        $upstream = $this->driveClient->download($account, $fileId);
 
         if (!$upstream instanceof ResponseInterface) {
             return null;
@@ -214,7 +214,7 @@ final readonly class DriveArchive
         }
 
         try {
-            foreach ($this->drive->stream($upstream) as $chunk) {
+            foreach ($this->driveClient->stream($upstream) as $chunk) {
                 fwrite($handle, $chunk);
             }
         } finally {

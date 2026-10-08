@@ -37,9 +37,9 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
-    private PlanningEventRepository $events;
+    private PlanningEventRepository $eventRepository;
 
     protected function setUp(): void
     {
@@ -55,8 +55,8 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
-        $this->events = $container->get(PlanningEventRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
+        $this->eventRepository = $container->get(PlanningEventRepository::class);
     }
 
     protected function tearDown(): void
@@ -81,7 +81,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         $space = $this->givenSpace('Espace annoncé', 3);
         $item = $this->givenItem($space, 'Journée portes ouvertes', '2026-11-12T10:00');
 
-        $entry = $this->events->findBySource(self::SOURCE, $item['id']);
+        $entry = $this->eventRepository->findBySource(self::SOURCE, $item['id']);
         self::assertNotNull($entry, 'the date reached the calendar');
 
         self::assertSame('Journée portes ouvertes', $entry->getTitle());
@@ -119,7 +119,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         $space = $this->givenSpace('Espace déprogrammé', 1);
         $item = $this->givenItem($space, 'À reporter', '2026-11-12T10:00');
 
-        self::assertNotNull($this->events->findBySource(self::SOURCE, $item['id']));
+        self::assertNotNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/schedule', $space->getId(), $item['id']), [
             'scheduledAt' => null,
@@ -128,7 +128,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         // A card sent back to the board leaves the calendar. It is still work,
         // it just has no date any more.
-        self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
+        self::assertNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
     }
 
     /**
@@ -147,7 +147,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         self::assertFalse($item['showOnCalendar']);
         // The date is indeed kept: it is a deadline, not nothing.
         self::assertNotNull($item['scheduledAt']);
-        self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
+        self::assertNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
     }
 
     /** Ticking it again puts it back in both calendars, without retyping the date. */
@@ -156,17 +156,17 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         $space = $this->givenSpace('Espace repris', 6);
         $item = $this->givenItem($space, 'À rendre publique', '2026-11-12T10:00', showOnCalendar: false);
 
-        self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
+        self::assertNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'À rendre publique',
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->columnRepository->findForSpace($space)[0]->getId(),
             'scheduledAt' => '2026-11-12T10:00',
             'showOnCalendar' => true,
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertNotNull($this->events->findBySource(self::SOURCE, $item['id']));
+        self::assertNotNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
     }
 
     /**
@@ -182,7 +182,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Sans le champ',
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->columnRepository->findForSpace($space)[0]->getId(),
             'scheduledAt' => '2026-11-12T10:00',
         ]);
 
@@ -191,7 +191,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         foreach ($this->payload()['items'] as $item) {
             if ('Sans le champ' === $item['title']) {
                 self::assertTrue($item['showOnCalendar']);
-                self::assertNotNull($this->events->findBySource(self::SOURCE, $item['id']));
+                self::assertNotNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
 
                 return;
             }
@@ -208,7 +208,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/delete', $space->getId(), $item['id']));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
+        self::assertNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
     }
 
     public function testACardWithNoDateNeverReachesTheCalendar(): void
@@ -216,7 +216,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         $space = $this->givenSpace('Espace sans date', 6);
         $item = $this->givenItem($space, 'Une idée', null);
 
-        self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
+        self::assertNull($this->eventRepository->findBySource(self::SOURCE, $item['id']));
     }
 
     private function givenSpace(
@@ -254,7 +254,7 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
-            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'columnId' => $this->columnRepository->findForSpace($space)[0]->getId(),
             'scheduledAt' => $scheduledAt,
             'showOnCalendar' => $showOnCalendar,
         ]);

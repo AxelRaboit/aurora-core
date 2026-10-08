@@ -47,12 +47,12 @@ final class DeliverableReadingController extends AbstractController
     private const string UNLOCKED = 'studio.deliverable.unlocked';
 
     public function __construct(
-        private readonly DeliverableLinkRepository $links,
+        private readonly DeliverableLinkRepository $deliverableLinkRepository,
         private readonly DeliverablePageRenderer $renderer,
         private readonly EntityManagerInterface $entityManager,
         private readonly RateLimiterFactoryInterface $deliverablePasswordLimiter,
         private readonly StudioContext $studioContext,
-        private readonly DeliverableSlidesViewBuilder $slidesView,
+        private readonly DeliverableSlidesViewBuilder $deliverableSlidesViewBuilder,
     ) {}
 
     #[Route('/{token}', name: '', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Get->value])]
@@ -78,7 +78,7 @@ final class DeliverableReadingController extends AbstractController
             $this->entityManager->flush();
 
             return $this->privately($this->render('@Studio/public/deliverable_slides.html.twig', [
-                'deck' => $this->slidesView->readerDeck($deliverable),
+                'deck' => $this->deliverableSlidesViewBuilder->readerDeck($deliverable),
                 'expiresAt' => $link->getExpiresAt(),
             ]));
         }
@@ -110,7 +110,7 @@ final class DeliverableReadingController extends AbstractController
             throw new TooManyRequestsHttpException();
         }
 
-        $link = $this->links->findByToken($token);
+        $link = $this->deliverableLinkRepository->findByToken($token);
         // Cleaned as on creation: a password typed with a trailing space
         // opens the link it locked.
         $password = DeliverableLinkIssuer::password(['password' => (string) $request->request->get('password', '')]);
@@ -140,7 +140,7 @@ final class DeliverableReadingController extends AbstractController
 
     private function readable(string $token): DeliverableLinkInterface
     {
-        $link = $this->links->findByToken($token);
+        $link = $this->deliverableLinkRepository->findByToken($token);
 
         if (!$link instanceof DeliverableLinkInterface || !$link->isUsable(new DateTimeImmutable()) || !$this->isServed($link) || $link->getDeliverable()->isTrashed()) {
             throw $this->createNotFoundException();

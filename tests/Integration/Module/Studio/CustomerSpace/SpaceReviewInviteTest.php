@@ -45,11 +45,11 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SpaceAccessLinkRepository $links;
+    private SpaceAccessLinkRepository $accessLinkRepository;
 
-    private SpaceContentColumnRepository $columns;
+    private SpaceContentColumnRepository $columnRepository;
 
-    private SpaceContentItemRepository $items;
+    private SpaceContentItemRepository $itemRepository;
 
     protected function setUp(): void
     {
@@ -59,9 +59,9 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
 
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->links = $container->get(SpaceAccessLinkRepository::class);
-        $this->columns = $container->get(SpaceContentColumnRepository::class);
-        $this->items = $container->get(SpaceContentItemRepository::class);
+        $this->accessLinkRepository = $container->get(SpaceAccessLinkRepository::class);
+        $this->columnRepository = $container->get(SpaceContentColumnRepository::class);
+        $this->itemRepository = $container->get(SpaceContentItemRepository::class);
 
         $this->loginAdmin();
     }
@@ -98,10 +98,10 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         // The old address is closed, and a new one exists for the same
         // person: the client always has exactly one valid address.
         $this->entityManager->clear();
-        $stored = $this->links->find($previous);
+        $stored = $this->accessLinkRepository->find($previous);
         self::assertNotNull($stored->getRevokedAt());
 
-        $live = $this->links->findApproversForSpace($this->reload($space), new DateTimeImmutable());
+        $live = $this->accessLinkRepository->findApproversForSpace($this->reload($space), new DateTimeImmutable());
         self::assertCount(1, $live);
         self::assertNotSame($previous, $live[0]->getId());
         self::assertSame('camille@societe.test', $live[0]->getRecipientEmail());
@@ -125,7 +125,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
 
         // And above all, the client's address was not closed for nothing.
         $this->entityManager->clear();
-        self::assertNull($this->links->find($previous)->getRevokedAt());
+        self::assertNull($this->accessLinkRepository->find($previous)->getRevokedAt());
     }
 
     /**
@@ -160,7 +160,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         self::assertCount(0, $this->mailerMessages());
 
         $this->entityManager->clear();
-        self::assertNull($this->links->find($previous)->getRevokedAt());
+        self::assertNull($this->accessLinkRepository->find($previous)->getRevokedAt());
     }
 
     /**
@@ -196,7 +196,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         self::assertSame(0, $this->payload()['notified']);
 
         $this->entityManager->clear();
-        self::assertNull($this->links->find($previous)->getRevokedAt());
+        self::assertNull($this->accessLinkRepository->find($previous)->getRevokedAt());
     }
 
     private function loginAdmin(): void
@@ -217,7 +217,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        return $this->links->findForSpace($space)[0]->getId();
+        return $this->accessLinkRepository->findForSpace($space)[0]->getId();
     }
 
     private function givenSpace(): CustomerSpace
@@ -282,7 +282,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
-        self::assertNotNull($this->items->find($id)->getScheduledAt());
+        self::assertNotNull($this->itemRepository->find($id)->getScheduledAt());
 
         return $id;
     }
@@ -319,7 +319,7 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
     /** The step where the client answers: the one cards awaiting a review sit on. */
     private function reviewStep(CustomerSpace $space): SpaceContentColumnInterface
     {
-        foreach ($this->columns->findForSpace($space) as $column) {
+        foreach ($this->columnRepository->findForSpace($space) as $column) {
             if (SpaceContentColumnRoleEnum::Review === $column->getRole()) {
                 return $column;
             }

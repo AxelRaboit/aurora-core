@@ -34,7 +34,7 @@ final class PlanningNotificationDeliveryTest extends IntegrationTestCase
 
     private PlanningNotifier $notifier;
 
-    private PlanningEventAlertRepository $alerts;
+    private PlanningEventAlertRepository $planningEventAlertRepository;
 
     private User $admin;
 
@@ -50,7 +50,7 @@ final class PlanningNotificationDeliveryTest extends IntegrationTestCase
         static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->notifier = static::getContainer()->get(PlanningNotifier::class);
-        $this->alerts = static::getContainer()->get(PlanningEventAlertRepository::class);
+        $this->planningEventAlertRepository = static::getContainer()->get(PlanningEventAlertRepository::class);
         static::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
@@ -127,7 +127,7 @@ final class PlanningNotificationDeliveryTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $found = [];
-        foreach ($this->alerts->findDue(new DateTimeImmutable('2026-08-23 13:30')) as $alert) {
+        foreach ($this->planningEventAlertRepository->findDue(new DateTimeImmutable('2026-08-23 13:30')) as $alert) {
             $found[] = $alert->getId();
         }
 

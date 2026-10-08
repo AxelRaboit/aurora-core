@@ -33,7 +33,7 @@ use function count;
 final readonly class CustomerSpacesTrashSource implements TrashSourceInterface
 {
     public function __construct(
-        private CustomerSpaceRepository $spaces,
+        private CustomerSpaceRepository $spaceRepository,
         private SpaceVisibility $visibility,
         private StudioContext $studioContext,
     ) {}
@@ -51,7 +51,7 @@ final readonly class CustomerSpacesTrashSource implements TrashSourceInterface
     public function getSummary(int $limit): TrashSummary
     {
         $rows = $this->studioContext->areSpacesEnabled()
-            ? array_values(array_filter($this->spaces->findAllTrashed(), $this->visibility->reaches(...)))
+            ? array_values(array_filter($this->spaceRepository->findAllTrashed(), $this->visibility->reaches(...)))
             : [];
 
         $oldest = null;

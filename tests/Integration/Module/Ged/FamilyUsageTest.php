@@ -38,7 +38,7 @@ final class FamilyUsageTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private SettingRepository $settings;
+    private SettingRepository $settingRepository;
 
     private ?string $faviconBefore = null;
 
@@ -50,8 +50,8 @@ final class FamilyUsageTest extends IntegrationTestCase
         parent::setUp();
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->settings = static::getContainer()->get(SettingRepository::class);
-        $this->faviconBefore = $this->settings->get(ApplicationParameterEnum::FaviconMediaId->value);
+        $this->settingRepository = static::getContainer()->get(SettingRepository::class);
+        $this->faviconBefore = $this->settingRepository->get(ApplicationParameterEnum::FaviconMediaId->value);
 
         $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
@@ -60,7 +60,7 @@ final class FamilyUsageTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        $this->settings->set(ApplicationParameterEnum::FaviconMediaId->value, $this->faviconBefore);
+        $this->settingRepository->set(ApplicationParameterEnum::FaviconMediaId->value, $this->faviconBefore);
 
         foreach (array_reverse($this->created) as $document) {
             $managed = $this->entityManager->find(Document::class, $document->getId());
@@ -76,7 +76,7 @@ final class FamilyUsageTest extends IntegrationTestCase
     public function testTheFaviconOfTheSiteIsAUse(): void
     {
         $icon = $this->givenDocument('Favicon');
-        $this->settings->set(ApplicationParameterEnum::FaviconMediaId->value, (string) $icon->getId());
+        $this->settingRepository->set(ApplicationParameterEnum::FaviconMediaId->value, (string) $icon->getId());
 
         $usage = static::getContainer()->get(DocumentUsageService::class)->findUsages((int) $icon->getId());
 
@@ -89,7 +89,7 @@ final class FamilyUsageTest extends IntegrationTestCase
     {
         $green = $this->givenDocument('Visuel');
         $red = $this->givenDocument('Visuel rouge', $green, 'rouge');
-        $this->settings->set(ApplicationParameterEnum::FaviconMediaId->value, (string) $red->getId());
+        $this->settingRepository->set(ApplicationParameterEnum::FaviconMediaId->value, (string) $red->getId());
 
         $row = $this->row((int) $green->getId());
 
@@ -104,7 +104,7 @@ final class FamilyUsageTest extends IntegrationTestCase
     {
         $green = $this->givenDocument('Visuel');
         $red = $this->givenDocument('Visuel rouge', $green, 'rouge');
-        $this->settings->set(ApplicationParameterEnum::FaviconMediaId->value, (string) $red->getId());
+        $this->settingRepository->set(ApplicationParameterEnum::FaviconMediaId->value, (string) $red->getId());
 
         $this->client->request('GET', sprintf('/suite/ged/documents/%d/alternates', $green->getId()));
         self::assertResponseIsSuccessful();

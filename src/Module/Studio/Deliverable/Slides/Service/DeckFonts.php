@@ -54,7 +54,7 @@ final readonly class DeckFonts
     private const array SIGNATURES = ['wOF2', 'wOFF', "\x00\x01\x00\x00", 'true', 'OTTO'];
 
     public function __construct(
-        private DocumentRepository $documents,
+        private DocumentRepository $documentRepository,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
@@ -98,7 +98,7 @@ final readonly class DeckFonts
     public function all(): array
     {
         $alias = 'document';
-        $builder = $this->documents->createQueryBuilder($alias);
+        $builder = $this->documentRepository->createQueryBuilder($alias);
         $extensionConditions = $builder->expr()->orX();
 
         foreach (array_keys(self::EXTENSIONS) as $extension) {
@@ -144,7 +144,7 @@ final readonly class DeckFonts
 
         $fonts = [];
 
-        foreach ($this->documents->findBy(['id' => array_keys($ids)]) as $document) {
+        foreach ($this->documentRepository->findBy(['id' => array_keys($ids)]) as $document) {
             if ($this->isFontDocument($document)) {
                 $fonts[] = $this->describe($document);
             }

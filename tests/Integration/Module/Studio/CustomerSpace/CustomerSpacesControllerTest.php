@@ -30,7 +30,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 {
     private KernelBrowser $client;
 
-    private CustomerSpaceRepository $spaces;
+    private CustomerSpaceRepository $spaceRepository;
 
     private EntityManagerInterface $entityManager;
 
@@ -51,7 +51,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
 
-        $this->spaces = $container->get(CustomerSpaceRepository::class);
+        $this->spaceRepository = $container->get(CustomerSpaceRepository::class);
         $this->entityManager = $container->get(EntityManagerInterface::class);
     }
 
@@ -112,10 +112,10 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
             self::assertSame(200, $this->client->getResponse()->getStatusCode());
         }
 
-        self::assertCount(2, $this->spaces->findAll());
+        self::assertCount(2, $this->spaceRepository->findAll());
         // The decision this pins: a client with two brands runs two calendars,
         // so the relation is a ManyToOne and not a OneToOne.
-        self::assertSame(2, $this->spaces->countForCustomer($customer));
+        self::assertSame(2, $this->spaceRepository->countForCustomer($customer));
     }
 
     public function testASpaceWithoutACustomerIsRefused(): void
@@ -126,7 +126,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         self::assertArrayHasKey('customerId', $this->payload()['errors']);
-        self::assertSame([], $this->spaces->findAll());
+        self::assertSame([], $this->spaceRepository->findAll());
     }
 
     public function testAnUnknownCustomerIsRefusedUnderItsOwnField(): void
@@ -264,13 +264,13 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/delete', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        self::assertNotNull($this->spaces->findTrashed($id));
+        self::assertNotNull($this->spaceRepository->findTrashed($id));
 
         $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/force-delete', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $this->entityManager->clear();
-        self::assertNull($this->spaces->find($id));
+        self::assertNull($this->spaceRepository->find($id));
     }
 
     public function testTheIndexScreenRenders(): void

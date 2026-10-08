@@ -29,8 +29,8 @@ use function sprintf;
 final readonly class DeckPicture
 {
     public function __construct(
-        private DocumentRepository $documents,
-        private DocumentUrlGenerator $documentUrls,
+        private DocumentRepository $documentRepository,
+        private DocumentUrlGenerator $documentUrlGenerator,
     ) {}
 
     /**
@@ -51,7 +51,7 @@ final readonly class DeckPicture
 
         $pictures = [];
 
-        foreach ($this->documents->findBy(['id' => $ids]) as $document) {
+        foreach ($this->documentRepository->findBy(['id' => $ids]) as $document) {
             $picture = $this->of($document);
 
             if (null !== $picture) {
@@ -69,7 +69,7 @@ final readonly class DeckPicture
             return null;
         }
 
-        return $this->of($this->documents->find($id));
+        return $this->of($this->documentRepository->find($id));
     }
 
     /**
@@ -93,8 +93,8 @@ final readonly class DeckPicture
             return null;
         }
 
-        $url = $this->documentUrls->renditionUrl($document, 'large')
-            ?? $this->documentUrls->publicUrl($document);
+        $url = $this->documentUrlGenerator->renditionUrl($document, 'large')
+            ?? $this->documentUrlGenerator->publicUrl($document);
 
         if (null === $url) {
             return null;

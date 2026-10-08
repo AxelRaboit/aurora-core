@@ -54,10 +54,10 @@ class SpaceFilesController extends AbstractController
     public function __construct(
         protected readonly SpaceFileManagerInterface $files,
         protected readonly SpaceFilesViewBuilder $viewBuilder,
-        protected readonly DocumentRepository $documents,
+        protected readonly DocumentRepository $documentRepository,
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly StoredFileResponder $responder,
-        protected readonly UploadPolicyProvider $uploadPolicies,
+        protected readonly UploadPolicyProvider $uploadPolicyProvider,
     ) {}
 
     /**
@@ -80,7 +80,7 @@ class SpaceFilesController extends AbstractController
         // The same rule as on a note and on a guest drop: what is uploaded
         // goes through the administrator's policy. Without it, the only cap
         // was PHP's, and a type refused everywhere else got in here.
-        $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+        $refusal = $this->uploadPolicyProvider->forStaffDocuments()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
             return $this->jsonInvalidInput(['file' => match ($refusal) {
@@ -119,7 +119,7 @@ class SpaceFilesController extends AbstractController
         // Taken only for someone who can browse the media library: a number
         // can be guessed as easily as it is picked, and a file attached to the
         // space is shown to the client. Same response as an unknown number.
-        $document = $this->isGranted('ged.documents.view') ? $this->documents->find((int) $documentId) : null;
+        $document = $this->isGranted('ged.documents.view') ? $this->documentRepository->find((int) $documentId) : null;
 
         if (!$document instanceof DocumentInterface) {
             return $this->jsonInvalidInput(['documentId' => 'suite.studio.space_files.errors.unknown']);

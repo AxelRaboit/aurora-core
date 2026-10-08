@@ -33,11 +33,11 @@ final readonly class MarkdownNotesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private SettingRepository $settingRepository,
         private NoteSpaceAccess $spaceAccess,
-        private NoteSpaceRepository $spaces,
+        private NoteSpaceRepository $spaceRepository,
         private NoteFavoriteManagerInterface $favorites,
         private NoteSpaceSerializerInterface $spaceSerializer,
         private MarkdownNoteMemberRepository $memberRepository,
-        private CraftClient $craft,
+        private CraftClient $craftClient,
     ) {}
 
     /**
@@ -86,7 +86,7 @@ final readonly class MarkdownNotesViewBuilder
             // The Craft import only exists on screen if the installation has
             // opened the connection: an action that leads to an empty list and
             // an explanation is an action that disappoints every time.
-            'craftEnabled' => $this->craft->isConfigured(),
+            'craftEnabled' => $this->craftClient->isConfigured(),
             'craftPaths' => [
                 'documents' => $this->urlGenerator->generate('suite_notes_craft_documents'),
                 'import' => $this->urlGenerator->generate('suite_notes_craft_import'),
@@ -231,7 +231,7 @@ final readonly class MarkdownNotesViewBuilder
     public function spacesFor(CoreUserInterface $user): array
     {
         $this->spaceAccess->personalSpace($user);
-        $spaces = $this->spaces->findReadableFor($user);
+        $spaces = $this->spaceRepository->findReadableFor($user);
         $roles = $this->spaceAccess->rolesFor($user, $spaces);
 
         return array_map(
@@ -342,7 +342,7 @@ final readonly class MarkdownNotesViewBuilder
         $rows = $this->noteRepository->findFlatListForUser($user);
         $folders = $this->folderRepository->findAllForUser($user);
 
-        foreach ($this->spaces->findReadableFor($user) as $space) {
+        foreach ($this->spaceRepository->findReadableFor($user) as $space) {
             $id = (int) $space->getId();
             $first = $this->readingOrder(
                 array_values(array_filter($folders, static fn (NoteFolderInterface $folder): bool => (int) $folder->getSpace()->getId() === $id)),

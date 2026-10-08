@@ -18,9 +18,9 @@ use const DATE_ATOM;
 final readonly class SpaceAccessViewBuilder
 {
     public function __construct(
-        private SpaceAccessLinkRepository $links,
+        private SpaceAccessLinkRepository $accessLinkRepository,
         private CustomerSpaceSerializerInterface $spaceSerializer,
-        private PathTemplateGenerator $pathTemplates,
+        private PathTemplateGenerator $pathTemplateGenerator,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
@@ -36,11 +36,11 @@ final readonly class SpaceAccessViewBuilder
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
             'issuePath' => $this->urlGenerator->generate('workspace_space_access_issue', ['id' => $space->getId()]),
-            'revokePath' => $this->pathTemplates->generate('workspace_space_access_revoke', ['id' => $space->getId(), 'linkId' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('workspace_space_access_delete', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'revokePath' => $this->pathTemplateGenerator->generate('workspace_space_access_revoke', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'deletePath' => $this->pathTemplateGenerator->generate('workspace_space_access_delete', ['id' => $space->getId(), 'linkId' => '__id__']),
             // The Drive box is only offered if the space has one.
             'driveFolderId' => $space->getDriveFolderId(),
-            'previewPath' => $this->pathTemplates->generate('workspace_space_access_preview', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'previewPath' => $this->pathTemplateGenerator->generate('workspace_space_access_preview', ['id' => $space->getId(), 'linkId' => '__id__']),
         ];
     }
 
@@ -51,7 +51,7 @@ final readonly class SpaceAccessViewBuilder
 
         return array_map(
             fn (SpaceAccessLinkInterface $link): array => $this->link($link, $now),
-            $this->links->findForSpace($space),
+            $this->accessLinkRepository->findForSpace($space),
         );
     }
 

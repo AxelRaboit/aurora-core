@@ -33,13 +33,13 @@ final readonly class ContractSignedDocument
     public function __construct(
         private ContractDocumentRenderer $renderer,
         private ContractVariableResolver $resolver,
-        private ContractSignatureRepository $signatures,
+        private ContractSignatureRepository $contractSignatureRepository,
     ) {}
 
     /** The stored document, filled from whatever has been signed so far. */
     public function html(ContractInterface $contract): string
     {
-        return $this->fill($contract, $contract->getRenderedHtml() ?? '', $this->signatures->findForContract($contract));
+        return $this->fill($contract, $contract->getRenderedHtml() ?? '', $this->contractSignatureRepository->findForContract($contract));
     }
 
     /**

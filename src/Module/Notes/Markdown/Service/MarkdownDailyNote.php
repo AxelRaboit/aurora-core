@@ -61,7 +61,7 @@ final readonly class MarkdownDailyNote
         private MarkdownNoteRepository $noteRepository,
         private NoteFolderRepository $folderRepository,
         private NoteSpaceAccess $spaceAccess,
-        private SiteDateFormatter $dates,
+        private SiteDateFormatter $dateFormatter,
         private TranslatorInterface $translator,
     ) {}
 
@@ -71,7 +71,7 @@ final readonly class MarkdownDailyNote
         $space = $this->spaceAccess->personalSpace($user);
         $folder = $this->journalOf($user, $space);
         $title = $this->titleFor($now);
-        $titles = array_map(fn (string $locale): string => $this->dates->date($now, $locale, 'full'), LocaleEnum::values());
+        $titles = array_map(fn (string $locale): string => $this->dateFormatter->date($now, $locale, 'full'), LocaleEnum::values());
 
         foreach ($this->noteRepository->findLivingInFolder($space, (int) $folder->getId()) as $note) {
             if (in_array($note->getTitle(), $titles, true)) {
@@ -87,7 +87,7 @@ final readonly class MarkdownDailyNote
                 $folder,
                 $space,
                 $title,
-                ['{{date}}' => $this->dates->date($now)],
+                ['{{date}}' => $this->dateFormatter->date($now)],
             );
         }
 
@@ -101,7 +101,7 @@ final readonly class MarkdownDailyNote
     /** The day, written out in full in the reader's language: "jeudi 8 octobre 2026". */
     public function titleFor(DateTimeInterface $now): string
     {
-        return $this->dates->date($now, style: 'full');
+        return $this->dateFormatter->date($now, style: 'full');
     }
 
     /**

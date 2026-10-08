@@ -52,13 +52,13 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
     use PrivateAddressResponseTrait;
 
     public function __construct(
-        protected readonly SlidesManager $slides,
+        protected readonly SlidesManager $slidesManager,
         protected readonly SlidesSerializer $slidesSerializer,
         protected readonly DeliverableSlidesViewBuilder $viewBuilder,
         protected readonly EntityManagerInterface $entityManager,
         protected readonly DeckFonts $fonts,
         protected readonly InlineImageUploader $uploader,
-        protected readonly UploadPolicyProvider $uploadPolicies,
+        protected readonly UploadPolicyProvider $uploadPolicyProvider,
     ) {}
 
     /**
@@ -93,7 +93,7 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
             return $this->jsonInvalidInput(['theme' => 'suite.studio.deliverables.slides.errors.theme_unknown']);
         }
 
-        $this->slides->writeAppearance($deliverable, $theme, is_array($payload['style'] ?? null) ? $payload['style'] : []);
+        $this->slidesManager->writeAppearance($deliverable, $theme, is_array($payload['style'] ?? null) ? $payload['style'] : []);
         $deliverable->touch();
         $this->entityManager->flush();
 
@@ -109,7 +109,7 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
             return $this->jsonInvalidInput(['layout' => 'suite.studio.deliverables.slides.errors.layout_unknown']);
         }
 
-        $slide = $this->slides->addSlide($deliverable, $layout);
+        $slide = $this->slidesManager->addSlide($deliverable, $layout);
         $deliverable->touch();
         $this->entityManager->flush();
 
@@ -122,7 +122,7 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
      */
     protected function updateSlide(DeliverableInterface $deliverable, int $slideId, Request $request): JsonResponse
     {
-        $slide = $this->slides->slideOf($deliverable, $slideId);
+        $slide = $this->slidesManager->slideOf($deliverable, $slideId);
         if (!$slide instanceof SlideInterface) {
             return $this->jsonNotFound();
         }
@@ -134,7 +134,7 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
             $slide->setLayout($layout);
         }
 
-        $this->slides->writeContent($slide, is_array($payload['content'] ?? null) ? $payload['content'] : []);
+        $this->slidesManager->writeContent($slide, is_array($payload['content'] ?? null) ? $payload['content'] : []);
         $slide->setSpeakerNotes(is_string($payload['speakerNotes'] ?? null) && '' !== $payload['speakerNotes'] ? $payload['speakerNotes'] : null);
         $deliverable->touch();
         $this->entityManager->flush();
@@ -145,12 +145,12 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
     /** A copy of the slide, placed right after it. */
     protected function duplicateSlide(DeliverableInterface $deliverable, int $slideId): JsonResponse
     {
-        $slide = $this->slides->slideOf($deliverable, $slideId);
+        $slide = $this->slidesManager->slideOf($deliverable, $slideId);
         if (!$slide instanceof SlideInterface) {
             return $this->jsonNotFound();
         }
 
-        $copy = $this->slides->duplicateSlide($slide);
+        $copy = $this->slidesManager->duplicateSlide($slide);
         $deliverable->touch();
         $this->entityManager->flush();
 
@@ -159,12 +159,12 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
 
     protected function deleteSlide(DeliverableInterface $deliverable, int $slideId): JsonResponse
     {
-        $slide = $this->slides->slideOf($deliverable, $slideId);
+        $slide = $this->slidesManager->slideOf($deliverable, $slideId);
         if (!$slide instanceof SlideInterface) {
             return $this->jsonNotFound();
         }
 
-        $this->slides->removeSlide($deliverable, $slide);
+        $this->slidesManager->removeSlide($deliverable, $slide);
         $deliverable->touch();
         $this->entityManager->flush();
 
@@ -176,7 +176,7 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
     {
         $ids = $this->decodeJson($request)['orderedIds'] ?? null;
 
-        $this->slides->reorderSlides($deliverable, is_array($ids) ? array_values(array_filter($ids, is_int(...))) : []);
+        $this->slidesManager->reorderSlides($deliverable, is_array($ids) ? array_values(array_filter($ids, is_int(...))) : []);
         $deliverable->touch();
         $this->entityManager->flush();
 
@@ -202,7 +202,7 @@ abstract class AbstractDeliverableSlidesController extends AbstractController
             return $this->jsonFailure('suite.studio.deliverables.slides.free.font_errors.not_a_font');
         }
 
-        if ($this->uploadPolicies->forStaffDocuments()->refusalFor($file) instanceof UploadRefusalEnum) {
+        if ($this->uploadPolicyProvider->forStaffDocuments()->refusalFor($file) instanceof UploadRefusalEnum) {
             return $this->jsonFailure('suite.studio.deliverables.slides.free.font_errors.refused');
         }
 
