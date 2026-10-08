@@ -468,6 +468,7 @@ notes:
             empty_hint: 'Se guarda una versión cuando modifica la nota, como mucho una cada pocos minutos (ajustes, pestaña Notas).'
             no_author: 'Autor desconocido'
             via_share_link: 'Mediante un enlace compartido'
+            several_hands: "A varias manos: {names}"
             since: "Desde esta versión, líneas añadidas: {added} · quitadas: {removed}"
             show_whole: 'Ver la versión entera'
             show_changes: 'Ver los cambios'

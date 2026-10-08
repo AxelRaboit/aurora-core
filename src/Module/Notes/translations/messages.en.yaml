@@ -466,6 +466,7 @@ notes:
             empty_hint: 'A version is kept when you edit the note, at most one every few minutes (settings, Notes tab).'
             no_author: 'Unknown author'
             via_share_link: Through a share link
+            several_hands: "Written together: {names}"
             since: "Since this version, lines added: {added} · removed: {removed}"
             show_whole: 'Show the whole version'
             show_changes: 'Show the changes'
