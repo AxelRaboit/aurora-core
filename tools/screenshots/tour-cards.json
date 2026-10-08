@@ -785,6 +785,70 @@
         "tour-utilisateur-invitation": {
             "document": 873,
             "slug": "comptes-et-privileges"
+        },
+        "tour-privileges-modification": {
+            "document": 874,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-utilisateur-modules": {
+            "document": 875,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-utilisateur-modifier": {
+            "document": 876,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-dashboard-plateforme": {
+            "document": 877,
+            "slug": "tableau-de-bord"
+        },
+        "tour-multilingue-non-traduit": {
+            "document": 878,
+            "slug": "multilingue"
+        },
+        "tour-formulaire-types-question": {
+            "document": 879,
+            "slug": "formulaires"
+        },
+        "tour-mediatheque-ajout": {
+            "document": 880,
+            "slug": "mediatheque"
+        },
+        "tour-mediatheque-liste": {
+            "document": 881,
+            "slug": "mediatheque"
+        },
+        "tour-mediatheque-page-document": {
+            "document": 882,
+            "slug": "mediatheque"
+        },
+        "tour-reglages-notes": {
+            "document": 883,
+            "slug": "notes-markdown"
+        },
+        "tour-calendrier-nouveau": {
+            "document": 884,
+            "slug": "calendrier"
+        },
+        "espace-ressource": {
+            "document": 885,
+            "slug": "les-espaces-clients"
+        },
+        "espace-nouveau": {
+            "document": 886,
+            "slug": "les-espaces-clients"
+        },
+        "tour-client-nouveau": {
+            "document": 887,
+            "slug": "clients-et-contrats"
+        },
+        "tour-dev-apercu": {
+            "document": 888,
+            "slug": "espace-developpeur"
+        },
+        "tour-reglages-sequences": {
+            "document": 889,
+            "slug": "espace-developpeur"
         }
     }
 }

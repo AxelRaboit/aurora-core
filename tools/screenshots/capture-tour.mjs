@@ -297,22 +297,6 @@ async function deliverableId(page, title) {
 }
 
 /**
- * The editor URL of a deliverable in the open space, by its title: the list
- * is sorted by last modification, and the demo puts three deliverables there
- * next to the audit. Each card's title leads to its editor.
- */
-async function deliverableEditUrl(page, title = "Audit de présence en ligne") {
-    const href = await page
-        .locator("main li")
-        .filter({ hasText: title })
-        .getByRole("link", { name: title, exact: true })
-        .first()
-        .getAttribute("href");
-
-    return new URL(href, page.url()).toString();
-}
-
-/**
  * The demo contract's signing page, at the address the fixtures pin.
  *
  * Derived from the same phrases as `StudioDemoFixtures::pinSigningLink`:
@@ -499,6 +483,32 @@ async function openClientSide(page) {
 }
 
 
+/**
+ * The demo post shared by link only (`ReadingLinkDemoFixtures`), with the
+ * reading link it was sent with.
+ */
+const READING_POST = "Dossier de presse";
+
+/**
+ * Opens that post's editor from the list, searched by title: its id changes
+ * on every fixture reload. Expects the list filtered on it (the shot's path).
+ */
+async function openReadingPost(page) {
+    await page.waitForTimeout(1_500);
+    await rowAction(page, `Actions pour ${READING_POST}`, /^Modifier/);
+    await page.waitForURL(/\/suite\/editorial\/posts\/\d+\/edit/);
+    // The editor keeps a connection open in dev: no `load`, a pause.
+    await page.waitForTimeout(3_000);
+}
+
+/** Opens one of Jean Martin's row actions, on the accounts list. */
+async function userAction(page, action) {
+    await page.waitForTimeout(1_500);
+    await rowAction(page, "Actions pour Jean Martin", action);
+    await page.getByRole("dialog").first().waitFor();
+    await page.waitForTimeout(1_000);
+}
+
 /** Where presentations are listed since 3.0.0: the shared deliverables. */
 const PRESENTATIONS = "/suite/studio/deliverables?scope=shared";
 
@@ -625,7 +635,8 @@ const SHOTS = [
         // it. The language selector sits above the tabs.
         async prepare(page) {
             await openPost(page);
-            await page.getByRole("button", { name: "es", exact: true }).first().click();
+            // The dot on an empty language joins the button's name.
+            await page.locator("main").getByRole("button", { name: /^es\b/ }).first().click();
             await page.waitForTimeout(2_000);
             await page.locator("main").getByRole("tab", { name: /Paramétrage/ }).first().click();
             await page.waitForTimeout(1_200);
@@ -1821,49 +1832,59 @@ const SHOTS = [
     { name: "espace-reglages", path: SPACES, prepare: spaceView("Réglages") },
 
     /**
-     * The audit's reading links, opened from its editor.
-     *
-     * Reached through the space rather than by an id: it changes on every
-     * demo reload.
+     * A post's reading links, opened from its editor: the card talks about
+     * the links of a publication, and the picture showed a deliverable's
+     * share window. The press kit, because it is the demo post shared by
+     * link only, and `ReadingLinkDemoFixtures` already sent it to a newsroom:
+     * the list has a link without the scenario creating one.
      */
     {
         name: "tour-publications-liens-lecture",
-        path: SPACES,
+        path: `/suite/editorial/posts?search=${encodeURIComponent(READING_POST)}`,
         async prepare(page) {
-            await spaceView("Livrables")(page);
-            await page.goto(await deliverableEditUrl(page), { waitUntil: "domcontentloaded" });
-            await page.waitForTimeout(4_000);
-            // Kept in the editor's "Actions" menu, with the preview.
-            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
-            await page.waitForTimeout(500);
-            await page.getByText("Partager", { exact: true }).last().click();
-            await page.getByRole("dialog").first().waitFor();
-            await page.waitForTimeout(1_500);
+            await openReadingPost(page);
+            // The button lives in the "Lecture par lien" card of the
+            // Paramétrage tab, not in the page bar's "Actions".
+            await page.locator("main").getByRole("tab", { name: "Paramétrage", exact: true }).first().click();
+            await page.waitForTimeout(1_200);
+            await page.locator("main").getByRole("button", { name: "Liens de lecture", exact: true }).first().click();
+            const dialog = page.getByRole("dialog").filter({ hasText: "Liens de lecture" }).first();
+            await dialog.waitFor();
+            // Waited on the link itself: the list is fetched when the window
+            // opens, and a shot taken too early says "Aucun lien".
+            await dialog.getByText("Rédaction de Lyon Mag", { exact: false }).first().waitFor();
+            await page.waitForTimeout(1_000);
         },
     },
 
     /**
-     * The page a reading link opens: the audit, without the site around it.
+     * The page a post's reading link opens: the press kit, without the site
+     * around it, under the "Préparé pour" line its settings carry.
      *
      * The URL is asked from the server, which returns it with the list of
-     * links: the token is drawn at random on every demo load. Waited on long
-     * enough for the key figures to finish counting.
+     * links: the token is drawn at random on every demo load.
      */
     {
         name: "tour-publications-page-lecture",
-        path: SPACES,
+        path: `/suite/editorial/posts?search=${encodeURIComponent(READING_POST)}`,
         async prepare(page) {
-            await spaceView("Livrables")(page);
-            const edit = new URL(await deliverableEditUrl(page));
-            const links = `${edit.pathname}/links`;
-            const url = await page.evaluate(async (path) => {
-                const response = await fetch(path, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+            await openReadingPost(page);
+            const id = /\/posts\/(\d+)\//.exec(page.url())?.[1];
 
-                return (await response.json()).links[0].url;
-            }, links);
+            if (undefined === id) throw new Error(`« ${READING_POST} » ne s'est pas ouvert`);
+
+            const url = await page.evaluate(async (postId) => {
+                const response = await fetch(`/suite/editorial/posts/${postId}/reading-links`, { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" } });
+
+                return (await response.json()).links?.find((link) => !link.revokedAt)?.url ?? null;
+            }, id);
+
+            if (!url) throw new Error(`« ${READING_POST} » n'a aucun lien de lecture dans la démo`);
+
             const response = await page.goto(url, { waitUntil: "networkidle" });
             await assertPage(page, response, url);
-            await page.waitForTimeout(3_500);
+            await hideChrome(page);
+            await page.waitForTimeout(2_500);
         },
     },
 
@@ -2791,9 +2812,228 @@ const SHOTS = [
     { name: "tour-reglages-localisation", path: "/suite/configuration/settings/localization" },
     { name: "tour-reglages-anti-robots", path: "/suite/configuration/settings/captcha" },
 
+    /**
+     * Lot 6: accounts and privileges, and the screens still absent from the
+     * tour. Nothing here is saved: every window is photographed open and
+     * filled in, and the next shot's page load throws it away.
+     */
+    {
+        // Jean Martin's privileges being changed: three editorial boxes
+        // ticked, the window not yet saved. `tour-privileges` shows the
+        // window as it opens; this one shows what a change looks like.
+        name: "tour-privileges-modification",
+        path: "/suite/platform/users",
+        async prepare(page) {
+            await userAction(page, /^Privilèges/);
+            const dialog = page.getByRole("dialog").filter({ hasText: "Privilèges" }).first();
+            // Not scrolled: the Éditorial section is in view as the window
+            // opens, under its header, which a scroll pushed out of the frame.
+            for (const label of ["Voir les publications", "Créer des publications", "Modifier les publications"]) {
+                await dialog.getByLabel(label, { exact: true }).check();
+            }
+            // The last box clicked keeps a focus ring otherwise.
+            await page.evaluate(() => document.activeElement?.blur());
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // An account's edit window: photo, name, address, role, manager and
+        // a new password. The account type and the active switch are not in
+        // it: the type is the developer's, deactivating is a row action.
+        name: "tour-utilisateur-modifier",
+        path: "/suite/platform/users",
+        async prepare(page) {
+            await userAction(page, /^Modifier/);
+        },
+    },
+    {
+        // The modules hidden for one account only, on top of the global
+        // switches: the tree of sections and their screens.
+        name: "tour-utilisateur-modules",
+        path: "/suite/platform/users",
+        async prepare(page) {
+            await userAction(page, /^Accès aux modules/);
+        },
+    },
+    {
+        // The Plateforme panel of the dashboard: accounts and their activity.
+        name: "tour-dashboard-plateforme",
+        path: "/suite",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            // In `main`: the side menu has a "Plateforme" section too.
+            await page.locator("main").getByRole("tab", { name: "Plateforme", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // "Ajouter une question" opens on the kinds of question, each with
+        // what it collects. Closed, never chosen.
+        name: "tour-formulaire-types-question",
+        path: "/suite/editorial/forms/1",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            // The page bar's button, not the "Ajouter une question ici"
+            // between the steps.
+            await page.locator("main").getByRole("button", { name: "Ajouter une question", exact: true }).first().click();
+            await page.getByRole("dialog").filter({ hasText: "Quel type de question" }).first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // The media library as a list: title, folder, tags, status, file and
+        // size per row. The mode is remembered, so it is put back on cards
+        // afterwards, the mode the other library shots expect.
+        name: "tour-mediatheque-liste",
+        path: "/suite/ged/documents",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: "Vue liste" }).click();
+            await page.waitForTimeout(2_000);
+        },
+        async after(page) {
+            await page.locator("main").getByRole("button", { name: "Vue cartes" }).click();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // A document's own page, the one its permanent link leads to in the
+        // suite: metadata, the file, and its colour family with where the
+        // original is used. "Visuel de campagne" for that family. Its id
+        // changes on every reload: read from the permanent link its window
+        // shows.
+        name: "tour-mediatheque-page-document",
+        path: `/suite/ged/documents?search=${encodeURIComponent("Visuel de campagne")}`,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await rowAction(page, "Actions pour Visuel de campagne - Automne 2025", /^Voir/);
+            const dialog = page.getByRole("dialog").filter({ hasText: "Visuel de campagne" }).first();
+            await dialog.waitFor();
+            const id = /\/document\/(\d+)/.exec(await dialog.innerText())?.[1];
+
+            if (undefined === id) throw new Error("le lien permanent du document est introuvable");
+
+            const response = await page.goto(`${BASE_URL}/suite/ged/documents/${id}`, { waitUntil: "networkidle" });
+            await assertPage(page, response, page.url());
+            await page.waitForTimeout(2_000);
+            // Down to the end of the page: the family strip and its
+            // thumbnails were cut in half by the bottom edge.
+            await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Adding a document: a file chosen, its title, category and folder.
+        // Never saved.
+        name: "tour-mediatheque-ajout",
+        path: "/suite/ged/documents",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: /Ajouter un document/ }).first().click();
+            const dialog = page.getByRole("dialog").filter({ hasText: "Nouveau document" }).first();
+            await dialog.waitFor();
+            await dialog.locator("input[type=file]").first().setInputFiles(resolve(root, "test_files/images/landscape-placeholder.jpg"));
+            await page.waitForTimeout(1_000);
+            await dialog.getByPlaceholder("Titre du document…").fill("Vitrine de la boulangerie, automne");
+            await dialog.getByPlaceholder("Description optionnelle…").fill("Photo de la façade pour la page d'accueil.");
+            // Shown once an image is chosen.
+            await dialog.getByPlaceholder(/^Décris l.image/).fill("La vitrine de la boulangerie, pains en devanture");
+            await pickOption(page, dialog.locator(".multiselect").filter({ hasText: "Sans catégorie" }).first(), "Ressources Marketing");
+            await pickOption(page, dialog.locator(".multiselect").filter({ hasText: "Aucun dossier" }).first(), "Présentations");
+            await page.waitForTimeout(800);
+        },
+    },
+    { name: "tour-reglages-notes", path: "/suite/configuration/settings/notes" },
+    {
+        // Creating a calendar: name, colour, visibility, time zone. Never
+        // saved.
+        name: "tour-calendrier-nouveau",
+        path: "/suite/planning/calendar",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await page.getByRole("button", { name: "Nouveau calendrier", exact: true }).first().click();
+            const dialog = page.getByRole("dialog").filter({ hasText: "Nouveau calendrier" }).first();
+            await dialog.waitFor();
+            await dialog.getByPlaceholder(/^Travail, Perso/).fill("Séances photo");
+            await dialog.getByPlaceholder("Une phrase pour situer.").fill("Les prises de vue chez les clients, matériel compris.");
+            await dialog.getByPlaceholder("Une phrase pour situer.").blur();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // A new client space: its name, the client, its status, time zone,
+        // colour and team. Never saved.
+        name: "espace-nouveau",
+        path: SPACES,
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: /Nouvel espace/ }).first().click();
+            const dialog = page.getByRole("dialog").filter({ hasText: "Nouvel espace" }).first();
+            await dialog.waitFor();
+            await dialog.getByPlaceholder(/^Boulangerie Martin/).fill("Roux Photographie - Galerie des mariages");
+            await pickOption(page, dialog.locator(".multiselect").filter({ hasText: "Choisir un client" }).first(), "Roux Photographie");
+            await dialog.getByPlaceholder(/^Ce que couvre cet espace/).fill("La sélection des photos de mariage de la saison, et leur livraison aux mariés.");
+            // Nobody added to the team: a member's row pushes the field
+            // that adds one under the window's footer, cut in half.
+            await dialog.getByPlaceholder(/^Ce que couvre cet espace/).blur();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // A resource added to a space: a link, shown to the client. Never
+        // added.
+        name: "espace-ressource",
+        path: SPACES,
+        async prepare(page) {
+            await spaceView("Ressources")(page);
+            await page.locator("main").getByRole("button", { name: /Nouvelle ressource/ }).first().click();
+            const dialog = page.getByRole("dialog").filter({ hasText: "Nouvelle ressource" }).first();
+            await dialog.waitFor();
+            await dialog.getByPlaceholder(/Maquette Canva/).fill("Planning de publication");
+            await dialog.getByPlaceholder("https://").fill("https://docs.example.com/atelier-dupont/planning-automne");
+            await dialog.getByPlaceholder(/ouvrir avec le compte/).fill("Le mois en cours, mis à jour chaque lundi.");
+            await dialog.getByRole("switch").first().click();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // A new client and its legal identity, the fields a contract reads.
+        // Numbers made up (their check digits hold), never saved.
+        name: "tour-client-nouveau",
+        path: "/suite/studio/customers",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: /Nouveau client/ }).first().click();
+            const dialog = page.getByRole("dialog").filter({ hasText: "Nouveau client" }).first();
+            await dialog.waitFor();
+            await pickOption(page, dialog.locator(".multiselect").filter({ hasText: "Prospect" }).first(), "Client");
+            await dialog.getByPlaceholder("Atelier Dupont").fill("Boulangerie Fournier");
+            await dialog.getByPlaceholder(/^SARL, SAS/).fill("SAS");
+            await dialog.getByPlaceholder(/^Restauration/).fill("Boulangerie artisanale");
+            await dialog.getByPlaceholder("10000").fill("15000");
+            await dialog.getByPlaceholder(/^Adresse complète/).fill("12 rue des Tanneurs, 69002 Lyon");
+            await dialog.getByPlaceholder("123 456 789 00012").fill("814 270 559 00010");
+            await dialog.getByPlaceholder("123 456 789", { exact: true }).fill("814 270 559");
+            await dialog.getByPlaceholder("Lyon B 123 456 789").fill("Lyon B 814 270 559");
+            await dialog.getByPlaceholder("FR12345678901").fill("FR64814270559");
+            await dialog.getByPlaceholder("FR12345678901").blur();
+            await page.waitForTimeout(800);
+        },
+    },
+    { name: "tour-reglages-sequences", path: "/suite/configuration/settings/sequences" },
+    { name: "tour-dev-apercu", path: "/dev/dashboard" },
+
     // "tour-releases" and "tour-release-notes" are no longer photographed:
     // they were GitHub pages. They are drawn from the CHANGELOG with
     // `compose-releases.mjs`.
+    {
+        // A post whose Spanish is still to be written: the list greys the
+        // missing language on its row, at a glance among the others. The
+        // demo draft "Ce qui arrive ensuite" has no Spanish on purpose. In
+        // the editor the same gap is only a dot beside "ES", too small to
+        // read in a picture.
+        name: "tour-multilingue-non-traduit",
+        path: "/suite/editorial/posts",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
 ];
 
 async function login(page) {
