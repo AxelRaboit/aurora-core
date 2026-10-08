@@ -58,6 +58,65 @@ Le piège vient du fait que l'URL est `/suite/personal-finance/...` (kebab)
 mais que la référence Vue est `personalfinance/...` (compact). Les deux
 cohabitent pour le même module - c'est inhabituel mais c'est la règle.
 
+## Une dépendance déclarée porte le nom de ce qu'elle **est**
+
+**Rule:** une propriété ou un paramètre promu dont le type finit par un
+suffixe de rôle (`Repository`, `Manager`, `Generator`, `Service`, `Provider`,
+`Builder`, `Client`, `Formatter`, `Resolver`, `Normalizer`, `Parser`,
+`Logger`, … 72 en tout) porte ce rôle dans son nom.
+
+```php
+// non : le nom annonce la donnée que le service rend
+private MarkdownNoteRepository $notes,
+private PathTemplateGenerator $pathTemplates,
+private SiteDateFormatter $dates,
+
+// oui : le nom dit ce que c'est
+private MarkdownNoteRepository $noteRepository,
+private PathTemplateGenerator $pathTemplateGenerator,
+private SiteDateFormatter $dateFormatter,
+```
+
+**Why:** le nom au pluriel se lit comme la collection. Dans sept fichiers, le
+même mot désignait le service **et** sa sortie à une ligne d'intervalle :
+
+```php
+private NoteSpaceRepository $spaces,                  // ligne 36
+$spaces = $this->spaces->findReadableFor($user);      // ligne 234
+```
+
+Le lecteur doit tenir deux sens en tête pour suivre la méthode. Et ce n'était
+pas un problème de repositories : un générateur appelé `$pathTemplates` fait
+exactement la même chose. 376 noms sur 220 fichiers, relevés le 08/10/2026,
+renommés d'un coup.
+
+**How to apply:**
+- La règle dit que le **rôle** est dans le nom, pas que le nom répète le type :
+  `$settingRepository` et `$repository` passent tous les deux, `$settings` non.
+  Quel nom choisir reste un jugement ; qu'il porte le rôle, non.
+- Quand le dépôt a déjà un nom pour ce type, reprendre celui-là plutôt que d'en
+  inventer un (`$settingRepository` existe 62 fois, `$auditLogger` 52 fois).
+- Tenu par `tests/Unit/DependenciesAreNamedAfterTheirRoleTest.php`, qui lit les
+  suffixes et les exceptions dans `tools/naming/full-word-names.json` - le même
+  fichier que la règle des mots complets.
+
+**Deux exceptions, et elles sont dans le fichier, pas dans le jugement :**
+1. **Le nom dit le rôle dans la scène**, et aucune collection n'est annoncée :
+   `$primary` / `$secondary` / `$source` / `$local` / `$remote` dans les tests
+   de stockage, où le sujet *est* quel disque joue quel rôle. Cinq cas,
+   chacun justifié dans `roleNameExceptions`.
+2. **Les paramètres non promus ne sont pas contrôlés**, parce qu'un nom de
+   paramètre est parfois une clé de câblage : Symfony résout
+   `$contractSignatureLimiter` vers le limiteur `contract_signature`, et
+   `config/services.yaml` passe une douzaine d'arguments par leur nom. Un test
+   qui exigerait un renommage là casserait le conteneur au lieu d'améliorer
+   un nom.
+
+**Attention aussi :** une propriété `protected` d'un Manager ou d'un
+Serializer instrumenté est un point d'extension documenté, qu'un client peut
+lire dans un hook surchargé. La renommer casse ce client : ces cas passent par
+le changelog.
+
 ## Anti-patterns
 
 ❌ `src/Module/Crm/assets/suite/contact_tags/` → ✅ `contact-tags/`

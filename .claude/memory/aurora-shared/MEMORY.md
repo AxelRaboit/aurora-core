@@ -55,7 +55,10 @@ Distribué via composer : les clients lisent ces mémoires depuis
   `kebab-case` pour ce qui est lu par un humain (URL, folder assets,
   CSS), `snake_case` pour les identifiants internes (route name,
   setting, DB column, i18n), `PascalCase` pour classes/composants,
-  `camelCase` pour JS. Doc canonique : CLAUDE.md §4 + cette mémoire.
+  `camelCase` pour JS. Porte aussi la règle « une dépendance déclarée porte
+  le nom de ce qu'elle **est** » (`$noteRepository`, pas `$notes`), tenue par
+  `DependenciesAreNamedAfterTheirRoleTest`. Doc canonique : CLAUDE.md §4 +
+  cette mémoire.
 
 ## Vue / composants
 
