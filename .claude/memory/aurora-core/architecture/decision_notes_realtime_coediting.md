@@ -148,10 +148,32 @@ Elles comptent plus que le choix de la bibliothèque.
    devenu obligatoire en pratique.
 2. ~~**Trancher l'arbitrage du chiffrement.**~~ **Fait** le 08/10/2026 : zéro
    persistance, périmètre par espace, personnel jamais éligible.
-3. **Le service** : liaison `y-text` ↔ textarea, awareness sur le salon
-   existant, blob jetable, instantané en révision à la fin de session.
-4. **Le déploiement** : supervision, proxy, cycle de mise à jour, doc côté
-   `aurora-client`. C'est le coût permanent, et celui qu'on sous-estime.
+3. **Le service, et les curseurs** - déploiement compris. Le service Node
+   arrive et ne relaie **que l'awareness** ; le texte continue de passer par
+   la sauvegarde et la fusion de l'étape 1.
+
+   **Rule:** la première livraison du service est celle qui ne transporte
+   aucun texte.
+
+   **Why:** un curseur est un décalage, pas du contenu. Rien ne persiste, rien
+   ne se réécrit, aucun conflit de version - et le service **ne voit jamais le
+   contenu d'une note**, donc l'arbitrage du chiffrement ne s'y applique même
+   pas. Tout ce qui est risqué dans un service - le jeton, la reconnexion, la
+   supervision, le proxy, le mode dégradé - se règle sur une charge utile qui
+   ne peut rien casser. Le déploiement arrive ici parce qu'un service qui se
+   livre doit être déployable.
+
+4. **Le texte, lettre par lettre.** Liaison `y-text` ↔ textarea et le contrat
+   fixé plus haut. C'est **ici** qu'arrive le booléen de co-édition sur
+   l'espace, parce que c'est ici que le texte sort d'Aurora - donc la colonne
+   n'est jamais inerte. Et ici que l'éditeur gagne ses deux modes.
+
+5. **L'historique d'une session** - finition, **non bloquante**. Instantané
+   sur minuterie ou en fin de session, attribution à plusieurs auteurs. Ça ne
+   bloque pas l'étape 4 : la réécriture sur débounce passe par la route
+   normale, donc `MarkdownNoteHistory::beforeChange()` continue de garder une
+   version tous les N minutes. L'historique ne casse pas, il devient seulement
+   grossier.
 
 ## Ce qu'il ne faut surtout pas faire avant
 
