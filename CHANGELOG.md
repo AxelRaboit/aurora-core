@@ -8,6 +8,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 ## [Unreleased]
 
 ### Ajouté
+- **Une note peut s'écrire à plusieurs, lettre par lettre.** À activer par espace, dans ses réglages ; jamais disponible sur un espace personnel, qui ne change pas la promesse qu'il a faite. Le texte circule entre les navigateurs des personnes qui l'écrivent, le temps de la session, et **rien n'est stocké ailleurs que dans la base** : un client désigné réécrit le markdown par la route de sauvegarde habituelle, donc l'extrait, la recherche et la page publique ne retardent jamais de plus de quelques secondes. Sans hub temps réel, le réglage ne change rien et l'éditeur garde son enregistrement automatique et sa fusion.
 - **On voit le curseur de l'autre pendant qu'il écrit.** Sa barre apparaît dans le texte, son nom au-dessus de la ligne, et la couleur reste la même d'une session à l'autre. En direct avec un hub Mercure ; sans hub, rien n'est dessiné plutôt qu'à moitié. Le navigateur ne peut publier que sur un sujet qui ne porte que les curseurs - il ne peut donc pas forger un « la note a changé » ni une liste de présences.
 
 ---
