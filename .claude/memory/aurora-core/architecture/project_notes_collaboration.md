@@ -86,8 +86,19 @@ plutôt que recopier garde l'e-mail du destinataire dans une seule table, et
 l'information survit à la révocation, qui est exactement le moment où quelqu'un
 demande qui a écrit ça.
 
-**How to apply:** `MarkdownNoteRevision::getAuthorLabel()` rend le nom du compte,
-sinon les mots du lien. C'est ce que l'écran d'historique affiche.
+**How to apply:** il n'y a **pas** de `getAuthorLabel()` sur
+`MarkdownNoteRevision`, et son absence est voulue : le nom du compte
+(`getAuthor()`) est ouvert à qui peut lire la note, les mots du lien
+(`getLinkLabel()`) seulement à qui peut l'administrer - l'adresse du
+destinataire appartient à qui a créé le lien. C'est le contrôleur qui tranche,
+avec `canAdministerNote()`, parce que c'est le seul endroit qui sait de quels
+yeux il s'agit. Fondre les deux en une méthode est exactement le défaut que la
+revue de sécurité du 08/10/2026 a corrigé.
+
+Une troisième colonne depuis le 08/10/2026 : `writtenBy`, la liste des
+personnes qui écrivaient au moment où la version a été gardée. Remplie côté
+serveur depuis `NotePresence`, jamais depuis la requête, et seulement quand
+elles étaient plusieurs. Voir [[decision_notes_realtime_coediting]].
 
 ## Le temps réel : facultatif, et le même arbitrage que SpaceChat
 

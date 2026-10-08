@@ -325,3 +325,55 @@ sondage de vingt secondes.
 Les trois valeurs doivent dire la même adresse : `resource_identifier` dans
 `compose.yaml`, et les deux variables de `.env.dev`. Et un 403 du hub n'est pas
 un 401 : jeton valide mais sujet hors de la concession donne **403**.
+
+## L'étape 5, et les deux tiers qui n'étaient pas à faire (08/10/2026)
+
+La feuille de route demandait « un instantané sur minuterie ou en fin de
+session, et une attribution à plusieurs à inventer ». À l'examen, deux des
+trois morceaux n'avaient rien à construire :
+
+- **L'instantané sur minuterie existait déjà.** La réécriture d'une session
+  passe par la route de sauvegarde ordinaire, donc par
+  `MarkdownNoteHistory::beforeChange()`, qui ne garde une version que si la
+  dernière a plus de `RevisionIntervalMinutes`. Une session d'une heure laisse
+  donc une version toutes les N minutes - précisément l'instantané demandé,
+  sans une ligne de mécanique en plus. C'est l'intervalle qui rend la session
+  supportable pour l'historique : sans lui, une heure ferait mille versions.
+- **L'instantané de fin de session n'est pas nécessaire.** Le texte final est
+  dans la note, et la prochaine modification le garde en version. Un signal
+  « la session est terminée » serait un mécanisme sans utilisateur, et il
+  partirait d'un onglet qui se ferme - le moment où une requête part le moins
+  bien.
+- **L'attribution, elle, était fausse.** Un seul client élu envoie la
+  réécriture pour toute la salle : chaque version gardée pendant une session
+  portait le nom de celui qui a enregistré, qui peut n'avoir tapé aucun des
+  caractères conservés. Ce n'est pas une approximation, c'est le mauvais nom
+  sur la pièce.
+
+**Rule:** `MarkdownNoteRevision::$writtenBy` (JSON, nullable) liste
+`{id, name}` de tout le monde qui *écrivait* au moment de la version, rempli
+par `MarkdownNoteHistory::handsOn()`.
+
+**Why:** trois décisions à ne pas refaire.
+
+1. **Lu de `NotePresence`, jamais de la requête.** « Qui d'autre était là »
+   est exactement le genre d'affirmation qu'un navigateur ne doit pas pouvoir
+   faire sur le compte d'autrui : une page pourrait sinon mettre le nom d'un
+   collègue sur une version qu'il n'a jamais vue. La présence est écrite par le
+   battement que chaque page envoie, donc ça marche avec ou sans hub.
+2. **Les noms sont recopiés, pas reliés.** Une version est la trace d'un
+   instant : le nom qu'on veut est le nom de ce moment-là, et fermer un compte
+   ne doit pas retransformer « écrit par deux personnes » en « écrit par une ».
+   C'est le raisonnement du libellé de lien de partage, qui aboutit à
+   l'inverse - un lien est une ligne qui survit à sa révocation, une salle est
+   une liste qui n'existe nulle part ailleurs.
+3. **Les lecteurs n'en font pas partie.** La salle contient aussi ceux qui
+   lisent, et mettre leur nom sur une version serait une trace pire que pas de
+   trace. Seul `editing: true` compte.
+
+**How to apply:** `wasWrittenBySeveralHands()` pour l'affichage,
+`getWrittenBy()` pour les noms. Null pour une sauvegarde ordinaire, qui est la
+quasi-totalité des lignes - `author` dit déjà qui a enregistré, et répéter ce
+nom ailleurs allongerait la trace sans la rendre plus vraie. La démo en montre
+une, écrite à deux mains, parce qu'un état qu'on ne voit jamais est un état
+dont personne ne connaît l'allure.
