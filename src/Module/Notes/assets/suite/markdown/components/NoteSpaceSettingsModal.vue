@@ -424,6 +424,15 @@ async function removeSpace() {
                 </div>
 
                 <div class="mt-3 flex flex-wrap gap-2">
+                    <!-- `space?.` and not `space.`, inside this slot only.
+                         The dialog's own guard keeps the whole block out
+                         while the space is still loading, but a slot body is
+                         run by the button, not here: saving clears the open
+                         space and the button renders its label once more on
+                         the way out, with nothing left to read. It threw a
+                         TypeError the error boundary turned into a failed
+                         page, and the save went through all the same, which
+                         is why nobody had reported it. -->
                     <AppButton
                         variant="secondary"
                         size="md"
@@ -432,7 +441,7 @@ async function removeSpace() {
                         v-on:click="applyPublication(true)"
                     >
                         <Globe class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ space.published ? t('notes.markdown.spaces.publication.update') : t('notes.markdown.spaces.publication.publish') }}
+                        {{ space?.published ? t('notes.markdown.spaces.publication.update') : t('notes.markdown.spaces.publication.publish') }}
                     </AppButton>
                     <AppButton
                         v-if="space.published"
