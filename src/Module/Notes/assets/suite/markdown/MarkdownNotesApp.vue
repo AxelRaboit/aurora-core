@@ -29,7 +29,7 @@ import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
-import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
 import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
@@ -411,9 +411,11 @@ const canShareSelected = computed(() => spaceWritesSelected.value);
 const alwaysEditing = computed(() => true);
 const {
     people: roomPeople,
+    cursors: roomCursors,
     serverVersion: roomVersion,
     changedBy: roomChangedBy,
     live: roomLive,
+    publishCursor,
 } = useNoteLive({
     noteId: selectedId,
     editing: alwaysEditing,
@@ -439,6 +441,37 @@ watch(roomVersion, async (version) => {
     if (version <= loadedVersion.value || isDirty.value) return;
 
     await reloadCurrent();
+});
+
+/**
+ * Says where this reader's caret is, at most five times a second.
+ *
+ * A caret moves on every keystroke and this goes on a network, so the raw
+ * event is throttled here rather than in the editor - the editor has no
+ * reason to know that reporting a caret costs anything. Leading and trailing:
+ * the first move shows at once, and the last one is not the one that gets
+ * dropped, which is the one that matters when somebody stops typing.
+ */
+const CARET_THROTTLE_MS = 200;
+let caretTimer = null;
+let caretPending = null;
+
+function onCaretMoved(index) {
+    caretPending = index;
+
+    if (caretTimer) return;
+
+    void publishCursor(caretPending);
+    caretTimer = setTimeout(() => {
+        caretTimer = null;
+        // Only if it moved again while the gate was shut; otherwise the
+        // position already went out.
+        if (caretPending !== index) void publishCursor(caretPending);
+    }, CARET_THROTTLE_MS);
+}
+
+onBeforeUnmount(() => {
+    if (caretTimer) clearTimeout(caretTimer);
 });
 
 // Whoever is in the room, named. The list is small by nature - the people who
@@ -1606,6 +1639,8 @@ onUnmounted(() => {
                                 :upload-image="api.uploadImage"
                                 :image-max-edge="imageMaxEdge"
                                 :image-quality="imageQuality"
+                                :cursors="roomCursors"
+                                v-on:caret="onCaretMoved"
                             />
                         </div>
 

@@ -1,11 +1,12 @@
+import { caretPositionIn } from "./caretPosition.js";
+
 /**
  * Position a floating menu (slash palette, wiki-link autocomplete)
  * next to a character inside a `<textarea>`.
  *
- * Uses the classic mirror-div trick: build an off-screen <div> with the same
- * font/padding/width as the textarea, fill it with the text up to
- * `startIndex`, and read the on-screen rect of a marker placed at that
- * position.
+ * The caret's own position comes from {@see caretPositionIn}, which three
+ * callers now need; what is left here is the part that is about a *menu* -
+ * clamping it to the screen and picking the side with more room.
  *
  * The returned coordinates are **viewport** coordinates, for `position: fixed`.
  * They used to be relative to the textarea's wrapper, for `position: absolute`,
@@ -32,45 +33,12 @@
 export function positionFloatingMenu(textarea, startIndex, options = {}) {
     const { menuWidth = 224, menuHeight = 256, gap = 8, margin = 8 } = options;
 
-    const text = textarea.value.substring(0, startIndex);
-    const mirror = document.createElement("div");
-    const style = window.getComputedStyle(textarea);
-
-    mirror.style.position = "absolute";
-    mirror.style.visibility = "hidden";
-    mirror.style.whiteSpace = "pre-wrap";
-    mirror.style.overflowWrap = "break-word";
-    mirror.style.width = style.width;
-    mirror.style.font = style.font;
-    mirror.style.letterSpacing = style.letterSpacing;
-    mirror.style.padding = style.padding;
-    mirror.style.lineHeight = style.lineHeight;
-    mirror.style.boxSizing = style.boxSizing;
-    mirror.style.border = style.border;
-
-    mirror.textContent = text;
-    const marker = document.createElement("span");
-    marker.textContent = "|";
-    mirror.appendChild(marker);
-
-    document.body.appendChild(mirror);
-
-    const textareaRect = textarea.getBoundingClientRect();
-    const markerRect = marker.getBoundingClientRect();
-    const mirrorRect = mirror.getBoundingClientRect();
-    const lineHeight = parseFloat(style.lineHeight) || 20;
-
-    // Offset of the caret inside the textarea, then into the viewport.
-    const caretOffsetTop = markerRect.top - mirrorRect.top - textarea.scrollTop;
-    const caretOffsetLeft = markerRect.left - mirrorRect.left;
-
-    document.body.removeChild(mirror);
-
-    const caretTop = textareaRect.top + caretOffsetTop;
-    const caretBottom = caretTop + lineHeight;
+    const caret = caretPositionIn(textarea, startIndex);
+    const caretTop = caret.top;
+    const caretBottom = caretTop + caret.lineHeight;
 
     // ── Horizontal ────────────────────────────────────────────────────────
-    let left = textareaRect.left + caretOffsetLeft;
+    let left = caret.left;
     const maxLeft = window.innerWidth - menuWidth - margin;
     if (left > maxLeft) left = maxLeft;
     if (left < margin) left = margin;

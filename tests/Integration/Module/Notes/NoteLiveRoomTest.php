@@ -103,6 +103,9 @@ final class NoteLiveRoomTest extends IntegrationTestCase
 
         self::assertResponseIsSuccessful();
         self::assertNull($body['streamUrl']);
+        // And no right to publish a cursor either: the page shows no cursors
+        // rather than half of them.
+        self::assertNull($body['awareness']);
         self::assertSame(NotePresence::BEAT_SECONDS, $body['beatSeconds']);
         self::assertSame($note->getVersion(), $body['version']);
         self::assertSame($this->owner->getId(), $body['selfUserId']);
