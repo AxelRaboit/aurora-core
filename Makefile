@@ -378,6 +378,14 @@ test-backend-unit: ## Run backend unit tests
 test-backend-integration: db-test ## Run backend integration tests
 	$(PHP_BIN) $(AURORA)/bin/phpunit --testdox --testsuite=Integration
 
+test-hub: ## Run the Mercure tests against the running hub (needs `make hub-start`)
+	@# Same reason as `test-r2` below: Symfony ignores .env.local under
+	@# APP_ENV=test, so the hub's address and secret have to be put in the
+	@# environment here or these tests skip themselves on the very machine
+	@# that has a hub running.
+	@set -a; . ./.env.dev; set +a; \
+		$(PHP_BIN) $(AURORA)/bin/phpunit --testdox --group hub
+
 test-r2: ## Run the R2 integration tests against a real bucket (needs R2_* in .env.local)
 	@# Symfony deliberately ignores .env.local when APP_ENV=test, so that the
 	@# suite gives everyone the same result. The credentials therefore have to
