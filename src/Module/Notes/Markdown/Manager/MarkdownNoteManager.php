@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Markdown\Manager;
 
+use Aurora\Core\Storage\Message\DeleteStoredFilesMessage;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
@@ -21,6 +22,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsAlias(MarkdownNoteManagerInterface::class)]
 class MarkdownNoteManager implements MarkdownNoteManagerInterface
@@ -36,6 +38,10 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         protected readonly MarkdownNoteImageService $imageService,
         protected readonly NoteSpaceAccess $spaceAccess,
         protected readonly NoteSpaceRepository $spaceRepository,
+        // Last and optional, so a project that builds this manager by hand
+        // keeps working: without a bus, the images of a deleted note are
+        // erased in the request, as they always were.
+        protected readonly ?MessageBusInterface $messageBus = null,
     ) {}
 
     public function create(CoreUserInterface $user, MarkdownNoteInputInterface $input): MarkdownNoteInterface
@@ -233,12 +239,32 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             $notes,
         ));
 
+        if (!$this->messageBus instanceof MessageBusInterface) {
+            foreach ($notes as $note) {
+                $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $this->contentWithHistory($note), null);
+                $this->entityManager->remove($note);
+            }
+
+            $this->entityManager->flush();
+
+            return count($notes);
+        }
+
+        // The keys are read before the rows go, since they depend on the
+        // note's space and on its past versions, and the images themselves
+        // go after the flush, in the worker: each one is a call per disk, and
+        // a failed flush must not cost a note its pictures.
+        $keys = [];
         foreach ($notes as $note) {
-            $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $this->contentWithHistory($note), null);
+            $keys = [...$keys, ...$this->imageService->keysIn($this->contentWithHistory($note), $this->imageService->bucketOf($note))];
             $this->entityManager->remove($note);
         }
 
         $this->entityManager->flush();
+
+        if ([] !== $keys) {
+            $this->messageBus->dispatch(new DeleteStoredFilesMessage(array_values(array_unique($keys))));
+        }
 
         return count($notes);
     }

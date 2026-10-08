@@ -7,9 +7,12 @@ namespace Aurora\Tests\Integration\Module\Ged;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
 use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
+use Aurora\Module\Ged\Document\Message\EraseDocumentFilesMessage;
+use Aurora\Module\Ged\Document\MessageHandler\EraseDocumentFilesHandler;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 
 /**
  * The whole deletion chain, with nothing mocked: real container, real schema,
@@ -69,6 +72,13 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
 
         $manager->forceDelete($document);
 
+        // The row is gone, the bytes wait for the worker: the request does
+        // not pay for the storage calls.
+        self::assertFileExists($liveFile);
+        self::assertFileExists($previousFile);
+
+        $this->runQueue();
+
         self::assertFileDoesNotExist($liveFile);
         self::assertFileDoesNotExist($previousFile);
     }
@@ -125,6 +135,8 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
         $manager->delete($plain);
 
         self::assertSame(2, $manager->emptyTrash());
+
+        $this->runQueue();
 
         self::assertFileDoesNotExist($versionedFile);
         self::assertFileDoesNotExist($previousFile);
@@ -197,6 +209,29 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
 
         self::assertFalse($document->isTrashed());
         self::assertFileExists($liveFile);
+    }
+
+    /**
+     * Stands in for the worker. The handler is invoked directly rather than
+     * through the bus: what is under test is what the queued work does, and
+     * going through the bus would only re-queue it.
+     */
+    private function runQueue(): void
+    {
+        $transport = static::getContainer()->get('messenger.transport.async');
+        self::assertInstanceOf(InMemoryTransport::class, $transport);
+        $handler = static::getContainer()->get(EraseDocumentFilesHandler::class);
+
+        $handled = 0;
+        foreach ($transport->getSent() as $envelope) {
+            $message = $envelope->getMessage();
+            if ($message instanceof EraseDocumentFilesMessage) {
+                $handler($message);
+                ++$handled;
+            }
+        }
+
+        self::assertGreaterThan(0, $handled, 'the erasure was queued for the worker');
     }
 
     private function document(string $title, string $path): Document
