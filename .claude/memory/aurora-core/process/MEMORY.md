@@ -10,3 +10,4 @@
 - [process_propagate_aurora_updates.md](process_propagate_aurora_updates.md) - après un changement core sur develop : push + `make aurora-update` sur les consommateurs (aurora-client = modèle, à bumper en premier)
 - [pitfall_shared_test_database.md](pitfall_shared_test_database.md) - un worktree qui teste a besoin de **sa** base de test : deux suites sur `aurora_test` produisent des dizaines de 302 dans des modules sans rapport
 - [pitfall_empty_migration_registered.md](pitfall_empty_migration_registered.md) - écrire `up()` AVANT le premier `migrations:migrate`, sinon le template vide est marqué exécuté et il faut une migration de rattrapage
+- [process_release_one_command.md](process_release_one_command.md) - la chaîne publier → propager → déployer tient dans `make release` ; ce qu'il refuse et pourquoi, plus le piège du 08/10/2026 où la prod servait deux releases de retard sans que rien ne le dise
