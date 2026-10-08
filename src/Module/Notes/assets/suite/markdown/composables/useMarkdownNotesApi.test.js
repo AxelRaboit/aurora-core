@@ -108,4 +108,20 @@ describe("useMarkdownNotesApi", () => {
         expect(body).toBeNull();
         expect(options.rawBody).toBeInstanceOf(FormData);
     });
+
+    it("asks for today's note with a POST on its own address", async () => {
+        requestMock.mockResolvedValue({ success: true, note: { id: 9 } });
+
+        const result = await useMarkdownNotesApi({
+            ...props,
+            dailyPath: "/api/notes/daily",
+        }).daily();
+
+        expect(requestMock).toHaveBeenCalledWith(
+            "/api/notes/daily",
+            {},
+            expect.objectContaining({ method: "POST", noGuard: true }),
+        );
+        expect(result.payload.note.id).toBe(9);
+    });
 });

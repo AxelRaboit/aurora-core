@@ -43,6 +43,11 @@ const props = defineProps({
     onBack: { type: Function, default: null },
     /** A preview opened in a new tab: a cross, the way out closes the tab. */
     closes: { type: Boolean, default: false },
+    /**
+     * Takes the width of a column, label always shown: the reader's side
+     * column, where it sat as a short box above a full-width search field.
+     */
+    fill: { type: Boolean, default: false },
 });
 
 function cameFromParent() {
@@ -84,10 +89,11 @@ function onClick(event) {
         :type="href ? undefined : 'button'"
         :title="label"
         data-back-link
-        class="inline-flex size-9.5 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line text-sm text-secondary transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 sm:w-auto sm:justify-start sm:pl-2.5 sm:pr-3"
+        class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line text-sm text-secondary transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        :class="fill ? 'h-9.5 w-full min-w-0 justify-start pl-2.5 pr-3' : 'size-9.5 justify-center sm:w-auto sm:justify-start sm:pl-2.5 sm:pr-3'"
         v-on:click="onClick"
     >
         <component :is="closes ? X : ChevronLeft" class="h-4 w-4 shrink-0" :stroke-width="2" aria-hidden="true" />
-        <span class="sr-only sm:not-sr-only sm:max-w-64 sm:truncate">{{ label }}</span>
+        <span :class="fill ? 'min-w-0 truncate' : 'sr-only sm:not-sr-only sm:max-w-64 sm:truncate'">{{ label }}</span>
     </component>
 </template>

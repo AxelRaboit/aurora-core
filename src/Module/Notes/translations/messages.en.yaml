@@ -343,6 +343,9 @@ notes:
             mode: 'Reading mode'
             mode_edit: 'Back to editing'
             contents: 'Contents'
+            shortcut: 'Alt + R'
+            export_markdown: 'Markdown file (.md)'
+            export_pdf: 'PDF, on a light background'
             open: Read the note on its own
             subheading: Reading view
             back: Back to the editor
@@ -434,6 +437,12 @@ notes:
             blank: 'A blank note'
             hint: '{marker} becomes today''s date.'
             failed: 'The note could not be created from this template.'
+        # Today's note: the button, the template it looks for by that same
+        # name, and the folder of the personal space it is filed in.
+        daily:
+            title: 'Today''s note'
+            folder: 'Journal'
+            failed: 'Today''s note could not be opened.'
         add:
             space: "Note space"
             create_space: "Create note space"
@@ -511,6 +520,7 @@ notes:
             title: Links graph
             open: Open graph
             loading: Building graph…
+            all_spaces: All spaces
             empty:
                 title: No nodes to display
                 description: Create a few notes linked with [[wiki-links]] to see the graph.
@@ -519,6 +529,7 @@ notes:
             open: Show outline and links
             close: Close panel
             backlinks: Backlinks
+            backlinks_tab: Links
             mentions: Mentions
             loading: Loading…
             empty_backlinks: No backlinks

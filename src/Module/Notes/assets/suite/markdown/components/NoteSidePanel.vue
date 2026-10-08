@@ -73,7 +73,10 @@ const topLevel = computed(() => Math.min(...outline.value.map((heading) => headi
                 v-on:click="tab = 'backlinks'"
             >
                 <Link2 class="w-3.5 h-3.5" :stroke-width="2" />
-                <span>{{ t('notes.markdown.links.backlinks') }}</span>
+                <!-- One word, like its two neighbours: "Liens entrants" wrapped
+                     on two lines in a tab a third of the panel wide. The full
+                     name stays in the tooltip and the empty state. -->
+                <span :title="t('notes.markdown.links.backlinks')">{{ t('notes.markdown.links.backlinks_tab') }}</span>
             </AppTab>
             <AppTab
                 size="xs"

@@ -151,11 +151,18 @@ describe("l'espace du lecteur", () => {
 });
 
 describe("le retour", () => {
-    /** A back link, not the site name, at the top left. */
-    it("goes back to editing one's own note", () => {
+    /**
+     * A back link to the library, always (08/10/2026): the pencil already
+     * leads to the editor, and two ways to the same place left none back to
+     * the notes.
+     */
+    it("goes back to the library from one's own note", () => {
         const wrapper = render({ canEdit: true });
 
         expect(wrapper.find("[data-reader-back]").attributes("href")).toBe(
+            "/notes",
+        );
+        expect(wrapper.find("[data-read-edit]").attributes("href")).toBe(
             "/notes/5",
         );
     });
@@ -166,6 +173,23 @@ describe("le retour", () => {
         expect(wrapper.find("[data-reader-back]").attributes("href")).toBe(
             "/notes",
         );
+    });
+});
+
+describe("l'export", () => {
+    /** The Markdown file or the PDF, behind one button; the public page prints. */
+    it("offers the export where there is one, and printing otherwise", () => {
+        expect(
+            render({ exportPath: "/notes/5/export" })
+                .find("[data-read-export]")
+                .exists(),
+        ).toBe(true);
+        expect(
+            render({ exportPath: "/notes/5/export" })
+                .find("[data-read-print]")
+                .exists(),
+        ).toBe(false);
+        expect(render({}).find("[data-read-print]").exists()).toBe(true);
     });
 });
 

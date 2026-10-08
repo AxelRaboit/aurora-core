@@ -100,6 +100,11 @@ export function useMarkdownNotesApi(props) {
                 resolvePath(props.fromTemplatePath, id),
                 payload,
             ),
+        /**
+         * Today's note, in the personal space's journal: the server finds the
+         * one already written today, or writes it.
+         */
+        daily: () => call(HttpMethod.Post, props.dailyPath, {}),
         backlinks: (id) =>
             call(HttpMethod.Get, resolvePath(props.backlinksPath, id)),
         unlinkedMentions: (id) =>
