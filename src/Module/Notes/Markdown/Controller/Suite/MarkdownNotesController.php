@@ -502,11 +502,17 @@ final class MarkdownNotesController extends AbstractController
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
         // Started from an outdated version: someone wrote in the meantime,
-        // and saving now would erase their text without them knowing.
-        // We refuse, and the person chooses - reload, or overwrite knowingly.
+        // and saving now would erase their text without them knowing. We
+        // refuse - and hand back **the note as it stands**, so the page can
+        // try to put the two texts together instead of asking somebody to
+        // choose between them. Only when that fails does the person choose.
         // A call that does not state its version goes through, as before.
         if (!$input->isForce() && null !== $input->getVersion() && $input->getVersion() !== $note->getVersion()) {
-            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true, 'version' => $note->getVersion()]);
+            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, [
+                'conflict' => true,
+                'version' => $note->getVersion(),
+                'note' => $this->serializer->serializeDetail($note),
+            ]);
         }
 
         $errors = $this->payloadValidator->errors($input);

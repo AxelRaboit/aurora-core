@@ -133,10 +133,6 @@ notes:
             reading: reading
             streaming: Updated live
             polling: Updated every 20 seconds
-            behind: This note changed while you were writing.
-            behind_by: "{name} changed this note while you were writing."
-            take_theirs: Take their version
-            keep_mine: Keep mine
         people:
             shared_with_me: Shared with me
             button: Share with people
@@ -443,6 +439,7 @@ notes:
         create_in_folder: 'Add to this folder'
         collapse_all: 'Collapse all'
         conflict:
+            merged: What was saved in the meantime has been merged with your own edits.
             title: 'This note changed elsewhere'
             body: 'Someone edited this note while you were writing. Your latest changes were not saved, so as not to erase theirs. Reload to start from their version, or overwrite it with yours.'
             reload: 'Reload their version'

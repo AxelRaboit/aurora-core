@@ -421,35 +421,23 @@ const {
 });
 
 /**
- * Somebody saved after us, and we still have unsaved keystrokes.
+ * Somebody saved after us.
  *
- * **Two different situations, and only one of them is a problem.** With a
- * clean form there is nothing to lose, so the note is reloaded quietly and
- * the person simply sees the new text - which is what makes this feel live.
- * With a dirty form, nothing happens on its own: reloading would throw away
- * what they are typing, and saving would erase what the other person wrote.
- * They choose, through the two answers the conflict already had.
+ * **Two situations, and neither is a question any more.** With a clean form
+ * there is nothing to lose, so the note is reloaded quietly and the person
+ * simply sees the new text - which is what makes this feel live. With a dirty
+ * form, nothing is done here on purpose: the autosave is already pending, it
+ * will be refused, and the refusal is where the two texts are put back
+ * together. A banner asking what to do would have been read after the answer
+ * had already arrived.
  */
-const behind = ref(false);
-
 watch(roomVersion, async (version) => {
     if (null == version || null == loadedVersion.value) return;
 
     // Our own save comes back through the same road: it is only news if the
     // server is ahead of what this form started from.
-    if (version <= loadedVersion.value) {
-        behind.value = false;
+    if (version <= loadedVersion.value || isDirty.value) return;
 
-        return;
-    }
-
-    if (isDirty.value) {
-        behind.value = true;
-
-        return;
-    }
-
-    behind.value = false;
     await reloadCurrent();
 });
 
@@ -459,17 +447,6 @@ const roomNames = computed(() =>
     roomPeople.value.map((person) => person.name).filter(Boolean),
 );
 
-/** Taking the server's version, dropping what could not be saved. */
-async function catchUp() {
-    behind.value = false;
-    await reloadDiscarding();
-}
-
-/** Keeping ours, knowingly, over what the other person wrote. */
-async function overrule() {
-    behind.value = false;
-    await saveAnyway();
-}
 
 /**
  * The Craft import: the space (and the folder) where the note will land, or
@@ -1810,33 +1787,6 @@ onUnmounted(() => {
                     </AppModalFooter>
                 </template>
             </AppModal>
-
-            <!-- Someone saved while this form had unsaved keystrokes.
-                 Deliberately **not** a modal: nothing has failed, and
-                 nothing is lost yet - a dialog over the text somebody is
-                 still typing would be the interruption the feature exists
-                 to avoid. With a clean form this never shows, because the
-                 note is simply reloaded. -->
-            <div
-                v-if="behind"
-                data-note-behind
-                class="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-line bg-surface-2 px-3 py-2"
-            >
-                <TriangleAlert class="h-4 w-4 shrink-0 text-amber-500" :stroke-width="2" />
-                <p class="min-w-0 flex-1 text-sm text-primary">
-                    {{
-                        roomChangedBy
-                            ? t('notes.markdown.live.behind_by', { name: roomChangedBy })
-                            : t('notes.markdown.live.behind')
-                    }}
-                </p>
-                <AppButton variant="secondary" size="sm" data-behind-reload v-on:click="catchUp">
-                    {{ t('notes.markdown.live.take_theirs') }}
-                </AppButton>
-                <AppButton variant="ghost" size="sm" data-behind-keep v-on:click="overrule">
-                    {{ t('notes.markdown.live.keep_mine') }}
-                </AppButton>
-            </div>
 
             <!-- Someone wrote in the note in the meantime. We do not decide
                  for the person: take back their version, or overwrite it

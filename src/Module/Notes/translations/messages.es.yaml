@@ -132,10 +132,6 @@ notes:
             reading: 'leyendo'
             streaming: 'Actualización en directo'
             polling: 'Actualización cada 20 segundos'
-            behind: 'Esta nota cambió mientras escribía.'
-            behind_by: "{name} cambió esta nota mientras escribía."
-            take_theirs: 'Tomar su versión'
-            keep_mine: 'Conservar la mía'
         people:
             shared_with_me: 'Compartidas conmigo'
             button: Compartir con personas
@@ -445,6 +441,7 @@ notes:
         create_in_folder: 'Añadir a esta carpeta'
         collapse_all: 'Plegar todo'
         conflict:
+            merged: 'Lo guardado mientras tanto se ha fusionado con sus cambios.'
             title: 'Esta nota ha cambiado en otro lugar'
             body: 'Alguien modificó esta nota mientras usted escribía. Sus últimos cambios no se han guardado, para no borrar los suyos. Recargue para partir de su versión, o sobrescríbala con la suya.'
             reload: 'Recargar su versión'

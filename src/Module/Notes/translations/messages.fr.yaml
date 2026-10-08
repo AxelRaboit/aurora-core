@@ -137,10 +137,6 @@ notes:
             reading: en lecture
             streaming: Mise à jour en direct
             polling: Mise à jour toutes les 20 secondes
-            behind: Cette note a été modifiée pendant que vous écriviez.
-            behind_by: "{name} a modifié cette note pendant que vous écriviez."
-            take_theirs: Reprendre leur version
-            keep_mine: Garder la mienne
         people:
             shared_with_me: Partagées avec moi
             button: Partager avec des personnes
@@ -447,6 +443,7 @@ notes:
         create_in_folder: 'Ajouter dans ce dossier'
         collapse_all: 'Tout replier'
         conflict:
+            merged: Les modifications enregistrées entre-temps ont été fusionnées avec les vôtres.
             title: 'Cette note a changé ailleurs'
             body: 'Quelqu''un a modifié cette note pendant que vous écriviez. Vos derniers changements n''ont pas été enregistrés, pour ne pas effacer les siens. Rechargez pour repartir de sa version, ou écrasez-la avec la vôtre.'
             reload: 'Recharger sa version'
