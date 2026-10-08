@@ -7,6 +7,10 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
+---
+
+## [4.1.0] - 2026-10-08
+
 ### Ajouté
 - **Une note peut s'écrire à plusieurs, lettre par lettre.** À activer par espace, dans ses réglages ; jamais disponible sur un espace personnel, qui ne change pas la promesse qu'il a faite. Le texte circule entre les navigateurs des personnes qui l'écrivent, le temps de la session, et **rien n'est stocké ailleurs que dans la base** : un client désigné réécrit le markdown par la route de sauvegarde habituelle, donc l'extrait, la recherche et la page publique ne retardent jamais de plus de quelques secondes. Sans hub temps réel, le réglage ne change rien et l'éditeur garde son enregistrement automatique et sa fusion.
 - **Un test joue la scène dans deux vrais navigateurs** (`tests/e2e/notes-coediting.spec.js`) : deux comptes, un hub, l'un tape et l'autre le voit. Il refuse la route de sauvegarde pendant la frappe, pour que ce qui arrive à l'écran ne puisse venir que du document partagé - sans ce refus il passait au vert avec la co-édition débranchée, en mesurant l'enregistrement automatique.
@@ -18,6 +22,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - **Deux personnes arrivées en même temps s'attendaient indéfiniment.** Chacune voyait l'autre dans la salle, chacune demandait donc l'état au lieu d'amorcer, et personne n'avait de document à envoyer. L'interblocage durait aussi longtemps que la note restait ouverte, sans rien à l'écran pour le dire. Le client désigné amorce maintenant quand personne ne répond, et un arrivant resté sans réponse redemande au lieu d'abandonner.
 - **Le hub refusait tous les jetons en développement.** `symfony server:start` expose lui-même les services compose à PHP et impose la boucle locale, pendant que le hub était épinglé sur `localhost` : audience et hub ne concordaient pas, et le hub répondait 401 à tout. La discussion des espaces clients retombait silencieusement sur son sondage de vingt secondes pour la même raison.
 - Enregistrer les réglages d'un espace levait une erreur que la frontière d'erreur transformait en page en échec, alors que l'enregistrement passait. Le libellé du bouton de publication lisait l'espace ouvert dans un *slot*, que le bouton rejoue pendant la fermeture, une fois l'espace déjà refermé.
+
+### Dans aurora-client
+**Deux migrations à jouer**, et `make aurora-update` les joue lui-même : sauvegarder la base **avant**, pas après. La colonne `coediting` des espaces de notes, et la colonne `written_by` de leurs révisions. Les deux sont des ajouts annulables, réversibles, et ne perdent aucun contenu.
+
+**Rien d'autre à faire.** La contrainte `"axelraboit/aurora": "^4.0"` couvre cette version. **La co-édition est éteinte sur tous les espaces** après la migration : aucun espace existant ne change de comportement, et un espace personnel n'est de toute façon jamais éligible. Elle ne s'allume que si un hub Mercure tourne - sans hub, le réglage ne change rien et l'éditeur garde son enregistrement automatique et sa fusion à trois branches.
+
+**Si un hub tourne, vérifier que les trois adresses s'accordent** : `resource_identifier` côté hub, `MERCURE_URL` et `MERCURE_PUBLIC_URL` côté application. Une audience qui ne correspond pas fait répondre 401 au hub sur tout, et le temps réel retombe en silence sur son sondage de vingt secondes - c'est le défaut qui était en place en développement et que cette version corrige.
 
 ---
 
