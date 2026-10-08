@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Notes;
 
+use Aurora\Core\Storage\Message\DeleteStoredFilesMessage;
+use Aurora\Core\Storage\MessageHandler\DeleteStoredFilesHandler;
 use Aurora\Module\Configuration\Setting\Service\SiteDateFormatter;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
@@ -23,6 +25,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use ZipArchive;
@@ -678,6 +682,53 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->request('GET', $url);
         self::assertResponseIsSuccessful();
+    }
+
+    /**
+     * A note deleted for good takes its images with it, but not in the
+     * request: the row goes at once, the files when the worker runs.
+     */
+    public function testANoteDeletedForGoodLeavesItsImagesToTheWorker(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $source = (string) tempnam(sys_get_temp_dir(), 'aurora-test-image-');
+        file_put_contents($source, (string) base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            true,
+        ));
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('suite_notes_markdown_images_upload'),
+            files: ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
+        );
+        $url = json_decode((string) $this->client->getResponse()->getContent(), true)['url'];
+
+        $note = $this->post('suite_notes_markdown_create', ['title' => 'Éphémère', 'content' => sprintf('![Un pixel](%s)', $url)]);
+        $this->post('suite_notes_markdown_force_delete', [], ['id' => $note['note']['id']]);
+        self::assertResponseIsSuccessful();
+
+        // Read before the next request: the client reboots the kernel, and the
+        // in-memory queue with it.
+        $transport = static::getContainer()->get('messenger.transport.async');
+        self::assertInstanceOf(InMemoryTransport::class, $transport);
+        $queued = array_values(array_filter(
+            array_map(static fn (Envelope $envelope): object => $envelope->getMessage(), $transport->getSent()),
+            static fn (object $message): bool => $message instanceof DeleteStoredFilesMessage,
+        ));
+        self::assertCount(1, $queued);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $url);
+        self::assertResponseIsSuccessful('the image outlives the request');
+
+        $handler = static::getContainer()->get(DeleteStoredFilesHandler::class);
+        foreach ($queued as $message) {
+            $handler($message);
+        }
+
+        $this->client->request('GET', $url);
+        self::assertResponseStatusCodeSame(404);
     }
 
     /** A note's history is read with the note, not without it. */

@@ -23,6 +23,7 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
 use Aurora\Module\Ged\Document\Entity\DocumentVersionInterface;
 use Aurora\Module\Ged\Document\Manager\DocumentManager;
+use Aurora\Module\Ged\Document\Message\EraseDocumentFilesMessage;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
@@ -33,12 +34,15 @@ use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTagInterface;
 use Aurora\Module\Ged\DocumentTag\Repository\DocumentTagRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
+use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Result;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 use function dirname;
 
@@ -53,6 +57,9 @@ final class DocumentManagerTest extends TestCase
     private DocumentRepository $documentRepository;
     private DocumentManager $manager;
     private string $workDirectory;
+
+    /** @var Closure(?MessageBusInterface=): DocumentManager */
+    private Closure $makeManager;
 
     protected function setUp(): void
     {
@@ -82,7 +89,7 @@ final class DocumentManagerTest extends TestCase
             },
         );
 
-        $this->manager = new DocumentManager(
+        $this->makeManager = fn (?MessageBusInterface $messageBus = null): DocumentManager => new DocumentManager(
             $this->entityManager,
             $this->categoryRepository,
             $this->makeSequenceGenerator(),
@@ -101,7 +108,10 @@ final class DocumentManagerTest extends TestCase
             ),
             new ImageRenditionGenerator($workspace),
             $storageManager,
+            null,
+            $messageBus,
         );
+        $this->manager = ($this->makeManager)();
     }
 
     protected function tearDown(): void
@@ -441,6 +451,34 @@ final class DocumentManagerTest extends TestCase
 
         self::assertFileDoesNotExist($old);
         self::assertFileDoesNotExist($current);
+    }
+
+    public function testForceDeleteWithABusLeavesTheBytesToTheWorker(): void
+    {
+        // The request only removes the row: the file stays until the worker
+        // erases it, and the message carries everything it needs to, since
+        // the rows its paths came from are gone by then.
+        $absolute = $this->writeSourceImage('ged/2026/05/queued.png', 10, 10);
+        $document = $this->makeImageDocument('ged/2026/05/queued.png');
+        $document->setRenditions(['480' => 'ged/2026/05/queued-480.webp']);
+
+        $sent = [];
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::once())->method('dispatch')->willReturnCallback(
+            static function (object $message) use (&$sent): Envelope {
+                $sent[] = $message;
+
+                return new Envelope($message);
+            },
+        );
+
+        ($this->makeManager)($bus)->forceDelete($document);
+
+        self::assertFileExists($absolute);
+        self::assertEquals(
+            [new EraseDocumentFilesMessage(StorageDiskEnum::Local, ['ged/2026/05/queued-480.webp'], ['ged/2026/05/queued.png'])],
+            $sent,
+        );
     }
 
     public function testForceDeleteSparesAFileAnotherDocumentStillPointsAt(): void
