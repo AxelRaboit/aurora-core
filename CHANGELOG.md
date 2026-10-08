@@ -15,6 +15,8 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - Un sous-module « Notes à plusieurs » dans `/dev/dashboard/modules` ferme la liste d'invités et l'écriture invitée. Actif par défaut ; l'éteindre ne retire pas une note à quelqu'un à qui elle a déjà été confiée.
 
 ### Sécurité
+- Un lien de partage ne nomme son destinataire qu'à qui peut administrer la note. L'historique est ouvert à qui peut la **lire** : un collègue de son espace, ou quelqu'un à qui elle a été confiée en lecture, pouvait y lire l'adresse d'une personne extérieure. Les autres voient « Par un lien de partage ».
+- Une note mise à la corbeille n'est plus modifiable par un lien. La supprimer est la façon la plus claire de dire que personne ne doit plus y toucher, et l'invité n'a aucun moyen de savoir que c'est arrivé.
 - Un droit accordé sur une note ne touche que **son texte**. Classer, déplacer, mettre à la corbeille, purger, dupliquer, en faire un modèle et créer un lien de partage restent à l'espace qui la contient : un invité qui pourrait déplacer la note dans son propre espace l'aurait simplement prise.
 - La route d'écriture invitée est limitée à soixante enregistrements par heure et par adresse IP (`notes_share_write`), et chaque écriture garde l'état précédent en version avant de remplacer.
 - Une note confiée n'entre jamais dans la corbeille de l'invité, qui pourrait sinon la détruire définitivement.
