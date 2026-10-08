@@ -1,11 +1,11 @@
 ---
 name: decision_notes_realtime_coediting
-description: La co-édition caractère par caractère d'une note passera par un service y-websocket, qui ne persiste rien - les clients sont la sauvegarde, donc le chiffrement au repos est préservé. Activée par espace, jamais sur un espace personnel. Tranché le 08/10/2026.
+description: La co-édition caractère par caractère d'une note se fera **sans service** : les clients tiennent le document, le bus sert de rendez-vous, et le chiffrement au repos est préservé. Activée par espace, jamais sur un espace personnel. Mesures de transfert d'état à l'appui. Tranché le 08/10/2026.
 metadata:
   type: project
 ---
 
-# Notes : la co-édition temps réel passera par un service, et par un seul propriétaire de l'état
+# Notes : la co-édition temps réel se fera sans service, et les clients tiennent le document
 
 ## Où on en est
 
@@ -94,7 +94,24 @@ posée là où `isPersonal()` l'est déjà. Et **la colonne arrive avec le
 service**, jamais avant - voir la section « ce qu'il ne faut surtout pas faire
 avant ».
 
-## L'architecture retenue : un service `y-websocket`
+## L'architecture retenue : aucun service, et pourquoi elle a changé trois fois
+
+**État au 08/10/2026 au soir : pas de service.** Cette section garde le
+raisonnement qui menait à un service, parce qu'il reste juste *pour le
+document tant qu'on le croyait persistant* - et parce que la façon dont il
+est tombé est l'information la plus utile du fichier.
+
+**Trois fois dans la journée, une contrainte réelle sur une chose a été
+élargie à tout ce qui était à côté** : « le chiffrement interdit un CRDT
+serveur » (faux dès qu'on ne persiste rien), « Mercure ne peut pas porter
+l'awareness » (faux, un curseur n'a pas d'état autoritaire), « il faut un
+service pour tenir le document » (faux, les clients le tiennent). À chaque
+fois la correction a supprimé du travail. **Devant la prochaine affirmation de
+cette forme, mesurer avant de planifier.**
+
+### Le raisonnement d'origine, conservé
+
+
 
 **Rule:** l'autorité sur le document vit dans **un process**, jamais répartie
 entre des navigateurs.
@@ -184,10 +201,49 @@ Elles comptent plus que le choix de la bibliothèque.
    compris. L'étape des curseurs a prouvé le jeton, la reconnexion et le mode
    dégradé sur une charge utile qui ne pouvait rien casser.
 
-4. **Le texte, lettre par lettre.** Liaison `y-text` ↔ textarea et le contrat
-   fixé plus haut. C'est **ici** qu'arrive le booléen de co-édition sur
-   l'espace, parce que c'est ici que le texte sort d'Aurora - donc la colonne
-   n'est jamais inerte. Et ici que l'éditeur gagne ses deux modes.
+4. **Le texte, lettre par lettre** - et **sans service**, décidé le
+   08/10/2026 après mesure.
+
+   **Rule:** l'amorçage se fait entre pairs sur le bus. Pas de service Node.
+
+   **Why:** la zéro-persistance a vidé le service de son travail. S'il ne
+   garde rien, son seul rôle restant est de tenir le document pendant que des
+   gens sont connectés - et **les clients le tiennent déjà, chacun en
+   entier**, ce qui est précisément la propriété qui justifiait la
+   zéro-persistance. Il ne lui restait qu'à être le point de rendez-vous, et
+   on en a un : le bus.
+
+   **Mesuré avant de s'engager** (`yjs` 13.6.33, insertions d'un caractère à
+   des positions aléatoires, 3/s, sans pause ni suppression - donc une borne
+   haute et non une estimation) :
+
+   | état transféré à un arrivant | octets | en base64 |
+   |---|---|---|
+   | amorçage, note de 1,8 ko | 1 838 | 2 452 |
+   | + 5 min de frappe | 22 503 | 30 004 |
+   | + 30 min | 121 004 | 161 340 |
+   | + 2 h | 497 759 | 663 680 |
+   | recompacté depuis le texte | 29 738 | - |
+
+   La croissance est bornée par la **durée d'une session**, pas par l'âge de
+   la note : chaque session repart du markdown, donc d'un état minuscule. Le
+   recompactage récupère 94 % mais ne peut se faire que si *tout le monde*
+   repart de la nouvelle identité - sinon c'est le piège des historiques
+   incompatibles - donc il arrive tout seul, à la session suivante.
+
+   **Et le service n'aurait rien changé à ces octets** : sans persistance il
+   tiendrait le même document qui grossit, et l'arrivant tirerait les mêmes
+   octets depuis lui au lieu d'un pair. Le risque invoqué pour le garder en
+   repli n'est pas un risque qu'il traite.
+
+   **Ce qu'un service achèterait encore**, si le repli devait servir : un
+   rendez-vous qui ne dépend pas d'un pair réactif (l'onglet du pair désigné
+   peut être gelé), et un tuyau qui n'est pas un POST derrière Apache pour un
+   transfert de quelques centaines de kilo-octets.
+
+   C'est **ici** qu'arrive le booléen de co-édition sur l'espace, parce que
+   c'est ici que le texte sort d'Aurora - donc la colonne n'est jamais
+   inerte. Et ici que l'éditeur gagne ses deux modes.
 
 5. **L'historique d'une session** - finition, **non bloquante**. Instantané
    sur minuterie ou en fin de session, attribution à plusieurs auteurs. Ça ne
