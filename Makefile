@@ -96,6 +96,16 @@ outdated: ## Show outdated packages
 	$(COMPOSER) outdated --working-dir=$(AURORA)
 
 # === Release ===
+release: ## Publish, propagate and deploy in one go (see tools/release/release.sh --help)
+	@# The whole chain: aurora-core to master, the canary bumped and gated on
+	@# `make ft`, aurora-client published, the server deployed. It refuses at
+	@# every step it cannot verify rather than guessing, and it names the
+	@# migrations a range carries before anything touches a database.
+	@#
+	@# `make release DRY=1` says what it would do and writes nothing. Always
+	@# worth one run first: the refusals are the point of the script.
+	tools/release/release.sh $(if $(DRY),--dry-run,) $(if $(NO_BACKUP),--no-backup,) $(if $(STOP_AT),--stop-at=$(STOP_AT),)
+
 tag: ## Superseded - releases are published from master by .github/workflows/release.yml
 	@echo "❌ 'make tag' ne sert plus, et pouvait nuire."
 	@echo ""

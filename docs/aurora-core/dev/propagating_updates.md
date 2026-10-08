@@ -128,6 +128,18 @@ Sans ça, `composer update` côté client tirerait l'ancien état (cf. plus haut
 
 ### 2. Bumper chaque consommateur
 
+> 🚀 **Tout ça en une commande** : `make release` (`tools/release/release.sh`)
+> enchaîne publication d'aurora-core, propagation vers le canari, publication
+> d'aurora-client et déploiement sur le serveur, en refusant à chaque porte
+> qu'il ne peut pas vérifier - CI rouge, `make ft` rouge sur le canari, tag
+> qui n'apparaît pas, `VERSION` qui ne bouge pas. Il nomme les migrations de
+> la fourchette **avant** de toucher une base, et sauvegarde la production par
+> défaut. `make release DRY=1` dit ce qu'il ferait sans rien écrire : à lancer
+> une première fois, les refus étant tout l'intérêt du script.
+>
+> Les étapes ci-dessous restent la référence - c'est ce que le script fait, et
+> ce qu'il faut savoir refaire à la main quand il s'arrête quelque part.
+
 ```bash
 # depuis aurora-client D'ABORD (projet modèle / canari), puis les autres consommateurs
 make aurora-update
