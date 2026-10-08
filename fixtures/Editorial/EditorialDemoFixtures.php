@@ -435,7 +435,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'terms' => ['release'],
                 'fr' => ['Ce qui arrive ensuite', 'ce-qui-arrive-ensuite', 'Un brouillon, visible seulement en administration.'],
                 'en' => ['What comes next', 'what-comes-next', 'A draft, visible in the suite only.'],
-                'es' => ['Lo que viene después', 'lo-que-viene-despues', 'Un borrador, visible solo en la administración.'],
+                // No Spanish on purpose: a draft whose translation is still to
+                // come is the ordinary case, and the editor's language tabs
+                // and the list's badges have something to flag.
             ],
             // The two statuses the demo did not have. The documentation page on the
             // lifecycle announces five, and the list showed only three: a screenshot
@@ -640,6 +642,17 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ]));
 
             foreach (LocaleEnum::values() as $locale) {
+                if (!isset($definition[$locale])) {
+                    // Dropped from a demo loaded before the language was.
+                    $stale = $post->getTranslation($locale);
+                    if ($stale instanceof PostTranslationInterface) {
+                        $post->getTranslations()->remove($locale);
+                        $entityManager->remove($stale);
+                    }
+
+                    continue;
+                }
+
                 [$title, $slug, $description] = $definition[$locale];
 
                 $translation = $post->translate($locale)
