@@ -18,6 +18,9 @@ const props = defineProps({
     root: { type: Object, default: null },
 });
 
+/** `count`: how many headings it found, for a page that hides an empty frame around it. */
+const emit = defineEmits(["count"]);
+
 const { t } = useI18n();
 
 const headings = ref([]);
@@ -36,6 +39,7 @@ function collect() {
     headings.value = elements
         .map((element, index) => ({ element, text: element.textContent.trim(), depth: levels[index] - top }))
         .filter((heading) => "" !== heading.text);
+    emit("count", headings.value.length);
 
     observer?.disconnect();
     // Not every browser has it (nor the test DOM): the outline still works,

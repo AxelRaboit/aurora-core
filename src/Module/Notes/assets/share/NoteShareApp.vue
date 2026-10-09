@@ -450,6 +450,9 @@ const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyR
 
 useNoteHtmlEnhancer(bodyRef, () => [html.value, draftHtml.value, editing.value, view.value.mode], { loadEmbed });
 const showsOutline = computed(() => null !== props.meta && (!editing.value || "preview" === view.value.mode));
+/** Headings the outline found: under two, its frame stays hidden. */
+const outlineCount = ref(0);
+const outlineShown = computed(() => showsOutline.value && outlineCount.value > 1);
 // Remounted when the headings change, so a title typed in the room shows up.
 const outlineKey = computed(() => outlineOf(shownContent.value).map((heading) => heading.text).join("\n"));
 
@@ -482,26 +485,38 @@ const lookClass = computed(() =>
 
 <template>
     <div class="flex flex-col gap-2 sm:gap-4 md:flex-row md:items-start">
-        <nav
-            v-if="hasTree"
-            class="aurora-card w-full shrink-0 p-2 md:w-64 print:hidden"
-            :aria-label="t('notes.markdown.share.tree_label')"
+        <!-- The share's notes and the note's outline, beside the card rather
+             than inside it: inside, the outline took a column of the card and
+             the rendered note read as if the page were split (09/10/2026). -->
+        <div
+            v-if="hasTree || showsOutline"
+            class="w-full shrink-0 flex-col gap-2 sm:gap-4 md:sticky md:top-6 md:w-64 print:hidden"
+            :class="hasTree ? 'flex' : outlineShown ? 'hidden lg:flex' : 'hidden'"
         >
-            <ul class="flex flex-col">
-                <li v-for="node in tree" :key="node.id">
-                    <a
-                        :href="shareNotePath.replace('__id__', String(node.id))"
-                        class="block truncate rounded-md px-2 py-1.5 text-sm transition-colors"
-                        :class="
-                            node.id === noteId
-                                ? 'bg-surface-2 font-medium text-primary'
-                                : 'text-secondary hover:bg-surface-2'
-                        "
-                        :style="{ paddingLeft: '0.5rem' }"
-                    >{{ titleOf(node) }}</a>
-                </li>
-            </ul>
-        </nav>
+            <nav
+                v-if="hasTree"
+                class="aurora-card w-full p-2"
+                :aria-label="t('notes.markdown.share.tree_label')"
+            >
+                <ul class="flex flex-col">
+                    <li v-for="node in tree" :key="node.id">
+                        <a
+                            :href="shareNotePath.replace('__id__', String(node.id))"
+                            class="block truncate rounded-md px-2 py-1.5 text-sm transition-colors"
+                            :class="
+                                node.id === noteId
+                                    ? 'bg-surface-2 font-medium text-primary'
+                                    : 'text-secondary hover:bg-surface-2'
+                            "
+                            :style="{ paddingLeft: '0.5rem' }"
+                        >{{ titleOf(node) }}</a>
+                    </li>
+                </ul>
+            </nav>
+            <div v-if="showsOutline" class="aurora-card hidden p-3" :class="outlineShown ? 'lg:block' : ''">
+                <NoteReaderOutline :key="outlineKey" :root="bodyRef" v-on:count="outlineCount = $event" />
+            </div>
+        </div>
 
         <article
             class="note-print-article aurora-card min-w-0 flex-1 overflow-hidden"
@@ -649,8 +664,8 @@ const lookClass = computed(() =>
                     </template>
                 </dl>
 
-                <div class="flex gap-8">
-                    <div ref="bodyRef" class="min-w-0 flex-1">
+                <div>
+                    <div ref="bodyRef" class="min-w-0">
                         <!-- The markdown source, plainly. No upload, no slash
                      commands, no autocomplete: this page has no account
                      behind it, and every feature here is one more thing an
@@ -747,13 +762,6 @@ const lookClass = computed(() =>
                      as written. Seen at 375 px on the shared page. -->
                         <div v-else class="note-preview prose prose-sm dark:prose-invert max-w-none" v-html="html" />
                     </div>
-                    <!-- The outline beside the rendered note on a wide screen,
-                     as in the reader. -->
-                    <aside v-if="showsOutline" class="hidden w-56 shrink-0 xl:block print:hidden">
-                        <div class="sticky top-6">
-                            <NoteReaderOutline :key="outlineKey" :root="bodyRef" />
-                        </div>
-                    </aside>
                 </div>
             </div>
         </article>
