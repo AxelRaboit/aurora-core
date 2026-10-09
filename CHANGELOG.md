@@ -5,6 +5,27 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.7.0] - 2026-10-09
+
+### Ajouté
+- **Un écran de recherche pour tout le carnet** (Cmd+Maj+S, ou la loupe à texte de la bibliothèque). Il fouille le titre, le texte, les intertitres, les étiquettes, les propriétés et les commentaires, sans tenir compte des accents ni des majuscules : « echeance » trouve « Échéance ». Tous les mots doivent être présents, une `"phrase exacte"` est cherchée telle quelle, `-mot` exclut. Les résultats viennent du plus pertinent (titre d'abord) ou du plus récent, avec les passages trouvés surlignés et le temps de la recherche.
+- **Des filtres à taper ou à choisir** dans le menu « Filtres » : `tag:client`, `dossier:Clients`, `espace:…`, `tâche:à-faire`, `a:commentaire`, `a:image`, `modifiée:>2026-09-01`, `titre:mot`, et toute propriété de la note (`statut:"En cours"`). Des pastilles sous la recherche affinent par étiquette, dossier ou espace en un clic.
+- **Recherches récentes et enregistrées** : l'épingle garde une recherche, les dernières reviennent quand le champ est vide.
+- **Ouvrir un résultat amène au passage** : il est surligné dans l'aperçu et sélectionné dans le texte.
+- **Chercher et remplacer dans une note** : Cmd+F cherche, Cmd+Option+F remplace (Ctrl+F et Ctrl+Alt+F ailleurs). Les occurrences sont surlignées dans l'éditeur, Entrée passe à la suivante, « Aa » respecte accents et majuscules. Un remplacement passe par le même chemin qu'une frappe : la co-édition le voit.
+- **Remplacer dans plusieurs notes** depuis l'écran de recherche : le volet « Remplacer » compte d'abord les occurrences et les notes concernées, puis remplace une fois confirmé. Les notes en lecture seule ou verrouillées sont laissées de côté et comptées ; chaque note modifiée garde sa version précédente dans son historique.
+
+### Modifié
+- **La recherche du panneau latéral montre où le mot a été trouvé** : un extrait surligné sous chaque note trouvée par son contenu. Elle ignore aussi les accents.
+- **Cmd+P cherche aussi dans le contenu** : sous les titres, une section « Dans le contenu » avec le passage trouvé, et une dernière ligne qui ouvre l'écran de recherche.
+- **La recherche de la bibliothèque ignore les accents** et propose, sous la liste, de chercher dans tout le carnet.
+- **Cmd+K cherche les notes avec le même moteur** : accents ignorés, plusieurs mots, étiquettes, propriétés et commentaires compris, et non plus la seule phrase tapée telle quelle.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.6.5] - 2026-10-09
 
 ### Modifié

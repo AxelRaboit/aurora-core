@@ -1,6 +1,7 @@
 import { ref, watchEffect } from "vue";
 import { buildTree as buildHierarchicalTree } from "@/shared/composables/tree/useHierarchicalTree.js";
 import { compareSiblings } from "./noteSiblingOrder.js";
+import { foldSearch } from "./noteSearchHighlight.js";
 
 /**
  * The menu tree: folders, and what they contain.
@@ -20,7 +21,11 @@ import { compareSiblings } from "./noteSiblingOrder.js";
  * stays shown when it contains a result, otherwise the result would have no
  * branch left to hang from. `contentMatchIdsRef` brings the notes found by
  * their text, which the browser does not have: the bodies are encrypted and
- * stay on the server.
+ * stay on the server. `snippetsRef` maps such a note to the passage where the
+ * words were found, shown under its row.
+ *
+ * Titles, names and tags are compared without accents nor case, as the
+ * server does: « echeance » finds « Échéance » on both sides.
  */
 function siblingOrder(nodes) {
     return [...nodes].sort(compareSiblings);
@@ -31,13 +36,15 @@ export function useNoteTree(
     queryRef = null,
     notesRef = null,
     contentMatchIdsRef = null,
+    snippetsRef = null,
 ) {
     const tree = ref([]);
 
     watchEffect(() => {
-        const query = (queryRef?.value ?? "").trim().toLowerCase();
+        const query = foldSearch((queryRef?.value ?? "").trim());
         const notes = notesRef?.value ?? [];
         const contentIds = contentMatchIdsRef?.value ?? null;
+        const snippets = snippetsRef?.value ?? null;
 
         const notesByFolder = new Map();
         for (const note of notes) {
@@ -68,7 +75,8 @@ export function useNoteTree(
             ...(notesByFolder.get(0) ?? []),
         ]);
 
-        tree.value = "" === query ? full : filterTree(full, query, contentIds);
+        tree.value =
+            "" === query ? full : filterTree(full, query, contentIds, snippets);
     });
 
     function decorate(node, notesByFolder) {
@@ -90,34 +98,34 @@ export function useNoteTree(
 
     function matches(node, query, contentIds) {
         if ("folder" === node.kind) {
-            return String(node.name ?? "")
-                .toLowerCase()
-                .includes(query);
+            return foldSearch(node.name).includes(query);
         }
 
-        if (
-            String(node.title ?? "")
-                .toLowerCase()
-                .includes(query)
-        )
-            return true;
+        if (foldSearch(node.title).includes(query)) return true;
 
         if (contentIds?.has(Number(node.id))) return true;
 
-        return (node.tags ?? []).some((tag) =>
-            String(tag).toLowerCase().includes(query),
-        );
+        return (node.tags ?? []).some((tag) => foldSearch(tag).includes(query));
     }
 
-    function filterTree(nodes, query, contentIds) {
+    function filterTree(nodes, query, contentIds, snippets) {
         const kept = [];
 
         for (const node of nodes) {
-            const children = filterTree(node.children ?? [], query, contentIds);
+            const children = filterTree(
+                node.children ?? [],
+                query,
+                contentIds,
+                snippets,
+            );
             const selfMatch = matches(node, query, contentIds);
 
             if (selfMatch || children.length > 0) {
-                kept.push({ ...node, matched: selfMatch, children });
+                const snippet =
+                    "note" === node.kind
+                        ? (snippets?.get(Number(node.id)) ?? null)
+                        : null;
+                kept.push({ ...node, matched: selfMatch, snippet, children });
             }
         }
 

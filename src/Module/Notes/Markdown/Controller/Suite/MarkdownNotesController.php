@@ -33,6 +33,8 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\Service\NoteTasks;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Reminder\Service\NoteReminders;
+use Aurora\Module\Notes\Search\NoteReplace;
+use Aurora\Module\Notes\Search\NoteSearch;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -50,12 +52,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_filter;
+use function array_map;
 use function array_values;
 use function iconv;
 use function is_array;
 use function is_int;
 use function is_numeric;
 use function is_string;
+use function mb_substr;
 use function preg_replace;
 
 #[Route('/suite/notes/markdown', name: 'suite_notes_markdown')]
@@ -964,14 +968,62 @@ final class MarkdownNotesController extends AbstractController
         return $this->jsonSuccess($this->manager->graph($user));
     }
 
+    /**
+     * The notes matching a search, best first, with the passage that matched
+     * (10/10/2026): the side panel filters its tree with the ids and shows
+     * the passage under each note.
+     */
     #[Route('/search', name: '_search', methods: [HttpMethodEnum::Get->value])]
-    public function search(Request $request): JsonResponse
+    public function search(Request $request, NoteSearch $noteSearch): JsonResponse
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
-        $query = (string) $request->query->get('q', '');
 
-        return $this->jsonSuccess(['ids' => $this->manager->searchContent($user, $query)]);
+        return $this->jsonSuccess($noteSearch->ids($user, (string) $request->query->get('q', '')));
+    }
+
+    /**
+     * The search screen (10/10/2026): results with their passages and
+     * highlights, the counts by tag, folder and space, and the time it took.
+     */
+    #[Route('/search/full', name: '_search_full', methods: [HttpMethodEnum::Get->value])]
+    public function searchFull(Request $request, NoteSearch $noteSearch): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+        $sort = 'date' === $request->query->get('sort') ? 'date' : 'relevance';
+
+        return $this->jsonSuccess($noteSearch->search($user, (string) $request->query->get('q', ''), $sort));
+    }
+
+    /**
+     * Replacing in the notes a search found (10/10/2026). `dryRun` counts
+     * without writing, so the screen can say what will change before anyone
+     * confirms; the notes one may not write, or that are locked, are left
+     * alone and counted.
+     */
+    #[Route('/search/replace', name: '_search_replace', methods: [HttpMethodEnum::Post->value])]
+    public function searchReplace(Request $request, NoteReplace $noteReplace): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+        $data = $this->decodeJson($request);
+
+        $find = is_string($data['find'] ?? null) ? mb_substr($data['find'], 0, 500) : '';
+        $replacement = is_string($data['replacement'] ?? null) ? mb_substr($data['replacement'], 0, 500) : '';
+        $ids = array_values(array_map(intval(...), array_filter(
+            is_array($data['ids'] ?? null) ? $data['ids'] : [],
+            is_numeric(...),
+        )));
+        if ('' === $find || [] === $ids) {
+            return $this->jsonInvalidInput(['find' => 'required']);
+        }
+
+        $exact = true === ($data['exact'] ?? false);
+
+        return $this->jsonSuccess(true === ($data['dryRun'] ?? false)
+            ? $noteReplace->preview($user, $ids, $find, $exact)
+            : $noteReplace->apply($user, $ids, $find, $replacement, $exact));
     }
 
     #[Route('/reorder', name: '_reorder', methods: [HttpMethodEnum::Post->value])]

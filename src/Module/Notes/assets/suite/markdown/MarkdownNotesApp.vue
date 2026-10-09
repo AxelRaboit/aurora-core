@@ -22,6 +22,8 @@ import NoteTasksPanel from '@notes/suite/markdown/components/NoteTasksPanel.vue'
 import NoteReminderModal from '@notes/suite/markdown/components/NoteReminderModal.vue';
 import NoteCommentsPanel from '@notes/suite/markdown/components/NoteCommentsPanel.vue';
 import NotePresentation from '@notes/suite/markdown/components/NotePresentation.vue';
+import NoteSearchView from '@notes/suite/markdown/components/NoteSearchView.vue';
+import { selectFirst } from '@notes/suite/markdown/composables/noteSearchHighlight.js';
 import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
 import NoteIconPicker from '@notes/suite/markdown/components/NoteIconPicker.vue';
 import NoteProperties from '@notes/suite/markdown/components/NoteProperties.vue';
@@ -107,6 +109,8 @@ const props = defineProps({
     exportOnePath: { type: String, required: true },
     importPath: { type: String, required: true },
     searchPath: { type: String, required: true },
+    searchFullPath: { type: String, default: '' },
+    searchReplacePath: { type: String, default: '' },
     tagsListPath: { type: String, required: true },
     tagsRenamePath: { type: String, required: true },
     tagsMergePath: { type: String, required: true },
@@ -1386,6 +1390,70 @@ async function toggleTask(task) {
     return ok;
 }
 
+/**
+ * The notebook's search screen (10/10/2026), from the library's bar or
+ * Cmd/Ctrl+Shift+S, and a note opened from it on the passage found: marked in
+ * the rendering, selected in the source.
+ */
+const searchOpen = ref(false);
+const searchInitial = ref('');
+let pendingHighlight = null;
+
+/**
+ * Replacing from the search screen: the open note is saved first, so the
+ * server replaces in what is on screen, and read again after if it changed.
+ */
+async function replaceInNotes(payload) {
+    if (!payload.dryRun) await flushPendingSave();
+    const response = await api.replaceInNotes(payload);
+    if (!response.ok || payload.dryRun) return response;
+
+    await refreshList();
+    const changed = (response.payload?.notes ?? []).map((note) => Number(note.id));
+    if (selectedId.value && changed.includes(Number(selectedId.value))) await openNote(selectedId.value);
+
+    return response;
+}
+
+function openSearch(initial = '') {
+    searchInitial.value = initial;
+    searchOpen.value = true;
+}
+
+async function openFromSearch({ id, needles }) {
+    pendingHighlight = { id, needles };
+    if (id === selectedId.value) {
+        void highlightFound();
+
+        return;
+    }
+    await openNote(id);
+}
+
+async function highlightFound() {
+    if (!pendingHighlight || pendingHighlight.id !== selectedId.value || !bodyReady.value) return;
+    const { needles } = pendingHighlight;
+    pendingHighlight = null;
+    await nextTick();
+    // The rendering finishes after the text: formulas and diagrams first.
+    setTimeout(() => {
+        notePreviewRef.value?.markTerms(needles);
+        selectFirst(noteEditorRef.value?.textareaRef, needles);
+    }, 400);
+}
+
+watch([selectedId, bodyReady], () => void highlightFound());
+
+function onSearchKeys(event) {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && 'KeyS' === event.code && props.searchFullPath) {
+        event.preventDefault();
+        openSearch(window.getSelection()?.toString().trim().slice(0, 80) ?? '');
+    }
+}
+
+onMounted(() => window.addEventListener('keydown', onSearchKeys));
+onBeforeUnmount(() => window.removeEventListener('keydown', onSearchKeys));
+
 function openNoteFromTasks(id) {
     tasksOpen.value = false;
     void openNote(id);
@@ -2447,7 +2515,9 @@ onUnmounted(() => {
                     :load-journal-days="loadJournalDays"
                     :daily-opening="dailyOpening"
                     :tasks-enabled="'' !== tasksPath"
+                    :search-enabled="'' !== searchFullPath"
                     :people="everyone"
+                    v-on:open-search="(initial) => openSearch(initial ?? '')"
                     v-on:open-note="openNote"
                     v-on:create-note="createNote"
                     v-on:open-daily-note="openDailyNote"
@@ -2479,9 +2549,12 @@ onUnmounted(() => {
             <NoteQuickOpen
                 :show="quickOpen"
                 :notes="notes"
+                :search-content="api.searchContent"
                 v-on:close="quickOpen = false"
                 v-on:open="openNote"
+                v-on:open-found="openFromSearch"
                 v-on:create="createFromQuickOpen"
+                v-on:search="openSearch"
             />
 
             <NotePresentation
@@ -2498,6 +2571,15 @@ onUnmounted(() => {
                 :saving="reminderSaving"
                 v-on:close="reminderModalOpen = false"
                 v-on:save="saveReminder"
+            />
+
+            <NoteSearchView
+                :show="searchOpen"
+                :initial-query="searchInitial"
+                :search-full="api.searchFull"
+                :replace-in-notes="searchReplacePath ? replaceInNotes : null"
+                v-on:close="searchOpen = false"
+                v-on:open="openFromSearch"
             />
 
             <NoteTasksPanel
