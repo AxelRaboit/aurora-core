@@ -217,7 +217,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
         $this->handedToPeople($manager, $notes['verrier'] ?? null);
 
-        $this->writableLinkFor($notes['verrier'] ?? null);
+        $this->writableLinkFor($manager, $notes['verrier'] ?? null);
 
         $this->teamSpace($manager, $owner);
     }
@@ -651,14 +651,17 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * A share link that writes, so the screen shows one.
+     * A share link that writes, live, so the screen shows one.
      *
      * The write badge in the list and the pencil on the guest page both only
      * exist when a link carries the switch; without one, the only way to see
      * either is to create a link by hand, which is exactly the kind of thing
-     * nobody does before a capture.
+     * nobody does before a capture. Live co-editing too (4.3.0): the "En
+     * direct" badge, the guest's caret and face only exist on a link that
+     * opens it, and a demo replayed on top of an older one turns it on for
+     * the link it already has.
      */
-    private function writableLinkFor(?MarkdownNote $note): void
+    private function writableLinkFor(EntityManagerInterface $manager, ?MarkdownNote $note): void
     {
         if (!$note instanceof MarkdownNote) {
             return;
@@ -666,6 +669,11 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
         foreach ($this->shareLinkRepository->findForNote($note) as $existing) {
             if ($existing->canWrite()) {
+                if (!$existing->allowsCoediting()) {
+                    $existing->setCoediting(true);
+                    $manager->flush();
+                }
+
                 return;
             }
         }
@@ -677,6 +685,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             label: 'Relecture du devis - écriture',
             expiresAt: new DateTimeImmutable('+14 days'),
             canWrite: true,
+            coediting: true,
         );
     }
 
