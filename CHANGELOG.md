@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.8.0] - 2026-10-09
+
+### Ajouté
+- **Une adresse courte pour un lien d'espace client.** Dans le menu « … » d'un lien d'accès, « Adresse courte » lui donne une adresse facile à lire ou à dicter, comme `/c/atelier-dupont-k7m2q9`. Le nom proposé est celui du client, et quelques caractères tirés au hasard s'y ajoutent : connaître le nom du client ne suffit pas à ouvrir son espace. Chaque adresse est unique.
+- L'adresse courte ouvre le même espace, avec les mêmes droits que le lien. Contrairement à l'adresse longue, elle reste affichée sous le lien avec un bouton pour la copier. On peut la changer, et l'ancienne cesse aussitôt de fonctionner, ou la retirer. Elle s'éteint aussi quand le lien est révoqué ou expire.
+- Le nom est gardé chiffré en base, et le jeton vers lequel elle redirige n'est stocké nulle part : il se recalcule à chaque visite. Les visites sont limitées par adresse IP, pour que personne ne puisse essayer les noms un à un.
+
+### Dans aurora-client
+Rien à faire : la migration passe au déploiement.
+
+---
+
 ## [4.7.1] - 2026-10-09
 
 ### Corrigé

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceAccess\Entity;
 
+use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Module\Studio\Contract\Access\Entity\AbstractContractAccessLink;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
@@ -60,6 +61,23 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     #[ORM\ManyToOne(targetEntity: CustomerSpaceInterface::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected CustomerSpaceInterface $space;
+
+    /**
+     * The short address's name, « fournier-k7m2q9 » for `/c/fournier-k7m2q9`
+     * (10/10/2026): what a client can read aloud or type from a business card.
+     *
+     * **Encrypted, and found by its hash.** The name is a key to the space, so
+     * a dump must not hand it over any more than it hands over the token; it is
+     * kept readable for the suite only, which shows it again whenever asked -
+     * unlike the long address, which exists once. The lookup goes through
+     * {@see $aliasHash}, since an encrypted column cannot be searched.
+     */
+    #[ORM\Column(type: EncryptedTextType::NAME, nullable: true)]
+    protected ?string $alias = null;
+
+    /** SHA-256 of {@see $alias}: how `/c/{alias}` finds the row. */
+    #[ORM\Column(length: 64, unique: true, nullable: true)]
+    protected ?string $aliasHash = null;
 
     /** Where this link was sent. Always personal: a space is shown to somebody. */
     #[ORM\Column(length: 180)]
@@ -271,6 +289,25 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     public function getPlainToken(): ?string
     {
         return $this->plainToken;
+    }
+
+    public function getAlias(): ?string
+    {
+        return $this->alias;
+    }
+
+    public function getAliasHash(): ?string
+    {
+        return $this->aliasHash;
+    }
+
+    /** Sets or clears the short address; the hash follows, so the two never disagree. */
+    public function setAlias(?string $alias): static
+    {
+        $this->alias = $alias;
+        $this->aliasHash = null === $alias ? null : self::hashToken($alias);
+
+        return $this;
     }
 
     public function getSpace(): CustomerSpaceInterface

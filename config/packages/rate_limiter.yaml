@@ -74,6 +74,16 @@ framework:
         # Higher than the signing limiters because the gesture is different:
         # you sign a contract once, but you go through a month and approve six
         # posts in a row.
+        # The short address of a client space (/c/fournier-k7m2q9), keyed on
+        # the client IP. Every visit counts, found or not: the random end is
+        # what keeps a name from being guessed, and this is what keeps anyone
+        # from walking through the names. A client opens their space a few
+        # times a day.
+        space_alias:
+            policy: sliding_window
+            limit: 30
+            interval: '10 minutes'
+
         space_guest_write:
             policy: sliding_window
             limit: 40

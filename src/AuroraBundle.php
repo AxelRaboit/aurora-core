@@ -600,6 +600,9 @@ class AuroraBundle extends AbstractBundle
                 // approving, commenting, writing. Higher than the signature
                 // because one goes through a month and approves six
                 // publications in a row, where one signs only once.
+                // The short address of a client space (10/10/2026): every visit
+                // counts, so nobody walks through the names.
+                'space_alias' => ['policy' => 'sliding_window', 'limit' => 30, 'interval' => '10 minutes'],
                 'space_guest_write' => ['policy' => 'sliding_window', 'limit' => 40, 'interval' => '1 hour'],
                 // Uploading a file: it goes through the storage, the thumbnail
                 // and, for a video, the capture of a cover image.
