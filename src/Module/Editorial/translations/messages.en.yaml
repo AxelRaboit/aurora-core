@@ -1569,6 +1569,7 @@ suite:
             scheduled_at_in_past: A scheduled date must be in the future.
             unpublish_at_invalid: "That date cannot be read."
             unpublish_at_in_past: "That date has already passed."
+            too_many_zones: "A page holds at most 100 zones: remove some before saving."
         focus_keyword_placeholder: "a word or a phrase"
         meta_title_placeholder: "About 60 characters"
         meta_description_placeholder: "About 155 characters"

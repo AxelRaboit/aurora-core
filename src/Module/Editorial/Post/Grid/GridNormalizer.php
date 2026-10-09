@@ -718,8 +718,17 @@ final readonly class GridNormalizer
      * A page is not a feed. High enough that nobody meets it while laying out
      * a real page, low enough that a runaway payload cannot turn one post into
      * an unbounded document.
+     *
+     * Raised from 60 to 100 (10/10/2026): a tour page laid out as alternating
+     * picture and text rows spends two zones a row, and reached 60. The save
+     * that went past it was cut short without a word, and the page lost its
+     * last zone. `PostInput` now refuses such a save instead; the slice below
+     * only guards payloads that did not go through it.
+     *
+     * Public because `PostInput` checks it and the editor mirrors it
+     * (`GridContractMirrorTest`).
      */
-    private const int MAX_ZONES = 60;
+    public const int MAX_ZONES = 100;
 
     /**
      * A stack is a way to split one cell in two or three, not a second page.

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { ref } from "vue";
-import { placeZones, planMove, usePostGrid } from "./usePostGrid.js";
+import { MAX_ZONES, placeZones, planMove, usePostGrid } from "./usePostGrid.js";
 
 vi.mock("vue-i18n", () => ({
     useI18n: () => ({ t: (key) => key }),
@@ -126,11 +126,11 @@ describe("usePostGrid", () => {
     it("stops adding zones at the cap", () => {
         const { addZone, canAddZone, zones } = make().api;
 
-        for (let index = 0; index < 70; index += 1) {
+        for (let index = 0; index < MAX_ZONES + 10; index += 1) {
             addZone("text");
         }
 
-        expect(zones.value).toHaveLength(60);
+        expect(zones.value).toHaveLength(MAX_ZONES);
         expect(canAddZone.value).toBe(false);
     });
 

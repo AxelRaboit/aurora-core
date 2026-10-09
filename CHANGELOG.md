@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.7.1] - 2026-10-09
+
+### Corrigé
+- **Une page trop longue n'est plus coupée sans prévenir.** Au-delà de 60 zones, la sauvegarde passait mais seules les 60 premières étaient gardées : la fin de la page disparaissait sans message. Une sauvegarde au-delà de la limite est maintenant refusée avec une erreur qui le dit.
+- **La limite passe de 60 à 100 zones par publication.** Une page en lignes image + texte alternées consomme deux zones par ligne, et celle des notes du tour l'avait atteinte.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.7.0] - 2026-10-09
 
 ### Ajouté
