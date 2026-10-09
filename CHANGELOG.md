@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.6.5] - 2026-10-09
+
+### Modifié
+- **Les propriétés d'une note se replient** sur une ligne qui résume leurs valeurs (statut, échéance, budget…). Le navigateur retient le choix pour toutes les notes.
+- **Les propriétés se lisent comme du texte** : la date et la personne perdent leur cadre, le statut s'affiche en pastille et devient un champ au clic. Le choix du type et la croix qui retire une propriété sont toujours visibles, discrets, au lieu d'apparaître seulement au survol.
+- **« Comment s'organisent les notes » s'ouvre depuis une icône de la barre** de la bibliothèque. Replié sous l'entête, l'encart restait collé en haut et recouvrait les cartes en défilant.
+
+### Corrigé
+- **Plus de « Syntax error in text » en bas de la bibliothèque.** Une carte montre le début d'une note, coupé à 700 caractères, et un diagramme Mermaid coupé en deux était illisible : Mermaid dessinait son message d'erreur dans la page. Un diagramme illisible reste maintenant affiché comme sa source.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.6.4] - 2026-10-09
 
 ### Modifié
