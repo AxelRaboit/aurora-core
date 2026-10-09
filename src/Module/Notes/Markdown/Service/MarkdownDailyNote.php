@@ -109,7 +109,7 @@ final readonly class MarkdownDailyNote
     {
         $space = $this->spaceAccess->personalSpace($user);
         $names = $this->namesOf('notes.markdown.daily.folder');
-        $journal = array_find($this->folderRepository->findLivingInSpace($space), fn($folder): bool => null === $folder->getParent() && $this->knownName($names, $folder->getName()));
+        $journal = array_find($this->folderRepository->findLivingInSpace($space), fn ($folder): bool => null === $folder->getParent() && $this->knownName($names, $folder->getName()));
         if (null === $journal) {
             return [];
         }

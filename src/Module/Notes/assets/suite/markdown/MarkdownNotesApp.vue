@@ -19,6 +19,7 @@ import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue'
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
 import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.vue';
 import NoteTasksPanel from '@notes/suite/markdown/components/NoteTasksPanel.vue';
+import NoteReminderModal from '@notes/suite/markdown/components/NoteReminderModal.vue';
 import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
 import NoteIconPicker from '@notes/suite/markdown/components/NoteIconPicker.vue';
 import NoteProperties from '@notes/suite/markdown/components/NoteProperties.vue';
@@ -39,7 +40,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ALargeSmall, CaseSensitive, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ALargeSmall, BellRing, CaseSensitive, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -95,6 +96,7 @@ const props = defineProps({
     dailyDaysPath: { type: String, default: '' },
     tasksPath: { type: String, default: '' },
     taskPath: { type: String, default: '' },
+    reminderPath: { type: String, default: '' },
     /** The whole notebook as a zip, a single note as .md, and the way back. */
     exportPath: { type: String, required: true },
     exportOnePath: { type: String, required: true },
@@ -801,6 +803,40 @@ async function openReading() {
     window.location.assign(readHref.value);
 }
 
+/**
+ * The person's reminder on the open note (09/10/2026), asked when the note
+ * opens: it is theirs, not the note's, so it does not travel with it.
+ */
+const reminderAt = ref(null);
+const reminderModalOpen = ref(false);
+const reminderSaving = ref(false);
+
+watch(
+    selectedId,
+    async (id) => {
+        reminderAt.value = null;
+        if (!id || !props.reminderPath) return;
+        const { ok, payload } = await api.reminder(id);
+        if (ok && id === selectedId.value) reminderAt.value = payload?.remindAt ?? null;
+    },
+    { immediate: true },
+);
+
+async function saveReminder(remindAt) {
+    if (!selectedId.value) return;
+    reminderSaving.value = true;
+    const { ok, reported, payload } = await api.setReminder(selectedId.value, remindAt);
+    reminderSaving.value = false;
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.errors.save_failed'));
+
+        return;
+    }
+    reminderAt.value = payload?.remindAt ?? null;
+    reminderModalOpen.value = false;
+    toast.success(null === reminderAt.value ? t('notes.markdown.reminder.removed') : t('notes.markdown.reminder.saved', { at: formatDateTime(reminderAt.value) }));
+}
+
 const noteActions = computed(() => {
     const actions = [
         {
@@ -881,6 +917,17 @@ const noteActions = computed(() => {
                 form.value.font = FONTS[(FONTS.indexOf(form.value.font ?? 'sans') + 1) % FONTS.length];
             },
         },
+        ...(props.reminderPath
+            ? [{
+                key: "reminder",
+                title: reminderAt.value ? t('notes.markdown.reminder.change') : t('notes.markdown.reminder.title'),
+                icon: BellRing,
+                onSelect: async () => {
+                    await overlaysSettled();
+                    reminderModalOpen.value = true;
+                },
+            }]
+            : []),
         {
             key: "lock",
             title: form.value.locked ? t('notes.markdown.lock.unlock') : t('notes.markdown.lock.lock'),
@@ -2063,6 +2110,18 @@ onUnmounted(() => {
                          fields they've added via aurora-client. -->
                         <slot name="extra-form-fields" :form="form" />
                     </header>
+                    <!-- The reminder waiting on this note, the person's own (09/10/2026). -->
+                    <div v-if="reminderAt" class="border-b border-line px-3 py-1.5">
+                        <button
+                            type="button"
+                            data-note-reminder-chip
+                            class="inline-flex items-center gap-1.5 rounded-full bg-accent-500/15 px-2.5 py-0.5 text-xs text-accent-600 transition-colors hover:bg-accent-500/25 dark:text-accent-300"
+                            v-on:click="reminderModalOpen = true"
+                        >
+                            <BellRing class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t('notes.markdown.reminder.chip', { at: formatDateTime(reminderAt) }) }}
+                        </button>
+                    </div>
                     <!-- The properties, under the title (09/10/2026). -->
                     <div v-if="form.properties?.length" class="border-b border-line px-3 py-2">
                         <NoteProperties v-model="form.properties" :people="everyone" :readonly="form.locked" />
@@ -2211,6 +2270,14 @@ onUnmounted(() => {
                 v-on:close="quickOpen = false"
                 v-on:open="openNote"
                 v-on:create="createFromQuickOpen"
+            />
+
+            <NoteReminderModal
+                :show="reminderModalOpen"
+                :current="reminderAt"
+                :saving="reminderSaving"
+                v-on:close="reminderModalOpen = false"
+                v-on:save="saveReminder"
             />
 
             <NoteTasksPanel

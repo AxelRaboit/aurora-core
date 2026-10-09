@@ -113,6 +113,12 @@ export function useMarkdownNotesApi(props) {
                 `${props.dailyDaysPath}?month=${encodeURIComponent(month)}`,
             ),
         tasks: () => call(HttpMethod.Get, props.tasksPath),
+        reminder: (id) =>
+            call(HttpMethod.Get, resolvePath(props.reminderPath, id)),
+        setReminder: (id, remindAt) =>
+            call(HttpMethod.Post, resolvePath(props.reminderPath, id), {
+                remindAt,
+            }),
         toggleTask: (id, index, done) =>
             call(HttpMethod.Post, resolvePath(props.taskPath, id), {
                 index,

@@ -31,6 +31,7 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\Service\NoteTasks;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
+use Aurora\Module\Notes\Reminder\Service\NoteReminders;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -799,6 +800,47 @@ final class MarkdownNotesController extends AbstractController
         $this->liveHub->publishChanged($note, $user->getName());
 
         return $this->jsonSuccess(['version' => $note->getVersion()]);
+    }
+
+    /**
+     * The person's reminder on a note (09/10/2026): read, set with an instant
+     * that carries its offset, or cleared with `null`. On a note one reads:
+     * being reminded of it writes nothing in it.
+     */
+    #[Route('/{id}/reminder', name: '_reminder', methods: [HttpMethodEnum::Get->value, HttpMethodEnum::Post->value])]
+    public function reminder(int $id, Request $request, NoteReminders $reminders): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->spaceAccess->readableNote($user, $id);
+        if (!$note instanceof MarkdownNoteInterface) {
+            return $this->jsonNotFound();
+        }
+
+        if ($request->isMethod(HttpMethodEnum::Post->value)) {
+            $at = $this->decodeJson($request)['remindAt'] ?? null;
+            if (null === $at) {
+                $reminders->clear($user, $note);
+
+                return $this->jsonSuccess(['remindAt' => null]);
+            }
+
+            // An instant, so with its offset: a bare time would be read in
+            // the server's zone, which is nobody's.
+            $instant = is_string($at) && 1 === preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/', $at)
+                ? new DateTimeImmutable($at)
+                : null;
+            if (!$instant instanceof DateTimeImmutable) {
+                return $this->jsonInvalidInput(['remindAt' => 'notes.markdown.reminder.invalid']);
+            }
+
+            $reminders->set($user, $note, $instant);
+        }
+
+        $waiting = $reminders->waiting($user, $note);
+
+        return $this->jsonSuccess(['remindAt' => $waiting?->getRemindAt()->format(DateTimeInterface::ATOM)]);
     }
 
     /** The days of a month that have their note, for the journal's calendar (09/10/2026). */

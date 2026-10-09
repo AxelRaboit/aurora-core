@@ -488,6 +488,7 @@ final readonly class MarkdownNotesViewBuilder
             'dailyDaysPath' => $this->urlGenerator->generate('suite_notes_markdown_daily_days'),
             'tasksPath' => $this->urlGenerator->generate('suite_notes_markdown_tasks'),
             'taskPath' => $this->urlGenerator->generate('suite_notes_markdown_task', ['id' => '__id__']),
+            'reminderPath' => $this->urlGenerator->generate('suite_notes_markdown_reminder', ['id' => '__id__']),
             'revisionsPath' => $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => '__id__']),
             'revisionPath' => $this->urlGenerator->generate('suite_notes_markdown_revision', ['id' => '__id__', 'revisionId' => '__revisionId__']),
             'revisionRestorePath' => $this->urlGenerator->generate('suite_notes_markdown_revision_restore', ['id' => '__id__', 'revisionId' => '__revisionId__']),

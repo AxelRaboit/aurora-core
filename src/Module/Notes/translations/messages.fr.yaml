@@ -640,6 +640,24 @@ notes:
                 todo: 'À faire'
                 late: 'En retard'
                 all: 'Toutes'
+        # A reminder on a note: a notification in the suite at the chosen time.
+        reminder:
+            title: 'Me rappeler cette note'
+            change: 'Modifier le rappel'
+            intro: 'Une notification dans la suite, au moment choisi. Ce rappel est le vôtre : les autres lecteurs de la note ne le voient pas.'
+            at: 'Le'
+            past: 'Ce moment est déjà passé.'
+            remove: 'Supprimer le rappel'
+            save: 'Enregistrer'
+            saved: 'Rappel le {at}.'
+            removed: 'Rappel supprimé.'
+            chip: 'Rappel le {at}'
+            body: 'Vous aviez demandé un rappel pour cette note.'
+            invalid: 'Ce moment n''est pas une date valide.'
+            quick:
+                in_an_hour: 'Dans une heure'
+                tomorrow: 'Demain, 9 h'
+                next_week: 'Lundi prochain, 9 h'
         add:
             space: "Espace de notes"
             create_space: "Créer l'espace de notes"

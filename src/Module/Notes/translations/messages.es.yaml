@@ -638,6 +638,24 @@ notes:
                 todo: 'Pendientes'
                 late: 'Atrasadas'
                 all: 'Todas'
+        # A reminder on a note: a notification in the suite at the chosen time.
+        reminder:
+            title: 'Recordarme esta nota'
+            change: 'Cambiar el recordatorio'
+            intro: 'Una notificación en la suite, en el momento elegido. Este recordatorio es suyo: los demás lectores de la nota no lo ven.'
+            at: 'El'
+            past: 'Este momento ya ha pasado.'
+            remove: 'Eliminar el recordatorio'
+            save: 'Guardar'
+            saved: 'Recordatorio el {at}.'
+            removed: 'Recordatorio eliminado.'
+            chip: 'Recordatorio el {at}'
+            body: 'Pidió un recordatorio para esta nota.'
+            invalid: 'No es una fecha válida.'
+            quick:
+                in_an_hour: 'Dentro de una hora'
+                tomorrow: 'Mañana, 9 h'
+                next_week: 'El próximo lunes, 9 h'
         add:
             space: "Espacio de notas"
             create_space: "Crear el espacio de notas"

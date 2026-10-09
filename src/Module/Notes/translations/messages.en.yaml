@@ -636,6 +636,24 @@ notes:
                 todo: 'To do'
                 late: 'Overdue'
                 all: 'All'
+        # A reminder on a note: a notification in the suite at the chosen time.
+        reminder:
+            title: 'Remind me of this note'
+            change: 'Change the reminder'
+            intro: 'A notification in the suite, at the chosen time. This reminder is yours: the note''s other readers do not see it.'
+            at: 'On'
+            past: 'This time has already passed.'
+            remove: 'Remove the reminder'
+            save: 'Save'
+            saved: 'Reminder on {at}.'
+            removed: 'Reminder removed.'
+            chip: 'Reminder on {at}'
+            body: 'You asked to be reminded of this note.'
+            invalid: 'This is not a valid date.'
+            quick:
+                in_an_hour: 'In an hour'
+                tomorrow: 'Tomorrow, 9 am'
+                next_week: 'Next Monday, 9 am'
         add:
             space: "Note space"
             create_space: "Create note space"
