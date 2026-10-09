@@ -1595,6 +1595,7 @@ suite:
             scheduled_at_in_past: 'La fecha de programación debe estar en el futuro.'
             unpublish_at_invalid: 'Esta fecha no es legible.'
             unpublish_at_in_past: 'Esta fecha ya ha pasado.'
+            too_many_zones: "Una página admite como máximo 100 zonas: elimine algunas antes de guardar."
         focus_keyword_placeholder: 'una palabra o una expresión'
         meta_title_placeholder: '60 caracteres aproximadamente'
         meta_description_placeholder: '155 caracteres aproximadamente'

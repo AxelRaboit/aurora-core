@@ -398,7 +398,7 @@ final class GridNormalizerTest extends TestCase
             'zones' => array_fill(0, 200, ['type' => 'text']),
         ]);
 
-        self::assertCount(60, $layout['zones']);
+        self::assertCount(GridNormalizer::MAX_ZONES, $layout['zones']);
     }
 
     public function testTwoZonesCannotShareAnId(): void

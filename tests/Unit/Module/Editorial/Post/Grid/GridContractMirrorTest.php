@@ -133,6 +133,11 @@ final class GridContractMirrorTest extends TestCase
         self::assertSame(48, $this->jsNumber('COLUMNS'));
     }
 
+    public function testThePageCapIsTheSameOnBothSides(): void
+    {
+        self::assertSame(GridNormalizer::MAX_ZONES, $this->jsNumber('MAX_ZONES'));
+    }
+
     /**
      * The list cap decides how long the editor's dropdown is, and separately
      * how much the server keeps. Drift here is the quiet kind: the field

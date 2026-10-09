@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Dto;
 
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
+use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use DateTimeImmutable;
 use Exception;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -337,6 +338,22 @@ class PostInput implements PostInputInterface
         if ($date <= new DateTimeImmutable()) {
             $context->buildViolation('suite.posts.errors.unpublish_at_in_past')
                 ->atPath('unpublishAt')
+                ->addViolation();
+        }
+    }
+
+    /**
+     * More zones than a page may hold is refused, not cut: the normaliser
+     * keeps the first ones, so the save went through and the last zones of
+     * the page disappeared without anyone being told (seen on 09/10/2026).
+     */
+    #[Assert\Callback]
+    public function validateGridSize(ExecutionContextInterface $context): void
+    {
+        $zones = $this->gridLayout['zones'] ?? null;
+        if (is_array($zones) && count($zones) > GridNormalizer::MAX_ZONES) {
+            $context->buildViolation('suite.posts.errors.too_many_zones')
+                ->atPath('gridLayout')
                 ->addViolation();
         }
     }
