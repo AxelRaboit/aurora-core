@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.5.0] - 2026-10-09
+
+### Ajouté
+- **La page de partage d'une note montre tout ce qui la compose.** Sous le titre, une ligne donne ses étiquettes, sa date de modification et sa durée de lecture, et sur grand écran le plan de la note s'affiche à droite du texte rendu, comme dans la lecture de la suite. Le dossier de la note reste caché : il montrerait à un invité comment l'auteur range ses notes.
+- **Un bouton pour élargir la page de partage** à toute la fenêtre, à côté du bouton clair / sombre. La page reste en colonne par défaut, et le choix est gardé par le navigateur du lecteur.
+
+### Modifié
+- **« Écriture en direct » et les visages quittent la ligne du titre** de la page de partage : ils serraient le champ et se lisaient comme en faisant partie. Ils sont maintenant sur la ligne d'informations, à droite.
+- **L'image d'entête d'une note a la même hauteur dans la suite que sur la page de partage.** Plus basse dans l'éditeur, le cadrage choisi n'était pas celui que voyait l'invité.
+
+### Corrigé
+- **Un client qui manque un message en co-édition se rattrape tout seul.** Un ordinateur en veille, un onglet mis en sommeil ou une connexion au hub coupée faisaient perdre un morceau du texte, et tout ce qui suivait restait bloqué jusqu'au rechargement : un collage dans la suite n'arrivait jamais chez l'invité. Chaque client signale maintenant ce qu'il a quand il détecte un trou, quand on revient sur l'onglet, quand le réseau revient et toutes les 30 secondes, et les autres lui envoient ce qui manque.
+- **Les gros messages de co-édition ne sont plus refusés par le navigateur.** Ils partaient en `keepalive`, limité à 64 Ko : un long collage ou l'état complet envoyé à un nouvel arrivant échouait sans bruit.
+- **La fenêtre de partage ne dit plus « En lecture seule » quand l'écriture est cochée.** La phrase sous « Par un lien, sans compte » suit les cases : lecture seule, écriture, ou écriture en direct.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.4.0] - 2026-10-09
 
 ### Ajouté

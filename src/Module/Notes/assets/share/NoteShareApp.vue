@@ -6,8 +6,9 @@ import "@notes/share/print.css";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Columns, Eye, Pencil } from "lucide-vue-next";
+import { Clock, Columns, Eye, Pencil } from "lucide-vue-next";
 import AppButton from "@shared/components/action/AppButton.vue";
+import AppBadge from "@shared/components/feedback/AppBadge.vue";
 import AppTab from "@shared/components/nav/AppTab.vue";
 import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
@@ -19,6 +20,9 @@ import { useNoteCoedit } from "@notes/suite/markdown/composables/useNoteCoedit.j
 import { canCoedit } from "@notes/suite/markdown/composables/noteCoeditProtocol.js";
 import NoteCollaborators from "@notes/suite/markdown/components/NoteCollaborators.vue";
 import NoteRemoteCarets from "@notes/suite/markdown/components/NoteRemoteCarets.vue";
+import NoteReaderOutline from "@notes/suite/markdown/components/NoteReaderOutline.vue";
+import { outlineOf, readingMinutes, wordCount } from "@notes/suite/markdown/composables/noteOutline.js";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
 import { shareEditorModes, shareEditorView } from "@notes/share/shareEditorView.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
@@ -45,6 +49,15 @@ const props = defineProps({
     cover: { type: Object, default: null },
     /** {@see NoteAppearanceEnum} - the note's background and its ink. */
     appearance: { type: String, default: "plain" },
+    /**
+     * What else the note is made of, for the share page: `{tags, updatedAt}`.
+     *
+     * A shared note showed its banner, title and text, and none of the rest
+     * the suite shows (09/10/2026): its tags, when it last changed, how long
+     * it reads, and its outline on a wide screen. Null where the page around
+     * already says it - the public reader has its own bar.
+     */
+    meta: { type: Object, default: null },
     /**
      * Whether this link may rewrite this note.
      *
@@ -337,6 +350,25 @@ const html = computed(() => htmlOf(savedContent.value, savedTitle.value));
 // the whole point of looking at it beside the field.
 const draftHtml = computed(() => htmlOf(draftContent.value, draftTitle.value));
 
+const { formatDateTime } = useDateFormat();
+/** The text being shown: the draft while writing, the saved one otherwise. */
+const shownContent = computed(() => (editing.value ? draftContent.value : savedContent.value));
+const metaTags = computed(() => props.meta?.tags ?? []);
+const updatedLabel = computed(() =>
+    props.meta?.updatedAt && Number.isFinite(Date.parse(props.meta.updatedAt))
+        ? `${t("notes.markdown.library.columns.updated")} ${formatDateTime(props.meta.updatedAt)}`
+        : "",
+);
+const minutes = computed(() => readingMinutes(wordCount(shownContent.value)));
+/**
+ * Where the outline looks for headings, and when it has something to say:
+ * beside a rendered note only, never beside the source being typed.
+ */
+const bodyRef = ref(null);
+const showsOutline = computed(() => null !== props.meta && (!editing.value || "preview" === view.value.mode));
+// Remounted when the headings change, so a title typed in the room shows up.
+const outlineKey = computed(() => outlineOf(shownContent.value).map((heading) => heading.text).join("\n"));
+
 // The list only earns its place when the share carries more than the one note.
 const hasTree = computed(() => props.tree.length > 1);
 
@@ -445,24 +477,6 @@ const lookClass = computed(() =>
                         :placeholder="t('notes.markdown.title_placeholder')"
                         :aria-label="t('notes.markdown.title')"
                     >
-                    <!-- Who else is on the note, the way the back office shows
-                         it: one face per person, in their caret's colour. -->
-                    <!-- Said once the session has really started, never before:
-                         a hub can be configured and still be down. -->
-                    <span
-                        v-if="coeditLive"
-                        data-share-live-badge
-                        class="inline-flex shrink-0 items-center gap-1.5 self-center rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-secondary"
-                    >
-                        <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
-                        {{ t("notes.markdown.share.coediting_heading") }}
-                    </span>
-                    <span v-if="liveLink && roomPeople.length" data-note-room class="inline-flex shrink-0 items-center self-center">
-                        <NoteCollaborators
-                            :people="roomPeople"
-                            :status="roomStreaming ? t('notes.markdown.live.streaming') : t('notes.markdown.live.polling')"
-                        />
-                    </span>
                     <AppButton
                         v-if="canWrite && !editing && !conflicted"
                         data-share-edit
@@ -476,90 +490,141 @@ const lookClass = computed(() =>
                     </AppButton>
                 </div>
 
-                <!-- The markdown source, plainly. No upload, no slash
+                <!-- What else the note is made of, and who is on it, under
+                     the title rather than beside it (09/10/2026): on the
+                     title's line the badges squeezed the field and read as
+                     part of it. -->
+                <div
+                    v-if="meta || coeditLive || (liveLink && roomPeople.length)"
+                    data-share-meta
+                    class="-mt-2 mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted"
+                >
+                    <span v-if="metaTags.length" data-share-tags class="flex flex-wrap gap-1">
+                        <AppBadge v-for="tag in metaTags" :key="tag" color="gray" size="xs">{{ tag }}</AppBadge>
+                    </span>
+                    <span v-if="updatedLabel" data-share-updated>{{ updatedLabel }}</span>
+                    <span v-if="meta && minutes" data-share-length class="inline-flex items-center gap-1">
+                        <Clock class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("notes.markdown.outline.minutes", { minutes }) }}
+                    </span>
+                    <span class="ml-auto inline-flex items-center gap-2">
+                        <!-- Said once the session has really started, never
+                             before: a hub can be configured and still be down. -->
+                        <span
+                            v-if="coeditLive"
+                            data-share-live-badge
+                            class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-secondary"
+                        >
+                            <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+                            {{ t("notes.markdown.share.coediting_heading") }}
+                        </span>
+                        <!-- Who else is on the note, the way the back office
+                             shows it: one face per person, in their caret's
+                             colour. -->
+                        <span v-if="liveLink && roomPeople.length" data-note-room class="inline-flex shrink-0 items-center">
+                            <NoteCollaborators
+                                :people="roomPeople"
+                                :status="roomStreaming ? t('notes.markdown.live.streaming') : t('notes.markdown.live.polling')"
+                            />
+                        </span>
+                    </span>
+                </div>
+
+                <div class="flex gap-8">
+                    <div ref="bodyRef" class="min-w-0 flex-1">
+                        <!-- The markdown source, plainly. No upload, no slash
                      commands, no autocomplete: this page has no account
                      behind it, and every feature here is one more thing an
                      unauthenticated endpoint has to be safe about. -->
-                <template v-if="editing">
-                    <!-- The editor's own view toggle, the same segmented
+                        <template v-if="editing">
+                            <!-- The editor's own view toggle, the same segmented
                          AppTab control, so the shared page reads as the
                          same tool and not as a lookalike. -->
-                    <div class="mb-3 flex print:hidden">
-                        <div class="inline-flex h-9.5 items-stretch overflow-hidden rounded-lg border border-line">
-                            <AppTab
-                                v-for="option in modeOptions"
-                                :key="option.value"
-                                :data-share-mode="option.value"
-                                size="sm"
-                                align="center"
-                                shape-class="rounded-none"
-                                :active="view.mode === option.value"
-                                :aria-pressed="view.mode === option.value"
-                                :title="option.label"
-                                :aria-label="option.label"
-                                v-on:click="pickMode(option.value)"
+                            <div class="mb-3 flex print:hidden">
+                                <div class="inline-flex h-9.5 items-stretch overflow-hidden rounded-lg border border-line">
+                                    <AppTab
+                                        v-for="option in modeOptions"
+                                        :key="option.value"
+                                        :data-share-mode="option.value"
+                                        size="sm"
+                                        align="center"
+                                        shape-class="rounded-none"
+                                        :active="view.mode === option.value"
+                                        :aria-pressed="view.mode === option.value"
+                                        :title="option.label"
+                                        :aria-label="option.label"
+                                        v-on:click="pickMode(option.value)"
+                                    >
+                                        <component :is="option.icon" class="h-4 w-4" :stroke-width="2" />
+                                    </AppTab>
+                                </div>
+                            </div>
+                            <div
+                                class="grid gap-3"
+                                :class="'split' === view.mode ? 'md:grid-cols-2' : ''"
                             >
-                                <component :is="option.icon" class="h-4 w-4" :stroke-width="2" />
-                            </AppTab>
-                        </div>
-                    </div>
-                    <div
-                        class="grid gap-3"
-                        :class="'split' === view.mode ? 'md:grid-cols-2' : ''"
-                    >
-                        <textarea
-                            v-if="view.showEditor"
-                            ref="fieldRef"
-                            v-model="draftContent"
-                            data-share-content-field
-                            rows="18"
-                            class="min-w-0 w-full resize-y rounded-md border border-line bg-surface p-3 font-mono text-sm text-primary outline-none focus:border-accent-400"
-                            :disabled="saving"
-                            :placeholder="t('notes.markdown.content_placeholder')"
-                            :aria-label="t('notes.markdown.share.edit')"
-                            v-on:keyup="reportCaret"
-                            v-on:click="reportCaret"
-                            v-on:select="reportCaret"
-                        />
-                        <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
+                                <textarea
+                                    v-if="view.showEditor"
+                                    ref="fieldRef"
+                                    v-model="draftContent"
+                                    data-share-content-field
+                                    rows="18"
+                                    class="min-w-0 w-full resize-y rounded-md border border-line bg-surface p-3 font-mono text-sm text-primary outline-none focus:border-accent-400"
+                                    :disabled="saving"
+                                    :placeholder="t('notes.markdown.content_placeholder')"
+                                    :aria-label="t('notes.markdown.share.edit')"
+                                    v-on:keyup="reportCaret"
+                                    v-on:click="reportCaret"
+                                    v-on:select="reportCaret"
+                                />
+                                <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
                              through DOMPurify before this ever reaches the page. -->
-                        <div
-                            v-if="view.showPreview"
-                            data-share-preview
-                            class="note-preview prose prose-sm dark:prose-invert min-w-0 max-w-none overflow-x-auto"
-                            v-html="draftHtml"
-                        />
-                    </div>
-                    <!-- The others' carets, drawn over the field: a textarea
+                                <div
+                                    v-if="view.showPreview"
+                                    data-share-preview
+                                    class="note-preview prose prose-sm dark:prose-invert min-w-0 max-w-none overflow-x-auto"
+                                    v-html="draftHtml"
+                                />
+                            </div>
+                            <!-- The others' carets, drawn over the field: a textarea
                          cannot show a second one. -->
-                    <NoteRemoteCarets
-                        v-if="coeditLive && view.showEditor"
-                        :textarea="fieldRef"
-                        :cursors="roomCursors"
-                        :text="draftContent"
-                    />
-                    <p class="mt-1 text-xs text-muted" :data-share-live-hint="coeditLive ? '' : null">
-                        {{ coeditLive ? t("notes.markdown.share.live_hint") : t("notes.markdown.share.editing_hint") }}
-                    </p>
-                    <!-- No Save in a live session: the room writes itself back
+                            <NoteRemoteCarets
+                                v-if="coeditLive && view.showEditor"
+                                :textarea="fieldRef"
+                                :cursors="roomCursors"
+                                :text="draftContent"
+                            />
+                            <p class="mt-1 text-xs text-muted" :data-share-live-hint="coeditLive ? '' : null">
+                                {{ coeditLive ? t("notes.markdown.share.live_hint") : t("notes.markdown.share.editing_hint") }}
+                            </p>
+                            <!-- No Save in a live session: the room writes itself back
                          on every pause, and a button that did nothing would
                          be the one lie this page must not tell. -->
-                    <div v-if="!coeditLive" class="mt-3 flex flex-wrap gap-2">
-                        <AppButton data-share-save :disabled="saving || conflicted" v-on:click="save">
-                            {{ t("notes.markdown.share.save") }}
-                        </AppButton>
-                        <AppButton variant="ghost" :disabled="saving" v-on:click="cancelEditing">
-                            {{ t("notes.markdown.share.cancel_edit") }}
-                        </AppButton>
-                    </div>
-                </template>
-                <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
+                            <div v-if="!coeditLive" class="mt-3 flex flex-wrap gap-2">
+                                <AppButton data-share-save :disabled="saving || conflicted" v-on:click="save">
+                                    {{ t("notes.markdown.share.save") }}
+                                </AppButton>
+                                <AppButton variant="ghost" :disabled="saving" v-on:click="cancelEditing">
+                                    {{ t("notes.markdown.share.cancel_edit") }}
+                                </AppButton>
+                            </div>
+                        </template>
+                        <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
                  through DOMPurify before this ever reaches the page. -->
-                <!-- The same classes as the editor preview: without
+                        <!-- The same classes as the editor preview: without
                      `prose`, a list lost its bullets and its indent, and
                      the note read online no longer looked like the note
                      as written. Seen at 375 px on the shared page. -->
-                <div v-else class="note-preview prose prose-sm dark:prose-invert max-w-none" v-html="html" />
+                        <div v-else class="note-preview prose prose-sm dark:prose-invert max-w-none" v-html="html" />
+                    </div>
+                    <!-- The outline beside the rendered note on a wide screen,
+                     as in the reader. -->
+                    <aside v-if="showsOutline" class="hidden w-56 shrink-0 xl:block print:hidden">
+                        <div class="sticky top-6">
+                            <NoteReaderOutline :key="outlineKey" :root="bodyRef" />
+                        </div>
+                    </aside>
+                </div>
             </div>
         </article>
     </div>

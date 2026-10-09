@@ -148,6 +148,8 @@ shared:
     common:
         beta: 'Beta'
         beta_hint: 'Todavía en desarrollo: puede cambiar o tener imperfecciones.'
+        widen: 'Ampliar a toda la ventana'
+        narrow: 'Volver a la columna'
         help: Ayuda
         list_view: 'Vista de lista'
         grid_view: 'Vista de tarjetas'

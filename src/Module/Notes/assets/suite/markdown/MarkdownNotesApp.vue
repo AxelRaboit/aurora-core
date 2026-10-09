@@ -1456,15 +1456,14 @@ onUnmounted(() => {
                      with whoever hosts it: nothing entered the media library,
                      and if it disappears from there another one is picked.
 
-                     Higher in the reading view than in the editor, and on
-                     purpose: here it shares the column with the text being
-                     written, there the page scrolls and has only the note to
-                     show. -->
+                     The same height as on the share page and in the reading
+                     view (09/10/2026): lower here, the crop chosen in the
+                     editor was not the one a guest saw. -->
                     <figure v-if="form.coverUrl" class="relative m-0 shrink-0">
                         <img
                             :src="form.coverUrl"
                             alt=""
-                            class="h-40 w-full object-cover sm:h-56"
+                            class="h-48 w-full object-cover sm:h-72"
                             :style="{ objectPosition: `50% ${form.coverPosition ?? 50}%` }"
                         >
                         <figcaption

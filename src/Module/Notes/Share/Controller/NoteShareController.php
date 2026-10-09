@@ -21,6 +21,7 @@ use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Service\SharedNoteScope;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -436,6 +437,13 @@ final class NoteShareController extends AbstractController
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            // The rest of what the note is made of (09/10/2026): its tags and
+            // when it last changed. Its folder stays out - it would show a
+            // guest how the author files things, which the link never gave.
+            'meta' => [
+                'tags' => array_values($note->getTags()),
+                'updatedAt' => $note->getUpdatedAt()->format(DateTimeInterface::ATOM),
+            ],
             // Whether this page may write, and where to. Both come from the
             // link, never from the request: the page is told what it may do
             // rather than asked to find out.

@@ -174,6 +174,8 @@ notes:
             title: Share this note
             by_link: With a link, no account
             by_link_hint: Anybody holding the address can read the note. Read only.
+            by_link_hint_write: Anybody holding the address can read the note and rewrite its text.
+            by_link_hint_live: Anybody holding the address writes the note with you, live.
             page_heading: Shared note
             read_only: Read only
             tree_label: Notes in this share

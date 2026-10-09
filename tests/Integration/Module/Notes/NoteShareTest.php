@@ -126,6 +126,35 @@ final class NoteShareTest extends IntegrationTestCase
         self::assertStringContainsString('id="theme-toggle"', $body);
         self::assertStringContainsString('data-label-light="Mode clair"', $body);
         self::assertStringContainsString('data-label-dark="Mode sombre"', $body);
+        // And the column it reads in can take the whole window.
+        self::assertStringContainsString('id="width-toggle"', $body);
+        self::assertStringContainsString('data-widenable', $body);
+    }
+
+    /**
+     * The note as it is made, not only its text: its tags and when it last
+     * changed travel with the page. Its folder does not.
+     */
+    public function testTheSharedPageCarriesTheNotesTagsAndDate(): void
+    {
+        $folder = new NoteFolder();
+        $folder->setUser($this->owner);
+        $folder->setSpace($this->personalSpaceOf($this->owner));
+        $folder->setName('Classement privé');
+        $this->entityManager->persist($folder);
+        $this->entityManager->flush();
+        $this->created[] = [NoteFolder::class, (int) $folder->getId()];
+
+        $note = $this->note('Étiquetée', 'Du texte.', $folder);
+        $note->setTags(['client', 'devis']);
+        $this->entityManager->flush();
+        $link = $this->link($note);
+
+        $this->client->request('GET', $this->shareUrl($link));
+
+        $body = html_entity_decode((string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('"meta":{"tags":["client","devis"],"updatedAt":"', $body);
+        self::assertStringNotContainsString('Classement privé', $body);
     }
 
     /** Every way of failing looks the same to whoever is asking. */

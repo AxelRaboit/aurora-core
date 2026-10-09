@@ -178,6 +178,8 @@ notes:
             title: Partager cette note
             by_link: Par un lien, sans compte
             by_link_hint: "Toute personne qui a l'adresse peut lire la note. En lecture seule."
+            by_link_hint_write: "Toute personne qui a l'adresse peut lire la note et réécrire son texte."
+            by_link_hint_live: "Toute personne qui a l'adresse écrit la note avec vous, en direct."
             page_heading: Note partagée
             read_only: Lecture seule
             tree_label: Notes de ce partage
