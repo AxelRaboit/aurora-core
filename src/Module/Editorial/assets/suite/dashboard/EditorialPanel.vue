@@ -5,7 +5,7 @@ import { FileText, LayoutTemplate, Tags, Trash2 } from "lucide-vue-next";
 import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
 import AppSectionCard from "@/shared/components/display/AppSectionCard.vue";
 import AppStatTile from "@/shared/components/display/AppStatTile.vue";
-import { COMMENT_STATUS_CHART_SLOTS, POST_STATUS_CHART_SLOTS } from "@/shared/utils/format/statusStyles.js";
+import { POST_STATUS_CHART_SLOTS } from "@/shared/utils/format/statusStyles.js";
 import { hasAnyShare } from "@/shared/utils/data/hasAnyShare.js";
 import AppChart from "@/shared/components/display/AppChart.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -111,7 +111,6 @@ const byCommentStatus = computed(() =>
         key: status,
         label: t(`suite.comments.status.${status}`),
         value: count,
-        slot: COMMENT_STATUS_CHART_SLOTS[status],
     })),
 );
 

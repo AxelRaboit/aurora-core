@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Modifié
+- **Refonte visuelle de la suite.** Le cadre est aligné : l'entête du menu latéral et la ligne « Voir le site » ont désormais la hauteur des deux bandes de l'entête de page, et leurs filets courent d'un bord à l'autre de l'écran.
+- **Le menu latéral se lit mieux.** Les noms de section et les entrées passent un gris plus foncé, les descriptions aussi, et l'icône d'une entrée s'aligne sur son nom quand la description est affichée. Le survol de « Voir le site » suit le thème au lieu d'un vert fixe.
+- **Clair ou sombre en un clic.** Un bouton à côté de la recherche, en haut de chaque page, change le mode ; il reste aussi dans le menu du compte.
+- **Le fil d'Ariane** écrit la page courante dans la couleur du texte, les niveaux au-dessus en gris.
+- **Un tableau de bord d'une seule main.** Tous les panneaux (Éditorial, GED, Calendrier, Plateforme, Studio) montrent leurs chiffres avec la même tuile, chiffre en grand et, pour les publications, le nombre en ligne en dessous ; chaque bloc a le même en-tête, avec son total ou son lien à droite.
+- **Une couleur par statut, partout.** Brouillon gris, en attente de revue ambre, programmée bleu ciel, publiée vert, archivée gris clair : la barre du tableau de bord, la liste, l'éditeur, l'historique et la recherche disent enfin la même chose. Les couleurs de la barre ont été vérifiées pour les trois formes de daltonisme.
+- **Les encarts « Comment ça marche »** ouverts sont des cartes pleines, plus des cadres en pointillés.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.8.0] - 2026-10-09
 
 ### Ajouté

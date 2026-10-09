@@ -6,7 +6,6 @@ import {
     accessRequestStatusBadgeColor,
     POST_STATUS_COLORS,
     POST_STATUS_CHART_SLOTS,
-    COMMENT_STATUS_CHART_SLOTS,
 } from "./statusStyles.js";
 
 describe("statusBadge", () => {
@@ -58,7 +57,6 @@ describe("post status palette", () => {
         const slots = Object.values(POST_STATUS_CHART_SLOTS);
 
         expect(new Set(slots).size).toBe(slots.length);
-        expect(new Set(Object.values(COMMENT_STATUS_CHART_SLOTS)).size).toBe(3);
     });
 });
 
