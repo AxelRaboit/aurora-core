@@ -73,14 +73,16 @@ const TONES = {
                 </ul>
             </section>
 
-            <!-- The switch is a sunken strip with the open tab raised on it, no
-                 outline of its own: an outline made it a fifth card above the
-                 four tiles, competing with them for the eye. -->
-            <div v-if="visibleModules.length > 1" class="inline-flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl bg-surface-2 p-1 scrollbar-thin" role="tablist">
+            <!-- The house switch, the one the spaces, contracts and customers
+                 screens already wear: same strip, same raised open tab. It had
+                 a heavier frame of its own here, and the landing screen was
+                 the one place where a switch looked different. -->
+            <div v-if="visibleModules.length > 1" class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide" role="tablist">
                 <AppTab
                     v-for="module in visibleModules"
                     :key="module.id"
                     size="sm"
+                    shape-class="rounded-md"
                     role="tab"
                     :aria-selected="activeModule === module.id ? 'true' : 'false'"
                     :active="activeModule === module.id"

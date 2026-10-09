@@ -72,7 +72,7 @@ function scopeHref(scope) {
              calendar. -->
         <div
             v-if="stats.hasScopeChoice"
-            class="flex w-fit items-center gap-1 rounded-xl bg-surface-2 p-1"
+            class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="group"
             :aria-label="t('suite.stats.studio.scope_label')"
         >
@@ -80,8 +80,8 @@ function scopeHref(scope) {
                 v-for="scope in ['mine', 'all']"
                 :key="scope"
                 :href="scopeHref(scope)"
-                class="flex items-center gap-1.5 rounded-lg px-3 py-1 text-sm font-medium transition-colors"
-                :class="scope === stats.scope ? 'bg-surface text-primary shadow-sm' : 'text-secondary hover:text-primary'"
+                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                :class="scope === stats.scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-secondary hover:text-primary'"
                 :aria-current="scope === stats.scope ? 'true' : undefined"
             >
                 {{ t(`suite.stats.studio.scopes.${scope}`) }}
