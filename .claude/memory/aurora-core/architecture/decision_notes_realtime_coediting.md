@@ -312,6 +312,14 @@ tombés, et ce qu'ils disent :
    le test rougit quand on retire le correctif. Un test qu'on n'a pas vu
    échouer ne mesure rien de connu.
 
+**Et un piège de mesure, trouvé le 09/10/2026.** Un onglet resté ouvert avec le
+compte A répondait aux `doc-request` à la place du A du test : B recevait un
+document que le test n'avait jamais amorcé, et la frappe de A semblait ne pas
+partir. Le protocole ignore par construction un compte présent deux fois - les
+élections comparent des identifiants de compte. Avant de conclure à un défaut,
+fermer tout autre onglet ouvert avec les comptes du test, puis écouter le fil
+(un `EventSource` enveloppé qui journalise chaque `kind`) plutôt que deviner.
+
 ## Le piège d'environnement, qui n'est pas propre aux notes
 
 `symfony server:start` expose lui-même les services de `compose.yaml` à PHP et
@@ -325,6 +333,12 @@ sondage de vingt secondes.
 Les trois valeurs doivent dire la même adresse : `resource_identifier` dans
 `compose.yaml`, et les deux variables de `.env.dev`. Et un 403 du hub n'est pas
 un 401 : jeton valide mais sujet hors de la concession donne **403**.
+
+**L'hôte du cookie, aussi (09/10/2026).** Le jeton d'abonnement voyage dans un
+cookie posé par la page : une page servie sur `localhost` ne l'envoie pas à un
+hub sur `127.0.0.1`, et le hub répond 401 sans autre indice. Une seconde
+instance locale ouverte sur `localhost` (un client à côté de la démo) a donc
+besoin d'un hub sur `localhost` ; la démo reste sur `127.0.0.1`, comme son hub.
 
 ## L'étape 5, et les deux tiers qui n'étaient pas à faire (08/10/2026)
 

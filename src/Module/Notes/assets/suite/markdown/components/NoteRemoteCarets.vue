@@ -19,6 +19,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { caretPositionIn } from "@notes/suite/markdown/composables/caretPosition.js";
+import { collaboratorCaretColor, collaboratorColor } from "@notes/suite/markdown/composables/collaboratorColor.js";
 
 const props = defineProps({
     /** The field the carets belong to. */
@@ -92,10 +93,10 @@ const placed = computed(() => {
                 top: at.top,
                 left: at.left,
                 height: at.lineHeight,
-                // One of six hues, picked from the account id so the same
-                // person keeps the same colour from one session to the next -
-                // and from one reader's screen to another's.
-                hue: (Number(cursor.userId) * 47) % 360,
+                // The bar is drawn bright enough to show on either theme;
+                // the tag carries white text and takes the darker fill.
+                barColor: collaboratorCaretColor(cursor.userId),
+                tagColor: collaboratorColor(cursor.userId),
             };
         });
 });
@@ -116,14 +117,14 @@ const placed = computed(() => {
             <!-- The bar itself: two pixels, the width of a caret. -->
             <span
                 class="absolute inset-y-0 left-0 w-0.5 rounded-sm"
-                :style="{ backgroundColor: `hsl(${caret.hue} 70% 45%)` }"
+                :style="{ backgroundColor: caret.barColor }"
             />
             <!-- The name, above the line rather than beside it: beside, it sat
                  on the text somebody was reading. -->
             <span
                 v-if="caret.name"
                 class="absolute -top-4 left-0 whitespace-nowrap rounded-sm px-1 text-[10px] font-medium leading-4 text-white"
-                :style="{ backgroundColor: `hsl(${caret.hue} 70% 45%)` }"
+                :style="{ backgroundColor: caret.tagColor }"
             >{{ caret.name }}</span>
         </div>
     </div>

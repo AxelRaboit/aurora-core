@@ -1,6 +1,6 @@
 ---
 name: project_notes_collaboration
-description: Une note Aurora se partage de deux façons - confiée à des comptes nommés, ou ouverte en écriture par lien. Ce que chaque droit ouvre, ce qu'il n'ouvre surtout pas, et pourquoi la co-édition caractère par caractère n'est pas faite.
+description: Une note Aurora se partage de deux façons - confiée à des comptes nommés, ou ouverte en écriture par lien. Ce que chaque droit ouvre, ce qu'il n'ouvre surtout pas, et comment la présence se montre. La co-édition caractère par caractère vit dans decision_notes_realtime_coediting.
 metadata:
   type: project
 ---
@@ -112,33 +112,43 @@ une pour le chat, une pour les notes - serait une raison de se méfier des deux.
 
 **How to apply:** `NoteLiveHub` copie `SpaceChatHub` à la lettre (sujet privé
 `https://aurora.invalid/notes/markdown/{id}`, cookie JWT en abonnement seul,
-échec avalé dans le log). Le navigateur n'a **jamais** le droit de publier : il
-pourrait annoncer aux autres que la note a changé alors que non. Le motif de
-publication est déclaré dans `config/services.yaml`, à côté de celui du chat -
-les deux se lisent ensemble. `NotePresence` vit dans le cache, jamais en base :
+échec avalé dans le log). Le navigateur ne publie **jamais** sur le sujet de la
+note : il pourrait annoncer aux autres que la note a changé alors que non.
+Depuis la 4.1.0 il publie sur un second sujet, `…/{id}/awareness`, et seulement
+là (curseurs et document partagé) - voir [[decision_notes_realtime_coediting]].
+Le motif de publication est déclaré dans `config/services.yaml`, à côté de
+celui du chat - les deux se lisent ensemble. `NotePresence` vit dans le cache, jamais en base :
 la présence est vraie pendant quarante secondes.
 
 Et la limite assumée : deux battements simultanés peuvent s'écraser l'un
 l'autre. Le perdant revient au battement suivant, ce qui pour « qui regarde
 cette page » est un clignotement que personne ne voit.
 
-## Ce qui n'est pas fait, et pourquoi
+## La présence à l'écran
 
-**La co-édition caractère par caractère (curseurs, CRDT) n'est pas faite**, et
-c'est une décision d'Axel du 08/10/2026 : *« pour le Niveau 3 on ne le fait pas
-pour le moment »*.
+**Rule:** qui d'autre a la note ouverte se montre en **pile de visages**
+(`NoteCollaborators.vue`, sur le modèle de la cellule d'équipe de Studio et
+d'`AppAvatar`), jamais en compte. Chaque visage porte la couleur de
+l'étiquette du curseur de la personne, et son infobulle dit son nom, si elle
+écrit ou lit, et si la salle est en direct ou sondée.
 
-Deux blocages réels si ça revient un jour :
-- **Mercure n'est pas un serveur Yjs.** C'est de la diffusion serveur → client,
-  et Aurora ne donne au navigateur qu'un droit d'abonnement. Faire remonter
-  chaque frappe par POST PHP, c'est un aller-retour applicatif par caractère.
-  Un `y-websocket` à côté marcherait, mais il ajoute un service obligatoire et
-  casse le modèle « bundle Symfony qui s'installe sans rien d'autre ».
-- **Le contenu est chiffré** (`EncryptedTextType`). Un état CRDT serait un bloc
-  chiffré, mais chaque sauvegarde rechiffre tout le document.
+**Why:** le but est d'éviter que deux personnes réécrivent le même paragraphe,
+et « 2 personnes » ne le permet pas. La couleur partagée relie un visage de
+l'en-tête et un curseur dans le texte sans lire de nom.
 
-La bonne nouvelle, si ça revient : l'éditeur est un `<textarea>` de markdown
-brut, donc une séquence de texte plat - le cas facile pour un CRDT.
+**How to apply:** une seule source pour la couleur,
+`composables/collaboratorColor.js`. `collaboratorColor()` (28 % de luminosité)
+pour tout ce qui porte du texte blanc - le blanc y tient 4,5:1 sur les 360
+teintes, mesuré par le test ; `collaboratorCaretColor()` (45 %) pour la barre
+seule, qui doit se voir sur le thème sombre. À 45 %, une étiquette jaune
+tombait à 1,9:1.
+
+## La co-édition caractère par caractère
+
+**Faite et livrée en 4.1.0 (08/10/2026)**, sans service, activée par espace.
+Les deux blocages qu'énumérait cette section (« Mercure n'est pas un serveur
+Yjs », « le contenu est chiffré ») ont été levés ou contournés : tout le
+raisonnement est dans [[decision_notes_realtime_coediting]].
 
 ## Ce qui est déjà tenu, et n'a pas besoin d'être refait
 
