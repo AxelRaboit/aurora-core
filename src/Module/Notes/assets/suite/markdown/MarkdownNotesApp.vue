@@ -521,6 +521,12 @@ useNoteCoedit({
     applyText: (value) => {
         form.value.content = value;
     },
+    // The title is written together too, so a rename shows on every screen
+    // as it is typed rather than whoever saves last winning.
+    title: computed(() => form.value.title),
+    applyTitle: (value) => {
+        form.value.title = value;
+    },
     room: roomPeople,
     channel: roomChannel,
     // The write-back is the ordinary save, asked for by the session instead of

@@ -117,8 +117,10 @@ les **deux** battements (`coediting`), pour que propriétaire et invités entren
 dans la même salle. La page de partage réutilise `useNoteLive` et
 `useNoteCoedit` tels quels, avec `notes_share_live` comme battement : deux
 copies d'un protocole finiraient par ne plus s'entendre. En direct, elle
-s'ouvre sur le champ, le titre n'est pas modifiable (le document partagé est le
-corps) et « Enregistrer » disparaît. Tenu par `NoteShareLiveTest` et
+s'ouvre sur le champ, le titre s'écrit avec les autres comme le corps, et
+« Enregistrer » disparaît. Elle ne se déclare en direct que si un hub est
+configuré (`NoteLiveHub::isEnabled()`), et ne l'affiche qu'une fois la session
+démarrée : l'en-tête serveur ne promet jamais le direct. Tenu par `NoteShareLiveTest` et
 `tests/e2e/notes-share-coediting.spec.js`.
 
 Écrire à plusieurs avec un **compte** reste possible et préférable quand on

@@ -39,15 +39,20 @@ import {
  *                                                             the editor's autosave is suspended by it
  * @param {import("vue").Ref<string>}      options.text        the form's body
  * @param {Function}                       options.applyText   writes the body back into the form
+ * @param {import("vue").Ref<string>}      [options.title]     the form's title, written together too
+ * @param {Function}                       [options.applyTitle] writes the title back into the form
  * @param {import("vue").Ref<Array>}       options.room        who else is here
  * @param {object}                         options.channel     publish/subscribe over the bus
- * @param {Function}                       options.writeBack   persists the markdown
+ * @param {Function}                       options.writeBack   persists the markdown, and the title
+ *                                                             when the session carries one
  */
 export function useNoteCoedit({
     noteId,
     allowed,
     text,
     applyText,
+    title = null,
+    applyTitle = null,
     room,
     channel,
     writeBack,
@@ -74,6 +79,16 @@ export function useNoteCoedit({
 
     let sharedDocument = null;
     let body = null;
+    /**
+     * The title, as a second text of the same document.
+     *
+     * It used to stay out of the session, so a title could only be written
+     * through an ordinary save - which the guest page of a live link does not
+     * have, and which between colleagues overwrote whoever renamed the note
+     * last. In the document, a title converges like the body, letter by
+     * letter (09/10/2026). Null when the caller passes no title.
+     */
+    let titleText = null;
     let joining = null;
     let joinAttempts = 0;
     let writeTimer = null;
@@ -141,6 +156,7 @@ export function useNoteCoedit({
         if (sharedDocument) sharedDocument.destroy();
         sharedDocument = null;
         body = null;
+        titleText = null;
         live.value = false;
     }
 
@@ -151,11 +167,23 @@ export function useNoteCoedit({
      * a CRDT update is the difference, so there is no diffing to do and no
      * version to agree on.
      */
-    function openSharedDocument(seedText) {
+    function openSharedDocument(seedText, seedTitle = null) {
         sharedDocument = new Y.Doc();
         body = sharedDocument.getText("body");
 
         if (null !== seedText) body.insert(0, seedText);
+
+        if (title) {
+            titleText = sharedDocument.getText("title");
+            if (null !== seedTitle && "" !== seedTitle)
+                titleText.insert(0, seedTitle);
+
+            titleText.observe(() => {
+                const value = titleText.toString();
+                if (value !== title.value) applyTitle(value);
+                if (!applying) scheduleWriteBack();
+            });
+        }
 
         body.observe(() => {
             const value = body.toString();
@@ -196,8 +224,24 @@ export function useNoteCoedit({
             if (!live.value || !body) return;
             if (!isElected(channel.selfUserId(), room.value)) return;
 
-            void writeBack(body.toString());
+            void writeBack(body.toString(), sharedTitle());
         }, WRITE_BACK_MS);
+    }
+
+    /**
+     * The title as the session holds it, or null to leave the stored one alone.
+     *
+     * Null when the session carries no title, and when its title is empty: a
+     * document seeded by a client that did not carry titles yet (during a
+     * deploy) has an empty one, and writing that back would erase every title
+     * of the room. A title nobody wants is renamed, not emptied.
+     */
+    function sharedTitle() {
+        if (!titleText) return null;
+
+        const value = titleText.toString();
+
+        return "" === value ? null : value;
     }
 
     /** A message off the channel. */
@@ -264,7 +308,7 @@ export function useNoteCoedit({
         if (null == noteId.value || !allowed.value) return;
 
         if (JOIN_SEED === joinAction(room.value)) {
-            openSharedDocument(text.value ?? "");
+            openSharedDocument(text.value ?? "", title?.value ?? null);
 
             return;
         }
@@ -292,7 +336,7 @@ export function useNoteCoedit({
             // client seeding would build a second history, and merging two
             // histories of the same text duplicates every character of it.
             if (isElected(self, room.value)) {
-                openSharedDocument(text.value ?? "");
+                openSharedDocument(text.value ?? "", title?.value ?? null);
 
                 return;
             }
@@ -341,6 +385,23 @@ export function useNoteCoedit({
         });
     });
 
+    /** The same, for the title: a keystroke in it becomes an operation on its text. */
+    if (title) {
+        watch(title, (value) => {
+            if (!sharedDocument || !titleText || null == value) return;
+
+            const delta = textDelta(titleText.toString(), value);
+            if (null === delta) return;
+
+            sharedDocument.transact(() => {
+                if (0 < delta.remove)
+                    titleText.delete(delta.index, delta.remove);
+                if ("" !== delta.insert)
+                    titleText.insert(delta.index, delta.insert);
+            });
+        });
+    }
+
     const stopListening = channel.onMessage(onMessage);
 
     // The open note changes, or the right to co-edit it does - a space whose
@@ -386,7 +447,7 @@ export function useNoteCoedit({
         // The last thing written is the text as it stands: a session ending
         // without a write-back would leave Postgres a debounce behind.
         if (live.value && body && isElected(channel.selfUserId(), room.value)) {
-            void writeBack(body.toString());
+            void writeBack(body.toString(), sharedTitle());
         }
 
         stopListening();

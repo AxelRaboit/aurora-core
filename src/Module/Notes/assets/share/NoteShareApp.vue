@@ -181,9 +181,13 @@ useNoteCoedit({
     applyText: (value) => {
         draftContent.value = value;
     },
+    title: computed(() => draftTitle.value),
+    applyTitle: (value) => {
+        draftTitle.value = value;
+    },
     room: roomPeople,
     channel: roomChannel,
-    writeBack: (markdown) => writeBackForTheRoom(markdown),
+    writeBack: (markdown, sharedTitle) => writeBackForTheRoom(markdown, sharedTitle),
 });
 
 /**
@@ -191,8 +195,8 @@ useNoteCoedit({
  *
  * Through the link's write route, flagged as a session's so it counts against
  * the session's limit rather than the one meant for a guest pressing Save. The
- * title is not the room's - the shared document is the body - so it goes back
- * unchanged.
+ * title is the room's too; when the session hands none back (an empty one,
+ * see `useNoteCoedit`), the stored title goes back unchanged.
  *
  * **A conflict here means the note was saved from outside the room** - by a
  * restore, say, since every account that opens a co-editable note joins it.
@@ -200,11 +204,12 @@ useNoteCoedit({
  * again on top of the version the server answered with: what it replaces is
  * still in the history, kept by the save that caused the conflict.
  */
-async function writeBackForTheRoom(markdown, retried = false) {
+async function writeBackForTheRoom(markdown, sharedTitle = null, retried = false) {
+    const title = sharedTitle ?? savedTitle.value;
     const payload = await request(
         props.saveNotePath,
         {
-            title: savedTitle.value,
+            title,
             content: markdown,
             version: version.value,
             coedit: true,
@@ -218,7 +223,7 @@ async function writeBackForTheRoom(markdown, retried = false) {
 
     if (payload.conflict) {
         version.value = payload.version ?? version.value;
-        if (!retried) await writeBackForTheRoom(markdown, true);
+        if (!retried) await writeBackForTheRoom(markdown, sharedTitle, true);
 
         return;
     }
@@ -227,6 +232,7 @@ async function writeBackForTheRoom(markdown, retried = false) {
 
     version.value = payload.version ?? version.value;
     savedContent.value = markdown;
+    savedTitle.value = title;
 }
 
 /** Where this guest's caret is, said at most five times a second. */
@@ -427,11 +433,7 @@ const lookClass = computed(() =>
                 </div>
 
                 <div class="mb-4 flex items-start gap-2">
-                    <!-- In a live session the title is read, not written:
-                         the shared document is the body, and a title typed
-                         by one guest would be overwritten by the next save
-                         of the room. -->
-                    <h2 v-if="!editing || coeditLive" class="min-w-0 flex-1 text-xl font-semibold text-primary">
+                    <h2 v-if="!editing" class="min-w-0 flex-1 text-xl font-semibold text-primary">
                         {{ savedTitle?.trim() || t("notes.markdown.untitled") }}
                     </h2>
                     <input
@@ -445,6 +447,16 @@ const lookClass = computed(() =>
                     >
                     <!-- Who else is on the note, the way the back office shows
                          it: one face per person, in their caret's colour. -->
+                    <!-- Said once the session has really started, never before:
+                         a hub can be configured and still be down. -->
+                    <span
+                        v-if="coeditLive"
+                        data-share-live-badge
+                        class="inline-flex shrink-0 items-center gap-1.5 self-center rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-secondary"
+                    >
+                        <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+                        {{ t("notes.markdown.share.coediting_heading") }}
+                    </span>
                     <span v-if="liveLink && roomPeople.length" data-note-room class="inline-flex shrink-0 items-center self-center">
                         <NoteCollaborators
                             :people="roomPeople"

@@ -154,6 +154,30 @@ final class NoteShareLiveTest extends IntegrationTestCase
         self::assertSame((int) $cookie->getValue(), (int) $body['selfUserId']);
     }
 
+    /**
+     * Without a hub, a live link does not announce a live session.
+     *
+     * The test environment runs no hub, which is the case: the box is ticked,
+     * nothing could carry the session, so the page is told to write the old
+     * way - and the header no longer promises "live" at all, the page saying
+     * it only once a session has really started.
+     */
+    public function testWithoutAHubTheLinkDoesNotAnnounceALiveSession(): void
+    {
+        $note = $this->note();
+        $link = $this->link($note, canWrite: true, coediting: true);
+
+        $this->client->request('GET', $this->urlGenerator->generate('notes_share', ['token' => $link->getToken()]));
+        self::assertResponseIsSuccessful();
+
+        $html = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('&quot;canWrite&quot;:true', $html);
+        self::assertStringContainsString('&quot;coediting&quot;:false', $html);
+
+        $translator = static::getContainer()->get(TranslatorInterface::class);
+        self::assertStringNotContainsString($translator->trans('notes.markdown.share.coediting_heading'), $html);
+    }
+
     /** A hand-written cookie cannot take an account's id. */
     public function testAnIdentityOutsideTheGuestRangeIsReplaced(): void
     {

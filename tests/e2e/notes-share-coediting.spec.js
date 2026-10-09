@@ -119,6 +119,25 @@ test("un invité et le propriétaire écrivent la même note personnelle", async
         await expect(guestField).toHaveValue(new RegExp(fromTheOwner), {
             timeout: 20_000,
         });
+
+        // The title is the room's too, both ways: it used to stay out of the
+        // session, and a guest could not rename a note being written live.
+        const guestTitle = guest.locator("[data-share-title-field]");
+        const ownerTitle = owner.locator("[data-note-title]");
+
+        await guestTitle.click();
+        await guestTitle.press("End");
+        await guestTitle.type(" (relu)", { delay: 15 });
+        await expect(ownerTitle).toHaveValue(/Écrite à deux \(relu\)/, {
+            timeout: 20_000,
+        });
+
+        await ownerTitle.click();
+        await ownerTitle.press("End");
+        await ownerTitle.type(" et signé", { delay: 15 });
+        await expect(guestTitle).toHaveValue(/\(relu\) et signé/, {
+            timeout: 20_000,
+        });
     } finally {
         await ownerContext.close();
         await guestContext.close();

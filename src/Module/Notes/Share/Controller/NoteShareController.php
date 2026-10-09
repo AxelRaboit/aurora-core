@@ -445,10 +445,12 @@ final class NoteShareController extends AbstractController
                 'id' => (int) $note->getId(),
             ]),
             'noteVersion' => $note->getVersion(),
-            // Live co-editing, when the link opens it on its own note. The
-            // page then joins the room through `liveBeatPath`; without it, it
-            // writes the old way and never beats.
+            // Live co-editing, when the link opens it on its own note and a
+            // hub is there to carry it. The page then joins the room through
+            // `liveBeatPath`; without either, it writes the old way and never
+            // beats - rather than announce a live session that cannot start.
             'coediting' => $this->notesContext->isCollaborationEnabled()
+                && $this->liveHub->isEnabled()
                 && $link->allowsCoediting()
                 && $link->canWriteNote($note, new DateTimeImmutable()),
             'liveBeatPath' => $this->generateUrl('notes_share_live', [

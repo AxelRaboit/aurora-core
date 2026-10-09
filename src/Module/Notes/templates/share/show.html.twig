@@ -5,7 +5,9 @@
 {% block heading %}{{ 'notes.markdown.share.page_heading'|trans }}{% endblock %}
 {# A writing link says so in the header: "read only" on a page that saves
    would be the one lie the share page must not tell. #}
-{% block subheading %}{{ (coediting ? 'notes.markdown.share.coediting_heading' : (canWrite ? 'notes.markdown.share.can_write' : 'notes.markdown.share.read_only'))|trans }}{% endblock %}
+{# "Live" is not promised here: the page says it once a session has really
+   started, since a hub can be configured and still be down. #}
+{% block subheading %}{{ (canWrite ? 'notes.markdown.share.can_write' : 'notes.markdown.share.read_only')|trans }}{% endblock %}
 
 {% block body %}
 <div {{ vue_component('notes/share/NoteShareApp', {

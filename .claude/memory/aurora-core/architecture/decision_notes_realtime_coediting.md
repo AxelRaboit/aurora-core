@@ -331,6 +331,14 @@ existaient aussi entre collègues, plus rarement :
    de l'élu n'était sauvé par personne tant qu'on ne retapait pas. Le client que
    la salle **devient** à élire réécrit aussitôt.
 
+**Le titre est le second texte du document** (`getText("title")`, 09/10/2026),
+avec les mêmes trois chemins que le corps : amorce, frappe → opération,
+mise à jour reçue → champ. Les options `title` / `applyTitle` de
+`useNoteCoedit` sont facultatives. Un titre **vide** dans le document n'est
+jamais réécrit : un document amorcé par un client qui ne portait pas encore de
+titre (pendant un déploiement) en a un vide, et le réécrire effacerait le titre
+de toute la salle.
+
 **Et un piège de mesure, trouvé le 09/10/2026.** Un onglet resté ouvert avec le
 compte A répondait aux `doc-request` à la place du A du test : B recevait un
 document que le test n'avait jamais amorcé, et la frappe de A semblait ne pas
