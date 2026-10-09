@@ -74,6 +74,17 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
     #[ORM\Column(options: ['default' => false])]
     protected bool $canWrite = false;
 
+    /**
+     * Whether a writing link opens its note to live co-editing.
+     *
+     * Off by default, like writing itself: ticked, the guests write with
+     * everybody else on the note letter by letter; unticked, they type and
+     * then save. Meaningless on a reading link, and read through
+     * `allowsCoediting()` so that nothing has to remember it.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $coediting = false;
+
     /** Null for a plain copy-the-link share; set when this link was mailed to somebody. */
     #[ORM\Column(length: 180, nullable: true)]
     protected ?string $recipientEmail = null;
@@ -151,6 +162,19 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
     public function setCanWrite(bool $canWrite): static
     {
         $this->canWrite = $canWrite;
+
+        return $this;
+    }
+
+    /** Live co-editing through this link: only ever on a link that writes. */
+    public function allowsCoediting(): bool
+    {
+        return $this->coediting && $this->canWrite;
+    }
+
+    public function setCoediting(bool $coediting): static
+    {
+        $this->coediting = $coediting;
 
         return $this;
     }

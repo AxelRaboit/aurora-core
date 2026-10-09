@@ -83,6 +83,12 @@ export function useNoteLive({ noteId, editing, beatPath }) {
      */
     const selfUserId = ref(null);
     const awarenessReady = ref(false);
+    /**
+     * Whether the server says this note is written together: its space allows
+     * it, or a writing link with live co-editing is open on it. The second
+     * reason is not the space's to know, so it comes with the beat.
+     */
+    const coeditable = ref(false);
     let selfName = null;
     // The address, topic and token a browser needs to say where its cursor
     // is. Null without a hub, and then nothing is published or drawn.
@@ -131,6 +137,7 @@ export function useNoteLive({ noteId, editing, beatPath }) {
         // Renewed on every beat, long before the publish token runs out.
         awareness = payload.awareness ?? null;
         awarenessReady.value = null !== awareness;
+        coeditable.value = true === payload.coediting;
 
         connect(payload.streamUrl ?? null);
     }
@@ -324,13 +331,53 @@ export function useNoteLive({ noteId, editing, beatPath }) {
         sweeper = null;
     }
 
+    /**
+     * Says this page is leaving the note, so the room drops it at once.
+     *
+     * Without it a closed tab stayed in everybody's room for fifty seconds,
+     * and a page that leaves can be the one the room counts on - to answer a
+     * newcomer, or to write the text back. Best effort, by design: a laptop
+     * whose lid closes says nothing, and the room still forgets it on its own.
+     * `keepalive` is what lets the request leave a closing tab, and why this
+     * is a bare `fetch` with the headers `useRequest` sends.
+     */
+    function leave(id) {
+        if (null == id || !beatPath) return;
+
+        try {
+            void fetch(pathFor(id), {
+                method: "POST",
+                keepalive: true,
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                body: JSON.stringify({ leaving: true }),
+            }).catch(() => {});
+        } catch {
+            // Nobody asked for this; the room forgets the page on its own.
+        }
+    }
+
+    const onPageHide = () => leave(current);
+    window.addEventListener("pagehide", onPageHide);
+    onBeforeUnmount(() => {
+        window.removeEventListener("pagehide", onPageHide);
+        leave(current);
+    });
+
     function start(id) {
+        // Moving to another note leaves the one before, without waiting for
+        // the room to notice.
+        if (null != current && current !== id) leave(current);
         current = id;
         people.value = [];
         cursors.value = [];
         heardAt.clear();
         awareness = null;
         awarenessReady.value = false;
+        coeditable.value = false;
         serverVersion.value = null;
         changedBy.value = null;
         disconnect();
@@ -382,6 +429,8 @@ export function useNoteLive({ noteId, editing, beatPath }) {
         selfUserId: () => selfUserId.value,
         // A ref, so a `computed` that depends on it is told when it changes.
         ready: awarenessReady,
+        // A ref too, for the same reason: it arrives with the first beat.
+        coeditable,
     };
 
     return {

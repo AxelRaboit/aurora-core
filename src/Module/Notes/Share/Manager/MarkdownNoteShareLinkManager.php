@@ -44,6 +44,7 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
         string $label = '',
         ?DateTimeImmutable $expiresAt = null,
         bool $canWrite = false,
+        bool $coediting = false,
     ): MarkdownNoteShareLinkInterface {
         $link = $this->createLink();
         $link->setNote($note);
@@ -52,6 +53,9 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
         $link->setLabel($label);
         $link->setExpiresAt($expiresAt);
         $link->setCanWrite($canWrite);
+        // Stored as asked, read through `allowsCoediting()`, which answers
+        // false on a link that does not write.
+        $link->setCoediting($coediting);
 
         $this->entityManager->persist($link);
 
@@ -67,6 +71,9 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
             // into a write endpoint: "who opened writing on this note, and
             // when" has to be answerable afterwards.
             'canWrite' => $canWrite,
+            // Logged for the same reason: it is what lets whoever holds the
+            // address into the room with everybody writing the note.
+            'coediting' => $canWrite && $coediting,
         ]);
 
         $this->entityManager->flush();

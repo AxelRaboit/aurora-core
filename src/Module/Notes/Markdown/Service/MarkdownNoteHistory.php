@@ -109,7 +109,10 @@ final readonly class MarkdownNoteHistory
                 continue;
             }
 
-            $hands[$person['userId']] = ['id' => $person['userId'], 'name' => $person['name']];
+            // A guest is kept as a guest, with no name: the screen says
+            // "Guest" in the reader's language, and the link's label - often
+            // an address - is not for everybody the history is open to.
+            $hands[$person['userId']] = ['id' => $person['userId'], 'name' => $person['name'], 'guest' => $person['guest']];
         }
 
         return array_values($hands);

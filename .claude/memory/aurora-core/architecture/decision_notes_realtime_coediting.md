@@ -312,6 +312,33 @@ tombés, et ce qu'ils disent :
    le test rougit quand on retire le correctif. Un test qu'on n'a pas vu
    échouer ne mesure rien de connu.
 
+**Et trois défauts du protocole, trouvés le 09/10/2026 en ouvrant la salle aux
+invités d'un lien** (dont les ids dépassent tous les comptes) - tous trois
+existaient aussi entre collègues, plus rarement :
+
+4. **Le nouvel arrivant élu restait sans réponse.** Seul l'élu répondait à une
+   demande de document ; quand l'arrivant a le plus petit id, c'est *lui*
+   l'élu, et personne ne répondait : il amorçait un second document, et les
+   deux côtés tapaient dans des histoires qui ne s'entendent pas. Répond
+   désormais le plus petit id **parmi les autres, demandeur exclu**
+   (`answersDocRequest`).
+5. **Le désigné pouvait être parti.** Un onglet fermé reste cinquante secondes
+   dans la salle. Les autres détenteurs répondent **en renfort** après 1,5 s si
+   personne ne l'a fait (une réponse en double est inoffensive : même histoire).
+   Et une page qui part le dit (`leaving: true` sur le battement, en
+   `keepalive`) : le serveur la retire tout de suite.
+6. **L'écrivain parti emportait la réécriture.** Le texte tapé après le départ
+   de l'élu n'était sauvé par personne tant qu'on ne retapait pas. Le client que
+   la salle **devient** à élire réécrit aussitôt.
+
+**Le titre est le second texte du document** (`getText("title")`, 09/10/2026),
+avec les mêmes trois chemins que le corps : amorce, frappe → opération,
+mise à jour reçue → champ. Les options `title` / `applyTitle` de
+`useNoteCoedit` sont facultatives. Un titre **vide** dans le document n'est
+jamais réécrit : un document amorcé par un client qui ne portait pas encore de
+titre (pendant un déploiement) en a un vide, et le réécrire effacerait le titre
+de toute la salle.
+
 **Et un piège de mesure, trouvé le 09/10/2026.** Un onglet resté ouvert avec le
 compte A répondait aux `doc-request` à la place du A du test : B recevait un
 document que le test n'avait jamais amorcé, et la frappe de A semblait ne pas

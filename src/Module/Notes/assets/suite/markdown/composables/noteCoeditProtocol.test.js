@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     JOIN_REQUEST,
     JOIN_SEED,
+    answersDocRequest,
     canCoedit,
     isElected,
     isForMe,
@@ -186,5 +187,47 @@ describe("textDelta", () => {
 
             expect(applied).toBe(next);
         }
+    });
+});
+
+describe("répondre à un nouvel arrivant", () => {
+    it("répond quand on a le plus petit id parmi les autres", () => {
+        expect(answersDocRequest(3, [{ userId: 5 }, { userId: 9 }], 9)).toBe(
+            true,
+        );
+        expect(answersDocRequest(5, [{ userId: 3 }, { userId: 9 }], 9)).toBe(
+            false,
+        );
+    });
+
+    /**
+     * The case that split a session in two (09/10/2026): an account walks into
+     * a room of guests, whose ids are all above every account's. Elected on
+     * arrival, it holds nothing yet - so the guest who holds the document has
+     * to answer, which the old rule ("the elected one answers") never let it do.
+     */
+    it("laisse de côté le demandeur, même quand c'est lui le plus petit id", () => {
+        const guest = 1_400_000_000;
+        const account = 2;
+
+        expect(isElected(guest, [{ userId: account }])).toBe(false);
+        expect(answersDocRequest(guest, [{ userId: account }], account)).toBe(
+            true,
+        );
+    });
+
+    it("une seule réponse quand plusieurs ont déjà le document", () => {
+        const room = [
+            { userId: 2 },
+            { userId: 1_100_000_000 },
+            { userId: 1_200_000_000 },
+        ];
+        const others = (self) => room.filter((peer) => peer.userId !== self);
+
+        const answering = [1_100_000_000, 1_200_000_000].filter((self) =>
+            answersDocRequest(self, others(self), 2),
+        );
+
+        expect(answering).toEqual([1_100_000_000]);
     });
 });

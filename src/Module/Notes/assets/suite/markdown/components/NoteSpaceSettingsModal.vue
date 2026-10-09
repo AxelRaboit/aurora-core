@@ -22,6 +22,7 @@ import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppCheckbox from "@shared/components/form/toggle/AppCheckbox.vue";
+import AppBetaBadge from "@shared/components/display/AppBetaBadge.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { useClipboard } from "@/shared/composables/useClipboard.js";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -315,10 +316,11 @@ async function removeSpace() {
                     v-model="coediting"
                     class="mt-3"
                     data-space-coediting-toggle
-                    :label="t('notes.markdown.spaces.coediting.enable')"
                     :hint="t('notes.markdown.spaces.coediting.hint')"
                     :disabled="saving"
-                />
+                >
+                    {{ t('notes.markdown.spaces.coediting.enable') }}<AppBetaBadge />
+                </AppCheckbox>
             </section>
 
             <!-- The members: each with their role, which is changed in place. -->

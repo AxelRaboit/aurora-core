@@ -70,7 +70,7 @@ class MarkdownNoteRevision
      * note open in the reader did not write it, and saying they did would be a
      * worse record than saying nothing.
      *
-     * @var list<array{id: int, name: ?string}>|null
+     * @var list<array{id: int, name: ?string, guest?: bool}>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     protected ?array $writtenBy = null;
@@ -91,7 +91,7 @@ class MarkdownNoteRevision
         /*
          * Everybody writing at that moment, or null when one person was.
          *
-         * @param list<array{id: int, name: ?string}>|null $writtenBy
+         * @param list<array{id: int, name: ?string, guest?: bool}>|null $writtenBy
          */
         ?array $writtenBy = null
     ) {
@@ -165,7 +165,7 @@ class MarkdownNoteRevision
      * Empty for a version somebody wrote on their own, which is what
      * `author` already says.
      *
-     * @return list<array{id: int, name: ?string}>
+     * @return list<array{id: int, name: ?string, guest?: bool}>
      */
     public function getWrittenBy(): array
     {

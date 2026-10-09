@@ -36,6 +36,9 @@ final class NoteShareInput
      */
     public bool $canWrite = false;
 
+    /** Live co-editing for whoever holds the address. Ignored unless `canWrite`. */
+    public bool $coediting = false;
+
     /** ISO-8601 date, or null for a link that lasts until it is revoked. */
     public ?string $expiresAt = null;
 }

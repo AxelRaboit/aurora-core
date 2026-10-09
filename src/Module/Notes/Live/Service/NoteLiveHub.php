@@ -281,7 +281,7 @@ final readonly class NoteLiveHub
     /**
      * Tells whoever is listening who is on the note.
      *
-     * @param list<array{userId: int, name: ?string, editing: bool}> $people
+     * @param list<array{userId: int, name: ?string, editing: bool, guest: bool}> $people
      */
     public function publishPresence(MarkdownNoteInterface $note, array $people): void
     {

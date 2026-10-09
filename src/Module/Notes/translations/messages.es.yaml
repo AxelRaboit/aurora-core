@@ -132,6 +132,7 @@ notes:
             reading: 'leyendo'
             streaming: 'Actualización en directo'
             polling: 'Actualización cada 20 segundos'
+            guest: 'Invitado'
         people:
             shared_with_me: 'Compartidas conmigo'
             button: Compartir con personas
@@ -156,6 +157,11 @@ notes:
             can_write: 'Permitir la edición'
             can_write_hint: 'Cualquiera que tenga la dirección podrá reescribir el texto de esta nota. Solo esta, nunca las notas vinculadas.'
             writable_badge: 'Escritura'
+            coediting: 'Coedición en directo'
+            coediting_hint: 'Quien tenga la dirección escribe la nota al mismo tiempo que usted, letra por letra, y ve quién está, como en un documento compartido. Funciona también para una nota de su espacio personal.'
+            coediting_badge: 'En directo'
+            coediting_heading: 'Escritura en directo'
+            live_hint: 'Está escribiendo en directo con las demás personas de esta nota. Cada cambio se guarda para todos.'
             edit: 'Editar'
             editing_hint: 'Lo que guarde reemplaza el texto de la nota para todos. Si la nota cambió entretanto, no se guarda nada y su texto sigue en pantalla.'
             save: 'Guardar'

@@ -53,16 +53,40 @@ final readonly class NotePresence
      * same news, and the whole point of showing presence is to stop two
      * people rewriting the same paragraph.
      *
-     * @return list<array{userId: int, name: ?string, editing: bool}>
+     * @return list<array{userId: int, name: ?string, editing: bool, guest: bool}>
      */
     public function beat(MarkdownNoteInterface $note, CoreUserInterface $user, bool $editing): array
+    {
+        return $this->record($note, (int) $user->getId(), $user->getName(), $editing, false);
+    }
+
+    /**
+     * Records that a guest holding a writing link is on the note.
+     *
+     * **No name, and not the link's label either.** A label is written by
+     * whoever made the link, often a recipient's address, and the room is
+     * shown to everybody in it - the other guests included. So a guest is
+     * stored as a guest and each page says "Guest" in its own language.
+     *
+     * @return list<array{userId: int, name: ?string, editing: bool, guest: bool}>
+     */
+    public function beatAsGuest(MarkdownNoteInterface $note, int $guestId, bool $editing): array
+    {
+        return $this->record($note, $guestId, null, $editing, true);
+    }
+
+    /**
+     * @return list<array{userId: int, name: ?string, editing: bool, guest: bool}>
+     */
+    private function record(MarkdownNoteInterface $note, int $id, ?string $name, bool $editing, bool $guest): array
     {
         $item = $this->cache->getItem($this->keyFor($note));
         $people = $this->fresh($this->read($item->get()));
 
-        $people[(int) $user->getId()] = [
-            'name' => $user->getName(),
+        $people[$id] = [
+            'name' => $name,
             'editing' => $editing,
+            'guest' => $guest,
             'at' => time(),
         ];
 
@@ -72,13 +96,35 @@ final readonly class NotePresence
         $item->set($people)->expiresAfter(self::STALE_AFTER_SECONDS * 3);
         $this->cache->save($item);
 
-        return $this->listWithout($people, (int) $user->getId());
+        return $this->listWithout($people, $id);
+    }
+
+    /**
+     * Takes somebody out of the room at once, when their page says it leaves.
+     *
+     * Best effort, and the staleness window still stands behind it: a closed
+     * laptop says nothing. But a page that does say it should not stay in the
+     * room for fifty seconds, where it may be the one the others count on to
+     * answer a newcomer or to write the text back.
+     */
+    public function leave(MarkdownNoteInterface $note, int $id): void
+    {
+        $item = $this->cache->getItem($this->keyFor($note));
+        $people = $this->fresh($this->read($item->get()));
+
+        if (!array_key_exists($id, $people)) {
+            return;
+        }
+
+        unset($people[$id]);
+        $item->set($people)->expiresAfter(self::STALE_AFTER_SECONDS * 3);
+        $this->cache->save($item);
     }
 
     /**
      * Who is on the note, without saying anything oneself.
      *
-     * @return list<array{userId: int, name: ?string, editing: bool}>
+     * @return list<array{userId: int, name: ?string, editing: bool, guest: bool}>
      */
     public function on(MarkdownNoteInterface $note, ?CoreUserInterface $except = null): array
     {
@@ -97,7 +143,7 @@ final readonly class NotePresence
      * here. Past this method the shape is known, which is why nothing below it
      * guards again.
      *
-     * @return array<int, array{name: ?string, editing: bool, at: int}>
+     * @return array<int, array{name: ?string, editing: bool, guest: bool, at: int}>
      */
     private function read(mixed $stored): array
     {
@@ -124,6 +170,9 @@ final readonly class NotePresence
             $people[$userId] = [
                 'name' => is_string($name) ? $name : null,
                 'editing' => true === ($one['editing'] ?? null),
+                // Absent in what an older version wrote, and those were all
+                // accounts: guests did not exist before this key did.
+                'guest' => true === ($one['guest'] ?? null),
                 'at' => $one['at'],
             ];
         }
@@ -132,9 +181,9 @@ final readonly class NotePresence
     }
 
     /**
-     * @param array<int, array{name: ?string, editing: bool, at: int}> $people
+     * @param array<int, array{name: ?string, editing: bool, guest: bool, at: int}> $people
      *
-     * @return array<int, array{name: ?string, editing: bool, at: int}>
+     * @return array<int, array{name: ?string, editing: bool, guest: bool, at: int}>
      */
     private function fresh(array $people): array
     {
@@ -144,9 +193,9 @@ final readonly class NotePresence
     }
 
     /**
-     * @param array<int, array{name: ?string, editing: bool, at: int}> $people
+     * @param array<int, array{name: ?string, editing: bool, guest: bool, at: int}> $people
      *
-     * @return list<array{userId: int, name: ?string, editing: bool}>
+     * @return list<array{userId: int, name: ?string, editing: bool, guest: bool}>
      */
     private function listWithout(array $people, ?int $exceptId): array
     {
@@ -156,7 +205,7 @@ final readonly class NotePresence
                 continue;
             }
 
-            $list[] = ['userId' => $userId, 'name' => $one['name'], 'editing' => $one['editing']];
+            $list[] = ['userId' => $userId, 'name' => $one['name'], 'editing' => $one['editing'], 'guest' => $one['guest']];
         }
 
         return $list;

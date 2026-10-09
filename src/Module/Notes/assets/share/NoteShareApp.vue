@@ -14,6 +14,11 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
 import { useMarkdownRenderer } from "@notes/suite/markdown/composables/useMarkdownRenderer.js";
 import { useEditorPaneMode } from "@notes/suite/markdown/composables/useEditorPaneMode.js";
+import { useNoteLive } from "@notes/suite/markdown/composables/useNoteLive.js";
+import { useNoteCoedit } from "@notes/suite/markdown/composables/useNoteCoedit.js";
+import { canCoedit } from "@notes/suite/markdown/composables/noteCoeditProtocol.js";
+import NoteCollaborators from "@notes/suite/markdown/components/NoteCollaborators.vue";
+import NoteRemoteCarets from "@notes/suite/markdown/components/NoteRemoteCarets.vue";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
 import { shareEditorModes, shareEditorView } from "@notes/share/shareEditorView.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
@@ -51,6 +56,13 @@ const props = defineProps({
     saveNotePath: { type: String, default: "" },
     /** The note's version as the page was served: what a save starts from. */
     noteVersion: { type: Number, default: null },
+    /**
+     * Whether the link opens live co-editing on its note: ticked on the link,
+     * and only ever on one that writes. The server's word, like `canWrite`.
+     */
+    coediting: { type: Boolean, default: false },
+    /** Where a guest beats to be in the room, `__id__` template. */
+    liveBeatPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -113,6 +125,138 @@ function pickMode(value) {
  * another try would be refused the same way.
  */
 const conflicted = ref(false);
+
+/**
+ * Writing with the others, letter by letter, when the link opens it.
+ *
+ * **The back office's own live code, not a copy of it.** The guest beats on
+ * the link's route instead of the back office's, and the answer has the same
+ * shape - the room, where to listen, the right to publish a caret, who this
+ * guest is - so `useNoteLive` and `useNoteCoedit` run here untouched. Two
+ * copies of a protocol would be how the guest and the owner drift into
+ * sessions that cannot hear each other.
+ *
+ * **Accounts write back, guests only for a room of guests.** The room elects
+ * its lowest id and a guest's is above every account's (the server sees to
+ * that), so whenever somebody with an account is on the note, their ordinary
+ * save carries the text, three-way merge included. This page's write-back
+ * only ever runs for a room with nobody else in it but guests.
+ *
+ * **Refusing is still the safe answer.** No hub, no answer from the room: the
+ * session never starts and the page writes the way it always has, type then
+ * save. Half a session would be the one outcome worse than none.
+ */
+const liveLink = props.coediting && props.canWrite && "" !== props.liveBeatPath;
+const liveNoteId = ref(liveLink ? props.noteId : null);
+const coeditLive = ref(false);
+
+const {
+    people: roomPeople,
+    cursors: roomCursors,
+    live: roomStreaming,
+    publishCursor,
+    channel: roomChannel,
+} = useNoteLive({
+    noteId: liveNoteId,
+    editing,
+    beatPath: props.liveBeatPath,
+});
+
+const coeditAllowed = computed(
+    () =>
+        liveLink &&
+        canCoedit({
+            spaceAllows: roomChannel.coeditable.value,
+            canWrite: props.canWrite,
+            hasChannel: roomChannel.ready.value,
+            selfUserId: roomChannel.selfUserId(),
+        }),
+);
+
+useNoteCoedit({
+    noteId: liveNoteId,
+    allowed: coeditAllowed,
+    live: coeditLive,
+    text: computed(() => draftContent.value),
+    applyText: (value) => {
+        draftContent.value = value;
+    },
+    title: computed(() => draftTitle.value),
+    applyTitle: (value) => {
+        draftTitle.value = value;
+    },
+    room: roomPeople,
+    channel: roomChannel,
+    writeBack: (markdown, sharedTitle) => writeBackForTheRoom(markdown, sharedTitle),
+});
+
+/**
+ * The room's text, saved for everybody, when this guest is the one elected.
+ *
+ * Through the link's write route, flagged as a session's so it counts against
+ * the session's limit rather than the one meant for a guest pressing Save. The
+ * title is the room's too; when the session hands none back (an empty one,
+ * see `useNoteCoedit`), the stored title goes back unchanged.
+ *
+ * **A conflict here means the note was saved from outside the room** - by a
+ * restore, say, since every account that opens a co-editable note joins it.
+ * The room's text is what everybody in it is looking at, so it is written
+ * again on top of the version the server answered with: what it replaces is
+ * still in the history, kept by the save that caused the conflict.
+ */
+async function writeBackForTheRoom(markdown, sharedTitle = null, retried = false) {
+    const title = sharedTitle ?? savedTitle.value;
+    const payload = await request(
+        props.saveNotePath,
+        {
+            title,
+            content: markdown,
+            version: version.value,
+            coedit: true,
+        },
+        // Nobody pressed anything: a failure here shows nothing, and the next
+        // pause in the typing writes again.
+        { accept: [HttpStatus.TooManyRequests], silent: true, noGuard: true },
+    );
+
+    if (!payload) return;
+
+    if (payload.conflict) {
+        version.value = payload.version ?? version.value;
+        if (!retried) await writeBackForTheRoom(markdown, sharedTitle, true);
+
+        return;
+    }
+
+    if (false === payload.success) return;
+
+    version.value = payload.version ?? version.value;
+    savedContent.value = markdown;
+    savedTitle.value = title;
+}
+
+/** Where this guest's caret is, said at most five times a second. */
+const fieldRef = ref(null);
+let caretTimer = null;
+
+function reportCaret() {
+    if (!coeditLive.value || caretTimer) return;
+
+    caretTimer = setTimeout(() => {
+        caretTimer = null;
+        void publishCursor(fieldRef.value?.selectionStart ?? null);
+    }, 200);
+}
+
+onUnmounted(() => {
+    if (caretTimer) clearTimeout(caretTimer);
+});
+
+// A live link opens straight on the field, the way a shared document does:
+// there is nothing to "start" when everybody is already writing.
+onMounted(() => {
+    if (liveLink) startEditing();
+});
 
 function startEditing() {
     draftTitle.value = savedTitle.value;
@@ -301,6 +445,24 @@ const lookClass = computed(() =>
                         :placeholder="t('notes.markdown.title_placeholder')"
                         :aria-label="t('notes.markdown.title')"
                     >
+                    <!-- Who else is on the note, the way the back office shows
+                         it: one face per person, in their caret's colour. -->
+                    <!-- Said once the session has really started, never before:
+                         a hub can be configured and still be down. -->
+                    <span
+                        v-if="coeditLive"
+                        data-share-live-badge
+                        class="inline-flex shrink-0 items-center gap-1.5 self-center rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-secondary"
+                    >
+                        <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+                        {{ t("notes.markdown.share.coediting_heading") }}
+                    </span>
+                    <span v-if="liveLink && roomPeople.length" data-note-room class="inline-flex shrink-0 items-center self-center">
+                        <NoteCollaborators
+                            :people="roomPeople"
+                            :status="roomStreaming ? t('notes.markdown.live.streaming') : t('notes.markdown.live.polling')"
+                        />
+                    </span>
                     <AppButton
                         v-if="canWrite && !editing && !conflicted"
                         data-share-edit
@@ -347,6 +509,7 @@ const lookClass = computed(() =>
                     >
                         <textarea
                             v-if="view.showEditor"
+                            ref="fieldRef"
                             v-model="draftContent"
                             data-share-content-field
                             rows="18"
@@ -354,6 +517,9 @@ const lookClass = computed(() =>
                             :disabled="saving"
                             :placeholder="t('notes.markdown.content_placeholder')"
                             :aria-label="t('notes.markdown.share.edit')"
+                            v-on:keyup="reportCaret"
+                            v-on:click="reportCaret"
+                            v-on:select="reportCaret"
                         />
                         <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
                              through DOMPurify before this ever reaches the page. -->
@@ -364,8 +530,21 @@ const lookClass = computed(() =>
                             v-html="draftHtml"
                         />
                     </div>
-                    <p class="mt-1 text-xs text-muted">{{ t("notes.markdown.share.editing_hint") }}</p>
-                    <div class="mt-3 flex flex-wrap gap-2">
+                    <!-- The others' carets, drawn over the field: a textarea
+                         cannot show a second one. -->
+                    <NoteRemoteCarets
+                        v-if="coeditLive && view.showEditor"
+                        :textarea="fieldRef"
+                        :cursors="roomCursors"
+                        :text="draftContent"
+                    />
+                    <p class="mt-1 text-xs text-muted" :data-share-live-hint="coeditLive ? '' : null">
+                        {{ coeditLive ? t("notes.markdown.share.live_hint") : t("notes.markdown.share.editing_hint") }}
+                    </p>
+                    <!-- No Save in a live session: the room writes itself back
+                         on every pause, and a button that did nothing would
+                         be the one lie this page must not tell. -->
+                    <div v-if="!coeditLive" class="mt-3 flex flex-wrap gap-2">
                         <AppButton data-share-save :disabled="saving || conflicted" v-on:click="save">
                             {{ t("notes.markdown.share.save") }}
                         </AppButton>

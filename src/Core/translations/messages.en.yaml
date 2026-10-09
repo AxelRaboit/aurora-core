@@ -146,6 +146,8 @@ shared:
     chart:
         share: "{count} of {total} ({percent}%)"
     common:
+        beta: Beta
+        beta_hint: "Still being finished: it may change or have rough edges."
         help: Help
         list_view: List view
         grid_view: Card view

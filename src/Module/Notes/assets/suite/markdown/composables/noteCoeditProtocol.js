@@ -55,6 +55,35 @@ export function isElected(selfUserId, room) {
 }
 
 /**
+ * Whether this client answers a newcomer's request for the document.
+ *
+ * **The lowest id among the others, the newcomer left out.** It used to be the
+ * elected client, and that is wrong exactly when the newcomer is the one with
+ * the lowest id: elected on arrival, holding nothing yet, it asked - and the
+ * clients that did hold the document were not elected, so none answered. It
+ * then seeded a second document of its own, and the two sides typed into
+ * histories that could not hear each other. Rare between colleagues, the
+ * common case as soon as an account walks into a room of guests, whose ids are
+ * all above every account's (09/10/2026).
+ *
+ * Leaving the newcomer out still names one client and only one, and any of the
+ * clients already in the session can answer: they hold the same document,
+ * converged from the same history.
+ *
+ * @param {number} selfUserId
+ * @param {Array<{userId: number}>} room the others, newcomer included
+ * @param {number} requesterId who asked
+ */
+export function answersDocRequest(selfUserId, room, requesterId) {
+    return isElected(
+        selfUserId,
+        (room ?? []).filter(
+            (peer) => Number(peer.userId) !== Number(requesterId),
+        ),
+    );
+}
+
+/**
  * Whether a message off the channel is addressed to this client.
  *
  * A state transfer names its recipient, because it is the one message that is

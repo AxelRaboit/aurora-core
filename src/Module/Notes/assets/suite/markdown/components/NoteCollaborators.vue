@@ -29,7 +29,18 @@ const MAX_FACES = 4;
 const shown = computed(() => props.people.slice(0, MAX_FACES));
 const hidden = computed(() => props.people.slice(MAX_FACES));
 
-const names = computed(() => props.people.map((person) => person.name).filter(Boolean));
+/**
+ * What a person is called here.
+ *
+ * A guest of a live link has no name on purpose - the server keeps neither
+ * one nor the link's label in the room - so they are "Guest", in this
+ * reader's language. Nobody else comes without a name.
+ */
+function nameOf(person) {
+    return person.name || t("notes.markdown.live.guest");
+}
+
+const names = computed(() => props.people.map(nameOf));
 
 const sentence = computed(() =>
     1 === names.value.length
@@ -44,11 +55,11 @@ function withStatus(text) {
 function tooltipOf(person) {
     const activity = t(person.editing ? "notes.markdown.live.editing" : "notes.markdown.live.reading");
 
-    return withStatus(`${person.name} · ${activity}`);
+    return withStatus(`${nameOf(person)} · ${activity}`);
 }
 
 const hiddenTooltip = computed(() =>
-    withStatus(hidden.value.map((person) => person.name).filter(Boolean).join(", ")),
+    withStatus(hidden.value.map(nameOf).join(", ")),
 );
 </script>
 
@@ -68,7 +79,7 @@ const hiddenTooltip = computed(() =>
             :title="tooltipOf(person)"
         >
             <AppAvatar
-                :name="person.name"
+                :name="nameOf(person)"
                 :color="collaboratorColor(person.userId)"
                 size="sm"
                 class="block"
