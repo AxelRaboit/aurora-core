@@ -232,20 +232,23 @@ async function writeBackForTheRoom(markdown, sharedTitle = null, retried = false
         { accept: [HttpStatus.TooManyRequests], silent: true, noGuard: true },
     );
 
-    if (!payload) return;
+    // Says whether it wrote, so the session tries again after a failure
+    // rather than believing the text is stored.
+    if (!payload) return false;
 
     if (payload.conflict) {
         version.value = payload.version ?? version.value;
-        if (!retried) await writeBackForTheRoom(markdown, sharedTitle, true);
 
-        return;
+        return retried ? false : await writeBackForTheRoom(markdown, sharedTitle, true);
     }
 
-    if (false === payload.success) return;
+    if (false === payload.success) return false;
 
     version.value = payload.version ?? version.value;
     savedContent.value = markdown;
     savedTitle.value = title;
+
+    return true;
 }
 
 /** Where this guest's caret is, said at most five times a second. */

@@ -92,6 +92,13 @@ export function useNoteCoedit({
     let joining = null;
     let joinAttempts = 0;
     let writeTimer = null;
+    /**
+     * What was last written back, body and title: a write-back that would
+     * write the same thing again is skipped. A room that saves for nothing
+     * still sends a "changed" to everybody, and each one is a chance for some
+     * screen to redraw.
+     */
+    let lastWritten = null;
     // Set while a remote update is being applied, so the observer that
     // publishes local edits does not publish them straight back.
     let applying = false;
@@ -221,6 +228,7 @@ export function useNoteCoedit({
         writeTimer = null;
         if (joining) clearTimeout(joining);
         joining = null;
+        lastWritten = null;
         if (sharedDocument) sharedDocument.destroy();
         sharedDocument = null;
         body = null;
@@ -240,6 +248,18 @@ export function useNoteCoedit({
         body = sharedDocument.getText("body");
 
         if (null !== seedText) body.insert(0, seedText);
+        // A document seeded from the stored note holds what is stored: there
+        // is nothing to write back until somebody types.
+        lastWritten =
+            null === seedText
+                ? null
+                : {
+                      body: seedText,
+                      title:
+                          null === seedTitle || "" === seedTitle
+                              ? null
+                              : seedTitle,
+                  };
 
         if (title) {
             titleText = sharedDocument.getText("title");
@@ -249,7 +269,8 @@ export function useNoteCoedit({
             titleText.observe(() => {
                 const value = titleText.toString();
                 if (value !== title.value) applyTitle(value);
-                if (!applying) scheduleWriteBack();
+                // Whoever typed it: see the body's observer.
+                scheduleWriteBack();
             });
         }
 
@@ -261,7 +282,13 @@ export function useNoteCoedit({
             // the wrong one.
             if (value !== text.value) applyText(value);
 
-            if (!applying) scheduleWriteBack();
+            // **A change that came from somebody else is written too.** Only
+            // the elected client writes, and the others' keystrokes reach it
+            // through the bus: skipped here, a guest typing beside an account
+            // was stored only when the account itself typed again
+            // (09/10/2026). Writing what is already stored is skipped further
+            // down, so an echo costs nothing.
+            scheduleWriteBack();
         });
 
         sharedDocument.on("update", (update, origin) => {
@@ -293,8 +320,30 @@ export function useNoteCoedit({
             if (!live.value || !body) return;
             if (!isElected(channel.selfUserId(), room.value)) return;
 
-            void writeBack(body.toString(), sharedTitle());
+            writeBackIfChanged();
         }, WRITE_BACK_MS);
+    }
+
+    function writeBackIfChanged() {
+        const markdown = body.toString();
+        const sharedTitleValue = sharedTitle();
+        if (
+            lastWritten &&
+            lastWritten.body === markdown &&
+            lastWritten.title === sharedTitleValue
+        )
+            return;
+
+        const written = { body: markdown, title: sharedTitleValue };
+        lastWritten = written;
+        // A write that failed is not written: the next pause tries again.
+        Promise.resolve(writeBack(markdown, sharedTitleValue))
+            .then((ok) => {
+                if (false === ok && lastWritten === written) lastWritten = null;
+            })
+            .catch(() => {
+                if (lastWritten === written) lastWritten = null;
+            });
     }
 
     /**
@@ -531,7 +580,7 @@ export function useNoteCoedit({
         // The last thing written is the text as it stands: a session ending
         // without a write-back would leave Postgres a debounce behind.
         if (live.value && body && isElected(channel.selfUserId(), room.value)) {
-            void writeBack(body.toString(), sharedTitle());
+            writeBackIfChanged();
         }
 
         stopListening();
