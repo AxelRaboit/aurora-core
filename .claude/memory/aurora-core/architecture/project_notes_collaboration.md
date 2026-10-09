@@ -81,9 +81,20 @@ l'éditeur - édition seule, découpé, aperçu seul - avec le même contrôle
 (`AppTab` segmenté) et le même choix mémorisé (`useEditorPaneMode`), sans le
 découpé sous 768 px (`share/shareEditorView.js`). L'aperçu se calcule dans le
 navigateur : la charge envoyée reste `title`, `content`, `version`, donc rien
-de plus n'est ouvert à une route sans compte. Pas de co-édition en direct pour
-un lien, par choix : il n'y a pas de compte à élire, ni à nommer dans
-`writtenBy`.
+de plus n'est ouvert à une route sans compte.
+
+**Pas de co-édition en direct par lien : décidé avec Axel le 09/10/2026.** Un
+invité n'a pas de compte à élire ni à nommer dans `writtenBy` ; la présence
+montrerait les noms de l'équipe à quiconque a reçu l'adresse ; et la réécriture
+toutes les quelques secondes buterait sur la limite de débit de la route
+invitée, qui est là exprès. Écrire à plusieurs en direct, c'est **confier la
+note** à un compte nommé, rôle `editor`. Le lien reste fait pour « corrige ce
+paragraphe ».
+
+**Un conflit garde le brouillon à l'écran** (09/10/2026). Avant, la page fermait
+le champ, et le « Recharger » proposé perdait ce que l'invité avait tapé. C'est
+l'enregistrement qui se ferme : un nouvel essai serait refusé pareil. Les textes
+d'aide (`share.editing_hint`, `share.conflict`) disent exactement ça.
 
 ## L'identité de l'invité
 

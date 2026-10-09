@@ -8,6 +8,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 ## [Unreleased]
 
 ### Corrigé
+- **Un invité ne perd plus son texte quand la note a changé pendant qu'il écrivait.** L'enregistrement était bien refusé, mais la page refermait le champ et le bouton « Recharger » faisait disparaître le brouillon. Le texte reste maintenant à l'écran, prêt à être copié, et c'est « Enregistrer » qui se désactive. Les textes d'aide le disent, en français, anglais et espagnol, au lieu d'un « vos modifications remplacent le texte pour tout le monde » qui faisait peur sans dire ce qui protège.
 - **`make release` ne s'arrête plus à la sauvegarde de la production.** L'adresse de la base porte des paramètres de Doctrine (`serverVersion`) que `pg_dump` refuse : la livraison de la 4.2.0 s'est arrêtée là, avant de toucher le serveur, et a dû être finie à la main. Ils sont retirés avant la sauvegarde.
 - **Une release ne laisse plus `master` en avance sur `develop`.** Le script ramène `develop` sur `master` dans les deux dépôts après chaque publication, en avance rapide seulement : oublié, ce geste faisait refuser la release suivante. Et un `master` d'aurora-client qui a divergé est maintenant refusé avant de publier le cœur, plutôt qu'après, ce qui laissait une version du cœur publiée sans client pour la porter.
 

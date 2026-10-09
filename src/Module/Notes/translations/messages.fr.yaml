@@ -162,11 +162,11 @@ notes:
             can_write_hint: Toute personne qui a l'adresse pourra réécrire le texte de cette note. Uniquement celle-ci, jamais les notes liées.
             writable_badge: Écriture
             edit: Modifier
-            editing_hint: Vos modifications remplacent le texte de la note pour tout le monde.
+            editing_hint: Ce que vous enregistrez remplace le texte pour tout le monde. Si la note a changé entre-temps, rien n'est enregistré et votre texte reste à l'écran.
             save: Enregistrer
             saved: Note enregistrée
             cancel_edit: Annuler
-            conflict: La note a changé depuis l'ouverture de cette page. Rechargez pour repartir du texte actuel.
+            conflict: La note a changé depuis l'ouverture de cette page, rien n'a été enregistré. Copiez votre texte ci-dessous, puis rechargez pour repartir du texte actuel.
             reload: Recharger
             button: Partager
             title: Partager cette note
