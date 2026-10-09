@@ -5,7 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [4.2.0] - 2026-10-09
+
+### Ajouté
+- **On voit qui est sur la note, comme dans un document partagé.** La phrase « Test A est aussi sur cette note » devient une pile de visages aux initiales de chacun, dans la couleur de l'étiquette de son curseur : un visage dans l'en-tête et un curseur dans un paragraphe se reconnaissent sans lire de nom. Au survol, le nom, s'il écrit ou s'il lit, et si la salle est en direct ou sondée ; au-delà de quatre personnes, un « +n ». Un lecteur d'écran entend la phrase entière. La pile reprend `AppAvatar`, qui accepte maintenant une couleur par personne (prop `color`, facultative).
+- **Un lien de partage en écriture s'édite comme dans l'éditeur.** La page n'offrait qu'une zone de texte : elle propose maintenant les trois vues de l'éditeur, édition seule, édition + aperçu et aperçu seul, avec le même contrôle et le même choix mémorisé, sans le découpé sur téléphone. En écrivant, l'aperçu montre ce qui est tapé, pas ce qui est enregistré. Rien de plus n'est envoyé au serveur : l'aperçu se calcule dans le navigateur. Un lien n'a toujours pas de co-édition en direct, faute de compte à élire ou à nommer dans l'historique.
+
+### Corrigé
+- **Le nom sur le curseur de l'autre se lit sur toutes les couleurs.** L'étiquette était en blanc sur une teinte à 45 % de luminosité : sur un jaune, 1,9:1, illisible. Le fond est maintenant à 28 %, et le blanc n'y descend sous 4,5:1 pour aucune des 360 teintes qu'un compte peut recevoir - un test le mesure. La barre du curseur garde sa teinte claire, pour rester visible sur le thème sombre.
+- **Les logs de production ne se remplissent plus de favicons.** Aucun gabarit ne demande `/favicon.ico`, mais les navigateurs le réclament d'eux-mêmes - et sans route, chaque demande partait en erreur avec sa pile d'appel : **2 071 en trente-et-un jours** de logs de production, environ soixante-dix par jour, pour un fichier qui ne manquait à personne. Les vraies erreurs étaient dans cette botte de foin. La même route répond maintenant aux deux adresses.
 
 ---
 

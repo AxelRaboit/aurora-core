@@ -30,6 +30,12 @@ CLIENT_PATH="${CLIENT_PATH:-../aurora-client}"
 VPS_HOST="${VPS_HOST:-vps}"
 VPS_PATH="${VPS_PATH:-/var/www/aurora-client}"
 
+# Read off the remote rather than pinned here, so a fork or a rename does not
+# publish into somebody else's repository.
+repository_of() {
+    git -C "$1" remote get-url origin | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##'
+}
+
 BACKUP=1
 STOP_AT="deploy"
 DRY_RUN=0
@@ -113,14 +119,36 @@ note "verte"
 
 step "Publication d'aurora-core v$version"
 
-temporary_branch="release-$version-$(date +%s)"
-run git switch -c "$temporary_branch" origin/master -q
-run git merge --no-ff origin/develop -m "Merge branch 'develop' into master
+# **Through a pull request, on both repositories.** It is the documented flow
+# (`process_release.md`: "ouvrir la PR develop → master, la faire relire,
+# merger"), it leaves something reviewable behind, and it is the only route
+# that works when `master` is protected - which it is on aurora-client, where
+# a direct push came back `protected branch hook declined` on 09/10/2026.
+#
+# And a merge is unavoidable here whatever the protection says: after each
+# release `master` carries a merge commit that `develop` does not, so
+# develop→master is never a fast-forward on aurora-core.
+core_repository=$(repository_of .)
+note "dépôt : $core_repository"
 
-Release $version."
-run git push origin "HEAD:master"
-run git switch develop -q
-run git branch -D "$temporary_branch" -q
+core_pr=$(gh pr list -R "$core_repository" --base master --head develop --state open --json number -q '.[0].number' || true)
+
+if [ -z "$core_pr" ]; then
+    if [ "$DRY_RUN" = 1 ]; then
+        note "[à blanc] gh pr create --base master --head develop"
+        core_pr="<nouvelle>"
+    else
+        core_pr=$(gh pr create -R "$core_repository" --base master --head develop \
+            --title "release $version" \
+            --body "Publie la v$version. Le workflow lit le numéro dans la première section close de CHANGELOG.md et publie cette section comme notes de release." \
+            | grep -oE '[0-9]+$')
+        note "PR #$core_pr ouverte"
+    fi
+else
+    note "PR #$core_pr déjà ouverte, réutilisée"
+fi
+
+run gh pr merge "$core_pr" -R "$core_repository" --merge
 
 if [ "$DRY_RUN" = 0 ]; then
     note "Attente du tag v$version (le workflow le pose)…"
@@ -192,11 +220,33 @@ fi
 
 step "Publication d'aurora-client"
 
-git -C "$CLIENT_PATH" merge-base --is-ancestor origin/master origin/develop 2>/dev/null \
-    || git -C "$CLIENT_PATH" merge-base --is-ancestor refs/remotes/origin/master develop \
-    || fail "master d'aurora-client n'est pas en avance rapide depuis develop : à régler à la main."
+# Its `master` is protected, so this is a pull request and not a push - even
+# though develop *is* a fast-forward of master here, unlike on aurora-core.
+# The check below is therefore about the merge being clean, not about pushing.
+client_repository=$(repository_of "$CLIENT_PATH")
+note "dépôt : $client_repository"
 
-run git -C "$CLIENT_PATH" push origin develop:master
+git -C "$CLIENT_PATH" merge-base --is-ancestor origin/master origin/develop 2>/dev/null \
+    || fail "master d'aurora-client a divergé de develop : à régler à la main."
+
+client_pr=$(gh pr list -R "$client_repository" --base master --head develop --state open --json number -q '.[0].number' || true)
+
+if [ -z "$client_pr" ]; then
+    if [ "$DRY_RUN" = 1 ]; then
+        note "[à blanc] gh pr create --base master --head develop"
+        client_pr="<nouvelle>"
+    else
+        client_pr=$(gh pr create -R "$client_repository" --base master --head develop \
+            --title "release: aurora-core v$version" \
+            --body "Monte aurora-core en v$version. \`make ft\` vert sur develop après le bump, et seul le lock a changé." \
+            | grep -oE '[0-9]+$')
+        note "PR #$client_pr ouverte"
+    fi
+else
+    note "PR #$client_pr déjà ouverte, réutilisée"
+fi
+
+run gh pr merge "$client_pr" -R "$client_repository" --merge
 
 if [ "$DRY_RUN" = 0 ]; then
     note "Attente du tag d'aurora-client…"

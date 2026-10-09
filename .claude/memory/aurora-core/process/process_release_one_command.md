@@ -56,3 +56,29 @@ Et **aurora-client a sa propre release**, qui calcule son numéro depuis les
 commits (pas depuis un changelog, il n'en a pas). Le serveur ne déploie que des
 tags de ce dépôt : publier aurora-core ne suffit pas, il faut publier le client
 ensuite. C'est l'étape qu'on oublie, et celle qui explique le retard ci-dessus.
+
+## Les numéros ne se suivent pas, et c'est le piège suivant
+
+aurora-core **v4.1.0** a publié aurora-client **v3.8.1**. Les deux coïncidaient
+historiquement (le client taguait v3.8.0, v3.7.1, v3.7.0 comme le core) et ont
+cessé le jour où le core est passé en 4.0. **Ne jamais déduire l'un de
+l'autre.**
+
+Conséquence directe : `/var/www/aurora-client/VERSION` porte le tag
+**d'aurora-client**, pas celui d'aurora-core. Pour savoir quel aurora-core
+tourne réellement en production, lire son `composer.lock` sur le serveur. Lire
+`VERSION` et le comparer aux releases d'aurora-core, c'est exactement comment
+on conclut que la prod est à jour alors qu'elle a deux releases de retard.
+
+## Les deux dépôts ne se publient pas pareil
+
+| | aurora-core | aurora-client |
+|---|---|---|
+| Numéro | première section **close de `CHANGELOG.md`** | **calculé depuis les commits** |
+| `master` | a accepté un push direct | **protégée**, push refusé par un hook |
+| develop → master | **jamais en avance rapide** (chaque release laisse un commit de fusion sur `master`) | avance rapide, mais PR quand même |
+| Publier | PR develop → master, fusionner | PR develop → master, fusionner |
+
+Le script passe par une PR sur les deux : c'est le flux documenté, ça laisse
+quelque chose de relisable, et c'est la seule route qui marche sur une branche
+protégée.

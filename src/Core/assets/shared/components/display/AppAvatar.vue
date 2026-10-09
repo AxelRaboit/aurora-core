@@ -13,6 +13,10 @@ const props = defineProps({
     /** "soft" = bg-accent-600/20 text-accent-400 (lists, table rows)
      *  "solid" = bg-accent-600 text-white (identity badge, sidemenu) */
     variant:   { type: String, default: "soft" },
+    /** A CSS colour that paints the badge instead of the variant: each
+     *  person's own colour, where several people are shown side by side and
+     *  have to be told apart (the people co-editing a note). */
+    color:     { type: String, default: "" },
 });
 
 const SIZE_CLASSES = {
@@ -34,15 +38,22 @@ const sizeClass = computed(() =>
 );
 
 const sizeStyle = computed(() => {
-    if (!isNumericSize.value) return null;
-    return {
-        width: `${props.size}px`,
-        height: `${props.size}px`,
-        fontSize: `${Math.max(10, Math.round(props.size * 0.42))}px`,
-    };
+    const style = {};
+    if (isNumericSize.value) {
+        style.width = `${props.size}px`;
+        style.height = `${props.size}px`;
+        style.fontSize = `${Math.max(10, Math.round(props.size * 0.42))}px`;
+    }
+    if (props.color) style.backgroundColor = props.color;
+
+    return Object.keys(style).length ? style : null;
 });
 
-const variantClass = computed(() => VARIANT_CLASSES[props.variant] ?? VARIANT_CLASSES.soft);
+const variantClass = computed(() =>
+    props.color
+        ? "text-white font-semibold"
+        : (VARIANT_CLASSES[props.variant] ?? VARIANT_CLASSES.soft),
+);
 
 const label = computed(() => initials({
     name: props.name,

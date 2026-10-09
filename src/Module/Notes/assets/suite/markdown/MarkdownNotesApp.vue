@@ -17,6 +17,7 @@ import NoteTagManagerModal from '@notes/suite/markdown/components/NoteTagManager
 import NoteShareModal from '@notes/suite/markdown/components/NoteShareModal.vue';
 import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
+import NoteCollaborators from '@notes/suite/markdown/components/NoteCollaborators.vue';
 import NoteGraph from '@notes/suite/markdown/components/NoteGraph.vue';
 import NoteCreateModal from '@notes/suite/markdown/components/NoteCreateModal.vue';
 import NoteCraftImportModal from '@notes/suite/markdown/components/NoteCraftImportModal.vue';
@@ -31,7 +32,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -1514,22 +1515,21 @@ onUnmounted(() => {
                                  leaves the title, and the gestures stay
                                  grouped at the edge of the screen. -->
                             <div class="flex items-center gap-3 shrink-0">
-                                <!-- Who else has this note open. Named rather
-                                     than counted: the whole point is to stop
-                                     two people rewriting the same paragraph,
-                                     and "2 personnes" does not do that. -->
+                                <!-- Who else has this note open, one face per
+                                     person rather than a count: the whole
+                                     point is to stop two people rewriting the
+                                     same paragraph, and "2 personnes" does not
+                                     do that. Each face wears its caret's
+                                     colour and names its person on hover. -->
                                 <span
                                     v-if="roomNames.length"
                                     data-note-room
-                                    class="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-secondary"
-                                    :title="roomLive ? t('notes.markdown.live.streaming') : t('notes.markdown.live.polling')"
+                                    class="inline-flex items-center"
                                 >
-                                    <Users class="h-3.5 w-3.5" :stroke-width="2" />
-                                    {{
-                                        1 === roomNames.length
-                                            ? t('notes.markdown.live.here', { name: roomNames[0] })
-                                            : t('notes.markdown.live.here_many', { names: roomNames.join(', ') })
-                                    }}
+                                    <NoteCollaborators
+                                        :people="roomPeople"
+                                        :status="roomLive ? t('notes.markdown.live.streaming') : t('notes.markdown.live.polling')"
+                                    />
                                 </span>
                                 <span
                                     v-if="saveStatusDisplay"

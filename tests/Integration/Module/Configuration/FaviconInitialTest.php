@@ -35,6 +35,29 @@ final class FaviconInitialTest extends IntegrationTestCase
         self::assertStringNotContainsString('>V<', $svg);
     }
 
+    /**
+     * The address browsers ask for on their own answers too.
+     *
+     * No layout links to `/favicon.ico`; browsers fetch it anyway, and without
+     * a route each request was a `NotFoundHttpException` logged at ERROR with
+     * a stack trace - 2 071 of them in thirty-one days of production logs, for
+     * a file nobody was missing. The point of this test is that the noise does
+     * not come back the next time somebody tidies the routes.
+     */
+    public function testTheAddressBrowsersAskForOnTheirOwnAnswersToo(): void
+    {
+        $client = static::createClient();
+        $this->setSiteName($client->getContainer()->get(EntityManagerInterface::class), 'Studio Nord');
+
+        $client->request('GET', '/favicon.ico');
+
+        self::assertResponseIsSuccessful();
+        // The same answer as the `.svg` address, bytes included: browsers sniff
+        // the content rather than trusting the extension, and serving a
+        // different thing per extension is how the two drift apart.
+        self::assertStringContainsString('>S<', (string) $client->getResponse()->getContent());
+    }
+
     private function setSiteName(EntityManagerInterface $entityManager, string $name): void
     {
         $setting = $entityManager->getRepository(Setting::class)
