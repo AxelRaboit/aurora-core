@@ -28,11 +28,15 @@ make release STOP_AT=core   # publishes aurora-core and stops
 ```
 
 **Run `DRY=1` first, every time.** The refusals are the point: it stops with a
-reason on a dirty tree, unpushed commits, a CI that is not green, a changelog
+reason on a dirty tree, unpushed commits, an aurora-client `master` that has
+diverged from `develop` (checked before anything is published), a CI that is
+not green, a changelog
 with no closed section, a tag that already exists, a lock bump that touched
 more than the lock, a red canary, a tag that never appears, a `VERSION` that
 does not move, or an application that no longer boots. Nothing after a refusal
-is attempted.
+is attempted. After each publication it brings `develop` back onto `master` in
+both repositories, as a fast-forward only, so the next release does not stop on
+a divergence.
 
 **The steps below are still the reference.** They are what the script does, and
 what you need to know how to redo by hand when it stops somewhere. Read them
