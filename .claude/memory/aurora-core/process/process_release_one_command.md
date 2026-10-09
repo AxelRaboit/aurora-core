@@ -31,10 +31,19 @@ défaut du core en quelque chose qu'un client trouve.
 
 **How to apply:** lancer `DRY=1` une première fois, les refus étant tout
 l'intérêt. Le script s'arrête avec une raison sur : arbre sale, commits non
-poussés, CI pas verte, changelog sans section close, tag déjà existant, bump
+poussés, `master` d'aurora-client qui a divergé de `develop` (vérifié **avant**
+de publier le cœur, depuis le 09/10/2026), CI pas verte, changelog sans section
+close, tag déjà existant, bump
 qui a touché autre chose que le lock, `make ft` rouge sur le canari, tag qui
 n'apparaît pas, `VERSION` qui ne bouge pas, application qui ne démarre plus.
 Rien après un refus n'est tenté.
+
+**Après chaque publication, le script ramène `develop` sur `master`** (09/10/2026),
+dans les deux dépôts, en avance rapide seulement ; si `develop` a avancé pendant
+la release, il le dit et laisse la fusion à faire à la main. Sans ce geste, la
+release suivante refusait sur « master a divergé ». Et la sauvegarde retire la
+chaîne de requête de `DATABASE_URL` avant `pg_dump` : `serverVersion` est un
+paramètre de Doctrine, et libpq l'a refusé en arrêtant la 4.2.0 à cette étape.
 
 `docs/aurora-core/dev/propagating_updates.md` garde les étapes à la main :
 c'est ce que le script fait, et ce qu'il faut savoir refaire quand il s'arrête

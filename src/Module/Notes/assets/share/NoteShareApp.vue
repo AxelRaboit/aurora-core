@@ -106,6 +106,11 @@ function pickMode(value) {
  * Nothing goes out on its own after that: the text on screen started from a
  * state that no longer exists, and saving it would erase their work without
  * either of them knowing. The page says so and offers to reload.
+ *
+ * **The draft stays on screen.** Closing the field here used to hide what the
+ * guest had typed, and the reload the page offers then lost it for good - a
+ * refusal that cost them their paragraph. Saving is what is closed instead:
+ * another try would be refused the same way.
  */
 const conflicted = ref(false);
 
@@ -138,7 +143,6 @@ async function save() {
 
         if (payload.conflict) {
             conflicted.value = true;
-            editing.value = false;
 
             return;
         }
@@ -362,7 +366,7 @@ const lookClass = computed(() =>
                     </div>
                     <p class="mt-1 text-xs text-muted">{{ t("notes.markdown.share.editing_hint") }}</p>
                     <div class="mt-3 flex flex-wrap gap-2">
-                        <AppButton data-share-save :disabled="saving" v-on:click="save">
+                        <AppButton data-share-save :disabled="saving || conflicted" v-on:click="save">
                             {{ t("notes.markdown.share.save") }}
                         </AppButton>
                         <AppButton variant="ghost" :disabled="saving" v-on:click="cancelEditing">

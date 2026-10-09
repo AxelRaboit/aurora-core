@@ -158,11 +158,11 @@ notes:
             can_write_hint: Anybody holding the address will be able to rewrite this note's text. This one only, never the linked notes.
             writable_badge: Write
             edit: Edit
-            editing_hint: What you save replaces the note's text for everybody.
+            editing_hint: What you save replaces the note's text for everybody. If the note changed meanwhile, nothing is saved and your text stays on screen.
             save: Save
             saved: Note saved
             cancel_edit: Cancel
-            conflict: The note changed since this page was opened. Reload to start from the current text.
+            conflict: The note changed since this page was opened, so nothing was saved. Copy your text below, then reload to start from the current text.
             reload: Reload
             button: Share
             title: Share this note
