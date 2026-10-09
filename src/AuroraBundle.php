@@ -553,7 +553,7 @@ class AuroraBundle extends AbstractBundle
         ]);
 
         /*
-         * The ten limiters that aurora-core's controllers wire by their name.
+         * The limiters that aurora-core's controllers wire by their name.
          *
          * The list is checked again with `grep -oE '\$[a-zA-Z]+Limiter' src/`:
          * forgetting one only shows when a client project is deployed, on the
@@ -583,6 +583,11 @@ class AuroraBundle extends AbstractBundle
                 // that a link writes its own note and no other, and that the
                 // previous state is kept as a version before every write.
                 'notes_share_write' => ['policy' => 'sliding_window', 'limit' => 60, 'interval' => '1 hour'],
+                // A guest in a note's live room: its beat, one every twenty
+                // seconds per tab, and the write-back it sends for a room of
+                // guests, on every pause in the typing.
+                'notes_share_live' => ['policy' => 'sliding_window', 'limit' => 600, 'interval' => '1 hour'],
+                'notes_share_coedit_write' => ['policy' => 'sliding_window', 'limit' => 1200, 'interval' => '1 hour'],
                 // The password of a deliverable's reading link.
                 'deliverable_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
                 // A client's actions on the space a link opens to them:

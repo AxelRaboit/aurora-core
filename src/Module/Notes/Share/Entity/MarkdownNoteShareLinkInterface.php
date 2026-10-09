@@ -26,6 +26,10 @@ interface MarkdownNoteShareLinkInterface
 
     public function setCanWrite(bool $canWrite): static;
 
+    public function allowsCoediting(): bool;
+
+    public function setCoediting(bool $coediting): static;
+
     /**
      * Whether this link may rewrite that note, at that moment.
      *

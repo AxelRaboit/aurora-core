@@ -137,6 +137,7 @@ notes:
             reading: en lecture
             streaming: Mise à jour en direct
             polling: Mise à jour toutes les 20 secondes
+            guest: Invité
         people:
             shared_with_me: Partagées avec moi
             button: Partager avec des personnes
@@ -161,6 +162,11 @@ notes:
             can_write: Autoriser la modification
             can_write_hint: Toute personne qui a l'adresse pourra réécrire le texte de cette note. Uniquement celle-ci, jamais les notes liées.
             writable_badge: Écriture
+            coediting: Co-édition en direct
+            coediting_hint: "Les personnes qui ont l'adresse écrivent la note en même temps que vous, lettre par lettre, et voient qui est là, comme dans un document partagé. Fonctionne aussi pour une note de votre espace personnel."
+            coediting_badge: En direct
+            coediting_heading: Écriture en direct
+            live_hint: Vous écrivez en direct avec les autres personnes sur cette note. Chaque changement est enregistré pour tout le monde.
             edit: Modifier
             editing_hint: Ce que vous enregistrez remplace le texte pour tout le monde. Si la note a changé entre-temps, rien n'est enregistré et votre texte reste à l'écran.
             save: Enregistrer

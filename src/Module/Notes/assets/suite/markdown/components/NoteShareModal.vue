@@ -10,6 +10,7 @@ import AppIconButton from "@shared/components/action/AppIconButton.vue";
 import AppInput from "@shared/components/form/input/AppInput.vue";
 import AppDatePicker from "@shared/components/form/picker/AppDatePicker.vue";
 import AppCheckbox from "@shared/components/form/toggle/AppCheckbox.vue";
+import AppBetaBadge from "@shared/components/display/AppBetaBadge.vue";
 import AppSelect from "@shared/components/form/select/AppSelect.vue";
 import { toast } from "vue-sonner";
 import { useClipboard } from "@shared/composables/useClipboard.js";
@@ -46,6 +47,12 @@ const newPersonRole = ref("reader");
 
 const includeLinked = ref(false);
 const canWrite = ref(false);
+// Live co-editing through the link: off by default, and only ever offered on a
+// link that writes - unticking writing takes it along.
+const coediting = ref(false);
+watch(canWrite, (writes) => {
+    if (!writes) coediting.value = false;
+});
 // What the two switches would publish, titles and all. Refreshed whenever they
 // move: a count could be computed once, but a list has to match the boxes as
 // they stand or it is worse than nothing.
@@ -157,6 +164,7 @@ function resetForm() {
     newPersonRole.value = "reader";
     includeLinked.value = false;
     canWrite.value = false;
+    coediting.value = false;
     previewNotes.value = [];
     recipientEmail.value = "";
     label.value = "";
@@ -170,6 +178,7 @@ async function create() {
             noteId: props.noteId,
             includeLinked: includeLinked.value,
             canWrite: canWrite.value,
+            coediting: canWrite.value && coediting.value,
             recipientEmail: recipientEmail.value.trim(),
             label: label.value.trim(),
             expiresAt: expiresAt.value,
@@ -349,6 +358,20 @@ function openedLabel(link) {
                     :disabled="submitting"
                 />
 
+                <!-- Writing together, letter by letter, the way a shared
+                     document does. Under the writing switch and only with it:
+                     a link that does not write has no room to enter. -->
+                <AppCheckbox
+                    v-if="canWrite"
+                    v-model="coediting"
+                    data-share-coediting
+                    class="ml-6"
+                    :hint="t('notes.markdown.share.coediting_hint')"
+                    :disabled="submitting"
+                >
+                    {{ t('notes.markdown.share.coediting') }}<AppBetaBadge />
+                </AppCheckbox>
+
                 <!-- The list, not a count. "4 notes" cannot be checked against
                      what somebody meant to share; seeing a title they did not
                      expect is what stops the click. -->
@@ -400,6 +423,11 @@ function openedLabel(link) {
                                     data-share-writable
                                     class="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
                                 >{{ t("notes.markdown.share.writable_badge") }}</span>
+                                <span
+                                    v-if="link.coediting"
+                                    data-share-coediting-badge
+                                    class="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                                >{{ t("notes.markdown.share.coediting_badge") }}</span>
                             </p>
                             <p class="truncate text-xs text-muted">
                                 {{

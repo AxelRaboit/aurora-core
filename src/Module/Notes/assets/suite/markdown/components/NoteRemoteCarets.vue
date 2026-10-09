@@ -18,8 +18,11 @@
  * typing in, and nothing here may ever intercept a click.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { caretPositionIn } from "@notes/suite/markdown/composables/caretPosition.js";
 import { collaboratorCaretColor, collaboratorColor } from "@notes/suite/markdown/composables/collaboratorColor.js";
+
+const { t } = useI18n();
 
 const props = defineProps({
     /** The field the carets belong to. */
@@ -89,7 +92,9 @@ const placed = computed(() => {
 
             return {
                 userId: cursor.userId,
-                name: cursor.name,
+                // A guest of a live link publishes no name; the tag still says
+                // who it is, in this reader's language.
+                name: cursor.name || t("notes.markdown.live.guest"),
                 top: at.top,
                 left: at.left,
                 height: at.lineHeight,
@@ -122,7 +127,6 @@ const placed = computed(() => {
             <!-- The name, above the line rather than beside it: beside, it sat
                  on the text somebody was reading. -->
             <span
-                v-if="caret.name"
                 class="absolute -top-4 left-0 whitespace-nowrap rounded-sm px-1 text-[10px] font-medium leading-4 text-white"
                 :style="{ backgroundColor: caret.tagColor }"
             >{{ caret.name }}</span>

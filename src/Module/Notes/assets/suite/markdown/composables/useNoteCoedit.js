@@ -2,6 +2,7 @@ import { onBeforeUnmount, watch } from "vue";
 import * as Y from "yjs";
 import {
     JOIN_SEED,
+    answersDocRequest,
     isElected,
     isForMe,
     isMine,
@@ -38,15 +39,20 @@ import {
  *                                                             the editor's autosave is suspended by it
  * @param {import("vue").Ref<string>}      options.text        the form's body
  * @param {Function}                       options.applyText   writes the body back into the form
+ * @param {import("vue").Ref<string>}      [options.title]     the form's title, written together too
+ * @param {Function}                       [options.applyTitle] writes the title back into the form
  * @param {import("vue").Ref<Array>}       options.room        who else is here
  * @param {object}                         options.channel     publish/subscribe over the bus
- * @param {Function}                       options.writeBack   persists the markdown
+ * @param {Function}                       options.writeBack   persists the markdown, and the title
+ *                                                             when the session carries one
  */
 export function useNoteCoedit({
     noteId,
     allowed,
     text,
     applyText,
+    title = null,
+    applyTitle = null,
     room,
     channel,
     writeBack,
@@ -73,6 +79,16 @@ export function useNoteCoedit({
 
     let sharedDocument = null;
     let body = null;
+    /**
+     * The title, as a second text of the same document.
+     *
+     * It used to stay out of the session, so a title could only be written
+     * through an ordinary save - which the guest page of a live link does not
+     * have, and which between colleagues overwrote whoever renamed the note
+     * last. In the document, a title converges like the body, letter by
+     * letter (09/10/2026). Null when the caller passes no title.
+     */
+    let titleText = null;
     let joining = null;
     let joinAttempts = 0;
     let writeTimer = null;
@@ -80,7 +96,59 @@ export function useNoteCoedit({
     // publishes local edits does not publish them straight back.
     let applying = false;
 
+    /**
+     * How long a client that holds the document, without being the one
+     * designated to answer, waits before answering a newcomer in its stead.
+     *
+     * The designated client can be gone: a closed tab sends nothing, and the
+     * room keeps it for fifty seconds. A newcomer arriving in that window
+     * asked, nobody answered, and it stood down - seen with a guest arriving
+     * just after an account left (09/10/2026). So the other holders answer
+     * too, a moment later and only if nobody has. Answering twice is harmless:
+     * everybody in the session holds the same history, and applying it again
+     * changes nothing.
+     */
+    const BACKUP_ANSWER_MS = 1500;
+
+    /** Whether this client was the writer at the last look at the room. */
+    let wasElected = false;
+
+    /** Newcomer id -> the backup answer this client will send if nobody does. */
+    const backupAnswers = new Map();
+
+    function answerWithState(requester) {
+        channel.publish({
+            kind: "doc-state",
+            to: requester,
+            state: toBase64(Y.encodeStateAsUpdate(sharedDocument)),
+        });
+    }
+
+    function scheduleBackupAnswer(requester) {
+        const key = Number(requester);
+        if (backupAnswers.has(key)) return;
+
+        backupAnswers.set(
+            key,
+            setTimeout(() => {
+                backupAnswers.delete(key);
+                if (sharedDocument) answerWithState(key);
+            }, BACKUP_ANSWER_MS),
+        );
+    }
+
+    function cancelBackupAnswer(requester) {
+        const key = Number(requester);
+        const timer = backupAnswers.get(key);
+        if (!timer) return;
+
+        clearTimeout(timer);
+        backupAnswers.delete(key);
+    }
+
     function teardown() {
+        for (const timer of backupAnswers.values()) clearTimeout(timer);
+        backupAnswers.clear();
         if (writeTimer) clearTimeout(writeTimer);
         writeTimer = null;
         if (joining) clearTimeout(joining);
@@ -88,6 +156,7 @@ export function useNoteCoedit({
         if (sharedDocument) sharedDocument.destroy();
         sharedDocument = null;
         body = null;
+        titleText = null;
         live.value = false;
     }
 
@@ -98,11 +167,23 @@ export function useNoteCoedit({
      * a CRDT update is the difference, so there is no diffing to do and no
      * version to agree on.
      */
-    function openSharedDocument(seedText) {
+    function openSharedDocument(seedText, seedTitle = null) {
         sharedDocument = new Y.Doc();
         body = sharedDocument.getText("body");
 
         if (null !== seedText) body.insert(0, seedText);
+
+        if (title) {
+            titleText = sharedDocument.getText("title");
+            if (null !== seedTitle && "" !== seedTitle)
+                titleText.insert(0, seedTitle);
+
+            titleText.observe(() => {
+                const value = titleText.toString();
+                if (value !== title.value) applyTitle(value);
+                if (!applying) scheduleWriteBack();
+            });
+        }
 
         body.observe(() => {
             const value = body.toString();
@@ -143,26 +224,51 @@ export function useNoteCoedit({
             if (!live.value || !body) return;
             if (!isElected(channel.selfUserId(), room.value)) return;
 
-            void writeBack(body.toString());
+            void writeBack(body.toString(), sharedTitle());
         }, WRITE_BACK_MS);
+    }
+
+    /**
+     * The title as the session holds it, or null to leave the stored one alone.
+     *
+     * Null when the session carries no title, and when its title is empty: a
+     * document seeded by a client that did not carry titles yet (during a
+     * deploy) has an empty one, and writing that back would erase every title
+     * of the room. A title nobody wants is renamed, not emptied.
+     */
+    function sharedTitle() {
+        if (!titleText) return null;
+
+        const value = titleText.toString();
+
+        return "" === value ? null : value;
     }
 
     /** A message off the channel. */
     function onMessage(message) {
         const self = channel.selfUserId();
 
+        // Somebody else already answered that newcomer: no backup answer is
+        // owed any more. Read before the filter below, since the answer was
+        // addressed to the newcomer and not to this client.
+        if ("doc-state" === message.kind && !isMine(message, self)) {
+            cancelBackupAnswer(message.to);
+        }
+
         if (isMine(message, self) || !isForMe(message, self)) return;
 
         if ("doc-request" === message.kind) {
             // Answered by one client only, so a newcomer does not receive the
-            // state once per person already in the room.
-            if (!sharedDocument || !isElected(self, room.value)) return;
+            // state once per person already in the room - and not by the
+            // elected one, who may be the newcomer itself: see
+            // `answersDocRequest`.
+            if (!sharedDocument) return;
 
-            channel.publish({
-                kind: "doc-state",
-                to: message.from,
-                state: toBase64(Y.encodeStateAsUpdate(sharedDocument)),
-            });
+            if (answersDocRequest(self, room.value, message.from)) {
+                answerWithState(message.from);
+            } else {
+                scheduleBackupAnswer(message.from);
+            }
 
             return;
         }
@@ -202,7 +308,7 @@ export function useNoteCoedit({
         if (null == noteId.value || !allowed.value) return;
 
         if (JOIN_SEED === joinAction(room.value)) {
-            openSharedDocument(text.value ?? "");
+            openSharedDocument(text.value ?? "", title?.value ?? null);
 
             return;
         }
@@ -230,7 +336,7 @@ export function useNoteCoedit({
             // client seeding would build a second history, and merging two
             // histories of the same text duplicates every character of it.
             if (isElected(self, room.value)) {
-                openSharedDocument(text.value ?? "");
+                openSharedDocument(text.value ?? "", title?.value ?? null);
 
                 return;
             }
@@ -279,6 +385,23 @@ export function useNoteCoedit({
         });
     });
 
+    /** The same, for the title: a keystroke in it becomes an operation on its text. */
+    if (title) {
+        watch(title, (value) => {
+            if (!sharedDocument || !titleText || null == value) return;
+
+            const delta = textDelta(titleText.toString(), value);
+            if (null === delta) return;
+
+            sharedDocument.transact(() => {
+                if (0 < delta.remove)
+                    titleText.delete(delta.index, delta.remove);
+                if ("" !== delta.insert)
+                    titleText.insert(delta.index, delta.insert);
+            });
+        });
+    }
+
     const stopListening = channel.onMessage(onMessage);
 
     // The open note changes, or the right to co-edit it does - a space whose
@@ -303,14 +426,28 @@ export function useNoteCoedit({
      * holding what people are typing.
      */
     watch(room, () => {
-        if (!live.value) enter();
+        if (!live.value) {
+            enter();
+
+            return;
+        }
+
+        // **Becoming the writer writes.** The writer is elected from the room,
+        // and the room changes under a session: the one who was writing back
+        // left - cleanly, or by a closed laptop the room forgets fifty seconds
+        // later. What the others typed since was saved by nobody, and with
+        // nothing more typed nothing would ever save it. So the client the
+        // room now elects writes the text back at once.
+        const elected = isElected(channel.selfUserId(), room.value);
+        if (elected && !wasElected) scheduleWriteBack();
+        wasElected = elected;
     });
 
     onBeforeUnmount(() => {
         // The last thing written is the text as it stands: a session ending
         // without a write-back would leave Postgres a debounce behind.
         if (live.value && body && isElected(channel.selfUserId(), room.value)) {
-            void writeBack(body.toString());
+            void writeBack(body.toString(), sharedTitle());
         }
 
         stopListening();

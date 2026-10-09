@@ -117,6 +117,8 @@ final class MarkdownNoteSharesController extends AbstractController
             return $this->jsonInvalidInput(['canWrite' => 'notes.markdown.share.errors.writing_disabled']);
         }
 
+        $input->coediting = $input->canWrite && true === ($payload['coediting'] ?? false);
+
         $input->label = mb_trim((string) ($payload['label'] ?? ''));
 
         $recipient = mb_trim((string) ($payload['recipientEmail'] ?? ''));
@@ -153,6 +155,7 @@ final class MarkdownNoteSharesController extends AbstractController
             $input->label,
             $expiresAt,
             $input->canWrite,
+            $input->coediting,
         );
 
         if (null !== $input->recipientEmail) {

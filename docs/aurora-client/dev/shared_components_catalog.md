@@ -19,7 +19,7 @@
 - [Feedback](#feedback) - `AppBadge`, `AppMessage`, `AppNoData`, `AppProgressBar`, `AppSelectionCheck`
 - [Overlay](#overlay) - `AppModal`, `AppModalFooter`, `AppTooltip`
 - [Nav](#nav) - `AppLink`, `AppNavLink`, `AppNavButton`, `AppPagination`, `AppLoadMore`, `AppTab`, `AppStagePicker`
-- [Display](#display) - `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppLogo`, `AppChart`
+- [Display](#display) - `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppBetaBadge`, `AppLogo`, `AppChart`
 
 ---
 
@@ -752,6 +752,16 @@ Avatar utilisateur. Affiche la photo si fournie, sinon les initiales.
 
 <!-- Une couleur par personne, comme la pile des co-éditeurs d'une note -->
 <AppAvatar :name="person.name" :color="collaboratorColor(person.userId)" size="sm" />
+```
+
+### `AppBetaBadge`
+
+Petit badge « Bêta » (traduit), avec en infobulle ce que ça promet et ce que ça ne promet pas. À poser à côté du réglage qui active une fonction encore en cours de finition, pas sur les écrans qu'elle change ensuite. Aucune prop.
+
+```vue
+<AppCheckbox v-model="coediting">
+    {{ t('notes.markdown.share.coediting') }}<AppBetaBadge />
+</AppCheckbox>
 ```
 
 ### `AppLogo`
