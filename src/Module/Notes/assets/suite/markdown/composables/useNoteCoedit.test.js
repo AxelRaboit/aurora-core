@@ -50,7 +50,7 @@ function bus() {
 
 const mounted = [];
 
-function client(channel, room, initial) {
+function client(channel, room, initial, writeBack = vi.fn()) {
     const text = ref(initial);
     const live = ref(false);
     const roomRef = ref(room);
@@ -67,7 +67,7 @@ function client(channel, room, initial) {
                     },
                     room: roomRef,
                     channel,
-                    writeBack: vi.fn(),
+                    writeBack,
                     live,
                 });
                 enter();
@@ -150,5 +150,142 @@ describe("useNoteCoedit", () => {
         await settle();
 
         expect(second.text.value).toBe("hello again");
+    });
+});
+
+describe("useNoteCoedit write-back", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    /**
+     * A room that saved for nothing reloaded every screen on the echo, which
+     * changed the text, which saved again: a blink every three and a half
+     * seconds (09/10/2026).
+     */
+    it("does not write back what is already written", async () => {
+        vi.useFakeTimers({
+            toFake: [
+                "setTimeout",
+                "clearTimeout",
+                "setInterval",
+                "clearInterval",
+            ],
+        });
+        const writeBack = vi.fn().mockResolvedValue(true);
+        const alone = client(bus().channelFor(1), [], "hello", writeBack);
+        await settle();
+
+        alone.text.value = "hello world";
+        await settle();
+        vi.advanceTimersByTime(3_100);
+        await settle();
+        expect(writeBack).toHaveBeenCalledTimes(1);
+
+        // Typed and taken back before the pause: the text is what is stored.
+        alone.text.value = "hello world!";
+        await settle();
+        alone.text.value = "hello world";
+        await settle();
+        vi.advanceTimersByTime(3_100);
+        await settle();
+
+        expect(writeBack).toHaveBeenCalledTimes(1);
+    });
+
+    it("writes again after a write that failed", async () => {
+        vi.useFakeTimers({
+            toFake: [
+                "setTimeout",
+                "clearTimeout",
+                "setInterval",
+                "clearInterval",
+            ],
+        });
+        const writeBack = vi
+            .fn()
+            .mockResolvedValueOnce(false)
+            .mockResolvedValue(true);
+        const alone = client(bus().channelFor(1), [], "hello", writeBack);
+        await settle();
+
+        alone.text.value = "hello world";
+        await settle();
+        vi.advanceTimersByTime(3_100);
+        await settle();
+
+        alone.text.value = "hello world!";
+        await settle();
+        alone.text.value = "hello world";
+        await settle();
+        vi.advanceTimersByTime(3_100);
+        await settle();
+
+        expect(writeBack).toHaveBeenCalledTimes(2);
+    });
+
+    /** Nothing typed since the note was opened: nothing to write. */
+    it("does not write back the note it was opened with", async () => {
+        vi.useFakeTimers({
+            toFake: [
+                "setTimeout",
+                "clearTimeout",
+                "setInterval",
+                "clearInterval",
+            ],
+        });
+        const writeBack = vi.fn().mockResolvedValue(true);
+        const alone = client(bus().channelFor(1), [], "hello", writeBack);
+        await settle();
+
+        alone.text.value = "hello!";
+        await settle();
+        alone.text.value = "hello";
+        await settle();
+        vi.advanceTimersByTime(3_100);
+        await settle();
+
+        expect(writeBack).not.toHaveBeenCalled();
+    });
+});
+
+describe("useNoteCoedit, the elected client", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it("writes back what somebody else typed", async () => {
+        vi.useFakeTimers({
+            toFake: [
+                "setTimeout",
+                "clearTimeout",
+                "setInterval",
+                "clearInterval",
+            ],
+        });
+        const line = bus();
+        const writeBack = vi.fn().mockResolvedValue(true);
+        const account = client(line.channelFor(1), [], "hello", writeBack);
+        await settle();
+        const guest = client(
+            line.channelFor(1_000_000_001),
+            [{ userId: 1 }],
+            "",
+        );
+        account.room.value = [{ userId: 1_000_000_001 }];
+        await settle();
+        expect(guest.text.value).toBe("hello");
+        // The write the room schedules when it changes goes by first: the
+        // keystroke below must be what schedules the next one.
+        vi.advanceTimersByTime(3_100);
+        await settle();
+        writeBack.mockClear();
+
+        guest.text.value = "hello from the guest";
+        await settle();
+        vi.advanceTimersByTime(3_100);
+        await settle();
+
+        expect(writeBack).toHaveBeenCalledWith("hello from the guest", null);
     });
 });

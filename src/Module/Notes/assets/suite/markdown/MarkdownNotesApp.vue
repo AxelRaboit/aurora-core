@@ -450,6 +450,15 @@ const {
 watch(roomVersion, async (version) => {
     if (null == version || null == loadedVersion.value) return;
 
+    // **Not during a live session.** The shared document is the text, and the
+    // saves are its own write-backs: reloading on their echo emptied the form
+    // and filled it again, which the session carried to everybody as "erase
+    // everything, write everything" - the preview blinked on both sides, and
+    // the change scheduled the next write-back, every three and a half
+    // seconds for as long as the note stayed open (09/10/2026). The echo can
+    // arrive before the save's own answer, so the version alone cannot tell.
+    if (coeditLive.value) return;
+
     // Our own save comes back through the same road: it is only news if the
     // server is ahead of what this form started from.
     if (version <= loadedVersion.value || isDirty.value) return;
@@ -533,9 +542,7 @@ useNoteCoedit({
     // by the debounce. So the version check and the three-way merge still
     // stand behind it, and a save from outside the session is caught the way
     // any other is.
-    writeBack: async () => {
-        await saveNow();
-    },
+    writeBack: async () => await saveNow(),
 });
 
 

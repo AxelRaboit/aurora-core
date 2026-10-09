@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.5.1] - 2026-10-09
+
+### Corrigé
+- **Une note ouverte en co-édition ne clignote plus toutes les trois secondes et demie.** La suite rechargeait la note en recevant l'écho de son propre enregistrement, qui pouvait arriver avant la réponse. Le formulaire se vidait puis se remplissait, la session le transmettait à tout le monde comme « tout effacer, tout réécrire », l'aperçu se redessinait des deux côtés (l'image disparaissait puis revenait), et ce changement relançait un enregistrement : une boucle tant que la note restait ouverte. Pendant une session en direct, la suite ne recharge plus la note, et la salle n'enregistre plus un texte identique à celui déjà enregistré.
+- **Ce qu'un invité tape à côté d'un compte est enregistré.** Seul le compte écrit pour la salle, et il ne le faisait que pour ses propres frappes : le texte de l'invité n'était enregistré que si le compte tapait à son tour. Toute modification, locale ou reçue, déclenche maintenant l'enregistrement, et un enregistrement qui échoue est retenté.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.5.0] - 2026-10-09
 
 ### Ajouté
