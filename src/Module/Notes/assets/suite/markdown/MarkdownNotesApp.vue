@@ -18,6 +18,7 @@ import NoteShareModal from '@notes/suite/markdown/components/NoteShareModal.vue'
 import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
 import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.vue';
+import NoteTasksPanel from '@notes/suite/markdown/components/NoteTasksPanel.vue';
 import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
 import NoteIconPicker from '@notes/suite/markdown/components/NoteIconPicker.vue';
 import NoteProperties from '@notes/suite/markdown/components/NoteProperties.vue';
@@ -91,6 +92,9 @@ const props = defineProps({
     graphPath: { type: String, required: true },
     linkTitlePath: { type: String, default: '' },
     peopleEveryonePath: { type: String, default: '' },
+    dailyDaysPath: { type: String, default: '' },
+    tasksPath: { type: String, default: '' },
+    taskPath: { type: String, default: '' },
     /** The whole notebook as a zip, a single note as .md, and the way back. */
     exportPath: { type: String, required: true },
     exportOnePath: { type: String, required: true },
@@ -1104,11 +1108,11 @@ async function duplicateNote() {
  */
 const dailyOpening = ref(false);
 
-async function openDailyNote() {
+async function openDailyNote(date = null) {
     if (dailyOpening.value) return;
 
     dailyOpening.value = true;
-    const { ok, reported, payload } = await api.daily();
+    const { ok, reported, payload } = await api.daily(date);
     dailyOpening.value = false;
 
     if (!ok) {
@@ -1119,6 +1123,45 @@ async function openDailyNote() {
 
     await Promise.all([refreshFolders(), refreshList()]);
     await openNote(payload.note.id);
+}
+
+/** The days of a month that have their note, for the journal's calendar. */
+async function loadJournalDays(month) {
+    if (!props.dailyDaysPath) return [];
+    const { ok, payload } = await api.dailyDays(month);
+
+    return ok ? (payload?.days ?? []) : [];
+}
+
+/** The tasks view (09/10/2026): every checkbox of every note. */
+const tasksOpen = ref(false);
+
+async function loadTasks() {
+    const { ok, payload } = await api.tasks();
+
+    return ok ? (payload?.tasks ?? []) : [];
+}
+
+/**
+ * The open note is ticked through its form, as a click in its preview would;
+ * any other one on the server, which rewrites just that line.
+ */
+async function toggleTask(task) {
+    if (task.noteId === selectedId.value) {
+        await onCheckboxToggle(task.index);
+
+        return true;
+    }
+
+    const { ok, reported } = await api.toggleTask(task.noteId, task.index, !task.done);
+    if (!ok && !reported) toast.error(t('notes.markdown.errors.save_failed'));
+
+    return ok;
+}
+
+function openNoteFromTasks(id) {
+    tasksOpen.value = false;
+    void openNote(id);
 }
 
 /** Make the open note a template, or turn it back into an ordinary one. */
@@ -2130,10 +2173,14 @@ onUnmounted(() => {
                     :export-url-for="exportUrl"
                     :max-depth="maxDepth"
                     :daily-enabled="'' !== dailyPath"
+                    :load-journal-days="loadJournalDays"
                     :daily-opening="dailyOpening"
+                    :tasks-enabled="'' !== tasksPath"
+                    :people="everyone"
                     v-on:open-note="openNote"
                     v-on:create-note="createNote"
                     v-on:open-daily-note="openDailyNote"
+                    v-on:open-tasks="tasksOpen = true"
                     v-on:changed="onLibraryChanged"
                     v-on:folder-changed="openFolderId = $event"
                 />
@@ -2164,6 +2211,14 @@ onUnmounted(() => {
                 v-on:close="quickOpen = false"
                 v-on:open="openNote"
                 v-on:create="createFromQuickOpen"
+            />
+
+            <NoteTasksPanel
+                :show="tasksOpen"
+                :load-tasks="loadTasks"
+                :toggle-task="toggleTask"
+                v-on:close="tasksOpen = false"
+                v-on:open-note="openNoteFromTasks"
             />
 
             <NoteMarkdownHelp

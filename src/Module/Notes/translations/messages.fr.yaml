@@ -197,6 +197,7 @@ notes:
                 bullet: "Liste à puces"
                 numbered: "Liste numérotée"
                 checkbox: "Case à cocher"
+                task_due: "Tâche avec échéance (vue Toutes les tâches)"
                 quote: "Citation"
                 divider: "Séparateur"
                 table: "Tableau (« /tableau 3x4 » pour une taille)"
@@ -271,6 +272,7 @@ notes:
                 bad_person: Cette personne ne peut pas recevoir la note.
                 save_failed: L'enregistrement a échoué.
         share:
+            unshared_link: 'Cette note ne fait pas partie du partage.'
             can_write: Autoriser la modification
             can_write_hint: Toute personne qui a l'adresse pourra réécrire le texte de cette note. Uniquement celle-ci, jamais les notes liées.
             writable_badge: Écriture
@@ -479,6 +481,12 @@ notes:
                 mosaic: Mosaïque
                 cards: Cartes
                 list: Liste
+                table: Tableau
+            table:
+                filter: 'Filtrer les lignes…'
+                title: 'Note'
+                updated: 'Modifiée'
+                empty: 'Aucune note ici.'
             scope:
                 flat: Tout afficher à plat
                 grouped: Afficher par dossiers
@@ -620,6 +628,18 @@ notes:
             title: 'Note du jour'
             folder: 'Journal'
             failed: 'La note du jour n''a pas pu être ouverte.'
+            today: "Aujourd'hui"
+            previous: 'Mois précédent'
+            next: 'Mois suivant'
+        # The tasks view: every checkbox of every note.
+        tasks:
+            title: 'Toutes les tâches'
+            search: 'Rechercher une tâche ou une note…'
+            empty: 'Aucune tâche ici.'
+            filters:
+                todo: 'À faire'
+                late: 'En retard'
+                all: 'Toutes'
         add:
             space: "Espace de notes"
             create_space: "Créer l'espace de notes"

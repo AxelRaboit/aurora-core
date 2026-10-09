@@ -29,6 +29,7 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownDailyNote;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
+use Aurora\Module\Notes\Markdown\Service\NoteTasks;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
@@ -50,7 +51,9 @@ use function array_filter;
 use function array_values;
 use function iconv;
 use function is_array;
+use function is_int;
 use function is_numeric;
+use function is_string;
 use function preg_replace;
 
 #[Route('/suite/notes/markdown', name: 'suite_notes_markdown')]
@@ -744,12 +747,73 @@ final class MarkdownNotesController extends AbstractController
      * it only ever writes into your own space.
      */
     #[Route('/daily', name: '_daily', methods: [HttpMethodEnum::Post->value])]
-    public function daily(MarkdownDailyNote $dailyNote): JsonResponse
+    public function daily(MarkdownDailyNote $dailyNote, Request $request): JsonResponse
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($dailyNote->open($user))]);
+        // A day picked in the journal's calendar (09/10/2026); today otherwise.
+        $date = $this->decodeJson($request)['date'] ?? null;
+        $day = is_string($date) && 1 === preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)
+            ? (DateTimeImmutable::createFromFormat('!Y-m-d', $date) ?: new DateTimeImmutable())->setTime(12, 0)
+            : new DateTimeImmutable();
+
+        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($dailyNote->open($user, $day))]);
+    }
+
+    /** Every checkbox of the notes this person reads, for the tasks view (09/10/2026). */
+    #[Route('/tasks', name: '_tasks', methods: [HttpMethodEnum::Get->value])]
+    public function tasks(NoteTasks $tasks): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        return $this->jsonSuccess(['tasks' => $tasks->forUser($user)]);
+    }
+
+    /**
+     * Ticks or unticks one box from the tasks view (09/10/2026), on the
+     * server: the view has the line, not the whole form, and a full save from
+     * it would put back fields it never read.
+     */
+    #[Route('/{id}/task', name: '_task', methods: [HttpMethodEnum::Post->value])]
+    public function task(int $id, Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->spaceAccess->writableNote($user, $id);
+        if (!$note instanceof MarkdownNoteInterface || $note->isLocked()) {
+            return $this->jsonNotFound();
+        }
+
+        $data = $this->decodeJson($request);
+        $index = $data['index'] ?? null;
+        $content = is_int($index) ? NoteTasks::withTask((string) $note->getContent(), $index, true === ($data['done'] ?? false)) : null;
+        if (null === $content) {
+            return $this->jsonFailure('task_not_found', HttpStatusEnum::Conflict->value);
+        }
+
+        $this->history->beforeChange($note, $note->getTitle(), $content, $user);
+        $this->manager->updateText($note, $note->getTitle(), $content);
+        $this->liveHub->publishChanged($note, $user->getName());
+
+        return $this->jsonSuccess(['version' => $note->getVersion()]);
+    }
+
+    /** The days of a month that have their note, for the journal's calendar (09/10/2026). */
+    #[Route('/daily/days', name: '_daily_days', methods: [HttpMethodEnum::Get->value])]
+    public function dailyDays(MarkdownDailyNote $dailyNote, Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $month = (string) $request->query->get('month', '');
+        if (1 !== preg_match('/^(\d{4})-(\d{2})$/', $month, $parts) || (int) $parts[2] < 1 || (int) $parts[2] > 12) {
+            return $this->jsonSuccess(['days' => []]);
+        }
+
+        return $this->jsonSuccess(['days' => $dailyNote->daysWithNotes($user, (int) $parts[1], (int) $parts[2])]);
     }
 
     #[Route('/{id}/move', name: '_move', methods: [HttpMethodEnum::Post->value])]

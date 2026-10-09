@@ -192,6 +192,7 @@ notes:
                 bullet: "Lista con viñetas"
                 numbered: "Lista numerada"
                 checkbox: "Casilla"
+                task_due: "Tarea con fecha límite (vista Todas las tareas)"
                 quote: "Cita"
                 divider: "Separador"
                 table: "Tabla («/tabla 3x4» para un tamaño)"
@@ -266,6 +267,7 @@ notes:
                 bad_person: Esta persona no puede recibir la nota.
                 save_failed: No se pudo guardar.
         share:
+            unshared_link: 'Esta nota no forma parte del enlace compartido.'
             can_write: 'Permitir la edición'
             can_write_hint: 'Cualquiera que tenga la dirección podrá reescribir el texto de esta nota. Solo esta, nunca las notas vinculadas.'
             writable_badge: 'Escritura'
@@ -474,6 +476,12 @@ notes:
                 mosaic: Mosaico
                 cards: Fichas
                 list: Lista
+                table: Tabla
+            table:
+                filter: 'Filtrar filas…'
+                title: 'Nota'
+                updated: 'Modificada'
+                empty: 'No hay notas aquí.'
             scope:
                 flat: 'Mostrar todo sin carpetas'
                 grouped: 'Mostrar por carpetas'
@@ -618,6 +626,18 @@ notes:
             title: 'Nota del día'
             folder: 'Diario'
             failed: 'No se ha podido abrir la nota del día.'
+            today: 'Hoy'
+            previous: 'Mes anterior'
+            next: 'Mes siguiente'
+        # The tasks view: every checkbox of every note.
+        tasks:
+            title: 'Todas las tareas'
+            search: 'Buscar una tarea o una nota…'
+            empty: 'No hay tareas aquí.'
+            filters:
+                todo: 'Pendientes'
+                late: 'Atrasadas'
+                all: 'Todas'
         add:
             space: "Espacio de notas"
             create_space: "Crear el espacio de notas"

@@ -112,9 +112,11 @@ final class NoteFrontMatter
             if (!is_string($key)) {
                 continue;
             }
+
             if (in_array(mb_strtolower($key), self::RESERVED, true)) {
                 continue;
             }
+
             if (!is_scalar($value) && null !== $value) {
                 continue;
             }

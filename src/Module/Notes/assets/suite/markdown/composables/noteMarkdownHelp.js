@@ -96,6 +96,13 @@ export const NOTE_HELP_SECTIONS = [
                 shortcut: "Mod+Shift+C",
                 insert: "- [ ] ",
             },
+            // Read by the tasks view, as Obsidian Tasks writes it.
+            {
+                key: "task_due",
+                syntax: "- [ ] tâche 📅 2026-10-12",
+                insert: "- [ ]  📅 2026-10-12",
+                caret: 6,
+            },
             { key: "quote", syntax: "> citation", insert: "> " },
             { key: "divider", syntax: "---", insert: "\n---\n" },
             {

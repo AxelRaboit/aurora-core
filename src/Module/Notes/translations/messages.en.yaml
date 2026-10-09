@@ -193,6 +193,7 @@ notes:
                 bullet: "Bulleted list"
                 numbered: "Numbered list"
                 checkbox: "Checkbox"
+                task_due: "Task with a due date (All tasks view)"
                 quote: "Quote"
                 divider: "Divider"
                 table: "Table (“/table 3x4” for a size)"
@@ -267,6 +268,7 @@ notes:
                 bad_person: This person cannot receive the note.
                 save_failed: Saving failed.
         share:
+            unshared_link: 'This note is not part of the share.'
             can_write: Allow editing
             can_write_hint: Anybody holding the address will be able to rewrite this note's text. This one only, never the linked notes.
             writable_badge: Write
@@ -475,6 +477,12 @@ notes:
                 mosaic: Mosaic
                 cards: Cards
                 list: List
+                table: Table
+            table:
+                filter: 'Filter rows…'
+                title: 'Note'
+                updated: 'Updated'
+                empty: 'No notes here.'
             scope:
                 flat: Show everything flat
                 grouped: Show folders
@@ -616,6 +624,18 @@ notes:
             title: 'Today''s note'
             folder: 'Journal'
             failed: 'Today''s note could not be opened.'
+            today: 'Today'
+            previous: 'Previous month'
+            next: 'Next month'
+        # The tasks view: every checkbox of every note.
+        tasks:
+            title: 'All tasks'
+            search: 'Search a task or a note…'
+            empty: 'No tasks here.'
+            filters:
+                todo: 'To do'
+                late: 'Overdue'
+                all: 'All'
         add:
             space: "Note space"
             create_space: "Create note space"

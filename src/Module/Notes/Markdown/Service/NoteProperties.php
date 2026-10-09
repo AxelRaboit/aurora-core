@@ -45,6 +45,7 @@ final class NoteProperties
             if ('' === $key) {
                 continue;
             }
+
             if (isset($seen[mb_strtolower($key)])) {
                 continue;
             }

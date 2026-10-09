@@ -98,6 +98,41 @@ final readonly class MarkdownDailyNote
         ]));
     }
 
+    /**
+     * The days of a month that have their note, for the journal's calendar
+     * (09/10/2026). Nothing is written: a month without a journal folder
+     * simply has no day.
+     *
+     * @return list<string> `Y-m-d`
+     */
+    public function daysWithNotes(CoreUserInterface $user, int $year, int $month): array
+    {
+        $space = $this->spaceAccess->personalSpace($user);
+        $names = $this->namesOf('notes.markdown.daily.folder');
+        $journal = array_find($this->folderRepository->findLivingInSpace($space), fn($folder): bool => null === $folder->getParent() && $this->knownName($names, $folder->getName()));
+        if (null === $journal) {
+            return [];
+        }
+
+        $titles = [];
+        foreach ($this->noteRepository->findLivingInFolder($space, (int) $journal->getId()) as $note) {
+            $titles[(string) $note->getTitle()] = true;
+        }
+
+        $days = [];
+        $first = new DateTimeImmutable(sprintf('%04d-%02d-01 12:00:00', $year, $month));
+        for ($day = $first; (int) $day->format('n') === $month; $day = $day->modify('+1 day')) {
+            foreach (LocaleEnum::values() as $locale) {
+                if (isset($titles[$this->dateFormatter->date($day, $locale, 'full')])) {
+                    $days[] = $day->format('Y-m-d');
+                    break;
+                }
+            }
+        }
+
+        return $days;
+    }
+
     /** The day, written out in full in the reader's language: "jeudi 8 octobre 2026". */
     public function titleFor(DateTimeInterface $now): string
     {

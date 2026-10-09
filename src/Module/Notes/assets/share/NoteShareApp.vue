@@ -355,6 +355,7 @@ function htmlOf(source, title) {
         shareImagePath: props.shareImagePath,
         shareNotePath: props.shareNotePath,
         titleIndex: props.titleIndex,
+        unsharedLabel: t("notes.markdown.share.unshared_link"),
     });
 }
 

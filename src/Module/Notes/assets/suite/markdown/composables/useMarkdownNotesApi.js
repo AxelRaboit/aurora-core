@@ -104,7 +104,20 @@ export function useMarkdownNotesApi(props) {
          * Today's note, in the personal space's journal: the server finds the
          * one already written today, or writes it.
          */
-        daily: () => call(HttpMethod.Post, props.dailyPath, {}),
+        // A date picks the day; none, today (09/10/2026).
+        daily: (date = null) =>
+            call(HttpMethod.Post, props.dailyPath, date ? { date } : {}),
+        dailyDays: (month) =>
+            call(
+                HttpMethod.Get,
+                `${props.dailyDaysPath}?month=${encodeURIComponent(month)}`,
+            ),
+        tasks: () => call(HttpMethod.Get, props.tasksPath),
+        toggleTask: (id, index, done) =>
+            call(HttpMethod.Post, resolvePath(props.taskPath, id), {
+                index,
+                done,
+            }),
         backlinks: (id) =>
             call(HttpMethod.Get, resolvePath(props.backlinksPath, id)),
         unlinkedMentions: (id) =>

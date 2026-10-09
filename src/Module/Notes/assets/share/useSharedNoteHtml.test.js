@@ -51,10 +51,16 @@ describe("shareHtml", () => {
         const html =
             '<p>Voir <a class="wiki-link" data-note-title="Privée">Privée</a> pour la suite.</p>';
 
-        const out = shareHtml(html, { ...PATHS, titleIndex: { recette: 7 } });
+        const out = shareHtml(html, {
+            ...PATHS,
+            titleIndex: { recette: 7 },
+            unsharedLabel: "Pas dans ce partage",
+        });
 
         expect(out).not.toContain("<a");
-        expect(out).toContain("Voir Privée pour la suite.");
+        expect(out).toContain(
+            'Voir <span class="wiki-link-unshared" title="Pas dans ce partage">Privée</span> pour la suite.',
+        );
     });
 
     it("never invents a link from a title the index does not carry", () => {

@@ -26,6 +26,7 @@ import {
     ArrowUpDown,
     ArrowUpNarrowWide,
     CalendarDays,
+    ListChecks,
     ChevronRight,
     Download,
     FileDown,
@@ -43,6 +44,7 @@ import {
     PinOff,
     Plus,
     Rows3,
+    Table2,
     Search,
     Tag,
     Lock,
@@ -73,6 +75,9 @@ import { useNotePreview } from "@notes/suite/markdown/composables/useNotePreview
 import { useMarkdownRenderer } from "@notes/suite/markdown/composables/useMarkdownRenderer.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
 import NotePreview from "@notes/suite/markdown/components/NotePreview.vue";
+import NoteJournalCalendar from "@notes/suite/markdown/components/NoteJournalCalendar.vue";
+import NoteTableView from "@notes/suite/markdown/components/NoteTableView.vue";
+import { useDismissable } from "@notes/suite/markdown/composables/useDismissable.js";
 import {
     NOTE_DRAG_MIME,
     readNoteDrag,
@@ -105,20 +110,36 @@ const props = defineProps({
     maxDepth: { type: Number, default: 8 },
     /** The page knows where today's note is: the button shows. */
     dailyEnabled: { type: Boolean, default: false },
+    /** `(month: 'YYYY-MM') => Promise<string[]>`, for the journal's calendar. */
+    loadJournalDays: { type: Function, default: () => Promise.resolve([]) },
     /** Today's note is on its way: the button spins and waits. */
     dailyOpening: { type: Boolean, default: false },
+    /** Shows the button of the tasks view. */
+    tasksEnabled: { type: Boolean, default: false },
+    /** list<{id, name}>, to name a « person » property in the table. */
+    people: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits([
     "open-note",
     "create-note",
     "open-daily-note",
+    "open-tasks",
     "changed",
     "folder-changed",
 ]);
 
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
+
+const journalOpen = ref(false);
+const journalRef = ref(null);
+useDismissable(journalRef, journalOpen);
+
+function openJournalDay(date) {
+    journalOpen.value = false;
+    emit("open-daily-note", date);
+}
 
 const foldersRef = computed(() => props.folders);
 const notesRef = computed(() => props.notes);
@@ -271,6 +292,7 @@ const viewOptions = computed(() => [
     { value: "mosaic", icon: LayoutGrid, label: t("notes.markdown.library.view.mosaic") },
     { value: "cards", icon: Rows3, label: t("notes.markdown.library.view.cards") },
     { value: "list", icon: List, label: t("notes.markdown.library.view.list") },
+    { value: "table", icon: Table2, label: t("notes.markdown.library.view.table") },
 ]);
 
 /**
@@ -1413,21 +1435,39 @@ defineExpose({
                         <FolderPlus class="h-4 w-4" :stroke-width="2" />
                     </AppButton>
 
-                    <!-- Today's note, in the personal journal, written the
-                         first time. An icon at every width: next to the main
-                         button, a second word would compete with it. -->
+                    <!-- Every task of every note (09/10/2026). -->
                     <AppButton
-                        v-if="dailyEnabled"
-                        data-library-daily-note
+                        v-if="tasksEnabled"
+                        data-library-tasks
                         class="ml-1"
                         variant="secondary"
-                        :label="t('notes.markdown.daily.title')"
-                        :loading="dailyOpening"
+                        :label="t('notes.markdown.tasks.title')"
                         icon-only
-                        v-on:click="emit('open-daily-note')"
+                        v-on:click="emit('open-tasks')"
                     >
-                        <CalendarDays v-if="!dailyOpening" class="h-4 w-4" :stroke-width="2" />
+                        <ListChecks class="h-4 w-4" :stroke-width="2" />
                     </AppButton>
+
+                    <!-- The journal (09/10/2026): today's note, and the
+                         month's calendar to reach any other day's. An icon
+                         at every width: next to the main button, a second
+                         word would compete with it. -->
+                    <div v-if="dailyEnabled" ref="journalRef" class="relative ml-1">
+                        <AppButton
+                            data-library-daily-note
+                            variant="secondary"
+                            :label="t('notes.markdown.daily.title')"
+                            :loading="dailyOpening"
+                            :aria-expanded="journalOpen"
+                            icon-only
+                            v-on:click="journalOpen = !journalOpen"
+                        >
+                            <CalendarDays v-if="!dailyOpening" class="h-4 w-4" :stroke-width="2" />
+                        </AppButton>
+                        <div v-if="journalOpen" class="absolute right-0 top-full z-30 mt-1">
+                            <NoteJournalCalendar :load-days="loadJournalDays" v-on:open="openJournalDay" />
+                        </div>
+                    </div>
 
                     <AppButton
                         data-library-new-note
@@ -1666,7 +1706,7 @@ defineExpose({
                 <!-- Mosaic and cards share the grid and only differ by the
                  height of the tiles: a single column on a phone, that is the
                  house rule since 14/09. -->
-                <div v-if="'list' !== view">
+                <div v-if="'mosaic' === view || 'cards' === view">
                     <div
                         class="grid grid-cols-1 gap-3"
                         :class="'mosaic' === view ? 'sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4' : 'sm:grid-cols-3 2xl:grid-cols-4'"
@@ -1827,6 +1867,27 @@ defineExpose({
                             <p class="mt-auto pt-2 text-xs text-muted">{{ updatedLabel(note) }}</p>
                         </article>
                     </div>
+
+                    <AppLoadMore
+                        v-if="hasMore"
+                        class="mt-3"
+                        :has-more="hasMore"
+                        v-on:load="shown += PAGE"
+                    />
+                </div>
+
+                <!-- The table (09/10/2026): the notes' properties in columns. -->
+                <div v-else-if="'table' === view">
+                    <NoteTableView
+                        :folders="pagedFolders"
+                        :notes="pagedNotes"
+                        :people="people"
+                        :note-url-for="noteUrlFor"
+                        :note-label="noteLabel"
+                        :folder-label="folderLabel"
+                        v-on:open-note="emit('open-note', $event)"
+                        v-on:open-folder="openFolder"
+                    />
 
                     <AppLoadMore
                         v-if="hasMore"

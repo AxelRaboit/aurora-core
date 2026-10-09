@@ -66,6 +66,15 @@
     border-radius: 2px;
 }
 
+/* A link to a note outside the share: still a link to the eye, not a
+   target. The hover says why (`useSharedNoteHtml.js`). */
+.note-preview .wiki-link-unshared {
+    color: var(--color-muted);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: help;
+}
+
 /* ── Interactive task list checkboxes ────────────────────────────── */
 .note-preview .task-list-item {
     list-style: none;
