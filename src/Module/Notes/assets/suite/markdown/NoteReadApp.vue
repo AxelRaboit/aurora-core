@@ -40,6 +40,8 @@ const props = defineProps({
     content: { type: String, default: "" },
     cover: { type: Object, default: null },
     appearance: { type: String, default: "plain" },
+    /** The emoji, the properties and the reading settings (09/10/2026). */
+    display: { type: Object, default: null },
     titleIndex: { type: Object, default: () => ({}) },
     readNotePath: { type: String, required: true },
     imagePrefix: { type: String, default: "" },
@@ -443,8 +445,9 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
             <!-- The text, and on a wide screen its outline to the right
                  (08/10/2026), held in the reading column's width. -->
-            <div class="mx-auto flex w-full max-w-3xl gap-8 xl:max-w-[67rem] print:max-w-none">
-                <div ref="body" class="flex min-w-0 max-w-3xl flex-1 flex-col gap-4 px-3 py-4 sm:px-6 sm:py-8 print:max-w-none print:p-0">
+            <!-- A note set to full width leaves the column (09/10/2026). -->
+            <div class="mx-auto flex w-full gap-8 print:max-w-none" :class="display?.fullWidth ? 'max-w-none' : 'max-w-3xl xl:max-w-[67rem]'">
+                <div ref="body" class="flex min-w-0 flex-1 flex-col gap-4 px-3 py-4 sm:px-6 sm:py-8 print:max-w-none print:p-0" :class="display?.fullWidth ? '' : 'max-w-3xl'">
                     <NoteShareApp
                         :image-prefix="imagePrefix"
                         :share-image-path="noteImagePath"
@@ -454,6 +457,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                         :content="content"
                         :cover="cover"
                         :appearance="appearance"
+                        :display="display"
                         :title-index="titleIndex"
                     />
 

@@ -268,8 +268,16 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 class="flex min-w-0 flex-1 items-center gap-2 no-underline"
                 v-on:click="onRowClick"
             >
+                <!-- A note's emoji stands for it, as in Notion (09/10/2026). -->
+                <span
+                    v-if="!isFolder && node.icon"
+                    data-note-tree-icon
+                    class="inline-flex w-4 shrink-0 justify-center text-sm leading-none"
+                    aria-hidden="true"
+                >{{ node.icon }}</span>
                 <component
                     :is="isFolder ? (isOpen && hasChildren ? FolderOpen : Folder) : (node.template ? LayoutTemplate : FileText)"
+                    v-else
                     :aria-label="!isFolder && node.template ? t('notes.markdown.template.badge') : undefined"
                     class="w-4 h-4 shrink-0"
                     :class="isSelected || isDropInside ? 'text-accent-400' : 'text-muted'"

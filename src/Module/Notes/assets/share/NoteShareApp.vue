@@ -3,17 +3,23 @@ import "@notes/suite/markdown/components/preview.css";
 import "@notes/share/appearance.css";
 import "@notes/share/print.css";
 
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Clock, Columns, Eye, Pencil } from "lucide-vue-next";
+import { CircleHelp, Clock, Columns, Eye, MessageSquare, Pencil, Presentation } from "lucide-vue-next";
+import NoteMarkdownHelp from "@notes/suite/markdown/components/NoteMarkdownHelp.vue";
+import NoteHoverCard from "@notes/suite/markdown/components/NoteHoverCard.vue";
+import { noteExcerpt, useWikiLinkHoverCard } from "@notes/suite/markdown/composables/useWikiLinkHoverCard.js";
 import AppButton from "@shared/components/action/AppButton.vue";
 import AppBadge from "@shared/components/feedback/AppBadge.vue";
 import AppTab from "@shared/components/nav/AppTab.vue";
 import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { useMarkdownRenderer } from "@notes/suite/markdown/composables/useMarkdownRenderer.js";
+import { useFootnoteLabels, useNoteHtmlEnhancer } from "@notes/suite/markdown/composables/useNoteHtmlEnhancer.js";
+import { markdownSection } from "@notes/suite/markdown/composables/noteHtmlEnhancer.js";
 import { useEditorPaneMode } from "@notes/suite/markdown/composables/useEditorPaneMode.js";
 import { useNoteLive } from "@notes/suite/markdown/composables/useNoteLive.js";
 import { useNoteCoedit } from "@notes/suite/markdown/composables/useNoteCoedit.js";
@@ -21,6 +27,9 @@ import { canCoedit } from "@notes/suite/markdown/composables/noteCoeditProtocol.
 import NoteCollaborators from "@notes/suite/markdown/components/NoteCollaborators.vue";
 import NoteRemoteCarets from "@notes/suite/markdown/components/NoteRemoteCarets.vue";
 import NoteReaderOutline from "@notes/suite/markdown/components/NoteReaderOutline.vue";
+import NoteCommentsPanel from "@notes/suite/markdown/components/NoteCommentsPanel.vue";
+import NotePresentation from "@notes/suite/markdown/components/NotePresentation.vue";
+import { flashQuote } from "@notes/suite/markdown/composables/noteCommentMarks.js";
 import { outlineOf, readingMinutes, wordCount } from "@notes/suite/markdown/composables/noteOutline.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
@@ -59,6 +68,11 @@ const props = defineProps({
      */
     meta: { type: Object, default: null },
     /**
+     * `{icon, properties, fullWidth, smallText, font}`, as
+     * `MarkdownNoteDisplay` describes it (09/10/2026).
+     */
+    display: { type: Object, default: null },
+    /**
      * Whether this link may rewrite this note.
      *
      * Decided by the server from the link alone, and about this note only:
@@ -76,10 +90,12 @@ const props = defineProps({
     coediting: { type: Boolean, default: false },
     /** Where a guest beats to be in the room, `__id__` template. */
     liveBeatPath: { type: String, default: "" },
+    /** Where the comments are read and written, on a link that writes; empty otherwise. */
+    commentsPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
-const { render } = useMarkdownRenderer();
+const { render } = useMarkdownRenderer({ footnotes: useFootnoteLabels() });
 const { request } = useRequest();
 
 /**
@@ -344,6 +360,7 @@ function htmlOf(source, title) {
         shareImagePath: props.shareImagePath,
         shareNotePath: props.shareNotePath,
         titleIndex: props.titleIndex,
+        unsharedLabel: t("notes.markdown.share.unshared_link"),
     });
 }
 
@@ -353,7 +370,14 @@ const html = computed(() => htmlOf(savedContent.value, savedTitle.value));
 // the whole point of looking at it beside the field.
 const draftHtml = computed(() => htmlOf(draftContent.value, draftTitle.value));
 
-const { formatDateTime } = useDateFormat();
+const { formatDate, formatDateTime } = useDateFormat();
+
+/** The note's typeface and size, as set in the suite. */
+const readingClass = computed(() => [
+    "serif" === props.display?.font ? "note-font-serif" : "",
+    "mono" === props.display?.font ? "note-font-mono" : "",
+    props.display?.smallText ? "note-small-text" : "",
+]);
 /** The text being shown: the draft while writing, the saved one otherwise. */
 const shownContent = computed(() => (editing.value ? draftContent.value : savedContent.value));
 const metaTags = computed(() => props.meta?.tags ?? []);
@@ -368,7 +392,158 @@ const minutes = computed(() => readingMinutes(wordCount(shownContent.value)));
  * beside a rendered note only, never beside the source being typed.
  */
 const bodyRef = ref(null);
+
+const helpOpen = ref(false);
+
+/** An example from the cheat sheet, at the caret of the field. */
+async function insertFromHelp({ text, caret }) {
+    if (!view.value.showEditor) pickMode("split");
+    await nextTick();
+
+    const field = fieldRef.value;
+    const content = draftContent.value ?? "";
+    const start = field ? field.selectionStart : content.length;
+    const end = field ? field.selectionEnd : start;
+    draftContent.value = content.slice(0, start) + text + content.slice(end);
+
+    await nextTick();
+    const caretAt = start + (null === caret ? text.length : caret);
+    fieldRef.value?.focus();
+    fieldRef.value?.setSelectionRange(caretAt, caretAt);
+}
+
+/**
+ * A note included in this one (`![[Note]]`), when the link shares it too:
+ * asked from the share's own route, which answers for the notes in its scope
+ * and nothing else. Out of scope, the inclusion stays a title.
+ */
+const includedNotes = new Map();
+async function sharedNoteContent(title) {
+    const id = props.titleIndex?.[String(title ?? "").toLowerCase()];
+    if (undefined === id || null === id) return null;
+
+    if (!includedNotes.has(id)) {
+        includedNotes.set(
+            id,
+            request(props.shareNotePath.replace("__id__", String(id)), null, { method: HttpMethod.Get, silent: true, noGuard: true })
+                .then((payload) => payload?.note?.content ?? null)
+                .catch(() => null),
+        );
+    }
+
+    return includedNotes.get(id);
+}
+
+async function loadEmbed({ title, heading }) {
+    const content = await sharedNoteContent(title);
+    if (null === content) return null;
+
+    return htmlOf(markdownSection(content, heading), "");
+}
+
+/**
+ * A linked note's beginning, on hover (09/10/2026) - only for the notes this
+ * link shares too, read through the same route as an inclusion.
+ */
+const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyRef, async (title, heading) => {
+    const content = await sharedNoteContent(title);
+    if (null === content) return null;
+
+    // The card names the note already: its `# Title` would say it twice.
+    return htmlOf(noteExcerpt(markdownSection(content, heading)), heading ? "" : title);
+});
+
+/** The note as slides, for whoever has the link (09/10/2026). */
+const presenting = ref(false);
+function sharedSlideHtml(rendered) {
+    return shareHtml(rendered, {
+        imagePrefix: props.imagePrefix,
+        shareImagePath: props.shareImagePath,
+        shareNotePath: props.shareNotePath,
+        titleIndex: props.titleIndex,
+        unsharedLabel: t("notes.markdown.share.unshared_link"),
+    });
+}
+
+/**
+ * The comments (09/10/2026), on a link that writes: the same panel as in the
+ * suite, written under the name the guest gives.
+ */
+const commentsOpen = ref(false);
+const commentThreads = ref([]);
+const commentsSaving = ref(false);
+const commentQuote = ref(null);
+const missingQuotes = ref(new Set());
+const openCommentCount = computed(() => commentThreads.value.filter((thread) => !thread.resolvedAt).length);
+const commentQuotes = computed(() =>
+    commentThreads.value.filter((thread) => !thread.resolvedAt && thread.quote).map((thread) => ({ id: thread.id, quote: thread.quote })),
+);
+
+async function loadComments() {
+    if (!props.commentsPath) return;
+    const payload = await request(props.commentsPath, null, { method: HttpMethod.Get, silent: true, noGuard: true }).catch(() => null);
+    commentThreads.value = payload?.threads ?? commentThreads.value;
+}
+
+onMounted(() => void loadComments());
+
+function selectedInNote() {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !bodyRef.value?.contains(selection.anchorNode)) return null;
+    const text = selection.toString().trim().slice(0, 1000);
+
+    return "" === text ? null : text;
+}
+
+let pendingSelection = null;
+/** Read before the click moves anything: the passage being commented. */
+function rememberSelection() {
+    pendingSelection = selectedInNote();
+}
+
+function toggleComments() {
+    if (commentsOpen.value) {
+        commentsOpen.value = false;
+
+        return;
+    }
+    commentQuote.value = pendingSelection;
+    commentsOpen.value = true;
+}
+
+async function submitComment({ body, quote, parentId, guestName }) {
+    commentsSaving.value = true;
+    const payload = await request(props.commentsPath, { body, quote, parentId, guestName }, { method: HttpMethod.Post, noGuard: true }).catch(() => null);
+    commentsSaving.value = false;
+    if (!payload?.threads) {
+        toast.error(t("notes.markdown.comments.failed"));
+
+        return;
+    }
+    commentThreads.value = payload.threads;
+    if (null === parentId) commentQuote.value = null;
+}
+
+function onBodyClick(event) {
+    const mark = event.target instanceof Element ? event.target.closest("mark.md-comment-mark") : null;
+    if (!mark) return;
+    commentQuote.value = null;
+    commentsOpen.value = true;
+    const id = Number(mark.dataset.commentId);
+    void nextTick(() => document.querySelector(`[data-note-comment-thread-id="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+}
+
+useNoteHtmlEnhancer(bodyRef, () => [html.value, draftHtml.value, editing.value, view.value.mode], {
+    loadEmbed,
+    quotes: () => commentQuotes.value,
+    onQuotesMarked: (found) => {
+        missingQuotes.value = new Set(commentQuotes.value.filter((one) => !found.has(one.id)).map((one) => one.id));
+    },
+});
 const showsOutline = computed(() => null !== props.meta && (!editing.value || "preview" === view.value.mode));
+/** Headings the outline found: under two, its frame stays hidden. */
+const outlineCount = ref(0);
+const outlineShown = computed(() => showsOutline.value && outlineCount.value > 1);
 // Remounted when the headings change, so a title typed in the room shows up.
 const outlineKey = computed(() => outlineOf(shownContent.value).map((heading) => heading.text).join("\n"));
 
@@ -401,30 +576,42 @@ const lookClass = computed(() =>
 
 <template>
     <div class="flex flex-col gap-2 sm:gap-4 md:flex-row md:items-start">
-        <nav
-            v-if="hasTree"
-            class="aurora-card w-full shrink-0 p-2 md:w-64 print:hidden"
-            :aria-label="t('notes.markdown.share.tree_label')"
+        <!-- The share's notes and the note's outline, beside the card rather
+             than inside it: inside, the outline took a column of the card and
+             the rendered note read as if the page were split (09/10/2026). -->
+        <div
+            v-if="hasTree || showsOutline"
+            class="w-full shrink-0 flex-col gap-2 sm:gap-4 md:sticky md:top-6 md:w-64 print:hidden"
+            :class="hasTree ? 'flex' : outlineShown ? 'hidden lg:flex' : 'hidden'"
         >
-            <ul class="flex flex-col">
-                <li v-for="node in tree" :key="node.id">
-                    <a
-                        :href="shareNotePath.replace('__id__', String(node.id))"
-                        class="block truncate rounded-md px-2 py-1.5 text-sm transition-colors"
-                        :class="
-                            node.id === noteId
-                                ? 'bg-surface-2 font-medium text-primary'
-                                : 'text-secondary hover:bg-surface-2'
-                        "
-                        :style="{ paddingLeft: '0.5rem' }"
-                    >{{ titleOf(node) }}</a>
-                </li>
-            </ul>
-        </nav>
+            <nav
+                v-if="hasTree"
+                class="aurora-card w-full p-2"
+                :aria-label="t('notes.markdown.share.tree_label')"
+            >
+                <ul class="flex flex-col">
+                    <li v-for="node in tree" :key="node.id">
+                        <a
+                            :href="shareNotePath.replace('__id__', String(node.id))"
+                            class="block truncate rounded-md px-2 py-1.5 text-sm transition-colors"
+                            :class="
+                                node.id === noteId
+                                    ? 'bg-surface-2 font-medium text-primary'
+                                    : 'text-secondary hover:bg-surface-2'
+                            "
+                            :style="{ paddingLeft: '0.5rem' }"
+                        >{{ titleOf(node) }}</a>
+                    </li>
+                </ul>
+            </nav>
+            <div v-if="showsOutline" class="aurora-card hidden p-3" :class="outlineShown ? 'lg:block' : ''">
+                <NoteReaderOutline :key="outlineKey" :root="bodyRef" v-on:count="outlineCount = $event" />
+            </div>
+        </div>
 
         <article
             class="note-print-article aurora-card min-w-0 flex-1 overflow-hidden"
-            :class="lookClass"
+            :class="[lookClass, readingClass]"
         >
             <!-- The banner, when the note has one. The image lives with
                  whoever hosts it: if it disappears from there, the frame
@@ -467,6 +654,16 @@ const lookClass = computed(() =>
                     </AppButton>
                 </div>
 
+                <!-- The note's emoji, over the banner as in the suite. -->
+                <div
+                    v-if="display?.icon"
+                    data-share-icon
+                    class="mb-2 text-5xl leading-none"
+                    :class="coverUrl ? '-mt-14 relative' : ''"
+                >
+                    {{ display.icon }}
+                </div>
+
                 <div class="mb-4 flex items-start gap-2">
                     <h2 v-if="!editing" class="min-w-0 flex-1 text-xl font-semibold text-primary">
                         {{ savedTitle?.trim() || t("notes.markdown.untitled") }}
@@ -480,6 +677,33 @@ const lookClass = computed(() =>
                         :placeholder="t('notes.markdown.title_placeholder')"
                         :aria-label="t('notes.markdown.title')"
                     >
+                    <AppButton
+                        v-if="!editing"
+                        data-share-present
+                        variant="secondary"
+                        size="sm"
+                        class="shrink-0 print:hidden"
+                        :label="t('notes.markdown.present.start')"
+                        icon-only
+                        v-on:click="presenting = true"
+                    >
+                        <Presentation class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppButton>
+                    <!-- The comments, with the passage selected in the note if any. -->
+                    <AppButton
+                        v-if="commentsPath"
+                        data-share-comments
+                        variant="secondary"
+                        size="sm"
+                        class="relative shrink-0 print:hidden"
+                        :active="commentsOpen"
+                        v-on:pointerdown="rememberSelection"
+                        v-on:click="toggleComments"
+                    >
+                        <MessageSquare class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("notes.markdown.comments.title") }}
+                        <span v-if="openCommentCount" class="rounded-full bg-amber-500 px-1.5 text-2xs font-semibold text-white">{{ openCommentCount }}</span>
+                    </AppButton>
                     <AppButton
                         v-if="canWrite && !editing && !conflicted"
                         data-share-edit
@@ -533,8 +757,33 @@ const lookClass = computed(() =>
                     </span>
                 </div>
 
-                <div class="flex gap-8">
-                    <div ref="bodyRef" class="min-w-0 flex-1">
+                <!-- The note's properties, as written in the suite. -->
+                <dl
+                    v-if="display?.properties?.length"
+                    data-share-properties
+                    class="-mt-2 mb-4 grid grid-cols-[minmax(0,10rem)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm"
+                >
+                    <template v-for="property in display.properties" :key="property.key">
+                        <dt class="truncate text-muted">{{ property.key }}</dt>
+                        <dd class="m-0 min-w-0 text-primary">
+                            <span v-if="'checkbox' === property.type">{{ property.value ? '☑' : '☐' }}</span>
+                            <a
+                                v-else-if="'url' === property.type && property.value"
+                                :href="property.value"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="break-all"
+                            >{{ property.value }}</a>
+                            <span v-else-if="'status' === property.type && property.value" class="rounded-full bg-accent-500/15 px-2 py-0.5 text-xs text-accent-600 dark:text-accent-300">{{ property.value }}</span>
+                            <span v-else-if="'date' === property.type && property.value">{{ formatDate(property.value) }}</span>
+                            <span v-else-if="'person' === property.type">{{ property.label ?? '' }}</span>
+                            <span v-else>{{ property.value ?? '' }}</span>
+                        </dd>
+                    </template>
+                </dl>
+
+                <div>
+                    <div ref="bodyRef" class="min-w-0" v-on:click="onBodyClick">
                         <!-- The markdown source, plainly. No upload, no slash
                      commands, no autocomplete: this page has no account
                      behind it, and every feature here is one more thing an
@@ -561,6 +810,17 @@ const lookClass = computed(() =>
                                         <component :is="option.icon" class="h-4 w-4" :stroke-width="2" />
                                     </AppTab>
                                 </div>
+                                <!-- The editor's cheat sheet (09/10/2026), here as in the suite. -->
+                                <AppButton
+                                    variant="secondary"
+                                    class="ml-2"
+                                    data-share-help
+                                    :label="t('notes.markdown.help.title')"
+                                    icon-only
+                                    v-on:click="helpOpen = true"
+                                >
+                                    <CircleHelp class="h-4 w-4" :stroke-width="2" />
+                                </AppButton>
                             </div>
                             <div
                                 class="grid gap-3"
@@ -620,15 +880,39 @@ const lookClass = computed(() =>
                      as written. Seen at 375 px on the shared page. -->
                         <div v-else class="note-preview prose prose-sm dark:prose-invert max-w-none" v-html="html" />
                     </div>
-                    <!-- The outline beside the rendered note on a wide screen,
-                     as in the reader. -->
-                    <aside v-if="showsOutline" class="hidden w-56 shrink-0 xl:block print:hidden">
-                        <div class="sticky top-6">
-                            <NoteReaderOutline :key="outlineKey" :root="bodyRef" />
-                        </div>
-                    </aside>
                 </div>
             </div>
         </article>
+
+        <NotePresentation
+            v-if="presenting"
+            :title="savedTitle"
+            :icon="display?.icon ?? null"
+            :content="savedContent"
+            :transform-html="sharedSlideHtml"
+            v-on:close="presenting = false"
+        />
+
+        <NoteCommentsPanel
+            v-if="commentsOpen"
+            class="md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:rounded-lg md:border print:hidden"
+            :threads="commentThreads"
+            :saving="commentsSaving"
+            :quote="commentQuote"
+            :missing="missingQuotes"
+            guest
+            v-on:close="commentsOpen = false"
+            v-on:submit="submitComment"
+            v-on:focus-quote="flashQuote(bodyRef, $event)"
+            v-on:clear-quote="commentQuote = null"
+        />
+
+        <NoteHoverCard :card="hoverCard" v-on:enter="onCardEnter" v-on:leave="onCardLeave" />
+
+        <NoteMarkdownHelp
+            :show="helpOpen"
+            v-on:close="helpOpen = false"
+            v-on:insert="insertFromHelp"
+        />
     </div>
 </template>

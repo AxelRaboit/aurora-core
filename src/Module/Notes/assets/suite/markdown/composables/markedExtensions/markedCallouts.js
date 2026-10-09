@@ -8,6 +8,11 @@
  *
  * Renders to `<div class="callout callout-{type}">` with header + body.
  * Icons are picked via a `data-icon` attribute consumed by CSS.
+ *
+ * **Foldable, as in Obsidian (09/10/2026).** `> [!info]-` starts folded and
+ * `> [!info]+` open; either renders as `<details>`, which folds without a line
+ * of script on every page that shows a note. `> [!toggle]- Title` is the plain
+ * fold of Notion, without the coloured box.
  */
 const CALLOUT_DEFINITIONS = {
     note: { label: "Note", icon: "pencil" },
@@ -27,6 +32,7 @@ const CALLOUT_DEFINITIONS = {
     summary: { label: "Summary", icon: "clipboard-list" },
     todo: { label: "Todo", icon: "check-circle" },
     failure: { label: "Failure", icon: "x" },
+    toggle: { label: "Details", icon: "chevron-right" },
 };
 
 export function createCalloutExtension() {
@@ -38,13 +44,14 @@ export function createCalloutExtension() {
         },
         tokenizer(source) {
             const match = source.match(
-                /^(?:>\s*\[!(\w+)\]\s*(.*)\n)((?:>.*(?:\n|$))*)/,
+                /^(?:>\s*\[!(\w+)\]([+-]?)[ \t]*(.*)(?:\n|$))((?:>.*(?:\n|$))*)/,
             );
             if (!match) return undefined;
 
             const type = match[1].toLowerCase();
-            const title = match[2].trim();
-            const bodyRaw = match[3]
+            const fold = match[2];
+            const title = match[3].trim();
+            const bodyRaw = match[4]
                 .split("\n")
                 .map((line) => line.replace(/^>\s?/, ""))
                 .join("\n")
@@ -59,6 +66,8 @@ export function createCalloutExtension() {
                 type: "callout",
                 raw: match[0],
                 calloutType: type,
+                // "" when the callout does not fold, "-" folded, "+" open.
+                fold,
                 title,
                 tokens,
             };
@@ -72,6 +81,17 @@ export function createCalloutExtension() {
             const body = token.tokens?.length
                 ? this.parser.parse(token.tokens)
                 : "";
+
+            if ("" !== token.fold || "toggle" === token.calloutType) {
+                const open = "+" === token.fold ? " open" : "";
+
+                return (
+                    `<details class="callout callout-${token.calloutType} callout-foldable" data-icon="${definition.icon}"${open}>` +
+                    `<summary class="callout-header"><span class="callout-title">${esc(title)}</span></summary>` +
+                    (body ? `<div class="callout-body">${body}</div>` : "") +
+                    `</details>\n`
+                );
+            }
 
             return (
                 `<div class="callout callout-${token.calloutType}" data-icon="${definition.icon}">` +

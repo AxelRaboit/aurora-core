@@ -7,7 +7,10 @@ namespace Aurora\Module\Notes\Markdown\Dto;
 use Aurora\Core\Support\Str;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function array_key_exists;
+use function is_array;
 use function is_numeric;
+use function is_string;
 
 #[AsAlias(MarkdownNoteInputFactoryInterface::class)]
 class MarkdownNoteInputFactory implements MarkdownNoteInputFactoryInterface
@@ -28,7 +31,23 @@ class MarkdownNoteInputFactory implements MarkdownNoteInputFactoryInterface
             version: isset($data['version']) && (int) $data['version'] > 0 ? (int) $data['version'] : null,
             force: true === ($data['force'] ?? false),
             spaceId: isset($data['spaceId']) && is_numeric($data['spaceId']) ? (int) $data['spaceId'] : null,
+            icon: array_key_exists('icon', $data) ? (is_string($data['icon']) ? $data['icon'] : '') : null,
+            properties: array_key_exists('properties', $data) ? (is_array($data['properties']) ? array_values($data['properties']) : []) : null,
+            locked: $this->boolOrNull($data, 'locked'),
+            fullWidth: $this->boolOrNull($data, 'fullWidth'),
+            smallText: $this->boolOrNull($data, 'smallText'),
+            font: Str::trimOrNullFromArray($data, 'font'),
         );
+    }
+
+    /** @param array<string, mixed> $data */
+    private function boolOrNull(array $data, string $key): ?bool
+    {
+        if (!array_key_exists($key, $data) || null === $data[$key]) {
+            return null;
+        }
+
+        return true === $data[$key] || 1 === $data[$key] || '1' === $data[$key] || 'true' === $data[$key];
     }
 
     /** @param array<string, mixed> $data */

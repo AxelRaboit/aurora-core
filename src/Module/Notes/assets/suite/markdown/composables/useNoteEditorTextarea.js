@@ -1,8 +1,20 @@
 import { ref, nextTick } from "vue";
+import { mentionMarkup } from "./markedExtensions/markedMentions.js";
 import { useSlashCommands } from "@notes/suite/markdown/composables/useSlashCommands.js";
 import { useWikiLinkAutocomplete } from "@notes/suite/markdown/composables/useWikiLinkAutocomplete.js";
 import { handleMarkdownShortcut } from "@notes/suite/markdown/composables/useMarkdownShortcuts.js";
 import { navigateTableCell } from "@notes/suite/markdown/composables/tableNavigation.js";
+import { useTriggerAutocomplete } from "@notes/suite/markdown/composables/useTriggerAutocomplete.js";
+import {
+    isPastedAddress,
+    markBlock,
+    moveLines,
+} from "@notes/suite/markdown/composables/editorTextActions.js";
+import {
+    foldText,
+    loadEmojiData,
+    searchEmoji,
+} from "@notes/suite/markdown/composables/noteEmoji.js";
 
 /**
  * Wiring for the markdown notes textarea + its two floating menus:
@@ -27,12 +39,22 @@ import { navigateTableCell } from "@notes/suite/markdown/composables/tableNaviga
  *   live note list, used by the wiki autocomplete to filter titles.
  * @param {string} [deps.untitledLabel] - i18n fallback when a note has
  *   no title.
+ * @param {string} [deps.locale] - fr, en or es, for the emoji names.
+ * @param {import('vue').Ref<string[]>} [deps.allTags] - the notebook's tags, for `#`.
+ * @param {(url: string) => Promise<string|null>} [deps.fetchLinkTitle] - a pasted address's page title.
+ * @param {(id: string) => void} [deps.onBlockLink] - a paragraph was named, its link is wanted.
+ * @param {import('vue').Ref<Array<{id, name}>>} [deps.people] - who `@` can mention.
  */
 export function useNoteEditorTextarea({
     emitUpdate,
     t,
     flatNotes,
     untitledLabel,
+    locale = "fr",
+    allTags = null,
+    fetchLinkTitle = null,
+    onBlockLink = null,
+    people = null,
 }) {
     const textareaRef = ref(null);
     /**
@@ -53,6 +75,58 @@ export function useNoteEditorTextarea({
     const slash = useSlashCommands({ t });
     const wiki = useWikiLinkAutocomplete(flatNotes);
 
+    // `:fus` offers the rocket (09/10/2026): emoji by name, in the reader's
+    // language and by GitHub's shortcodes.
+    const emoji = useTriggerAutocomplete({
+        trigger: ":",
+        queryPattern: /^[\p{L}\p{N}_+-]+$/u,
+        minLength: 2,
+        suggest: async (query) =>
+            searchEmoji(await loadEmojiData(locale), query, 8),
+        insertFor: (item) => item.emoji,
+    });
+
+    // `#cli` offers the notebook's tags that hold it, and a new tag is just
+    // typed through.
+    const tag = useTriggerAutocomplete({
+        trigger: "#",
+        queryPattern: /^[\p{L}\p{N}_/-]+$/u,
+        minLength: 1,
+        suggest: (query) => {
+            const wanted = foldText(query);
+
+            return (allTags?.value ?? [])
+                .filter(
+                    (one) =>
+                        foldText(one).includes(wanted) &&
+                        foldText(one) !== wanted,
+                )
+                .slice(0, 8)
+                .map((one) => ({ tag: one }));
+        },
+        insertFor: (item) => `#${item.tag} `,
+    });
+
+    // `@` offers the people of the suite (09/10/2026): `@mar` narrows to
+    // Marie, and the note keeps `@[Marie Dupont](user:12)`.
+    const mention = useTriggerAutocomplete({
+        trigger: "@",
+        queryPattern: /^[\p{L}\p{N}._-]*$/u,
+        minLength: 0,
+        suggest: (query) => {
+            const wanted = foldText(query);
+
+            return (people?.value ?? [])
+                .filter((person) =>
+                    foldText(person.name ?? "").includes(wanted),
+                )
+                .slice(0, 8);
+        },
+        insertFor: (person) => `${mentionMarkup(person)} `,
+    });
+
+    const menus = [emoji, tag, mention];
+
     /**
      * Route input through both menus. The slash handler closes itself
      * when the line no longer starts with `/`; same for wiki when the
@@ -63,6 +137,67 @@ export function useNoteEditorTextarea({
         emitUpdate(event.target.value);
         slash.onInput(event);
         wiki.onInput(event);
+        for (const menu of menus) void menu.onInput(event);
+    }
+
+    async function selectTriggered(menu, item) {
+        const textarea = textareaRef.value;
+        if (!textarea) return;
+        const { newContent, newCaret } = menu.apply(
+            textarea,
+            item,
+            textarea.value,
+        );
+        emitUpdate(newContent);
+        await nextTick();
+        textarea.focus();
+        textarea.setSelectionRange(newCaret, newCaret);
+    }
+
+    /**
+     * An address pasted alone becomes a link (09/10/2026). Over selected
+     * text, the text is the label; otherwise the address is, until the
+     * page's title comes back and takes its place - if the link is still
+     * there as it was written.
+     */
+    async function onPaste(event) {
+        const textarea = textareaRef.value;
+        const pasted = event.clipboardData?.getData("text/plain") ?? "";
+        if (!textarea || !isPastedAddress(pasted)) return;
+        // An image pasted with its address is handled by the image upload.
+        if (
+            [...(event.clipboardData?.items ?? [])].some((item) =>
+                item.type.startsWith("image/"),
+            )
+        )
+            return;
+
+        event.preventDefault();
+        const url = pasted.trim();
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const content = textarea.value;
+        const selected = content.slice(start, end);
+        const link = `[${selected || url}](${url})`;
+        await applyShortcut({
+            newContent: content.slice(0, start) + link + content.slice(end),
+            cursorPos: start + link.length,
+        });
+
+        if (selected || !fetchLinkTitle) return;
+        const title = await fetchLinkTitle(url);
+        if (!title) return;
+
+        const current = textareaRef.value?.value ?? "";
+        const placeholder = `[${url}](${url})`;
+        const at = current.indexOf(placeholder);
+        if (-1 === at) return;
+        const titled = `[${title.replace(/[[\]]/g, "")}](${url})`;
+        emitUpdate(
+            current.slice(0, at) +
+                titled +
+                current.slice(at + placeholder.length),
+        );
     }
 
     async function selectCommand(command) {
@@ -130,6 +265,57 @@ export function useNoteEditorTextarea({
      */
     function onKeydown(event) {
         const textarea = textareaRef.value;
+
+        // Alt+↑ / Alt+↓ move the line, or the selected lines, as in Obsidian.
+        if (
+            textarea &&
+            event.altKey &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            ("ArrowUp" === event.key || "ArrowDown" === event.key)
+        ) {
+            const moved = moveLines(
+                textarea.value,
+                textarea.selectionStart,
+                textarea.selectionEnd,
+                "ArrowUp" === event.key ? -1 : 1,
+            );
+            event.preventDefault();
+            if (moved) applyShortcut(moved);
+
+            return;
+        }
+
+        // Cmd/Ctrl+Shift+B names the paragraph and asks for its link.
+        if (
+            textarea &&
+            onBlockLink &&
+            (event.ctrlKey || event.metaKey) &&
+            event.shiftKey &&
+            "b" === event.key.toLowerCase()
+        ) {
+            event.preventDefault();
+            const marked = markBlock(textarea.value, textarea.selectionStart);
+            if (!marked) return;
+            const caret = textarea.selectionStart;
+            if (marked.newContent !== textarea.value)
+                applyShortcut({
+                    newContent: marked.newContent,
+                    cursorPos: caret,
+                });
+            onBlockLink(marked.id);
+
+            return;
+        }
+
+        for (const menu of menus) {
+            if (!menu.show.value) continue;
+            const picked = menu.onKeydown(event);
+            if (picked) selectTriggered(menu, picked);
+
+            return;
+        }
+
         if (textarea) {
             const shortcut = handleMarkdownShortcut(
                 event,
@@ -194,6 +380,7 @@ export function useNoteEditorTextarea({
             }
             slash.closeSlash();
             wiki.closeSuggestions();
+            for (const menu of menus) menu.close();
         }, 150);
     }
 
@@ -251,9 +438,17 @@ export function useNoteEditorTextarea({
         highlightSuggestion: wiki.highlightSuggestion,
         onSearchKeydown,
         onSearchBlur,
+        // `:` emoji and `#` tags
+        emojiMenu: emoji,
+        tagMenu: tag,
+        mentionMenu: mention,
+        selectEmoji: (item) => selectTriggered(emoji, item),
+        selectTag: (item) => selectTriggered(tag, item),
+        selectMention: (item) => selectTriggered(mention, item),
         // shared (textarea)
         onInput,
         onKeydown,
         onBlur,
+        onPaste,
     };
 }

@@ -48,10 +48,14 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * the library showed "modifiée le", the formatting threw and the whole
      * page stayed blank.
      *
-     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, version: int, folderId: int|null, spaceId: int}>
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, icon: string|null, properties: list<array<string, mixed>>, locked: bool, fullWidth: bool, smallText: bool, font: string, version: int, folderId: int|null, spaceId: int}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
+        // The icon travels with the list too, for the tree, the library and
+        // the quick search; the properties, for a folder's table view; the
+        // lock and the reading settings, so a note opens as it was left
+        // (09/10/2026).
         // `coverUrl`, `coverPosition` and `appearance` travel with the list
         // so that a note's header is drawn on click, without waiting for the
         // body. Without them, going from one banner note to another made the
@@ -64,7 +68,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         // them, not to the note, and a second query would stick them back
         // row by row.
         $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'n.craftDocumentId', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.icon', 'n.properties', 'n.locked', 'n.fullWidth', 'n.smallText', 'n.font', 'n.version', 'n.craftDocumentId', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
             ->leftJoin(NoteFavorite::class, 'fav', Join::WITH, 'fav.note = n AND fav.user = :favoriteViewer')
             ->setParameter('favoriteViewer', $user)
             ->andWhere('n.deletedAt IS NULL')

@@ -65,6 +65,12 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'coverCreditUrl' => $note->getCoverCreditUrl(),
             'coverPosition' => $note->getCoverPosition(),
             'appearance' => $note->getAppearance()->value,
+            'icon' => $note->getIcon(),
+            'properties' => $note->getProperties(),
+            'locked' => $note->isLocked(),
+            'fullWidth' => $note->isFullWidth(),
+            'smallText' => $note->isSmallText(),
+            'font' => $note->getFont()->value,
             // Where it was copied from, to offer to bring it back to the
             // current version of the document.
             'craftDocumentId' => $note->getCraftDocumentId(),

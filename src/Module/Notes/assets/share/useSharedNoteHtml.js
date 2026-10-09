@@ -12,9 +12,12 @@
  * 2. **`[[wiki links]]` are anchors whether or not they lead anywhere.** On a
  *    share, a link to a note outside the scope leads nowhere by design - the
  *    server refuses it - so leaving it looking clickable invites the reader to
- *    keep pressing something that will never answer. Those are unwrapped to
- *    plain text; the title stays readable, because it was already written into
- *    the note's own sentence.
+ *    keep pressing something that will never answer. Those lose their anchor;
+ *    the title stays readable, because it was already written into the
+ *    note's own sentence. Plain text left the reader wondering where the link
+ *    had gone (09/10/2026): they keep a dotted underline and say, on hover,
+ *    that the note is not part of the share. The same mark for a note that
+ *    exists and one that does not, so nothing is learnt from it.
  *
  * Every path is handed in by the server, generated from the routes themselves.
  * Spelling them here would have put three URLs in a file that has no way of
@@ -32,11 +35,18 @@
  * @param {string} paths.shareImagePath    share image URL, with `__filename__`
  * @param {string} paths.shareNotePath     share note URL, with `__id__`
  * @param {Record<string, number>} paths.titleIndex  lower-cased title -> note id
+ * @param {string} [paths.unsharedLabel]  hover text of a link out of the share
  * @returns {string}
  */
 export function shareHtml(
     html,
-    { imagePrefix, shareImagePath, shareNotePath, titleIndex = {} },
+    {
+        imagePrefix,
+        shareImagePath,
+        shareNotePath,
+        titleIndex = {},
+        unsharedLabel = "",
+    },
 ) {
     const parsedDocument = new DOMParser().parseFromString(
         `<div>${html}</div>`,
@@ -67,9 +77,11 @@ export function shareHtml(
         if (id === null) {
             // Unwrapped rather than removed: the words were part of the sentence
             // the author wrote, and deleting them would change what the note says.
-            anchor.replaceWith(
-                parsedDocument.createTextNode(anchor.textContent ?? ""),
-            );
+            const mark = parsedDocument.createElement("span");
+            mark.className = "wiki-link-unshared";
+            mark.textContent = anchor.textContent ?? "";
+            if (unsharedLabel) mark.setAttribute("title", unsharedLabel);
+            anchor.replaceWith(mark);
             continue;
         }
 

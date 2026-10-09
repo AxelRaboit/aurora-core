@@ -1,9 +1,23 @@
 import { Marked } from "marked";
 import DOMPurify from "dompurify";
+import markedFootnote from "marked-footnote";
 import {
     createWikiLinkExtension,
+    createWikiEmbedExtension,
     applyWikiLinksToHtml,
+    applyBlockIdsToHtml,
 } from "./markedExtensions/markedWikiLinks.js";
+import {
+    createHighlightMarkExtension,
+    createTextColorExtension,
+} from "./markedExtensions/markedMarks.js";
+import { createInlineTagExtension } from "./markedExtensions/markedTags.js";
+import { createMentionExtension } from "./markedExtensions/markedMentions.js";
+import {
+    createInlineMathExtension,
+    createBlockMathExtension,
+    createTableOfContentsExtension,
+} from "./markedExtensions/markedMath.js";
 import { createCalloutExtension } from "./markedExtensions/markedCallouts.js";
 import {
     createCheckboxRenderer,
@@ -21,8 +35,16 @@ import { createImageDimensionsRenderer } from "./markedExtensions/markedImageDim
  * Stateless: returns a `render(markdown)` function. Wiki-link and
  * checkbox extensions don't need closure state beyond the per-render
  * checkbox counter reset.
+ *
+ * What needs a library or the page around it - formulas, diagrams, emoji
+ * shortcodes, included notes, the table of contents, the code's copy button -
+ * is left as a marked element and finished by `noteHtmlEnhancer.js`, after the
+ * HTML is on the page (09/10/2026).
+ *
+ * @param {object} [options]
+ * @param {object} [options.footnotes]  `{description, backRefLabel}`, translated by the caller
  */
-export function useMarkdownRenderer() {
+export function useMarkdownRenderer(options = {}) {
     const marked = new Marked({
         gfm: true,
         // Soft breaks: a single newline in the source becomes a <br>
@@ -33,8 +55,29 @@ export function useMarkdownRenderer() {
         breaks: true,
     });
     marked.use({
-        extensions: [createWikiLinkExtension(), createCalloutExtension()],
+        extensions: [
+            createWikiEmbedExtension(),
+            createBlockMathExtension(),
+            createTableOfContentsExtension(),
+            createWikiLinkExtension(),
+            createCalloutExtension(),
+            createHighlightMarkExtension(),
+            createTextColorExtension(),
+            createInlineMathExtension(),
+            createInlineTagExtension(),
+            createMentionExtension(),
+        ],
     });
+    // Footnotes, `[^1]` and `[^1]: text`. Prefixed so that two notes shown on
+    // one page (an included note) do not share their anchors.
+    marked.use(
+        markedFootnote({
+            prefixId: "note-fn-",
+            description: options.footnotes?.description ?? "Notes",
+            backRefLabel: options.footnotes?.backRefLabel ?? "↩ {0}",
+            footnoteDivider: true,
+        }),
+    );
     marked.use({ renderer: createCheckboxRenderer() });
     marked.use({ renderer: createHighlightRenderer() });
     marked.use({ renderer: createImageDimensionsRenderer() });
@@ -43,12 +86,25 @@ export function useMarkdownRenderer() {
         if (!markdown) return "";
         resetCheckboxCounter();
         const rawHtml = marked.parse(markdown);
-        const withWikiLinks = applyWikiLinksToHtml(rawHtml);
+        const withWikiLinks = applyBlockIdsToHtml(
+            applyWikiLinksToHtml(rawHtml),
+        );
         return DOMPurify.sanitize(withWikiLinks, {
             ADD_ATTR: [
                 "data-note-title",
                 "data-heading",
                 "data-checkbox-index",
+                "data-embed-title",
+                "data-tag",
+                "data-user-id",
+                "data-block-id",
+                "data-math",
+                "data-display",
+                "data-toc",
+                "data-footnote-ref",
+                "data-footnote-backref",
+                "data-footnotes",
+                "open",
                 "data-icon",
                 "data-md-image",
                 "data-md-src",

@@ -21,6 +21,20 @@ function escapeHtml(text) {
 export function createHighlightRenderer() {
     return {
         code({ text, lang: requestedLanguage }) {
+            // A diagram, written as text (09/10/2026): the source stays
+            // readable until `noteHtmlEnhancer.js` has loaded Mermaid and
+            // drawn it, and stays if the drawing fails. It travels as the
+            // block's text, not in an attribute: DOMPurify drops any
+            // attribute holding `-->`, which is every arrow of a diagram.
+            if (
+                "mermaid" ===
+                String(requestedLanguage ?? "")
+                    .trim()
+                    .toLowerCase()
+            ) {
+                return `<div class="md-mermaid"><pre><code>${escapeHtml(text)}</code></pre></div>\n`;
+            }
+
             const language =
                 requestedLanguage && hljs.getLanguage(requestedLanguage)
                     ? requestedLanguage

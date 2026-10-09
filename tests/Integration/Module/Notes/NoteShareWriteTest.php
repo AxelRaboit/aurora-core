@@ -95,6 +95,21 @@ final class NoteShareWriteTest extends IntegrationTestCase
         self::assertSame('Relue par l\'invité', $this->entityManager->find(MarkdownNote::class, $note->getId())?->getContent());
     }
 
+    /** A locked note is read, not written, through a link too (09/10/2026). */
+    public function testALockedNoteCannotBeWrittenThroughALink(): void
+    {
+        $note = $this->note('Verrouillée', 'Le texte d\'origine');
+        $note->setLocked(true);
+        $this->entityManager->flush();
+        $link = $this->link($note, canWrite: true);
+
+        $this->save($link, $note, ['title' => 'Verrouillée', 'content' => 'Forcée']);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->entityManager->clear();
+        self::assertSame('Le texte d\'origine', $this->entityManager->find(MarkdownNote::class, $note->getId())?->getContent());
+    }
+
     /** Without the switch, the address reads and nothing else. */
     public function testALinkWithoutTheSwitchCannotWrite(): void
     {

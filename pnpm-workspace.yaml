@@ -18,6 +18,10 @@ overrides:
   # does not rely on: the compiled CSS is byte for byte the same. Remove once
   # both ask for 7.1.6 or later.
   postcss-selector-parser: '>=7.1.6'
+  # GHSA-238p-pmpm-9mq7: katex < 0.18.2 (notes' formulas). Mermaid, which the
+  # notes also render, still asks for ^0.16 in 11.x and 12.x; it only calls
+  # renderToString, unchanged in 0.18. Remove once mermaid asks for 0.18.
+  katex: '>=0.18.9'
   # GHSA-vfj7-8cjw-p6xm: braces <= 3.0.3 exhausts the stack on braces nested
   # by the thousands (under its length limit), and no fixed version exists.
   # Copy of 3.0.3 with a nesting depth limit in lib/parse.js, like the one it

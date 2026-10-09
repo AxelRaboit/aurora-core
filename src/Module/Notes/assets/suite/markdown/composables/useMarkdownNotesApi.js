@@ -104,7 +104,48 @@ export function useMarkdownNotesApi(props) {
          * Today's note, in the personal space's journal: the server finds the
          * one already written today, or writes it.
          */
-        daily: () => call(HttpMethod.Post, props.dailyPath, {}),
+        // A date picks the day; none, today (09/10/2026).
+        daily: (date = null) =>
+            call(HttpMethod.Post, props.dailyPath, date ? { date } : {}),
+        dailyDays: (month) =>
+            call(
+                HttpMethod.Get,
+                `${props.dailyDaysPath}?month=${encodeURIComponent(month)}`,
+            ),
+        tasks: () => call(HttpMethod.Get, props.tasksPath),
+        comments: (id) =>
+            call(HttpMethod.Get, resolvePath(props.commentsPath, id)),
+        addComment: (id, payload) =>
+            call(HttpMethod.Post, resolvePath(props.commentsPath, id), payload),
+        resolveComment: (commentId, resolved) =>
+            call(
+                HttpMethod.Post,
+                String(props.commentResolvePath).replace(
+                    "__comment__",
+                    String(commentId),
+                ),
+                { resolved },
+            ),
+        deleteComment: (commentId) =>
+            call(
+                HttpMethod.Post,
+                String(props.commentDeletePath).replace(
+                    "__comment__",
+                    String(commentId),
+                ),
+                {},
+            ),
+        reminder: (id) =>
+            call(HttpMethod.Get, resolvePath(props.reminderPath, id)),
+        setReminder: (id, remindAt) =>
+            call(HttpMethod.Post, resolvePath(props.reminderPath, id), {
+                remindAt,
+            }),
+        toggleTask: (id, index, done) =>
+            call(HttpMethod.Post, resolvePath(props.taskPath, id), {
+                index,
+                done,
+            }),
         backlinks: (id) =>
             call(HttpMethod.Get, resolvePath(props.backlinksPath, id)),
         unlinkedMentions: (id) =>

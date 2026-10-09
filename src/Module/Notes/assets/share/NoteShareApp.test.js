@@ -5,7 +5,7 @@ import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 vi.mock("@/shared/composables/useMediaQuery.js", async () => {
     const { ref } = await import("vue");
 
-    return { useMediaQuery: () => ref(false) };
+    return { useMediaQuery: () => ({ matches: ref(false) }) };
 });
 
 import NoteShareApp from "./NoteShareApp.vue";

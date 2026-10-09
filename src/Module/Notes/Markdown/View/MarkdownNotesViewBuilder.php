@@ -38,6 +38,7 @@ final readonly class MarkdownNotesViewBuilder
         private NoteSpaceSerializerInterface $spaceSerializer,
         private MarkdownNoteMemberRepository $memberRepository,
         private CraftClient $craftClient,
+        private MarkdownNoteDisplay $display,
     ) {}
 
     /**
@@ -159,6 +160,8 @@ final readonly class MarkdownNotesViewBuilder
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            // The emoji, the properties and the reading settings (09/10/2026).
+            'display' => $this->display->describe($note),
             'titleIndex' => $titles,
             ...$this->readerTree($user, $folders, $rows),
         ];
@@ -316,6 +319,8 @@ final readonly class MarkdownNotesViewBuilder
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            // The emoji, the properties and the reading settings (09/10/2026).
+            'display' => $this->display->describe($note),
             'titleIndex' => $this->ownTitleIndex($rows),
             ...$this->treeRows($folders, $rows),
             'treeSpaces' => [],
@@ -480,12 +485,20 @@ final readonly class MarkdownNotesViewBuilder
             'templatePath' => $this->urlGenerator->generate('suite_notes_markdown_template', ['id' => '__id__']),
             'fromTemplatePath' => $this->urlGenerator->generate('suite_notes_markdown_from_template', ['id' => '__id__']),
             'dailyPath' => $this->urlGenerator->generate('suite_notes_markdown_daily'),
+            'dailyDaysPath' => $this->urlGenerator->generate('suite_notes_markdown_daily_days'),
+            'tasksPath' => $this->urlGenerator->generate('suite_notes_markdown_tasks'),
+            'taskPath' => $this->urlGenerator->generate('suite_notes_markdown_task', ['id' => '__id__']),
+            'reminderPath' => $this->urlGenerator->generate('suite_notes_markdown_reminder', ['id' => '__id__']),
+            'commentsPath' => $this->urlGenerator->generate('suite_notes_markdown_comments', ['id' => '__id__']),
+            'commentResolvePath' => $this->urlGenerator->generate('suite_notes_markdown_comments_resolve', ['commentId' => '__comment__']),
+            'commentDeletePath' => $this->urlGenerator->generate('suite_notes_markdown_comments_delete', ['commentId' => '__comment__']),
             'revisionsPath' => $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => '__id__']),
             'revisionPath' => $this->urlGenerator->generate('suite_notes_markdown_revision', ['id' => '__id__', 'revisionId' => '__revisionId__']),
             'revisionRestorePath' => $this->urlGenerator->generate('suite_notes_markdown_revision_restore', ['id' => '__id__', 'revisionId' => '__revisionId__']),
             'backlinksPath' => $this->urlGenerator->generate('suite_notes_markdown_backlinks', ['id' => '__id__']),
             'unlinkedMentionsPath' => $this->urlGenerator->generate('suite_notes_markdown_unlinked_mentions', ['id' => '__id__']),
             'graphPath' => $this->urlGenerator->generate('suite_notes_markdown_graph'),
+            'linkTitlePath' => $this->urlGenerator->generate('suite_notes_markdown_link_title'),
             'exportPath' => $this->urlGenerator->generate('suite_notes_markdown_export'),
             'exportOnePath' => $this->urlGenerator->generate('suite_notes_markdown_export_one', ['id' => '__id__']),
             'importPath' => $this->urlGenerator->generate('suite_notes_markdown_import'),
@@ -500,6 +513,7 @@ final readonly class MarkdownNotesViewBuilder
             'sharesRevokePath' => $this->urlGenerator->generate('suite_notes_markdown_shares_revoke', ['id' => '__id__']),
             'liveBeatPath' => $this->urlGenerator->generate('suite_notes_markdown_live_beat', ['id' => '__id__']),
             'peopleListPath' => $this->urlGenerator->generate('suite_notes_markdown_people_list', ['noteId' => '__id__']),
+            'peopleEveryonePath' => $this->urlGenerator->generate('suite_notes_markdown_people_everyone'),
             'peopleSetPath' => $this->urlGenerator->generate('suite_notes_markdown_people_set', ['noteId' => '__id__']),
             'peopleRemovePath' => $this->urlGenerator->generate('suite_notes_markdown_people_remove', ['noteId' => '__id__', 'userId' => '__user__']),
             'imageUploadPath' => $this->urlGenerator->generate('suite_notes_markdown_images_upload'),

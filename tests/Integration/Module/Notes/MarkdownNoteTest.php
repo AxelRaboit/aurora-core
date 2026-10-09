@@ -998,6 +998,115 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /** @return array<string, mixed> */
+    /**
+     * A link to a heading, a paragraph, with a shown text, or an inclusion,
+     * is a link: each one shows the source note among the backlinks
+     * (09/10/2026). Only the bare `[[Title]]` used to count.
+     */
+    public function testEveryFormOfLinkIsABacklink(): void
+    {
+        $target = $this->note($this->owner, 'Cible des liens');
+        $forms = [
+            'Titre' => 'Voir [[Cible des liens#Partie]].',
+            'Alias' => 'Voir [[Cible des liens|la cible]].',
+            'Inclusion' => "![[Cible des liens]]\n",
+            'Paragraphe' => 'Voir [[cible des liens#^abc]].',
+        ];
+        $sources = [];
+        foreach ($forms as $title => $content) {
+            $sources[] = $this->note($this->owner, 'Lien '.$title, content: $content)->getId();
+        }
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_backlinks', ['id' => $target->getId()]), server: ['HTTP_ACCEPT' => 'application/json']);
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        $found = array_column($body['backlinks'], 'id');
+        sort($found);
+        sort($sources);
+        self::assertSame($sources, $found);
+    }
+
+    /** Renaming a note rewrites its links in every form, shown text and place kept. */
+    public function testRenamingANoteRewritesEveryFormOfItsLinks(): void
+    {
+        $renamed = $this->note($this->owner, 'Ancien nom');
+        $source = $this->note($this->owner, 'Qui pointe', content: '[[Ancien nom]], [[Ancien nom#Partie]], [[Ancien nom|ici]], [[Ancien nomade]]');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('suite_notes_markdown_update', [
+            'title' => 'Nouveau $1 nom',
+            'content' => '',
+        ], ['id' => $renamed->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $source->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('[[Nouveau $1 nom]], [[Nouveau $1 nom#Partie]], [[Nouveau $1 nom|ici]], [[Ancien nomade]]', $fresh->getContent());
+    }
+
+    /** The emoji, the properties, the lock and the reading settings are saved (09/10/2026). */
+    public function testANoteKeepsItsIconPropertiesAndReadingSettings(): void
+    {
+        $note = $this->note($this->owner, 'Réglée');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('suite_notes_markdown_update', [
+            'title' => 'Réglée',
+            'content' => '',
+            'icon' => '🚀',
+            'properties' => [
+                ['key' => 'Statut', 'type' => 'status', 'value' => 'Validé'],
+                ['key' => 'Échéance', 'type' => 'date', 'value' => '2026-10-12'],
+                ['key' => 'Bidon', 'type' => 'inconnu', 'value' => ['pas', 'scalaire']],
+            ],
+            'locked' => true,
+            'fullWidth' => true,
+            'smallText' => true,
+            'font' => 'serif',
+        ], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('🚀', $fresh->getIcon());
+        self::assertSame([
+            ['key' => 'Statut', 'type' => 'status', 'value' => 'Validé'],
+            ['key' => 'Échéance', 'type' => 'date', 'value' => '2026-10-12'],
+            ['key' => 'Bidon', 'type' => 'text', 'value' => null],
+        ], $fresh->getProperties());
+        self::assertTrue($fresh->isLocked());
+        self::assertTrue($fresh->isFullWidth());
+        self::assertTrue($fresh->isSmallText());
+        self::assertSame('serif', $fresh->getFont()->value);
+    }
+
+    /** A save that does not send them leaves them as they are. */
+    public function testASaveWithoutTheSettingsKeepsThem(): void
+    {
+        $note = $this->note($this->owner, 'Gardée');
+        $note->setIcon('📌');
+        $note->setLocked(true);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('suite_notes_markdown_update', ['title' => 'Gardée', 'content' => 'Texte'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('📌', $fresh->getIcon());
+        self::assertTrue($fresh->isLocked());
+
+        // And an empty icon removes it.
+        $this->post('suite_notes_markdown_update', ['title' => 'Gardée', 'content' => 'Texte', 'icon' => ''], ['id' => $note->getId()]);
+        $this->entityManager->clear();
+        self::assertNull($this->entityManager->find(MarkdownNote::class, $note->getId())?->getIcon());
+    }
+
     private function listedRow(int $id): array
     {
         $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
