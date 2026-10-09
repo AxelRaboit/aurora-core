@@ -6,12 +6,16 @@ import "@notes/share/print.css";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Pencil } from "lucide-vue-next";
+import { Columns, Eye, Pencil } from "lucide-vue-next";
 import AppButton from "@shared/components/action/AppButton.vue";
+import AppTab from "@shared/components/nav/AppTab.vue";
+import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
 import { useMarkdownRenderer } from "@notes/suite/markdown/composables/useMarkdownRenderer.js";
+import { useEditorPaneMode } from "@notes/suite/markdown/composables/useEditorPaneMode.js";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
+import { shareEditorModes, shareEditorView } from "@notes/share/shareEditorView.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
 import { lightWhilePrinting } from "@notes/share/useNotePrint.js";
 
@@ -56,12 +60,13 @@ const { request } = useRequest();
 /**
  * Writing, when the link allows it.
  *
- * **The markdown source in a plain field, and nothing more.** This page has
- * no account behind it, so it gets the smallest surface that does the job:
- * no image upload, no slash commands, no wiki-link autocomplete. Somebody
- * invited to correct a paragraph needs the text, not the editor - and every
- * feature added here is another thing an unauthenticated endpoint has to be
- * safe about.
+ * **The markdown source in a plain field, with its preview beside it.** This
+ * page has no account behind it, so it gets the smallest surface that does
+ * the job: no image upload, no slash commands, no wiki-link autocomplete.
+ * Somebody invited to correct a paragraph needs the text and what it will
+ * look like, not the editor - and every feature added here is another thing
+ * an unauthenticated endpoint has to be safe about. The preview is rendered
+ * in the browser and sends nothing, which is why it passes that bar.
  */
 const editing = ref(false);
 const draftTitle = ref(props.noteTitle ?? "");
@@ -70,6 +75,30 @@ const savedTitle = ref(props.noteTitle ?? "");
 const savedContent = ref(props.content ?? "");
 const version = ref(props.noteVersion);
 const saving = ref(false);
+
+/**
+ * How the field and the preview share the screen while writing.
+ *
+ * The editor's own choice, remembered in the same place, so somebody who
+ * usually works in split gets split here too. Only ever shown while editing:
+ * a reader who is not writing sees the rendered note, as before. The phone
+ * breakpoint is the editor's, and followed live, so turning a tablet over
+ * brings split back or takes it away.
+ */
+const { mode: viewMode } = useEditorPaneMode();
+const { matches: isMobile } = useMediaQuery("(max-width: 767px)");
+const view = computed(() => shareEditorView(viewMode.value, isMobile.value));
+const modeOptions = computed(() =>
+    shareEditorModes(isMobile.value).map((value) => ({
+        value,
+        icon: { edit: Pencil, split: Columns, preview: Eye }[value],
+        label: t(`notes.markdown.view.${value}`),
+    })),
+);
+
+function pickMode(value) {
+    viewMode.value = value;
+}
 
 /**
  * Somebody else wrote while this page was open.
@@ -142,17 +171,23 @@ onMounted(() => {
 });
 onUnmounted(() => stopPrintTheme());
 
-const html = computed(() =>
+function htmlOf(source, title) {
     // The page already writes the title above the body. Rendered from what
     // was last saved rather than from the prop, so a guest's own save shows
     // without a reload.
-    shareHtml(render(withoutLeadingTitle(savedContent.value, savedTitle.value)), {
+    return shareHtml(render(withoutLeadingTitle(source, title)), {
         imagePrefix: props.imagePrefix,
         shareImagePath: props.shareImagePath,
         shareNotePath: props.shareNotePath,
         titleIndex: props.titleIndex,
-    }),
-);
+    });
+}
+
+const html = computed(() => htmlOf(savedContent.value, savedTitle.value));
+
+// The preview while writing shows what is typed, not what was saved: that is
+// the whole point of looking at it beside the field.
+const draftHtml = computed(() => htmlOf(draftContent.value, draftTitle.value));
 
 // The list only earns its place when the share carries more than the one note.
 const hasTree = computed(() => props.tree.length > 1);
@@ -280,15 +315,51 @@ const lookClass = computed(() =>
                      behind it, and every feature here is one more thing an
                      unauthenticated endpoint has to be safe about. -->
                 <template v-if="editing">
-                    <textarea
-                        v-model="draftContent"
-                        data-share-content-field
-                        rows="18"
-                        class="w-full resize-y rounded-md border border-line bg-surface p-3 font-mono text-sm text-primary outline-none focus:border-accent-400"
-                        :disabled="saving"
-                        :placeholder="t('notes.markdown.content_placeholder')"
-                        :aria-label="t('notes.markdown.share.edit')"
-                    />
+                    <!-- The editor's own view toggle, the same segmented
+                         AppTab control, so the shared page reads as the
+                         same tool and not as a lookalike. -->
+                    <div class="mb-3 flex print:hidden">
+                        <div class="inline-flex h-9.5 items-stretch overflow-hidden rounded-lg border border-line">
+                            <AppTab
+                                v-for="option in modeOptions"
+                                :key="option.value"
+                                :data-share-mode="option.value"
+                                size="sm"
+                                align="center"
+                                shape-class="rounded-none"
+                                :active="view.mode === option.value"
+                                :aria-pressed="view.mode === option.value"
+                                :title="option.label"
+                                :aria-label="option.label"
+                                v-on:click="pickMode(option.value)"
+                            >
+                                <component :is="option.icon" class="h-4 w-4" :stroke-width="2" />
+                            </AppTab>
+                        </div>
+                    </div>
+                    <div
+                        class="grid gap-3"
+                        :class="'split' === view.mode ? 'md:grid-cols-2' : ''"
+                    >
+                        <textarea
+                            v-if="view.showEditor"
+                            v-model="draftContent"
+                            data-share-content-field
+                            rows="18"
+                            class="min-w-0 w-full resize-y rounded-md border border-line bg-surface p-3 font-mono text-sm text-primary outline-none focus:border-accent-400"
+                            :disabled="saving"
+                            :placeholder="t('notes.markdown.content_placeholder')"
+                            :aria-label="t('notes.markdown.share.edit')"
+                        />
+                        <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
+                             through DOMPurify before this ever reaches the page. -->
+                        <div
+                            v-if="view.showPreview"
+                            data-share-preview
+                            class="note-preview prose prose-sm dark:prose-invert min-w-0 max-w-none overflow-x-auto"
+                            v-html="draftHtml"
+                        />
+                    </div>
                     <p class="mt-1 text-xs text-muted">{{ t("notes.markdown.share.editing_hint") }}</p>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <AppButton data-share-save :disabled="saving" v-on:click="save">

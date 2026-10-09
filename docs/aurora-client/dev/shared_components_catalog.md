@@ -745,9 +745,13 @@ Avatar utilisateur. Affiche la photo si fournie, sinon les initiales.
 | `photoUrl` | `String` | `""` |
 | `size` | `String` / `Number` | `"md"` (`sm` `md` `lg` `xl`) - ou nombre de px |
 | `variant` | `String` | `"soft"` (`soft` ou `solid`) |
+| `color` | `String` | `""` - couleur CSS qui remplace la variante (fond plein, initiales blanches) : la couleur propre à chaque personne quand plusieurs sont affichées côte à côte |
 
 ```vue
 <AppAvatar :name="user.name" :photo-url="user.photoUrl" size="lg" />
+
+<!-- Une couleur par personne, comme la pile des co-éditeurs d'une note -->
+<AppAvatar :name="person.name" :color="collaboratorColor(person.userId)" size="sm" />
 ```
 
 ### `AppLogo`
