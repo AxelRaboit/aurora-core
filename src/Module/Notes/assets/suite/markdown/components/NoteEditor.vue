@@ -33,11 +33,15 @@ const props = defineProps({
      * drawn.
      */
     cursors: { type: Array, default: () => [] },
+    /** The notebook's tags, offered after `#` (09/10/2026). */
+    allTags: { type: Array, default: () => [] },
+    /** `(url) => Promise<string|null>`: a pasted address's page title. */
+    fetchLinkTitle: { type: Function, default: null },
 });
 
-const emit = defineEmits(["update:modelValue", "caret"]);
+const emit = defineEmits(["update:modelValue", "caret", "block-link"]);
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const {
     textareaRef,
@@ -58,15 +62,30 @@ const {
     highlightSuggestion,
     onSearchKeydown,
     onSearchBlur,
+    emojiMenu,
+    tagMenu,
+    selectEmoji,
+    selectTag,
     onInput,
     onKeydown,
     onBlur,
+    onPaste,
 } = useNoteEditorTextarea({
     emitUpdate: (value) => emit("update:modelValue", value),
     t,
     flatNotes: toRef(props, "flatNotes"),
     untitledLabel: t("notes.markdown.untitled"),
+    locale: String(locale.value ?? "fr").slice(0, 2),
+    allTags: toRef(props, "allTags"),
+    fetchLinkTitle: props.fetchLinkTitle,
+    onBlockLink: (id) => emit("block-link", id),
 });
+
+/**
+ * The editor's textarea, for the parent: the help panel inserts its examples
+ * at the caret (09/10/2026).
+ */
+defineExpose({ textareaRef });
 
 /**
  * Says where this reader's caret is, on every event that could have moved it.
@@ -105,6 +124,7 @@ if (props.uploadImage) {
             v-on:input="onInput"
             v-on:keydown="onKeydown"
             v-on:blur="onBlur"
+            v-on:paste="onPaste"
             v-on:keyup="reportCaret"
             v-on:click="reportCaret"
             v-on:select="reportCaret"
@@ -180,6 +200,37 @@ if (props.uploadImage) {
             </template>
             <template #empty>
                 {{ t('notes.markdown.wiki_no_results', { query: suggestionQuery }) }}
+            </template>
+        </AppFloatingMenu>
+
+        <!-- Emoji by name (':') and tags ('#'), 09/10/2026. -->
+        <AppFloatingMenu
+            v-if="emojiMenu.show.value"
+            :items="emojiMenu.items.value"
+            :position="emojiMenu.position.value"
+            :max-height="emojiMenu.position.value.maxHeight ?? null"
+            :active-index="emojiMenu.index.value"
+            v-on:select="selectEmoji"
+            v-on:highlight="emojiMenu.highlight"
+        >
+            <template #default="{ item }">
+                <span class="inline-flex w-6 shrink-0 justify-center text-base">{{ item.emoji }}</span>
+                <span class="flex-1 truncate">{{ item.label }}</span>
+                <span v-if="item.shortcodes[0]" class="shrink-0 font-mono text-2xs text-muted">:{{ item.shortcodes[0] }}:</span>
+            </template>
+        </AppFloatingMenu>
+        <AppFloatingMenu
+            v-if="tagMenu.show.value"
+            :items="tagMenu.items.value"
+            :position="tagMenu.position.value"
+            :max-height="tagMenu.position.value.maxHeight ?? null"
+            :active-index="tagMenu.index.value"
+            v-on:select="selectTag"
+            v-on:highlight="tagMenu.highlight"
+        >
+            <template #default="{ item }">
+                <span class="inline-flex w-6 shrink-0 justify-center font-mono text-xs text-muted">#</span>
+                <span class="flex-1 truncate">{{ item.tag }}</span>
             </template>
         </AppFloatingMenu>
     </div>

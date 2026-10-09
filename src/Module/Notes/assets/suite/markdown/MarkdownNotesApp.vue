@@ -83,6 +83,7 @@ const props = defineProps({
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
     graphPath: { type: String, required: true },
+    linkTitlePath: { type: String, default: '' },
     /** The whole notebook as a zip, a single note as .md, and the way back. */
     exportPath: { type: String, required: true },
     exportOnePath: { type: String, required: true },
@@ -521,6 +522,43 @@ const coeditAllowed = computed(() =>
         selfUserId: roomChannel.selfUserId(),
     }),
 );
+
+/** Every tag of the notebook, offered after `#` in the editor. */
+const allTagNames = computed(() => {
+    const names = new Map();
+    for (const note of notes.value) {
+        for (const tag of note.tags ?? []) {
+            if (!names.has(tag.toLowerCase())) names.set(tag.toLowerCase(), tag);
+        }
+    }
+
+    return [...names.values()].sort((left, right) => left.localeCompare(right));
+});
+
+const { request: linkTitleRequest } = useRequest();
+
+/** A pasted address's page title, or null; nothing on screen if it fails. */
+async function fetchLinkTitle(url) {
+    if (!props.linkTitlePath) return null;
+    const payload = await linkTitleRequest(`${props.linkTitlePath}?url=${encodeURIComponent(url)}`, null, {
+        method: 'GET',
+        silent: true,
+        noGuard: true,
+    });
+
+    return payload?.title ?? null;
+}
+
+/** A paragraph was named in the editor: its link goes to the clipboard. */
+async function copyBlockLink(id) {
+    const link = `[[${form.value.title || t('notes.markdown.untitled')}#^${id}]]`;
+    try {
+        await navigator.clipboard.writeText(link);
+        toast.success(t('notes.markdown.editor.block_link_copied'));
+    } catch {
+        toast.info(link);
+    }
+}
 
 /** Another note's text, for `![[Note]]` in the preview. */
 async function loadNoteContent(id) {
@@ -1749,7 +1787,10 @@ onUnmounted(() => {
                                 :image-max-edge="imageMaxEdge"
                                 :image-quality="imageQuality"
                                 :cursors="roomCursors"
+                                :all-tags="allTagNames"
+                                :fetch-link-title="fetchLinkTitle"
                                 v-on:caret="onCaretMoved"
+                                v-on:block-link="copyBlockLink"
                             />
                         </div>
 
@@ -1778,6 +1819,7 @@ onUnmounted(() => {
                                 :note-titles="notes"
                                 :load-note-content="loadNoteContent"
                                 v-on:wiki-link-click="onPreviewWikiLink"
+                                v-on:tag-click="PANEL_INTENTS['filter-tag']"
                                 v-on:checkbox-toggle="onCheckboxToggle"
                                 v-on:image-resize="onImageResize"
                             />

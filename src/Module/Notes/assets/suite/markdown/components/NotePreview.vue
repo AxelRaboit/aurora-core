@@ -19,7 +19,7 @@ const props = defineProps({
     loadNoteContent: { type: Function, default: null },
 });
 
-const emit = defineEmits(['wiki-link-click', 'checkbox-toggle', 'image-resize']);
+const emit = defineEmits(['wiki-link-click', 'checkbox-toggle', 'image-resize', 'tag-click']);
 
 const { render, resolveWikiLink } = useMarkdownRenderer({ footnotes: useFootnoteLabels() });
 const html = computed(() => render(props.content));
@@ -34,6 +34,7 @@ function onClick(event) {
     if (!result) return;
     if (result.kind === 'wiki-link') emit('wiki-link-click', result.payload);
     else if (result.kind === 'checkbox') emit('checkbox-toggle', result.payload.index);
+    else if (result.kind === 'tag') emit('tag-click', result.payload.tag);
 }
 
 const { onPointerDown } = useNoteImageDragResize({

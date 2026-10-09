@@ -486,6 +486,7 @@ final readonly class MarkdownNotesViewBuilder
             'backlinksPath' => $this->urlGenerator->generate('suite_notes_markdown_backlinks', ['id' => '__id__']),
             'unlinkedMentionsPath' => $this->urlGenerator->generate('suite_notes_markdown_unlinked_mentions', ['id' => '__id__']),
             'graphPath' => $this->urlGenerator->generate('suite_notes_markdown_graph'),
+            'linkTitlePath' => $this->urlGenerator->generate('suite_notes_markdown_link_title'),
             'exportPath' => $this->urlGenerator->generate('suite_notes_markdown_export'),
             'exportOnePath' => $this->urlGenerator->generate('suite_notes_markdown_export_one', ['id' => '__id__']),
             'importPath' => $this->urlGenerator->generate('suite_notes_markdown_import'),

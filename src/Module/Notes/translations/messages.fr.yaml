@@ -120,6 +120,8 @@ notes:
             unreachable: "Craft n'a rien renvoyé pour ce document."
             not_imported: Cette note ne vient pas de Craft.
     markdown:
+        editor:
+            block_link_copied: "Lien vers le paragraphe copié"
         render:
             copy: "Copier"
             copied: "Copié"
@@ -551,6 +553,15 @@ notes:
             italic: Italique
             strikethrough: Barré
             table: Tableau
+            highlight: "Surligner"
+            color: "Texte en couleur"
+            toggle: "Bloc dépliant"
+            footnote: "Note de bas de page"
+            math: "Formule"
+            math_block: "Bloc de formule"
+            diagram: "Diagramme"
+            toc: "Sommaire"
+            embed: "Inclure une note"
             table_column: 'Colonne {n}'
             no_results: Aucune commande
         tags:

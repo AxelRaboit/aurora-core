@@ -79,7 +79,6 @@ export async function enhanceNoteHtml(root, options = {}) {
         replaceEmojiShortcodes(root, options.locale ?? "fr"),
         includeNotes(root, options),
     ]);
-
 }
 
 function addCopyButtons(root, labels) {

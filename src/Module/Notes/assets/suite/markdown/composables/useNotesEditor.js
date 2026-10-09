@@ -1,3 +1,4 @@
+import { mergeInlineTags } from "@notes/suite/markdown/composables/editorTextActions.js";
 import { ref, computed, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -366,6 +367,14 @@ export function useNotesEditor({
         saving.value = true;
         const noteId = selectedNote.value.id;
         const folderId = selectedNote.value.folderId ?? null;
+        // The `#tags` written in the text are tags of the note (09/10/2026):
+        // the library filters by them like by the ones added by hand.
+        const withInlineTags = mergeInlineTags(
+            form.value.tags,
+            form.value.content,
+        );
+        if (withInlineTags.length !== form.value.tags.length)
+            form.value.tags = withInlineTags;
         const snapshot = {
             title: form.value.title,
             content: form.value.content,

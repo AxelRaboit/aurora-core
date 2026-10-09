@@ -329,3 +329,16 @@
 .note-preview .md-embed-body > *:last-child { margin-bottom: 0; }
 .note-preview .md-block-id.is-target { position: relative; }
 .note-preview .is-linked-block { background: color-mix(in srgb, #facc15 22%, transparent); border-radius: 4px; transition: background 1.5s; }
+
+/* ── #tags written in the text ───────────────────────────────────── */
+.note-preview .md-tag {
+    display: inline-block;
+    padding: 0 0.4em;
+    border-radius: 999px;
+    font-size: 0.85em;
+    text-decoration: none;
+    color: var(--color-accent, #6d28d9);
+    background: color-mix(in srgb, var(--color-accent, #6d28d9) 12%, transparent);
+    cursor: pointer;
+}
+.note-preview .md-tag:hover { background: color-mix(in srgb, var(--color-accent, #6d28d9) 20%, transparent); }

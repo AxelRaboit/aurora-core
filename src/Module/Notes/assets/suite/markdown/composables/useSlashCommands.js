@@ -127,6 +127,99 @@ const COMMANDS = [
         type: "inline",
         cursorOffset: 2,
     },
+    // What the preview learned to render on 09/10/2026.
+    {
+        id: "highlight",
+        labelKey: "notes.markdown.slash.highlight",
+        icon: "▰",
+        insert: "====",
+        type: "inline",
+        cursorOffset: 2,
+    },
+    {
+        id: "color",
+        labelKey: "notes.markdown.slash.color",
+        icon: "A",
+        insert: "{rouge}{/}",
+        type: "inline",
+        cursorOffset: 7,
+    },
+    {
+        id: "toggle",
+        labelKey: "notes.markdown.slash.toggle",
+        icon: "▸",
+        insert: "> [!toggle]- \n> ",
+        type: "block",
+        cursorOffset: 13,
+    },
+    {
+        id: "footnote",
+        labelKey: "notes.markdown.slash.footnote",
+        icon: "¹",
+        type: "inline",
+        // The mark where the caret is, the note itself at the end of the
+        // text, numbered after the ones already there.
+        build: ({ before, after }) => {
+            const numbers = [
+                ...`${before}${after}`.matchAll(/\[\^(\d+)\]/g),
+            ].map((match) => Number(match[1]));
+            const next = (numbers.length ? Math.max(...numbers) : 0) + 1;
+            const mark = `[^${next}]`;
+            const separator =
+                after.endsWith("\n\n") || "" === after
+                    ? ""
+                    : after.endsWith("\n")
+                      ? "\n"
+                      : "\n\n";
+            const definition = `${separator}[^${next}]: `;
+
+            return {
+                insert: mark,
+                after: `${after}${definition}`,
+                caretAtEnd: true,
+            };
+        },
+    },
+    {
+        id: "math",
+        labelKey: "notes.markdown.slash.math",
+        icon: "∑",
+        insert: "$$",
+        type: "inline",
+        cursorOffset: 1,
+    },
+    {
+        id: "math_block",
+        labelKey: "notes.markdown.slash.math_block",
+        icon: "∫",
+        insert: "$$\n\n$$\n",
+        type: "block",
+        cursorOffset: 3,
+    },
+    {
+        id: "diagram",
+        labelKey: "notes.markdown.slash.diagram",
+        icon: "◇",
+        insert: "```mermaid\ngraph TD\n    A --> B\n```\n",
+        type: "block",
+        // On `A --> B`, the line to replace with the real diagram.
+        cursorOffset: 24,
+    },
+    {
+        id: "toc",
+        labelKey: "notes.markdown.slash.toc",
+        icon: "≡",
+        insert: "[[toc]]\n",
+        type: "block",
+    },
+    {
+        id: "embed",
+        labelKey: "notes.markdown.slash.embed",
+        icon: "⧉",
+        insert: "![[]]",
+        type: "block",
+        cursorOffset: 3,
+    },
     {
         id: "table",
         labelKey: "notes.markdown.slash.table",
@@ -348,6 +441,19 @@ export function useSlashCommands({ t }) {
                 newContent: before + table.text + after,
                 newCaret: start + table.selectStart,
                 newCaretEnd: start + table.selectEnd,
+            };
+        }
+
+        if (command.build) {
+            const built = command.build({ before, after });
+            const newContent = before + built.insert + built.after;
+            closeSlash();
+
+            return {
+                newContent,
+                newCaret: built.caretAtEnd
+                    ? newContent.length
+                    : start + built.insert.length,
             };
         }
 

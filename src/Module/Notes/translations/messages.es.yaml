@@ -115,6 +115,8 @@ notes:
             unreachable: 'Craft no ha devuelto nada para este documento.'
             not_imported: 'Esta nota no procede de Craft.'
     markdown:
+        editor:
+            block_link_copied: "Enlace al párrafo copiado"
         render:
             copy: "Copiar"
             copied: "Copiado"
@@ -548,6 +550,15 @@ notes:
             italic: Cursiva
             strikethrough: Tachado
             table: Tabla
+            highlight: "Resaltar"
+            color: "Texto en color"
+            toggle: "Bloque desplegable"
+            footnote: "Nota al pie"
+            math: "Fórmula"
+            math_block: "Bloque de fórmula"
+            diagram: "Diagrama"
+            toc: "Índice"
+            embed: "Incluir una nota"
             table_column: 'Columna {n}'
             no_results: 'Ningún comando'
         tags:

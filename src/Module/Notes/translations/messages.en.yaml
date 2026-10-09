@@ -116,6 +116,8 @@ notes:
             unreachable: "Craft returned nothing for that document."
             not_imported: This note does not come from Craft.
     markdown:
+        editor:
+            block_link_copied: "Link to the paragraph copied"
         render:
             copy: "Copy"
             copied: "Copied"
@@ -546,6 +548,15 @@ notes:
             italic: Italic
             strikethrough: Strikethrough
             table: Table
+            highlight: "Highlight"
+            color: "Coloured text"
+            toggle: "Toggle block"
+            footnote: "Footnote"
+            math: "Formula"
+            math_block: "Formula block"
+            diagram: "Diagram"
+            toc: "Table of contents"
+            embed: "Include a note"
             table_column: 'Column {n}'
             no_results: No commands
         tags:
