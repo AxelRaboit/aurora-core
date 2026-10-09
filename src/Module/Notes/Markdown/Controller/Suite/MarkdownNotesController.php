@@ -33,6 +33,7 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\Service\NoteTasks;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Reminder\Service\NoteReminders;
+use Aurora\Module\Notes\Search\NoteSearch;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -964,14 +965,32 @@ final class MarkdownNotesController extends AbstractController
         return $this->jsonSuccess($this->manager->graph($user));
     }
 
+    /**
+     * The notes matching a search, best first, with the passage that matched
+     * (10/10/2026): the side panel filters its tree with the ids and shows
+     * the passage under each note.
+     */
     #[Route('/search', name: '_search', methods: [HttpMethodEnum::Get->value])]
-    public function search(Request $request): JsonResponse
+    public function search(Request $request, NoteSearch $noteSearch): JsonResponse
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
-        $query = (string) $request->query->get('q', '');
 
-        return $this->jsonSuccess(['ids' => $this->manager->searchContent($user, $query)]);
+        return $this->jsonSuccess($noteSearch->ids($user, (string) $request->query->get('q', '')));
+    }
+
+    /**
+     * The search screen (10/10/2026): results with their passages and
+     * highlights, the counts by tag, folder and space, and the time it took.
+     */
+    #[Route('/search/full', name: '_search_full', methods: [HttpMethodEnum::Get->value])]
+    public function searchFull(Request $request, NoteSearch $noteSearch): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+        $sort = 'date' === $request->query->get('sort') ? 'date' : 'relevance';
+
+        return $this->jsonSuccess($noteSearch->search($user, (string) $request->query->get('q', ''), $sort));
     }
 
     #[Route('/reorder', name: '_reorder', methods: [HttpMethodEnum::Post->value])]

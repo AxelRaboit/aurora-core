@@ -5,19 +5,21 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Notes;
 
 use Aurora\Core\Module\Service\ModuleAccessChecker;
-use Aurora\Core\Search\SearchSnippetBuilder;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Notes\Comment\Repository\NoteCommentRepository;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\NotesContext;
+use Aurora\Module\Notes\Search\NoteSearch;
 use Aurora\Module\Notes\Search\NotesSuiteSearchProvider;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -204,10 +206,9 @@ final class NotesSearchTest extends IntegrationTestCase
 
         $container = self::getContainer();
         $provider = new NotesSuiteSearchProvider(
-            $notes,
+            new NoteSearch($notes, $container->get(NoteCommentRepository::class), $container->get(UserRepository::class)),
             $container->get(NotesContext::class),
             $container->get(Security::class),
-            $container->get(SearchSnippetBuilder::class),
             $container->get(UrlGeneratorInterface::class),
             $container->get(TranslatorInterface::class),
         );

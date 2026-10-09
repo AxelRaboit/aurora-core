@@ -5,11 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Search;
 
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
-use Aurora\Core\Search\SearchSnippetBuilder;
 use Aurora\Core\Search\SuiteSearchProviderInterface;
-use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
-use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
-use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\NotesContext;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -17,12 +13,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
-use function array_slice;
-use function count;
-use function mb_strtolower;
 use function mb_trim;
 use function preg_replace;
-use function str_contains;
 
 /**
  * The notebook's slice of the suite global search.
@@ -48,16 +40,14 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
     private const int LIMIT = 8;
 
     /** Characters kept on each side of the match in a body snippet. */
-    private const int SNIPPET_RADIUS = 40;
 
     /** The privilege the notebook's controller is behind. */
     private const string PRIVILEGE = 'notes.markdown.use';
 
     public function __construct(
-        private MarkdownNoteRepository $noteRepository,
+        private NoteSearch $noteSearch,
         private NotesContext $notesContext,
         private Security $security,
-        private SearchSnippetBuilder $searchSnippetBuilder,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
@@ -77,33 +67,16 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
                 return [];
             }
 
-            $needle = mb_strtolower(mb_trim($query));
-            if ('' === $needle) {
+            if ('' === mb_trim($query)) {
                 return [];
             }
 
-            $byTitle = [];
-            $byContent = [];
-
-            // Already without the trashed ones: the repository filters on
-            // `deletedAt`, as it does for the notebook's own search.
-            foreach ($this->noteRepository->findAllWithContentForUser($user) as $note) {
-                if (str_contains(mb_strtolower((string) $note->getTitle()), $needle)) {
-                    $byTitle[] = $note;
-                } elseif (str_contains(mb_strtolower((string) $note->getContent()), $needle)) {
-                    $byContent[] = $note;
-                }
-            }
-
-            // Rows built for the kept notes only: the folder is a lazy
-            // association, and a row per match would load one per match.
+            // The notebook's own search (10/10/2026): accents and case
+            // ignored, every word required, the best match first, and the
+            // passage that matched. Already without the trashed notes.
             $rows = [];
-            foreach (array_slice($byTitle, 0, self::LIMIT) as $note) {
-                $rows[] = $this->row($note, null);
-            }
-
-            foreach (array_slice($byContent, 0, self::LIMIT - count($rows)) as $note) {
-                $rows[] = $this->row($note, $query);
+            foreach ($this->noteSearch->search($user, $query, 'relevance', self::LIMIT)['results'] as $result) {
+                $rows[] = $this->row($result);
             }
 
             return ['notes' => $rows];
@@ -115,43 +88,41 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
     /**
      * One result row.
      *
-     * `$query` is given when the match is in the body: the subtitle then shows
-     * where, since the title alone would not say why the note came up. A title
-     * match shows the folder instead, which is the other thing that tells two
-     * notes of the same name apart.
+     * A title match shows the folder under the title, which tells two notes
+     * of the same name apart; a match elsewhere shows the passage that
+     * matched, since the title alone would not say why the note came up.
+     *
+     * @param array<string, mixed> $result
      *
      * @return array<string, mixed>
      */
-    private function row(MarkdownNoteInterface $note, ?string $query): array
+    private function row(array $result): array
     {
-        $title = $note->getTitle();
+        $title = (string) $result['title'];
+        $passage = null;
+        foreach ($result['snippets'] as $snippet) {
+            if ('content' === $snippet['field'] || 'comment' === $snippet['field'] || 'heading' === $snippet['field'] || 'property' === $snippet['field']) {
+                $passage = preg_replace('/\s+/u', ' ', $snippet['text']) ?? $snippet['text'];
+                break;
+            }
+        }
+
+        $titleMatched = [] !== $result['titleRanges'];
 
         return [
-            'id' => $note->getId(),
-            'title' => null === $title || '' === mb_trim($title) ? $this->translator->trans('notes.markdown.untitled') : $title,
-            'subtitle' => null === $query ? $this->folderName($note) : $this->snippet((string) $note->getContent(), $query),
-            'path' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $note->getId()]),
+            'id' => $result['id'],
+            'title' => '' === mb_trim($title) ? $this->translator->trans('notes.markdown.untitled') : $title,
+            'subtitle' => $titleMatched || null === $passage ? $this->folderName($result['folderName']) : $passage,
+            'path' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $result['id']]),
         ];
     }
 
-    private function folderName(MarkdownNoteInterface $note): ?string
+    private function folderName(?string $name): ?string
     {
-        $folder = $note->getFolder();
-
-        if (!$folder instanceof NoteFolderInterface) {
+        if (null === $name) {
             return null;
         }
 
-        $name = $folder->getName();
-
-        return null === $name || '' === mb_trim($name) ? $this->translator->trans('notes.markdown.folders.untitled') : $name;
-    }
-
-    /** The body around the match, on one line: the palette row has no room for paragraphs. */
-    private function snippet(string $content, string $query): string
-    {
-        $flat = preg_replace('/\s+/u', ' ', $content) ?? $content;
-
-        return $this->searchSnippetBuilder->build($flat, mb_trim($query), self::SNIPPET_RADIUS);
+        return '' === mb_trim($name) ? $this->translator->trans('notes.markdown.folders.untitled') : $name;
     }
 }
