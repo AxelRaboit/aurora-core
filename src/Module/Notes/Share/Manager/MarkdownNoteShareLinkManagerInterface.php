@@ -17,6 +17,7 @@ interface MarkdownNoteShareLinkManagerInterface
         string $label = '',
         ?DateTimeImmutable $expiresAt = null,
         bool $canWrite = false,
+        bool $coediting = false,
     ): MarkdownNoteShareLinkInterface;
 
     public function revoke(MarkdownNoteShareLinkInterface $link, ?DateTimeImmutable $at = null): void;

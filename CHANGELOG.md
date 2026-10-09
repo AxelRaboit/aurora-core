@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+- **Un lien de partage peut ouvrir la note à la co-édition en direct, façon Google Docs (bêta).** Nouvelle case « Co-édition en direct » sous « Autoriser la modification », **éteinte par défaut** et marquée « Bêta ». Cochée, quiconque a l'adresse écrit la note en même temps que les autres, lettre par lettre, avec les curseurs et les visages de chacun, et la page s'ouvre directement sur le champ, sans bouton « Enregistrer » : la salle s'enregistre seule. Ça vaut aussi pour une note de l'espace personnel, que le propriétaire rejoint en l'ouvrant dans la suite. Les visiteurs apparaissent comme « Invité », sans nom ni libellé du lien. Décochée, le lien écrit comme avant.
+- **Un badge « Bêta »** (`AppBetaBadge`) sur les deux réglages de co-édition, celui du lien et celui de l'espace : la fonction est encore en cours de finition.
+
+### Corrigé
+- **Un compte qui rejoignait une note déjà ouverte en co-édition pouvait taper dans le vide.** Quand le nouvel arrivant avait le plus petit identifiant, personne ne lui envoyait le document : il en créait un second, et les deux côtés ne s'entendaient plus. Le plus petit identifiant parmi les autres répond désormais, et les autres en renfort si personne ne l'a fait.
+- **Le texte tapé juste après le départ de la personne qui enregistrait pour la salle n'était plus enregistré.** Une page qui part le dit maintenant au serveur, qui la retire de la salle tout de suite, et la personne qui prend le relais enregistre aussitôt.
+
+### Dans aurora-client
+**Une migration**, jouée par `make aurora-update` : la colonne `coediting` des liens de partage, éteinte partout - aucun lien existant ne change de comportement. Les deux nouvelles limites de débit (`notes_share_live`, `notes_share_coedit_write`) viennent avec le paquet. Rien d'autre à faire.
+
+---
+
 ## [4.2.1] - 2026-10-09
 
 ### Corrigé

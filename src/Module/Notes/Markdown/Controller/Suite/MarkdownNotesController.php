@@ -578,6 +578,10 @@ final class MarkdownNotesController extends AbstractController
         // administer the note already read that address on the share screen.
         $namesTheLink = $this->spaceAccess->canAdministerNote($user, $note);
 
+        // A guest of a live link wrote alongside: said in this reader's
+        // language, the way the room says it.
+        $guestLabel = $this->translator->trans('notes.markdown.live.guest');
+
         return $this->jsonSuccess(['revisions' => array_map(
             static fn (MarkdownNoteRevision $revision): array => [
                 'id' => $revision->getId(),
@@ -593,7 +597,7 @@ final class MarkdownNotesController extends AbstractController
                 // and for the same reason: these are colleagues of the note's
                 // space, not an outside address somebody was mailed at.
                 'writtenBy' => array_values(array_filter(array_map(
-                    static fn (array $hand): ?string => $hand['name'],
+                    static fn (array $hand): ?string => $hand['name'] ?? (true === ($hand['guest'] ?? false) ? $guestLabel : null),
                     $revision->getWrittenBy(),
                 ))),
                 'title' => $revision->getTitle(),

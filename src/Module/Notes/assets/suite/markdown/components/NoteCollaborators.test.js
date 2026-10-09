@@ -79,4 +79,24 @@ describe("NoteCollaborators", () => {
         expect(first.attributes("style")).toContain("background-color");
         expect(first.attributes("style")).not.toBe(second.attributes("style"));
     });
+
+    it("calls a guest of a live link Guest, since the room keeps no name for them", () => {
+        const wrapper = mount(NoteCollaborators, {
+            props: {
+                people: [
+                    {
+                        userId: 1_300_000_000,
+                        name: null,
+                        editing: true,
+                        guest: true,
+                    },
+                ],
+            },
+        });
+
+        expect(wrapper.text()).toContain("NO");
+        expect(
+            wrapper.find("[data-note-collaborator]").attributes("title"),
+        ).toContain("notes.markdown.live.guest");
+    });
 });

@@ -7,6 +7,7 @@ namespace Aurora\Module\Notes\Live\Controller\Suite;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Module\Notes\Live\Service\NoteCoediting;
 use Aurora\Module\Notes\Live\Service\NoteLiveHub;
 use Aurora\Module\Notes\Live\Service\NotePresence;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
@@ -49,6 +50,7 @@ final class NoteLiveController extends AbstractController
         private readonly NoteSpaceAccess $spaceAccess,
         private readonly NotePresence $presence,
         private readonly NoteLiveHub $hub,
+        private readonly NoteCoediting $coediting,
     ) {}
 
     /**
@@ -67,6 +69,16 @@ final class NoteLiveController extends AbstractController
         }
 
         $payload = $this->decodeJson($request);
+
+        // The page says it leaves: out of the room now, rather than fifty
+        // seconds from now, and the others told so.
+        if (true === ($payload['leaving'] ?? false)) {
+            $this->presence->leave($note, (int) $user->getId());
+            $this->hub->publishPresence($note, $this->presence->on($note));
+
+            return $this->jsonSuccess(['left' => true]);
+        }
+
         $editing = true === ($payload['editing'] ?? false);
 
         $others = $this->presence->beat($note, $user, $editing);
@@ -96,6 +108,12 @@ final class NoteLiveController extends AbstractController
             // half of them.
             'awareness' => $this->hub->awarenessGrant($note),
             'beatSeconds' => NotePresence::BEAT_SECONDS,
+            // Whether the note is written together: its space allows it, or a
+            // writing link with live co-editing is open on it. Answered here,
+            // per note, because the second reason is not the space's to know -
+            // and a personal note opened through such a link has to bring its
+            // owner into the room the guests are in.
+            'coediting' => $this->coediting->isCoeditable($note),
             // So a page that just connected notices it is behind without
             // waiting for somebody else's save to be pushed.
             'version' => $note->getVersion(),

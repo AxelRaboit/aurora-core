@@ -1,6 +1,6 @@
 ---
 name: project_notes_collaboration
-description: Une note Aurora se partage de deux façons - confiée à des comptes nommés, ou ouverte en écriture par lien. Ce que chaque droit ouvre, ce qu'il n'ouvre surtout pas, et comment la présence se montre. La co-édition caractère par caractère vit dans decision_notes_realtime_coediting.
+description: Une note Aurora se partage de deux façons - confiée à des comptes nommés, ou ouverte en écriture par lien, éventuellement en co-édition en direct (bêta, case par lien). Ce que chaque droit ouvre, ce qu'il n'ouvre surtout pas, et comment la présence se montre. Le protocole de co-édition vit dans decision_notes_realtime_coediting.
 metadata:
   type: project
 ---
@@ -83,13 +83,46 @@ découpé sous 768 px (`share/shareEditorView.js`). L'aperçu se calcule dans le
 navigateur : la charge envoyée reste `title`, `content`, `version`, donc rien
 de plus n'est ouvert à une route sans compte.
 
-**Pas de co-édition en direct par lien : décidé avec Axel le 09/10/2026.** Un
-invité n'a pas de compte à élire ni à nommer dans `writtenBy` ; la présence
-montrerait les noms de l'équipe à quiconque a reçu l'adresse ; et la réécriture
-toutes les quelques secondes buterait sur la limite de débit de la route
-invitée, qui est là exprès. Écrire à plusieurs en direct, c'est **confier la
-note** à un compte nommé, rôle `editor`. Le lien reste fait pour « corrige ce
-paragraphe ».
+## Un lien peut ouvrir la co-édition en direct (bêta, 09/10/2026)
+
+**Rule:** une case par lien, **« Co-édition en direct »**, éteinte par défaut,
+proposée seulement sous « Autoriser la modification » et marquée **Bêta**
+(`AppBetaBadge`). Cochée, quiconque a l'adresse écrit la note avec les autres,
+lettre par lettre, façon Google Docs - **même une note de l'espace
+personnel**. Décochée, le lien écrit comme avant : taper, puis enregistrer.
+
+**Why:** la même journée, Axel avait d'abord tranché « pas de direct par
+lien », puis l'a demandé en voyant un invité taper sur un texte périmé - avec
+une case par lien et désactivée par défaut, pour que ce soit un choix. Les
+quatre objections d'origine ont chacune leur réponse :
+- **pas de compte** → `NoteGuestIdentity` : un id **émis par le serveur**, au-dessus
+  d'un milliard, dans un cookie limité au lien, posé **dès l'affichage de la
+  page** (le battement le créait deux fois → un invité fantôme) ; un cookie hors
+  plage est remplacé ;
+- **les noms de l'équipe** visibles par l'invité → accepté, comme Google Docs ;
+  l'invité, lui, n'a ni nom ni libellé de lien dans la salle (souvent une
+  adresse), chaque écran dit « Invité » dans sa langue ;
+- **la limite de débit** → `notes_share_coedit_write` (1 200/h) pour la
+  réécriture d'une session, `notes_share_live` (600/h) pour le battement, toutes
+  deux apportées par `AuroraBundle` ; la grande limite n'est honorée que sur un
+  lien dont la case est cochée ;
+- **l'élection** → les ids d'invités dépassant tous les comptes, **un compte est
+  toujours élu avant un invité** : dès qu'un compte est dans la salle, c'est sa
+  sauvegarde normale (fusion à trois branches) qui réécrit ; la route invitée
+  n'écrit que pour une salle d'invités.
+
+**How to apply:** `NoteCoediting::isCoeditable()` est la seule réponse - espace
+qui l'autorise **ou** lien utilisable avec la case cochée - et elle part dans
+les **deux** battements (`coediting`), pour que propriétaire et invités entrent
+dans la même salle. La page de partage réutilise `useNoteLive` et
+`useNoteCoedit` tels quels, avec `notes_share_live` comme battement : deux
+copies d'un protocole finiraient par ne plus s'entendre. En direct, elle
+s'ouvre sur le champ, le titre n'est pas modifiable (le document partagé est le
+corps) et « Enregistrer » disparaît. Tenu par `NoteShareLiveTest` et
+`tests/e2e/notes-share-coediting.spec.js`.
+
+Écrire à plusieurs avec un **compte** reste possible et préférable quand on
+connaît la personne : confier la note, rôle `editor`.
 
 **Un conflit garde le brouillon à l'écran** (09/10/2026). Avant, la page fermait
 le champ, et le « Recharger » proposé perdait ce que l'invité avait tapé. C'est

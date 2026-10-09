@@ -2,6 +2,7 @@ import { onBeforeUnmount, watch } from "vue";
 import * as Y from "yjs";
 import {
     JOIN_SEED,
+    answersDocRequest,
     isElected,
     isForMe,
     isMine,
@@ -80,7 +81,59 @@ export function useNoteCoedit({
     // publishes local edits does not publish them straight back.
     let applying = false;
 
+    /**
+     * How long a client that holds the document, without being the one
+     * designated to answer, waits before answering a newcomer in its stead.
+     *
+     * The designated client can be gone: a closed tab sends nothing, and the
+     * room keeps it for fifty seconds. A newcomer arriving in that window
+     * asked, nobody answered, and it stood down - seen with a guest arriving
+     * just after an account left (09/10/2026). So the other holders answer
+     * too, a moment later and only if nobody has. Answering twice is harmless:
+     * everybody in the session holds the same history, and applying it again
+     * changes nothing.
+     */
+    const BACKUP_ANSWER_MS = 1500;
+
+    /** Whether this client was the writer at the last look at the room. */
+    let wasElected = false;
+
+    /** Newcomer id -> the backup answer this client will send if nobody does. */
+    const backupAnswers = new Map();
+
+    function answerWithState(requester) {
+        channel.publish({
+            kind: "doc-state",
+            to: requester,
+            state: toBase64(Y.encodeStateAsUpdate(sharedDocument)),
+        });
+    }
+
+    function scheduleBackupAnswer(requester) {
+        const key = Number(requester);
+        if (backupAnswers.has(key)) return;
+
+        backupAnswers.set(
+            key,
+            setTimeout(() => {
+                backupAnswers.delete(key);
+                if (sharedDocument) answerWithState(key);
+            }, BACKUP_ANSWER_MS),
+        );
+    }
+
+    function cancelBackupAnswer(requester) {
+        const key = Number(requester);
+        const timer = backupAnswers.get(key);
+        if (!timer) return;
+
+        clearTimeout(timer);
+        backupAnswers.delete(key);
+    }
+
     function teardown() {
+        for (const timer of backupAnswers.values()) clearTimeout(timer);
+        backupAnswers.clear();
         if (writeTimer) clearTimeout(writeTimer);
         writeTimer = null;
         if (joining) clearTimeout(joining);
@@ -151,18 +204,27 @@ export function useNoteCoedit({
     function onMessage(message) {
         const self = channel.selfUserId();
 
+        // Somebody else already answered that newcomer: no backup answer is
+        // owed any more. Read before the filter below, since the answer was
+        // addressed to the newcomer and not to this client.
+        if ("doc-state" === message.kind && !isMine(message, self)) {
+            cancelBackupAnswer(message.to);
+        }
+
         if (isMine(message, self) || !isForMe(message, self)) return;
 
         if ("doc-request" === message.kind) {
             // Answered by one client only, so a newcomer does not receive the
-            // state once per person already in the room.
-            if (!sharedDocument || !isElected(self, room.value)) return;
+            // state once per person already in the room - and not by the
+            // elected one, who may be the newcomer itself: see
+            // `answersDocRequest`.
+            if (!sharedDocument) return;
 
-            channel.publish({
-                kind: "doc-state",
-                to: message.from,
-                state: toBase64(Y.encodeStateAsUpdate(sharedDocument)),
-            });
+            if (answersDocRequest(self, room.value, message.from)) {
+                answerWithState(message.from);
+            } else {
+                scheduleBackupAnswer(message.from);
+            }
 
             return;
         }
@@ -303,7 +365,21 @@ export function useNoteCoedit({
      * holding what people are typing.
      */
     watch(room, () => {
-        if (!live.value) enter();
+        if (!live.value) {
+            enter();
+
+            return;
+        }
+
+        // **Becoming the writer writes.** The writer is elected from the room,
+        // and the room changes under a session: the one who was writing back
+        // left - cleanly, or by a closed laptop the room forgets fifty seconds
+        // later. What the others typed since was saved by nobody, and with
+        // nothing more typed nothing would ever save it. So the client the
+        // room now elects writes the text back at once.
+        const elected = isElected(channel.selfUserId(), room.value);
+        if (elected && !wasElected) scheduleWriteBack();
+        wasElected = elected;
     });
 
     onBeforeUnmount(() => {

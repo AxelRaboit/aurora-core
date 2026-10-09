@@ -30,6 +30,26 @@ framework:
             limit: 60
             interval: '1 hour'
 
+        # The beat of a guest in a note's live room: one every twenty
+        # seconds per open tab, so a hundred and eighty an hour, with room
+        # for a few tabs behind one address. Unauthenticated, and every beat
+        # without the guest cookie puts a new guest in the room: this is
+        # what stops a script from filling it.
+        notes_share_live:
+            policy: sliding_window
+            limit: 600
+            interval: '1 hour'
+
+        # The write-back a guest sends for a room of guests, three seconds
+        # after the typing pauses. Wider than `notes_share_write` because a
+        # session writes every pause, and only reachable through a link
+        # whose live co-editing is ticked; the versions are still spaced by
+        # the revision interval, so a flood does not flood the history.
+        notes_share_coedit_write:
+            policy: sliding_window
+            limit: 1200
+            interval: '1 hour'
+
         # The password on a publication's reading link. Keyed on the client
         # IP, like the two above and with the same caveat: an attacker rotates
         # addresses, so this is the outer wall. The inner one is that a wrong

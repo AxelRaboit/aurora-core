@@ -133,6 +133,7 @@ notes:
             reading: reading
             streaming: Updated live
             polling: Updated every 20 seconds
+            guest: Guest
         people:
             shared_with_me: Shared with me
             button: Share with people
@@ -157,6 +158,11 @@ notes:
             can_write: Allow editing
             can_write_hint: Anybody holding the address will be able to rewrite this note's text. This one only, never the linked notes.
             writable_badge: Write
+            coediting: Live co-editing
+            coediting_hint: "Whoever has the address writes the note at the same time as you, letter by letter, and sees who is there, like a shared document. Works for a note of your personal space too."
+            coediting_badge: Live
+            coediting_heading: Live writing
+            live_hint: You are writing live with the other people on this note. Every change is saved for everybody.
             edit: Edit
             editing_hint: What you save replaces the note's text for everybody. If the note changed meanwhile, nothing is saved and your text stays on screen.
             save: Save

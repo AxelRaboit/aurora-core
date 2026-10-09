@@ -9,7 +9,9 @@ use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\StoredFileResponder;
+use Aurora\Module\Notes\Live\Service\NoteGuestIdentity;
 use Aurora\Module\Notes\Live\Service\NoteLiveHub;
+use Aurora\Module\Notes\Live\Service\NotePresence;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
@@ -20,6 +22,7 @@ use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Service\SharedNoteScope;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -74,6 +77,12 @@ final class NoteShareController extends AbstractController
         private readonly RateLimiterFactoryInterface $notesShareWriteLimiter,
         private readonly NoteLiveHub $liveHub,
         private readonly NotesContext $notesContext,
+        private readonly NotePresence $presence,
+        private readonly NoteGuestIdentity $guestIdentity,
+        // `notes_share_live` and `notes_share_coedit_write`, autowired by name
+        // like the one above.
+        private readonly RateLimiterFactoryInterface $notesShareLiveLimiter,
+        private readonly RateLimiterFactoryInterface $notesShareCoeditWriteLimiter,
     ) {}
 
     /**
@@ -86,7 +95,7 @@ final class NoteShareController extends AbstractController
         requirements: ['token' => '[A-Za-z0-9]{32,64}'],
         methods: [HttpMethodEnum::Get->value],
     )]
-    public function show(string $token): Response
+    public function show(string $token, Request $request): Response
     {
         $link = $this->shareLinks->resolveUsable($token);
 
@@ -94,7 +103,11 @@ final class NoteShareController extends AbstractController
             return $this->unavailable();
         }
 
-        return $this->render('@Notes/share/show.html.twig', $this->pageView($link, $link->getNote(), $this->scope->notesFor($link)));
+        return $this->withGuestIdentity(
+            $this->render('@Notes/share/show.html.twig', $this->pageView($link, $link->getNote(), $this->scope->notesFor($link))),
+            $link,
+            $request,
+        );
     }
 
     /**
@@ -113,7 +126,7 @@ final class NoteShareController extends AbstractController
         requirements: ['token' => '[A-Za-z0-9]{32,64}', 'id' => '\d+|__id__'],
         methods: [HttpMethodEnum::Get->value],
     )]
-    public function note(string $token, int $id): Response
+    public function note(string $token, int $id, Request $request): Response
     {
         $link = $this->shareLinks->resolveUsable($token);
 
@@ -129,7 +142,11 @@ final class NoteShareController extends AbstractController
             return $this->unavailable();
         }
 
-        return $this->render('@Notes/share/show.html.twig', $this->pageView($link, $note, $scope));
+        return $this->withGuestIdentity(
+            $this->render('@Notes/share/show.html.twig', $this->pageView($link, $note, $scope)),
+            $link,
+            $request,
+        );
     }
 
     /**
@@ -205,12 +222,25 @@ final class NoteShareController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        if (!$this->notesShareWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+        // A write-back sent for a live room says so, and counts against its
+        // own, wider limit: a session writes on every pause in the typing.
+        // Chosen before the token is looked up, like the limiter always was,
+        // and only ever honoured on a link whose live co-editing is ticked -
+        // see below - so claiming it buys nothing on any other link.
+        $payload = $this->decodeJson($request);
+        $coedit = true === ($payload['coedit'] ?? false);
+        $limiter = $coedit ? $this->notesShareCoeditWriteLimiter : $this->notesShareWriteLimiter;
+
+        if (!$limiter->create($request->getClientIp())->consume()->isAccepted()) {
             return $this->jsonFailure('notes.markdown.share.errors.too_many_writes', HttpStatusEnum::TooManyRequests->value);
         }
 
         $link = $this->shareLinks->resolveUsable($token);
         if (!$link instanceof MarkdownNoteShareLinkInterface) {
+            return $this->jsonNotFound();
+        }
+
+        if ($coedit && !$link->allowsCoediting()) {
             return $this->jsonNotFound();
         }
 
@@ -225,7 +255,6 @@ final class NoteShareController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        $payload = $this->decodeJson($request);
         $title = $this->text($payload['title'] ?? null);
         $content = $this->text($payload['content'] ?? null);
 
@@ -248,6 +277,123 @@ final class NoteShareController extends AbstractController
         $this->liveHub->publishChanged($note, $link->getRecipientEmail() ?: ($link->getLabel() ?: null));
 
         return $this->jsonSuccess(['version' => $note->getVersion()]);
+    }
+
+    /**
+     * A guest on a note whose link opens live co-editing: "I am here", answered
+     * with everything the page needs to write with the others.
+     *
+     * The guest twin of the back office's beat, and the same answer, so the
+     * page runs the very same live code. Every check of the write route holds
+     * here, in the same order - the installation's switch, then the limiter
+     * before any query, then a usable link that writes its own note - plus the
+     * link's own "live co-editing" box: a link without it writes the old way,
+     * type then save, and has no room to enter.
+     *
+     * **Who the guest is comes from the server.** {@see NoteGuestIdentity}
+     * hands them an id above every account, kept in a cookie scoped to this
+     * link; the page is told it and never chooses it.
+     */
+    #[Route(
+        '/{token}/{id}/live',
+        name: '_live',
+        requirements: ['token' => '[A-Za-z0-9]{32,64}', 'id' => '\d+|__id__'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function live(string $token, int $id, Request $request): JsonResponse
+    {
+        if (!$this->notesContext->isCollaborationEnabled()) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$this->notesShareLiveLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('notes.markdown.share.errors.too_many_writes', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $link = $this->shareLinks->resolveUsable($token);
+        if (!$link instanceof MarkdownNoteShareLinkInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $note = $link->getNote();
+        if (!$link->allowsCoediting() || !$link->canWriteNote($note, new DateTimeImmutable()) || $note->getId() !== $id) {
+            return $this->jsonNotFound();
+        }
+
+        $payload = $this->decodeJson($request);
+
+        // The guest's page says it leaves: out of the room now, the way the
+        // back office's beat does it. Without an identity there is nobody to
+        // take out.
+        if (true === ($payload['leaving'] ?? false)) {
+            $leavingId = $this->guestIdentity->idFrom($request);
+            if (null !== $leavingId) {
+                $this->presence->leave($note, $leavingId);
+                $this->liveHub->publishPresence($note, $this->presence->on($note));
+            }
+
+            return $this->jsonSuccess(['left' => true]);
+        }
+
+        $guestId = $this->guestIdentity->idFrom($request) ?? $this->guestIdentity->issue();
+
+        $others = $this->presence->beatAsGuest($note, $guestId, true === ($payload['editing'] ?? false));
+
+        // Everybody, this guest included: each page drops itself from a
+        // pushed room, exactly as in the back office.
+        $this->liveHub->publishPresence($note, $this->presence->on($note));
+
+        $response = $this->jsonSuccess([
+            'people' => $others,
+            'selfUserId' => $guestId,
+            // No name: a guest is "Guest" in each reader's own language, and
+            // the link's label - often a recipient's address - is not for the
+            // room to read.
+            'selfName' => null,
+            'streamUrl' => $this->liveHub->subscribeUrl($note),
+            'awareness' => $this->liveHub->awarenessGrant($note),
+            'beatSeconds' => NotePresence::BEAT_SECONDS,
+            'version' => $note->getVersion(),
+            'coediting' => true,
+        ]);
+
+        $subscription = $this->liveHub->subscriptionCookie($note);
+        if ($subscription instanceof Cookie) {
+            $response->headers->setCookie($subscription);
+        }
+
+        // Scoped to this link's own pages: the guest is the same person from
+        // one beat to the next, and no other route ever sees the number.
+        $response->headers->setCookie($this->guestIdentity->cookieFor(
+            $guestId,
+            $this->generateUrl('notes_share', ['token' => $token]),
+        ));
+
+        return $response;
+    }
+
+    /**
+     * The guest's identity, set with the page itself on a live link.
+     *
+     * **Before the first beat, not by it.** The page beats as it starts and
+     * again as it opens the field, two requests at once; issued by the beat,
+     * the identity was minted twice, and the room kept a ghost guest for fifty
+     * seconds - a ghost with the lowest guest id, which then owed the
+     * newcomer an answer it could never give. Set here, every beat carries it.
+     */
+    private function withGuestIdentity(Response $response, MarkdownNoteShareLinkInterface $link, Request $request): Response
+    {
+        if (!$link->allowsCoediting() || !$this->notesContext->isCollaborationEnabled()) {
+            return $response;
+        }
+
+        $guestId = $this->guestIdentity->idFrom($request) ?? $this->guestIdentity->issue();
+        $response->headers->setCookie($this->guestIdentity->cookieFor(
+            $guestId,
+            $this->generateUrl('notes_share', ['token' => $link->getToken()]),
+        ));
+
+        return $response;
     }
 
     /** A field of the payload as text, or null when it was not sent. */
@@ -299,6 +445,16 @@ final class NoteShareController extends AbstractController
                 'id' => (int) $note->getId(),
             ]),
             'noteVersion' => $note->getVersion(),
+            // Live co-editing, when the link opens it on its own note. The
+            // page then joins the room through `liveBeatPath`; without it, it
+            // writes the old way and never beats.
+            'coediting' => $this->notesContext->isCollaborationEnabled()
+                && $link->allowsCoediting()
+                && $link->canWriteNote($note, new DateTimeImmutable()),
+            'liveBeatPath' => $this->generateUrl('notes_share_live', [
+                'token' => $token,
+                'id' => '__id__',
+            ]),
             'noteCount' => count($scope),
             // The list is handed to the page so a share carrying several
             // notes can be navigated, and it carries titles and ids only -

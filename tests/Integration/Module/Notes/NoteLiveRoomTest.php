@@ -146,7 +146,8 @@ final class NoteLiveRoomTest extends IntegrationTestCase
         $this->client->loginUser($this->owner, 'admin');
         $body = $this->beat($note, editing: true);
 
-        self::assertSame([['userId' => $this->teammate->getId(), 'name' => 'collegue', 'editing' => false]], $body['people']);
+        // `guest` false: an account, as opposed to a visitor of a live link.
+        self::assertSame([['userId' => $this->teammate->getId(), 'name' => 'collegue', 'editing' => false, 'guest' => false]], $body['people']);
     }
 
     /**

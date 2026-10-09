@@ -492,18 +492,21 @@ onBeforeUnmount(() => {
  * Writing the note together, letter by letter, when everything allows it.
  *
  * Four conditions, and all four are the server's word rather than a guess:
- * the space allows it, this reader writes the note, a hub is running, and the
- * page knows who it is. Any one missing and the editor stays on the autosave
+ * the note is written together - its space allows it, or the beat says a
+ * writing link with live co-editing is open on it, which a personal note can
+ * have - this reader writes the note, a hub is running, and the page knows
+ * who it is. Any one missing and the editor stays on the autosave
  * and the three-way merge - a mode that works, which is why declining is
  * always the safe answer here.
  */
 const coeditAllowed = computed(() =>
     canCoedit({
-        spaceAllows: Boolean(
-            spaces.value.find(
-                (space) => Number(space.id) === Number(selectedNote.value?.spaceId),
-            )?.coediting,
-        ),
+        spaceAllows:
+            Boolean(
+                spaces.value.find(
+                    (space) => Number(space.id) === Number(selectedNote.value?.spaceId),
+                )?.coediting,
+            ) || roomChannel.coeditable.value,
         canWrite: canEditSelected.value,
         hasChannel: roomChannel.ready.value,
         selfUserId: roomChannel.selfUserId(),
@@ -529,11 +532,6 @@ useNoteCoedit({
     },
 });
 
-// Whoever is in the room, named. The list is small by nature - the people who
-// have this one note open - so it is drawn in full rather than counted.
-const roomNames = computed(() =>
-    roomPeople.value.map((person) => person.name).filter(Boolean),
-);
 
 
 /**
@@ -1522,7 +1520,7 @@ onUnmounted(() => {
                                      do that. Each face wears its caret's
                                      colour and names its person on hover. -->
                                 <span
-                                    v-if="roomNames.length"
+                                    v-if="roomPeople.length"
                                     data-note-room
                                     class="inline-flex items-center"
                                 >

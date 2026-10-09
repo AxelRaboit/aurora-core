@@ -312,6 +312,25 @@ tombés, et ce qu'ils disent :
    le test rougit quand on retire le correctif. Un test qu'on n'a pas vu
    échouer ne mesure rien de connu.
 
+**Et trois défauts du protocole, trouvés le 09/10/2026 en ouvrant la salle aux
+invités d'un lien** (dont les ids dépassent tous les comptes) - tous trois
+existaient aussi entre collègues, plus rarement :
+
+4. **Le nouvel arrivant élu restait sans réponse.** Seul l'élu répondait à une
+   demande de document ; quand l'arrivant a le plus petit id, c'est *lui*
+   l'élu, et personne ne répondait : il amorçait un second document, et les
+   deux côtés tapaient dans des histoires qui ne s'entendent pas. Répond
+   désormais le plus petit id **parmi les autres, demandeur exclu**
+   (`answersDocRequest`).
+5. **Le désigné pouvait être parti.** Un onglet fermé reste cinquante secondes
+   dans la salle. Les autres détenteurs répondent **en renfort** après 1,5 s si
+   personne ne l'a fait (une réponse en double est inoffensive : même histoire).
+   Et une page qui part le dit (`leaving: true` sur le battement, en
+   `keepalive`) : le serveur la retire tout de suite.
+6. **L'écrivain parti emportait la réécriture.** Le texte tapé après le départ
+   de l'élu n'était sauvé par personne tant qu'on ne retapait pas. Le client que
+   la salle **devient** à élire réécrit aussitôt.
+
 **Et un piège de mesure, trouvé le 09/10/2026.** Un onglet resté ouvert avec le
 compte A répondait aux `doc-request` à la place du A du test : B recevait un
 document que le test n'avait jamais amorcé, et la frappe de A semblait ne pas

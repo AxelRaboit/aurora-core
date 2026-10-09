@@ -33,6 +33,7 @@ final readonly class MarkdownNoteShareLinkSerializer
             // has to show it, or a link opened for writing looks like any
             // other and nobody notices it is still out there.
             'canWrite' => $link->canWrite(),
+            'coediting' => $link->allowsCoediting(),
             'expiresAt' => $link->getExpiresAt()?->format('c'),
             'revokedAt' => $link->getRevokedAt()?->format('c'),
             'sentAt' => $link->getSentAt()?->format('c'),
