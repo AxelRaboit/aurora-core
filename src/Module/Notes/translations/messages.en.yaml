@@ -116,6 +116,15 @@ notes:
             unreachable: "Craft returned nothing for that document."
             not_imported: This note does not come from Craft.
     markdown:
+        quick_open:
+            title: "Open a note"
+            placeholder: "Note title…"
+            create: "Create “{title}”"
+            empty: "No notes."
+            hint: "↑ ↓ to choose, Enter to open. ⌘ K stays the search of the whole suite."
+        focus:
+            enter: "Focus mode"
+            exit: "Leave focus mode"
         help:
             title: "Cheat sheet"
             intro: "Everything a note can be written with. “Insert” puts it at the caret."

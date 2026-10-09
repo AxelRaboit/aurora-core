@@ -269,10 +269,12 @@ export function useNotesEditor({
         cancelAutoSave();
     }
 
-    async function createNote(folderId = null) {
+    // A title when the note is created from the quick search, which names it
+    // (09/10/2026); empty everywhere else.
+    async function createNote(folderId = null, title = "") {
         const { ok, reported, payload } = await api.create({
             folderId,
-            title: "",
+            title,
             content: "",
         });
         if (!ok) {

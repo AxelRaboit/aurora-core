@@ -115,6 +115,15 @@ notes:
             unreachable: 'Craft no ha devuelto nada para este documento.'
             not_imported: 'Esta nota no procede de Craft.'
     markdown:
+        quick_open:
+            title: "Abrir una nota"
+            placeholder: "Título de la nota…"
+            create: "Crear «{title}»"
+            empty: "Ninguna nota."
+            hint: "↑ ↓ para elegir, Intro para abrir. ⌘ K sigue siendo la búsqueda de toda la suite."
+        focus:
+            enter: "Modo concentración"
+            exit: "Salir del modo concentración"
         help:
             title: "Chuleta"
             intro: "Todo lo que se puede escribir en una nota. «Insertar» lo coloca donde está el cursor."

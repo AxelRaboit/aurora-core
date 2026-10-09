@@ -120,6 +120,15 @@ notes:
             unreachable: "Craft n'a rien renvoyé pour ce document."
             not_imported: Cette note ne vient pas de Craft.
     markdown:
+        quick_open:
+            title: "Ouvrir une note"
+            placeholder: "Titre de la note…"
+            create: "Créer « {title} »"
+            empty: "Aucune note."
+            hint: "↑ ↓ pour choisir, Entrée pour ouvrir. ⌘ K reste la recherche de toute la suite."
+        focus:
+            enter: "Mode focus"
+            exit: "Quitter le mode focus"
         help:
             title: "Aide-mémoire"
             intro: "Tout ce qui s'écrit dans une note. Un clic sur « Insérer » le pose à l'endroit du curseur."

@@ -7,6 +7,12 @@ import { usePreviewClickRouter } from '@notes/suite/markdown/composables/usePrev
 import { useNoteImageDragResize } from '@notes/suite/markdown/composables/useNoteImageDragResize.js';
 import { useFootnoteLabels, useNoteHtmlEnhancer } from '@notes/suite/markdown/composables/useNoteHtmlEnhancer.js';
 import { markdownSection } from '@notes/suite/markdown/composables/noteHtmlEnhancer.js';
+import { noteExcerpt, useWikiLinkHoverCard } from '@notes/suite/markdown/composables/useWikiLinkHoverCard.js';
+import NoteHoverCard from '@notes/suite/markdown/components/NoteHoverCard.vue';
+
+// Two roots since the hover card (09/10/2026): what a parent passes goes to
+// the rendered note, as before.
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
     content: { type: String, default: '' },
@@ -72,6 +78,17 @@ async function loadEmbed({ title, heading }) {
 
 const root = ref(null);
 useNoteHtmlEnhancer(root, html, { loadEmbed });
+
+/** A linked note's beginning, on hover (09/10/2026). */
+const { card, onCardEnter, onCardLeave } = useWikiLinkHoverCard(root, async (title, heading) => {
+    if (!props.loadNoteContent) return null;
+    const id = resolveWikiLink(title, props.noteTitles);
+    if (null === id) return null;
+    const content = await includedContent(id);
+    if (null === content || undefined === content) return null;
+
+    return render(noteExcerpt(markdownSection(content, heading)));
+});
 </script>
 
 <!--
@@ -79,8 +96,10 @@ useNoteHtmlEnhancer(root, html, { loadEmbed });
     live in `./preview.css` next to this SFC (co-located, code-split).
 -->
 <template>
+    <NoteHoverCard :card="card" v-on:enter="onCardEnter" v-on:leave="onCardLeave" />
     <div
         ref="root"
+        v-bind="$attrs"
         class="note-preview prose prose-sm dark:prose-invert max-w-none"
         v-on:click="onClick"
         v-on:pointerdown="onPointerDown"

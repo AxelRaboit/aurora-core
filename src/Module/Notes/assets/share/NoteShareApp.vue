@@ -8,6 +8,8 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { CircleHelp, Clock, Columns, Eye, Pencil } from "lucide-vue-next";
 import NoteMarkdownHelp from "@notes/suite/markdown/components/NoteMarkdownHelp.vue";
+import NoteHoverCard from "@notes/suite/markdown/components/NoteHoverCard.vue";
+import { noteExcerpt, useWikiLinkHoverCard } from "@notes/suite/markdown/composables/useWikiLinkHoverCard.js";
 import AppButton from "@shared/components/action/AppButton.vue";
 import AppBadge from "@shared/components/feedback/AppBadge.vue";
 import AppTab from "@shared/components/nav/AppTab.vue";
@@ -398,7 +400,7 @@ async function insertFromHelp({ text, caret }) {
  * and nothing else. Out of scope, the inclusion stays a title.
  */
 const includedNotes = new Map();
-async function loadEmbed({ title, heading }) {
+async function sharedNoteContent(title) {
     const id = props.titleIndex?.[String(title ?? "").toLowerCase()];
     if (undefined === id || null === id) return null;
 
@@ -410,11 +412,27 @@ async function loadEmbed({ title, heading }) {
                 .catch(() => null),
         );
     }
-    const content = await includedNotes.get(id);
+
+    return includedNotes.get(id);
+}
+
+async function loadEmbed({ title, heading }) {
+    const content = await sharedNoteContent(title);
     if (null === content) return null;
 
     return htmlOf(markdownSection(content, heading), "");
 }
+
+/**
+ * A linked note's beginning, on hover (09/10/2026) - only for the notes this
+ * link shares too, read through the same route as an inclusion.
+ */
+const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyRef, async (title, heading) => {
+    const content = await sharedNoteContent(title);
+    if (null === content) return null;
+
+    return htmlOf(noteExcerpt(markdownSection(content, heading)), "");
+});
 
 useNoteHtmlEnhancer(bodyRef, () => [html.value, draftHtml.value, editing.value, view.value.mode], { loadEmbed });
 const showsOutline = computed(() => null !== props.meta && (!editing.value || "preview" === view.value.mode));
@@ -690,6 +708,8 @@ const lookClass = computed(() =>
                 </div>
             </div>
         </article>
+
+        <NoteHoverCard :card="hoverCard" v-on:enter="onCardEnter" v-on:leave="onCardLeave" />
 
         <NoteMarkdownHelp
             :show="helpOpen"

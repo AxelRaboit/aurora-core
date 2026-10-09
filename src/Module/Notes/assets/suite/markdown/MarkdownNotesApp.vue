@@ -18,6 +18,8 @@ import NoteShareModal from '@notes/suite/markdown/components/NoteShareModal.vue'
 import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
 import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.vue';
+import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
+import { useKeyboardShortcut } from '@/shared/composables/useKeyboardShortcut.js';
 import NoteCollaborators from '@notes/suite/markdown/components/NoteCollaborators.vue';
 import NoteGraph from '@notes/suite/markdown/components/NoteGraph.vue';
 import NoteCreateModal from '@notes/suite/markdown/components/NoteCreateModal.vue';
@@ -33,7 +35,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { CircleHelp, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -552,6 +554,65 @@ async function fetchLinkTitle(url) {
 
 const noteEditorRef = ref(null);
 const helpOpen = ref(false);
+
+/** Quick search, Cmd/Ctrl+P (09/10/2026); Cmd/Ctrl+K stays the suite's. */
+const quickOpen = ref(false);
+useKeyboardShortcut({ key: 'p', ctrl: true }, () => {
+    quickOpen.value = true;
+});
+
+async function createFromQuickOpen(title) {
+    await createNote(selectedNote.value?.folderId ?? null, title);
+}
+
+/**
+ * Focus mode (09/10/2026): the side menu folded, the page header, the path,
+ * the banner and the side panel out of the way, the note in a centred column.
+ * Cmd/Ctrl+Shift+F in and out, Escape out. The side menu's fold is borrowed,
+ * never saved: leaving gives back the menu as it was.
+ */
+const focusMode = ref(false);
+let menuFoldedBefore = false;
+
+function applyFocus(on) {
+    const page = document.documentElement;
+    if (on) {
+        menuFoldedBefore = page.classList.contains('sidemenu-collapsed');
+        page.classList.add('notes-focus', 'sidemenu-collapsed');
+        sidePanelOpen.value = false;
+
+        return;
+    }
+
+    page.classList.remove('notes-focus');
+    if (!menuFoldedBefore) page.classList.remove('sidemenu-collapsed');
+}
+
+watch(focusMode, applyFocus);
+
+function onFocusKeys(event) {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && 'f' === event.key.toLowerCase()) {
+        if (!selectedNote.value) return;
+        event.preventDefault();
+        focusMode.value = !focusMode.value;
+
+        return;
+    }
+
+    if ('Escape' === event.key && focusMode.value && !document.querySelector('[role="dialog"]')) {
+        focusMode.value = false;
+    }
+}
+
+onMounted(() => window.addEventListener('keydown', onFocusKeys));
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onFocusKeys);
+    if (focusMode.value) applyFocus(false);
+});
+
+watch(selectedNote, (note) => {
+    if (!note) focusMode.value = false;
+});
 
 /**
  * An example from the cheat sheet, at the caret. From the preview alone the
@@ -1515,7 +1576,7 @@ onUnmounted(() => {
              without searching the panel for it. Outside the card for the
              same reason as the link. -->
         <nav
-            v-if="selectedNote && !crashed"
+            v-if="selectedNote && !crashed && !focusMode"
             data-note-breadcrumb
             class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-muted"
             :aria-label="t('notes.markdown.breadcrumb')"
@@ -1545,7 +1606,19 @@ onUnmounted(() => {
             </span>
         </nav>
 
-        <div class="aurora-card relative flex min-h-0 flex-1 overflow-hidden">
+        <!-- Leaving focus mode, always in reach while it hides the rest. -->
+        <button
+            v-if="focusMode"
+            type="button"
+            data-note-focus-exit
+            class="fixed right-4 top-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-secondary shadow-md transition-colors hover:text-primary"
+            v-on:click="focusMode = false"
+        >
+            <Minimize2 class="h-3.5 w-3.5" :stroke-width="2" />
+            {{ t('notes.markdown.focus.exit') }}
+        </button>
+
+        <div class="aurora-card relative flex min-h-0 flex-1 overflow-hidden" :class="focusMode ? 'mx-auto w-full max-w-4xl' : ''">
             <!-- No tree column and no drawer of its own: the notes are in the
              side menu's panel now, on every page of the module rather than
              this one, and the menu already has a drawer on small screens.
@@ -1575,7 +1648,7 @@ onUnmounted(() => {
                      The same height as on the share page and in the reading
                      view (09/10/2026): lower here, the crop chosen in the
                      editor was not the one a guest saw. -->
-                    <figure v-if="form.coverUrl" class="relative m-0 shrink-0">
+                    <figure v-if="form.coverUrl && !focusMode" class="relative m-0 shrink-0">
                         <img
                             :src="form.coverUrl"
                             alt=""
@@ -1709,6 +1782,20 @@ onUnmounted(() => {
                             >
                                 <PanelRightClose v-if="sidePanelOpen" class="w-4 h-4" :stroke-width="2" />
                                 <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
+                            </AppButton>
+
+                            <!-- Focus mode (09/10/2026). -->
+                            <AppButton
+                                variant="secondary"
+                                data-note-focus
+                                :active="focusMode"
+                                :aria-pressed="focusMode"
+                                :label="focusMode ? t('notes.markdown.focus.exit') : t('notes.markdown.focus.enter')"
+                                icon-only
+                                v-on:click="focusMode = !focusMode"
+                            >
+                                <Minimize2 v-if="focusMode" class="w-4 h-4" :stroke-width="2" />
+                                <Maximize2 v-else class="w-4 h-4" :stroke-width="2" />
                             </AppButton>
 
                             <!-- The cheat sheet (09/10/2026): every way to
@@ -1910,6 +1997,14 @@ onUnmounted(() => {
                 v-on:remove="removeCover"
                 v-on:position="form.coverPosition = $event"
                 v-on:appearance="form.appearance = $event"
+            />
+
+            <NoteQuickOpen
+                :show="quickOpen"
+                :notes="notes"
+                v-on:close="quickOpen = false"
+                v-on:open="openNote"
+                v-on:create="createFromQuickOpen"
             />
 
             <NoteMarkdownHelp
