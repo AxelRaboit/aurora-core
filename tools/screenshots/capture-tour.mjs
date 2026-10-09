@@ -109,6 +109,81 @@ async function openNoteWithPanel(page, title) {
     await page.waitForTimeout(1_200);
 }
 
+/**
+ * The address of the demo's live writing link on a note (4.3.0), asked from
+ * the server: tokens are drawn at random on every fixture load.
+ */
+async function liveLinkUrl(page, noteId) {
+    const url = await page.evaluate(async (id) => {
+        const r = await fetch(`/suite/notes/markdown/shares/${id}`, { headers: { Accept: "application/json" } });
+        const j = await r.json();
+
+        return (j?.links ?? []).find((link) => link.canWrite && link.coediting)?.url ?? null;
+    }, noteId);
+
+    if (!url) throw new Error("aucun lien en direct dans la démonstration (fixture writableLinkFor)");
+
+    return url;
+}
+
+/**
+ * Puts the caret of a co-editing field after `marker`, the way a click would,
+ * so that the others see it where it means something rather than at the top.
+ * The arrow keys afterwards are what the room listens to.
+ */
+async function placeCaret(field, marker) {
+    await field.click();
+    const found = await field.evaluate((element, wanted) => {
+        const at = element.value.indexOf(wanted);
+        if (at < 0) return false;
+        element.focus();
+        element.setSelectionRange(at + wanted.length, at + wanted.length);
+
+        return true;
+    }, marker);
+
+    if (!found) throw new Error(`« ${marker} » manque au texte de la note`);
+
+    await field.press("ArrowRight");
+    await field.press("ArrowLeft");
+}
+
+/**
+ * The guest of the live link, in a browser of their own with no session: the
+ * room needs two people, and a guest is the case the link exists for.
+ */
+let coeditGuest = null;
+
+async function openCoeditGuest(url) {
+    coeditGuest = await browser.newContext({
+        viewport: VIEWPORT,
+        deviceScaleFactor: 1,
+        locale: "fr-FR",
+        timezoneId: "Europe/Paris",
+        colorScheme: "dark",
+    });
+    const guest = await coeditGuest.newPage();
+    await guest.goto(url, { waitUntil: "networkidle" });
+    await guest.locator("[data-share-live-badge]").waitFor({ timeout: 15_000 });
+
+    return guest;
+}
+
+/**
+ * Leaves the room before closing: a context closed outright never says it is
+ * leaving, and the guest stayed in the room for fifty seconds, a second "IN"
+ * on the next shot.
+ */
+async function closeCoeditGuest() {
+    if (null !== coeditGuest) {
+        for (const tab of coeditGuest.pages()) {
+            await tab.goto("about:blank");
+        }
+        await coeditGuest.close();
+        coeditGuest = null;
+    }
+}
+
 async function flatten(page) {
     const bouton = page.getByTitle("Tout afficher à plat").first();
 
@@ -1240,6 +1315,78 @@ const SHOTS = [
 
             await page.goto(url, { waitUntil: "networkidle" });
             await page.waitForTimeout(2_000);
+        },
+    },
+    {
+        // The share window of a note (4.3.0): a link that writes, and under it
+        // the live co-editing box with its "Bêta" badge, ticked. The list
+        // below carries the demo's live link with its "En direct" badge.
+        name: "tour-notes-lien-partage",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNoteByTitle(page, "Cabinet Verrier");
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.waitForTimeout(500);
+            await page.getByText("Partager", { exact: true }).first().click();
+            await page.locator("[data-share-can-write] input[type=checkbox]").check();
+            await page.locator("[data-share-coediting] input[type=checkbox]").check();
+            await page.locator("[data-share-coediting-badge]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Writing together (4.3.0), on the suite's side: a guest of the live
+        // link in the room, their face in the header and their caret, named,
+        // in the text. Nothing is typed: a caret placed is enough to show,
+        // and the demo note stays as the other shots expect it.
+        name: "tour-notes-coedition",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            const id = await openNoteByTitle(page, "Cabinet Verrier");
+            await page.getByTitle("Édition + aperçu").first().click();
+            await page.waitForTimeout(800);
+
+            const guest = await openCoeditGuest(await liveLinkUrl(page, id));
+            await placeCaret(guest.locator("[data-share-content-field]"), "## ");
+
+            await page.locator("[data-note-collaborator]").first().waitFor({ timeout: 15_000 });
+            await placeCaret(page.locator("main textarea").first(), "# ");
+            await page.waitForTimeout(2_000);
+        },
+        async after() {
+            await closeCoeditGuest();
+        },
+    },
+    {
+        // The same room from the guest's side (4.3.0): the share page opened
+        // straight on the field, edit / split / preview, "Écriture en direct",
+        // the account's face and its caret, and the light / dark switch.
+        name: "tour-notes-partage-ecriture",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            const id = await openNoteByTitle(page, "Cabinet Verrier");
+            await page.getByTitle("Édition + aperçu").first().click();
+            await page.waitForTimeout(800);
+
+            const guest = await openCoeditGuest(await liveLinkUrl(page, id));
+            await placeCaret(page.locator("main textarea").first(), "## ");
+            await guest.locator("[data-note-collaborator]").first().waitFor({ timeout: 15_000 });
+            await placeCaret(guest.locator("[data-share-content-field]"), "# ");
+            // Placing the caret scrolls the field into view, and the header
+            // (the live badge, the modes, the theme switch) is what the
+            // picture is about.
+            await guest.evaluate(() => window.scrollTo(0, 0));
+            await guest.waitForTimeout(2_000);
+            await hideChrome(guest);
+
+            // The guest's page is the picture: shown in the main tab, which is
+            // the one the loop photographs.
+            const shot = (await guest.screenshot()).toString("base64");
+            await page.setContent(`<!doctype html><html><body style="margin:0"><img src="data:image/png;base64,${shot}" style="display:block;width:1600px;height:1000px"></body></html>`);
+            await page.waitForTimeout(300);
+        },
+        async after() {
+            await closeCoeditGuest();
         },
     },
     {
