@@ -9,14 +9,22 @@
  * cours"`. The « Filtres » menu writes them, so nobody has to learn them.
  *
  * Recent searches and the ones pinned are this browser's: conveniences.
+ *
+ * « Remplacer » changes a word in the notes found: counted first, then
+ * written once confirmed, in the notes one may write and that are not
+ * locked (`NoteReplace.php`).
  */
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Clock, FileText, Filter, MessageSquare, Pin, PinOff, Search, SlidersHorizontal, Tag as TagIcon, X } from "lucide-vue-next";
+import { CaseSensitive, Clock, FileText, Filter, MessageSquare, Pin, PinOff, Replace, Search, SlidersHorizontal, Tag as TagIcon, X } from "lucide-vue-next";
 import AppModal from "@shared/components/overlay/AppModal.vue";
+import AppButton from "@shared/components/action/AppButton.vue";
+import AppIconButton from "@shared/components/action/AppIconButton.vue";
+import AppInput from "@shared/components/form/input/AppInput.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { highlightParts } from "@notes/suite/markdown/composables/noteSearchHighlight.js";
+import { toast } from "vue-sonner";
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -24,6 +32,8 @@ const props = defineProps({
     initialQuery: { type: String, default: "" },
     /** `(query, sort) => Promise<{ok, payload}>`. */
     searchFull: { type: Function, required: true },
+    /** `({ids, find, replacement, exact, dryRun}) => Promise<{ok, payload}>`; none, no replacing. */
+    replaceInNotes: { type: Function, default: null },
 });
 
 const emit = defineEmits(["close", "open"]);
@@ -192,6 +202,56 @@ const tagFacets = computed(() => Object.entries(facets.value.tags ?? {}));
 
 const FIELD_ICONS = { heading: FileText, property: SlidersHorizontal, comment: MessageSquare, content: null };
 
+// ── Replacing in the notes found ──────────────────────────────────────
+
+const replacing = ref(false);
+const find = ref("");
+const replacement = ref("");
+const exact = ref(false);
+const preview = ref(null);
+const replaceBusy = ref(false);
+
+/** The words of the search, without its filters: what one means to replace. */
+function wordsOf(raw) {
+    return raw
+        .split(/\s+/)
+        .filter((token) => token && !token.includes(":") && !token.startsWith("-"))
+        .join(" ")
+        .replaceAll('"', "");
+}
+
+function toggleReplacing() {
+    replacing.value = !replacing.value;
+    if (replacing.value && "" === find.value) find.value = wordsOf(query.value);
+}
+
+// What was counted no longer holds once anything changes.
+watch([find, replacement, exact, results], () => {
+    preview.value = null;
+});
+
+async function askReplace(dryRun) {
+    if ("" === find.value || 0 === results.value.length || replaceBusy.value) return;
+    replaceBusy.value = true;
+    const { ok, payload } = await props.replaceInNotes({
+        ids: results.value.map((result) => result.id),
+        find: find.value,
+        replacement: replacement.value,
+        exact: exact.value,
+        dryRun,
+    });
+    replaceBusy.value = false;
+    if (!ok) return;
+    if (dryRun) {
+        preview.value = payload;
+
+        return;
+    }
+    toast.success(t("notes.markdown.search.replace.done", { count: payload?.occurrences ?? 0, notes: payload?.notes?.length ?? 0 }));
+    preview.value = null;
+    await run();
+}
+
 function placeOf(result) {
     const where = [];
     if (!result.spacePersonal && result.spaceName) where.push(result.spaceName);
@@ -320,7 +380,74 @@ function placeOf(result) {
                     <span data-note-search-count class="text-xs text-muted">
                         {{ loading ? '…' : t('notes.markdown.search.count', { count: total, ms: Math.round(tookMs) }) }}
                     </span>
+                    <AppButton
+                        v-if="replaceInNotes && results.length"
+                        data-note-search-replace-toggle
+                        class="ml-auto"
+                        variant="secondary"
+                        size="sm"
+                        :active="replacing"
+                        :label="t('notes.markdown.search.replace.toggle')"
+                        v-on:click="toggleReplacing"
+                    >
+                        <Replace class="h-4 w-4" :stroke-width="2" />
+                    </AppButton>
                 </div>
+
+                <!-- Counted first, written once confirmed. -->
+                <section v-if="replacing && replaceInNotes" data-note-search-replace class="flex flex-col gap-2 rounded-lg border border-line bg-surface-2 p-3">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <AppInput
+                            v-model="find"
+                            data-note-replace-find
+                            class="min-w-0 flex-1"
+                            :placeholder="t('notes.markdown.search.replace.find')"
+                            :aria-label="t('notes.markdown.search.replace.find')"
+                        />
+                        <AppInput
+                            v-model="replacement"
+                            data-note-replace-with
+                            class="min-w-0 flex-1"
+                            :placeholder="t('notes.markdown.search.replace.with')"
+                            :aria-label="t('notes.markdown.search.replace.with')"
+                        />
+                        <div class="flex items-center gap-2">
+                            <AppIconButton :title="t('notes.markdown.find.exact')" :active="exact" v-on:click="exact = !exact">
+                                <CaseSensitive class="h-4 w-4" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppButton
+                                data-note-replace-preview
+                                variant="secondary"
+                                size="sm"
+                                :disabled="'' === find"
+                                :loading="replaceBusy && !preview"
+                                :label="t('notes.markdown.search.replace.preview')"
+                                v-on:click="askReplace(true)"
+                            />
+                        </div>
+                    </div>
+                    <p class="m-0 text-xs text-muted">
+                        {{ total > results.length ? t('notes.markdown.search.replace.scope_shown', { count: results.length, total }) : t('notes.markdown.search.replace.scope', { count: results.length }) }}
+                    </p>
+                    <div v-if="preview" data-note-replace-summary class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm text-primary">
+                            {{ t('notes.markdown.search.replace.summary', { count: preview.occurrences, notes: preview.notes.length }) }}
+                        </span>
+                        <span v-if="preview.skipped" class="text-xs text-muted">
+                            {{ t('notes.markdown.search.replace.skipped', { count: preview.skipped }) }}
+                        </span>
+                        <AppButton
+                            v-if="preview.occurrences"
+                            data-note-replace-confirm
+                            class="ml-auto"
+                            variant="danger"
+                            size="sm"
+                            :loading="replaceBusy"
+                            :label="t('notes.markdown.search.replace.confirm', { count: preview.occurrences })"
+                            v-on:click="askReplace(false)"
+                        />
+                    </div>
+                </section>
 
                 <!-- What narrows the search: one click adds the filter. -->
                 <div v-if="tagFacets.length || facets.folders.length || facets.spaces.length > 1" class="flex flex-wrap gap-1.5">

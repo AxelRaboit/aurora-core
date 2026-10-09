@@ -139,7 +139,7 @@ final readonly class NoteSearch
     private function match(MarkdownNoteInterface $note, NoteSearchQuery $query, array $comments, array $people): ?array
     {
         $title = (string) $note->getTitle();
-        $content = self::withoutLeadingTitle((string) $note->getContent(), $title);
+        $content = $this->withoutLeadingTitle((string) $note->getContent(), $title);
         $tags = $note->getTags();
         $properties = $note->getProperties();
 
@@ -209,7 +209,7 @@ final readonly class NoteSearch
      * The text without its first line when that line is `# the title`: the
      * title is matched and shown already, and the passages repeated it.
      */
-    private static function withoutLeadingTitle(string $content, string $title): string
+    private function withoutLeadingTitle(string $content, string $title): string
     {
         if (1 === preg_match('/^\s*#\s+(.+?)\s*(?:\R|$)/u', $content, $match) && NoteSearchText::fold($match[1]) === NoteSearchText::fold($title)) {
             return mb_substr($content, mb_strlen($match[0]));

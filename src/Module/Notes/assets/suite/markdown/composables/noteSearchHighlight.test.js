@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { findRanges, foldSearch, highlightParts, markTerms } from "./noteSearchHighlight.js";
+import {
+    findRanges,
+    foldSearch,
+    highlightParts,
+    markTerms,
+} from "./noteSearchHighlight.js";
 
 describe("noteSearchHighlight", () => {
     it("folds accents and case", () => {
@@ -7,7 +12,12 @@ describe("noteSearchHighlight", () => {
     });
 
     it("finds ranges on the original letters, merged", () => {
-        expect(findRanges("Une séance à la lumière", ["seance", "lumiere"])).toEqual([[4, 6], [16, 7]]);
+        expect(
+            findRanges("Une séance à la lumière", ["seance", "lumiere"]),
+        ).toEqual([
+            [4, 6],
+            [16, 7],
+        ]);
         expect(findRanges("abcd", ["abc", "bcd"])).toEqual([[0, 4]]);
     });
 

@@ -126,6 +126,44 @@ final class NoteFullSearchTest extends IntegrationTestCase
         self::assertStringContainsString($this->marker, $body['snippets'][$note->getId()]);
     }
 
+    public function testReplacingAcrossNotesCountsFirstThenWritesAndLeavesLockedNotesAlone(): void
+    {
+        $first = $this->note('Un', "L'échéance {$this->marker}, puis l'Echeance.");
+        $second = $this->note('Deux', "Échéance {$this->marker}");
+        $locked = $this->note('Trois', "échéance {$this->marker}");
+        $locked->setLocked(true);
+        $this->entityManager->flush();
+        $ids = [$first->getId(), $second->getId(), $locked->getId()];
+
+        $preview = $this->replace(['ids' => $ids, 'find' => 'echeance', 'replacement' => 'date', 'dryRun' => true]);
+        self::assertSame(3, $preview['occurrences']);
+        self::assertSame(1, $preview['skipped']);
+        $this->entityManager->clear();
+        self::assertStringContainsString('échéance', (string) $this->entityManager->find(MarkdownNote::class, $first->getId())?->getContent());
+
+        $done = $this->replace(['ids' => $ids, 'find' => 'echeance', 'replacement' => 'date']);
+        self::assertSame(3, $done['occurrences']);
+        $this->entityManager->clear();
+        self::assertSame("L'date {$this->marker}, puis l'date.", $this->entityManager->find(MarkdownNote::class, $first->getId())?->getContent());
+        self::assertSame("échéance {$this->marker}", $this->entityManager->find(MarkdownNote::class, $locked->getId())?->getContent());
+
+        $exact = $this->replace(['ids' => $ids, 'find' => 'Date', 'replacement' => 'jour', 'exact' => true, 'dryRun' => true]);
+        self::assertSame(0, $exact['occurrences']);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
+    private function replace(array $payload): array
+    {
+        $this->client->request('POST', $this->urlGenerator->generate('suite_notes_markdown_search_replace'), server: ['HTTP_ACCEPT' => 'application/json', 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest', 'CONTENT_TYPE' => 'application/json'], content: (string) json_encode($payload));
+        self::assertResponseIsSuccessful();
+
+        return json_decode((string) $this->client->getResponse()->getContent(), true);
+    }
+
     /** @return array<string, mixed> */
     private function search(string $query): array
     {

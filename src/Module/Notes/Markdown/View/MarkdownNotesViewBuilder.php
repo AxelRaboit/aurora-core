@@ -504,6 +504,7 @@ final readonly class MarkdownNotesViewBuilder
             'importPath' => $this->urlGenerator->generate('suite_notes_markdown_import'),
             'searchPath' => $this->urlGenerator->generate('suite_notes_markdown_search'),
             'searchFullPath' => $this->urlGenerator->generate('suite_notes_markdown_search_full'),
+            'searchReplacePath' => $this->urlGenerator->generate('suite_notes_markdown_search_replace'),
             'tagsListPath' => $this->urlGenerator->generate('suite_notes_markdown_tags_list'),
             'tagsRenamePath' => $this->urlGenerator->generate('suite_notes_markdown_tags_rename'),
             'tagsMergePath' => $this->urlGenerator->generate('suite_notes_markdown_tags_merge'),

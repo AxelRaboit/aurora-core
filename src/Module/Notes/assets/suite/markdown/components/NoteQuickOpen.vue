@@ -34,6 +34,8 @@ const { t } = useI18n();
 const query = ref("");
 const activeIndex = ref(0);
 const input = ref(null);
+/** What the server found in the notes' text, for the "in the content" section. */
+const found = ref({ ids: [], snippets: {}, needles: [] });
 
 watch(
     () => props.show,
@@ -70,8 +72,6 @@ const offersCreation = computed(() => {
 
     return !props.notes.some((note) => foldText(note.title ?? "") === foldText(wanted));
 });
-
-const found = ref({ ids: [], snippets: {}, needles: [] });
 
 const runContentSearch = useDebounce(async (wanted) => {
     const { payload } = await props.searchContent(wanted);

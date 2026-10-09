@@ -110,6 +110,7 @@ const props = defineProps({
     importPath: { type: String, required: true },
     searchPath: { type: String, required: true },
     searchFullPath: { type: String, default: '' },
+    searchReplacePath: { type: String, default: '' },
     tagsListPath: { type: String, required: true },
     tagsRenamePath: { type: String, required: true },
     tagsMergePath: { type: String, required: true },
@@ -1398,6 +1399,22 @@ const searchOpen = ref(false);
 const searchInitial = ref('');
 let pendingHighlight = null;
 
+/**
+ * Replacing from the search screen: the open note is saved first, so the
+ * server replaces in what is on screen, and read again after if it changed.
+ */
+async function replaceInNotes(payload) {
+    if (!payload.dryRun) await flushPendingSave();
+    const response = await api.replaceInNotes(payload);
+    if (!response.ok || payload.dryRun) return response;
+
+    await refreshList();
+    const changed = (response.payload?.notes ?? []).map((note) => Number(note.id));
+    if (selectedId.value && changed.includes(Number(selectedId.value))) await openNote(selectedId.value);
+
+    return response;
+}
+
 function openSearch(initial = '') {
     searchInitial.value = initial;
     searchOpen.value = true;
@@ -2560,6 +2577,7 @@ onUnmounted(() => {
                 :show="searchOpen"
                 :initial-query="searchInitial"
                 :search-full="api.searchFull"
+                :replace-in-notes="searchReplacePath ? replaceInNotes : null"
                 v-on:close="searchOpen = false"
                 v-on:open="openFromSearch"
             />

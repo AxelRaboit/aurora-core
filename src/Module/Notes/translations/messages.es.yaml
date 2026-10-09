@@ -234,6 +234,9 @@ notes:
                 table_tab: "Pasar de una celda a otra"
                 reading: "Modo lectura"
                 quick_open: "Búsqueda rápida de una nota"
+                find: "Buscar en la nota"
+                replace: "Reemplazar en la nota"
+                search: "Buscar en todo el cuaderno"
                 comment: "Comentar el pasaje seleccionado"
                 focus: "Modo concentración"
         editor:
@@ -692,7 +695,7 @@ notes:
             close: 'Salir de la presentación'
             previous: 'Diapositiva anterior'
             next: 'Diapositiva siguiente'
-        # The notebook's search screen (Cmd+Mayús+F).
+        # The notebook's search screen (Cmd+Shift+S).
         search:
             title: 'Buscar en las notas'
             open: 'Búsqueda avanzada'
@@ -708,6 +711,17 @@ notes:
             clear: 'Borrar'
             in_content: 'Buscar «{query}» en el contenido'
             in_notebook: 'Buscar «{query}» en todo el cuaderno'
+            replace:
+                toggle: "Reemplazar"
+                find: "Buscar"
+                with: "Reemplazar por"
+                preview: "Contar"
+                scope: "En {count} nota(s) encontrada(s)."
+                scope_shown: "En las {count} notas mostradas, de {total} encontradas."
+                summary: "{count} coincidencia(s) en {notes} nota(s)."
+                skipped: "{count} nota(s) de solo lectura o bloqueada(s) quedan fuera."
+                confirm: "Reemplazar {count} coincidencia(s)"
+                done: "{count} coincidencia(s) reemplazada(s) en {notes} nota(s). Cada nota conserva su versión anterior en su historial."
             sort:
                 relevance: 'Relevancia'
                 date: 'Fecha'

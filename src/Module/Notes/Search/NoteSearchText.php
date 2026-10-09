@@ -8,6 +8,7 @@ use Normalizer;
 
 use function array_fill;
 use function array_push;
+use function array_reverse;
 use function array_slice;
 use function count;
 use function implode;
@@ -21,6 +22,7 @@ use function min;
 use function preg_match;
 use function preg_replace;
 use function preg_split;
+use function str_replace;
 use function usort;
 
 /**
@@ -104,6 +106,34 @@ final class NoteSearchText
         }
 
         return $merged;
+    }
+
+    /**
+     * The text with every occurrence of `$find` replaced, and how many there
+     * were. Without accents nor case unless `$exact`, as the search finds
+     * them: the replacement goes on the original letters it matched.
+     *
+     * @return array{0: string, 1: int}
+     */
+    public static function replace(string $text, string $find, string $replacement, bool $exact = false): array
+    {
+        if ('' === $find) {
+            return [$text, 0];
+        }
+
+        if ($exact) {
+            $replaced = str_replace($find, $replacement, $text, $count);
+
+            return [$replaced, $count];
+        }
+
+        $ranges = self::ranges($text, [self::fold($find)]);
+        $result = $text;
+        foreach (array_reverse($ranges) as [$start, $length]) {
+            $result = mb_substr($result, 0, $start).$replacement.mb_substr($result, $start + $length);
+        }
+
+        return [$result, count($ranges)];
     }
 
     /**

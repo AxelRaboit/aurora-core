@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { findMatches, matchIndexFrom, replaceEvery, replaceOne } from "./noteFindReplace.js";
+import {
+    findMatches,
+    matchIndexFrom,
+    replaceEvery,
+    replaceOne,
+} from "./noteFindReplace.js";
 
 describe("noteFindReplace", () => {
     it("finds without accents nor case by default", () => {
@@ -12,9 +17,9 @@ describe("noteFindReplace", () => {
     });
 
     it("finds the text as typed when exact", () => {
-        expect(findMatches("Échéance, echeance", "echeance", { exact: true })).toEqual([
-            { start: 10, end: 18 },
-        ]);
+        expect(
+            findMatches("Échéance, echeance", "echeance", { exact: true }),
+        ).toEqual([{ start: 10, end: 18 }]);
     });
 
     it("counts in the units a textarea selects with, after an emoji", () => {
@@ -29,7 +34,10 @@ describe("noteFindReplace", () => {
     });
 
     it("starts from the match at the caret, and goes round", () => {
-        const matches = [{ start: 2, end: 4 }, { start: 10, end: 12 }];
+        const matches = [
+            { start: 2, end: 4 },
+            { start: 10, end: 12 },
+        ];
 
         expect(matchIndexFrom(matches, 5)).toBe(1);
         expect(matchIndexFrom(matches, 11)).toBe(0);

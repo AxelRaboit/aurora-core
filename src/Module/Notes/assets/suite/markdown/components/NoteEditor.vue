@@ -108,9 +108,9 @@ function reportCaret() {
 }
 
 /**
- * Find and replace (10/10/2026): Cmd/Ctrl+F finds, Cmd+Option+F or Ctrl+H
- * replaces. Cmd+H would have been the obvious one and never reaches the
- * page on a Mac, which hides the application with it.
+ * Find and replace (10/10/2026): Cmd/Ctrl+F finds, Cmd+Option+F (Ctrl+Alt+F)
+ * replaces, as in VS Code on a Mac. Not Cmd/Ctrl+H: a Mac hides the
+ * application with it, and here it already makes a heading.
  *
  * Taken over only while this field is on screen and no dialog has the
  * focus: in reading mode, the browser's own search still works.
@@ -135,7 +135,7 @@ function onFindShortcut(event) {
     const field = textareaRef.value;
     if (!field?.offsetParent || document.activeElement?.closest?.("[role=dialog]")) return;
     const command = event.metaKey || event.ctrlKey;
-    const replace = (command && event.altKey && "KeyF" === event.code) || (event.ctrlKey && !event.metaKey && !event.altKey && "KeyH" === event.code);
+    const replace = command && event.altKey && !event.shiftKey && "KeyF" === event.code;
     const find = command && !event.altKey && !event.shiftKey && "KeyF" === event.code;
     if (!replace && !find) return;
     event.preventDefault();

@@ -1,7 +1,7 @@
 <script setup>
 /**
  * Find and replace in the note being written (10/10/2026), over the editor
- * as in VS Code: Cmd/Ctrl+F finds, Cmd+Option+F (Ctrl+H) replaces.
+ * as in VS Code: Cmd/Ctrl+F finds, Cmd+Option+F (Ctrl+Alt+F) replaces.
  *
  * **The occurrences are drawn over the field.** A textarea paints one
  * selection, and none at all while the focus is in this bar: every match
