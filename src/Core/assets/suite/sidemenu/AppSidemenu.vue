@@ -509,7 +509,7 @@ function openSearchFromMobile() {
                     :href="frontPath"
                     target="_blank"
                     rel="noopener"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-secondary hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-primary/80 hover:text-primary hover:bg-surface-2/60 transition-colors"
                 >
                     <Globe class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
                     {{ t("suite.nav.view_site") }}
