@@ -1,13 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { inlineTags, isPastedAddress, markBlock, mergeInlineTags, moveLines } from "./editorTextActions.js";
+import {
+    inlineTags,
+    isPastedAddress,
+    markBlock,
+    mergeInlineTags,
+    moveLines,
+} from "./editorTextActions.js";
 
 describe("moveLines", () => {
     const text = "un\ndeux\ntrois";
 
     it("moves the caret's line up and down, the caret with it", () => {
-        const up = moveLines(text, 5, 5, -1);
-        expect(up.newContent).toBe("deux\nun\ntrois");
-        expect(up.newContent.slice(up.cursorPos - 1, up.cursorPos + 2)).toBe("eux");
+        const movedUp = moveLines(text, 5, 5, -1);
+        expect(movedUp.newContent).toBe("deux\nun\ntrois");
+        expect(
+            movedUp.newContent.slice(
+                movedUp.cursorPos - 1,
+                movedUp.cursorPos + 2,
+            ),
+        ).toBe("eux");
 
         expect(moveLines(text, 5, 5, 1).newContent).toBe("un\ntrois\ndeux");
     });
@@ -24,8 +35,15 @@ describe("moveLines", () => {
 
 describe("markBlock", () => {
     it("names the paragraph at its last line", () => {
-        const marked = markBlock("Une ligne\nla suite\n\nAutre", 2, () => "abc123");
-        expect(marked).toEqual({ newContent: "Une ligne\nla suite ^abc123\n\nAutre", id: "abc123" });
+        const marked = markBlock(
+            "Une ligne\nla suite\n\nAutre",
+            2,
+            () => "abc123",
+        );
+        expect(marked).toEqual({
+            newContent: "Une ligne\nla suite ^abc123\n\nAutre",
+            id: "abc123",
+        });
     });
 
     it("keeps a name already there", () => {
@@ -33,7 +51,9 @@ describe("markBlock", () => {
     });
 
     it("names one list item, not the whole list", () => {
-        expect(markBlock("- un\n- deux", 1, () => "id1").newContent).toBe("- un ^id1\n- deux");
+        expect(markBlock("- un\n- deux", 1, () => "id1").newContent).toBe(
+            "- un ^id1\n- deux",
+        );
     });
 
     it("has nothing to name on an empty line", () => {
@@ -43,11 +63,18 @@ describe("markBlock", () => {
 
 describe("inline tags", () => {
     it("reads #tags at a word's start, with a letter, outside code", () => {
-        expect(inlineTags("# Titre\nUn #client et #devis/2026, pas C#, pas #12, pas `#code`")).toEqual(["client", "devis/2026"]);
+        expect(
+            inlineTags(
+                "# Titre\nUn #client et #devis/2026, pas C#, pas #12, pas `#code`",
+            ),
+        ).toEqual(["client", "devis/2026"]);
     });
 
     it("adds them to the note's tags without duplicates", () => {
-        expect(mergeInlineTags(["Client"], "un #client et #photo")).toEqual(["Client", "photo"]);
+        expect(mergeInlineTags(["Client"], "un #client et #photo")).toEqual([
+            "Client",
+            "photo",
+        ]);
     });
 });
 

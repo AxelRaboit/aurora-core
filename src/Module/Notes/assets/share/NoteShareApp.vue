@@ -3,10 +3,11 @@ import "@notes/suite/markdown/components/preview.css";
 import "@notes/share/appearance.css";
 import "@notes/share/print.css";
 
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Clock, Columns, Eye, Pencil } from "lucide-vue-next";
+import { CircleHelp, Clock, Columns, Eye, Pencil } from "lucide-vue-next";
+import NoteMarkdownHelp from "@notes/suite/markdown/components/NoteMarkdownHelp.vue";
 import AppButton from "@shared/components/action/AppButton.vue";
 import AppBadge from "@shared/components/feedback/AppBadge.vue";
 import AppTab from "@shared/components/nav/AppTab.vue";
@@ -372,6 +373,25 @@ const minutes = computed(() => readingMinutes(wordCount(shownContent.value)));
  */
 const bodyRef = ref(null);
 
+const helpOpen = ref(false);
+
+/** An example from the cheat sheet, at the caret of the field. */
+async function insertFromHelp({ text, caret }) {
+    if (!view.value.showEditor) pickMode("split");
+    await nextTick();
+
+    const field = fieldRef.value;
+    const content = draftContent.value ?? "";
+    const start = field ? field.selectionStart : content.length;
+    const end = field ? field.selectionEnd : start;
+    draftContent.value = content.slice(0, start) + text + content.slice(end);
+
+    await nextTick();
+    const caretAt = start + (null === caret ? text.length : caret);
+    fieldRef.value?.focus();
+    fieldRef.value?.setSelectionRange(caretAt, caretAt);
+}
+
 /**
  * A note included in this one (`![[Note]]`), when the link shares it too:
  * asked from the share's own route, which answers for the notes in its scope
@@ -590,6 +610,17 @@ const lookClass = computed(() =>
                                         <component :is="option.icon" class="h-4 w-4" :stroke-width="2" />
                                     </AppTab>
                                 </div>
+                                <!-- The editor's cheat sheet (09/10/2026), here as in the suite. -->
+                                <AppButton
+                                    variant="secondary"
+                                    class="ml-2"
+                                    data-share-help
+                                    :label="t('notes.markdown.help.title')"
+                                    icon-only
+                                    v-on:click="helpOpen = true"
+                                >
+                                    <CircleHelp class="h-4 w-4" :stroke-width="2" />
+                                </AppButton>
                             </div>
                             <div
                                 class="grid gap-3"
@@ -659,5 +690,11 @@ const lookClass = computed(() =>
                 </div>
             </div>
         </article>
+
+        <NoteMarkdownHelp
+            :show="helpOpen"
+            v-on:close="helpOpen = false"
+            v-on:insert="insertFromHelp"
+        />
     </div>
 </template>

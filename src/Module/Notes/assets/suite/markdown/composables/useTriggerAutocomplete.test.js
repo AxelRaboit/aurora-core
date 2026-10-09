@@ -29,7 +29,9 @@ describe("useTriggerAutocomplete", () => {
         await flushPromises();
 
         expect(menu.show.value).toBe(true);
-        expect(menu.apply(textarea, menu.items.value[0], textarea.value)).toEqual({ newContent: "Décollage 🚀", newCaret: 12 });
+        expect(
+            menu.apply(textarea, menu.items.value[0], textarea.value),
+        ).toEqual({ newContent: "Décollage 🚀", newCaret: 12 });
     });
 
     it("stays shut inside a word, before enough letters, and on a time", async () => {

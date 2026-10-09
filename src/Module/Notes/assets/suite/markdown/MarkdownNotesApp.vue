@@ -17,6 +17,7 @@ import NoteTagManagerModal from '@notes/suite/markdown/components/NoteTagManager
 import NoteShareModal from '@notes/suite/markdown/components/NoteShareModal.vue';
 import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
+import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.vue';
 import NoteCollaborators from '@notes/suite/markdown/components/NoteCollaborators.vue';
 import NoteGraph from '@notes/suite/markdown/components/NoteGraph.vue';
 import NoteCreateModal from '@notes/suite/markdown/components/NoteCreateModal.vue';
@@ -32,7 +33,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { CircleHelp, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -547,6 +548,31 @@ async function fetchLinkTitle(url) {
     });
 
     return payload?.title ?? null;
+}
+
+const noteEditorRef = ref(null);
+const helpOpen = ref(false);
+
+/**
+ * An example from the cheat sheet, at the caret. From the preview alone the
+ * editor is brought back first: there is nowhere to insert without it.
+ */
+async function insertFromHelp({ text, caret }) {
+    if ('preview' === viewMode.value) {
+        viewMode.value = 'split';
+        await nextTick();
+    }
+
+    const textarea = noteEditorRef.value?.textareaRef ?? null;
+    const content = form.value.content ?? '';
+    const start = textarea ? textarea.selectionStart : content.length;
+    const end = textarea ? textarea.selectionEnd : start;
+    form.value.content = content.slice(0, start) + text + content.slice(end);
+
+    await nextTick();
+    const caretAt = start + (null === caret ? text.length : caret);
+    textarea?.focus();
+    textarea?.setSelectionRange(caretAt, caretAt);
 }
 
 /** A paragraph was named in the editor: its link goes to the clipboard. */
@@ -1685,6 +1711,18 @@ onUnmounted(() => {
                                 <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
                             </AppButton>
 
+                            <!-- The cheat sheet (09/10/2026): every way to
+                                 write a note, and a click that inserts it. -->
+                            <AppButton
+                                variant="secondary"
+                                data-note-help
+                                :label="t('notes.markdown.help.title')"
+                                icon-only
+                                v-on:click="helpOpen = true"
+                            >
+                                <CircleHelp class="w-4 h-4" :stroke-width="2" />
+                            </AppButton>
+
                             <!-- View mode toggle (edit / split / preview) - segmented AppTab control,
                                  at the height of the neighbouring buttons. -->
                             <div class="inline-flex h-9.5 items-stretch rounded-lg border border-line overflow-hidden">
@@ -1780,6 +1818,7 @@ onUnmounted(() => {
                             :style="viewMode === 'split' && !isMobile ? { width: `${editorWidth}px` } : {}"
                         >
                             <NoteEditor
+                                ref="noteEditorRef"
                                 v-model="form.content"
                                 :placeholder="t('notes.markdown.content_placeholder')"
                                 :flat-notes="notes"
@@ -1871,6 +1910,12 @@ onUnmounted(() => {
                 v-on:remove="removeCover"
                 v-on:position="form.coverPosition = $event"
                 v-on:appearance="form.appearance = $event"
+            />
+
+            <NoteMarkdownHelp
+                :show="helpOpen"
+                v-on:close="helpOpen = false"
+                v-on:insert="insertFromHelp"
             />
 
             <NoteShareModal
