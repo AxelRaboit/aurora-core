@@ -17,6 +17,16 @@ import NoteTagManagerModal from '@notes/suite/markdown/components/NoteTagManager
 import NoteShareModal from '@notes/suite/markdown/components/NoteShareModal.vue';
 import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
+import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.vue';
+import NoteTasksPanel from '@notes/suite/markdown/components/NoteTasksPanel.vue';
+import NoteReminderModal from '@notes/suite/markdown/components/NoteReminderModal.vue';
+import NoteCommentsPanel from '@notes/suite/markdown/components/NoteCommentsPanel.vue';
+import NotePresentation from '@notes/suite/markdown/components/NotePresentation.vue';
+import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
+import NoteIconPicker from '@notes/suite/markdown/components/NoteIconPicker.vue';
+import NoteProperties from '@notes/suite/markdown/components/NoteProperties.vue';
+import { useDismissable } from '@notes/suite/markdown/composables/useDismissable.js';
+import { useKeyboardShortcut } from '@/shared/composables/useKeyboardShortcut.js';
 import NoteCollaborators from '@notes/suite/markdown/components/NoteCollaborators.vue';
 import NoteGraph from '@notes/suite/markdown/components/NoteGraph.vue';
 import NoteCreateModal from '@notes/suite/markdown/components/NoteCreateModal.vue';
@@ -32,7 +42,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ALargeSmall, BellRing, CaseSensitive, FileType, MessageSquare, Presentation, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -83,6 +93,15 @@ const props = defineProps({
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
     graphPath: { type: String, required: true },
+    linkTitlePath: { type: String, default: '' },
+    peopleEveryonePath: { type: String, default: '' },
+    dailyDaysPath: { type: String, default: '' },
+    tasksPath: { type: String, default: '' },
+    taskPath: { type: String, default: '' },
+    reminderPath: { type: String, default: '' },
+    commentsPath: { type: String, default: '' },
+    commentResolvePath: { type: String, default: '' },
+    commentDeletePath: { type: String, default: '' },
     /** The whole notebook as a zip, a single note as .md, and the way back. */
     exportPath: { type: String, required: true },
     exportOnePath: { type: String, required: true },
@@ -522,6 +541,184 @@ const coeditAllowed = computed(() =>
     }),
 );
 
+/** Every tag of the notebook, offered after `#` in the editor. */
+const allTagNames = computed(() => {
+    const names = new Map();
+    for (const note of notes.value) {
+        for (const tag of note.tags ?? []) {
+            if (!names.has(tag.toLowerCase())) names.set(tag.toLowerCase(), tag);
+        }
+    }
+
+    return [...names.values()].sort((left, right) => left.localeCompare(right));
+});
+
+const { request: linkTitleRequest } = useRequest();
+
+/** A pasted address's page title, or null; nothing on screen if it fails. */
+async function fetchLinkTitle(url) {
+    if (!props.linkTitlePath) return null;
+    const payload = await linkTitleRequest(`${props.linkTitlePath}?url=${encodeURIComponent(url)}`, null, {
+        method: 'GET',
+        silent: true,
+        noGuard: true,
+    });
+
+    return payload?.title ?? null;
+}
+
+const noteEditorRef = ref(null);
+const helpOpen = ref(false);
+
+/** The note's emoji and its picker (09/10/2026). */
+const iconPickerOpen = ref(false);
+const iconPickerRef = ref(null);
+useDismissable(iconPickerRef, iconPickerOpen);
+
+function pickIcon(emoji) {
+    form.value.icon = emoji;
+    iconPickerOpen.value = false;
+}
+
+/**
+ * Who a « person » property can name: everybody of the suite, asked once,
+ * the first time a note shows or gets a property.
+ */
+const everyone = ref([]);
+let everyoneAsked = false;
+const { request: everyoneRequest } = useRequest();
+
+async function loadEveryone() {
+    if (everyoneAsked || !props.peopleEveryonePath) return;
+    everyoneAsked = true;
+    const payload = await everyoneRequest(props.peopleEveryonePath, null, { method: 'GET', silent: true, noGuard: true });
+    everyone.value = payload?.people ?? [];
+}
+
+watch(
+    () => form.value.properties?.length ?? 0,
+    (count) => {
+        if (count > 0) void loadEveryone();
+    },
+    { immediate: true },
+);
+
+function addProperty() {
+    void loadEveryone();
+    const taken = new Set((form.value.properties ?? []).map((property) => property.key.toLowerCase()));
+    let key = t('notes.markdown.properties.new');
+    for (let number = 2; taken.has(key.toLowerCase()); number += 1) key = `${t('notes.markdown.properties.new')} ${number}`;
+    form.value.properties = [...(form.value.properties ?? []), { key, type: 'text', value: null }];
+}
+
+const FONTS = ['sans', 'serif', 'mono'];
+
+/** How the note reads: its typeface and size, wherever it is shown. */
+const readingClass = computed(() => [
+    'serif' === form.value.font ? 'note-font-serif' : '',
+    'mono' === form.value.font ? 'note-font-mono' : '',
+    form.value.smallText ? 'note-small-text' : '',
+]);
+
+/** Quick search, Cmd/Ctrl+P (09/10/2026); Cmd/Ctrl+K stays the suite's. */
+const quickOpen = ref(false);
+useKeyboardShortcut({ key: 'p', ctrl: true }, () => {
+    quickOpen.value = true;
+});
+
+async function createFromQuickOpen(title) {
+    await createNote(selectedNote.value?.folderId ?? null, title);
+}
+
+/**
+ * Focus mode (09/10/2026): the side menu folded, the page header, the path,
+ * the banner and the side panel out of the way, the note in a centred column.
+ * Cmd/Ctrl+Shift+F in and out, Escape out. The side menu's fold is borrowed,
+ * never saved: leaving gives back the menu as it was.
+ */
+const focusMode = ref(false);
+let menuFoldedBefore = false;
+
+function applyFocus(on) {
+    const page = document.documentElement;
+    if (on) {
+        menuFoldedBefore = page.classList.contains('sidemenu-collapsed');
+        page.classList.add('notes-focus', 'sidemenu-collapsed');
+        sidePanelOpen.value = false;
+
+        return;
+    }
+
+    page.classList.remove('notes-focus');
+    if (!menuFoldedBefore) page.classList.remove('sidemenu-collapsed');
+}
+
+watch(focusMode, applyFocus);
+
+function onFocusKeys(event) {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && 'f' === event.key.toLowerCase()) {
+        if (!selectedNote.value) return;
+        event.preventDefault();
+        focusMode.value = !focusMode.value;
+
+        return;
+    }
+
+    if ('Escape' === event.key && focusMode.value && !document.querySelector('[role="dialog"]')) {
+        focusMode.value = false;
+    }
+}
+
+onMounted(() => window.addEventListener('keydown', onFocusKeys));
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onFocusKeys);
+    if (focusMode.value) applyFocus(false);
+});
+
+watch(selectedNote, (note) => {
+    if (!note) focusMode.value = false;
+});
+
+/**
+ * An example from the cheat sheet, at the caret. From the preview alone the
+ * editor is brought back first: there is nowhere to insert without it.
+ */
+async function insertFromHelp({ text, caret }) {
+    if ('preview' === viewMode.value) {
+        viewMode.value = 'split';
+        await nextTick();
+    }
+
+    const textarea = noteEditorRef.value?.textareaRef ?? null;
+    const content = form.value.content ?? '';
+    const start = textarea ? textarea.selectionStart : content.length;
+    const end = textarea ? textarea.selectionEnd : start;
+    form.value.content = content.slice(0, start) + text + content.slice(end);
+
+    await nextTick();
+    const caretAt = start + (null === caret ? text.length : caret);
+    textarea?.focus();
+    textarea?.setSelectionRange(caretAt, caretAt);
+}
+
+/** A paragraph was named in the editor: its link goes to the clipboard. */
+async function copyBlockLink(id) {
+    const link = `[[${form.value.title || t('notes.markdown.untitled')}#^${id}]]`;
+    try {
+        await navigator.clipboard.writeText(link);
+        toast.success(t('notes.markdown.editor.block_link_copied'));
+    } catch {
+        toast.info(link);
+    }
+}
+
+/** Another note's text, for `![[Note]]` in the preview. */
+async function loadNoteContent(id) {
+    const { ok, payload } = await api.show(id);
+
+    return ok ? (payload?.note?.content ?? null) : null;
+}
+
 useNoteCoedit({
     noteId: selectedId,
     allowed: coeditAllowed,
@@ -611,6 +808,58 @@ async function openReading() {
     window.location.assign(readHref.value);
 }
 
+/** The note as slides (09/10/2026). */
+const presenting = ref(false);
+
+/** The note as a Word file, written in the browser (09/10/2026). */
+async function exportWord() {
+    try {
+        const { noteDocx } = await import('@notes/suite/markdown/composables/noteDocx.js');
+        const blob = await noteDocx({ title: form.value.title, content: form.value.content });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${(form.value.title || t('notes.markdown.untitled')).replace(/[\\/:*?"<>|]+/g, '-').trim()}.docx`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 10_000);
+    } catch {
+        toast.error(t('notes.markdown.export.word_failed'));
+    }
+}
+
+/**
+ * The person's reminder on the open note (09/10/2026), asked when the note
+ * opens: it is theirs, not the note's, so it does not travel with it.
+ */
+const reminderAt = ref(null);
+const reminderModalOpen = ref(false);
+const reminderSaving = ref(false);
+
+watch(
+    selectedId,
+    async (id) => {
+        reminderAt.value = null;
+        if (!id || !props.reminderPath) return;
+        const { ok, payload } = await api.reminder(id);
+        if (ok && id === selectedId.value) reminderAt.value = payload?.remindAt ?? null;
+    },
+    { immediate: true },
+);
+
+async function saveReminder(remindAt) {
+    if (!selectedId.value) return;
+    reminderSaving.value = true;
+    const { ok, reported, payload } = await api.setReminder(selectedId.value, remindAt);
+    reminderSaving.value = false;
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.errors.save_failed'));
+
+        return;
+    }
+    reminderAt.value = payload?.remindAt ?? null;
+    reminderModalOpen.value = false;
+    toast.success(null === reminderAt.value ? t('notes.markdown.reminder.removed') : t('notes.markdown.reminder.saved', { at: formatDateTime(reminderAt.value) }));
+}
+
 const noteActions = computed(() => {
     const actions = [
         {
@@ -649,6 +898,65 @@ const noteActions = computed(() => {
             icon: Image,
             onSelect: () => {
                 coverModalOpen.value = true;
+            },
+        },
+        // What a note is made of and how it reads (09/10/2026).
+        {
+            key: "icon",
+            title: form.value.icon ? t('notes.markdown.icon.change') : t('notes.markdown.icon.add'),
+            icon: SmilePlus,
+            onSelect: async () => {
+                await overlaysSettled();
+                iconPickerOpen.value = true;
+            },
+        },
+        {
+            key: "property",
+            title: t('notes.markdown.properties.add'),
+            icon: ListPlus,
+            onSelect: () => addProperty(),
+        },
+        {
+            key: "full-width",
+            title: form.value.fullWidth ? t('notes.markdown.layout.column') : t('notes.markdown.layout.full_width'),
+            icon: MoveHorizontal,
+            onSelect: () => {
+                form.value.fullWidth = !form.value.fullWidth;
+            },
+        },
+        {
+            key: "small-text",
+            title: form.value.smallText ? t('notes.markdown.layout.normal_text') : t('notes.markdown.layout.small_text'),
+            icon: ALargeSmall,
+            onSelect: () => {
+                form.value.smallText = !form.value.smallText;
+            },
+        },
+        {
+            key: "font",
+            title: t('notes.markdown.layout.font', { font: t(`notes.markdown.layout.fonts.${FONTS[(FONTS.indexOf(form.value.font ?? 'sans') + 1) % FONTS.length]}`) }),
+            icon: CaseSensitive,
+            onSelect: () => {
+                form.value.font = FONTS[(FONTS.indexOf(form.value.font ?? 'sans') + 1) % FONTS.length];
+            },
+        },
+        ...(props.reminderPath
+            ? [{
+                key: "reminder",
+                title: reminderAt.value ? t('notes.markdown.reminder.change') : t('notes.markdown.reminder.title'),
+                icon: BellRing,
+                onSelect: async () => {
+                    await overlaysSettled();
+                    reminderModalOpen.value = true;
+                },
+            }]
+            : []),
+        {
+            key: "lock",
+            title: form.value.locked ? t('notes.markdown.lock.unlock') : t('notes.markdown.lock.lock'),
+            icon: form.value.locked ? LockOpen : Lock,
+            onSelect: () => {
+                form.value.locked = !form.value.locked;
             },
         },
         ...(canShareSelected.value
@@ -731,6 +1039,23 @@ const noteActions = computed(() => {
             icon: FileDown,
             onSelect: () => exportOne(selectedId.value),
         },
+        // Word, for whoever works in it (09/10/2026).
+        {
+            key: "export-word",
+            title: t('notes.markdown.export.word'),
+            icon: FileType,
+            onSelect: () => void exportWord(),
+        },
+        // The note as slides, full screen (09/10/2026).
+        {
+            key: "present",
+            title: t('notes.markdown.present.start'),
+            icon: Presentation,
+            onSelect: async () => {
+                await overlaysSettled();
+                presenting.value = true;
+            },
+        },
         // Move the note to the trash. The gesture existed and could only be
         // reached from the library: from the note itself, the most obvious
         // place, there was nothing.
@@ -748,6 +1073,171 @@ const noteActions = computed(() => {
 
 
 const previewPaneRef = ref(null);
+
+/**
+ * The comments of the open note (09/10/2026), asked when it opens: their
+ * count is on the button, their passages are marked in the preview.
+ */
+const commentsOpen = ref(false);
+const commentThreads = ref([]);
+const commentsLoading = ref(false);
+const commentsSaving = ref(false);
+const commentQuote = ref(null);
+const missingQuotes = ref(new Set());
+const notePreviewRef = ref(null);
+/** What was last selected in the note, to comment on it. */
+let lastSelection = '';
+
+const openCommentCount = computed(() => commentThreads.value.filter((thread) => !thread.resolvedAt).length);
+const commentQuotes = computed(() =>
+    commentThreads.value.filter((thread) => !thread.resolvedAt && thread.quote).map((thread) => ({ id: thread.id, quote: thread.quote })),
+);
+
+async function loadComments(id = selectedId.value) {
+    if (!id || !props.commentsPath) return;
+    commentsLoading.value = true;
+    const { ok, payload } = await api.comments(id);
+    commentsLoading.value = false;
+    if (ok && id === selectedId.value) commentThreads.value = payload?.threads ?? [];
+}
+
+watch(
+    selectedId,
+    (id) => {
+        commentThreads.value = [];
+        commentQuote.value = null;
+        missingQuotes.value = new Set();
+        void loadComments(id);
+        // `@` in the editor offers everyone: asked once, on the first note.
+        if (id) void loadEveryone();
+    },
+    { immediate: true },
+);
+
+// One panel beside the note at a time.
+watch(sidePanelOpen, (open) => {
+    if (open) commentsOpen.value = false;
+});
+
+/** The panel opens beside the note, in place of the outline. */
+function openComments(quote = null) {
+    if (!props.commentsPath || !selectedId.value) return;
+    commentQuote.value = quote;
+    sidePanelOpen.value = false;
+    commentsOpen.value = true;
+}
+
+/** Comments the passage selected in the note, or the note as a whole. */
+function commentSelection() {
+    const quote = lastSelection.trim().slice(0, 1000);
+    lastSelection = '';
+    openComments('' === quote ? null : quote);
+}
+
+function rememberSelection() {
+    const field = noteEditorRef.value?.textareaRef;
+    if (field && document.activeElement === field && field.selectionEnd > field.selectionStart) {
+        lastSelection = field.value.slice(field.selectionStart, field.selectionEnd);
+
+        return;
+    }
+    const selection = window.getSelection();
+    const area = previewPaneRef.value;
+    if (selection && !selection.isCollapsed && area && area.contains(selection.anchorNode)) {
+        lastSelection = selection.toString();
+    }
+}
+
+function onCommentKeys(event) {
+    // Cmd/Ctrl+Alt+M, as in Google Docs.
+    if ((event.ctrlKey || event.metaKey) && event.altKey && 'KeyM' === event.code && selectedNote.value) {
+        event.preventDefault();
+        rememberSelection();
+        commentSelection();
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('selectionchange', rememberSelection);
+    window.addEventListener('keydown', onCommentKeys);
+});
+onBeforeUnmount(() => {
+    document.removeEventListener('selectionchange', rememberSelection);
+    window.removeEventListener('keydown', onCommentKeys);
+});
+
+async function submitComment({ body, quote, parentId }) {
+    if (!selectedId.value) return;
+    commentsSaving.value = true;
+    const { ok, reported, payload } = await api.addComment(selectedId.value, { body, quote, parentId });
+    commentsSaving.value = false;
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.comments.failed'));
+
+        return;
+    }
+    commentThreads.value = payload?.threads ?? [];
+    if (null === parentId) commentQuote.value = null;
+}
+
+async function resolveComment({ id, resolved }) {
+    const { ok, payload } = await api.resolveComment(id, resolved);
+    if (ok) commentThreads.value = payload?.threads ?? [];
+}
+
+async function deleteComment(id) {
+    const { ok, payload } = await api.deleteComment(id);
+    if (ok) commentThreads.value = payload?.threads ?? [];
+}
+
+/** A marked passage clicked in the preview: its thread, in the panel. */
+function onCommentMarkClick(id) {
+    openComments(null);
+    void nextTick(() => document.querySelector(`[data-note-comment-thread-id="${Number(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+}
+
+function focusQuote(id) {
+    if ('edit' === viewMode.value) return;
+    notePreviewRef.value?.flashQuote(id);
+}
+
+/**
+ * A link that names a place in a note - `[[Note#Heading]]` or a paragraph,
+ * `[[Note#^id]]` (09/10/2026) - opens the note and goes there. It only opened
+ * the note: the heading was written in the link and nobody went to it.
+ */
+async function onPreviewWikiLink(payload) {
+    await onWikiLinkClick(payload);
+    if (!payload.heading || null === payload.matchedId) return;
+
+    // The preview of the newly opened note renders a moment later.
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+        await nextTick();
+        if (scrollPreviewTo(payload.heading)) return;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+}
+
+function scrollPreviewTo(anchor) {
+    const pane = previewPaneRef.value;
+    if (!pane) return false;
+
+    let target = null;
+    if (anchor.startsWith('^')) {
+        const mark = [...pane.querySelectorAll('[data-block-id]')].find((element) => element.dataset.blockId === anchor.slice(1));
+        target = mark?.closest('p, li') ?? null;
+    } else {
+        const wanted = anchor.trim().toLowerCase();
+        target = [...pane.querySelectorAll('h1, h2, h3, h4, h5, h6')].find((element) => element.textContent.trim().toLowerCase() === wanted) ?? null;
+    }
+    if (!target) return false;
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('is-linked-block');
+    setTimeout(() => target.classList.remove('is-linked-block'), 1800);
+
+    return true;
+}
 
 /**
  * Go to the heading clicked in the outline.
@@ -832,11 +1322,11 @@ async function duplicateNote() {
  */
 const dailyOpening = ref(false);
 
-async function openDailyNote() {
+async function openDailyNote(date = null) {
     if (dailyOpening.value) return;
 
     dailyOpening.value = true;
-    const { ok, reported, payload } = await api.daily();
+    const { ok, reported, payload } = await api.daily(date);
     dailyOpening.value = false;
 
     if (!ok) {
@@ -847,6 +1337,45 @@ async function openDailyNote() {
 
     await Promise.all([refreshFolders(), refreshList()]);
     await openNote(payload.note.id);
+}
+
+/** The days of a month that have their note, for the journal's calendar. */
+async function loadJournalDays(month) {
+    if (!props.dailyDaysPath) return [];
+    const { ok, payload } = await api.dailyDays(month);
+
+    return ok ? (payload?.days ?? []) : [];
+}
+
+/** The tasks view (09/10/2026): every checkbox of every note. */
+const tasksOpen = ref(false);
+
+async function loadTasks() {
+    const { ok, payload } = await api.tasks();
+
+    return ok ? (payload?.tasks ?? []) : [];
+}
+
+/**
+ * The open note is ticked through its form, as a click in its preview would;
+ * any other one on the server, which rewrites just that line.
+ */
+async function toggleTask(task) {
+    if (task.noteId === selectedId.value) {
+        await onCheckboxToggle(task.index);
+
+        return true;
+    }
+
+    const { ok, reported } = await api.toggleTask(task.noteId, task.index, !task.done);
+    if (!ok && !reported) toast.error(t('notes.markdown.errors.save_failed'));
+
+    return ok;
+}
+
+function openNoteFromTasks(id) {
+    tasksOpen.value = false;
+    void openNote(id);
 }
 
 /** Make the open note a template, or turn it back into an ordinary one. */
@@ -1406,7 +1935,7 @@ onUnmounted(() => {
              without searching the panel for it. Outside the card for the
              same reason as the link. -->
         <nav
-            v-if="selectedNote && !crashed"
+            v-if="selectedNote && !crashed && !focusMode"
             data-note-breadcrumb
             class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-muted"
             :aria-label="t('notes.markdown.breadcrumb')"
@@ -1436,7 +1965,19 @@ onUnmounted(() => {
             </span>
         </nav>
 
-        <div class="aurora-card relative flex min-h-0 flex-1 overflow-hidden">
+        <!-- Leaving focus mode, always in reach while it hides the rest. -->
+        <button
+            v-if="focusMode"
+            type="button"
+            data-note-focus-exit
+            class="fixed right-4 top-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-secondary shadow-md transition-colors hover:text-primary"
+            v-on:click="focusMode = false"
+        >
+            <Minimize2 class="h-3.5 w-3.5" :stroke-width="2" />
+            {{ t('notes.markdown.focus.exit') }}
+        </button>
+
+        <div class="aurora-card relative flex min-h-0 flex-1 overflow-hidden" :class="focusMode ? 'mx-auto w-full max-w-4xl' : ''">
             <!-- No tree column and no drawer of its own: the notes are in the
              side menu's panel now, on every page of the module rather than
              this one, and the menu already has a drawer on small screens.
@@ -1466,7 +2007,7 @@ onUnmounted(() => {
                      The same height as on the share page and in the reading
                      view (09/10/2026): lower here, the crop chosen in the
                      editor was not the one a guest saw. -->
-                    <figure v-if="form.coverUrl" class="relative m-0 shrink-0">
+                    <figure v-if="form.coverUrl && !focusMode" class="relative m-0 shrink-0">
                         <img
                             :src="form.coverUrl"
                             alt=""
@@ -1480,6 +2021,44 @@ onUnmounted(() => {
                             {{ t('notes.markdown.cover.credit', { name: form.coverCreditName }) }}
                         </figcaption>
                     </figure>
+
+                    <!-- The note's emoji, as in Notion (09/10/2026): over the
+                         bottom of the banner when there is one, above the
+                         title otherwise. -->
+                    <div
+                        v-if="form.icon || iconPickerOpen"
+                        ref="iconPickerRef"
+                        class="relative z-10 px-3"
+                        :class="form.coverUrl && !focusMode ? '-mt-10' : 'pt-3'"
+                    >
+                        <button
+                            type="button"
+                            data-note-icon
+                            class="rounded-lg p-1 text-5xl leading-none transition-colors hover:bg-surface-2"
+                            :class="form.icon ? '' : 'invisible'"
+                            :title="t('notes.markdown.icon.change')"
+                            :disabled="form.locked"
+                            v-on:click="iconPickerOpen = !iconPickerOpen"
+                        >
+                            {{ form.icon || '·' }}
+                        </button>
+                        <div v-if="iconPickerOpen" class="absolute left-3 top-full z-30 mt-1">
+                            <NoteIconPicker :current="form.icon" v-on:pick="pickIcon" />
+                        </div>
+                    </div>
+
+                    <!-- Locked against edits by mistake (09/10/2026). -->
+                    <div
+                        v-if="form.locked"
+                        data-note-locked
+                        class="flex items-center gap-2 border-b border-line bg-surface-2 px-3 py-1.5 text-xs text-muted"
+                    >
+                        <Lock class="h-3.5 w-3.5" :stroke-width="2" />
+                        <span class="flex-1">{{ t('notes.markdown.lock.banner') }}</span>
+                        <button type="button" class="font-medium text-secondary hover:text-primary" v-on:click="form.locked = false">
+                            {{ t('notes.markdown.lock.unlock') }}
+                        </button>
+                    </div>
 
                     <!-- The title and the commands on a single line: alone,
                          the title left half the header empty and pushed the
@@ -1509,6 +2088,18 @@ onUnmounted(() => {
                              enough to say one can write in it, without
                              framing it all the time: the title stays a title
                              as long as it is not aimed at. -->
+                        <!-- An emoji to add, as in Notion: at hand, never in the way. -->
+                        <button
+                            v-if="!form.icon && !form.locked"
+                            type="button"
+                            data-note-add-icon
+                            class="-mr-2 shrink-0 rounded-md p-1 text-muted opacity-60 transition hover:bg-surface-2 hover:text-primary hover:opacity-100 focus:opacity-100"
+                            :title="t('notes.markdown.icon.add')"
+                            :aria-label="t('notes.markdown.icon.add')"
+                            v-on:click="iconPickerOpen = true"
+                        >
+                            <SmilePlus class="h-5 w-5" :stroke-width="2" />
+                        </button>
                         <input
                             v-model="form.title"
                             data-note-title
@@ -1517,6 +2108,7 @@ onUnmounted(() => {
                             :placeholder="t('notes.markdown.title_placeholder')"
                             :aria-label="t('notes.markdown.title_placeholder')"
                             :title="t('notes.markdown.rename')"
+                            :readonly="form.locked"
                         >
 
                         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
@@ -1602,6 +2194,53 @@ onUnmounted(() => {
                                 <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
                             </AppButton>
 
+                            <!-- The comments (09/10/2026): a click comments
+                                 what is selected in the note, if anything. -->
+                            <AppButton
+                                v-if="commentsPath"
+                                variant="secondary"
+                                data-note-comments-toggle
+                                :active="commentsOpen"
+                                :aria-pressed="commentsOpen"
+                                :label="t('notes.markdown.comments.title')"
+                                icon-only
+                                class="relative"
+                                v-on:pointerdown="rememberSelection"
+                                v-on:click="commentsOpen ? (commentsOpen = false) : commentSelection()"
+                            >
+                                <MessageSquare class="w-4 h-4" :stroke-width="2" />
+                                <span
+                                    v-if="openCommentCount"
+                                    class="absolute -right-1 -top-1 min-w-4 rounded-full bg-amber-500 px-1 text-center text-2xs font-semibold leading-4 text-white"
+                                >{{ openCommentCount }}</span>
+                            </AppButton>
+
+                            <!-- Focus mode (09/10/2026). -->
+                            <AppButton
+                                variant="secondary"
+                                data-note-focus
+                                :active="focusMode"
+                                :aria-pressed="focusMode"
+                                :label="focusMode ? t('notes.markdown.focus.exit') : t('notes.markdown.focus.enter')"
+                                icon-only
+                                v-on:click="focusMode = !focusMode"
+                            >
+                                <Minimize2 v-if="focusMode" class="w-4 h-4" :stroke-width="2" />
+                                <Maximize2 v-else class="w-4 h-4" :stroke-width="2" />
+                            </AppButton>
+
+                            <!-- The cheat sheet (09/10/2026): every way to
+                                 write a note, and a click that inserts it. -->
+                            <AppButton
+                                variant="secondary"
+                                data-note-help
+                                :label="t('notes.markdown.help.title')"
+                                icon-only
+                                v-on:click="helpOpen = true"
+                            >
+                                <CircleHelp class="w-4 h-4" :stroke-width="2" />
+                            </AppButton>
+
                             <!-- View mode toggle (edit / split / preview) - segmented AppTab control,
                                  at the height of the neighbouring buttons. -->
                             <div class="inline-flex h-9.5 items-stretch rounded-lg border border-line overflow-hidden">
@@ -1659,6 +2298,22 @@ onUnmounted(() => {
                          fields they've added via aurora-client. -->
                         <slot name="extra-form-fields" :form="form" />
                     </header>
+                    <!-- The reminder waiting on this note, the person's own (09/10/2026). -->
+                    <div v-if="reminderAt" class="border-b border-line px-3 py-1.5">
+                        <button
+                            type="button"
+                            data-note-reminder-chip
+                            class="inline-flex items-center gap-1.5 rounded-full bg-accent-500/15 px-2.5 py-0.5 text-xs text-accent-600 transition-colors hover:bg-accent-500/25 dark:text-accent-300"
+                            v-on:click="reminderModalOpen = true"
+                        >
+                            <BellRing class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t('notes.markdown.reminder.chip', { at: formatDateTime(reminderAt) }) }}
+                        </button>
+                    </div>
+                    <!-- The properties, under the title (09/10/2026). -->
+                    <div v-if="form.properties?.length" class="border-b border-line px-3 py-2">
+                        <NoteProperties v-model="form.properties" :people="everyone" :readonly="form.locked" />
+                    </div>
 
                     <!-- Two separate fixes, because the first one alone was aimed
                      at the wrong measurement.
@@ -1697,14 +2352,20 @@ onUnmounted(() => {
                             :style="viewMode === 'split' && !isMobile ? { width: `${editorWidth}px` } : {}"
                         >
                             <NoteEditor
+                                ref="noteEditorRef"
                                 v-model="form.content"
+                                :readonly="form.locked"
                                 :placeholder="t('notes.markdown.content_placeholder')"
                                 :flat-notes="notes"
                                 :upload-image="api.uploadImage"
                                 :image-max-edge="imageMaxEdge"
                                 :image-quality="imageQuality"
                                 :cursors="roomCursors"
+                                :all-tags="allTagNames"
+                                :fetch-link-title="fetchLinkTitle"
+                                :people="everyone"
                                 v-on:caret="onCaretMoved"
+                                v-on:block-link="copyBlockLink"
                             />
                         </div>
 
@@ -1729,9 +2390,16 @@ onUnmounted(() => {
                                  `# ` stays in the writing area as in the
                                  export. -->
                             <NotePreview
+                                ref="notePreviewRef"
+                                :class="readingClass"
                                 :content="previewBody"
                                 :note-titles="notes"
-                                v-on:wiki-link-click="onWikiLinkClick"
+                                :load-note-content="loadNoteContent"
+                                :comment-quotes="commentQuotes"
+                                v-on:comment-click="onCommentMarkClick"
+                                v-on:quotes-marked="missingQuotes = new Set(commentQuotes.filter((one) => !$event.has(one.id)).map((one) => one.id))"
+                                v-on:wiki-link-click="onPreviewWikiLink"
+                                v-on:tag-click="PANEL_INTENTS['filter-tag']"
                                 v-on:checkbox-toggle="onCheckboxToggle"
                                 v-on:image-resize="onImageResize"
                             />
@@ -1757,10 +2425,14 @@ onUnmounted(() => {
                     :export-url-for="exportUrl"
                     :max-depth="maxDepth"
                     :daily-enabled="'' !== dailyPath"
+                    :load-journal-days="loadJournalDays"
                     :daily-opening="dailyOpening"
+                    :tasks-enabled="'' !== tasksPath"
+                    :people="everyone"
                     v-on:open-note="openNote"
                     v-on:create-note="createNote"
                     v-on:open-daily-note="openDailyNote"
+                    v-on:open-tasks="tasksOpen = true"
                     v-on:changed="onLibraryChanged"
                     v-on:folder-changed="openFolderId = $event"
                 />
@@ -1783,6 +2455,44 @@ onUnmounted(() => {
                 v-on:remove="removeCover"
                 v-on:position="form.coverPosition = $event"
                 v-on:appearance="form.appearance = $event"
+            />
+
+            <NoteQuickOpen
+                :show="quickOpen"
+                :notes="notes"
+                v-on:close="quickOpen = false"
+                v-on:open="openNote"
+                v-on:create="createFromQuickOpen"
+            />
+
+            <NotePresentation
+                v-if="presenting && selectedNote"
+                :title="form.title"
+                :icon="form.icon"
+                :content="form.content"
+                v-on:close="presenting = false"
+            />
+
+            <NoteReminderModal
+                :show="reminderModalOpen"
+                :current="reminderAt"
+                :saving="reminderSaving"
+                v-on:close="reminderModalOpen = false"
+                v-on:save="saveReminder"
+            />
+
+            <NoteTasksPanel
+                :show="tasksOpen"
+                :load-tasks="loadTasks"
+                :toggle-task="toggleTask"
+                v-on:close="tasksOpen = false"
+                v-on:open-note="openNoteFromTasks"
+            />
+
+            <NoteMarkdownHelp
+                :show="helpOpen"
+                v-on:close="helpOpen = false"
+                v-on:insert="insertFromHelp"
             />
 
             <NoteShareModal
@@ -1846,6 +2556,23 @@ onUnmounted(() => {
                 :can-restore="canEditSelected"
                 v-on:close="historyOpen = false"
                 v-on:restored="onRevisionRestored"
+            />
+
+            <NoteCommentsPanel
+                v-if="commentsOpen && selectedNote"
+                :threads="commentThreads"
+                :loading="commentsLoading"
+                :saving="commentsSaving"
+                :quote="commentQuote"
+                :can-moderate="canEditSelected"
+                :people="everyone"
+                :missing="missingQuotes"
+                v-on:close="commentsOpen = false"
+                v-on:submit="submitComment"
+                v-on:resolve="resolveComment"
+                v-on:delete="deleteComment"
+                v-on:focus-quote="focusQuote"
+                v-on:clear-quote="commentQuote = null"
             />
 
             <NoteSidePanel

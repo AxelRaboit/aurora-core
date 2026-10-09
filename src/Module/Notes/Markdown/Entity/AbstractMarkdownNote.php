@@ -8,6 +8,8 @@ use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Markdown\Enum\NoteFontEnum;
+use Aurora\Module\Notes\Markdown\Service\NoteProperties;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
@@ -130,6 +132,41 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     /** {@see NoteAppearanceEnum} - the note's background and its ink. */
     #[ORM\Column(length: 20, options: ['default' => 'plain'])]
     protected string $appearance = NoteAppearanceEnum::Plain->value;
+
+    /**
+     * The note's emoji, between its banner and its title, as in Notion
+     * (09/10/2026). Shown wherever the note is named: the tree, the library,
+     * the quick search, a share page.
+     */
+    #[ORM\Column(length: 32, nullable: true)]
+    protected ?string $icon = null;
+
+    /**
+     * Status, date, person… the line at the top of the note
+     * (09/10/2026). A list of `{key, type, value}`, always through
+     * {@see NoteProperties::normalize()}. In plain text like the tags: a
+     * folder's table view sorts and filters by them.
+     *
+     * @var list<array{key: string, type: string, value: bool|float|int|string|null}>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $properties = [];
+
+    /** Locked against edits by mistake, as Notion's « Verrouiller la page ». */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $locked = false;
+
+    /** Read across the whole width rather than in a column. */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $fullWidth = false;
+
+    /** Read in a smaller size. */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $smallText = false;
+
+    /** {@see NoteFontEnum} */
+    #[ORM\Column(length: 8, options: ['default' => 'sans'])]
+    protected string $font = NoteFontEnum::Sans->value;
 
     /** When the note was moved to the trash. */
     #[ORM\Column(nullable: true)]
@@ -265,6 +302,79 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     public function setAppearance(NoteAppearanceEnum $appearance): static
     {
         $this->appearance = $appearance->value;
+
+        return $this;
+    }
+
+    public function getIcon(): ?string
+    {
+        return $this->icon;
+    }
+
+    public function setIcon(?string $icon): static
+    {
+        $icon = null === $icon ? null : mb_trim($icon);
+        $this->icon = '' === $icon || null === $icon ? null : mb_substr($icon, 0, 16);
+
+        return $this;
+    }
+
+    public function getProperties(): array
+    {
+        return $this->properties;
+    }
+
+    public function setProperties(array $properties): static
+    {
+        $this->properties = NoteProperties::normalize($properties);
+
+        return $this;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked;
+    }
+
+    public function setLocked(bool $locked): static
+    {
+        $this->locked = $locked;
+
+        return $this;
+    }
+
+    public function isFullWidth(): bool
+    {
+        return $this->fullWidth;
+    }
+
+    public function setFullWidth(bool $fullWidth): static
+    {
+        $this->fullWidth = $fullWidth;
+
+        return $this;
+    }
+
+    public function isSmallText(): bool
+    {
+        return $this->smallText;
+    }
+
+    public function setSmallText(bool $smallText): static
+    {
+        $this->smallText = $smallText;
+
+        return $this;
+    }
+
+    public function getFont(): NoteFontEnum
+    {
+        return NoteFontEnum::fromNullable($this->font);
+    }
+
+    public function setFont(NoteFontEnum $font): static
+    {
+        $this->font = $font->value;
 
         return $this;
     }

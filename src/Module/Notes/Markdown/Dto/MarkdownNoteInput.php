@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Dto;
 
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Markdown\Enum\NoteFontEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class MarkdownNoteInput implements MarkdownNoteInputInterface
@@ -45,7 +46,52 @@ class MarkdownNoteInput implements MarkdownNoteInputInterface
         public readonly bool $force = false,
         /** The space of a creation at the root; null for the personal space. A folder imposes its own. */
         public readonly ?int $spaceId = null,
+        /*
+         * Since 09/10/2026. Null means "not sent, leave as it is": a caller
+         * that does not know these fields must not wipe them.
+         */
+        /** The emoji; "" removes it. */
+        #[Assert\Length(max: 16)]
+        public readonly ?string $icon = null,
+        /** @var list<array<string, mixed>>|null */
+        #[Assert\Count(max: 30)]
+        public readonly ?array $properties = null,
+        public readonly ?bool $locked = null,
+        public readonly ?bool $fullWidth = null,
+        public readonly ?bool $smallText = null,
+        #[Assert\Choice(callback: [NoteFontEnum::class, 'values'])]
+        public readonly ?string $font = null,
     ) {}
+
+    public function getIcon(): ?string
+    {
+        return $this->icon;
+    }
+
+    public function getProperties(): ?array
+    {
+        return $this->properties;
+    }
+
+    public function getLocked(): ?bool
+    {
+        return $this->locked;
+    }
+
+    public function getFullWidth(): ?bool
+    {
+        return $this->fullWidth;
+    }
+
+    public function getSmallText(): ?bool
+    {
+        return $this->smallText;
+    }
+
+    public function getFont(): ?string
+    {
+        return $this->font;
+    }
 
     public function getFolderId(): ?int
     {

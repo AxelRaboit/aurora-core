@@ -195,14 +195,92 @@ final class DailyNoteTest extends IntegrationTestCase
         self::assertSame([$ownersNote], array_map(static fn (MarkdownNote $one): int => (int) $one->getId(), $inOwnersJournal));
     }
 
-    /** Opens today's note and returns its id, the entity manager emptied. */
-    private function openDaily(): int
+    /** A day picked in the journal's calendar gets its own note, and the calendar dots it. */
+    public function testADayOfTheCalendarOpensItsNoteAndIsDotted(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $id = $this->openDaily('2026-03-14');
+        $note = $this->entityManager->find(MarkdownNote::class, $id);
+        $expected = static::getContainer()->get(SiteDateFormatter::class)->date(new DateTimeImmutable('2026-03-14 12:00'), 'fr', 'full');
+        self::assertSame($expected, $note?->getTitle());
+
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_daily_days', ['month' => '2026-03']));
+        self::assertResponseIsSuccessful();
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame(['2026-03-14'], $body['days']);
+
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_daily_days', ['month' => 'mars']));
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame([], $body['days']);
+    }
+
+    /** The tasks view lists every box, and ticks one in its note without touching the rest. */
+    public function testTheTasksViewListsAndTicksABox(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $id = $this->openDaily('2026-03-15');
+        $note = $this->entityManager->find(MarkdownNote::class, $id);
+        self::assertInstanceOf(MarkdownNote::class, $note);
+        $note->setContent("# Jour\n\n- [ ] Appeler 📅 2026-03-20\n- [x] Écrire");
+        $this->entityManager->flush();
+        $version = $note->getVersion();
+
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_tasks'));
+        self::assertResponseIsSuccessful();
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $mine = array_values(array_filter($body['tasks'], static fn (array $task): bool => $id === $task['noteId']));
+        self::assertSame(['Appeler', 'Écrire'], array_column($mine, 'text'));
+        self::assertSame('2026-03-20', $mine[0]['due']);
+
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('suite_notes_markdown_task', ['id' => $id]),
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: '{"index":0,"done":true}',
+        );
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $note = $this->entityManager->find(MarkdownNote::class, $id);
+        self::assertSame("# Jour\n\n- [x] Appeler 📅 2026-03-20\n- [x] Écrire", $note?->getContent());
+        self::assertGreaterThan($version, $note?->getVersion());
+
+        // A box that is not there any more: the list was older than the note.
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('suite_notes_markdown_task', ['id' => $id]),
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: '{"index":9,"done":true}',
+        );
+        self::assertResponseStatusCodeSame(409);
+    }
+
+    /** Somebody else's note cannot be ticked from outside. */
+    public function testAnotherPersonCannotTickMyTasks(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+        $id = $this->openDaily('2026-03-16');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('suite_notes_markdown_task', ['id' => $id]),
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: '{"index":0,"done":true}',
+        );
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /** Opens a day's note (today's by default) and returns its id, the entity manager emptied. */
+    private function openDaily(?string $date = null): int
     {
         $this->client->request(
             'POST',
             $this->urlGenerator->generate('suite_notes_markdown_daily'),
             server: ['CONTENT_TYPE' => 'application/json'],
-            content: '{}',
+            content: null === $date ? '{}' : json_encode(['date' => $date], JSON_THROW_ON_ERROR),
         );
         self::assertResponseIsSuccessful();
 

@@ -212,9 +212,24 @@ describe("the library", () => {
         const button = wrapper.find("[data-library-daily-note]");
         expect(button.attributes("title")).toBe("notes.markdown.daily.title");
 
+        // The button opens the journal's calendar; its first button, today.
         await button.trigger("click");
+        await flushPromises();
+        await wrapper.find("[data-note-journal-today]").trigger("click");
 
-        expect(wrapper.emitted("open-daily-note")).toHaveLength(1);
+        const today = new Date();
+        const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+        expect(wrapper.emitted("open-daily-note")).toEqual([[key]]);
+        expect(wrapper.find("[data-note-journal]").exists()).toBe(false);
+    });
+
+    it("opens the tasks view when the page has one", async () => {
+        expect(render().find("[data-library-tasks]").exists()).toBe(false);
+
+        const wrapper = render({ tasksEnabled: true });
+        await wrapper.find("[data-library-tasks]").trigger("click");
+
+        expect(wrapper.emitted("open-tasks")).toHaveLength(1);
     });
 
     it("does not ask twice while today's note is on its way", async () => {

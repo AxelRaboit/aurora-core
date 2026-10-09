@@ -120,6 +120,121 @@ notes:
             unreachable: "Craft n'a rien renvoyé pour ce document."
             not_imported: Cette note ne vient pas de Craft.
     markdown:
+        icon:
+            add: "Ajouter une icône"
+            change: "Changer l'icône"
+            search: "Chercher : fusée, cœur, maison…"
+            random: "Au hasard"
+            remove: "Retirer"
+            none: "Aucun emoji trouvé."
+            recent: "Récents"
+        properties:
+            add: "Ajouter une propriété"
+            new: "Propriété"
+            name: "Nom de la propriété"
+            type: "Type"
+            empty: "Vide"
+            pick_person: "Choisir une personne"
+            remove: "Retirer la propriété"
+            me: "moi"
+            types:
+                text: "Texte"
+                status: "Statut"
+                date: "Date"
+                person: "Personne"
+                number: "Nombre"
+                checkbox: "Case à cocher"
+                url: "Lien"
+        layout:
+            full_width: "Pleine largeur"
+            column: "Revenir à la colonne"
+            small_text: "Petite police"
+            normal_text: "Police normale"
+            font: "Police : {font}"
+            fonts:
+                sans: "sans empattement"
+                serif: "avec empattements"
+                mono: "à chasse fixe"
+        lock:
+            lock: "Verrouiller la note"
+            unlock: "Déverrouiller"
+            banner: "Note verrouillée : elle se lit, elle ne se modifie pas."
+        quick_open:
+            title: "Ouvrir une note"
+            placeholder: "Titre de la note…"
+            create: "Créer « {title} »"
+            empty: "Aucune note."
+            hint: "↑ ↓ pour choisir, Entrée pour ouvrir. ⌘ K reste la recherche de toute la suite."
+        focus:
+            enter: "Mode focus"
+            exit: "Quitter le mode focus"
+        help:
+            title: "Aide-mémoire"
+            intro: "Tout ce qui s'écrit dans une note. Un clic sur « Insérer » le pose à l'endroit du curseur."
+            search: "Chercher : titre, tableau, couleur…"
+            no_results: "Rien ne correspond à cette recherche."
+            insert: "Insérer"
+            copy: "Copier"
+            sections:
+                text: "Mise en forme"
+                structure: "Titres, listes et tableaux"
+                blocks: "Blocs"
+                links: "Liens entre notes"
+                keyboard: "Clavier"
+            entries:
+                bold: "Gras"
+                italic: "Italique"
+                strikethrough: "Barré"
+                code: "Code dans la ligne"
+                highlight: "Surligné"
+                highlight_color: "Surligné d'une autre couleur (jaune, vert, bleu, violet, rose, rouge, orange, gris)"
+                color: "Texte en couleur"
+                link: "Lien vers une page web"
+                emoji: "Emoji par son nom (« : » puis le nom)"
+                heading_1: "Titre 1"
+                heading_2: "Titre 2"
+                heading_3: "Titre 3"
+                bullet: "Liste à puces"
+                numbered: "Liste numérotée"
+                checkbox: "Case à cocher"
+                task_due: "Tâche avec échéance (vue Toutes les tâches)"
+                quote: "Citation"
+                divider: "Séparateur"
+                table: "Tableau (« /tableau 3x4 » pour une taille)"
+                toc: "Sommaire de la note"
+                code_block: "Bloc de code, coloré selon le langage"
+                callout: "Encadré"
+                callout_types: "Types d'encadré"
+                callout_folded: "Encadré replié (« + » pour déplié)"
+                toggle: "Bloc dépliant"
+                footnote: "Note de bas de page"
+                math: "Formule dans la ligne"
+                math_block: "Bloc de formule"
+                diagram: "Diagramme (Mermaid)"
+                image: "Image et sa largeur (glisser-déposer ou coller aussi)"
+                wiki_link: "Lien vers une note (« [[ » propose les titres)"
+                wiki_heading: "Lien vers un titre d'une note"
+                wiki_alias: "Lien avec un autre texte affiché"
+                wiki_block: "Lien vers un paragraphe (le raccourci le nomme et copie son lien)"
+                embed: "Inclure une note dans celle-ci"
+                tag: "Étiquette (« # » propose les étiquettes)"
+                mention: "Mentionner quelqu'un (« @ » propose les personnes, qui sont prévenues)"
+                paste_link: "Coller une adresse : elle devient un lien titré"
+                slash: "Menu des commandes (en début de ligne)"
+                move_line: "Monter ou descendre la ligne"
+                table_tab: "Passer d'une cellule à l'autre"
+                reading: "Mode lecture"
+                quick_open: "Recherche rapide d'une note"
+                comment: "Commenter le passage sélectionné"
+                focus: "Mode focus"
+        editor:
+            block_link_copied: "Lien vers le paragraphe copié"
+        render:
+            copy: "Copier"
+            copied: "Copié"
+            table_of_contents: "Sommaire"
+            footnotes: "Notes"
+            footnote_back: "Revenir à la note {number}"
         guide:
             title: "Comment s'organisent les notes"
             step_1: "Chaque note appartient à un espace de notes : le vôtre, toujours privé, ou un espace de notes partagé."
@@ -159,6 +274,7 @@ notes:
                 bad_person: Cette personne ne peut pas recevoir la note.
                 save_failed: L'enregistrement a échoué.
         share:
+            unshared_link: 'Cette note ne fait pas partie du partage.'
             can_write: Autoriser la modification
             can_write_hint: Toute personne qui a l'adresse pourra réécrire le texte de cette note. Uniquement celle-ci, jamais les notes liées.
             writable_badge: Écriture
@@ -367,6 +483,12 @@ notes:
                 mosaic: Mosaïque
                 cards: Cartes
                 list: Liste
+                table: Tableau
+            table:
+                filter: 'Filtrer les lignes…'
+                title: 'Note'
+                updated: 'Modifiée'
+                empty: 'Aucune note ici.'
             scope:
                 flat: Tout afficher à plat
                 grouped: Afficher par dossiers
@@ -445,6 +567,8 @@ notes:
         content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
         create_root: Nouvelle note
         export:
+            word: 'Exporter en Word (.docx)'
+            word_failed: 'Le fichier Word n''a pas pu être créé.'
             all: 'Exporter tous mes espaces (zip)'
             one: Exporter cette note
         import:
@@ -508,6 +632,69 @@ notes:
             title: 'Note du jour'
             folder: 'Journal'
             failed: 'La note du jour n''a pas pu être ouverte.'
+            today: "Aujourd'hui"
+            previous: 'Mois précédent'
+            next: 'Mois suivant'
+        # The tasks view: every checkbox of every note.
+        tasks:
+            title: 'Toutes les tâches'
+            search: 'Rechercher une tâche ou une note…'
+            empty: 'Aucune tâche ici.'
+            filters:
+                todo: 'À faire'
+                late: 'En retard'
+                all: 'Toutes'
+        # A reminder on a note: a notification in the suite at the chosen time.
+        # Comments on a passage, and @mentions (09/10/2026).
+        comments:
+            title: 'Commentaires'
+            open: 'Commentaires'
+            empty_list: 'Aucun commentaire. Sélectionnez un passage puis « Commenter », ou écrivez ci-dessous.'
+            placeholder: 'Écrire un commentaire… (@ pour mentionner)'
+            placeholder_guest: 'Écrire un commentaire…'
+            reply_placeholder: 'Répondre…'
+            send: 'Commenter'
+            reply: 'Répondre'
+            resolve: 'Clore'
+            reopen: 'Rouvrir'
+            delete: 'Supprimer'
+            show_resolved: 'Afficher les fils clos ({count})'
+            hide_resolved: 'Masquer les fils clos'
+            on_selection: 'Commenter la sélection'
+            quote_missing: 'Ce passage n''est plus dans la note.'
+            guest: 'Invité'
+            guest_name: 'Votre nom'
+            empty: 'Le commentaire est vide.'
+            notified_new: '%name% a commenté cette note.'
+            notified_reply: '%name% a répondu dans un fil de cette note.'
+            failed: 'Le commentaire n''a pas pu être enregistré.'
+        mention:
+            in_note: '%name% vous a mentionné dans cette note.'
+            in_comment: '%name% vous a mentionné dans un commentaire.'
+        # The note as slides, full screen.
+        present:
+            start: 'Présenter'
+            label: 'Présentation de « {title} »'
+            close: 'Quitter la présentation'
+            previous: 'Diapositive précédente'
+            next: 'Diapositive suivante'
+        reminder:
+            title: 'Me rappeler cette note'
+            change: 'Modifier le rappel'
+            intro: 'Une notification dans la suite, au moment choisi. Ce rappel est le vôtre : les autres lecteurs de la note ne le voient pas.'
+            at: 'Le'
+            past: 'Ce moment est déjà passé.'
+            remove: 'Supprimer le rappel'
+            save: 'Enregistrer'
+            saved: 'Rappel le {at}.'
+            removed: 'Rappel supprimé.'
+            chip: 'Rappel le {at}'
+            body: 'Vous aviez demandé un rappel pour cette note.'
+            invalid: 'Ce moment n''est pas une date valide.'
+            quick:
+                in_an_hour: 'Dans une heure'
+                tomorrow: 'Demain, 9 h'
+                next_week: 'Lundi prochain, 9 h'
         add:
             space: "Espace de notes"
             create_space: "Créer l'espace de notes"
@@ -545,6 +732,15 @@ notes:
             italic: Italique
             strikethrough: Barré
             table: Tableau
+            highlight: "Surligner"
+            color: "Texte en couleur"
+            toggle: "Bloc dépliant"
+            footnote: "Note de bas de page"
+            math: "Formule"
+            math_block: "Bloc de formule"
+            diagram: "Diagramme"
+            toc: "Sommaire"
+            embed: "Inclure une note"
             table_column: 'Colonne {n}'
             no_results: Aucune commande
         tags:

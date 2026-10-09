@@ -82,12 +82,16 @@ use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTagInterface;
+use Aurora\Module\Notes\Comment\Entity\NoteComment;
+use Aurora\Module\Notes\Comment\Entity\NoteCommentInterface;
 use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
 use Aurora\Module\Notes\Favorite\Entity\NoteFavoriteInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Reminder\Entity\NoteReminder;
+use Aurora\Module\Notes\Reminder\Entity\NoteReminderInterface;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteMember;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteMemberInterface;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLink;
@@ -276,6 +280,8 @@ class AuroraBundle extends AbstractBundle
                     NoteSpaceInterface::class => NoteSpace::class,
                     NoteSpaceMemberInterface::class => NoteSpaceMember::class,
                     NoteFavoriteInterface::class => NoteFavorite::class,
+                    NoteReminderInterface::class => NoteReminder::class,
+                    NoteCommentInterface::class => NoteComment::class,
                     MarkdownNoteShareLinkInterface::class => MarkdownNoteShareLink::class,
                     MarkdownNoteMemberInterface::class => MarkdownNoteMember::class,
                     PlanningShareLinkInterface::class => PlanningShareLink::class,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Dto;
 
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Markdown\Enum\NoteFontEnum;
 
 interface MarkdownNoteInputInterface
 {
@@ -31,6 +32,21 @@ interface MarkdownNoteInputInterface
 
     /** {@see NoteAppearanceEnum} */
     public function getAppearance(): ?string;
+
+    /** The emoji, "" to remove it, null when not sent. */
+    public function getIcon(): ?string;
+
+    /** @return list<array<string, mixed>>|null null when not sent */
+    public function getProperties(): ?array;
+
+    public function getLocked(): ?bool;
+
+    public function getFullWidth(): ?bool;
+
+    public function getSmallText(): ?bool;
+
+    /** {@see NoteFontEnum}, null when not sent */
+    public function getFont(): ?string;
 
     public function getVersion(): ?int;
 

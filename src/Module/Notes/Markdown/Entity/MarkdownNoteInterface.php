@@ -7,6 +7,7 @@ namespace Aurora\Module\Notes\Markdown\Entity;
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Markdown\Enum\NoteFontEnum;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
@@ -54,6 +55,32 @@ interface MarkdownNoteInterface extends TimestampableInterface
     public function getAppearance(): NoteAppearanceEnum;
 
     public function setAppearance(NoteAppearanceEnum $appearance): static;
+
+    public function getIcon(): ?string;
+
+    public function setIcon(?string $icon): static;
+
+    /** @return list<array{key: string, type: string, value: bool|float|int|string|null}> */
+    public function getProperties(): array;
+
+    /** @param array<mixed> $properties any list, normalised on the way in */
+    public function setProperties(array $properties): static;
+
+    public function isLocked(): bool;
+
+    public function setLocked(bool $locked): static;
+
+    public function isFullWidth(): bool;
+
+    public function setFullWidth(bool $fullWidth): static;
+
+    public function isSmallText(): bool;
+
+    public function setSmallText(bool $smallText): static;
+
+    public function getFont(): NoteFontEnum;
+
+    public function setFont(NoteFontEnum $font): static;
 
     public function getTags(): array;
 

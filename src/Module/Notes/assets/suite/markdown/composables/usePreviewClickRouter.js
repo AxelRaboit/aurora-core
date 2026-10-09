@@ -46,6 +46,14 @@ export function usePreviewClickRouter({ resolveWikiLink, noteTitlesGetter }) {
             };
         }
 
+        // A `#tag` written in the text filters the library by it (09/10/2026).
+        const tag = target.closest?.("a.md-tag");
+        if (tag) {
+            event.preventDefault();
+
+            return { kind: "tag", payload: { tag: tag.dataset.tag ?? "" } };
+        }
+
         if (
             target.tagName === "INPUT" &&
             target.classList.contains("task-checkbox")

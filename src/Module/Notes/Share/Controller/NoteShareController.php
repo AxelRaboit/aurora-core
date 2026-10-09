@@ -9,6 +9,9 @@ use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\StoredFileResponder;
+use Aurora\Module\Notes\Comment\Entity\NoteCommentInterface;
+use Aurora\Module\Notes\Comment\Service\NoteComments;
+use Aurora\Module\Notes\Comment\Service\NoteMentions;
 use Aurora\Module\Notes\Live\Service\NoteGuestIdentity;
 use Aurora\Module\Notes\Live\Service\NoteLiveHub;
 use Aurora\Module\Notes\Live\Service\NotePresence;
@@ -16,6 +19,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
+use Aurora\Module\Notes\Markdown\View\MarkdownNoteDisplay;
 use Aurora\Module\Notes\NotesContext;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
@@ -29,6 +33,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Reading a note without an account.
@@ -84,6 +89,10 @@ final class NoteShareController extends AbstractController
         // like the one above.
         private readonly RateLimiterFactoryInterface $notesShareLiveLimiter,
         private readonly RateLimiterFactoryInterface $notesShareCoeditWriteLimiter,
+        private readonly MarkdownNoteDisplay $display,
+        private readonly NoteComments $comments,
+        private readonly NoteMentions $mentions,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     /**
@@ -141,6 +150,22 @@ final class NoteShareController extends AbstractController
 
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->unavailable();
+        }
+
+        // The page itself, asking for a note it includes (`![[Note]]`,
+        // 09/10/2026): the same scope as the page, so only a note this link
+        // already shows; its text, nothing more.
+        if ($request->isXmlHttpRequest() && 'json' === $request->getPreferredFormat()) {
+            $response = $this->jsonSuccess([
+                'note' => [
+                    'id' => (int) $note->getId(),
+                    'title' => $note->getTitle(),
+                    'content' => $note->getContent(),
+                ],
+            ]);
+            $response->headers->set('Cache-Control', 'private, no-store');
+
+            return $response;
         }
 
         return $this->withGuestIdentity(
@@ -252,7 +277,8 @@ final class NoteShareController extends AbstractController
         // anyway. An unauthenticated request should touch as little of
         // somebody's notes as the answer needs.
         $note = $link->getNote();
-        if (!$link->canWriteNote($note, new DateTimeImmutable()) || $note->getId() !== $id) {
+        // A locked note is read, not written, by a link too (09/10/2026).
+        if (!$link->canWriteNote($note, new DateTimeImmutable()) || $note->getId() !== $id || $note->isLocked()) {
             return $this->jsonNotFound();
         }
 
@@ -271,7 +297,12 @@ final class NoteShareController extends AbstractController
         // write, the link is the only thing that can name whoever did it.
         $this->history->beforeChange($note, $title, $content, null, $link);
 
+        $before = $note->getContent();
         $this->noteManager->updateText($note, $title, $content);
+
+        // Somebody mentioned in what the guest wrote is told, under the
+        // link's name: the only one there is (09/10/2026).
+        $this->mentions->notifyNew($note, $before, $content, $this->guestName($link));
 
         // The people inside see the guest's save arrive, named by the link
         // they came through - which is the only name there is.
@@ -397,6 +428,66 @@ final class NoteShareController extends AbstractController
         return $response;
     }
 
+    /**
+     * The comments of a shared note (09/10/2026), on a link that writes: a
+     * link for reading shows the note, not the discussion around it. A guest
+     * comments under the name they give; nothing else is asked of them.
+     */
+    #[Route(
+        '/{token}/{id}/comments',
+        name: '_comments',
+        requirements: ['token' => '[A-Za-z0-9]{32,64}', 'id' => '\d+'],
+        methods: [HttpMethodEnum::Get->value, HttpMethodEnum::Post->value],
+    )]
+    public function comments(string $token, int $id, Request $request): JsonResponse
+    {
+        if (!$this->notesContext->isCollaborationEnabled()) {
+            return $this->jsonNotFound();
+        }
+
+        $posting = $request->isMethod(HttpMethodEnum::Post->value);
+        if ($posting && !$this->notesShareWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('notes.markdown.share.errors.too_many_writes', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $link = $this->shareLinks->resolveUsable($token);
+        if (!$link instanceof MarkdownNoteShareLinkInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $note = $link->getNote();
+        if ($note->getId() !== $id || !$link->canWriteNote($note, new DateTimeImmutable())) {
+            return $this->jsonNotFound();
+        }
+
+        if ($posting) {
+            $payload = $this->decodeJson($request);
+            $body = mb_trim($this->text($payload['body'] ?? null) ?? '');
+            if ('' === $body) {
+                return $this->jsonInvalidInput(['body' => 'notes.markdown.comments.empty']);
+            }
+
+            $parent = null;
+            if (is_int($payload['parentId'] ?? null)) {
+                $parent = $this->comments->find($payload['parentId']);
+                if (!$parent instanceof NoteCommentInterface || $parent->getNote()->getId() !== $note->getId()) {
+                    return $this->jsonNotFound();
+                }
+            }
+
+            $name = mb_substr(mb_trim($this->text($payload['guestName'] ?? null) ?? ''), 0, 80);
+            $this->comments->add($note, null, '' === $name ? null : $name, $this->text($payload['quote'] ?? null), $body, $parent);
+        }
+
+        return $this->jsonSuccess(['threads' => $this->comments->threads($note)]);
+    }
+
+    /** How a guest is named to the people inside: the link's recipient or label. */
+    private function guestName(MarkdownNoteShareLinkInterface $link): string
+    {
+        return $link->getRecipientEmail() ?: ($link->getLabel() ?: $this->translator->trans('notes.markdown.comments.guest'));
+    }
+
     /** A field of the payload as text, or null when it was not sent. */
     private function text(mixed $value): ?string
     {
@@ -437,6 +528,7 @@ final class NoteShareController extends AbstractController
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            'display' => $this->display->describe($note),
             // The rest of what the note is made of (09/10/2026): its tags and
             // when it last changed. Its folder stays out - it would show a
             // guest how the author files things, which the link never gave.
@@ -447,12 +539,17 @@ final class NoteShareController extends AbstractController
             // Whether this page may write, and where to. Both come from the
             // link, never from the request: the page is told what it may do
             // rather than asked to find out.
-            'canWrite' => $this->notesContext->isCollaborationEnabled() && $link->canWriteNote($note, new DateTimeImmutable()),
+            'canWrite' => $this->notesContext->isCollaborationEnabled() && $link->canWriteNote($note, new DateTimeImmutable()) && !$note->isLocked(),
             'saveNotePath' => $this->generateUrl('notes_share_save', [
                 'token' => $token,
                 'id' => (int) $note->getId(),
             ]),
             'noteVersion' => $note->getVersion(),
+            // Comments on a link that writes, locked note or not: a comment
+            // changes nothing in the text (09/10/2026).
+            'commentsPath' => $this->notesContext->isCollaborationEnabled() && $link->canWriteNote($note, new DateTimeImmutable())
+                ? $this->generateUrl('notes_share_comments', ['token' => $token, 'id' => (int) $note->getId()])
+                : '',
             // Live co-editing, when the link opens it on its own note and a
             // hub is there to carry it. The page then joins the room through
             // `liveBeatPath`; without either, it writes the old way and never
@@ -460,7 +557,8 @@ final class NoteShareController extends AbstractController
             'coediting' => $this->notesContext->isCollaborationEnabled()
                 && $this->liveHub->isEnabled()
                 && $link->allowsCoediting()
-                && $link->canWriteNote($note, new DateTimeImmutable()),
+                && $link->canWriteNote($note, new DateTimeImmutable())
+                && !$note->isLocked(),
             'liveBeatPath' => $this->generateUrl('notes_share_live', [
                 'token' => $token,
                 'id' => '__id__',

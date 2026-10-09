@@ -19,17 +19,14 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use ZipArchive;
 
 use function array_filter;
-use function array_map;
 use function array_pop;
 use function array_shift;
 use function array_unique;
 use function array_values;
 use function explode;
 use function in_array;
-use function mb_substr;
 use function mb_trim;
 use function pathinfo;
-use function preg_match;
 use function str_ends_with;
 use function str_starts_with;
 
@@ -348,52 +345,19 @@ final readonly class MarkdownNoteImporter
 
     private function noteInput(?NoteFolderInterface $folder, ?NoteSpaceInterface $space, string $title, string $raw): MarkdownNoteInput
     {
-        [$tags, $content] = $this->split($raw);
+        // The tags, the emoji and the properties of the front matter
+        // (09/10/2026): ours, and Obsidian's, which writes the same way.
+        $front = NoteFrontMatter::read($raw);
 
         return new MarkdownNoteInput(
             folderId: $folder?->getId(),
             title: $title,
-            content: $content,
-            tags: $tags,
+            content: $front['content'],
+            tags: $front['tags'],
             spaceId: $folder instanceof NoteFolderInterface ? null : $space?->getId(),
+            icon: $front['icon'],
+            properties: $front['properties'],
         );
-    }
-
-    /**
-     * Splits the front matter from the text.
-     *
-     * Only `tags:` is read: it is the only thing the export writes, and
-     * reading keys we do not produce would promise a dialect we do not keep.
-     * Another tool's front matter is therefore left in the text, where it
-     * stays visible rather than silently lost.
-     *
-     * @return array{0: list<string>, 1: string}
-     */
-    private function split(string $raw): array
-    {
-        if (!str_starts_with($raw, "---\n")) {
-            return [[], $raw];
-        }
-
-        $end = mb_strpos($raw, "\n---", 4);
-
-        if (false === $end) {
-            return [[], $raw];
-        }
-
-        $front = mb_substr($raw, 4, $end - 4);
-        $rest = mb_ltrim(mb_substr($raw, $end + 4), "\n");
-
-        if (1 !== preg_match('/^tags:\s*\[(.*)\]\s*$/m', $front, $found)) {
-            return [[], $raw];
-        }
-
-        $tags = array_values(array_filter(array_map(
-            trim(...),
-            explode(',', $found[1]),
-        ), static fn (string $tag): bool => '' !== $tag));
-
-        return [$tags, $rest];
     }
 
     /** The file name, without its extension, as the title. */

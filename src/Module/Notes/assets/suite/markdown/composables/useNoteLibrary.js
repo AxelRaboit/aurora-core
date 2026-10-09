@@ -5,7 +5,7 @@ const SORT_KEY = "aurora.notes.library.sort";
 const DIRECTION_KEY = "aurora.notes.library.direction";
 const FLAT_KEY = "aurora.notes.library.flat";
 
-export const VIEWS = ["mosaic", "cards", "list"];
+export const VIEWS = ["mosaic", "cards", "list", "table"];
 export const SORTS = ["name", "updated", "created", "manual"];
 
 /**

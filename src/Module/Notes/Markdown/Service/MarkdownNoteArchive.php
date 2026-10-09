@@ -8,6 +8,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Markdown\View\MarkdownNoteDisplay;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -16,8 +17,6 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use ZipArchive;
 
-use function count;
-use function implode;
 use function preg_replace;
 use function sprintf;
 
@@ -55,6 +54,9 @@ final readonly class MarkdownNoteArchive
         private NoteSpaceRepository $spaceRepository,
         private MarkdownNoteImageService $imageService,
         private TranslatorInterface $translator,
+        // Last and optional, so a project that builds the archive by hand
+        // keeps working: without it, a person property is written by id.
+        private ?MarkdownNoteDisplay $display = null,
     ) {}
 
     /**
@@ -173,14 +175,7 @@ final readonly class MarkdownNoteArchive
      */
     public function fileFor(MarkdownNoteInterface $note): string
     {
-        $tags = $note->getTags();
-        $content = (string) $note->getContent();
-
-        if (0 === count($tags)) {
-            return $content;
-        }
-
-        return sprintf("---\ntags: [%s]\n---\n\n%s", implode(', ', $tags), $content);
+        return $this->withFrontMatter($note, (string) $note->getContent());
     }
 
     /** A note's file name, without the folder or the extension. */
@@ -286,14 +281,20 @@ final readonly class MarkdownNoteArchive
         ZipArchive $zip,
         array &$ajoutees,
     ): string {
-        $tags = $note->getTags();
         $content = $this->withImages((string) $note->getContent(), $prefix, $this->imageService->bucketOf($note), $zip, $ajoutees);
 
-        if (0 === count($tags)) {
-            return $content;
-        }
+        return $this->withFrontMatter($note, $content);
+    }
 
-        return sprintf("---\ntags: [%s]\n---\n\n%s", implode(', ', $tags), $content);
+    /**
+     * The tags, the emoji and the properties at the top of the file
+     * (09/10/2026), Obsidian's way; nothing at all for a note without any.
+     */
+    private function withFrontMatter(MarkdownNoteInterface $note, string $content): string
+    {
+        $properties = $this->display instanceof MarkdownNoteDisplay ? $this->display->describe($note)['properties'] : $note->getProperties();
+
+        return NoteFrontMatter::write($note->getTags(), $note->getIcon(), $properties, $content);
     }
 
     /**

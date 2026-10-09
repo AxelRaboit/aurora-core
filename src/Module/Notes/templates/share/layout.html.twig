@@ -32,7 +32,7 @@
            side by side, which 1024 pixels leave cramped - but reading reads
            better in a column, so the column stays the default. The choice is
            the reader's, kept by their browser (assets/theme.js). #}
-        <div data-widenable class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-2 py-2 sm:p-6 data-[wide=true]:max-w-none lg:data-[wide=true]:px-8">
+        <div data-widenable {% block widenable_attributes %}{% endblock %} class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-2 py-2 sm:p-6 data-[wide=true]:max-w-none lg:data-[wide=true]:px-8">
             <header class="flex flex-wrap items-baseline gap-x-3 gap-y-1 print:hidden">
                 <h1 class="text-lg font-semibold text-primary">{% block heading %}{% endblock %}</h1>
                 <p class="text-xs text-muted">{% block subheading %}{% endblock %}</p>

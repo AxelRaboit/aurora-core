@@ -162,6 +162,26 @@ final class MarkdownNoteMembersController extends AbstractController
      *
      * @return list<array{id: ?int, name: ?string}>
      */
+    /**
+     * Everybody of the suite, the viewer included and flagged (09/10/2026):
+     * who a note's « person » property or an @mention can name. The list
+     * above leaves the viewer out because one does not share a note with
+     * oneself; one can be the person a note is about.
+     */
+    #[Route('/everyone', name: '_everyone', methods: [HttpMethodEnum::Get->value])]
+    public function everyone(): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $people = $this->userRepository->findBy(['type' => UserTypeEnum::Suite->value], ['name' => 'ASC']);
+
+        return $this->jsonSuccess(['people' => array_map(
+            static fn (CoreUserInterface $one): array => ['id' => $one->getId(), 'name' => $one->getName(), 'self' => $one->getId() === $user->getId()],
+            $people,
+        )]);
+    }
+
     private function pickableBy(CoreUserInterface $viewer): array
     {
         $people = $this->userRepository->findBy(['type' => UserTypeEnum::Suite->value], ['name' => 'ASC']);

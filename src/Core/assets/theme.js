@@ -96,7 +96,13 @@ function initWidthToggle() {
         }
     });
 
-    render("1" === stored);
+    // The reader's own choice first; otherwise the page's default - a note
+    // set to full width opens wide.
+    render(
+        null === stored
+            ? "true" === column.dataset.wideDefault
+            : "1" === stored,
+    );
 }
 
 document.addEventListener("DOMContentLoaded", initThemeToggle);
