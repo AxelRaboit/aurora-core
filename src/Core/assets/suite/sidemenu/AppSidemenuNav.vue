@@ -128,7 +128,7 @@ defineProps({
                             <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, themeId(section))" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
-                                <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
+                                <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
                             </span>
                         </a>
                         <!-- `title` stays: it is the accessible name of a button
@@ -155,7 +155,7 @@ defineProps({
                             <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, themeId(section))" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
-                                <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ child.description }}</span>
+                                <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ child.description }}</span>
                             </span>
                         </AppNavLink>
                     </div>
@@ -176,7 +176,7 @@ defineProps({
                         <!-- Not truncated: a description cut at one line is
                              worse than no description, and the row is allowed
                              to grow when the reader asked for the text. -->
-                        <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
+                        <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
                     </span>
                 </AppNavLink>
             </template>

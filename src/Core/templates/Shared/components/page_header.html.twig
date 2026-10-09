@@ -26,8 +26,10 @@
    became a single word - the section's name, which the side menu already
    shows. A breadcrumb with a single item is not a breadcrumb, it is a label.
 
-   The last level is marked as current but stays discreet: emphasis is the
-   job of the strip above.
+   The last level is marked as current and written in the body colour, the
+   levels above it in grey: the path reads as "where I come from, where I am"
+   without leaning on the strip above. Weight stays at medium - emphasis is
+   still the title's job.
 
    The edges of both strips read `--aurora-page-margin`, like `<main>`. On a
    phone, where only the breadcrumb is left, it therefore lines up exactly
@@ -118,7 +120,7 @@
                     {% elseif crumb.href is defined and crumb.href %}
                         <a href="{{ crumb.href }}" class="block truncate text-secondary transition-colors hover:text-primary">{{ crumb.label }}</a>
                     {% elseif loop.last %}
-                        <span class="block truncate font-medium text-secondary" aria-current="page">{{ crumb.label }}</span>
+                        <span class="block truncate font-medium text-primary" aria-current="page">{{ crumb.label }}</span>
                     {% else %}
                         <span class="block truncate text-secondary">{{ crumb.label }}</span>
                     {% endif %}

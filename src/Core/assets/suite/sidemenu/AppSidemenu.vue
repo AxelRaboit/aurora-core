@@ -211,7 +211,11 @@ function openSearchFromMobile() {
         v-on:mouseenter="onMenuEnter"
         v-on:mouseleave="onMenuLeave"
     >
-        <div class="sh-wrap flex items-center h-16 border-b border-line shrink-0 transition-all duration-200">
+        <!-- `h-12`, the height of the page header's title strip: the two
+             borders run as one line across the screen. At `h-16` the menu's
+             line sat sixteen pixels under the page's, and the eye read two
+             frames glued side by side instead of one. -->
+        <div class="sh-wrap flex items-center h-12 border-b border-line shrink-0 transition-all duration-200">
             <a :href="dashboardPath" class="flex items-center gap-2.5 min-w-0 flex-1">
                 <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-contain">
                 <AppLogo v-else :size="32" class="shrink-0" />
@@ -222,26 +226,27 @@ function openSearchFromMobile() {
             </a>
         </div>
 
-        <!-- `h-10`, to the pixel, because this row and the breadcrumb band are
+        <!-- `h-8`, to the pixel, because this row and the breadcrumb band are
              meant to read as one line across the page: the menu's header and
-             the page header's upper band are both `h-16`, so whatever comes next
-             on each side has to match too. The link already measures 40px on its
-             own - `.si` gives it 0.624rem above and below a 20px row - so the
-             `py-2` this used to carry was the whole discrepancy. Pinned rather
-             than left implicit so a change to `.si` cannot quietly break the
-             alignment.
+             the page header's title strip are both `h-12`, and the breadcrumb
+             under it is `h-8`, so whatever comes next on each side has to match
+             too. Pinned rather than left implicit so a change to `.si` cannot
+             quietly break the alignment.
 
              The row keeps its height, so the *link* has to be shorter than it:
-             at a full 40px its hover fill reaches both borders and the rounded
-             corners clip against them. `.sh-view-site` trims it to 32px, which
-             centres with 4px of clearance - see sidemenu.css. -->
-        <div v-if="hasEnabledFronts" class="sh-view-site h-10 flex items-center px-3 border-b border-line shrink-0">
+             at a full 32px its hover fill reaches both borders and the rounded
+             corners clip against them. `.sh-view-site` trims it to 28px, which
+             centres with 2px of clearance - see sidemenu.css.
+
+             The hover stays neutral, like every other row: it was emerald, a
+             colour of its own that no theme could change and that clashed with
+             any accent but green. -->
+        <div v-if="hasEnabledFronts" class="sh-view-site h-8 flex items-center px-3 border-b border-line shrink-0">
             <AppNavLink
                 :href="frontPath"
                 target="_blank"
-                hover-color="emerald"
             >
-                <Globe class="w-5 h-5 shrink-0 text-muted group-hover:text-emerald-400 transition-colors" :stroke-width="2" />
+                <Globe class="w-4 h-4 shrink-0 text-muted group-hover:text-primary transition-colors" :stroke-width="2" />
                 <span class="si-label truncate">{{ t("suite.nav.view_site") }}</span>
             </AppNavLink>
         </div>

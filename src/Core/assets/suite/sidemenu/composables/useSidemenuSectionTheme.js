@@ -371,13 +371,18 @@ export function useSidemenuSectionTheme(overrides = {}) {
      * menu (UI audit of 07/10/2026). The section keeps its hue, and the
      * reader's habit of « lime is the GED », in a dot before its name
      * (`dotClasses`); the label and the band go neutral.
+     *
+     * Neutral, but legible: `secondary` rather than `muted`. The headers are
+     * the column's landmarks, and in the lightest grey they fell under the
+     * contrast a label needs to be read without leaning in (visual redesign
+     * of the suite, 09/10/2026).
      */
     function headerClasses() {
         return "rounded-md hover:bg-surface-2";
     }
 
     function labelClasses() {
-        return "text-muted hover:text-secondary";
+        return "text-secondary hover:text-primary";
     }
 
     /** The section's own colour, kept to a dot before its name. */
@@ -389,7 +394,14 @@ export function useSidemenuSectionTheme(overrides = {}) {
      * Tailwind classes for a nav item's wrapper:
      * - active (current route)     → tinted background + tinted text
      * - in-tree (parent of active) → tinted text only, hover tint bg
-     * - idle                       → muted text, hover slides into tint
+     * - idle                       → body text, hover slides into tint
+     *
+     * An idle row is written in the body colour slightly lifted off the
+     * page's black (`primary/80`), not in the secondary grey: a menu is
+     * read before it is clicked, and the grey left every destination looking
+     * disabled next to the one already open. The description under it takes
+     * the secondary grey - the gap between the two is what makes them two
+     * lines of different weight.
      */
     function itemClasses(sectionId, { isActive, inTree }) {
         // One active state for the whole suite, whatever the module: the
@@ -401,7 +413,7 @@ export function useSidemenuSectionTheme(overrides = {}) {
             return "text-primary hover:bg-surface-2";
         }
 
-        return "text-secondary hover:text-primary hover:bg-surface-2/60";
+        return "text-primary/80 hover:text-primary hover:bg-surface-2/60";
     }
 
     /** Tailwind classes for the icon nested inside a nav item. */
