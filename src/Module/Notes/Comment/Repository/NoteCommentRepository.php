@@ -50,4 +50,32 @@ class NoteCommentRepository extends ResolveTargetEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * The comments' text of several notes at once, for the search.
+     *
+     * @param list<int> $noteIds
+     *
+     * @return array<int, list<string>> note id => bodies
+     */
+    public function bodiesForNotes(array $noteIds): array
+    {
+        if ([] === $noteIds) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('c')
+            ->select('IDENTITY(c.note) AS noteId', 'c.body AS body', 'c.quote AS quote')
+            ->where('c.note IN (:ids)')
+            ->setParameter('ids', $noteIds)
+            ->getQuery()
+            ->getArrayResult();
+
+        $bodies = [];
+        foreach ($rows as $row) {
+            $bodies[(int) $row['noteId']][] = mb_trim(($row['quote'] ?? '').' '.$row['body']);
+        }
+
+        return $bodies;
+    }
 }

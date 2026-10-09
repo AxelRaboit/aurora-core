@@ -231,6 +231,24 @@ export const NOTE_HELP_SECTIONS = [
                 insert: null,
             },
             {
+                key: "find",
+                syntax: "Mod+F",
+                shortcut: "Mod+F",
+                insert: null,
+            },
+            {
+                key: "replace",
+                syntax: "Mod+Alt+F",
+                shortcut: "Mod+Alt+F",
+                insert: null,
+            },
+            {
+                key: "search",
+                syntax: "Mod+Shift+S",
+                shortcut: "Mod+Shift+S",
+                insert: null,
+            },
+            {
                 key: "focus",
                 syntax: "Mod+Shift+F",
                 shortcut: "Mod+Shift+F",

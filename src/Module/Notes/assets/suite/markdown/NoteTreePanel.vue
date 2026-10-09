@@ -37,6 +37,7 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { folderIdsIn, useNoteTree } from "./composables/useNoteTree.js";
+import { findRanges } from "./composables/noteSearchHighlight.js";
 import { peekNoteDrag, readNoteDrag, startNoteDrag } from "./composables/noteDrag.js";
 import { dropZone, planDrop } from "./composables/noteDropPlan.js";
 import { detachSharedNotes, sortSpaces, spaceLabel, spacesWithShared } from "./composables/noteSpaces.js";
@@ -115,6 +116,8 @@ const searching = computed(() => "" !== treeQuery.value.trim());
  */
 const { request } = useRequest();
 const contentMatchIds = ref(new Set());
+// The passage each note was found by, with what to highlight in it.
+const contentSnippets = ref(new Map());
 
 const runContentSearch = useDebounce(async (query) => {
     const payload = await request(
@@ -124,6 +127,13 @@ const runContentSearch = useDebounce(async (query) => {
     );
 
     contentMatchIds.value = new Set((payload?.ids ?? []).map((id) => Number(id)));
+    const needles = payload?.needles ?? [];
+    contentSnippets.value = new Map(
+        Object.entries(payload?.snippets ?? {}).map(([id, text]) => [
+            Number(id),
+            { text, ranges: findRanges(text, needles) },
+        ]),
+    );
 }, 300);
 
 watch(treeQuery, (value) => {
@@ -131,6 +141,7 @@ watch(treeQuery, (value) => {
 
     if ("" === trimmed) {
         contentMatchIds.value = new Set();
+        contentSnippets.value = new Map();
 
         return;
     }
@@ -138,7 +149,7 @@ watch(treeQuery, (value) => {
     runContentSearch(trimmed);
 });
 
-const { tree } = useNoteTree(folders, treeQuery, notes, contentMatchIds);
+const { tree } = useNoteTree(folders, treeQuery, notes, contentMatchIds, contentSnippets);
 
 const isEmpty = computed(() => 0 === folders.value.length && 0 === notes.value.length);
 

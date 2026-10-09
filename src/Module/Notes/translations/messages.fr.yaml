@@ -162,10 +162,23 @@ notes:
             banner: "Note verrouillée : elle se lit, elle ne se modifie pas."
         quick_open:
             title: "Ouvrir une note"
-            placeholder: "Titre de la note…"
+            placeholder: "Titre ou mot du contenu…"
+            in_content: "Dans le contenu"
             create: "Créer « {title} »"
             empty: "Aucune note."
             hint: "↑ ↓ pour choisir, Entrée pour ouvrir. ⌘ K reste la recherche de toute la suite."
+        find:
+            placeholder: "Chercher dans la note"
+            replace_placeholder: "Remplacer par"
+            count: "{current} sur {total}"
+            none: "Aucun"
+            previous: "Précédent (Maj+Entrée)"
+            next: "Suivant (Entrée)"
+            exact: "Respecter les accents et les majuscules"
+            toggle_replace: "Remplacer (⌘ ⌥ F)"
+            replace: "Remplacer (Entrée)"
+            replace_all: "Tout remplacer (⌘ Entrée)"
+            close: "Fermer (Échap)"
         focus:
             enter: "Mode focus"
             exit: "Quitter le mode focus"
@@ -226,6 +239,9 @@ notes:
                 table_tab: "Passer d'une cellule à l'autre"
                 reading: "Mode lecture"
                 quick_open: "Recherche rapide d'une note"
+                find: "Chercher dans la note"
+                replace: "Remplacer dans la note"
+                search: "Rechercher dans tout le carnet"
                 comment: "Commenter le passage sélectionné"
                 focus: "Mode focus"
         editor:
@@ -681,6 +697,52 @@ notes:
             close: 'Quitter la présentation'
             previous: 'Diapositive précédente'
             next: 'Diapositive suivante'
+        # The notebook's search screen (Cmd+Shift+S).
+        search:
+            title: 'Rechercher dans les notes'
+            open: 'Recherche avancée'
+            placeholder: 'Des mots, une "phrase exacte", -exclure, tag:client…'
+            hint: 'Le titre, le texte, les intertitres, les étiquettes, les propriétés et les commentaires sont fouillés, sans tenir compte des accents ni des majuscules. Tous les mots doivent être présents.'
+            pinned: 'Recherches enregistrées'
+            recent: 'Récentes'
+            pin: 'Enregistrer cette recherche'
+            unpin: 'Retirer des recherches enregistrées'
+            none: 'Aucune note ne correspond.'
+            count: '{count} résultat(s) en {ms} ms'
+            more: '{shown} premiers sur {total} : précisez la recherche pour voir les autres.'
+            clear: 'Effacer'
+            in_content: 'Chercher « {query} » dans le contenu'
+            in_notebook: 'Chercher « {query} » dans tout le carnet'
+            replace:
+                toggle: "Remplacer"
+                find: "Chercher"
+                with: "Remplacer par"
+                preview: "Compter"
+                scope: "Dans {count} note(s) trouvée(s)."
+                scope_shown: "Dans les {count} notes affichées, sur {total} trouvées."
+                summary: "{count} occurrence(s) dans {notes} note(s)."
+                skipped: "{count} note(s) en lecture seule ou verrouillée(s) laissée(s) de côté."
+                confirm: "Remplacer {count} occurrence(s)"
+                done: "{count} occurrence(s) remplacée(s) dans {notes} note(s). Chaque note garde sa version précédente dans son historique."
+            sort:
+                relevance: 'Pertinence'
+                date: 'Date'
+            keys:
+                move: 'se déplacer'
+                open: 'ouvrir'
+                close: 'fermer'
+            filters:
+                title: 'Filtres'
+                syntax: 'Les filtres s''ajoutent aux mots. Une valeur avec des espaces se met entre guillemets.'
+                tag: 'notes avec cette étiquette'
+                folder: 'dans ce dossier (et ses sous-dossiers)'
+                space: 'dans cet espace'
+                task_todo: 'avec une tâche à faire'
+                task_done: 'avec une tâche faite'
+                has_comment: 'avec des commentaires'
+                has_image: 'avec une image'
+                modified: 'modifiées depuis cette date'
+                in_title: 'ce mot dans le titre'
         reminder:
             title: 'Me rappeler cette note'
             change: 'Modifier le rappel'

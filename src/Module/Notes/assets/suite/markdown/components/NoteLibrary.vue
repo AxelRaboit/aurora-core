@@ -27,6 +27,7 @@ import {
     ArrowUpNarrowWide,
     CalendarDays,
     ListChecks,
+    TextSearch,
     ChevronRight,
     Download,
     FileDown,
@@ -59,6 +60,7 @@ import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import { foldSearch as foldAccents } from "../composables/noteSearchHighlight.js";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -116,6 +118,8 @@ const props = defineProps({
     dailyOpening: { type: Boolean, default: false },
     /** Shows the button of the tasks view. */
     tasksEnabled: { type: Boolean, default: false },
+    /** Shows the button of the notebook's search screen. */
+    searchEnabled: { type: Boolean, default: false },
     /** list<{id, name}>, to name a « person » property in the table. */
     people: { type: Array, default: () => [] },
 });
@@ -125,6 +129,7 @@ const emit = defineEmits([
     "create-note",
     "open-daily-note",
     "open-tasks",
+    "open-search",
     "changed",
     "folder-changed",
 ]);
@@ -220,12 +225,14 @@ function closeSearch() {
  *
  * Searching the whole notebook is the job of the menu panel, which has the
  * field for it and brings back results from the whole tree. Here we filter
- * the open folder, which is what one expects from a file explorer.
+ * the open folder, which is what one expects from a file explorer. A line
+ * under the list hands what was typed over to the notebook's search.
+ * Accents and case do not count, as everywhere else.
  */
 function matches(label) {
-    const needle = query.value.trim().toLowerCase();
+    const needle = foldAccents(query.value.trim());
 
-    return "" === needle || String(label ?? "").toLowerCase().includes(needle);
+    return "" === needle || foldAccents(label).includes(needle);
 }
 
 const shownFolders = computed(() =>
@@ -1439,6 +1446,20 @@ defineExpose({
                     </AppButton>
 
                     <!-- Every task of every note (09/10/2026). -->
+                    <!-- The notebook's search (10/10/2026): everything notes
+                         hold, with passages; the magnifier of the bar below
+                         only narrows the folder on screen. -->
+                    <AppButton
+                        v-if="searchEnabled"
+                        data-library-search-all
+                        class="ml-1"
+                        variant="secondary"
+                        :label="t('notes.markdown.search.title')"
+                        icon-only
+                        v-on:click="emit('open-search')"
+                    >
+                        <TextSearch class="h-4 w-4" :stroke-width="2" />
+                    </AppButton>
                     <AppButton
                         v-if="tasksEnabled"
                         data-library-tasks
@@ -2026,6 +2047,18 @@ defineExpose({
                     />
                 </div>
             </template>
+
+            <div v-if="searchEnabled && '' !== query.trim()" class="mt-4 flex justify-center">
+                <AppButton
+                    data-library-search-notebook
+                    variant="ghost"
+                    size="sm"
+                    :label="t('notes.markdown.search.in_notebook', { query: query.trim() })"
+                    v-on:click="emit('open-search', query.trim())"
+                >
+                    <TextSearch class="h-4 w-4" :stroke-width="2" />
+                </AppButton>
+            </div>
         </div>
 
         <AppModal

@@ -1,10 +1,11 @@
 <script setup>
-import { toRef } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useNoteEditorTextarea } from "@notes/suite/markdown/composables/useNoteEditorTextarea.js";
 import { useNoteImageUpload } from "@notes/suite/markdown/composables/useNoteImageUpload.js";
 import AppFloatingMenu from "@shared/components/overlay/AppFloatingMenu.vue";
 import NoteRemoteCarets from "@notes/suite/markdown/components/NoteRemoteCarets.vue";
+import NoteFindBar from "@notes/suite/markdown/components/NoteFindBar.vue";
 import AppSearchInput from "@shared/components/form/input/AppSearchInput.vue";
 import { FileText } from "lucide-vue-next";
 
@@ -92,7 +93,7 @@ const {
  * The editor's textarea, for the parent: the help panel inserts its examples
  * at the caret (09/10/2026).
  */
-defineExpose({ textareaRef });
+defineExpose({ textareaRef, openFind });
 
 /**
  * Says where this reader's caret is, on every event that could have moved it.
@@ -105,6 +106,44 @@ defineExpose({ textareaRef });
 function reportCaret() {
     emit("caret", textareaRef.value?.selectionStart ?? null);
 }
+
+/**
+ * Find and replace (10/10/2026): Cmd/Ctrl+F finds, Cmd+Option+F (Ctrl+Alt+F)
+ * replaces, as in VS Code on a Mac. Not Cmd/Ctrl+H: a Mac hides the
+ * application with it, and here it already makes a heading.
+ *
+ * Taken over only while this field is on screen and no dialog has the
+ * focus: in reading mode, the browser's own search still works.
+ */
+const findOpen = ref(false);
+const findBar = ref(null);
+
+async function openFind(replace) {
+    findOpen.value = true;
+    await nextTick();
+    findBar.value?.open({ replace });
+}
+
+/** The text starts below the bar, which would otherwise hide its first lines. */
+const findRoom = computed(() => {
+    if (!findOpen.value) return null;
+
+    return { paddingTop: findBar.value?.replacing ? "6.25rem" : "4rem" };
+});
+
+function onFindShortcut(event) {
+    const field = textareaRef.value;
+    if (!field?.offsetParent || document.activeElement?.closest?.("[role=dialog]")) return;
+    const command = event.metaKey || event.ctrlKey;
+    const replace = command && event.altKey && !event.shiftKey && "KeyF" === event.code;
+    const find = command && !event.altKey && !event.shiftKey && "KeyF" === event.code;
+    if (!replace && !find) return;
+    event.preventDefault();
+    void openFind(replace);
+}
+
+onMounted(() => window.addEventListener("keydown", onFindShortcut));
+onBeforeUnmount(() => window.removeEventListener("keydown", onFindShortcut));
 
 // Image upload (drag-drop + Ctrl+V). Only active when the parent
 // provides an upload hook - the editor degrades gracefully without it.
@@ -129,6 +168,7 @@ if (props.uploadImage) {
             :readonly="readonly"
             class="block h-full w-full rounded-md border border-line bg-surface px-3 py-2 text-primary placeholder-muted focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition resize-none font-mono text-sm"
             rows="20"
+            :style="findRoom"
             v-on:input="onInput"
             v-on:keydown="onKeydown"
             v-on:blur="onBlur"
@@ -136,6 +176,16 @@ if (props.uploadImage) {
             v-on:keyup="reportCaret"
             v-on:click="reportCaret"
             v-on:select="reportCaret"
+        />
+
+        <NoteFindBar
+            v-if="findOpen"
+            ref="findBar"
+            :textarea="textareaRef"
+            :text="modelValue"
+            :readonly="readonly"
+            v-on:replace="(value) => emit('update:modelValue', value)"
+            v-on:close="findOpen = false"
         />
 
         <!-- Over the field, never in it: a textarea cannot show a second

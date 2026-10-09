@@ -113,6 +113,14 @@ export function useMarkdownNotesApi(props) {
                 `${props.dailyDaysPath}?month=${encodeURIComponent(month)}`,
             ),
         tasks: () => call(HttpMethod.Get, props.tasksPath),
+        searchFull: (query, sort = "relevance") =>
+            call(
+                HttpMethod.Get,
+                `${props.searchFullPath}?q=${encodeURIComponent(query)}&sort=${sort}`,
+            ),
+        /** `{ids, find, replacement, exact, dryRun}`: dry run counts only. */
+        replaceInNotes: (payload) =>
+            call(HttpMethod.Post, props.searchReplacePath, payload),
         comments: (id) =>
             call(HttpMethod.Get, resolvePath(props.commentsPath, id)),
         addComment: (id, payload) =>

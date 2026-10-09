@@ -158,10 +158,23 @@ notes:
             banner: "Locked note: it can be read, not edited."
         quick_open:
             title: "Open a note"
-            placeholder: "Note title…"
+            placeholder: "Title or a word of the content…"
+            in_content: "In the content"
             create: "Create “{title}”"
             empty: "No notes."
             hint: "↑ ↓ to choose, Enter to open. ⌘ K stays the search of the whole suite."
+        find:
+            placeholder: "Find in the note"
+            replace_placeholder: "Replace with"
+            count: "{current} of {total}"
+            none: "None"
+            previous: "Previous (Shift+Enter)"
+            next: "Next (Enter)"
+            exact: "Match accents and case"
+            toggle_replace: "Replace (⌘ ⌥ F)"
+            replace: "Replace (Enter)"
+            replace_all: "Replace all (⌘ Enter)"
+            close: "Close (Esc)"
         focus:
             enter: "Focus mode"
             exit: "Leave focus mode"
@@ -222,6 +235,9 @@ notes:
                 table_tab: "Move between cells"
                 reading: "Reading mode"
                 quick_open: "Quick note search"
+                find: "Find in the note"
+                replace: "Replace in the note"
+                search: "Search the whole notebook"
                 comment: "Comment on the selected passage"
                 focus: "Focus mode"
         editor:
@@ -677,6 +693,52 @@ notes:
             close: 'Leave the presentation'
             previous: 'Previous slide'
             next: 'Next slide'
+        # The notebook's search screen (Cmd+Shift+S).
+        search:
+            title: 'Search the notes'
+            open: 'Advanced search'
+            placeholder: 'Words, an "exact phrase", -exclude, tag:client…'
+            hint: 'Titles, text, headings, tags, properties and comments are searched, ignoring accents and case. Every word must be there.'
+            pinned: 'Saved searches'
+            recent: 'Recent'
+            pin: 'Save this search'
+            unpin: 'Remove from saved searches'
+            none: 'No note matches.'
+            count: '{count} result(s) in {ms} ms'
+            more: 'First {shown} of {total}: narrow the search to see the others.'
+            clear: 'Clear'
+            in_content: 'Search “{query}” in the content'
+            in_notebook: 'Search “{query}” in the whole notebook'
+            replace:
+                toggle: "Replace"
+                find: "Find"
+                with: "Replace with"
+                preview: "Count"
+                scope: "In {count} note(s) found."
+                scope_shown: "In the {count} notes shown, out of {total} found."
+                summary: "{count} occurrence(s) in {notes} note(s)."
+                skipped: "{count} read-only or locked note(s) left aside."
+                confirm: "Replace {count} occurrence(s)"
+                done: "{count} occurrence(s) replaced in {notes} note(s). Each note keeps its previous version in its history."
+            sort:
+                relevance: 'Relevance'
+                date: 'Date'
+            keys:
+                move: 'move'
+                open: 'open'
+                close: 'close'
+            filters:
+                title: 'Filters'
+                syntax: 'Filters add up with the words. A value with spaces goes between quotes.'
+                tag: 'notes with this tag'
+                folder: 'in this folder (and its subfolders)'
+                space: 'in this space'
+                task_todo: 'with a task to do'
+                task_done: 'with a done task'
+                has_comment: 'with comments'
+                has_image: 'with an image'
+                modified: 'modified since this date'
+                in_title: 'this word in the title'
         reminder:
             title: 'Remind me of this note'
             change: 'Change the reminder'

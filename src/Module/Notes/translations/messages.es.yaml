@@ -157,10 +157,23 @@ notes:
             banner: "Nota bloqueada: se puede leer, no modificar."
         quick_open:
             title: "Abrir una nota"
-            placeholder: "Título de la nota…"
+            placeholder: "Título o palabra del contenido…"
+            in_content: "En el contenido"
             create: "Crear «{title}»"
             empty: "Ninguna nota."
             hint: "↑ ↓ para elegir, Intro para abrir. ⌘ K sigue siendo la búsqueda de toda la suite."
+        find:
+            placeholder: "Buscar en la nota"
+            replace_placeholder: "Reemplazar por"
+            count: "{current} de {total}"
+            none: "Ninguno"
+            previous: "Anterior (Mayús+Intro)"
+            next: "Siguiente (Intro)"
+            exact: "Respetar acentos y mayúsculas"
+            toggle_replace: "Reemplazar (⌘ ⌥ F)"
+            replace: "Reemplazar (Intro)"
+            replace_all: "Reemplazar todo (⌘ Intro)"
+            close: "Cerrar (Esc)"
         focus:
             enter: "Modo concentración"
             exit: "Salir del modo concentración"
@@ -221,6 +234,9 @@ notes:
                 table_tab: "Pasar de una celda a otra"
                 reading: "Modo lectura"
                 quick_open: "Búsqueda rápida de una nota"
+                find: "Buscar en la nota"
+                replace: "Reemplazar en la nota"
+                search: "Buscar en todo el cuaderno"
                 comment: "Comentar el pasaje seleccionado"
                 focus: "Modo concentración"
         editor:
@@ -679,6 +695,52 @@ notes:
             close: 'Salir de la presentación'
             previous: 'Diapositiva anterior'
             next: 'Diapositiva siguiente'
+        # The notebook's search screen (Cmd+Shift+S).
+        search:
+            title: 'Buscar en las notas'
+            open: 'Búsqueda avanzada'
+            placeholder: 'Palabras, una "frase exacta", -excluir, tag:cliente…'
+            hint: 'Se buscan el título, el texto, los subtítulos, las etiquetas, las propiedades y los comentarios, sin tener en cuenta acentos ni mayúsculas. Todas las palabras deben aparecer.'
+            pinned: 'Búsquedas guardadas'
+            recent: 'Recientes'
+            pin: 'Guardar esta búsqueda'
+            unpin: 'Quitar de las búsquedas guardadas'
+            none: 'Ninguna nota coincide.'
+            count: '{count} resultado(s) en {ms} ms'
+            more: 'Los {shown} primeros de {total}: precise la búsqueda para ver los demás.'
+            clear: 'Borrar'
+            in_content: 'Buscar «{query}» en el contenido'
+            in_notebook: 'Buscar «{query}» en todo el cuaderno'
+            replace:
+                toggle: "Reemplazar"
+                find: "Buscar"
+                with: "Reemplazar por"
+                preview: "Contar"
+                scope: "En {count} nota(s) encontrada(s)."
+                scope_shown: "En las {count} notas mostradas, de {total} encontradas."
+                summary: "{count} coincidencia(s) en {notes} nota(s)."
+                skipped: "{count} nota(s) de solo lectura o bloqueada(s) quedan fuera."
+                confirm: "Reemplazar {count} coincidencia(s)"
+                done: "{count} coincidencia(s) reemplazada(s) en {notes} nota(s). Cada nota conserva su versión anterior en su historial."
+            sort:
+                relevance: 'Relevancia'
+                date: 'Fecha'
+            keys:
+                move: 'moverse'
+                open: 'abrir'
+                close: 'cerrar'
+            filters:
+                title: 'Filtros'
+                syntax: 'Los filtros se suman a las palabras. Un valor con espacios va entre comillas.'
+                tag: 'notas con esta etiqueta'
+                folder: 'en esta carpeta (y sus subcarpetas)'
+                space: 'en este espacio'
+                task_todo: 'con una tarea pendiente'
+                task_done: 'con una tarea hecha'
+                has_comment: 'con comentarios'
+                has_image: 'con una imagen'
+                modified: 'modificadas desde esta fecha'
+                in_title: 'esta palabra en el título'
         reminder:
             title: 'Recordarme esta nota'
             change: 'Cambiar el recordatorio'
