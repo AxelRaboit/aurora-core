@@ -165,6 +165,7 @@ final readonly class NoteComments
             if ($actor instanceof CoreUserInterface && $id === $actor->getId()) {
                 continue;
             }
+
             if (in_array($id, $mentioned, true)) {
                 continue;
             }

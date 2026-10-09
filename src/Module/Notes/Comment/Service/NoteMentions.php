@@ -32,7 +32,7 @@ final readonly class NoteMentions
     public const string PATTERN = '/@\[([^\]\n]{1,80})\]\(user:(\d{1,10})\)/u';
 
     public function __construct(
-        private UserRepository $users,
+        private UserRepository $userRepository,
         private NoteSpaceAccess $spaceAccess,
         private NotificationManagerInterface $notifications,
         private UrlGeneratorInterface $urlGenerator,
@@ -76,10 +76,11 @@ final readonly class NoteMentions
                 continue;
             }
 
-            $user = $this->users->find($id);
+            $user = $this->userRepository->find($id);
             if (!$user instanceof CoreUserInterface) {
                 continue;
             }
+
             if (!$this->spaceAccess->readableNote($user, (int) $note->getId()) instanceof MarkdownNoteInterface) {
                 continue;
             }

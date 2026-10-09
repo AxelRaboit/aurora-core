@@ -65,6 +65,8 @@ final class BackLinkRuleTest extends TestCase
         'src/Module/Notes/assets/suite/markdown/NoteReadApp.vue' => 'previous note',
         'src/Module/Notes/assets/suite/markdown/NoteTreePanel.vue' => 'collapses the tree',
         'src/Module/Notes/assets/suite/markdown/components/NoteLibrary.vue' => 'moves a card earlier',
+        'src/Module/Notes/assets/suite/markdown/components/NoteJournalCalendar.vue' => 'previous month',
+        'src/Module/Notes/assets/suite/markdown/components/NotePresentation.vue' => 'previous slide',
     ];
 
     public function testOnlyTheBackLinkDrawsAWayBack(): void

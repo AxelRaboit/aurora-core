@@ -5,6 +5,39 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.6.0] - 2026-10-09
+
+### Ajouté
+Le module Notes Markdown s'équipe comme Notion, Obsidian et Craft.
+
+- **Un aide-mémoire de l'écriture**, dans la suite et sur la page de partage : chaque syntaxe, son raccourci, une recherche, et un clic qui insère l'exemple au curseur (ou le copie là où l'on ne peut pas écrire).
+- **Une icône emoji par note**, entre l'image d'entête et le contenu, comme dans Notion : recherche en français, anglais ou espagnol, emoji récents, tirage au hasard. Elle apparaît aussi dans l'arborescence, la bibliothèque, la lecture et la page de partage.
+- **Un rendu plus riche** : surlignage `==texte==` et couleurs, encadrés repliables et blocs dépliables, notes de bas de page, formules (KaTeX), diagrammes (Mermaid), emoji par leur nom `:fusee:`, sommaire automatique `[[toc]]`, bouton « Copier » sur les blocs de code.
+- **Des liens plus fins** : alias `[[Note|texte]]`, lien vers un paragraphe `[[Note#^id]]` (Cmd+Maj+B nomme le paragraphe et copie son lien), note incluse dans une autre `![[Note]]`, aperçu d'une note liée au survol, `#étiquettes` dans le texte, ajoutées aux étiquettes de la note.
+- **Dans l'éditeur** : menus `:` (emoji), `#` (étiquettes) et `@` (personnes), Alt+↑/↓ pour déplacer des lignes, une adresse collée devient un lien titré.
+- **Recherche rapide** d'une note avec Cmd+P, **mode concentration** avec Cmd+Maj+F.
+- **Propriétés d'une note** sous le titre (texte, statut, date, personne, nombre, case, lien), exportées et importées dans l'en-tête YAML, comme Obsidian.
+- **Verrouillage d'une note** contre les modifications par erreur, aussi respecté par les liens de partage.
+- **Réglages de lecture par note** : pleine largeur, petit texte, police (sans empattement, avec empattement, chasse fixe).
+- **Toutes les tâches** dans une vue : chaque case à cocher de chaque note, à faire, en retard ou toutes, cochées sur place. Une échéance s'écrit `📅 2026-10-12` dans la tâche.
+- **Le journal en calendrier** : la note du jour, et chaque jour du mois avec un point quand sa note existe.
+- **Une vue tableau** dans la bibliothèque : une colonne par propriété des notes, triable et filtrable.
+- **Les rappels** : « Me rappeler cette note » envoie une notification dans la suite au moment choisi. Le rappel est personnel, les autres lecteurs ne le voient pas.
+- **Les commentaires sur un passage**, avec réponses et fils clos, dans la suite et sur un lien de partage en écriture (l'invité donne son nom). Le passage commenté est surligné dans la note, Cmd+Alt+M commente la sélection. L'auteur de la note et les participants du fil sont prévenus.
+- **Les @mentions**, dans une note ou un commentaire : la personne mentionnée est prévenue, seulement si elle peut lire la note.
+- **Présenter une note** en diapositives plein écran (une diapositive par `---`, ou par titre), dans la suite et sur la page de partage.
+- **Exporter une note en Word** (.docx), avec titres, listes, tableaux, citations et code.
+
+### Modifié
+- **Un `[[lien]]` vers une note hors du partage reste visible** sur la page partagée : souligné en pointillé, avec au survol « Cette note ne fait pas partie du partage », au lieu de devenir un simple mot.
+- **Sur la page partagée, le texte occupe toute la carte de la note** : le plan passe dans la colonne de gauche au lieu de prendre une colonne dans la carte.
+
+### Dans aurora-client
+- Ajouter l'override pnpm `katex: '>=0.18.9'` (comme dans aurora-core), sinon l'audit JS signale la faille de katex tirée par mermaid.
+- `make aurora-update` puis `make deploy-prod` : trois migrations (champs de la note, rappels, commentaires) passent toutes seules.
+
+---
+
 ## [4.5.1] - 2026-10-09
 
 ### Corrigé

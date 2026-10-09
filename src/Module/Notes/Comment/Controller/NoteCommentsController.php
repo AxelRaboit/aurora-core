@@ -123,6 +123,7 @@ final class NoteCommentsController extends AbstractController
         if ($author instanceof CoreUserInterface && $author->getId() === $user->getId()) {
             return true;
         }
+
         if ($threadAuthorToo && $threadAuthor instanceof CoreUserInterface && $threadAuthor->getId() === $user->getId()) {
             return true;
         }
