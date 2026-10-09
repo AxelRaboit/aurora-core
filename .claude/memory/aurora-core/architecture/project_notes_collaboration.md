@@ -76,6 +76,15 @@ C'est pour ça que la route invitée passe par `MarkdownNoteManager::updateText(
 et pas par `update()` : `applyInput()` applique un input entier, donc la même
 charge utile pourrait reclasser la note ou changer ses tags.
 
+**Ce que la page de l'invité montre (09/10/2026).** Les trois vues de
+l'éditeur - édition seule, découpé, aperçu seul - avec le même contrôle
+(`AppTab` segmenté) et le même choix mémorisé (`useEditorPaneMode`), sans le
+découpé sous 768 px (`share/shareEditorView.js`). L'aperçu se calcule dans le
+navigateur : la charge envoyée reste `title`, `content`, `version`, donc rien
+de plus n'est ouvert à une route sans compte. Pas de co-édition en direct pour
+un lien, par choix : il n'y a pas de compte à élire, ni à nommer dans
+`writtenBy`.
+
 ## L'identité de l'invité
 
 **Rule:** une révision écrite par un lien pointe sur le lien (`via_link_id`),
