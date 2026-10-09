@@ -269,6 +269,8 @@ notes:
                 bad_person: Esta persona no puede recibir la nota.
                 save_failed: No se pudo guardar.
         share:
+            side_hide: 'Plegar el panel'
+            side_show: 'Mostrar el panel'
             unshared_link: 'Esta nota no forma parte del enlace compartido.'
             can_write: 'Permitir la edición'
             can_write_hint: 'Cualquiera que tenga la dirección podrá reescribir el texto de esta nota. Solo esta, nunca las notas vinculadas.'

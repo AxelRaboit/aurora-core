@@ -1390,6 +1390,172 @@ const SHOTS = [
         },
     },
     {
+        // The editor's cheat sheet (4.6.0): every syntax, its shortcut, and
+        // « Insérer » at the caret. Opened over the rich note, so what shows
+        // behind is the kind of text it explains.
+        name: "tour-notes-aide-memoire",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNoteByTitle(page, "Bilan de la saison");
+            await page.locator("main").getByRole("button", { name: "Aide-mémoire" }).first().click();
+            await page.locator("[data-note-help-search]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // A note's emoji over its banner and its properties under the title
+        // (4.6.0), on the firm's sheet: status, due date, budget, who follows
+        // it, a box and a link, each typed.
+        name: "tour-notes-proprietes",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNoteByTitle(page, "Cabinet Verrier");
+            await page.locator("[data-note-properties]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // The rendering (4.6.0), in the reading view of the season's review:
+        // the table of contents, highlights and colours, a formula, a
+        // diagram, foldable callouts and dated tasks, as they read.
+        name: "tour-notes-rendu",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            const id = await openNoteByTitle(page, "Bilan de la saison");
+            await page.goto(`${BASE_URL}/suite/notes/markdown/${id}/read`, { waitUntil: "domcontentloaded" });
+            await page.locator(".note-preview .md-mermaid svg").first().waitFor({ timeout: 15_000 });
+            await page.locator(".note-preview .katex").first().waitFor();
+            await placeAt(page, page.locator(".note-preview h2", { hasText: "En bref" }).first(), 90);
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Every task of every note (4.6.0): what is left, what is late in
+        // red, by note, ticked right there. The demo dates them from the day
+        // it is loaded.
+        name: "tour-notes-taches",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await page.locator("[data-library-tasks]").first().click();
+            await page.locator("[data-note-task]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // The journal as a calendar (4.6.0): today's note, and a dot on each
+        // day of the month that has one. Three days written before, so the
+        // month is not empty; opening a day's note writes it only once.
+        name: "tour-notes-journal",
+        path: "/suite/notes/markdown",
+        async before(page) {
+            await page.goto(`${BASE_URL}/suite/notes/markdown`, { waitUntil: "domcontentloaded" });
+            await page.evaluate(async () => {
+                const today = new Date();
+                const days = [1, 3, 6, 8].filter((day) => day < today.getDate());
+                for (const day of days) {
+                    const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                    await fetch("/suite/notes/markdown/daily", {
+                        method: "POST",
+                        headers: { Accept: "application/json", "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+                        body: JSON.stringify({ date }),
+                    });
+                }
+            });
+        },
+        async prepare(page) {
+            await page.locator("[data-library-daily-note]").first().click();
+            await page.locator("[data-note-journal]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // A folder as a table (4.6.0): one column per property the notes
+        // use, sorted by a click on a heading. The clients' folder, whose
+        // sheets carry a status, a due date, a budget and who follows them.
+        name: "tour-notes-tableau",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            // From the firm's sheet to its folder through the breadcrumb,
+            // without a reload: the « person » column needs the people's
+            // names, which a version before 4.6.2 only asks for once a note
+            // has opened.
+            await openNoteByTitle(page, "Cabinet Verrier");
+            await page.locator("[data-note-crumb]", { hasText: "Clients" }).first().click();
+            await page.waitForTimeout(1_500);
+            await page.getByTitle("Tableau").first().click();
+            await page.locator("[data-note-table]").first().waitFor();
+            await page.locator('[data-note-table-sort="Échéance"]').first().click();
+            await page.waitForTimeout(800);
+        },
+        async after(page) {
+            // The view is remembered: the next shots expect the mosaic.
+            await page.evaluate(() => window.localStorage.removeItem("aurora.notes.library.view"));
+        },
+    },
+    {
+        // Comments on a passage (4.6.0): the firm's sheet with its threads
+        // beside it, the passages underlined in the rendering, a reply that
+        // mentions Marie, and the client's own comment left through the
+        // writing link.
+        name: "tour-notes-commentaires",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNoteByTitle(page, "Cabinet Verrier");
+            await page.getByTitle("Édition + aperçu").first().click();
+            await page.waitForTimeout(800);
+            await page.locator("[data-note-comments-toggle]").first().click();
+            await page.locator("[data-note-comment-thread]").first().waitFor();
+            const mark = page.locator(".note-preview mark.md-comment-mark").first();
+            await mark.waitFor();
+            await mark.evaluate((element) => element.scrollIntoView({ block: "center" }));
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // A note as slides (4.6.0), full screen: one slide per heading, here
+        // the season's figures.
+        name: "tour-notes-presentation",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNoteByTitle(page, "Bilan de la saison");
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.waitForTimeout(500);
+            await page.locator("[role=dialog] button:visible", { hasText: "Présenter" }).first().click();
+            await page.locator("[data-note-presentation]").first().waitFor();
+            for (let step = 0; step < 3; step += 1) {
+                await page.keyboard.press("ArrowRight");
+                await page.waitForTimeout(300);
+            }
+            await page.waitForTimeout(1_200);
+        },
+        async after(page) {
+            await page.keyboard.press("Escape").catch(() => {});
+        },
+    },
+    {
+        // The comments from the client's side (4.6.0): the writing link's
+        // page, the passages underlined, the threads beside the note, and a
+        // name to give before writing one.
+        name: "tour-notes-partage-commentaires",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            const id = await openNoteByTitle(page, "Cabinet Verrier");
+            const guest = await openCoeditGuest(await liveLinkUrl(page, id));
+            await guest.locator("[data-share-comments]").first().click();
+            await guest.locator("[data-note-comment-thread]").first().waitFor();
+            await guest.evaluate(() => window.scrollTo(0, 0));
+            await guest.waitForTimeout(1_500);
+            await hideChrome(guest);
+
+            const shot = (await guest.screenshot()).toString("base64");
+            await page.setContent(`<!doctype html><html><body style="margin:0"><img src="data:image/png;base64,${shot}" style="display:block;width:1600px;height:1000px"></body></html>`);
+            await page.waitForTimeout(300);
+        },
+        async after() {
+            await closeCoeditGuest();
+        },
+    },
+    {
         // The reading view: a URL that shows **only** the note, without the
         // menu or the breadcrumb, for someone with an account.
         //

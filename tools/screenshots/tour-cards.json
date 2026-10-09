@@ -861,6 +861,42 @@
         "tour-notes-partage-ecriture": {
             "document": 892,
             "slug": "notes-markdown"
+        },
+        "tour-notes-aide-memoire": {
+            "document": 893,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-proprietes": {
+            "document": 894,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-rendu": {
+            "document": 895,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-taches": {
+            "document": 896,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-journal": {
+            "document": 897,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-tableau": {
+            "document": 898,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-commentaires": {
+            "document": 899,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-presentation": {
+            "document": 900,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-partage-commentaires": {
+            "document": 901,
+            "slug": "notes-markdown"
         }
     }
 }

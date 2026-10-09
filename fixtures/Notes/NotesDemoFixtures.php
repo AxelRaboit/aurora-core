@@ -6,6 +6,7 @@ namespace Aurora\Fixtures\Notes;
 
 use Aurora\Fixtures\Core\AppFixtures;
 use Aurora\Fixtures\Core\CoreDemoFixtures;
+use Aurora\Module\Notes\Comment\Entity\NoteComment;
 use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
@@ -39,7 +40,10 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
 
+use function array_map;
 use function assert;
+use function is_string;
+use function preg_replace_callback;
 
 /**
  * A notebook that stands on its own.
@@ -173,7 +177,11 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 ->setUser($owner)
                 ->setSpace($space)
                 ->setTitle($definition['title'])
-                ->setContent($this->withImages($definition, $note, $owner))
+                ->setContent($this->withDates($this->withImages($definition, $note, $owner)))
+                // The emoji over the banner and the properties under the title
+                // (4.6.0): the table view of the clients' folder sorts by them.
+                ->setIcon($definition['icon'] ?? null)
+                ->setProperties($this->properties($definition['properties'] ?? []))
                 ->setTags($definition['tags'])
                 ->setPosition(($definition['first'] ?? false) ? 0 : $next($definition['folder'] ?? null))
                 ->setTemplate($definition['template'] ?? false)
@@ -218,6 +226,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $this->handedToPeople($manager, $notes['verrier'] ?? null);
 
         $this->writableLinkFor($manager, $notes['verrier'] ?? null);
+
+        $this->comments($manager, $notes['verrier'] ?? null);
 
         $this->teamSpace($manager, $owner);
     }
@@ -788,6 +798,85 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         return $content;
     }
 
+    /**
+     * `{{date:+3}}` in a note's text: a day relative to the load, so a task
+     * due "in three days" is still in three days after `make demo-reset`.
+     */
+    private function withDates(string $content): string
+    {
+        return (string) preg_replace_callback(
+            '/\{\{date:([+-]\d+)\}\}/',
+            static fn (array $match): string => new DateTimeImmutable($match[1].' days')->format('Y-m-d'),
+            $content,
+        );
+    }
+
+    /**
+     * A note's properties, with relative dates (`+12`) and people named by
+     * their address, which the demo accounts keep from one load to the next.
+     *
+     * @param list<array{key: string, type: string, value: mixed}> $properties
+     *
+     * @return list<array{key: string, type: string, value: mixed}>
+     */
+    private function properties(array $properties): array
+    {
+        return array_map(function (array $property): array {
+            $value = $property['value'];
+            if ('date' === $property['type'] && is_string($value) && 1 === preg_match('/^[+-]\d+$/', $value)) {
+                $value = new DateTimeImmutable($value.' days')->format('Y-m-d');
+            }
+
+            if ('person' === $property['type'] && is_string($value)) {
+                // The suite account: the public site has its own accounts, some
+                // with the same address.
+                $value = $this->userRepository->findOneBy(['email' => $value, 'type' => UserTypeEnum::Suite->value])?->getId();
+            }
+
+            return ['key' => $property['key'], 'type' => $property['type'], 'value' => $value];
+        }, $properties);
+    }
+
+    /**
+     * Two threads on the firm's note (4.6.0): Marie asks about a passage and
+     * the account answers, mentioning her; a guest of the writing link
+     * confirms the next one. Rewritten on every run, so never duplicated.
+     */
+    private function comments(EntityManagerInterface $manager, ?MarkdownNote $note): void
+    {
+        if (!$note instanceof MarkdownNote || null === $note->getId()) {
+            return;
+        }
+
+        foreach ($manager->getRepository(NoteComment::class)->findBy(['note' => $note]) as $old) {
+            $manager->remove($old);
+        }
+
+        $manager->flush();
+
+        $owner = $note->getUser();
+        $marie = $this->userRepository->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Suite->value]);
+
+        $question = new NoteComment();
+        $question->setNote($note)->setAuthor($marie)
+            ->setQuote('Galerie avant / après, en attente des photos')
+            ->setBody('Paul a envoyé les photos du chantier de Rezé hier soir. On les met en ligne cette semaine ?');
+        $manager->persist($question);
+
+        $answer = new NoteComment();
+        $answer->setNote($note)->setAuthor($owner)->setParent($question)
+            ->setBody(sprintf('Oui, jeudi. @[%s](user:%d) peux-tu préparer les recadrages en 4:3 ?', $marie?->getName() ?? 'Marie', (int) $marie?->getId()));
+        $manager->persist($answer);
+
+        $guest = new NoteComment();
+        $guest->setNote($note)->setGuestName('Paul (Cabinet Verrier)')
+            ->setQuote('Formulaire de contact en trois langues')
+            ->setBody('Les traductions anglaise et allemande sont prêtes, je les envoie demain.');
+        $manager->persist($guest);
+
+        $manager->flush();
+    }
+
     /** A Pexels photo, uploaded as if it had been pasted. */
     private function fetchImage(int $photoId, CoreUserInterface $owner): ?string
     {
@@ -835,7 +924,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
      *   them under "Partir de".
      * - `age` gives each note its modification date.
      *
-     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, first?: bool, template?: bool, age?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool, images?: list<int>}>
+     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, first?: bool, template?: bool, age?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool, images?: list<int>, icon?: string, properties?: list<array{key: string, type: string, value: mixed}>}>
      */
     private function notes(): array
     {
@@ -846,6 +935,11 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 // the ambiguity folders removed.
                 'title' => 'Sommaire des clients',
                 'tags' => ['index', 'client'],
+                'icon' => '🗂️',
+                'properties' => [
+                    ['key' => 'Statut', 'type' => 'status', 'value' => 'À jour'],
+                    ['key' => 'Suivi par', 'type' => 'person', 'value' => 'dev@aurora.app'],
+                ],
                 'folder' => 'clients',
                 'first' => true,
                 'favorite' => true,
@@ -885,6 +979,14 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             ],
             'lumen' => [
                 'title' => 'Studio Lumen',
+                'icon' => '📸',
+                'properties' => [
+                    ['key' => 'Statut', 'type' => 'status', 'value' => 'En cours'],
+                    ['key' => 'Échéance', 'type' => 'date', 'value' => '+36'],
+                    ['key' => 'Budget', 'type' => 'number', 'value' => 4200],
+                    ['key' => 'Suivi par', 'type' => 'person', 'value' => 'marie.dupont@aurora.app'],
+                    ['key' => 'Site', 'type' => 'url', 'value' => 'https://studio-lumen.example'],
+                ],
                 'tags' => ['client', 'photo'],
                 'folder' => 'lumen',
                 'age' => '-3 days',
@@ -913,6 +1015,15 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             'verrier' => [
                 'title' => 'Cabinet Verrier',
                 'tags' => ['client', 'web'],
+                'icon' => '🏛️',
+                'properties' => [
+                    ['key' => 'Statut', 'type' => 'status', 'value' => 'Maintenance'],
+                    ['key' => 'Échéance', 'type' => 'date', 'value' => '+5'],
+                    ['key' => 'Budget', 'type' => 'number', 'value' => 2160],
+                    ['key' => 'Suivi par', 'type' => 'person', 'value' => 'dev@aurora.app'],
+                    ['key' => 'Contrat signé', 'type' => 'checkbox', 'value' => true],
+                    ['key' => 'Site', 'type' => 'url', 'value' => 'https://cabinet-verrier.example'],
+                ],
                 'folder' => 'clients',
                 'age' => '-25 minutes',
                 'cover' => 923307,
@@ -942,8 +1053,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     ### En cours
 
-                    - [ ] Galerie avant / après, en attente des photos
-                    - [ ] Formulaire de contact en trois langues
+                    - [ ] Galerie avant / après, en attente des photos 📅 {{date:+3}}
+                    - [ ] Formulaire de contact en trois langues 📅 {{date:-2}}
 
                     ## Le forfait
 
@@ -1203,6 +1314,89 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     Méthode complète dans [[Séance en extérieur]].
                     MD,
             ],
+            'bilan' => [
+                // The rendering's showcase since 4.6.0: a table of contents,
+                // highlights, formulas, a diagram, foldable callouts, dated
+                // tasks, a footnote, an included section and a paragraph
+                // another note cites. The tour's « rendu » and the slides
+                // are taken on it.
+                'title' => 'Bilan de la saison',
+                'tags' => ['photo', 'bilan'],
+                'folder' => 'photo',
+                'age' => '-3 hours',
+                'icon' => '📊',
+                'cover' => 18880006,
+                'coverCredit' => 'Amar Preciado',
+                'coverPosition' => 45,
+                'properties' => [
+                    ['key' => 'Statut', 'type' => 'status', 'value' => 'À relire'],
+                    ['key' => 'Période', 'type' => 'text', 'value' => 'Juillet à septembre'],
+                    ['key' => 'Échéance', 'type' => 'date', 'value' => '+7'],
+                ],
+                'content' => <<<'MD'
+                    # Bilan de la saison
+
+                    [[toc]]
+
+                    ## En bref
+
+                    Une saison :sunny: chargée : ==dix-huit séances==, =={vert}deux nouveaux clients== et {rouge}un report pour la météo{/}. Le détail des clients est dans le [[Sommaire des clients]]. #bilan
+
+                    > [!tip] À retenir
+                    > Les séances de fin de journée ont donné les meilleures images : on garde le déroulé de la [[Séance en extérieur]].
+
+                    ## Les chiffres
+
+                    | Mois | Séances | Chiffre d'affaires |
+                    | --- | ---: | ---: |
+                    | Juillet | 6 | 4 200 € |
+                    | Août | 4 | 3 100 € |
+                    | Septembre | 8 | 5 600 € |
+
+                    La marge de la saison : $marge = \frac{CA - charges}{CA}$, soit 38 %, et sur l'année :
+
+                    $$
+                    \sum_{m=1}^{12} CA_m \approx 52\,000\ €
+                    $$
+
+                    ## Le parcours d'un client
+
+                    ```mermaid
+                    graph LR
+                      A[Premier contact] --> B[Devis]
+                      B --> C{Signé ?}
+                      C -->|Oui| D[Séance]
+                      C -->|Non| E[Relance]
+                      D --> F[Galerie livrée]
+                    ```
+
+                    ## La suite
+
+                    - [x] Envoyer les galeries de septembre :white_check_mark:
+                    - [ ] Relancer la Boulangerie Fournier 📅 {{date:+2}}
+                    - [ ] Préparer le catalogue du Studio Lumen 📅 {{date:+9}}
+                    - [ ] Clore les comptes de la saison 📅 {{date:-3}}
+
+                    > [!warning]- Ce qui a coincé (cliquer pour déplier)
+                    > - Deux reports pour la pluie, rattrapés la semaine suivante.
+                    > - Un objectif en réparation pendant dix jours.
+
+                    > [!toggle] Le matériel de la saison
+                    > Deux boîtiers, le 35 mm et le 85 mm, un réflecteur : voir le sac décrit dans [[Matériel]].
+
+                    ## Le déroulé qui marche
+
+                    ![[Séance en extérieur#Le déroulé]]
+
+                    ## Ce qu'en disent les clients
+
+                    > « Les photos sont superbes, on les a déjà toutes imprimées. »[^avis]
+
+                    La saison prochaine garde le même rythme, avec une séance de plus par mois. ^cap
+
+                    [^avis]: Message du Studio Lumen, reçu le lendemain de la livraison.
+                    MD,
+            ],
             'livraison' => [
                 // Checkboxes, so a card's thumbnail shows something other
                 // than a paragraph: it is the form that makes a note
@@ -1217,9 +1411,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     - [x] Sélection validée par le client
                     - [x] Retouche des portraits
-                    - [ ] Export web et impression
-                    - [ ] Galerie en ligne
-                    - [ ] Facture du solde
+                    - [ ] Export web et impression 📅 {{date:+1}}
+                    - [ ] Galerie en ligne 📅 {{date:+4}}
+                    - [ ] Facture du solde 📅 {{date:-1}}
 
                     > [!danger] Rien ne part avant la facture
                     > La ligne « facture du solde » se coche avant l'envoi de la galerie, pas après.
