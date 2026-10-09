@@ -38,11 +38,43 @@ is attempted.
 what you need to know how to redo by hand when it stops somewhere. Read them
 before running it the first time; after that, the script is the way.
 
-**Permissions.** Publishing needs `git merge` and a push to `master`. A session
-whose permission layer refuses those cannot release, and routing the same
-command through the script to get past the refusal is not the answer - say
-which gesture is blocked and let the user decide. Allow rules added mid-session
-are not picked up by the running session.
+**Permissions.** Publishing needs `gh pr merge`, or `git merge` plus a push to
+`master`. A session whose permission layer refuses those cannot release, and
+routing the same command through the script to get past the refusal is not the
+answer - say which gesture is blocked and let the user decide. Allow rules
+added mid-session are not picked up by the running session. If `make release`
+itself is refused while the individual git commands are allowed, walk the chain
+in the open: a `make` target is opaque to a permission classifier, the commands
+it runs are not.
+
+## The two repositories release differently, and their numbers do not match
+
+Measured on 09/10/2026, publishing aurora-core v4.1.0 all the way to the
+server. Getting this wrong is how an evening goes sideways.
+
+| | aurora-core | aurora-client |
+|---|---|---|
+| Where the version comes from | the topmost **closed section of `CHANGELOG.md`** | **computed from the commit messages** since the last tag; it has no changelog |
+| What a `chore(deps):` bump produces | nothing on its own | a **patch** bump (`feat:` → minor, `type!:`/`BREAKING CHANGE` → major) |
+| `master` | accepted a direct push of a merge commit | **protected**: a direct push is declined by a branch protection hook |
+| develop → master | **never a fast-forward** - each release leaves a merge commit on `master` that `develop` lacks, so a merge is required | a fast-forward, but it still goes through a PR because of the protection |
+| How to publish | PR develop → master, merge it | PR develop → master, merge it |
+
+**The version numbers are not the same number.** aurora-core v4.1.0 published
+aurora-client **v3.8.1**. They used to coincide - the client's tags read
+v3.8.0, v3.7.1, v3.7.0 like core's - and they stopped the day core went to 4.0.
+Do not infer one from the other, in either direction.
+
+That matters most on the server: **`/var/www/aurora-client/VERSION` holds
+aurora-client's tag, not aurora-core's.** To know which aurora-core production
+is actually running:
+
+```bash
+ssh vps 'grep -o "\"version\": \"v[0-9.]*\"" /var/www/aurora-client/composer.lock | head -1'
+```
+
+Reading `VERSION` and comparing it to `gh release list` on aurora-core is how
+you conclude production is up to date when it is two releases behind.
 
 ## The one thing that can hurt
 
@@ -187,15 +219,36 @@ Nothing about that was visible without reading the server. So:
 ssh vps 'cat /var/www/aurora-client/VERSION'   # before, and again after
 ```
 
-**And aurora-client has a release of its own**, whose number is computed from
-its commit messages - it has no changelog. The server only ever deploys tags of
-*that* repository, so publishing aurora-core is not enough: the consumer has to
-be published too, which is a fast-forward push of its `develop` onto `master`.
-That is the hop that gets skipped, and it is what the lag above was.
+**The server only ever deploys tags of aurora-client**, so publishing
+aurora-core is not enough: the consumer has to be published too, through its
+own PR (see the table above). That is the hop that gets skipped, and it is what
+the lag above was.
 
-Then, on the server, `make deploy-prod` - it requires an exact tag on `HEAD`
-and runs the migrations itself. A deploy that leaves `VERSION` unchanged did
-not happen; say so rather than reporting success.
+Then, on the server:
+
+```bash
+ssh vps 'cd /var/www/aurora-client && git fetch -q --tags origin && git checkout -q <client tag>'
+ssh vps 'cd /var/www/aurora-client && make deploy-prod'
+```
+
+`deploy-prod` refuses without an exact tag on `HEAD` - the checkout is detached
+on purpose, and that refusal is what stops a deploy of whatever happened to be
+checked out. It runs the migrations itself and ends on its own post-deploy
+checks: deployed version, the application booting in prod, no pending
+migration, the worker active, no failed message, and the site answering 200.
+
+**Verify it yourself anyway**, because what is worth knowing after a deploy is
+not that a command returned zero:
+
+```bash
+ssh vps 'cat /var/www/aurora-client/VERSION'   # must differ from before
+ssh vps 'cd /var/www/aurora-client && php bin/console dbal:run-sql --env=prod "<a count>"'
+```
+
+A deploy that leaves `VERSION` unchanged did not happen; say so rather than
+reporting success. And when checking a new column, get the table name from the
+migration rather than from memory - `core_notes_spaces`, not
+`core_note_spaces`, cost a false alarm on a deploy that had worked.
 
 ## Boundaries
 
