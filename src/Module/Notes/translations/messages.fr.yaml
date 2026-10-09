@@ -162,7 +162,8 @@ notes:
             banner: "Note verrouillée : elle se lit, elle ne se modifie pas."
         quick_open:
             title: "Ouvrir une note"
-            placeholder: "Titre de la note…"
+            placeholder: "Titre ou mot du contenu…"
+            in_content: "Dans le contenu"
             create: "Créer « {title} »"
             empty: "Aucune note."
             hint: "↑ ↓ pour choisir, Entrée pour ouvrir. ⌘ K reste la recherche de toute la suite."
@@ -696,6 +697,7 @@ notes:
             more: '{shown} premiers sur {total} : précisez la recherche pour voir les autres.'
             clear: 'Effacer'
             in_content: 'Chercher « {query} » dans le contenu'
+            in_notebook: 'Chercher « {query} » dans tout le carnet'
             sort:
                 relevance: 'Pertinence'
                 date: 'Date'

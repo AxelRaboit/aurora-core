@@ -157,7 +157,8 @@ notes:
             banner: "Nota bloqueada: se puede leer, no modificar."
         quick_open:
             title: "Abrir una nota"
-            placeholder: "Título de la nota…"
+            placeholder: "Título o palabra del contenido…"
+            in_content: "En el contenido"
             create: "Crear «{title}»"
             empty: "Ninguna nota."
             hint: "↑ ↓ para elegir, Intro para abrir. ⌘ K sigue siendo la búsqueda de toda la suite."
@@ -694,6 +695,7 @@ notes:
             more: 'Los {shown} primeros de {total}: precise la búsqueda para ver los demás.'
             clear: 'Borrar'
             in_content: 'Buscar «{query}» en el contenido'
+            in_notebook: 'Buscar «{query}» en todo el cuaderno'
             sort:
                 relevance: 'Relevancia'
                 date: 'Fecha'

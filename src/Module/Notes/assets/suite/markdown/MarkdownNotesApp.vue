@@ -2500,7 +2500,7 @@ onUnmounted(() => {
                     :tasks-enabled="'' !== tasksPath"
                     :search-enabled="'' !== searchFullPath"
                     :people="everyone"
-                    v-on:open-search="openSearch()"
+                    v-on:open-search="(initial) => openSearch(initial ?? '')"
                     v-on:open-note="openNote"
                     v-on:create-note="createNote"
                     v-on:open-daily-note="openDailyNote"
@@ -2532,9 +2532,12 @@ onUnmounted(() => {
             <NoteQuickOpen
                 :show="quickOpen"
                 :notes="notes"
+                :search-content="api.searchContent"
                 v-on:close="quickOpen = false"
                 v-on:open="openNote"
+                v-on:open-found="openFromSearch"
                 v-on:create="createFromQuickOpen"
+                v-on:search="openSearch"
             />
 
             <NotePresentation

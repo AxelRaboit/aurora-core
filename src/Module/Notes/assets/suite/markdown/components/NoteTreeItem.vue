@@ -22,6 +22,7 @@ import { useI18n } from 'vue-i18n';
 import { ChevronRight, ChevronDown, Download, FileText, Folder, FolderOpen, LayoutTemplate, Pencil, Plus, Star, StarOff, Trash2 } from 'lucide-vue-next';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
+import { highlightParts } from '../composables/noteSearchHighlight.js';
 
 const props = defineProps({
     node: { type: Object, required: true },
@@ -323,6 +324,20 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 />
             </div>
         </div>
+
+        <!-- Where a search found the note, when it was not by its title: the
+             row alone would not say why it is there. -->
+        <p
+            v-if="!isFolder && node.snippet"
+            data-tree-snippet
+            class="mb-1 mt-0.5 line-clamp-2 break-words pr-2 text-xs leading-snug text-muted"
+            :style="{ marginLeft: `${depth * 0.875 + 2.125}rem` }"
+        >
+            <template v-for="(part, partIndex) in highlightParts(node.snippet.text, node.snippet.ranges)" :key="partIndex">
+                <mark v-if="part.mark" class="rounded bg-amber-300/40 px-0.5 text-inherit dark:bg-amber-400/30">{{ part.text }}</mark>
+                <template v-else>{{ part.text }}</template>
+            </template>
+        </p>
 
         <!-- A rule along the children, like Obsidian: one sees at a glance
              what belongs to which folder, even three levels down. -->

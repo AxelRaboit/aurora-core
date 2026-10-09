@@ -108,7 +108,7 @@ final readonly class NoteSearch
     /**
      * The ids only, best first: the side panel filters its tree with them.
      *
-     * @return array{ids: list<int>, snippets: array<int, string>}
+     * @return array{ids: list<int>, snippets: object, needles: list<string>}
      */
     public function ids(CoreUserInterface $user, string $raw): array
     {
@@ -123,7 +123,11 @@ final readonly class NoteSearch
             }
         }
 
-        return ['ids' => array_map(static fn (array $result): int => $result['id'], $found['results']), 'snippets' => $snippets];
+        return [
+            'ids' => array_map(static fn (array $result): int => $result['id'], $found['results']),
+            'snippets' => (object) $snippets,
+            'needles' => $found['needles'],
+        ];
     }
 
     /**

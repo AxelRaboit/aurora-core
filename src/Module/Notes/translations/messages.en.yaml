@@ -158,7 +158,8 @@ notes:
             banner: "Locked note: it can be read, not edited."
         quick_open:
             title: "Open a note"
-            placeholder: "Note title…"
+            placeholder: "Title or a word of the content…"
+            in_content: "In the content"
             create: "Create “{title}”"
             empty: "No notes."
             hint: "↑ ↓ to choose, Enter to open. ⌘ K stays the search of the whole suite."
@@ -692,6 +693,7 @@ notes:
             more: 'First {shown} of {total}: narrow the search to see the others.'
             clear: 'Clear'
             in_content: 'Search “{query}” in the content'
+            in_notebook: 'Search “{query}” in the whole notebook'
             sort:
                 relevance: 'Relevance'
                 date: 'Date'
