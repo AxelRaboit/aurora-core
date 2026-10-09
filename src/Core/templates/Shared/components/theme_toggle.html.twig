@@ -1,0 +1,21 @@
+{# The light / dark switch of a page with no account: a share link, a public
+   reading, a document sent to a customer. The suite has it in the account
+   menu and the sign-in page in its corner; a guest had no way to change it.
+
+   Driven by the `theme` entry (assets/theme.js), which every such page loads
+   already: it finds the button by its id, shows the icon of the theme it
+   would switch to and keeps the name in step. The labels travel with the
+   button so the script has nothing to translate. Same frame as the suite's
+   icon buttons (38 px), so it sits in a header next to them. #}
+<button
+    type="button"
+    id="theme-toggle"
+    class="inline-flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg border border-line text-muted transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent print:hidden {{ class ?? '' }}"
+    data-label-light="{{ 'suite.nav.light_mode'|trans }}"
+    data-label-dark="{{ 'suite.nav.dark_mode'|trans }}"
+    aria-label="{{ 'suite.nav.dark_mode'|trans }}"
+    title="{{ 'suite.nav.dark_mode'|trans }}"
+>
+    {{ include('@Shared/components/icon.html.twig', {name: 'moon', class: 'icon-moon w-5 h-5'}) }}
+    {{ include('@Shared/components/icon.html.twig', {name: 'sun', class: 'icon-sun w-5 h-5'}) }}
+</button>

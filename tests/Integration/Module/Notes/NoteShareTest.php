@@ -112,6 +112,22 @@ final class NoteShareTest extends IntegrationTestCase
         self::assertStringContainsString('noindex', (string) $this->client->getResponse()->getContent());
     }
 
+    /**
+     * A guest has no account menu to switch the theme from: the page carries
+     * the button, named, and the script that drives it.
+     */
+    public function testTheSharedPageOffersTheLightDarkSwitch(): void
+    {
+        $link = $this->link($this->note('Thème'));
+
+        $this->client->request('GET', $this->shareUrl($link));
+
+        $body = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('id="theme-toggle"', $body);
+        self::assertStringContainsString('data-label-light="Mode clair"', $body);
+        self::assertStringContainsString('data-label-dark="Mode sombre"', $body);
+    }
+
     /** Every way of failing looks the same to whoever is asking. */
     public function testRevokedExpiredAndUnknownTokensAreIndistinguishable(): void
     {

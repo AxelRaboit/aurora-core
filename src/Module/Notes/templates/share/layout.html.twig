@@ -31,6 +31,7 @@
             <header class="flex flex-wrap items-baseline gap-x-3 gap-y-1 print:hidden">
                 <h1 class="text-lg font-semibold text-primary">{% block heading %}{% endblock %}</h1>
                 <p class="text-xs text-muted">{% block subheading %}{% endblock %}</p>
+                {{ include('@Shared/components/theme_toggle.html.twig', {class: 'ml-auto self-center'}) }}
             </header>
 
             {% block body %}{% endblock %}

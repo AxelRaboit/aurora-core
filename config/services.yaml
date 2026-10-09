@@ -134,7 +134,7 @@ services:
         arguments:
             $mailerFrom: '%app.mailer_from%'
 
-    Aurora\Core\Twig\VersionExtension:
+    Aurora\Core\Version\AppVersion:
         arguments:
             $projectDirectory: '%kernel.project_dir%'
 

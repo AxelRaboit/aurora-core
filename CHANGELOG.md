@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.4.0] - 2026-10-09
+
+### Ajouté
+- **Un bouton clair / sombre sur les pages vues sans compte.** Le lien de partage d'une note, celui d'un calendrier, la lecture publique d'un espace de notes, le contrat envoyé à un client et les pages de mot de passe d'une publication ou d'un livrable n'offraient aucun moyen de changer de thème : un invité restait sur celui de son système. Le bouton se trouve en haut à droite, comme sur la page de connexion, et le choix est gardé d'une visite à l'autre.
+- **La suite prévient quand une nouvelle version est en ligne.** Un onglet resté ouvert pendant un déploiement gardait l'ancien code sans rien dire : ce matin, un lien de partage a ainsi été créé depuis une page encore sur la version précédente, sans la case « Co-édition en direct » que la nouvelle avait ajoutée. La page demande au serveur sa version quand on revient sur l'onglet, puis toutes les dix minutes, et affiche un bandeau « Une nouvelle version est en ligne » avec un bouton « Recharger » quand elle a changé. En local (version `dev`), rien ne s'affiche.
+
+### Dans aurora-client
+Rien à faire : la nouvelle route `/suite/version` vient avec le paquet et lit le fichier `VERSION` déjà écrit par `make deploy-prod`.
+
+---
+
 ## [4.3.0] - 2026-10-09
 
 ### Ajouté

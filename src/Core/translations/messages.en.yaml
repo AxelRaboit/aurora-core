@@ -247,6 +247,10 @@ shared:
 # module-specific tools injected via `extraTools` stay in that module's
 # own messages.en.yaml.
 suite:
+    version:
+        available: "A new version is live ({version}). Reload the page to use it."
+        reload: Reload
+        later: Later
     help:
         storage:
             delivery_mode:
