@@ -80,9 +80,6 @@ export async function enhanceNoteHtml(root, options = {}) {
         includeNotes(root, options),
     ]);
 
-    // An included note may bring headings: the table of contents lists what
-    // the reader finally sees.
-    fillTablesOfContents(root, labels, true);
 }
 
 function addCopyButtons(root, labels) {
@@ -113,16 +110,19 @@ function addCopyButtons(root, labels) {
     }
 }
 
-/** The headings a table of contents lists: the note's own, not the footnotes' label. */
+/**
+ * The headings a table of contents lists: the note's own, not the footnotes'
+ * label nor those of a note included in it, as Notion does.
+ */
 function headingsOf(root) {
     return [...root.querySelectorAll("h1, h2, h3")].filter(
         (heading) =>
-            !heading.closest(".footnotes, .md-toc") &&
+            !heading.closest(".footnotes, .md-toc, .md-embed") &&
             "" !== heading.textContent.trim(),
     );
 }
 
-function fillTablesOfContents(root, labels, refresh = false) {
+function fillTablesOfContents(root, labels) {
     const tables = root.querySelectorAll("nav[data-toc]");
     if (0 === tables.length) return;
 
@@ -133,7 +133,7 @@ function fillTablesOfContents(root, labels, refresh = false) {
     );
 
     for (const nav of tables) {
-        if (nav.dataset.tocFilled && !refresh) continue;
+        if (nav.dataset.tocFilled) continue;
         nav.dataset.tocFilled = "1";
         nav.replaceChildren();
 
