@@ -471,6 +471,8 @@ const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyR
  * (09/10/2026). Remembered by this browser: a convenience, nothing shared.
  */
 const SIDE_KEY = "aurora.notes.share.sideCollapsed";
+/** Where the fold button goes: the share page's top bar, absent from the suite's reader. */
+const sideToggleTarget = document.querySelector("[data-share-header-start]");
 /** Read from the text: folded, the outline is not there to count its headings. */
 const hasHeadings = computed(() => outlineOf(shownContent.value).length > 1);
 const sideCollapsed = ref(false);
@@ -615,27 +617,28 @@ const lookClass = computed(() =>
         <!-- The share's notes and the note's outline, beside the card rather
              than inside it: inside, the outline took a column of the card and
              the rendered note read as if the page were split (09/10/2026). -->
-        <!-- Folded: a single button where the column was, from `md` up;
-             below, the column sits above the note and takes no width. -->
-        <div
-            v-if="(hasTree || (showsOutline && hasHeadings)) && sideCollapsed"
-            data-share-side-collapsed
-            class="hidden shrink-0 md:sticky md:top-6 md:block print:hidden"
-        >
-            <AppIconButton :title="t('notes.markdown.share.side_show')" data-share-side-toggle v-on:click="toggleSide">
-                <PanelLeftOpen class="h-4 w-4" :stroke-width="2" />
+        <!-- The fold button lives in the page's top bar, before its title,
+             where Notion and Obsidian keep theirs: in the column, it took a
+             row when open and a column of its own when folded (09/10/2026).
+             The bar is the share layout's; the reader in the suite has none,
+             and no button there. -->
+        <Teleport v-if="sideToggleTarget && (hasTree || (showsOutline && hasHeadings))" :to="sideToggleTarget">
+            <AppIconButton
+                class="hidden md:inline-flex"
+                data-share-side-toggle
+                :title="sideCollapsed ? t('notes.markdown.share.side_show') : t('notes.markdown.share.side_hide')"
+                :aria-pressed="!sideCollapsed"
+                v-on:click="toggleSide"
+            >
+                <PanelLeftOpen v-if="sideCollapsed" class="h-4 w-4" :stroke-width="2" />
+                <PanelLeftClose v-else class="h-4 w-4" :stroke-width="2" />
             </AppIconButton>
-        </div>
+        </Teleport>
         <div
             v-if="(hasTree || showsOutline) && !sideCollapsed"
             class="w-full shrink-0 flex-col gap-2 sm:gap-4 md:sticky md:top-6 md:w-64 print:hidden"
             :class="hasTree ? 'flex' : outlineShown ? 'hidden lg:flex' : 'hidden'"
         >
-            <div class="hidden justify-end md:flex">
-                <AppIconButton :title="t('notes.markdown.share.side_hide')" data-share-side-toggle v-on:click="toggleSide">
-                    <PanelLeftClose class="h-4 w-4" :stroke-width="2" />
-                </AppIconButton>
-            </div>
             <nav
                 v-if="hasTree"
                 class="aurora-card w-full p-2"
