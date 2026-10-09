@@ -41,6 +41,8 @@ final readonly class SpaceAccessViewBuilder
             // The Drive box is only offered if the space has one.
             'driveFolderId' => $space->getDriveFolderId(),
             'previewPath' => $this->pathTemplateGenerator->generate('workspace_space_access_preview', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'aliasPath' => $this->pathTemplateGenerator->generate('workspace_space_access_alias', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'aliasRemovePath' => $this->pathTemplateGenerator->generate('workspace_space_access_alias_remove', ['id' => $space->getId(), 'linkId' => '__id__']),
         ];
     }
 
@@ -87,6 +89,13 @@ final readonly class SpaceAccessViewBuilder
             'canChat' => $link->canChat(),
             'canUpload' => $link->canUpload(),
             'canSeeDrive' => $link->canSeeDrive(),
+            // The short address can be shown again, unlike the long one: its
+            // name is kept, encrypted, and its token is computed (10/10/2026).
+            'shortUrl' => null === $link->getAlias() ? null : $this->urlGenerator->generate(
+                'public_space_alias',
+                ['alias' => $link->getAlias()],
+                UrlGeneratorInterface::ABSOLUTE_URL,
+            ),
         ];
     }
 

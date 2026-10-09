@@ -93,6 +93,8 @@ suite:
                     revoked: 'Enlace de acceso de cliente revocado'
                     deleted: 'Enlace de acceso de cliente eliminado'
                     opened: 'Espacio abierto por un cliente'
+                    alias_given: "Dirección corta asignada a un enlace de cliente"
+                    alias_removed: "Dirección corta retirada de un enlace de cliente"
                 space_file:
                     added: 'Archivo añadido a un espacio'
                     sent_by_client: Archivo enviado por el cliente a un espacio
@@ -1068,10 +1070,23 @@ suite:
                 step_3: 'El enlace caduca a los 90 días por defecto; sus casillas definen lo que puede hacer el cliente: validar, comentar, escribir en la conversación, enviar archivos, ver el Drive.'
                 step_4: '«Vista previa» abre la página exactamente como la ve ese destinatario, sin guardar nada en su nombre.'
                 step_5: '«Revocar» corta el enlace y conserva su rastro; «Eliminar» lo borra por completo.'
+                step_6: "«Dirección corta», en el menú «…» de un enlace, le da una dirección fácil de leer o dictar, como /c/atelier-dupont-k7m2q9: abre el mismo espacio con los mismos derechos, sigue visible y copiable, y deja de funcionar si la retira o si el enlace se revoca."
             tab: 'Acceso del cliente'
             intro: 'Un enlace abre este espacio al cliente, sin cuenta. Lo que puede hacer en él se elige enlace por enlace: validar, comentar, conversar, enviar archivos, ver el Drive. Es personal, caduca y se puede revocar.'
             issue: "Nuevo enlace de acceso"
             issue_submit: "Crear el enlace"
+            alias:
+                give: "Dirección corta"
+                change: "Cambiar la dirección corta"
+                remove: "Retirar la dirección corta"
+                name: "Nombre"
+                name_placeholder: "panaderia fournier"
+                name_hint: "Se añaden al final unos caracteres al azar, para que nadie pueda adivinar la dirección a partir del nombre del cliente: /c/panaderia-fournier-k7m2q9."
+                submit: "Crear y copiar"
+                replaces: "La dirección actual, {url}, dejará de funcionar."
+                given: "Dirección corta copiada."
+                created: "Dirección corta creada."
+                removed: "Dirección corta retirada."
             issued: 'Enlace creado.'
             preview: 'Vista previa'
             revoke: Revocar
@@ -1113,6 +1128,7 @@ suite:
             delete_confirm: '¿Eliminar el enlace de {name}?'
             delete_warning: 'El enlace deja de funcionar y su rastro desaparece. Para conservar el rastro, revóquelo en su lugar.'
             errors:
+                alias_unusable: "Este enlace ya no está activo: no puede recibir una dirección corta."
                 email_required: 'El email del destinatario es obligatorio.'
                 email_invalid: 'Este email no es válido.'
         client_visibility:

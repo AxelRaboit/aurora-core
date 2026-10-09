@@ -96,6 +96,14 @@ async function openNoteByTitle(page, title) {
  * and thirty pixels once the panel was out, so the note's table was cut right
  * in the middle of a header.
  */
+/** The notebook's search screen (4.7.0), from the library, on `query`. */
+async function openNotesSearch(page, query) {
+    await page.locator("[data-library-search-all]").first().click();
+    await page.locator("[data-note-search-field]").first().fill(query);
+    await page.locator("[data-note-search-result]").first().waitFor();
+    await page.waitForTimeout(800);
+}
+
 async function openNoteWithPanel(page, title) {
     await openNoteByTitle(page, title);
     await page.getByTitle("Édition + aperçu").first().click();
@@ -1578,6 +1586,79 @@ const SHOTS = [
         },
         async after() {
             await closeCoeditGuest();
+        },
+    },
+    {
+        // The notebook's search screen (4.7.0): « echeance » without its
+        // accents finds « Échéance » in titles, text and properties, each
+        // result with the passages it was found by, and the chips that narrow
+        // by tag or folder.
+        name: "tour-notes-recherche",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNotesSearch(page, "echeance");
+        },
+    },
+    {
+        // The side panel's search (4.7.0): a note found by its text shows the
+        // passage under its row, the words highlighted.
+        name: "tour-notes-recherche-panneau",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await page.getByPlaceholder("Rechercher une note…").first().fill("seance lumiere");
+            await page.locator("[data-tree-snippet]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Cmd+P (4.7.0): the titles first, then the notes whose text holds
+        // the word, with the passage, and a line to the full search.
+        name: "tour-notes-recherche-rapide",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await page.keyboard.press("ControlOrMeta+p");
+            await page.locator("[data-note-quick-open] input").first().fill("echeance");
+            await page.locator("[data-note-quick-found]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Find and replace in a note (4.7.0), Cmd+Option+F: every occurrence
+        // tinted in the editor, the current one darker. « seance » finds the
+        // five « séance » of the season's review. Nothing is replaced.
+        name: "tour-notes-chercher-remplacer",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNoteByTitle(page, "Bilan de la saison");
+            // The caret at the top: the bar starts from it, so the current
+            // match is the first one, in view.
+            await page.locator("main textarea").first().evaluate((field) => {
+                field.focus();
+                field.setSelectionRange(0, 0);
+                field.scrollTop = 0;
+            });
+            await page.keyboard.press("ControlOrMeta+Alt+f");
+            await page.locator("[data-note-find-field] input").first().fill("seance");
+            await page.locator("[data-note-replace-field] input").first().fill("rendez-vous");
+            await page.locator("[data-note-find-field] input").first().focus();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // Replacing across the notebook (4.7.0): « Compter » says how many
+        // occurrences in how many notes before anything is written. On
+        // « seance », which the demo writes in the text of several notes
+        // (« Échéance » is mostly a property's name, which is not replaced).
+        // The scenario stops there and never confirms.
+        name: "tour-notes-remplacer-carnet",
+        path: "/suite/notes/markdown",
+        async prepare(page) {
+            await openNotesSearch(page, "seance");
+            await page.locator("[data-note-search-replace-toggle]").first().click();
+            await page.locator("[data-note-replace-with] input").first().fill("session");
+            await page.locator("[data-note-replace-preview]").first().click();
+            await page.locator("[data-note-replace-summary]").first().waitFor();
+            await page.waitForTimeout(600);
         },
     },
     {

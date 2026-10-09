@@ -30,6 +30,19 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
      * is what keeps a timing difference from telling somebody they guessed half
      * of it.
      */
+    /** The link a short address names, by the hash of that name. */
+    public function findByAliasHash(string $aliasHash): ?SpaceAccessLinkInterface
+    {
+        return $this->createQueryBuilder('l')
+            ->addSelect('s', 'c')
+            ->innerJoin('l.space', 's')
+            ->innerJoin('s.customer', 'c')
+            ->andWhere('l.aliasHash = :aliasHash')
+            ->setParameter('aliasHash', $aliasHash)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findBySelector(string $selector): ?SpaceAccessLinkInterface
     {
         return $this->createQueryBuilder('l')

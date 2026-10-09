@@ -9,6 +9,10 @@
  * own, and the list below carries what a list can honestly answer: who it went
  * to, whether it was opened, and whether it still works.
  *
+ * **The short address can be shown again** (10/10/2026): `/c/fournier-k7m2q9`
+ * opens the same page with the same rights, and its name is kept, so the row
+ * carries it with a copy button. Giving a new one retires the old.
+ *
  * Revoking and deleting both exist because they say different things. Revoking
  * closes an address and keeps the record; deleting is for the one sent to the
  * wrong mailbox thirty seconds ago, where the record is noise.
@@ -25,13 +29,14 @@ import { useClipboard } from "@/shared/composables/useClipboard.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { required } from "@/shared/utils/validation/validators.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import { Ban, Copy, Eye, Link2, Trash2, X } from "lucide-vue-next";
+import { Ban, Copy, Eye, Link, Link2, Trash2, Unlink, X } from "lucide-vue-next";
 
 const { t, d: formatDate } = useI18n();
 const { can } = usePrivileges();
@@ -50,6 +55,9 @@ const props = defineProps({
     driveFolderId: { type: String, default: null },
     /** Address template of the preview, `__id__` replaced by the link. */
     previewPath: { type: String, default: "" },
+    /** Address templates of the short address, `__id__` replaced by the link. */
+    aliasPath: { type: String, default: "" },
+    aliasRemovePath: { type: String, default: "" },
 });
 
 const canShare = computed(() => can("studio.spaces.share"));
@@ -115,6 +123,54 @@ function openIssue() {
     showIssue.value = true;
 }
 
+/**
+ * The short address: a name, to which the server adds a random end so that
+ * the client's name alone does not open their space.
+ */
+const aliasFor = ref(null);
+const aliasName = ref("");
+const aliasSaving = ref(false);
+
+function openAlias(link) {
+    aliasFor.value = link;
+    // The client's name rather than the space's: « atelier-dupont » reads
+    // better on a card than « atelier-dupont-reseaux-sociaux ».
+    aliasName.value = props.space?.customerName || props.space?.name || "";
+}
+
+async function saveAlias() {
+    if (!aliasFor.value || aliasSaving.value) return;
+    aliasSaving.value = true;
+    try {
+        const data = await request(buildPath(props.aliasPath, { id: aliasFor.value.id }), { name: aliasName.value });
+        if (data) {
+            applyLinks(data);
+            const updated = links.value.find((link) => link.id === aliasFor.value.id);
+            // Copied when the browser allows it, and said either way: the
+            // address is in the row, with its own copy button.
+            let copied = false;
+            try {
+                await navigator.clipboard.writeText(updated?.shortUrl ?? "");
+                copied = Boolean(updated?.shortUrl);
+            } catch {
+                copied = false;
+            }
+            toast.success(t(copied ? "suite.studio.space_access.alias.given" : "suite.studio.space_access.alias.created"));
+            aliasFor.value = null;
+        }
+    } finally {
+        aliasSaving.value = false;
+    }
+}
+
+async function removeAlias(link) {
+    const data = await request(buildPath(props.aliasRemovePath, { id: link.id }));
+    if (data) {
+        applyLinks(data);
+        toast.success(t("suite.studio.space_access.alias.removed"));
+    }
+}
+
 const revoking = ref(null);
 
 async function revoke(link) {
@@ -156,6 +212,22 @@ function linkActions(link) {
             icon: Eye,
             title: t("suite.studio.space_access.preview"),
             onSelect: () => window.open(buildPath(props.previewPath, { id: link.id }), "_blank", "noopener"),
+        });
+    }
+    if (props.aliasPath && link.usable) {
+        actions.push({
+            key: "alias",
+            icon: Link,
+            title: link.shortUrl ? t("suite.studio.space_access.alias.change") : t("suite.studio.space_access.alias.give"),
+            onSelect: () => openAlias(link),
+        });
+    }
+    if (props.aliasRemovePath && link.shortUrl) {
+        actions.push({
+            key: "alias-remove",
+            icon: Unlink,
+            title: t("suite.studio.space_access.alias.remove"),
+            onSelect: () => removeAlias(link),
         });
     }
     if (link.usable) {
@@ -222,7 +294,7 @@ function openedLabel(link) {
      collapsed or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.space_access.guide.title')" storage-key="space-access">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 5" :key="step">{{ t(`suite.studio.space_access.guide.step_${step}`) }}</li>
+                <li v-for="step in 6" :key="step">{{ t(`suite.studio.space_access.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
         <!-- The address, once. It is deliberately loud and deliberately not in
@@ -303,6 +375,20 @@ function openedLabel(link) {
                             · {{ t("suite.studio.space_access.no_chat") }}
                         </template>
                     </p>
+                    <!-- The short address, which can be copied again at any
+                         time, unlike the long one. -->
+                    <div v-if="link.shortUrl" data-space-short-address class="mt-1.5 flex min-w-0 items-center gap-1.5">
+                        <Link class="h-3.5 w-3.5 shrink-0 text-muted" :stroke-width="2" />
+                        <code class="min-w-0 truncate font-mono text-xs" :class="link.usable ? 'text-primary' : 'text-muted line-through'">{{ link.shortUrl }}</code>
+                        <AppIconButton
+                            v-if="link.usable"
+                            size="sm"
+                            :title="t('shared.common.copy')"
+                            v-on:click="copy(link.shortUrl)"
+                        >
+                            <Copy class="h-3.5 w-3.5" :stroke-width="2" />
+                        </AppIconButton>
+                    </div>
                 </div>
 
                 <!-- The state, then the gestures behind the "…" button, as on
@@ -415,6 +501,39 @@ function openedLabel(link) {
                     >
                         <Link2 class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("suite.studio.space_access.issue_submit") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <AppModal
+            :show="!!aliasFor"
+            max-width="md"
+            :title="aliasFor?.shortUrl ? t('suite.studio.space_access.alias.change') : t('suite.studio.space_access.alias.give')"
+            :icon="Link"
+            v-on:close="aliasFor = null"
+        >
+            <form class="space-y-3" v-on:submit.prevent="saveAlias">
+                <AppInput
+                    v-model="aliasName"
+                    data-space-alias-name
+                    :label="t('suite.studio.space_access.alias.name')"
+                    :placeholder="t('suite.studio.space_access.alias.name_placeholder')"
+                    :hint="t('suite.studio.space_access.alias.name_hint')"
+                />
+                <p v-if="aliasFor?.shortUrl" class="text-xs text-secondary">
+                    {{ t("suite.studio.space_access.alias.replaces", { url: aliasFor.shortUrl }) }}
+                </p>
+            </form>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="aliasFor = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="primary" size="md" :loading="aliasSaving" v-on:click="saveAlias">
+                        <Link class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("suite.studio.space_access.alias.submit") }}
                     </AppButton>
                 </AppModalFooter>
             </template>

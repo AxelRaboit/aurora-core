@@ -93,6 +93,8 @@ suite:
                     revoked: Client access link revoked
                     deleted: Client access link deleted
                     opened: Space opened by a client
+                    alias_given: "Short address given to a client link"
+                    alias_removed: "Short address removed from a client link"
                 space_file:
                     added: File added to a space
                     sent_by_client: File sent by the client to a space
@@ -1083,10 +1085,23 @@ suite:
                 step_3: "The link expires after 90 days by default; its boxes set what the client can do: validate, comment, write in the chat, upload files, see the Drive."
                 step_4: "“Preview” opens the page exactly as that recipient sees it, without saving anything on their behalf."
                 step_5: "“Revoke” cuts the link and keeps its record; “Delete” erases it completely."
+                step_6: "“Short address”, in a link's “…” menu, gives it an address that is easy to read or dictate, such as /c/atelier-dupont-k7m2q9: it opens the same space with the same rights, stays visible and copyable, and stops working if you remove it or the link is revoked."
             tab: Client access
             intro: "A link opens this space to the client, with no account. What they can do there is chosen link by link: approve, comment, chat, send files, see the Drive. It is personal, it expires, and it can be revoked."
             issue: "New access link"
             issue_submit: "Create the link"
+            alias:
+                give: "Short address"
+                change: "Change the short address"
+                remove: "Remove the short address"
+                name: "Name"
+                name_placeholder: "fournier bakery"
+                name_hint: "A few random characters are added at the end, so that nobody can guess the address from the client's name: /c/fournier-bakery-k7m2q9."
+                submit: "Create and copy"
+                replaces: "The current address, {url}, will stop working."
+                given: "Short address copied."
+                created: "Short address created."
+                removed: "Short address removed."
             issued: Link created.
             preview: Preview
             revoke: Revoke
@@ -1134,6 +1149,7 @@ suite:
             delete_warning: 'The link stops working and its record goes with it. To keep the record, revoke it instead.'
 
             errors:
+                alias_unusable: "This link is no longer active: it cannot get a short address."
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
         client_visibility:
