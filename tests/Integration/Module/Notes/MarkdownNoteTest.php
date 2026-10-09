@@ -998,6 +998,54 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /** @return array<string, mixed> */
+    /**
+     * A link to a heading, a paragraph, with a shown text, or an inclusion,
+     * is a link: each one shows the source note among the backlinks
+     * (09/10/2026). Only the bare `[[Title]]` used to count.
+     */
+    public function testEveryFormOfLinkIsABacklink(): void
+    {
+        $target = $this->note($this->owner, 'Cible des liens');
+        $forms = [
+            'Titre' => 'Voir [[Cible des liens#Partie]].',
+            'Alias' => 'Voir [[Cible des liens|la cible]].',
+            'Inclusion' => "![[Cible des liens]]\n",
+            'Paragraphe' => 'Voir [[cible des liens#^abc]].',
+        ];
+        $sources = [];
+        foreach ($forms as $title => $content) {
+            $sources[] = $this->note($this->owner, 'Lien '.$title, content: $content)->getId();
+        }
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_backlinks', ['id' => $target->getId()]), server: ['HTTP_ACCEPT' => 'application/json']);
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        $found = array_column($body['backlinks'], 'id');
+        sort($found);
+        sort($sources);
+        self::assertSame($sources, $found);
+    }
+
+    /** Renaming a note rewrites its links in every form, shown text and place kept. */
+    public function testRenamingANoteRewritesEveryFormOfItsLinks(): void
+    {
+        $renamed = $this->note($this->owner, 'Ancien nom');
+        $source = $this->note($this->owner, 'Qui pointe', content: '[[Ancien nom]], [[Ancien nom#Partie]], [[Ancien nom|ici]], [[Ancien nomade]]');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('suite_notes_markdown_update', [
+            'title' => 'Nouveau $1 nom',
+            'content' => '',
+        ], ['id' => $renamed->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $source->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('[[Nouveau $1 nom]], [[Nouveau $1 nom#Partie]], [[Nouveau $1 nom|ici]], [[Ancien nomade]]', $fresh->getContent());
+    }
+
     private function listedRow(int $id): array
     {
         $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));

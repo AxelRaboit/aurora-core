@@ -522,6 +522,13 @@ const coeditAllowed = computed(() =>
     }),
 );
 
+/** Another note's text, for `![[Note]]` in the preview. */
+async function loadNoteContent(id) {
+    const { ok, payload } = await api.show(id);
+
+    return ok ? (payload?.note?.content ?? null) : null;
+}
+
 useNoteCoedit({
     noteId: selectedId,
     allowed: coeditAllowed,
@@ -748,6 +755,44 @@ const noteActions = computed(() => {
 
 
 const previewPaneRef = ref(null);
+
+/**
+ * A link that names a place in a note - `[[Note#Heading]]` or a paragraph,
+ * `[[Note#^id]]` (09/10/2026) - opens the note and goes there. It only opened
+ * the note: the heading was written in the link and nobody went to it.
+ */
+async function onPreviewWikiLink(payload) {
+    await onWikiLinkClick(payload);
+    if (!payload.heading || null === payload.matchedId) return;
+
+    // The preview of the newly opened note renders a moment later.
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+        await nextTick();
+        if (scrollPreviewTo(payload.heading)) return;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+}
+
+function scrollPreviewTo(anchor) {
+    const pane = previewPaneRef.value;
+    if (!pane) return false;
+
+    let target = null;
+    if (anchor.startsWith('^')) {
+        const mark = [...pane.querySelectorAll('[data-block-id]')].find((element) => element.dataset.blockId === anchor.slice(1));
+        target = mark?.closest('p, li') ?? null;
+    } else {
+        const wanted = anchor.trim().toLowerCase();
+        target = [...pane.querySelectorAll('h1, h2, h3, h4, h5, h6')].find((element) => element.textContent.trim().toLowerCase() === wanted) ?? null;
+    }
+    if (!target) return false;
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('is-linked-block');
+    setTimeout(() => target.classList.remove('is-linked-block'), 1800);
+
+    return true;
+}
 
 /**
  * Go to the heading clicked in the outline.
@@ -1731,7 +1776,8 @@ onUnmounted(() => {
                             <NotePreview
                                 :content="previewBody"
                                 :note-titles="notes"
-                                v-on:wiki-link-click="onWikiLinkClick"
+                                :load-note-content="loadNoteContent"
+                                v-on:wiki-link-click="onPreviewWikiLink"
                                 v-on:checkbox-toggle="onCheckboxToggle"
                                 v-on:image-resize="onImageResize"
                             />

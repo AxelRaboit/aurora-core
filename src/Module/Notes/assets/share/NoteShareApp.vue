@@ -13,7 +13,10 @@ import AppTab from "@shared/components/nav/AppTab.vue";
 import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { useMarkdownRenderer } from "@notes/suite/markdown/composables/useMarkdownRenderer.js";
+import { useFootnoteLabels, useNoteHtmlEnhancer } from "@notes/suite/markdown/composables/useNoteHtmlEnhancer.js";
+import { markdownSection } from "@notes/suite/markdown/composables/noteHtmlEnhancer.js";
 import { useEditorPaneMode } from "@notes/suite/markdown/composables/useEditorPaneMode.js";
 import { useNoteLive } from "@notes/suite/markdown/composables/useNoteLive.js";
 import { useNoteCoedit } from "@notes/suite/markdown/composables/useNoteCoedit.js";
@@ -79,7 +82,7 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const { render } = useMarkdownRenderer();
+const { render } = useMarkdownRenderer({ footnotes: useFootnoteLabels() });
 const { request } = useRequest();
 
 /**
@@ -368,6 +371,32 @@ const minutes = computed(() => readingMinutes(wordCount(shownContent.value)));
  * beside a rendered note only, never beside the source being typed.
  */
 const bodyRef = ref(null);
+
+/**
+ * A note included in this one (`![[Note]]`), when the link shares it too:
+ * asked from the share's own route, which answers for the notes in its scope
+ * and nothing else. Out of scope, the inclusion stays a title.
+ */
+const includedNotes = new Map();
+async function loadEmbed({ title, heading }) {
+    const id = props.titleIndex?.[String(title ?? "").toLowerCase()];
+    if (undefined === id || null === id) return null;
+
+    if (!includedNotes.has(id)) {
+        includedNotes.set(
+            id,
+            request(props.shareNotePath.replace("__id__", String(id)), null, { method: HttpMethod.Get, silent: true, noGuard: true })
+                .then((payload) => payload?.note?.content ?? null)
+                .catch(() => null),
+        );
+    }
+    const content = await includedNotes.get(id);
+    if (null === content) return null;
+
+    return htmlOf(markdownSection(content, heading), "");
+}
+
+useNoteHtmlEnhancer(bodyRef, () => [html.value, draftHtml.value, editing.value, view.value.mode], { loadEmbed });
 const showsOutline = computed(() => null !== props.meta && (!editing.value || "preview" === view.value.mode));
 // Remounted when the headings change, so a title typed in the room shows up.
 const outlineKey = computed(() => outlineOf(shownContent.value).map((heading) => heading.text).join("\n"));

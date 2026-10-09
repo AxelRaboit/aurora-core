@@ -115,6 +115,12 @@ notes:
             unreachable: 'Craft no ha devuelto nada para este documento.'
             not_imported: 'Esta nota no procede de Craft.'
     markdown:
+        render:
+            copy: "Copiar"
+            copied: "Copiado"
+            table_of_contents: "Índice"
+            footnotes: "Notas"
+            footnote_back: "Volver a la nota {number}"
         guide:
             title: "Cómo se organizan las notas"
             step_1: "Cada nota pertenece a un espacio de notas: el suyo, siempre privado, o un espacio de notas compartido."

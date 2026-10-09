@@ -143,6 +143,22 @@ final class NoteShareController extends AbstractController
             return $this->unavailable();
         }
 
+        // The page itself, asking for a note it includes (`![[Note]]`,
+        // 09/10/2026): the same scope as the page, so only a note this link
+        // already shows; its text, nothing more.
+        if ($request->isXmlHttpRequest() && 'json' === $request->getPreferredFormat()) {
+            $response = $this->jsonSuccess([
+                'note' => [
+                    'id' => (int) $note->getId(),
+                    'title' => $note->getTitle(),
+                    'content' => $note->getContent(),
+                ],
+            ]);
+            $response->headers->set('Cache-Control', 'private, no-store');
+
+            return $response;
+        }
+
         return $this->withGuestIdentity(
             $this->render('@Notes/share/show.html.twig', $this->pageView($link, $note, $scope)),
             $link,

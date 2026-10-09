@@ -120,6 +120,12 @@ notes:
             unreachable: "Craft n'a rien renvoyé pour ce document."
             not_imported: Cette note ne vient pas de Craft.
     markdown:
+        render:
+            copy: "Copier"
+            copied: "Copié"
+            table_of_contents: "Sommaire"
+            footnotes: "Notes"
+            footnote_back: "Revenir à la note {number}"
         guide:
             title: "Comment s'organisent les notes"
             step_1: "Chaque note appartient à un espace de notes : le vôtre, toujours privé, ou un espace de notes partagé."

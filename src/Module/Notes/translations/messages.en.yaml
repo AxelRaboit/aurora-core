@@ -116,6 +116,12 @@ notes:
             unreachable: "Craft returned nothing for that document."
             not_imported: This note does not come from Craft.
     markdown:
+        render:
+            copy: "Copy"
+            copied: "Copied"
+            table_of_contents: "Contents"
+            footnotes: "Notes"
+            footnote_back: "Back to note {number}"
         guide:
             title: "How notes are organised"
             step_1: "Each note belongs to a note space: yours, always private, or a shared note space."

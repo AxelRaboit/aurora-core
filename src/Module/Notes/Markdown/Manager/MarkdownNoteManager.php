@@ -23,6 +23,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Aurora\Module\Notes\Share\Service\WikiLinkParser;
 
 #[AsAlias(MarkdownNoteManagerInterface::class)]
 class MarkdownNoteManager implements MarkdownNoteManagerInterface
@@ -501,7 +502,10 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             return [];
         }
 
-        $needle = '[['.mb_strtolower($title).']]';
+        // Every form of link counts - a heading, a paragraph, a shown text, an
+        // inclusion - not only the bare `[[Title]]` (09/10/2026).
+        $needle = mb_strtolower(mb_trim($title));
+        $parser = new WikiLinkParser();
         $results = [];
 
         foreach ($this->noteRepository->findAllWithContentForUser($user) as $other) {
@@ -518,7 +522,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
                 continue;
             }
 
-            if (!str_contains(mb_strtolower($content), $needle)) {
+            if (!in_array($needle, $parser->titlesIn($content), true)) {
                 continue;
             }
 
@@ -536,7 +540,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         }
 
         $titleLower = mb_strtolower($title);
-        $linkedPattern = '[['.$titleLower.']]';
+        $parser = new WikiLinkParser();
         $results = [];
 
         foreach ($this->noteRepository->findAllWithContentForUser($user) as $other) {
@@ -558,7 +562,9 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
                 continue;
             }
 
-            if (str_contains($contentLower, $linkedPattern)) {
+            // Linked in any form is linked: only the notes that name the
+            // title without a link are mentions to offer.
+            if (in_array(mb_trim($titleLower), $parser->titlesIn($content), true)) {
                 continue;
             }
 
@@ -638,7 +644,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
             foreach ($matches[1] as $rawTarget) {
                 // strip anchor (#heading) - `[[Title#section]]` still points to "Title"
-                $target = mb_strtolower(explode('#', $rawTarget)[0]);
+                $target = mb_strtolower(WikiLinkParser::targetOf($rawTarget));
                 if ('' === $target) {
                     continue;
                 }
@@ -891,8 +897,11 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
      */
     protected function renameWikiLinks(MarkdownNoteInterface $note, string $oldTitle, string $newTitle): void
     {
-        $oldPattern = '[['.$oldTitle.']]';
-        $newPattern = '[['.$newTitle.']]';
+        // `[[old]]`, and the forms that keep the title before a `#` or a
+        // `|` (09/10/2026): a renamed note kept its links to a heading, a
+        // paragraph or a shown text pointing at a title that no longer existed.
+        $oldPattern = '/\[\['.preg_quote($oldTitle, '/').'(?=[\]#|])/u';
+        $newPattern = '[['.str_replace(['\\', '$'], ['\\\\', '\\$'], $newTitle);
         $excludeId = $note->getId();
 
         // In the note's space only: renaming a note of a shared space does
@@ -910,11 +919,11 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
                 continue;
             }
 
-            if (!str_contains((string) $content, $oldPattern)) {
+            if (1 !== preg_match($oldPattern, (string) $content)) {
                 continue;
             }
 
-            $other->setContent(str_replace($oldPattern, $newPattern, $content));
+            $other->setContent((string) preg_replace($oldPattern, $newPattern, $content));
             // Another note rewritten: open elsewhere, its editor must know it
             // rather than put the old link back on the next save.
             $other->bumpVersion();
