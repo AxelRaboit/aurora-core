@@ -209,6 +209,12 @@ async function drawDiagrams(root) {
             startOnLoad: false,
             securityLevel: "strict",
             theme,
+            // A diagram it cannot read is left as its source here. Without
+            // this, Mermaid drew « Syntax error in text » into the page's
+            // body, below everything: a library card cuts a note's start at
+            // 700 characters, and a diagram cut in half is unreadable
+            // (09/10/2026).
+            suppressErrorRendering: true,
         });
         mermaidTheme = theme;
     }
@@ -219,16 +225,27 @@ async function drawDiagrams(root) {
         const key = `${theme}\n${source}`;
         let svg = mermaidDrawings.get(key);
         if (undefined === svg) {
+            mermaidCounter += 1;
+            const id = `note-mermaid-${mermaidCounter}`;
             try {
-                mermaidCounter += 1;
-                ({ svg } = await mermaid.render(
-                    `note-mermaid-${mermaidCounter}`,
-                    source,
-                ));
+                // Parsed first: an unreadable diagram never reaches render,
+                // which measures in a node it adds to the body.
+                if (
+                    false ===
+                    (await mermaid.parse(source, { suppressErrors: true }))
+                ) {
+                    element.classList.add("md-mermaid-error");
+                    continue;
+                }
+                ({ svg } = await mermaid.render(id, source));
                 mermaidDrawings.set(key, svg);
             } catch {
                 element.classList.add("md-mermaid-error");
                 continue;
+            } finally {
+                // Whatever render left behind to measure with goes.
+                document.getElementById(`d${id}`)?.remove();
+                document.getElementById(id)?.remove();
             }
         }
         element.innerHTML = svg;

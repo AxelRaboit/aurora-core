@@ -124,6 +124,7 @@ notes:
             none: "Ningún emoji encontrado."
             recent: "Recientes"
         properties:
+            title: "Propiedades"
             add: "Añadir una propiedad"
             new: "Propiedad"
             name: "Nombre de la propiedad"
