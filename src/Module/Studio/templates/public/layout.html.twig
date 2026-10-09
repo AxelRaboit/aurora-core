@@ -28,6 +28,12 @@
     </head>
     <body class="min-h-screen bg-body transition-colors duration-200">
         <div class="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-2 py-2 sm:p-8">
+            {# In its own row, above the document: the documents have no
+               header of their own to put it in, and a fixed corner would
+               ride over the text of a contract as it scrolls. #}
+            <div class="-mb-4 flex justify-end print:hidden">
+                {{ include('@Shared/components/theme_toggle.html.twig') }}
+            </div>
             {% block body %}{% endblock %}
 
             {# Says where this came from, because a page with no navigation and

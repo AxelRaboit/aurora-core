@@ -1,6 +1,18 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { mount } from "@vue/test-utils";
+import { ref } from "vue";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
+
+const themeRef = ref("light");
+vi.mock("@/shared/composables/useTheme", () => ({
+    useTheme: () => ({
+        theme: themeRef,
+        toggle: () => {
+            themeRef.value = themeRef.value === "dark" ? "light" : "dark";
+        },
+    }),
+}));
+
 import NoteReadApp from "./NoteReadApp.vue";
 
 const i18n = createTestI18n();
@@ -245,6 +257,27 @@ describe("la lecture publique d'un espace", () => {
         expect(wrapper.find("[data-read-crumb]").element.tagName).toBe("SPAN");
         expect(wrapper.find("[data-read-edit]").exists()).toBe(false);
         expect(wrapper.find("[data-read-favorite]").exists()).toBe(false);
+    });
+
+    /** No account menu to switch the theme from: the bar offers it. */
+    it("offers the light / dark switch on the public page only", async () => {
+        const reader = render({ publicTitle: "" });
+        expect(reader.find("[data-read-theme]").exists()).toBe(false);
+
+        const wrapper = render({
+            publicTitle: "Guide public",
+            libraryPath: "/p/guide",
+            folderShowPath: "",
+        });
+        const button = wrapper.find("[data-read-theme]");
+        expect(button.exists()).toBe(true);
+
+        themeRef.value = "light";
+        await wrapper.vm.$nextTick();
+        expect(button.attributes("title")).toBe("suite.nav.dark_mode");
+        await button.trigger("click");
+        expect(themeRef.value).toBe("dark");
+        expect(button.attributes("title")).toBe("suite.nav.light_mode");
     });
 });
 

@@ -29,6 +29,15 @@ function initThemeToggle() {
         const dark = currentTheme() === "dark";
         if (iconMoon) iconMoon.style.display = dark ? "none" : "";
         if (iconSun) iconSun.style.display = dark ? "" : "none";
+        // The button is named after what it does: switch to the other
+        // theme. The labels come with the button, already translated.
+        const label = dark
+            ? button.dataset.labelLight
+            : button.dataset.labelDark;
+        if (label) {
+            button.setAttribute("aria-label", label);
+            button.setAttribute("title", label);
+        }
     }
 
     button.addEventListener("click", () => {

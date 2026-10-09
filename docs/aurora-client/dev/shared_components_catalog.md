@@ -148,10 +148,20 @@ changement »). Pas pour de la navigation (utiliser `AppLink`).
 
 ### `AppThemeToggle`
 
-Toggle dark/light auto-câblé via `useTheme()`. Pas de props.
+Toggle dark/light auto-câblé via `useTheme()`. Pas de props. Il est **fixé dans
+le coin** de l'écran (pages de connexion, espace client public).
 
 ```vue
 <AppThemeToggle />
+```
+
+**Sur une page Twig sans compte** (lien de partage, contrat, page de mot de
+passe), prendre le partial, que l'entrée `theme` pilote : bouton de 38 px,
+nommé « Mode sombre » / « Mode clair » selon le thème. `class` le place.
+
+```twig
+{{ include('@Shared/components/theme_toggle.html.twig', {class: 'ml-auto self-center'}) }}
+{# la page doit charger {{ vite_entry_script_tags('theme') }} #}
 ```
 
 ---

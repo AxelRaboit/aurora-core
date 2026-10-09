@@ -243,6 +243,10 @@ shared:
         apply: 'Aplicar el recorte'
         cropped: 'Imagen recortada'
 suite:
+    version:
+        available: "Hay una nueva versión en línea ({version}). Recarga la página para usarla."
+        reload: Recargar
+        later: Más tarde
     help:
         storage:
             delivery_mode:
