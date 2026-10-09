@@ -34,6 +34,9 @@
            the reader's, kept by their browser (assets/theme.js). #}
         <div data-widenable {% block widenable_attributes %}{% endblock %} class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-2 py-2 sm:p-6 data-[wide=true]:max-w-none lg:data-[wide=true]:px-8">
             <header class="flex flex-wrap items-baseline gap-x-3 gap-y-1 print:hidden">
+                {# The page's fold button for the side column, placed here by the
+                   note's component: the bar is where such a button is looked for. #}
+                <span data-share-header-start class="inline-flex self-center empty:hidden"></span>
                 <h1 class="text-lg font-semibold text-primary">{% block heading %}{% endblock %}</h1>
                 <p class="text-xs text-muted">{% block subheading %}{% endblock %}</p>
                 <span class="ml-auto inline-flex items-center gap-2 self-center">
