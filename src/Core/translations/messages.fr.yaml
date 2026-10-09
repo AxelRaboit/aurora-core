@@ -148,6 +148,8 @@ shared:
     common:
         beta: Bêta
         beta_hint: "Encore en cours de finition : peut changer ou présenter des imperfections."
+        widen: "Élargir à toute la fenêtre"
+        narrow: "Revenir à la colonne"
         help: Aide
         list_view: Vue liste
         grid_view: Vue cartes

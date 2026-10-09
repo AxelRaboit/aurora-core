@@ -849,6 +849,18 @@
         "tour-reglages-sequences": {
             "document": 889,
             "slug": "espace-developpeur"
+        },
+        "tour-notes-lien-partage": {
+            "document": 890,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-coedition": {
+            "document": 891,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-partage-ecriture": {
+            "document": 892,
+            "slug": "notes-markdown"
         }
     }
 }

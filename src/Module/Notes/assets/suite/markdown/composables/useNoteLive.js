@@ -25,6 +25,9 @@ import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
  * @param {import("vue").Ref<boolean>}     options.editing   editor open, or reader
  * @param {string}                         options.beatPath  `__id__` template
  */
+/** Under the browser's 64 KB for keepalive requests, with room for the others in flight. */
+const KEEPALIVE_LIMIT = 16_000;
+
 export function useNoteLive({ noteId, editing, beatPath }) {
     const { request } = useRequest();
 
@@ -289,6 +292,8 @@ export function useNoteLive({ noteId, editing, beatPath }) {
         // topic instead of handing one note's channel to whoever guesses it.
         body.append("private", "on");
 
+        const encoded = body.toString();
+
         try {
             await fetch(awareness.publishUrl, {
                 method: "POST",
@@ -296,16 +301,22 @@ export function useNoteLive({ noteId, editing, beatPath }) {
                     Authorization: `Bearer ${awareness.token}`,
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
-                body,
+                body: encoded,
                 // So a message published as the tab closes still goes out -
                 // which is what makes a cursor disappear when somebody
-                // leaves, rather than linger.
-                keepalive: true,
+                // leaves, rather than linger. **Small messages only**: the
+                // browser caps what keepalive requests carry at 64 KB, all of
+                // them in flight together, and refuses the rest outright - a
+                // pasted page, the whole state handed to a newcomer, a burst
+                // of keystrokes (09/10/2026).
+                keepalive: encoded.length < KEEPALIVE_LIMIT,
             });
         } catch {
             // Nobody asked for this, so nothing on screen blinks because of
-            // it. A cursor publishes again on the next keystroke; a document
-            // update is carried by the next one, a CRDT being cumulative.
+            // it. A cursor publishes again on the next keystroke. A document
+            // update is **not** carried by the next one - each is a piece, and
+            // the later ones build on it - so the co-editing session notices
+            // the gap and asks for it (`doc-sync`).
         }
     }
 

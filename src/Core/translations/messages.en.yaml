@@ -148,6 +148,8 @@ shared:
     common:
         beta: Beta
         beta_hint: "Still being finished: it may change or have rough edges."
+        widen: "Widen to the whole window"
+        narrow: "Back to the column"
         help: Help
         list_view: List view
         grid_view: Card view
