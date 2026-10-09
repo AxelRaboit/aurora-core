@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [4.3.0] - 2026-10-09
 
 ### Ajouté
 - **Un lien de partage peut ouvrir la note à la co-édition en direct, façon Google Docs (bêta).** Nouvelle case « Co-édition en direct » sous « Autoriser la modification », **éteinte par défaut** et marquée « Bêta ». Cochée, quiconque a l'adresse écrit la note en même temps que les autres, lettre par lettre, avec les curseurs et les visages de chacun, et la page s'ouvre directement sur le champ, sans bouton « Enregistrer » : la salle s'enregistre seule. La page ne dit « En direct » qu'une fois la session réellement démarrée, et sans hub Mercure le lien écrit simplement comme avant. Ça vaut aussi pour une note de l'espace personnel, que le propriétaire rejoint en l'ouvrant dans la suite. Les visiteurs apparaissent comme « Invité », sans nom ni libellé du lien. Décochée, le lien écrit comme avant.
