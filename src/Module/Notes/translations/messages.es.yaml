@@ -565,6 +565,8 @@ notes:
             Enlace sus notas con [[Título]]
         create_root: 'Nueva nota'
         export:
+            word: 'Exportar a Word (.docx)'
+            word_failed: 'No se ha podido crear el archivo Word.'
             all: 'Exportar todos mis espacios (zip)'
             one: 'Exportar esta nota'
         import:
@@ -667,6 +669,13 @@ notes:
         mention:
             in_note: '%name% le ha mencionado en esta nota.'
             in_comment: '%name% le ha mencionado en un comentario.'
+        # The note as slides, full screen.
+        present:
+            start: 'Presentar'
+            label: 'Presentación de « {title} »'
+            close: 'Salir de la presentación'
+            previous: 'Diapositiva anterior'
+            next: 'Diapositiva siguiente'
         reminder:
             title: 'Recordarme esta nota'
             change: 'Cambiar el recordatorio'

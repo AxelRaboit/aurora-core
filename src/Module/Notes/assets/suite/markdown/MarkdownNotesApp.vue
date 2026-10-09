@@ -21,6 +21,7 @@ import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.
 import NoteTasksPanel from '@notes/suite/markdown/components/NoteTasksPanel.vue';
 import NoteReminderModal from '@notes/suite/markdown/components/NoteReminderModal.vue';
 import NoteCommentsPanel from '@notes/suite/markdown/components/NoteCommentsPanel.vue';
+import NotePresentation from '@notes/suite/markdown/components/NotePresentation.vue';
 import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
 import NoteIconPicker from '@notes/suite/markdown/components/NoteIconPicker.vue';
 import NoteProperties from '@notes/suite/markdown/components/NoteProperties.vue';
@@ -41,7 +42,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ALargeSmall, BellRing, CaseSensitive, MessageSquare, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ALargeSmall, BellRing, CaseSensitive, FileType, MessageSquare, Presentation, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -807,6 +808,24 @@ async function openReading() {
     window.location.assign(readHref.value);
 }
 
+/** The note as slides (09/10/2026). */
+const presenting = ref(false);
+
+/** The note as a Word file, written in the browser (09/10/2026). */
+async function exportWord() {
+    try {
+        const { noteDocx } = await import('@notes/suite/markdown/composables/noteDocx.js');
+        const blob = await noteDocx({ title: form.value.title, content: form.value.content });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${(form.value.title || t('notes.markdown.untitled')).replace(/[\\/:*?"<>|]+/g, '-').trim()}.docx`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 10_000);
+    } catch {
+        toast.error(t('notes.markdown.export.word_failed'));
+    }
+}
+
 /**
  * The person's reminder on the open note (09/10/2026), asked when the note
  * opens: it is theirs, not the note's, so it does not travel with it.
@@ -1019,6 +1038,23 @@ const noteActions = computed(() => {
             title: t('notes.markdown.export.one'),
             icon: FileDown,
             onSelect: () => exportOne(selectedId.value),
+        },
+        // Word, for whoever works in it (09/10/2026).
+        {
+            key: "export-word",
+            title: t('notes.markdown.export.word'),
+            icon: FileType,
+            onSelect: () => void exportWord(),
+        },
+        // The note as slides, full screen (09/10/2026).
+        {
+            key: "present",
+            title: t('notes.markdown.present.start'),
+            icon: Presentation,
+            onSelect: async () => {
+                await overlaysSettled();
+                presenting.value = true;
+            },
         },
         // Move the note to the trash. The gesture existed and could only be
         // reached from the library: from the note itself, the most obvious
@@ -2427,6 +2463,14 @@ onUnmounted(() => {
                 v-on:close="quickOpen = false"
                 v-on:open="openNote"
                 v-on:create="createFromQuickOpen"
+            />
+
+            <NotePresentation
+                v-if="presenting && selectedNote"
+                :title="form.title"
+                :icon="form.icon"
+                :content="form.content"
+                v-on:close="presenting = false"
             />
 
             <NoteReminderModal

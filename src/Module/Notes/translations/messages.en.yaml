@@ -563,6 +563,8 @@ notes:
         content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
         create_root: New note
         export:
+            word: 'Export to Word (.docx)'
+            word_failed: 'The Word file could not be created.'
             all: 'Export all my spaces (zip)'
             one: Export this note
         import:
@@ -665,6 +667,13 @@ notes:
         mention:
             in_note: '%name% mentioned you in this note.'
             in_comment: '%name% mentioned you in a comment.'
+        # The note as slides, full screen.
+        present:
+            start: 'Present'
+            label: 'Presentation of « {title} »'
+            close: 'Leave the presentation'
+            previous: 'Previous slide'
+            next: 'Next slide'
         reminder:
             title: 'Remind me of this note'
             change: 'Change the reminder'

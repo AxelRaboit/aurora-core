@@ -6,7 +6,7 @@ import "@notes/share/print.css";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { CircleHelp, Clock, Columns, Eye, MessageSquare, Pencil } from "lucide-vue-next";
+import { CircleHelp, Clock, Columns, Eye, MessageSquare, Pencil, Presentation } from "lucide-vue-next";
 import NoteMarkdownHelp from "@notes/suite/markdown/components/NoteMarkdownHelp.vue";
 import NoteHoverCard from "@notes/suite/markdown/components/NoteHoverCard.vue";
 import { noteExcerpt, useWikiLinkHoverCard } from "@notes/suite/markdown/composables/useWikiLinkHoverCard.js";
@@ -28,6 +28,7 @@ import NoteCollaborators from "@notes/suite/markdown/components/NoteCollaborator
 import NoteRemoteCarets from "@notes/suite/markdown/components/NoteRemoteCarets.vue";
 import NoteReaderOutline from "@notes/suite/markdown/components/NoteReaderOutline.vue";
 import NoteCommentsPanel from "@notes/suite/markdown/components/NoteCommentsPanel.vue";
+import NotePresentation from "@notes/suite/markdown/components/NotePresentation.vue";
 import { flashQuote } from "@notes/suite/markdown/composables/noteCommentMarks.js";
 import { outlineOf, readingMinutes, wordCount } from "@notes/suite/markdown/composables/noteOutline.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -452,6 +453,18 @@ const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyR
     return htmlOf(noteExcerpt(markdownSection(content, heading)), heading ? "" : title);
 });
 
+/** The note as slides, for whoever has the link (09/10/2026). */
+const presenting = ref(false);
+function sharedSlideHtml(rendered) {
+    return shareHtml(rendered, {
+        imagePrefix: props.imagePrefix,
+        shareImagePath: props.shareImagePath,
+        shareNotePath: props.shareNotePath,
+        titleIndex: props.titleIndex,
+        unsharedLabel: t("notes.markdown.share.unshared_link"),
+    });
+}
+
 /**
  * The comments (09/10/2026), on a link that writes: the same panel as in the
  * suite, written under the name the guest gives.
@@ -664,6 +677,18 @@ const lookClass = computed(() =>
                         :placeholder="t('notes.markdown.title_placeholder')"
                         :aria-label="t('notes.markdown.title')"
                     >
+                    <AppButton
+                        v-if="!editing"
+                        data-share-present
+                        variant="secondary"
+                        size="sm"
+                        class="shrink-0 print:hidden"
+                        :label="t('notes.markdown.present.start')"
+                        icon-only
+                        v-on:click="presenting = true"
+                    >
+                        <Presentation class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppButton>
                     <!-- The comments, with the passage selected in the note if any. -->
                     <AppButton
                         v-if="commentsPath"
@@ -858,6 +883,15 @@ const lookClass = computed(() =>
                 </div>
             </div>
         </article>
+
+        <NotePresentation
+            v-if="presenting"
+            :title="savedTitle"
+            :icon="display?.icon ?? null"
+            :content="savedContent"
+            :transform-html="sharedSlideHtml"
+            v-on:close="presenting = false"
+        />
 
         <NoteCommentsPanel
             v-if="commentsOpen"
