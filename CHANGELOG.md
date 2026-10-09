@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [4.2.1] - 2026-10-09
 
 ### Corrigé
 - **Un invité ne perd plus son texte quand la note a changé pendant qu'il écrivait.** L'enregistrement était bien refusé, mais la page refermait le champ et le bouton « Recharger » faisait disparaître le brouillon. Le texte reste maintenant à l'écran, prêt à être copié, et c'est « Enregistrer » qui se désactive. Les textes d'aide le disent, en français, anglais et espagnol, au lieu d'un « vos modifications remplacent le texte pour tout le monde » qui faisait peur sans dire ce qui protège.
