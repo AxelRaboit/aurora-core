@@ -14,6 +14,8 @@ use Aurora\Module\Notes\NotesContext;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -69,13 +71,19 @@ final class PublicSpaceController extends AbstractController
      * template; it arrives here as 0, which is in no space.
      */
     #[Route('/{id}', name: '_note', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
-    public function note(string $slug, int $id): Response
+    public function note(string $slug, int $id, Request $request): Response
     {
         $space = $this->published($slug);
         $note = $space instanceof NoteSpaceInterface ? $this->noteIn($space, $id) : null;
 
         if (!$space instanceof NoteSpaceInterface || !$note instanceof MarkdownNoteInterface) {
             return $this->unavailable();
+        }
+
+        // The page asking for a note it includes or previews (09/10/2026):
+        // a note of the same published space, whose page is public anyway.
+        if ($request->isXmlHttpRequest() && 'json' === $request->getPreferredFormat()) {
+            return new JsonResponse(['success' => true, 'note' => ['id' => (int) $note->getId(), 'title' => $note->getTitle(), 'content' => $note->getContent()]]);
         }
 
         $response = $this->render('@Notes/public/note.html.twig', $this->viewBuilder->publicView($space, $note));

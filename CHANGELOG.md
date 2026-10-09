@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.6.1] - 2026-10-09
+
+### Corrigé
+- **Une note enregistrée hors de la salle de co-édition n'est plus écrasée par la salle.** Une note sauvegardée par un autre moyen (l'éditeur de quelqu'un qui n'est pas dans la session, un import, un script) pendant qu'un onglet restait ouvert dessus, en direct, revenait à l'ancien texte à l'enregistrement suivant de la salle : l'onglet gardait l'ancien texte en mémoire et le réécrivait. Vu en production sur une note laissée ouverte sur sa page partagée. La salle reprend maintenant chaque enregistrement venu d'ailleurs, fusionné avec ce qu'on y tapait, dans la suite comme sur la page partagée.
+- **Le texte d'une note garde de la place sous un en-tête chargé.** Avec une image d'entête, une icône et quelques propriétés, l'éditeur et l'aperçu n'avaient plus qu'une bande de quelques lignes. Le corps garde une hauteur confortable, et c'est la colonne de la note qui défile.
+- **Dans la lecture de la suite et sur une page publiée, une note incluse `![[Note]]` et l'aperçu au survol se chargent.** Ils restaient un simple lien : la page demandait le texte de la note à une adresse qui renvoyait la page elle-même.
+- **Une propriété de type date s'affiche comme un jour** (« 15 oct. 2026 ») dans la lecture et sur la page partagée, sans « à 00:00 ». Une propriété « Lien » y ressemble à un lien.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.6.0] - 2026-10-09
 
 ### Ajouté

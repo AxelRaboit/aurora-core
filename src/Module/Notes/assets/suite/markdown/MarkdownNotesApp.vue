@@ -740,6 +740,15 @@ useNoteCoedit({
     // stand behind it, and a save from outside the session is caught the way
     // any other is.
     writeBack: async () => await saveNow(),
+    // A save made outside the room is taken into it, instead of being
+    // overwritten at the room's next write-back (09/10/2026).
+    storedVersion: roomVersion,
+    loadStored: async () => {
+        if (!selectedId.value) return null;
+        const { ok, payload } = await api.show(selectedId.value);
+
+        return ok ? (payload?.note ?? null) : null;
+    },
 });
 
 
@@ -1999,7 +2008,13 @@ onUnmounted(() => {
                     />
                 </div>
 
-                <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0" :class="lookClass">
+                <!-- The column scrolls when what sits above the text is tall
+                     (09/10/2026): a banner, an emoji, the title and a few
+                     properties left the text a strip of three lines, the
+                     card being as high as the screen and the body taking
+                     what remained. The body keeps a height worth writing in;
+                     the rest moves up out of the way, as in Notion. -->
+                <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0 overflow-y-auto" :class="lookClass">
                     <!-- The banner, when the note has one. The image lives
                      with whoever hosts it: nothing entered the media library,
                      and if it disappears from there another one is picked.
@@ -2343,7 +2358,7 @@ onUnmounted(() => {
                         <div class="h-3 w-5/6 animate-pulse rounded bg-surface-2" />
                     </div>
 
-                    <div v-else class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+                    <div v-else class="flex-1 min-h-[max(24rem,65dvh)] flex flex-col md:flex-row overflow-hidden">
                         <div
                             v-if="viewMode !== 'preview'"
                             ref="editorPaneRef"

@@ -183,6 +183,7 @@ const {
     people: roomPeople,
     cursors: roomCursors,
     live: roomStreaming,
+    serverVersion: roomVersion,
     publishCursor,
     channel: roomChannel,
 } = useNoteLive({
@@ -217,6 +218,17 @@ useNoteCoedit({
     room: roomPeople,
     channel: roomChannel,
     writeBack: (markdown, sharedTitle) => writeBackForTheRoom(markdown, sharedTitle),
+    // A save made outside the room is taken into it (09/10/2026).
+    storedVersion: roomVersion,
+    loadStored: async () => {
+        const payload = await request(props.shareNotePath.replace("__id__", String(props.noteId)), null, {
+            method: HttpMethod.Get,
+            silent: true,
+            noGuard: true,
+        }).catch(() => null);
+
+        return payload?.note ?? null;
+    },
 });
 
 /**
@@ -370,7 +382,7 @@ const html = computed(() => htmlOf(savedContent.value, savedTitle.value));
 // the whole point of looking at it beside the field.
 const draftHtml = computed(() => htmlOf(draftContent.value, draftTitle.value));
 
-const { formatDate, formatDateTime } = useDateFormat();
+const { formatDate, formatDateShort, formatDateTime } = useDateFormat();
 
 /** The note's typeface and size, as set in the suite. */
 const readingClass = computed(() => [
@@ -772,10 +784,10 @@ const lookClass = computed(() =>
                                 :href="property.value"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="break-all"
+                                class="break-all text-accent-600 underline decoration-dotted underline-offset-2 dark:text-accent-300"
                             >{{ property.value }}</a>
                             <span v-else-if="'status' === property.type && property.value" class="rounded-full bg-accent-500/15 px-2 py-0.5 text-xs text-accent-600 dark:text-accent-300">{{ property.value }}</span>
-                            <span v-else-if="'date' === property.type && property.value">{{ formatDate(property.value) }}</span>
+                            <span v-else-if="'date' === property.type && property.value">{{ formatDateShort(property.value) }}</span>
                             <span v-else-if="'person' === property.type">{{ property.label ?? '' }}</span>
                             <span v-else>{{ property.value ?? '' }}</span>
                         </dd>
