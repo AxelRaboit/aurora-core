@@ -5,6 +5,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.6.3] - 2026-10-09
+
+### Corrigé
+- **Le texte des encadrés se lit de nouveau sur une note à l'apparence claire** (papier, menthe…) quand la suite est en thème sombre. Depuis la 4.6.0, il prenait la couleur du thème de la suite au lieu de celle de la note : clair sur fond clair, seul le gras restait visible. Même correction pour le code, les couleurs de texte et les blocs dépliables.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.6.2] - 2026-10-09
 
 ### Modifié
