@@ -15,12 +15,12 @@
  * the breadcrumb, and the "Déplacer vers" modal does the same thing by
  * keyboard and by finger, because drag and drop does not exist on a phone.
  */
-import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import {
     ArrowDown,
+    BookOpen,
     ArrowDownWideNarrow,
     ArrowUp,
     ArrowUpDown,
@@ -131,6 +131,9 @@ const emit = defineEmits([
 
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
+
+/** The library's how-to, opened from the bar. */
+const guideOpen = ref(false);
 
 const journalOpen = ref(false);
 const journalRef = ref(null);
@@ -1492,6 +1495,17 @@ defineExpose({
                  pixel button. Opened, the search takes its place in the group
                  and pushes the rest, instead of crossing the screen. -->
             <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
+                <!-- The how-to, behind an icon of the bar (09/10/2026): as a
+                     folded line under the header it stayed stuck at the top
+                     of the library, over the cards scrolling beneath it. -->
+                <AppIconButton
+                    data-library-guide
+                    :title="t('notes.markdown.guide.title')"
+                    :aria-label="t('notes.markdown.guide.title')"
+                    v-on:click="guideOpen = true"
+                >
+                    <BookOpen class="h-4 w-4" :stroke-width="2" />
+                </AppIconButton>
                 <AppIconButton
                     v-if="!searchOpen"
                     :title="t('notes.markdown.library.search_placeholder')"
@@ -1611,15 +1625,17 @@ defineExpose({
                 </div>
             </div>
         </header>
-        <!-- The screen's how-to, next to what it explains; folded or
-             expanded, the choice applies to every callout. The header and
-             content margins (`p-3`): set right on the card, it touched its
-             edges. -->
-        <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library" class="mx-3 mt-3">
-            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+        <AppModal
+            :show="guideOpen"
+            max-width="2xl"
+            :title="t('notes.markdown.guide.title')"
+            :icon="BookOpen"
+            v-on:close="guideOpen = false"
+        >
+            <ol data-library-guide-steps class="m-0 flex list-decimal flex-col gap-2 pl-5 text-sm text-secondary">
                 <li v-for="step in 8" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
             </ol>
-        </AppGuide>
+        </AppModal>
 
         <!-- What the selection allows, when there is one. A bar rather than
              a menu: what is chosen must stay counted in view while one
