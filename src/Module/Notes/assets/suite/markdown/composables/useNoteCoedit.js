@@ -9,6 +9,7 @@ import {
     joinAction,
     textDelta,
 } from "./noteCoeditProtocol.js";
+import { threeWayMerge } from "./noteThreeWayMerge.js";
 
 /**
  * A note written by several people at once, letter by letter.
@@ -45,6 +46,10 @@ import {
  * @param {object}                         options.channel     publish/subscribe over the bus
  * @param {Function}                       options.writeBack   persists the markdown, and the title
  *                                                             when the session carries one
+ * @param {import("vue").Ref<number|null>} [options.storedVersion] the note's version as the hub
+ *                                                             announces it, on every save
+ * @param {Function}                       [options.loadStored] `() => Promise<{content, title}|null>`,
+ *                                                             the note as stored
  */
 export function useNoteCoedit({
     noteId,
@@ -57,6 +62,8 @@ export function useNoteCoedit({
     channel,
     writeBack,
     live,
+    storedVersion = null,
+    loadStored = null,
 }) {
     /** How long to wait for a peer to answer before asking again. */
     const STATE_TIMEOUT_MS = 4000;
@@ -76,6 +83,9 @@ export function useNoteCoedit({
 
     /** How long after the last keystroke the elected client writes back. */
     const WRITE_BACK_MS = 3000;
+
+    /** The longest a client waits before taking an outside save into the room. */
+    const ADOPT_SPREAD_MS = 900;
 
     let sharedDocument = null;
     let body = null;
@@ -528,6 +538,104 @@ export function useNoteCoedit({
                 if ("" !== delta.insert)
                     titleText.insert(delta.index, delta.insert);
             });
+        });
+    }
+
+    /**
+     * A save that did not come from the room is taken into it (09/10/2026).
+     *
+     * The room only ever wrote outwards: a note saved from outside it - the
+     * ordinary editor of someone not in the session, an import, a script -
+     * was stored, announced, and then overwritten at the room's next
+     * write-back by the text it still held. Seen in production the day the
+     * module shipped: a share page left open as a guest held the old text,
+     * and the next person into the room took it from there.
+     *
+     * So on every announced save, the client that writes for the room reads
+     * the note back. Its own write-back reads the same text and stops there.
+     * Anything else is merged three ways - the base being what the room last
+     * wrote - and goes into the document like a keystroke, which carries it
+     * to everybody. When the two cannot be merged, the room's unsaved
+     * typing keeps the upper hand, as before; when the room had typed
+     * nothing since, the stored text wins outright.
+     *
+     * While a room settles - somebody arriving, the writer leaving - two
+     * clients can both believe they write for it. Each waits a moment of its
+     * own before applying, and looks again: the first one's update has
+     * arrived by then, and the second has nothing left to do. Applied twice,
+     * the same insertion would be written twice.
+     */
+    async function adoptOutsideSave() {
+        if (!loadStored || !live.value || !body) return;
+        if (!isElected(channel.selfUserId(), room.value)) return;
+
+        const stored = await loadStored().catch(() => null);
+        if (!stored || !body || "string" !== typeof stored.content) return;
+
+        const storedTitle =
+            "string" === typeof stored.title && "" !== stored.title
+                ? stored.title
+                : null;
+        const writtenBody = lastWritten?.body ?? null;
+        const writtenTitle = lastWritten?.title ?? null;
+        // The room's own write-back, read back: nothing came from outside.
+        if (
+            writtenBody === stored.content &&
+            (null === storedTitle || writtenTitle === storedTitle)
+        )
+            return;
+
+        await new Promise((resolve) =>
+            setTimeout(
+                resolve,
+                (ADOPT_SPREAD_MS * ((sharedDocument?.clientID ?? 0) % 10)) / 10,
+            ),
+        );
+        if (!body) return;
+
+        const ours = body.toString();
+        const merged =
+            ours === stored.content
+                ? ours
+                : null === writtenBody || writtenBody === ours
+                  ? stored.content
+                  : threeWayMerge(writtenBody, ours, stored.content);
+        // Not mergeable: the room's unsaved typing keeps the upper hand.
+        if (null === merged) return;
+
+        // A rename typed in the room since its last write-back is not undone.
+        const titleWanted =
+            titleText &&
+            null !== storedTitle &&
+            storedTitle !== sharedTitle() &&
+            sharedTitle() === writtenTitle;
+
+        // What is stored is not written again; what the merge added is.
+        lastWritten = {
+            body: stored.content,
+            title: titleWanted ? storedTitle : writtenTitle,
+        };
+
+        replaceText(body, ours, merged);
+        if (titleWanted)
+            replaceText(titleText, titleText.toString(), storedTitle);
+    }
+
+    /** One text of the document brought to `wanted`, as a single update. */
+    function replaceText(target, current, wanted) {
+        const delta = textDelta(current, wanted);
+        if (null === delta) return;
+
+        sharedDocument.transact(() => {
+            if (0 < delta.remove) target.delete(delta.index, delta.remove);
+            if ("" !== delta.insert) target.insert(delta.index, delta.insert);
+        });
+    }
+
+    if (storedVersion) {
+        watch(storedVersion, (version, previous) => {
+            if (null != version && version !== previous)
+                void adoptOutsideSave();
         });
     }
 

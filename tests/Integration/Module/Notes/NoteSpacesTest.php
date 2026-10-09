@@ -650,6 +650,34 @@ final class NoteSpacesTest extends IntegrationTestCase
     }
 
     /**
+     * The reader and a published page ask for a note they include, as data
+     * (09/10/2026): they used to receive the HTML page, and `![[Note]]`
+     * stayed a bare link. Under the same rule as the page itself.
+     */
+    public function testAnIncludedNoteIsReadAsDataUnderThePagesOwnRule(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $note = $this->note($this->owner, 'Les chiffres', $space, content: '| Mois | CA |');
+        $json = ['HTTP_ACCEPT' => 'application/json', 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'];
+
+        $this->client->loginUser($this->reader, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]), server: $json);
+        self::assertResponseIsSuccessful();
+        self::assertSame('| Mois | CA |', json_decode((string) $this->client->getResponse()->getContent(), true)['note']['content'] ?? null);
+
+        $this->client->loginUser($this->outsider, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]), server: $json);
+        self::assertResponseStatusCodeSame(404);
+
+        $managed = $this->managed($space);
+        $managed->setSlug('chiffres-'.bin2hex(random_bytes(3)))->setPublishedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+        $this->client->request('GET', $this->urlGenerator->generate('notes_public_note', ['slug' => $managed->getSlug(), 'id' => $note->getId()]), server: $json);
+        self::assertResponseIsSuccessful();
+        self::assertSame('Les chiffres', json_decode((string) $this->client->getResponse()->getContent(), true)['note']['title'] ?? null);
+    }
+
+    /**
      * What a person wrote in a shared space outlives them; their personal
      * notebook goes with them.
      */

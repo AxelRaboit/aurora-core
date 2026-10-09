@@ -193,7 +193,7 @@ final class MarkdownNotesController extends AbstractController
     }
 
     #[Route('/{id}/read', name: '_read', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
-    public function read(int $id): Response
+    public function read(int $id, Request $request): Response
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
@@ -204,6 +204,14 @@ final class MarkdownNotesController extends AbstractController
 
         if (!$note instanceof MarkdownNoteInterface) {
             throw $this->createNotFoundException();
+        }
+
+        // The reader asking for a note it includes or previews on hover
+        // (`![[Note]]`, 09/10/2026): its text, under the same read rule. The
+        // page used to receive this HTML page instead, and the inclusion
+        // stayed a bare link.
+        if ($request->isXmlHttpRequest() && 'json' === $request->getPreferredFormat()) {
+            return $this->jsonSuccess(['note' => ['id' => (int) $note->getId(), 'title' => $note->getTitle(), 'content' => $note->getContent()]]);
         }
 
         return $this->render(

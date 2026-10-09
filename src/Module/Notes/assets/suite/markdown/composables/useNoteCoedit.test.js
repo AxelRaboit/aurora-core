@@ -50,7 +50,7 @@ function bus() {
 
 const mounted = [];
 
-function client(channel, room, initial, writeBack = vi.fn()) {
+function client(channel, room, initial, writeBack = vi.fn(), outside = {}) {
     const text = ref(initial);
     const live = ref(false);
     const roomRef = ref(room);
@@ -69,6 +69,7 @@ function client(channel, room, initial, writeBack = vi.fn()) {
                     channel,
                     writeBack,
                     live,
+                    ...outside,
                 });
                 enter();
 
@@ -287,5 +288,92 @@ describe("useNoteCoedit, the elected client", () => {
         await settle();
 
         expect(writeBack).toHaveBeenCalledWith("hello from the guest", null);
+    });
+});
+
+describe("useNoteCoedit and a save made outside the room", () => {
+    /** The longest a client waits before taking the save in, plus the bus. */
+    const settleAdoption = () =>
+        new Promise((resolve) => setTimeout(resolve, 1_000));
+
+    /**
+     * Seen in production on 09/10/2026: a note saved from outside was put
+     * back to its old text by a forgotten tab, at its next write-back.
+     */
+    it("takes the stored text into the room, once, on every screen", async () => {
+        const line = bus();
+        const storedVersion = ref(1);
+        const stored = { content: "hello", title: null };
+        const outside = {
+            storedVersion,
+            loadStored: async () => ({ ...stored }),
+        };
+        const first = client(line.channelFor(1), [], "hello", vi.fn(), outside);
+        await settle();
+        const second = client(
+            line.channelFor(2),
+            [{ userId: 1 }],
+            "",
+            vi.fn(),
+            outside,
+        );
+        first.room.value = [{ userId: 2 }];
+        await settle();
+        expect(second.text.value).toBe("hello");
+
+        stored.content = "bonjour, tout est neuf";
+        storedVersion.value = 2;
+        await settleAdoption();
+        await settle();
+
+        expect(first.text.value).toBe("bonjour, tout est neuf");
+        expect(second.text.value).toBe("bonjour, tout est neuf");
+    });
+
+    it("merges it with what the room typed since its last write-back", async () => {
+        const line = bus();
+        const storedVersion = ref(1);
+        const stored = { content: "a\nb\nc", title: null };
+        const outside = {
+            storedVersion,
+            loadStored: async () => ({ ...stored }),
+        };
+        const alone = client(
+            line.channelFor(1),
+            [],
+            "a\nb\nc",
+            vi.fn(),
+            outside,
+        );
+        await settle();
+
+        alone.text.value = "a\nb\nc!";
+        await settle();
+        stored.content = "A\nb\nc";
+        storedVersion.value = 2;
+        await settleAdoption();
+        await settle();
+
+        expect(alone.text.value).toBe("A\nb\nc!");
+    });
+
+    it("leaves the room alone when the save is its own", async () => {
+        const storedVersion = ref(1);
+        const loadStored = vi.fn(async () => ({
+            content: "hello",
+            title: null,
+        }));
+        const alone = client(bus().channelFor(1), [], "hello", vi.fn(), {
+            storedVersion,
+            loadStored,
+        });
+        await settle();
+
+        storedVersion.value = 2;
+        await settleAdoption();
+        await settle();
+
+        expect(loadStored).toHaveBeenCalledTimes(1);
+        expect(alone.text.value).toBe("hello");
     });
 });
