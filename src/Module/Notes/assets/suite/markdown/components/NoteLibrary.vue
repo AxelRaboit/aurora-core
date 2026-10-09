@@ -27,6 +27,7 @@ import {
     ArrowUpNarrowWide,
     CalendarDays,
     ListChecks,
+    TextSearch,
     ChevronRight,
     Download,
     FileDown,
@@ -116,6 +117,8 @@ const props = defineProps({
     dailyOpening: { type: Boolean, default: false },
     /** Shows the button of the tasks view. */
     tasksEnabled: { type: Boolean, default: false },
+    /** Shows the button of the notebook's search screen. */
+    searchEnabled: { type: Boolean, default: false },
     /** list<{id, name}>, to name a « person » property in the table. */
     people: { type: Array, default: () => [] },
 });
@@ -125,6 +128,7 @@ const emit = defineEmits([
     "create-note",
     "open-daily-note",
     "open-tasks",
+    "open-search",
     "changed",
     "folder-changed",
 ]);
@@ -1439,6 +1443,20 @@ defineExpose({
                     </AppButton>
 
                     <!-- Every task of every note (09/10/2026). -->
+                    <!-- The notebook's search (10/10/2026): everything notes
+                         hold, with passages; the magnifier of the bar below
+                         only narrows the folder on screen. -->
+                    <AppButton
+                        v-if="searchEnabled"
+                        data-library-search-all
+                        class="ml-1"
+                        variant="secondary"
+                        :label="t('notes.markdown.search.title')"
+                        icon-only
+                        v-on:click="emit('open-search')"
+                    >
+                        <TextSearch class="h-4 w-4" :stroke-width="2" />
+                    </AppButton>
                     <AppButton
                         v-if="tasksEnabled"
                         data-library-tasks

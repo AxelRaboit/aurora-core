@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Search;
 
-use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
-use DateTimeImmutable;
 use Aurora\Module\Notes\Comment\Repository\NoteCommentRepository;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\NoteTasks;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use DateTimeImmutable;
 use DateTimeInterface;
 
 use function array_filter;
@@ -135,7 +135,7 @@ final readonly class NoteSearch
     private function match(MarkdownNoteInterface $note, NoteSearchQuery $query, array $comments, array $people): ?array
     {
         $title = (string) $note->getTitle();
-        $content = (string) $note->getContent();
+        $content = self::withoutLeadingTitle((string) $note->getContent(), $title);
         $tags = $note->getTags();
         $properties = $note->getProperties();
 
@@ -199,6 +199,19 @@ final readonly class NoteSearch
             'count' => $count,
             'snippets' => [] === $needles ? $this->opening($plain) : $this->snippetsOf($needles, $content, $plain, $properties, $people, $comments),
         ];
+    }
+
+    /**
+     * The text without its first line when that line is `# the title`: the
+     * title is matched and shown already, and the passages repeated it.
+     */
+    private static function withoutLeadingTitle(string $content, string $title): string
+    {
+        if (1 === preg_match('/^\s*#\s+(.+?)\s*(?:\R|$)/u', $content, $match) && NoteSearchText::fold($match[1]) === NoteSearchText::fold($title)) {
+            return mb_substr($content, mb_strlen($match[0]));
+        }
+
+        return $content;
     }
 
     /**

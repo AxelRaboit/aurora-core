@@ -384,3 +384,10 @@ html.notes-focus #main-content > header { display: none; }
 .note-font-mono .note-preview { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .note-preview.note-small-text,
 .note-small-text .note-preview { font-size: 0.8125rem; }
+
+/* A search's words, in the note it opened (10/10/2026). */
+.note-preview mark.md-search-mark {
+    color: inherit;
+    border-radius: 2px;
+    background: color-mix(in srgb, #fbbf24 40%, transparent);
+}

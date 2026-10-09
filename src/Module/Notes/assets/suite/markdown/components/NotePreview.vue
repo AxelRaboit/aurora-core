@@ -11,6 +11,7 @@ import { noteExcerpt, useWikiLinkHoverCard } from '@notes/suite/markdown/composa
 import NoteHoverCard from '@notes/suite/markdown/components/NoteHoverCard.vue';
 import { withoutLeadingTitle } from '@notes/suite/markdown/composables/noteBody.js';
 import { flashQuote } from '@notes/suite/markdown/composables/noteCommentMarks.js';
+import { markTerms } from '@notes/suite/markdown/composables/noteSearchHighlight.js';
 
 // Two roots since the hover card (09/10/2026): what a parent passes goes to
 // the rendered note, as before.
@@ -94,7 +95,11 @@ useNoteHtmlEnhancer(root, html, {
 });
 
 /** Brings a thread's passage into view, for the comments panel. */
-defineExpose({ flashQuote: (id) => flashQuote(root.value, id) });
+defineExpose({
+    flashQuote: (id) => flashQuote(root.value, id),
+    /** A search's words, marked in the note and the first one brought into view. */
+    markTerms: (needles) => markTerms(root.value, needles),
+});
 
 /** A linked note's beginning, on hover (09/10/2026). */
 const { card, onCardEnter, onCardLeave } = useWikiLinkHoverCard(root, async (title, heading) => {
