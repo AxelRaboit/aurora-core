@@ -1569,6 +1569,7 @@ suite:
             scheduled_at_in_past: La date de programmation doit être dans le futur.
             unpublish_at_invalid: "Cette date est illisible."
             unpublish_at_in_past: "Cette date est déjà passée."
+            too_many_zones: "Une page compte au plus 100 zones : retirez-en avant d'enregistrer."
         focus_keyword_placeholder: "un mot ou une expression"
         meta_title_placeholder: "60 caractères environ"
         meta_description_placeholder: "155 caractères environ"

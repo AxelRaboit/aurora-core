@@ -64,7 +64,8 @@ import {
  * refuses, and the write belongs next to the mapping it goes through.
  */
 export const COLUMNS = 48;
-const MAX_ZONES = 60;
+/** Mirrors GridNormalizer::MAX_ZONES. */
+export const MAX_ZONES = 100;
 
 /** Mirrors GridNormalizer::SNAPS - four is twelfths, the usual way to talk about a layout. */
 export const SNAPS = [4, 2, 1];
