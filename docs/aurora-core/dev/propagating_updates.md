@@ -134,7 +134,10 @@ Sans ça, `composer update` côté client tirerait l'ancien état (cf. plus haut
 > qu'il ne peut pas vérifier - CI rouge, `make ft` rouge sur le canari, tag
 > qui n'apparaît pas, `VERSION` qui ne bouge pas. Il nomme les migrations de
 > la fourchette **avant** de toucher une base, et sauvegarde la production par
-> défaut. `make release DRY=1` dit ce qu'il ferait sans rien écrire : à lancer
+> défaut. Il refuse d'entrée un `master` d'aurora-client en avance sur
+> `develop` - avant d'avoir publié quoi que ce soit - et ramène `develop` sur
+> `master` dans les deux dépôts après chaque publication, en avance rapide
+> seulement. `make release DRY=1` dit ce qu'il ferait sans rien écrire : à lancer
 > une première fois, les refus étant tout l'intérêt du script.
 >
 > Les étapes ci-dessous restent la référence - c'est ce que le script fait, et

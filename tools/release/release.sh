@@ -56,6 +56,30 @@ case "$STOP_AT" in
 esac
 
 step() { printf '\n\033[1m▸ %s\033[0m\n' "$1"; }
+
+# After a release, `master` carries a merge commit `develop` does not. Left
+# there, the next release stops on "master a divergé de develop" - it did on
+# 09/10/2026, a release after the step had been forgotten by hand. Brought
+# back only as a fast-forward: if `develop` moved during the release, somebody
+# merged work meanwhile, and that merge is theirs to make.
+realign_develop() {
+    local repository_path="$1" label="$2"
+    if [ "$DRY_RUN" = 1 ]; then
+        printf '   [à blanc] git -C %s push origin origin/master:develop\n' "$repository_path"
+        return 0
+    fi
+    git -C "$repository_path" fetch -q origin master develop
+    if git -C "$repository_path" merge-base --is-ancestor origin/develop origin/master; then
+        git -C "$repository_path" push -q origin origin/master:develop
+        git -C "$repository_path" fetch -q origin develop
+        if [ "$(git -C "$repository_path" rev-parse --abbrev-ref HEAD)" = "develop" ]; then
+            git -C "$repository_path" merge -q --ff-only origin/develop
+        fi
+        note "develop d'$label ramenée sur master"
+    else
+        note "⚠ develop d'$label a avancé pendant la release : git merge origin/master à la main."
+    fi
+}
 fail() { printf '\n❌ %s\n' "$1" >&2; exit 1; }
 note() { printf '   %s\n' "$1"; }
 run() {
@@ -82,6 +106,14 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 
 git fetch -q origin develop master
 [ -z "$(git log --oneline origin/develop..HEAD)" ] || fail "Des commits locaux ne sont pas poussés."
+
+# Asked here and not only where the client is published: by then aurora-core
+# is tagged, and a refusal leaves a release half done - a core version that no
+# deployed client carries. A client `master` ahead of `develop` is what a
+# release leaves behind when `develop` is not brought back (09/10/2026).
+git -C "$CLIENT_PATH" fetch -q origin develop master
+git -C "$CLIENT_PATH" merge-base --is-ancestor origin/master origin/develop \
+    || fail "master d'aurora-client a divergé de develop. Si develop n'a rien en propre : git -C $CLIENT_PATH push origin origin/master:develop"
 
 # The version lives in the changelog, not here: reviewing the release means
 # reviewing that number. A merge with no closed section publishes nothing, so
@@ -163,6 +195,8 @@ if [ "$DRY_RUN" = 0 ]; then
     git rev-parse -q --verify "refs/tags/v$version" >/dev/null \
         || fail "Le tag v$version n'est pas apparu. Voir les logs du workflow release."
 fi
+
+realign_develop . aurora-core
 
 [ "$STOP_AT" = "core" ] && { printf "\n✅ Arrêt demandé après la publication d'aurora-core.\n"; exit 0; }
 
@@ -267,6 +301,8 @@ else
     client_tag="<calculé par le workflow>"
 fi
 
+realign_develop "$CLIENT_PATH" aurora-client
+
 [ "$STOP_AT" = "client" ] && { printf "\n✅ Arrêt demandé après la publication d'aurora-client.\n"; exit 0; }
 
 # ---------------------------------------------------------------------------
@@ -292,7 +328,10 @@ url=\$(grep -h '^DATABASE_URL=' .env.local .env 2>/dev/null | head -1 | cut -d= 
 database=\$(printf '%s' "\$url" | sed -E 's#.*/([^/?]+).*#\1#')
 target="\$HOME/aurora-backups/\${database}-before-$version-\$(date +%Y%m%d-%H%M%S).dump"
 mkdir -p "\$HOME/aurora-backups"
-pg_dump --dbname="\$url" --format=custom --file="\$target"
+# The query string is Doctrine's (serverVersion, charset), and libpq refuses
+# parameters it does not know: "invalid URI query parameter". It stopped the
+# 4.2.0 release at this line, before the server was touched.
+pg_dump --dbname="\${url%%\?*}" --format=custom --file="\$target"
 echo "   sauvegarde : \$target (\$(du -h "\$target" | cut -f1))"
 SSH
     else
