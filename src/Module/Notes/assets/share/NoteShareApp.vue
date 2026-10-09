@@ -431,7 +431,8 @@ const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyR
     const content = await sharedNoteContent(title);
     if (null === content) return null;
 
-    return htmlOf(noteExcerpt(markdownSection(content, heading)), "");
+    // The card names the note already: its `# Title` would say it twice.
+    return htmlOf(noteExcerpt(markdownSection(content, heading)), heading ? "" : title);
 });
 
 useNoteHtmlEnhancer(bodyRef, () => [html.value, draftHtml.value, editing.value, view.value.mode], { loadEmbed });

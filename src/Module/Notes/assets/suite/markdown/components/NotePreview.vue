@@ -9,6 +9,7 @@ import { useFootnoteLabels, useNoteHtmlEnhancer } from '@notes/suite/markdown/co
 import { markdownSection } from '@notes/suite/markdown/composables/noteHtmlEnhancer.js';
 import { noteExcerpt, useWikiLinkHoverCard } from '@notes/suite/markdown/composables/useWikiLinkHoverCard.js';
 import NoteHoverCard from '@notes/suite/markdown/components/NoteHoverCard.vue';
+import { withoutLeadingTitle } from '@notes/suite/markdown/composables/noteBody.js';
 
 // Two roots since the hover card (09/10/2026): what a parent passes goes to
 // the rendered note, as before.
@@ -87,7 +88,8 @@ const { card, onCardEnter, onCardLeave } = useWikiLinkHoverCard(root, async (tit
     const content = await includedContent(id);
     if (null === content || undefined === content) return null;
 
-    return render(noteExcerpt(markdownSection(content, heading)));
+    // The card names the note already: its `# Title` would say it twice.
+    return render(noteExcerpt(markdownSection(heading ? content : withoutLeadingTitle(content, title), heading)));
 });
 </script>
 
