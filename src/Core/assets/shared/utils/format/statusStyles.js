@@ -1,26 +1,64 @@
+/**
+ * One colour per publication status, wherever a status is drawn: the posts
+ * list, the editor, the revisions, the search palette and the dashboard.
+ *
+ * Written once, here. The list, the editor and the revisions each kept their
+ * own copy - three that agreed - while the search palette and this file
+ * carried a fourth that did not: a draft was grey in the list and amber in the
+ * search, a scheduled post sky in one and violet in the other (visual redesign
+ * of the suite, 09/10/2026). A draft is grey because nothing is asked of
+ * anyone yet; amber is kept for what waits on a reviewer.
+ */
+export const POST_STATUS_COLORS = Object.freeze({
+    draft: "gray",
+    pending_review: "amber",
+    scheduled: "sky",
+    published: "emerald",
+    archived: "zinc",
+});
+
 const POST_STATUS_CLASSES = {
+    draft: "bg-surface-2 text-secondary",
+    pending_review: "bg-amber-500/15 text-amber-400",
+    scheduled: "bg-sky-500/15 text-sky-400",
     published: "bg-emerald-500/15 text-emerald-400",
-    draft: "bg-amber-500/15 text-amber-400",
-    pending_review: "bg-sky-500/15 text-sky-400",
-    scheduled: "bg-violet-500/15 text-violet-400",
-    archived: "bg-slate-500/15 text-slate-400",
+    archived: "bg-zinc-500/15 text-zinc-400",
 };
 
 export function statusBadge(status) {
     return POST_STATUS_CLASSES[status] ?? "bg-surface-2 text-secondary";
 }
 
-const POST_STATUS_COLORS = {
-    published: "emerald",
-    draft: "amber",
-    pending_review: "sky",
-    scheduled: "violet",
-    archived: "slate",
-};
-
 export function statusBadgeColor(status) {
     return POST_STATUS_COLORS[status] ?? "gray";
 }
+
+/**
+ * The same statuses, in the chart palette (`--chart-cat-*`, see chart.css),
+ * for `AppShareBar`'s `slot`.
+ *
+ * The colour belongs to the status, not to its rank, so it is named rather
+ * than left to the position: a dashboard bar painted by position showed a
+ * published post in yellow, three rows above a list that shows it green. Each
+ * status takes the slot nearest its badge - aqua for emerald, yellow for
+ * amber, blue for sky - and the two greys the palette deliberately lacks come
+ * from the interface's own neutrals, which `AppShareBar` reads as `neutral`
+ * and `muted`.
+ */
+export const POST_STATUS_CHART_SLOTS = Object.freeze({
+    draft: "neutral",
+    pending_review: 4,
+    scheduled: 1,
+    published: 3,
+    archived: "muted",
+});
+
+/** Comments: approved reads as done, pending as waiting, spam as refused. */
+export const COMMENT_STATUS_CHART_SLOTS = Object.freeze({
+    pending: 4,
+    approved: 3,
+    spam: 8,
+});
 
 const ACCESS_REQUEST_STATUS_CLASSES = {
     pending: "bg-amber-500/15 text-amber-400",

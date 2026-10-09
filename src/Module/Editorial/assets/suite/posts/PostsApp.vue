@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import { POST_STATUS_COLORS } from "@/shared/utils/format/statusStyles.js";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -234,13 +235,6 @@ async function runBulk(action) {
     }
 }
 
-const statusColors = {
-    draft: "gray",
-    pending_review: "amber",
-    scheduled: "sky",
-    published: "emerald",
-    archived: "zinc",
-};
 
 /**
  * The four filters of the toolbar, in the `{ value, label }` shape the
@@ -480,7 +474,7 @@ const pageActions = computed(() => {
                         </td>
                         <td class="px-4 py-2">
                             <span class="flex flex-wrap items-center gap-1">
-                                <AppBadge :color="statusColors[post.status] ?? 'gray'">
+                                <AppBadge :color="POST_STATUS_COLORS[post.status] ?? 'gray'">
                                     {{ t(`suite.posts.status.${post.status}`) }}
                                 </AppBadge>
                                 <!-- Only the exception is marked: a list where
@@ -527,7 +521,7 @@ const pageActions = computed(() => {
                         <p class="text-xs text-muted tabular-nums mt-0.5">{{ post.reference }}</p>
                     </div>
                     <span class="flex shrink-0 flex-col items-end gap-1">
-                        <AppBadge :color="statusColors[post.status] ?? 'gray'">
+                        <AppBadge :color="POST_STATUS_COLORS[post.status] ?? 'gray'">
                             {{ t(`suite.posts.status.${post.status}`) }}
                         </AppBadge>
                         <AppBadge v-if="post.visibility === 'link'" color="violet">

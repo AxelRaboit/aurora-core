@@ -3,6 +3,9 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { FileText, LayoutTemplate, Tags, Trash2 } from "lucide-vue-next";
 import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
+import AppSectionCard from "@/shared/components/display/AppSectionCard.vue";
+import AppStatTile from "@/shared/components/display/AppStatTile.vue";
+import { COMMENT_STATUS_CHART_SLOTS, POST_STATUS_CHART_SLOTS } from "@/shared/utils/format/statusStyles.js";
 import { hasAnyShare } from "@/shared/utils/data/hasAnyShare.js";
 import AppChart from "@/shared/components/display/AppChart.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -37,8 +40,16 @@ const { colours, withAlpha } = useChartPalette(1);
  * icon and the label carry the meaning either way; the colour is what changes
  * when there is something to go and empty.
  */
+const published = computed(() => props.stats.byStatus?.published ?? 0);
+
 const totals = computed(() => [
-    { key: "posts", icon: FileText, value: props.stats.posts ?? 0 },
+    {
+        key: "posts",
+        icon: FileText,
+        value: props.stats.posts ?? 0,
+        // What a reader asks right after "how many": how many are out there.
+        caption: t("suite.stats.editorial.posts_live", { count: published.value }),
+    },
     { key: "post_types", icon: LayoutTemplate, value: props.stats.postTypes ?? 0 },
     { key: "taxonomies", icon: Tags, value: props.stats.taxonomies ?? 0 },
     // Not in red any more: a post in the trash is no fault, and red is kept
@@ -49,8 +60,8 @@ const totals = computed(() => [
 /**
  * The statuses in workflow order, which is the order the enum declares them in
  * and the order a reader follows: written, waiting, dated, out, retired.
- * `AppShareBar` assigns a colour per position, so keeping this stable keeps a
- * status the same colour from one visit to the next.
+ * Each one names its own colour (`POST_STATUS_CHART_SLOTS`), the one its badge
+ * wears in the posts list, so the bar and the list agree on what green means.
  */
 /**
  * Publishing over the last twelve months: the only question on this panel that
@@ -85,6 +96,12 @@ const publishedByMonth = computed(() => {
     };
 });
 
+const monthCount = computed(() => Object.keys(props.stats.publishedByMonth ?? {}).length);
+
+const commentCount = computed(() =>
+    Object.values(props.stats.commentsByStatus ?? {}).reduce((sum, count) => sum + count, 0),
+);
+
 const hasActivity = computed(() =>
     Object.values(props.stats.publishedByMonth ?? {}).some((count) => count > 0),
 );
@@ -94,6 +111,7 @@ const byCommentStatus = computed(() =>
         key: status,
         label: t(`suite.comments.status.${status}`),
         value: count,
+        slot: COMMENT_STATUS_CHART_SLOTS[status],
     })),
 );
 
@@ -102,60 +120,53 @@ const byStatus = computed(() =>
         key: status,
         label: t(`suite.posts.status.${status}`),
         value: count,
+        slot: POST_STATUS_CHART_SLOTS[status],
     })),
 );
 </script>
 
 <template>
     <div class="aurora-stack">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <AppStatTile
                 v-for="total in totals"
                 :key="total.key"
-                class="border rounded-xl p-4 transition-colors"
-                :class="total.danger
-                    ? 'bg-rose-500/10 border-rose-500/30'
-                    : 'bg-surface border-line'"
-            >
-                <div
-                    class="flex items-center gap-2 text-xs uppercase tracking-wide"
-                    :class="total.danger ? 'text-rose-400' : 'text-secondary'"
-                >
-                    <component :is="total.icon" class="w-4 h-4 shrink-0" :stroke-width="2" />
-                    {{ t(`suite.stats.editorial.${total.key}`) }}
-                </div>
-                <p
-                    class="text-2xl font-semibold mt-2"
-                    :class="total.danger ? 'text-rose-400' : 'text-primary'"
-                >
-                    {{ total.value }}
-                </p>
-            </div>
+                :icon="total.icon"
+                :label="t(`suite.stats.editorial.${total.key}`)"
+                :value="total.value"
+                :caption="total.caption ?? ''"
+            />
         </div>
 
-        <div v-if="hasAnyShare(byStatus)" class="aurora-card p-3 sm:p-5 space-y-4">
-            <h3 class="text-sm font-semibold text-primary">{{ t("suite.stats.editorial.by_status") }}</h3>
+        <AppSectionCard v-if="hasAnyShare(byStatus)" :title="t('suite.stats.editorial.by_status')">
+            <template #meta>
+                {{ t("suite.stats.editorial.posts_total", { count: stats.posts ?? 0 }, stats.posts ?? 0) }}
+            </template>
 
             <AppShareBar :segments="byStatus" />
-        </div>
+        </AppSectionCard>
 
-        <div v-if="hasActivity" class="aurora-card p-3 sm:p-5 space-y-4">
-            <h3 class="text-sm font-semibold text-primary">{{ t("suite.stats.editorial.published_per_month") }}</h3>
+        <AppSectionCard v-if="hasActivity" :title="t('suite.stats.editorial.published_per_month')">
+            <template #meta>
+                {{ t("suite.stats.editorial.last_months", { count: monthCount }, monthCount) }}
+            </template>
 
             <!-- A fixed height, because the canvas has no content to be sized by
                  and `maintainAspectRatio: false` leaves it to the parent. -->
-            <div class="h-48">
+            <div class="h-56">
                 <AppChart type="line" :data="publishedByMonth" />
             </div>
-        </div>
+        </AppSectionCard>
 
         <!-- Its own card rather than a second bar in the one above: two
              compositions of two different wholes under one heading would invite
              comparing their widths, which mean nothing to each other. -->
-        <div v-if="hasAnyShare(byCommentStatus)" class="aurora-card p-3 sm:p-5 space-y-4">
-            <h3 class="text-sm font-semibold text-primary">{{ t("suite.stats.editorial.comments_by_status") }}</h3>
+        <AppSectionCard v-if="hasAnyShare(byCommentStatus)" :title="t('suite.stats.editorial.comments_by_status')">
+            <template #meta>
+                {{ t("suite.stats.editorial.comments_total", { count: commentCount }, commentCount) }}
+            </template>
 
             <AppShareBar :segments="byCommentStatus" />
-        </div>
+        </AppSectionCard>
     </div>
 </template>

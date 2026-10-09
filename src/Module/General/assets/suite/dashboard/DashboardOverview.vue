@@ -41,8 +41,8 @@ const todos = computed(() =>
 );
 
 const TONES = {
-    danger: "text-rose-500",
-    warning: "text-amber-500",
+    danger: "text-danger",
+    warning: "text-warning",
 };
 </script>
 
@@ -55,25 +55,28 @@ const TONES = {
 
         <template v-else>
             <section class="flex flex-col gap-2" :aria-label="t('suite.stats.todo.title')">
-                <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">{{ t('suite.stats.todo.title') }}</h2>
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-secondary">{{ t('suite.stats.todo.title') }}</h2>
                 <p v-if="!todos.length" class="text-sm text-secondary">{{ t('suite.stats.todo.nothing') }}</p>
                 <ul v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                     <li v-for="item in todos" :key="item.key">
                         <component
                             :is="item.href ? 'a' : 'div'"
                             :href="item.href || undefined"
-                            class="group flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3 no-underline transition-colors"
-                            :class="item.href ? 'hover:border-accent-600/40 hover:bg-surface-2' : ''"
+                            class="aurora-card group flex h-full items-center gap-3 px-4 py-3 no-underline transition-colors"
+                            :class="item.href ? 'hover:border-accent/40 hover:bg-surface-2/40' : ''"
                         >
-                            <span class="text-2xl font-semibold tabular-nums" :class="TONES[item.tone] ?? 'text-primary'">{{ item.count }}</span>
-                            <span class="min-w-0 flex-1 text-sm text-secondary">{{ t(item.labelKey, { count: item.count }) }}</span>
+                            <span class="text-2xl font-semibold leading-none tracking-tight tabular-nums" :class="TONES[item.tone] ?? 'text-primary'">{{ item.count }}</span>
+                            <span class="min-w-0 flex-1 text-sm text-primary/80">{{ t(item.labelKey, { count: item.count }) }}</span>
                             <ChevronRight v-if="item.href" class="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" :stroke-width="2" />
                         </component>
                     </li>
                 </ul>
             </section>
 
-            <div v-if="visibleModules.length > 1" class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1 max-w-full overflow-x-auto scrollbar-thin" role="tablist">
+            <!-- The switch is a sunken strip with the open tab raised on it, no
+                 outline of its own: an outline made it a fifth card above the
+                 four tiles, competing with them for the eye. -->
+            <div v-if="visibleModules.length > 1" class="inline-flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl bg-surface-2 p-1 scrollbar-thin" role="tablist">
                 <AppTab
                     v-for="module in visibleModules"
                     :key="module.id"

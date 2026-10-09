@@ -76,14 +76,20 @@ function onToggle(event) {
          keep those tags for their side panels and their groups, and their
          tests count them. `data-guide` points to it without ambiguity. -->
     <!-- Folded, the frame goes: one muted line the reader can open, not a
-         dashed box the width of the page on every screen. -->
+         box the width of the page on every screen.
+
+         Open, it is a card like its neighbours - surface, line, rounding -
+         rather than the dashed outline it used to wear. A dashed frame is
+         the house sign for a drop zone, a place waiting for something; on a
+         panel of text it read as an unfinished block (visual redesign of
+         the suite, 09/10/2026). -->
     <div
         data-guide
         role="region"
         class="min-w-0"
         :class="[
-            expanded ? 'border border-dashed border-line p-3 sm:p-4' : '',
-            rounded ? 'rounded-lg' : 'rounded-none',
+            expanded ? 'border border-line bg-surface p-4 sm:p-5' : '',
+            rounded ? 'rounded-xl' : 'rounded-none',
         ]"
         :aria-label="title"
     >

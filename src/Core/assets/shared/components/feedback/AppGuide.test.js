@@ -74,15 +74,15 @@ describe("AppGuide", () => {
             props: { title: "Guide", open: false },
         });
 
-        expect(wrapper.find("[data-guide]").classes()).not.toContain(
-            "border-dashed",
-        );
+        expect(wrapper.find("[data-guide]").classes()).not.toContain("border");
 
         const details = wrapper.find("details");
         details.element.open = true;
         await details.trigger("toggle");
 
-        expect(wrapper.find("[data-guide]").classes()).toContain(
+        expect(wrapper.find("[data-guide]").classes()).toContain("border");
+        expect(wrapper.find("[data-guide]").classes()).toContain("bg-surface");
+        expect(wrapper.find("[data-guide]").classes()).not.toContain(
             "border-dashed",
         );
     });
@@ -93,10 +93,10 @@ describe("AppGuide", () => {
             props: { title: "Encastré", rounded: false },
         });
 
-        expect(rounded.find("[data-guide]").classes()).toContain("rounded-lg");
+        expect(rounded.find("[data-guide]").classes()).toContain("rounded-xl");
         expect(flush.find("[data-guide]").classes()).toContain("rounded-none");
         expect(flush.find("[data-guide]").classes()).not.toContain(
-            "rounded-lg",
+            "rounded-xl",
         );
     });
 });

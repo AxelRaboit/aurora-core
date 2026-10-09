@@ -38,11 +38,28 @@ const props = defineProps({
      * where the colour belongs to the thing rather than to its rank - a user
      * role is blue wherever it appears, and it must not change colour because a
      * role above it in the list has nobody in it.
+     *
+     * `slot: "neutral"` paints the segment in the interface's own grey, for
+     * a state that is not a category but the absence of one - a draft nobody
+     * has acted on yet. `"muted"` is the lighter grey, for a second such state
+     * in the same bar - an archived post. The palette has no grey on purpose,
+     * and borrowing a hue for "set aside" would give it a meaning it has not.
      */
     firstSlot: { type: Number, default: 1 },
 });
 
 const { t } = useI18n();
+
+function segmentColour(segment, index) {
+    if ("neutral" === segment.slot) {
+        return "var(--color-secondary)";
+    }
+    if ("muted" === segment.slot) {
+        return "var(--color-muted)";
+    }
+
+    return `var(--chart-cat-${segment.slot ?? props.firstSlot + index})`;
+}
 
 const total = computed(() =>
     props.segments.reduce((sum, segment) => sum + (segment.value ?? 0), 0),
@@ -53,7 +70,7 @@ const drawn = computed(() =>
         .map((segment, index) => ({
             ...segment,
             value: segment.value ?? 0,
-            colour: `var(--chart-cat-${segment.slot ?? props.firstSlot + index})`,
+            colour: segmentColour(segment, index),
             percent:
                 total.value > 0
                     ? Math.round(((segment.value ?? 0) / total.value) * 100)

@@ -232,6 +232,10 @@ suite:
             by_status: 'Distribución por estado'
             comments_by_status: 'Comentarios por estado'
             published_per_month: 'Publicaciones por mes'
+            posts_live: "{count} en línea"
+            posts_total: "{count} publicación | {count} publicaciones"
+            comments_total: "{count} comentario | {count} comentarios"
+            last_months: "El último mes | Los últimos {count} meses"
     post_galleries:
         editor_guide:
             title: "Cómo se compone la galería"

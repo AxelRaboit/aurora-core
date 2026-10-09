@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
+import { POST_STATUS_COLORS } from "@/shared/utils/format/statusStyles.js";
 import { useI18n } from "vue-i18n";
 import { History, RotateCcw, X } from "lucide-vue-next";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
@@ -50,13 +51,6 @@ const detailLoading = ref(false);
 const restoring = ref(false);
 const confirming = ref(false);
 
-const STATUS_COLORS = {
-    draft: "gray",
-    pending_review: "amber",
-    scheduled: "sky",
-    published: "emerald",
-    archived: "gray",
-};
 
 /**
  * The snapshot keeps a translation per language; the one worth showing is the
@@ -210,7 +204,7 @@ function labelFor(revision) {
                     >
                         <span class="block">{{ formatDate(revision.createdAt) }}</span>
                         <span class="mt-0.5 flex items-center gap-2 text-xs text-muted">
-                            <AppBadge :color="STATUS_COLORS[revision.status] ?? 'gray'" size="sm">
+                            <AppBadge :color="POST_STATUS_COLORS[revision.status] ?? 'gray'" size="sm">
                                 {{ t(`suite.posts.status.${revision.status}`) }}
                             </AppBadge>
                             <span class="truncate">{{ labelFor(revision) }}</span>
