@@ -897,6 +897,26 @@
         "tour-notes-partage-commentaires": {
             "document": 901,
             "slug": "notes-markdown"
+        },
+        "tour-notes-recherche": {
+            "document": 902,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-recherche-panneau": {
+            "document": 903,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-recherche-rapide": {
+            "document": 904,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-chercher-remplacer": {
+            "document": 905,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-remplacer-carnet": {
+            "document": 906,
+            "slug": "notes-markdown"
         }
     }
 }
