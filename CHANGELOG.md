@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.6.2] - 2026-10-09
+
+### Modifié
+- **La colonne de gauche d'une page partagée se replie** (les notes du partage et le plan), pour lire la note sur toute la largeur. Le navigateur retient le choix.
+- **L'élément actif du plan** prend le même fond que la note ouverte dans la liste, au lieu d'un trait vertical, dans la page partagée comme dans la lecture de la suite.
+
+### Corrigé
+- **La vue tableau de la bibliothèque nomme les personnes dès l'ouverture.** Une propriété « Personne » restait vide dans le tableau tant qu'aucune note n'avait été ouverte : la liste des personnes n'était demandée qu'à ce moment-là.
+
+### Démonstration et tour
+La démo porte une icône et des propriétés sur les fiches clients, des tâches datées, la note « Bilan de la saison » (sommaire, formules, diagramme, encadrés, note incluse) et des commentaires sur « Cabinet Verrier ». Neuf prises de plus pour la page Notes Markdown du tour.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.6.1] - 2026-10-09
 
 ### Corrigé
