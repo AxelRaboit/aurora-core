@@ -162,6 +162,18 @@ notes:
             create: "Crear «{title}»"
             empty: "Ninguna nota."
             hint: "↑ ↓ para elegir, Intro para abrir. ⌘ K sigue siendo la búsqueda de toda la suite."
+        find:
+            placeholder: "Buscar en la nota"
+            replace_placeholder: "Reemplazar por"
+            count: "{current} de {total}"
+            none: "Ninguno"
+            previous: "Anterior (Mayús+Intro)"
+            next: "Siguiente (Intro)"
+            exact: "Respetar acentos y mayúsculas"
+            toggle_replace: "Reemplazar (⌘ ⌥ F)"
+            replace: "Reemplazar (Intro)"
+            replace_all: "Reemplazar todo (⌘ Intro)"
+            close: "Cerrar (Esc)"
         focus:
             enter: "Modo concentración"
             exit: "Salir del modo concentración"

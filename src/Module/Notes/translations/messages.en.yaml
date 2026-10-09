@@ -163,6 +163,18 @@ notes:
             create: "Create “{title}”"
             empty: "No notes."
             hint: "↑ ↓ to choose, Enter to open. ⌘ K stays the search of the whole suite."
+        find:
+            placeholder: "Find in the note"
+            replace_placeholder: "Replace with"
+            count: "{current} of {total}"
+            none: "None"
+            previous: "Previous (Shift+Enter)"
+            next: "Next (Enter)"
+            exact: "Match accents and case"
+            toggle_replace: "Replace (⌘ ⌥ F)"
+            replace: "Replace (Enter)"
+            replace_all: "Replace all (⌘ Enter)"
+            close: "Close (Esc)"
         focus:
             enter: "Focus mode"
             exit: "Leave focus mode"

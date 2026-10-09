@@ -167,6 +167,18 @@ notes:
             create: "Créer « {title} »"
             empty: "Aucune note."
             hint: "↑ ↓ pour choisir, Entrée pour ouvrir. ⌘ K reste la recherche de toute la suite."
+        find:
+            placeholder: "Chercher dans la note"
+            replace_placeholder: "Remplacer par"
+            count: "{current} sur {total}"
+            none: "Aucun"
+            previous: "Précédent (Maj+Entrée)"
+            next: "Suivant (Entrée)"
+            exact: "Respecter les accents et les majuscules"
+            toggle_replace: "Remplacer (⌘ ⌥ F)"
+            replace: "Remplacer (Entrée)"
+            replace_all: "Tout remplacer (⌘ Entrée)"
+            close: "Fermer (Échap)"
         focus:
             enter: "Mode focus"
             exit: "Quitter le mode focus"
