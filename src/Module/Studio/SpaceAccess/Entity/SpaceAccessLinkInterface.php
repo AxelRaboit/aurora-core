@@ -17,6 +17,13 @@ interface SpaceAccessLinkInterface
 
     public function getHashedToken(): string;
 
+    /** The short address's name, or null when the link has none. */
+    public function getAlias(): ?string;
+
+    public function getAliasHash(): ?string;
+
+    public function setAlias(?string $alias): static;
+
     public function getPlainToken(): ?string;
 
     public function getSpace(): CustomerSpaceInterface;

@@ -46,5 +46,16 @@ interface SpaceAccessLinkManagerInterface
      */
     public function resolveUsable(string $selector, string $token): ?SpaceAccessLinkInterface;
 
+    /** Gives the link a short address and returns its name. */
+    public function giveAlias(SpaceAccessLinkInterface $link, string $name): string;
+
+    public function removeAlias(SpaceAccessLinkInterface $link): void;
+
+    /** The usable link a short address opens, or null. */
+    public function resolveAlias(string $alias): ?SpaceAccessLinkInterface;
+
+    /** The token the short address redirects with, or null without one. */
+    public function aliasToken(SpaceAccessLinkInterface $link): ?string;
+
     public function markOpened(SpaceAccessLinkInterface $link): void;
 }

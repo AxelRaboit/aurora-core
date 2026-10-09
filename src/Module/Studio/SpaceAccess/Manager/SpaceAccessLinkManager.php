@@ -13,8 +13,17 @@ use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 use function hash_equals;
+use function hash_hmac;
+use function mb_rtrim;
+use function mb_strlen;
+use function mb_strtolower;
+use function mb_substr;
+use function mb_trim;
+use function random_int;
 use function sprintf;
 
 #[AsAlias(SpaceAccessLinkManagerInterface::class)]
@@ -32,10 +41,26 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
     /** A year, past which nobody is choosing a duration, they are avoiding one. */
     public const int MAX_VALID_DAYS = 365;
 
+    /**
+     * The random end of a short address: no 0/o, 1/l/i, which a client copying
+     * from a card would confuse. Six of thirty-one is 887 million names per
+     * readable part, behind a rate limit: nobody walks that.
+     */
+    protected const string ALIAS_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+    protected const int ALIAS_SUFFIX_LENGTH = 6;
+
+    /** The readable part, kept short enough to be read aloud. */
+    protected const int ALIAS_NAME_LENGTH = 40;
+
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
         protected readonly SpaceAccessLinkRepository $accessLinkRepository,
+        // Signs the token a short address redirects with (10/10/2026). Last and
+        // defaulted, so a subclass written before it still constructs.
+        #[Autowire(param: 'kernel.secret')]
+        protected readonly string $secret = '',
     ) {}
 
     /** How long a preview lasts. Enough to look, too short to forget. */
@@ -158,8 +183,11 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
 
         // Constant time, on the hash rather than the secret: a comparison that
         // returns early on the first wrong character tells somebody how much of
-        // it they have right.
-        if (!hash_equals($link->getHashedToken(), AbstractSpaceAccessLink::hashToken($token))) {
+        // it they have right. The short address's token opens the same page
+        // (10/10/2026), as long as the short address exists.
+        $aliasToken = $this->aliasToken($link);
+        if (!hash_equals($link->getHashedToken(), AbstractSpaceAccessLink::hashToken($token))
+            && (null === $aliasToken || !hash_equals($aliasToken, $token))) {
             return null;
         }
 
@@ -203,6 +231,96 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
     protected function createLink(): SpaceAccessLinkInterface
     {
         return new SpaceAccessLink();
+    }
+
+    /**
+     * Gives a link a short address (10/10/2026): `name` made readable, and a
+     * random end so that knowing the client's name is not enough to open their
+     * space. Replaces the previous one, which stops answering.
+     *
+     * @return string the name, « fournier-k7m2q9 »
+     */
+    public function giveAlias(SpaceAccessLinkInterface $link, string $name): string
+    {
+        $readable = $this->aliasName($name);
+        if ('' === $readable) {
+            $readable = $this->aliasName($link->getSpace()->getCustomer()->getLegalName());
+        }
+
+        if ('' === $readable) {
+            $readable = 'espace';
+        }
+
+        do {
+            $suffix = '';
+            for ($index = 0; $index < static::ALIAS_SUFFIX_LENGTH; ++$index) {
+                $suffix .= static::ALIAS_ALPHABET[random_int(0, mb_strlen(static::ALIAS_ALPHABET) - 1)];
+            }
+
+            $alias = $readable.'-'.$suffix;
+        } while ($this->accessLinkRepository->findByAliasHash(AbstractSpaceAccessLink::hashToken($alias)) instanceof SpaceAccessLinkInterface);
+
+        $link->setAlias($alias);
+        $this->entityManager->flush();
+        $this->auditLogger->log('studio', 'space_access_link.alias_given', 'SpaceAccessLink', $link->getId(), $this->auditPayload($link));
+
+        return $alias;
+    }
+
+    /** Takes the short address away: it stops answering at once. */
+    public function removeAlias(SpaceAccessLinkInterface $link): void
+    {
+        if (null === $link->getAlias()) {
+            return;
+        }
+
+        $link->setAlias(null);
+        $this->entityManager->flush();
+        $this->auditLogger->log('studio', 'space_access_link.alias_removed', 'SpaceAccessLink', $link->getId(), $this->auditPayload($link));
+    }
+
+    /**
+     * The link a short address opens, under the same conditions as the long
+     * one: not revoked, not expired, not a preview, its space not in the trash.
+     */
+    public function resolveAlias(string $alias): ?SpaceAccessLinkInterface
+    {
+        $link = $this->accessLinkRepository->findByAliasHash(AbstractSpaceAccessLink::hashToken(mb_strtolower($alias)));
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview()) {
+            return null;
+        }
+
+        if (!$link->isUsable(new DateTimeImmutable()) || $link->getSpace()->isTrashed()) {
+            return null;
+        }
+
+        return $link;
+    }
+
+    /**
+     * The token a short address redirects with, computed and never stored.
+     *
+     * Signed with the application's secret over the selector and the short
+     * address, so it changes when the short address does and dies with it: no
+     * second secret to keep, and nothing in the database that opens the space.
+     */
+    public function aliasToken(SpaceAccessLinkInterface $link): ?string
+    {
+        $aliasHash = $link->getAliasHash();
+        if (null === $aliasHash || '' === $this->secret) {
+            return null;
+        }
+
+        return hash_hmac('sha256', 'space-alias|'.$link->getSelector().'|'.$aliasHash, $this->secret);
+    }
+
+    /** Lowercase ASCII words joined by dashes, cut at a word. */
+    protected function aliasName(string $name): string
+    {
+        $slug = mb_strtolower(new AsciiSlugger()->slug(mb_trim($name))->toString());
+        $slug = mb_substr($slug, 0, static::ALIAS_NAME_LENGTH);
+
+        return mb_trim(mb_rtrim($slug, '-'), '-');
     }
 
     protected function auditIssued(SpaceAccessLinkInterface $link): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceAccess\Controller\Suite;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
@@ -14,6 +15,7 @@ use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\Service\SpaceReviewInviter;
 use Aurora\Module\Studio\SpaceAccess\View\SpaceAccessViewBuilder;
+use DateTimeImmutable;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +23,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+use function is_string;
 
 /**
  * Who can open a space from outside, managed from inside it.
@@ -139,6 +143,44 @@ class SpaceAccessController extends AbstractController
         );
 
         return $this->jsonSuccess($this->viewBuilder->issuedPayload($space, $link));
+    }
+
+    /**
+     * Gives the link a short address, or a new one (10/10/2026). The name is
+     * the readable part; a random end is added to it, so that knowing the
+     * client's name is not enough to open their space.
+     */
+    #[Route('/{linkId}/alias', name: '_alias', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.share')]
+    public function alias(
+        CustomerSpace $space,
+        #[MapEntity(id: 'linkId')]
+        SpaceAccessLink $link,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $link);
+        if (!$link->isUsable(new DateTimeImmutable())) {
+            return $this->jsonFailure('suite.studio.space_access.errors.alias_unusable', HttpStatusEnum::Conflict->value);
+        }
+
+        $name = $this->decodeJson($request)['name'] ?? '';
+        $this->links->giveAlias($link, is_string($name) ? $name : '');
+
+        return $this->jsonSuccess($this->viewBuilder->listPayload($space));
+    }
+
+    #[Route('/{linkId}/alias/remove', name: '_alias_remove', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.share')]
+    public function removeAlias(
+        CustomerSpace $space,
+        #[MapEntity(id: 'linkId')]
+        SpaceAccessLink $link,
+    ): JsonResponse {
+        $this->assertOwned($space, $link);
+
+        $this->links->removeAlias($link);
+
+        return $this->jsonSuccess($this->viewBuilder->listPayload($space));
     }
 
     #[Route('/{linkId}/revoke', name: '_revoke', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]

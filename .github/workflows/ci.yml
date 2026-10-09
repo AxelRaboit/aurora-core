@@ -175,7 +175,11 @@ jobs:
         shard: [ 1, 2, 3 ]
     services:
       postgres:
-        image: postgres:18-alpine
+        # The official image, from Amazon's public mirror rather than Docker
+        # Hub: Hub caps anonymous pulls per address, the hosted runners share
+        # theirs, and a busy day failed every integration shard on it
+        # (09/10/2026).
+        image: public.ecr.aws/docker/library/postgres:18-alpine
         env:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: "!ChangeMe!"
@@ -243,7 +247,11 @@ jobs:
         shard: [ 1, 2, 3 ]
     services:
       postgres:
-        image: postgres:18-alpine
+        # The official image, from Amazon's public mirror rather than Docker
+        # Hub: Hub caps anonymous pulls per address, the hosted runners share
+        # theirs, and a busy day failed every integration shard on it
+        # (09/10/2026).
+        image: public.ecr.aws/docker/library/postgres:18-alpine
         env:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: "!ChangeMe!"

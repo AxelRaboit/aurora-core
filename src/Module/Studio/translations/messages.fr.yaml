@@ -93,6 +93,8 @@ suite:
                     revoked: Lien d'accès client révoqué
                     deleted: Lien d'accès client supprimé
                     opened: Espace ouvert par un client
+                    alias_given: "Adresse courte donnée à un lien client"
+                    alias_removed: "Adresse courte retirée d'un lien client"
                 space_file:
                     added: Fichier ajouté à un espace
                     sent_by_client: Fichier envoyé par le client dans un espace
@@ -1083,10 +1085,23 @@ suite:
                 step_3: "Le lien expire après 90 jours par défaut ; ses cases règlent ce que le client peut faire : valider, commenter, écrire dans la discussion, envoyer des fichiers, voir le Drive."
                 step_4: "« Aperçu » ouvre la page exactement comme ce destinataire la voit, sans rien enregistrer en son nom."
                 step_5: "« Révoquer » coupe le lien en gardant sa trace ; « Supprimer » l'efface complètement."
+                step_6: "« Adresse courte », dans le menu « … » d'un lien, lui donne une adresse facile à lire ou à dicter, comme /c/atelier-dupont-k7m2q9 : elle ouvre le même espace avec les mêmes droits, reste affichée et copiable, et cesse de fonctionner si vous la retirez ou si le lien est révoqué."
             tab: Accès client
             intro: "Un lien ouvre cet espace au client, sans compte. Ce qu'il peut y faire se choisit lien par lien : valider, commenter, discuter, envoyer des fichiers, voir le Drive. Il est personnel, il expire, et il se révoque."
             issue: "Nouveau lien d'accès"
             issue_submit: "Créer le lien"
+            alias:
+                give: "Adresse courte"
+                change: "Changer l'adresse courte"
+                remove: "Retirer l'adresse courte"
+                name: "Nom"
+                name_placeholder: "boulangerie fournier"
+                name_hint: "Quelques caractères tirés au hasard sont ajoutés à la fin, pour qu'on ne puisse pas deviner l'adresse à partir du nom du client : /c/boulangerie-fournier-k7m2q9."
+                submit: "Créer et copier"
+                replaces: "L'adresse actuelle, {url}, cessera de fonctionner."
+                given: "Adresse courte copiée."
+                created: "Adresse courte créée."
+                removed: "Adresse courte retirée."
             issued: Lien créé.
             preview: Aperçu
             revoke: Révoquer
@@ -1134,6 +1149,7 @@ suite:
             delete_warning: 'Le lien cesse de fonctionner et sa trace disparaît. Pour garder la trace, révoquez-le plutôt.'
 
             errors:
+                alias_unusable: "Ce lien n'est plus actif : il ne peut pas recevoir d'adresse courte."
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
         client_visibility:
