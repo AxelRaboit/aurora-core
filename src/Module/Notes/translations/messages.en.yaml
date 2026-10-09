@@ -270,6 +270,8 @@ notes:
                 bad_person: This person cannot receive the note.
                 save_failed: Saving failed.
         share:
+            side_hide: 'Fold the panel'
+            side_show: 'Show the panel'
             unshared_link: 'This note is not part of the share.'
             can_write: Allow editing
             can_write_hint: Anybody holding the address will be able to rewrite this note's text. This one only, never the linked notes.

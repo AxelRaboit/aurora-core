@@ -274,6 +274,8 @@ notes:
                 bad_person: Cette personne ne peut pas recevoir la note.
                 save_failed: L'enregistrement a échoué.
         share:
+            side_hide: 'Replier le panneau'
+            side_show: 'Afficher le panneau'
             unshared_link: 'Cette note ne fait pas partie du partage.'
             can_write: Autoriser la modification
             can_write_hint: Toute personne qui a l'adresse pourra réécrire le texte de cette note. Uniquement celle-ci, jamais les notes liées.

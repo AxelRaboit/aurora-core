@@ -90,8 +90,8 @@ onUnmounted(() => observer?.disconnect());
             <li v-for="(heading, index) in headings" :key="index">
                 <button
                     type="button"
-                    class="w-full truncate rounded-md border-l-2 py-1 pr-2 text-left text-sm transition-colors hover:bg-surface-2 hover:text-primary"
-                    :class="index === activeIndex ? 'border-accent-500 text-primary' : 'border-transparent text-muted'"
+                    class="w-full truncate rounded-md py-1.5 pr-2 text-left text-sm transition-colors"
+                    :class="index === activeIndex ? 'bg-surface-2 font-medium text-primary' : 'text-secondary hover:bg-surface-2 hover:text-primary'"
                     :style="{ paddingLeft: `${0.5 + heading.depth * 0.75}rem` }"
                     :aria-current="index === activeIndex ? 'location' : undefined"
                     v-on:click="go(index)"

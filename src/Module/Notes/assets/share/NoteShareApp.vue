@@ -6,11 +6,12 @@ import "@notes/share/print.css";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { CircleHelp, Clock, Columns, Eye, MessageSquare, Pencil, Presentation } from "lucide-vue-next";
+import { CircleHelp, Clock, Columns, Eye, MessageSquare, PanelLeftClose, PanelLeftOpen, Pencil, Presentation } from "lucide-vue-next";
 import NoteMarkdownHelp from "@notes/suite/markdown/components/NoteMarkdownHelp.vue";
 import NoteHoverCard from "@notes/suite/markdown/components/NoteHoverCard.vue";
 import { noteExcerpt, useWikiLinkHoverCard } from "@notes/suite/markdown/composables/useWikiLinkHoverCard.js";
 import AppButton from "@shared/components/action/AppButton.vue";
+import AppIconButton from "@shared/components/action/AppIconButton.vue";
 import AppBadge from "@shared/components/feedback/AppBadge.vue";
 import AppTab from "@shared/components/nav/AppTab.vue";
 import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
@@ -465,6 +466,29 @@ const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyR
     return htmlOf(noteExcerpt(markdownSection(content, heading)), heading ? "" : title);
 });
 
+/**
+ * The column beside the note, folded away when the reader wants the width
+ * (09/10/2026). Remembered by this browser: a convenience, nothing shared.
+ */
+const SIDE_KEY = "aurora.notes.share.sideCollapsed";
+/** Read from the text: folded, the outline is not there to count its headings. */
+const hasHeadings = computed(() => outlineOf(shownContent.value).length > 1);
+const sideCollapsed = ref(false);
+try {
+    sideCollapsed.value = "1" === window.localStorage.getItem(SIDE_KEY);
+} catch {
+    sideCollapsed.value = false;
+}
+
+function toggleSide() {
+    sideCollapsed.value = !sideCollapsed.value;
+    try {
+        window.localStorage.setItem(SIDE_KEY, sideCollapsed.value ? "1" : "0");
+    } catch {
+        // Folded for this visit only.
+    }
+}
+
 /** The note as slides, for whoever has the link (09/10/2026). */
 const presenting = ref(false);
 function sharedSlideHtml(rendered) {
@@ -591,11 +615,27 @@ const lookClass = computed(() =>
         <!-- The share's notes and the note's outline, beside the card rather
              than inside it: inside, the outline took a column of the card and
              the rendered note read as if the page were split (09/10/2026). -->
+        <!-- Folded: a single button where the column was, from `md` up;
+             below, the column sits above the note and takes no width. -->
         <div
-            v-if="hasTree || showsOutline"
+            v-if="(hasTree || (showsOutline && hasHeadings)) && sideCollapsed"
+            data-share-side-collapsed
+            class="hidden shrink-0 md:sticky md:top-6 md:block print:hidden"
+        >
+            <AppIconButton :title="t('notes.markdown.share.side_show')" data-share-side-toggle v-on:click="toggleSide">
+                <PanelLeftOpen class="h-4 w-4" :stroke-width="2" />
+            </AppIconButton>
+        </div>
+        <div
+            v-if="(hasTree || showsOutline) && !sideCollapsed"
             class="w-full shrink-0 flex-col gap-2 sm:gap-4 md:sticky md:top-6 md:w-64 print:hidden"
             :class="hasTree ? 'flex' : outlineShown ? 'hidden lg:flex' : 'hidden'"
         >
+            <div class="hidden justify-end md:flex">
+                <AppIconButton :title="t('notes.markdown.share.side_hide')" data-share-side-toggle v-on:click="toggleSide">
+                    <PanelLeftClose class="h-4 w-4" :stroke-width="2" />
+                </AppIconButton>
+            </div>
             <nav
                 v-if="hasTree"
                 class="aurora-card w-full p-2"
