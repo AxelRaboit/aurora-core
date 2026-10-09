@@ -16,7 +16,20 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * Answers `/favicon.svg`, which is what every layout of the product asks for.
+ * Answers `/favicon.svg`, which every layout of the product asks for, and
+ * `/favicon.ico`, which no layout asks for and browsers fetch anyway.
+ *
+ * **The `.ico` path is not decoration.** A browser that has not yet parsed the
+ * page - or that is showing an error page, or a route with no layout at all -
+ * requests `/favicon.ico` on its own. With no route for it, each of those
+ * became a `NotFoundHttpException` logged at ERROR level with a stack trace:
+ * 2 071 of them in thirty-one days of production logs, around seventy a day,
+ * for a file nobody was missing. Real errors were sitting in that haystack.
+ *
+ * The answer is the same for both paths, including the drawn fallback, which
+ * is an SVG served under a `.ico` address. Browsers sniff the bytes rather
+ * than trusting the extension, so they render it; and lying about the content
+ * type to match the extension would be the one thing that could break it.
  *
  * Two answers, in this order:
  *
@@ -51,6 +64,7 @@ final readonly class FaviconController
     ) {}
 
     #[Route('/favicon.svg', name: 'favicon', methods: [HttpMethodEnum::Get->value])]
+    #[Route('/favicon.ico', name: 'favicon_ico', methods: [HttpMethodEnum::Get->value])]
     public function __invoke(): Response
     {
         $uploaded = $this->uploadedFavicon();

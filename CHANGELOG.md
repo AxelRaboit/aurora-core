@@ -7,6 +7,9 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
+### Corrigé
+- **Les logs de production ne se remplissent plus de favicons.** Aucun gabarit ne demande `/favicon.ico`, mais les navigateurs le réclament d'eux-mêmes - et sans route, chaque demande partait en erreur avec sa pile d'appel : **2 071 en trente-et-un jours** de logs de production, environ soixante-dix par jour, pour un fichier qui ne manquait à personne. Les vraies erreurs étaient dans cette botte de foin. La même route répond maintenant aux deux adresses.
+
 ---
 
 ## [4.1.0] - 2026-10-08
