@@ -53,6 +53,15 @@ const coediting = ref(false);
 watch(canWrite, (writes) => {
     if (!writes) coediting.value = false;
 });
+// The sentence under "Par un lien" says what the link will let its holder do,
+// boxes as they stand: it said "En lecture seule" while writing was ticked.
+const byLinkHint = computed(() => {
+    if (!canWrite.value) return t("notes.markdown.share.by_link_hint");
+
+    return coediting.value
+        ? t("notes.markdown.share.by_link_hint_live")
+        : t("notes.markdown.share.by_link_hint_write");
+});
 // What the two switches would publish, titles and all. Refreshed whenever they
 // move: a count could be computed once, but a list has to match the boxes as
 // they stand or it is worse than nothing.
@@ -304,7 +313,7 @@ function openedLabel(link) {
             <div class="space-y-3 border-t border-line pt-4">
                 <div>
                     <h3 class="text-sm font-semibold text-primary">{{ t("notes.markdown.share.by_link") }}</h3>
-                    <p class="mt-1 text-xs text-muted">{{ t("notes.markdown.share.by_link_hint") }}</p>
+                    <p data-share-by-link-hint class="mt-1 text-xs text-muted">{{ byLinkHint }}</p>
                 </div>
 
                 <AppInput

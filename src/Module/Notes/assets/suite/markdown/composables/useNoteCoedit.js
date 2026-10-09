@@ -116,6 +116,24 @@ export function useNoteCoedit({
     /** Newcomer id -> the backup answer this client will send if nobody does. */
     const backupAnswers = new Map();
 
+    /**
+     * How often a client in a session checks that it has missed nothing, and
+     * how close two such checks may come.
+     *
+     * A message that never arrives is not an edge case: a laptop that slept,
+     * a tab the browser put to sleep, a hub connection that dropped and came
+     * back. Every later update builds on the one that went missing, so the
+     * document keeps them aside, waiting, and stops showing anything the
+     * others type - while it goes on publishing its own edits, which the
+     * others do receive. Seen on 09/10/2026: a paste in the suite never
+     * reached a guest until the guest reloaded. Exchanging state vectors is
+     * how Yjs fills a gap: each says what it has, the other sends the rest.
+     */
+    const SYNC_INTERVAL_MS = 30_000;
+    const SYNC_GAP_MS = 2_000;
+    let lastSync = 0;
+    let syncTimer = null;
+
     function answerWithState(requester) {
         channel.publish({
             kind: "doc-state",
@@ -146,7 +164,57 @@ export function useNoteCoedit({
         backupAnswers.delete(key);
     }
 
+    /**
+     * Tells the others what this document holds, so that whoever has more
+     * sends it. Cheap: a state vector is a few bytes per writer.
+     */
+    function requestSync() {
+        if (!sharedDocument) return;
+        const now = Date.now();
+        if (now - lastSync < SYNC_GAP_MS) return;
+        lastSync = now;
+
+        channel.publish({
+            kind: "doc-sync",
+            vector: toBase64(Y.encodeStateVector(sharedDocument)),
+        });
+    }
+
+    /** What a peer's state vector lacks, sent; and asked back if it holds more. */
+    function answerSync(vector) {
+        const theirs = fromBase64(vector);
+        const missing = Y.encodeStateAsUpdate(sharedDocument, theirs);
+        // An update with nothing in it still encodes as two bytes.
+        if (2 < missing.length) {
+            channel.publish({ kind: "doc-update", update: toBase64(missing) });
+        }
+
+        if (
+            holdsMore(
+                Y.decodeStateVector(theirs),
+                Y.encodeStateVector(sharedDocument),
+            )
+        ) {
+            requestSync();
+        }
+    }
+
+    function holdsMore(theirs, oursEncoded) {
+        const ours = Y.decodeStateVector(oursEncoded);
+        for (const [client, clock] of theirs) {
+            if ((ours.get(client) ?? 0) < clock) return true;
+        }
+
+        return false;
+    }
+
+    function onVisible() {
+        if ("visible" === document.visibilityState) requestSync();
+    }
+
     function teardown() {
+        if (syncTimer) clearInterval(syncTimer);
+        syncTimer = null;
         for (const timer of backupAnswers.values()) clearTimeout(timer);
         backupAnswers.clear();
         if (writeTimer) clearTimeout(writeTimer);
@@ -206,6 +274,7 @@ export function useNoteCoedit({
         });
 
         live.value = true;
+        syncTimer = setInterval(requestSync, SYNC_INTERVAL_MS);
     }
 
     /**
@@ -289,6 +358,12 @@ export function useNoteCoedit({
 
         if ("doc-update" === message.kind && sharedDocument) {
             applyRemote(fromBase64(message.update));
+
+            return;
+        }
+
+        if ("doc-sync" === message.kind && sharedDocument) {
+            answerSync(message.vector);
         }
     }
 
@@ -299,6 +374,11 @@ export function useNoteCoedit({
         } finally {
             applying = false;
         }
+
+        // Kept aside because it builds on something this client never
+        // received: ask for the gap rather than wait for a reload.
+        const store = sharedDocument.store;
+        if (store.pendingStructs || store.pendingDs) requestSync();
     }
 
     /** Enters the note, or declines. */
@@ -404,6 +484,10 @@ export function useNoteCoedit({
 
     const stopListening = channel.onMessage(onMessage);
 
+    // Coming back to the tab, or to the network, is when a gap is likeliest.
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", requestSync);
+
     // The open note changes, or the right to co-edit it does - a space whose
     // setting was just switched, a hub that came back.
     watch([noteId, allowed], () => {
@@ -451,6 +535,8 @@ export function useNoteCoedit({
         }
 
         stopListening();
+        document.removeEventListener("visibilitychange", onVisible);
+        window.removeEventListener("online", requestSync);
         teardown();
     });
 

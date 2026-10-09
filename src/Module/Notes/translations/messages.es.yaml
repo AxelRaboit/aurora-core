@@ -173,6 +173,8 @@ notes:
             title: 'Compartir esta nota'
             by_link: 'Mediante un enlace, sin cuenta'
             by_link_hint: 'Cualquiera que tenga la dirección puede leer la nota. Solo lectura.'
+            by_link_hint_write: 'Cualquiera que tenga la dirección puede leer la nota y reescribir su texto.'
+            by_link_hint_live: 'Cualquiera que tenga la dirección escribe la nota con usted, en directo.'
             page_heading: 'Nota compartida'
             read_only: 'Solo lectura'
             tree_label: 'Notas de este enlace compartido'

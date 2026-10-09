@@ -1,0 +1,20 @@
+{# Widens the page's column to the whole window, and back.
+
+   For a page that reads in a column by default and sometimes needs the room:
+   a shared note being written beside its preview. The page marks its column
+   `data-widenable`; the `theme` entry (assets/theme.js) flips `data-wide` on
+   it, names the button after what it would do, and keeps the choice in the
+   reader's browser. Hidden on a phone, where the column is the window. #}
+<button
+    type="button"
+    id="width-toggle"
+    class="hidden h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg border border-line text-muted transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent lg:inline-flex print:hidden"
+    data-label-widen="{{ 'shared.common.widen'|trans }}"
+    data-label-narrow="{{ 'shared.common.narrow'|trans }}"
+    aria-label="{{ 'shared.common.widen'|trans }}"
+    title="{{ 'shared.common.widen'|trans }}"
+    aria-pressed="false"
+>
+    {{ include('@Shared/components/icon.html.twig', {name: 'maximize-2', class: 'icon-widen w-5 h-5'}) }}
+    {{ include('@Shared/components/icon.html.twig', {name: 'minimize-2', class: 'icon-narrow w-5 h-5'}) }}
+</button>
