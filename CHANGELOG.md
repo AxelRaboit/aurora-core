@@ -5,6 +5,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.6.4] - 2026-10-09
+
+### Modifié
+- **Le bouton qui replie la colonne d'une page partagée passe dans la barre du haut**, à gauche du titre, là où Notion et Obsidian placent le leur. Dans la colonne, il prenait une ligne quand elle était ouverte, et une colonne entière une fois repliée.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.6.3] - 2026-10-09
 
 ### Corrigé
