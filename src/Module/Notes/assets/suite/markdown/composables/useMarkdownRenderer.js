@@ -12,6 +12,7 @@ import {
     createTextColorExtension,
 } from "./markedExtensions/markedMarks.js";
 import { createInlineTagExtension } from "./markedExtensions/markedTags.js";
+import { createMentionExtension } from "./markedExtensions/markedMentions.js";
 import {
     createInlineMathExtension,
     createBlockMathExtension,
@@ -64,6 +65,7 @@ export function useMarkdownRenderer(options = {}) {
             createTextColorExtension(),
             createInlineMathExtension(),
             createInlineTagExtension(),
+            createMentionExtension(),
         ],
     });
     // Footnotes, `[^1]` and `[^1]: text`. Prefixed so that two notes shown on
@@ -94,6 +96,7 @@ export function useMarkdownRenderer(options = {}) {
                 "data-checkbox-index",
                 "data-embed-title",
                 "data-tag",
+                "data-user-id",
                 "data-block-id",
                 "data-math",
                 "data-display",

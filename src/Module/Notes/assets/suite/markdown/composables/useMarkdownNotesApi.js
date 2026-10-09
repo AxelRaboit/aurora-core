@@ -113,6 +113,28 @@ export function useMarkdownNotesApi(props) {
                 `${props.dailyDaysPath}?month=${encodeURIComponent(month)}`,
             ),
         tasks: () => call(HttpMethod.Get, props.tasksPath),
+        comments: (id) =>
+            call(HttpMethod.Get, resolvePath(props.commentsPath, id)),
+        addComment: (id, payload) =>
+            call(HttpMethod.Post, resolvePath(props.commentsPath, id), payload),
+        resolveComment: (commentId, resolved) =>
+            call(
+                HttpMethod.Post,
+                String(props.commentResolvePath).replace(
+                    "__comment__",
+                    String(commentId),
+                ),
+                { resolved },
+            ),
+        deleteComment: (commentId) =>
+            call(
+                HttpMethod.Post,
+                String(props.commentDeletePath).replace(
+                    "__comment__",
+                    String(commentId),
+                ),
+                {},
+            ),
         reminder: (id) =>
             call(HttpMethod.Get, resolvePath(props.reminderPath, id)),
         setReminder: (id, remindAt) =>

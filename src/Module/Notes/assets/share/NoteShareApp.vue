@@ -6,7 +6,7 @@ import "@notes/share/print.css";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { CircleHelp, Clock, Columns, Eye, Pencil } from "lucide-vue-next";
+import { CircleHelp, Clock, Columns, Eye, MessageSquare, Pencil } from "lucide-vue-next";
 import NoteMarkdownHelp from "@notes/suite/markdown/components/NoteMarkdownHelp.vue";
 import NoteHoverCard from "@notes/suite/markdown/components/NoteHoverCard.vue";
 import { noteExcerpt, useWikiLinkHoverCard } from "@notes/suite/markdown/composables/useWikiLinkHoverCard.js";
@@ -27,6 +27,8 @@ import { canCoedit } from "@notes/suite/markdown/composables/noteCoeditProtocol.
 import NoteCollaborators from "@notes/suite/markdown/components/NoteCollaborators.vue";
 import NoteRemoteCarets from "@notes/suite/markdown/components/NoteRemoteCarets.vue";
 import NoteReaderOutline from "@notes/suite/markdown/components/NoteReaderOutline.vue";
+import NoteCommentsPanel from "@notes/suite/markdown/components/NoteCommentsPanel.vue";
+import { flashQuote } from "@notes/suite/markdown/composables/noteCommentMarks.js";
 import { outlineOf, readingMinutes, wordCount } from "@notes/suite/markdown/composables/noteOutline.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
@@ -87,6 +89,8 @@ const props = defineProps({
     coediting: { type: Boolean, default: false },
     /** Where a guest beats to be in the room, `__id__` template. */
     liveBeatPath: { type: String, default: "" },
+    /** Where the comments are read and written, on a link that writes; empty otherwise. */
+    commentsPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -448,7 +452,81 @@ const { card: hoverCard, onCardEnter, onCardLeave } = useWikiLinkHoverCard(bodyR
     return htmlOf(noteExcerpt(markdownSection(content, heading)), heading ? "" : title);
 });
 
-useNoteHtmlEnhancer(bodyRef, () => [html.value, draftHtml.value, editing.value, view.value.mode], { loadEmbed });
+/**
+ * The comments (09/10/2026), on a link that writes: the same panel as in the
+ * suite, written under the name the guest gives.
+ */
+const commentsOpen = ref(false);
+const commentThreads = ref([]);
+const commentsSaving = ref(false);
+const commentQuote = ref(null);
+const missingQuotes = ref(new Set());
+const openCommentCount = computed(() => commentThreads.value.filter((thread) => !thread.resolvedAt).length);
+const commentQuotes = computed(() =>
+    commentThreads.value.filter((thread) => !thread.resolvedAt && thread.quote).map((thread) => ({ id: thread.id, quote: thread.quote })),
+);
+
+async function loadComments() {
+    if (!props.commentsPath) return;
+    const payload = await request(props.commentsPath, null, { method: HttpMethod.Get, silent: true, noGuard: true }).catch(() => null);
+    commentThreads.value = payload?.threads ?? commentThreads.value;
+}
+
+onMounted(() => void loadComments());
+
+function selectedInNote() {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !bodyRef.value?.contains(selection.anchorNode)) return null;
+    const text = selection.toString().trim().slice(0, 1000);
+
+    return "" === text ? null : text;
+}
+
+let pendingSelection = null;
+/** Read before the click moves anything: the passage being commented. */
+function rememberSelection() {
+    pendingSelection = selectedInNote();
+}
+
+function toggleComments() {
+    if (commentsOpen.value) {
+        commentsOpen.value = false;
+
+        return;
+    }
+    commentQuote.value = pendingSelection;
+    commentsOpen.value = true;
+}
+
+async function submitComment({ body, quote, parentId, guestName }) {
+    commentsSaving.value = true;
+    const payload = await request(props.commentsPath, { body, quote, parentId, guestName }, { method: HttpMethod.Post, noGuard: true }).catch(() => null);
+    commentsSaving.value = false;
+    if (!payload?.threads) {
+        toast.error(t("notes.markdown.comments.failed"));
+
+        return;
+    }
+    commentThreads.value = payload.threads;
+    if (null === parentId) commentQuote.value = null;
+}
+
+function onBodyClick(event) {
+    const mark = event.target instanceof Element ? event.target.closest("mark.md-comment-mark") : null;
+    if (!mark) return;
+    commentQuote.value = null;
+    commentsOpen.value = true;
+    const id = Number(mark.dataset.commentId);
+    void nextTick(() => document.querySelector(`[data-note-comment-thread-id="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+}
+
+useNoteHtmlEnhancer(bodyRef, () => [html.value, draftHtml.value, editing.value, view.value.mode], {
+    loadEmbed,
+    quotes: () => commentQuotes.value,
+    onQuotesMarked: (found) => {
+        missingQuotes.value = new Set(commentQuotes.value.filter((one) => !found.has(one.id)).map((one) => one.id));
+    },
+});
 const showsOutline = computed(() => null !== props.meta && (!editing.value || "preview" === view.value.mode));
 /** Headings the outline found: under two, its frame stays hidden. */
 const outlineCount = ref(0);
@@ -586,6 +664,21 @@ const lookClass = computed(() =>
                         :placeholder="t('notes.markdown.title_placeholder')"
                         :aria-label="t('notes.markdown.title')"
                     >
+                    <!-- The comments, with the passage selected in the note if any. -->
+                    <AppButton
+                        v-if="commentsPath"
+                        data-share-comments
+                        variant="secondary"
+                        size="sm"
+                        class="relative shrink-0 print:hidden"
+                        :active="commentsOpen"
+                        v-on:pointerdown="rememberSelection"
+                        v-on:click="toggleComments"
+                    >
+                        <MessageSquare class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("notes.markdown.comments.title") }}
+                        <span v-if="openCommentCount" class="rounded-full bg-amber-500 px-1.5 text-2xs font-semibold text-white">{{ openCommentCount }}</span>
+                    </AppButton>
                     <AppButton
                         v-if="canWrite && !editing && !conflicted"
                         data-share-edit
@@ -665,7 +758,7 @@ const lookClass = computed(() =>
                 </dl>
 
                 <div>
-                    <div ref="bodyRef" class="min-w-0">
+                    <div ref="bodyRef" class="min-w-0" v-on:click="onBodyClick">
                         <!-- The markdown source, plainly. No upload, no slash
                      commands, no autocomplete: this page has no account
                      behind it, and every feature here is one more thing an
@@ -765,6 +858,20 @@ const lookClass = computed(() =>
                 </div>
             </div>
         </article>
+
+        <NoteCommentsPanel
+            v-if="commentsOpen"
+            class="md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:rounded-lg md:border print:hidden"
+            :threads="commentThreads"
+            :saving="commentsSaving"
+            :quote="commentQuote"
+            :missing="missingQuotes"
+            guest
+            v-on:close="commentsOpen = false"
+            v-on:submit="submitComment"
+            v-on:focus-quote="flashQuote(bodyRef, $event)"
+            v-on:clear-quote="commentQuote = null"
+        />
 
         <NoteHoverCard :card="hoverCard" v-on:enter="onCardEnter" v-on:leave="onCardLeave" />
 

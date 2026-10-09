@@ -1,6 +1,7 @@
 import { nextTick, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { enhanceNoteHtml } from "./noteHtmlEnhancer.js";
+import { markQuotes } from "./noteCommentMarks.js";
 
 /**
  * Finishes the rendered note held by `rootRef` every time its HTML changes
@@ -14,6 +15,8 @@ import { enhanceNoteHtml } from "./noteHtmlEnhancer.js";
  * @param {import('vue').Ref<string>|Function} htmlSource  what to watch
  * @param {object} [options]
  * @param {Function} [options.loadEmbed]  `({title, heading}) => Promise<string|null>`
+ * @param {Function} [options.quotes]  `() => Array<{id, quote}>`, the commented
+ *   passages to mark; `options.onQuotesMarked(Set<id>)` hears which were found
  */
 export function useNoteHtmlEnhancer(rootRef, htmlSource, options = {}) {
     const { t, locale } = useI18n();
@@ -29,12 +32,20 @@ export function useNoteHtmlEnhancer(rootRef, htmlSource, options = {}) {
             },
             loadEmbed: options.loadEmbed,
         });
+        if (options.quotes) {
+            const found = markQuotes(rootRef.value, options.quotes() ?? []);
+            options.onQuotesMarked?.(found);
+        }
     }
 
-    watch([htmlSource, rootRef], () => void enhance(), {
-        immediate: true,
-        flush: "post",
-    });
+    watch(
+        [htmlSource, rootRef, () => JSON.stringify(options.quotes?.() ?? [])],
+        () => void enhance(),
+        {
+            immediate: true,
+            flush: "post",
+        },
+    );
 
     return { enhance };
 }

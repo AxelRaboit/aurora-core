@@ -20,6 +20,7 @@ import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
 import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.vue';
 import NoteTasksPanel from '@notes/suite/markdown/components/NoteTasksPanel.vue';
 import NoteReminderModal from '@notes/suite/markdown/components/NoteReminderModal.vue';
+import NoteCommentsPanel from '@notes/suite/markdown/components/NoteCommentsPanel.vue';
 import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
 import NoteIconPicker from '@notes/suite/markdown/components/NoteIconPicker.vue';
 import NoteProperties from '@notes/suite/markdown/components/NoteProperties.vue';
@@ -40,7 +41,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ALargeSmall, BellRing, CaseSensitive, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ALargeSmall, BellRing, CaseSensitive, MessageSquare, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -97,6 +98,9 @@ const props = defineProps({
     tasksPath: { type: String, default: '' },
     taskPath: { type: String, default: '' },
     reminderPath: { type: String, default: '' },
+    commentsPath: { type: String, default: '' },
+    commentResolvePath: { type: String, default: '' },
+    commentDeletePath: { type: String, default: '' },
     /** The whole notebook as a zip, a single note as .md, and the way back. */
     exportPath: { type: String, required: true },
     exportOnePath: { type: String, required: true },
@@ -1033,6 +1037,133 @@ const noteActions = computed(() => {
 
 
 const previewPaneRef = ref(null);
+
+/**
+ * The comments of the open note (09/10/2026), asked when it opens: their
+ * count is on the button, their passages are marked in the preview.
+ */
+const commentsOpen = ref(false);
+const commentThreads = ref([]);
+const commentsLoading = ref(false);
+const commentsSaving = ref(false);
+const commentQuote = ref(null);
+const missingQuotes = ref(new Set());
+const notePreviewRef = ref(null);
+/** What was last selected in the note, to comment on it. */
+let lastSelection = '';
+
+const openCommentCount = computed(() => commentThreads.value.filter((thread) => !thread.resolvedAt).length);
+const commentQuotes = computed(() =>
+    commentThreads.value.filter((thread) => !thread.resolvedAt && thread.quote).map((thread) => ({ id: thread.id, quote: thread.quote })),
+);
+
+async function loadComments(id = selectedId.value) {
+    if (!id || !props.commentsPath) return;
+    commentsLoading.value = true;
+    const { ok, payload } = await api.comments(id);
+    commentsLoading.value = false;
+    if (ok && id === selectedId.value) commentThreads.value = payload?.threads ?? [];
+}
+
+watch(
+    selectedId,
+    (id) => {
+        commentThreads.value = [];
+        commentQuote.value = null;
+        missingQuotes.value = new Set();
+        void loadComments(id);
+        // `@` in the editor offers everyone: asked once, on the first note.
+        if (id) void loadEveryone();
+    },
+    { immediate: true },
+);
+
+// One panel beside the note at a time.
+watch(sidePanelOpen, (open) => {
+    if (open) commentsOpen.value = false;
+});
+
+/** The panel opens beside the note, in place of the outline. */
+function openComments(quote = null) {
+    if (!props.commentsPath || !selectedId.value) return;
+    commentQuote.value = quote;
+    sidePanelOpen.value = false;
+    commentsOpen.value = true;
+}
+
+/** Comments the passage selected in the note, or the note as a whole. */
+function commentSelection() {
+    const quote = lastSelection.trim().slice(0, 1000);
+    lastSelection = '';
+    openComments('' === quote ? null : quote);
+}
+
+function rememberSelection() {
+    const field = noteEditorRef.value?.textareaRef;
+    if (field && document.activeElement === field && field.selectionEnd > field.selectionStart) {
+        lastSelection = field.value.slice(field.selectionStart, field.selectionEnd);
+
+        return;
+    }
+    const selection = window.getSelection();
+    const area = previewPaneRef.value;
+    if (selection && !selection.isCollapsed && area && area.contains(selection.anchorNode)) {
+        lastSelection = selection.toString();
+    }
+}
+
+function onCommentKeys(event) {
+    // Cmd/Ctrl+Alt+M, as in Google Docs.
+    if ((event.ctrlKey || event.metaKey) && event.altKey && 'KeyM' === event.code && selectedNote.value) {
+        event.preventDefault();
+        rememberSelection();
+        commentSelection();
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('selectionchange', rememberSelection);
+    window.addEventListener('keydown', onCommentKeys);
+});
+onBeforeUnmount(() => {
+    document.removeEventListener('selectionchange', rememberSelection);
+    window.removeEventListener('keydown', onCommentKeys);
+});
+
+async function submitComment({ body, quote, parentId }) {
+    if (!selectedId.value) return;
+    commentsSaving.value = true;
+    const { ok, reported, payload } = await api.addComment(selectedId.value, { body, quote, parentId });
+    commentsSaving.value = false;
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.comments.failed'));
+
+        return;
+    }
+    commentThreads.value = payload?.threads ?? [];
+    if (null === parentId) commentQuote.value = null;
+}
+
+async function resolveComment({ id, resolved }) {
+    const { ok, payload } = await api.resolveComment(id, resolved);
+    if (ok) commentThreads.value = payload?.threads ?? [];
+}
+
+async function deleteComment(id) {
+    const { ok, payload } = await api.deleteComment(id);
+    if (ok) commentThreads.value = payload?.threads ?? [];
+}
+
+/** A marked passage clicked in the preview: its thread, in the panel. */
+function onCommentMarkClick(id) {
+    openComments(null);
+    void nextTick(() => document.querySelector(`[data-note-comment-thread-id="${Number(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+}
+
+function focusQuote(id) {
+    if ('edit' === viewMode.value) return;
+    notePreviewRef.value?.flashQuote(id);
+}
 
 /**
  * A link that names a place in a note - `[[Note#Heading]]` or a paragraph,
@@ -2027,6 +2158,27 @@ onUnmounted(() => {
                                 <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
                             </AppButton>
 
+                            <!-- The comments (09/10/2026): a click comments
+                                 what is selected in the note, if anything. -->
+                            <AppButton
+                                v-if="commentsPath"
+                                variant="secondary"
+                                data-note-comments-toggle
+                                :active="commentsOpen"
+                                :aria-pressed="commentsOpen"
+                                :label="t('notes.markdown.comments.title')"
+                                icon-only
+                                class="relative"
+                                v-on:pointerdown="rememberSelection"
+                                v-on:click="commentsOpen ? (commentsOpen = false) : commentSelection()"
+                            >
+                                <MessageSquare class="w-4 h-4" :stroke-width="2" />
+                                <span
+                                    v-if="openCommentCount"
+                                    class="absolute -right-1 -top-1 min-w-4 rounded-full bg-amber-500 px-1 text-center text-2xs font-semibold leading-4 text-white"
+                                >{{ openCommentCount }}</span>
+                            </AppButton>
+
                             <!-- Focus mode (09/10/2026). -->
                             <AppButton
                                 variant="secondary"
@@ -2175,6 +2327,7 @@ onUnmounted(() => {
                                 :cursors="roomCursors"
                                 :all-tags="allTagNames"
                                 :fetch-link-title="fetchLinkTitle"
+                                :people="everyone"
                                 v-on:caret="onCaretMoved"
                                 v-on:block-link="copyBlockLink"
                             />
@@ -2201,10 +2354,14 @@ onUnmounted(() => {
                                  `# ` stays in the writing area as in the
                                  export. -->
                             <NotePreview
+                                ref="notePreviewRef"
                                 :class="readingClass"
                                 :content="previewBody"
                                 :note-titles="notes"
                                 :load-note-content="loadNoteContent"
+                                :comment-quotes="commentQuotes"
+                                v-on:comment-click="onCommentMarkClick"
+                                v-on:quotes-marked="missingQuotes = new Set(commentQuotes.filter((one) => !$event.has(one.id)).map((one) => one.id))"
                                 v-on:wiki-link-click="onPreviewWikiLink"
                                 v-on:tag-click="PANEL_INTENTS['filter-tag']"
                                 v-on:checkbox-toggle="onCheckboxToggle"
@@ -2355,6 +2512,23 @@ onUnmounted(() => {
                 :can-restore="canEditSelected"
                 v-on:close="historyOpen = false"
                 v-on:restored="onRevisionRestored"
+            />
+
+            <NoteCommentsPanel
+                v-if="commentsOpen && selectedNote"
+                :threads="commentThreads"
+                :loading="commentsLoading"
+                :saving="commentsSaving"
+                :quote="commentQuote"
+                :can-moderate="canEditSelected"
+                :people="everyone"
+                :missing="missingQuotes"
+                v-on:close="commentsOpen = false"
+                v-on:submit="submitComment"
+                v-on:resolve="resolveComment"
+                v-on:delete="deleteComment"
+                v-on:focus-quote="focusQuote"
+                v-on:clear-quote="commentQuote = null"
             />
 
             <NoteSidePanel

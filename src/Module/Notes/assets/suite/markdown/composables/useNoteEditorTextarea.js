@@ -1,4 +1,5 @@
 import { ref, nextTick } from "vue";
+import { mentionMarkup } from "./markedExtensions/markedMentions.js";
 import { useSlashCommands } from "@notes/suite/markdown/composables/useSlashCommands.js";
 import { useWikiLinkAutocomplete } from "@notes/suite/markdown/composables/useWikiLinkAutocomplete.js";
 import { handleMarkdownShortcut } from "@notes/suite/markdown/composables/useMarkdownShortcuts.js";
@@ -42,6 +43,7 @@ import {
  * @param {import('vue').Ref<string[]>} [deps.allTags] - the notebook's tags, for `#`.
  * @param {(url: string) => Promise<string|null>} [deps.fetchLinkTitle] - a pasted address's page title.
  * @param {(id: string) => void} [deps.onBlockLink] - a paragraph was named, its link is wanted.
+ * @param {import('vue').Ref<Array<{id, name}>>} [deps.people] - who `@` can mention.
  */
 export function useNoteEditorTextarea({
     emitUpdate,
@@ -52,6 +54,7 @@ export function useNoteEditorTextarea({
     allTags = null,
     fetchLinkTitle = null,
     onBlockLink = null,
+    people = null,
 }) {
     const textareaRef = ref(null);
     /**
@@ -104,7 +107,25 @@ export function useNoteEditorTextarea({
         insertFor: (item) => `#${item.tag} `,
     });
 
-    const menus = [emoji, tag];
+    // `@` offers the people of the suite (09/10/2026): `@mar` narrows to
+    // Marie, and the note keeps `@[Marie Dupont](user:12)`.
+    const mention = useTriggerAutocomplete({
+        trigger: "@",
+        queryPattern: /^[\p{L}\p{N}._-]*$/u,
+        minLength: 0,
+        suggest: (query) => {
+            const wanted = foldText(query);
+
+            return (people?.value ?? [])
+                .filter((person) =>
+                    foldText(person.name ?? "").includes(wanted),
+                )
+                .slice(0, 8);
+        },
+        insertFor: (person) => `${mentionMarkup(person)} `,
+    });
+
+    const menus = [emoji, tag, mention];
 
     /**
      * Route input through both menus. The slash handler closes itself
@@ -420,8 +441,10 @@ export function useNoteEditorTextarea({
         // `:` emoji and `#` tags
         emojiMenu: emoji,
         tagMenu: tag,
+        mentionMenu: mention,
         selectEmoji: (item) => selectTriggered(emoji, item),
         selectTag: (item) => selectTriggered(tag, item),
+        selectMention: (item) => selectTriggered(mention, item),
         // shared (textarea)
         onInput,
         onKeydown,

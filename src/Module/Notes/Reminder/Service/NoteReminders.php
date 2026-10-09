@@ -86,6 +86,7 @@ final readonly class NoteReminders
             if (null !== $note->getDeletedAt()) {
                 continue;
             }
+
             if (!$this->spaceAccess->readableNote($user, (int) $note->getId()) instanceof MarkdownNoteInterface) {
                 continue;
             }

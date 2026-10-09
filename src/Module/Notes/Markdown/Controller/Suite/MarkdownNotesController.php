@@ -13,6 +13,7 @@ use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Configuration\Setting\Service\SiteDateFormatter;
 use Aurora\Module\Ged\Pexels\Service\PexelsClient;
+use Aurora\Module\Notes\Comment\Service\NoteMentions;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
@@ -84,6 +85,7 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteRevisionRepository $markdownNoteRevisionRepository,
         private readonly MarkdownNoteMemberRepository $memberRepository,
         private readonly NoteLiveHub $liveHub,
+        private readonly NoteMentions $mentions,
     ) {}
 
     /**
@@ -528,7 +530,11 @@ final class MarkdownNotesController extends AbstractController
         // is old enough (settings > Notes): a way to go back.
         $this->history->beforeChange($note, $input->getTitle(), $input->getContent(), $user);
 
+        $before = $note->getContent();
         $this->manager->update($note, $input);
+
+        // Whoever is newly mentioned in the text is told (09/10/2026).
+        $this->mentions->notifyNew($note, $before, $note->getContent(), $user->getName(), $user);
 
         // Told to whoever else has the note open, after the row is committed
         // and never before: a hub that is down must not be able to fail a

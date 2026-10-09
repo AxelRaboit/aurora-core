@@ -214,12 +214,14 @@ notes:
                 wiki_block: "Link to a paragraph (the shortcut names it and copies its link)"
                 embed: "Include a note in this one"
                 tag: "Tag (“#” suggests tags)"
+                mention: "Mention someone (« @ » offers people, who are told)"
                 paste_link: "Paste an address: it becomes a titled link"
                 slash: "Command menu (at a line's start)"
                 move_line: "Move the line up or down"
                 table_tab: "Move between cells"
                 reading: "Reading mode"
                 quick_open: "Quick note search"
+                comment: "Comment on the selected passage"
                 focus: "Focus mode"
         editor:
             block_link_copied: "Link to the paragraph copied"
@@ -637,6 +639,32 @@ notes:
                 late: 'Overdue'
                 all: 'All'
         # A reminder on a note: a notification in the suite at the chosen time.
+        # Comments on a passage, and @mentions (09/10/2026).
+        comments:
+            title: 'Comments'
+            open: 'Comments'
+            empty_list: 'No comments. Select a passage then « Comment », or write below.'
+            placeholder: 'Write a comment… (@ to mention)'
+            placeholder_guest: 'Write a comment…'
+            reply_placeholder: 'Reply…'
+            send: 'Comment'
+            reply: 'Reply'
+            resolve: 'Resolve'
+            reopen: 'Reopen'
+            delete: 'Delete'
+            show_resolved: 'Show resolved threads ({count})'
+            hide_resolved: 'Hide resolved threads'
+            on_selection: 'Comment on the selection'
+            quote_missing: 'This passage is no longer in the note.'
+            guest: 'Guest'
+            guest_name: 'Your name'
+            empty: 'The comment is empty.'
+            notified_new: '%name% commented on this note.'
+            notified_reply: '%name% replied in a thread of this note.'
+            failed: 'The comment could not be saved.'
+        mention:
+            in_note: '%name% mentioned you in this note.'
+            in_comment: '%name% mentioned you in a comment.'
         reminder:
             title: 'Remind me of this note'
             change: 'Change the reminder'

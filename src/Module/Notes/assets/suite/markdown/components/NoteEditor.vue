@@ -39,6 +39,8 @@ const props = defineProps({
     allTags: { type: Array, default: () => [] },
     /** `(url) => Promise<string|null>`: a pasted address's page title. */
     fetchLinkTitle: { type: Function, default: null },
+    /** Who `@` can mention: `[{id, name}]` (09/10/2026). */
+    people: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["update:modelValue", "caret", "block-link"]);
@@ -66,8 +68,10 @@ const {
     onSearchBlur,
     emojiMenu,
     tagMenu,
+    mentionMenu,
     selectEmoji,
     selectTag,
+    selectMention,
     onInput,
     onKeydown,
     onBlur,
@@ -81,6 +85,7 @@ const {
     allTags: toRef(props, "allTags"),
     fetchLinkTitle: props.fetchLinkTitle,
     onBlockLink: (id) => emit("block-link", id),
+    people: toRef(props, "people"),
 });
 
 /**
@@ -234,6 +239,20 @@ if (props.uploadImage) {
             <template #default="{ item }">
                 <span class="inline-flex w-6 shrink-0 justify-center font-mono text-xs text-muted">#</span>
                 <span class="flex-1 truncate">{{ item.tag }}</span>
+            </template>
+        </AppFloatingMenu>
+        <AppFloatingMenu
+            v-if="mentionMenu.show.value"
+            :items="mentionMenu.items.value"
+            :position="mentionMenu.position.value"
+            :max-height="mentionMenu.position.value.maxHeight ?? null"
+            :active-index="mentionMenu.index.value"
+            v-on:select="selectMention"
+            v-on:highlight="mentionMenu.highlight"
+        >
+            <template #default="{ item }">
+                <span class="inline-flex w-6 shrink-0 justify-center text-xs text-muted">@</span>
+                <span class="flex-1 truncate">{{ item.name }}</span>
             </template>
         </AppFloatingMenu>
     </div>

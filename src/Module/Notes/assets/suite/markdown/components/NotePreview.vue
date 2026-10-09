@@ -10,6 +10,7 @@ import { markdownSection } from '@notes/suite/markdown/composables/noteHtmlEnhan
 import { noteExcerpt, useWikiLinkHoverCard } from '@notes/suite/markdown/composables/useWikiLinkHoverCard.js';
 import NoteHoverCard from '@notes/suite/markdown/components/NoteHoverCard.vue';
 import { withoutLeadingTitle } from '@notes/suite/markdown/composables/noteBody.js';
+import { flashQuote } from '@notes/suite/markdown/composables/noteCommentMarks.js';
 
 // Two roots since the hover card (09/10/2026): what a parent passes goes to
 // the rendered note, as before.
@@ -24,9 +25,11 @@ const props = defineProps({
      * preview in the library): inclusions then stay links.
      */
     loadNoteContent: { type: Function, default: null },
+    /** list<{id, quote}>: the open comment threads, whose passages are marked. */
+    commentQuotes: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(['wiki-link-click', 'checkbox-toggle', 'image-resize', 'tag-click']);
+const emit = defineEmits(['wiki-link-click', 'checkbox-toggle', 'image-resize', 'tag-click', 'comment-click', 'quotes-marked']);
 
 const { render, resolveWikiLink } = useMarkdownRenderer({ footnotes: useFootnoteLabels() });
 const html = computed(() => render(props.content));
@@ -37,6 +40,12 @@ const { route } = usePreviewClickRouter({
 });
 
 function onClick(event) {
+    const mark = event.target instanceof Element ? event.target.closest('mark.md-comment-mark') : null;
+    if (mark) {
+        emit('comment-click', Number(mark.dataset.commentId));
+
+        return;
+    }
     const result = route(event);
     if (!result) return;
     if (result.kind === 'wiki-link') emit('wiki-link-click', result.payload);
@@ -78,7 +87,14 @@ async function loadEmbed({ title, heading }) {
 }
 
 const root = ref(null);
-useNoteHtmlEnhancer(root, html, { loadEmbed });
+useNoteHtmlEnhancer(root, html, {
+    loadEmbed,
+    quotes: () => props.commentQuotes,
+    onQuotesMarked: (found) => emit('quotes-marked', found),
+});
+
+/** Brings a thread's passage into view, for the comments panel. */
+defineExpose({ flashQuote: (id) => flashQuote(root.value, id) });
 
 /** A linked note's beginning, on hover (09/10/2026). */
 const { card, onCardEnter, onCardLeave } = useWikiLinkHoverCard(root, async (title, heading) => {

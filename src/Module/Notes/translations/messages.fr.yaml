@@ -218,12 +218,14 @@ notes:
                 wiki_block: "Lien vers un paragraphe (le raccourci le nomme et copie son lien)"
                 embed: "Inclure une note dans celle-ci"
                 tag: "Étiquette (« # » propose les étiquettes)"
+                mention: "Mentionner quelqu'un (« @ » propose les personnes, qui sont prévenues)"
                 paste_link: "Coller une adresse : elle devient un lien titré"
                 slash: "Menu des commandes (en début de ligne)"
                 move_line: "Monter ou descendre la ligne"
                 table_tab: "Passer d'une cellule à l'autre"
                 reading: "Mode lecture"
                 quick_open: "Recherche rapide d'une note"
+                comment: "Commenter le passage sélectionné"
                 focus: "Mode focus"
         editor:
             block_link_copied: "Lien vers le paragraphe copié"
@@ -641,6 +643,32 @@ notes:
                 late: 'En retard'
                 all: 'Toutes'
         # A reminder on a note: a notification in the suite at the chosen time.
+        # Comments on a passage, and @mentions (09/10/2026).
+        comments:
+            title: 'Commentaires'
+            open: 'Commentaires'
+            empty_list: 'Aucun commentaire. Sélectionnez un passage puis « Commenter », ou écrivez ci-dessous.'
+            placeholder: 'Écrire un commentaire… (@ pour mentionner)'
+            placeholder_guest: 'Écrire un commentaire…'
+            reply_placeholder: 'Répondre…'
+            send: 'Commenter'
+            reply: 'Répondre'
+            resolve: 'Clore'
+            reopen: 'Rouvrir'
+            delete: 'Supprimer'
+            show_resolved: 'Afficher les fils clos ({count})'
+            hide_resolved: 'Masquer les fils clos'
+            on_selection: 'Commenter la sélection'
+            quote_missing: 'Ce passage n''est plus dans la note.'
+            guest: 'Invité'
+            guest_name: 'Votre nom'
+            empty: 'Le commentaire est vide.'
+            notified_new: '%name% a commenté cette note.'
+            notified_reply: '%name% a répondu dans un fil de cette note.'
+            failed: 'Le commentaire n''a pas pu être enregistré.'
+        mention:
+            in_note: '%name% vous a mentionné dans cette note.'
+            in_comment: '%name% vous a mentionné dans un commentaire.'
         reminder:
             title: 'Me rappeler cette note'
             change: 'Modifier le rappel'
