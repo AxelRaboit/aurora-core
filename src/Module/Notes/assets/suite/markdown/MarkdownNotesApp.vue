@@ -1110,6 +1110,10 @@ async function loadComments(id = selectedId.value) {
     if (ok && id === selectedId.value) commentThreads.value = payload?.threads ?? [];
 }
 
+// The library's table names the people of « person » properties too, before
+// any note is opened (4.6.2).
+onMounted(() => void loadEveryone());
+
 watch(
     selectedId,
     (id) => {
