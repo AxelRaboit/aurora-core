@@ -80,6 +80,13 @@
 
         {% block page_header_slot %}{% endblock %}
 
+        {# Shows itself only once the server runs a newer version than the one
+           this page was rendered with: a tab left open across a deployment. #}
+        <div {{ vue_component('core/suite/version/AppVersionWatch', {
+            version: appVersion is defined ? appVersion : '',
+            versionPath: path('suite_version'),
+        }) }}></div>
+
         {% set pending_migrations = aurora_is_dev() ? aurora_pending_migrations() : 0 %}
         {% if pending_migrations > 0 %}
             {% embed '@Shared/components/app_message.html.twig' with {variant: 'warning', strip: true, icon: 'database'} %}

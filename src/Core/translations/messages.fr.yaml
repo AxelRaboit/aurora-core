@@ -247,6 +247,10 @@ shared:
 # The labels of tools specific to a module, injected through `extraTools`,
 # stay in that module's own messages.fr.yaml.
 suite:
+    version:
+        available: "Une nouvelle version est en ligne ({version}). Rechargez la page pour en profiter."
+        reload: Recharger
+        later: Plus tard
     help:
         storage:
             delivery_mode:

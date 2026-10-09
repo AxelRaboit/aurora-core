@@ -16,8 +16,12 @@
         {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
         {{ vite_entry_link_tags('app') }}
         {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {{ vite_entry_script_tags('theme') }}
     </head>
     <body class="min-h-screen bg-body">
+        {# In the corner, as on the sign-in page: the same kind of screen, one
+           field and a button. #}
+        {{ include('@Shared/components/theme_toggle.html.twig', {class: 'fixed top-4 right-4 z-50'}) }}
         <main class="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center gap-4 p-6">
             <h1 class="m-0 text-lg font-semibold text-primary">
                 {{ 'frontend.reading.locked_title'|trans }}

@@ -20,7 +20,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, ArrowRight, ChevronRight, Clock, Download, FileText, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, Printer, Star, X } from "lucide-vue-next";
+import { ArrowLeft, ArrowRight, ChevronRight, Clock, Download, FileText, ListTree, Moon, PanelLeftClose, PanelLeftOpen, Pencil, Printer, Star, Sun, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppActionSheet from "@/shared/components/action/AppActionSheet.vue";
@@ -32,6 +32,7 @@ import { readingMinutes, wordCount } from "./composables/noteOutline.js";
 import { printWhenReady } from "@notes/share/useNotePrint.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { useTheme } from "@/shared/composables/useTheme";
 
 const props = defineProps({
     noteId: { type: Number, required: true },
@@ -87,6 +88,10 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+// The public reading has no account menu to switch the theme from
+// (09/10/2026): the bar offers it, as the share pages do.
+const { theme, toggle: toggleTheme } = useTheme();
+const themeLabel = computed(() => (theme.value === "dark" ? t("suite.nav.light_mode") : t("suite.nav.dark_mode")));
 
 const SIDEBAR_KEY = "aurora.notes.reader.sidebar";
 
@@ -421,6 +426,18 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     icon-only
                 >
                     <Pencil class="h-4 w-4" :stroke-width="2" />
+                </AppButton>
+
+                <AppButton
+                    v-if="publicTitle"
+                    variant="secondary"
+                    data-read-theme
+                    :label="themeLabel"
+                    icon-only
+                    v-on:click="toggleTheme"
+                >
+                    <Sun v-if="theme === 'dark'" class="h-4 w-4" :stroke-width="2" />
+                    <Moon v-else class="h-4 w-4" :stroke-width="2" />
                 </AppButton>
             </header>
 
