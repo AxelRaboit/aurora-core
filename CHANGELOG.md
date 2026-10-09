@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [4.2.0] - 2026-10-09
 
 ### Ajouté
 - **On voit qui est sur la note, comme dans un document partagé.** La phrase « Test A est aussi sur cette note » devient une pile de visages aux initiales de chacun, dans la couleur de l'étiquette de son curseur : un visage dans l'en-tête et un curseur dans un paragraphe se reconnaissent sans lire de nom. Au survol, le nom, s'il écrit ou s'il lit, et si la salle est en direct ou sondée ; au-delà de quatre personnes, un « +n ». Un lecteur d'écran entend la phrase entière. La pile reprend `AppAvatar`, qui accepte maintenant une couleur par personne (prop `color`, facultative).
