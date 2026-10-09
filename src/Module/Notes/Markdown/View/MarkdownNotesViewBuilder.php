@@ -38,6 +38,7 @@ final readonly class MarkdownNotesViewBuilder
         private NoteSpaceSerializerInterface $spaceSerializer,
         private MarkdownNoteMemberRepository $memberRepository,
         private CraftClient $craftClient,
+        private MarkdownNoteDisplay $display,
     ) {}
 
     /**
@@ -159,6 +160,8 @@ final readonly class MarkdownNotesViewBuilder
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            // The emoji, the properties and the reading settings (09/10/2026).
+            'display' => $this->display->describe($note),
             'titleIndex' => $titles,
             ...$this->readerTree($user, $folders, $rows),
         ];
@@ -316,6 +319,8 @@ final readonly class MarkdownNotesViewBuilder
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            // The emoji, the properties and the reading settings (09/10/2026).
+            'display' => $this->display->describe($note),
             'titleIndex' => $this->ownTitleIndex($rows),
             ...$this->treeRows($folders, $rows),
             'treeSpaces' => [],
@@ -501,6 +506,7 @@ final readonly class MarkdownNotesViewBuilder
             'sharesRevokePath' => $this->urlGenerator->generate('suite_notes_markdown_shares_revoke', ['id' => '__id__']),
             'liveBeatPath' => $this->urlGenerator->generate('suite_notes_markdown_live_beat', ['id' => '__id__']),
             'peopleListPath' => $this->urlGenerator->generate('suite_notes_markdown_people_list', ['noteId' => '__id__']),
+            'peopleEveryonePath' => $this->urlGenerator->generate('suite_notes_markdown_people_everyone'),
             'peopleSetPath' => $this->urlGenerator->generate('suite_notes_markdown_people_set', ['noteId' => '__id__']),
             'peopleRemovePath' => $this->urlGenerator->generate('suite_notes_markdown_people_remove', ['noteId' => '__id__', 'userId' => '__user__']),
             'imageUploadPath' => $this->urlGenerator->generate('suite_notes_markdown_images_upload'),

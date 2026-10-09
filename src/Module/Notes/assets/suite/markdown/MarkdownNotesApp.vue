@@ -19,6 +19,9 @@ import NoteCoverModal from '@notes/suite/markdown/components/NoteCoverModal.vue'
 import NoteEditor from '@notes/suite/markdown/components/NoteEditor.vue';
 import NoteMarkdownHelp from '@notes/suite/markdown/components/NoteMarkdownHelp.vue';
 import NoteQuickOpen from '@notes/suite/markdown/components/NoteQuickOpen.vue';
+import NoteIconPicker from '@notes/suite/markdown/components/NoteIconPicker.vue';
+import NoteProperties from '@notes/suite/markdown/components/NoteProperties.vue';
+import { useDismissable } from '@notes/suite/markdown/composables/useDismissable.js';
 import { useKeyboardShortcut } from '@/shared/composables/useKeyboardShortcut.js';
 import NoteCollaborators from '@notes/suite/markdown/components/NoteCollaborators.vue';
 import NoteGraph from '@notes/suite/markdown/components/NoteGraph.vue';
@@ -35,7 +38,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ALargeSmall, CaseSensitive, ListPlus, Lock, LockOpen, MoveHorizontal, SmilePlus, CircleHelp, Maximize2, Minimize2, ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, RefreshCw, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -87,6 +90,7 @@ const props = defineProps({
     unlinkedMentionsPath: { type: String, required: true },
     graphPath: { type: String, required: true },
     linkTitlePath: { type: String, default: '' },
+    peopleEveryonePath: { type: String, default: '' },
     /** The whole notebook as a zip, a single note as .md, and the way back. */
     exportPath: { type: String, required: true },
     exportOnePath: { type: String, required: true },
@@ -555,6 +559,56 @@ async function fetchLinkTitle(url) {
 const noteEditorRef = ref(null);
 const helpOpen = ref(false);
 
+/** The note's emoji and its picker (09/10/2026). */
+const iconPickerOpen = ref(false);
+const iconPickerRef = ref(null);
+useDismissable(iconPickerRef, iconPickerOpen);
+
+function pickIcon(emoji) {
+    form.value.icon = emoji;
+    iconPickerOpen.value = false;
+}
+
+/**
+ * Who a « person » property can name: everybody of the suite, asked once,
+ * the first time a note shows or gets a property.
+ */
+const everyone = ref([]);
+let everyoneAsked = false;
+const { request: everyoneRequest } = useRequest();
+
+async function loadEveryone() {
+    if (everyoneAsked || !props.peopleEveryonePath) return;
+    everyoneAsked = true;
+    const payload = await everyoneRequest(props.peopleEveryonePath, null, { method: 'GET', silent: true, noGuard: true });
+    everyone.value = payload?.people ?? [];
+}
+
+watch(
+    () => form.value.properties?.length ?? 0,
+    (count) => {
+        if (count > 0) void loadEveryone();
+    },
+    { immediate: true },
+);
+
+function addProperty() {
+    void loadEveryone();
+    const taken = new Set((form.value.properties ?? []).map((property) => property.key.toLowerCase()));
+    let key = t('notes.markdown.properties.new');
+    for (let number = 2; taken.has(key.toLowerCase()); number += 1) key = `${t('notes.markdown.properties.new')} ${number}`;
+    form.value.properties = [...(form.value.properties ?? []), { key, type: 'text', value: null }];
+}
+
+const FONTS = ['sans', 'serif', 'mono'];
+
+/** How the note reads: its typeface and size, wherever it is shown. */
+const readingClass = computed(() => [
+    'serif' === form.value.font ? 'note-font-serif' : '',
+    'mono' === form.value.font ? 'note-font-mono' : '',
+    form.value.smallText ? 'note-small-text' : '',
+]);
+
 /** Quick search, Cmd/Ctrl+P (09/10/2026); Cmd/Ctrl+K stays the suite's. */
 const quickOpen = ref(false);
 useKeyboardShortcut({ key: 'p', ctrl: true }, () => {
@@ -781,6 +835,54 @@ const noteActions = computed(() => {
             icon: Image,
             onSelect: () => {
                 coverModalOpen.value = true;
+            },
+        },
+        // What a note is made of and how it reads (09/10/2026).
+        {
+            key: "icon",
+            title: form.value.icon ? t('notes.markdown.icon.change') : t('notes.markdown.icon.add'),
+            icon: SmilePlus,
+            onSelect: async () => {
+                await overlaysSettled();
+                iconPickerOpen.value = true;
+            },
+        },
+        {
+            key: "property",
+            title: t('notes.markdown.properties.add'),
+            icon: ListPlus,
+            onSelect: () => addProperty(),
+        },
+        {
+            key: "full-width",
+            title: form.value.fullWidth ? t('notes.markdown.layout.column') : t('notes.markdown.layout.full_width'),
+            icon: MoveHorizontal,
+            onSelect: () => {
+                form.value.fullWidth = !form.value.fullWidth;
+            },
+        },
+        {
+            key: "small-text",
+            title: form.value.smallText ? t('notes.markdown.layout.normal_text') : t('notes.markdown.layout.small_text'),
+            icon: ALargeSmall,
+            onSelect: () => {
+                form.value.smallText = !form.value.smallText;
+            },
+        },
+        {
+            key: "font",
+            title: t('notes.markdown.layout.font', { font: t(`notes.markdown.layout.fonts.${FONTS[(FONTS.indexOf(form.value.font ?? 'sans') + 1) % FONTS.length]}`) }),
+            icon: CaseSensitive,
+            onSelect: () => {
+                form.value.font = FONTS[(FONTS.indexOf(form.value.font ?? 'sans') + 1) % FONTS.length];
+            },
+        },
+        {
+            key: "lock",
+            title: form.value.locked ? t('notes.markdown.lock.unlock') : t('notes.markdown.lock.lock'),
+            icon: form.value.locked ? LockOpen : Lock,
+            onSelect: () => {
+                form.value.locked = !form.value.locked;
             },
         },
         ...(canShareSelected.value
@@ -1663,6 +1765,44 @@ onUnmounted(() => {
                         </figcaption>
                     </figure>
 
+                    <!-- The note's emoji, as in Notion (09/10/2026): over the
+                         bottom of the banner when there is one, above the
+                         title otherwise. -->
+                    <div
+                        v-if="form.icon || iconPickerOpen"
+                        ref="iconPickerRef"
+                        class="relative z-10 px-3"
+                        :class="form.coverUrl && !focusMode ? '-mt-10' : 'pt-3'"
+                    >
+                        <button
+                            type="button"
+                            data-note-icon
+                            class="rounded-lg p-1 text-5xl leading-none transition-colors hover:bg-surface-2"
+                            :class="form.icon ? '' : 'invisible'"
+                            :title="t('notes.markdown.icon.change')"
+                            :disabled="form.locked"
+                            v-on:click="iconPickerOpen = !iconPickerOpen"
+                        >
+                            {{ form.icon || '·' }}
+                        </button>
+                        <div v-if="iconPickerOpen" class="absolute left-3 top-full z-30 mt-1">
+                            <NoteIconPicker :current="form.icon" v-on:pick="pickIcon" />
+                        </div>
+                    </div>
+
+                    <!-- Locked against edits by mistake (09/10/2026). -->
+                    <div
+                        v-if="form.locked"
+                        data-note-locked
+                        class="flex items-center gap-2 border-b border-line bg-surface-2 px-3 py-1.5 text-xs text-muted"
+                    >
+                        <Lock class="h-3.5 w-3.5" :stroke-width="2" />
+                        <span class="flex-1">{{ t('notes.markdown.lock.banner') }}</span>
+                        <button type="button" class="font-medium text-secondary hover:text-primary" v-on:click="form.locked = false">
+                            {{ t('notes.markdown.lock.unlock') }}
+                        </button>
+                    </div>
+
                     <!-- The title and the commands on a single line: alone,
                          the title left half the header empty and pushed the
                          note down a row. The wrapping is the menu panel's -
@@ -1691,6 +1831,18 @@ onUnmounted(() => {
                              enough to say one can write in it, without
                              framing it all the time: the title stays a title
                              as long as it is not aimed at. -->
+                        <!-- An emoji to add, as in Notion: at hand, never in the way. -->
+                        <button
+                            v-if="!form.icon && !form.locked"
+                            type="button"
+                            data-note-add-icon
+                            class="-mr-2 shrink-0 rounded-md p-1 text-muted opacity-60 transition hover:bg-surface-2 hover:text-primary hover:opacity-100 focus:opacity-100"
+                            :title="t('notes.markdown.icon.add')"
+                            :aria-label="t('notes.markdown.icon.add')"
+                            v-on:click="iconPickerOpen = true"
+                        >
+                            <SmilePlus class="h-5 w-5" :stroke-width="2" />
+                        </button>
                         <input
                             v-model="form.title"
                             data-note-title
@@ -1699,6 +1851,7 @@ onUnmounted(() => {
                             :placeholder="t('notes.markdown.title_placeholder')"
                             :aria-label="t('notes.markdown.title_placeholder')"
                             :title="t('notes.markdown.rename')"
+                            :readonly="form.locked"
                         >
 
                         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
@@ -1867,6 +2020,10 @@ onUnmounted(() => {
                          fields they've added via aurora-client. -->
                         <slot name="extra-form-fields" :form="form" />
                     </header>
+                    <!-- The properties, under the title (09/10/2026). -->
+                    <div v-if="form.properties?.length" class="border-b border-line px-3 py-2">
+                        <NoteProperties v-model="form.properties" :people="everyone" :readonly="form.locked" />
+                    </div>
 
                     <!-- Two separate fixes, because the first one alone was aimed
                      at the wrong measurement.
@@ -1907,6 +2064,7 @@ onUnmounted(() => {
                             <NoteEditor
                                 ref="noteEditorRef"
                                 v-model="form.content"
+                                :readonly="form.locked"
                                 :placeholder="t('notes.markdown.content_placeholder')"
                                 :flat-notes="notes"
                                 :upload-image="api.uploadImage"
@@ -1941,6 +2099,7 @@ onUnmounted(() => {
                                  `# ` stays in the writing area as in the
                                  export. -->
                             <NotePreview
+                                :class="readingClass"
                                 :content="previewBody"
                                 :note-titles="notes"
                                 :load-note-content="loadNoteContent"

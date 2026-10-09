@@ -1046,6 +1046,67 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame('[[Nouveau $1 nom]], [[Nouveau $1 nom#Partie]], [[Nouveau $1 nom|ici]], [[Ancien nomade]]', $fresh->getContent());
     }
 
+    /** The emoji, the properties, the lock and the reading settings are saved (09/10/2026). */
+    public function testANoteKeepsItsIconPropertiesAndReadingSettings(): void
+    {
+        $note = $this->note($this->owner, 'Réglée');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('suite_notes_markdown_update', [
+            'title' => 'Réglée',
+            'content' => '',
+            'icon' => '🚀',
+            'properties' => [
+                ['key' => 'Statut', 'type' => 'status', 'value' => 'Validé'],
+                ['key' => 'Échéance', 'type' => 'date', 'value' => '2026-10-12'],
+                ['key' => 'Bidon', 'type' => 'inconnu', 'value' => ['pas', 'scalaire']],
+            ],
+            'locked' => true,
+            'fullWidth' => true,
+            'smallText' => true,
+            'font' => 'serif',
+        ], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('🚀', $fresh->getIcon());
+        self::assertSame([
+            ['key' => 'Statut', 'type' => 'status', 'value' => 'Validé'],
+            ['key' => 'Échéance', 'type' => 'date', 'value' => '2026-10-12'],
+            ['key' => 'Bidon', 'type' => 'text', 'value' => null],
+        ], $fresh->getProperties());
+        self::assertTrue($fresh->isLocked());
+        self::assertTrue($fresh->isFullWidth());
+        self::assertTrue($fresh->isSmallText());
+        self::assertSame('serif', $fresh->getFont()->value);
+    }
+
+    /** A save that does not send them leaves them as they are. */
+    public function testASaveWithoutTheSettingsKeepsThem(): void
+    {
+        $note = $this->note($this->owner, 'Gardée');
+        $note->setIcon('📌');
+        $note->setLocked(true);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('suite_notes_markdown_update', ['title' => 'Gardée', 'content' => 'Texte'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('📌', $fresh->getIcon());
+        self::assertTrue($fresh->isLocked());
+
+        // And an empty icon removes it.
+        $this->post('suite_notes_markdown_update', ['title' => 'Gardée', 'content' => 'Texte', 'icon' => ''], ['id' => $note->getId()]);
+        $this->entityManager->clear();
+        self::assertNull($this->entityManager->find(MarkdownNote::class, $note->getId())?->getIcon());
+    }
+
     private function listedRow(int $id): array
     {
         $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));

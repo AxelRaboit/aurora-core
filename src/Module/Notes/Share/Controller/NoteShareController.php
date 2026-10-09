@@ -16,6 +16,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
+use Aurora\Module\Notes\Markdown\View\MarkdownNoteDisplay;
 use Aurora\Module\Notes\NotesContext;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
@@ -84,6 +85,7 @@ final class NoteShareController extends AbstractController
         // like the one above.
         private readonly RateLimiterFactoryInterface $notesShareLiveLimiter,
         private readonly RateLimiterFactoryInterface $notesShareCoeditWriteLimiter,
+        private readonly MarkdownNoteDisplay $display,
     ) {}
 
     /**
@@ -268,7 +270,8 @@ final class NoteShareController extends AbstractController
         // anyway. An unauthenticated request should touch as little of
         // somebody's notes as the answer needs.
         $note = $link->getNote();
-        if (!$link->canWriteNote($note, new DateTimeImmutable()) || $note->getId() !== $id) {
+        // A locked note is read, not written, by a link too (09/10/2026).
+        if (!$link->canWriteNote($note, new DateTimeImmutable()) || $note->getId() !== $id || $note->isLocked()) {
             return $this->jsonNotFound();
         }
 
@@ -453,6 +456,7 @@ final class NoteShareController extends AbstractController
                 'position' => $note->getCoverPosition(),
             ],
             'appearance' => $note->getAppearance()->value,
+            'display' => $this->display->describe($note),
             // The rest of what the note is made of (09/10/2026): its tags and
             // when it last changed. Its folder stays out - it would show a
             // guest how the author files things, which the link never gave.
@@ -463,7 +467,7 @@ final class NoteShareController extends AbstractController
             // Whether this page may write, and where to. Both come from the
             // link, never from the request: the page is told what it may do
             // rather than asked to find out.
-            'canWrite' => $this->notesContext->isCollaborationEnabled() && $link->canWriteNote($note, new DateTimeImmutable()),
+            'canWrite' => $this->notesContext->isCollaborationEnabled() && $link->canWriteNote($note, new DateTimeImmutable()) && !$note->isLocked(),
             'saveNotePath' => $this->generateUrl('notes_share_save', [
                 'token' => $token,
                 'id' => (int) $note->getId(),
@@ -476,7 +480,8 @@ final class NoteShareController extends AbstractController
             'coediting' => $this->notesContext->isCollaborationEnabled()
                 && $this->liveHub->isEnabled()
                 && $link->allowsCoediting()
-                && $link->canWriteNote($note, new DateTimeImmutable()),
+                && $link->canWriteNote($note, new DateTimeImmutable())
+                && !$note->isLocked(),
             'liveBeatPath' => $this->generateUrl('notes_share_live', [
                 'token' => $token,
                 'id' => '__id__',

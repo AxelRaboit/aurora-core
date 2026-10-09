@@ -78,7 +78,7 @@ final class WikiLinkParser
 
         $hash = mb_strpos($target, '#');
         if (false !== $hash) {
-            $target = mb_trim(mb_substr($target, 0, $hash));
+            return mb_trim(mb_substr($target, 0, $hash));
         }
 
         return $target;

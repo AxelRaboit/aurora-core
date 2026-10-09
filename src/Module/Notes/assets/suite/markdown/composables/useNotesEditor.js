@@ -80,15 +80,40 @@ export function useNotesEditor({
         coverCreditUrl: null,
         coverPosition: 50,
         appearance: "plain",
+        // Since 09/10/2026: the emoji, the properties, the lock and the
+        // reading settings, saved and merged the same way.
+        icon: null,
+        properties: [],
+        locked: false,
+        fullWidth: false,
+        smallText: false,
+        font: "sans",
     };
 
     function pickLook(source) {
         return Object.fromEntries(
-            Object.entries(LOOK_DEFAULTS).map(([key, fallback]) => [
-                key,
-                source?.[key] ?? fallback,
-            ]),
+            Object.entries(LOOK_DEFAULTS).map(([key, fallback]) => {
+                const value = source?.[key] ?? fallback;
+
+                // A list is copied: the form edits its own, never the one the
+                // snapshot it is compared with still holds.
+                return [
+                    key,
+                    Array.isArray(value)
+                        ? JSON.parse(JSON.stringify(value))
+                        : value,
+                ];
+            }),
         );
+    }
+
+    /** Two values of the look alike - a list by what it holds, not by reference. */
+    function sameLook(left, right) {
+        if (Array.isArray(left) || Array.isArray(right)) {
+            return JSON.stringify(left ?? []) === JSON.stringify(right ?? []);
+        }
+
+        return left === right;
     }
 
     function blankForm() {
@@ -176,7 +201,8 @@ export function useNotesEditor({
         // difference to write, and the setting disappeared on the next
         // reload. Reported by Axel on 23/09.
         for (const key of Object.keys(LOOK_DEFAULTS)) {
-            if (loadedSnapshot.value[key] !== form.value[key]) return true;
+            if (!sameLook(loadedSnapshot.value[key], form.value[key]))
+                return true;
         }
 
         return false;
@@ -323,13 +349,16 @@ export function useNotesEditor({
 
         const look = {};
         for (const key of Object.keys(LOOK_DEFAULTS)) {
+            // A list is merged as one value, compared by what it holds.
+            const isList = Array.isArray(LOOK_DEFAULTS[key]);
+            const asValue = (one) => (isList ? JSON.stringify(one ?? []) : one);
             const value = threeWayValue(
-                base[key],
-                mine[key],
-                theirs[key] ?? LOOK_DEFAULTS[key],
+                asValue(base[key]),
+                asValue(mine[key]),
+                asValue(theirs[key] ?? LOOK_DEFAULTS[key]),
             );
             if (null === value) return false;
-            look[key] = value.value;
+            look[key] = isList ? JSON.parse(value.value) : value.value;
         }
 
         const tags = threeWayTags(base.tags, mine.tags, theirs.tags);
@@ -440,6 +469,9 @@ export function useNotesEditor({
                     ...notes.value[index],
                     title: snapshot.title,
                     tags: snapshot.tags,
+                    // The tree, the library and the quick search show the
+                    // emoji and read the rest (09/10/2026).
+                    ...pickLook(snapshot),
                     ...(saved
                         ? {
                               excerpt: saved.excerpt ?? null,

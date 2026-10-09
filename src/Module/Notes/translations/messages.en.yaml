@@ -116,6 +116,45 @@ notes:
             unreachable: "Craft returned nothing for that document."
             not_imported: This note does not come from Craft.
     markdown:
+        icon:
+            add: "Add an icon"
+            change: "Change the icon"
+            search: "Search: rocket, heart, house…"
+            random: "Random"
+            remove: "Remove"
+            none: "No emoji found."
+            recent: "Recent"
+        properties:
+            add: "Add a property"
+            new: "Property"
+            name: "Property name"
+            type: "Type"
+            empty: "Empty"
+            pick_person: "Pick a person"
+            remove: "Remove the property"
+            me: "me"
+            types:
+                text: "Text"
+                status: "Status"
+                date: "Date"
+                person: "Person"
+                number: "Number"
+                checkbox: "Checkbox"
+                url: "Link"
+        layout:
+            full_width: "Full width"
+            column: "Back to the column"
+            small_text: "Small text"
+            normal_text: "Normal text"
+            font: "Font: {font}"
+            fonts:
+                sans: "sans serif"
+                serif: "serif"
+                mono: "monospace"
+        lock:
+            lock: "Lock the note"
+            unlock: "Unlock"
+            banner: "Locked note: it can be read, not edited."
         quick_open:
             title: "Open a note"
             placeholder: "Note title…"

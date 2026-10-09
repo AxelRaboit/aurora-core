@@ -65,6 +65,7 @@ final readonly class LinkTitleFetcher
                     break;
                 }
             }
+
             $response->cancel();
 
             return self::extractTitle($html);

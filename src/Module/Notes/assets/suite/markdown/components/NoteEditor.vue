@@ -33,6 +33,8 @@ const props = defineProps({
      * drawn.
      */
     cursors: { type: Array, default: () => [] },
+    /** A locked note: read, not written (09/10/2026). */
+    readonly: { type: Boolean, default: false },
     /** The notebook's tags, offered after `#` (09/10/2026). */
     allTags: { type: Array, default: () => [] },
     /** `(url) => Promise<string|null>`: a pasted address's page title. */
@@ -119,6 +121,7 @@ if (props.uploadImage) {
             ref="textareaRef"
             :value="modelValue"
             :placeholder="placeholder"
+            :readonly="readonly"
             class="block h-full w-full rounded-md border border-line bg-surface px-3 py-2 text-primary placeholder-muted focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition resize-none font-mono text-sm"
             rows="20"
             v-on:input="onInput"

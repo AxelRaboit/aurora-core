@@ -157,6 +157,22 @@ final class NoteShareTest extends IntegrationTestCase
         self::assertStringNotContainsString('Classement privé', $body);
     }
 
+    /** The note's emoji and properties travel with the page, a person by name (09/10/2026). */
+    public function testTheSharedPageDescribesTheNotesIconAndProperties(): void
+    {
+        $note = $this->note('Décrite', 'Du texte.');
+        $note->setIcon('🚀');
+        $note->setProperties([['key' => 'Pour', 'type' => 'person', 'value' => $this->owner->getId()]]);
+        $this->entityManager->flush();
+        $link = $this->link($note);
+
+        $this->client->request('GET', $this->shareUrl($link));
+
+        $body = html_entity_decode((string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('"display":{"icon":"\ud83d\ude80"', $body);
+        self::assertStringContainsString('"label":'.json_encode($this->owner->getName()), $body);
+    }
+
     /** Every way of failing looks the same to whoever is asking. */
     public function testRevokedExpiredAndUnknownTokensAreIndistinguishable(): void
     {

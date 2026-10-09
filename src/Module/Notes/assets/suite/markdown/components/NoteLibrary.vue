@@ -1656,7 +1656,8 @@ defineExpose({
                             class="aurora-card flex min-w-0 items-center gap-2 px-3 py-2 text-sm no-underline transition-colors hover:border-accent-500/50"
                             v-on:click.prevent="emit('open-note', note.id)"
                         >
-                            <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
+                            <span v-if="note.icon" class="inline-flex w-4 shrink-0 justify-center leading-none">{{ note.icon }}</span>
+                            <FileText v-else class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                             <span class="truncate text-primary">{{ noteLabel(note) }}</span>
                         </a>
                     </div>
@@ -1768,7 +1769,8 @@ defineExpose({
                                     class="flex min-w-0 flex-1 items-center gap-2"
                                     v-on:click.prevent="emit('open-note', note.id)"
                                 >
-                                    <FileText class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
+                                    <span v-if="note.icon" class="inline-flex w-5 shrink-0 justify-center text-lg leading-none">{{ note.icon }}</span>
+                                    <FileText v-else class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
                                     <span class="truncate font-medium text-primary">{{ noteLabel(note) }}</span>
                                     <Users
                                         v-if="isShared(note)"
@@ -1902,7 +1904,8 @@ defineExpose({
                                         class="flex items-center gap-2"
                                         v-on:click.prevent="emit('open-note', note.id)"
                                     >
-                                        <FileText class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
+                                        <span v-if="note.icon" class="inline-flex w-4 shrink-0 justify-center leading-none">{{ note.icon }}</span>
+                                        <FileText v-else class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
                                         <span class="truncate font-medium text-primary">{{ noteLabel(note) }}</span>
                                     </a>
 

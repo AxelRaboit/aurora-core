@@ -13,8 +13,10 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Markdown\Enum\NoteFontEnum;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
+use Aurora\Module\Notes\Share\Service\WikiLinkParser;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -23,7 +25,6 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Aurora\Module\Notes\Share\Service\WikiLinkParser;
 
 #[AsAlias(MarkdownNoteManagerInterface::class)]
 class MarkdownNoteManager implements MarkdownNoteManagerInterface
@@ -109,6 +110,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             if (null !== $input->getCoverPosition()) {
                 $note->setCoverPosition($input->getCoverPosition());
             }
+
+            $this->applySettings($note, $input);
 
             $note->setFolder($folders[$key]);
             $note->setPosition($input->getPosition() ?? $nextPosition[$key]++);
@@ -368,6 +371,11 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $note->setCoverCreditUrl($source->getCoverCreditUrl());
         $note->setCoverPosition($source->getCoverPosition());
         $note->setAppearance($source->getAppearance());
+        $note->setIcon($source->getIcon());
+        $note->setProperties($source->getProperties());
+        $note->setFullWidth($source->isFullWidth());
+        $note->setSmallText($source->isSmallText());
+        $note->setFont($source->getFont());
 
         return $note;
     }
@@ -1030,7 +1038,41 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             $note->setPosition($input->getPosition());
         }
 
+        $this->applySettings($note, $input);
+
         $note->setFolder($this->folderFor($note, $input->getFolderId()));
+    }
+
+    /**
+     * The icon, the properties, the lock and the reading settings
+     * (09/10/2026): each only when the save sends it, so a caller that does
+     * not know them - an import, a share page - leaves them as they are.
+     */
+    protected function applySettings(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void
+    {
+        if (null !== $input->getIcon()) {
+            $note->setIcon($input->getIcon());
+        }
+
+        if (null !== $input->getProperties()) {
+            $note->setProperties($input->getProperties());
+        }
+
+        if (null !== $input->getLocked()) {
+            $note->setLocked($input->getLocked());
+        }
+
+        if (null !== $input->getFullWidth()) {
+            $note->setFullWidth($input->getFullWidth());
+        }
+
+        if (null !== $input->getSmallText()) {
+            $note->setSmallText($input->getSmallText());
+        }
+
+        if (null !== $input->getFont()) {
+            $note->setFont(NoteFontEnum::fromNullable($input->getFont()));
+        }
     }
 
     /**

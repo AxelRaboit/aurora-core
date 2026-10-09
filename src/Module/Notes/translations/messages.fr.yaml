@@ -120,6 +120,45 @@ notes:
             unreachable: "Craft n'a rien renvoyé pour ce document."
             not_imported: Cette note ne vient pas de Craft.
     markdown:
+        icon:
+            add: "Ajouter une icône"
+            change: "Changer l'icône"
+            search: "Chercher : fusée, cœur, maison…"
+            random: "Au hasard"
+            remove: "Retirer"
+            none: "Aucun emoji trouvé."
+            recent: "Récents"
+        properties:
+            add: "Ajouter une propriété"
+            new: "Propriété"
+            name: "Nom de la propriété"
+            type: "Type"
+            empty: "Vide"
+            pick_person: "Choisir une personne"
+            remove: "Retirer la propriété"
+            me: "moi"
+            types:
+                text: "Texte"
+                status: "Statut"
+                date: "Date"
+                person: "Personne"
+                number: "Nombre"
+                checkbox: "Case à cocher"
+                url: "Lien"
+        layout:
+            full_width: "Pleine largeur"
+            column: "Revenir à la colonne"
+            small_text: "Petite police"
+            normal_text: "Police normale"
+            font: "Police : {font}"
+            fonts:
+                sans: "sans empattement"
+                serif: "avec empattements"
+                mono: "à chasse fixe"
+        lock:
+            lock: "Verrouiller la note"
+            unlock: "Déverrouiller"
+            banner: "Note verrouillée : elle se lit, elle ne se modifie pas."
         quick_open:
             title: "Ouvrir une note"
             placeholder: "Titre de la note…"

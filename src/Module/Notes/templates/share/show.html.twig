@@ -9,6 +9,9 @@
    started, since a hub can be configured and still be down. #}
 {% block subheading %}{{ (canWrite ? 'notes.markdown.share.can_write' : 'notes.markdown.share.read_only')|trans }}{% endblock %}
 
+{# A note set to full width opens wide, unless the reader chose otherwise. #}
+{% block widenable_attributes %}{% if display.fullWidth %}data-wide-default="true"{% endif %}{% endblock %}
+
 {% block body %}
 <div {{ vue_component('notes/share/NoteShareApp', {
     imagePrefix: imagePrefix,
@@ -19,6 +22,7 @@
     content: note.content,
     cover: cover,
     appearance: appearance,
+    display: display,
     meta: meta,
     tree: tree,
     titleIndex: titleIndex,

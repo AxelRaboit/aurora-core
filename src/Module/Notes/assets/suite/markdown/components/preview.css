@@ -345,3 +345,11 @@
 
 /* ── Focus mode: the suite's page header goes with the menu ──────── */
 html.notes-focus #main-content > header { display: none; }
+
+/* ── Reading settings of a note (09/10/2026) ─────────────────────── */
+.note-preview.note-font-serif,
+.note-font-serif .note-preview { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif; }
+.note-preview.note-font-mono,
+.note-font-mono .note-preview { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.note-preview.note-small-text,
+.note-small-text .note-preview { font-size: 0.8125rem; }

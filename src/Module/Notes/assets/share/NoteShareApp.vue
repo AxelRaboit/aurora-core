@@ -65,6 +65,11 @@ const props = defineProps({
      */
     meta: { type: Object, default: null },
     /**
+     * `{icon, properties, fullWidth, smallText, font}`, as
+     * `MarkdownNoteDisplay` describes it (09/10/2026).
+     */
+    display: { type: Object, default: null },
+    /**
      * Whether this link may rewrite this note.
      *
      * Decided by the server from the link alone, and about this note only:
@@ -359,7 +364,14 @@ const html = computed(() => htmlOf(savedContent.value, savedTitle.value));
 // the whole point of looking at it beside the field.
 const draftHtml = computed(() => htmlOf(draftContent.value, draftTitle.value));
 
-const { formatDateTime } = useDateFormat();
+const { formatDate, formatDateTime } = useDateFormat();
+
+/** The note's typeface and size, as set in the suite. */
+const readingClass = computed(() => [
+    "serif" === props.display?.font ? "note-font-serif" : "",
+    "mono" === props.display?.font ? "note-font-mono" : "",
+    props.display?.smallText ? "note-small-text" : "",
+]);
 /** The text being shown: the draft while writing, the saved one otherwise. */
 const shownContent = computed(() => (editing.value ? draftContent.value : savedContent.value));
 const metaTags = computed(() => props.meta?.tags ?? []);
@@ -492,7 +504,7 @@ const lookClass = computed(() =>
 
         <article
             class="note-print-article aurora-card min-w-0 flex-1 overflow-hidden"
-            :class="lookClass"
+            :class="[lookClass, readingClass]"
         >
             <!-- The banner, when the note has one. The image lives with
                  whoever hosts it: if it disappears from there, the frame
@@ -533,6 +545,16 @@ const lookClass = computed(() =>
                     <AppButton class="mt-2" variant="secondary" size="sm" v-on:click="reload">
                         {{ t("notes.markdown.share.reload") }}
                     </AppButton>
+                </div>
+
+                <!-- The note's emoji, over the banner as in the suite. -->
+                <div
+                    v-if="display?.icon"
+                    data-share-icon
+                    class="mb-2 text-5xl leading-none"
+                    :class="coverUrl ? '-mt-14 relative' : ''"
+                >
+                    {{ display.icon }}
                 </div>
 
                 <div class="mb-4 flex items-start gap-2">
@@ -600,6 +622,31 @@ const lookClass = computed(() =>
                         </span>
                     </span>
                 </div>
+
+                <!-- The note's properties, as written in the suite. -->
+                <dl
+                    v-if="display?.properties?.length"
+                    data-share-properties
+                    class="-mt-2 mb-4 grid grid-cols-[minmax(0,10rem)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm"
+                >
+                    <template v-for="property in display.properties" :key="property.key">
+                        <dt class="truncate text-muted">{{ property.key }}</dt>
+                        <dd class="m-0 min-w-0 text-primary">
+                            <span v-if="'checkbox' === property.type">{{ property.value ? '☑' : '☐' }}</span>
+                            <a
+                                v-else-if="'url' === property.type && property.value"
+                                :href="property.value"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="break-all"
+                            >{{ property.value }}</a>
+                            <span v-else-if="'status' === property.type && property.value" class="rounded-full bg-accent-500/15 px-2 py-0.5 text-xs text-accent-600 dark:text-accent-300">{{ property.value }}</span>
+                            <span v-else-if="'date' === property.type && property.value">{{ formatDate(property.value) }}</span>
+                            <span v-else-if="'person' === property.type">{{ property.label ?? '' }}</span>
+                            <span v-else>{{ property.value ?? '' }}</span>
+                        </dd>
+                    </template>
+                </dl>
 
                 <div class="flex gap-8">
                     <div ref="bodyRef" class="min-w-0 flex-1">

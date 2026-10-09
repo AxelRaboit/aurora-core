@@ -115,6 +115,45 @@ notes:
             unreachable: 'Craft no ha devuelto nada para este documento.'
             not_imported: 'Esta nota no procede de Craft.'
     markdown:
+        icon:
+            add: "Añadir un icono"
+            change: "Cambiar el icono"
+            search: "Buscar: cohete, corazón, casa…"
+            random: "Al azar"
+            remove: "Quitar"
+            none: "Ningún emoji encontrado."
+            recent: "Recientes"
+        properties:
+            add: "Añadir una propiedad"
+            new: "Propiedad"
+            name: "Nombre de la propiedad"
+            type: "Tipo"
+            empty: "Vacío"
+            pick_person: "Elegir una persona"
+            remove: "Quitar la propiedad"
+            me: "yo"
+            types:
+                text: "Texto"
+                status: "Estado"
+                date: "Fecha"
+                person: "Persona"
+                number: "Número"
+                checkbox: "Casilla"
+                url: "Enlace"
+        layout:
+            full_width: "Ancho completo"
+            column: "Volver a la columna"
+            small_text: "Letra pequeña"
+            normal_text: "Letra normal"
+            font: "Tipografía: {font}"
+            fonts:
+                sans: "sin remates"
+                serif: "con remates"
+                mono: "monoespaciada"
+        lock:
+            lock: "Bloquear la nota"
+            unlock: "Desbloquear"
+            banner: "Nota bloqueada: se puede leer, no modificar."
         quick_open:
             title: "Abrir una nota"
             placeholder: "Título de la nota…"
