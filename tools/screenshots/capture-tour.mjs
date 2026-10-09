@@ -148,6 +148,9 @@ async function placeCaret(field, marker) {
     await field.press("ArrowLeft");
 }
 
+/** The days the journal shot wrote, removed after it. */
+let journalNotes = [];
+
 /**
  * The guest of the live link, in a browser of their own with no session: the
  * room needs two people, and a guest is the case the link exists for.
@@ -1449,18 +1452,40 @@ const SHOTS = [
         path: "/suite/notes/markdown",
         async before(page) {
             await page.goto(`${BASE_URL}/suite/notes/markdown`, { waitUntil: "domcontentloaded" });
-            await page.evaluate(async () => {
+            journalNotes = await page.evaluate(async () => {
                 const today = new Date();
                 const days = [1, 3, 6, 8].filter((day) => day < today.getDate());
+                const ids = [];
                 for (const day of days) {
                     const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                    await fetch("/suite/notes/markdown/daily", {
+                    const response = await fetch("/suite/notes/markdown/daily", {
                         method: "POST",
                         headers: { Accept: "application/json", "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
                         body: JSON.stringify({ date }),
                     });
+                    ids.push((await response.json())?.note?.id);
                 }
+
+                return ids.filter(Boolean);
             });
+        },
+        // Gone for good afterwards: empty notes dated today would top the
+        // library's « recently modified » in every later shot (09/10/2026).
+        async after(page) {
+            await page.evaluate(async (ids) => {
+                const headers = { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
+                for (const id of ids) {
+                    await fetch(`/suite/notes/markdown/${id}/delete`, { method: "POST", headers });
+                    await fetch(`/suite/notes/markdown/${id}/force-delete`, { method: "POST", headers });
+                }
+                // And the « Journal » folder the first of them filed, left empty.
+                const folders = (await (await fetch("/suite/notes/markdown/folders", { headers })).json())?.folders ?? [];
+                for (const folder of folders.filter((one) => "Journal" === one.name && null == one.parentId && 0 === (one.noteCount ?? 0) && 0 === (one.folderCount ?? 0))) {
+                    await fetch(`/suite/notes/markdown/folders/${folder.id}/delete`, { method: "POST", headers });
+                    await fetch(`/suite/notes/markdown/folders/${folder.id}/force-delete`, { method: "POST", headers });
+                }
+            }, journalNotes);
+            journalNotes = [];
         },
         async prepare(page) {
             await page.locator("[data-library-daily-note]").first().click();
