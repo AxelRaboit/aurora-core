@@ -10,6 +10,8 @@ use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
 use DateTimeImmutable;
 
+use function array_any;
+
 /**
  * Whether a note is written together, letter by letter, by whoever has it open.
  *
@@ -54,12 +56,10 @@ final readonly class NoteCoediting
             return false;
         }
 
-        foreach ($this->shareLinkRepository->findForNote($note) as $link) {
-            if ($link instanceof MarkdownNoteShareLinkInterface && $link->allowsCoediting() && $link->canWriteNote($note, $now)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(
+            $this->shareLinkRepository->findForNote($note),
+            static fn (MarkdownNoteShareLinkInterface $link): bool => $link->allowsCoediting()
+                && $link->canWriteNote($note, $now),
+        );
     }
 }
