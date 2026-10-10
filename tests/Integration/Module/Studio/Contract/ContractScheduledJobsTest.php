@@ -126,7 +126,7 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
         $id = $this->sentContract();
         $this->sentDaysAgo($id, 10);
         $this->entityManager->getConnection()->executeStatement(
-            "UPDATE core_contracts SET reminder_count = 1, last_reminder_at = NOW() - INTERVAL '5 days' WHERE id = :id",
+            "UPDATE core_contracts SET reminder_count = 1, last_reminder_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '5 days' WHERE id = :id",
             ['id' => $id],
         );
 
@@ -138,12 +138,14 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
     public function testALapsedLinkTurnsTheContractExpired(): void
     {
         $id = $this->sentContract();
+        // UTC like everything the app writes: a bare NOW() is the server's
+        // local time, a day ahead of PHP between midnight and 2 a.m. in Paris.
         $this->entityManager->getConnection()->executeStatement(
-            "UPDATE core_contract_access_links SET sent_at = NOW() - INTERVAL '40 days', expires_at = NOW() - INTERVAL '10 days' WHERE contract_id = :id",
+            "UPDATE core_contract_access_links SET sent_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '40 days', expires_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '10 days' WHERE contract_id = :id",
             ['id' => $id],
         );
         $this->entityManager->getConnection()->executeStatement(
-            "UPDATE core_contracts SET created_at = NOW() - INTERVAL '41 days', frozen_at = NOW() - INTERVAL '40 days' WHERE id = :id",
+            "UPDATE core_contracts SET created_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '41 days', frozen_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '40 days' WHERE id = :id",
             ['id' => $id],
         );
 
@@ -193,7 +195,7 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
     private function sentDaysAgo(int $contractId, int $days): void
     {
         $this->entityManager->getConnection()->executeStatement(
-            sprintf("UPDATE core_contract_access_links SET sent_at = NOW() - INTERVAL '%d days' WHERE contract_id = :id", $days),
+            sprintf("UPDATE core_contract_access_links SET sent_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '%d days' WHERE contract_id = :id", $days),
             ['id' => $contractId],
         );
     }
